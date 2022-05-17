@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/lodash.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <link rel="stylesheet" href="css/ports.css">
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+
+        <div id="ports" class="tutorial">
+
+            <h2>E2E Testing with Playwright</h2>
+
+            <p>
+                E2E testing is an integral part of ensuring your application behaves as expected. As we often get asked how to perform
+                end-to-end testing for JointJS applications, in the following tutorial, we will cover some core concepts, and hopefully
+                give you some inspiration for whatever testing technology you choose to use.
+            </p>
+
+            <p>
+                To start with, let's introduce <a href="https://playwright.dev/" target="_blank">Playwright</a>, the testing framework of
+                our choice. Playwright is a microsoft project, that supports all modern rendering engines, Chromium, Webkit, and Firefox. 
+                It also has cross-language support, so if your application uses TypeScript, Playwright has you covered. Playwright provides 
+                you with a lot of functionality right out of the box, and a very nice API to test your user interface.
+            </p>
+
+            <p>
+                Playwright can be used as a library, but we will be using it as part of the Playwright Test test runner. It was created
+                specifically to accommodate the needs of end-to-end testing.
+            </p>
+
+            <h3 id="installation">
+                Installation
+            </h3>
+
+            <p>
+                Playwright requires Node.js version 12 or above. Run <code>node -v</code> from the command line to make sure you have a 
+                compatible version of Node.js. If you have a suitable version, we are ready begin. As we know our application and tests
+                directories will live in the root folder of our project, that's where we will install the dependency and default browsers.
+                This tutorial uses version <code>"@playwright/test": "1.21.1"</code>, and to install, we run the following commands from 
+                the terminal.
+            </p>
+
+    <pre><code>npm i -D @playwright/test@1.21.1
+// install supported browsers
+npx playwright install
+</code></pre>
+
+            <p>
+                As we want to enjoy all the features Playwright has to offer, we will also create a configuration file 
+                <code>playwright.config.js</code> in our project root. The following config will run every test in Chromium, Firefox, and 
+                WebKit by creating a "project" for each browser configuration.
+            </p>
+
+    <pre><code>const { devices } = require('@playwright/test');
+
+const config = {
+    projects: [
+        {
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] },
+        },
+        {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+        },
+        {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+        },
+    ],
+};
+
+module.exports = config;       
+</code></pre>
+
+        <p>
+            Now that our minimal testing setup is complete, we are ready to write our first test. Our test files
+            will be placed in the <code>tests</code> directory located in the project root, and each test spec will 
+            have the suffix <code>.spec.js</code>. Let's create our first spec file, and name it 
+            <code>example.spec.js</code>.
+        </p>
+
+        <h3 id="first-test">
+            First Test
+        </h3>
+
+        <p>
+            Our first test simply visits a specific page. As we are working locally, our url is our
+            localhost, but of course you can insert your own url in this test example. Playwright Test provides a 
+            <code>test</code> function to declare tests, and an <code>expect</code> function to write assertions.
+            The <code>page</code> argument is a test fixture, it provides methods which allow you to interact with 
+            the browser.
+        </p>
+
+    <pre><code>const { test, expect } = require('@playwright/test');
+
+test('Visit Page', async ({ page }) => {
+  await page.goto('http://localhost:3000/');
+  const pageTitle = await page.title();
+  expect(pageTitle).toBe('JointJS App');
+});
+</code></pre>
+
+        <p>
+            When we are satisfied with our first test, and have checked our application is up and running (in our case,
+            on <i>localhost:3000</i>), we simply run <code>npx playwright test</code> from our project root. The test 
+            will run in headless browsers, and if successful, you should see something similar to the following output:
+        </p>
+
+<pre><code>Running 3 tests using 2 workers
+    
+✓  [firefox] › tests/example.spec.js:4:1 › Visit Page (7s)
+✓  [chromium] › tests/example.spec.js:4:1 › Visit Page (3s)
+✓  [webkit] › tests/example.spec.js:4:1 › Visit Page (2s)
+
+3 passed (8s)
+</code></pre>
+
+        <p>
+            Running tests in all rendering engines is certainly definitive, but what if we want to test something a little 
+            quicker, and are satisfied with just use one? To run just one of our "projects" from the config file we created, 
+            you can run <code>npx playwright test --project=chromium</code>.
+        </p>
+
+        <p>
+            Let's provide an incorrect page title to our test expectation in order to see what happens if our test fails.
+            In the following output, Playwright provides some meaningful output such as expected/received values, and 
+            a call log for debugging purposes.
+        </p>
+
+        <pre><code>1) [chromium] › tests/example.spec.js:8:1 › Visit Page ===========================
+
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "JointJS Ap"
+Received: "JointJS App"
+
+    14 |     });
+    15 |     const pageTitle = await page.title();
+  > 16 |     expect(pageTitle).toBe('JointJS Ap');
+       |                       ^
+    17 | });
+</code></pre>
+
+        <p>
+            Running this test in a headed browser may not be too beneficial, but let's see how we can achieve that.
+            <code>npx playwright test --headed</code> will run our test for each of our "projects". As the test just visits a page, that
+            means Playwright will show us the respective browsers for a very short time, and that's to be expected.
+        </p>
+
+        <p>
+            As we want to make our lives as easy as possible, we will also configure a few npm scripts for testing. Playwright Test will 
+            automatically pick up a <code>playwright.config.js</code> file located in our project root. In our <code>package.json</code> file, 
+            <code>npm run test</code> will run each of our projects for each test spec in headless browsers, and 
+            <code>npm run test:chromium</code> will just run tests using the chromium rendering engine. This isn't anything special,
+            and just covers the commands we have already used so far. 
+        </p>
+
+        <pre><code>{
+    "scripts": {
+        "test": "playwright test",
+        "test:chromium": "playwright test --project=chromium"
+    }
+}
+</code></pre>
+
+        <h3 id="testing-ui">
+            Testing UI
+        </h3>
+
+        <p>
+            After visiting your application, you may want to perform some simple sanity checks in order to check if the state corresponds
+            to your expectations. A tried and tested way of doing this is to determine if the text is displayed correctly. Playwright 
+            provides some nice <a href="https://playwright.dev/docs/selectors" target="_blank"><code>Selectors</code></a> to target 
+            elements which we expect to be present in the normal flow of our app. As we want our testing to be as robust and reliable as 
+            possible, we will prioritize user-facing attributes, that means we will use mainly text or CSS selectors.
+        </p>
+
+        <p>
+            In our JointJS app, we are going to target our primary heading as we know it's content that rarely changes, and isn't impacted 
+            by DOM structure changes. In the following example, our text selector is used to create a 
+            <a href="https://playwright.dev/docs/locators" target="_blank"><code>Locator</code></a>. Locators allow us to perform actions on 
+            elements such as a click for example. A nice feature of Locators is that they are strict by design, that means operations on locators 
+            will throw an exception if more than one element matches a given selector. This is great for our primary heading as we know it is 
+            a unique piece of content on our page.
+        </p>
+
+        <p>
+            To set up shared resources between tests, you can utilize test hooks. As we want to visit our application before each test,
+            the <a href="https://playwright.dev/docs/api/class-test#test-before-all" target="_blank"><code>test.beforeAll</code></a> 
+            hook can provide this nice functionality for us.
+        </p>
+
+        <pre><code>const { test, expect } = require('@playwright/test');
+            
+test.beforeAll(async ({ page }) => {
+    await page.goto('http://localhost:3000/');
+});
+          
+test('Primary heading isVisible', async ({ page }) => {
+    const heading = page.locator('text=JointJS App');
+    await expect(heading).toBeVisible();
+});
+</code></pre>
+
+        <p>
+            In any JointJS application, there are common actions or scenarios you might like to test. In the following section,
+            we will look at some of those situations, and hopefully give you some inspiration for your own testing suite.
+        </p>
+
+        <h4 id="user-input-and-dynamic-attributes">
+            User Input & Dynamic Attributes
+        </h4>
+
+        <p>
+            Dynamic content is central to most modern applications, and if you are using JointJS, you probably want to test this 
+            scenario too. In the following case, a user fills an input field with text, and the text value of this input will also 
+            be the value of an element label.
+        </p>
+
+        <p>
+            To approach this user story, we take advantage of the page fixture once more. We use the 
+            <a href="https://playwright.dev/docs/api/class-page#page-fill" target="_blank">page.fill()</a> method which accepts a 
+            selector as its first parameter, and the value to be filled as the second. After targeting our input, it's just a matter 
+            of locating our element on the page, and confirming it has the text we provided to our method.
+        </p>
+
+        <p>
+            If you are a user of JointJS+, you might use similar techniques when testing our
+            <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Inspector.html" target="_blank">ui.Inspector</a> plugin.
+        </p>
+
+        <pre><code>test('User input changes attribute', async ({ page }) => {
+    await page.fill('input', 'Hi');
+
+    const rect = page.locator('.joint-type-standard-rectangle');
+    await expect(rect).toHaveText('Hi');
+});
+</code></pre>
+
+        <h4 id="dragging-elements">
+            Dragging Elements
+        </h4>
+
+        <p>
+            An important part of any diagramming library is the ability to drag elements. What if we needed to automate the testing
+            of dragging an element from one area of our application to another?
+        </p>
+
+        <p>
+            Playwright Locators provide a 
+            <a href="https://playwright.dev/docs/api/class-locator#locator-drag-to" target="_blank">locator.dragTo()</a> method which
+            will help us implement this action without the need to write a lot of code. We simply need to create a Locator for our source 
+            and target, call the method on our source, and pass the target Locator as the first argument.
+        </p>
+
+        <p>
+            If your application has many moving parts, you can likely take advantage of this method to test the dragging of elements
+            in a way that makes sense for your situation. Similar techniques might be used in JointJS+ for dragging an element from the 
+            <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Stencil.html" target="_blank">ui.Stencil</a> plugin to the 
+            JointJS <code>paper</code>.
+        </p>
+
+        <pre><code>test('Drag element to target area', async ({ page }) => {
+    const source = page.locator('.joint-type-standard-ellipse');
+    const target = page.locator('.joint-type-standard-rectangle');
+    await source.dragTo(target);
+
+    const sourcebbox = await source.boundingBox();
+    const targetbbox = await target.boundingBox();
+
+    // If top-left inner box corner is inside the outer box
+    expect(targetbbox.x).toBeLessThan(sourcebbox.x);
+    expect(targetbbox.y).toBeLessThan(sourcebbox.y);
+
+    // If bottom-right inner box corner is inside the outer box
+    expect(sourcebbox.x + sourcebbox.width).toBeLessThan(targetbbox.x + targetbbox.width);
+    expect(sourcebbox.y + sourcebbox.height).toBeLessThan(targetbbox.y + targetbbox.height);
+});
+</code></pre>
+
+        <h4 id="linking-elements">
+            Linking Elements
+        </h4>
+
+        <p>
+            Testing the linking of elements is another common pattern you may want to examine in JointJS. We have already looked at most
+            of the Playwright features in the following example, one additional class we will work with is 
+            <a href="https://playwright.dev/docs/api/class-mouse" target="_blank" rel="noopener noreferrer">Mouse</a>. Every 
+            <i>page</i> object has its own mouse accessible with <code>page.mouse</code>.
+        </p>
+
+        <p>
+            Mouse will help use automate a click on one element's port, and subsequently draw a link that connects to another element.
+            After drawing our link, we can ensure our Locator resolves to an exact number of DOM nodes by using the following assertion
+            <a href="https://playwright.dev/docs/test-assertions#locator-assertions-to-have-count" target="_blank">
+            expect(locator).toHaveCount()</a>.
+        </p>
+
+        <pre><code>test('Link Elements', async ({ page }) => {
+    const source = page.locator('.joint-port-body');
+    const sourcebbox = await source.boundingBox();
+
+    const target = page.locator('text=label');
+    const targetbbox = await target.boundingBox();
+
+    // No link should be present in DOM
+    const link = page.locator('.joint-type-standard-link');
+    await expect(link).toHaveCount(0);
+
+    // Mousemove to center of element
+    await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(targetbbox.x, targetbbox.y);
+    await page.mouse.up();
+
+    // A link should exist after mousemove
+    await expect(link).toHaveCount(1);
+});
+</code></pre>
+
+        <h4 id="drag-and-drop">
+            Drag & Drop
+        </h4>
+
+        <p>
+            Playwright also provides the ability to test drag & drop right out of the box.
+            <a href="https://playwright.dev/docs/api/class-page#page-drag-and-drop" target="_blank">page.dragAndDrop()</a> combines some of
+            the functionality we have looked at already into one concise method. We simply need to provide our source and target selectors
+            as arguments, and it will take care of the rest.
+        </p>
+
+        <p>
+            As with our previous example of dragging elements, you could provide a similar assertion here, or create one that works for
+            your testing scenario.
+        </p>
+
+        <pre><code>test('Drag and Drop', async ({ page }) => {
+    await page.dragAndDrop('text=source', 'text=target');
+
+    // Your assertion
+});
+</code></pre>
+
+        <h4 id="visual-regression">
+            Visual Regression
+        </h4>
+
+        <p>
+            As we want to maintain a consistent visual state for our JointJS application, we will also perform a test to see if our app has
+            regressed visually in some manner. Playwright Test allows us to produce and visually compare screenshots. Let's create a new file 
+            in our tests folder <code>visual-regression.spec.js</code>, and add the following test.
+        </p>
+
+        <pre><code>const { test, expect } = require('@playwright/test');
+
+test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:3000/');
+});
+
+test('visual regression', async ({ page }) => {
+
+    // Your actions to manipulate application state
+
+    expect(await page.screenshot()).toMatchSnapshot();
+});
+</code></pre>
+
+        <p>
+            On the first test run, it will generate reference screenshots, and subsequent test runs will compare against the reference. On the 
+            first run, you should see some output similar to the following error, but don't worry, that's expected because there isn't any 
+            "golden" file for comparison yet.
+        </p>
+
+        <pre><code>// Error: example.spec.ts-snapshots/example-test-1-chromium-darwin.png is missing in snapshots, writing actual.
+</code></pre>
+
+        <p>
+            "Golden" snapshots will be located in the tests directory, and placed within a folder that corresponds to the name of your test file.
+            In our case it will be <code>tests/visual-regression.spec.js-snapshots</code>. As we have a project set up for each rendering engine, 
+            the folder will contain a snapshot for each one respectively.
+        </p>
+
+        <p>
+            After comparing your "golden" snapshot with the current state of your application, it's only natural that you may need to make 
+            further changes to visual aspects of your project. In this case, you will need to update your snapshots in order for visual regression 
+            tests to run successfully again. To update snapshots, you can run the following command:
+        </p>
+
+        <pre><code>npx playwright test --update-snapshots
+</code></pre>
+
+        <h3 id="debugging-tools">
+            Debugging Tools
+        </h3>
+
+        <p>
+            An important part of any testing implementation is debugging. As we have now covered some typical UI testing flows with JointJS,
+            let's look at how we can debug in Playwright should any of our tests fail.
+        </p>
+
+        <p>
+            The first tool we will look at is the Playwright <a href="https://playwright.dev/docs/inspector" target="_blank">Inspector</a>.
+            Inspector is a GUI tool that helps authoring and debugging Playwright scripts. To launch the inspector, we need to set the
+            <code>PWDEBUG</code> environment variable to run our scripts in debug mode. This configures Playwright for debugging and opens 
+            the Inspector.
+        </p>
+
+        <p>
+            In Bash, we can run the following command:
+        </p>
+
+        <pre><code>PWDEBUG=1 npm run test
+</code></pre>
+
+        <p>
+            As we don't want to type this every time, we will set up an npm script in our <code>package.json</code> for this too. We 
+            will take advantage of our previous scripts, and just set up debugging in chrome, as we only want to use chrome dev tools
+            for debugging.
+        </p>
+
+        <pre><code>"test": "playwright test",
+"test:chromium": "playwright test --project=chromium",
+"test:debug": "PWDEBUG=1 npm run test:chromium"
+</code></pre>
+
+        <p>
+            Running <code>npm run test:debug</code> will open our Inspector, and because we configured <code>PWDEBUG=1</code>, some 
+            useful additional defaults are configured for us. Firstly, the browsers launch in headed mode giving us easy access to 
+            chrome dev tools. Secondly, the default timeout is set to 0, this means our tests won't exit with an exception after a certain
+            amount of time. Lastly, it also configures a <code>playwright</code> object in the browser to generate, and highlight
+            Playwright Selectors. 
+        </p>
+
+        <p>
+            When the Inspector window opens, it will be paused on the first Playwright statement. As we set up a <code>beforeAll</code>
+            test hook earlier, our first statement is <code>await page.goto('http://localhost:3000/')</code>. Using the provided 
+            control tools in the Inspector, we can step over each Playwright action, or resume the script without further pauses.
+        </p>
+
+        <p>
+            Clicking the <i>Explore</i> button allows us to hover over elements on screen, and click them to automatically generate
+            selectors for those elements. Similarly, typing a Selector in the input field will highlight any matching element on 
+            screen.
+        </p>
+
+        <p>
+            In the illustration photo of our Inspector, the bottom half shows you the Playwright actions from our Linking Elements 
+            test earlier. You can view the log of each Playwright action via the dropdown arrow. In our photo, we can see our assertion
+            <code>await expect(link).toHaveCount(1)</code> has resolved to 1 element giving us confidence a link has been drawn, and 
+            our test is working as we intended. If actionability can't be reached, or there are some test related errors, it will
+            also be shown in the Inspector logs.
+        </p>
+
+        <img src="./images/testing-e2e-playwright-inspector.png" alt="Playwright Testing Inspector GUI" width="650">
+
+        <p>
+            As the Inspector has also launched chrome in headed mode, we also have access to all of the usual dev tools we are 
+            accustomed to as we step through our testing scripts. Using the <code>playwright</code> object in dev tools, also
+            gives us access to an API which may also be useful for you depending on your situation.
+        </p>
+
+        <p>
+            <code>playwright.$(selector)</code> highlights the first occurrence of a selector, and returns the matching element, while
+            <code>playwright.$$(selector)</code> returns all matching elements respectively. You can see more examples of this API
+            in the Playwright <a href="https://playwright.dev/docs/debug" target="_blank">debug</a> documentation.
+        </p>
+
+        <h4 id="reporters-and-trace-viewer">
+            Reporters and Trace Viewer
+        </h4>
+
+        <p>
+            Playwright Test comes with a few built-in reporters for different needs, and the ability to provide custom reporters. In this
+            tutorial, we will focus mainly on the HTML reporter as it provides a nice way to interact with the Trace Viewer which we
+            want to examine too.
+        </p>
+
+        <p>
+            Simply put, the HTML reporter creates a directory <i>playwright-report</i> which presents our test report data in a web page.
+            This web page also allows us to interact with a trace for each test, a trace is a GUI tool that helps troubleshooting
+            our test runs.
+        </p>
+
+        <p>
+            To begin, we need to provide some additional configuration options to <code>playwright.config.js</code>. 
+            <code>trace: 'on'</code> will create a trace for each test (success or failure), while <code>reporter: 'html'</code>
+            simply states our reporter type.
+        </p>
+
+        <pre><code>const { devices } = require('@playwright/test');
+
+const config = {
+    use: {
+        trace: 'on',
+    },
+    reporter: 'html',
+    projects: [
+        // project options
+    ],
+};
+
+module.exports = config;       
+</code></pre>
+
+        <p>
+            We will also add one more npm script to our <code>package.json</code> which allows us to open the last HTML report run.
+        </p>
+
+        <pre><code>"scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:debug": "PWDEBUG=1 npm run test:chromium",
+    "test:report": "playwright show-report"
+},
+</code></pre>
+
+        <p>
+            Again, the setup was minimal, and now from our project root, we can <code>npm run test</code>, followed by 
+            <code>npm test:report</code> which will serve our HTML report page.
+        </p>
+
+        <p>
+            The first photo below displays the landing page of the HTML reporter. It contains one collapsible section per 
+            test spec. Our reporter shows one test spec <code>tests/example.spec.js</code> containing one test for linking elements
+            in each rendering engine. The search input and clickable rendering engine tags provide test filtering.
+        </p>
+
+        <p>
+            Navigating to the test name brings you to the test detail which you see in the second photo. Again, you are provided 
+            with the Playwright test actions similar to what we saw in the Inspector. The action dropdowns show the related code
+            from the test spec.
+        </p>
+
+        <img src="./images/testing-e2e-reporter.png" alt="Playwright HTML Reporter" width="650">
+        <img src="./images/testing-e2e-reporter-detail.png" alt="Playwright HTML Reporter test detail" width="650">
+
+        <p>
+            You'll also notice we are provided with a <i>trace.zip</i> file. Clicking on the trace will bring you to the GUI
+            for the Trace Viewer which you can see below. This interface provides several useful sections for debugging. At the top,
+            the title is featured along with a timeline displaying snapshots of the application state as the test runs.
+        </p>
+
+        <p>
+            The left column contains the Playwright actions, the middle column displays before and after snapshots for each of those
+            actions, and finally the right column provides the action details.
+        </p>
+
+        <img src="./images/testing-e2e-trace-viewer.png" alt="Playwright Trace Viewer" width="650">
+
+        <p>
+            Of course, Playwright provides functionality to use Reporters and the Trace Viewer independent of each other. The manner in 
+            which we used them together here was just for illustration purposes.  
+        </p>
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+
+    </body>
+</html>
+
