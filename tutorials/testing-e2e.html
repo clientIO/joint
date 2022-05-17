@@ -484,9 +484,98 @@ test('visual regression', async ({ page }) => {
         </p>
 
         <p>
-            <code>playwright.$(selector)</code> highlights the first occurrence of a selector, while 
-            <code>playwright.$$(selector)</code> highlights all occurrences.
+            <code>playwright.$(selector)</code> highlights the first occurrence of a selector, and returns the matching element, while
+            <code>playwright.$$(selector)</code> returns all matching elements respectively. You can see more examples of this API
+            in the Playwright <a href="https://playwright.dev/docs/debug" target="_blank">debug</a> documentation.
         </p>
+
+        <h4 id="reporters-and-trace-viewer">
+            Reporters and Trace Viewer
+        </h4>
+
+        <p>
+            Playwright Test comes with a few built-in reporters for different needs, and the ability to provide custom reporters. In this
+            tutorial, we will focus mainly on the HTML reporter as it provides a nice way to interact with the Trace Viewer which we
+            want to examine too.
+        </p>
+
+        <p>
+            Simply put, the HTML reporter creates a directory <i>playwright-report</i> which presents our test report data in a web page.
+            This web page also allows us to interact with a trace for each test, a trace is a GUI tool that helps troubleshooting
+            our test runs.
+        </p>
+
+        <p>
+            To begin, we need to provide some additional configuration options to <code>playwright.config.js</code>. 
+            <code>trace: 'on'</code> will create a trace for each test (success or failure), while <code>reporter: 'html'</code>
+            simply states our reporter type.
+        </p>
+
+        <pre><code>const { devices } = require('@playwright/test');
+
+const config = {
+    use: {
+        trace: 'on',
+    },
+    reporter: 'html',
+    projects: [
+        // project options
+    ],
+};
+
+module.exports = config;       
+</code></pre>
+
+        <p>
+            We will also add one more npm script to our <code>package.json</code> which allows us to open the last HTML report run.
+        </p>
+
+        <pre><code>"scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:debug": "PWDEBUG=1 npm run test:chromium",
+    "test:report": "playwright show-report"
+},
+</code></pre>
+
+        <p>
+            Again, the setup was minimal, and now from our project root, we can <code>npm run test</code>, followed by 
+            <code>npm test:report</code> which will serve our HTML report page.
+        </p>
+
+        <p>
+            The first photo below displays the landing page of the HTML reporter. It contains one collapsible section per 
+            test spec. Our reporter shows one test spec <code>tests/example.spec.js</code> containing one test for linking elements
+            in each rendering engine. The search input and clickable rendering engine tags provide test filtering.
+        </p>
+
+        <p>
+            Navigating to the test name brings you to the test detail which you see in the second photo. Again, you are provided 
+            with the Playwright test actions similar to what we saw in the Inspector. The action dropdowns show the related code
+            from the test spec.
+        </p>
+
+        <img src="./images/testing-e2e-reporter.png" alt="Playwright HTML Reporter" width="650">
+        <img src="./images/testing-e2e-reporter-detail.png" alt="Playwright HTML Reporter test detail" width="650">
+
+        <p>
+            You'll also notice we are provided with a <i>trace.zip</i> file. Clicking on the trace will bring you to the GUI
+            for the Trace Viewer which you can see below. This interface provides several useful sections for debugging. At the top,
+            the title is featured along with a timeline displaying snapshots of the application state as the test runs.
+        </p>
+
+        <p>
+            The left column contains the Playwright actions, the middle column displays before and after snapshots for each of those
+            actions, and finally the right column provides the action details.
+        </p>
+
+        <img src="./images/testing-e2e-trace-viewer.png" alt="Playwright Trace Viewer" width="650">
+
+        <p>
+            Of course, Playwright provides functionality to use Reporters and the Trace Viewer independent of each other. The manner in 
+            which we used them together here was just for illustration purposes.  
+        </p>
+
         <script src="../node_modules/prismjs/prism.js"></script>
 
     </body>
