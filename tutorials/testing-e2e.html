@@ -214,11 +214,11 @@ Received: "JointJS App"
         </h3>
 
         <p>
-            After visiting your application, you may want to perform some simple sanity checks in order to check if the state corresponds
-            to your expectations. A tried and tested way of doing this is to determine if the text is displayed correctly. Playwright 
-            provides some nice <a href="https://playwright.dev/docs/selectors" target="_blank"><code>Selectors</code></a> to target 
-            elements which we expect to be present in the normal flow of our app. As we want our testing to be as robust and reliable as 
-            possible, we will prioritize user-facing attributes, that means we will use mainly text or CSS selectors.
+            After visiting your JointJS application, you may want to perform some simple sanity checks in order to check if the state 
+            corresponds to your expectations. A tried and tested way of doing this is to determine if the text is displayed correctly. 
+            Playwright provides some nice <a href="https://playwright.dev/docs/selectors" target="_blank"><code>Selectors</code></a> to 
+            target elements which we expect to be present in the normal flow of our app. As we want our testing to be as robust and reliable 
+            as possible, we will prioritize user-facing attributes, that means we will use mainly text or CSS selectors.
         </p>
 
         <p>
@@ -226,24 +226,24 @@ Received: "JointJS App"
             by DOM structure changes. In the following example, our text selector is used to create a 
             <a href="https://playwright.dev/docs/locators" target="_blank"><code>Locator</code></a>. Locators allow us to perform actions on 
             elements such as a click for example. A nice feature of Locators is that they are strict by design, that means operations on locators 
-            will throw an exception if more than one element matches a given selector. This is great for our primary heading as we know it is 
+            will throw an exception if more than one element matches a given selector. This is great for our primary heading as we know it's 
             a unique piece of content on our page.
         </p>
 
         <p>
             To set up shared resources between tests, you can utilize test hooks. As we want to visit our application before each test,
-            the <a href="https://playwright.dev/docs/api/class-test#test-before-all" target="_blank"><code>test.beforeAll</code></a> 
+            the <a href="https://playwright.dev/docs/api/class-test#test-before-each" target="_blank"><code>test.beforeEach</code></a> 
             hook can provide this nice functionality for us.
         </p>
 
-        <pre><code>const { test, expect } = require('@playwright/test');
+        <pre><code>import { test, expect } from '@playwright/test';
             
-test.beforeAll(async ({ page }) => {
+test.beforeEach(async ({ page }) => {
     await page.goto('http://localhost:3000/');
 });
           
 test('Primary heading isVisible', async ({ page }) => {
-    const heading = page.locator('text=JointJS App');
+    const heading = page.locator('text=E2E testing with JointJS & Playwright');
     await expect(heading).toBeVisible();
 });
 </code></pre>
