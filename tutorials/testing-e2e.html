@@ -159,17 +159,17 @@ test('Visit Page', async ({ page }) => {
 
         <p>
             Running tests in all rendering engines is certainly definitive, but what if we want to test something a little 
-            quicker, and are satisfied with just use one? To run just one of our "projects" from the config file we created, 
-            you can run <code>npx playwright test --project=chromium</code>.
+            quicker, and are satisfied with just use one? To target chromium individually using our config file, we can 
+            run <code>npx playwright test --project=chromium</code> from the command line.
         </p>
 
         <p>
             Let's provide an incorrect page title to our test expectation in order to see what happens if our test fails.
-            In the following output, Playwright provides some meaningful output such as expected/received values, and 
+            In the following output, Playwright provides some meaningful information such as expected/received values, and 
             a call log for debugging purposes.
         </p>
 
-        <pre><code>1) [chromium] › tests/example.spec.js:8:1 › Visit Page ===========================
+        <pre><code>1) [chromium] › tests/example.spec.ts:3:1 › Visit Page ===========================
 
 Error: expect(received).toBe(expected) // Object.is equality
 
