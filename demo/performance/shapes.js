@@ -21,7 +21,17 @@ var paper = new joint.dia.Paper({
     model: graph,
     async: ASYNC,
     frozen: true,
-    sorting: joint.dia.Paper.sorting.APPROX
+    // Avoid using joint.dia.Paper.sorting.EXACT
+    // It's extremely slow for large amounts of elements.
+    // There is no big difference between sorting APPROX and NONE in terms of performance.
+    sorting: joint.dia.Paper.sorting.APPROX,
+    // To avoid measuring of the SVGElement magnet size, you can calculate
+    // the anchor point for the links manually.
+    defaultConnectionPoint: { name: 'anchor' },
+    defaultAnchor: (view, _0, _1, _2, endType) => {
+        const bbox = view.model.getBBox();
+        return endType === 'source' ? bbox.bottomMiddle() : bbox.topMiddle();
+    },
 });
 
 var Shape = joint.dia.Element.define('Shape', {
@@ -31,14 +41,13 @@ var Shape = joint.dia.Element.define('Shape', {
     },
     attrs: {
         body: {
-            // Using of special 'ref-like` attributes it's not generally the most
-            // efficient. In this particular case it's different though.
-            // If the `ref` attribute is not defined all the metrics (width, height, x, y)
-            // are taken from the model. There is no need to ask the browser for
-            // an element bounding box.
+            // If the `ref` attribute is not defined all the metrics for calc() expressions
+            // (width, height, x, y) are taken from the model.
             // All calculation are done just in Javascript === very fast.
-            refWidth: '100%',
-            refHeight: '100%',
+            // Avoid using `ref: selector` attribute if you don't need the browser
+            // to measure the size of the element defined by the selector.
+            width: 'calc(w)',
+            height: 'calc(h)',
             stroke: 'red',
             strokeWidth: 2,
             fill: 'lightgray',
@@ -47,15 +56,18 @@ var Shape = joint.dia.Element.define('Shape', {
         },
         label: {
             fill: 'black',
+            fontSize: 14,
+            fontFamily: 'sans-serif',
             // Please see the `ref-width` & `ref-height` comment.
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(0.5*w)',
+            y: 'calc(0.5*h)',
             // Do not use special attribute `x-alignment` when not necessary.
             // It calls getBBox() on the SVGText element internally. Measuring text
             // in the browser is usually the slowest.
             // `text-anchor` attribute does the same job here (works for the text elements only).
             textAnchor: 'middle',
             // Do not use special attribute `y-alignment` for text vertical positioning. See above.
+            // It deducts the vertical offset from the `font-size` of the text
             textVerticalAnchor: 'middle'
         }
     },
