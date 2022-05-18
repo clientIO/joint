@@ -169,7 +169,7 @@ test('Visit Page', async ({ page }) => {
             a call log for debugging purposes.
         </p>
 
-        <pre><code>1) [chromium] › tests/example.spec.ts:3:1 › Visit Page ===========================
+        <pre><code>1) [chromium] › tests/example.spec.ts:8:1 › Visit Page ===========================
 
 Error: expect(received).toBe(expected) // Object.is equality
 
@@ -185,16 +185,20 @@ Received: "JointJS App"
 
         <p>
             Running this test in a headed browser may not be too beneficial, but let's see how we can achieve that.
-            <code>npx playwright test --headed</code> will run our test for each of our "projects". As the test just visits a page, that
-            means Playwright will show us the respective browsers for a very short time, and that's to be expected.
+            <code>npx playwright test --headed</code> will run the test for each of our "projects" in their respective
+            headed browser. As the test just visits a page and confirms the title, Playwright will show us the browsers 
+            for a very short time, and that's to be expected.
         </p>
 
         <p>
-            As we want to make our lives as easy as possible, we will also configure a few npm scripts for testing. Playwright Test will 
-            automatically pick up a <code>playwright.config.js</code> file located in our project root. In our <code>package.json</code> file, 
-            <code>npm run test</code> will run each of our projects for each test spec in headless browsers, and 
-            <code>npm run test:chromium</code> will just run tests using the chromium rendering engine. This isn't anything special,
-            and just covers the commands we have already used so far. 
+            Playwright Test will automatically detect a <code>playwright.config.ts</code> file located in our project root,
+            so to make our development experience as easy as possible, we will also configure a few npm scripts. 
+        </p>
+
+        <p>
+            In our <code>package.json</code> file, <code>npm run test</code> will run each of our projects for each test spec in 
+            headless browsers, and <code>npm run test:chromium</code> will just run tests using the chromium rendering engine.
+            This isn't anything special, and just covers the commands we have already used so far. 
         </p>
 
         <pre><code>{
