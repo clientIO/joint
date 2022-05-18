@@ -35,7 +35,7 @@
 
             <p>
                 E2E testing is an integral part of ensuring your application behaves as expected. As we often get asked how to perform
-                end-to-end testing for JointJS applications, in the following tutorial, we will cover some core concepts, and hopefully
+                end-to-end testing for JointJS applications, in the following tutorial, we will cover some common scenarios, and hopefully
                 give you some inspiration for whatever testing technology you choose to use.
             </p>
 
@@ -47,8 +47,14 @@
             </p>
 
             <p>
-                Playwright can be used as a library, but we will be using it as part of the Playwright Test test runner. It was created
+                Playwright can be used as a library, but we will be using it as part of the <i>Playwright Test</i> test runner. It was created
                 specifically to accommodate the needs of end-to-end testing.
+            </p>
+
+            <p>
+                In this tutorial, we will be using TypeScript, but you are free to use JavaScript if you prefer. The JavaScript versions
+                of many setup examples shown here can be found on the Playwright 
+                <a href="https://playwright.dev/docs/intro" target="_blank">getting started</a> page.
             </p>
 
             <h3 id="installation">
@@ -57,26 +63,33 @@
 
             <p>
                 Playwright requires Node.js version 12 or above. Run <code>node -v</code> from the command line to make sure you have a 
-                compatible version of Node.js. If you have a suitable version, we are ready begin. As we know our application and tests
-                directories will live in the root folder of our project, that's where we will install the dependency and default browsers.
-                This tutorial uses version <code>"@playwright/test": "1.21.1"</code>, and to install, we run the following commands from 
-                the terminal.
+                compatible version of Node.js. If you have a suitable version, we are ready to begin.
             </p>
 
-    <pre><code>npm i -D @playwright/test@1.21.1
+            <p>
+                Our app and tests directories are located in our project root, so the root folder is where we will install the dependency 
+                and default browsers. This tutorial uses version <code>"@playwright/test": "1.22.1"</code>, and we encourage you to use 
+                the same, so we are working with the same code. To install this version, run the following commands from the terminal.
+            </p>
+
+    <pre><code>// change to root directory
+cd project-root
+
+npm i -D @playwright/test@1.22.1
 // install supported browsers
 npx playwright install
 </code></pre>
 
             <p>
                 As we want to enjoy all the features Playwright has to offer, we will also create a configuration file 
-                <code>playwright.config.js</code> in our project root. The following config will run every test in Chromium, Firefox, and 
-                WebKit by creating a "project" for each browser configuration.
+                <code>playwright.config.ts</code> in our project root, and add the example below. The following config 
+                will run every test in Chromium, Firefox, and WebKit by creating a "project" for each browser configuration.
             </p>
 
-    <pre><code>const { devices } = require('@playwright/test');
+    <pre><code>// playwright.config.ts
+import { PlaywrightTestConfig, devices } from '@playwright/test';
 
-const config = {
+const config: PlaywrightTestConfig = {
     projects: [
         {
             name: 'chromium',
@@ -92,15 +105,14 @@ const config = {
         },
     ],
 };
-
-module.exports = config;       
+export default config;      
 </code></pre>
 
         <p>
-            Now that our minimal testing setup is complete, we are ready to write our first test. Our test files
-            will be placed in the <code>tests</code> directory located in the project root, and each test spec will 
-            have the suffix <code>.spec.js</code>. Let's create our first spec file, and name it 
-            <code>example.spec.js</code>.
+            The basic setup is now complete, so we are ready to write our first test. We will place our test files
+            in the <code>tests</code> directory located in our project root. Each test spec will have the suffix 
+            <code>.spec.ts</code> as we are using TypeScript. Let's create our first spec file, and name it 
+            <code>example.spec.ts</code>.
         </p>
 
         <h3 id="first-test">
@@ -108,9 +120,9 @@ module.exports = config;
         </h3>
 
         <p>
-            Our first test simply visits a specific page. As we are working locally, our url is our
-            localhost, but of course you can insert your own url in this test example. Playwright Test provides a 
-            <code>test</code> function to declare tests, and an <code>expect</code> function to write assertions.
+            Our first test simply visits a specific page, and confirms the page title. As we are working locally, 
+            our url is our localhost, but of course you can insert your own url in this test example. Playwright Test 
+            provides a <code>test</code> function to declare tests, and an <code>expect</code> function to write assertions.
             The <code>page</code> argument is a test fixture, it provides methods which allow you to interact with 
             the browser.
         </p>
@@ -131,12 +143,13 @@ test('Visit Page', async ({ page }) => {
         </p>
 
 <pre><code>Running 3 tests using 2 workers
-    
-✓  [firefox] › tests/example.spec.js:4:1 › Visit Page (7s)
-✓  [chromium] › tests/example.spec.js:4:1 › Visit Page (3s)
-✓  [webkit] › tests/example.spec.js:4:1 › Visit Page (2s)
 
-3 passed (8s)
+✓  [chromium] › tests/example.spec.ts:3:1 › Visit Page (1s)
+✓  [firefox] › tests/example.spec.ts:3:1 › Visit Page (4s)
+✓  [webkit] › tests/example.spec.ts:3:1 › Visit Page (2s)
+
+
+3 passed (6s)
 </code></pre>
 
         <p>
