@@ -105,12 +105,13 @@ const config: PlaywrightTestConfig = {
         },
     ],
 };
+
 export default config;      
 </code></pre>
 
         <p>
-            The basic setup is now complete, so we are ready to write our first test. We will place our test files
-            in the <code>tests</code> directory located in our project root. Each test spec will have the suffix 
+            The basic setup is now complete, so we are ready to write our first test. We will place our test files in the 
+            <code>tests</code> directory located in our project root. Every test spec will have the suffix 
             <code>.spec.ts</code> as we are using TypeScript. Let's create our first spec file, and name it 
             <code>example.spec.ts</code>.
         </p>
@@ -120,14 +121,18 @@ export default config;
         </h3>
 
         <p>
-            Our first test simply visits a specific page, and confirms the page title. As we are working locally, 
-            our url is our localhost, but of course you can insert your own url in this test example. Playwright Test 
-            provides a <code>test</code> function to declare tests, and an <code>expect</code> function to write assertions.
-            The <code>page</code> argument is a test fixture, it provides methods which allow you to interact with 
-            the browser.
+            Our first test simply visits the url where our application is served, and confirms the page title. As we are working locally, 
+            our url is our <i>localhost</i>, but of course you can insert your own url in this test example. 
         </p>
 
-    <pre><code>const { test, expect } = require('@playwright/test');
+        <p>
+            Playwright Test provides a <a href="https://playwright.dev/docs/api/class-test" target="_blank"><code>test</code></a> function 
+            to declare tests, and an <a href="https://playwright.dev/docs/test-assertions" target="_blank"><code>expect</code></a> function 
+            to write assertions. The <a href="https://playwright.dev/docs/api/class-fixtures" target="_blank"><code>page</code></a> argument 
+            is a test fixture, it provides methods which allow you to interact with the browser.
+        </p>
+
+        <pre><code>import { test, expect } from '@playwright/test';
 
 test('Visit Page', async ({ page }) => {
   await page.goto('http://localhost:3000/');
