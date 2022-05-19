@@ -159,7 +159,7 @@ test('Visit Page', async ({ page }) => {
 
         <p>
             Running tests in all rendering engines is certainly definitive, but what if we want to test something a little 
-            quicker, and are satisfied with just use one? To target chromium individually using our config file, we can 
+            quicker, and are satisfied with just one? To target chromium individually using our config file, we can 
             run <code>npx playwright test --project=chromium</code> from the command line.
         </p>
 
@@ -259,27 +259,34 @@ test('Primary heading isVisible', async ({ page }) => {
 
         <p>
             Dynamic content is central to most modern applications, and if you are using JointJS, you probably want to test this 
-            scenario too. In the following case, a user fills an input field with text, and the text value of this input will also 
-            be the value of an element label.
+            scenario too. In the following case, a user fills an input field with text, and the value of this input will also be 
+            the value of an element label.
         </p>
 
         <p>
             To approach this user story, we take advantage of the page fixture once more. We use the 
             <a href="https://playwright.dev/docs/api/class-page#page-fill" target="_blank">page.fill()</a> method which accepts a 
-            selector as its first parameter, and the value to be filled as the second. After targeting our input, it's just a matter 
-            of locating our element on the page, and confirming it has the text we provided to our method.
+            selector as its first parameter, and the value to be filled as the second. Firstly, we target our input using a CSS 
+            element selector, and then provide the text value 'rect' as the second argument.
         </p>
 
         <p>
-            If you are a user of JointJS+, you might use similar techniques when testing our
+            After that, it's just a matter of locating our element's label on the page using a custom class we have
+            created via <code>className</code> in our Cell 
+            <a href="https://resources.jointjs.com/docs/jointjs/v3.5/joint.html#dia.Cell.markup" target="_blank"><code>markup</code></a>, 
+            and confirming it has the text value we provided to our method.
+        </p>
+
+        <p>
+            If you are a user of JointJS+, you might use similar techniques when testing dynamic attributes in our
             <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Inspector.html" target="_blank">ui.Inspector</a> plugin.
         </p>
 
         <pre><code>test('User input changes attribute', async ({ page }) => {
-    await page.fill('input', 'Hi');
+    await page.fill('input', 'rect');
 
-    const rect = page.locator('.joint-type-standard-rectangle');
-    await expect(rect).toHaveText('Hi');
+    const rect = page.locator('.rect__dynamic-label');
+    await expect(rect).toHaveText('rect');
 });
 </code></pre>
 
