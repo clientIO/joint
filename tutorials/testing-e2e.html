@@ -128,7 +128,8 @@ export default config;
         <p>
             Playwright Test provides a <a href="https://playwright.dev/docs/api/class-test" target="_blank"><code>test</code></a> function 
             to declare tests, and an <a href="https://playwright.dev/docs/test-assertions" target="_blank"><code>expect</code></a> function 
-            to write assertions. The <a href="https://playwright.dev/docs/api/class-fixtures" target="_blank"><code>page</code></a> argument 
+            to write assertions (Playwright extends Jest's <a href="https://jestjs.io/docs/expect" target="_blank">expect</a> library for 
+            assertions). The <a href="https://playwright.dev/docs/api/class-fixtures" target="_blank"><code>page</code></a> argument 
             is a test fixture, it provides methods which allow you to interact with the browser.
         </p>
 
@@ -285,8 +286,8 @@ test('Primary heading isVisible', async ({ page }) => {
         <pre><code>test('User input changes attribute', async ({ page }) => {
     await page.fill('input', 'rect');
 
-    const rect = page.locator('.rect__dynamic-label');
-    await expect(rect).toHaveText('rect');
+    const rectLabel = page.locator('.rect__dynamic-label');
+    await expect(rectLabel).toHaveText('rect');
 });
 </code></pre>
 
@@ -296,7 +297,7 @@ test('Primary heading isVisible', async ({ page }) => {
 
         <p>
             An important part of any diagramming library is the ability to drag elements. What if we needed to automate the testing
-            of dragging an element from one area of our application to another?
+            of relocating an element from one area of our application to another?
         </p>
 
         <p>
@@ -307,15 +308,21 @@ test('Primary heading isVisible', async ({ page }) => {
         </p>
 
         <p>
+            After the element has been dragged to the target location, we then <a href="https://jestjs.io/docs/expect" target="_blank">assert</a> 
+            if the top-left and bottom-right corner of our source element lie within the bounding box of the target element. This confirms the 
+            source element has been repositioned correctly.
+        </p>
+
+        <p>
             If your application has many moving parts, you can likely take advantage of this method to test the dragging of elements
             in a way that makes sense for your situation. Similar techniques might be used in JointJS+ for dragging an element from the 
             <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Stencil.html" target="_blank">ui.Stencil</a> plugin to the 
             JointJS <code>paper</code>.
         </p>
 
-        <pre><code>test('Drag element to target area', async ({ page }) => {
-    const source = page.locator('.joint-type-standard-ellipse');
-    const target = page.locator('.joint-type-standard-rectangle');
+        <pre><code>test('Drag element to target location', async ({ page }) => {
+    const source = page.locator('.source');
+    const target = page.locator('.target');
     await source.dragTo(target);
 
     const sourcebbox = await source.boundingBox();
