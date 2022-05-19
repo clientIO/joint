@@ -7,9 +7,13 @@
 JointJS is a JavaScript diagramming library. It can be used to create either static diagrams or, and more
 importantly, fully interactive diagramming tools and application builders.
 
-Please see [http://jointjs.com](http://jointjs.com) for more information, demos and documentation.
+Further **information**, **examples** and **documentation** can be found at [https://jointjs.com](https://jointjs.com).
 
-Or check out our [mind-map documentation](https://resources.jointjs.com/mmap/joint.html).
+:bulb: To ask a question, share feedback, or engage in a discussion with other community members, visit our [GitHub discussions](https://github.com/clientIO/joint/discussions).
+
+:pen: More examples are available on [CodePen](https://codepen.io/jointjs).
+
+:book: Check out our [mind-map documentation](https://resources.jointjs.com/mmap/joint.html).
 
 ## Features
 
