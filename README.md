@@ -161,6 +161,6 @@ Copyright (c) 2013 client IO
 
 - [David Durman](https://github.com/DavidDurman)
 - [Roman Bruckner](https://github.com/kumilingus)
-- [Charles Hill](https://github.com/chill117)
 - [Vladimir Talas](https://github.com/vtalas)
-- [Zbynek Stara](https://github.com/zbynekstara)
+- [James Williams](https://github.com/jamesgeorgewilliams)
+- [Arthur Khokhlov](https://github.com/Geliogabalus)
