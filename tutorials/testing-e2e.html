@@ -86,6 +86,10 @@ npx playwright install
                 will run every test in Chromium, Firefox, and WebKit by creating a "project" for each browser configuration.
             </p>
 
+            <p>
+                Playwright can also emulate mobile environments too, so we will create a project for iphone too.
+            </p>
+
     <pre><code>// playwright.config.ts
 import { PlaywrightTestConfig, devices } from '@playwright/test';
 
@@ -102,6 +106,13 @@ const config: PlaywrightTestConfig = {
         {
             name: 'webkit',
             use: { ...devices['Desktop Safari'] },
+        },
+        // "iPhone 11" tests use WebKit browser.
+        {
+            name: 'iPhone 11',
+            use: {
+                browserName: 'webkit',
+                ...devices['iPhone 11'],
         },
     ],
 };
@@ -408,7 +419,7 @@ test('Primary heading isVisible', async ({ page }) => {
     // Mousemove to center of element
     await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
     await page.mouse.down();
-    await page.mouse.move(target1bbox.x + target1bbox.width / 2, target1bbox.y + target1bbox.height / 2 );
+    await page.mouse.move(target1bbox.x + target1bbox.width / 2, target1bbox.y + target1bbox.height / 2);
     await page.mouse.up();
 
     // A link still shouldn't exist as target has attribute [magnet="false"]
@@ -421,7 +432,7 @@ test('Primary heading isVisible', async ({ page }) => {
     // Mousemove to center of element
     await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
     await page.mouse.down();
-    await page.mouse.move(target2bbox.x + target2bbox.width / 2, target2bbox.y + target2bbox.height / 2 );
+    await page.mouse.move(target2bbox.x + target2bbox.width / 2, target2bbox.y + target2bbox.height / 2);
 
     // A highlight should now display on the target element to show a connection is possible
     const highlight = page.locator('.joint-highlight-stroke');
@@ -441,10 +452,16 @@ test('Primary heading isVisible', async ({ page }) => {
         <p>
             As we want to maintain a consistent visual state for our JointJS application, we will also perform a test to see if our app has
             regressed visually in some manner. Playwright Test allows us to produce and visually compare screenshots. Let's create a new file 
-            in our tests folder <code>visual-regression.spec.js</code>, and add the following test.
+            in our tests folder <code>visual-regression.spec.ts</code>, and add the following test.
         </p>
 
-        <pre><code>const { test, expect } = require('@playwright/test');
+        <p>
+            Usually, it's a good idea to manipulate your application state somehow before taking a screenshot, so if you would like, you can 
+            place some similar actions that we have covered already in the following test, or some actions that are more relevant to your 
+            testing scenario.
+        </p>
+
+        <pre><code>import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
     await page.goto('http://localhost:3000/');
@@ -459,18 +476,18 @@ test('visual regression', async ({ page }) => {
 </code></pre>
 
         <p>
-            On the first test run, it will generate reference screenshots, and subsequent test runs will compare against the reference. On the 
-            first run, you should see some output similar to the following error, but don't worry, that's expected because there isn't any 
+            On the first test run, Playwright will generate reference screenshots, and subsequent test runs will compare against the reference. 
+            On the first run, you should see some output similar to the following error, but don't worry, that's expected because there isn't any 
             "golden" file for comparison yet.
         </p>
 
-        <pre><code>// Error: example.spec.ts-snapshots/example-test-1-chromium-darwin.png is missing in snapshots, writing actual.
+        <pre><code>// Error: visual-regression.spec.ts-snapshots/visual-regression-1-chromium-darwin.png is missing in snapshots, writing actual.
 </code></pre>
 
         <p>
             "Golden" snapshots will be located in the tests directory, and placed within a folder that corresponds to the name of your test file.
-            In our case it will be <code>tests/visual-regression.spec.js-snapshots</code>. As we have a project set up for each rendering engine, 
-            the folder will contain a snapshot for each one respectively.
+            In our case it will be <code>tests/visual-regression.spec.ts-snapshots</code>. As we have a project set up for each rendering engine, 
+            the folder will contain a snapshot for each one respectively after running <code>npm run test</code>.
         </p>
 
         <p>
@@ -480,6 +497,13 @@ test('visual regression', async ({ page }) => {
         </p>
 
         <pre><code>npx playwright test --update-snapshots
+</code></pre>
+
+        <p>
+            You could also create another npm script for updating snapshots. 
+        </p>
+        
+        <pre><code>"test:update-snapshots": "playwright test --update-snapshots"
 </code></pre>
 
         <h3 id="debugging-tools">
@@ -513,6 +537,7 @@ test('visual regression', async ({ page }) => {
 
         <pre><code>"test": "playwright test",
 "test:chromium": "playwright test --project=chromium",
+"test:update-snapshots": "playwright test --update-snapshots"
 "test:debug": "PWDEBUG=1 npm run test:chromium"
 </code></pre>
 
@@ -602,6 +627,7 @@ module.exports = config;
         <pre><code>"scripts": {
     "test": "playwright test",
     "test:chromium": "playwright test --project=chromium",
+    "test:update-snapshots": "playwright test --update-snapshots"
     "test:debug": "PWDEBUG=1 npm run test:chromium",
     "test:report": "playwright show-report"
 },
