@@ -338,6 +338,29 @@ test('Primary heading isVisible', async ({ page }) => {
 });
 </code></pre>
 
+        <h4 id="drag-and-drop">
+            Drag & Drop
+        </h4>
+
+        <p>
+            Playwright also provides the ability to test drag & drop right out of the box.
+            <a href="https://playwright.dev/docs/api/class-page#page-drag-and-drop" target="_blank">page.dragAndDrop()</a> combines some of
+            the functionality we have looked at in the last example into one concise method. We simply need to provide our source and 
+            target selectors as arguments, and it will take care of the rest.
+        </p>
+
+        <p>
+            As with our previous example of dragging elements, you could provide a similar assertion here, or create one that works for
+            your testing scenario.
+        </p>
+
+        <pre><code>test('Drag and Drop', async ({ page }) => {
+    await page.dragAndDrop('.source', '.target');
+
+    // Your assertion
+});
+</code></pre>
+
         <h4 id="linking-elements">
             Linking Elements
         </h4>
@@ -357,7 +380,7 @@ test('Primary heading isVisible', async ({ page }) => {
         </p>
 
         <p>
-            In your JointJS application, you are only likely to allow connections between some of your elements. In the following example,
+            In your JointJS application, it's likely you will only allow connections between some of your elements. In the following example,
             we mock a situation which you might run into. First, we try to draw a link from our port to an element which contains the 
             attribute <code>[magnet=false]</code>. This means a link should not be allowed, and the number of links in our diagram should
             resolve to 0.
@@ -365,9 +388,9 @@ test('Primary heading isVisible', async ({ page }) => {
 
         <p>
             Next, we repeat the same mouse actions, but this time our new target element contains the attribute <code>[magnet=true]</code>. 
-            Now, our diagram should contain a link and the number should resolve to 1. Just to be sure our test is working as we expect,
+            Now, our diagram should contain a link, and the number should resolve to 1. Just to be sure our test is working as we expect,
             we also perform an additional check to see if a highlight is present. A highlight should be present if a connection is possible,
-            so after our mouse up action, we can also confirm it resolves to 1.
+            so after our mouse up action, we can also confirm it resolves to 1 DOM node.
         </p>
 
         <pre><code>test('Link Elements', async ({ page }) => {
@@ -385,7 +408,7 @@ test('Primary heading isVisible', async ({ page }) => {
     // Mousemove to center of element
     await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
     await page.mouse.down();
-    await page.mouse.move(target1bbox.x, target1bbox.y);
+    await page.mouse.move(target1bbox.x + target1bbox.width / 2, target1bbox.y + target1bbox.height / 2 );
     await page.mouse.up();
 
     // A link still shouldn't exist as target has attribute [magnet="false"]
@@ -398,7 +421,7 @@ test('Primary heading isVisible', async ({ page }) => {
     // Mousemove to center of element
     await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
     await page.mouse.down();
-    await page.mouse.move(target2bbox.x, target2bbox.y);
+    await page.mouse.move(target2bbox.x + target2bbox.width / 2, target2bbox.y + target2bbox.height / 2 );
 
     // A highlight should now display on the target element to show a connection is possible
     const highlight = page.locator('.joint-highlight-stroke');
@@ -408,29 +431,6 @@ test('Primary heading isVisible', async ({ page }) => {
 
     // A link should now exist as target has attribute [magnet="true"]
     await expect(link).toHaveCount(1);
-});
-</code></pre>
-
-        <h4 id="drag-and-drop">
-            Drag & Drop
-        </h4>
-
-        <p>
-            Playwright also provides the ability to test drag & drop right out of the box.
-            <a href="https://playwright.dev/docs/api/class-page#page-drag-and-drop" target="_blank">page.dragAndDrop()</a> combines some of
-            the functionality we have looked at already into one concise method. We simply need to provide our source and target selectors
-            as arguments, and it will take care of the rest.
-        </p>
-
-        <p>
-            As with our previous example of dragging elements, you could provide a similar assertion here, or create one that works for
-            your testing scenario.
-        </p>
-
-        <pre><code>test('Drag and Drop', async ({ page }) => {
-    await page.dragAndDrop('text=source', 'text=target');
-
-    // Your assertion
 });
 </code></pre>
 
