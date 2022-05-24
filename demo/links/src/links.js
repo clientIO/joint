@@ -466,12 +466,13 @@ var link11 = new joint.dia.Link({
             event: 'link:target:click'
         },
         endReferenceLabel: {
+            y: -5,
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             textDecoration: 'underline',
             writingMode: 'TB',
-            fontFamily: 'sans-sarif',
-            fontSize: 15,
+            fontFamily: 'sans-serif',
+            fontSize: 13,
             cursor: 'pointer',
             annotations: [{
                 start: 6,
