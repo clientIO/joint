@@ -343,25 +343,40 @@ test('Primary heading isVisible', async ({ page }) => {
         </h4>
 
         <p>
-            Testing the linking of elements is another common pattern you may want to examine in JointJS. We have already looked at most
-            of the Playwright features in the following example, one additional class we will work with is 
+            Linking elements successfully is another common pattern you may want to examine in JointJS. We have already looked at most
+            of the Playwright features in the following example, one additional class you'll notice is
             <a href="https://playwright.dev/docs/api/class-mouse" target="_blank" rel="noopener noreferrer">Mouse</a>. Every 
             <i>page</i> object has its own mouse accessible with <code>page.mouse</code>.
         </p>
 
         <p>
-            Mouse will help use automate a click on one element's port, and subsequently draw a link that connects to another element.
+            Mouse will help us automate a click on one element's port, and subsequently draw a link that connects to another element.
             After drawing our link, we can ensure our Locator resolves to an exact number of DOM nodes by using the following assertion
             <a href="https://playwright.dev/docs/test-assertions#locator-assertions-to-have-count" target="_blank">
             expect(locator).toHaveCount()</a>.
         </p>
 
+        <p>
+            In your JointJS application, you are only likely to allow connections between some of your elements. In the following example,
+            we mock a situation which you might run into. First, we try to draw a link from our port to an element which contains the 
+            attribute <code>[magnet=false]</code>. This means a link should not be allowed, and the number of links in our diagram should
+            resolve to 0.
+        </p>
+
+        <p>
+            Next, we repeat the same mouse actions, but this time our new target element contains the attribute <code>[magnet=true]</code>. 
+            Now, our diagram should contain a link and the number should resolve to 1. Just to be sure our test is working as we expect,
+            we also perform an additional check to see if a highlight is present. A highlight should be present if a connection is possible,
+            so after our mouse up action, we can also confirm it resolves to 1.
+        </p>
+
         <pre><code>test('Link Elements', async ({ page }) => {
-    const source = page.locator('.joint-port-body');
+    const source = page.locator('.port-out');
     const sourcebbox = await source.boundingBox();
 
-    const target = page.locator('text=label');
-    const targetbbox = await target.boundingBox();
+    // Element has attribute [magnet=false]
+    const target1 = page.locator('.target-magnet-false');
+    const target1bbox = await target1.boundingBox();
 
     // No link should be present in DOM
     const link = page.locator('.joint-type-standard-link');
@@ -370,10 +385,28 @@ test('Primary heading isVisible', async ({ page }) => {
     // Mousemove to center of element
     await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
     await page.mouse.down();
-    await page.mouse.move(targetbbox.x, targetbbox.y);
+    await page.mouse.move(target1bbox.x, target1bbox.y);
     await page.mouse.up();
 
-    // A link should exist after mousemove
+    // A link still shouldn't exist as target has attribute [magnet="false"]
+    await expect(link).toHaveCount(0);
+
+    // Element has attribute [magnet=true]
+    const target2 = page.locator('.target-magnet-true');
+    const target2bbox = await target2.boundingBox();
+
+    // Mousemove to center of element
+    await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(target2bbox.x, target2bbox.y);
+
+    // A highlight should now display on the target element to show a connection is possible
+    const highlight = page.locator('.joint-highlight-stroke');
+    await expect(highlight).toHaveCount(1);
+
+    await page.mouse.up();
+
+    // A link should now exist as target has attribute [magnet="true"]
     await expect(link).toHaveCount(1);
 });
 </code></pre>
