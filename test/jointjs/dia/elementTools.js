@@ -51,6 +51,9 @@ QUnit.module('elementTools', function(hooks) {
             options: { x: '100%', y: '100%', useModelGeometry: true },
             position: { x: 200, y: 200 }
         }, {
+            options: { x: 'calc(w+11)', y: 'calc(h+13)', useModelGeometry: true },
+            position: { x: 211, y: 213 }
+        }, {
             options: { x: '100%', y: '100%', offset: { x: 2, y: 3 }},
             position: { x: 211 + 2, y: 213 + 3 }
         }, {

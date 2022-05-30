@@ -4,6 +4,7 @@ import * as util from '../util/index.mjs';
 import * as connectionStrategies from '../connectionStrategies/index.mjs';
 import * as mvc from '../mvc/index.mjs';
 import { ToolView } from '../dia/ToolView.mjs';
+import { evalCalcAttribute, isCalcAttribute } from '../dia/attributes/calc.mjs';
 
 function getAnchor(coords, view, magnet) {
     // take advantage of an existing logic inside of the
@@ -743,9 +744,13 @@ var Button = ToolView.extend({
         const { x: offsetX = 0, y: offsetY = 0 } = offset;
         if (util.isPercentage(x)) {
             x = parseFloat(x) / 100 * bbox.width;
+        } else if (isCalcAttribute(x)) {
+            x = Number(evalCalcAttribute(x, bbox));
         }
         if (util.isPercentage(y)) {
             y = parseFloat(y) / 100 * bbox.height;
+        } else if (isCalcAttribute(y)) {
+            y = Number(evalCalcAttribute(y, bbox));
         }
         let matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
         if (rotate) matrix = matrix.rotate(angle);
