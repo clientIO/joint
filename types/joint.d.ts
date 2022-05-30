@@ -3755,7 +3755,6 @@ export namespace attributes {
     }
 
     interface SVGAttributeTextWrap {
-        text?: string;
         width?: string | number | null;
         height?: string | number | null;
         ellipsis?: boolean | string;
@@ -3763,6 +3762,10 @@ export namespace attributes {
         maxLineCount?: number;
         breakText?: util.BreakTextFunction;
         [key: string]: any;
+        /**
+         * @deprecated use SVGAttributes.text instead
+         **/
+         text?: string;
     }
 
     interface SVGAttributes extends NativeSVGAttributes {
