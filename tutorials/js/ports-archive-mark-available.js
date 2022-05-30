@@ -7,7 +7,7 @@
         width: 650, height: 200, gridSize: 1,
         model: graph,
         cellViewNamespace: namespace,
-        defaultLink: new joint.dia.Link({
+        defaultLink: () => new joint.dia.Link({
             attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
         }),
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT) {

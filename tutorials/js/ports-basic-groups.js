@@ -10,7 +10,7 @@
         model: graph, 
         cellViewNamespace: namespace,
         linkPinning: false, // Prevent link being dropped in blank paper area
-        defaultLink: new joint.shapes.standard.Link(),
+        defaultLink: () => new joint.shapes.standard.Link(),
         defaultConnectionPoint: { name: 'boundary' },
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
             // Prevent linking between ports within one element

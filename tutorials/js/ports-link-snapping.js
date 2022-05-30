@@ -10,7 +10,7 @@
         model: graph, 
         cellViewNamespace: namespace,
         linkPinning: false, // Prevent link being dropped in blank paper area
-        defaultLink: new joint.shapes.standard.Link({
+        defaultLink: () => new joint.shapes.standard.Link({
             attrs: {
                 wrapper: {
                     cursor: 'default'

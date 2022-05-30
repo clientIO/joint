@@ -72,9 +72,26 @@
 
             <div id="paper-basic"></div>
             <script type="text/javascript" src="js/ports-basic.js"></script>
+
+            <p>
+                When drawing a link from an active magnet, the default link is <code>joint.dia.Link</code>. As this link contains 
+                <a href="/docs/jointjs#linkTools" target="_blank"><code>linkTools</code></a>, you may
+                wish to change the link which is created. You can achieve this via the 
+                <a href="/docs/jointjs#dia.Paper.prototype.options.defaultLink" target="_blank"><code>defaultLink</code></a> paper option as shown in 
+                this example. To prevent the link being dropped in a blank paper area, use the
+                <a href="/docs/jointjs#dia.Paper.prototype.options.linkPinning" target="_blank"><code>linkPinning</code></a> option.
+            </p>
+
             <p>JointJS source code: <a href="js/ports-basic.js" target="_blank">ports-basic.js</a></p>
 
-<pre><code>var port = {
+<pre><code>new joint.dia.Paper({
+    // Other Paper options
+ 
+    defaultLink: () => new joint.shapes.standard.Link(),
+    linkPinning: false
+});
+    
+var port = {
     label: {
         position: {
             name: 'left'
