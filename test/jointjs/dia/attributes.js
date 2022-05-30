@@ -65,7 +65,6 @@ QUnit.module('Attributes', function() {
                 spy.resetHistory();
                 ns.textWrap.set.call(cellView, {}, bbox, node, {});
                 assert.equal(node.textContent, '-'); // Vectorizer empty line has `-` character with opacity 0
-                assert.ok(!spy.called || spy.calledWith('', sinon.match.instanceOf(g.Rect)));
 
                 // text via `text` attribute
                 spy.resetHistory();
@@ -79,18 +78,35 @@ QUnit.module('Attributes', function() {
 
                 // width & height absolute
                 spy.resetHistory();
-                ns.textWrap.set.call(cellView, { text: 'text', width: -20, height: -30 }, bbox, node, {});
-                assert.ok(!spy.called || spy.calledWith('', sinon.match(function(obj) {
+                ns.textWrap.set.call(cellView, { text: 'text', width: -20, height: -30, breakText: spy }, bbox, node, {});
+                assert.ok(spy.calledWith(sinon.match.string, sinon.match(function(obj) {
                     return obj.width === WIDTH - 20 && obj.height === HEIGHT - 30;
                 })));
 
                 // width & height relative
                 spy.resetHistory();
-                ns.textWrap.set.call(cellView, { text: 'text', width: '50%', height: '200%' }, bbox, node, {});
-                assert.ok(!spy.called || spy.calledWith('', sinon.match(function(obj) {
+                ns.textWrap.set.call(cellView, { text: 'text', width: '50%', height: '200%', breakText: spy }, bbox, node, {});
+                assert.ok(spy.calledWith(sinon.match.string, sinon.match(function(obj) {
                     return obj.width === WIDTH / 2 && obj.height === HEIGHT * 2;
                 })));
+
+                // width & height no restriction
+                spy.resetHistory();
+                ns.textWrap.set.call(cellView, { text: 'text', width: null, height: null, breakText: spy }, bbox, node, {});
+                assert.ok(spy.calledWith(sinon.match.string, sinon.match(function(obj) {
+                    return obj.width === Infinity && obj.height === undefined;
+                })));
+
+                // width & height calc()
+                spy.resetHistory();
+                ns.textWrap.set.call(cellView, { text: 'text', width: 'calc(w-11)', height: 'calc(h-13)', breakText: spy }, bbox, node, {});
+                assert.ok(spy.calledWith(sinon.match.string, sinon.match(function(obj) {
+                    return obj.width === refBBox.width - 11 && obj.height === refBBox.height - 13;
+                })));
+
+                spy.restore();
             });
+
 
             QUnit.test('x', function(assert) {
                 var TestElement = joint.dia.Element.define('Test', {
