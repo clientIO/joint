@@ -644,10 +644,7 @@ attributesNS['xlink:href'] = attributesNS.xlinkHref;
     'transform', // g
     'd', // path
     'points', // polyline / polygon
-    'width', 'height', // rect / image
     'cx', 'cy', // circle / ellipse
-    'r', // circle
-    'rx', 'ry', // rect / ellipse
     'x1', 'x2', 'y1', 'y2', // line
     'x', 'y', // rect / text / image
     'dx', 'dy' // text
@@ -659,6 +656,21 @@ attributesNS['xlink:href'] = attributesNS.xlinkHref;
         }
     };
 });
+
+// Prevent "A negative value is not valid" error.
+[
+    'width', 'height', // rect / image
+    'r', // circle
+    'rx', 'ry', // rect / ellipse
+].forEach(attribute => {
+    attributesNS[attribute] = {
+        qualify: isCalcAttribute,
+        set: function setCalcAttribute(value, refBBox) {
+            return { [attribute]: Math.max(0, evalCalcAttribute(value, refBBox)) };
+        }
+    };
+});
+
 
 // Aliases
 attributesNS.refR = attributesNS.refRInscribed;
