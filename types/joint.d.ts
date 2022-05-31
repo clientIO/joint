@@ -2802,14 +2802,21 @@ export namespace util {
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number, unit?: string } | null;
 
-    export function breakText(text: string, size: { width: number, height?: number }, attrs?: attributes.NativeSVGAttributes, opt?: {
-        svgDocument?: SVGElement;
-        separator?: string | any;
-        eol?: string;
-        ellipsis?: boolean | string;
-        hyphen?: string | RegExp;
-        maxLineCount?: number;
-    }): string;
+    type BreakTextFunction = (
+        text: string,
+        size: { width: number, height?: number },
+        attrs?: attributes.NativeSVGAttributes,
+        opt?: {
+            svgDocument?: SVGElement;
+            separator?: string | any;
+            eol?: string;
+            ellipsis?: boolean | string;
+            hyphen?: string | RegExp;
+            maxLineCount?: number;
+        }
+    ) => string;
+
+    export var breakText: BreakTextFunction;
 
     export function sanitizeHTML(html: string): string;
 
@@ -3748,13 +3755,17 @@ export namespace attributes {
     }
 
     interface SVGAttributeTextWrap {
-        text?: string;
-        width?: string | number;
-        height?: string | number;
+        width?: string | number | null;
+        height?: string | number | null;
         ellipsis?: boolean | string;
         hyphen?: string;
         maxLineCount?: number;
+        breakText?: util.BreakTextFunction;
         [key: string]: any;
+        /**
+         * @deprecated use SVGAttributes.text instead
+         **/
+         text?: string;
     }
 
     interface SVGAttributes extends NativeSVGAttributes {

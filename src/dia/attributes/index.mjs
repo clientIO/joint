@@ -348,31 +348,46 @@ const attributesNS = {
     textWrap: {
         qualify: isPlainObject,
         set: function(value, refBBox, node, attrs) {
+            var size = {};
             // option `width`
             var width = value.width || 0;
-            var size = {};
             if (isPercentage(width)) {
                 size.width = refBBox.width * parseFloat(width) / 100;
-            } else if (width <= 0) {
-                size.width = refBBox.width + width;
+            } else if (isCalcAttribute(width)) {
+                size.width = Number(evalCalcAttribute(width, refBBox));
             } else {
-                size.width = width;
+                if (value.width === null) {
+                    // breakText() requires width to be specified.
+                    size.width = Infinity;
+                } else if (width <= 0) {
+                    size.width = refBBox.width + width;
+                } else {
+                    size.width = width;
+                }
             }
             // option `height`
             var height = value.height || 0;
             if (isPercentage(height)) {
                 size.height = refBBox.height * parseFloat(height) / 100;
-            } else if (height <= 0) {
-                size.height = refBBox.height + height;
+            } else if (isCalcAttribute(height)) {
+                size.height = Number(evalCalcAttribute(height, refBBox));
             } else {
-                size.height = height;
+                if (value.height === null) {
+                    // if height is not specified breakText() does not
+                    // restrict the height of the text.
+                } else if (height <= 0) {
+                    size.height = refBBox.height + height;
+                } else {
+                    size.height = height;
+                }
             }
             // option `text`
             var wrappedText;
             var text = value.text;
             if (text === undefined) text = attrs.text;
             if (text !== undefined) {
-                wrappedText = breakText('' + text, size, {
+                const breakTextFn = value.breakText || breakText;
+                wrappedText = breakTextFn('' + text, size, {
                     'font-weight': attrs['font-weight'] || attrs.fontWeight,
                     'font-size': attrs['font-size'] || attrs.fontSize,
                     'font-family': attrs['font-family'] || attrs.fontFamily,
