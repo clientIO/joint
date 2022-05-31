@@ -434,6 +434,42 @@ QUnit.module('Attributes', function() {
                 );
             });
         });
+
+        QUnit.test('prevent negative values for dimensions', function(assert) {
+            var ns = joint.dia.attributes;
+            var attributes = [
+                'x',
+                'y',
+                'cx',
+                'cy',
+                'dx',
+                'dy',
+                'x1',
+                'x2',
+                'y1',
+                'y2',
+                'width',
+                'height',
+                'rx',
+                'ry',
+                'r',
+            ];
+            var results = [
+                -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0,
+            ];
+            attributes.forEach(function(attribute, index) {
+                var setter = ns[attribute].set;
+                var result = setter.call(
+                    cellView,
+                    'calc(w-' + (refBBox.width + 1) + ')',
+                    refBBox.clone(),
+                    node,
+                    {}
+                );
+                assert.equal(result[attribute], String(results[index]));
+            });
+        });
+
     });
 
     QUnit.module('Defs Attributes', function(hooks) {
