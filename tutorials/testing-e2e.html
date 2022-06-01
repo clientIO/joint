@@ -159,14 +159,14 @@ test('Visit Page', async ({ page }) => {
             will run in headless browsers, and if successful, you should see something similar to the following output:
         </p>
 
-<pre><code>Running 3 tests using 2 workers
+<pre><code>Running 4 tests using 2 workers
 
-✓  [chromium] › tests/example.spec.ts:3:1 › Visit Page (1s)
-✓  [firefox] › tests/example.spec.ts:3:1 › Visit Page (4s)
-✓  [webkit] › tests/example.spec.ts:3:1 › Visit Page (2s)
+✓  [chromium] › tests/example.spec.ts:3:1 › Visit Page (2s)
+✓  [firefox] › tests/example.spec.ts:3:1 › Visit Page (5s)
+✓  [webkit] › tests/example.spec.ts:3:1 › Visit Page (1s)
+✓  [iPhone 11] › tests/example.spec.ts:3:1 › Visit Page (1s)
 
-
-3 passed (6s)
+4 passed (7s)
 </code></pre>
 
         <p>
@@ -550,7 +550,7 @@ test('visual regression', async ({ page }) => {
         </p>
 
         <p>
-            When the Inspector window opens, it will be paused on the first Playwright statement. As we set up a <code>beforeAll</code>
+            When the Inspector window opens, it will be paused on the first Playwright statement. As we set up a <code>beforeEach</code>
             test hook earlier, our first statement is <code>await page.goto('http://localhost:3000/')</code>. Using the provided 
             control tools in the Inspector, we can step over each Playwright action, or resume the script without further pauses.
         </p>
@@ -572,8 +572,8 @@ test('visual regression', async ({ page }) => {
         <img src="./images/testing-e2e-playwright-inspector.png" alt="Playwright Testing Inspector GUI" width="650">
 
         <p>
-            As the Inspector has also launched chrome in headed mode, we also have access to all of the usual dev tools we are 
-            accustomed to as we step through our testing scripts. Using the <code>playwright</code> object in dev tools, also
+            As the Inspector has also launched chrome in headed mode, we have access to all of the usual dev tools we are 
+            accustomed to as we step through our testing scripts. Using the <code>playwright</code> object in dev tools also
             gives us access to an API which may also be useful for you depending on your situation.
         </p>
 
@@ -588,26 +588,28 @@ test('visual regression', async ({ page }) => {
         </h4>
 
         <p>
-            Playwright Test comes with a few built-in reporters for different needs, and the ability to provide custom reporters. In this
-            tutorial, we will focus mainly on the HTML reporter as it provides a nice way to interact with the Trace Viewer which we
+            Playwright Test comes with a few built-in 
+            <a href="https://playwright.dev/docs/test-reporters" target="_blank"><code>reporters</code></a> for different needs, and the 
+            ability to provide custom reporters. In this tutorial, we will focus mainly on the HTML reporter as it provides a nice way to 
+            interact with the <a href="https://playwright.dev/docs/trace-viewer" target="_blank"><code>Trace Viewer</code></a> which we
             want to examine too.
         </p>
 
         <p>
             Simply put, the HTML reporter creates a directory <i>playwright-report</i> which presents our test report data in a web page.
-            This web page also allows us to interact with a trace for each test, a trace is a GUI tool that helps troubleshooting
-            our test runs.
+            This web page also allows us to interact with a GUI tool called a trace that helps troubleshoot our test runs.
         </p>
 
         <p>
-            To begin, we need to provide some additional configuration options to <code>playwright.config.js</code>. 
+            To begin, we need to provide some additional configuration options to <code>playwright.config.ts</code>. 
             <code>trace: 'on'</code> will create a trace for each test (success or failure), while <code>reporter: 'html'</code>
             simply states our reporter type.
         </p>
 
-        <pre><code>const { devices } = require('@playwright/test');
-
-const config = {
+        <pre><code>// playwright.config.ts
+import { PlaywrightTestConfig, devices } from '@playwright/test';
+            
+const config: PlaywrightTestConfig = {
     use: {
         trace: 'on',
     },
@@ -617,7 +619,7 @@ const config = {
     ],
 };
 
-module.exports = config;       
+export default config;      
 </code></pre>
 
         <p>
@@ -634,24 +636,24 @@ module.exports = config;
 </code></pre>
 
         <p>
-            Again, the setup was minimal, and now from our project root, we can <code>npm run test</code>, followed by 
-            <code>npm test:report</code> which will serve our HTML report page.
+            Again, the setup was quite minimal. From our project root, we can now <code>npm run test</code> which will create our
+            report, followed by <code>npm run test:report</code> which will serve our HTML report page.
         </p>
 
         <p>
             The first photo below displays the landing page of the HTML reporter. It contains one collapsible section per 
-            test spec. Our reporter shows one test spec <code>tests/example.spec.js</code> containing one test for linking elements
+            test spec. Our reporter shows one test spec <code>tests/example.spec.ts</code> containing one test 'Link Elements'
             in each rendering engine. The search input and clickable rendering engine tags provide test filtering.
         </p>
 
         <p>
-            Navigating to the test name brings you to the test detail which you see in the second photo. Again, you are provided 
-            with the Playwright test actions similar to what we saw in the Inspector. The action dropdowns show the related code
-            from the test spec.
+            Navigating to a particular test name brings you to the test detail which is illustrated in the second photo. Once more, 
+            you are provided with Playwright test actions similar to what we encountered in the Inspector. The action dropdowns show 
+            the related code from the respective test.
         </p>
 
-        <img src="./images/testing-e2e-reporter.png" alt="Playwright HTML Reporter" width="650">
-        <img src="./images/testing-e2e-reporter-detail.png" alt="Playwright HTML Reporter test detail" width="650">
+        <img src="./images/testing-e2e-playwright-reporter.png" alt="Playwright HTML Reporter" width="650">
+        <img src="./images/testing-e2e-playwright-reporter-detail.png" alt="Playwright HTML Reporter test detail" width="650">
 
         <p>
             You'll also notice we are provided with a <i>trace.zip</i> file. Clicking on the trace will bring you to the GUI
@@ -664,7 +666,7 @@ module.exports = config;
             actions, and finally the right column provides the action details.
         </p>
 
-        <img src="./images/testing-e2e-trace-viewer.png" alt="Playwright Trace Viewer" width="650">
+        <img src="./images/testing-e2e-playwright-trace-viewer.png" alt="Playwright Trace Viewer" width="650">
 
         <p>
             Of course, Playwright provides functionality to use Reporters and the Trace Viewer independent of each other. The manner in 
