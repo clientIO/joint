@@ -656,21 +656,36 @@ export default config;
         <img src="./images/testing-e2e-playwright-reporter-detail.png" alt="Playwright HTML Reporter test detail" width="650">
 
         <p>
-            You'll also notice we are provided with a <i>trace.zip</i> file. Clicking on the trace will bring you to the GUI
-            for the Trace Viewer which you can see below. This interface provides several useful sections for debugging. At the top,
-            the title is featured along with a timeline displaying snapshots of the application state as the test runs.
+            At the bottom of the test detail, the test's trace is displayed. This is what we configured in 
+            <code>playwright.config.ts</code>. Clicking on the trace brings you to the Trace Viewer GUI which is shown in the photo 
+            below. This interface provides several useful sections for debugging our tests.
         </p>
 
         <p>
-            The left column contains the Playwright actions, the middle column displays before and after snapshots for each of those
-            actions, and finally the right column provides the action details.
+            The interface header contains the title for both our test and test spec. Underneath those, we are provided
+            with a timeline which displays snapshots of the application state throughout the test run. Hovering the timeline displays 
+            a magnified image from that time, and also highlights the particular Playwright action that is occurring in the left 
+            column. This helps locating the action of interest very quickly.
+        </p>
+
+        <p>
+            The left column contains Playwright actions, and some metadata such as viewport sizing or rendering engine used.
+            Hovering the actions will highlight the position at which the action occurs in the timeline above. Clicking on an
+            action will display details in the right column such as the expected/received values from our assertion.
+        </p>
+
+        <p>
+            The middle column displays before and after snapshots for each Playwright action. The <i>before</i> snapshot displays
+            the time the action is called, so our <code>mouse.move</code> action won't show that a link has been drawn to our target.
+            The <i>after</i> snapshot however will show a link has been drawn to the target, and also display the highlight that we
+            expect to be present. These snapshots can be especially useful for knowing exactly where Playwright has clicked.
         </p>
 
         <img src="./images/testing-e2e-playwright-trace-viewer.png" alt="Playwright Trace Viewer" width="650">
 
         <p>
             Of course, Playwright provides functionality to use Reporters and the Trace Viewer independent of each other. The manner in 
-            which we used them together here was just for illustration purposes.  
+            which we used them together here was just convenient for illustration purposes.  
         </p>
 
         <script src="../node_modules/prismjs/prism.js"></script>
