@@ -336,16 +336,16 @@ test('Primary heading isVisible', async ({ page }) => {
     const target = page.locator('.target');
     await source.dragTo(target);
 
-    const sourcebbox = await source.boundingBox();
-    const targetbbox = await target.boundingBox();
+    const sourceBBox = await source.boundingBox();
+    const targetBBox = await target.boundingBox();
 
     // If top-left inner box corner is inside the outer box
-    expect(targetbbox.x).toBeLessThan(sourcebbox.x);
-    expect(targetbbox.y).toBeLessThan(sourcebbox.y);
+    expect(targetBBox.x).toBeLessThan(sourceBBox.x);
+    expect(targetBBox.y).toBeLessThan(sourceBBox.y);
 
     // If bottom-right inner box corner is inside the outer box
-    expect(sourcebbox.x + sourcebbox.width).toBeLessThan(targetbbox.x + targetbbox.width);
-    expect(sourcebbox.y + sourcebbox.height).toBeLessThan(targetbbox.y + targetbbox.height);
+    expect(sourceBBox.x + sourceBBox.width).toBeLessThan(targetBBox.x + targetBBox.width);
+    expect(sourceBBox.y + sourceBBox.height).toBeLessThan(targetBBox.y + targetBBox.height);
 });
 </code></pre>
 
@@ -406,20 +406,20 @@ test('Primary heading isVisible', async ({ page }) => {
 
         <pre><code>test('Link Elements', async ({ page }) => {
     const source = page.locator('.port-out');
-    const sourcebbox = await source.boundingBox();
+    const sourceBBox = await source.boundingBox();
 
     // Element has attribute [magnet=false]
     const target1 = page.locator('.target-magnet-false');
-    const target1bbox = await target1.boundingBox();
+    const target1BBox = await target1.boundingBox();
 
     // No link should be present in DOM
     const link = page.locator('.joint-type-standard-link');
     await expect(link).toHaveCount(0);
 
     // Mousemove to center of element
-    await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
+    await page.mouse.move(sourceBBox.x + sourceBBox.width / 2, sourceBBox.y + sourceBBox.height / 2);
     await page.mouse.down();
-    await page.mouse.move(target1bbox.x + target1bbox.width / 2, target1bbox.y + target1bbox.height / 2);
+    await page.mouse.move(target1BBox.x + target1BBox.width / 2, target1BBox.y + target1BBox.height / 2);
     await page.mouse.up();
 
     // A link still shouldn't exist as target has attribute [magnet="false"]
@@ -427,12 +427,12 @@ test('Primary heading isVisible', async ({ page }) => {
 
     // Element has attribute [magnet=true]
     const target2 = page.locator('.target-magnet-true');
-    const target2bbox = await target2.boundingBox();
+    const target2BBox = await target2.boundingBox();
 
     // Mousemove to center of element
-    await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
+    await page.mouse.move(sourceBBox.x + sourceBBox.width / 2, sourceBBox.y + sourceBBox.height / 2);
     await page.mouse.down();
-    await page.mouse.move(target2bbox.x + target2bbox.width / 2, target2bbox.y + target2bbox.height / 2);
+    await page.mouse.move(target2BBox.x + target2BBox.width / 2, target2BBox.y + target2BBox.height / 2);
 
     // A highlight should now display on the target element to show a connection is possible
     const highlight = page.locator('.joint-highlight-stroke');
