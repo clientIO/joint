@@ -159,7 +159,7 @@ It lays a port out at the given position (defined as `x`, `y` coordinates or per
                 <tr>
                     <td><b>x</b></td>
                     <td rowspan="2">number | string</td>
-                    <td rowspan="2">Sets the port's `x` coordinate. It can be defined as a percentage string e.g. <code>'50%'</code>,  <a href="#dia.attributes.calc">calc()</a> expression or a number</td>
+                    <td rowspan="2">Sets the port's <code>x</code> coordinate. It can be defined as a percentage string e.g. <code>'50%'</code>,  <a href="#dia.attributes.calc">calc()</a> expression or a number</td>
                 </tr>
                 <tr>
                     <td><b>y</b></td>
