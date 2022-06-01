@@ -236,7 +236,7 @@ export const uuid = function() {
     });
 };
 
-// Generate global unique id and store it as a property of the object if it is presented.
+// Generates global unique id and stores it as a property of the object, if provided.
 export const guid = function(obj) {
 
     guid.id = guid.id || 1;
