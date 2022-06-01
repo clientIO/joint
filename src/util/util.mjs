@@ -236,10 +236,15 @@ export const uuid = function() {
     });
 };
 
-// Generate global unique id for obj and store it as a property of the object.
+// Generate global unique id and store it as a property of the object if it is presented.
 export const guid = function(obj) {
 
     guid.id = guid.id || 1;
+
+    if (obj === undefined) {
+        return 'j_' + guid.id++;
+    }
+
     obj.id = (obj.id === undefined ? 'j_' + guid.id++ : obj.id);
     return obj.id;
 };
