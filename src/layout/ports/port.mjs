@@ -1,3 +1,4 @@
+import { evalCalcAttribute, isCalcAttribute } from '../../dia/attributes/calc.mjs';
 import * as g from '../../g/index.mjs';
 import * as util from '../../util/index.mjs';
 
@@ -10,15 +11,14 @@ function portTransformAttrs(point, angle, opt) {
     return util.defaults({}, opt, trans);
 }
 
-function lineLayout(ports, p1, p2) {
+function lineLayout(ports, p1, p2, elBBox) {
     return ports.map(function(port, index, ports) {
         var p = this.pointAt(((index + 0.5) / ports.length));
         // `dx`,`dy` per port offset option
         if (port.dx || port.dy) {
             p.offset(port.dx || 0, port.dy || 0);
         }
-
-        return portTransformAttrs(p.round(), 0, port);
+        return portTransformAttrs(p.round(), 0, argTransform(elBBox, port));
     }, g.line(p1, p2));
 }
 
@@ -49,24 +49,30 @@ function ellipseLayout(ports, elBBox, startAngle, stepFn) {
             p2.move(center, port.dr);
         }
 
-        return portTransformAttrs(p2.round(), theta, port);
+        return portTransformAttrs(p2.round(), theta, argTransform(elBBox, port));
     });
+}
+
+
+function argTransform(bbox, args) {
+    let { x, y, angle } = args;
+    if (util.isPercentage(x)) {
+        x = parseFloat(x) / 100 * bbox.width;
+    } else if (isCalcAttribute(x)) {
+        x = Number(evalCalcAttribute(x, bbox));
+    }
+    if (util.isPercentage(y)) {
+        y = parseFloat(y) / 100 * bbox.height;
+    } else if (isCalcAttribute(y)) {
+        y = Number(evalCalcAttribute(y, bbox));
+    }
+    return { x, y, angle };
 }
 
 // Creates a point stored in arguments
 function argPoint(bbox, args) {
-
-    var x = args.x;
-    if (util.isString(x)) {
-        x = parseFloat(x) / 100 * bbox.width;
-    }
-
-    var y = args.y;
-    if (util.isString(y)) {
-        y = parseFloat(y) / 100 * bbox.height;
-    }
-
-    return g.point(x || 0, y || 0);
+    const { x, y } = argTransform(bbox, args);
+    return new g.Point(x || 0, y || 0);
 }
 
 
@@ -76,9 +82,12 @@ function argPoint(bbox, args) {
  * @param {Object=} opt opt Group options
  * @returns {Array<g.Point>}
  */
-export const absolute = function(ports, elBBox, opt) {
-    //TODO v.talas angle
-    return ports.map(argPoint.bind(null, elBBox));
+export const absolute = function(ports, elBBox) {
+    return ports.map(port => {
+        const transformation = argPoint(elBBox, port).round().toJSON();
+        transformation.angle = port.angle || 0;
+        return transformation;
+    });
 };
 
 /**
@@ -102,7 +111,7 @@ export const line = function(ports, elBBox, opt) {
     var start = argPoint(elBBox, opt.start || elBBox.origin());
     var end = argPoint(elBBox, opt.end || elBBox.corner());
 
-    return lineLayout(ports, start, end);
+    return lineLayout(ports, start, end, elBBox);
 };
 
 /**
@@ -112,7 +121,7 @@ export const line = function(ports, elBBox, opt) {
  * @returns {Array<g.Point>}
  */
 export const left = function(ports, elBBox, opt) {
-    return lineLayout(ports, elBBox.origin(), elBBox.bottomLeft());
+    return lineLayout(ports, elBBox.origin(), elBBox.bottomLeft(), elBBox);
 };
 
 /**
@@ -122,7 +131,7 @@ export const left = function(ports, elBBox, opt) {
  * @returns {Array<g.Point>}
  */
 export const right = function(ports, elBBox, opt) {
-    return lineLayout(ports, elBBox.topRight(), elBBox.corner());
+    return lineLayout(ports, elBBox.topRight(), elBBox.corner(), elBBox);
 };
 
 /**
@@ -132,7 +141,7 @@ export const right = function(ports, elBBox, opt) {
  * @returns {Array<g.Point>}
  */
 export const top = function(ports, elBBox, opt) {
-    return lineLayout(ports, elBBox.origin(), elBBox.topRight());
+    return lineLayout(ports, elBBox.origin(), elBBox.topRight(), elBBox);
 };
 
 /**
@@ -142,7 +151,7 @@ export const top = function(ports, elBBox, opt) {
  * @returns {Array<g.Point>}
  */
 export const bottom = function(ports, elBBox, opt) {
-    return lineLayout(ports, elBBox.bottomLeft(), elBBox.corner());
+    return lineLayout(ports, elBBox.bottomLeft(), elBBox.corner(), elBBox);
 };
 
 /**
