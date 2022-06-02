@@ -97,7 +97,7 @@ QUnit.module('element ports', function() {
         QUnit.test('insertPort by id', function(assert) {
 
             var shape = create({ items: [{ group: 'in' }] });
-            
+
             shape.insertPort(0, { id: 'a' });
             shape.insertPort('a', { id: 'b' });
 
@@ -643,40 +643,42 @@ QUnit.module('element ports', function() {
     QUnit.module('port layout', function(hooks) {
 
         QUnit.test('straight line layouts', function(assert) {
-            var elBBox = g.rect(0, 0, 100, 100);
-
-            var trans = joint.layout.Port.left([
+            var ports = [
                 {},
                 {},
                 { dx: 20, dy: -15 },
-                { y: 100, x: 100, angle: 45 }
-            ], elBBox, {});
-
+                { y: 100, x: 100, angle: 45 },
+                { x: 'calc(w+11)', y: 'calc(h+13)' }
+            ];
+            var elBBox = g.rect(0, 0, 100, 100);
+            var trans = joint.layout.Port.left(ports, elBBox, {});
             var delta = trans[1].y - trans[0].y;
 
             assert.equal(trans[0].y + delta, trans[1].y);
             assert.equal(trans[0].x, 0);
             assert.equal(trans[0].angle, 0);
 
-            assert.equal(trans[2].x, 20);
             assert.equal(trans[2].y, trans[1].y + delta - 15, 'offset y should be applied');
+            assert.equal(trans[2].x, 20);
             assert.equal(trans[2].angle, 0);
 
-            assert.equal(trans[3].angle, 45);
+            assert.equal(trans[3].x, 100, 'override x position');
             assert.equal(trans[3].y, 100, 'override y position');
-            assert.equal(trans[3].x, 100, 'override y position');
+            assert.equal(trans[3].angle, 45);
+
+            assert.equal(trans[4].x, 111, 'override x position');
+            assert.equal(trans[4].y, 113, 'override y position');
         });
 
         QUnit.test('circular layouts', function(assert) {
-
-            var elBBox = g.rect(0, 0, 100, 100);
-
-            var trans = joint.layout.Port.ellipseSpread([
+            var ports = [
                 {},
                 { dr: 3, compensateRotation: true },
                 { dx: 1, dy: 2, dr: 3 },
-                { x: 100, y: 101, angle: 10 }
-            ], elBBox, {});
+                { x: 'calc(w)', y: 101, angle: 10 }
+            ];
+            var elBBox = g.rect(0, 0, 100, 100);
+            var trans = joint.layout.Port.ellipseSpread(ports, elBBox, {});
 
             assert.equal(Math.round(trans[1].angle), -270, 'rotation compensation applied');
             assert.equal(trans[1].x, 100 + 3, 'dr is applied');
@@ -689,6 +691,29 @@ QUnit.module('element ports', function() {
             assert.equal(trans[3].x, 100, 'x position overridden');
             assert.equal(trans[3].y, 101, 'y position overridden');
             assert.equal(trans[3].angle, 10, 'y position overridden');
+        });
+
+
+        QUnit.test('absolute layout', function(assert) {
+            var ports = [
+                {},
+                { x: 20, y: -15, angle: 45 },
+                { y: 'calc(w+11)', x: 'calc(h+13)' }
+            ];
+            var elBBox = new g.Rect(0, 0, 100, 100);
+            var trans = joint.layout.Port.absolute(ports, elBBox, {});
+
+            assert.equal(trans[0].y, 0);
+            assert.equal(trans[0].x, 0);
+            assert.equal(trans[0].angle, 0);
+
+            assert.equal(trans[1].x, 20);
+            assert.equal(trans[1].y, -15);
+            assert.equal(trans[1].angle, 45);
+
+            assert.equal(trans[2].y, 111);
+            assert.equal(trans[2].x, 113);
+            assert.equal(trans[2].angle, 0);
         });
     });
 

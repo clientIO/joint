@@ -3157,20 +3157,31 @@ export namespace layout {
 
     export namespace Port {
 
+        type Position = {
+            x: number | string;
+            y: number | string;
+        };
+
+        type Transformation = {
+            x: number;
+            y: number;
+            angle: number;
+        };
+
+        type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<Transformation>;
+
         interface Options {
-            x?: number;
-            y?: number;
+            x?: number | string;
+            y?: number | string;
             dx?: number;
             dy?: number;
             angle?: number;
-            start?: g.Point;
-            end?: g.Point;
+            start?: Position;
+            end?: Position;
             startAngle?: number;
             step?: number;
             compensateRotation?: boolean;
         }
-
-        type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<g.Point>;
 
         export var absolute: LayoutFunction;
         export var fn: LayoutFunction;

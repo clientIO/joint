@@ -4,7 +4,7 @@ Port layouts are functions that accept an array of port's `args` and return an a
 Port layout can be defined only at the `group` level. Optionally you can pass some additional arguments into the layout function via `args`. The `args` is the only way to adjust port layout from the port definition perspective.
 
 ```javascript
-var rect = new joint.shapes.basic.Rect({
+const rect = new joint.shapes.standard.Rectangle({
     // ...
     ports: {
         groups: {
@@ -43,7 +43,7 @@ A simple layout suitable for rectangular shapes. It evenly spreads ports along a
         <td><b>name</b></td>
         <td><i>string</i></td>
         <td>
-            Can be either `left`, `right`, `top`, `bottom`.
+            Can be either <code>'left'</code>, <code>'right'</code>,  <code>'top'</code>,  <code>'bottom'</code>.
         </td>
     </tr>
     <tr>
@@ -54,22 +54,21 @@ A simple layout suitable for rectangular shapes. It evenly spreads ports along a
                 <tr>
                     <td><b>x</b></td>
                     <td>number</td>
-                    <td>Overrides the `x` value calculated by the layout function</td>
+                    <td rowspan="2">Overrides the <code>x</code> / <code>y</code> value calculated by the layout function. It can be defined as a percentage string e.g. <code>'50%'</code>,  <a href="#dia.attributes.calc">calc()</a> expression or a number</td>
                 </tr>
                 <tr>
                     <td><b>y</b></td>
                     <td>number</td>
-                    <td>Overrides the `y` value calculated by the layout function</td>
                 </tr>
                 <tr>
                     <td><b>dx</b></td>
                     <td>number</td>
-                    <td>Added to the `x` value calculated by the layout function</td>
+                    <td>Added to the <code>x</code> value calculated by the layout function</td>
                 </tr>
                 <tr>
                     <td><b>dy</b></td>
                     <td>number</td>
-                    <td>Added to the `y` value calculated by the layout function</td>
+                    <td>Added to the <code>y</code> value calculated by the layout function</td>
                 </tr>
                 <tr>
                     <td><b>angle</b></td>
@@ -105,7 +104,7 @@ A layout which evenly spreads ports along a line defined by a `start` and `end` 
         <td><b>name</b></td>
         <td><i>string</i></td>
         <td>
-            `line`
+            <code>'line'</code>
         </td>
     </tr>
     <tr>
@@ -115,12 +114,12 @@ A layout which evenly spreads ports along a line defined by a `start` and `end` 
             <table>
                 <tr>
                     <td><b>start</b></td>
-                    <td>{ x:number, y:number }</td>
-                    <td>The line starting point</td>
+                    <td rowspan="2">{ x: number|string, y: number|string }</td>
+                    <td>The line starting point.</td>
+                    <td rowspan="2"><code>x</code> and <code>y</code> can be a percentage string e.g. <code>'50%'</code>, <a href="#dia.attributes.calc">calc()</a> expression, or a number</td>
                 </tr>
                 <tr>
                     <td><b>end</b></td>
-                    <td>{ x:number, y:number }</td>
                     <td>The line end point</td>
                 </tr>
             </table>
@@ -134,7 +133,7 @@ A layout which evenly spreads ports along a line defined by a `start` and `end` 
     name: 'line',
     args: {
         start: { x: 10, y: 10 },
-        end: { x: 20, y: 50 }
+        end: { x: 'calc(w)', y: '50%' }
     }
 }
 
@@ -149,7 +148,7 @@ It lays a port out at the given position (defined as `x`, `y` coordinates or per
         <td><b>name</b></td>
         <td><i>string</i></td>
         <td>
-            `absolute`
+            <code>'absolute'</code>
         </td>
     </tr>
     <tr>
@@ -159,13 +158,11 @@ It lays a port out at the given position (defined as `x`, `y` coordinates or per
             <table>
                 <tr>
                     <td><b>x</b></td>
-                    <td>number | string</td>
-                    <td>Sets the port's `x` coordinate. Can be defined as a percentage string ('50%') or as a number</td>
+                    <td rowspan="2">number | string</td>
+                    <td rowspan="2">Sets the port's <code>x</code> coordinate. It can be defined as a percentage string e.g. <code>'50%'</code>,  <a href="#dia.attributes.calc">calc()</a> expression or a number</td>
                 </tr>
                 <tr>
                     <td><b>y</b></td>
-                    <td>number | string</td>
-                    <td>Sets the port's `y` coordinate. Can be defined as a percentage string ('50%') or as a number</td>
                 </tr>
                 <tr>
                     <td><b>angle</b></td>
@@ -198,7 +195,7 @@ Suitable for circular shapes. The `ellipseSpreads` evenly spreads ports along an
         <td><b>name</b></td>
         <td><i>string</i></td>
         <td>
-            Can be either `ellipse`, `ellipseSpread`.
+            Can be either <code>'ellipse'</code> or <code>'ellipseSpread'</code>.
         </td>
     </tr>
     <tr>
@@ -209,22 +206,21 @@ Suitable for circular shapes. The `ellipseSpreads` evenly spreads ports along an
                 <tr>
                     <td><b>x</b></td>
                     <td>number</td>
-                    <td>Overrides the `x` value calculated by the layout function</td>
+                    <td rowspan="2">Overrides the <code>x</code> / <code>y</code> value calculated by the layout function. It can be defined as a percentage string e.g. <code>'50%'</code>,  <a href="#dia.attributes.calc">calc()</a> expression or a number</td>
                 </tr>
                 <tr>
                     <td><b>y</b></td>
                     <td>number</td>
-                    <td>Overrides the `y` value calculated by the layout function</td>
                 </tr>
                 <tr>
                     <td><b>dx</b></td>
                     <td>number</td>
-                    <td>Added to the `x` value calculated by the layout function</td>
+                    <td>Added to the <code>x</code> value calculated by the layout function</td>
                 </tr>
                 <tr>
                     <td><b>dy</b></td>
                     <td>number</td>
-                    <td>Added to the `y` value calculated by the layout function</td>
+                    <td>Added to the <code>y</code> value calculated by the layout function</td>
                 </tr>
                 <tr>
                     <td><b>dr</b></td>
@@ -234,19 +230,19 @@ Suitable for circular shapes. The `ellipseSpreads` evenly spreads ports along an
                 <tr>
                     <td><b>startAngle</b></td>
                     <td>number</td>
-                    <td>Default value is `0`.</td>
+                    <td>Default value is <code>0</code>.</td>
                 </tr>
                 <tr>
                     <td><b>step</b></td>
                     <td>number</td>
                     <td>
-                        Default `360 / portsCount` for the `ellipseSpread`, `20` for the `ellipse`
+                        Default <code>360 / portsCount</code> for the <i>ellipseSpread</i>, <code>20</code> for the <i>ellipse</i>
                     </td>
                 </tr>
                 <tr>
                     <td><b>compensateRotation</b></td>
                     <td>boolean</td>
-                    <td>set `compensateRotation:true` when you need to have ports in the same angle as an ellipse tangent at the port position.</td>
+                    <td>set <code>compensateRotation: true</code> when you need to have ports in the same angle as an ellipse tangent at the port position.</td>
                 </tr>
             </table>
         </td>
@@ -272,23 +268,25 @@ Suitable for circular shapes. The `ellipseSpreads` evenly spreads ports along an
 
 ### Custom layout
 
-An alternative for built-in layouts is providing a function directly, where the function returns an array of port positions.
+An alternative for built-in layouts is providing a function directly, where the function returns an array of port transformations (position and angle).
 
 ```javascript
 /**
 * @param {Array<object>} portsArgs
 * @param {g.Rect} elBBox shape's bounding box
 * @param {object} opt Group options
-* @returns {Array<g.Point>}
+* @returns {Array<joint.layout.Port.Transformation>}
 */
 function(portsArgs, elBBox, opt) {
-
-    // ports on sinusoid
-    return _.map(portsArgs, function(portArgs, index) {
-
-        var step = -Math.PI / 8;
-        var y = Math.sin(index * step) * 50;
-        return g.Point({ x: index * 12, y: y + elBBox.height });
+    // Distribute ports along the sinusoid
+    return portsArgs.map((portArgs, index) => {
+        const step = -Math.PI / 8;
+        const y = Math.sin(index * step) * 50;
+        return {
+            x: index * 12,
+            y: y + elBBox.height,
+            angle: 0
+        };
     });
 }
 ```
