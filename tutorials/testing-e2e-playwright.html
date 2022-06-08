@@ -87,7 +87,7 @@ npx playwright install
             </p>
 
             <p>
-                Playwright can also emulate mobile environments too, so we will create a project for iphone too.
+                Playwright can also emulate mobile environments too, so we will create a project for the pixel and iphone too.
             </p>
 
     <pre><code>// playwright.config.ts
@@ -107,12 +107,20 @@ const config: PlaywrightTestConfig = {
             name: 'webkit',
             use: { ...devices['Desktop Safari'] },
         },
-        // "iPhone 11" tests use WebKit browser.
+        // "iPhone 13 Pro" tests use WebKit browser.
         {
-            name: 'iPhone 11',
+            name: 'iPhone 13 Pro',
             use: {
                 browserName: 'webkit',
-                ...devices['iPhone 11'],
+                ...devices['iPhone 13 Pro'],
+        },
+        // "Pixel 4 landscape" tests use Chromium browser.
+        {
+            name: 'Pixel 4 landscape',
+            use: {
+              browserName: 'chromium',
+              ...devices['Pixel 4 landscape'],
+            },
         },
     ],
 };
@@ -159,14 +167,15 @@ test('Visit Page', async ({ page }) => {
             will run in headless browsers, and if successful, you should see something similar to the following output:
         </p>
 
-<pre><code>Running 4 tests using 2 workers
+<pre><code>Running 5 tests using 2 workers
 
-✓  [chromium] › tests/example.spec.ts:3:1 › Visit Page (2s)
-✓  [firefox] › tests/example.spec.ts:3:1 › Visit Page (5s)
-✓  [webkit] › tests/example.spec.ts:3:1 › Visit Page (1s)
-✓  [iPhone 11] › tests/example.spec.ts:3:1 › Visit Page (1s)
+✓  [firefox] › tests/example.spec.ts:3:1 › Visit Page (8s)
+✓  [chromium] › tests/example.spec.ts:3:1 › Visit Page (3s)
+✓  [webkit] › tests/example.spec.ts:3:1 › Visit Page (2s)
+✓  [iPhone 13 Pro] › tests/example.spec.ts:3:1 › Visit Page (1s)
+✓  [Pixel 4 landscape] › tests/example.spec.ts:3:1 › Visit Page (849ms)
 
-4 passed (7s)
+5 passed (12s)
 </code></pre>
 
         <p>
@@ -531,7 +540,7 @@ test('visual regression', async ({ page }) => {
 
         <p>
             As we don't want to type this every time, we will set up an npm script in our <code>package.json</code> for this too. We 
-            will take advantage of our previous scripts, and just set up debugging in chrome, as we only want to use chrome dev tools
+            will take advantage of our previous scripts, and just set up debugging in chrome, as we want to use chrome dev tools
             for debugging.
         </p>
 
