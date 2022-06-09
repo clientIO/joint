@@ -20,7 +20,7 @@ export function evalCalcExpression(expression, bbox) {
     const match = parseExpressionRegExp.exec(expression.replace(findSpacesRegex, ''));
     if (!match) throwInvalid(expression);
     parseExpressionRegExp.lastIndex = 0; // reset regex results for the next run
-    const [,multiply, property, divide, add = 0] = match;
+    const [,multiply, property, divide, add] = match;
     const { x, y, width, height } = bbox;
     let value = 0;
     switch (property) {
