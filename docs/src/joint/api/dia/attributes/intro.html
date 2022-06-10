@@ -44,11 +44,30 @@ All the standard SVG <a href="https://www.w3.org/TR/SVG/styling.html" target="_b
 'calc(0.5 * h)'</code></pre>
     </li>
     <li>
+        <span class="calc-part">Variable</span>
+        <span class="calc-part">Division</span>
+        <pre><code>'calc(w / 2)'
+'calc(h / 3)'</code></pre>
+    </li>
+    <li>
+        <span class="calc-part">Variable</span>
+        <span class="calc-part">Division</span>
+        <pre><code>'calc(w / 2)'
+'calc(h / 3)'</code></pre>
+    </li>
+    <li>
         <span class="calc-part">Multiplication</span>
         <span class="calc-part">Variable</span>
         <span class="calc-part">Addition or Subtraction</span>
         <pre><code>'calc(2 * w + 5)'
 'calc(0.5 * h - 10)'</code></pre>
+    </li>
+    <li>
+        <span class="calc-part">Variable</span>
+        <span class="calc-part">Division</span>
+        <span class="calc-part">Addition or Subtraction</span>
+        <pre><code>'calc(w / 2 + 5)'
+'calc(h / 3 - 10)'</code></pre>
     </li>
 </ul>
 
@@ -105,6 +124,10 @@ All the standard SVG <a href="https://www.w3.org/TR/SVG/styling.html" target="_b
     <li>
         <span class="calc-part">Multiplication</span> is an optional floating number factor of the variable. It's a number followed by the <code>*</code> symbol.
         <pre><code>1.5 *</code></pre>
+    </li>
+    <li>
+        <span class="calc-part">Division</span> is an optional floating number divisor of the variable. It's the <code>/</code> symbol followed by a number.
+        <pre><code>/ 2</code></pre>
     </li>
     <li>
         <span class="calc-part">Addition or Subtraction</span> is an optional floating number added or subtracted from the variable. It's a <code>+</code> or <code>-</code> symbol followed by a number.

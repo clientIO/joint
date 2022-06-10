@@ -10,7 +10,7 @@ const props = {
 const propsList = Object.keys(props).map(key => props[key]).join('');
 const numberPattern = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?';
 const findSpacesRegex = /\s/g;
-const parseExpressionRegExp = new RegExp(`^(${numberPattern}\\*)?([${propsList}])([-+]{1,2}${numberPattern})?$`, 'g');
+const parseExpressionRegExp = new RegExp(`^(${numberPattern}\\*)?([${propsList}])(/${numberPattern})?([-+]{1,2}${numberPattern})?$`, 'g');
 
 function throwInvalid(expression) {
     throw new Error(`Invalid calc() expression: ${expression}`);
@@ -20,7 +20,7 @@ export function evalCalcExpression(expression, bbox) {
     const match = parseExpressionRegExp.exec(expression.replace(findSpacesRegex, ''));
     if (!match) throwInvalid(expression);
     parseExpressionRegExp.lastIndex = 0; // reset regex results for the next run
-    const [,multiply = 1, property, add = 0] = match;
+    const [,multiply, property, divide, add] = match;
     const { x, y, width, height } = bbox;
     let value = 0;
     switch (property) {
@@ -53,7 +53,18 @@ export function evalCalcExpression(expression, bbox) {
             break;
         }
     }
-    return parseFloat(multiply) * value + evalAddExpression(add);
+    if (multiply) {
+        // e.g "2*"
+        value *= parseFloat(multiply);
+    }
+    if (divide) {
+        // e.g "/2"
+        value /= parseFloat(divide.slice(1));
+    }
+    if (add) {
+        value += evalAddExpression(add);
+    }
+    return value;
 }
 
 function evalAddExpression(addExpression) {

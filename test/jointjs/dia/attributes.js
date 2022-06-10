@@ -411,9 +411,18 @@ QUnit.module('Attributes', function() {
                 ['calc(2*h+10)', String(HEIGHT * 2 + 10)],
                 ['calc(w+-10)', String(WIDTH - 10)],
                 ['calc(h--10)', String(HEIGHT + 10)],
+                // division
+                ['calc(w/2)', String(WIDTH / 2)],
+                ['calc(h/3)', String(HEIGHT / 3)],
+                ['calc(w/2.5)', String(WIDTH / 2.5)],
+                ['calc(w/1e-1)', String(WIDTH / 1e-1)],
+                ['calc(3*w/2)', String(3 * WIDTH / 2)],
+                ['calc(4*w/2+1)', String(4 * WIDTH / 2 + 1)],
+                ['calc(4*w/2-1)', String(4 * WIDTH / 2 - 1)],
                 // spaces
                 ['calc( 2 * w + 10 )', String(WIDTH * 2 + 10)],
                 ['calc( 2 * h + 10 )', String(HEIGHT * 2 + 10)],
+                ['calc( 3 * w / 2 + 10 )', String(WIDTH * 3 / 2 + 10)],
                 // multiple expressions
                 ['M 0 0 calc(w) calc(h) 200 200', 'M 0 0 ' + WIDTH + ' ' + HEIGHT + ' 200 200'],
                 ['M 0 0 calc(w+10) calc(h+10)', 'M 0 0 ' + (WIDTH + 10) + ' ' + (HEIGHT + 10)],
