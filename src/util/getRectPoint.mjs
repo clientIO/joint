@@ -1,6 +1,6 @@
 import * as g from '../g/index.mjs';
 
-const Positions = {
+export const Positions = {
     TOP: 'top',
     RIGHT: 'right',
     BOTTOM: 'bottom',
