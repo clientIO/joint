@@ -620,8 +620,9 @@ const attributesNS = {
                     offset = stubs;
                 }
                 const path = this.getConnection();
-                const sourceParts = path.divideAtLength(offset);
-                const targetParts = path.divideAtLength(-offset);
+                const segmentSubdivisions = this.getConnectionSubdivisions();
+                const sourceParts = path.divideAtLength(offset, { segmentSubdivisions });
+                const targetParts = path.divideAtLength(-offset, { segmentSubdivisions });
                 if (sourceParts && targetParts) {
                     d = `${sourceParts[0].serialize()} ${targetParts[1].serialize()}`;
                 }
