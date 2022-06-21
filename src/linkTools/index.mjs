@@ -883,7 +883,7 @@ const Connect = Button.extend({
         const { x, y } = paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
         relatedView.dragLinkStart(normalizedEvent, this.getMagnetNode(), x, y);
         paper.undelegateEvents();
-        this.delegateDocumentEvents(null, evt.data);
+        this.delegateDocumentEvents(null, normalizedEvent.data);
         this.focus();
     },
     drag: function(evt) {
