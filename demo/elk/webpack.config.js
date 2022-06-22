@@ -4,7 +4,7 @@ var path = process.cwd() + '/dist';
 module.exports = {
     entry: './index.js',
     mode: 'development',
-    target: 'es5',
+    target: 'web',
     output: {
         path: path,
         filename: 'bundle.js'
@@ -54,7 +54,8 @@ module.exports = {
     },
     plugins: [
         new CopyPlugin([
-            { from: './index.html', to: './' }
-        ])
+            { from: './index.html', to: './' },
+            { from: './node_modules/jointjs/dist/joint.min.css', to: './joint.min.css' }
+        ]),
     ]
 };

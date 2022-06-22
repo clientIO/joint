@@ -1,4 +1,4 @@
-import * as joint from '../../../build/joint';
+import * as joint from 'jointjs';
 
 export const Child = joint.shapes.standard.Rectangle.define('app.Child', {
     z: 1,

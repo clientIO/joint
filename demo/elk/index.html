@@ -4,13 +4,17 @@
     <meta charset="utf-8">
     <title>ELK Layered Layout</title>
     <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <link rel="stylesheet" type="text/css" href="./joint.min.css">
 </head>
 <body>
 <div class="toolbar">
     <span id="zoom-out" class="toolbar-button">Zoom Out</span>
     <span id="zoom-in" class="toolbar-button">Zoom In</span>
 </div>
-<div id="canvas" class="canvas"></div>
+<div class="wrapper">
+    <textarea id="textarea" class="textarea" placeholder="Joint JSON"></textarea>
+    <div id="canvas" class="canvas"></div>
+</div>
 
 <!-- Application files:  -->
 <script src="bundle.js"></script>

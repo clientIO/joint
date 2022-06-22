@@ -1,0 +1,952 @@
+{
+    "cells": [
+        {
+            "type": "standard.Rectangle",
+            "ports": {
+                "groups": {
+                    "in": {
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "position": {
+                            "name": "left"
+                        },
+                        "label": {
+                            "position": {
+                                "name": "left",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    },
+                    "out": {
+                        "position": {
+                            "name": "right"
+                        },
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "label": {
+                            "position": {
+                                "name": "right",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    }
+                },
+                "items": [
+                    {
+                        "group": "in",
+                        "id": "245f675b-bb1d-4bc2-bf7d-9570668d9abc",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    },
+                    {
+                        "group": "out",
+                        "id": "8a391e73-ebcd-4338-9e0d-24c04fd8aec1",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    }
+                ]
+            },
+            "position": {
+                "x": 50,
+                "y": 170
+            },
+            "size": {
+                "width": 90,
+                "height": 67.5
+            },
+            "angle": 0,
+            "allowOrthogonalResize": false,
+            "id": "c9dfaf31-91ef-408f-b311-e44463f5af50",
+            "z": 1,
+            "embeds": [],
+            "attrs": {
+                "root": {
+                    "dataTooltipPosition": "left",
+                    "dataTooltipPositionSelector": ".joint-stencil"
+                },
+                "body": {
+                    "stroke": "#31d0c6",
+                    "fill": "transparent",
+                    "rx": 2,
+                    "ry": 2,
+                    "strokeDasharray": "0"
+                },
+                "label": {
+                    "fontSize": 11,
+                    "fill": "#c6c7e2",
+                    "text": "rect",
+                    "fontFamily": "Roboto Condensed",
+                    "fontWeight": "Normal",
+                    "strokeWidth": 0
+                }
+            }
+        },
+        {
+            "type": "standard.Rectangle",
+            "ports": {
+                "groups": {
+                    "in": {
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ],
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "position": {
+                            "name": "left"
+                        },
+                        "label": {
+                            "position": {
+                                "name": "left",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        }
+                    },
+                    "out": {
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ],
+                        "position": {
+                            "name": "right"
+                        },
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "label": {
+                            "position": {
+                                "name": "right",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        }
+                    }
+                },
+                "items": [
+                    {
+                        "group": "in",
+                        "id": "245f675b-bb1d-4bc2-bf7d-9570668d9abc",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    },
+                    {
+                        "group": "out",
+                        "id": "8a391e73-ebcd-4338-9e0d-24c04fd8aec1",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    }
+                ]
+            },
+            "position": {
+                "x": 220,
+                "y": 150
+            },
+            "size": {
+                "width": 500,
+                "height": 370
+            },
+            "angle": 0,
+            "allowOrthogonalResize": false,
+            "id": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+            "z": 2,
+            "embeds": [
+                "d80fa1d2-dcb7-4cc8-859f-53c26a1bf226",
+                "a8e28831-b662-4700-8a10-1d2a17a4b5b9",
+                "9fcf557c-081e-47fc-a70d-f2cd398389b4",
+                "4675c9e6-a196-42f8-9368-c17c36bd3ad6",
+                "32b7e127-f264-45ee-8521-a219e65673c3"
+            ],
+            "attrs": {
+                "root": {
+                    "dataTooltipPosition": "left",
+                    "dataTooltipPositionSelector": ".joint-stencil"
+                },
+                "body": {
+                    "stroke": "#31d0c6",
+                    "fill": "transparent",
+                    "rx": 2,
+                    "ry": 2,
+                    "strokeDasharray": "0"
+                },
+                "label": {
+                    "fontSize": 11,
+                    "fill": "#c6c7e2",
+                    "text": "rect",
+                    "fontFamily": "Roboto Condensed",
+                    "fontWeight": "Normal",
+                    "strokeWidth": 0
+                }
+            }
+        },
+        {
+            "type": "standard.Link",
+            "router": {
+                "name": "normal"
+            },
+            "connector": {
+                "name": "rounded"
+            },
+            "labels": [],
+            "source": {
+                "id": "c9dfaf31-91ef-408f-b311-e44463f5af50",
+                "magnet": "portBody",
+                "port": "8a391e73-ebcd-4338-9e0d-24c04fd8aec1"
+            },
+            "target": {
+                "id": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+                "magnet": "portBody",
+                "port": "245f675b-bb1d-4bc2-bf7d-9570668d9abc"
+            },
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "size": {
+                "width": 1,
+                "height": 1
+            },
+            "angle": 0,
+            "id": "ec7fab1d-6560-4e5a-b725-2849a4d3f8db",
+            "z": 3,
+            "attrs": {}
+        },
+        {
+            "type": "standard.Rectangle",
+            "ports": {
+                "groups": {
+                    "in": {
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "position": {
+                            "name": "left"
+                        },
+                        "label": {
+                            "position": {
+                                "name": "left",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    },
+                    "out": {
+                        "position": {
+                            "name": "right"
+                        },
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "label": {
+                            "position": {
+                                "name": "right",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    }
+                },
+                "items": [
+                    {
+                        "group": "in",
+                        "id": "d211204b-3725-48ee-a2e8-0cee0c91d454",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    },
+                    {
+                        "group": "out",
+                        "id": "8a391e73-ebcd-4338-9e0d-24c04fd8aec1",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    },
+                    {
+                        "group": "out",
+                        "id": "62b22c80-ded2-474c-b95f-fa74f6fafecc",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    }
+                ]
+            },
+            "position": {
+                "x": 320,
+                "y": 200
+            },
+            "size": {
+                "width": 90,
+                "height": 67.5
+            },
+            "angle": 0,
+            "allowOrthogonalResize": false,
+            "id": "4675c9e6-a196-42f8-9368-c17c36bd3ad6",
+            "z": 4,
+            "parent": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+            "attrs": {
+                "root": {
+                    "dataTooltipPosition": "left",
+                    "dataTooltipPositionSelector": ".joint-stencil"
+                },
+                "body": {
+                    "stroke": "#31d0c6",
+                    "fill": "transparent",
+                    "rx": 2,
+                    "ry": 2,
+                    "strokeDasharray": "0"
+                },
+                "label": {
+                    "fontSize": 11,
+                    "fill": "#c6c7e2",
+                    "text": "rect",
+                    "fontFamily": "Roboto Condensed",
+                    "fontWeight": "Normal",
+                    "strokeWidth": 0
+                }
+            }
+        },
+        {
+            "type": "standard.Rectangle",
+            "ports": {
+                "groups": {
+                    "in": {
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "position": {
+                            "name": "left"
+                        },
+                        "label": {
+                            "position": {
+                                "name": "left",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    },
+                    "out": {
+                        "position": {
+                            "name": "right"
+                        },
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "label": {
+                            "position": {
+                                "name": "right",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    }
+                },
+                "items": [
+                    {
+                        "group": "in",
+                        "id": "d211204b-3725-48ee-a2e8-0cee0c91d454",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    },
+                    {
+                        "group": "out",
+                        "id": "8a391e73-ebcd-4338-9e0d-24c04fd8aec1",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    }
+                ]
+            },
+            "position": {
+                "x": 807.3333129882812,
+                "y": 170
+            },
+            "size": {
+                "width": 90,
+                "height": 67.5
+            },
+            "angle": 0,
+            "allowOrthogonalResize": false,
+            "id": "6aff9b3d-690d-48c8-8c62-df4c80ddea39",
+            "z": 8,
+            "attrs": {
+                "root": {
+                    "dataTooltipPosition": "left",
+                    "dataTooltipPositionSelector": ".joint-stencil"
+                },
+                "body": {
+                    "stroke": "#31d0c6",
+                    "fill": "transparent",
+                    "rx": 2,
+                    "ry": 2,
+                    "strokeDasharray": "0"
+                },
+                "label": {
+                    "fontSize": 11,
+                    "fill": "#c6c7e2",
+                    "text": "rect",
+                    "fontFamily": "Roboto Condensed",
+                    "fontWeight": "Normal",
+                    "strokeWidth": 0
+                }
+            }
+        },
+        {
+            "type": "standard.Link",
+            "router": {
+                "name": "normal"
+            },
+            "connector": {
+                "name": "rounded"
+            },
+            "labels": [],
+            "source": {
+                "id": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+                "magnet": "portBody",
+                "port": "8a391e73-ebcd-4338-9e0d-24c04fd8aec1"
+            },
+            "target": {
+                "id": "6aff9b3d-690d-48c8-8c62-df4c80ddea39",
+                "magnet": "portBody",
+                "port": "d211204b-3725-48ee-a2e8-0cee0c91d454"
+            },
+            "id": "9409a0fa-5159-457a-a2a3-c6670af03f7e",
+            "z": 9,
+            "attrs": {}
+        },
+        {
+            "type": "standard.Link",
+            "router": {
+                "name": "normal"
+            },
+            "connector": {
+                "name": "rounded"
+            },
+            "labels": [],
+            "source": {
+                "id": "6aff9b3d-690d-48c8-8c62-df4c80ddea39",
+                "magnet": "portBody",
+                "port": "8a391e73-ebcd-4338-9e0d-24c04fd8aec1"
+            },
+            "target": {
+                "id": "c9dfaf31-91ef-408f-b311-e44463f5af50",
+                "magnet": "portBody",
+                "port": "245f675b-bb1d-4bc2-bf7d-9570668d9abc"
+            },
+            "id": "8fe0d511-1c40-4f94-a5c9-b12110767a72",
+            "z": 10,
+            "attrs": {}
+        },
+        {
+            "type": "standard.Link",
+            "router": {
+                "name": "normal"
+            },
+            "connector": {
+                "name": "rounded"
+            },
+            "labels": [],
+            "source": {
+                "id": "4675c9e6-a196-42f8-9368-c17c36bd3ad6",
+                "magnet": "portBody",
+                "port": "8a391e73-ebcd-4338-9e0d-24c04fd8aec1"
+            },
+            "target": {
+                "id": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+                "magnet": "portBody",
+                "port": "8a391e73-ebcd-4338-9e0d-24c04fd8aec1"
+            },
+            "id": "9fcf557c-081e-47fc-a70d-f2cd398389b4",
+            "z": 11,
+            "parent": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+            "attrs": {}
+        },
+        {
+            "type": "standard.Link",
+            "router": {
+                "name": "normal"
+            },
+            "connector": {
+                "name": "rounded"
+            },
+            "labels": [],
+            "source": {
+                "id": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+                "magnet": "portBody",
+                "port": "245f675b-bb1d-4bc2-bf7d-9570668d9abc"
+            },
+            "target": {
+                "id": "4675c9e6-a196-42f8-9368-c17c36bd3ad6",
+                "magnet": "portBody",
+                "port": "d211204b-3725-48ee-a2e8-0cee0c91d454"
+            },
+            "id": "a8e28831-b662-4700-8a10-1d2a17a4b5b9",
+            "z": 12,
+            "parent": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+            "attrs": {}
+        },
+        {
+            "type": "standard.Rectangle",
+            "ports": {
+                "groups": {
+                    "in": {
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "position": {
+                            "name": "left"
+                        },
+                        "label": {
+                            "position": {
+                                "name": "left",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    },
+                    "out": {
+                        "position": {
+                            "name": "right"
+                        },
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "label": {
+                            "position": {
+                                "name": "right",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    }
+                },
+                "items": [
+                    {
+                        "group": "in",
+                        "id": "245f675b-bb1d-4bc2-bf7d-9570668d9abc",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    }
+                ]
+            },
+            "position": {
+                "x": 450,
+                "y": 350
+            },
+            "size": {
+                "width": 240,
+                "height": 150
+            },
+            "angle": 0,
+            "allowOrthogonalResize": false,
+            "id": "32b7e127-f264-45ee-8521-a219e65673c3",
+            "z": 13,
+            "parent": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+            "embeds": [
+                "f6e95aac-15be-48c5-96ef-13965ced53e6",
+                "004e52fc-844b-40b7-bd0e-e5b7c97abc39"
+            ],
+            "attrs": {
+                "root": {
+                    "dataTooltipPosition": "left",
+                    "dataTooltipPositionSelector": ".joint-stencil"
+                },
+                "body": {
+                    "stroke": "#31d0c6",
+                    "fill": "transparent",
+                    "rx": 2,
+                    "ry": 2,
+                    "strokeDasharray": "0"
+                },
+                "label": {
+                    "fontSize": 11,
+                    "fill": "#c6c7e2",
+                    "text": "rect",
+                    "fontFamily": "Roboto Condensed",
+                    "fontWeight": "Normal",
+                    "strokeWidth": 0
+                }
+            }
+        },
+        {
+            "type": "standard.Link",
+            "router": {
+                "name": "normal"
+            },
+            "connector": {
+                "name": "rounded"
+            },
+            "labels": [],
+            "source": {
+                "id": "4675c9e6-a196-42f8-9368-c17c36bd3ad6",
+                "magnet": "portBody",
+                "port": "62b22c80-ded2-474c-b95f-fa74f6fafecc"
+            },
+            "target": {
+                "id": "32b7e127-f264-45ee-8521-a219e65673c3",
+                "magnet": "portBody",
+                "port": "245f675b-bb1d-4bc2-bf7d-9570668d9abc"
+            },
+            "id": "d80fa1d2-dcb7-4cc8-859f-53c26a1bf226",
+            "z": 14,
+            "parent": "1fbc4dae-5327-4bba-bb2e-214a2b707e56",
+            "attrs": {}
+        },
+        {
+            "type": "standard.Rectangle",
+            "ports": {
+                "groups": {
+                    "in": {
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "position": {
+                            "name": "left"
+                        },
+                        "label": {
+                            "position": {
+                                "name": "left",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    },
+                    "out": {
+                        "position": {
+                            "name": "right"
+                        },
+                        "attrs": {
+                            "portBody": {
+                                "magnet": true,
+                                "fill": "#61549c",
+                                "strokeWidth": 0
+                            },
+                            "portLabel": {
+                                "fontSize": 11,
+                                "fill": "#61549c",
+                                "fontWeight": 800
+                            }
+                        },
+                        "label": {
+                            "position": {
+                                "name": "right",
+                                "args": {
+                                    "y": 0
+                                }
+                            }
+                        },
+                        "markup": [
+                            {
+                                "tagName": "circle",
+                                "selector": "portBody",
+                                "attributes": {
+                                    "r": 10
+                                }
+                            }
+                        ]
+                    }
+                },
+                "items": [
+                    {
+                        "group": "in",
+                        "id": "d211204b-3725-48ee-a2e8-0cee0c91d454",
+                        "attrs": {
+                            "portLabel": {
+                                "text": ""
+                            }
+                        }
+                    }
+                ]
+            },
+            "position": {
+                "x": 536.3333129882812,
+                "y": 391.25
+            },
+            "size": {
+                "width": 90,
+                "height": 67.5
+            },
+            "angle": 0,
+            "allowOrthogonalResize": false,
+            "id": "004e52fc-844b-40b7-bd0e-e5b7c97abc39",
+            "z": 15,
+            "parent": "32b7e127-f264-45ee-8521-a219e65673c3",
+            "attrs": {
+                "root": {
+                    "dataTooltipPosition": "left",
+                    "dataTooltipPositionSelector": ".joint-stencil"
+                },
+                "body": {
+                    "stroke": "#31d0c6",
+                    "fill": "transparent",
+                    "rx": 2,
+                    "ry": 2,
+                    "strokeDasharray": "0"
+                },
+                "label": {
+                    "fontSize": 11,
+                    "fill": "#c6c7e2",
+                    "text": "rect",
+                    "fontFamily": "Roboto Condensed",
+                    "fontWeight": "Normal",
+                    "strokeWidth": 0
+                }
+            }
+        },
+        {
+            "type": "standard.Link",
+            "router": {
+                "name": "normal"
+            },
+            "connector": {
+                "name": "rounded"
+            },
+            "labels": [],
+            "source": {
+                "id": "32b7e127-f264-45ee-8521-a219e65673c3",
+                "magnet": "portBody",
+                "port": "245f675b-bb1d-4bc2-bf7d-9570668d9abc"
+            },
+            "target": {
+                "id": "004e52fc-844b-40b7-bd0e-e5b7c97abc39",
+                "magnet": "portBody",
+                "port": "d211204b-3725-48ee-a2e8-0cee0c91d454"
+            },
+            "id": "f6e95aac-15be-48c5-96ef-13965ced53e6",
+            "z": 16,
+            "parent": "32b7e127-f264-45ee-8521-a219e65673c3",
+            "attrs": {}
+        }
+    ]
+}
