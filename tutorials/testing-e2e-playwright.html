@@ -20,7 +20,6 @@
 
 
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
-        <link rel="stylesheet" href="css/ports.css">
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
         <title>JointJS - JavaScript diagramming library - Getting started.</title>
@@ -29,19 +28,19 @@
     <body class="language-javascript tutorial-page">
 
 
-        <div id="ports" class="tutorial">
+        <div id="e2e-testing-playwright" class="tutorial">
 
             <h2>E2E Testing with Playwright</h2>
 
             <p>
-                E2E testing is an integral part of ensuring your application behaves as expected. As we often get asked how to perform
-                end-to-end testing for JointJS applications, in the following tutorial, we will cover some common scenarios, and hopefully
-                give you some inspiration for whatever testing technology you choose to use.
+                E2E testing is an integral part of ensuring your application behaves as expected. In the following tutorial, we will cover 
+                some common testing scenarios, and as JointJS doesn't limit you to a certain testing framework, we will hopefully give you 
+                some inspiration for whatever testing technology you choose to use.
             </p>
 
             <p>
-                To start with, let's introduce <a href="https://playwright.dev/" target="_blank">Playwright</a>, the testing framework of
-                our choice. Playwright is a microsoft project, that supports all modern rendering engines, Chromium, Webkit, and Firefox. 
+                To start with, let's introduce <a href="https://playwright.dev/" target="_blank">Playwright</a>, the testing framework used
+                in this tutorial. Playwright is a microsoft project, that supports all modern rendering engines, Chromium, Webkit, and Firefox. 
                 It also has cross-language support, so if your application uses TypeScript, Playwright has you covered. Playwright provides 
                 you with a lot of functionality right out of the box, and a very nice API to test your user interface.
             </p>
@@ -52,20 +51,22 @@
             </p>
 
             <p>
-                In this tutorial, we will be using TypeScript, but you are free to use JavaScript if you prefer. The JavaScript versions
-                of many setup examples shown here can be found on the Playwright 
+                In this tutorial, we will be using TypeScript, but you are free to use JavaScript if you prefer. The JavaScript equivalent
+                to many configuration examples shown here can be found on the Playwright 
                 <a href="https://playwright.dev/docs/intro" target="_blank">getting started</a> page.
             </p>
 
             <p>
-                The following code will be used as our simple JointJS application for testing purposes:
+                The following code is the basic JointJS application we'll be using for testing purposes:
             </p>
 
             <div>
-                <h3 class="heading__primary" style="color:black;margin:0">E2E testing with JointJS & Playwright</h3>
-                <input type="text" placeholder="rect text" class="testing-e2e-playwright" style="margin-bottom:4px;">
+                <div>
+                    <h3 class="heading__primary" style="color:black;margin:0">E2E testing with JointJS & Playwright</h3>
+                    <input type="text" placeholder="rect text" class="testing-e2e-playwright" style="margin-bottom:4px;">
+                </div>
+                <div class="paper" id="paper-testing-playwright"></div>
             </div>
-            <div class="paper" id="paper-testing-playwright"></div>
             <p>JointJS source code: <a href="js/testing-e2e-playwright.js" target="_blank">testing-e2e-playwright.js</a></p>
 
             <h3 id="installation">
@@ -93,7 +94,7 @@ npx playwright install
 
             <p>
                 As we want to enjoy all the features Playwright has to offer, we will also create a configuration file 
-                <code>playwright.config.ts</code> in our project root, and add the example below. The following config 
+                <code>playwright.config.ts</code> in our project root, and add the code below. The following config 
                 will run every test in Chromium, Firefox, and WebKit by creating a "project" for each browser configuration.
             </p>
 
@@ -124,6 +125,7 @@ const config: PlaywrightTestConfig = {
             use: {
                 browserName: 'webkit',
                 ...devices['iPhone 13 Pro'],
+            }
         },
         // "Pixel 4 landscape" tests use Chromium browser.
         {
@@ -240,6 +242,18 @@ Received: "JointJS App"
     }
 }
 </code></pre>
+
+        <h4 id="vscode-extension">
+            VS Code extension
+        </h4>
+
+        <p>
+            As Playwright is a microsoft project, a great 
+            <a href="https://playwright.dev/docs/intro#vs-code-extension" target="_blank">extension</a> is available for users of VS Code.
+            It allows you to run tests with a single click while using step-by-step debugging, and setting breakpoints as you please. All 
+            of this can be achieved from the Testing sidebar in VS Code. We won't focus too much on the extension here as it's possible
+            you use a different code editor, but if you are a VS Code user, it's definitely recommended.
+        </p>
 
         <h3 id="testing-ui">
             Testing UI
@@ -617,7 +631,7 @@ test('visual regression', async ({ page }) => {
 
         <p>
             Simply put, the HTML reporter creates a directory <i>playwright-report</i> which presents our test report data in a web page.
-            This web page also allows us to interact with a GUI tool called a trace that helps troubleshoot our test runs.
+            This web page also allows us to interact with a GUI tool that contains a trace which helps troubleshoot our test runs.
         </p>
 
         <p>
@@ -656,8 +670,9 @@ export default config;
 </code></pre>
 
         <p>
-            Again, the setup was quite minimal. From our project root, we can now <code>npm run test</code> which will create our
-            report, followed by <code>npm run test:report</code> which will serve our HTML report page.
+            Again, the setup required to take advantage of this functionality was quite minimal. From our project root, we can now 
+            <code>npm run test</code> which will create our report, followed by <code>npm run test:report</code> which will serve 
+            our HTML report page.
         </p>
 
         <p>
@@ -696,9 +711,10 @@ export default config;
 
         <p>
             The middle column displays before and after snapshots for each Playwright action. The <i>before</i> snapshot displays
-            the time the action is called, so our <code>mouse.move</code> action won't show that a link has been drawn to our target.
-            The <i>after</i> snapshot however will show a link has been drawn to the target, and also display the highlight that we
-            expect to be present. These snapshots can be especially useful for knowing exactly where Playwright has clicked.
+            the time the action is called, so our final <code>mouse.move</code> action in "Link Elements" won't show that a link 
+            has been drawn to our target. The <i>after</i> snapshot however will show a link has been drawn to the target, and also 
+            display the highlight that we expect to be present. These snapshots can be especially useful for knowing exactly where 
+            Playwright has clicked.
         </p>
 
         <img src="./images/testing-e2e-playwright-trace-viewer.png" alt="Playwright Trace Viewer" width="650">
@@ -708,16 +724,25 @@ export default config;
             which we used them together here was just convenient for illustration purposes.  
         </p>
 
-        <h4 id="vscode-extension">
-            VS Code extension
-        </h4>
+        <h3 id="final-thoughts">
+            Final Thoughts
+        </h3>
 
         <p>
-            As Playwright is a microsoft project, a great 
-            <a href="https://playwright.dev/docs/intro#vs-code-extension" target="_blank">extension</a> is available for users of VS Code.
-            It allows you to run tests with a single click while using step-by-step debugging, and setting breakpoints as you please. All 
-            of this can be achieved from the Testing sidebar in VS Code. We won't focus too much on the extension here as it's possible
-            you use a different code editor, but if you are a VS Code user, it is definitely recommended.
+            There are no limitations to which testing framework you can use with JointJS. These choices naturally often depend on existing
+            project architecture or personal preferences, and you can certainly create similar UI automation tests covered here with other
+            testing frameworks.
+        </p>
+
+        <p>
+            Overall, Playwright is a very versatile tool. It integrates well with project architecture, and most importantly, it's an effective
+            tool for doing e2e testing in JointJS applications. Playwright makes writing automation tests very easy, and the learning curve isn't 
+            steep, so you should be able to get up and running quite quickly.
+        </p>
+
+        <p>
+            Congratulations, if you have made it this far, and I hope this tutorial can provide you with some inspiration for your own e2e tests.
+            Thanks for reading.
         </p>
 
         <script src="../node_modules/prismjs/prism.js"></script>

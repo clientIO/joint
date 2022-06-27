@@ -9,13 +9,16 @@
     new joint.dia.Paper({
         el: document.getElementById('paper-testing-playwright'),
         model: graph,
-        width: 600,
+        width: 500,
         height: 300,
         gridSize: 1,
         cellViewNamespace: namespace,
         defaultLink: new joint.shapes.standard.Link(),
         linkPinning: false,
-        defaultConnectionPoint: { name: 'boundary' }
+        defaultConnectionPoint: { name: 'boundary' },
+        validateConnection: function(cellViewS, _magnetS, cellViewT, _magnetT, _end, _linkView) {
+            return (cellViewS !== cellViewT);
+        }
     });
 
     const port = {
@@ -102,7 +105,7 @@
         }]
     });
     rect2.resize(80, 80);
-    rect2.position(250, 25);
+    rect2.position(195, 80);
     rect2.attr('label/text', 'rect2');
     rect2.attr('root/magnet', false);
     rect2.attr('body/fill', 'lightblue');
@@ -119,7 +122,7 @@
         }]
     });
     rect3.resize(80, 80);
-    rect3.position(250, 140);
+    rect3.position(80, 170);
     rect3.attr('label/text', 'rect3');
     rect3.attr('root/magnet', true);
     rect3.attr('body/fill', 'lightblue');
@@ -135,7 +138,7 @@
             selector: 'label'
         }]
     });
-    target.translate(420, 120);
+    target.position(330, 20);
     target.resize(140, 140);
     target.attr({
         body: {
@@ -160,7 +163,7 @@
             selector: 'label'
         }]
     });
-    source.translate(40, 180);
+    source.position(280, 200);
     source.resize(70, 70);
     source.attr({
         label: {
