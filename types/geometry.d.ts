@@ -147,6 +147,14 @@ export namespace g {
 
     export function random(min?: number, max?: number): number;
 
+    export interface SkeletonPoints {
+        startControlPoint1: Point;
+        startControlPoint2: Point;
+        divider: Point;
+        dividerControlPoint1: Point;
+        dividerControlPoint2: Point;
+    }
+
     class Curve {
 
         start: Point;
@@ -185,7 +193,7 @@ export namespace g {
 
         equals(c: Curve): boolean;
 
-        getSkeletonPoints(t: number): [Point, Point, Point, Point, Point];
+        getSkeletonPoints(t: number): SkeletonPoints;
 
         getSubdivisions(opt?: PrecisionOpt): Curve[];
 
