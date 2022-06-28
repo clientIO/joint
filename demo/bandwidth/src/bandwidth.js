@@ -1,4 +1,5 @@
 const { dia, g: geometry, V: vectorizer } = joint;
+const svg = joint.util.svg;
 
 const y = 200;
 const x1 = 100;
@@ -128,38 +129,39 @@ const Bandwidth = dia.Element.define('Bandwidth', {
         }
     }
 }, {
-    markup: [{
-        tagName: 'circle',
-        className: 'bandwidth__halo',
-        selector: 'halo'
-    }, {
-        tagName: 'rect',
-        selector: 'body',
-    }, {
-        tagName: 'text',
-        selector: 'topLabel'
-    }, {
-        tagName: 'text',
-        selector: 'bottomLabel'
-    }, {
-        tagName: 'path',
-        className: 'bandwidth__sideband',
-        selector: 'lowerSideband',
-        groupSelector: 'sidebands'
-    }, {
-        tagName: 'path',
-        className: 'bandwidth__sideband',
-        selector: 'upperSideband',
-        groupSelector: 'sidebands'
-    }, {
-        tagName: 'path',
-        selector: 'carrierFrequencyBandwidth',
-        groupSelector: 'frequencyMarkers'
-    }, {
-        tagName: 'path',
-        selector: 'carrierFrequency',
-        groupSelector: 'frequencyMarkers',
-    }],
+    markup: svg`
+        <circle
+            @selector="halo"
+            class="bandwidth__halo"
+        />
+        <rect
+            @selector="body"
+        />
+        <text
+            @selector="topLabel"
+        />
+        <text
+            @selector="bottomLabel"
+        />
+        <path
+            @selector="lowerSideband"
+            @groupSelector="sidebands"
+            class="bandwidth__sideband"
+        />
+        <path
+            @selector="upperSideband"
+            @groupSelector="sidebands"
+            class="bandwidth__sideband"
+        />
+        <path
+            @selector="carrierFrequencyBandwidth"
+            @groupSelector="frequencyMarkers"
+        />
+        <path
+            @selector="carrierFrequency"
+            @groupSelector="frequencyMarkers"
+        />
+    `,
 
     updateFrequencyLabel(opt) {
         const { x } = this.getBBox().center();
