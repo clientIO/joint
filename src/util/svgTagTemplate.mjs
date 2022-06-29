@@ -1,8 +1,5 @@
-import { camelCase, guid } from './util.mjs';
-
 export function svg(string) {
     const markup = parseFromSVGString(string[0]);
-    console.log(markup);
     return markup;
 }
 
@@ -33,10 +30,17 @@ function build(root) {
             markupNode.selector = tagName;
         }
 
-        const groupSelectorAttribute = attributes.getNamedItem('@groupselector');
+        const groupSelectorAttribute = attributes.getNamedItem('@group-selector');
         if (groupSelectorAttribute) {
-            markupNode.groupSelector = groupSelectorAttribute.value;
-            attributes.removeNamedItem('@groupselector');
+            const groupSelectors = groupSelectorAttribute.value.split(',');
+            if (groupSelectors.length === 1) {
+                markupNode.groupSelector = groupSelectors[0];
+            }
+            if (groupSelectors.length > 1) {
+                markupNode.groupSelector = groupSelectors.map(s => s.trim());
+            }
+
+            attributes.removeNamedItem('@group-selector');
         }
 
         const className = attributes.getNamedItem('class');

@@ -145,21 +145,21 @@ const Bandwidth = dia.Element.define('Bandwidth', {
         />
         <path
             @selector="lowerSideband"
-            @groupSelector="sidebands"
+            @group-selector="sidebands"
             class="bandwidth__sideband"
         />
         <path
             @selector="upperSideband"
-            @groupSelector="sidebands"
+            @group-selector="sidebands"
             class="bandwidth__sideband"
         />
         <path
             @selector="carrierFrequencyBandwidth"
-            @groupSelector="frequencyMarkers"
+            @group-selector="frequencyMarkers"
         />
         <path
             @selector="carrierFrequency"
-            @groupSelector="frequencyMarkers"
+            @group-selector="frequencyMarkers"
         />
     `,
 
