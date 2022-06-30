@@ -29,7 +29,7 @@ export const init = () => {
             if (sx <= fullViewThreshold) {
                 switch (cell.get('type')) {
                     case 'app.Label': {
-                        if (sx <= minimalViewThreshold) return false;
+                        if (sx < minimalViewThreshold) return false;
                         return !cell.getParentCell().isEmbedded() && cell.get('simplifiedViewLabel');
                     }
                     case 'app.Edge': {
