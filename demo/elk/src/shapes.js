@@ -9,6 +9,13 @@ export const Child = joint.shapes.standard.Rectangle.define('app.Child', {
             strokeWidth: 1,
             rx: 2,
             ry: 2,
+        },
+        label: {
+            class: 'inner-label',
+            fontFamily: 'sans-serif',
+            textWrap: {
+                width: -10
+            }
         }
     },
     ports: {
