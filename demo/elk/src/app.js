@@ -4,6 +4,9 @@ import elkWorker from 'elkjs/lib/elk-worker.js';
 import { Child, Label, Edge } from './shapes';
 import elkGraph from '../elkGraph.json';
 
+const fullViewThreshold = 0.7;
+const minimalViewThreshold = 0.4;
+
 export const init = () => {
     const canvas = document.getElementById('canvas');
 
@@ -18,8 +21,41 @@ export const init = () => {
         async: true,
         frozen: true,
         sorting: joint.dia.Paper.sorting.APPROX,
-        background: { color: '#F3F7F6' }
+        background: { color: '#F3F7F6' },
+        viewport: (view) => {
+            const { sx } = paper.scale();
+            const cell = view.model;
+            if (!cell) return true;
+            if (sx <= fullViewThreshold) {
+                switch (cell.get('type')) {
+                    case 'app.Label': {
+                        if (sx < minimalViewThreshold) return false;
+                        return !cell.getParentCell().isEmbedded() && cell.get('simplifiedViewLabel');
+                    }
+                    case 'app.Edge': {
+                        return !cell.getTargetCell().isEmbedded() && !cell.getSourceCell().isEmbedded();
+                    }
+                    case 'standard.Circle': {
+                        // Junction Points
+                        return false;
+                    }
+                    default: {
+                        return !cell.isEmbedded();
+                    }
+                }
+            }
+            return true;
+        }
     });
+
+    function toggleViewClass() {
+        const { sx } = paper.scale();
+        paper.el.classList.toggle('full-view', sx > fullViewThreshold);
+        paper.el.classList.toggle('minimal-view', sx < minimalViewThreshold);
+    }
+
+    paper.on('scale', () => toggleViewClass());
+    toggleViewClass();
 
     const elk = new ELK({
         workerFactory: url => new elkWorker.Worker(url)
@@ -28,13 +64,15 @@ export const init = () => {
 
     const addChildren = (children, parent) => {
         children.forEach(child => {
+
+            const { ports = [], children = [], labels = [] } = child;
+
             const shape = new Child({
                 id: child.id,
                 position: { x: child.x, y: child.y },
                 size: { width: child.width, height: child.height },
             });
 
-            const ports = child.ports || [];
             ports.forEach(port => {
                 const portToAdd = {
                     group: 'port',
@@ -53,18 +91,18 @@ export const init = () => {
                 shape.position(child.x, child.y, { parentRelative: true });
             }
 
-            if (child.children) {
-                addChildren(child.children, shape);
+            if (children.length > 0) {
+                addChildren(children, shape);
             }
 
             if (child.edges) {
                 addEdges(child.edges, shape);
             }
 
-            const labels = child.labels || [];
             labels.forEach(label => {
 
                 const labelElement = new Label({
+                    simplifiedViewLabel: children.length === 0,
                     attrs: {
                         label: {
                             fontSize: label.height,
@@ -73,6 +111,13 @@ export const init = () => {
                         }
                     }
                 });
+
+                if (children.length > 0) {
+                    shape.attr('label', {
+                        fontSize: shape.size().width / 5,
+                        text: label.text,
+                    });
+                }
 
                 labelElement.addTo(graph);
                 shape.embed(labelElement);
