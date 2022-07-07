@@ -1213,6 +1213,7 @@ export namespace dia {
         type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
 
         interface Options extends mvc.ViewOptions<Graph> {
+            el: HTMLElement;
             // appearance
             width?: Dimension;
             height?: Dimension;
