@@ -2013,6 +2013,11 @@ export const Paper = View.extend({
 
         if (this.options.preventContextMenu) evt.preventDefault();
 
+        if (this.contextMenuFired) {
+            this.contextMenuFired = false;
+            return;
+        }
+
         evt = normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -2034,22 +2039,29 @@ export const Paper = View.extend({
         // onevent can stop propagation
 
         evt = normalizeEvent(evt);
-
-        var view = this.findView(evt.target);
-        if (this.guard(evt, view)) return;
-
         var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
-        if (view) {
+        var view = this.findView(evt.target);
+        if (evt.button === 2) {
+            this.contextMenuFired = true;
+            if (view) {
+                evt.preventDefault();
+                view.contextmenu(evt, localPoint.x, localPoint.y);
+            } else {
+                if (this.options.preventDefaultBlankAction) evt.preventDefault();
 
-            evt.preventDefault();
-            view.pointerdown(evt, localPoint.x, localPoint.y);
-
+                this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
+            }
         } else {
+            if (this.guard(evt, view)) return;
+            if (view) {
+                evt.preventDefault();
+                view.pointerdown(evt, localPoint.x, localPoint.y);
+            } else {
+                if (this.options.preventDefaultBlankAction) evt.preventDefault();
 
-            if (this.options.preventDefaultBlankAction) evt.preventDefault();
-
-            this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
+                this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
+            }
         }
 
         this.delegateDragEvents(view, evt.data);
