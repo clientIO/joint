@@ -17,9 +17,17 @@ function build(root) {
 
     Array.from(root.children).forEach(node => {
         const markupNode = {};
-        const { tagName, attributes, textContent } = node;
+        const { tagName, attributes, textContent, namespaceURI, style } = node;
 
         markupNode.tagName = tagName;
+        markupNode.namespaceURI = namespaceURI;
+
+        const stylesObject = {};
+        for (var i = style.length; i--;) {
+            var nameString = style[i];
+            stylesObject[nameString] = style.getPropertyValue(nameString);
+        }
+        markupNode.style = stylesObject;
 
         // selector fallbacks to tagName
         const selectorAttribute = attributes.getNamedItem('@selector');
