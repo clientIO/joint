@@ -399,7 +399,8 @@ const attributesNS = {
                     svgDocument: this.paper.svg,
                     ellipsis: value.ellipsis,
                     hyphen: value.hyphen,
-                    maxLineCount: value.maxLineCount
+                    maxLineCount: value.maxLineCount,
+                    preserveSpaces: value.preserveSpaces
                 });
             } else {
                 wrappedText = '';

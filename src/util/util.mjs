@@ -451,6 +451,22 @@ export const parseCssNumeric = function(val, restrictUnits) {
     return output;
 };
 
+const NO_SPACE = 0;
+
+function splitWordWithEOL(word, eol) {
+    const eolWords = word.split(eol);
+    let n = 1;
+    for (let j = 0, jl = eolWords.length - 1; j < jl; j++) {
+        const replacement = [];
+        if (j > 0 || eolWords[0] !== '') replacement.push(NO_SPACE);
+        replacement.push(eol);
+        if (j < jl - 1 || eolWords[jl] !== '') replacement.push(NO_SPACE);
+        eolWords.splice(n, 0, ...replacement);
+        n += replacement.length + 1;
+    }
+    return eolWords.filter(word => word !== '');
+}
+
 export const breakText = function(text, size, styles = {}, opt = {}) {
 
     var width = size.width;
@@ -480,7 +496,9 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
         document.body.appendChild(svgDocument);
     }
 
-    var separator = opt.separator || ' ';
+    const preserveSpaces = opt.preserveSpaces;
+    const space = ' ';
+    var separator = opt.separator || space;
     var eol = opt.eol || '\n';
     var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d]/;
     var maxLineCount = opt.maxLineCount;
@@ -492,39 +510,55 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
     var p, h;
     var lineHeight;
 
+    if (preserveSpaces) {
+        V(textSpan).attr('xml:space', 'preserve');
+    }
+
     for (var i = 0, l = 0, len = words.length; i < len; i++) {
 
         var word = words[i];
 
-        if (!word) continue;
+        if (!word && !preserveSpaces) continue;
+        if (typeof word !== 'string') continue;
 
         var isEol = false;
         if (eol && word.indexOf(eol) >= 0) {
             // word contains end-of-line character
             if (word.length > 1) {
                 // separate word and continue cycle
-                var eolWords = word.split(eol);
-                for (var j = 0, jl = eolWords.length - 1; j < jl; j++) {
-                    eolWords.splice(2 * j + 1, 0, eol);
-                }
-                words.splice(i, 1, ...eolWords.filter(word => word !== ''));
+                const eolWords = splitWordWithEOL(words[i], eol);
+                words.splice(i, 1, ...eolWords);
                 i--;
                 len = words.length;
                 continue;
             } else {
                 // creates a new line
-                lines[++l] = '';
+                if (preserveSpaces && typeof words[i - 1] === 'string' ) {
+                    words.splice(i, NO_SPACE, '', NO_SPACE);
+                    len += 2;
+                    i--;
+                    continue;
+                }
+                lines[++l] = (!preserveSpaces || typeof words[i + 1] === 'string') ? '' : undefined;
                 isEol = true;
             }
         }
 
         if (!isEol) {
-            textNode.data = lines[l] ? lines[l] + ' ' + word : word;
+
+            let data;
+            if (preserveSpaces) {
+                data = lines[l] !== undefined ? lines[l] + space + word : word;
+            } else {
+                data = lines[l] ? lines[l] + space + word : word;
+            }
+
+            textNode.data = data;
 
             if (textSpan.getComputedTextLength() <= width) {
 
                 // the current line fits
-                lines[l] = textNode.data;
+                lines[l] = data;
 
                 if (p || h) {
                 // We were partitioning. Put rest of the word onto next line

@@ -246,6 +246,97 @@ QUnit.module('util', function(hooks) {
             assert.equal(r, '\na\n\nb\n\n');
         });
 
+        QUnit.test('preserveSpaces', function(assert) {
+
+            var WIDTH = 100;
+            var r;
+
+            r = joint.util.breakText(' ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, ' ');
+
+            r = joint.util.breakText('  ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '  ');
+
+            r = joint.util.breakText('                       ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r.replace(/\n/g, ' '), '                       ');
+
+            r = joint.util.breakText(' a', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, ' a');
+
+            r = joint.util.breakText('  a', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '  a');
+
+            r = joint.util.breakText('b ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'b ');
+
+            r = joint.util.breakText('b  ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'b  ');
+
+            r = joint.util.breakText('a b', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'a b');
+
+            r = joint.util.breakText('a  b', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'a  b');
+
+            r = joint.util.breakText('  a b  ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '  a b  ');
+
+            r = joint.util.breakText('  a  b  ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '  a  b  ');
+
+            r = joint.util.breakText('a\nb', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'a\nb', 'a\\nb');
+
+            r = joint.util.breakText('a\n b', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'a\n b', 'a\\n_b');
+
+            r = joint.util.breakText('a\n  b', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'a\n  b', 'a\\n__b');
+
+            r = joint.util.breakText('b\n', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'b\n', 'b\\n');
+
+            r = joint.util.breakText('b \n', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'b \n', 'b_\\n');
+
+            r = joint.util.breakText('\na', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '\na', '\\na');
+
+            r = joint.util.breakText(' \na', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, ' \na', '_\\na');
+
+            r = joint.util.breakText('\n a', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '\n a', '\\n_a');
+
+            r = joint.util.breakText('\n', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '\n', '\\n');
+
+            r = joint.util.breakText('\n\n', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '\n\n', '\\n\\n');
+
+            r = joint.util.breakText('\n\n\n', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '\n\n\n', '\\n\\n\n');
+
+            r = joint.util.breakText('a\nb\n', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'a\nb\n', 'a\\nb\\n');
+
+            r = joint.util.breakText('a\n\nc', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'a\n\nc', 'a\\n\\nc');
+
+            r = joint.util.breakText('a\nb\nc', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'a\nb\nc', 'a\\nb\\nc');
+
+            r = joint.util.breakText('a\nb\nca\nb\nc', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, 'a\nb\nca\nb\nc', 'a\\nb\\nca\\nb\\nc');
+
+            r = joint.util.breakText('   preserve space   test  ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r.replace(/\n/g, ' '), '   preserve space   test  ');
+
+            r = joint.util.breakText('   preserve\nspa   a  ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r.replace(/\n/g, ' '), '   preserve spa   a  ');
+
+        });
+
     });
 
     QUnit.test('util.parseCssNumeric', function(assert) {

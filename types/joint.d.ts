@@ -2813,6 +2813,7 @@ export namespace util {
             ellipsis?: boolean | string;
             hyphen?: string | RegExp;
             maxLineCount?: number;
+            preserveSpaces?: boolean;
         }
     ) => string;
 
@@ -3771,6 +3772,7 @@ export namespace attributes {
         ellipsis?: boolean | string;
         hyphen?: string;
         maxLineCount?: number;
+        preserveSpaces?: boolean;
         breakText?: util.BreakTextFunction;
         [key: string]: any;
         /**
