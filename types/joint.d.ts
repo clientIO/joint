@@ -349,7 +349,7 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: Path): any;
-        prop(object: A, opt?: Cell.Options): this;
+        prop(object: Partial<A>, opt?: Cell.Options): this;
         prop(key: Path, value: any, opt?: Cell.Options): this;
 
         removeProp(path: Path, opt?: Cell.Options): this;
