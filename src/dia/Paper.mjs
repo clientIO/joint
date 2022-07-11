@@ -2044,12 +2044,10 @@ export const Paper = View.extend({
         var view = this.findView(evt.target);
         if (evt.button === 2) {
             this.contextMenuFired = true;
+            evt.preventDefault();
             if (view) {
-                evt.preventDefault();
                 view.contextmenu(evt, localPoint.x, localPoint.y);
             } else {
-                if (this.options.preventDefaultBlankAction) evt.preventDefault();
-
                 this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
             }
         } else {
