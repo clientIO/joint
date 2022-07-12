@@ -2020,6 +2020,10 @@ export const Paper = View.extend({
 
         evt = normalizeEvent(evt);
 
+        this.contextMenuTrigger(evt);
+    },
+
+    contextMenuTrigger: function(evt) {
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
@@ -2039,19 +2043,16 @@ export const Paper = View.extend({
         // onevent can stop propagation
 
         evt = normalizeEvent(evt);
-        var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
-        var view = this.findView(evt.target);
         if (evt.button === 2) {
             this.contextMenuFired = true;
-            evt.preventDefault();
-            if (view) {
-                view.contextmenu(evt, localPoint.x, localPoint.y);
-            } else {
-                this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
-            }
+            this.contextMenuTrigger($.Event(evt, { type: 'contextmenu', data: evt.data }));
         } else {
+            var view = this.findView(evt.target);
+
             if (this.guard(evt, view)) return;
+            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
+
             if (view) {
                 evt.preventDefault();
                 view.pointerdown(evt, localPoint.x, localPoint.y);
@@ -2060,9 +2061,10 @@ export const Paper = View.extend({
 
                 this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
             }
+
+            this.delegateDragEvents(view, evt.data);
         }
 
-        this.delegateDragEvents(view, evt.data);
     },
 
     pointermove: function(evt) {
