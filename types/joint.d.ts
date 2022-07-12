@@ -2153,7 +2153,7 @@ export namespace shapes {
 
         type LinkAttributes = dia.Link.GenericAttributes<LinkSelectors>;
 
-        class Link<A = dia.Link.Attributes> extends dia.Link<A> {
+        class Link<A = LinkAttributes> extends dia.Link<A> {
         }
 
         interface DoubleLinkSelectors extends dia.Cell.Selectors {
@@ -2164,7 +2164,7 @@ export namespace shapes {
 
         type DoubleLinkAttributes = dia.Link.GenericAttributes<DoubleLinkSelectors>;
 
-        class DoubleLink<A = dia.Link.Attributes> extends dia.Link<A> {
+        class DoubleLink<A = DoubleLinkAttributes> extends dia.Link<A> {
         }
 
         interface ShadowLinkSelectors extends dia.Cell.Selectors {
@@ -2175,7 +2175,7 @@ export namespace shapes {
 
         type ShadowLinkAttributes = dia.Link.GenericAttributes<ShadowLinkSelectors>;
 
-        class ShadowLink<A = dia.Link.Attributes> extends dia.Link<A> {
+        class ShadowLink<A = ShadowLinkAttributes> extends dia.Link<A> {
         }
     }
 
