@@ -1,7 +1,7 @@
 <pre class="docs-method-signature"><code>markup</code></pre>
 
 <p>
-    Either an XML string or JSON markup specifying an array of JSON elements.
+    Either an XML string or JSON markup specifying an array of JSON elements. Also JSON markup can be described using <a href="#util.svg">svg</a> tagged template.
     Used as a template to build DOM Elements on the fly when the associated cellView is rendered.
 </p>
 
@@ -67,29 +67,63 @@ markup: [{
     }]
 }]</code></pre>
 
+<h4 id="dia.Cell.markup.json">JSON Markup using tagged template</h4>
+
+<p>
+    JSON markup also can be defined using <a href="#util.svg">svg</a> tagged template. This tagged template converts SVG representation of the markup into JSON markup object.
+    Let's write previous example using svg tagged template:
+</p>
+
+<pre><code>
+const svg = joint.util.svg;
+
+// single DOM element
+markup: svg`&ltrect\&gt`
+
+// multiple DOM elements
+markup: svg`
+    &ltrect @selector="body"\&gt
+    &lttext
+        @selector="label"
+        stroke="none"
+    \&gt`
+
+// nested DOM elements
+markup: svg`
+    &ltg&gt
+        &ltcircle
+            @selector="circle1"
+            @group-selector="circles"
+        /&gt
+        &ltcircle
+            @selector="circle2"
+            @group-selector="circles"
+        /&gt
+    &lt/g&gt`</code></pre>
+
 <h5 id="dia.Cell.markup.attributes">JSON Markup attributes</h5>
 
 <p>
     Anything you define in <code>markup</code> is evaluated once at CellView creation (the DOM elements and their attributes).
-    That means it's important to think about the runtime of your application. If you have SVG attributes that don't change 
+    That means it's important to think about the runtime of your application. If you have SVG attributes that don't change
     throughout the runtime, you can add them to the <code>markup</code>.
 </p>
 
 <p>
-    As <code>markup</code> is something all instances of the element type are expected to have in common, inheriting from 
-    the subtype prototype is more efficient. Nevertheless, it is still possible to provide custom markup to individual instances 
+    As <code>markup</code> is something all instances of the element type are expected to have in common, inheriting from
+    the subtype prototype is more efficient. Nevertheless, it is still possible to provide custom markup to individual instances
     of your class by providing markup later.
 </p>
 
 <p>
-    Anything in the <code>attrs</code> attribute is evaluated on every change of the model (e.g. a <code>resize</code> or 
+    Anything in the <code>attrs</code> attribute is evaluated on every change of the model (e.g. a <code>resize</code> or
     an <code>attrs</code> change). As JointJS <a target="_blank" href="https://resources.jointjs.com/tutorial/special-attributes">
-    special attributes</a> mostly depend on the current state of the model (<code>size</code>, <code>attrs</code>, <code>angle</code>), 
+    special attributes</a> mostly depend on the current state of the model (<code>size</code>, <code>attrs</code>, <code>angle</code>),
     they should always be defined inside <code>attrs</code>.
 </p>
 
 <p>
-    SVG attributes that are modified at some point in the application should also be added to <code>attrs</code> (e.g. user 
+    SVG attributes that are modified at some point in the application should also be added to <code>attrs</code> (e.g. user
     changes the color of the element).
 </p>
 

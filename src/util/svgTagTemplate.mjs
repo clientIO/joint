@@ -41,12 +41,7 @@ function build(root) {
         const groupSelectorAttribute = attributes.getNamedItem('@group-selector');
         if (groupSelectorAttribute) {
             const groupSelectors = groupSelectorAttribute.value.split(',');
-            if (groupSelectors.length === 1) {
-                markupNode.groupSelector = groupSelectors[0];
-            }
-            if (groupSelectors.length > 1) {
-                markupNode.groupSelector = groupSelectors.map(s => s.trim());
-            }
+            markupNode.groupSelector = groupSelectors.map(s => s.trim());
 
             attributes.removeNamedItem('@group-selector');
         }
