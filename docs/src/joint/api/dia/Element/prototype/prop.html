@@ -34,4 +34,4 @@ element.prop('custom/state', { isActive: false }, { rewrite: true });
 
 <p><i>Advanced:</i> Pass <code>{ isolate: true }</code> if the property change does not affect the connected links. Typically, changing the element fill color has zero effect on attached links. By default, the element and all connected links are updated.</p>
 
-<pre><code>element.prop(['body', 'fill'], 'red', { isolate: true });</code></pre>
+<pre><code>element.prop(['attrs', 'body', 'fill'], 'red', { isolate: true });</code></pre>
