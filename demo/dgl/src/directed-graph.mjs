@@ -9,8 +9,8 @@ var Shape = joint.dia.Element.define('demo.Shape', {
     },
     attrs: {
         body: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             fill: 'ivory',
             stroke: 'gray',
             strokeWidth: 2,
@@ -18,10 +18,10 @@ var Shape = joint.dia.Element.define('demo.Shape', {
             ry: 10
         },
         label: {
-            refX: '50%',
-            refY: '50%',
-            yAlignment: 'middle',
-            xAlignment: 'middle',
+            x: 'calc(0.5 * w)',
+            y: 'calc(0.5 * h)',
+            textVerticalAnchor: 'middle',
+            textAnchor: 'middle',
             fontSize: 30
         }
     }
@@ -78,8 +78,7 @@ var Link = joint.dia.Link.define('demo.Link', {
             labelText: {
                 fill: 'gray',
                 textAnchor: 'middle',
-                refY: 5,
-                refY2: '-50%',
+                y: 5,
                 fontSize: 20,
                 cursor: 'pointer'
             },
@@ -87,10 +86,10 @@ var Link = joint.dia.Link.define('demo.Link', {
                 fill: 'lightgray',
                 stroke: 'gray',
                 strokeWidth: 2,
-                refWidth: '100%',
-                refHeight: '100%',
-                refX: '-50%',
-                refY: '-50%',
+                width: 'calc(w)',
+                height: 'calc(h)',
+                x: 'calc(-0.5 * w)',
+                y: 'calc(-0.5 * h)',
                 rx: 5,
                 ry: 5
             }

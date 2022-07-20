@@ -41,14 +41,16 @@ var buffer = pReady.clone()
             'text': 'buffer'
         },
         '.alot > text': {
+            ref: '.root',
             'fill': '#fe854c',
             'font-family': 'Courier New',
             'font-size': 20,
             'font-weight': 'bold',
-            'ref-x': 0.5,
-            'ref-y': 0.5,
-            'y-alignment': -0.5,
-            'transform': null
+            x: 'calc(0.5 * w)',
+            y: 'calc(0.6 * h)',
+            textVerticalAnchor: 'middle',
+            textAnchor: 'middle',
+            transform: null
         }
     });
 

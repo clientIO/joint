@@ -40,7 +40,7 @@ var paper = new joint.dia.Paper({
 var earth = new joint.shapes.standard.Circle({
     position: orbits.earth.intersectionWithLineFromCenterToPoint(new g.Point(100, 100)).offset(-10, -10),
     size: { width: 20, height: 20 },
-    attrs: { label: { refY: 30, text: 'earth' }, body: { fill: 'blue' }},
+    attrs: { label: { y: 30, textVerticalAnchor: 'bottom', text: 'earth' }, body: { fill: 'blue' }},
     name: 'earth'
 });
 graph.addCell(earth);
@@ -48,7 +48,7 @@ graph.addCell(earth);
 var mars = new joint.shapes.standard.Circle({
     position: orbits.mars.intersectionWithLineFromCenterToPoint(new g.Point(1000, 1000)).offset(-10, -10),
     size: { width: 20, height: 20 },
-    attrs: { label: { refY: 30, text: 'mars' }, body: { fill: 'orange' }},
+    attrs: { label: { y: 30, textVerticalAnchor: 'bottom', text: 'mars' }, body: { fill: 'orange' }},
     name: 'mars'
 });
 

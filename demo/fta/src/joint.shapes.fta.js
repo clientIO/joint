@@ -16,8 +16,8 @@
                     width: -20,
                     ellipsis: true
                 },
-                refX: '50%',
-                refY: '50%',
+                x: 'calc(0.5 * w)',
+                y: 'calc(0.5 * h)',
                 fontSize: 16,
                 fontFamily: 'sans-serif',
                 fill: '#333333',
@@ -48,8 +48,8 @@
                 title: 'Intermediate Event'
             },
             body: {
-                refWidth: '100%',
-                refHeight: -40,
+                width: 'calc(w)',
+                height: 'calc(h - 40)',
                 stroke: '#3c4260',
                 fill: '#3c4260'
             },
@@ -60,8 +60,6 @@
                 fill: '#7c68fc',
                 fillOpacity: 0.2,
                 strokeWidth: 2,
-                refX: '50%',
-                refY: '100%',
                 fillRule: 'nonzero',
                 cursor: 'pointer'
             },
@@ -70,7 +68,7 @@
                     height: -40,
                     width: -10,
                 },
-                refY2: -20
+                y: 30
             }
         }
     }, {
@@ -85,28 +83,20 @@
             selector: 'label'
         }],
         gateTypes: {
-            or: 'M -20 0 C -20 -15 -10 -30 0 -30 C 10 -30 20 -15 20 0 C 10 -6 -10 -6 -20 0',
-            xor: 'M -20 0 C -20 -15 -10 -30 0 -30 C 10 -30 20 -15 20 0 C 10 -6 -10 -6 -20 0 M -20 0 0 -30 M 0 -30 20 0',
-            and: 'M -20 0 C -20 -25 -10 -30 0 -30 C 10 -30 20 -25 20 0 Z',
-            priority_and: 'M -20 0 C -20 -25 -10 -30 0 -30 C 10 -30 20 -25 20 0 Z M -20 0 0 -30 20 0',
-            inhibit: 'M -10 0 -20 -15 -10 -30 10 -30 20 -15 10 0 Z',
-            transfer: 'M -20 0 20 0 0 -30 z',
+            or: 'M calc(0.5 * w - 20) calc(h - 10) C calc(0.5 * w - 20) calc(0.6 * h - 10) calc(0.5 * w + 20) calc(0.6 * h - 10) calc(0.5 * w + 20) calc(h - 10) C calc(0.5 * w + 20) calc(h - 15) calc(0.5 * w - 20) calc(h - 15) calc(0.5 * w - 20) calc(h - 10)',
+            xor: 'M calc(0.5 * w - 20) calc(h - 10) C calc(0.5 * w - 20) calc(0.6 * h - 10) calc(0.5 * w + 20) calc(0.6 * h - 10) calc(0.5 * w + 20) calc(h - 10) C calc(0.5 * w + 20) calc(h - 15) calc(0.5 * w - 20) calc(h - 15) calc(0.5 * w - 20) calc(h - 10) M calc(0.5 * w - 20) calc(h - 10) calc(0.5 * w) calc(0.6 * h) M calc(0.5 * w + 20) calc(h - 10) calc(0.5 * w) calc(0.6 * h)',
+            and: 'M calc(0.5 * w - 20) calc(h - 10) C calc(0.5 * w - 20) calc(0.6 * h - 10) calc(0.5 * w + 20) calc(0.6 * h - 10) calc(0.5 * w + 20) calc(h - 10) Z',
+            priority_and: 'M calc(0.5 * w - 20) calc(h - 10) C calc(0.5 * w - 20) calc(0.6 * h - 10) calc(0.5 * w + 20) calc(0.6 * h - 10) calc(0.5 * w + 20) calc(h - 10) Z M calc(0.5 * w - 20) calc(h - 10) calc(0.5 * w) calc(0.6 * h) M calc(0.5 * w + 20) calc(h - 10) calc(0.5 * w) calc(0.6 * h)',
+            inhibit: 'M calc(0.5 * w - 10) calc(0.6 * h) L calc(0.5 * w - 20) calc(0.75 * h) L calc(0.5 * w - 10) calc(0.9 * h) calc(0.5 * w + 10) calc(0.9 * h) L calc(0.5 * w + 20) calc(0.75 * h) L calc(0.5 * w + 10) calc(0.6 * h) Z',
+            transfer: 'M calc(0.5 * w) calc(0.6 * h) L calc(0.5 * w - 20) calc(0.9 * h) L calc(0.5 * w + 20) calc(0.9 * h) Z',
         },
         gate: function(type) {
             if (type === undefined) return this.attr(['gate', 'gateType']);
             return this.attr(['gate'], {
                 gateType: type,
-                title: type.toUpperCase() + ' Gate'
+                d: this.gateTypes[type],
+                title: type.toUpperCase() + ' Gate',
             });
-        }
-    }, {
-        attributes: {
-            gateType: {
-                set: function(type) {
-                    var data = this.model.gateTypes[type];
-                    return { d: data ? data + ' M 0 -30 0 -40' : 'M 0 0 0 0' };
-                }
-            }
         }
     });
 
@@ -120,7 +110,7 @@
                 title: 'External Event'
             },
             body: {
-                refD: 'M 0 0 10 -10 20 0 20 40 0 40 Z',
+                d: 'M 0 20 calc(0.5 * w) 0 calc(w) 20 calc(w) calc(h) 0 calc(h) Z',
                 stroke: '#fe854f',
                 fill: '#fe854f'
             }
@@ -145,7 +135,7 @@
                 title: 'Undeveloped Event'
             },
             body: {
-                refD: 'M -1 0 0 1 1 0 0 -1 Z',
+                d: 'M 0 calc(0.5 * h) calc(0.5 * w) calc(h) calc(w) calc(0.5 * h) calc(0.5 * w) 0 Z',
                 stroke: '#feb663',
                 fill: '#feb663'
             }
@@ -171,9 +161,9 @@
                 title: 'Basic Event'
             },
             body: {
-                refCx: '50%',
-                refCy: '50%',
-                refR: '50%',
+                cx: 'calc(0.5 * w)',
+                cy: 'calc(0.5 * h)',
+                r: 'calc(0.5 * w)',
                 stroke: '#30d0c6',
                 fill: '#30d0c6'
             }
@@ -199,10 +189,10 @@
                 title: 'Conditioning Event'
             },
             body: {
-                refCx: '50%',
-                refCy: '50%',
-                refRx: '50%',
-                refRy: '50%',
+                cx: 'calc(0.5 * w)',
+                cy: 'calc(0.5 * h)',
+                rx: 'calc(0.5 * w)',
+                ry: 'calc(0.5 * h)',
                 stroke: '#7c68fc',
                 fill: '#7c68fc',
                 fillOpacity: 0.2

@@ -87,21 +87,18 @@ joint.shapes.devs.MyImageModel = joint.dia.Element.extend({
                     stops: [{ offset: '0%', color: 'white' }, { offset: '50%', color: '#d1d1d1' }],
                     attrs: { x1: '0%', y1: '0%', x2: '0%', y2: '100%' }
                 },
-                refWidth: '100%',
-                refHeight: '100%'
+                width: 'calc(w)',
+                height: 'calc(h)'
             },
             label: {
                 text: 'My Shape',
-                refY: -20
+                y: -20,
+                textVerticalAnchor: 'top'
             },
             image: {
                 xlinkHref: 'https://via.placeholder.com/50x50',
-                width: 50,
-                height: 50,
-                refX: '50%',
-                refY: '50%',
-                xAlignment: 'middle',
-                yAlignment: 'middle'
+                x: 'calc(0.2 * w)',
+                y: 'calc(0.2 * h)',
             }
         }
 
@@ -112,7 +109,6 @@ joint.shapes.devs.MyImageModel = joint.dia.Element.extend({
 
 var imageModel = new joint.shapes.devs.MyImageModel({
     position: { x: 450, y: 250 },
-    size: { width: 90, height: 81 },
     ports: {
         groups: {
             inPorts: {
@@ -273,8 +269,8 @@ var myComponent = new joint.shapes.standard.Rectangle({
         label: {
             pointeEvents: 'none',
             text: 'Component',
-            refX: .5,
-            refY: 20,
+            y: 'calc(-0.5 * h + 10)',
+            textVerticalAnchor: 'top',
             textAnchor: 'middle',
             fill: '#000000'
         }

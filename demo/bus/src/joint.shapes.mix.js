@@ -166,7 +166,7 @@ joint.dia.Element.define('mix.Fader', {
             text: 'Fader',
             textVerticalAnchor: 'bottom',
             textAnchor: 'middle',
-            refX: '50%',
+            x: 'calc(0.5 * w)',
             stroke: '#333333'
         },
         arrow: {
@@ -180,8 +180,8 @@ joint.dia.Element.define('mix.Fader', {
         },
         body: {
             strokeWidth: 2,
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             fill: '#ffffff',
             stroke: '#cccccc'
         }
@@ -217,13 +217,13 @@ joint.dia.Element.define('mix.Aux', {
             fontSize: 12,
             textVerticalAnchor: 'top',
             textAnchor: 'start',
-            refDx: 5,
+            x: 'calc(w + 5)',
             stroke: '#333333'
         },
         auxCircle: {
             r: 10,
-            refCx: '50%',
-            refCy: '50%',
+            cx: 'calc(0.5 * w)',
+            cy: 'calc(0.5 * h)',
             stroke: '#333333',
             fill: 'none',
             strokeWidth: 2,
@@ -235,8 +235,8 @@ joint.dia.Element.define('mix.Aux', {
         },
         body: {
             strokeWidth: 2,
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             fill: '#ffffff',
             stroke: '#cccccc'
         }

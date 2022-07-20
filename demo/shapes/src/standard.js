@@ -94,7 +94,7 @@ path.attr('root/title', 'joint.shapes.standard.Path');
 path.attr('label/text', 'Path');
 path.attr('body/fill', '#30d0c6');
 path.attr('body/fillOpacity', 0.5);
-path.attr('body/refD', 'M 0 5 10 0 C 20 0 20 20 10 20 L 0 15 Z');
+path.attr('body/d', 'M 0 calc(0.25 * h) 0 calc(0.75 * h) calc(0.6 * w) calc(h) C calc(1.2 * w) calc(h) calc(1.2 * w) 0 calc(0.6 * w) 0 Z');
 path.addTo(graph);
 
 var polygon = new standard.Polygon();
@@ -105,7 +105,7 @@ polygon.attr('root/title', 'joint.shapes.standard.Polygon');
 polygon.attr('label/text', 'Polygon');
 polygon.attr('body/fill', '#30d0c6');
 polygon.attr('body/fillOpacity', 0.5);
-polygon.attr('body/refPoints', '0,10 10,0 20,10 10,20');
+polygon.attr('body/points', '0,calc(0.5 * h) calc(0.5 * w),0 calc(w),calc(0.5 * h) calc(0.5 * w),calc(h)');
 polygon.addTo(graph);
 
 var polyline = new standard.Polyline();
@@ -116,7 +116,7 @@ polyline.attr('root/title', 'joint.shapes.standard.Polyline');
 polyline.attr('label/text', 'Polyline');
 polyline.attr('body/fill', '#30d0c6');
 polyline.attr('body/fillOpacity', 0.5);
-polyline.attr('body/refPoints', '0,0 0,10 10,10 10,0');
+polyline.attr('body/points', '0,0 0,calc(h) calc(w),calc(h) calc(w),0');
 polyline.addTo(graph);
 
 var cylinder = new standard.Cylinder();

@@ -9,10 +9,10 @@ export class MyShape extends dia.Element {
             size: { width: 100, height: 80 },
             attrs: {
                 body: {
-                    refCx: '50%',
-                    refCy: '50%',
-                    refRx: '50%',
-                    refRy: '50%',
+                    cx: 'calc(0.5 * w)',
+                    cy: 'calc(0.5 * h)',
+                    rx: 'calc(0.5 * w)',
+                    ry: 'calc(0.5 * h)',
                     strokeWidth: 2,
                     stroke: '#333333',
                     fill: '#FFFFFF'
@@ -20,8 +20,8 @@ export class MyShape extends dia.Element {
                 label: {
                     textVerticalAnchor: 'middle',
                     textAnchor: 'middle',
-                    refX: '50%',
-                    refY: '50%',
+                    x: 'calc(0.5 * w)',
+                    y: 'calc(0.5 * h)',
                     fontSize: 14,
                     fill: '#333333'
                 }

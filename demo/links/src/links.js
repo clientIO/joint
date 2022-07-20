@@ -188,12 +188,10 @@ var link7 = new joint.shapes.standard.Link({
             },
             labelBody: {
                 ref: 'labelText',
-                refX: -5,
-                refY: -5,
-                refWidth: '100%',
-                refHeight: '100%',
-                refWidth2: 10,
-                refHeight2: 10,
+                x: 'calc(-0.5 * w - 5)',
+                y: 'calc(-0.5 * h - 5)',
+                width: 'calc(w + 10)',
+                height: 'calc(h + 10)',
                 stroke: '#7c68fc',
                 fill: 'white',
                 strokeWidth: 2,
@@ -226,8 +224,8 @@ var link7 = new joint.shapes.standard.Link({
             },
             labelBody: {
                 ref: 'labelText',
-                refRx: '70%',
-                refRy: '80%',
+                rx: 'calc(0.7 * w)',
+                ry: 'calc(0.8 * h)',
                 stroke: '#31d0c6',
                 fill: 'white',
                 strokeWidth: 2
@@ -372,7 +370,7 @@ var el1 = new joint.shapes.standard.Path({
     attrs: {
         body: {
             fill: '#31d0c6',
-            refD: 'M 0 20 10 20 10 30 30 30 30 0 40 0 40 40 0 40 z'
+            d: 'M 0 calc(0.45 * h) calc(0.25 * w) calc(0.45 * h) calc(0.25 * w) calc(0.75 * h) calc(0.75 * w) calc(0.75 * h) calc(0.75 * w) 0 calc(w) 0 calc(w) calc(h) 0 calc(h) z'
         }
     }
 });

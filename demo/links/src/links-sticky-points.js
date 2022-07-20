@@ -106,10 +106,20 @@ var o61 = (new rect({
 
 var o511 = (new polygon({
     position: { x: 570, y: 280 },
-    size: { width: 60, height: 60 },
+    size: { width: 80, height: 80 },
     attrs: {
-        label: { text: 'polygon' },
-        body: { refPoints: '60,20 100,40 100,80 60,100 20,80 20,40' }
+        label: { 
+            width: 'calc(w)',
+            height: 'calc(h)',
+            text: 'polygon', 
+            x: 'calc(0.1 * w)', 
+            y: 'calc(0.1 * h)', 
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle'
+        },
+        body: { 
+            points: 'calc(0.6 * w),calc(0.2 * h) calc(1 * w),calc(0.4 * h) calc(1 * w),calc(0.8 * h) calc(0.6 * w),calc(h) calc(0.2 * w),calc(0.8 * w) calc(0.2 * w),calc(0.4 * h)' 
+        }
     }
 })).addTo(graph);
 var o611 = (new rect({
@@ -123,15 +133,15 @@ var o611 = (new rect({
 
 var o5111 = (new polyline({
     position: { x: 750, y: 280 },
-    size: { width: 50, height: 50 },
+    size: { width: 60, height: 60 },
     attrs: {
         label: {
             text: 'polyline',
-            refY: '100%',
-            refY2: 15
+            y: 'calc(h)',
+            textVerticalAnchor: 'bottom'
         },
         body: {
-            refPoints: '20,100 40,60 70,80 100,20'
+            points: 'calc(0.2 * w),calc(h) calc(0.4 * w),calc(0.6 * h) calc(0.7 * w),calc(0.8 * h) calc(w),calc(0.2 * h)'
         }
     }
 })).addTo(graph);
@@ -146,24 +156,34 @@ var o6111 = (new rect({
 
 var o5112 = (new polyline({
     position: { x: 880, y: 280 },
-    size: { width: 50, height: 50 },
+    size: { width: 60, height: 60 },
     attrs: {
         label: {
             text: 'polyline',
-            refY: '100%',
-            refY2: 15
+            y: 'calc(h)',
+            textVerticalAnchor: 'bottom'
         },
         body: {
-            refPoints: '20,100 40,60 70,80 100,20'
+            points: 'calc(0.2 * w),calc(h) calc(0.4 * w),calc(0.6 * h) calc(0.7 * w),calc(0.8 * h) calc(w),calc(0.2 * h)'
         }
     }
 })).addTo(graph);
 var o6112 = (new polygon({
     position: { x: 990, y: 240 },
-    size: { width: 50, height: 50 },
+    size: { width: 60, height: 60 },
     attrs: {
-        label: { text: 'polygon' },
-        body: { refPoints: '60,20 100,40 100,80 60,100 20,80 20,40' }
+        label: { 
+            width: 'calc(w)',
+            height: 'calc(h)',
+            text: 'polygon', 
+            x: 'calc(0.1 * w)', 
+            y: 'calc(0.1 * h)', 
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle'
+        },
+        body: { 
+            points: 'calc(0.6 * w),calc(0.2 * h) calc(1 * w),calc(0.4 * h) calc(1 * w),calc(0.8 * h) calc(0.6 * w),calc(h) calc(0.2 * w),calc(0.8 * w) calc(0.2 * w),calc(0.4 * h)' 
+        }
     }
 })).addTo(graph);
 (new link({
@@ -190,8 +210,8 @@ var o7 = (new path({
     attrs: {
         label: {
             text: 'path',
-            refY: '100%',
-            refY2: 15
+            y: 'calc(h)',
+            textVerticalAnchor: 'bottom'
         },
         body: {
             refD: newspaper,

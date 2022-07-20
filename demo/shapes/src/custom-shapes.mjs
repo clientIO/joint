@@ -75,17 +75,16 @@ var Circle = joint.dia.Element.define('custom.Circle', {
             strokeWidth: 3,
             lineStyle: 'dotted',
             fill: 'none',
-            d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
+            d: 'M 0 calc(0.25 * h) L calc(w) calc(0.25 * h) M calc(w) calc(0.75 * h) L 0 calc(0.75 * h)'
         },
         label: {
             fill: '#cbd2d7',
             fontSize: 20,
             fontFamily: 'Arial, helvetica, sans-serif',
-            refX: '50%',
-            refY: '50%',
-            transform: 'rotate(45) scale(0.5,0.5)',
-            yAlignment: 'middle',
-            xAlignment: 'middle'
+            x: 'calc(1.4 * w)',
+            transform: 'scale(0.5,0.5) rotate(45) ',
+            textVerticalAnchor: 'middle',
+            textAnchor: 'middle'
         }
     }
 
@@ -95,31 +94,6 @@ var Circle = joint.dia.Element.define('custom.Circle', {
         return this.attr('label/text', text);
     }
 
-}, {
-
-    // Element specific special attributes
-    attributes: {
-
-        d: {
-            // The path data `d` attribute to be defined via an array.
-            // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
-            qualify: Array.isArray,
-            set: function(value, refBBox) {
-                var i = 0;
-                var attrValue = value.map(function(data, index) {
-                    if (typeof data === 'string') {
-                        if (data.slice(-1) === '%') {
-                            return parseFloat(data) / 100 * refBBox[((index - i) % 2) ? 'height' : 'width'];
-                        } else {
-                            i++;
-                        }
-                    }
-                    return data;
-                }).join(' ');
-                return { d:  attrValue };
-            }
-        }
-    }
 });
 
 var circle = (new Circle())
@@ -149,8 +123,8 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
         body: {
             fill: '#ddd',
             stroke: '#000',
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             rx: 5,
             ty: 5
         },
@@ -158,19 +132,14 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
             r: 12,
             fill: '#d00',
             stroke: '#000',
-            refX: '100%',
-            cy: 4,
-            cx: -4,
+            cx: 'calc(w)',
             event: 'element:delete',
             cursor: 'pointer'
         },
         green: {
-            r: 4,
             fill: '#0d0',
             stroke: '#000',
-            refX: '100%',
-            d: 'M -10 0 -3 -3 0 -10 3 -3 10 0 3 3 0 10 -3 3 z',
-            transform: 'translate(-4,4)',
+            d: 'M calc(w - 12) 0 calc(w - 4) 4 calc(w) 12 calc(w + 4) 4 calc(w + 12) 0 calc(w + 4) -4 calc(w) -12 calc(w - 4) -4 z',
             pointerEvents: 'none'
         },
         content: {
@@ -182,9 +151,9 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
             fontSize: 14,
             fontFamily: 'sans-serif',
             textAnchor: 'middle',
-            refX: '50%',
-            refDy: -5,
-            yAlignment: 'bottom'
+            textVerticalAnchor: 'middle',
+            x: 'calc(0.5 * w)',
+            y: 'calc(0.5 * h)',
         }
     }
 });
@@ -230,10 +199,10 @@ var Header = joint.dia.Element.define('custom.Header', {
             fill: 'gray',
             stroke: 'none',
             height: 20,
-            refWidth: '100%'
+            width: 'calc(w)'
         },
         caption: {
-            refX: '50%',
+            x: 'calc(0.5 * w)',
             textAnchor: 'middle',
             fontSize: 12,
             fontFamily: 'sans-serif',
@@ -245,10 +214,10 @@ var Header = joint.dia.Element.define('custom.Header', {
             fill: '#fff'
         },
         description: {
-            refX: '50%',
-            refX2: 15,
-            refY: 25,
+            x: 'calc(0.5 * w + 15)',
+            y: 25,
             textAnchor: 'middle',
+            textVerticalAnchor: 'top',
             fontSize: 12,
             fontFamily: 'sans-serif',
             textWrap: {
@@ -483,7 +452,7 @@ var shape3 = (new Shape())
             last: {
                 ref: 'first',
                 r: 10,
-                refDx: 10,
+                cx: 'calc(0.5 * w + 10)',
                 magnet: true
             }
         }
@@ -505,9 +474,9 @@ var Progress = joint.dia.Element.define('progress', {
             stroke: 'gray',
             strokeWidth: 10,
             fill: 'white',
-            refR: '50%',
-            refCx: '50%',
-            refCy: '50%'
+            r: 'calc(0.5 * w)',
+            cx: 'calc(0.5 * w)',
+            cy: 'calc(0.5 * h)'
         },
         progressForeground: {
             stroke: 'red',
@@ -522,8 +491,8 @@ var Progress = joint.dia.Element.define('progress', {
             fontFamily: 'sans-serif',
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
-            refX: '50%',
-            refY: '50%'
+            x: 'calc(0.5 * w)',
+            y: 'calc(0.5 * h)'
         }
     }
 }, {

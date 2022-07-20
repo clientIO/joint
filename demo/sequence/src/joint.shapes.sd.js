@@ -138,12 +138,10 @@
             attrs: {
                 labelBody: {
                     ref: 'labelText',
-                    refWidth: '100%',
-                    refHeight: '100%',
-                    refWidth2: 20,
-                    refHeight2: 10,
-                    refX: -10,
-                    refY: -5,
+                    width: 'calc(w + 20)',
+                    height: 'calc(h + 10)',
+                    x: 'calc(-0.5 * w - 10)',
+                    y: 'calc(-0.5 * h - 5)',
                     rx: 2,
                     ry: 2,
                     fill: '#4666E5'

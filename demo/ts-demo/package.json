@@ -13,14 +13,14 @@
     },
     "devDependencies": {
         "@types/backbone": "1.4.15",
-        "@types/jquery": "3.5.5",
-        "@types/lodash": "4.14.170",
         "@types/dagre": "0.7.44",
         "@types/graphlib": "2.1.7",
+        "@types/jquery": "3.5.5",
+        "@types/lodash": "4.14.170",
         "http-server": "0.12.3",
         "ts-loader": "5.2.2",
         "typescript": "3.8.3",
         "webpack": "4.23.1",
-        "webpack-cli": "3.1.2"
+        "webpack-cli": "^3.1.2"
     }
 }

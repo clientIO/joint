@@ -18,9 +18,10 @@ function me(id, x, y, w, h, fill) {
             label: {
                 text: id,
                 fill: 'white',
-                refX: 10,
-                refY: 10,
-                textAnchor: 'start'
+                x: 'calc(-0.5 * w + 10)',
+                y: 'calc(-0.5 * h + 10)',
+                textAnchor: 'start',
+                textVerticalAnchor: 'top'
             }
         }
     }).addTo(graph);
