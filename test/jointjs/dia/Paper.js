@@ -1,6 +1,7 @@
 QUnit.module('joint.dia.Paper', function(hooks) {
 
     var Paper = joint.dia.Paper;
+    var views = joint.mvc.views;
     var paper;
     var paperEl;
     var graph;
@@ -46,6 +47,24 @@ QUnit.module('joint.dia.Paper', function(hooks) {
     QUnit.test('sanity', function(assert) {
         paper = new Paper({ el: paperEl });
         assert.ok(paper.svg.id);
+    });
+
+
+    QUnit.test('memory', function(assert) {
+
+        function getNumberOfViews() {
+            return Object.keys(views).reduce(function(memo, key) {
+                return views[key] ? memo + 1 : memo;
+            }, 0);
+        }
+
+        const initialCount = getNumberOfViews();
+        paper = new Paper({ el: paperEl });
+        paper.model.addCell({ type: 'standard.Rectangle' });
+        paper.model.addCell({ type: 'standard.Link' });
+        assert.ok(getNumberOfViews() > initialCount);
+        paper.remove();
+        assert.equal(getNumberOfViews(), initialCount);
     });
 
     QUnit.module('options', function() {

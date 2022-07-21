@@ -599,7 +599,7 @@ export const Paper = View.extend({
 
     removeLayers: function() {
         const { _layers } = this;
-        Object.keys(_layers, name => {
+        Object.keys(_layers).forEach(name => {
             _layers[name].remove();
             delete _layers[name];
         });
@@ -607,7 +607,7 @@ export const Paper = View.extend({
 
     resetLayers: function() {
         const { _layers } = this;
-        Object.keys(_layers, name => {
+        Object.keys(_layers).forEach(name => {
             _layers[name].removePivots();
         });
     },
