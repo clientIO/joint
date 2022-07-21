@@ -4,10 +4,13 @@ export function svg(string) {
 }
 
 function parseFromSVGString(str) {
-
     const parser = new DOMParser();
-    const type = 'text/html';
-    const document = parser.parseFromString(`<svg>${str.trim()}</svg>`, type);
+    const markupString = `<svg>${str.trim()}</svg>`;
+    const xmldocument = parser.parseFromString(markupString.replace(/@/g, ''), 'application/xml');
+    if (xmldocument.getElementsByTagName('parsererror')[0]) {
+        throw new Error('Invalid SVG markup');
+    }
+    const document = parser.parseFromString(markupString, 'text/html');
     const svg = document.querySelector('svg');
     return build(svg);
 }
