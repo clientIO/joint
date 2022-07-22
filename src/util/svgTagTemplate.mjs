@@ -1,5 +1,5 @@
-export function svg(string) {
-    const markup = parseFromSVGString(string[0]);
+export function svg(strings) {
+    const markup = parseFromSVGString(strings[0]);
     return markup;
 }
 
@@ -17,6 +17,8 @@ function parseFromSVGString(str) {
 
 function build(root) {
     const markup = [];
+    const tagNameSelectors = {};
+    const selectors = {};
 
     Array.from(root.children).forEach(node => {
         const markupNode = {};
@@ -38,8 +40,18 @@ function build(root) {
             markupNode.selector = selectorAttribute.value;
             attributes.removeNamedItem('@selector');
         } else {
-            markupNode.selector = tagName;
+            if (tagNameSelectors[tagName]) {
+                tagNameSelectors[tagName] += 1;
+                markupNode.selector = tagName + tagNameSelectors[tagName];
+            } else {
+                markupNode.selector = tagName;
+                tagNameSelectors[tagName] = 1;
+            }
         }
+        if (selectors[markupNode.selector]) {
+            throw new Error('Markup selectors cannot have the same name');
+        }
+        selectors[markupNode.selector] = true;
 
         const groupSelectorAttribute = attributes.getNamedItem('@group-selector');
         if (groupSelectorAttribute) {

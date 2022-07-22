@@ -2786,7 +2786,7 @@ export namespace util {
 
     export function uuid(): string;
 
-    export function svg(obj: TemplateStringsArray): dia.MarkupJSON;
+    export function svg(strings: TemplateStringsArray): dia.MarkupJSON;
 
     export function guid(obj?: { [key: string]: any }): string;
 
