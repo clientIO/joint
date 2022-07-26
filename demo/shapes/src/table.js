@@ -257,8 +257,8 @@ joint.shapes.basic.TableView = joint.dia.ElementView.extend({
             var element = this.model.textMarkup.clone();
             var bbox = this.model._getCellBBox(row, column);
             element.attr({
-                x: bbox.x + bbox.width / 2,
-                y: bbox.y + bbox.height / 2,
+                x: bbox.x,
+                y: bbox.y,
                 width: bbox.width,
                 height: bbox.height,
             }).text(cell.value);
@@ -266,8 +266,10 @@ joint.shapes.basic.TableView = joint.dia.ElementView.extend({
 
             this._elements.push([element.node, {
                 '.': {
-                    textVerticalAnchor: 'middle',
-                    textAnchor: 'middle'
+                    xAlignment: 'middle',
+                    yAlignment: 'middle',
+                    refX: 0.5,
+                    refY: 0.5
                 }
             }, bbox]);
 
@@ -404,13 +406,14 @@ var table = new Table({
         },
         '.main-shape-text': {
             text: 'shape with table',
-            x: 'calc(0.5 * w)',
-            y: 25,
-            textAnchor: 'middle',
+            refX: .5,
+            refY: 20,
+            xAlignment: 'middle',
+            yAlignment: 'middle'
         },
         '.main-shape': {
-            width: 'calc(w)',
-            height: 'calc(h)',
+            refWidth: '100%',
+            refHeight: '100%',
             fill: 'darkGray',
             rx: 10,
             ry: 10

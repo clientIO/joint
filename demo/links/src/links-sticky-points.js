@@ -106,19 +106,17 @@ var o61 = (new rect({
 
 var o511 = (new polygon({
     position: { x: 570, y: 280 },
-    size: { width: 80, height: 80 },
+    size: { width: 60, height: 60 },
     attrs: {
         label: { 
             width: 'calc(w)',
             height: 'calc(h)',
             text: 'polygon', 
-            x: 'calc(0.1 * w)', 
-            y: 'calc(0.1 * h)', 
             textAnchor: 'middle',
             textVerticalAnchor: 'middle'
         },
         body: { 
-            points: 'calc(0.6 * w),calc(0.2 * h) calc(1 * w),calc(0.4 * h) calc(1 * w),calc(0.8 * h) calc(0.6 * w),calc(h) calc(0.2 * w),calc(0.8 * w) calc(0.2 * w),calc(0.4 * h)' 
+            points: 'calc(0.5 * w),0 calc(w),calc(0.25 * h) calc(w),calc(0.75 * h) calc(0.5 * w),calc(h) 0,calc(0.75 * h) 0,calc(0.25 * h)' 
         }
     }
 })).addTo(graph);
@@ -175,14 +173,12 @@ var o6112 = (new polygon({
         label: { 
             width: 'calc(w)',
             height: 'calc(h)',
-            text: 'polygon', 
-            x: 'calc(0.1 * w)', 
-            y: 'calc(0.1 * h)', 
+            text: 'polygon',
             textAnchor: 'middle',
             textVerticalAnchor: 'middle'
         },
         body: { 
-            points: 'calc(0.6 * w),calc(0.2 * h) calc(1 * w),calc(0.4 * h) calc(1 * w),calc(0.8 * h) calc(0.6 * w),calc(h) calc(0.2 * w),calc(0.8 * w) calc(0.2 * w),calc(0.4 * h)' 
+            points: 'calc(0.5 * w),0 calc(w),calc(0.25 * h) calc(w),calc(0.75 * h) calc(0.5 * w),calc(h) 0,calc(0.75 * h) 0,calc(0.25 * h)' 
         }
     }
 })).addTo(graph);

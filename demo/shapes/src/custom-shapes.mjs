@@ -81,8 +81,7 @@ var Circle = joint.dia.Element.define('custom.Circle', {
             fill: '#cbd2d7',
             fontSize: 20,
             fontFamily: 'Arial, helvetica, sans-serif',
-            x: 'calc(1.4 * w)',
-            transform: 'scale(0.5,0.5) rotate(45) ',
+            transform: 'translate(calc(w / 2), calc(h / 2)) rotate(45) scale(0.5,0.5)',
             textVerticalAnchor: 'middle',
             textAnchor: 'middle'
         }

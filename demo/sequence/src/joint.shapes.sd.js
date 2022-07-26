@@ -140,8 +140,8 @@
                     ref: 'labelText',
                     width: 'calc(w + 20)',
                     height: 'calc(h + 10)',
-                    x: 'calc(-0.5 * w - 10)',
-                    y: 'calc(-0.5 * h - 5)',
+                    x: 'calc(x - 10)',
+                    y: 'calc(y - 5)',
                     rx: 2,
                     ry: 2,
                     fill: '#4666E5'

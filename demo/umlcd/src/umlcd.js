@@ -35,7 +35,14 @@ var classes = {
                 'stroke-width': 0.5
             },
             '.uml-class-attrs-text': {
-                y: 'calc(0.5 * h)',
+                ref: '.uml-class-attrs-rect',
+                'ref-y': 0.5,
+                'y-alignment': 'middle'
+            },
+            '.uml-class-methods-text': {
+                ref: '.uml-class-methods-rect',
+                'ref-y': 0.5,
+                'y-alignment': 'middle'
             }
 
         }
@@ -92,10 +99,14 @@ var classes = {
                 'stroke-width': 0.5
             },
             '.uml-class-attrs-text': {
-                y: 'calc(0.5 * h)',
+                ref: '.uml-class-attrs-rect',
+                'ref-y': 0.5,
+                'y-alignment': 'middle'
             },
             '.uml-class-methods-text': {
-                y: 'calc(0.5 * h)',
+                ref: '.uml-class-methods-rect',
+                'ref-y': 0.5,
+                'y-alignment': 'middle'
             }
         }
     }),
@@ -123,8 +134,8 @@ var classes = {
                 'stroke-width': 0.5
             },
             '.uml-class-attrs-text': {
-                y: 'calc(0.5 * h - 5)',
-                textVerticalAnchor: 'middle'
+                'ref-y': 0.5,
+                'y-alignment': 'middle'
             }
         }
 
@@ -175,8 +186,8 @@ var classes = {
                 'stroke-width': 0.5
             },
             '.uml-class-methods-text': {
-                y: 'calc(0.5 * h - 5)',
-                textVerticalAnchor: 'middle'
+                'ref-y': 0.5,
+                'y-alignment': 'middle'
             }
         }
     })

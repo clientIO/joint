@@ -18,8 +18,8 @@ var Shape = joint.dia.Element.define('demo.Shape', {
             ry: 10
         },
         label: {
-            x: 'calc(0.5 * w)',
-            y: 'calc(0.5 * h)',
+            x: 'calc(w / 2)',
+            y: 'calc(h / 2)',
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
             fontSize: 30

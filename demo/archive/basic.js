@@ -106,9 +106,9 @@ var MyElementWithPorts = joint.shapes.basic.Generic.extend({
                 fill: 'black',
                 'pointer-events': 'none'
             },
-            '.label': { text: 'Model', x: 'calc(w + 5)', y: 'calc(h + 5)' },
-            '.inPorts text': { x: -15, 'text-anchor': 'end' },
-            '.outPorts text':{ x: 'calc(w + 15)' },
+            '.label': { text: 'Model', dx: 5, dy: 5 },
+            '.inPorts text': { dx:-15, 'text-anchor': 'end' },
+            '.outPorts text':{ dx: 15 },
             '.inPorts circle': { fill: 'PaleGreen' },
             '.outPorts circle': { fill: 'Tomato' }
         }
@@ -120,14 +120,15 @@ var d = new MyElementWithPorts({
     position: { x: 250, y: 150 },
     size: { width: 80, height: 80 },
     attrs: {
-        '.port1 text': { text: 'port1', y: 'calc(0.1 * h)' },
-        '.port2 text': { text: 'port2', y: 'calc(0.4 * h)' },
-        '.port3 text': { text: 'port3', y: 'calc(0.2 * h)' },
-        '.port4 text': { text: 'port4' ,y: 'calc(0.4 * h)' },
-        '.port1 circle': { cy: 'calc(0.1 * h)', },
-        '.port2 circle': { cy: 'calc(0.4 * h)' },
-        '.port3 circle': { cy: 'calc(0.2 * h)', cx: 'calc(w)' },
-        '.port4 circle': { cy: 'calc(0.4 * h)', cx: 'calc(w)' }
+        '.port1 text': { text: 'port1' },
+        '.port2 text': { text: 'port2' },
+        '.port3 text': { text: 'port3' },
+        '.port4 text': { text: 'port4' },
+        '.port1': { ref: 'rect', 'ref-y': .2 },
+        '.port2': { ref: 'rect', 'ref-y': .4 },
+        '.port3': { ref: 'rect', 'ref-y': .2, 'ref-dx': 0 },
+        '.port4': { ref: 'rect', 'ref-y': .4, 'ref-dx': 0 }
+
     }
 });
 

@@ -166,7 +166,7 @@ joint.dia.Element.define('mix.Fader', {
             text: 'Fader',
             textVerticalAnchor: 'bottom',
             textAnchor: 'middle',
-            x: 'calc(0.5 * w)',
+            x: 'calc(w / 2)',
             stroke: '#333333'
         },
         arrow: {
@@ -222,8 +222,8 @@ joint.dia.Element.define('mix.Aux', {
         },
         auxCircle: {
             r: 10,
-            cx: 'calc(0.5 * w)',
-            cy: 'calc(0.5 * h)',
+            cx: 'calc(w / 2)',
+            cy: 'calc(h / 2)',
             stroke: '#333333',
             fill: 'none',
             strokeWidth: 2,

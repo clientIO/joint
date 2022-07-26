@@ -188,8 +188,8 @@ var link7 = new joint.shapes.standard.Link({
             },
             labelBody: {
                 ref: 'labelText',
-                x: 'calc(-0.5 * w - 5)',
-                y: 'calc(-0.5 * h - 5)',
+                x: 'calc(x - 5)',
+                y: 'calc(y - 5)',
                 width: 'calc(w + 10)',
                 height: 'calc(h + 10)',
                 stroke: '#7c68fc',

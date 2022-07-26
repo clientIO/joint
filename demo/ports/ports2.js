@@ -97,8 +97,10 @@ joint.shapes.devs.MyImageModel = joint.dia.Element.extend({
             },
             image: {
                 xlinkHref: 'https://via.placeholder.com/50x50',
-                x: 'calc(0.2 * w)',
-                y: 'calc(0.2 * h)',
+                width: 50,
+                height: 50,
+                x: 'calc(0.5 * w - 25)',
+                y: 'calc(0.5 * h - 25)',
             }
         }
 
@@ -269,9 +271,10 @@ var myComponent = new joint.shapes.standard.Rectangle({
         label: {
             pointeEvents: 'none',
             text: 'Component',
-            y: 'calc(-0.5 * h + 10)',
-            textVerticalAnchor: 'top',
-            textAnchor: 'middle',
+            refX: 0,
+            refY: 0,
+            x: 'calc(w / 2)',
+            y: 20,
             fill: '#000000'
         }
     }
