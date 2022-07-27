@@ -167,7 +167,7 @@
                 textVerticalAnchor: 'top',
                 textAnchor: 'middle',
                 fontFamily: 'fantasy',
-                x: 'calc(0.5 * w)',
+                x: 'calc(w / 2)',
                 y: 'calc(h + 10)',
                 fontSize: 20,
                 fontWeight: 'bold',

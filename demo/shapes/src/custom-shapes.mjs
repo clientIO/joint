@@ -151,8 +151,8 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
             fontFamily: 'sans-serif',
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
-            x: 'calc(0.5 * w)',
-            y: 'calc(0.5 * h)',
+            x: 'calc(w / 2)',
+            y: 'calc(h / 2)',
         }
     }
 });
@@ -201,7 +201,7 @@ var Header = joint.dia.Element.define('custom.Header', {
             width: 'calc(w)'
         },
         caption: {
-            x: 'calc(0.5 * w)',
+            x: 'calc(w / 2)',
             textAnchor: 'middle',
             fontSize: 12,
             fontFamily: 'sans-serif',
@@ -213,7 +213,7 @@ var Header = joint.dia.Element.define('custom.Header', {
             fill: '#fff'
         },
         description: {
-            x: 'calc(0.5 * w + 15)',
+            x: 'calc(w / 2 + 15)',
             y: 25,
             textAnchor: 'middle',
             textVerticalAnchor: 'top',
@@ -451,7 +451,7 @@ var shape3 = (new Shape())
             last: {
                 ref: 'first',
                 r: 10,
-                cx: 'calc(0.5 * w + 10)',
+                cx: 'calc(w / 2 + 10)',
                 magnet: true
             }
         }
@@ -473,9 +473,9 @@ var Progress = joint.dia.Element.define('progress', {
             stroke: 'gray',
             strokeWidth: 10,
             fill: 'white',
-            r: 'calc(0.5 * w)',
-            cx: 'calc(0.5 * w)',
-            cy: 'calc(0.5 * h)'
+            r: 'calc(w / 2)',
+            cx: 'calc(w / 2)',
+            cy: 'calc(h / 2)'
         },
         progressForeground: {
             stroke: 'red',
@@ -490,8 +490,8 @@ var Progress = joint.dia.Element.define('progress', {
             fontFamily: 'sans-serif',
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
-            x: 'calc(0.5 * w)',
-            y: 'calc(0.5 * h)'
+            x: 'calc(w / 2)',
+            y: 'calc(h / 2)'
         }
     }
 }, {

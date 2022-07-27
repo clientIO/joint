@@ -29,7 +29,7 @@ export default class LinkedProcess extends dia.Element {
                     textWrap: {
                         width: -20
                     },
-                    transform: 'translate(calc(0.5*w),calc(0.5*h))',
+                    transform: 'translate(calc(w / 2),calc(h / 2))',
                     fontSize: 13,
                     fontFamily: 'sans-serif',
                     fill: '#333333'
@@ -49,7 +49,7 @@ export default class LinkedProcess extends dia.Element {
                     d: 'M calc(w-10) 0 v calc(h)',
                 }
             }
-        }
+        };
     }
 
     markup = [{

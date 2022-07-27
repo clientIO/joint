@@ -133,7 +133,7 @@ var DraggingElementView = joint.dia.ElementView.extend({
         });
 
         var cell = this.paper.model.getCell(this._link.id);
-
+    
         if (cell) cell.remove();
 
         delete this._link;
@@ -147,7 +147,7 @@ joint.dia.Element.define('demo.Ball', {
             text: 'Drag me!',
             fontSize: 40,
             fontWeight: 900,
-            x: 'calc(0.5 * w)',
+            x: 'calc(w / 2)',
             y: -20,
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',

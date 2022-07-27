@@ -18,14 +18,11 @@ function me(id, x, y, w, h, fill) {
             label: {
                 text: id,
                 fill: 'white',
-                refX: 0,
-                refY: 0,
-                x: 10,
-                y: 10,
-                textAnchor: 'start',
-                textVerticalAnchor: 'top'
+                refX: 10,
+                refY: 10,
+                textAnchor: 'start'
             }
-        }
+        }   
     }).addTo(graph);
 }
 

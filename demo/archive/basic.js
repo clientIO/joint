@@ -128,7 +128,6 @@ var d = new MyElementWithPorts({
         '.port2': { ref: 'rect', 'ref-y': .4 },
         '.port3': { ref: 'rect', 'ref-y': .2, 'ref-dx': 0 },
         '.port4': { ref: 'rect', 'ref-y': .4, 'ref-dx': 0 }
-
     }
 });
 

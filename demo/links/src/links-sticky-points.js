@@ -108,15 +108,13 @@ var o511 = (new polygon({
     position: { x: 570, y: 280 },
     size: { width: 60, height: 60 },
     attrs: {
-        label: { 
-            width: 'calc(w)',
-            height: 'calc(h)',
+        label: {
             text: 'polygon', 
             textAnchor: 'middle',
             textVerticalAnchor: 'middle'
         },
         body: { 
-            points: 'calc(0.5 * w),0 calc(w),calc(0.25 * h) calc(w),calc(0.75 * h) calc(0.5 * w),calc(h) 0,calc(0.75 * h) 0,calc(0.25 * h)' 
+            points: 'calc(w / 2),0 calc(w),calc(h / 4) calc(w),calc(0.75 * h) calc(w / 2),calc(h) 0,calc(0.75 * h) 0,calc(h / 4)' 
         }
     }
 })).addTo(graph);
@@ -171,14 +169,12 @@ var o6112 = (new polygon({
     size: { width: 60, height: 60 },
     attrs: {
         label: { 
-            width: 'calc(w)',
-            height: 'calc(h)',
             text: 'polygon',
             textAnchor: 'middle',
             textVerticalAnchor: 'middle'
         },
         body: { 
-            points: 'calc(0.5 * w),0 calc(w),calc(0.25 * h) calc(w),calc(0.75 * h) calc(0.5 * w),calc(h) 0,calc(0.75 * h) 0,calc(0.25 * h)' 
+            points: 'calc(w / 2),0 calc(w),calc(h / 4) calc(w),calc(0.75 * h) calc(w / 2),calc(h) 0,calc(0.75 * h) 0,calc(h / 4)' 
         }
     }
 })).addTo(graph);

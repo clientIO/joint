@@ -16,7 +16,7 @@ var g4 = new joint.shapes.basic.Rect({
             stroke: '#31d0c6', 'stroke-width': 2
         },
         '.inner': {
-            width: 60, height: 130, x: 10, y: 10,
+            width: 60, height: 130, 'ref-x': 10, 'ref-y': 10,
             stroke: '#31d0c6', 'stroke-width': 2, fill: '#7c68fc'
         }
     }

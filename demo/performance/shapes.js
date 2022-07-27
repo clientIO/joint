@@ -59,8 +59,8 @@ var Shape = joint.dia.Element.define('Shape', {
             fontSize: 14,
             fontFamily: 'sans-serif',
             // Please see the `ref-width` & `ref-height` comment.
-            x: 'calc(0.5*w)',
-            y: 'calc(0.5*h)',
+            x: 'calc(w / 2)',
+            y: 'calc(h / 2)',
             // Do not use special attribute `x-alignment` when not necessary.
             // It calls getBBox() on the SVGText element internally. Measuring text
             // in the browser is usually the slowest.

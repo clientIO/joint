@@ -105,7 +105,7 @@ polygon.attr('root/title', 'joint.shapes.standard.Polygon');
 polygon.attr('label/text', 'Polygon');
 polygon.attr('body/fill', '#30d0c6');
 polygon.attr('body/fillOpacity', 0.5);
-polygon.attr('body/points', '0,calc(0.5 * h) calc(0.5 * w),0 calc(w),calc(0.5 * h) calc(0.5 * w),calc(h)');
+polygon.attr('body/points', '0,calc(h / 2) calc(w / 2),0 calc(w),calc(h / 2) calc(w / 2),calc(h)');
 polygon.addTo(graph);
 
 var polyline = new standard.Polyline();

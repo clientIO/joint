@@ -16,7 +16,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'joint' },
-            body: { d: 'M 0 0 L calc(w) 0 calc(0.8 * w) calc(0.5 * h) calc(w) calc(h) 0 calc(h) Z' }
+            body: { d: 'M 0 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) 0 calc(h) Z' }
         }
     }),
 
@@ -25,7 +25,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'dia' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(0.5 * h) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     }),
 
@@ -34,7 +34,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'util' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(0.5 * h) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     }),
 
@@ -43,7 +43,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'shapes' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(0.5 * h) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     }),
 
@@ -52,7 +52,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'basic' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(0.5 * h) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     }),
 
@@ -61,7 +61,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'Path' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     }),
 
@@ -70,7 +70,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'Text' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     }),
 
@@ -79,7 +79,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'Paper' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     }),
 
@@ -88,7 +88,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'Graph' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     }),
 
@@ -97,7 +97,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'getByPath' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     }),
 
@@ -106,7 +106,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'setByPath' },
-            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(0.5 * h) Z' }
+            body: { d: 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z' }
         }
     })
 ];

@@ -17,20 +17,20 @@ export default class Mark extends dia.Element {
                     strokeWidth: 2,
                     stroke: '#333333',
                     fill: '#ffffff',
-                    d: 'M 0 calc(0.5*h) calc(0.5*h) 0 H calc(w-calc(0.5 * h)) a 3 3 0 0 1 3 calc(h) H calc(0.5*h) z'
+                    d: 'M 0 calc(h / 2) calc(h / 2) 0 H calc(w-calc(h / 2)) a 3 3 0 0 1 3 calc(h) H calc(h / 2) z'
                 },
                 label: {
                     text: 'Mark',
                     textVerticalAnchor: 'middle',
                     textAnchor: 'middle',
-                    y: 'calc(0.5*h)',
-                    x: 'calc(0.5*w)',
+                    y: 'calc(h / 2)',
+                    x: 'calc(w / 2)',
                     fontSize: 13,
                     fontFamily: 'sans-serif',
                     fill: '#333333'
                 }
             }
-        }
+        };
     }
 
     markup = [{
