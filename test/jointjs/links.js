@@ -1471,7 +1471,7 @@ QUnit.module('links', function(hooks) {
         assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: loop link embedded, source translated');
 
         // link is not embedded, source and target embedded
-        // translateing container
+        // translating container
         c.unembed(l);
         l.set('target', { id: 'b' });
         lv.updateRoute.resetHistory();

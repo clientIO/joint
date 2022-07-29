@@ -1289,7 +1289,7 @@ var g_zobristHigh;
 var g_zobristBlackLow;
 var g_zobristBlackHigh;
 
-// Evaulation variables
+// Evaluation variables
 var g_mobUnit;
 
 var hashflagAlpha = 1;
