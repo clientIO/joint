@@ -1,8 +1,4 @@
-export * from './control.mjs';
-
-export {
-    Button,
-    Remove,
-    Connect,
-    Boundary
-} from '../linkTools/index.mjs';
+export * from './Control.mjs';
+export { Button, Remove } from '../linkTools/Button.mjs';
+export { Connect } from '../linkTools/Connect.mjs';
+export { Boundary } from '../linkTools/Boundary.mjs';
