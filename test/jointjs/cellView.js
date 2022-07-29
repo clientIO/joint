@@ -355,7 +355,7 @@ QUnit.module('cellView', function(hooks) {
             });
 
             QUnit.test('Position stacking', function(assert) {
-                // Positin does not override the previous position.
+                // Position does not override the previous position.
                 // The results are added up.
                 cell.attr({
                     '.b': {

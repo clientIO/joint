@@ -809,7 +809,7 @@ QUnit.module('linkView', function(hooks) {
             // RATIO
             link.target(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.2 }}});
             assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 120, y: 100 });
-            //L ENGTH
+            // LENGTH
             link.target(link2, { anchor: { name: 'connectionLength', args: { length: 40 }}});
             assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 140, y: 100 });
             // CLOSEST

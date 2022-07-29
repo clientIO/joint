@@ -1187,7 +1187,7 @@ QUnit.module('path', function(hooks) {
                 assert.ok(path.closestPoint(point, { precision: 2 }) instanceof g.Point);
                 assert.ok(path.closestPoint(point, { precision: 3 }) instanceof g.Point);
 
-                point = new g.Point(130, -200); // aribitrary point closest to last segment
+                point = new g.Point(130, -200); // arbitrary point closest to last segment
                 assert.ok(path.closestPoint(point) instanceof g.Point);
                 assert.ok(path.closestPoint(point, { precision: 0 }) instanceof g.Point);
                 assert.ok(path.closestPoint(point, { precision: 1 }) instanceof g.Point);
