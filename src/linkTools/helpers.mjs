@@ -6,7 +6,6 @@ export function getViewBBox(view, useModelGeometry) {
     return (model.isLink()) ? view.getConnection().bbox() : view.getNodeUnrotatedBBox(view.el);
 }
 
-
 export function getAnchor(coords, view, magnet) {
     // take advantage of an existing logic inside of the
     // pin relative connection strategy
