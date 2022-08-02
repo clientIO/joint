@@ -14,6 +14,7 @@ export const Button = ToolView.extend({
     options: {
         distance: 0,
         offset: 0,
+        scale: null,
         rotate: false
     },
     onRender: function() {
@@ -31,7 +32,7 @@ export const Button = ToolView.extend({
     },
     getElementMatrix() {
         const { relatedView: view, options } = this;
-        let { x = 0, y = 0, offset = {}, useModelGeometry, rotate } = options;
+        let { x = 0, y = 0, offset = {}, useModelGeometry, rotate, scale } = options;
         let bbox = getViewBBox(view, useModelGeometry);
         const angle = view.model.angle();
         if (!rotate) bbox = bbox.bbox(angle);
@@ -49,11 +50,12 @@ export const Button = ToolView.extend({
         let matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
         if (rotate) matrix = matrix.rotate(angle);
         matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
+        if (scale) matrix = matrix.scale(scale);
         return matrix;
     },
     getLinkMatrix() {
         const { relatedView: view, options } = this;
-        const { offset = 0, distance = 0, rotate } = options;
+        const { offset = 0, distance = 0, rotate, scale } = options;
         let tangent, position, angle;
         if (util.isPercentage(distance)) {
             tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
@@ -72,6 +74,7 @@ export const Button = ToolView.extend({
             .rotate(angle)
             .translate(0, offset);
         if (!rotate) matrix = matrix.rotate(-angle);
+        if (scale) matrix = matrix.scale(scale);
         return matrix;
     },
     onPointerDown: function(evt) {

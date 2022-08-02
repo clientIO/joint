@@ -40,6 +40,7 @@ const Anchor = ToolView.extend({
     options: {
         snap: snapAnchor,
         anchor: getAnchor,
+        scale: null,
         resetAnchor: true,
         customAnchorAttributes: {
             'stroke-width': 4,
@@ -86,7 +87,11 @@ const Anchor = ToolView.extend({
         var position = relatedView.getEndAnchor(type);
         var options = this.options;
         var customAnchor = relatedView.model.prop([type, 'anchor']);
-        anchorNode.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
+        let transformString =  `translate(${position.x},${position.y})`;
+        if (options.scale) {
+            transformString += ` scale(${options.scale})`;
+        }
+        anchorNode.setAttribute('transform', transformString);
         var anchorAttributes = (customAnchor) ? options.customAnchorAttributes : options.defaultAnchorAttributes;
         for (var attrName in anchorAttributes) {
             anchorNode.setAttribute(attrName, anchorAttributes[attrName]);

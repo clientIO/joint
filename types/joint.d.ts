@@ -3990,6 +3990,7 @@ export namespace elementTools {
             action?: ActionCallback;
             markup?: dia.MarkupJSON;
             useModelGeometry?: boolean;
+            scale?: number;
         }
     }
 
@@ -4044,6 +4045,7 @@ export namespace elementTools {
             selector?: string | null;
             padding?: number;
             handleAttributes?: Partial<attributes.NativeSVGAttributes>;
+            scale?: number;
         }
     }
 
@@ -4093,6 +4095,7 @@ export namespace linkTools {
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
             stopPropagation?: boolean;
+            scale?: number;
         }
     }
 
@@ -4120,6 +4123,7 @@ export namespace linkTools {
             segmentLengthThreshold?: number;
             anchor?: AnchorCallback<anchors.AnchorJSON>;
             stopPropagation?: boolean;
+            scale?: number;
         }
     }
 
@@ -4128,10 +4132,19 @@ export namespace linkTools {
         constructor(opt?: Segments.Options);
     }
 
+    namespace Arrowhead {
+
+        interface Options extends dia.ToolView.Options {
+            scale?: number;
+        }
+    }
+
     abstract class Arrowhead extends dia.ToolView {
 
         ratio: number;
         arrowheadType: string;
+
+        constructor(opt?: Arrowhead.Options);
 
         protected onPointerDown(evt: dia.Event): void;
 
@@ -4161,6 +4174,7 @@ export namespace linkTools {
             snapRadius?: number;
             restrictArea?: boolean;
             redundancyRemoval?: boolean;
+            scale?: number;
         }
     }
 
@@ -4191,6 +4205,7 @@ export namespace linkTools {
             rotate?: boolean;
             action?: ActionCallback;
             markup?: dia.MarkupJSON;
+            scale?: number;
         }
     }
 

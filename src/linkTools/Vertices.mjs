@@ -2,6 +2,7 @@ import * as g from '../g/index.mjs';
 import * as util from '../util/index.mjs';
 import * as mvc from '../mvc/index.mjs';
 import { ToolView } from '../dia/ToolView.mjs';
+import V from '../V/index.mjs';
 
 
 // Vertex Handles
@@ -30,7 +31,11 @@ var VertexHandle = mvc.View.extend({
         'cursor': 'move'
     },
     position: function(x, y) {
-        this.vel.attr({ cx: x, cy: y });
+        const { vel, options } = this;
+        const { scale } = options;
+        let matrix = V.createSVGMatrix().translate(x, y);
+        if (scale) matrix = matrix.scale(scale);
+        vel.transform(matrix, { absolute: true });
     },
     onPointerDown: function(evt) {
         if (this.options.guard(evt)) return;
@@ -60,7 +65,8 @@ export const Vertices = ToolView.extend({
         snapRadius: 20,
         redundancyRemoval: true,
         vertexAdding: true,
-        stopPropagation: true
+        stopPropagation: true,
+        scale: null
     },
     children: [{
         tagName: 'path',
@@ -118,6 +124,7 @@ export const Vertices = ToolView.extend({
             var handle = new (this.options.handleClass)({
                 index: i,
                 paper: this.paper,
+                scale: this.options.scale,
                 guard: evt => this.guard(evt)
             });
             handle.render();
