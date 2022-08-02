@@ -26,18 +26,18 @@
     var Ellipse = joint.dia.Element.define('Ellipse', {
         attrs: {
             body: {
-                refRx: '50%',
-                refRy: '50%',
-                refCx: '50%',
-                refCy: '50%',
+                rx: 'calc(w / 2)',
+                ry: 'calc(h / 2)',
+                cx: 'calc(w / 2)',
+                cy: 'calc(h / 2)',
                 stroke: '#333'
             },
             label: {
                 fontSize: 8,
-                refX: '50%',
-                refY: '50%',
                 textAnchor: 'middle',
-                y: '.3em'
+                textVerticalAnchor: 'middle',
+                x: 'calc(w / 2)',
+                y: 'calc(h / 2)',
             }
         }
     }, {

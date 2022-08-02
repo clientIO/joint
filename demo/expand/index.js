@@ -37,17 +37,15 @@ var appModel = joint.shapes.toggable.Element.define('app.Model', {
     },
     attrs: {
         label: {
-            refX: '50%',
-            refY: '50%',
             fontWeight: 'bold',
             fontSize: 24,
-            xAlignment: 'middle',
-            yAlignment: 'middle',
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
             fill: '#F5F7FA'
         },
         body: {
-            refWidth: 1,
-            refHeight: 1,
+            width: 'calc(w)',
+            height: 'calc(h)',
             fill: '#AAB2BD'
         }
     }

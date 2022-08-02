@@ -16,8 +16,8 @@
                     width: -20,
                     ellipsis: true
                 },
-                refX: '50%',
-                refY: '50%',
+                x: 'calc(w / 2)',
+                y: 'calc(h / 2)',
                 fontSize: 16,
                 fontFamily: 'sans-serif',
                 fill: '#333333',
@@ -48,8 +48,8 @@
                 title: 'Intermediate Event'
             },
             body: {
-                refWidth: '100%',
-                refHeight: -40,
+                width: 'calc(w)',
+                height: 'calc(h - 40)',
                 stroke: '#3c4260',
                 fill: '#3c4260'
             },
@@ -60,8 +60,7 @@
                 fill: '#7c68fc',
                 fillOpacity: 0.2,
                 strokeWidth: 2,
-                refX: '50%',
-                refY: '100%',
+                transform: 'translate(calc(w / 2), calc(h))',
                 fillRule: 'nonzero',
                 cursor: 'pointer'
             },
@@ -70,7 +69,7 @@
                     height: -40,
                     width: -10,
                 },
-                refY2: -20
+                y: 'calc(h / 2 - 20)',
             }
         }
     }, {
@@ -120,7 +119,7 @@
                 title: 'External Event'
             },
             body: {
-                refD: 'M 0 0 10 -10 20 0 20 40 0 40 Z',
+                d: 'M 0 20 calc(w / 2) 0 calc(w) 20 calc(w) calc(h) 0 calc(h) Z',
                 stroke: '#fe854f',
                 fill: '#fe854f'
             }
@@ -145,7 +144,7 @@
                 title: 'Undeveloped Event'
             },
             body: {
-                refD: 'M -1 0 0 1 1 0 0 -1 Z',
+                d: 'M 0 calc(h / 2) calc(w / 2) calc(h) calc(w) calc(h / 2) calc(w / 2) 0 Z',
                 stroke: '#feb663',
                 fill: '#feb663'
             }
@@ -171,9 +170,9 @@
                 title: 'Basic Event'
             },
             body: {
-                refCx: '50%',
-                refCy: '50%',
-                refR: '50%',
+                cx: 'calc(w / 2)',
+                cy: 'calc(h / 2)',
+                r: 'calc(w / 2)',
                 stroke: '#30d0c6',
                 fill: '#30d0c6'
             }
@@ -199,10 +198,10 @@
                 title: 'Conditioning Event'
             },
             body: {
-                refCx: '50%',
-                refCy: '50%',
-                refRx: '50%',
-                refRy: '50%',
+                cx: 'calc(w / 2)',
+                cy: 'calc(h / 2)',
+                rx: 'calc(w / 2)',
+                ry: 'calc(h / 2)',
                 stroke: '#7c68fc',
                 fill: '#7c68fc',
                 fillOpacity: 0.2

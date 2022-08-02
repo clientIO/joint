@@ -1,6 +1,6 @@
 import * as joint from './vendor/joint';
 import './custom';
-import {V, g} from './vendor/joint';
+import { V, g } from './vendor/joint';
 import * as $ from 'jquery';
 import { MyShape } from './shape';
 import * as dagre from 'dagre';
@@ -61,7 +61,7 @@ let customRect = new joint.shapes.app.CustomRect()
 customRect.test();
 joint.shapes.app.CustomRect.staticTest();
 
-const myShape1 = new MyShape({ attrs: { label: { text: 'My Shape' }}});
+const myShape1 = new MyShape({ attrs: { label: { text: 'My Shape' } } });
 myShape1.position(300, 50);
 myShape1.addTo(graph);
 myShape1.test();

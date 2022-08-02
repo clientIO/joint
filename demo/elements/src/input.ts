@@ -23,14 +23,14 @@ export default class Input extends dia.Element {
                     text: 'Input',
                     textVerticalAnchor: 'middle',
                     textAnchor: 'middle',
-                    y: 'calc(0.5*h - 5)',
-                    x: 'calc(0.5*w)',
+                    y: 'calc(h / 2 - 5)',
+                    x: 'calc(w / 2)',
                     fontSize: 13,
                     fontFamily: 'sans-serif',
                     fill: '#333333'
                 }
             }
-        }
+        };
     }
 
     markup = [{

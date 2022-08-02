@@ -4,7 +4,7 @@ var path = process.cwd() + '/dist';
 module.exports = {
     entry: './index.js',
     mode: 'development',
-    target: 'es5',
+    target: 'web',
     output: {
         path: path,
         filename: 'bundle.js'
@@ -17,9 +17,7 @@ module.exports = {
     },
     devtool: 'source-map',
     devServer: {
-        disableHostCheck: true,
-        contentBase: path,
-        watchContentBase: true,
+        watchFiles: ['*'],
         hot: true,
         port: process.env.PORT || 8080,
         host: process.env.HOST || 'localhost'

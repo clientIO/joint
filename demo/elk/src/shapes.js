@@ -27,8 +27,8 @@ export const Child = joint.shapes.standard.Rectangle.define('app.Child', {
                 attrs: {
                     portBody: {
                         magnet: 'passive',
-                        refWidth: '100%',
-                        refHeight: '100%',
+                        width: 'calc(w)',
+                        height: 'calc(h)',
                         fill: '#4665E5'
                     }
                 },

@@ -29,8 +29,8 @@
                 stroke: '#000000'
             },
             link: {
-                refWidth: '100%',
-                refHeight: '100%',
+                width: 'calc(w)',
+                height: 'calc(h)',
                 xlinkShow: 'new',
                 cursor: 'pointer'
             },

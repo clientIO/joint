@@ -140,8 +140,8 @@
                 magnet: false
             },
             pointers: {
-                refWidth: '100%',
-                refHeight: '100%',
+                width: 'calc(w)',
+                height: 'calc(h)',
                 pointerShape: 'rectangle'
             },
             border: {
@@ -161,15 +161,14 @@
             label: {
                 textWrap: {
                     ellipsis: true,
-                    width: '200%',
+                    width: 'calc(2 * w)',
                     height: 200
                 },
                 textVerticalAnchor: 'top',
                 textAnchor: 'middle',
                 fontFamily: 'fantasy',
-                refX: '50%',
-                refY: '100%',
-                refY2: 10,
+                x: 'calc(w / 2)',
+                y: 'calc(h + 10)',
                 fontSize: 20,
                 fontWeight: 'bold',
                 fill: '#FFFFFF',

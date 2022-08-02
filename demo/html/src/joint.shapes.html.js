@@ -13,8 +13,8 @@
         },
         attrs: {
             placeholder: {
-                refWidth: '100%',
-                refHeight: '100%',
+                width: 'calc(w)',
+                height: 'calc(h)',
                 fill: 'transparent',
                 stroke: '#D4D4D4'
             }

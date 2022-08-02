@@ -64,7 +64,7 @@ const Bandwidth = dia.Element.define('Bandwidth', {
             fill: '#FFFFFF'
         },
         topLabel: {
-            x: 'calc(0.5*w)',
+            x: 'calc(w / 2)',
             y: -20,
             textVerticalAnchor: 'bottom',
             textAnchor: 'middle',
@@ -74,7 +74,7 @@ const Bandwidth = dia.Element.define('Bandwidth', {
             stroke: '#222222',
         },
         bottomLabel: {
-            x: 'calc(0.5*w)',
+            x: 'calc(w / 2)',
             y: 'calc(h+20)',
             textVerticalAnchor: 'top',
             textAnchor: 'middle',
@@ -89,7 +89,7 @@ const Bandwidth = dia.Element.define('Bandwidth', {
             strokeWidth: 4
         },
         carrierFrequencyBandwidth: {
-            d: 'M 10 calc(0.5*h) L calc(w-10) calc(0.5*h)',
+            d: 'M 10 calc(h / 2) L calc(w-10) calc(h / 2)',
             pointerEvents: 'none',
             sourceMarker: {
                 'type': 'path',
@@ -121,10 +121,9 @@ const Bandwidth = dia.Element.define('Bandwidth', {
             opacity: 0,
             fill: 'white',
             pointerEvents: 'none',
-            r: 'calc(0.5*d+20)',
-            cx: 'calc(0.5*w)',
-            cy: 'calc(0.5*h)',
-
+            r: 'calc(d / 2 + 20)',
+            cx: 'calc(w / 2)',
+            cy: 'calc(h / 2)',
         }
     }
 }, {

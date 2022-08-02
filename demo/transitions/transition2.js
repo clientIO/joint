@@ -147,8 +147,8 @@ joint.dia.Element.define('demo.Ball', {
             text: 'Drag me!',
             fontSize: 40,
             fontWeight: 900,
-            refX: .5,
-            refY: -20,
+            x: 'calc(w / 2)',
+            y: -20,
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
             fill: 'white',
@@ -158,8 +158,8 @@ joint.dia.Element.define('demo.Ball', {
             pointerEvents: 'none'
         },
         ball: {
-            refWidth: 1,
-            refHeight: 1
+            height: 'calc(h)',
+            width: 'calc(w)',
         }
     }
 }, {

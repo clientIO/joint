@@ -18,15 +18,15 @@ paper.on('blank:pointerdown cell:pointerdown', function() {
 var Example = joint.dia.Element.define('example.ForeignObject', {
     attrs: {
         body: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             stroke: '#333333',
             fill: '#ffffff',
             strokeWidth: 2
         },
         foreignObject: {
-            refWidth: '100%',
-            refHeight: '100%'
+            width: 'calc(w)',
+            height: 'calc(h)',
         }
     }
 }, {
