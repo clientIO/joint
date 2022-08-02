@@ -22,7 +22,7 @@ function me(id, x, y, w, h, fill) {
                 refY: 10,
                 textAnchor: 'start'
             }
-        }   
+        }
     }).addTo(graph);
 }
 

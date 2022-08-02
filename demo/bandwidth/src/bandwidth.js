@@ -124,7 +124,6 @@ const Bandwidth = dia.Element.define('Bandwidth', {
             r: 'calc(d / 2 + 20)',
             cx: 'calc(w / 2)',
             cy: 'calc(h / 2)',
-
         }
     }
 }, {

@@ -133,7 +133,7 @@ var DraggingElementView = joint.dia.ElementView.extend({
         });
 
         var cell = this.paper.model.getCell(this._link.id);
-    
+
         if (cell) cell.remove();
 
         delete this._link;

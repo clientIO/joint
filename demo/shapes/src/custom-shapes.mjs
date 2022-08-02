@@ -86,13 +86,10 @@ var Circle = joint.dia.Element.define('custom.Circle', {
             textAnchor: 'middle'
         }
     }
-
 }, {
-
     setText: function(text) {
         return this.attr('label/text', text);
     }
-
 });
 
 var circle = (new Circle())
@@ -464,8 +461,6 @@ var portIndex = shape3.getPortIndex('circle-port');
 shape3.transition('ports/items/' + portIndex + '/attrs/first/r', 5, {
     delay: 2000
 });
-
-
 
 var Progress = joint.dia.Element.define('progress', {
     attrs: {
