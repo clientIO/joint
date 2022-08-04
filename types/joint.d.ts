@@ -2786,6 +2786,8 @@ export namespace util {
 
     export function uuid(): string;
 
+    export function svg(strings: TemplateStringsArray): dia.MarkupJSON;
+
     export function guid(obj?: { [key: string]: any }): string;
 
     export function toKebabCase(str: string): string;
