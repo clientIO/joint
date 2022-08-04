@@ -6,6 +6,8 @@ import * as g from '../g/index.mjs';
 
 export const HoverConnect = Connect.extend({
 
+    name: 'hover-connect',
+
     defaultMarkup: [
         {
             tagName: 'circle',

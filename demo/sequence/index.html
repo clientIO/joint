@@ -6,6 +6,29 @@
         <title>Sequence Diagram</title>
 
         <link rel="stylesheet" type="text/css" href="../../build/joint.css" />
+        <style>
+            .available-cell.joint-type-sd-message [joint-selector="wrapper"] {
+                stroke-width: 26;
+            }
+            .available-cell.joint-type-sd-lifeline [joint-selector="wrapper"] {
+                stroke-width: 100;
+            }
+            .available-cell [joint-selector="line"] {
+                stroke: #08BC8A;
+                stroke-width: 5;
+                stroke-dasharray: none;
+            }
+
+            .available-cell.highlighted-connecting [joint-selector="wrapper"] {
+                stroke: #08BC8A;
+                stroke-opacity: 0.2;
+                stroke-linecap: butt;
+            }
+
+            .joint-tool[data-tool-name="hover-connect"] circle {
+                fill: #4666E5;
+            }
+        </style>
     </head>
     <body>
 
