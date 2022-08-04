@@ -42,6 +42,7 @@ export const Control = ToolView.extend({
         handleAttributes: null,
         selector: 'root',
         padding: 6,
+        scale: null
     },
 
     getPosition: function() {
@@ -75,8 +76,12 @@ export const Control = ToolView.extend({
         const { model } = relatedView;
         const relativePos = this.getPosition(relatedView, this);
         const absolutePos = model.getAbsolutePointFromRelative(relativePos);
-        handleNode.setAttribute('transform', `translate(${absolutePos.x},${absolutePos.y})`);
-        const { handleAttributes } = options;
+        const { handleAttributes, scale } = options;
+        let transformString =  `translate(${absolutePos.x},${absolutePos.y})`;
+        if (scale) {
+            transformString += ` scale(${scale})`;
+        }
+        handleNode.setAttribute('transform', transformString);
         if (handleAttributes) {
             for (let attrName in handleAttributes) {
                 handleNode.setAttribute(attrName, handleAttributes[attrName]);

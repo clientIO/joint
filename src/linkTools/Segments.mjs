@@ -48,8 +48,10 @@ var SegmentHandle = mvc.View.extend({
         this.renderChildren();
     },
     position: function(x, y, angle, view) {
+        const { scale } = this.options;
+        let matrix = V.createSVGMatrix().translate(x, y).rotate(angle);
+        if (scale) matrix = matrix.scale(scale);
 
-        var matrix = V.createSVGMatrix().translate(x, y).rotate(angle);
         var handle = this.childNodes.handle;
         handle.setAttribute('transform', V.matrixToTransformString(matrix));
         handle.setAttribute('cursor', (angle % 180 === 0) ? 'row-resize' : 'col-resize');
@@ -117,6 +119,7 @@ export const Segments = ToolView.extend({
     renderHandle: function(vertex, nextVertex) {
         var handle = new (this.options.handleClass)({
             paper: this.paper,
+            scale: this.options.scale,
             guard: evt => this.guard(evt)
         });
         handle.render();

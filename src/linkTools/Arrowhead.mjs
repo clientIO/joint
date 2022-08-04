@@ -18,6 +18,9 @@ const Arrowhead = ToolView.extend({
         touchend: 'onPointerUp',
         touchcancel: 'onPointerUp'
     },
+    options: {
+        scale: null
+    },
     onRender: function() {
         this.update();
     },
@@ -35,6 +38,8 @@ const Arrowhead = ToolView.extend({
         }
         if (!position) return this;
         var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
+        const { scale } = this.options;
+        if (scale) matrix = matrix.scale(scale);
         this.vel.transform(matrix, { absolute: true });
         return this;
     },
