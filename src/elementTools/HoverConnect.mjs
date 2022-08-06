@@ -12,8 +12,11 @@ export const HoverConnect = LinkHoverConnect.extend({
             useModelGeometry,
             trackPath =  'M 0 0 H calc(w) V calc(h) H 0 Z'
         } = options;
-        const bbox = getViewBBox(view, useModelGeometry);
+        if (typeof trackPath === 'function') {
+            trackPath = trackPath.call(this, view);
+        }
         if (isCalcAttribute(trackPath)) {
+            const bbox = getViewBBox(view, useModelGeometry);
             trackPath = evalCalcAttribute(trackPath, bbox);
         }
         return new g.Path(V.normalizePathData(trackPath));

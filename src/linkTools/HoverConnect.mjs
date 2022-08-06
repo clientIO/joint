@@ -121,19 +121,11 @@ export const HoverConnect = Connect.extend({
         return V.createSVGMatrix();
     },
 
-    getTrackRatioFromEvent(path, evt) {
-        const { relatedView } = this;
+    getTrackRatioFromEvent(evt) {
+        const { relatedView, trackPath } = this;
         const localPoint = relatedView.paper.clientToLocalPoint(evt.clientX, evt.clientY);
         const trackPoint = V.transformPoint(localPoint, this.getTrackMatrix().inverse());
-        return path.closestPointLength(trackPoint);
-    },
-
-    onMousemove(evt) {
-        const { trackPath } = this;
-        if (!trackPath) return;
-        const { options } = this;
-        options.distance = this.getTrackRatioFromEvent(trackPath, evt);
-        this.position();
+        return trackPath.closestPointLength(trackPoint);
     },
 
     canShowButton() {
@@ -148,6 +140,14 @@ export const HoverConnect = Connect.extend({
 
     hideButton() {
         this.childNodes.button.style.display = '';
+    },
+
+    onMousemove(evt) {
+        const { trackPath } = this;
+        if (!trackPath) return;
+        const { options } = this;
+        options.distance = this.getTrackRatioFromEvent(evt);
+        this.position();
     },
 
     onMouseenter() {

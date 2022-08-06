@@ -4068,6 +4068,23 @@ export namespace elementTools {
         protected onPointerUp(evt: dia.Event): void;
         protected onPointerDblClick(evt: dia.Event): void;
     }
+
+    namespace HoverConnect {
+
+        type TrackPath = string;
+
+        type TrackPathCallback = (this: HoverConnect, view: dia.ElementView) => TrackPath;
+
+        interface Options extends Connect.Options {
+            useModelGeometry?: boolean;
+            trackPath?: TrackPath | TrackPathCallback;
+        }
+    }
+
+    class HoverConnect extends linkTools.Connect {
+
+        constructor(opt?: HoverConnect.Options);
+    }
 }
 
 export namespace linkTools {
@@ -4254,5 +4271,37 @@ export namespace linkTools {
     class Boundary extends dia.ToolView {
 
         constructor(opt?: Boundary.Options);
+    }
+
+    namespace HoverConnect {
+        interface Options extends Connect.Options {
+        }
+    }
+
+    class HoverConnect extends Connect {
+
+        constructor(opt?: HoverConnect.Options);
+
+        trackPath: g.Path;
+
+        protected getButtonMatrix(): SVGMatrix;
+
+        protected getTrackPath(): g.Path;
+
+        protected getTrackMatrix(): SVGMatrix;
+
+        protected getTrackRatioFromEvent(evt: dia.Event): number;
+
+        protected canShowButton(): boolean;
+
+        protected showButton(): void;
+
+        protected hideButton(): void;
+
+        protected onMousemove(evt: dia.Event): void;
+
+        protected onMouseenter(evt: dia.Event): void;
+
+        protected onMouseleave(evt: dia.Event): void;
     }
 }
