@@ -4077,6 +4077,7 @@ export namespace elementTools {
 
         interface Options extends Connect.Options {
             useModelGeometry?: boolean;
+            trackWidth?: number;
             trackPath?: TrackPath | TrackPathCallback;
         }
     }

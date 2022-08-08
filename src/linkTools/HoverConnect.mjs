@@ -37,7 +37,7 @@ export const HoverConnect = Connect.extend({
                 attributes: {
                     'fill': 'none',
                     'stroke': 'transparent',
-                    'stroke-width': 15,
+                    'stroke-width': options.trackWidth || 15,
                     'cursor': 'pointer'
                 }
             },
