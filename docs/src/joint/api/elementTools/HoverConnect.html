@@ -1,0 +1,22 @@
+<p>The <code>HoverConnect</code> tool allows the user to create links from elements in a drag & drop fashion. The tool extends the <a href="#elementTools.Connect">Connect</a> tool. The difference is that the button appears along the invisible track path (in the shape defined by <code>trackPath</code>) at the point where the user moves the mouse over the track. It accepts additional arguments, which can be passed as an object to the hover connect tool constructor:</p>
+
+<table>
+    <tr>
+        <th>trackWidth</th>
+        <td><i>number</i></td>
+        <td>The thickness of the track path. The default is <code>15</code>.</td>
+    </tr>
+    <tr>
+        <th>trackPath</th>
+        <td><i>string</i><br>(view: dia.ElementView) => string</i></td>
+        <td>The SVG list of <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d#path_commands" target="_blank">Path Commands</a>. It may contain <a href="#dia.attributes.calc">calc expressions</a> which are evaluated in the context of the related element view (or model when <code>useModelGeometry</code> is set to <code>true</code>). The default is <code>'M 0 0 H calc(w) V calc(h) H 0 Z'</code> (a rectangle in size of the element).</td>
+    </tr>
+
+</table>
+
+<p>Example:</p>
+
+<pre><code>const hoverButton = new joint.elementTools.HoverConnect({
+    useModelGeometry: true,
+    trackPath: (view) => view.model.attr(['body', 'd'])
+});</code></pre>

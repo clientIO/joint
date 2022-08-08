@@ -48,3 +48,9 @@ new RadiusControl({
     padding: 10,
     testOption: 10
 });
+
+new elementTools.HoverConnect({
+    useModelGeometry: true,
+    trackWidth: 10,
+    trackPath: (view) => view.model.attr(['body', 'd']),
+});

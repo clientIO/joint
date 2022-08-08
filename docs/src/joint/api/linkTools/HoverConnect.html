@@ -1,0 +1,16 @@
+<p>The <code>HoverConnect</code> tool allows the user to create links from other links in a drag & drop fashion. The tool extends the <a href="#linkTools.Connect">Connect</a> tool. The difference is that the button appears along the invisible track path (in the shape of a linkView) at the point where the user moves the mouse over the track. It accepts additional arguments, which can be passed as an object to the hover connect tool constructor:</p>
+
+<table>
+    <tr>
+        <th>trackWidth</th>
+        <td><i>number</i></td>
+        <td>The thickness of the track path. The default is <code>15</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>const hoverButton = new joint.linkTools.HoverConnect({
+    magnet: 'body',
+    trackWidth: 10
+});</code></pre>

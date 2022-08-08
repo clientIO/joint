@@ -26,9 +26,11 @@ export const Button = ToolView.extend({
         return this;
     },
     position: function() {
-        const { relatedView: view, vel } = this;
-        const matrix = view.model.isLink() ? this.getLinkMatrix() : this.getElementMatrix();
-        vel.transform(matrix, { absolute: true });
+        const { vel } = this;
+        vel.transform(this.getCellMatrix(), { absolute: true });
+    },
+    getCellMatrix() {
+        return this.relatedView.model.isLink() ? this.getLinkMatrix() : this.getElementMatrix();
     },
     getElementMatrix() {
         const { relatedView: view, options } = this;

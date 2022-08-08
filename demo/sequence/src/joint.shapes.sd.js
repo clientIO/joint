@@ -10,9 +10,24 @@
                 stroke: '#DDDDDD',
                 strokeWidth: 1,
                 fill: '#F9FBFA'
+            },
+            label: {
+                refY: null,
+                refX: null,
+                y: 'calc(h+2)',
+                x: 'calc(w/2)',
+                textAnchor: 'middle',
+                textVerticalAnchor: 'top',
+                fontSize: 12,
+                fontFamily: 'sans-serif',
+                textWrap: {
+                    width: -10
+                }
             }
         }
     }, {
+        placeholder: 'What\'s the group\'s name?',
+
         fitRoles: function() {
             this.fitEmbeds({ padding: 10 });
         }
@@ -37,6 +52,8 @@
             }
         }
     }, {
+        placeholder: 'What\'s the role?',
+
         setName: function(name) {
             this.attr(['label', 'text'], name);
         }
@@ -71,6 +88,9 @@
                 stroke: '#222222',
                 strokeWidth: 2
             },
+            wrapper: {
+                connection: true
+            },
             icon: {
                 atConnectionRatioIgnoreGradient: 0.5
             }
@@ -82,6 +102,14 @@
             attributes: {
                 'fill': 'none',
                 'pointer-events': 'none'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'wrapper',
+            attributes: {
+                'fill': 'none',
+                'stroke': 'transparent',
+                'stroke-width': 20
             }
         }, {
             tagName: 'g',
@@ -127,6 +155,8 @@
             },
         }
     }, {
+        placeholder: 'What\'s the message?',
+
         defaultLabel: {
             markup: [{
                 tagName: 'rect',
