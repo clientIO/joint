@@ -35,6 +35,9 @@ body:
         - Chrome
         - Safari
         - Microsoft Edge
+        - Opera
+        - Safari on iOS
+        - Android (State browser in description)
   - type: dropdown
     id: os
     attributes:
