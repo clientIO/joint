@@ -20,5 +20,4 @@ Clearly and concisely describe your changes in detail.
 
 Why is this change required? What problem does it solve? If applicable, describe the new features the solution brings.
 
-
-## Screenshots (if appropriate):
+### Screenshots (if appropriate):
