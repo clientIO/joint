@@ -478,17 +478,19 @@ export const ElementView = CellView.extend({
         } else {
 
             const { validateUnembedding } = paper.options;
-            const { initialParentId } = data;
+            const { initialParentId, initialZIndices } = data;
             // The element was originally embedded into another element.
             // The interaction would unembed the element. Let's validate
             // if the element can be unembedded.
-            if (
-                initialParentId &&
-                typeof validateUnembedding === 'function' &&
-                !validateUnembedding.call(paper, this)
-            ) {
-                this._disallowUnembed(data);
-                return;
+            if (initialParentId) {
+                if (typeof validateUnembedding === 'function' && !validateUnembedding.call(paper, this)) {
+                    this._disallowUnembed(data);
+                    return;
+                }
+            } else {
+                // We were only moving the element.
+                // Revert all the z-indices changed during the embedding
+                this._setCellsZIndices(paper.model, initialZIndices);
             }
         }
 
@@ -515,14 +517,7 @@ export const ElementView = CellView.extend({
                     element.position(x, y, { deep: true, ui: true });
                 }
                 // Revert all the z-indices changed during the embedding
-                if (initialZIndices) {
-                    Object.keys(initialZIndices).forEach(id => {
-                        const cell = graph.getCell(id);
-                        if (cell) {
-                            cell.set('z', initialZIndices[id], { ui: true });
-                        }
-                    });
-                }
+                this._setCellsZIndices(graph, initialZIndices);
                 // Revert the original parent
                 const parent = graph.getCell(initialParentId);
                 if (parent) {
@@ -531,6 +526,16 @@ export const ElementView = CellView.extend({
                 break;
             }
         }
+    },
+
+    _setCellsZIndices: function(graph, zIndicesCellMap) {
+        if (!zIndicesCellMap) return;
+        Object.keys(zIndicesCellMap).forEach(cellId => {
+            const cell = graph.getCell(cellId);
+            if (cell) {
+                cell.set('z', zIndicesCellMap[cellId], { ui: true });
+            }
+        });
     },
 
     getDelegatedView: function() {
