@@ -41,6 +41,7 @@ export const LinkView = CellView.extend({
         linkToolsOffset: 40,
         doubleLinkToolsOffset: 65,
         sampleInterval: 50,
+        snap: null, // { distance: number } | null
     },
 
     _labelCache: null,
@@ -1978,12 +1979,15 @@ export const LinkView = CellView.extend({
     dragArrowhead: function(evt, x, y) {
 
         if (this.paper.options.snapLinks) {
-
             this._snapArrowhead(evt, x, y);
-
         } else {
-
-            this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
+            if (this.options.snap) {
+                const snapDistance = this.options.snap.distance || 20;
+                const { x: sx, y: sy } = this._snapToVertices(x, y, this.eventData(evt).arrowhead, snapDistance);
+                this._connectArrowhead(this.getEventTarget(evt), sx, sy, this.eventData(evt));
+            } else {
+                this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
+            }
         }
     },
 
@@ -2072,6 +2076,40 @@ export const LinkView = CellView.extend({
                 this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), data.magnetUnderPointer, arrowhead);
             }
         }
+    },
+
+    _snapToVertices: function(x, y, endType, snapDistance) {
+        const anchor = this.getEndAnchor(endType === 'source' ? 'target' : 'source');
+        const vertices = this.model.vertices();
+        const points = [anchor, ...vertices];
+
+        let closestPointX = null;
+        let closestDistanceX = Infinity;
+
+        let closestPointY = null;
+        let closestDistanceY = Infinity;
+
+        for (let i = 0; i < points.length; i++) {
+            const distX = Math.abs(points[i].x - x);
+            if (distX < closestDistanceX) {
+                closestDistanceX = distX;
+                closestPointX = points[i];
+            }
+
+            const distY = Math.abs(points[i].y - y);
+            if (distY < closestDistanceY) {
+                closestDistanceY = distY;
+                closestPointY = points[i];
+            }
+        }
+
+        if (closestDistanceX < snapDistance) {
+            x = closestPointX.x;
+        }
+        if (closestDistanceY < snapDistance) {
+            y = closestPointY.y;
+        }
+        return { x, y };
     },
 
     _snapArrowhead: function(evt, x, y) {
