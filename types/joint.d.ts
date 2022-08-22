@@ -1815,6 +1815,7 @@ export namespace dia {
 
         UPDATABLE: boolean;
         MOUNTABLE: boolean;
+        UPDATE_ATTRIBUTES: string[] | ((this: HighlighterView<Options>) => string[]);
 
         cellView: dia.CellView;
         nodeSelector: HighlighterView.NodeSelector | null;
@@ -1833,6 +1834,10 @@ export namespace dia {
         protected highlight(cellView: dia.CellView, node: SVGElement): void;
 
         protected unhighlight(cellView: dia.CellView, node: SVGElement): void;
+
+        protected listenToUpdateAttributes(cellView: dia.CellView): void;
+
+        protected onCellAttributeChange(): void;
 
         static uniqueId(node: SVGElement, options?: any): string;
 

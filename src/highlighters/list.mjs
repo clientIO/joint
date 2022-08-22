@@ -13,6 +13,9 @@ export const List = HighlighterView.extend({
 
     tagName: 'g',
     MOUNTABLE: true,
+    UPDATE_ATTRIBUTES: function() {
+        return [this.options.attribute];
+    },
 
     _prevItems: null,
 
@@ -55,14 +58,6 @@ export const List = HighlighterView.extend({
             : { width: normalizedSize.width, height: length };
 
         this.position(element, listSize);
-        this.listenTo(element, 'change', () => {
-            if (!element.hasChanged(attribute)) return;
-            elementView.paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
-        });
-    },
-
-    unhighlight(elementView) {
-        this.stopListening(elementView.model, 'change');
     },
 
     position(element, listSize) {

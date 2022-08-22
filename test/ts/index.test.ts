@@ -145,3 +145,9 @@ cellView.listenTo(paper, {
         }
     }
 } as joint.dia.Paper.EventMap);
+
+class AttributeHighlighterView extends joint.dia.HighlighterView<{ attribute: string; }> {
+    preinitialize() {
+        this.UPDATE_ATTRIBUTES = function() { return [this.options.attribute]; };
+    }
+}
