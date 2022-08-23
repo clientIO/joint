@@ -9,7 +9,7 @@ import {
     getRectPoint,
 } from '../util/getRectPoint.mjs';
 
-export const List = HighlighterView.extend({
+export const list = HighlighterView.extend({
 
     tagName: 'g',
     MOUNTABLE: true,

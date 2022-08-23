@@ -151,3 +151,11 @@ class AttributeHighlighterView extends joint.dia.HighlighterView<{ attribute: st
         this.UPDATE_ATTRIBUTES = function() { return [this.options.attribute]; };
     }
 }
+
+class MyList<I extends number> extends joint.highlighters.list<I> {
+    protected createListItem(item: I): SVGElement {
+        const vel = joint.V('text');
+        vel.text(`${item + 1}`);
+        return vel.node;
+    }
+}

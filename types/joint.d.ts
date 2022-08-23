@@ -1968,6 +1968,13 @@ export namespace highlighters {
         opacityClassName: string;
     }
 
+    class list<Item = any, Options = any> extends dia.HighlighterView<Options> {
+
+        protected createListItem(item: Item, itemSize: dia.Size, itemEl: SVGElement | null): SVGElement;
+
+        protected position(element: dia.Element, listSize: dia.Size): void;
+    }
+
     /**
      * @deprecated
      */

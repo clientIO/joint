@@ -61,32 +61,32 @@ paperContainer.style.height = '1000px';
 
 paperContainer.appendChild(paper.el);
 
-class IconsEffect extends highlighters.List {
+class IconsEffect extends highlighters.list {
 
-    createListItem(item, size, prevListItem) {
+    createListItem(imageSrc, { width, height }, prevListItem) {
         const listItem = prevListItem || V('image').attr({
             'event': 'element:icon:pointerdown',
             'cursor': 'pointer',
             'preserveAspectRatio': this.options.preserveAspectRatio || 'xMidYMid',
-            'width': size.width,
-            'height': size.height,
+            'width': width,
+            'height': height,
         }).node;
-        listItem.setAttribute('href', item);
+        listItem.setAttribute('href', imageSrc);
         return listItem;
     }
 }
 
-class StatusEffect extends highlighters.List {
+class StatusEffect extends highlighters.list {
 
-    createListItem(item, size) {
+    createListItem({ color }, { width, height }) {
         return V('ellipse').attr({
             'event': 'element:status:pointerdown',
             'cursor': 'default',
-            'rx': size.width / 2,
-            'ry': size.height / 2,
-            'cx': size.width / 2,
-            'cy': size.height / 2,
-            'fill': item.color,
+            'rx': width / 2,
+            'ry': height / 2,
+            'cx': width / 2,
+            'cy': height / 2,
+            'fill': color,
             'stroke': '#333',
             'stroke-width': 2,
         }).node;
