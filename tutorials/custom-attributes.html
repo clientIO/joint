@@ -54,72 +54,69 @@
         will merge the properties you want to set with existing ones already present in the <i>Cell</i>.
     </p>
 
-    <pre><code>
-    element.prop('attrs/body/stroke', '#FFF'); // Set presentation attribute
+    <pre><code>element.prop('attrs/body/stroke', '#FFF'); // Set presentation attribute
 
-    element.prop('data', 10); // Set custom attribute with string
-    element.prop({ data: 10 }); // Set custom attribute with object
-    
-    // Output from element.toJSON();
-    {
-        "type": "standard.Rectangle",
-        "position": { "x": 0, "y": 0 },
-        "size": { "width": 1, "height": 1 },
-        "angle": 0,
-        "id": "19cf14e6-cb78-4c32-b9a1-4256dc53776f",
-        "data": 10, // Our custom attribute
-        "attrs": {
-            "body": {
-                "stroke": "#FFF" // Our presentation attribute
-            }
+element.prop('data', 10); // Set custom attribute with string
+element.prop({ data: 10 }); // Set custom attribute with object
+
+// Output from element.toJSON();
+{
+    "type": "standard.Rectangle",
+    "position": { "x": 0, "y": 0 },
+    "size": { "width": 1, "height": 1 },
+    "angle": 0,
+    "id": "19cf14e6-cb78-4c32-b9a1-4256dc53776f",
+    "data": 10, // Our custom attribute
+    "attrs": {
+        "body": {
+            "stroke": "#FFF" // Our presentation attribute
         }
     }
+}
 
 
+element.prop('data/count', 10); // Set nested custom attribute with string
+element.prop({ data: { count: 10 }}); // Set nested custom attribute with object
+element.prop('data': { count: 10 }); // This also creates a nested custom attribute
 
-    element.prop('data/count', 10); // Set nested custom attribute with string
-    element.prop({ data: { count: 10 }}); // Set nested custom attribute with object
-    element.prop('data': { count: 10 }); // This also creates a nested custom attribute
-
-    {
-        "type": "standard.Rectangle",
-        "position": { "x": 0, "y": 0 },
-        "size": { "width": 1, "height": 1 },
-        "angle": 0,
-        "id": "19cf14e6-cb78-4c32-b9a1-4256dc53776f",
-        "data": {
-            "count": 10  // Our nested custom attribute
-        },
-        "attrs": {}
-    }
-    </code></pre>
+{
+    "type": "standard.Rectangle",
+    "position": { "x": 0, "y": 0 },
+    "size": { "width": 1, "height": 1 },
+    "angle": 0,
+    "id": "19cf14e6-cb78-4c32-b9a1-4256dc53776f",
+    "data": {
+        "count": 10  // Our nested custom attribute
+    },
+    "attrs": {}
+}
+</code></pre>
 
     <p>
         <code>prop()</code> not only provides support for nested objects, but for nested arrays too.
     </p>
 
-    <pre><code>
-    element.prop('mylist/0/data/0/value', 50); // Set custom attribute as nested array
+    <pre><code>element.prop('mylist/0/data/0/value', 50); // Set custom attribute as nested array
     
-    // Output from element.toJSON();
-    {
-        "type": "standard.Rectangle",
-        "position": { "x": 0, "y": 0 },
-        "size": { "width": 1, "height": 1 },
-        "angle": 0,
-        "id": "9adab5e5-cebe-419f-8d62-39cce5486d0d",
-        "mylist": [
-            {
-                "data": [
-                    {
-                        "value": 50 // Our nested custom attribute
-                    }
-                ]
-            }
-        ],
-        "attrs": {}
-    }
-    </code></pre>
+// Output from element.toJSON();
+{
+    "type": "standard.Rectangle",
+    "position": { "x": 0, "y": 0 },
+    "size": { "width": 1, "height": 1 },
+    "angle": 0,
+    "id": "9adab5e5-cebe-419f-8d62-39cce5486d0d",
+    "mylist": [
+        {
+            "data": [
+                {
+                    "value": 50 // Our nested custom attribute
+                }
+            ]
+        }
+    ],
+    "attrs": {}
+}
+</code></pre>
 
     <h3>The set() method</h3>
 
@@ -131,36 +128,35 @@
         difference to take note of is that <code>set()</code> will override attributes, while <code>prop()</code> merges them.
     </p>
 
-    <pre><code>
-    element.set('data', 10); // Set custom attribute with string
-    element.set({ data: 10 }); // Set custom attribute with object
+    <pre><code>element.set('data', 10); // Set custom attribute with string
+element.set({ data: 10 }); // Set custom attribute with object
 
-    // Output from element.toJSON();
-    {
-        "type": "standard.Rectangle",
-        "position": { "x": 0, "y": 0 },
-        "size": { "width": 1, "height": 1 },
-        "angle": 0,
-        "id": "c0a6696d-1857-4fb7-892d-409433f84d29",
-        "data": 10, // Our custom attribute
-        "attrs": {}
-    }
-
+// Output from element.toJSON();
+{
+    "type": "standard.Rectangle",
+    "position": { "x": 0, "y": 0 },
+    "size": { "width": 1, "height": 1 },
+    "angle": 0,
+    "id": "c0a6696d-1857-4fb7-892d-409433f84d29",
+    "data": 10, // Our custom attribute
+    "attrs": {}
+}
 
 
-    element.set('data/count', 10); // We try to set a nested custom property using set()
 
-    // The output produced will not be nested as is the case when using prop()
-    {
-        "type": "standard.Rectangle",
-        "position": { "x": 0, "y": 0 },
-        "size": { "width": 1, "height": 1 },
-        "angle": 0,
-        "id": "afdc42ce-5b10-45e5-832e-afcf2a221314",
-        "data/count": 10, // Note the important difference here
-        "attrs": {}
-    }
-    </code></pre>
+element.set('data/count', 10); // We try to set a nested custom property using set()
+
+// The output produced will not be nested as is the case when using prop()
+{
+    "type": "standard.Rectangle",
+    "position": { "x": 0, "y": 0 },
+    "size": { "width": 1, "height": 1 },
+    "angle": 0,
+    "id": "afdc42ce-5b10-45e5-832e-afcf2a221314",
+    "data/count": 10, // Note the important difference here
+    "attrs": {}
+}
+</code></pre>
 
     <h3>Overwriting attributes with prop()</h3>
 
@@ -171,47 +167,46 @@
         merge our properties.
     </p>
 
-    <pre><code>
-    rect.prop('custom/state/isCollapsed', true);
-    rect.prop('custom/state', { isActive: false });
+    <pre><code>rect.prop('custom/state/isCollapsed', true);
+rect.prop('custom/state', { isActive: false });
 
-    // Output from element.toJSON();
+// Output from element.toJSON();
 
-    // We can see our attributes have been merged
-    {
-        "type": "standard.Rectangle",
-        "position": { "x": 0, "y": 0 },
-        "size": { "width": 1, "height": 1 },
-        "angle": 0,
-        "id": "b1c02090-e46a-4d90-a5dc-5096f1559b9f",
-        "custom": {
-            "state": {
-                "isCollapsed": true,
-                "isActive": false
-            }
-        },
-        "attrs": {}
-    }
+// We can see our attributes have been merged
+{
+    "type": "standard.Rectangle",
+    "position": { "x": 0, "y": 0 },
+    "size": { "width": 1, "height": 1 },
+    "angle": 0,
+    "id": "b1c02090-e46a-4d90-a5dc-5096f1559b9f",
+    "custom": {
+        "state": {
+            "isCollapsed": true,
+            "isActive": false
+        }
+    },
+    "attrs": {}
+}
 
 
-    rect.prop('custom/state/isCollapsed', true);
-    rect.prop('custom/state', { isActive: false }, { rewrite: true });
+rect.prop('custom/state/isCollapsed', true);
+rect.prop('custom/state', { isActive: false }, { rewrite: true });
 
-    // We can see our attributes have been overwritten
-    {
-        "type": "standard.Rectangle",
-        "position": { "x": 0, "y": 0 },
-        "size": { "width": 1, "height": 1 },
-        "angle": 0,
-        "id": "b1c02090-e46a-4d90-a5dc-5096f1559b9f",
-        "custom": {
-            "state": {
-                "isActive": false
-            }
-        },
-        "attrs": {}
-    }
-    </code></pre>
+// We can see our attributes have been overwritten
+{
+    "type": "standard.Rectangle",
+    "position": { "x": 0, "y": 0 },
+    "size": { "width": 1, "height": 1 },
+    "angle": 0,
+    "id": "b1c02090-e46a-4d90-a5dc-5096f1559b9f",
+    "custom": {
+        "state": {
+            "isActive": false
+        }
+    },
+    "attrs": {}
+}
+</code></pre>
 
     <h3>Relationship between prop() and attr() methods</h3>
 
@@ -229,25 +224,48 @@
         prepends our path with <i>'attrs'</i>. This means we find our presentation attributes in the <code>attrs</code> object.
     </p>
 
-    <pre><code>
-    element.attr('body/strokeWidth', 2);
-    element.prop('isCollapsed', true);
+    <pre><code>element.attr('body/strokeWidth', 2);
+element.prop('isCollapsed', true);
 
-    // Output from element.toJSON();
-    {
-        "type": "standard.Rectangle",
-        "position": { "x": 0, "y": 0 },
-        "size": { "width": 1, "height": 1 },
-        "angle": 0,
-        "id": "edafa2ac-27e6-4fbc-951a-aa3f9512c741",
-        "isCollapsed": true,
-        "attrs": {
-            "body": {
-                "strokeWidth": 2
-            }
+// Output from element.toJSON();
+{
+    "type": "standard.Rectangle",
+    "position": { "x": 0, "y": 0 },
+    "size": { "width": 1, "height": 1 },
+    "angle": 0,
+    "id": "edafa2ac-27e6-4fbc-951a-aa3f9512c741",
+    "isCollapsed": true,
+    "attrs": {
+        "body": {
+            "strokeWidth": 2
         }
     }
-    </code></pre>
+}
+</code></pre>
+
+    <p>
+        Another important note to mention when talking about <code>prop()</code> and <code>attr()</code> is that when changing the model,
+        some useful information is passed along with the change event in JointJS. <code>propertyPath</code>, <code>propertyValue</code>, 
+        and <code>propertyPathArray</code> are all values which can be accessed when updating the model. This can prove useful if for some 
+        reason you need to listen to a specific attribute change. Note that it is not possible to access these values in this manner 
+        when using <code>set()</code>.
+    </p>
+
+    <pre><code>graph.on('change', (cell, opt) => {
+    if ('attrs' in cell.changed) {
+        console.log(opt.propertyPathArray, 'was changed'); 
+        // --> ['attrs', 'body', 'fill'] 'was changed'
+    }
+
+    if ('isInteractive' in cell.changed) {
+        console.log(opt.propertyPathArray, 'was changed'); 
+        // --> ['isInteractive'] 'was changed'
+    }
+});
+
+element.attr('body/fill', 'cornflowerblue');
+element.prop('isInteractive', true);
+</code></pre>
 
     <p>
         Thanks for reading this far. As you can see, custom attributes open up a new world of functionality within our shapes, and
