@@ -1977,17 +1977,22 @@ export const LinkView = CellView.extend({
     },
 
     dragArrowhead: function(evt, x, y) {
+        const pointerX = x;
+        const pointerY = y;
+
+        if (this.options.snap) {
+            const { x: snappedX, y: snappedY } = this._snapToVertices(x, y, this.eventData(evt).arrowhead);
+            x = snappedX;
+            y = snappedY;
+        }
 
         if (this.paper.options.snapLinks) {
-            this._snapArrowhead(evt, x, y);
-        } else {
-            if (this.options.snap) {
-                const snapDistance = this.options.snap.distance || 20;
-                const { x: sx, y: sy } = this._snapToVertices(x, y, this.eventData(evt).arrowhead, snapDistance);
-                this._connectArrowhead(this.getEventTarget(evt), sx, sy, this.eventData(evt));
-            } else {
+            const isSnapped = this._snapArrowhead(evt, pointerX, pointerY);
+            if (!isSnapped) {
                 this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
             }
+        } else {
+            this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
         }
     },
 
@@ -2078,7 +2083,9 @@ export const LinkView = CellView.extend({
         }
     },
 
-    _snapToVertices: function(x, y, endType, snapDistance) {
+    _snapToVertices: function(x, y, endType) {
+        const snapDistance = this.options.snap.distance || 20;
+
         const anchor = this.getEndAnchor(endType === 'source' ? 'target' : 'source');
         const vertices = this.model.vertices();
         const points = [anchor, ...vertices];
@@ -2117,6 +2124,7 @@ export const LinkView = CellView.extend({
         const { paper } = this;
         const { snapLinks, connectionStrategy } = paper.options;
         const data = this.eventData(evt);
+        let isSnapped = false;
         // checking view in close area of the pointer
 
         var r = snapLinks.radius || 50;
@@ -2187,18 +2195,19 @@ export const LinkView = CellView.extend({
             const { prevEnd, prevX, prevY } = data;
             data.prevX = x;
             data.prevY = y;
+            isSnapped = true;
 
             if (!newClosestMagnet)  {
                 if (typeof connectionStrategy !== 'function' || (prevX === x && prevY === y)) {
                     // the magnet has not changed and the link's end does not depend on the x and y
-                    return;
+                    return isSnapped;
                 }
             }
 
             end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
             if (!newClosestMagnet && isEqual(prevEnd, end)) {
                 // the source/target json has not changed
-                return;
+                return isSnapped;
             }
 
             data.prevEnd = end;
@@ -2223,6 +2232,8 @@ export const LinkView = CellView.extend({
         if (closestView) {
             this.notify('link:snap:connect', evt, closestView, closestMagnet, endType);
         }
+
+        return isSnapped;
     },
 
     _snapArrowheadEnd: function(data) {
