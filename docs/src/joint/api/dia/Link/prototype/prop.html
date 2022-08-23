@@ -32,9 +32,10 @@ link.prop('custom/state', { isActive: false }, { rewrite: true });
 </code></pre>
 
 <p>
-    When changing model attributes via <code>prop()</code> or <code>attr()</code>, some useful information is passed along with the change event in JointJS.
-    <code>propertyPath</code>, <code>propertyValue</code>, and <code>propertyPathArray</code> are all values which can be accessed when 
-    updating the model. This can prove useful if for some reason you need to listen to a specific attribute change.
+    When changing model attributes via <code>prop()</code> or <code>attr()</code>, some useful information is passed along with the
+    change event in JointJS. <code>propertyPath</code>, <code>propertyValue</code>, and <code>propertyPathArray</code> are all values
+    which can be accessed when updating the model. This can prove useful if for some reason you need to listen to a specific
+    attribute change.
 </p>
 
 <pre><code>graph.on('change', (cell, opt) => {
