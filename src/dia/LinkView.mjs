@@ -1977,22 +1977,17 @@ export const LinkView = CellView.extend({
     },
 
     dragArrowhead: function(evt, x, y) {
-        const pointerX = x;
-        const pointerY = y;
-
-        if (this.options.snap) {
-            const { x: snappedX, y: snappedY } = this._snapToVertices(x, y, this.eventData(evt).arrowhead);
-            x = snappedX;
-            y = snappedY;
-        }
-
         if (this.paper.options.snapLinks) {
-            const isSnapped = this._snapArrowhead(evt, pointerX, pointerY);
-            if (!isSnapped) {
-                this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
+            const isSnapped = this._snapArrowhead(evt, x, y);
+            if (!isSnapped && this.paper.options.selfsnapLinks) {
+                this._selfsnapArrowhead(evt, x, y);
             }
         } else {
-            this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
+            if (this.paper.options.selfsnapLinks) {
+                this._selfsnapArrowhead(evt, x, y);
+            } else {
+                this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
+            }
         }
     },
 
@@ -2083,40 +2078,54 @@ export const LinkView = CellView.extend({
         }
     },
 
-    _snapToVertices: function(x, y, endType) {
-        const snapDistance = this.options.snap.distance || 20;
-
-        const anchor = this.getEndAnchor(endType === 'source' ? 'target' : 'source');
-        const vertices = this.model.vertices();
-        const points = [anchor, ...vertices];
-
+    _snapToPoints: function(snapPoint, points, distance) {
         let closestPointX = null;
         let closestDistanceX = Infinity;
 
         let closestPointY = null;
         let closestDistanceY = Infinity;
 
+        let x = snapPoint.x;
+        let y = snapPoint.y;
+
         for (let i = 0; i < points.length; i++) {
-            const distX = Math.abs(points[i].x - x);
+            const distX = Math.abs(points[i].x - snapPoint.x);
             if (distX < closestDistanceX) {
                 closestDistanceX = distX;
                 closestPointX = points[i];
             }
 
-            const distY = Math.abs(points[i].y - y);
+            const distY = Math.abs(points[i].y - snapPoint.y);
             if (distY < closestDistanceY) {
                 closestDistanceY = distY;
                 closestPointY = points[i];
             }
         }
 
-        if (closestDistanceX < snapDistance) {
+        if (closestDistanceX < distance) {
             x = closestPointX.x;
         }
-        if (closestDistanceY < snapDistance) {
+        if (closestDistanceY < distance) {
             y = closestPointY.y;
         }
+
         return { x, y };
+    },
+
+    _selfsnapArrowhead: function(evt, x, y) {
+
+        const { paper, model } = this;
+        const { selfsnapLinks } = paper.options;
+        const data = this.eventData(evt);
+        const distance = selfsnapLinks.distance || 20;
+
+        const anchor = this.getEndAnchor(data.arrowhead === 'source' ? 'target' : 'source');
+        const vertices = model.vertices();
+        const points = [anchor, ...vertices];
+
+        const snapPoint = this._snapToPoints({ x: x, y: y }, points, distance);
+
+        this.model.set(data.arrowhead, snapPoint, { ui: true });
     },
 
     _snapArrowhead: function(evt, x, y) {
