@@ -2125,7 +2125,7 @@ export const LinkView = CellView.extend({
 
         const snapPoint = this._snapToPoints({ x: x, y: y }, points, distance);
 
-        this.model.set(data.arrowhead, snapPoint, { ui: true });
+        this._connectArrowhead(document.elementFromPoint(snapPoint.x, snapPoint.y), snapPoint.x, snapPoint.y, this.eventData(evt));
     },
 
     _snapArrowhead: function(evt, x, y) {
