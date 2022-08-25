@@ -1228,6 +1228,7 @@ export namespace dia {
             interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions;
             snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
+            snapLinksSelf?: boolean | { distance: number };
             markAvailable?: boolean;
             // validations
             validateMagnet?: (cellView: CellView, magnet: SVGElement, evt: dia.Event) => boolean;

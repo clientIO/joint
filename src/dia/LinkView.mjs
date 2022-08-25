@@ -1979,12 +1979,12 @@ export const LinkView = CellView.extend({
     dragArrowhead: function(evt, x, y) {
         if (this.paper.options.snapLinks) {
             const isSnapped = this._snapArrowhead(evt, x, y);
-            if (!isSnapped && this.paper.options.selfsnapLinks) {
-                this._selfsnapArrowhead(evt, x, y);
+            if (!isSnapped && this.paper.options.snapLinksSelf) {
+                this._snapArrowheadSelf(evt, x, y);
             }
         } else {
-            if (this.paper.options.selfsnapLinks) {
-                this._selfsnapArrowhead(evt, x, y);
+            if (this.paper.options.snapLinksSelf) {
+                this._snapArrowheadSelf(evt, x, y);
             } else {
                 this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
             }
@@ -2112,12 +2112,12 @@ export const LinkView = CellView.extend({
         return { x, y };
     },
 
-    _selfsnapArrowhead: function(evt, x, y) {
+    _snapArrowheadSelf: function(evt, x, y) {
 
         const { paper, model } = this;
-        const { selfsnapLinks } = paper.options;
+        const { snapLinksSelf } = paper.options;
         const data = this.eventData(evt);
-        const distance = selfsnapLinks.distance || 20;
+        const distance = snapLinksSelf.distance || 20;
 
         const anchor = this.getEndAnchor(data.arrowhead === 'source' ? 'target' : 'source');
         const vertices = model.vertices();
