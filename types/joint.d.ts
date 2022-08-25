@@ -774,6 +774,8 @@ export namespace dia {
 
         getNodeMatrix(node: SVGElement): SVGMatrix;
 
+        getNodeRotateMatrix(node: SVGElement): SVGMatrix;
+
         getNodeBoundingRect(node: SVGElement): g.Rect;
 
         getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;

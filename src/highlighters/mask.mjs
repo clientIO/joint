@@ -200,11 +200,12 @@ export const mask = HighlighterView.extend({
             vel.remove();
         }
         const highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
+        const highlightMatrix = cellView.getNodeRotateMatrix(node).multiply(cellView.getNodeMatrix(node));
         const maskEl = this.getMask(cellView, V(node));
         this.addMask(cellView.paper, maskEl);
         vel.attr(highlighterBBox.toJSON());
         vel.attr({
-            'transform': V.matrixToTransformString(cellView.getNodeMatrix(node)),
+            'transform': V.matrixToTransformString(highlightMatrix),
             'mask': `url(#${maskEl.id})`,
             'fill': color
         });

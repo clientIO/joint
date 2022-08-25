@@ -255,11 +255,20 @@ export const CellView = View.extend({
 
     getNodeBBox: function(magnet) {
 
-        var rect = this.getNodeBoundingRect(magnet);
-        var magnetMatrix = this.getNodeMatrix(magnet);
-        var translateMatrix = this.getRootTranslateMatrix();
-        var rotateMatrix = this.getRootRotateMatrix();
-        return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
+        const rect = this.getNodeBoundingRect(magnet);
+        const transformMatrix = this.getRootTranslateMatrix().multiply(this.getNodeRotateMatrix(magnet));
+        const magnetMatrix = this.getNodeMatrix(magnet);
+        return V.transformRect(rect, transformMatrix.multiply(magnetMatrix));
+    },
+
+    getNodeRotateMatrix(node) {
+        if (!this.rotatableNode || this.rotatableNode.contains(node)) {
+            // Rotate transformation is applied to all nodes when no rotatableGroup
+            // is present or to nodes inside the rotatableGroup only.
+            return this.getRootRotateMatrix();
+        }
+        // Nodes outside the rotatable group
+        return V.createSVGMatrix();
     },
 
     getNodeUnrotatedBBox: function(magnet) {
@@ -730,9 +739,15 @@ export const CellView = View.extend({
 
     getNodeMatrix: function(magnet) {
 
-        var metrics = this.nodeCache(magnet);
+        const metrics = this.nodeCache(magnet);
         if (metrics.magnetMatrix === undefined) {
-            var target = this.rotatableNode || this.el;
+            const { rotatableNode, el } = this;
+            let target;
+            if (rotatableNode && rotatableNode.contains(magnet)) {
+                target = rotatableNode;
+            } else {
+                target = el;
+            }
             metrics.magnetMatrix = V(magnet).getTransformToElement(target);
         }
         return V.createSVGMatrix(metrics.magnetMatrix);

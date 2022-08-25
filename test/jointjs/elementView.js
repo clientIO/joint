@@ -155,6 +155,81 @@ QUnit.module('elementView', function(hooks) {
 
             elementView.model.resize(200, 300, { passed: true });
         });
+
+        QUnit.test('getNodeBBox(), getNodeMatrix()', function(assert) {
+
+            elementView.model.set({
+                markup: [
+                    {
+                        tagName: 'g',
+                        selector: 'rotatable',
+                        children: [
+                            {
+                                tagName: 'rect',
+                                selector: 'rectInside',
+                            },
+                            {
+                                tagName: 'circle',
+                                selector: 'circle',
+                                attributes: {
+                                    transform: 'translate(11,13)',
+                                    r: 5
+                                }
+                            }
+                        ],
+                    }, {
+                        tagName: 'rect',
+                        selector: 'rectOutside',
+                    },
+                ],
+                attrs: {
+                    rectInside: {
+                        x: 21,
+                        y: 13,
+                        width: 20,
+                        height: 10
+                    },
+                    rectOutside: {
+                        x: 21,
+                        y: 13,
+                        width: 20,
+                        height: 10
+                    }
+                }
+            });
+
+            elementView.model.resize(100, 100).translate(100, 100).rotate(90);
+
+            var rectInside = elementView.findBySelector('rectInside')[0];
+            assert.checkBboxApproximately(1, elementView.getNodeBBox(rectInside), {
+                x: 177,
+                y: 121,
+                width: 10,
+                height: 20
+            });
+
+            assert.equal(V.matrixToTransformString(elementView.getNodeMatrix(rectInside)), 'matrix(1,0,0,1,0,0)');
+
+            var rectOutside = elementView.findBySelector('rectOutside')[0];
+            assert.checkBboxApproximately(1, elementView.getNodeBBox(rectOutside), {
+                x: 121,
+                y: 113,
+                width: 20,
+                height: 10
+            });
+
+            assert.equal(V.matrixToTransformString(elementView.getNodeMatrix(rectOutside)), 'matrix(1,0,0,1,0,0)');
+
+            var circle = elementView.findBySelector('circle')[0];
+            assert.checkBboxApproximately(1, elementView.getNodeBBox(circle), {
+                x: 182,
+                y: 106,
+                width: 10,
+                height: 10
+            });
+
+            assert.equal(V.matrixToTransformString(elementView.getNodeMatrix(circle)), 'matrix(1,0,0,1,11,13)');
+        });
     });
 
     QUnit.module('no rotatable group and no scalable group', function(hooks) {
