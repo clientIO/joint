@@ -9,6 +9,11 @@ import {
     getRectPoint,
 } from '../util/getRectPoint.mjs';
 
+const Direction = {
+    ROW: 'row',
+    COLUMN: 'column'
+};
+
 export const list = HighlighterView.extend({
 
     tagName: 'g',
@@ -21,10 +26,10 @@ export const list = HighlighterView.extend({
 
     highlight(elementView, node) {
         const element = elementView.model;
-        const { attribute, size = 20, gap = 5, direction = 'row' } = this.options;
+        const { attribute, size = 20, gap = 5, direction = Direction.ROW } = this.options;
         if (!attribute) throw new Error('List: attribute is required');
         const normalizedSize = (typeof size === 'number') ? { width: size, height: size } : size;
-        const isRowDirection = (direction === 'row');
+        const isRowDirection = (direction === Direction.ROW);
         const itemWidth = isRowDirection ? normalizedSize.width : normalizedSize.height;
         let items = element.get(attribute);
         if (!Array.isArray(items)) items = [];
@@ -37,6 +42,7 @@ export const list = HighlighterView.extend({
                 if (comparison[index]) return prevEl;
                 const itemEl = this.createListItem(item, normalizedSize, prevEl);
                 if (!itemEl) return null;
+                if (!(itemEl instanceof SVGElement)) throw new Error('List: item must be an SVGElement');
                 itemEl.dataset.index = index;
                 itemEl.dataset.attribute = attribute;
                 const offset = index * (itemWidth + gap);
@@ -99,4 +105,6 @@ export const list = HighlighterView.extend({
         }
         vel.attr('transform', `translate(${x}, ${y})`);
     }
+}, {
+    Direction
 });

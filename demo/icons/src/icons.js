@@ -63,23 +63,29 @@ paperContainer.appendChild(paper.el);
 
 class IconsEffect extends highlighters.list {
 
-    createListItem(imageSrc, { width, height }, prevListItem) {
-        const listItem = prevListItem || V('image').attr({
-            'event': 'element:icon:pointerdown',
-            'cursor': 'pointer',
-            'preserveAspectRatio': this.options.preserveAspectRatio || 'xMidYMid',
-            'width': width,
-            'height': height,
-        }).node;
-        listItem.setAttribute('href', imageSrc);
-        return listItem;
+    createListItem(imageSrc, { width, height }, currentItemNode) {
+        const { preserveAspectRatio = 'xMidYMid' } = this.options;
+        let itemNode = currentItemNode;
+        if (!itemNode) {
+            // The item node has not been created yet
+            itemNode = V('image', {
+                event: 'element:icon:pointerdown',
+                cursor: 'pointer',
+                preserveAspectRatio,
+                width,
+                height,
+            }).node;
+        }
+        // Update the item node
+        itemNode.setAttribute('href', imageSrc);
+        return itemNode;
     }
 }
 
 class StatusEffect extends highlighters.list {
 
     createListItem({ color }, { width, height }) {
-        return V('ellipse').attr({
+        const { node } = V('ellipse', {
             'event': 'element:status:pointerdown',
             'cursor': 'default',
             'rx': width / 2,
@@ -89,7 +95,8 @@ class StatusEffect extends highlighters.list {
             'fill': color,
             'stroke': '#333',
             'stroke-width': 2,
-        }).node;
+        });
+        return node;
     }
 }
 
