@@ -40,8 +40,7 @@ export const LinkView = CellView.extend({
         longLinkLength: 155,
         linkToolsOffset: 40,
         doubleLinkToolsOffset: 65,
-        sampleInterval: 50,
-        snap: null, // { distance: number } | null
+        sampleInterval: 50
     },
 
     _labelCache: null,
