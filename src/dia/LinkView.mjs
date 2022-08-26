@@ -2078,7 +2078,7 @@ export const LinkView = CellView.extend({
         }
     },
 
-    _snapToPoints: function(snapPoint, points, distance) {
+    _snapToPoints: function(snapPoint, points, radius) {
         let closestPointX = null;
         let closestDistanceX = Infinity;
 
@@ -2102,10 +2102,10 @@ export const LinkView = CellView.extend({
             }
         }
 
-        if (closestDistanceX < distance) {
+        if (closestDistanceX < radius) {
             x = closestPointX.x;
         }
-        if (closestDistanceY < distance) {
+        if (closestDistanceY < radius) {
             y = closestPointY.y;
         }
 
@@ -2117,13 +2117,13 @@ export const LinkView = CellView.extend({
         const { paper, model } = this;
         const { snapLinksSelf } = paper.options;
         const data = this.eventData(evt);
-        const distance = snapLinksSelf.distance || 20;
+        const radius = snapLinksSelf.radius || 20;
 
         const anchor = this.getEndAnchor(data.arrowhead === 'source' ? 'target' : 'source');
         const vertices = model.vertices();
         const points = [anchor, ...vertices];
 
-        const snapPoint = this._snapToPoints({ x: x, y: y }, points, distance);
+        const snapPoint = this._snapToPoints({ x: x, y: y }, points, radius);
 
         this._connectArrowhead(document.elementFromPoint(snapPoint.x, snapPoint.y), snapPoint.x, snapPoint.y, this.eventData(evt));
     },
