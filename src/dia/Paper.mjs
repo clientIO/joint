@@ -114,6 +114,7 @@ export const Paper = View.extend({
         linkView: LinkView,
         snapLabels: false, // false, true
         snapLinks: false, // false, true, { radius: value }
+        snapLinksSelf: false, // false, true, { radius: value }
 
         // Should the link labels be rendered into its own layer?
         // `false` - the labels are part of the links

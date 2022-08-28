@@ -1285,6 +1285,53 @@ QUnit.module('linkView', function(hooks) {
                 paper
             ));
         });
+
+        QUnit.test('with snapLinksSelf=true', function(assert) {
+
+            var data;
+            paper.options.snapLinksSelf = { radius: 40 };
+            // Source
+            data = {};
+            linkView.pointerdown({
+                target: linkView.el.querySelector('.marker-arrowhead[end=source]'),
+                type: 'mousedown',
+                data: data
+            }, 0, 0);
+            // the move
+            linkView.pointermove({
+                target: paper,
+                type: 'mousemove',
+                data: data
+            }, 50, 70);
+
+            assert.equal(linkView.model.get('source').x, 50);
+            assert.equal(linkView.model.get('source').y, 100);
+        });
+
+        QUnit.test('snapToPoints test', function(assert) {
+
+            var snapPoint = { x: 0, y: 0 };
+            var points = [
+                { x: 20, y: 30 },
+                { x: 100, y: 100 }
+            ];
+
+            var result = linkView._snapToPoints(snapPoint, points, 10);
+            assert.deepEqual(result, snapPoint);
+
+            result = linkView._snapToPoints(snapPoint, points, 25);
+            assert.deepEqual(result, { x: 20, y: 0 });
+
+            result = linkView._snapToPoints(snapPoint, points, 40);
+            assert.deepEqual(result, { x: 20, y: 30 });
+
+            points = [
+                { x: 100, y: 30 },
+                { x: 100, y: 100 }
+            ];
+            result = linkView._snapToPoints(snapPoint, points, 40);
+            assert.deepEqual(result, { x: 0, y: 30 });
+        });
     });
 
     QUnit.module('linkTools', function(hooks) {

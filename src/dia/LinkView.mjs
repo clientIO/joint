@@ -40,7 +40,7 @@ export const LinkView = CellView.extend({
         longLinkLength: 155,
         linkToolsOffset: 40,
         doubleLinkToolsOffset: 65,
-        sampleInterval: 50,
+        sampleInterval: 50
     },
 
     _labelCache: null,
@@ -1976,14 +1976,17 @@ export const LinkView = CellView.extend({
     },
 
     dragArrowhead: function(evt, x, y) {
-
         if (this.paper.options.snapLinks) {
-
-            this._snapArrowhead(evt, x, y);
-
+            const isSnapped = this._snapArrowhead(evt, x, y);
+            if (!isSnapped && this.paper.options.snapLinksSelf) {
+                this._snapArrowheadSelf(evt, x, y);
+            }
         } else {
-
-            this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
+            if (this.paper.options.snapLinksSelf) {
+                this._snapArrowheadSelf(evt, x, y);
+            } else {
+                this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
+            }
         }
     },
 
@@ -2074,11 +2077,62 @@ export const LinkView = CellView.extend({
         }
     },
 
+    _snapToPoints: function(snapPoint, points, radius) {
+        let closestPointX = null;
+        let closestDistanceX = Infinity;
+
+        let closestPointY = null;
+        let closestDistanceY = Infinity;
+
+        let x = snapPoint.x;
+        let y = snapPoint.y;
+
+        for (let i = 0; i < points.length; i++) {
+            const distX = Math.abs(points[i].x - snapPoint.x);
+            if (distX < closestDistanceX) {
+                closestDistanceX = distX;
+                closestPointX = points[i];
+            }
+
+            const distY = Math.abs(points[i].y - snapPoint.y);
+            if (distY < closestDistanceY) {
+                closestDistanceY = distY;
+                closestPointY = points[i];
+            }
+        }
+
+        if (closestDistanceX < radius) {
+            x = closestPointX.x;
+        }
+        if (closestDistanceY < radius) {
+            y = closestPointY.y;
+        }
+
+        return { x, y };
+    },
+
+    _snapArrowheadSelf: function(evt, x, y) {
+
+        const { paper, model } = this;
+        const { snapLinksSelf } = paper.options;
+        const data = this.eventData(evt);
+        const radius = snapLinksSelf.radius || 20;
+
+        const anchor = this.getEndAnchor(data.arrowhead === 'source' ? 'target' : 'source');
+        const vertices = model.vertices();
+        const points = [anchor, ...vertices];
+
+        const snapPoint = this._snapToPoints({ x: x, y: y }, points, radius);
+
+        this._connectArrowhead(document.elementFromPoint(snapPoint.x, snapPoint.y), snapPoint.x, snapPoint.y, this.eventData(evt));
+    },
+
     _snapArrowhead: function(evt, x, y) {
 
         const { paper } = this;
         const { snapLinks, connectionStrategy } = paper.options;
         const data = this.eventData(evt);
+        let isSnapped = false;
         // checking view in close area of the pointer
 
         var r = snapLinks.radius || 50;
@@ -2149,18 +2203,19 @@ export const LinkView = CellView.extend({
             const { prevEnd, prevX, prevY } = data;
             data.prevX = x;
             data.prevY = y;
+            isSnapped = true;
 
             if (!newClosestMagnet)  {
                 if (typeof connectionStrategy !== 'function' || (prevX === x && prevY === y)) {
                     // the magnet has not changed and the link's end does not depend on the x and y
-                    return;
+                    return isSnapped;
                 }
             }
 
             end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
             if (!newClosestMagnet && isEqual(prevEnd, end)) {
                 // the source/target json has not changed
-                return;
+                return isSnapped;
             }
 
             data.prevEnd = end;
@@ -2185,6 +2240,8 @@ export const LinkView = CellView.extend({
         if (closestView) {
             this.notify('link:snap:connect', evt, closestView, closestMagnet, endType);
         }
+
+        return isSnapped;
     },
 
     _snapArrowheadEnd: function(data) {
