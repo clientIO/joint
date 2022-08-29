@@ -531,6 +531,80 @@ QUnit.module('HighlighterView', function(hooks) {
                 unhighlightSpy.restore();
             });
         });
+
+        QUnit.module('UPDATE_ATTRIBUTES', function() {
+
+            QUnit.test('array', function(assert) {
+
+                var Child1 = joint.dia.HighlighterView.extend({
+                    UPDATE_ATTRIBUTES: ['attribute1', 'attribute2']
+                });
+
+                var highlightSpy = sinon.spy(Child1.prototype, 'highlight');
+
+                var id = 'highlighter-id';
+
+                Child1.add(elementView, 'root', id);
+
+                assert.ok(highlightSpy.calledOnce);
+                highlightSpy.resetHistory();
+
+                element.attr(['body', 'stroke'], 'red');
+                assert.ok(highlightSpy.calledOnce);
+                highlightSpy.resetHistory();
+
+
+                element.set('attribute1', 'attributeValue1');
+                assert.ok(highlightSpy.calledOnce);
+                highlightSpy.resetHistory();
+
+                element.set('attribute2', 'attributeValue2');
+                assert.ok(highlightSpy.calledOnce);
+                highlightSpy.resetHistory();
+
+                element.set('otherAttribute', 'otherAttributeValue');
+                assert.ok(highlightSpy.notCalled);
+                highlightSpy.resetHistory();
+            });
+
+            QUnit.test('function', function(assert) {
+
+                var updateAttributesSpy = sinon.spy(function() {
+                    return ['attribute1', 'attribute2'];
+                });
+
+                var Child1 = joint.dia.HighlighterView.extend({
+                    UPDATE_ATTRIBUTES: updateAttributesSpy
+                });
+
+                var highlightSpy = sinon.spy(Child1.prototype, 'highlight');
+
+                var id = 'highlighter-id';
+
+                Child1.add(elementView, 'root', id);
+
+                assert.ok(highlightSpy.calledOnce);
+                assert.ok(updateAttributesSpy.calledOn(Child1.get(elementView, id)));
+                highlightSpy.resetHistory();
+
+                element.attr(['body', 'stroke'], 'red');
+                assert.ok(highlightSpy.calledOnce);
+                highlightSpy.resetHistory();
+
+
+                element.set('attribute1', 'attributeValue1');
+                assert.ok(highlightSpy.calledOnce);
+                highlightSpy.resetHistory();
+
+                element.set('attribute2', 'attributeValue2');
+                assert.ok(highlightSpy.calledOnce);
+                highlightSpy.resetHistory();
+
+                element.set('otherAttribute', 'otherAttributeValue');
+                assert.ok(highlightSpy.notCalled);
+                highlightSpy.resetHistory();
+            });
+        });
     });
 
 
