@@ -1968,7 +1968,40 @@ export namespace highlighters {
         opacityClassName: string;
     }
 
-    class list<Item = any, Options = any> extends dia.HighlighterView<Options> {
+
+    namespace list {
+
+        enum Directions {
+            ROW = 'row',
+            COLUMN = 'column'
+        }
+
+        enum Positions {
+            TOP = 'top',
+            RIGHT = 'right',
+            BOTTOM = 'bottom',
+            LEFT = 'left',
+            TOP_LEFT = 'top-left',
+            TOP_RIGHT = 'top-right',
+            BOTTOM_LEFT = 'bottom-left',
+            BOTTOM_RIGHT = 'bottom-right',
+            CENTER = 'center',
+        }
+
+        type ValueOf<T> = T[keyof T];
+
+        interface Options extends dia.HighlighterView.Options {
+            direction?: Directions | ValueOf<Directions>;
+            position?: Positions | ValueOf<Positions>;
+            size?: number | dia.Size;
+            gap?: number;
+            margin?: number | dia.Sides;
+        }
+    }
+
+    class list<Item = any, Options = list.Options> extends dia.HighlighterView<Options> {
+
+        options: Options;
 
         protected createListItem(item: Item, itemSize: dia.Size, itemEl: SVGElement | null): SVGElement;
 

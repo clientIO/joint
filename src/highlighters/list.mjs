@@ -9,7 +9,7 @@ import {
     getRectPoint,
 } from '../util/getRectPoint.mjs';
 
-const Direction = {
+const Directions = {
     ROW: 'row',
     COLUMN: 'column'
 };
@@ -26,10 +26,10 @@ export const list = HighlighterView.extend({
 
     highlight(elementView, node) {
         const element = elementView.model;
-        const { attribute, size = 20, gap = 5, direction = Direction.ROW } = this.options;
+        const { attribute, size = 20, gap = 5, direction = Directions.ROW } = this.options;
         if (!attribute) throw new Error('List: attribute is required');
         const normalizedSize = (typeof size === 'number') ? { width: size, height: size } : size;
-        const isRowDirection = (direction === Direction.ROW);
+        const isRowDirection = (direction === Directions.ROW);
         const itemWidth = isRowDirection ? normalizedSize.width : normalizedSize.height;
         let items = element.get(attribute);
         if (!Array.isArray(items)) items = [];
@@ -106,5 +106,6 @@ export const list = HighlighterView.extend({
         vel.attr('transform', `translate(${x}, ${y})`);
     }
 }, {
-    Direction
+    Directions,
+    Positions
 });

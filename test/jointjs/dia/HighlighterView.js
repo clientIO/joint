@@ -736,4 +736,161 @@ QUnit.module('HighlighterView', function(hooks) {
         });
 
     });
+
+    QUnit.module('list', function() {
+
+        QUnit.test('options', function(assert) {
+
+            var HighlighterView = joint.highlighters.list.extend({
+                createListItem: function(item, size) {
+                    return V('rect', size).node;
+                }
+            });
+            var id = 'highlighter-id';
+
+            assert.throws(function() {
+                HighlighterView.add(elementView, 'root', id);
+            }, 'List: attribute is required');
+
+            var highlighter;
+
+            highlighter = HighlighterView.add(elementView, 'root', id, {
+                attribute: 'rects',
+                size: 13,
+                gap: 11
+            });
+
+            var highlightSpy = sinon.spy(HighlighterView.prototype, 'createListItem');
+
+            element.set('rects', []);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 0@0');
+            assert.ok(highlightSpy.notCalled);
+            highlightSpy.resetHistory();
+
+            element.set('rects', ['a','b']);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 37@13');
+            assert.ok(highlightSpy.calledTwice);
+            assert.ok(highlightSpy.calledWithExactly('a', sinon.match({ width: 13, height: 13 }), null));
+            assert.ok(highlightSpy.calledWithExactly('b', sinon.match({ width: 13, height: 13 }), null));
+            highlightSpy.resetHistory();
+
+            // only removes 'b' - does not create 'a' again
+            element.set('rects', ['a']);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 13@13');
+            assert.ok(highlightSpy.notCalled);
+            highlightSpy.resetHistory();
+
+            var prevListItem = highlighter.el.children[0];
+            element.set('rects', ['c']);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 13@13');
+            assert.ok(highlightSpy.calledOnce);
+            assert.ok(highlightSpy.calledWithExactly('c', sinon.match({ width: 13, height: 13 }), prevListItem));
+            highlightSpy.resetHistory();
+
+            highlighter.remove();
+
+            // size as an object
+            highlighter = HighlighterView.add(elementView, 'body', id, {
+                attribute: 'rects',
+                size: { width: 13, height: 17 },
+                gap: 11
+            });
+
+            element.set('rects', []);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 0@0');
+
+            element.set('rects', ['a','b']);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 37@17');
+
+            element.set('rects', ['a']);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 13@17');
+
+            highlighter.remove();
+
+            // direction column
+            highlighter = HighlighterView.add(elementView, 'body', id, {
+                attribute: 'rects',
+                size: { width: 13, height: 13 },
+                gap: 11,
+                direction: HighlighterView.Directions.COLUMN
+            });
+
+            element.set('rects', []);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 0@0');
+
+            element.set('rects', ['a','b']);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 13@37');
+
+            element.set('rects', ['a']);
+            assert.equal(highlighter.vel.getBBox().toString(), '0@0 13@13');
+
+            highlighter.remove();
+
+            // position
+            var t;
+            element.resize(100, 100);
+            element.set('rects', ['a','b']);
+
+            // bottom-right column
+            highlighter = HighlighterView.add(elementView, 'body', id, {
+                attribute: 'rects',
+                size: 13,
+                gap: 11,
+                direction: HighlighterView.Directions.COLUMN,
+                position: HighlighterView.Positions.BOTTOM_RIGHT,
+                margin: 5
+            });
+
+            t = highlighter.vel.translate();
+            assert.equal(t.tx, 100-13-5);
+            assert.equal(t.ty, 100-37-5);
+            highlighter.remove();
+
+            // bottom-left column
+            highlighter = HighlighterView.add(elementView, 'body', id, {
+                attribute: 'rects',
+                size: 13,
+                gap: 11,
+                direction: HighlighterView.Directions.COLUMN,
+                position: HighlighterView.Positions.BOTTOM_LEFT,
+                margin: 5
+            });
+
+            t = highlighter.vel.translate();
+            assert.equal(t.tx, 5);
+            assert.equal(t.ty, 100-37-5);
+            highlighter.remove();
+
+            // top-right row
+            highlighter = HighlighterView.add(elementView, 'body', id, {
+                attribute: 'rects',
+                size: 13,
+                gap: 11,
+                direction: HighlighterView.Directions.ROW,
+                position: HighlighterView.Positions.TOP_RIGHT,
+                margin: 5
+            });
+
+            t = highlighter.vel.translate();
+            assert.equal(t.tx, 100-37-5);
+            assert.equal(t.ty, 5);
+            highlighter.remove();
+
+            // top-left row margin
+            highlighter = HighlighterView.add(elementView, 'body', id, {
+                attribute: 'rects',
+                size: 13,
+                gap: 11,
+                direction: HighlighterView.Directions.ROW,
+                position: HighlighterView.Positions.TOP_LEFT,
+                margin: { top: 1, left: 3 }
+            });
+
+            t = highlighter.vel.translate();
+            assert.equal(t.tx, 3);
+            assert.equal(t.ty, 1);
+            highlighter.remove();
+        });
+
+    });
 });
