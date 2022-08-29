@@ -16,6 +16,9 @@ import {
     isString,
     guid,
     normalizeEvent,
+    normalizeWheel,
+    cap,
+    debounce,
     omit,
     result,
     merge,
@@ -367,6 +370,9 @@ export const Paper = View.extend({
 
         // Hash of all cell views.
         this._views = {};
+
+        // Mouse wheel events buffer
+        this._mw_evt_buffer = [];
 
         // Reference to the paper owner document
         this.$document = $(el.ownerDocument);
@@ -2223,6 +2229,27 @@ export const Paper = View.extend({
         }
     },
 
+    _processMouseWheelEvtBuf: debounce(function() {
+        const [evt] = this._mw_evt_buffer;
+
+        const { pixelX, pixelY } = this._mw_evt_buffer.reduce((acc, cur) => {
+            let normalized = normalizeWheel(cur);
+            acc.pixelX += cap(normalized.pixelX, 50);
+            acc.pixelY += cap(normalized.pixelY, 50);
+            return acc;
+        }, { pixelX: 0, pixelY: 0 });
+
+        if (evt.ctrlKey) {
+            const scale = Math.pow(0.995, pixelY); // 1.005 for inverted pinch/zoom
+            const { x, y } = this.clientToLocalPoint(evt.clientX, evt.clientY);
+            this.trigger('TBD_system:scale', evt, x, y, scale);
+        } else {
+            this.trigger('TBD_system:scroll', evt, pixelX, pixelY);
+        }
+
+        this._mw_evt_buffer = [];
+    }, 20, { maxWait: 20 }),
+
     mousewheel: function(evt) {
 
         evt = normalizeEvent(evt);
@@ -2233,6 +2260,13 @@ export const Paper = View.extend({
         var originalEvent = evt.originalEvent;
         var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
         var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
+
+        //if( ??? ) {
+            evt.preventDefault(); // shouldn't be calling preventDefault() always!
+            this._mw_evt_buffer.push(originalEvent);
+            this._processMouseWheelEvtBuf();
+            return; //
+        //}
 
         if (view) {
             view.mousewheel(evt, localPoint.x, localPoint.y, delta);
