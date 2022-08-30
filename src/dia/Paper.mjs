@@ -54,6 +54,8 @@ const sortingTypes = {
     EXACT: 'sorting-exact'
 };
 
+const WHEEL_CAP = 50;
+const WHEEL_WAIT_MS = 20;
 const MOUNT_BATCH_SIZE = 1000;
 const UPDATE_BATCH_SIZE = Infinity;
 const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
@@ -372,7 +374,10 @@ export const Paper = View.extend({
         this._views = {};
 
         // Mouse wheel events buffer
-        this._mw_evt_buffer = [];
+        this._mw_evt_buffer = {
+            event: null,
+            normalizedValues: [],
+        };
 
         // Reference to the paper owner document
         this.$document = $(el.ownerDocument);
@@ -2230,25 +2235,22 @@ export const Paper = View.extend({
     },
 
     _processMouseWheelEvtBuf: debounce(function() {
-        const [evt] = this._mw_evt_buffer;
+        const evt = this._mw_evt_buffer.event;
 
-        const { pixelX, pixelY } = this._mw_evt_buffer.reduce((acc, cur) => {
-            let normalized = normalizeWheel(cur);
-            acc.pixelX += cap(normalized.pixelX, 50);
-            acc.pixelY += cap(normalized.pixelY, 50);
-            return acc;
-        }, { pixelX: 0, pixelY: 0 });
+        const deltaY = this._mw_evt_buffer.normalizedValues.reduce((acc, normalized) => {
+            return acc + cap(normalized.pixelY, WHEEL_CAP);
+        }, 0);
 
-        if (evt.ctrlKey) {
-            const scale = Math.pow(0.995, pixelY); // 1.005 for inverted pinch/zoom
-            const { x, y } = this.clientToLocalPoint(evt.clientX, evt.clientY);
-            this.trigger('TBD_system:scale', evt, x, y, scale);
-        } else {
-            this.trigger('TBD_system:scroll', evt, pixelX, pixelY);
-        }
+        // Touchpad devices will send a fake CTRL press when a pinch is performed
+        const scale = Math.pow(0.995, deltaY); // 1.005 for inverted pinch/zoom
+        const { x, y } = this.clientToLocalPoint(evt.clientX, evt.clientY);
+        this.trigger('TBD_system:scale', evt, x, y, scale);
 
-        this._mw_evt_buffer = [];
-    }, 20, { maxWait: 20 }),
+        this._mw_evt_buffer = {
+            event: null,
+            normalizedValues: [],
+        };
+    }, WHEEL_WAIT_MS, { maxWait: WHEEL_WAIT_MS }),
 
     mousewheel: function(evt) {
 
@@ -2259,20 +2261,26 @@ export const Paper = View.extend({
 
         var originalEvent = evt.originalEvent;
         var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
-        var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
+        var normalized = normalizeWheel(originalEvent);
+        var deltaY = normalized.pixelY;
+        var deltaX = normalized.pixelX;
 
-        //if( ??? ) {
-            evt.preventDefault(); // shouldn't be calling preventDefault() always!
-            this._mw_evt_buffer.push(originalEvent);
+        // Touchpad devices will send a fake CTRL press when a pinch is performed
+        if(evt.ctrlKey) {
+            // This is a pinch gesture, it's safe to asume that we must call .preventDefault()
+            originalEvent.preventDefault();
+            this._mw_evt_buffer.event = originalEvent;
+            this._mw_evt_buffer.normalizedValues.push(normalized);
             this._processMouseWheelEvtBuf();
-            return; //
-        //}
-
-        if (view) {
-            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
-
+        } else if(Math.abs(deltaX) != 0 && Math.abs(deltaY) != 0) {
+            // This is a 2-axis-scroll gesture, we must not debounce the event
+            this.trigger('TBD_system:scroll', evt, deltaX, deltaY);
         } else {
-            this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
+            if (view) {
+                view.mousewheel(evt, localPoint.x, localPoint.y, deltaY);
+            } else {
+                this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, deltaY);
+            }
         }
     },
 
