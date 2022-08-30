@@ -288,19 +288,19 @@ export const normalizeWheel = function(evt) {
     let sX = 0, sY = 0, pX = 0, pY = 0;
 
     // Legacy
-    if ("detail"      in evt) { sY = evt.detail; }
-    if ("wheelDelta"  in evt) { sY = -evt.wheelDelta / 120; }
-    if ("wheelDeltaY" in evt) { sY = -evt.wheelDeltaY / 120; }
-    if ("wheelDeltaX" in evt) { sX = -evt.wheelDeltaX / 120; }
+    if ('detail'      in evt) { sY = evt.detail; }
+    if ('wheelDelta'  in evt) { sY = -evt.wheelDelta / 120; }
+    if ('wheelDeltaY' in evt) { sY = -evt.wheelDeltaY / 120; }
+    if ('wheelDeltaX' in evt) { sX = -evt.wheelDeltaX / 120; }
 
     // side scrolling on FF with DOMMouseScroll
-    if ( "axis" in evt && evt.axis === evt.HORIZONTAL_AXIS ) {
+    if ( 'axis' in evt && evt.axis === evt.HORIZONTAL_AXIS ) {
         sX = sY;
         sY = 0;
     }
 
-    pX = "deltaX" in evt ? evt.deltaX : sX * PIXEL_STEP;
-    pY = "deltaY" in evt ? evt.deltaY : sY * PIXEL_STEP;
+    pX = 'deltaX' in evt ? evt.deltaX : sX * PIXEL_STEP;
+    pY = 'deltaY' in evt ? evt.deltaY : sY * PIXEL_STEP;
 
     if ((pX || pY) && evt.deltaMode) {
         if (evt.deltaMode == 1) {
@@ -319,8 +319,8 @@ export const normalizeWheel = function(evt) {
     return {
         spinX  : sX,
         spinY  : sY,
-        pixelX : pX,
-        pixelY : pY,
+        deltaX : pX,
+        deltaY : pY,
     };
 };
 

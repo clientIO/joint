@@ -376,7 +376,7 @@ export const Paper = View.extend({
         // Mouse wheel events buffer
         this._mw_evt_buffer = {
             event: null,
-            normalizedValues: [],
+            deltas: [],
         };
 
         // Reference to the paper owner document
@@ -2235,20 +2235,16 @@ export const Paper = View.extend({
     },
 
     _processMouseWheelEvtBuf: debounce(function() {
-        const evt = this._mw_evt_buffer.event;
+        const { event, deltas } = this._mw_evt_buffer;
+        const deltaY = deltas.reduce((acc, deltaY) => acc + cap(deltaY, WHEEL_CAP), 0);
 
-        const deltaY = this._mw_evt_buffer.normalizedValues.reduce((acc, normalized) => {
-            return acc + cap(normalized.pixelY, WHEEL_CAP);
-        }, 0);
-
-        // Touchpad devices will send a fake CTRL press when a pinch is performed
         const scale = Math.pow(0.995, deltaY); // 1.005 for inverted pinch/zoom
-        const { x, y } = this.clientToLocalPoint(evt.clientX, evt.clientY);
-        this.trigger('TBD_system:scale', evt, x, y, scale);
+        const { x, y } = this.clientToLocalPoint(event.clientX, event.clientY);
+        this.trigger('TBD_system:scale', event, x, y, scale);
 
         this._mw_evt_buffer = {
             event: null,
-            normalizedValues: [],
+            deltas: [],
         };
     }, WHEEL_WAIT_MS, { maxWait: WHEEL_WAIT_MS }),
 
@@ -2261,16 +2257,14 @@ export const Paper = View.extend({
 
         var originalEvent = evt.originalEvent;
         var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
-        var normalized = normalizeWheel(originalEvent);
-        var deltaY = normalized.pixelY;
-        var deltaX = normalized.pixelX;
+        var { deltaX, deltaY } = normalizeWheel(originalEvent);
 
         // Touchpad devices will send a fake CTRL press when a pinch is performed
         if(evt.ctrlKey) {
-            // This is a pinch gesture, it's safe to asume that we must call .preventDefault()
+            // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
             originalEvent.preventDefault();
             this._mw_evt_buffer.event = originalEvent;
-            this._mw_evt_buffer.normalizedValues.push(normalized);
+            this._mw_evt_buffer.deltas.push(deltaY);
             this._processMouseWheelEvtBuf();
         } else if(Math.abs(deltaX) != 0 && Math.abs(deltaY) != 0) {
             // This is a 2-axis-scroll gesture, we must not debounce the event
@@ -2278,6 +2272,7 @@ export const Paper = View.extend({
         } else {
             if (view) {
                 view.mousewheel(evt, localPoint.x, localPoint.y, deltaY);
+
             } else {
                 this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, deltaY);
             }
