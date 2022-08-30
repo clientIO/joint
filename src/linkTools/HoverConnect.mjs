@@ -53,7 +53,7 @@ export const HoverConnect = Connect.extend({
         ];
     },
 
-    events: Object.assign({
+    events: util.assign({
         mousemove: 'onMousemove',
         mouseenter: 'onMouseenter',
         mouseleave: 'onMouseleave'
