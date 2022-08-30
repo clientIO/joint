@@ -1,3 +1,4 @@
+
 export const version: string;
 
 export namespace config {
@@ -1976,6 +1977,8 @@ export namespace highlighters {
             COLUMN = 'column'
         }
 
+        type DirectionsType = 'row' | 'column';
+
         enum Positions {
             TOP = 'top',
             RIGHT = 'right',
@@ -1988,11 +1991,9 @@ export namespace highlighters {
             CENTER = 'center',
         }
 
-        type ValueOf<T> = T[keyof T];
-
         interface Options extends dia.HighlighterView.Options {
-            direction?: Directions | ValueOf<Directions>;
-            position?: Positions | ValueOf<Positions>;
+            direction?: Directions | DirectionsType;
+            position?: Positions | dia.PositionName;
             size?: number | dia.Size;
             gap?: number;
             margin?: number | dia.Sides;
