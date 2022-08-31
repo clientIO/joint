@@ -3,10 +3,7 @@ const modules = require('../resources/esm');
 
 module.exports = function(grunt) {
 
-    function karmaBrowsers() {
-        const browser = grunt.option('browser') || 'PhantomJS';
-        return [browser];
-    }
+    process.env.CHROME_BIN = require('puppeteer').executablePath();
 
     function karmaPreprocessors(files) {
         const preprocessors = ['coverage'];
@@ -47,8 +44,20 @@ module.exports = function(grunt) {
             basePath: '',
             autoWatch: false,
             frameworks: ['sinon', 'qunit'],
-            browsers: karmaBrowsers(),
+            browsers: ['ChromeHeadless_custom'],
+            customLaunchers: {
+                ChromeHeadless_custom: {
+                    base: 'ChromeHeadless',
+                    flags: [
+                        '--no-sandbox', 
+                        '--headless',
+                        '--disable-gpu',
+                        '--disable-dev-shm-usage'
+                    ]
+                }
+            },
             reporters: ['progress', 'coverage'],
+            // Change to false when debugging
             singleRun: true,
             exclude: [
                 'test/**/require.js',

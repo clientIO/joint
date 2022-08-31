@@ -1348,8 +1348,7 @@ QUnit.module('util', function(hooks) {
         assert.equal(util.getRectPoint(rect, 'bottomMiddle').toString(), '13.5@28');
     });
 
-    // Temporary commented due to old version of browser in PhantomJS. Uncomment when test will be moved to Puppeteer
-    /* QUnit.test('svgTaggedTemplate', function(assert) {
+    QUnit.test('svgTaggedTemplate', function(assert) {
         var markup = joint.util.svg(['<rect @selector="selector1"/><circle @group-selector="group-selector1, group-selector2" class="circle"/><g><rect style="pointer-events:auto"/><circle stroke="red"/>textContent</g>']);
         assert.equal(markup.length, 3);
         assert.equal(markup[0].namespaceURI, 'http://www.w3.org/2000/svg');
@@ -1362,5 +1361,5 @@ QUnit.module('util', function(hooks) {
         assert.equal(markup[2].textContent, 'textContent');
         assert.equal(markup[2].children[0].style['pointer-events'], 'auto');
         assert.equal(markup[2].children[1].attributes['stroke'], 'red');
-    }); */
+    }); 
 });
