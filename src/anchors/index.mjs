@@ -2,6 +2,10 @@ import * as util from '../util/index.mjs';
 import { toRad } from '../g/index.mjs';
 import { resolveRef } from '../linkAnchors/index.mjs';
 
+/* 
+    This is a test. Do not merge
+*/
+
 function bboxWrapper(method) {
 
     return function(view, magnet, ref, opt) {
