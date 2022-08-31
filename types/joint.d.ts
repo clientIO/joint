@@ -1996,7 +1996,7 @@ export namespace shapes {
 
         type RectangleAttributes = dia.Element.GenericAttributes<RectangleSelectors>;
 
-        class Rectangle<A = RectangleAttributes> extends dia.Element<A> {
+        class Rectangle extends dia.Element<RectangleAttributes> {
         }
 
         interface CircleSelectors extends dia.Cell.Selectors {
@@ -2007,7 +2007,7 @@ export namespace shapes {
 
         type CircleAttributes = dia.Element.GenericAttributes<CircleSelectors>;
 
-        class Circle<A = CircleAttributes> extends dia.Element<A> {
+        class Circle extends dia.Element<CircleAttributes> {
         }
 
         interface EllipseSelectors extends dia.Cell.Selectors {
@@ -2018,7 +2018,7 @@ export namespace shapes {
 
         type EllipseAttributes = dia.Element.GenericAttributes<EllipseSelectors>;
 
-        class Ellipse<A = EllipseAttributes> extends dia.Element<A> {
+        class Ellipse extends dia.Element<EllipseAttributes> {
         }
 
         interface PathSelectors  extends dia.Cell.Selectors {
@@ -2029,7 +2029,7 @@ export namespace shapes {
 
         type PathAttributes = dia.Element.GenericAttributes<PathSelectors>;
 
-        class Path<A = PathAttributes> extends dia.Element<A> {
+        class Path extends dia.Element<PathAttributes> {
         }
 
         interface PolygonSelectors  extends dia.Cell.Selectors {
@@ -2040,7 +2040,7 @@ export namespace shapes {
 
         type PolygonAttributes = dia.Element.GenericAttributes<PolygonSelectors>;
 
-        class Polygon<A = PolygonAttributes> extends dia.Element<A> {
+        class Polygon extends dia.Element<PolygonAttributes> {
         }
 
         interface PolylineSelectors extends dia.Cell.Selectors {
@@ -2051,7 +2051,7 @@ export namespace shapes {
 
         type PolylineAttributes = dia.Element.GenericAttributes<PolylineSelectors>;
 
-        class Polyline<A = PolylineAttributes> extends dia.Element<A> {
+        class Polyline extends dia.Element<PolylineAttributes> {
         }
 
         interface ImageSelectors  extends dia.Cell.Selectors {
@@ -2062,7 +2062,7 @@ export namespace shapes {
 
         type ImageAttributes = dia.Element.GenericAttributes<ImageSelectors>;
 
-        class Image<A = ImageAttributes> extends dia.Element<A> {
+        class Image extends dia.Element<ImageAttributes> {
         }
 
         interface BorderedImageSelectors  extends dia.Cell.Selectors {
@@ -2075,7 +2075,7 @@ export namespace shapes {
 
         type BorderedImageAttributes = dia.Element.GenericAttributes<BorderedImageSelectors>;
 
-        class BorderedImage<A = BorderedImageAttributes> extends dia.Element<A> {
+        class BorderedImage extends dia.Element<BorderedImageAttributes> {
         }
 
         interface EmbeddedImageSelectors  extends dia.Cell.Selectors {
@@ -2087,7 +2087,7 @@ export namespace shapes {
 
         type EmbeddedImageAttributes = dia.Element.GenericAttributes<EmbeddedImageSelectors>;
 
-        class EmbeddedImage<A = EmbeddedImageAttributes> extends dia.Element<A> {
+        class EmbeddedImage extends dia.Element<EmbeddedImageAttributes> {
         }
 
         interface InscribedImageSelectors  extends dia.Cell.Selectors {
@@ -2100,7 +2100,7 @@ export namespace shapes {
 
         type InscribedImageAttributes = dia.Element.GenericAttributes<InscribedImageSelectors>;
 
-        class InscribedImage<A = InscribedImageAttributes> extends dia.Element<A> {
+        class InscribedImage extends dia.Element<InscribedImageAttributes> {
         }
 
         interface HeaderedRectangleSelectors  extends dia.Cell.Selectors {
@@ -2113,7 +2113,7 @@ export namespace shapes {
 
         type HeaderedRectangleAttributes = dia.Element.GenericAttributes<HeaderedRectangleSelectors>;
 
-        class HeaderedRectangle<A = HeaderedRectangleAttributes> extends dia.Element<A> {
+        class HeaderedRectangle extends dia.Element<HeaderedRectangleAttributes> {
         }
 
         interface CylinderBodyAttributes extends attributes.SVGPathAttributes {
@@ -2128,7 +2128,7 @@ export namespace shapes {
 
         type CylinderAttributes = dia.Element.GenericAttributes<CylinderSelectors>;
 
-        class Cylinder<A = CylinderAttributes, S = dia.ModelSetOptions> extends dia.Element<A, S> {
+        class Cylinder<S = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
             topRy(): string | number;
             topRy(t: string | number, opt?: S): this;
         }
@@ -2145,7 +2145,7 @@ export namespace shapes {
 
         type TextBlockAttributes = dia.Element.GenericAttributes<TextBlockSelectors>;
 
-        class TextBlock<A = TextBlockAttributes> extends dia.Element<A> {
+        class TextBlock extends dia.Element<TextBlockAttributes> {
         }
 
         interface LinkSelectors extends dia.Cell.Selectors {
@@ -2216,11 +2216,11 @@ export namespace shapes {
 
     namespace basic {
 
-        class Generic<A = dia.Element.Attributes> extends dia.Element<A> {
+        class Generic extends dia.Element {
 
         }
 
-        class Text<A = dia.Element.Attributes> extends Generic<A> {
+        class Text extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<SVGTextSelector>,
                 opt?: { [key: string]: any }
@@ -2231,7 +2231,7 @@ export namespace shapes {
 
         }
 
-        class Rect<A = dia.Element.Attributes> extends Generic<A> {
+        class Rect extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<RectSelectors>,
                 opt?: { [key: string]: any }
@@ -2242,7 +2242,7 @@ export namespace shapes {
 
         }
 
-        class Circle<A = dia.Element.Attributes> extends Generic<A> {
+        class Circle extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<CircleSelectors>,
                 opt?: { [key: string]: any }
@@ -2254,7 +2254,7 @@ export namespace shapes {
         }
 
 
-        class Ellipse<A = dia.Element.Attributes> extends Generic<A> {
+        class Ellipse extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<EllipseSelectors>,
                 opt?: { [key: string]: any }
@@ -2266,7 +2266,7 @@ export namespace shapes {
         }
 
 
-        class Polygon<A = dia.Element.Attributes> extends Generic<A> {
+        class Polygon extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<PolygonSelectors>,
                 opt?: { [key: string]: any }
@@ -2277,7 +2277,7 @@ export namespace shapes {
 
         }
 
-        class Polyline<A = dia.Element.Attributes> extends Generic<A> {
+        class Polyline extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<PolylineSelectors>,
                 opt?: { [key: string]: any }
@@ -2288,7 +2288,7 @@ export namespace shapes {
 
         }
 
-        class Image<A = dia.Element.Attributes> extends Generic<A> {
+        class Image extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<ImageSelectors>,
                 opt?: { [key: string]: any }
@@ -2299,14 +2299,14 @@ export namespace shapes {
 
         }
 
-        class Path<A = dia.Element.Attributes> extends Generic<A> {
+        class Path extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<PathSelectors>,
                 opt?: { [key: string]: any }
             );
         }
 
-        class Rhombus<A = dia.Element.Attributes> extends Generic<A> {
+        class Rhombus extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<PathSelectors>,
                 opt?: { [key: string]: any }
@@ -2317,7 +2317,7 @@ export namespace shapes {
             '.content'?: attributes.SVGTextAttributes;
         }
 
-        class TextBlock<A = dia.Element.Attributes> extends Generic<A> {
+        class TextBlock extends Generic {
             constructor(
                 attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
                 opt?: { [key: string]: any }
