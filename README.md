@@ -43,7 +43,6 @@ Further **information**, **examples** and **documentation** can be found at [htt
 * Latest MSEdge
 * Latest Opera
 * IE 11
-* PhantomJS
 
 Any problem with JointJS in the above browsers should be reported as a bug in JointJS.
 
