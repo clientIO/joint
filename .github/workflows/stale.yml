@@ -28,6 +28,6 @@ jobs:
         stale-pr-label: 'stale'
         days-before-stale: 60
         days-before-close: 14
-        exempt-issue-labels: 'bug,new feature,enhancement,technical dept'
+        exempt-issue-labels: 'bug,new feature,enhancement,technical debt'
         exempt-draft-pr: true
         operations-per-run: 999
