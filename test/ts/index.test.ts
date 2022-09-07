@@ -145,3 +145,34 @@ cellView.listenTo(paper, {
         }
     }
 } as joint.dia.Paper.EventMap);
+
+class AttributeHighlighterView extends joint.dia.HighlighterView<{ attribute: string; }> {
+    preinitialize() {
+        this.UPDATE_ATTRIBUTES = function() { return [this.options.attribute]; };
+    }
+}
+
+class MyList<I extends number> extends joint.highlighters.list<I> {
+    protected createListItem(item: I): SVGElement {
+        const vel = joint.V('text');
+        vel.text(`${item + 1}`);
+        return vel.node;
+    }
+}
+
+const list = new MyList({
+    size: 10,
+    gap: 10,
+    margin: { left: 10 },
+    position: 'top-left',
+    direction: 'row',
+});
+
+list.remove();
+
+const list2 = MyList.add.call(MyList, cellView, 'root', 'id', <joint.highlighters.list.Options>{
+    size: { width: 100, height: 5 },
+    position: joint.highlighters.list.Positions.BOTTOM_RIGHT,
+    direction: joint.highlighters.list.Directions.COLUMN,
+});
+list2.remove();

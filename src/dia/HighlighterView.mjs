@@ -1,6 +1,6 @@
 import * as mvc from '../mvc/index.mjs';
 import V from '../V/index.mjs';
-import { isPlainObject } from '../util/util.mjs';
+import { isPlainObject, result } from '../util/util.mjs';
 
 function toArray(obj) {
     if (!obj) return [];
@@ -138,6 +138,23 @@ export const HighlighterView = mvc.View.extend({
 
     unhighlight(_cellView, _node) {
         // to be overridden
+    },
+
+    // Update Attributes
+
+    listenToUpdateAttributes(cellView) {
+        const attributes = result(this, 'UPDATE_ATTRIBUTES');
+        if (!Array.isArray(attributes) || attributes.length === 0) return;
+        this.listenTo(cellView.model, 'change', this.onCellAttributeChange);
+    },
+
+    onCellAttributeChange() {
+        const { cellView } = this;
+        if (!cellView) return;
+        const { model, paper } = cellView;
+        const attributes = result(this, 'UPDATE_ATTRIBUTES');
+        if (!attributes.some(attribute => model.hasChanged(attribute))) return;
+        paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
     }
 
 }, {
@@ -191,6 +208,7 @@ export const HighlighterView = mvc.View.extend({
         view.id = id;
         this._addRef(cellView, id, view);
         view.requestUpdate(cellView, nodeSelector);
+        view.listenToUpdateAttributes(cellView);
         return view;
     },
 

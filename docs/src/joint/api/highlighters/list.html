@@ -1,0 +1,53 @@
+<p>Adds a list of arbitrary SVGElements to the cell view.</p>
+
+<h3>Available options:</h3>
+<ul>
+    <li><b>layer</b> - the stacking order of the highlighter. See <a href="#dia.HighlighterView.prototype.options.layer">dia.Highlighter</a> for supported values.</li>
+    <li><b>attribute</b> - the name of the model attribute to read the list items from (and automatically update the list when the attribute changes). The option is mandatory and it's an array of items (each item is then passed as is to the <code>createListItem</code>) method.</li>
+    <li><b>gap</b> - the space between items. Expects a <code>number</code>.</li>
+    <li><b>size</b> - the size of each item. It's either a <code>number</code> or an object with <code>width</code> and <code>height</code> properties.</li>
+    <li><b>direction</b> - specifies how list items are placed in the list container defining the main axis. It's either <code>row</code> (for growth on <code>x</code> coordinate) or <code>column</code> (for growth on <code>y</code> coordinate).</li>
+    <li><b>position</b> - specifies the position and the alignment of the list container. The value is a <a href="#util.getRectPoint">position name</a>. Using one of the position values sets the list anchor and the position within the item view to that value. For instance the <code>bottom-right</code> value positions the list by its bottom-right corner to the bottom-right corner of the element.</li>
+    <li><b>margin</b> - the space around the list container. It's a <code>number</code> or an object with <code>left</code>,  <code>top</code>,  <code>right</code>,  <code>bottom</code> properties.</li>
+</ul>
+
+<h3>Methods:</h3>
+
+<a href="#highlighters.list.createListItem">
+    <h4 id="#highlighters.list.createListItem">highlighters.list.createListItem</h4>
+</a>
+
+<pre class="docs-method-signature"><code>protected createListItem(item, size, currentListItem)</code></pre>
+
+<p>It accepts the <code>item</code> (a value at a position from the model attributes's array), the normalized <code>size</code> object and <code>currentListItem</code> SVGElement if such a node was created in a previous call. It returns an SVGElement.</p>
+
+<p>It's an abstract method meant to be overridden.</p>
+
+<p>The list optimizes the updates i.e. the method is not executed if the particular item does not change.</p>
+
+<h3>Example usage:</h3>
+<pre><code>class StatusList extends highlighters.list {
+
+    // list of colored ellipses
+    createListItem(color, { width, height }) {
+        const { node } = V('ellipse', {
+            'rx': width / 2,
+            'ry': height / 2,
+            'cx': width / 2,
+            'cy': height / 2,
+            'fill': color,
+            'stroke': '#333',
+            'stroke-width': 2,
+        });
+        return node;
+    }
+}
+
+StatusList.add(element.findView(paper), 'root', 'status-list', {
+    attribute: 'status',
+    size: 10,
+    gap: 2
+});
+
+element.set('status', ['green', 'green', 'red'])
+</code></pre>

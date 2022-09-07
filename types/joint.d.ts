@@ -1,3 +1,4 @@
+
 export const version: string;
 
 export namespace config {
@@ -1815,6 +1816,7 @@ export namespace dia {
 
         UPDATABLE: boolean;
         MOUNTABLE: boolean;
+        UPDATE_ATTRIBUTES: string[] | ((this: HighlighterView<Options>) => string[]);
 
         cellView: dia.CellView;
         nodeSelector: HighlighterView.NodeSelector | null;
@@ -1833,6 +1835,10 @@ export namespace dia {
         protected highlight(cellView: dia.CellView, node: SVGElement): void;
 
         protected unhighlight(cellView: dia.CellView, node: SVGElement): void;
+
+        protected listenToUpdateAttributes(cellView: dia.CellView): void;
+
+        protected onCellAttributeChange(): void;
 
         static uniqueId(node: SVGElement, options?: any): string;
 
@@ -1961,6 +1967,46 @@ export namespace highlighters {
     class opacity extends dia.HighlighterView<OpacityHighlighterArguments> {
 
         opacityClassName: string;
+    }
+
+
+    namespace list {
+
+        enum Directions {
+            ROW = 'row',
+            COLUMN = 'column'
+        }
+
+        type DirectionsType = 'row' | 'column';
+
+        enum Positions {
+            TOP = 'top',
+            RIGHT = 'right',
+            BOTTOM = 'bottom',
+            LEFT = 'left',
+            TOP_LEFT = 'top-left',
+            TOP_RIGHT = 'top-right',
+            BOTTOM_LEFT = 'bottom-left',
+            BOTTOM_RIGHT = 'bottom-right',
+            CENTER = 'center',
+        }
+
+        interface Options extends dia.HighlighterView.Options {
+            direction?: Directions | DirectionsType;
+            position?: Positions | dia.PositionName;
+            size?: number | dia.Size;
+            gap?: number;
+            margin?: number | dia.Sides;
+        }
+    }
+
+    class list<Item = any, Options = list.Options> extends dia.HighlighterView<Options> {
+
+        options: Options;
+
+        protected createListItem(item: Item, itemSize: dia.Size, itemEl: SVGElement | null): SVGElement;
+
+        protected position(element: dia.Element, listSize: dia.Size): void;
     }
 
     /**

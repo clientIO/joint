@@ -1,0 +1,22 @@
+<pre class="docs-method-signature"><code>HighlighterView.prototype.UPDATE_ATTRIBUTES</code></pre>
+
+<p>The highlighter is updated (<i>highlight()</i> function is called) every time any of the attributes from the list change.</p>
+<p>The value could be an array of strings or a function returning an array of strings.</p>
+<p>The default is <i>[]</i>.</p>
+
+<pre><code>const ColorHighlighter = joint.dia.HighlighterView.extend({
+
+    UPDATE_ATTRIBUTES: ['color'],
+
+    highlight(cellView, node) {
+        node.style.fill = cellView.model.get('color');
+    },
+
+    unhighlight(_cellView, node) {
+        node.style.fill = '';
+    }
+
+});
+
+ColorHighlighter.add(rectangle.findView(paper), 'body', 'color-highlighter');
+rectangle.set('color', 'gray'); // will call highlight()</code></pre>
