@@ -33,7 +33,7 @@ const port = {
             selector: 'label'
         }]
     },
-    attrs: { 
+    attrs: {
         body: { magnet: true, width: 16, height: 16, x: -8, y: -4, stroke: 'red', fill: 'gray'},
         label: { text: 'port', fill: 'blue' }
     },
@@ -61,11 +61,11 @@ const rect = new joint.shapes.standard.Rectangle({
 // b.) Or add a single port using API
 rect.addPort(port);
 
-rect.getGroupPorts('a');  
+rect.getGroupPorts('a');
 /*
    [
-       { * Default port settings * }, 
-       { * Follows port definition * }, 
+       { * Default port settings * },
+       { * Follows port definition * },
        { * Follows port definition * }
     ]
 */
@@ -105,32 +105,32 @@ rect.getGroupPorts('a');
     <td><b>markup</b></td>
     <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
-        <p>Custom port markup. Multiple roots are not allowed. Valid notation would be:</p>
-<pre><code>markup: [{
-    tagName: 'g',
-    children: [{
-        tagName: 'rect',
-        selector: 'bodyInner',
-        className: 'outer',
-        attributes: {
-            'width': 15,
-            'height': 15,
-            'fill': 'red'
-        }
-    }, {
-        tagName: 'rect',
-        selector: 'bodyOuter',
-        className: 'inner',
-        attributes: {
-            'width': 15,
-            'height': 15,
-            'fill': 'blue',
-            'x': 10
-        }
-    }]
+        <p>A custom port markup.</p>
+        <p>The default port markup is <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
+        <p>The root of the port markup is referenced by <code>portRoot</code> selector.</p>
+        <p>If the markup contains more than one node, an extra group is created to wrap the nodes. This group becomes the new <code>portRoot</code>.</p>
+<pre><code>// An example of port markup
+markup: [{
+    tagName: 'rect',
+    selector: 'bodyInner',
+    className: 'outer',
+    attributes: {
+        'width': 15,
+        'height': 15,
+        'fill': 'red'
+    }
+}, {
+    tagName: 'rect',
+    selector: 'bodyOuter',
+    className: 'inner',
+    attributes: {
+        'width': 15,
+        'height': 15,
+        'fill': 'blue',
+        'x': 10
+    }
 }]
 </code></pre>
-        <p>The default port looks like the following: <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
     </td>
 </tr>
 <tr>
@@ -178,7 +178,11 @@ rect.getGroupPorts('a');
     <td><ul><li><b>label.markup</b></li></ul></td>
     <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. The default port label looks like the following: <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.
+        <p>A custom port label markup.</p>
+        <p>The default port label markup is <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.</p>
+        <p>The root of the label markup is referenced by <code>labelRoot</code> selector.</p>
+        <p>If the markup contains more than one node, an extra group is created to wrap the nodes. This group becomes the new <code>labelRoot</code>.</p>
+        <p>Use an empty array <code>[]</code> to prevent the label from being rendered.</p>
     </td>
 </tr>
 <tr>
@@ -191,9 +195,9 @@ rect.getGroupPorts('a');
         </p>
         <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html" style="height: 224px; width: 803px;"></iframe>
         <p>
-            Shapes most likely consist of 1 or more DOM elements, <code>&lt;rect/&gt;</code>, <code>&lt;rect/&gt;&lt;text/&gt;&lt;circle/&gt;</code> etc. 
-            Ports are placed into the main group element <code>elementView.el</code>, so it will act as the port container. 
-            Ports with <code>z: 'auto'</code> are located right after the last element in the main group. Ports with <code>z</code> 
+            Shapes most likely consist of 1 or more DOM elements, <code>&lt;rect/&gt;</code>, <code>&lt;rect/&gt;&lt;text/&gt;&lt;circle/&gt;</code> etc.
+            Ports are placed into the main group element <code>elementView.el</code>, so it will act as the port container.
+            Ports with <code>z: 'auto'</code> are located right after the last element in the main group. Ports with <code>z</code>
             defined as a number are placed before a DOM element at the position (index within the children of the container, where only
             the original markup elements, and ports with <code>z: 'auto'</code> are taken into account) equal to <code>z</code>.
         </p>
@@ -201,7 +205,7 @@ rect.getGroupPorts('a');
 <pre><code>markup: [{
     tagName: 'rect',
     selector: 'bodyMain',
-    className: 'bodyMain'      
+    className: 'bodyMain'
 }, {
     tagName: 'rect',
     selector: 'bodyInner',
@@ -258,7 +262,7 @@ rect.getGroupPorts('a');
 <pre><code>&lt;g model-id="..."&gt;
     &lt;g class="rotatable"&gt;
         &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
-        &lt;g class="scalable"&gt;&lt;rect class="bodyMain"&gt;&lt;/rect&gt;&lt;/g&gt;         
+        &lt;g class="scalable"&gt;&lt;rect class="bodyMain"&gt;&lt;/rect&gt;&lt;/g&gt;
         &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
         &lt;rect class="bodyInner"&gt;&lt;/rect&gt;
         &lt;text class="label"&gt;&lt;/text&gt;
@@ -278,7 +282,7 @@ All properties described above are optional, and everything has its own default.
 While single port definitions are useful, what if we want more control over our ports? This is where a port group can come into play. A group allows us to define multiple ports with similar properties, and influence the default port alignment. Any individual port can override a property in a port group definition except the type of layout(E.g. `position: 'left'`). The group definition defines the layout, and the individual port `args` are the only way a port can affect it.
 
 ```javascript
-// Port definition for input ports group 
+// Port definition for input ports group
 const portsIn = {
     position: {
         name: 'left', // Layout name
@@ -287,7 +291,7 @@ const portsIn = {
     label: {
         position: {
             name: 'left',
-            args: { y: 6 } 
+            args: { y: 6 }
         },
         markup: [{
             tagName: 'text',
@@ -317,7 +321,7 @@ const rect = new joint.shapes.basic.Rect({
              // Initialize 'rect' with port in group 'group1'
             {
                 group: 'group1',
-                args: { y: 40 } // Overrides `args` from the group level definition for first port 
+                args: { y: 40 } // Overrides `args` from the group level definition for first port
             }
         ]
     }
@@ -451,18 +455,18 @@ var rect = new joint.shapes.basic.Rect({
     // ...
 });
 
-rect.addPort({ 
-    markup: [{ 
+rect.addPort({
+    markup: [{
         tagName: 'rect', selector: 'body', attributes: { 'width': 20, 'height': 20, 'fill': 'blue' }
     }]
 });
 
 rect.addPort({
-    markup: [{ 
+    markup: [{
         tagName: 'rect', selector: 'body', attributes: { 'width': 16, 'height': 16, 'fill': 'red' }
     }],
-    label: { 
-        markup: [{ tagName: 'text', selector: 'label', attributes: { 'fill': '#000000' }}] 
+    label: {
+        markup: [{ tagName: 'text', selector: 'label', attributes: { 'fill': '#000000' }}]
     },
     attrs: { label: { text: 'port' }}
 });

@@ -661,8 +661,9 @@ export const elementViewPortPrototype = {
     findPortNode: function(portId, selector) {
         const portCache = this._portElementsCache[portId];
         if (!portCache) return null;
-        const portRoot = portCache.portContentElement.node;
-        const portSelectors = portCache.portContentSelectors;
+        if (!selector) return portCache.portContentElement.node;
+        const portRoot = portCache.portElement.node;
+        const portSelectors = portCache.portSelectors;
         const [node = null] = this.findBySelector(selector, portRoot, portSelectors);
         return node;
     },
@@ -750,7 +751,17 @@ export const elementViewPortPrototype = {
             }
             portContainerSelectors = util.assign({}, portSelectors, labelSelectors);
         } else {
-            portContainerSelectors = portSelectors || labelSelectors;
+            portContainerSelectors = portSelectors || labelSelectors || {};
+        }
+
+        const portRootSelector = 'portRoot';
+        if (portElement && !(portRootSelector in portContainerSelectors)) {
+            portContainerSelectors[portRootSelector] = portElement.node;
+        }
+
+        const labelRootSelector = 'labelRoot';
+        if (labelElement && !(labelRootSelector in portContainerSelectors)) {
+            portContainerSelectors[labelRootSelector] = labelElement.node;
         }
 
         portContainerElement.append(portElement.addClass('joint-port-body'));
