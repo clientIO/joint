@@ -755,7 +755,7 @@ export const elementViewPortPrototype = {
         }
 
         const portRootSelector = 'portRoot';
-        if (portElement && !(portRootSelector in portContainerSelectors)) {
+        if (!(portRootSelector in portContainerSelectors)) {
             portContainerSelectors[portRootSelector] = portElement.node;
         }
 
