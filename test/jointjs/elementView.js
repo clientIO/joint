@@ -65,6 +65,55 @@ QUnit.module('elementView', function(hooks) {
             assert.equal(el2view.findPortNode(2, 'root').lastChild.tagName.toUpperCase(), 'TEXT');
         });
 
+        QUnit.test('implicit selectors', function(assert) {
+            var el1 = new joint.shapes.standard.Rectangle({
+                portMarkup: [{ tagName: 'polygon' }],
+                portLabelMarkup: [{ tagName: 'circle', selector: 'cs' }],
+                ports: {
+                    items: [{
+                        id: 1
+                    }]
+                }
+            });
+            var el2 = new joint.shapes.standard.Rectangle({
+                portMarkup: [{ tagName: 'polygon' }, { tagName: 'polyline' }],
+                portLabelMarkup: [{ tagName: 'circle' }, { tagName: 'ellipse', selector: 'es' }],
+                ports: {
+                    items: [{
+                        id: 1
+                    }]
+                }
+            });
+            paper.model.addCells([el1, el2]);
+
+            var el1view = el1.findView(paper);
+            assert.equal(el1view.findPortNode(1), el1view.findPortNode(1, 'portRoot'));
+            assert.equal(el1view.findPortNode(1, 'root').childNodes.length, 2);
+            assert.equal(el1view.findPortNode(1, 'root').parentNode, el1view.el);
+            assert.equal(el1view.findPortNode(1, 'root').firstChild.tagName.toUpperCase(), 'POLYGON');
+            assert.equal(el1view.findPortNode(1, 'root').lastChild.tagName.toUpperCase(), 'CIRCLE');
+            assert.equal(el1view.findPortNode(1, 'portRoot').tagName.toUpperCase(), 'POLYGON');
+            assert.equal(el1view.findPortNode(1, 'labelRoot').tagName.toUpperCase(), 'CIRCLE');
+            assert.equal(el1view.findPortNode(1, 'portRoot').parentNode, el1view.findPortNode(1, 'root'));
+            assert.equal(el1view.findPortNode(1, 'labelRoot').parentNode, el1view.findPortNode(1, 'root'));
+            assert.equal(el1view.findPortNode(1, 'cs').tagName.toUpperCase(), 'CIRCLE');
+            assert.equal(el1view.findPortNode(1, 'es'), null);
+
+            var el2view = el2.findView(paper);
+            assert.equal(el2view.findPortNode(1), el2view.findPortNode(1, 'portRoot'));
+            assert.equal(el2view.findPortNode(1, 'root').childNodes.length, 2);
+            assert.equal(el2view.findPortNode(1, 'root').parentNode, el2view.el);
+            assert.equal(el2view.findPortNode(1, 'portRoot').tagName.toUpperCase(), 'G');
+            assert.equal(el2view.findPortNode(1, 'portRoot').firstChild.tagName.toUpperCase(), 'POLYGON');
+            assert.equal(el2view.findPortNode(1, 'portRoot').lastChild.tagName.toUpperCase(), 'POLYLINE');
+            assert.equal(el2view.findPortNode(1, 'labelRoot').tagName.toUpperCase(), 'G');
+            assert.equal(el2view.findPortNode(1, 'labelRoot').firstChild.tagName.toUpperCase(), 'CIRCLE');
+            assert.equal(el2view.findPortNode(1, 'labelRoot').lastChild.tagName.toUpperCase(), 'ELLIPSE');
+            assert.equal(el2view.findPortNode(1, 'portRoot').parentNode, el2view.findPortNode(1, 'root'));
+            assert.equal(el2view.findPortNode(1, 'labelRoot').parentNode, el2view.findPortNode(1, 'root'));
+            assert.equal(el2view.findPortNode(1, 'es').tagName.toUpperCase(), 'ELLIPSE');
+            assert.equal(el2view.findPortNode(1, 'cs'), null);
+        });
     });
 
     QUnit.module('custom view ', function() {
