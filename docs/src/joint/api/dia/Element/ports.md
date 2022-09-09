@@ -107,7 +107,7 @@ rect.getGroupPorts('a');
     <td>
         <p>A custom port markup.</p>
         <p>The default port markup is <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
-        <p>The root of the port markup is referenced by <code>portRoot</code> selector.</p>
+        <p>The root of the port markup is referenced by the <code>portRoot</code> selector.</p>
         <p>If the markup contains more than one node, an extra group is created to wrap the nodes. This group becomes the new <code>portRoot</code>.</p>
 <pre><code>// An example of port markup
 markup: [{
@@ -180,7 +180,7 @@ markup: [{
     <td>
         <p>A custom port label markup.</p>
         <p>The default port label markup is <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.</p>
-        <p>The root of the label markup is referenced by <code>labelRoot</code> selector.</p>
+        <p>The root of the label markup is referenced by the <code>labelRoot</code> selector.</p>
         <p>If the markup contains more than one node, an extra group is created to wrap the nodes. This group becomes the new <code>labelRoot</code>.</p>
         <p>Use an empty array <code>[]</code> to prevent the label from being rendered.</p>
     </td>
