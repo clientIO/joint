@@ -2252,12 +2252,12 @@ export const Paper = View.extend({
 
         evt = normalizeEvent(evt);
 
-        var view = this.findView(evt.target);
+        const view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
-        var originalEvent = evt.originalEvent;
-        var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
-        var { deltaX, deltaY } = normalizeWheel(originalEvent);
+        const originalEvent = evt.originalEvent;
+        const localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
+        const { deltaX, deltaY } = normalizeWheel(originalEvent);
 
         // Touchpad devices will send a fake CTRL press when a pinch is performed
         if(evt.ctrlKey) {
@@ -2270,11 +2270,12 @@ export const Paper = View.extend({
             // This is a 2-axis-scroll gesture, we must not debounce the event
             this.trigger('paper:pan', evt, deltaX, deltaY);
         } else {
+            const delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
             if (view) {
-                view.mousewheel(evt, localPoint.x, localPoint.y, deltaY);
+                view.mousewheel(evt, localPoint.x, localPoint.y, delta);
 
             } else {
-                this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, deltaY);
+                this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
             }
         }
     },
