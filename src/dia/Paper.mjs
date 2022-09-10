@@ -2261,11 +2261,17 @@ export const Paper = View.extend({
 
         // Touchpad devices will send a fake CTRL press when a pinch is performed
         if(evt.ctrlKey) {
-            // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
-            originalEvent.preventDefault();
-            this._mw_evt_buffer.event = originalEvent;
-            this._mw_evt_buffer.deltas.push(deltaY);
-            this._processMouseWheelEvtBuf();
+            // Check if there are any subscribers to this event. If there are none,
+            // just skip the entire block of code (we don't want to blindly call
+            // .preventDefault() if we really don't have to).
+            const handlers = this._events['paper:pinch'];
+            if(handlers && handlers.length > 0) {
+                // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
+                originalEvent.preventDefault();
+                this._mw_evt_buffer.event = originalEvent;
+                this._mw_evt_buffer.deltas.push(deltaY);
+                this._processMouseWheelEvtBuf();
+            }
         } else if(Math.abs(deltaX) != 0 && Math.abs(deltaY) != 0) {
             // This is a 2-axis-scroll gesture, we must not debounce the event
             this.trigger('paper:pan', evt, deltaX, deltaY);
