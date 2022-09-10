@@ -2240,7 +2240,7 @@ export const Paper = View.extend({
 
         const scale = Math.pow(0.995, deltaY); // 1.005 for inverted pinch/zoom
         const { x, y } = this.clientToLocalPoint(event.clientX, event.clientY);
-        this.trigger('TBD_system:scale', event, x, y, scale);
+        this.trigger('paper:pinch', event, x, y, scale);
 
         this._mw_evt_buffer = {
             event: null,
@@ -2268,7 +2268,7 @@ export const Paper = View.extend({
             this._processMouseWheelEvtBuf();
         } else if(Math.abs(deltaX) != 0 && Math.abs(deltaY) != 0) {
             // This is a 2-axis-scroll gesture, we must not debounce the event
-            this.trigger('TBD_system:scroll', evt, deltaX, deltaY);
+            this.trigger('paper:pan', evt, deltaX, deltaY);
         } else {
             if (view) {
                 view.mousewheel(evt, localPoint.x, localPoint.y, deltaY);
