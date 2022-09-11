@@ -1367,6 +1367,9 @@ export namespace dia {
             'element:mousewheel': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number, delta: number) => void;
             'link:mousewheel': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number, delta: number) => void;
             'blank:mousewheel': (evt: dia.Event, x: number, y: number, delta: number) => void;
+            // touchpad
+            'paper:pan': (evt: dia.Event, deltaX: number, deltaY: number) => void;
+            'paper:pinch': (evt: dia.Event, x: number, y: number, scale: number) => void;
             // magnet
             'element:magnet:pointerclick': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
             'element:magnet:pointerdblclick': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
