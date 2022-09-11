@@ -2272,15 +2272,13 @@ export const Paper = View.extend({
                 this._mw_evt_buffer.deltas.push(deltaY);
                 this._processMouseWheelEvtBuf();
             }
-        } else if(Math.abs(deltaX) != 0 && Math.abs(deltaY) != 0) {
-            // This is a 2-axis-scroll gesture, we must not debounce the event
-            this.trigger('paper:pan', evt, deltaX, deltaY);
         } else {
             const delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
             if (view) {
                 view.mousewheel(evt, localPoint.x, localPoint.y, delta);
 
             } else {
+                this.trigger('paper:pan', evt, deltaX, deltaY);
                 this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
             }
         }
