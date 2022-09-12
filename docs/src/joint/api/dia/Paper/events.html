@@ -309,6 +309,38 @@
     </td>
   </tr>
   <tr>
+    <th>pan</th>
+    <td>
+      <p>Triggered when a pan event is emitted while pointer is on top the target. Pan events are simillar to mousewheel events, but while mousewheel events cover only on the Y axis, pan events cover both X and Y axis. This is usually possible with touchpads / trackpad devices.</p>
+      <p>The callback function is passed <code>evt</code>, <code>deltaX</code> and <code>deltaY</code> as arguments.</p>
+      <table>
+        <tr>
+          <th>paper:pan</th>
+          <td>
+            <p>Triggered when a pan event is emitted while the pointer is on the paper or any cell.</p>
+            <p>The callback function is passed <code>evt</code>, <code>deltaX</code> and <code>deltaY</code> as arguments.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <th>pinch</th>
+    <td>
+      <p>Triggered when a pinch event is emitted while pointer is on top the target. This is usually possible with touchpads / trackpad devices.</p>
+      <p>The callback function is passed <code>evt</code>, <code>x</code>, <code>y</code> and <code>scale</code> as arguments.</p>
+      <table>
+        <tr>
+          <th>paper:pinch</th>
+          <td>
+            <p>Triggered when a pinch event is emitted while the pointer is on the paper or any cell.</p>
+            <p>The callback function is passed <code>evt</code>, <code>x</code> <code>y</code> and <code>scale</code> as arguments.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
     <th>magnet</th>
       <td>
         <p>Triggered when interacting with a magnet target.</p>
