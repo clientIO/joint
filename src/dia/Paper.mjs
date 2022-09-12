@@ -2278,9 +2278,10 @@ export const Paper = View.extend({
                 view.mousewheel(evt, localPoint.x, localPoint.y, delta);
 
             } else {
-                this.trigger('paper:pan', evt, deltaX, deltaY);
                 this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
             }
+
+            this.trigger('paper:pan', evt, deltaX, deltaY);
         }
     },
 
