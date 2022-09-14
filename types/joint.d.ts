@@ -3358,14 +3358,14 @@ export namespace mvc {
         protected onRemove(): void;
     }
 
-    type EventCallback = (...callbackArguments: any[], ...originalEventArguments: any[]) => void;
+    type EventCallback = (...args: any[]) => void;
 
     interface EventHashMap {
         [eventName: string]: EventCallback;
     }
 
     class Listener {
-        constructor(public readonly ...callbackArguments: any[]);
+        constructor(...callbackArguments: any[]);
 
         listenTo(object: any, EventHashMap: EventHashMap, context?: any): void;
         listenTo(object: any, evt: string, callback: EventCallback, context?: any): void;
