@@ -37,12 +37,12 @@ export namespace dia {
     };
 
     type LegacyPositionName = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' |
-                    'topMiddle' | 'bottomMiddle' | 'leftMiddle' | 'rightMiddle' |
-                    'corner' | 'origin';
+        'topMiddle' | 'bottomMiddle' | 'leftMiddle' | 'rightMiddle' |
+        'corner' | 'origin';
 
     type PositionName = 'top' | 'left' | 'bottom' | 'right' | 'center' |
-                    'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' |
-                    LegacyPositionName;
+        'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' |
+        LegacyPositionName;
 
     type Sides = number | SidesJSON;
 
@@ -73,13 +73,13 @@ export namespace dia {
     type Path = string | Array<string | number>;
 
     interface ModelSetOptions extends Backbone.ModelSetOptions {
-        dry?:  boolean;
+        dry?: boolean;
         isolate?: boolean;
         [key: string]: any;
     }
 
     interface CollectionAddOptions extends Backbone.AddOptions {
-        dry?:  boolean;
+        dry?: boolean;
         [key: string]: any;
     }
 
@@ -286,7 +286,7 @@ export namespace dia {
         };
 
         interface Constructor<T extends Backbone.Model> {
-            new (opt?: { id?: ID, [key: string]: any }): T;
+            new(opt?: { id?: ID, [key: string]: any }): T;
             define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell.Constructor<T>;
         }
 
@@ -470,7 +470,7 @@ export namespace dia {
             angle: number;
         }
 
-        interface TranslateOptions extends Cell.Options{
+        interface TranslateOptions extends Cell.Options {
             restrictedArea?: BBox | Paper.PointConstraintCallback;
             transition?: Cell.TransitionOptions;
         }
@@ -520,7 +520,7 @@ export namespace dia {
         removePort(port: string | Element.Port, opt?: S): this;
 
         removePorts(opt?: S): this;
-        removePorts(ports: Array<Element.Port|string>, opt?: S): this;
+        removePorts(ports: Array<Element.Port | string>, opt?: S): this;
 
         hasPorts(): boolean;
 
@@ -1212,7 +1212,7 @@ export namespace dia {
 
         type PointConstraintCallback = (x: number, y: number, opt: any) => Point;
         type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
-        type FindParentByType =  'bbox' | 'pointer' | PositionName;
+        type FindParentByType = 'bbox' | 'pointer' | PositionName;
         type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
 
         interface Options extends mvc.ViewOptions<Graph> {
@@ -1267,8 +1267,8 @@ export namespace dia {
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
             defaultRouter?: routers.Router | routers.RouterJSON;
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
-            defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
-            defaultLinkAnchor?: anchors.AnchorJSON  | anchors.Anchor;
+            defaultAnchor?: anchors.AnchorJSON | anchors.Anchor;
+            defaultLinkAnchor?: anchors.AnchorJSON | anchors.Anchor;
             defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint | ((...args: any[]) => connectionPoints.ConnectionPoint);
             // connecting
             connectionStrategy?: connectionStrategies.ConnectionStrategy;
@@ -1795,7 +1795,7 @@ export namespace dia {
 
     namespace HighlighterView {
 
-        type Constructor<T> = { new (): T };
+        type Constructor<T> = { new(): T };
 
         type NodeSelectorJSON = {
             selector?: string;
@@ -2070,7 +2070,7 @@ export namespace shapes {
         class Ellipse extends dia.Element<EllipseAttributes> {
         }
 
-        interface PathSelectors  extends dia.Cell.Selectors {
+        interface PathSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPathAttributes;
             label?: attributes.SVGTextAttributes;
@@ -2081,7 +2081,7 @@ export namespace shapes {
         class Path extends dia.Element<PathAttributes> {
         }
 
-        interface PolygonSelectors  extends dia.Cell.Selectors {
+        interface PolygonSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPolygonAttributes;
             label?: attributes.SVGTextAttributes;
@@ -2103,7 +2103,7 @@ export namespace shapes {
         class Polyline extends dia.Element<PolylineAttributes> {
         }
 
-        interface ImageSelectors  extends dia.Cell.Selectors {
+        interface ImageSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             image?: attributes.SVGImageAttributes;
             label?: attributes.SVGTextAttributes;
@@ -2114,7 +2114,7 @@ export namespace shapes {
         class Image extends dia.Element<ImageAttributes> {
         }
 
-        interface BorderedImageSelectors  extends dia.Cell.Selectors {
+        interface BorderedImageSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGRectAttributes;
             background?: attributes.SVGRectAttributes;
@@ -2127,7 +2127,7 @@ export namespace shapes {
         class BorderedImage extends dia.Element<BorderedImageAttributes> {
         }
 
-        interface EmbeddedImageSelectors  extends dia.Cell.Selectors {
+        interface EmbeddedImageSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             image?: attributes.SVGImageAttributes;
@@ -2139,7 +2139,7 @@ export namespace shapes {
         class EmbeddedImage extends dia.Element<EmbeddedImageAttributes> {
         }
 
-        interface InscribedImageSelectors  extends dia.Cell.Selectors {
+        interface InscribedImageSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGEllipseAttributes;
             background?: attributes.SVGEllipseAttributes;
@@ -2152,7 +2152,7 @@ export namespace shapes {
         class InscribedImage extends dia.Element<InscribedImageAttributes> {
         }
 
-        interface HeaderedRectangleSelectors  extends dia.Cell.Selectors {
+        interface HeaderedRectangleSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             header?: attributes.SVGRectAttributes;
@@ -2169,7 +2169,7 @@ export namespace shapes {
             lateralArea?: string | number;
         }
 
-        interface CylinderSelectors  extends dia.Cell.Selectors {
+        interface CylinderSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: CylinderBodyAttributes;
             top?: attributes.SVGEllipseAttributes;
@@ -2890,7 +2890,7 @@ export namespace util {
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
-    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
+    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any } }): void;
 
     export function normalizeSides(sides: dia.Sides): dia.PaddingJSON;
 
@@ -3178,7 +3178,7 @@ export namespace layout {
         interface LayoutOptions {
             dagre?: any;
             graphlib?: any;
-            align?: 'UR' | 'UL' |'DR' | 'DL';
+            align?: 'UR' | 'UL' | 'DR' | 'DL';
             rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
             ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
             nodeSep?: number;
@@ -3356,6 +3356,21 @@ export namespace mvc {
         protected onSetTheme(oldTheme: string, newTheme: string): void;
 
         protected onRemove(): void;
+    }
+
+    type EventCallback = (...callbackArguments: any[], ...originalEventArguments: any[]) => void;
+
+    interface EventHashMap {
+        [eventName: string]: EventCallback;
+    }
+
+    class Listener {
+        constructor(public readonly ...callbackArguments: any[]);
+
+        listenTo(object: any, EventHashMap: EventHashMap, context?: any): void;
+        listenTo(object: any, evt: string, callback: EventCallback, context?: any): void;
+
+        stopListeningTo(): void;
     }
 }
 
@@ -3832,7 +3847,7 @@ export namespace attributes {
         /**
          * @deprecated use SVGAttributes.text instead
          **/
-         text?: string;
+        text?: string;
     }
 
     interface SVGAttributes extends NativeSVGAttributes {

@@ -339,3 +339,38 @@ if ($.event && !(DoubleTapEventName in $.event.special)) {
         }
     };
 }
+
+export class Listener {
+    constructor(...callbackArguments) {
+        this.callbackArguments = callbackArguments;
+    }
+
+    listenTo(object, evt, ...args) {
+        const { callbackArguments } = this;
+        // signature 1 - (object, eventHashMap, context)
+        if (args.length < 2 && typeof evt === 'object') {
+            const [context = null] = args;
+            Object.entries(evt).forEach(([eventName, cb]) => {
+                if (typeof cb !== 'function') return;
+                const functionArgs = [context];
+                // Invoke the callback with callbackArguments passed first
+                if (callbackArguments.length > 0) functionArgs.push(...callbackArguments);
+                cb = cb.bind(...functionArgs);
+                Backbone.Events.listenTo.call(this, object, eventName, cb);
+            });
+        }
+        // signature 2 - (object, event, callback, context)
+        else if (args.length > 0 && typeof evt === 'string' && typeof args[0] === 'function') {
+            let [providedCallback, context = null] = args;
+            const functionArgs = [context];
+            // Invoke the callback with callbackArguments passed first
+            if (callbackArguments.length > 0) functionArgs.push(...callbackArguments);
+            const cb = providedCallback.bind(...functionArgs);
+            Backbone.Events.listenTo.call(this, object, evt, cb);
+        }
+    }
+
+    stopListening() {
+        Backbone.Events.stopListening.call(this);
+    }
+}

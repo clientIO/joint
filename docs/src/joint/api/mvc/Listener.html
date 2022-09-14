@@ -1,0 +1,64 @@
+<p>Listener is an object that allows you to add listeners to another object's events and then remove them all when needed. Constructor accepts any number of callback arguments - invoking callback function puts provided callback arguments first with rest of the event parameters after. Context is an optional parameter that will be bound as a callback's context if provided.</p>
+
+<p>Two signatures are used to listen to events:</p>
+<ol>
+    <li>Listening to specific event passed as string:</li>
+    <pre><code>const listener = new mvc.Listener(callbackArguments);
+const callback = (callbackArguments, elementView) => {};
+listener.listenTo(paper, 'element:pointerclick', callback);
+
+// Optionally
+const context = { foo: 'bar' };
+listener.listenTo(paper, 'element:pointerclick', callback, context);</code></pre>
+    <li>Listening to multiple events by passing event map:</li>
+    <pre><code>const listener = new mvc.Listener(callbackArguments);  
+const eventMap = {
+    'remove': (callbackArguments, cell) => {},
+    'add': (callbackArguments, cell) => {}
+};
+listener.listenTo(graph, eventMap);
+
+// Optionally
+const context = { foo: 'bar' };
+listener.listenTo(graph, eventMap, context);</code></pre>
+</ol>
+
+<p>Stop listening to all events that listener is subscribed to:</p>
+<pre><code>const listener = new mvc.Listener(callbackArguments);
+// listener.listenTo(...);
+listener.stopListening();</code></pre>
+
+<p>Example usages:</p>
+<pre><code>class Controller extends mvc.Listener {
+
+    startListening() {
+        const [{ paper, graph }] = this.callbackArguments;
+        this.listenTo(paper, 'element:pointerclick', (appContext, elementView) => {});
+        this.listenTo(graph, {
+            'remove': (appContext, cell) => {},
+            'add': (appContext, cell) => {}
+        });
+    }
+}</code></pre>
+
+<pre><code>class Controller {
+
+    constructor(appContext) {
+        this.appContext = appContext;
+        this.listener = new Listener(appContext);
+    }
+
+    startListening() {
+        const { paper, graph } = this.appContext;
+        this.listenTo(paper, 'element:pointerclick', (appContext, elementView) => {});
+        this.listenTo(graph, 'remove', (appContext, cell) => {});
+    }
+
+    listenTo(...args) {
+        this.listener.listenTo(...args);
+    }
+
+    stopListening() {
+        this.listener.stopListening();
+    }
+}</code></pre>
