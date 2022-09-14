@@ -279,6 +279,55 @@ export const normalizeEvent = function(evt) {
     return normalizedEvent;
 };
 
+export const normalizeWheel = function(evt) {
+    // Sane values derived empirically
+    const PIXEL_STEP  = 10;
+    const LINE_HEIGHT = 40;
+    const PAGE_HEIGHT = 800;
+
+    let sX = 0, sY = 0, pX = 0, pY = 0;
+
+    // Legacy
+    if ('detail'      in evt) { sY = evt.detail; }
+    if ('wheelDelta'  in evt) { sY = -evt.wheelDelta / 120; }
+    if ('wheelDeltaY' in evt) { sY = -evt.wheelDeltaY / 120; }
+    if ('wheelDeltaX' in evt) { sX = -evt.wheelDeltaX / 120; }
+
+    // side scrolling on FF with DOMMouseScroll
+    if ( 'axis' in evt && evt.axis === evt.HORIZONTAL_AXIS ) {
+        sX = sY;
+        sY = 0;
+    }
+
+    pX = 'deltaX' in evt ? evt.deltaX : sX * PIXEL_STEP;
+    pY = 'deltaY' in evt ? evt.deltaY : sY * PIXEL_STEP;
+
+    if ((pX || pY) && evt.deltaMode) {
+        if (evt.deltaMode == 1) {
+            pX *= LINE_HEIGHT;
+            pY *= LINE_HEIGHT;
+        } else {
+            pX *= PAGE_HEIGHT;
+            pY *= PAGE_HEIGHT;
+        }
+    }
+
+    // Fall-back if spin cannot be determined
+    if (pX && !sX) { sX = (pX < 1) ? -1 : 1; }
+    if (pY && !sY) { sY = (pY < 1) ? -1 : 1; }
+
+    return {
+        spinX  : sX,
+        spinY  : sY,
+        deltaX : pX,
+        deltaY : pY,
+    };
+};
+
+export const cap = function(val, max) {
+    return val > max ? max : val < -max ? -max : val;
+};
+
 export const nextFrame = (function() {
 
     var raf;

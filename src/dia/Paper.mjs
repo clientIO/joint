@@ -16,6 +16,9 @@ import {
     isString,
     guid,
     normalizeEvent,
+    normalizeWheel,
+    cap,
+    debounce,
     omit,
     result,
     merge,
@@ -51,6 +54,8 @@ const sortingTypes = {
     EXACT: 'sorting-exact'
 };
 
+const WHEEL_CAP = 50;
+const WHEEL_WAIT_MS = 20;
 const MOUNT_BATCH_SIZE = 1000;
 const UPDATE_BATCH_SIZE = Infinity;
 const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
@@ -367,6 +372,12 @@ export const Paper = View.extend({
 
         // Hash of all cell views.
         this._views = {};
+
+        // Mouse wheel events buffer
+        this._mw_evt_buffer = {
+            event: null,
+            deltas: [],
+        };
 
         // Reference to the paper owner document
         this.$document = $(el.ownerDocument);
@@ -2223,22 +2234,54 @@ export const Paper = View.extend({
         }
     },
 
+    _processMouseWheelEvtBuf: debounce(function() {
+        const { event, deltas } = this._mw_evt_buffer;
+        const deltaY = deltas.reduce((acc, deltaY) => acc + cap(deltaY, WHEEL_CAP), 0);
+
+        const scale = Math.pow(0.995, deltaY); // 1.005 for inverted pinch/zoom
+        const { x, y } = this.clientToLocalPoint(event.clientX, event.clientY);
+        this.trigger('paper:pinch', event, x, y, scale);
+
+        this._mw_evt_buffer = {
+            event: null,
+            deltas: [],
+        };
+    }, WHEEL_WAIT_MS, { maxWait: WHEEL_WAIT_MS }),
+
     mousewheel: function(evt) {
 
         evt = normalizeEvent(evt);
 
-        var view = this.findView(evt.target);
+        const view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
-        var originalEvent = evt.originalEvent;
-        var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
-        var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
+        const originalEvent = evt.originalEvent;
+        const localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
+        const { deltaX, deltaY } = normalizeWheel(originalEvent);
 
-        if (view) {
-            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
-
+        // Touchpad devices will send a fake CTRL press when a pinch is performed
+        if(evt.ctrlKey) {
+            // Check if there are any subscribers to this event. If there are none,
+            // just skip the entire block of code (we don't want to blindly call
+            // .preventDefault() if we really don't have to).
+            const handlers = this._events['paper:pinch'];
+            if(handlers && handlers.length > 0) {
+                // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
+                originalEvent.preventDefault();
+                this._mw_evt_buffer.event = originalEvent;
+                this._mw_evt_buffer.deltas.push(deltaY);
+                this._processMouseWheelEvtBuf();
+            }
         } else {
-            this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
+            const delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
+            if (view) {
+                view.mousewheel(evt, localPoint.x, localPoint.y, delta);
+
+            } else {
+                this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
+            }
+
+            this.trigger('paper:pan', evt, deltaX, deltaY);
         }
     },
 
