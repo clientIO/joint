@@ -547,7 +547,7 @@ export const CellView = View.extend({
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
             def = this.getAttributeDefinition(attrName);
-            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
+            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs, this))) {
                 if (isString(def.set)) {
                     normalAttrs || (normalAttrs = {});
                     normalAttrs[def.set] = attrVal;
@@ -607,7 +607,7 @@ export const CellView = View.extend({
             // SET - set function should return attributes to be set on the node,
             // which will affect the node dimensions based on the reference bounding
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
-            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
+            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
             if (isObject(setResult)) {
                 assign(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
@@ -649,7 +649,7 @@ export const CellView = View.extend({
             // reference bounding box. The default position of the node is x:0, y:0 of
             // the reference bounding box or could be further specify by some
             // SVG attributes e.g. `x`, `y`
-            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs);
+            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
             if (translation) {
                 nodePosition.offset(Point(translation).scale(sx, sy));
                 positioned || (positioned = true);
@@ -672,7 +672,7 @@ export const CellView = View.extend({
                     // OFFSET - offset function should return a point from the element
                     // bounding box. The default offset point is x:0, y:0 (origin) or could be further
                     // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
-                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs);
+                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs, this);
                     if (translation) {
                         nodePosition.offset(Point(translation).scale(sx, sy));
                         offseted || (offseted = true);
