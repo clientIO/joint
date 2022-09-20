@@ -176,6 +176,51 @@ QUnit.module('cell', function(hooks) {
         });
     });
 
+    QUnit.module('embed', function(hooks) {
+
+        QUnit.test('recursive embed exception', function(assert) {
+
+            var cell = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+            var cell2 = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+
+            this.graph.addCell(cell);
+            this.graph.addCell(cell2);
+
+            cell.embed(cell2);
+            assert.raises(() => { cell2.embed(cell); }, /Recursive embedding not allowed/, 'throws exception on recursive embedding');
+        });
+
+        QUnit.test('embedding of an embedded cell exception', function(assert) {
+
+            var cell = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+            var cell2 = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+            var cell3 = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+
+            this.graph.addCell(cell);
+            this.graph.addCell(cell2);
+            this.graph.addCell(cell3);
+
+            cell.embed(cell2);
+
+            assert.raises(() => { cell3.embed(cell2); }, /Embedding of already embedded cells is not allowed/, 'throws exception on embedding of embedded cell');
+        });
+    });
+
     QUnit.module('remove attributes', function(hooks) {
 
         var /** @type joint.dia.Cell */
