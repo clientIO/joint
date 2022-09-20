@@ -2890,7 +2890,7 @@ export namespace util {
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
-    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any } }): void;
+    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
 
     export function normalizeSides(sides: dia.Sides): dia.PaddingJSON;
 
@@ -3358,19 +3358,19 @@ export namespace mvc {
         protected onRemove(): void;
     }
 
-    type EventCallback = (...args: any[]) => void;
+    type EventCallback<CallbackArgs extends any[]> = (...args: [...CallbackArgs, ...any[]]) => void;
 
-    interface EventHashMap {
-        [eventName: string]: EventCallback;
+    interface EventHashMap<CallbackArgs extends any[]> {
+        [eventName: string]: EventCallback<CallbackArgs>;
     }
 
-    class Listener {
-        constructor(...callbackArguments: any[]);
+    class Listener<Args extends any[]> {
+        constructor(...callbackArguments: Args);
 
-        listenTo(object: any, EventHashMap: EventHashMap, context?: any): void;
-        listenTo(object: any, evt: string, callback: EventCallback, context?: any): void;
+        listenTo(object: any, EventHashMap: EventHashMap<Args>, context?: any): void;
+        listenTo(object: any, evt: string, callback: EventCallback<Args>, context?: any): void;
 
-        stopListeningTo(): void;
+        stopListening(): void;
     }
 }
 

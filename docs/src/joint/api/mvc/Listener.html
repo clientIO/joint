@@ -1,4 +1,4 @@
-<p>Listener is an object that allows you to add listeners to another object's events and then remove them all when needed. Constructor accepts any number of callback arguments - invoking callback function puts provided callback arguments first with rest of the event parameters after. Context is an optional parameter that will be bound as a callback's context if provided.</p>
+<p>A listener is an object that allows you to listen for events triggered by other objects and, if needed, remove them all at once.</p>
 
 <p>Two signatures are used to listen to events:</p>
 <ol>
@@ -23,42 +23,42 @@ const context = { foo: 'bar' };
 listener.listenTo(graph, eventMap, context);</code></pre>
 </ol>
 
-<p>Stop listening to all events that listener is subscribed to:</p>
-<pre><code>const listener = new mvc.Listener(callbackArguments);
-// listener.listenTo(...);
-listener.stopListening();</code></pre>
-
-<p>Example usages:</p>
-<pre><code>class Controller extends mvc.Listener {
+<p>Example usage for toggling between view and edit mode:</p>
+<pre><code>class ViewController extends mvc.Listener {
 
     startListening() {
-        const [{ paper, graph }] = this.callbackArguments;
-        this.listenTo(paper, 'element:pointerclick', (appContext, elementView) => {});
-        this.listenTo(graph, {
-            'remove': (appContext, cell) => {},
-            'add': (appContext, cell) => {}
+        const [paper] = this.callbackArguments;
+        this.listenTo(paper, 'element:mouseenter', (appContext, elementView) => {
+            joint.highlighters.mask.add(elementView, 'highlighted-element');
+        });
+        this.listenTo(paper, 'element:mouseleave', (appContext, elementView) => {
+            joint.highlighters.mask.remove(elementView, 'highlighted-element');
         });
     }
-}</code></pre>
+}
 
-<pre><code>class Controller {
-
-    constructor(appContext) {
-        this.appContext = appContext;
-        this.listener = new Listener(appContext);
-    }
+class EditController extends mvc.Listener {
 
     startListening() {
-        const { paper, graph } = this.appContext;
-        this.listenTo(paper, 'element:pointerclick', (appContext, elementView) => {});
-        this.listenTo(graph, 'remove', (appContext, cell) => {});
+        const [paper] = this.callbackArguments;
+        this.listenTo(paper, 'element:pointerclick', (appContext, elementView) => {
+            elementView.model.remove();
+        });
     }
+}
 
-    listenTo(...args) {
-        this.listener.listenTo(...args);
-    }
+let editMode = false;
+const viewController = new ViewController(paper);
+const editController = new EditController(paper);
+viewController.startListening();
 
-    stopListening() {
-        this.listener.stopListening();
+function toggleView() {
+    editMode = !editMode;
+    if (editMode) {
+        editController.startListening();
+        viewController.stopListening();
+    } else {
+        viewController.startListening();
+        editController.stopListening();
     }
 }</code></pre>
