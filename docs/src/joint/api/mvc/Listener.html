@@ -3,18 +3,18 @@
 <p>Two signatures are used to listen to events:</p>
 <ol>
     <li>Listening to specific event passed as string:</li>
-    <pre><code>const listener = new mvc.Listener(callbackArguments);
-const callback = (callbackArguments, elementView) => {};
+    <pre><code>const listener = new mvc.Listener(callbackArgument);
+const callback = (callbackArgument, elementView) => {};
 listener.listenTo(paper, 'element:pointerclick', callback);
 
 // Optionally
 const context = { foo: 'bar' };
 listener.listenTo(paper, 'element:pointerclick', callback, context);</code></pre>
     <li>Listening to multiple events by passing event map:</li>
-    <pre><code>const listener = new mvc.Listener(callbackArguments);  
+    <pre><code>const listener = new mvc.Listener(callbackArgument);  
 const eventMap = {
-    'remove': (callbackArguments, cell) => {},
-    'add': (callbackArguments, cell) => {}
+    'remove': (callbackArgument, cell) => {},
+    'add': (callbackArgument, cell) => {}
 };
 listener.listenTo(graph, eventMap);
 
@@ -27,9 +27,9 @@ listener.listenTo(graph, eventMap, context);</code></pre>
 <pre><code>class ViewController extends mvc.Listener {
 
     startListening() {
-        const [paper] = this.callbackArguments;
+        const [{ paper }] = this.callbackArguments;
         this.listenTo(paper, 'element:mouseenter', (appContext, elementView) => {
-            joint.highlighters.mask.add(elementView, 'highlighted-element');
+            joint.highlighters.mask.add(elementView, 'body', 'highlighted-element');
         });
         this.listenTo(paper, 'element:mouseleave', (appContext, elementView) => {
             joint.highlighters.mask.remove(elementView, 'highlighted-element');
@@ -40,20 +40,21 @@ listener.listenTo(graph, eventMap, context);</code></pre>
 class EditController extends mvc.Listener {
 
     startListening() {
-        const [paper] = this.callbackArguments;
+        const [{ paper }] = this.callbackArguments;
         this.listenTo(paper, 'element:pointerclick', (appContext, elementView) => {
             elementView.model.remove();
         });
     }
 }
 
-let editMode = false;
-const viewController = new ViewController(paper);
-const editController = new EditController(paper);
-viewController.startListening();
+const appContext = { paper, graph };
 
-function toggleView() {
-    editMode = !editMode;
+const viewController = new ViewController(appContext);
+const editController = new EditController(appContext);
+
+let editMode = false;
+function toggleEditMode(canEdit = !editMode) {
+    editMode = canEdit;
     if (editMode) {
         editController.startListening();
         viewController.stopListening();
@@ -61,4 +62,7 @@ function toggleView() {
         viewController.startListening();
         editController.stopListening();
     }
-}</code></pre>
+}
+
+// start app in view mode
+toggleEditMode(false);</code></pre>
