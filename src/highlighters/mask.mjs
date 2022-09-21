@@ -200,7 +200,7 @@ export const mask = HighlighterView.extend({
             vel.remove();
         }
         const highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
-        const highlightMatrix = cellView.getNodeRotateMatrix(node).multiply(cellView.getNodeMatrix(node));
+        const highlightMatrix = this.getNodeMatrix(cellView, node);
         const maskEl = this.getMask(cellView, V(node));
         this.addMask(cellView.paper, maskEl);
         vel.attr(highlighterBBox.toJSON());

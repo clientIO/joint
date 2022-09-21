@@ -52,7 +52,7 @@ export const stroke = HighlighterView.extend({
     highlightNode(cellView, node) {
         const { vel, options } = this;
         const { padding, layer } = options;
-        let highlightMatrix = cellView.getNodeRotateMatrix(node).multiply(cellView.getNodeMatrix(node));
+        let highlightMatrix = this.getNodeMatrix(cellView, node);
         // Add padding to the highlight element.
         if (padding) {
             if (!layer && node === cellView.el) {

@@ -735,6 +735,144 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.notEqual(elementView.el, highlighter.el.parentNode);
         });
 
+
+        QUnit.module('Rendering', function() {
+
+            QUnit.test('no rotatable group', function(assert) {
+                element.set({
+                    position: { x: 0, y: 0 },
+                    size: { width: 100, height: 100 },
+                    angle: 90,
+                    markup: [
+                        {
+                            tagName: 'rect',
+                            selector: 'rect',
+                        },
+                    ],
+                    attrs: {
+                        rect: {
+                            x: 21,
+                            y: 13,
+                            width: 20,
+                            height: 10
+                        }
+                    }
+                });
+
+                const h1 = joint.highlighters.stroke.add(elementView, 'rect', 'l1', {
+                    layer: 'front',
+                    padding: 0
+                });
+
+                assert.checkBboxApproximately(1/* +- */, h1.vel.getBBox({ target: paper.svg }), {
+                    x: 100 - 13 - 10,
+                    y: 21,
+                    width: 10,
+                    height: 20
+                });
+
+                const h2 = joint.highlighters.stroke.add(elementView, 'rect', 'l0', {
+                    layer: null,
+                    padding: 0
+                });
+
+                assert.checkBboxApproximately(1/* +- */, h2.vel.getBBox({ target: paper.svg }), {
+                    x: 100 - 13 - 10,
+                    y: 21,
+                    width: 10,
+                    height: 20
+                });
+            });
+
+            QUnit.test('rotatable group', function(assert) {
+                element.set({
+                    position: { x: 0, y: 0 },
+                    size: { width: 100, height: 100 },
+                    angle: 90,
+                    markup: [
+                        {
+                            tagName: 'g',
+                            selector: 'rotatable',
+                            children: [
+                                {
+                                    tagName: 'rect',
+                                    selector: 'rectInside',
+                                }
+                            ],
+                        }, {
+                            tagName: 'rect',
+                            selector: 'rectOutside',
+                        },
+                    ],
+                    attrs: {
+                        rectInside: {
+                            x: 21,
+                            y: 13,
+                            width: 20,
+                            height: 10
+                        },
+                        rectOutside: {
+                            x: 7,
+                            y: 5,
+                            width: 20,
+                            height: 10,
+                            fill: 'red'
+                        }
+                    }
+                });
+
+                const h1 = joint.highlighters.stroke.add(elementView, 'rectInside', 'in1', {
+                    layer: 'front',
+                    padding: 0,
+                    attrs: { stroke: 'green' }
+                });
+
+                assert.checkBboxApproximately(1/* +- */, h1.vel.getBBox({ target: paper.svg }), {
+                    x: 100 - 13 - 10,
+                    y: 21,
+                    width: 10,
+                    height: 20
+                });
+
+                const h2 = joint.highlighters.stroke.add(elementView, 'rectOutside', 'out1', {
+                    layer: 'front',
+                    padding: 0,
+                    attrs: { stroke: 'gray' }
+                });
+
+                assert.checkBboxApproximately(1/* +- */, h2.vel.getBBox({ target: paper.svg }), {
+                    x: 7,
+                    y: 5,
+                    width: 20,
+                    height: 10
+                });
+
+                const h3 = joint.highlighters.stroke.add(elementView, 'rectInside', 'in2', {
+                    layer: null,
+                    padding: 0,
+                });
+
+                assert.checkBboxApproximately(1/* +- */, h3.vel.getBBox({ target: paper.svg }), {
+                    x: 100 - 13 - 10,
+                    y: 21,
+                    width: 10,
+                    height: 20
+                });
+
+                const h4 = joint.highlighters.stroke.add(elementView, 'rectOutside', 'out2', {
+                    layer: null,
+                    padding: 0
+                });
+
+                assert.checkBboxApproximately(1/* +- */, h4.vel.getBBox({ target: paper.svg }), {
+                    x: 7,
+                    y: 5,
+                    width: 20,
+                    height: 10
+                });
+
+            });
+        });
     });
 
     QUnit.module('list', function() {

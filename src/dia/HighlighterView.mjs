@@ -70,6 +70,26 @@ export const HighlighterView = mvc.View.extend({
         return el ? el : null;
     },
 
+    getNodeMatrix(cellView, node) {
+        const { options } = this;
+        const { layer } = options;
+        const { rotatableNode } = cellView;
+        const nodeMatrix = cellView.getNodeMatrix(node);
+        if (rotatableNode) {
+            if (layer) {
+                if (rotatableNode.contains(node)) {
+                    return nodeMatrix;
+                }
+                // The node is outside of the rotatable group.
+                // Compensate the rotation set by transformGroup.
+                return cellView.getRootRotateMatrix().inverse().multiply(nodeMatrix);
+            } else {
+                return cellView.getNodeRotateMatrix(node).multiply(nodeMatrix);
+            }
+        }
+        return nodeMatrix;
+    },
+
     mount() {
         const { MOUNTABLE, cellView, el, options, transformGroup } = this;
         if (!MOUNTABLE || transformGroup) return;
