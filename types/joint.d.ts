@@ -1,4 +1,3 @@
-import { g } from './geometry';
 
 export const version: string;
 
