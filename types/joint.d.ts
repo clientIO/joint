@@ -1843,6 +1843,8 @@ export namespace dia {
 
         protected onCellAttributeChange(): void;
 
+        protected getNodeMatrix(cellView: dia.CellView, node: SVGElement): SVGMatrix;
+
         static uniqueId(node: SVGElement, options?: any): string;
 
         static add<T extends HighlighterView>(
