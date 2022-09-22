@@ -1108,6 +1108,8 @@ export namespace dia {
 
         protected dragEnd(evt: dia.Event, x: number, y: number): void;
 
+        protected findPath(route: Point[], sourcePoint: Point, targetPoint: Point): g.Path;
+
         protected notifyPointerdown(evt: dia.Event, x: number, y: number): void;
 
         protected notifyPointermove(evt: dia.Event, x: number, y: number): void;

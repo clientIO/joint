@@ -291,7 +291,7 @@ export namespace g {
 
         clone(): Line;
 
-        parallel(): Line;
+        parallel(distance: number): Line;
 
         closestPoint(p: PlainPoint | string): Point;
 
