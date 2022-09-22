@@ -1,3 +1,4 @@
+import { g } from './geometry';
 
 export const version: string;
 
@@ -1107,6 +1108,8 @@ export namespace dia {
         protected dragArrowheadEnd(evt: dia.Event, x: number, y: number): void;
 
         protected dragEnd(evt: dia.Event, x: number, y: number): void;
+
+        protected findPath(route: Point[], sourcePoint: Point, targetPoint: Point): g.Path;
 
         protected notifyPointerdown(evt: dia.Event, x: number, y: number): void;
 
