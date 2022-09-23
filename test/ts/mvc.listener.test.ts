@@ -52,12 +52,7 @@ listener.listenTo<dia.Paper.EventMap['blank:pointerclick']>(paper, 'blank:pointe
     element.position(x, y);
 });
 
-type EventMap = {
-    'cell:pointerdblclick': dia.Paper.EventMap['cell:pointerdblclick'],
-    'blank:pointerclick': dia.Paper.EventMap['blank:pointerclick']
-};
-
-listener.listenTo<EventMap>(paper, {
+listener.listenTo<dia.Paper.EventMap>(paper, {
     'cell:pointerdblclick': ({ graph }, cellMap, _elementView, _evt, _x, _y) => {
         const element1 = graph.getCell(cellMap.rect1.id) as dia.Element;
         const element2 = cellMap['rect1'] as dia.Element;

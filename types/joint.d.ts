@@ -1387,7 +1387,7 @@ export namespace dia {
             // render
             'render:done': (stats: UpdateStats, opt: any) => void;
             // custom
-            [eventName: string]: ((cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void) | Backbone.EventHandler;
+            [eventName: string]: Backbone.EventHandler;
         }
     }
 
@@ -3361,7 +3361,7 @@ export namespace mvc {
     type EventCallback<CallbackArgs extends any[], EventCallBack extends (...args: any[]) => any> = (...args: [...CallbackArgs, ...Parameters<EventCallBack>]) => any;
 
     type EventHashMap<CallbackArgs extends any[], T extends Record<keyof T, (...args: any[]) => any>> = {
-        [Property in keyof T]: EventCallback<CallbackArgs, T[Property]>;
+        [Property in keyof T]?: EventCallback<CallbackArgs, T[Property]>;
     }; 
 
     class Listener<Args extends any[]> {
