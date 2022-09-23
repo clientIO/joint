@@ -1,0 +1,68 @@
+<p>A listener is an object that allows you to listen for events triggered by other objects and, if needed, remove them all at once.</p>
+
+<p>Two signatures are used to listen to events:</p>
+<ol>
+    <li>Listening to specific event passed as string:</li>
+    <pre><code>const listener = new mvc.Listener(callbackArgument);
+const callback = (callbackArgument, elementView) => {};
+listener.listenTo(paper, 'element:pointerclick', callback);
+
+// Optionally
+const context = { foo: 'bar' };
+listener.listenTo(paper, 'element:pointerclick', callback, context);</code></pre>
+    <li>Listening to multiple events by passing event map:</li>
+    <pre><code>const listener = new mvc.Listener(callbackArgument);  
+const eventMap = {
+    'remove': (callbackArgument, cell) => {},
+    'add': (callbackArgument, cell) => {}
+};
+listener.listenTo(graph, eventMap);
+
+// Optionally
+const context = { foo: 'bar' };
+listener.listenTo(graph, eventMap, context);</code></pre>
+</ol>
+
+<p>Example usage for toggling between view and edit mode:</p>
+<pre><code>class ViewController extends mvc.Listener {
+
+    startListening() {
+        const [{ paper }] = this.callbackArguments;
+        this.listenTo(paper, 'element:mouseenter', (appContext, elementView) => {
+            joint.highlighters.mask.add(elementView, 'body', 'highlighted-element');
+        });
+        this.listenTo(paper, 'element:mouseleave', (appContext, elementView) => {
+            joint.highlighters.mask.remove(elementView, 'highlighted-element');
+        });
+    }
+}
+
+class EditController extends mvc.Listener {
+
+    startListening() {
+        const [{ paper }] = this.callbackArguments;
+        this.listenTo(paper, 'element:pointerclick', (appContext, elementView) => {
+            elementView.model.remove();
+        });
+    }
+}
+
+const appContext = { paper, graph };
+
+const viewController = new ViewController(appContext);
+const editController = new EditController(appContext);
+
+let editMode = false;
+function toggleEditMode(canEdit = !editMode) {
+    editMode = canEdit;
+    if (editMode) {
+        editController.startListening();
+        viewController.stopListening();
+    } else {
+        viewController.startListening();
+        editController.stopListening();
+    }
+}
+
+// start app in view mode
+toggleEditMode(false);</code></pre>
