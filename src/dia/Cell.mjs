@@ -323,7 +323,7 @@ export const Cell = Backbone.Model.extend({
         if (!this.canEmbed(cells)) {
             throw new Error('Recursive embedding not allowed.');
         }
-        if (cells.some(c => c.isEmbedded())) {
+        if (cells.some(c => c.isEmbedded() && this.id !== c.parent())) {
             throw new Error('Embedding of already embedded cells is not allowed.');
         }
         this._embedCells(cells, opt);

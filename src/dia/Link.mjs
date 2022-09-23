@@ -486,7 +486,7 @@ export const Link = Cell.extend({
                 prevParent.unembed(this, opt);
             }
 
-            if (newParent && (!prevParent || newParent.id !== prevParent.id)) {
+            if (newParent) {
                 newParent.embed(this, opt);
             }
         }
