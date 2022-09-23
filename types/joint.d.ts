@@ -3358,17 +3358,19 @@ export namespace mvc {
         protected onRemove(): void;
     }
 
-    type EventCallback<CallbackArgs extends any[], EventCallBack extends (...args: any[]) => any> = (...args: [...CallbackArgs, ...Parameters<EventCallBack>]) => any;
+    type ModifiedCallback<CallbackArgs extends any[], EventCallback extends Callback> = (...args: [...CallbackArgs, ...Parameters<EventCallback>]) => any;
 
-    type EventHashMap<CallbackArgs extends any[], T extends Record<keyof T, (...args: any[]) => any>> = {
-        [Property in keyof T]?: EventCallback<CallbackArgs, T[Property]>;
+    type EventHashMap<CallbackArgs extends any[], T extends Record<keyof T, Callback>> = {
+        [Property in keyof T]?: ModifiedCallback<CallbackArgs, T[Property]>;
     }; 
+
+    type Callback = (...args: any[]) => any;
 
     class Listener<Args extends any[]> {
         constructor(...callbackArguments: Args);
 
-        listenTo<Event extends (...args: any[]) => any>(object: any, evt: string, callback: EventCallback<Args, Event>, context?: any): void;
-        listenTo<Events extends Record<keyof Events, (...args: any[]) => any> = { [eventName: string]: (...args: any[]) => any }>(object: any, eventHashMap: EventHashMap<Args, Events>, context?: any): void
+        listenTo<CB extends Callback>(object: any, evt: string, callback: ModifiedCallback<Args, CB>, context?: any): void;
+        listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void
 
         stopListening(): void;
     }
