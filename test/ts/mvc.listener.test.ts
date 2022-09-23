@@ -6,6 +6,7 @@ type Args = [
 ]
 
 const graph = new dia.Graph();
+const paper = new dia.Paper({ model: graph });
 const rect1 = new shapes.standard.Rectangle();
 const link1 = new shapes.standard.Link();
 graph.addCells([rect1, link1]);
@@ -43,5 +44,28 @@ listener.listenTo(graph, {
         const link2 = cellMap['link1'] as dia.Link;
         link1.attr({ line: { stroke: 'yellow' }});
         link2.attr({ line: { stroke: 'red' }});
+    }
+});
+
+listener.listenTo<dia.Paper.EventMap['blank:pointerclick']>(paper, 'blank:pointerclick', ({ graph }, cellMap, _evt, x, y) => {
+    const element = graph.getCell(cellMap.rect1.id) as dia.Element;
+    element.position(x, y);
+});
+
+type EventMap = {
+    'cell:pointerdblclick': dia.Paper.EventMap['cell:pointerdblclick'],
+    'blank:pointerclick': dia.Paper.EventMap['blank:pointerclick']
+};
+
+listener.listenTo<EventMap>(paper, {
+    'cell:pointerdblclick': ({ graph }, cellMap, _elementView, _evt, _x, _y) => {
+        const element1 = graph.getCell(cellMap.rect1.id) as dia.Element;
+        const element2 = cellMap['rect1'] as dia.Element;
+        element1.attr({ body: { fill: 'yellow' }});
+        element2.attr({ body: { fill: 'red' }});
+    },
+    'blank:pointerclick': ({ graph }, cellMap, _evt, x, y) => {
+        const element = graph.getCell(cellMap.rect1.id) as dia.Element;
+        element.position(x, y);
     }
 });

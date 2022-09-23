@@ -3358,17 +3358,17 @@ export namespace mvc {
         protected onRemove(): void;
     }
 
-    type EventCallback<CallbackArgs extends any[]> = (...args: [...CallbackArgs, ...any[]]) => void;
+    type EventCallback<CallbackArgs extends any[], EventCallBack extends (...args: any[]) => any> = (...args: [...CallbackArgs, ...Parameters<EventCallBack>]) => any;
 
-    interface EventHashMap<CallbackArgs extends any[]> {
-        [eventName: string]: EventCallback<CallbackArgs>;
-    }
+    type EventHashMap<CallbackArgs extends any[], T extends Record<keyof T, (...args: any[]) => any>> = {
+        [Property in keyof T]: EventCallback<CallbackArgs, T[Property]>;
+    }; 
 
     class Listener<Args extends any[]> {
         constructor(...callbackArguments: Args);
 
-        listenTo(object: any, EventHashMap: EventHashMap<Args>, context?: any): void;
-        listenTo(object: any, evt: string, callback: EventCallback<Args>, context?: any): void;
+        listenTo<Event extends (...args: any[]) => any>(object: any, evt: string, callback: EventCallback<Args, Event>, context?: any): void;
+        listenTo<Events extends Record<keyof Events, (...args: any[]) => any> = { [eventName: string]: (...args: any[]) => any }>(object: any, eventHashMap: EventHashMap<Args, Events>, context?: any): void
 
         stopListening(): void;
     }
