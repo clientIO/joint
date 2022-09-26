@@ -312,6 +312,14 @@ export const normalizeWheel = function(evt) {
         }
     }
 
+    // macOS switches deltaX and deltaY automatically when scrolling with shift key, so this is needed in other cases
+    if (evt.deltaX === 0 && evt.deltaY !== 0 && evt.shiftKey) {
+        pX = pY;
+        pY = 0;
+        sX = sY;
+        sY = 0;
+    }
+
     // Fall-back if spin cannot be determined
     if (pX && !sX) { sX = (pX < 1) ? -1 : 1; }
     if (pY && !sY) { sY = (pY < 1) ? -1 : 1; }
