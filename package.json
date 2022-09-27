@@ -14,7 +14,7 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "sideEffects": false,
-  "version": "3.5.5",
+  "version": "3.6.0-beta.0",
   "main": "dist/joint.min.js",
   "module": "joint.mjs",
   "style": "./dist/joint.min.css",
@@ -29,7 +29,8 @@
     "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
     "Vladimir Talas <lades@client.io> (https://github.com/vtalas)",
     "James Williams <james@client.io> (https://github.com/jamesgeorgewilliams)",
-    "Arthur Khokhlov <arthur@client.io> (https://github.com/Geliogabalus)"
+    "Arthur Khokhlov <arthur@client.io> (https://github.com/Geliogabalus)",
+    "Martin Kanera <martinkanera@client.io> (https://github.com/MartinKanera)"
   ],
   "repository": {
     "type": "git",
