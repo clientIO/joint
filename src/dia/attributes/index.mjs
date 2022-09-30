@@ -319,7 +319,12 @@ const attributesNS = {
             if (isCalcAttribute(x)) {
                 textAttrs.x = evalCalcAttribute(x, refBBox);
             }
-            var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
+            
+            let fontSizeAttr = attrs['font-size'] || attrs['fontSize'];
+            if (isCalcAttribute(fontSizeAttr)) {
+                fontSizeAttr = evalCalcAttribute(fontSizeAttr, refBBox);
+            }
+            var fontSize = textAttrs.fontSize = fontSizeAttr;
             var textHash = JSON.stringify([text, textAttrs]);
             // Update the text only if there was a change in the string
             // or any of its attributes.
@@ -387,9 +392,10 @@ const attributesNS = {
             if (text === undefined) text = attrs.text;
             if (text !== undefined) {
                 const breakTextFn = value.breakText || breakText;
+                const fontSizeAttr = attrs['font-size'] || attrs.fontSize;
                 wrappedText = breakTextFn('' + text, size, {
                     'font-weight': attrs['font-weight'] || attrs.fontWeight,
-                    'font-size': attrs['font-size'] || attrs.fontSize,
+                    'font-size': isCalcAttribute(fontSizeAttr) ? evalCalcAttribute(fontSizeAttr, refBBox) : fontSizeAttr,
                     'font-family': attrs['font-family'] || attrs.fontFamily,
                     'lineHeight': attrs.lineHeight,
                     'letter-spacing': 'letter-spacing' in attrs ? attrs['letter-spacing'] : attrs.letterSpacing

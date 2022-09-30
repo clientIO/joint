@@ -47,7 +47,7 @@ rectangle1.addTo(graph);
 const rectangle2 = rectangle1.clone();
 rectangle2.position(500, 100);
 rectangle2.attr('label/text', 'strokeWidth');
-rectangle2.attr('body/strokeWidth', 'calc(0.1 * h)');
+rectangle2.attr('body/strokeWidth', 'calc(0.1 * s)');
 rectangle2.addTo(graph);
 rectangle2.findView(paper).addTools(
     new joint.dia.ToolsView({
@@ -62,8 +62,16 @@ rectangle2.findView(paper).addTools(
     })
 );
 
-rectangle1.attr('label/fontSize', 'calc(0.8 * h)');
-rectangle1.attr('label/text', 'fontSize');
+rectangle1.attr('label', {
+    text: 'fontSize',
+    fontSize: 'calc(0.8 * h)',
+    textWrap: {
+        width: -10,
+        height: '100%',
+        ellipsis: true
+    }
+});
+
 rectangle1.findView(paper).addTools(
     new joint.dia.ToolsView({
         tools: [
