@@ -679,6 +679,8 @@ attributesNS['xlink:href'] = attributesNS.xlinkHref;
     'width', 'height', // rect / image
     'r', // circle
     'rx', 'ry', // rect / ellipse
+    'font-size', // text
+    'stroke-width' // elements
 ].forEach(attribute => {
     attributesNS[attribute] = {
         qualify: isCalcAttribute,
@@ -695,6 +697,8 @@ attributesNS.refD = attributesNS.refDResetOffset;
 attributesNS.refPoints = attributesNS.refPointsResetOffset;
 attributesNS.atConnectionLength = attributesNS.atConnectionLengthKeepGradient;
 attributesNS.atConnectionRatio = attributesNS.atConnectionRatioKeepGradient;
+attributesNS.fontSize = attributesNS['font-size'];
+attributesNS.strokeWidth = attributesNS['stroke-width'];
 
 // This allows to combine both absolute and relative positioning
 // refX: 50%, refX2: 20
