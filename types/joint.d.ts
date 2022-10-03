@@ -3327,6 +3327,8 @@ export namespace mvc {
 
         childNodes?: { [key: string]: Element } | null;
 
+        style?: { [key: string]: any };
+
         setTheme(theme: string, opt?: { override?: boolean }): this;
 
         getEventNamespace(): string;
