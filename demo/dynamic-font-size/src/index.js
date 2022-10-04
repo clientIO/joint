@@ -25,17 +25,7 @@ const ResizeTool = joint.elementTools.Control.extend({
     },
     setPosition: function(view, coordinates) {
         const model = view.model;
-        model.set(
-            'size',
-            {
-                width: Math.max(coordinates.x, 1),
-                height: Math.max(coordinates.y, 1)
-            },
-            {
-                ui: true,
-                tool: this.cid
-            }
-        );
+        model.resize(Math.max(coordinates.x, 1), Math.max(coordinates.y, 1));
     }
 });
 
