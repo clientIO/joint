@@ -9,7 +9,7 @@
 <pre><code>// `standard.Rectangle` has `root`, `body` and `label` subelements
 const rect = new joint.shapes.standard.Rectangle();
 // we want to have the `label` on the outside and under the `body` of the rectangle:
-rect.attr(['label'], { refY: '100%', textVerticalAnchor: 'top' });
+rect.attr(['label'], { y: 'calc(0.5*h)', textVerticalAnchor: 'top' });
 // normally, when a user tries to embed a child to the rectangle, the `root` subelement would be highlighted (the wrapper of `body` and `label`)
 // however, we want only the `body` to be highlighted, so we need to specify it as a proxy for `root`:
 rect.attr(['root', 'containerSelector'], 'body');
