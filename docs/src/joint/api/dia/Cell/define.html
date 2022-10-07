@@ -10,16 +10,16 @@ var Ellipse = joint.dia.Element.define('examples.Ellipse', {
     markup: [{
         tagName: 'ellipse',
         selector: 'ellipse' // not necessary but faster
-    ],
+    }],
     attrs: {
         ellipse: {
             fill: 'white',
             stroke: 'black',
             strokeWidth: 4,
-            refRx: .5,
-            refRy: .5,
-            refCx: .5,
-            refCy: .5
+            rx: 'calc(0.5*w)',
+            ry: 'calc(0.5*h)',
+            cx: 'calc(0.5*w)',
+            cy: 'calc(0.5*h)'
         }
     }
 });
