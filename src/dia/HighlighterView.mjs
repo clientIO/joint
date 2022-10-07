@@ -263,12 +263,8 @@ export const HighlighterView = mvc.View.extend({
             for (let hid in _views[cid]) {
                 const view = _views[cid][hid];
 
-                if (view.cellView.paper === paper && view instanceof this) {
-                    if (id === null) {
-                        view.remove();
-                    } else if (id === hid) {
-                        view.remove();
-                    }
+                if (view.cellView.paper === paper && view instanceof this && (id === null || hid === id)) {
+                    view.remove();
                 }
             }
         }
