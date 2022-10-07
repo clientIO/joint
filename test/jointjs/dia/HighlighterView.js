@@ -114,6 +114,65 @@ QUnit.module('HighlighterView', function(hooks) {
 
     });
 
+    QUnit.module('static removeAll()', function() {
+
+        QUnit.test('removeAll(paper)', function(assert) {
+
+            const highlighterId1 = 'highlighter-id-1';
+            const highlighterId2 = 'highlighter-id-2';
+
+            const graph2 = new joint.dia.Graph();
+            const paper2 = new joint.dia.Paper({ model: graph2 });
+            const element2 = element.clone();
+            const element3 = element.clone();
+
+            element2.addTo(graph2);
+            element3.addTo(graph);
+
+            const elementView2 = element2.findView(paper2);
+            const elementView3 = element3.findView(paper);
+
+            joint.dia.HighlighterView.add(elementView, 'body', highlighterId1);
+            joint.dia.HighlighterView.add(elementView, 'body', highlighterId2);
+            joint.dia.HighlighterView.add(elementView2, 'body', highlighterId1);
+            joint.dia.HighlighterView.add(elementView3, 'body', highlighterId1);
+            joint.dia.HighlighterView.removeAll(paper);
+
+            assert.equal(joint.dia.HighlighterView.get(elementView, highlighterId1), null);
+            assert.equal(joint.dia.HighlighterView.get(elementView, highlighterId2), null);
+            assert.ok(joint.dia.HighlighterView.get(elementView2, highlighterId1));
+            assert.equal(joint.dia.HighlighterView.get(elementView3, highlighterId1), null);
+        });
+
+        QUnit.test('removeAll(paper, id)', function(assert) {
+
+            const highlighterId1 = 'highlighter-id-1';
+            const highlighterId2 = 'highlighter-id-2';
+
+            const graph2 = new joint.dia.Graph();
+            const paper2 = new joint.dia.Paper({ model: graph2 });
+            const element2 = element.clone();
+            const element3 = element.clone();
+
+            element2.addTo(graph2);
+            element3.addTo(graph);
+
+            const elementView2 = element2.findView(paper2);
+            const elementView3 = element3.findView(paper);
+
+            joint.dia.HighlighterView.add(elementView, 'body', highlighterId1);
+            joint.dia.HighlighterView.add(elementView, 'body', highlighterId2);
+            joint.dia.HighlighterView.add(elementView2, 'body', highlighterId1);
+            joint.dia.HighlighterView.add(elementView3, 'body', highlighterId1);
+            joint.dia.HighlighterView.removeAll(paper, highlighterId1);
+
+            assert.equal(joint.dia.HighlighterView.get(elementView, highlighterId1), null);
+            assert.ok(joint.dia.HighlighterView.get(elementView, highlighterId2));
+            assert.ok(joint.dia.HighlighterView.get(elementView2, highlighterId1));
+            assert.equal(joint.dia.HighlighterView.get(elementView3, highlighterId1), null);
+        });
+    });
+
     QUnit.module('base class', function() {
 
         QUnit.module('options', function() {

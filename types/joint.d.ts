@@ -1862,6 +1862,11 @@ export namespace dia {
             id?: string
         ): void;
 
+        static removeAll(
+            paper: dia.Paper,
+            id?: string
+        ): void;
+
         static get<T extends HighlighterView>(
             this: HighlighterView.Constructor<T>,
             cellView: dia.CellView,
