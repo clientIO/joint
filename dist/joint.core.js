@@ -1,4 +1,4 @@
-/*! JointJS v3.6.0-beta.0 (2022-09-27) - JavaScript diagramming library
+/*! JointJS v3.6.0-beta.1 (2022-10-07) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -12779,7 +12779,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            if (isCalcAttribute(x)) {
 	                textAttrs.x = evalCalcAttribute(x, refBBox);
 	            }
-	            var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
+	            
+	            var fontSizeAttr = attrs['font-size'] || attrs['fontSize'];
+	            if (isCalcAttribute(fontSizeAttr)) {
+	                fontSizeAttr = evalCalcAttribute(fontSizeAttr, refBBox);
+	            }
+	            var fontSize = textAttrs.fontSize = fontSizeAttr;
 	            var textHash = JSON.stringify([text, textAttrs]);
 	            // Update the text only if there was a change in the string
 	            // or any of its attributes.
@@ -12844,9 +12849,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            if (text === undefined) { text = attrs.text; }
 	            if (text !== undefined) {
 	                var breakTextFn = value.breakText || breakText;
+	                var fontSizeAttr = attrs['font-size'] || attrs.fontSize;
 	                wrappedText = breakTextFn('' + text, size, {
 	                    'font-weight': attrs['font-weight'] || attrs.fontWeight,
-	                    'font-size': attrs['font-size'] || attrs.fontSize,
+	                    'font-size': isCalcAttribute(fontSizeAttr) ? evalCalcAttribute(fontSizeAttr, refBBox) : fontSizeAttr,
 	                    'font-family': attrs['font-family'] || attrs.fontFamily,
 	                    'lineHeight': attrs.lineHeight,
 	                    'letter-spacing': 'letter-spacing' in attrs ? attrs['letter-spacing'] : attrs.letterSpacing
@@ -13139,7 +13145,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	[
 	    'width', 'height', // rect / image
 	    'r', // circle
-	    'rx', 'ry' ].forEach(function (attribute) {
+	    'rx', 'ry', // rect / ellipse
+	    'font-size', // text
+	    'stroke-width' // elements
+	].forEach(function (attribute) {
 	    attributesNS[attribute] = {
 	        qualify: isCalcAttribute,
 	        set: function setCalcAttribute(value, refBBox) {
@@ -13157,6 +13166,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	attributesNS.refPoints = attributesNS.refPointsResetOffset;
 	attributesNS.atConnectionLength = attributesNS.atConnectionLengthKeepGradient;
 	attributesNS.atConnectionRatio = attributesNS.atConnectionRatioKeepGradient;
+	attributesNS.fontSize = attributesNS['font-size'];
+	attributesNS.strokeWidth = attributesNS['stroke-width'];
 
 	// This allows to combine both absolute and relative positioning
 	// refX: 50%, refX2: 20
@@ -16770,6 +16781,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        toArray$1(this.get(cellView, id)).forEach(function (view) {
 	            view.remove();
 	        });
+	    },
+
+	    removeAll: function removeAll(paper, id) {
+	        if ( id === void 0 ) id = null;
+
+	        var ref = this;
+	        var _views = ref._views;
+
+	        for (var cid in _views) {
+	            for (var hid in _views[cid]) {
+	                var view = _views[cid][hid];
+
+	                if (view.cellView.paper === paper && view instanceof this && (id === null || hid === id)) {
+	                    view.remove();
+	                }
+	            }
+	        }
 	    },
 
 	    update: function update(cellView, id, dirty) {
@@ -32692,7 +32720,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.6.0-beta.0";
+	var version = "3.6.0-beta.1";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

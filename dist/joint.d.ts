@@ -1,4 +1,4 @@
-/*! JointJS v3.6.0-beta.0 (2022-09-27) - JavaScript diagramming library
+/*! JointJS v3.6.0-beta.1 (2022-10-07) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3024,6 +3024,11 @@ export namespace dia {
             id?: string
         ): void;
 
+        static removeAll(
+            paper: dia.Paper,
+            id?: string
+        ): void;
+
         static get<T extends HighlighterView>(
             this: HighlighterView.Constructor<T>,
             cellView: dia.CellView,
@@ -4488,6 +4493,8 @@ export namespace mvc {
         children?: dia.MarkupJSON;
 
         childNodes?: { [key: string]: Element } | null;
+
+        style?: { [key: string]: any };
 
         setTheme(theme: string, opt?: { override?: boolean }): this;
 
