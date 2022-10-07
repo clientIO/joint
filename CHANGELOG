@@ -1,6 +1,7 @@
 XX-10-2022 (v3.6)
 
 * replace phantomjs with puppeteer
+* demo.Sequence - add editing capabilities
 * demo.ELK - hide details when zoomed out
 * dia.Paper - support `pointerdblclick` on touch devices
 * dia.Paper - consistent firing of `contextmenu` event
@@ -11,6 +12,8 @@ XX-10-2022 (v3.6)
 * dia.ElementView - fix `getNodeMatrix()` and `getNodeBBox()` for elements with rotatable group
 * dia.CellView - passing cellView instance to attribute's set, qualify, position and offset methods
 * dia.Cell - throw exception on embedding of an embedded cell
+* dia.HighlighterView - add `removeAll` static method
+* dia.HighlighterView - add UPDATE_ATTRIBUTES property
 * elementTools - add `scale` option
 * elementTools.HoverConnect - new connection tool displayed on mouseover
 * elementTools.Button - enable `calc()` expression for `x` and `y`
@@ -24,8 +27,9 @@ XX-10-2022 (v3.6)
 * highlighters.stroke - fix rotation and position for nodes within rotatable group
 * dia.attributes - `calc()` expression supports division
 * dia.attributes - enable `calc()` expression for `width` and `height` for `textWrap` attribute
-* dia.attributes - use cached segments subdivisions for calculating the connection stubs
+* dia.attributes - `fontSize` and `strokeWidth` use `calc()`
 * dia.attributes - prevent negative values for dimension attributes
+* dia.attributes - use cached segments subdivisions for calculating the connection stubs
 * mvc.Listener -  add new class for attaching multiple event listeners on multiple objects.
 * util.svg - tagged SVG template
 * util.breakText - add `preserveSpaces` options
