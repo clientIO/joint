@@ -209,7 +209,7 @@ var link2 = new joint.dia.Link({
                 fill: '#ff0000', // default text color
                 fontSize: 14,
                 textAnchor: 'middle',
-                yAlignment: 'middle',
+                textVerticalAnchor: 'middle',
                 pointerEvents: 'none'
             },
             body: {
@@ -217,9 +217,7 @@ var link2 = new joint.dia.Link({
                 fill: '#ffffff',
                 stroke: '#000000',
                 strokeWidth: 1,
-                r: 'calc(s)',
-                cx: 0,
-                cy: 0
+                r: 'calc(d/2 + 2)'
             }
         },
         position: {
