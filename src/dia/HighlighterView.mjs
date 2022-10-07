@@ -256,6 +256,24 @@ export const HighlighterView = mvc.View.extend({
         });
     },
 
+    removeAll(paper, id = null) {
+        const { _views } = this;
+
+        for (let cid in _views) {
+            for (let hid in _views[cid]) {
+                const view = _views[cid][hid];
+
+                if (view.cellView.paper === paper && view instanceof this) {
+                    if (id === null) {
+                        view.remove();
+                    } else if (id === hid) {
+                        view.remove();
+                    }
+                }
+            }
+        }
+    },
+
     update(cellView, id = null, dirty = false) {
         toArray(this.get(cellView, id)).forEach(view => {
             if (dirty || view.UPDATABLE) view.update();

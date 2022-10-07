@@ -15,7 +15,6 @@ import { config } from './config/index.mjs';
 import V from './V/index.mjs';
 import * as Port from './layout/ports/port.mjs';
 import * as PortLabel from './layout/ports/portLabel.mjs';
-import * as highlighter from './highlighter/index.mjs';
 
 export * from '../dist/version.mjs';
 export const Vectorizer = V;
@@ -36,8 +35,7 @@ export {
     linkTools,
     elementTools,
     V,
-    g,
-    highlighter
+    g
 };
 export const setTheme = function(theme, opt) {
 

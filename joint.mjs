@@ -21,8 +21,7 @@ export {
     Vectorizer,
     V,
     version,
-    g,
-    highlighter
+    g
 } from './src/core.mjs';
 
 export { layout, shapes };
