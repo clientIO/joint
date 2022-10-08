@@ -1,4 +1,4 @@
-XX-10-2022 (v3.6)
+XX-10-2022 (v3.6.0)
 
   * replace phantomjs with puppeteer
   * demo.Sequence - add editing capabilities
@@ -17,8 +17,8 @@ XX-10-2022 (v3.6)
   * elementTools - add `scale` option
   * elementTools.HoverConnect - new connection tool displayed on mouseover
   * elementTools.Button - enable `calc()` expression for `x` and `y`
-  * linkTools: add `scale` option
-  * linkTools.HoverConnect: new connection tool displayed on mouseover
+  * linkTools - add `scale` option
+  * linkTools.HoverConnect - new connection tool displayed on mouseover
   * linkTools.Connect - fix touch support
   * connectors.Curve - add `rotate` option
   * layout.Port -  enable the use of the `calc()` expression for port positioning
