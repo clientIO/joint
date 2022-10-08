@@ -1,41 +1,41 @@
 XX-10-2022 (v3.6)
 
-* replace phantomjs with puppeteer
-* demo.Sequence - add editing capabilities
-* demo.ELK - hide details when zoomed out
-* dia.Paper - support `pointerdblclick` on touch devices
-* dia.Paper - consistent firing of `contextmenu` event
-* dia.Paper - fix memory leak (layers not being removed)
-* dia.Paper - 2-axis-scroll / pinch-to-zoom support
-* dia.Paper - add `snapLinksSelf` option to snap arrowhead to the anchor and vertices
-* dia.ElementView - findPortNode() search for all port nodes; add portRoot and labelRoot selectors
-* dia.ElementView - fix `getNodeMatrix()` and `getNodeBBox()` for elements with rotatable group
-* dia.CellView - passing cellView instance to attribute's set, qualify, position and offset methods
-* dia.Cell - throw exception on embedding of an embedded cell
-* dia.HighlighterView - add `removeAll` static method
-* dia.HighlighterView - add UPDATE_ATTRIBUTES property
-* elementTools - add `scale` option
-* elementTools.HoverConnect - new connection tool displayed on mouseover
-* elementTools.Button - enable `calc()` expression for `x` and `y`
-* linkTools: add `scale` option
-* linkTools.HoverConnect: new connection tool displayed on mouseover
-* linkTools.Connect - fix touch support
-* connectors.Curve - add `rotate` option
-* layout.Port -  enable the use of the `calc()` expression for port positioning
-* highlighters.list - add a new highlighter to render a dynamic list of icons
-* highlighters.mask - fix rotation and position for nodes within rotatable group
-* highlighters.stroke - fix rotation and position for nodes within rotatable group
-* dia.attributes - `calc()` expression supports division
-* dia.attributes - enable `calc()` expression for `width` and `height` for `textWrap` attribute
-* dia.attributes - `fontSize` and `strokeWidth` use `calc()`
-* dia.attributes - prevent negative values for dimension attributes
-* dia.attributes - use cached segments subdivisions for calculating the connection stubs
-* mvc.Listener -  add new class for attaching multiple event listeners on multiple objects.
-* util.svg - tagged SVG template
-* util.breakText - add `preserveSpaces` options
-* util.guid - can be called without an object argument
-* util.getRectPoint - add utility to get a point on a rect from given keyword
-* Vectorizer - `text()` reads empty line heights from annotations
+  * replace phantomjs with puppeteer
+  * demo.Sequence - add editing capabilities
+  * demo.ELK - hide details when zoomed out
+  * dia.Paper - support `pointerdblclick` on touch devices
+  * dia.Paper - consistent firing of `contextmenu` event
+  * dia.Paper - fix memory leak (layers not being removed)
+  * dia.Paper - 2-axis-scroll / pinch-to-zoom support
+  * dia.Paper - add `snapLinksSelf` option to snap arrowhead to the anchor and vertices
+  * dia.ElementView - findPortNode() search for all port nodes; add portRoot and labelRoot selectors
+  * dia.ElementView - fix `getNodeMatrix()` and `getNodeBBox()` for elements with rotatable group
+  * dia.CellView - passing cellView instance to attribute's set, qualify, position and offset methods
+  * dia.Cell - throw exception on embedding of an embedded cell
+  * dia.HighlighterView - add `removeAll` static method
+  * dia.HighlighterView - add UPDATE_ATTRIBUTES property
+  * elementTools - add `scale` option
+  * elementTools.HoverConnect - new connection tool displayed on mouseover
+  * elementTools.Button - enable `calc()` expression for `x` and `y`
+  * linkTools: add `scale` option
+  * linkTools.HoverConnect: new connection tool displayed on mouseover
+  * linkTools.Connect - fix touch support
+  * connectors.Curve - add `rotate` option
+  * layout.Port -  enable the use of the `calc()` expression for port positioning
+  * highlighters.list - add a new highlighter to render a dynamic list of icons
+  * highlighters.mask - fix rotation and position for nodes within rotatable group
+  * highlighters.stroke - fix rotation and position for nodes within rotatable group
+  * dia.attributes - `calc()` expression supports division
+  * dia.attributes - enable `calc()` expression for `width` and `height` for `textWrap` attribute
+  * dia.attributes - `fontSize` and `strokeWidth` use `calc()`
+  * dia.attributes - prevent negative values for dimension attributes
+  * dia.attributes - use cached segments subdivisions for calculating the connection stubs
+  * mvc.Listener -  add new class for attaching multiple event listeners on multiple objects.
+  * util.svg - tagged SVG template
+  * util.breakText - add `preserveSpaces` options
+  * util.guid - can be called without an object argument
+  * util.getRectPoint - add utility to get a point on a rect from given keyword
+  * Vectorizer - `text()` reads empty line heights from annotations
 
 08-04-2022 (v3.5.5)
   * Add Marey Chart Demo
