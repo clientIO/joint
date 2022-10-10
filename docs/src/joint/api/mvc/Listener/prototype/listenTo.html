@@ -1,0 +1,30 @@
+<pre class="docs-method-signature"><code>listener.listenTo(object, event, callback [, context])</code></pre>
+
+<p>Tell the listener to listen to a particular event on an <b>object</b>.</p>
+
+<pre><code>listener.listenTo(model, 'change', onModelChangeCallback);</code></pre>
+
+To supply a <b>context</b> value for this when the callback is invoked, pass the optional last argument:
+
+<pre><code>listener.listenTo(object, this.update, this);</code></pre>
+
+The arguments of the constructor are passed to the <b>callback</b> when it is invoked.
+
+<pre><code>const listener = new mvc.Listener();
+listener.listenTo(paper, 'element:pointerclick', (elementView) => {});</code></pre>
+
+<pre><code>const listener = new mvc.Listener(callbackArgument);
+listener.listenTo(paper, 'element:pointerclick', (callbackArgument, elementView) => {});</code></pre>
+
+<pre><code>const listener = new mvc.Listener(callbackArg1, callbackArg2);
+listener.listenTo(paper, 'element:pointerclick', (callbackArg1, callbackArg2, elementView) => {});</code></pre>
+
+<pre class="docs-method-signature"><code>listener.listenTo(object, eventMap, [, context])</code></pre>
+
+<p>Tell the listener to listen to multiple events on an <b>object</b> (using event map syntax).</p>
+
+<pre><code>const listener = new mvc.Listener(callbackArgument);
+listener.listenTo(graph, {
+  'remove': (callbackArgument, cell) => {},
+  'add': (callbackArgument, cell) => {}
+});</code></pre>

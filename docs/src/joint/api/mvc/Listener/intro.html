@@ -1,0 +1,48 @@
+<p>A listener is an object that allows you to listen for events triggered by other objects and, if needed, remove them all at once.</p>
+
+<pre><code>// Example setup for switching between display mode and edit mode
+
+class ViewController extends mvc.Listener {
+
+    startListening() {
+        const [{ paper }] = this.callbackArguments;
+        this.listenTo(paper, 'element:mouseenter', (_appContext, elementView) => {
+            joint.highlighters.mask.add(elementView, 'body', 'highlighted-element');
+        });
+        this.listenTo(paper, 'element:mouseleave', (_appContext, elementView) => {
+            joint.highlighters.mask.remove(elementView, 'highlighted-element');
+        });
+    }
+}
+
+class EditController extends mvc.Listener {
+
+    startListening() {
+        const [{ paper }] = this.callbackArguments;
+        this.listenTo(paper, 'element:pointerdblclick', (appContext, elementView) => {
+            const { model } = elementView;
+            if (appContext.graph.getConnectedLinks(model).length > 0) return;
+            model.remove();
+        });
+    }
+}
+
+const appContext = { paper, graph };
+
+const viewController = new ViewController(appContext);
+const editController = new EditController(appContext);
+
+let editMode = false;
+function toggleEditMode(canEdit = !editMode) {
+    editMode = canEdit;
+    if (editMode) {
+        editController.startListening();
+        viewController.stopListening();
+    } else {
+        viewController.startListening();
+        editController.stopListening();
+    }
+}
+
+// start app in view mode
+toggleEditMode(false);</code></pre>

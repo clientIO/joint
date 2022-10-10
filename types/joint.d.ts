@@ -3373,12 +3373,14 @@ export namespace mvc {
 
     type EventHashMap<CallbackArgs extends any[], T extends Record<keyof T, Callback>> = {
         [Property in keyof T]?: ModifiedCallback<CallbackArgs, T[Property]>;
-    }; 
+    };
 
     type Callback = (...args: any[]) => any;
 
     class Listener<Args extends any[]> {
         constructor(...callbackArguments: Args);
+
+        callbackArguments: Args;
 
         listenTo<CB extends Callback>(object: any, evt: string, callback: ModifiedCallback<Args, CB>, context?: any): void;
         listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void
