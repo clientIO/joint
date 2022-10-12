@@ -1,4 +1,4 @@
-/*! JointJS v3.5.5 (2022-04-08) - JavaScript diagramming library
+/*! JointJS v3.6.0 (2022-10-12) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1646,6 +1646,141 @@ var joint = (function (exports, Backbone, _, $) {
 	    window.Uint32Array = TypedArray;
 	    window.Int32Array = TypedArray;
 	})();
+
+	var props = {
+	    x: 'x',
+	    y: 'y',
+	    width: 'w',
+	    height: 'h',
+	    minimum: 's',
+	    maximum: 'l',
+	    diagonal: 'd'
+	};
+	var propsList = Object.keys(props).map(function (key) { return props[key]; }).join('');
+	var numberPattern = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?';
+	var findSpacesRegex = /\s/g;
+	var parseExpressionRegExp = new RegExp(("^(" + numberPattern + "\\*)?([" + propsList + "])(/" + numberPattern + ")?([-+]{1,2}" + numberPattern + ")?$"), 'g');
+
+	function throwInvalid(expression) {
+	    throw new Error(("Invalid calc() expression: " + expression));
+	}
+
+	function evalCalcExpression(expression, bbox) {
+	    var match = parseExpressionRegExp.exec(expression.replace(findSpacesRegex, ''));
+	    if (!match) { throwInvalid(expression); }
+	    parseExpressionRegExp.lastIndex = 0; // reset regex results for the next run
+	    var multiply = match[1];
+	    var property = match[2];
+	    var divide = match[3];
+	    var add = match[4];
+	    var x = bbox.x;
+	    var y = bbox.y;
+	    var width = bbox.width;
+	    var height = bbox.height;
+	    var value = 0;
+	    switch (property) {
+	        case props.width: {
+	            value = width;
+	            break;
+	        }
+	        case props.height: {
+	            value = height;
+	            break;
+	        }
+	        case props.x: {
+	            value = x;
+	            break;
+	        }
+	        case props.y: {
+	            value = y;
+	            break;
+	        }
+	        case props.minimum: {
+	            value = Math.min(height, width);
+	            break;
+	        }
+	        case props.maximum: {
+	            value = Math.max(height, width);
+	            break;
+	        }
+	        case props.diagonal: {
+	            value = Math.sqrt((height * height) + (width * width));
+	            break;
+	        }
+	    }
+	    if (multiply) {
+	        // e.g "2*"
+	        value *= parseFloat(multiply);
+	    }
+	    if (divide) {
+	        // e.g "/2"
+	        value /= parseFloat(divide.slice(1));
+	    }
+	    if (add) {
+	        value += evalAddExpression(add);
+	    }
+	    return value;
+	}
+
+	function evalAddExpression(addExpression) {
+	    if (!addExpression) { return 0; }
+	    var sign = addExpression[0];
+	    switch (sign) {
+	        case '+': {
+	            return parseFloat(addExpression.substr(1));
+	        }
+	        case '-': {
+	            return -parseFloat(addExpression.substr(1));
+	        }
+	    }
+	    return parseFloat(addExpression);
+	}
+
+	function isCalcAttribute(value) {
+	    return typeof value === 'string' && value.includes('calc');
+	}
+
+	var calcStart = 'calc(';
+	var calcStartOffset = calcStart.length;
+
+	function evalCalcAttribute(attributeValue, refBBox) {
+	    var value = attributeValue;
+	    var startSearchIndex = 0;
+	    do {
+	        var calcIndex = value.indexOf(calcStart, startSearchIndex);
+	        if (calcIndex === -1) { return value; }
+	        var calcEndIndex = calcIndex + calcStartOffset;
+	        var brackets = 1;
+	        findClosingBracket: do {
+	            switch (value[calcEndIndex]) {
+	                case '(': {
+	                    brackets++;
+	                    break;
+	                }
+	                case ')': {
+	                    brackets--;
+	                    if (brackets === 0) { break findClosingBracket; }
+	                    break;
+	                }
+	                case undefined: {
+	                    // Could not find the closing bracket.
+	                    throwInvalid(value);
+	                }
+	            }
+	            calcEndIndex++;
+	        } while (true);
+	        // Get the calc() expression without nested calcs (recursion)
+	        var expression = value.slice(calcIndex + calcStartOffset, calcEndIndex);
+	        if (isCalcAttribute(expression)) {
+	            expression = evalCalcAttribute(expression, refBBox);
+	        }
+	        // Eval the calc() expression without nested calcs.
+	        var calcValue = String(evalCalcExpression(expression, refBBox));
+	        // Replace the calc() expression and continue search
+	        value = value.slice(0, calcIndex) + calcValue + value.slice(calcEndIndex + 1);
+	        startSearchIndex = calcIndex + calcValue.length;
+	    } while (true);
+	}
 
 	// Declare shorthands to the most used math functions.
 	var round = Math.round;
@@ -8655,7 +8790,32 @@ var joint = (function (exports, Backbone, _, $) {
 	                var lineNodeStyle = lineNode.style;
 	                lineNodeStyle.fillOpacity = 0;
 	                lineNodeStyle.strokeOpacity = 0;
-	                if (annotations) { lineMetrics = {}; }
+	                if (annotations) {
+	                    // Empty line with annotations.
+	                    lineMetrics = {};
+	                    lineAnnotations = V.findAnnotationsAtIndex(annotations, offset);
+	                    var lineFontSize = fontSize;
+	                    // Check if any of the annotations overrides the font size.
+	                    for (var j = lineAnnotations.length; j > 0; j--) {
+	                        var attrs = lineAnnotations[j - 1].attrs;
+	                        if (!attrs || !('font-size' in attrs)) { continue; }
+	                        var fs = parseFloat(attrs['font-size']);
+	                        if (isFinite(fs)) {
+	                            lineFontSize = fs;
+	                            break;
+	                        }
+	                    }
+	                    if (autoLineHeight) {
+	                        if (i > 0) {
+	                            dy = lineFontSize * 1.2;
+	                        } else {
+	                            annotatedY = lineFontSize * 0.8;
+	                        }
+	                    }
+	                    // The font size is important for the native selection box height.
+	                    lineNode.setAttribute('font-size', lineFontSize);
+	                    lineMetrics.maxFontSize = lineFontSize;
+	                }
 	            }
 	            if (lineMetrics) { linesMetrics.push(lineMetrics); }
 	            if (i > 0) { lineNode.setAttribute('dy', dy); }
@@ -10809,10 +10969,15 @@ var joint = (function (exports, Backbone, _, $) {
 	    });
 	};
 
-	// Generate global unique id for obj and store it as a property of the object.
+	// Generates global unique id and stores it as a property of the object, if provided.
 	var guid = function(obj) {
 
 	    guid.id = guid.id || 1;
+
+	    if (obj === undefined) {
+	        return 'j_' + guid.id++;
+	    }
+
 	    obj.id = (obj.id === undefined ? 'j_' + guid.id++ : obj.id);
 	    return obj.id;
 	};
@@ -10845,6 +11010,63 @@ var joint = (function (exports, Backbone, _, $) {
 	    }
 
 	    return normalizedEvent;
+	};
+
+	var normalizeWheel = function(evt) {
+	    // Sane values derived empirically
+	    var PIXEL_STEP  = 10;
+	    var LINE_HEIGHT = 40;
+	    var PAGE_HEIGHT = 800;
+
+	    var sX = 0, sY = 0, pX = 0, pY = 0;
+
+	    // Legacy
+	    if ('detail'      in evt) { sY = evt.detail; }
+	    if ('wheelDelta'  in evt) { sY = -evt.wheelDelta / 120; }
+	    if ('wheelDeltaY' in evt) { sY = -evt.wheelDeltaY / 120; }
+	    if ('wheelDeltaX' in evt) { sX = -evt.wheelDeltaX / 120; }
+
+	    // side scrolling on FF with DOMMouseScroll
+	    if ( 'axis' in evt && evt.axis === evt.HORIZONTAL_AXIS ) {
+	        sX = sY;
+	        sY = 0;
+	    }
+
+	    pX = 'deltaX' in evt ? evt.deltaX : sX * PIXEL_STEP;
+	    pY = 'deltaY' in evt ? evt.deltaY : sY * PIXEL_STEP;
+
+	    if ((pX || pY) && evt.deltaMode) {
+	        if (evt.deltaMode == 1) {
+	            pX *= LINE_HEIGHT;
+	            pY *= LINE_HEIGHT;
+	        } else {
+	            pX *= PAGE_HEIGHT;
+	            pY *= PAGE_HEIGHT;
+	        }
+	    }
+
+	    // macOS switches deltaX and deltaY automatically when scrolling with shift key, so this is needed in other cases
+	    if (evt.deltaX === 0 && evt.deltaY !== 0 && evt.shiftKey) {
+	        pX = pY;
+	        pY = 0;
+	        sX = sY;
+	        sY = 0;
+	    }
+
+	    // Fall-back if spin cannot be determined
+	    if (pX && !sX) { sX = (pX < 1) ? -1 : 1; }
+	    if (pY && !sY) { sY = (pY < 1) ? -1 : 1; }
+
+	    return {
+	        spinX  : sX,
+	        spinY  : sY,
+	        deltaX : pX,
+	        deltaY : pY,
+	    };
+	};
+
+	var cap = function(val, max) {
+	    return val > max ? max : val < -max ? -max : val;
 	};
 
 	var nextFrame = (function() {
@@ -11022,6 +11244,22 @@ var joint = (function (exports, Backbone, _, $) {
 	    return output;
 	};
 
+	var NO_SPACE = 0;
+
+	function splitWordWithEOL(word, eol) {
+	    var eolWords = word.split(eol);
+	    var n = 1;
+	    for (var j = 0, jl = eolWords.length - 1; j < jl; j++) {
+	        var replacement = [];
+	        if (j > 0 || eolWords[0] !== '') { replacement.push(NO_SPACE); }
+	        replacement.push(eol);
+	        if (j < jl - 1 || eolWords[jl] !== '') { replacement.push(NO_SPACE); }
+	        eolWords.splice.apply(eolWords, [ n, 0 ].concat( replacement ));
+	        n += replacement.length + 1;
+	    }
+	    return eolWords.filter(function (word) { return word !== ''; });
+	}
+
 	var breakText = function(text, size, styles, opt) {
 	    if ( styles === void 0 ) styles = {};
 	    if ( opt === void 0 ) opt = {};
@@ -11054,7 +11292,9 @@ var joint = (function (exports, Backbone, _, $) {
 	        document.body.appendChild(svgDocument);
 	    }
 
-	    var separator = opt.separator || ' ';
+	    var preserveSpaces = opt.preserveSpaces;
+	    var space = ' ';
+	    var separator = opt.separator || space;
 	    var eol = opt.eol || '\n';
 	    var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d]/;
 	    var maxLineCount = opt.maxLineCount;
@@ -11066,39 +11306,55 @@ var joint = (function (exports, Backbone, _, $) {
 	    var p, h;
 	    var lineHeight;
 
+	    if (preserveSpaces) {
+	        V(textSpan).attr('xml:space', 'preserve');
+	    }
+
 	    for (var i = 0, l = 0, len = words.length; i < len; i++) {
 
 	        var word = words[i];
 
-	        if (!word) { continue; }
+	        if (!word && !preserveSpaces) { continue; }
+	        if (typeof word !== 'string') { continue; }
 
 	        var isEol = false;
 	        if (eol && word.indexOf(eol) >= 0) {
 	            // word contains end-of-line character
 	            if (word.length > 1) {
 	                // separate word and continue cycle
-	                var eolWords = word.split(eol);
-	                for (var j = 0, jl = eolWords.length - 1; j < jl; j++) {
-	                    eolWords.splice(2 * j + 1, 0, eol);
-	                }
-	                words.splice.apply(words, [ i, 1 ].concat( eolWords.filter(function (word) { return word !== ''; }) ));
+	                var eolWords = splitWordWithEOL(words[i], eol);
+	                words.splice.apply(words, [ i, 1 ].concat( eolWords ));
 	                i--;
 	                len = words.length;
 	                continue;
 	            } else {
 	                // creates a new line
-	                lines[++l] = '';
+	                if (preserveSpaces && typeof words[i - 1] === 'string' ) {
+	                    words.splice(i, NO_SPACE, '', NO_SPACE);
+	                    len += 2;
+	                    i--;
+	                    continue;
+	                }
+	                lines[++l] = (!preserveSpaces || typeof words[i + 1] === 'string') ? '' : undefined;
 	                isEol = true;
 	            }
 	        }
 
 	        if (!isEol) {
-	            textNode.data = lines[l] ? lines[l] + ' ' + word : word;
+
+	            var data = (void 0);
+	            if (preserveSpaces) {
+	                data = lines[l] !== undefined ? lines[l] + space + word : word;
+	            } else {
+	                data = lines[l] ? lines[l] + space + word : word;
+	            }
+
+	            textNode.data = data;
 
 	            if (textSpan.getComputedTextLength() <= width) {
 
 	                // the current line fits
-	                lines[l] = textNode.data;
+	                lines[l] = data;
 
 	                if (p || h) {
 	                // We were partitioning. Put rest of the word onto next line
@@ -12345,129 +12601,6 @@ var joint = (function (exports, Backbone, _, $) {
 	    return cloneMap;
 	}
 
-	var props = {
-	    x: 'x',
-	    y: 'y',
-	    width: 'w',
-	    height: 'h',
-	    minimum: 's',
-	    maximum: 'l',
-	    diagonal: 'd'
-	};
-	var propsList = Object.keys(props).map(function (key) { return props[key]; }).join('');
-	var numberPattern = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?';
-	var findSpacesRegex = /\s/g;
-	var parseExpressionRegExp = new RegExp(("^(" + numberPattern + "\\*)?([" + propsList + "])([-+]{1,2}" + numberPattern + ")?$"), 'g');
-
-	function throwInvalid(expression) {
-	    throw new Error(("Invalid calc() expression: " + expression));
-	}
-
-	function evalCalcExpression(expression, bbox) {
-	    var match = parseExpressionRegExp.exec(expression.replace(findSpacesRegex, ''));
-	    if (!match) { throwInvalid(expression); }
-	    parseExpressionRegExp.lastIndex = 0; // reset regex results for the next run
-	    var multiply = match[1]; if ( multiply === void 0 ) multiply = 1;
-	    var property = match[2];
-	    var add = match[3]; if ( add === void 0 ) add = 0;
-	    var x = bbox.x;
-	    var y = bbox.y;
-	    var width = bbox.width;
-	    var height = bbox.height;
-	    var value = 0;
-	    switch (property) {
-	        case props.width: {
-	            value = width;
-	            break;
-	        }
-	        case props.height: {
-	            value = height;
-	            break;
-	        }
-	        case props.x: {
-	            value = x;
-	            break;
-	        }
-	        case props.y: {
-	            value = y;
-	            break;
-	        }
-	        case props.minimum: {
-	            value = Math.min(height, width);
-	            break;
-	        }
-	        case props.maximum: {
-	            value = Math.max(height, width);
-	            break;
-	        }
-	        case props.diagonal: {
-	            value = Math.sqrt((height * height) + (width * width));
-	            break;
-	        }
-	    }
-	    return parseFloat(multiply) * value + evalAddExpression(add);
-	}
-
-	function evalAddExpression(addExpression) {
-	    if (!addExpression) { return 0; }
-	    var sign = addExpression[0];
-	    switch (sign) {
-	        case '+': {
-	            return parseFloat(addExpression.substr(1));
-	        }
-	        case '-': {
-	            return -parseFloat(addExpression.substr(1));
-	        }
-	    }
-	    return parseFloat(addExpression);
-	}
-
-	function isCalcAttribute(value) {
-	    return typeof value === 'string' && value.includes('calc');
-	}
-
-	var calcStart = 'calc(';
-	var calcStartOffset = calcStart.length;
-
-	function evalCalcAttribute(attributeValue, refBBox) {
-	    var value = attributeValue;
-	    var startSearchIndex = 0;
-	    do {
-	        var calcIndex = value.indexOf(calcStart, startSearchIndex);
-	        if (calcIndex === -1) { return value; }
-	        var calcEndIndex = calcIndex + calcStartOffset;
-	        var brackets = 1;
-	        findClosingBracket: do {
-	            switch (value[calcEndIndex]) {
-	                case '(': {
-	                    brackets++;
-	                    break;
-	                }
-	                case ')': {
-	                    brackets--;
-	                    if (brackets === 0) { break findClosingBracket; }
-	                    break;
-	                }
-	                case undefined: {
-	                    // Could not find the closing bracket.
-	                    throwInvalid(value);
-	                }
-	            }
-	            calcEndIndex++;
-	        } while (true);
-	        // Get the calc() expression without nested calcs (recursion)
-	        var expression = value.slice(calcIndex + calcStartOffset, calcEndIndex);
-	        if (isCalcAttribute(expression)) {
-	            expression = evalCalcAttribute(expression, refBBox);
-	        }
-	        // Eval the calc() expression without nested calcs.
-	        var calcValue = String(evalCalcExpression(expression, refBBox));
-	        // Replace the calc() expression and continue search
-	        value = value.slice(0, calcIndex) + calcValue + value.slice(calcEndIndex + 1);
-	        startSearchIndex = calcIndex + calcValue.length;
-	    } while (true);
-	}
-
 	function setWrapper(attrName, dimension) {
 	    return function(value, refBBox) {
 	        var isValuePercentage = isPercentage(value);
@@ -12784,7 +12917,12 @@ var joint = (function (exports, Backbone, _, $) {
 	            if (isCalcAttribute(x)) {
 	                textAttrs.x = evalCalcAttribute(x, refBBox);
 	            }
-	            var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
+	            
+	            var fontSizeAttr = attrs['font-size'] || attrs['fontSize'];
+	            if (isCalcAttribute(fontSizeAttr)) {
+	                fontSizeAttr = evalCalcAttribute(fontSizeAttr, refBBox);
+	            }
+	            var fontSize = textAttrs.fontSize = fontSizeAttr;
 	            var textHash = JSON.stringify([text, textAttrs]);
 	            // Update the text only if there was a change in the string
 	            // or any of its attributes.
@@ -12813,33 +12951,49 @@ var joint = (function (exports, Backbone, _, $) {
 	    textWrap: {
 	        qualify: isPlainObject,
 	        set: function(value, refBBox, node, attrs) {
+	            var size = {};
 	            // option `width`
 	            var width = value.width || 0;
-	            var size = {};
 	            if (isPercentage(width)) {
 	                size.width = refBBox.width * parseFloat(width) / 100;
-	            } else if (width <= 0) {
-	                size.width = refBBox.width + width;
+	            } else if (isCalcAttribute(width)) {
+	                size.width = Number(evalCalcAttribute(width, refBBox));
 	            } else {
-	                size.width = width;
+	                if (value.width === null) {
+	                    // breakText() requires width to be specified.
+	                    size.width = Infinity;
+	                } else if (width <= 0) {
+	                    size.width = refBBox.width + width;
+	                } else {
+	                    size.width = width;
+	                }
 	            }
 	            // option `height`
 	            var height = value.height || 0;
 	            if (isPercentage(height)) {
 	                size.height = refBBox.height * parseFloat(height) / 100;
-	            } else if (height <= 0) {
-	                size.height = refBBox.height + height;
+	            } else if (isCalcAttribute(height)) {
+	                size.height = Number(evalCalcAttribute(height, refBBox));
 	            } else {
-	                size.height = height;
+	                if (value.height === null) {
+	                    // if height is not specified breakText() does not
+	                    // restrict the height of the text.
+	                } else if (height <= 0) {
+	                    size.height = refBBox.height + height;
+	                } else {
+	                    size.height = height;
+	                }
 	            }
 	            // option `text`
 	            var wrappedText;
 	            var text = value.text;
 	            if (text === undefined) { text = attrs.text; }
 	            if (text !== undefined) {
-	                wrappedText = breakText('' + text, size, {
+	                var breakTextFn = value.breakText || breakText;
+	                var fontSizeAttr = attrs['font-size'] || attrs.fontSize;
+	                wrappedText = breakTextFn('' + text, size, {
 	                    'font-weight': attrs['font-weight'] || attrs.fontWeight,
-	                    'font-size': attrs['font-size'] || attrs.fontSize,
+	                    'font-size': isCalcAttribute(fontSizeAttr) ? evalCalcAttribute(fontSizeAttr, refBBox) : fontSizeAttr,
 	                    'font-family': attrs['font-family'] || attrs.fontFamily,
 	                    'lineHeight': attrs.lineHeight,
 	                    'letter-spacing': 'letter-spacing' in attrs ? attrs['letter-spacing'] : attrs.letterSpacing
@@ -12849,7 +13003,8 @@ var joint = (function (exports, Backbone, _, $) {
 	                    svgDocument: this.paper.svg,
 	                    ellipsis: value.ellipsis,
 	                    hyphen: value.hyphen,
-	                    maxLineCount: value.maxLineCount
+	                    maxLineCount: value.maxLineCount,
+	                    preserveSpaces: value.preserveSpaces
 	                });
 	            } else {
 	                wrappedText = '';
@@ -13072,8 +13227,9 @@ var joint = (function (exports, Backbone, _, $) {
 	                    offset = stubs;
 	                }
 	                var path = this.getConnection();
-	                var sourceParts = path.divideAtLength(offset);
-	                var targetParts = path.divideAtLength(-offset);
+	                var segmentSubdivisions = this.getConnectionSubdivisions();
+	                var sourceParts = path.divideAtLength(offset, { segmentSubdivisions: segmentSubdivisions });
+	                var targetParts = path.divideAtLength(-offset, { segmentSubdivisions: segmentSubdivisions });
 	                if (sourceParts && targetParts) {
 	                    d = (sourceParts[0].serialize()) + " " + (targetParts[1].serialize());
 	                }
@@ -13111,10 +13267,7 @@ var joint = (function (exports, Backbone, _, $) {
 	    'transform', // g
 	    'd', // path
 	    'points', // polyline / polygon
-	    'width', 'height', // rect / image
 	    'cx', 'cy', // circle / ellipse
-	    'r', // circle
-	    'rx', 'ry', // rect / ellipse
 	    'x1', 'x2', 'y1', 'y2', // line
 	    'x', 'y', // rect / text / image
 	    'dx', 'dy' // text
@@ -13129,12 +13282,33 @@ var joint = (function (exports, Backbone, _, $) {
 	    };
 	});
 
+	// Prevent "A negative value is not valid" error.
+	[
+	    'width', 'height', // rect / image
+	    'r', // circle
+	    'rx', 'ry', // rect / ellipse
+	    'font-size', // text
+	    'stroke-width' // elements
+	].forEach(function (attribute) {
+	    attributesNS[attribute] = {
+	        qualify: isCalcAttribute,
+	        set: function setCalcAttribute(value, refBBox) {
+	            var obj;
+
+	            return ( obj = {}, obj[attribute] = Math.max(0, evalCalcAttribute(value, refBBox)), obj );
+	        }
+	    };
+	});
+
+
 	// Aliases
 	attributesNS.refR = attributesNS.refRInscribed;
 	attributesNS.refD = attributesNS.refDResetOffset;
 	attributesNS.refPoints = attributesNS.refPointsResetOffset;
 	attributesNS.atConnectionLength = attributesNS.atConnectionLengthKeepGradient;
 	attributesNS.atConnectionRatio = attributesNS.atConnectionRatioKeepGradient;
+	attributesNS.fontSize = attributesNS['font-size'];
+	attributesNS.strokeWidth = attributesNS['stroke-width'];
 
 	// This allows to combine both absolute and relative positioning
 	// refX: 50%, refX2: 20
@@ -13446,9 +13620,14 @@ var joint = (function (exports, Backbone, _, $) {
 	    },
 
 	    embed: function(cell, opt) {
+	        var this$1 = this;
+
 	        var cells = Array.isArray(cell) ? cell : [cell];
 	        if (!this.canEmbed(cells)) {
 	            throw new Error('Recursive embedding not allowed.');
+	        }
+	        if (cells.some(function (c) { return c.isEmbedded() && this$1.id !== c.parent(); })) {
+	            throw new Error('Embedding of already embedded cells is not allowed.');
 	        }
 	        this._embedCells(cells, opt);
 	        return this;
@@ -14079,9 +14258,156 @@ var joint = (function (exports, Backbone, _, $) {
 
 	};
 
+	function svg(strings) {
+	    var markup = parseFromSVGString(strings[0]);
+	    return markup;
+	}
+
+	function parseFromSVGString(str) {
+	    var parser = new DOMParser();
+	    var markupString = "<svg>" + (str.trim()) + "</svg>";
+	    var xmldocument = parser.parseFromString(markupString.replace(/@/g, ''), 'application/xml');
+	    if (xmldocument.getElementsByTagName('parsererror')[0]) {
+	        throw new Error('Invalid SVG markup');
+	    }
+	    var document = parser.parseFromString(markupString, 'text/html');
+	    var svg = document.querySelector('svg');
+	    return build(svg);
+	}
+
+	function build(root) {
+	    var markup = [];
+
+	    Array.from(root.children).forEach(function (node) {
+	        var markupNode = {};
+	        var tagName = node.tagName;
+	        var attributes = node.attributes;
+	        var textContent = node.textContent;
+	        var namespaceURI = node.namespaceURI;
+	        var style = node.style;
+
+	        markupNode.tagName = tagName;
+	        markupNode.namespaceURI = namespaceURI;
+
+	        var stylesObject = {};
+	        for (var i = style.length; i--;) {
+	            var nameString = style[i];
+	            stylesObject[nameString] = style.getPropertyValue(nameString);
+	        }
+	        markupNode.style = stylesObject;
+
+	        // selector fallbacks to tagName
+	        var selectorAttribute = attributes.getNamedItem('@selector');
+	        if (selectorAttribute) {
+	            markupNode.selector = selectorAttribute.value;
+	            attributes.removeNamedItem('@selector');
+	        }
+
+	        var groupSelectorAttribute = attributes.getNamedItem('@group-selector');
+	        if (groupSelectorAttribute) {
+	            var groupSelectors = groupSelectorAttribute.value.split(',');
+	            markupNode.groupSelector = groupSelectors.map(function (s) { return s.trim(); });
+
+	            attributes.removeNamedItem('@group-selector');
+	        }
+
+	        var className = attributes.getNamedItem('class');
+	        markupNode.className = (className ? className.value : null);
+
+	        if (textContent) {
+	            markupNode.textContent = textContent;
+	        }
+
+	        var nodeAttrs = {};
+
+	        Array.from(attributes).forEach(function (nodeAttribute) {
+	            var name = nodeAttribute.name;
+	            var value = nodeAttribute.value;
+	            nodeAttrs[name] = value;
+	        });
+
+	        if (Object.keys(nodeAttrs).length > 0) {
+	            markupNode.attributes = nodeAttrs;
+	        }
+
+	        if (node.childElementCount > 0) {
+	            markupNode.children = build(node);
+	        }
+
+	        markup.push(markupNode);
+	    });
+
+	    return markup;
+	}
+
+	var Positions = {
+	    TOP: 'top',
+	    RIGHT: 'right',
+	    BOTTOM: 'bottom',
+	    LEFT: 'left',
+	    TOP_LEFT: 'top-left',
+	    TOP_RIGHT: 'top-right',
+	    BOTTOM_LEFT: 'bottom-left',
+	    BOTTOM_RIGHT: 'bottom-right',
+	    CENTER: 'center',
+	};
+
+	function getRectPoint(rect, position) {
+	    var r = new Rect(rect);
+	    switch (position) {
+	        case undefined:
+	            throw new Error('Position required');
+
+	        // Middle Points
+	        case Positions.LEFT:
+	        case 'leftMiddle':
+	            return r.leftMiddle();
+
+	        case Positions.RIGHT:
+	        case 'rightMiddle':
+	            return r.rightMiddle();
+
+	        case Positions.TOP:
+	        case 'topMiddle':
+	            return r.topMiddle();
+
+	        case Positions.BOTTOM:
+	        case 'bottomMiddle':
+	            return r.bottomMiddle();
+
+	        // Corners
+	        case Positions.TOP_LEFT:
+	        case 'topLeft':
+	        case 'origin':
+	            return r.topLeft();
+
+	        case Positions.TOP_RIGHT:
+	        case 'topRight':
+	            return r.topRight();
+
+	        case Positions.BOTTOM_LEFT:
+	        case 'bottomLeft':
+	            return r.bottomLeft();
+
+	        case Positions.BOTTOM_RIGHT:
+	        case 'bottomRight':
+	        case 'corner':
+	            return r.bottomRight();
+
+	        // Center
+	        case Positions.CENTER:
+	            return r.center();
+
+	        // TODO: calc(), percentage etc.
+	        default:
+	            throw new Error(("Unknown position: " + position));
+	    }
+	}
+
 
 
 	var index = ({
+		getRectPoint: getRectPoint,
 		wrapWith: wrapWith,
 		wrappers: wrappers,
 		addClassNamePrefix: addClassNamePrefix,
@@ -14096,6 +14422,8 @@ var joint = (function (exports, Backbone, _, $) {
 		guid: guid,
 		toKebabCase: toKebabCase,
 		normalizeEvent: normalizeEvent,
+		normalizeWheel: normalizeWheel,
+		cap: cap,
 		nextFrame: nextFrame,
 		cancelFrame: cancelFrame,
 		shapePerimeterConnectionPoint: shapePerimeterConnectionPoint,
@@ -14156,7 +14484,8 @@ var joint = (function (exports, Backbone, _, $) {
 		isNumber: isNumber,
 		isString: isString,
 		noop: noop,
-		cloneCells: cloneCells
+		cloneCells: cloneCells,
+		svg: svg
 	});
 
 	function portTransformAttrs(point, angle, opt) {
@@ -14168,15 +14497,14 @@ var joint = (function (exports, Backbone, _, $) {
 	    return defaults({}, opt, trans);
 	}
 
-	function lineLayout(ports, p1, p2) {
+	function lineLayout(ports, p1, p2, elBBox) {
 	    return ports.map(function(port, index, ports) {
 	        var p = this.pointAt(((index + 0.5) / ports.length));
 	        // `dx`,`dy` per port offset option
 	        if (port.dx || port.dy) {
 	            p.offset(port.dx || 0, port.dy || 0);
 	        }
-
-	        return portTransformAttrs(p.round(), 0, port);
+	        return portTransformAttrs(p.round(), 0, argTransform(elBBox, port));
 	    }, line(p1, p2));
 	}
 
@@ -14207,24 +14535,34 @@ var joint = (function (exports, Backbone, _, $) {
 	            p2.move(center, port.dr);
 	        }
 
-	        return portTransformAttrs(p2.round(), theta, port);
+	        return portTransformAttrs(p2.round(), theta, argTransform(elBBox, port));
 	    });
+	}
+
+
+	function argTransform(bbox, args) {
+	    var x = args.x;
+	    var y = args.y;
+	    var angle = args.angle;
+	    if (isPercentage(x)) {
+	        x = parseFloat(x) / 100 * bbox.width;
+	    } else if (isCalcAttribute(x)) {
+	        x = Number(evalCalcAttribute(x, bbox));
+	    }
+	    if (isPercentage(y)) {
+	        y = parseFloat(y) / 100 * bbox.height;
+	    } else if (isCalcAttribute(y)) {
+	        y = Number(evalCalcAttribute(y, bbox));
+	    }
+	    return { x: x, y: y, angle: angle };
 	}
 
 	// Creates a point stored in arguments
 	function argPoint(bbox, args) {
-
-	    var x = args.x;
-	    if (isString(x)) {
-	        x = parseFloat(x) / 100 * bbox.width;
-	    }
-
-	    var y = args.y;
-	    if (isString(y)) {
-	        y = parseFloat(y) / 100 * bbox.height;
-	    }
-
-	    return point(x || 0, y || 0);
+	    var ref = argTransform(bbox, args);
+	    var x = ref.x;
+	    var y = ref.y;
+	    return new Point(x || 0, y || 0);
 	}
 
 
@@ -14234,9 +14572,12 @@ var joint = (function (exports, Backbone, _, $) {
 	 * @param {Object=} opt opt Group options
 	 * @returns {Array<g.Point>}
 	 */
-	var absolute = function(ports, elBBox, opt) {
-	    //TODO v.talas angle
-	    return ports.map(argPoint.bind(null, elBBox));
+	var absolute = function(ports, elBBox) {
+	    return ports.map(function (port) {
+	        var transformation = argPoint(elBBox, port).round().toJSON();
+	        transformation.angle = port.angle || 0;
+	        return transformation;
+	    });
 	};
 
 	/**
@@ -14260,7 +14601,7 @@ var joint = (function (exports, Backbone, _, $) {
 	    var start = argPoint(elBBox, opt.start || elBBox.origin());
 	    var end = argPoint(elBBox, opt.end || elBBox.corner());
 
-	    return lineLayout(ports, start, end);
+	    return lineLayout(ports, start, end, elBBox);
 	};
 
 	/**
@@ -14270,7 +14611,7 @@ var joint = (function (exports, Backbone, _, $) {
 	 * @returns {Array<g.Point>}
 	 */
 	var left = function(ports, elBBox, opt) {
-	    return lineLayout(ports, elBBox.origin(), elBBox.bottomLeft());
+	    return lineLayout(ports, elBBox.origin(), elBBox.bottomLeft(), elBBox);
 	};
 
 	/**
@@ -14280,7 +14621,7 @@ var joint = (function (exports, Backbone, _, $) {
 	 * @returns {Array<g.Point>}
 	 */
 	var right = function(ports, elBBox, opt) {
-	    return lineLayout(ports, elBBox.topRight(), elBBox.corner());
+	    return lineLayout(ports, elBBox.topRight(), elBBox.corner(), elBBox);
 	};
 
 	/**
@@ -14290,7 +14631,7 @@ var joint = (function (exports, Backbone, _, $) {
 	 * @returns {Array<g.Point>}
 	 */
 	var top = function(ports, elBBox, opt) {
-	    return lineLayout(ports, elBBox.origin(), elBBox.topRight());
+	    return lineLayout(ports, elBBox.origin(), elBBox.topRight(), elBBox);
 	};
 
 	/**
@@ -14300,7 +14641,7 @@ var joint = (function (exports, Backbone, _, $) {
 	 * @returns {Array<g.Point>}
 	 */
 	var bottom = function(ports, elBBox, opt) {
-	    return lineLayout(ports, elBBox.bottomLeft(), elBBox.corner());
+	    return lineLayout(ports, elBBox.bottomLeft(), elBBox.corner(), elBBox);
 	};
 
 	/**
@@ -15863,8 +16204,9 @@ var joint = (function (exports, Backbone, _, $) {
 	    findPortNode: function(portId, selector) {
 	        var portCache = this._portElementsCache[portId];
 	        if (!portCache) { return null; }
-	        var portRoot = portCache.portContentElement.node;
-	        var portSelectors = portCache.portContentSelectors;
+	        if (!selector) { return portCache.portContentElement.node; }
+	        var portRoot = portCache.portElement.node;
+	        var portSelectors = portCache.portSelectors;
 	        var ref = this.findBySelector(selector, portRoot, portSelectors);
 	        var node = ref[0]; if ( node === void 0 ) node = null;
 	        return node;
@@ -15955,7 +16297,17 @@ var joint = (function (exports, Backbone, _, $) {
 	            }
 	            portContainerSelectors = assign({}, portSelectors, labelSelectors);
 	        } else {
-	            portContainerSelectors = portSelectors || labelSelectors;
+	            portContainerSelectors = portSelectors || labelSelectors || {};
+	        }
+
+	        var portRootSelector = 'portRoot';
+	        if (!(portRootSelector in portContainerSelectors)) {
+	            portContainerSelectors[portRootSelector] = portElement.node;
+	        }
+
+	        var labelRootSelector = 'labelRoot';
+	        if (labelElement && !(labelRootSelector in portContainerSelectors)) {
+	            portContainerSelectors[labelRootSelector] = labelElement.node;
 	        }
 
 	        portContainerElement.append(portElement.addClass('joint-port-body'));
@@ -17506,7 +17858,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        var bbox = element.getBBox().rotateAroundCenter(element.angle());
 	        var elements = (searchBy === 'bbox')
 	            ? this.findModelsInArea(bbox)
-	            : this.findModelsFromPoint(bbox[searchBy]());
+	            : this.findModelsFromPoint(getRectPoint(bbox, searchBy));
 	        // don't account element itself or any of its descendants
 	        return elements.filter(function (el) { return element.id !== el.id && !el.isEmbeddedIn(element); });
 	    },
@@ -17986,9 +18338,53 @@ var joint = (function (exports, Backbone, _, $) {
 	    };
 	}
 
+	var Listener = function Listener() {
+	    var callbackArguments = [], len = arguments.length;
+	    while ( len-- ) callbackArguments[ len ] = arguments[ len ];
+
+	    this.callbackArguments = callbackArguments;
+	};
+
+	Listener.prototype.listenTo = function listenTo (object, evt) {
+	        var this$1 = this;
+	        var args = [], len = arguments.length - 2;
+	        while ( len-- > 0 ) args[ len ] = arguments[ len + 2 ];
+
+	    var ref = this;
+	        var callbackArguments = ref.callbackArguments;
+	    // signature 1 - (object, eventHashMap, context)
+	    if (V.isObject(evt)) {
+	        var context = args[0]; if ( context === void 0 ) context = null;
+	        Object.entries(evt).forEach(function (ref) {
+	                var eventName = ref[0];
+	                var cb = ref[1];
+
+	            if (typeof cb !== 'function') { return; }
+	            // Invoke the callback with callbackArguments passed first
+	            if (context || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context ].concat( callbackArguments )); }
+	            Backbone.Events.listenTo.call(this$1, object, eventName, cb);
+	        });
+	    }
+	    // signature 2 - (object, event, callback, context)
+	    else if (typeof evt === 'string' && typeof args[0] === 'function') {
+	        var cb = args[0];
+	            var context$1 = args[1]; if ( context$1 === void 0 ) context$1 = null;
+	        // Invoke the callback with callbackArguments passed first
+	        if (context$1 || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context$1 ].concat( callbackArguments )); }
+	        Backbone.Events.listenTo.call(this, object, evt, cb);
+	    }
+	};
+
+	Listener.prototype.stopListening = function stopListening () {
+	    Backbone.Events.stopListening.call(this);
+	};
+
+
+
 	var index$1 = ({
 		views: views,
-		View: View
+		View: View,
+		Listener: Listener
 	});
 
 	var LayersNames = {
@@ -18143,6 +18539,27 @@ var joint = (function (exports, Backbone, _, $) {
 	        return el ? el : null;
 	    },
 
+	    getNodeMatrix: function getNodeMatrix(cellView, node) {
+	        var ref = this;
+	        var options = ref.options;
+	        var layer = options.layer;
+	        var rotatableNode = cellView.rotatableNode;
+	        var nodeMatrix = cellView.getNodeMatrix(node);
+	        if (rotatableNode) {
+	            if (layer) {
+	                if (rotatableNode.contains(node)) {
+	                    return nodeMatrix;
+	                }
+	                // The node is outside of the rotatable group.
+	                // Compensate the rotation set by transformGroup.
+	                return cellView.getRootRotateMatrix().inverse().multiply(nodeMatrix);
+	            } else {
+	                return cellView.getNodeRotateMatrix(node).multiply(nodeMatrix);
+	            }
+	        }
+	        return nodeMatrix;
+	    },
+
 	    mount: function mount() {
 	        var ref = this;
 	        var MOUNTABLE = ref.MOUNTABLE;
@@ -18232,6 +18649,25 @@ var joint = (function (exports, Backbone, _, $) {
 
 	    unhighlight: function unhighlight(_cellView, _node) {
 	        // to be overridden
+	    },
+
+	    // Update Attributes
+
+	    listenToUpdateAttributes: function listenToUpdateAttributes(cellView) {
+	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
+	        if (!Array.isArray(attributes) || attributes.length === 0) { return; }
+	        this.listenTo(cellView.model, 'change', this.onCellAttributeChange);
+	    },
+
+	    onCellAttributeChange: function onCellAttributeChange() {
+	        var ref = this;
+	        var cellView = ref.cellView;
+	        if (!cellView) { return; }
+	        var model = cellView.model;
+	        var paper = cellView.paper;
+	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
+	        if (!attributes.some(function (attribute) { return model.hasChanged(attribute); })) { return; }
+	        paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
 	    }
 
 	}, {
@@ -18290,6 +18726,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        view.id = id;
 	        this._addRef(cellView, id, view);
 	        view.requestUpdate(cellView, nodeSelector);
+	        view.listenToUpdateAttributes(cellView);
 	        return view;
 	    },
 
@@ -18319,6 +18756,23 @@ var joint = (function (exports, Backbone, _, $) {
 	        toArray$1(this.get(cellView, id)).forEach(function (view) {
 	            view.remove();
 	        });
+	    },
+
+	    removeAll: function removeAll(paper, id) {
+	        if ( id === void 0 ) id = null;
+
+	        var ref = this;
+	        var _views = ref._views;
+
+	        for (var cid in _views) {
+	            for (var hid in _views[cid]) {
+	                var view = _views[cid][hid];
+
+	                if (view.cellView.paper === paper && view instanceof this && (id === null || hid === id)) {
+	                    view.remove();
+	                }
+	            }
+	        }
 	    },
 
 	    update: function update(cellView, id, dirty) {
@@ -18581,10 +19035,19 @@ var joint = (function (exports, Backbone, _, $) {
 	    getNodeBBox: function(magnet) {
 
 	        var rect = this.getNodeBoundingRect(magnet);
+	        var transformMatrix = this.getRootTranslateMatrix().multiply(this.getNodeRotateMatrix(magnet));
 	        var magnetMatrix = this.getNodeMatrix(magnet);
-	        var translateMatrix = this.getRootTranslateMatrix();
-	        var rotateMatrix = this.getRootRotateMatrix();
-	        return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
+	        return V.transformRect(rect, transformMatrix.multiply(magnetMatrix));
+	    },
+
+	    getNodeRotateMatrix: function getNodeRotateMatrix(node) {
+	        if (!this.rotatableNode || this.rotatableNode.contains(node)) {
+	            // Rotate transformation is applied to all nodes when no rotatableGroup
+	            // is present or to nodes inside the rotatableGroup only.
+	            return this.getRootRotateMatrix();
+	        }
+	        // Nodes outside the rotatable group
+	        return V.createSVGMatrix();
 	    },
 
 	    getNodeUnrotatedBBox: function(magnet) {
@@ -18876,7 +19339,7 @@ var joint = (function (exports, Backbone, _, $) {
 	            if (!attrs.hasOwnProperty(attrName)) { continue; }
 	            attrVal = attrs[attrName];
 	            def = this.getAttributeDefinition(attrName);
-	            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
+	            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs, this))) {
 	                if (isString(def.set)) {
 	                    normalAttrs || (normalAttrs = {});
 	                    normalAttrs[def.set] = attrVal;
@@ -18936,7 +19399,7 @@ var joint = (function (exports, Backbone, _, $) {
 	            // SET - set function should return attributes to be set on the node,
 	            // which will affect the node dimensions based on the reference bounding
 	            // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
-	            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs);
+	            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
 	            if (isObject$1(setResult)) {
 	                assign(nodeAttrs, setResult);
 	            } else if (setResult !== undefined) {
@@ -18978,7 +19441,7 @@ var joint = (function (exports, Backbone, _, $) {
 	            // reference bounding box. The default position of the node is x:0, y:0 of
 	            // the reference bounding box or could be further specify by some
 	            // SVG attributes e.g. `x`, `y`
-	            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs);
+	            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
 	            if (translation) {
 	                nodePosition.offset(Point(translation).scale(sx, sy));
 	                positioned || (positioned = true);
@@ -19001,7 +19464,7 @@ var joint = (function (exports, Backbone, _, $) {
 	                    // OFFSET - offset function should return a point from the element
 	                    // bounding box. The default offset point is x:0, y:0 (origin) or could be further
 	                    // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
-	                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs);
+	                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs, this);
 	                    if (translation) {
 	                        nodePosition.offset(Point(translation).scale(sx, sy));
 	                        offseted || (offseted = true);
@@ -19070,7 +19533,15 @@ var joint = (function (exports, Backbone, _, $) {
 
 	        var metrics = this.nodeCache(magnet);
 	        if (metrics.magnetMatrix === undefined) {
-	            var target = this.rotatableNode || this.el;
+	            var ref = this;
+	            var rotatableNode = ref.rotatableNode;
+	            var el = ref.el;
+	            var target;
+	            if (rotatableNode && rotatableNode.contains(magnet)) {
+	                target = rotatableNode;
+	            } else {
+	                target = el;
+	            }
 	            metrics.magnetMatrix = V(magnet).getTransformToElement(target);
 	        }
 	        return V.createSVGMatrix(metrics.magnetMatrix);
@@ -22227,7 +22698,8 @@ var joint = (function (exports, Backbone, _, $) {
 	        angleTangentCoefficient: opt.angleTangentCoefficient || 80,
 	        tau: opt.tension || 0.5,
 	        sourceTangent: opt.sourceTangent ? new Point(opt.sourceTangent) : null,
-	        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null
+	        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null,
+	        rotate: Boolean(opt.rotate)
 	    };
 	    if (typeof opt.sourceDirection === 'string')
 	        { options.sourceDirection = opt.sourceDirection; }
@@ -22293,132 +22765,245 @@ var joint = (function (exports, Backbone, _, $) {
 	    var sourceBBox = linkView.sourceBBox;
 
 	    var sourceSide;
-	    if (!sourceBBox.width || !sourceBBox.height) {
+	    var rotation;
+	    if (!linkView.sourceView) {
 	        if (sourceBBox.x > route[1].x)
 	            { sourceSide = 'right'; }
 	        else
 	            { sourceSide = 'left'; }
 	    } else {
-	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	        rotation = linkView.sourceView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+	            var sourcePoint = route[0].clone();
+	            sourcePoint.rotate(sourceBBox.center(), rotation);
+	            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+	        } else {
+	            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	        }
 	    }
 
+	    var direction;
 	    switch (sourceSide) {
 	        case 'left':
-	            return new Point(-1, 0);
+	            direction = new Point(-1, 0);
+	            break;
 	        case 'right':
 	        default:
-	            return new Point(1, 0);
+	            direction = new Point(1, 0);
+	            break;
 	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
 	}
 
 	function getHorizontalTargetDirection(linkView, route, options) {
 	    var targetBBox = linkView.targetBBox;
 
 	    var targetSide;
-	    if (!targetBBox.width || !targetBBox.height) {
+	    var rotation;
+	    if (!linkView.targetView) {
 	        if (targetBBox.x > route[route.length - 2].x)
 	            { targetSide = 'left'; }
 	        else
 	            { targetSide = 'right'; }
 	    } else {
-	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	        rotation = linkView.targetView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+	            var targetPoint = route[route.length - 1].clone();
+	            targetPoint.rotate(targetBBox.center(), rotation);
+	            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+	        } else {
+	            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	        }
 	    }
 
+	    var direction;
 	    switch (targetSide) {
 	        case 'left':
-	            return new Point(-1, 0);
+	            direction = new Point(-1, 0);
+	            break;
 	        case 'right':
 	        default:
-	            return new Point(1, 0);
+	            direction = new Point(1, 0);
+	            break;
 	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
 	}
 
 	function getVerticalSourceDirection(linkView, route, options) {
 	    var sourceBBox = linkView.sourceBBox;
 
 	    var sourceSide;
-	    if (!sourceBBox.width || !sourceBBox.height) {
+	    var rotation;
+	    if (!linkView.sourceView) {
 	        if (sourceBBox.y > route[1].y)
 	            { sourceSide = 'bottom'; }
 	        else
 	            { sourceSide = 'top'; }
 	    } else {
-	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	        rotation = linkView.sourceView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+	            var sourcePoint = route[0].clone();
+	            sourcePoint.rotate(sourceBBox.center(), rotation);
+	            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+	        } else {
+	            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	        }
 	    }
 
+	    var direction;
 	    switch (sourceSide) {
 	        case 'top':
-	            return new Point(0, -1);
+	            direction = new Point(0, -1);
+	            break;
 	        case 'bottom':
 	        default:
-	            return new Point(0, 1);
+	            direction = new Point(0, 1);
+	            break;
 	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
 	}
 
 	function getVerticalTargetDirection(linkView, route, options) {
 	    var targetBBox = linkView.targetBBox;
 
 	    var targetSide;
-	    if (!targetBBox.width || !targetBBox.height) {
+	    var rotation;
+	    if (!linkView.targetView) {
 	        if (targetBBox.y > route[route.length - 2].y)
 	            { targetSide = 'top'; }
 	        else
 	            { targetSide = 'bottom'; }
 	    } else {
-	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	        rotation = linkView.targetView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+	            var targetPoint = route[route.length - 1].clone();
+	            targetPoint.rotate(targetBBox.center(), rotation);
+	            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+	        } else {
+	            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	        }
 	    }
 
+
+	    var direction;
 	    switch (targetSide) {
 	        case 'top':
-	            return new Point(0, -1);
+	            direction = new Point(0, -1);
+	            break;
 	        case 'bottom':
 	        default:
-	            return new Point(0, 1);
+	            direction = new Point(0, 1);
+	            break;
 	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
 	}
 
 	function getAutoSourceDirection(linkView, route, options) {
 	    var sourceBBox = linkView.sourceBBox;
 
 	    var sourceSide;
-	    if (!sourceBBox.width || !sourceBBox.height) {
+	    var rotation;
+	    if (!linkView.sourceView) {
 	        sourceSide = sourceBBox.sideNearestToPoint(route[1]);
 	    } else {
-	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	        rotation = linkView.sourceView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+	            var sourcePoint = route[0].clone();
+	            sourcePoint.rotate(sourceBBox.center(), rotation);
+	            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+	        } else {
+	            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	        }
 	    }
 
+	    var direction;
 	    switch (sourceSide) {
 	        case 'top':
-	            return new Point(0, -1);
+	            direction = new Point(0, -1);
+	            break;
 	        case 'bottom':
-	            return new Point(0, 1);
+	            direction = new Point(0, 1);
+	            break;
 	        case 'right':
-	            return new Point(1, 0);
+	            direction = new Point(1, 0);
+	            break;
 	        case 'left':
-	            return new Point(-1, 0);
+	            direction = new Point(-1, 0);
+	            break;
 	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
 	}
 
 	function getAutoTargetDirection(linkView, route, options) {
 	    var targetBBox = linkView.targetBBox;
 
 	    var targetSide;
-	    if (!targetBBox.width || !targetBBox.height) {
+	    var rotation;
+	    if (!linkView.targetView) {
 	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
 	    } else {
-	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	        rotation = linkView.targetView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+	            var targetPoint = route[route.length - 1].clone();
+	            targetPoint.rotate(targetBBox.center(), rotation);
+	            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+	        } else {
+	            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	        }
 	    }
 
+	    var direction;
 	    switch (targetSide) {
 	        case 'top':
-	            return new Point(0, -1);
+	            direction = new Point(0, -1);
+	            break;
 	        case 'bottom':
-	            return new Point(0, 1);
+	            direction = new Point(0, 1);
+	            break;
 	        case 'right':
-	            return new Point(1, 0);
+	            direction = new Point(1, 0);
+	            break;
 	        case 'left':
-	            return new Point(-1, 0);
+	            direction = new Point(-1, 0);
+	            break;
 	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
 	}
 
 	function getClosestPointSourceDirection(linkView, route, options) {
@@ -22675,7 +23260,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        longLinkLength: 155,
 	        linkToolsOffset: 40,
 	        doubleLinkToolsOffset: 65,
-	        sampleInterval: 50,
+	        sampleInterval: 50
 	    },
 
 	    _labelCache: null,
@@ -24642,14 +25227,17 @@ var joint = (function (exports, Backbone, _, $) {
 	    },
 
 	    dragArrowhead: function(evt, x, y) {
-
 	        if (this.paper.options.snapLinks) {
-
-	            this._snapArrowhead(evt, x, y);
-
+	            var isSnapped = this._snapArrowhead(evt, x, y);
+	            if (!isSnapped && this.paper.options.snapLinksSelf) {
+	                this._snapArrowheadSelf(evt, x, y);
+	            }
 	        } else {
-
-	            this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
+	            if (this.paper.options.snapLinksSelf) {
+	                this._snapArrowheadSelf(evt, x, y);
+	            } else {
+	                this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
+	            }
 	        }
 	    },
 
@@ -24740,6 +25328,59 @@ var joint = (function (exports, Backbone, _, $) {
 	        }
 	    },
 
+	    _snapToPoints: function(snapPoint, points, radius) {
+	        var closestPointX = null;
+	        var closestDistanceX = Infinity;
+
+	        var closestPointY = null;
+	        var closestDistanceY = Infinity;
+
+	        var x = snapPoint.x;
+	        var y = snapPoint.y;
+
+	        for (var i = 0; i < points.length; i++) {
+	            var distX = Math.abs(points[i].x - snapPoint.x);
+	            if (distX < closestDistanceX) {
+	                closestDistanceX = distX;
+	                closestPointX = points[i];
+	            }
+
+	            var distY = Math.abs(points[i].y - snapPoint.y);
+	            if (distY < closestDistanceY) {
+	                closestDistanceY = distY;
+	                closestPointY = points[i];
+	            }
+	        }
+
+	        if (closestDistanceX < radius) {
+	            x = closestPointX.x;
+	        }
+	        if (closestDistanceY < radius) {
+	            y = closestPointY.y;
+	        }
+
+	        return { x: x, y: y };
+	    },
+
+	    _snapArrowheadSelf: function(evt, x, y) {
+
+	        var ref = this;
+	        var paper = ref.paper;
+	        var model = ref.model;
+	        var ref$1 = paper.options;
+	        var snapLinksSelf = ref$1.snapLinksSelf;
+	        var data = this.eventData(evt);
+	        var radius = snapLinksSelf.radius || 20;
+
+	        var anchor = this.getEndAnchor(data.arrowhead === 'source' ? 'target' : 'source');
+	        var vertices = model.vertices();
+	        var points = [anchor ].concat( vertices);
+
+	        var snapPoint = this._snapToPoints({ x: x, y: y }, points, radius);
+
+	        this._connectArrowhead(document.elementFromPoint(snapPoint.x, snapPoint.y), snapPoint.x, snapPoint.y, this.eventData(evt));
+	    },
+
 	    _snapArrowhead: function(evt, x, y) {
 
 	        var ref = this;
@@ -24748,6 +25389,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        var snapLinks = ref$1.snapLinks;
 	        var connectionStrategy = ref$1.connectionStrategy;
 	        var data = this.eventData(evt);
+	        var isSnapped = false;
 	        // checking view in close area of the pointer
 
 	        var r = snapLinks.radius || 50;
@@ -24821,18 +25463,19 @@ var joint = (function (exports, Backbone, _, $) {
 	            var prevY = data.prevY;
 	            data.prevX = x;
 	            data.prevY = y;
+	            isSnapped = true;
 
 	            if (!newClosestMagnet)  {
 	                if (typeof connectionStrategy !== 'function' || (prevX === x && prevY === y)) {
 	                    // the magnet has not changed and the link's end does not depend on the x and y
-	                    return;
+	                    return isSnapped;
 	                }
 	            }
 
 	            end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
 	            if (!newClosestMagnet && isEqual(prevEnd, end)) {
 	                // the source/target json has not changed
-	                return;
+	                return isSnapped;
 	            }
 
 	            data.prevEnd = end;
@@ -24857,6 +25500,8 @@ var joint = (function (exports, Backbone, _, $) {
 	        if (closestView) {
 	            this.notify('link:snap:connect', evt, closestView, closestMagnet, endType);
 	        }
+
+	        return isSnapped;
 	    },
 
 	    _snapArrowheadEnd: function(data) {
@@ -25201,7 +25846,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        var options = ref.options;
 	        var padding = options.padding;
 	        var layer = options.layer;
-	        var highlightMatrix = cellView.getNodeMatrix(node);
+	        var highlightMatrix = this.getNodeMatrix(cellView, node);
 	        // Add padding to the highlight element.
 	        if (padding) {
 	            if (!layer && node === cellView.el) {
@@ -25465,11 +26110,12 @@ var joint = (function (exports, Backbone, _, $) {
 	            vel.remove();
 	        }
 	        var highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
+	        var highlightMatrix = this.getNodeMatrix(cellView, node);
 	        var maskEl = this.getMask(cellView, V(node));
 	        this.addMask(cellView.paper, maskEl);
 	        vel.attr(highlighterBBox.toJSON());
 	        vel.attr({
-	            'transform': V.matrixToTransformString(cellView.getNodeMatrix(node)),
+	            'transform': V.matrixToTransformString(highlightMatrix),
 	            'mask': ("url(#" + (maskEl.id) + ")"),
 	            'fill': color
 	        });
@@ -25522,13 +26168,132 @@ var joint = (function (exports, Backbone, _, $) {
 	    className: className
 	});
 
+	var Directions$1 = {
+	    ROW: 'row',
+	    COLUMN: 'column'
+	};
+
+	var list = HighlighterView.extend({
+
+	    tagName: 'g',
+	    MOUNTABLE: true,
+	    UPDATE_ATTRIBUTES: function() {
+	        return [this.options.attribute];
+	    },
+
+	    _prevItems: null,
+
+	    highlight: function highlight(elementView, node) {
+	        var this$1 = this;
+
+	        var element = elementView.model;
+	        var ref = this.options;
+	        var attribute = ref.attribute;
+	        var size = ref.size; if ( size === void 0 ) size = 20;
+	        var gap = ref.gap; if ( gap === void 0 ) gap = 5;
+	        var direction = ref.direction; if ( direction === void 0 ) direction = Directions$1.ROW;
+	        if (!attribute) { throw new Error('List: attribute is required'); }
+	        var normalizedSize = (typeof size === 'number') ? { width: size, height: size } : size;
+	        var isRowDirection = (direction === Directions$1.ROW);
+	        var itemWidth = isRowDirection ? normalizedSize.width : normalizedSize.height;
+	        var items = element.get(attribute);
+	        if (!Array.isArray(items)) { items = []; }
+	        var prevItems = this._prevItems || [];
+	        var comparison = items.map(function (item, index) { return isEqual(prevItems[index], items[index]); });
+	        if (prevItems.length !== items.length || comparison.some(function (unchanged) { return !unchanged; })) {
+	            var prevEls = this.vel.children();
+	            var itemsEls = items.map(function (item, index) {
+	                var prevEl = (index in prevEls) ? prevEls[index].node : null;
+	                if (comparison[index]) { return prevEl; }
+	                var itemEl = this$1.createListItem(item, normalizedSize, prevEl);
+	                if (!itemEl) { return null; }
+	                if (!(itemEl instanceof SVGElement)) { throw new Error('List: item must be an SVGElement'); }
+	                itemEl.dataset.index = index;
+	                itemEl.dataset.attribute = attribute;
+	                var offset = index * (itemWidth + gap);
+	                itemEl.setAttribute('transform', (isRowDirection)
+	                    ? ("translate(" + offset + ", 0)")
+	                    : ("translate(0, " + offset + ")")
+	                );
+	                return itemEl;
+	            });
+	            this.vel.empty().append(itemsEls);
+	            this._prevItems = items;
+	        }
+	        var itemsCount = items.length;
+	        var length = (itemsCount === 0)
+	            ? 0
+	            : (itemsCount * itemWidth + (itemsCount - 1) * gap);
+	        var listSize = (isRowDirection)
+	            ? { width: length, height: normalizedSize.height }
+	            : { width: normalizedSize.width, height: length };
+
+	        this.position(element, listSize);
+	    },
+
+	    position: function position(element, listSize) {
+	        var ref = this;
+	        var vel = ref.vel;
+	        var options = ref.options;
+	        var margin = options.margin; if ( margin === void 0 ) margin = 5;
+	        var position = options.position; if ( position === void 0 ) position = 'top-left';
+	        var ref$1 = element.size();
+	        var width = ref$1.width;
+	        var height = ref$1.height;
+	        var ref$2 = normalizeSides(margin);
+	        var left = ref$2.left;
+	        var right = ref$2.right;
+	        var top = ref$2.top;
+	        var bottom = ref$2.bottom;
+	        var bbox = new Rect(left, top, width - (left + right), height - (top + bottom));
+	        var ref$3 = getRectPoint(bbox, position);
+	        var x = ref$3.x;
+	        var y = ref$3.y;
+	        // x
+	        switch (position) {
+	            case Positions.CENTER:
+	            case Positions.TOP:
+	            case Positions.BOTTOM: {
+	                x -= listSize.width / 2;
+	                break;
+	            }
+	            case Positions.RIGHT:
+	            case Positions.BOTTOM_RIGHT:
+	            case Positions.TOP_RIGHT: {
+	                x -= listSize.width;
+	                break;
+	            }
+	        }
+	        // y
+	        switch (position) {
+	            case Positions.CENTER:
+	            case Positions.RIGHT:
+	            case Positions.LEFT: {
+	                y -= listSize.height / 2;
+	                break;
+	            }
+	            case Positions.BOTTOM:
+	            case Positions.BOTTOM_RIGHT:
+	            case Positions.BOTTOM_LEFT: {
+	                y -= listSize.height;
+	                break;
+	            }
+	        }
+	        vel.attr('transform', ("translate(" + x + ", " + y + ")"));
+	    }
+	}, {
+	    Directions: Directions$1,
+	    Positions: Positions
+	});
+
 
 
 	var highlighters = ({
 		stroke: stroke,
 		mask: mask,
 		opacity: opacity,
-		addClass: addClass
+		addClass: addClass,
+		list: list
 	});
 
 	function connectionRatio(view, _magnet, _refPoint, opt) {
@@ -25962,6 +26727,8 @@ var joint = (function (exports, Backbone, _, $) {
 	    EXACT: 'sorting-exact'
 	};
 
+	var WHEEL_CAP = 50;
+	var WHEEL_WAIT_MS = 20;
 	var MOUNT_BATCH_SIZE = 1000;
 	var UPDATE_BATCH_SIZE = Infinity;
 	var MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
@@ -26024,6 +26791,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        linkView: LinkView,
 	        snapLabels: false, // false, true
 	        snapLinks: false, // false, true, { radius: value }
+	        snapLinksSelf: false, // false, true, { radius: value }
 
 	        // Should the link labels be rendered into its own layer?
 	        // `false` - the labels are part of the links
@@ -26199,6 +26967,7 @@ var joint = (function (exports, Backbone, _, $) {
 
 	    events: {
 	        'dblclick': 'pointerdblclick',
+	        'dbltap': 'pointerdblclick',
 	        'contextmenu': 'contextmenu',
 	        'mousedown': 'pointerdown',
 	        'touchstart': 'pointerdown',
@@ -26277,6 +27046,12 @@ var joint = (function (exports, Backbone, _, $) {
 
 	        // Hash of all cell views.
 	        this._views = {};
+
+	        // Mouse wheel events buffer
+	        this._mw_evt_buffer = {
+	            event: null,
+	            deltas: [],
+	        };
 
 	        // Reference to the paper owner document
 	        this.$document = $(el.ownerDocument);
@@ -26523,7 +27298,7 @@ var joint = (function (exports, Backbone, _, $) {
 	    removeLayers: function() {
 	        var ref = this;
 	        var _layers = ref._layers;
-	        Object.keys(_layers, function (name) {
+	        Object.keys(_layers).forEach(function (name) {
 	            _layers[name].remove();
 	            delete _layers[name];
 	        });
@@ -26532,7 +27307,7 @@ var joint = (function (exports, Backbone, _, $) {
 	    resetLayers: function() {
 	        var ref = this;
 	        var _layers = ref._layers;
-	        Object.keys(_layers, function (name) {
+	        Object.keys(_layers).forEach(function (name) {
 	            _layers[name].removePivots();
 	        });
 	    },
@@ -27986,8 +28761,17 @@ var joint = (function (exports, Backbone, _, $) {
 
 	        if (this.options.preventContextMenu) { evt.preventDefault(); }
 
+	        if (this.contextMenuFired) {
+	            this.contextMenuFired = false;
+	            return;
+	        }
+
 	        evt = normalizeEvent(evt);
 
+	        this.contextMenuTrigger(evt);
+	    },
+
+	    contextMenuTrigger: function(evt) {
 	        var view = this.findView(evt.target);
 	        if (this.guard(evt, view)) { return; }
 
@@ -28008,31 +28792,42 @@ var joint = (function (exports, Backbone, _, $) {
 
 	        evt = normalizeEvent(evt);
 
-	        var view = this.findView(evt.target);
-	        if (this.guard(evt, view)) { return; }
-
-	        var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-
-	        if (view) {
-
-	            evt.preventDefault();
-	            view.pointerdown(evt, localPoint.x, localPoint.y);
-
+	        if (evt.button === 2) {
+	            this.contextMenuFired = true;
+	            this.contextMenuTrigger($.Event(evt, { type: 'contextmenu', data: evt.data }));
 	        } else {
+	            var view = this.findView(evt.target);
 
-	            if (this.options.preventDefaultBlankAction) { evt.preventDefault(); }
+	            if (this.guard(evt, view)) { return; }
+	            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
-	            this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
+	            if (view) {
+	                evt.preventDefault();
+	                view.pointerdown(evt, localPoint.x, localPoint.y);
+	            } else {
+	                if (this.options.preventDefaultBlankAction) { evt.preventDefault(); }
+
+	                this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
+	            }
+
+	            this.delegateDragEvents(view, evt.data);
 	        }
 
-	        this.delegateDragEvents(view, evt.data);
 	    },
 
 	    pointermove: function(evt) {
 
 	        // mouse moved counter
 	        var data = this.eventData(evt);
-	        data.mousemoved || (data.mousemoved = 0);
+	        if (!data.mousemoved) {
+	            data.mousemoved = 0;
+	            // Make sure that events like `mouseenter` and `mouseleave` are
+	            // not triggered while the user is dragging a cellView.
+	            this.undelegateEvents();
+	            // Note: the events are undelegated after the first `pointermove` event.
+	            // Not on `pointerdown` to make sure that `dbltap` is recognized.
+	        }
+
 	        var mousemoved = ++data.mousemoved;
 
 	        if (mousemoved <= this.options.moveThreshold) { return; }
@@ -28171,6 +28966,24 @@ var joint = (function (exports, Backbone, _, $) {
 	        }
 	    },
 
+	    _processMouseWheelEvtBuf: debounce(function() {
+	        var ref = this._mw_evt_buffer;
+	        var event = ref.event;
+	        var deltas = ref.deltas;
+	        var deltaY = deltas.reduce(function (acc, deltaY) { return acc + cap(deltaY, WHEEL_CAP); }, 0);
+
+	        var scale = Math.pow(0.995, deltaY); // 1.005 for inverted pinch/zoom
+	        var ref$1 = this.clientToLocalPoint(event.clientX, event.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        this.trigger('paper:pinch', event, x, y, scale);
+
+	        this._mw_evt_buffer = {
+	            event: null,
+	            deltas: [],
+	        };
+	    }, WHEEL_WAIT_MS, { maxWait: WHEEL_WAIT_MS }),
+
 	    mousewheel: function(evt) {
 
 	        evt = normalizeEvent(evt);
@@ -28180,13 +28993,33 @@ var joint = (function (exports, Backbone, _, $) {
 
 	        var originalEvent = evt.originalEvent;
 	        var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
-	        var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
+	        var ref = normalizeWheel(originalEvent);
+	        var deltaX = ref.deltaX;
+	        var deltaY = ref.deltaY;
 
-	        if (view) {
-	            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
-
+	        // Touchpad devices will send a fake CTRL press when a pinch is performed
+	        if(evt.ctrlKey) {
+	            // Check if there are any subscribers to this event. If there are none,
+	            // just skip the entire block of code (we don't want to blindly call
+	            // .preventDefault() if we really don't have to).
+	            var handlers = this._events['paper:pinch'];
+	            if(handlers && handlers.length > 0) {
+	                // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
+	                originalEvent.preventDefault();
+	                this._mw_evt_buffer.event = originalEvent;
+	                this._mw_evt_buffer.deltas.push(deltaY);
+	                this._processMouseWheelEvtBuf();
+	            }
 	        } else {
-	            this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
+	            var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
+	            if (view) {
+	                view.mousewheel(evt, localPoint.x, localPoint.y, delta);
+
+	            } else {
+	                this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
+	            }
+
+	            this.trigger('paper:pan', evt, deltaX, deltaY);
 	        }
 	    },
 
@@ -28272,7 +29105,6 @@ var joint = (function (exports, Backbone, _, $) {
 	        data || (data = {});
 	        this.eventData({ data: data }, { sourceView: view || null, mousemoved: 0 });
 	        this.delegateDocumentEvents(null, data);
-	        this.undelegateEvents();
 	    },
 
 	    // Guard the specified event. If the event is not interesting, guard returns `true`.
@@ -31810,38 +32642,6 @@ var joint = (function (exports, Backbone, _, $) {
 		pinRelative: pinRelative
 	});
 
-	function getAnchor(coords, view, magnet) {
-	    // take advantage of an existing logic inside of the
-	    // pin relative connection strategy
-	    var end = pinRelative.call(
-	        this.paper,
-	        {},
-	        view,
-	        magnet,
-	        coords,
-	        this.model
-	    );
-	    return end.anchor;
-	}
-
-	function snapAnchor(coords, view, magnet, type, relatedView, toolView) {
-	    var snapRadius = toolView.options.snapRadius;
-	    var isSource = (type === 'source');
-	    var refIndex = (isSource ? 0 : -1);
-	    var ref = this.model.vertex(refIndex) || this.getEndAnchor(isSource ? 'target' : 'source');
-	    if (ref) {
-	        if (Math.abs(ref.x - coords.x) < snapRadius) { coords.x = ref.x; }
-	        if (Math.abs(ref.y - coords.y) < snapRadius) { coords.y = ref.y; }
-	    }
-	    return coords;
-	}
-
-	function getViewBBox(view, useModelGeometry) {
-	    var model = view.model;
-	    if (useModelGeometry) { return model.getBBox(); }
-	    return (model.isLink()) ? view.getConnection().bbox() : view.getNodeUnrotatedBBox(view.el);
-	}
-
 	// Vertex Handles
 	var VertexHandle = View.extend({
 	    tagName: 'circle',
@@ -31868,7 +32668,13 @@ var joint = (function (exports, Backbone, _, $) {
 	        'cursor': 'move'
 	    },
 	    position: function(x, y) {
-	        this.vel.attr({ cx: x, cy: y });
+	        var ref = this;
+	        var vel = ref.vel;
+	        var options = ref.options;
+	        var scale = options.scale;
+	        var matrix = V.createSVGMatrix().translate(x, y);
+	        if (scale) { matrix = matrix.scale(scale); }
+	        vel.transform(matrix, { absolute: true });
 	    },
 	    onPointerDown: function(evt) {
 	        if (this.options.guard(evt)) { return; }
@@ -31898,7 +32704,8 @@ var joint = (function (exports, Backbone, _, $) {
 	        snapRadius: 20,
 	        redundancyRemoval: true,
 	        vertexAdding: true,
-	        stopPropagation: true
+	        stopPropagation: true,
+	        scale: null
 	    },
 	    children: [{
 	        tagName: 'path',
@@ -31958,6 +32765,7 @@ var joint = (function (exports, Backbone, _, $) {
 	            var handle = new (this.options.handleClass)({
 	                index: i,
 	                paper: this.paper,
+	                scale: this.options.scale,
 	                guard: function (evt) { return this$1.guard(evt); }
 	            });
 	            handle.render();
@@ -32094,6 +32902,38 @@ var joint = (function (exports, Backbone, _, $) {
 	    VertexHandle: VertexHandle // keep as class property
 	});
 
+	function getViewBBox(view, useModelGeometry) {
+	    var model = view.model;
+	    if (useModelGeometry) { return model.getBBox(); }
+	    return (model.isLink()) ? view.getConnection().bbox() : view.getNodeUnrotatedBBox(view.el);
+	}
+
+	function getAnchor(coords, view, magnet) {
+	    // take advantage of an existing logic inside of the
+	    // pin relative connection strategy
+	    var end = pinRelative.call(
+	        this.paper,
+	        {},
+	        view,
+	        magnet,
+	        coords,
+	        this.model
+	    );
+	    return end.anchor;
+	}
+
+	function snapAnchor(coords, view, magnet, type, relatedView, toolView) {
+	    var snapRadius = toolView.options.snapRadius;
+	    var isSource = (type === 'source');
+	    var refIndex = (isSource ? 0 : -1);
+	    var ref = this.model.vertex(refIndex) || this.getEndAnchor(isSource ? 'target' : 'source');
+	    if (ref) {
+	        if (Math.abs(ref.x - coords.x) < snapRadius) { coords.x = ref.x; }
+	        if (Math.abs(ref.y - coords.y) < snapRadius) { coords.y = ref.y; }
+	    }
+	    return coords;
+	}
+
 	var SegmentHandle = View.extend({
 	    tagName: 'g',
 	    svgElement: true,
@@ -32137,8 +32977,11 @@ var joint = (function (exports, Backbone, _, $) {
 	        this.renderChildren();
 	    },
 	    position: function(x, y, angle, view) {
-
+	        var ref = this.options;
+	        var scale = ref.scale;
 	        var matrix = V.createSVGMatrix().translate(x, y).rotate(angle);
+	        if (scale) { matrix = matrix.scale(scale); }
+
 	        var handle = this.childNodes.handle;
 	        handle.setAttribute('transform', V.matrixToTransformString(matrix));
 	        handle.setAttribute('cursor', (angle % 180 === 0) ? 'row-resize' : 'col-resize');
@@ -32208,6 +33051,7 @@ var joint = (function (exports, Backbone, _, $) {
 
 	        var handle = new (this.options.handleClass)({
 	            paper: this.paper,
+	            scale: this.options.scale,
 	            guard: function (evt) { return this$1.guard(evt); }
 	        });
 	        handle.render();
@@ -32458,6 +33302,9 @@ var joint = (function (exports, Backbone, _, $) {
 	        touchend: 'onPointerUp',
 	        touchcancel: 'onPointerUp'
 	    },
+	    options: {
+	        scale: null
+	    },
 	    onRender: function() {
 	        this.update();
 	    },
@@ -32475,6 +33322,9 @@ var joint = (function (exports, Backbone, _, $) {
 	        }
 	        if (!position) { return this; }
 	        var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
+	        var ref = this.options;
+	        var scale = ref.scale;
+	        if (scale) { matrix = matrix.scale(scale); }
 	        this.vel.transform(matrix, { absolute: true });
 	        return this;
 	    },
@@ -32538,225 +33388,6 @@ var joint = (function (exports, Backbone, _, $) {
 	        'class': 'source-arrowhead'
 	    }
 	});
-
-	var Button = ToolView.extend({
-	    name: 'button',
-	    events: {
-	        'mousedown': 'onPointerDown',
-	        'touchstart': 'onPointerDown'
-	    },
-	    options: {
-	        distance: 0,
-	        offset: 0,
-	        rotate: false
-	    },
-	    onRender: function() {
-	        this.renderChildren(this.options.markup);
-	        this.update();
-	    },
-	    update: function() {
-	        this.position();
-	        return this;
-	    },
-	    position: function() {
-	        var ref = this;
-	        var view = ref.relatedView;
-	        var vel = ref.vel;
-	        var matrix = view.model.isLink() ? this.getLinkMatrix() : this.getElementMatrix();
-	        vel.transform(matrix, { absolute: true });
-	    },
-	    getElementMatrix: function getElementMatrix() {
-	        var ref = this;
-	        var view = ref.relatedView;
-	        var options = ref.options;
-	        var x = options.x; if ( x === void 0 ) x = 0;
-	        var y = options.y; if ( y === void 0 ) y = 0;
-	        var offset = options.offset; if ( offset === void 0 ) offset = {};
-	        var useModelGeometry = options.useModelGeometry;
-	        var rotate = options.rotate;
-	        var bbox = getViewBBox(view, useModelGeometry);
-	        var angle = view.model.angle();
-	        if (!rotate) { bbox = bbox.bbox(angle); }
-	        var offsetX = offset.x; if ( offsetX === void 0 ) offsetX = 0;
-	        var offsetY = offset.y; if ( offsetY === void 0 ) offsetY = 0;
-	        if (isPercentage(x)) {
-	            x = parseFloat(x) / 100 * bbox.width;
-	        }
-	        if (isPercentage(y)) {
-	            y = parseFloat(y) / 100 * bbox.height;
-	        }
-	        var matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
-	        if (rotate) { matrix = matrix.rotate(angle); }
-	        matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
-	        return matrix;
-	    },
-	    getLinkMatrix: function getLinkMatrix() {
-	        var ref = this;
-	        var view = ref.relatedView;
-	        var options = ref.options;
-	        var offset = options.offset; if ( offset === void 0 ) offset = 0;
-	        var distance = options.distance; if ( distance === void 0 ) distance = 0;
-	        var rotate = options.rotate;
-	        var tangent, position, angle;
-	        if (isPercentage(distance)) {
-	            tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
-	        } else {
-	            tangent = view.getTangentAtLength(distance);
-	        }
-	        if (tangent) {
-	            position = tangent.start;
-	            angle = tangent.vector().vectorAngle(new Point(1, 0)) || 0;
-	        } else {
-	            position = view.getConnection().start;
-	            angle = 0;
-	        }
-	        var matrix = V.createSVGMatrix()
-	            .translate(position.x, position.y)
-	            .rotate(angle)
-	            .translate(0, offset);
-	        if (!rotate) { matrix = matrix.rotate(-angle); }
-	        return matrix;
-	    },
-	    onPointerDown: function(evt) {
-	        if (this.guard(evt)) { return; }
-	        evt.stopPropagation();
-	        evt.preventDefault();
-	        var actionFn = this.options.action;
-	        if (typeof actionFn === 'function') {
-	            actionFn.call(this.relatedView, evt, this.relatedView, this);
-	        }
-	    }
-	});
-
-
-	var Remove = Button.extend({
-	    children: [{
-	        tagName: 'circle',
-	        selector: 'button',
-	        attributes: {
-	            'r': 7,
-	            'fill': '#FF1D00',
-	            'cursor': 'pointer'
-	        }
-	    }, {
-	        tagName: 'path',
-	        selector: 'icon',
-	        attributes: {
-	            'd': 'M -3 -3 3 3 M -3 3 3 -3',
-	            'fill': 'none',
-	            'stroke': '#FFFFFF',
-	            'stroke-width': 2,
-	            'pointer-events': 'none'
-	        }
-	    }],
-	    options: {
-	        distance: 60,
-	        offset: 0,
-	        action: function(evt, view, tool) {
-	            view.model.remove({ ui: true, tool: tool.cid });
-	        }
-	    }
-	});
-
-	var Connect = Button.extend({
-	    name: 'connect',
-	    documentEvents: {
-	        mousemove: 'drag',
-	        touchmove: 'drag',
-	        mouseup: 'dragend',
-	        touchend: 'dragend',
-	        touchcancel: 'dragend'
-	    },
-	    children: [{
-	        tagName: 'circle',
-	        selector: 'button',
-	        attributes: {
-	            'r': 7,
-	            'fill': '#333333',
-	            'cursor': 'pointer'
-	        }
-	    }, {
-	        tagName: 'path',
-	        selector: 'icon',
-	        attributes: {
-	            'd': 'M -4 -1 L 0 -1 L 0 -4 L 4 0 L 0 4 0 1 -4 1 z',
-	            'fill': '#FFFFFF',
-	            'stroke': 'none',
-	            'stroke-width': 2,
-	            'pointer-events': 'none'
-	        }
-	    }],
-	    options: {
-	        distance: 80,
-	        offset: 0,
-	        magnet: function (view) { return view.el; },
-	        action: function (evt, _view, tool) { return tool.dragstart(evt); },
-	    },
-	    getMagnetNode: function() {
-	        var assign;
-
-	        var ref = this;
-	        var options = ref.options;
-	        var relatedView = ref.relatedView;
-	        var magnet = options.magnet;
-	        var magnetNode;
-	        switch (typeof magnet) {
-	            case 'function': {
-	                magnetNode = magnet.call(this, relatedView, this);
-	                break;
-	            }
-	            case 'string': {
-	                (assign = relatedView.findBySelector(magnet), magnetNode = assign[0]);
-	                break;
-	            }
-	            default: {
-	                magnetNode = magnet;
-	                break;
-	            }
-	        }
-	        if (!magnetNode) { magnetNode = relatedView.el; }
-	        if (magnetNode instanceof SVGElement) { return magnetNode; }
-	        throw new Error('Connect: magnet must be an SVGElement');
-	    },
-	    dragstart: function(evt) {
-	        var ref = this;
-	        var paper = ref.paper;
-	        var relatedView = ref.relatedView;
-	        var normalizedEvent = normalizeEvent(evt);
-	        var ref$1 = paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
-	        var x = ref$1.x;
-	        var y = ref$1.y;
-	        relatedView.dragLinkStart(normalizedEvent, this.getMagnetNode(), x, y);
-	        paper.undelegateEvents();
-	        this.delegateDocumentEvents(null, evt.data);
-	        this.focus();
-	    },
-	    drag: function(evt) {
-	        var ref = this;
-	        var paper = ref.paper;
-	        var relatedView = ref.relatedView;
-	        var normalizedEvent = normalizeEvent(evt);
-	        var ref$1 = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-	        var x = ref$1.x;
-	        var y = ref$1.y;
-	        relatedView.dragLink(normalizedEvent, x, y);
-	    },
-	    dragend: function(evt) {
-	        var ref = this;
-	        var paper = ref.paper;
-	        var relatedView = ref.relatedView;
-	        var normalizedEvent = normalizeEvent(evt);
-	        var ref$1 = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-	        var x = ref$1.x;
-	        var y = ref$1.y;
-	        relatedView.dragLinkEnd(normalizedEvent, x, y);
-	        this.undelegateDocumentEvents();
-	        paper.delegateEvents();
-	        this.blur();
-	        relatedView.checkMouseleave(normalizedEvent);
-	    }
-	});
-
 
 	var Boundary = ToolView.extend({
 	    name: 'boundary',
@@ -32843,6 +33474,7 @@ var joint = (function (exports, Backbone, _, $) {
 	    options: {
 	        snap: snapAnchor,
 	        anchor: getAnchor,
+	        scale: null,
 	        resetAnchor: true,
 	        customAnchorAttributes: {
 	            'stroke-width': 4,
@@ -32889,7 +33521,11 @@ var joint = (function (exports, Backbone, _, $) {
 	        var position = relatedView.getEndAnchor(type);
 	        var options = this.options;
 	        var customAnchor = relatedView.model.prop([type, 'anchor']);
-	        anchorNode.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
+	        var transformString =  "translate(" + (position.x) + "," + (position.y) + ")";
+	        if (options.scale) {
+	            transformString += " scale(" + (options.scale) + ")";
+	        }
+	        anchorNode.setAttribute('transform', transformString);
 	        var anchorAttributes = (customAnchor) ? options.customAnchorAttributes : options.defaultAnchorAttributes;
 	        for (var attrName in anchorAttributes) {
 	            anchorNode.setAttribute(attrName, anchorAttributes[attrName]);
@@ -33026,17 +33662,417 @@ var joint = (function (exports, Backbone, _, $) {
 	    type: 'target'
 	});
 
+	var Button = ToolView.extend({
+	    name: 'button',
+	    events: {
+	        'mousedown': 'onPointerDown',
+	        'touchstart': 'onPointerDown'
+	    },
+	    options: {
+	        distance: 0,
+	        offset: 0,
+	        scale: null,
+	        rotate: false
+	    },
+	    onRender: function() {
+	        this.renderChildren(this.options.markup);
+	        this.update();
+	    },
+	    update: function() {
+	        this.position();
+	        return this;
+	    },
+	    position: function() {
+	        var ref = this;
+	        var vel = ref.vel;
+	        vel.transform(this.getCellMatrix(), { absolute: true });
+	    },
+	    getCellMatrix: function getCellMatrix() {
+	        return this.relatedView.model.isLink() ? this.getLinkMatrix() : this.getElementMatrix();
+	    },
+	    getElementMatrix: function getElementMatrix() {
+	        var ref = this;
+	        var view = ref.relatedView;
+	        var options = ref.options;
+	        var x = options.x; if ( x === void 0 ) x = 0;
+	        var y = options.y; if ( y === void 0 ) y = 0;
+	        var offset = options.offset; if ( offset === void 0 ) offset = {};
+	        var useModelGeometry = options.useModelGeometry;
+	        var rotate = options.rotate;
+	        var scale = options.scale;
+	        var bbox = getViewBBox(view, useModelGeometry);
+	        var angle = view.model.angle();
+	        if (!rotate) { bbox = bbox.bbox(angle); }
+	        var offsetX = offset.x; if ( offsetX === void 0 ) offsetX = 0;
+	        var offsetY = offset.y; if ( offsetY === void 0 ) offsetY = 0;
+	        if (isPercentage(x)) {
+	            x = parseFloat(x) / 100 * bbox.width;
+	        } else if (isCalcAttribute(x)) {
+	            x = Number(evalCalcAttribute(x, bbox));
+	        }
+	        if (isPercentage(y)) {
+	            y = parseFloat(y) / 100 * bbox.height;
+	        } else if (isCalcAttribute(y)) {
+	            y = Number(evalCalcAttribute(y, bbox));
+	        }
+	        var matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
+	        if (rotate) { matrix = matrix.rotate(angle); }
+	        matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
+	        if (scale) { matrix = matrix.scale(scale); }
+	        return matrix;
+	    },
+	    getLinkMatrix: function getLinkMatrix() {
+	        var ref = this;
+	        var view = ref.relatedView;
+	        var options = ref.options;
+	        var offset = options.offset; if ( offset === void 0 ) offset = 0;
+	        var distance = options.distance; if ( distance === void 0 ) distance = 0;
+	        var rotate = options.rotate;
+	        var scale = options.scale;
+	        var tangent, position, angle;
+	        if (isPercentage(distance)) {
+	            tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
+	        } else {
+	            tangent = view.getTangentAtLength(distance);
+	        }
+	        if (tangent) {
+	            position = tangent.start;
+	            angle = tangent.vector().vectorAngle(new Point(1, 0)) || 0;
+	        } else {
+	            position = view.getConnection().start;
+	            angle = 0;
+	        }
+	        var matrix = V.createSVGMatrix()
+	            .translate(position.x, position.y)
+	            .rotate(angle)
+	            .translate(0, offset);
+	        if (!rotate) { matrix = matrix.rotate(-angle); }
+	        if (scale) { matrix = matrix.scale(scale); }
+	        return matrix;
+	    },
+	    onPointerDown: function(evt) {
+	        if (this.guard(evt)) { return; }
+	        evt.stopPropagation();
+	        evt.preventDefault();
+	        var actionFn = this.options.action;
+	        if (typeof actionFn === 'function') {
+	            actionFn.call(this.relatedView, evt, this.relatedView, this);
+	        }
+	    }
+	});
+
+	var Remove = Button.extend({
+	    children: [{
+	        tagName: 'circle',
+	        selector: 'button',
+	        attributes: {
+	            'r': 7,
+	            'fill': '#FF1D00',
+	            'cursor': 'pointer'
+	        }
+	    }, {
+	        tagName: 'path',
+	        selector: 'icon',
+	        attributes: {
+	            'd': 'M -3 -3 3 3 M -3 3 3 -3',
+	            'fill': 'none',
+	            'stroke': '#FFFFFF',
+	            'stroke-width': 2,
+	            'pointer-events': 'none'
+	        }
+	    }],
+	    options: {
+	        distance: 60,
+	        offset: 0,
+	        action: function(evt, view, tool) {
+	            view.model.remove({ ui: true, tool: tool.cid });
+	        }
+	    }
+	});
+
+	var Connect = Button.extend({
+	    name: 'connect',
+	    documentEvents: {
+	        mousemove: 'drag',
+	        touchmove: 'drag',
+	        mouseup: 'dragend',
+	        touchend: 'dragend',
+	        touchcancel: 'dragend'
+	    },
+	    children: [{
+	        tagName: 'circle',
+	        selector: 'button',
+	        attributes: {
+	            'r': 7,
+	            'fill': '#333333',
+	            'cursor': 'pointer'
+	        }
+	    }, {
+	        tagName: 'path',
+	        selector: 'icon',
+	        attributes: {
+	            'd': 'M -4 -1 L 0 -1 L 0 -4 L 4 0 L 0 4 0 1 -4 1 z',
+	            'fill': '#FFFFFF',
+	            'stroke': 'none',
+	            'stroke-width': 2,
+	            'pointer-events': 'none'
+	        }
+	    }],
+	    options: {
+	        distance: 80,
+	        offset: 0,
+	        magnet: function (view) { return view.el; },
+	        action: function (evt, _view, tool) { return tool.dragstart(evt); },
+	    },
+	    getMagnetNode: function() {
+	        var assign;
+
+	        var ref = this;
+	        var options = ref.options;
+	        var relatedView = ref.relatedView;
+	        var magnet = options.magnet;
+	        var magnetNode;
+	        switch (typeof magnet) {
+	            case 'function': {
+	                magnetNode = magnet.call(this, relatedView, this);
+	                break;
+	            }
+	            case 'string': {
+	                (assign = relatedView.findBySelector(magnet), magnetNode = assign[0]);
+	                break;
+	            }
+	            default: {
+	                magnetNode = magnet;
+	                break;
+	            }
+	        }
+	        if (!magnetNode) { magnetNode = relatedView.el; }
+	        if (magnetNode instanceof SVGElement) { return magnetNode; }
+	        throw new Error('Connect: magnet must be an SVGElement');
+	    },
+	    dragstart: function(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var ref$1 = paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        relatedView.dragLinkStart(normalizedEvent, this.getMagnetNode(), x, y);
+	        paper.undelegateEvents();
+	        this.delegateDocumentEvents(null, normalizedEvent.data);
+	        this.focus();
+	    },
+	    drag: function(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var ref$1 = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        relatedView.dragLink(normalizedEvent, x, y);
+	    },
+	    dragend: function(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var ref$1 = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        relatedView.dragLinkEnd(normalizedEvent, x, y);
+	        this.undelegateDocumentEvents();
+	        paper.delegateEvents();
+	        this.blur();
+	        relatedView.checkMouseleave(normalizedEvent);
+	    }
+	});
+
+	var HoverConnect = Connect.extend({
+
+	    name: 'hover-connect',
+
+	    defaultMarkup: [
+	        {
+	            tagName: 'circle',
+	            attributes: {
+	                'r': 7,
+	                'fill': '#333333',
+	                'cursor': 'pointer'
+	            }
+	        },
+	        {
+	            tagName: 'path',
+	            attributes: {
+	                'd': 'M -4 -1 L 0 -1 L 0 -4 L 4 0 L 0 4 0 1 -4 1 z',
+	                'fill': '#FFFFFF',
+	                'stroke': 'none',
+	                'stroke-width': 2
+	            }
+	        }
+	    ],
+
+	    children: function children() {
+	        var ref = this;
+	        var options = ref.options;
+	        var defaultMarkup = ref.defaultMarkup;
+	        return [
+	            {
+	                tagName: 'path',
+	                selector: 'track',
+	                attributes: {
+	                    'fill': 'none',
+	                    'stroke': 'transparent',
+	                    'stroke-width': options.trackWidth || 15,
+	                    'cursor': 'pointer'
+	                }
+	            },
+	            {
+	                tagName: 'g',
+	                selector: 'button',
+	                attributes: {
+	                    'pointer-events': 'none',
+	                    'display': 'none'
+	                },
+	                children: options.markup || defaultMarkup
+	            }
+	        ];
+	    },
+
+	    events: Object.assign({
+	        mousemove: 'onMousemove',
+	        mouseenter: 'onMouseenter',
+	        mouseleave: 'onMouseleave'
+	    }, Connect.prototype.events),
+
+	    onRender: function() {
+	        this.renderChildren();
+	        this.update();
+	    },
+
+	    trackPath: null,
+
+	    update: function update() {
+	        var ref = this;
+	        var childNodes = ref.childNodes;
+	        this.trackPath = this.getTrackPath();
+	        Connect.prototype.update.apply(this, arguments);
+	        childNodes.track.setAttribute(
+	            'd',
+	            this.trackPath.serialize()
+	        );
+	    },
+
+	    position: function position() {
+	        var ref = this;
+	        var el = ref.el;
+	        var childNodes = ref.childNodes;
+	        childNodes.button.setAttribute(
+	            'transform',
+	            V.matrixToTransformString(this.getButtonMatrix())
+	        );
+	        el.setAttribute(
+	            'transform',
+	            V.matrixToTransformString(this.getTrackMatrix())
+	        );
+	    },
+
+	    getButtonMatrix: function getButtonMatrix() {
+	        var ref = this;
+	        var options = ref.options;
+	        var trackPath = ref.trackPath;
+	        var offset = options.offset; if ( offset === void 0 ) offset = 0;
+	        var distance = options.distance; if ( distance === void 0 ) distance = 0;
+	        var rotate = options.rotate;
+	        var scale = options.scale;
+	        var tangent, position, angle;
+	        if (isPercentage(distance)) {
+	            tangent = trackPath.tangentAtRatio(parseFloat(distance) / 100);
+	        } else {
+	            tangent = trackPath.tangentAtLength(distance);
+	        }
+	        if (tangent) {
+	            position = tangent.start;
+	            angle = tangent.vector().vectorAngle(new Point(1, 0)) || 0;
+	        } else {
+	            position = trackPath.start;
+	            angle = 0;
+	        }
+	        var matrix = V.createSVGMatrix()
+	            .translate(position.x, position.y)
+	            .rotate(angle)
+	            .translate(0, offset);
+	        if (!rotate) { matrix = matrix.rotate(-angle); }
+	        if (scale) { matrix = matrix.scale(scale); }
+	        return matrix;
+	    },
+
+	    getTrackPath: function getTrackPath() {
+	        return this.relatedView.getConnection();
+	    },
+
+	    getTrackMatrix: function getTrackMatrix() {
+	        return V.createSVGMatrix();
+	    },
+
+	    getTrackRatioFromEvent: function getTrackRatioFromEvent(evt) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var trackPath = ref.trackPath;
+	        var localPoint = relatedView.paper.clientToLocalPoint(evt.clientX, evt.clientY);
+	        var trackPoint = V.transformPoint(localPoint, this.getTrackMatrix().inverse());
+	        return trackPath.closestPointLength(trackPoint);
+	    },
+
+	    canShowButton: function canShowButton() {
+	        // Has been the paper events undelegated? If so, we can't show the button.
+	        // TODO: add a method to the paper to check if the events are delegated.
+	        return $._data(this.paper.el, 'events');
+	    },
+
+	    showButton: function showButton() {
+	        this.childNodes.button.style.display = 'block';
+	    },
+
+	    hideButton: function hideButton() {
+	        this.childNodes.button.style.display = '';
+	    },
+
+	    onMousemove: function onMousemove(evt) {
+	        var ref = this;
+	        var trackPath = ref.trackPath;
+	        if (!trackPath) { return; }
+	        var ref$1 = this;
+	        var options = ref$1.options;
+	        options.distance = this.getTrackRatioFromEvent(evt);
+	        this.position();
+	    },
+
+	    onMouseenter: function onMouseenter() {
+	        if (!this.canShowButton()) { return; }
+	        this.showButton();
+	    },
+
+	    onMouseleave: function onMouseleave() {
+	        this.hideButton();
+	    }
+	});
+
+
+
 	var index$5 = ({
 		Vertices: Vertices,
 		Segments: Segments,
-		SourceArrowhead: SourceArrowhead,
 		TargetArrowhead: TargetArrowhead,
+		SourceArrowhead: SourceArrowhead,
+		Boundary: Boundary,
 		SourceAnchor: SourceAnchor,
 		TargetAnchor: TargetAnchor,
 		Button: Button,
 		Remove: Remove,
 		Connect: Connect,
-		Boundary: Boundary
+		HoverConnect: HoverConnect
 	});
 
 	var Control = ToolView.extend({
@@ -33080,6 +34116,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        handleAttributes: null,
 	        selector: 'root',
 	        padding: 6,
+	        scale: null
 	    },
 
 	    getPosition: function() {
@@ -33117,8 +34154,13 @@ var joint = (function (exports, Backbone, _, $) {
 	        var model = relatedView.model;
 	        var relativePos = this.getPosition(relatedView, this);
 	        var absolutePos = model.getAbsolutePointFromRelative(relativePos);
-	        handleNode.setAttribute('transform', ("translate(" + (absolutePos.x) + "," + (absolutePos.y) + ")"));
 	        var handleAttributes = options.handleAttributes;
+	        var scale = options.scale;
+	        var transformString =  "translate(" + (absolutePos.x) + "," + (absolutePos.y) + ")";
+	        if (scale) {
+	            transformString += " scale(" + scale + ")";
+	        }
+	        handleNode.setAttribute('transform', transformString);
 	        if (handleAttributes) {
 	            for (var attrName in handleAttributes) {
 	                handleNode.setAttribute(attrName, handleAttributes[attrName]);
@@ -33203,6 +34245,41 @@ var joint = (function (exports, Backbone, _, $) {
 
 	});
 
+	var HoverConnect$1 = HoverConnect.extend({
+
+	    getTrackPath: function getTrackPath() {
+	        var ref = this;
+	        var view = ref.relatedView;
+	        var options = ref.options;
+	        var useModelGeometry = options.useModelGeometry;
+	        var trackPath = options.trackPath; if ( trackPath === void 0 ) trackPath = 'M 0 0 H calc(w) V calc(h) H 0 Z';
+	        if (typeof trackPath === 'function') {
+	            trackPath = trackPath.call(this, view);
+	        }
+	        if (isCalcAttribute(trackPath)) {
+	            var bbox = getViewBBox(view, useModelGeometry);
+	            trackPath = evalCalcAttribute(trackPath, bbox);
+	        }
+	        return new Path(V.normalizePathData(trackPath));
+	    },
+
+	    getTrackMatrix: function getTrackMatrix() {
+	        var ref = this;
+	        var view = ref.relatedView;
+	        var options = ref.options;
+	        var useModelGeometry = options.useModelGeometry;
+	        var rotate = options.rotate;
+	        var bbox = getViewBBox(view, useModelGeometry);
+	        var angle = view.model.angle();
+	        if (!rotate) { bbox = bbox.bbox(angle); }
+	        var matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
+	        if (rotate) { matrix = matrix.rotate(angle); }
+	        matrix = matrix.translate(- bbox.width / 2, - bbox.height / 2);
+	        return matrix;
+	    }
+
+	});
+
 
 
 	var index$6 = ({
@@ -33210,10 +34287,11 @@ var joint = (function (exports, Backbone, _, $) {
 		Remove: Remove,
 		Connect: Connect,
 		Boundary: Boundary,
+		HoverConnect: HoverConnect$1,
 		Control: Control
 	});
 
-	var version = "3.5.5";
+	var version = "3.6.0";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

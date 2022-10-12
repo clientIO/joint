@@ -1,4 +1,4 @@
-/*! JointJS v3.5.5 (2022-04-08) - JavaScript diagramming library
+/*! JointJS v3.6.0 (2022-10-12) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -7016,7 +7016,32 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     var lineNodeStyle = lineNode.style;
                     lineNodeStyle.fillOpacity = 0;
                     lineNodeStyle.strokeOpacity = 0;
-                    if (annotations) { lineMetrics = {}; }
+                    if (annotations) {
+                        // Empty line with annotations.
+                        lineMetrics = {};
+                        lineAnnotations = V.findAnnotationsAtIndex(annotations, offset);
+                        var lineFontSize = fontSize;
+                        // Check if any of the annotations overrides the font size.
+                        for (var j = lineAnnotations.length; j > 0; j--) {
+                            var attrs = lineAnnotations[j - 1].attrs;
+                            if (!attrs || !('font-size' in attrs)) { continue; }
+                            var fs = parseFloat(attrs['font-size']);
+                            if (isFinite(fs)) {
+                                lineFontSize = fs;
+                                break;
+                            }
+                        }
+                        if (autoLineHeight) {
+                            if (i > 0) {
+                                dy = lineFontSize * 1.2;
+                            } else {
+                                annotatedY = lineFontSize * 0.8;
+                            }
+                        }
+                        // The font size is important for the native selection box height.
+                        lineNode.setAttribute('font-size', lineFontSize);
+                        lineMetrics.maxFontSize = lineFontSize;
+                    }
                 }
                 if (lineMetrics) { linesMetrics.push(lineMetrics); }
                 if (i > 0) { lineNode.setAttribute('dy', dy); }

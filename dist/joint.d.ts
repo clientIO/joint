@@ -1,4 +1,4 @@
-/*! JointJS v3.5.5 (2022-04-08) - JavaScript diagramming library
+/*! JointJS v3.6.0 (2022-10-12) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -171,6 +171,14 @@ export namespace g {
 
     export function random(min?: number, max?: number): number;
 
+    export interface SkeletonPoints {
+        startControlPoint1: Point;
+        startControlPoint2: Point;
+        divider: Point;
+        dividerControlPoint1: Point;
+        dividerControlPoint2: Point;
+    }
+
     class Curve {
 
         start: Point;
@@ -209,7 +217,7 @@ export namespace g {
 
         equals(c: Curve): boolean;
 
-        getSkeletonPoints(t: number): [Point, Point, Point, Point, Point];
+        getSkeletonPoints(t: number): SkeletonPoints;
 
         getSubdivisions(opt?: PrecisionOpt): Curve[];
 
@@ -307,7 +315,7 @@ export namespace g {
 
         clone(): Line;
 
-        parallel(): Line;
+        parallel(distance: number): Line;
 
         closestPoint(p: PlainPoint | string): Point;
 
@@ -1152,6 +1160,7 @@ interface VStatic {
     prototype: VElement;
 }
 
+
 export const version: string;
 
 export namespace config {
@@ -1189,6 +1198,14 @@ export namespace dia {
         vertical?: number;
     };
 
+    type LegacyPositionName = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' |
+        'topMiddle' | 'bottomMiddle' | 'leftMiddle' | 'rightMiddle' |
+        'corner' | 'origin';
+
+    type PositionName = 'top' | 'left' | 'bottom' | 'right' | 'center' |
+        'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' |
+        LegacyPositionName;
+
     type Sides = number | SidesJSON;
 
     type OrthogonalDirection =
@@ -1218,13 +1235,13 @@ export namespace dia {
     type Path = string | Array<string | number>;
 
     interface ModelSetOptions extends Backbone.ModelSetOptions {
-        dry?:  boolean;
+        dry?: boolean;
         isolate?: boolean;
         [key: string]: any;
     }
 
     interface CollectionAddOptions extends Backbone.AddOptions {
-        dry?:  boolean;
+        dry?: boolean;
         [key: string]: any;
     }
 
@@ -1377,11 +1394,7 @@ export namespace dia {
 
         findModelsInArea(rect: BBox, opt?: { strict?: boolean }): Element[];
 
-        findModelsUnderElement(element: Element, opt?: {
-            searchBy?: 'bottomLeft' | 'bottomMiddle' | 'center' |
-                'corner' | 'leftMiddle' | 'origin' | 'rightMiddle' |
-                'topMiddle' | 'topRight' | 'bbox';
-        }): Element[];
+        findModelsUnderElement(element: Element, opt?: { searchBy?: 'bbox' | PositionName }): Element[];
 
         getBBox(): g.Rect | null;
 
@@ -1435,7 +1448,7 @@ export namespace dia {
         };
 
         interface Constructor<T extends Backbone.Model> {
-            new (opt?: { id?: ID, [key: string]: any }): T;
+            new(opt?: { id?: ID, [key: string]: any }): T;
             define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell.Constructor<T>;
         }
 
@@ -1499,7 +1512,7 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: Path): any;
-        prop(object: A, opt?: Cell.Options): this;
+        prop(object: Partial<A>, opt?: Cell.Options): this;
         prop(key: Path, value: any, opt?: Cell.Options): this;
 
         removeProp(path: Path, opt?: Cell.Options): this;
@@ -1619,7 +1632,7 @@ export namespace dia {
             angle: number;
         }
 
-        interface TranslateOptions extends Cell.Options{
+        interface TranslateOptions extends Cell.Options {
             restrictedArea?: BBox | Paper.PointConstraintCallback;
             transition?: Cell.TransitionOptions;
         }
@@ -1669,7 +1682,7 @@ export namespace dia {
         removePort(port: string | Element.Port, opt?: S): this;
 
         removePorts(opt?: S): this;
-        removePorts(ports: Array<Element.Port|string>, opt?: S): this;
+        removePorts(ports: Array<Element.Port | string>, opt?: S): this;
 
         hasPorts(): boolean;
 
@@ -1923,6 +1936,8 @@ export namespace dia {
         updateTools(opt?: { [key: string]: any }): this;
 
         getNodeMatrix(node: SVGElement): SVGMatrix;
+
+        getNodeRotateMatrix(node: SVGElement): SVGMatrix;
 
         getNodeBoundingRect(node: SVGElement): g.Rect;
 
@@ -2255,6 +2270,8 @@ export namespace dia {
 
         protected dragEnd(evt: dia.Event, x: number, y: number): void;
 
+        protected findPath(route: Point[], sourcePoint: Point, targetPoint: Point): g.Path;
+
         protected notifyPointerdown(evt: dia.Event, x: number, y: number): void;
 
         protected notifyPointermove(evt: dia.Event, x: number, y: number): void;
@@ -2359,7 +2376,7 @@ export namespace dia {
 
         type PointConstraintCallback = (x: number, y: number, opt: any) => Point;
         type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
-        type FindParentByType =  'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft' | 'pointer';
+        type FindParentByType = 'bbox' | 'pointer' | PositionName;
         type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
 
         interface Options extends mvc.ViewOptions<Graph> {
@@ -2378,6 +2395,7 @@ export namespace dia {
             interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions;
             snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
+            snapLinksSelf?: boolean | { distance: number };
             markAvailable?: boolean;
             // validations
             validateMagnet?: (cellView: CellView, magnet: SVGElement, evt: dia.Event) => boolean;
@@ -2413,8 +2431,8 @@ export namespace dia {
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
             defaultRouter?: routers.Router | routers.RouterJSON;
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
-            defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
-            defaultLinkAnchor?: anchors.AnchorJSON  | anchors.Anchor;
+            defaultAnchor?: anchors.AnchorJSON | anchors.Anchor;
+            defaultLinkAnchor?: anchors.AnchorJSON | anchors.Anchor;
             defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint | ((...args: any[]) => connectionPoints.ConnectionPoint);
             // connecting
             connectionStrategy?: connectionStrategies.ConnectionStrategy;
@@ -2514,6 +2532,9 @@ export namespace dia {
             'element:mousewheel': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number, delta: number) => void;
             'link:mousewheel': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number, delta: number) => void;
             'blank:mousewheel': (evt: dia.Event, x: number, y: number, delta: number) => void;
+            // touchpad
+            'paper:pan': (evt: dia.Event, deltaX: number, deltaY: number) => void;
+            'paper:pinch': (evt: dia.Event, x: number, y: number, scale: number) => void;
             // magnet
             'element:magnet:pointerclick': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
             'element:magnet:pointerdblclick': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
@@ -2530,7 +2551,7 @@ export namespace dia {
             // render
             'render:done': (stats: UpdateStats, opt: any) => void;
             // custom
-            [eventName: string]: ((cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void) | Backbone.EventHandler;
+            [eventName: string]: Backbone.EventHandler;
         }
     }
 
@@ -2733,7 +2754,7 @@ export namespace dia {
 
         on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(eventName: T, callback: Paper.EventMap[T], context?: any): this;
 
-        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(events: { [eventName in T]: Paper.EventMap[T]; }, context?: any): this;
+        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(events: { [eventName in T]: Paper.EventMap[eventName]; }, context?: any): this;
 
         // protected
 
@@ -2938,7 +2959,7 @@ export namespace dia {
 
     namespace HighlighterView {
 
-        type Constructor<T> = { new (): T };
+        type Constructor<T> = { new(): T };
 
         type NodeSelectorJSON = {
             selector?: string;
@@ -2962,6 +2983,7 @@ export namespace dia {
 
         UPDATABLE: boolean;
         MOUNTABLE: boolean;
+        UPDATE_ATTRIBUTES: string[] | ((this: HighlighterView<Options>) => string[]);
 
         cellView: dia.CellView;
         nodeSelector: HighlighterView.NodeSelector | null;
@@ -2981,6 +3003,12 @@ export namespace dia {
 
         protected unhighlight(cellView: dia.CellView, node: SVGElement): void;
 
+        protected listenToUpdateAttributes(cellView: dia.CellView): void;
+
+        protected onCellAttributeChange(): void;
+
+        protected getNodeMatrix(cellView: dia.CellView, node: SVGElement): SVGMatrix;
+
         static uniqueId(node: SVGElement, options?: any): string;
 
         static add<T extends HighlighterView>(
@@ -2993,6 +3021,11 @@ export namespace dia {
 
         static remove(
             cellView: dia.CellView,
+            id?: string
+        ): void;
+
+        static removeAll(
+            paper: dia.Paper,
             id?: string
         ): void;
 
@@ -3110,6 +3143,46 @@ export namespace highlighters {
         opacityClassName: string;
     }
 
+
+    namespace list {
+
+        enum Directions {
+            ROW = 'row',
+            COLUMN = 'column'
+        }
+
+        type DirectionsType = 'row' | 'column';
+
+        enum Positions {
+            TOP = 'top',
+            RIGHT = 'right',
+            BOTTOM = 'bottom',
+            LEFT = 'left',
+            TOP_LEFT = 'top-left',
+            TOP_RIGHT = 'top-right',
+            BOTTOM_LEFT = 'bottom-left',
+            BOTTOM_RIGHT = 'bottom-right',
+            CENTER = 'center',
+        }
+
+        interface Options extends dia.HighlighterView.Options {
+            direction?: Directions | DirectionsType;
+            position?: Positions | dia.PositionName;
+            size?: number | dia.Size;
+            gap?: number;
+            margin?: number | dia.Sides;
+        }
+    }
+
+    class list<Item = any, Options = list.Options> extends dia.HighlighterView<Options> {
+
+        options: Options;
+
+        protected createListItem(item: Item, itemSize: dia.Size, itemEl: SVGElement | null): SVGElement;
+
+        protected position(element: dia.Element, listSize: dia.Size): void;
+    }
+
     /**
      * @deprecated
      */
@@ -3168,7 +3241,7 @@ export namespace shapes {
         class Ellipse extends dia.Element<EllipseAttributes> {
         }
 
-        interface PathSelectors  extends dia.Cell.Selectors {
+        interface PathSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPathAttributes;
             label?: attributes.SVGTextAttributes;
@@ -3179,7 +3252,7 @@ export namespace shapes {
         class Path extends dia.Element<PathAttributes> {
         }
 
-        interface PolygonSelectors  extends dia.Cell.Selectors {
+        interface PolygonSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPolygonAttributes;
             label?: attributes.SVGTextAttributes;
@@ -3201,7 +3274,7 @@ export namespace shapes {
         class Polyline extends dia.Element<PolylineAttributes> {
         }
 
-        interface ImageSelectors  extends dia.Cell.Selectors {
+        interface ImageSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             image?: attributes.SVGImageAttributes;
             label?: attributes.SVGTextAttributes;
@@ -3212,7 +3285,7 @@ export namespace shapes {
         class Image extends dia.Element<ImageAttributes> {
         }
 
-        interface BorderedImageSelectors  extends dia.Cell.Selectors {
+        interface BorderedImageSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGRectAttributes;
             background?: attributes.SVGRectAttributes;
@@ -3225,7 +3298,7 @@ export namespace shapes {
         class BorderedImage extends dia.Element<BorderedImageAttributes> {
         }
 
-        interface EmbeddedImageSelectors  extends dia.Cell.Selectors {
+        interface EmbeddedImageSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             image?: attributes.SVGImageAttributes;
@@ -3237,7 +3310,7 @@ export namespace shapes {
         class EmbeddedImage extends dia.Element<EmbeddedImageAttributes> {
         }
 
-        interface InscribedImageSelectors  extends dia.Cell.Selectors {
+        interface InscribedImageSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGEllipseAttributes;
             background?: attributes.SVGEllipseAttributes;
@@ -3250,7 +3323,7 @@ export namespace shapes {
         class InscribedImage extends dia.Element<InscribedImageAttributes> {
         }
 
-        interface HeaderedRectangleSelectors  extends dia.Cell.Selectors {
+        interface HeaderedRectangleSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             header?: attributes.SVGRectAttributes;
@@ -3267,7 +3340,7 @@ export namespace shapes {
             lateralArea?: string | number;
         }
 
-        interface CylinderSelectors  extends dia.Cell.Selectors {
+        interface CylinderSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: CylinderBodyAttributes;
             top?: attributes.SVGEllipseAttributes;
@@ -3936,6 +4009,8 @@ export namespace util {
 
     export function uuid(): string;
 
+    export function svg(strings: TemplateStringsArray): dia.MarkupJSON;
+
     export function guid(obj?: { [key: string]: any }): string;
 
     export function toKebabCase(str: string): string;
@@ -3952,14 +4027,22 @@ export namespace util {
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number, unit?: string } | null;
 
-    export function breakText(text: string, size: { width: number, height?: number }, attrs?: attributes.NativeSVGAttributes, opt?: {
-        svgDocument?: SVGElement;
-        separator?: string | any;
-        eol?: string;
-        ellipsis?: boolean | string;
-        hyphen?: string | RegExp;
-        maxLineCount?: number;
-    }): string;
+    type BreakTextFunction = (
+        text: string,
+        size: { width: number, height?: number },
+        attrs?: attributes.NativeSVGAttributes,
+        opt?: {
+            svgDocument?: SVGElement;
+            separator?: string | any;
+            eol?: string;
+            ellipsis?: boolean | string;
+            hyphen?: string | RegExp;
+            maxLineCount?: number;
+            preserveSpaces?: boolean;
+        }
+    ) => string;
+
+    export var breakText: BreakTextFunction;
 
     export function sanitizeHTML(html: string): string;
 
@@ -4210,6 +4293,8 @@ export namespace util {
 
     export function uniqueId(prefix?: string): string;
 
+    export function getRectPoint(rect: dia.BBox, position: dia.PositionName): g.Point;
+
     // `merge` has a weird signature
     // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
     export function merge(destinationObject: object, sourceObject: object, customizer?: CustomizerFunction): object;
@@ -4264,7 +4349,7 @@ export namespace layout {
         interface LayoutOptions {
             dagre?: any;
             graphlib?: any;
-            align?: 'UR' | 'UL' |'DR' | 'DL';
+            align?: 'UR' | 'UL' | 'DR' | 'DL';
             rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
             ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
             nodeSep?: number;
@@ -4298,20 +4383,31 @@ export namespace layout {
 
     export namespace Port {
 
+        type Position = {
+            x: number | string;
+            y: number | string;
+        };
+
+        type Transformation = {
+            x: number;
+            y: number;
+            angle: number;
+        };
+
+        type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<Transformation>;
+
         interface Options {
-            x?: number;
-            y?: number;
+            x?: number | string;
+            y?: number | string;
             dx?: number;
             dy?: number;
             angle?: number;
-            start?: g.Point;
-            end?: g.Point;
+            start?: Position;
+            end?: Position;
             startAngle?: number;
             step?: number;
             compensateRotation?: boolean;
         }
-
-        type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<g.Point>;
 
         export var absolute: LayoutFunction;
         export var fn: LayoutFunction;
@@ -4398,6 +4494,8 @@ export namespace mvc {
 
         childNodes?: { [key: string]: Element } | null;
 
+        style?: { [key: string]: any };
+
         setTheme(theme: string, opt?: { override?: boolean }): this;
 
         getEventNamespace(): string;
@@ -4431,6 +4529,25 @@ export namespace mvc {
         protected onSetTheme(oldTheme: string, newTheme: string): void;
 
         protected onRemove(): void;
+    }
+
+    type ModifiedCallback<CallbackArgs extends any[], EventCallback extends Callback> = (...args: [...CallbackArgs, ...Parameters<EventCallback>]) => any;
+
+    type EventHashMap<CallbackArgs extends any[], T extends Record<keyof T, Callback>> = {
+        [Property in keyof T]?: ModifiedCallback<CallbackArgs, T[Property]>;
+    };
+
+    type Callback = (...args: any[]) => any;
+
+    class Listener<Args extends any[]> {
+        constructor(...callbackArguments: Args);
+
+        callbackArguments: Args;
+
+        listenTo<CB extends Callback>(object: any, evt: string, callback: ModifiedCallback<Args, CB>, context?: any): void;
+        listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void
+
+        stopListening(): void;
     }
 }
 
@@ -4896,13 +5013,18 @@ export namespace attributes {
     }
 
     interface SVGAttributeTextWrap {
-        text?: string;
-        width?: string | number;
-        height?: string | number;
+        width?: string | number | null;
+        height?: string | number | null;
         ellipsis?: boolean | string;
         hyphen?: string;
         maxLineCount?: number;
+        preserveSpaces?: boolean;
+        breakText?: util.BreakTextFunction;
         [key: string]: any;
+        /**
+         * @deprecated use SVGAttributes.text instead
+         **/
+        text?: string;
     }
 
     interface SVGAttributes extends NativeSVGAttributes {
@@ -5114,6 +5236,7 @@ export namespace elementTools {
             action?: ActionCallback;
             markup?: dia.MarkupJSON;
             useModelGeometry?: boolean;
+            scale?: number;
         }
     }
 
@@ -5168,6 +5291,7 @@ export namespace elementTools {
             selector?: string | null;
             padding?: number;
             handleAttributes?: Partial<attributes.NativeSVGAttributes>;
+            scale?: number;
         }
     }
 
@@ -5187,6 +5311,24 @@ export namespace elementTools {
         protected onPointerMove(evt: dia.Event): void;
         protected onPointerUp(evt: dia.Event): void;
         protected onPointerDblClick(evt: dia.Event): void;
+    }
+
+    namespace HoverConnect {
+
+        type TrackPath = string;
+
+        type TrackPathCallback = (this: HoverConnect, view: dia.ElementView) => TrackPath;
+
+        interface Options extends Connect.Options {
+            useModelGeometry?: boolean;
+            trackWidth?: number;
+            trackPath?: TrackPath | TrackPathCallback;
+        }
+    }
+
+    class HoverConnect extends linkTools.Connect {
+
+        constructor(opt?: HoverConnect.Options);
     }
 }
 
@@ -5217,6 +5359,7 @@ export namespace linkTools {
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
             stopPropagation?: boolean;
+            scale?: number;
         }
     }
 
@@ -5244,6 +5387,7 @@ export namespace linkTools {
             segmentLengthThreshold?: number;
             anchor?: AnchorCallback<anchors.AnchorJSON>;
             stopPropagation?: boolean;
+            scale?: number;
         }
     }
 
@@ -5252,10 +5396,19 @@ export namespace linkTools {
         constructor(opt?: Segments.Options);
     }
 
+    namespace Arrowhead {
+
+        interface Options extends dia.ToolView.Options {
+            scale?: number;
+        }
+    }
+
     abstract class Arrowhead extends dia.ToolView {
 
         ratio: number;
         arrowheadType: string;
+
+        constructor(opt?: Arrowhead.Options);
 
         protected onPointerDown(evt: dia.Event): void;
 
@@ -5285,6 +5438,7 @@ export namespace linkTools {
             snapRadius?: number;
             restrictArea?: boolean;
             redundancyRemoval?: boolean;
+            scale?: number;
         }
     }
 
@@ -5315,6 +5469,7 @@ export namespace linkTools {
             rotate?: boolean;
             action?: ActionCallback;
             markup?: dia.MarkupJSON;
+            scale?: number;
         }
     }
 
@@ -5361,5 +5516,37 @@ export namespace linkTools {
     class Boundary extends dia.ToolView {
 
         constructor(opt?: Boundary.Options);
+    }
+
+    namespace HoverConnect {
+        interface Options extends Connect.Options {
+        }
+    }
+
+    class HoverConnect extends Connect {
+
+        constructor(opt?: HoverConnect.Options);
+
+        trackPath: g.Path;
+
+        protected getButtonMatrix(): SVGMatrix;
+
+        protected getTrackPath(): g.Path;
+
+        protected getTrackMatrix(): SVGMatrix;
+
+        protected getTrackRatioFromEvent(evt: dia.Event): number;
+
+        protected canShowButton(): boolean;
+
+        protected showButton(): void;
+
+        protected hideButton(): void;
+
+        protected onMousemove(evt: dia.Event): void;
+
+        protected onMouseenter(evt: dia.Event): void;
+
+        protected onMouseleave(evt: dia.Event): void;
     }
 }
