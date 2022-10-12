@@ -1,4 +1,4 @@
-/*! JointJS v3.6.0-beta.1 (2022-10-07) - JavaScript diagramming library
+/*! JointJS v3.6.0-beta.2 (2022-10-12) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -16483,6 +16483,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    Backbone.Events.stopListening.call(this);
 	};
 
+
+
 	var index$1 = ({
 		views: views,
 		View: View,
@@ -32720,7 +32722,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.6.0-beta.1";
+	var version = "3.6.0-beta.2";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

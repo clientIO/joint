@@ -1,4 +1,4 @@
-XX-10-2022 (v3.6.0)
+12-10-2022 (v3.6.0)
 
   * replace phantomjs with puppeteer
   * demo.Sequence - add editing capabilities
@@ -7,12 +7,13 @@ XX-10-2022 (v3.6.0)
   * dia.Paper - consistent firing of `contextmenu` event
   * dia.Paper - fix memory leak (layers not being removed)
   * dia.Paper - 2-axis-scroll / pinch-to-zoom support
-  * dia.Paper - add `snapLinksSelf` option to snap arrowhead to the anchor and vertices
-  * dia.ElementView - findPortNode() search for all port nodes; add portRoot and labelRoot selectors
+  * dia.Paper - add `snapLinksSelf` option to snap arrowheads to the anchor and vertices
+  * dia.ElementView - `findPortNode()` search for all port nodes
+  * dia.ElementView - add `portRoot` and `labelRoot` selectors
   * dia.ElementView - fix `getNodeMatrix()` and `getNodeBBox()` for elements with rotatable group
   * dia.CellView - passing cellView instance to attribute's set, qualify, position and offset methods
   * dia.Cell - throw exception on embedding of an embedded cell
-  * dia.HighlighterView - add `removeAll` static method
+  * dia.HighlighterView - add `removeAll()` static method
   * dia.HighlighterView - add UPDATE_ATTRIBUTES property
   * elementTools - add `scale` option
   * elementTools.HoverConnect - new connection tool displayed on mouseover

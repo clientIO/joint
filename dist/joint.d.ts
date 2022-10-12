@@ -1,4 +1,4 @@
-/*! JointJS v3.6.0-beta.1 (2022-10-07) - JavaScript diagramming library
+/*! JointJS v3.6.0-beta.2 (2022-10-12) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4535,12 +4535,14 @@ export namespace mvc {
 
     type EventHashMap<CallbackArgs extends any[], T extends Record<keyof T, Callback>> = {
         [Property in keyof T]?: ModifiedCallback<CallbackArgs, T[Property]>;
-    }; 
+    };
 
     type Callback = (...args: any[]) => any;
 
     class Listener<Args extends any[]> {
         constructor(...callbackArguments: Args);
+
+        callbackArguments: Args;
 
         listenTo<CB extends Callback>(object: any, evt: string, callback: ModifiedCallback<Args, CB>, context?: any): void;
         listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void
