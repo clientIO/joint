@@ -152,18 +152,20 @@ QUnit.module('util', function(hooks) {
 
             t = text;
             r = joint.util.breakText(t, { width: WIDTH, height: HEIGHT }, styles, { ellipsis: false });
-            assert.ok(r.indexOf(ELLIPSIS) === -1);
+            assert.equal(r.indexOf(ELLIPSIS), -1);
             assert.ok(measureText(r, styles).width < WIDTH);
             assert.ok(measureText(r, styles).height < HEIGHT);
 
             r = joint.util.breakText(t, { width: WIDTH, height: HEIGHT }, styles, { ellipsis: true });
-            assert.ok(r.indexOf(ELLIPSIS) === r.length - ELLIPSIS.length);
+            assert.notEqual(r.indexOf(ELLIPSIS), -1);
+            assert.equal(r.indexOf(ELLIPSIS), r.length - ELLIPSIS.length);
             assert.ok(measureText(r, styles).width < WIDTH);
             assert.ok(measureText(r, styles).height < HEIGHT);
 
             var customEllipsis = 'CUSTOM';
             r = joint.util.breakText(t, { width: WIDTH, height: HEIGHT }, styles, { ellipsis: customEllipsis });
-            assert.ok(r.indexOf(customEllipsis) === r.length - customEllipsis.length);
+            assert.notEqual(r.indexOf(customEllipsis), -1);
+            assert.ok(r.indexOf(customEllipsis), r.length - customEllipsis.length);
             assert.ok(measureText(r, styles).width < WIDTH);
             assert.ok(measureText(r, styles).height < HEIGHT);
 
@@ -181,7 +183,8 @@ QUnit.module('util', function(hooks) {
 
             t = 'text\n\n\n\n\n';
             r = joint.util.breakText(t, { width: WIDTH, height: HEIGHT }, styles, { ellipsis: true });
-            assert.ok(r.indexOf(ELLIPSIS) === r.length - ELLIPSIS.length);
+            assert.notEqual(r.indexOf(ELLIPSIS), -1);
+            assert.equal(r.indexOf(ELLIPSIS), r.length - ELLIPSIS.length);
             assert.ok(measureText(r, styles).width < WIDTH);
             assert.ok(measureText(r, styles).height < HEIGHT);
         });
@@ -1361,5 +1364,5 @@ QUnit.module('util', function(hooks) {
         assert.equal(markup[2].textContent, 'textContent');
         assert.equal(markup[2].children[0].style['pointer-events'], 'auto');
         assert.equal(markup[2].children[1].attributes['stroke'], 'red');
-    }); 
+    });
 });
