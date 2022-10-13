@@ -566,7 +566,6 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
     var lines = [];
     var p, h;
     var lineHeight;
-    let spaceAdded = false;
 
     if (preserveSpaces) {
         V(textSpan).attr('xml:space', 'preserve');
