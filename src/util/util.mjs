@@ -566,6 +566,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
     var lines = [];
     var p, h;
     var lineHeight;
+    let spaceAdded = false;
 
     if (preserveSpaces) {
         V(textSpan).attr('xml:space', 'preserve');
@@ -605,7 +606,15 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
             let data;
             if (preserveSpaces) {
-                data = lines[l] !== undefined ? lines[l] + space + word : word;
+                if (lines[l] !== undefined) {
+                    data = lines[l] + (spaceAdded ? '' : space) + word;
+                    spaceAdded = false;
+                } else if (!word) { 
+                    data = space;
+                    spaceAdded = true;
+                } else {
+                    data = word;
+                }
             } else {
                 data = lines[l] ? lines[l] + space + word : word;
             }
@@ -694,7 +703,8 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
                         }
                     }
 
-                    i--;
+                    if (!preserveSpaces) i--;
+                    else if (full.length > 0) i--;
 
                     continue;
                 }
@@ -748,7 +758,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
             if (typeof ellipsis !== 'string') ellipsis = '\u2026';
 
             var lastLine = lines[lastL];
-            if (!lastLine && !isEol) break;
+            if (!lastLine || !isEol) break;
             var k = lastLine.length;
             var lastLineWithOmission, lastChar, separatorChar;
             do {
