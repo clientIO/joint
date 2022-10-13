@@ -337,6 +337,14 @@ QUnit.module('util', function(hooks) {
 
         });
 
+        QUnit.test('preserveSpaces - limited space', function(assert) {
+
+            const WIDTH = 12;
+            let r;
+
+            r = joint.util.breakText('   preserve space   test  ', { width: WIDTH }, styles, { preserveSpaces: true });
+            assert.equal(r, '');
+        });
     });
 
     QUnit.test('util.parseCssNumeric', function(assert) {

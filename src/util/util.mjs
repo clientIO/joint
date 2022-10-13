@@ -606,15 +606,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
             let data;
             if (preserveSpaces) {
-                if (lines[l] !== undefined) {
-                    data = lines[l] + (spaceAdded ? '' : space) + word;
-                    spaceAdded = false;
-                } else if (!word) { 
-                    data = space;
-                    spaceAdded = true;
-                } else {
-                    data = word;
-                }
+                data = lines[l] !== undefined ? lines[l] + space + word : word;
             } else {
                 data = lines[l] ? lines[l] + space + word : word;
             }
@@ -724,7 +716,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
             // if size.height is defined we have to check whether the height of the entire
             // text exceeds the rect height
 
-            if (lineHeight === undefined) {
+            if (!lineHeight) {
 
                 var heightValue;
 
@@ -758,7 +750,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
             if (typeof ellipsis !== 'string') ellipsis = '\u2026';
 
             var lastLine = lines[lastL];
-            if (!lastLine || !isEol) break;
+            if (!lastLine && !isEol) break;
             var k = lastLine.length;
             var lastLineWithOmission, lastChar, separatorChar;
             do {
