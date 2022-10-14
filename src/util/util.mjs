@@ -716,7 +716,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
             // if size.height is defined we have to check whether the height of the entire
             // text exceeds the rect height
 
-            if (!lineHeight) {
+            if (lineHeight === undefined && textNode.data !== '') {
 
                 var heightValue;
 
