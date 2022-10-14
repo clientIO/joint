@@ -694,8 +694,9 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
                         }
                     }
 
-                    if (!preserveSpaces) i--;
-                    else if (full.length > 0) i--;
+                    if (!preserveSpaces || lines[l] !== '') {
+                        i--;
+                    }
 
                     continue;
                 }

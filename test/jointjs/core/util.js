@@ -334,16 +334,15 @@ QUnit.module('util', function(hooks) {
 
             r = joint.util.breakText('   preserve\nspa   a  ', { width: WIDTH }, styles, { preserveSpaces: true });
             assert.equal(r.replace(/\n/g, ' '), '   preserve spa   a  ');
-
-        });
-
-        QUnit.test('preserveSpaces - limited space', function(assert) {
-
-            const WIDTH = 12;
-            let r;
-
-            r = joint.util.breakText('   preserve space   test  ', { width: WIDTH }, styles, { preserveSpaces: true });
+            
+            r = joint.util.breakText('                 a', { width: 7 }, styles, { preserveSpaces: true });
             assert.equal(r, '');
+
+            r = joint.util.breakText('\n                  a', { width: 7 }, styles, { preserveSpaces: true });
+            assert.equal(r, '');
+
+            r = joint.util.breakText(' a\nb\nc\nd\ne', { width: 20, height: 20 }, styles, { preserveSpaces: true });
+            assert.equal(r, ' a');
         });
     });
 
