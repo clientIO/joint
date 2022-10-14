@@ -1,3 +1,8 @@
+14-10-2022 (v3.6.1)
+
+  * util.breakText: prevent infinite loop when using `preserveSpaces`
+  * util.breakText: always account for `height` when using `preserveSpaces`
+
 12-10-2022 (v3.6.0)
 
   * replace phantomjs with puppeteer

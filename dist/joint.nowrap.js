@@ -1,4 +1,4 @@
-/*! JointJS v3.6.0 (2022-10-12) - JavaScript diagramming library
+/*! JointJS v3.6.1 (2022-10-14) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -11433,7 +11433,9 @@ var joint = (function (exports, Backbone, _, $) {
 	                        }
 	                    }
 
-	                    i--;
+	                    if (!preserveSpaces || lines[l] !== '') {
+	                        i--;
+	                    }
 
 	                    continue;
 	                }
@@ -11453,7 +11455,7 @@ var joint = (function (exports, Backbone, _, $) {
 	            // if size.height is defined we have to check whether the height of the entire
 	            // text exceeds the rect height
 
-	            if (lineHeight === undefined) {
+	            if (lineHeight === undefined && textNode.data !== '') {
 
 	                var heightValue;
 
@@ -34291,7 +34293,7 @@ var joint = (function (exports, Backbone, _, $) {
 		Control: Control
 	});
 
-	var version = "3.6.0";
+	var version = "3.6.1";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

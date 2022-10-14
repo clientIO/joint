@@ -1,4 +1,4 @@
-/*! JointJS v3.6.0 (2022-10-12) - JavaScript diagramming library
+/*! JointJS v3.6.1 (2022-10-14) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -11160,7 +11160,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                        }
 	                    }
 
-	                    i--;
+	                    if (!preserveSpaces || lines[l] !== '') {
+	                        i--;
+	                    }
 
 	                    continue;
 	                }
@@ -11180,7 +11182,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // if size.height is defined we have to check whether the height of the entire
 	            // text exceeds the rect height
 
-	            if (lineHeight === undefined) {
+	            if (lineHeight === undefined && textNode.data !== '') {
 
 	                var heightValue;
 
@@ -32722,7 +32724,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.6.0";
+	var version = "3.6.1";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
