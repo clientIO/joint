@@ -1360,12 +1360,12 @@ QUnit.module('util', function(hooks) {
 
     QUnit.module('svgTaggedTemplate', function() {
 
-        QUnit.test('function', function(assert) {
-            const markup = joint.util.svg(['<rect @selector="selector1"/><circle @group-selector="group-selector1, group-selector2" class="circle"/><g><rect style="pointer-events:auto"/><circle stroke="red"/>textContent</g>']);
+        function testMarkup(assert, markup) {
             assert.equal(markup.length, 3);
             assert.equal(markup[0].namespaceURI, 'http://www.w3.org/2000/svg');
             assert.equal(markup[0].tagName, 'rect');
             assert.equal(markup[0].selector, 'selector1');
+            assert.strictEqual(markup[0].className, undefined);
             assert.equal(markup[1].groupSelector[0], 'group-selector1');
             assert.equal(markup[1].groupSelector[1], 'group-selector2');
             assert.equal(markup[1].className, 'circle');
@@ -1373,6 +1373,11 @@ QUnit.module('util', function(hooks) {
             assert.equal(markup[2].textContent, 'textContent');
             assert.equal(markup[2].children[0].style['pointer-events'], 'auto');
             assert.equal(markup[2].children[1].attributes['stroke'], 'red');
+        }
+
+        QUnit.test('function', function(assert) {
+            const markup = joint.util.svg(['<rect @selector="selector1"/><circle @group-selector="group-selector1, group-selector2" class="circle"/><g><rect style="pointer-events:auto"/><circle stroke="red"/>textContent</g>']);
+            testMarkup(assert, markup);
         });
 
         QUnit.test('tagged template', function(assert) {
@@ -1383,17 +1388,7 @@ QUnit.module('util', function(hooks) {
                 <circle @group-selector="${groupSelector1}, group-selector2" class="circle"/>
                 <g><rect style="pointer-events:auto"/><circle stroke="${color}"/>textContent</g>
             `;
-            assert.equal(markup.length, 3);
-            assert.equal(markup[0].namespaceURI, 'http://www.w3.org/2000/svg');
-            assert.equal(markup[0].tagName, 'rect');
-            assert.equal(markup[0].selector, 'selector1');
-            assert.equal(markup[1].groupSelector[0], 'group-selector1');
-            assert.equal(markup[1].groupSelector[1], 'group-selector2');
-            assert.equal(markup[1].className, 'circle');
-            assert.equal(markup[2].children.length, 2);
-            assert.equal(markup[2].textContent, 'textContent');
-            assert.equal(markup[2].children[0].style['pointer-events'], 'auto');
-            assert.equal(markup[2].children[1].attributes['stroke'], 'red');
+            testMarkup(assert, markup);
         });
     });
 
