@@ -1,5 +1,12 @@
-export function svg(strings) {
-    const markup = parseFromSVGString(strings[0]);
+export function svg(strings, ...expressions) {
+    const svgParts = [];
+    strings.forEach((part, index) => {
+        svgParts.push(part);
+        if (index in expressions) {
+            svgParts.push(expressions[index]);
+        }
+    });
+    const markup = parseFromSVGString(svgParts.join(''));
     return markup;
 }
 

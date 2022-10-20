@@ -337,7 +337,7 @@ QUnit.module('util', function(hooks) {
 
             r = joint.util.breakText('   preserve\nspa   a  ', { width: WIDTH }, styles, { preserveSpaces: true });
             assert.equal(r.replace(/\n/g, ' '), '   preserve spa   a  ');
-            
+
             r = joint.util.breakText('                 a', { width: 7 }, styles, { preserveSpaces: true });
             assert.equal(r, '');
 
@@ -1358,18 +1358,43 @@ QUnit.module('util', function(hooks) {
         assert.equal(util.getRectPoint(rect, 'bottomMiddle').toString(), '13.5@28');
     });
 
-    QUnit.test('svgTaggedTemplate', function(assert) {
-        var markup = joint.util.svg(['<rect @selector="selector1"/><circle @group-selector="group-selector1, group-selector2" class="circle"/><g><rect style="pointer-events:auto"/><circle stroke="red"/>textContent</g>']);
-        assert.equal(markup.length, 3);
-        assert.equal(markup[0].namespaceURI, 'http://www.w3.org/2000/svg');
-        assert.equal(markup[0].tagName, 'rect');
-        assert.equal(markup[0].selector, 'selector1');
-        assert.equal(markup[1].groupSelector[0], 'group-selector1');
-        assert.equal(markup[1].groupSelector[1], 'group-selector2');
-        assert.equal(markup[1].className, 'circle');
-        assert.equal(markup[2].children.length, 2);
-        assert.equal(markup[2].textContent, 'textContent');
-        assert.equal(markup[2].children[0].style['pointer-events'], 'auto');
-        assert.equal(markup[2].children[1].attributes['stroke'], 'red');
+    QUnit.module('svgTaggedTemplate', function() {
+
+        QUnit.test('function', function(assert) {
+            const markup = joint.util.svg(['<rect @selector="selector1"/><circle @group-selector="group-selector1, group-selector2" class="circle"/><g><rect style="pointer-events:auto"/><circle stroke="red"/>textContent</g>']);
+            assert.equal(markup.length, 3);
+            assert.equal(markup[0].namespaceURI, 'http://www.w3.org/2000/svg');
+            assert.equal(markup[0].tagName, 'rect');
+            assert.equal(markup[0].selector, 'selector1');
+            assert.equal(markup[1].groupSelector[0], 'group-selector1');
+            assert.equal(markup[1].groupSelector[1], 'group-selector2');
+            assert.equal(markup[1].className, 'circle');
+            assert.equal(markup[2].children.length, 2);
+            assert.equal(markup[2].textContent, 'textContent');
+            assert.equal(markup[2].children[0].style['pointer-events'], 'auto');
+            assert.equal(markup[2].children[1].attributes['stroke'], 'red');
+        });
+
+        QUnit.test('tagged template', function(assert) {
+            const groupSelector1 = 'group-selector1';
+            const color = 'red';
+            const markup = joint.util.svg/*xml*/`
+                <rect @selector="selector1"/>
+                <circle @group-selector="${groupSelector1}, group-selector2" class="circle"/>
+                <g><rect style="pointer-events:auto"/><circle stroke="${color}"/>textContent</g>
+            `;
+            assert.equal(markup.length, 3);
+            assert.equal(markup[0].namespaceURI, 'http://www.w3.org/2000/svg');
+            assert.equal(markup[0].tagName, 'rect');
+            assert.equal(markup[0].selector, 'selector1');
+            assert.equal(markup[1].groupSelector[0], 'group-selector1');
+            assert.equal(markup[1].groupSelector[1], 'group-selector2');
+            assert.equal(markup[1].className, 'circle');
+            assert.equal(markup[2].children.length, 2);
+            assert.equal(markup[2].textContent, 'textContent');
+            assert.equal(markup[2].children[0].style['pointer-events'], 'auto');
+            assert.equal(markup[2].children[1].attributes['stroke'], 'red');
+        });
     });
+
 });
