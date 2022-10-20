@@ -442,7 +442,7 @@ export const Cell = Backbone.Model.extend({
         var cellId = isString(cell) ? cell : cell.id;
         var parentId = this.parent();
 
-        opt = defaults({ deep: true }, opt);
+        opt = assign({ deep: true }, opt);
 
         // See getEmbeddedCells().
         if (this.graph && opt.deep) {
