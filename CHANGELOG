@@ -1,3 +1,9 @@
+20-10-2022 (v3.6.2)
+
+  * dia.Cell: fix `isEmbeddedIn()` with `deep` option set to `false`
+  * util.svg: support embedded expressions
+  * util.svg: prevent `className` set to `null`
+
 14-10-2022 (v3.6.1)
 
   * util.breakText: prevent infinite loop when using `preserveSpaces`
