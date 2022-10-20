@@ -15,7 +15,6 @@ import {
     assign,
     uniq,
     toArray,
-    defaults,
     setByPath,
     unsetByPath,
     getByPath,
