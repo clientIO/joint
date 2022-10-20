@@ -1157,7 +1157,7 @@ QUnit.module('basic', function(hooks) {
             assert.ok(!r1.isEmbeddedIn(r1), 'We have 3 elements. r3 is embedded in r2, r2 is embedded in r1. | r1 is not child of r1. ');
             assert.ok(r2.isEmbeddedIn(r1), 'r2 is descendent of r1');
             assert.ok(r3.isEmbeddedIn(r1), 'r3 is descendent of r1');
-            assert.ok(r3.isEmbeddedIn(r1, { deep: false }), 'r3 is not direct child of r1 (option { deep: false })');
+            assert.notOk(r3.isEmbeddedIn(r1, { deep: false }), 'r3 is not direct child of r1 (option { deep: false })');
             assert.ok(!r1.isEmbeddedIn(r3), 'r1 is not descendent of r3');
         });
 
