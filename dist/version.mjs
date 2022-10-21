@@ -1,3 +1,3 @@
-var version = "3.6.1";
+var version = "3.6.2";
 
 export { version };
