@@ -1,4 +1,4 @@
-/*! JointJS v3.6.1 (2022-10-14) - JavaScript diagramming library
+/*! JointJS v3.6.2 (2022-10-21) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -13751,7 +13751,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        var cellId = isString(cell) ? cell : cell.id;
 	        var parentId = this.parent();
 
-	        opt = defaults({ deep: true }, opt);
+	        opt = assign({ deep: true }, opt);
 
 	        // See getEmbeddedCells().
 	        if (this.graph && opt.deep) {
@@ -14261,7 +14261,17 @@ var joint = (function (exports, Backbone, _, $) {
 	};
 
 	function svg(strings) {
-	    var markup = parseFromSVGString(strings[0]);
+	    var expressions = [], len = arguments.length - 1;
+	    while ( len-- > 0 ) expressions[ len ] = arguments[ len + 1 ];
+
+	    var svgParts = [];
+	    strings.forEach(function (part, index) {
+	        svgParts.push(part);
+	        if (index in expressions) {
+	            svgParts.push(expressions[index]);
+	        }
+	    });
+	    var markup = parseFromSVGString(svgParts.join(''));
 	    return markup;
 	}
 
@@ -14314,7 +14324,9 @@ var joint = (function (exports, Backbone, _, $) {
 	        }
 
 	        var className = attributes.getNamedItem('class');
-	        markupNode.className = (className ? className.value : null);
+	        if (className) {
+	            markupNode.className = className.value;
+	        }
 
 	        if (textContent) {
 	            markupNode.textContent = textContent;
@@ -34293,7 +34305,7 @@ var joint = (function (exports, Backbone, _, $) {
 		Control: Control
 	});
 
-	var version = "3.6.1";
+	var version = "3.6.2";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

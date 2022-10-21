@@ -1,4 +1,4 @@
-/*! JointJS v3.6.1 (2022-10-14) - JavaScript diagramming library
+/*! JointJS v3.6.2 (2022-10-21) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4009,7 +4009,7 @@ export namespace util {
 
     export function uuid(): string;
 
-    export function svg(strings: TemplateStringsArray): dia.MarkupJSON;
+    export function svg(strings: TemplateStringsArray, ...expressions: any): dia.MarkupJSON;
 
     export function guid(obj?: { [key: string]: any }): string;
 
