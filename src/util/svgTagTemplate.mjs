@@ -55,7 +55,9 @@ function build(root) {
         }
 
         const className = attributes.getNamedItem('class');
-        markupNode.className = (className ? className.value : null);
+        if (className) {
+            markupNode.className = className.value;
+        }
 
         if (textContent) {
             markupNode.textContent = textContent;
