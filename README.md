@@ -1,11 +1,11 @@
-# JointJS - a proven JavaScript diagramming library for powering exceptional UIs
+# JointJS - JavaScript diagramming library powering exceptional UIs
 
 [![Build Status](https://travis-ci.com/clientIO/joint.svg?branch=master)](https://travis-ci.com/clientIO/joint)
 [![Total Discussion](https://img.shields.io/github/discussions/badges/shields)](https://github.com/clientIO/joint/discussions)
 [![NPM Version](https://img.shields.io/npm/v/jointjs)](https://www.npmjs.com/package/jointjs)
 [![NPM License](https://img.shields.io/npm/l/jointjs?color=blue)](https://github.com/clientIO/joint/blob/master/LICENSE)
 
-[JointJS](https://jointjs.com) is a powerful **JavaScript**/**Typescript** diagramming library that helps developers and companies of any size build advanced visual applications. It's a flexible tool from which a wide range of UIs can be created (interactive diagramming tools, application builders, data visualizations). It can become the fundamental layer for your next no-code tool.
+ [JointJS](https://jointjs.com) is a tested and proven  *JavaScript*/*Typescript* diagramming library that helps developers and companies of any size build visual and No-Code/Low-Code applications faster and with confidence. It’s a flexible tool from which a wide range of UIs can be created (interactive diagramming applications, drawing tools, data visualizations, UIs for monitoring systems, and many more). It can become the foundational layer of your next application and help you bring your idea to market in days, not months or years.
 
 ![Use Cases](https://user-images.githubusercontent.com/3967880/200360293-808f148c-32af-4f46-bec1-b4ae4e1592a0.jpg)
 
@@ -163,6 +163,6 @@ The output of the above command can be found at `build/docs`.
 
 ## License
 
-*JointJS* library is licensed under the [Mozilla Public License 2.0](https://github.com/clientIO/joint/blob/master/LICENSE).
+The *JointJS* library is licensed under the [Mozilla Public License 2.0](https://github.com/clientIO/joint/blob/master/LICENSE).
 
 Copyright © 2013-2022 client IO
