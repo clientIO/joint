@@ -8,11 +8,7 @@ import * as g from '../g/index.mjs';
 
 const V = (function() {
 
-    var hasSvg = typeof window === 'object' &&
-        !!(
-            window.SVGAngle ||
-            document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')
-        );
+    var hasSvg = typeof window === 'object' && !!window.SVGAngle;
 
     // SVG support is required.
     if (!hasSvg) {
