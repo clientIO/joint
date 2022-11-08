@@ -9,7 +9,7 @@
 
 ![Use Cases](https://user-images.githubusercontent.com/3967880/200360293-808f148c-32af-4f46-bec1-b4ae4e1592a0.jpg)
 
-Further **information**, **examples** and **documentation** can be found at [https://jointjs.com](https://jointjs.com).
+Further **information**, **examples** and **documentation** can be found at [jointjs.com](https://jointjs.com).
 
 :1234: Get started with [tutorials](https://resources.jointjs.com/tutorial).
 
