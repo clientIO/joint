@@ -1,13 +1,17 @@
-# JointJS - JavaScript diagramming library
+# JointJS - JavaScript diagramming library powering exceptional UIs
 
 [![Build Status](https://travis-ci.com/clientIO/joint.svg?branch=master)](https://travis-ci.com/clientIO/joint)
-[![Code Quality: Javascript](https://img.shields.io/lgtm/grade/javascript/g/clientIO/joint.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/clientIO/joint/context:javascript)
-[![Total Alerts](https://img.shields.io/lgtm/alerts/g/clientIO/joint.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/clientIO/joint/alerts)
+[![Total Discussion](https://img.shields.io/github/discussions/badges/shields)](https://github.com/clientIO/joint/discussions)
+[![NPM Version](https://img.shields.io/npm/v/jointjs)](https://www.npmjs.com/package/jointjs)
+[![NPM License](https://img.shields.io/npm/l/jointjs?color=blue)](https://github.com/clientIO/joint/blob/master/LICENSE)
 
-JointJS is a JavaScript diagramming library. It can be used to create either static diagrams or, and more
-importantly, fully interactive diagramming tools and application builders.
+ [JointJS](https://jointjs.com) is a tested and proven  *JavaScript*/*Typescript* diagramming library that helps developers and companies of any size build visual and No-Code/Low-Code applications faster and with confidence. It’s a flexible tool from which a wide range of UIs can be created (interactive diagramming applications, drawing tools, data visualizations, UIs for monitoring systems, and many more). It can become the foundational layer of your next application and help you bring your idea to market in days, not months or years.
 
-Further **information**, **examples** and **documentation** can be found at [https://jointjs.com](https://jointjs.com).
+![Use Cases](https://user-images.githubusercontent.com/3967880/200360293-808f148c-32af-4f46-bec1-b4ae4e1592a0.jpg)
+
+Further **information**, **examples** and **documentation** can be found at [jointjs.com](https://jointjs.com).
+
+:1234: Get started with [tutorials](https://resources.jointjs.com/tutorial).
 
 :bulb: To ask a question, share feedback, or engage in a discussion with other community members, visit our [GitHub discussions](https://github.com/clientIO/joint/discussions).
 
@@ -17,21 +21,26 @@ Further **information**, **examples** and **documentation** can be found at [htt
 
 ## Features
 
-* basic diagram elements (rect, circle, ellipse, text, image, path)
+* essential diagram elements (rect, circle, ellipse, text, image, path)
 * ready-to-use diagram elements of well-known diagrams (ERD, Org chart, FSA, UML, PN, DEVS, ...)
 * custom diagram elements based on SVG or programmatically rendered
-* interactive elements and links
 * connecting diagram elements with links or links with links
 * customizable links, their arrowheads and labels
-* links smoothing (bezier interpolation)
-* magnets (link connection points) can be placed basically anywhere
-* hierarchical diagrams
-* serialization/deserialization to/from JSON format
-* highly event driven - you can react on any event that happens inside the paper
+* configurable link shapes (anchors, connection points, vertices, routers, connectors)
+* custom element properties and data
+* import/export from/to JSON format
+* customizable element ports (look and position, distributed around shapes or manually positioned)
+* rich graph API (traversal, dfs, bfs, find neighbors, predecessors, elements at point, ...)
+* granular interactivity
+* hierarchical diagrams (containers, embedded elements, child-parent relationships)
+* element & link tools (buttons, status icons, tools to change the shape of links, ...)
+* highlighters (provide visual emphasis to your elements)
+* automatic layouts (arrange the elements and links automatically)
+* highly event driven (react on any event that happens inside the diagram)
 * zoom in/out
 * touch support
-* plugin awareness
 * MVC architecture
+* SVG based
 * ... a lot more
 
 
@@ -40,15 +49,12 @@ Further **information**, **examples** and **documentation** can be found at [htt
 * Latest Google Chrome (including mobile)
 * Latest Firefox
 * Latest Safari (including mobile)
-* Latest MSEdge
+* Latest Microsoft's Edge
 * Latest Opera
-* IE 11
-
-Any problem with JointJS in the above browsers should be reported as a bug in JointJS.
 
 ## Development Environment
 
-If you want to work on JointJS locally, use the following guidelines to get started.
+If you want to work on *JointJS* locally, use the following guidelines to get started.
 
 ### Dependencies
 
@@ -104,13 +110,13 @@ grunt test:client
 
 ### Lint
 
-To check for linting errors in src and type directories:
+To check for linting errors in `src` and `types` directories:
 
 ```
 npm run lint
 ```
 
-To auto fix errors, run eslint for src and type directories:
+To auto fix errors, run eslint for `src` and `types` directories:
 
 ```
 npm run lint:fix
@@ -141,25 +147,22 @@ grunt dist
 
 ## Documentation
 
-The source for the JointJS documentation (plus geometry and Vectorizer libraries) are included in this repository; see the `docs` directory. The documentation can be built into stand-alone HTML documents like this:
+The source for the *JointJS* documentation (plus *Geometry* and *Vectorizer* libraries) are included in this repository; see the `docs` directory. The documentation can be built into stand-alone HTML documents like this:
 ```
 grunt build:docs
 ```
 The output of the above command can be found at `build/docs`.
 
 
+## Contributors
+
+<a href="https://github.com/clientIO/joint/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=clientIO/joint" />
+</a>
+
 
 ## License
 
-JointJS library is licensed under the Mozilla Public License, v. 2.0. Please see the LICENSE file for the full license.
+The *JointJS* library is licensed under the [Mozilla Public License 2.0](https://github.com/clientIO/joint/blob/master/LICENSE).
 
-Copyright (c) 2013 client IO
-
-
-## Contributors
-
-- [David Durman](https://github.com/DavidDurman)
-- [Roman Bruckner](https://github.com/kumilingus)
-- [Vladimir Talas](https://github.com/vtalas)
-- [James Williams](https://github.com/jamesgeorgewilliams)
-- [Arthur Khokhlov](https://github.com/Geliogabalus)
+Copyright © 2013-2022 client IO
