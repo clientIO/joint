@@ -48,7 +48,7 @@ const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: shapes,
-    width: '100%',
+    width: 800,
     height: '100%',
     gridSize: 20,
     async: true,

@@ -1,7 +1,7 @@
 (function(joint, Rough, g, V) {
 
     var WIDTH = 800;
-    var HEIGHT = 800;
+    var HEIGHT = 600;
 
     var graph = new joint.dia.Graph;
 
