@@ -601,7 +601,9 @@ export const Cell = Backbone.Model.extend({
 
         // A nested property
         var nestedPath = pathArray.slice(1);
-        var propertyValue = cloneDeep(this.get(property));
+        var propertyValue = this.get(property);
+        if (propertyValue === undefined || propertyValue === null) return this;
+        propertyValue = cloneDeep(propertyValue);
 
         unsetByPath(propertyValue, nestedPath, '/');
 
