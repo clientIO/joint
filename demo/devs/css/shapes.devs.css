@@ -1,3 +1,16 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    overflow-y: hidden;
+}
+
 .joint-type-devs text {
     text-transform: uppercase;
     font-weight: 800;

@@ -1,7 +1,18 @@
 [data-tool-name="button"] > circle { fill: #333; }
 
+html,
 body {
-    background-color: #FAFAFA
+    height: 100%;
+}
+
+body {
+    background-color: #FAFAFA;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    overflow-y: hidden;
 }
 
 #paper {

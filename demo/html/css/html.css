@@ -1,6 +1,13 @@
 html, body {
     margin: 0;
-    padding: 0
+    padding: 0;
+    height: 100%;
+}
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-y: hidden;
 }
 #paper {
     border: 1px solid #E2E2E2;

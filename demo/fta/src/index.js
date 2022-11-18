@@ -7,7 +7,7 @@
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
         width: 900,
-        height: 800,
+        height: 725,
         model: graph,
         defaultConnectionPoint: { name: 'boundary', args: { extrapolate: true }},
         defaultConnector: { name: 'rounded' },
