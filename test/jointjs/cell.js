@@ -250,6 +250,12 @@ QUnit.module('cell', function(hooks) {
                 assert.deepEqual(attributes.a[1], { cc: 'cc' });
             });
 
+            QUnit.test('remove non-existing top-level property', function(assert) {
+
+                el.removeProp('a/b/c');
+                assert.equal(attributes.a, undefined);
+            });
+
             QUnit.module('define path as an array', function(hooks) {
 
                 QUnit.test('remove item from array', function(assert) {
