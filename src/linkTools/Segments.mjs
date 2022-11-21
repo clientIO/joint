@@ -100,8 +100,6 @@ export const Segments = ToolView.extend({
         stopPropagation: true
     },
     handles: null,
-    _originalVertices: [],
-    _firstVertexShifted: false,
     onRender: function() {
         this.resetHandles();
         var relatedView = this.relatedView;
@@ -204,17 +202,19 @@ export const Segments = ToolView.extend({
 
         const handleIndex = handle.options.index;
 
-        const vertexPoints = [relatedView.sourcePoint.clone(), ...util.cloneDeep(vertices), relatedView.targetPoint.clone()];
+        const vertexPoints = [relatedView.sourcePoint.clone(), ...vertices, relatedView.targetPoint.clone()];
         let indexOffset = 0;
 
+        // check if vertex before handle vertex exists
         if (handleIndex - 1 >= 0) {
             const v1 = vertexPoints[handleIndex - 1];
             const v2 = vertexPoints[handleIndex];
 
             const theta = new g.Line(v1, v2).vector().theta();
 
+            // check only non-orthogonal segments
             if (theta % 90 !== 0) {
-                vertices.splice(handleIndex - 1, 0, this._originalVertices[handleIndex - 1]);
+                vertices.splice(handleIndex - 1, 0, data.originalVertices[handleIndex - 1]);
                 indexOffset++;
                 this.shiftHandleIndexes(1);
             }
@@ -223,18 +223,20 @@ export const Segments = ToolView.extend({
         var vertex = vertices[index + indexOffset];
         var nextVertex = vertices[index + 1 + indexOffset];
 
+        // check if vertex after handle vertex exists
         if (handleIndex + 2 < vertexPoints.length) {
             const v1 = vertexPoints[handleIndex + 1];
             const v2 = vertexPoints[handleIndex + 2];
 
             const theta = new g.Line(v1, v2).vector().theta();
 
+            // check only non-orthogonal segments
             if (theta % 90 !== 0) {
-                const isSingleVertex = this._originalVertices.length === 1;
+                const isSingleVertex = data.originalVertices.length === 1;
                 const origVIndex = isSingleVertex ? 0 : handleIndex;
-                const additionalOffset = this._firstVertexShifted && !isSingleVertex ? 1 : 0;
+                const additionalOffset = data.firstHandleShifted && !isSingleVertex ? 1 : 0;
                 let nextVIndex = 1 + indexOffset;
-                vertices.splice(handleIndex + nextVIndex, 0, this._originalVertices[origVIndex - additionalOffset]);
+                vertices.splice(handleIndex + nextVIndex, 0, data.originalVertices[origVIndex - additionalOffset]);
             }
         }
 
@@ -253,7 +255,7 @@ export const Segments = ToolView.extend({
                 // we left the area of the source magnet for the first time
                 vertices.unshift(vertex);
                 this.shiftHandleIndexes(1);
-                this._firstVertexShifted = true;
+                data.firstHandleShifted = true;
                 deleteSourceAnchor = true;
             }
         } else if (index === 0) {
@@ -331,15 +333,15 @@ export const Segments = ToolView.extend({
         for (var i = 0, n = handles.length; i < n; i++) {
             if (i !== index) handles[i].hide();
         }
-        this._originalVertices = util.cloneDeep(model.vertices());
         this.focus();
         this.eventData(evt, {
             sourceAnchor: linkView.sourceAnchor.clone(),
             targetAnchor: linkView.targetAnchor.clone(),
             sourceAnchorDef: util.clone(model.prop(['source', 'anchor'])),
-            targetAnchorDef: util.clone(model.prop(['target', 'anchor']))
+            targetAnchorDef: util.clone(model.prop(['target', 'anchor'])),
+            originalVertices: util.cloneDeep(model.vertices()),
+            firstHandleShifted: false
         });
-        this._firstVertexShifted = false;
         model.startBatch('segment-move', { ui: true, tool: this.cid });
         if (!options.stopPropagation) linkView.notifyPointerdown(...paper.getPointerArgs(evt));
     },
@@ -353,7 +355,6 @@ export const Segments = ToolView.extend({
         const coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
         this.render();
         this.blur();
-        this._firstVertexShifted = false;
         model.stopBatch('segment-move', { ui: true, tool: this.cid });
         if (!options.stopPropagation) linkView.notifyPointerup(normalizedEvent, coords.x, coords.y);
         linkView.checkMouseleave(normalizedEvent);
