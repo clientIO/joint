@@ -1557,6 +1557,8 @@ QUnit.module('vectorizer', function(hooks) {
             rect.addClass('test2');
             assert.equal(rect.hasClass('test1'), true);
             assert.equal(rect.hasClass('test2'), true);
+            assert.equal(rect.hasClass(' test1 '), true);
+            assert.equal(rect.hasClass(' test3 '), false);
         });
 
     });

@@ -1037,7 +1037,8 @@ const V = (function() {
     }
 
     VPrototype.hasClass = function(className) {
-        return this.node.classList.contains(className);
+        if (!V.isString(className)) return false;
+        return this.node.classList.contains(className.trim());
     };
 
     VPrototype.addClass = function(className) {
@@ -1051,7 +1052,10 @@ const V = (function() {
     };
 
     VPrototype.toggleClass = function(className, toAdd) {
-        this.node.classList.toggle(...getTokenList(className), toAdd);
+        const tokens = getTokenList(className);
+        for (let i = 0; i < tokens.length; i++) {
+            this.node.classList.toggle(tokens[i], toAdd);
+        }
         return this;
     };
 
