@@ -197,10 +197,48 @@ export const Segments = ToolView.extend({
         var offset = (this.options.snapHandle) ? 0 : (coords[axis] - position[axis]);
         var link = relatedView.model;
         var vertices = util.cloneDeep(link.vertices());
-        var vertex = vertices[index];
-        var nextVertex = vertices[index + 1];
         var anchorFn = this.options.anchor;
         if (typeof anchorFn !== 'function') anchorFn = null;
+
+        const handleIndex = handle.options.index;
+
+        const vertexPoints = [relatedView.sourcePoint.clone(), ...vertices, relatedView.targetPoint.clone()];
+        let indexOffset = 0;
+
+        // check if vertex before handle vertex exists
+        if (handleIndex - 1 >= 0) {
+            const v1 = vertexPoints[handleIndex - 1];
+            const v2 = vertexPoints[handleIndex];
+
+            const theta = new g.Line(v1, v2).vector().theta();
+
+            // check only non-orthogonal segments
+            if (theta % 90 !== 0) {
+                vertices.splice(handleIndex - 1, 0, data.originalVertices[handleIndex - 1]);
+                indexOffset++;
+                this.shiftHandleIndexes(1);
+            }
+        }
+
+        var vertex = vertices[index + indexOffset];
+        var nextVertex = vertices[index + 1 + indexOffset];
+
+        // check if vertex after handle vertex exists
+        if (handleIndex + 2 < vertexPoints.length) {
+            const v1 = vertexPoints[handleIndex + 1];
+            const v2 = vertexPoints[handleIndex + 2];
+
+            const theta = new g.Line(v1, v2).vector().theta();
+
+            // check only non-orthogonal segments
+            if (theta % 90 !== 0) {
+                const isSingleVertex = data.originalVertices.length === 1;
+                const origVIndex = isSingleVertex ? 0 : handleIndex;
+                const additionalOffset = data.firstHandleShifted && !isSingleVertex ? 1 : 0;
+                let nextVIndex = 1 + indexOffset;
+                vertices.splice(handleIndex + nextVIndex, 0, data.originalVertices[origVIndex - additionalOffset]);
+            }
+        }
 
         // First Segment
         var sourceView = relatedView.sourceView;
@@ -217,6 +255,7 @@ export const Segments = ToolView.extend({
                 // we left the area of the source magnet for the first time
                 vertices.unshift(vertex);
                 this.shiftHandleIndexes(1);
+                data.firstHandleShifted = true;
                 deleteSourceAnchor = true;
             }
         } else if (index === 0) {
@@ -282,7 +321,6 @@ export const Segments = ToolView.extend({
                 this.resetAnchor('target', data.targetAnchorDef);
             }
         }
-
         link.vertices(vertices, { ui: true, tool: this.cid });
         this.updateHandle(handle, vertex, nextVertex, offset);
         if (!options.stopPropagation) relatedView.notifyPointermove(normalizedEvent, coords.x, coords.y);
@@ -300,7 +338,9 @@ export const Segments = ToolView.extend({
             sourceAnchor: linkView.sourceAnchor.clone(),
             targetAnchor: linkView.targetAnchor.clone(),
             sourceAnchorDef: util.clone(model.prop(['source', 'anchor'])),
-            targetAnchorDef: util.clone(model.prop(['target', 'anchor']))
+            targetAnchorDef: util.clone(model.prop(['target', 'anchor'])),
+            originalVertices: util.cloneDeep(model.vertices()),
+            firstHandleShifted: false
         });
         model.startBatch('segment-move', { ui: true, tool: this.cid });
         if (!options.stopPropagation) linkView.notifyPointerdown(...paper.getPointerArgs(evt));
