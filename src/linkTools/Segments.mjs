@@ -231,8 +231,8 @@ export const Segments = ToolView.extend({
 
             if (theta % 90 !== 0) {
                 const isSingleVertex = this._originalVertices.length === 1;
-                const origVIndex = isSingleVertex === 1  ? 0 : handleIndex;
-                const additionalOffset = this._firstVertexShifted || isSingleVertex ? 1 : 0;
+                const origVIndex = isSingleVertex ? 0 : handleIndex;
+                const additionalOffset = this._firstVertexShifted && !isSingleVertex ? 1 : 0;
                 let nextVIndex = 1 + indexOffset;
                 vertices.splice(handleIndex + nextVIndex, 0, this._originalVertices[origVIndex - additionalOffset]);
             }
