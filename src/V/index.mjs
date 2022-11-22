@@ -1027,41 +1027,35 @@ const V = (function() {
         return this;
     };
 
-    VPrototype.hasClass = function(className) {
 
-        return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
+    // Split a string into an array of tokens.
+    // https://infra.spec.whatwg.org/#ascii-whitespace
+    const noHTMLWhitespaceRegex = /[^\x20\t\r\n\f]+/g;
+    function getTokenList(str) {
+        if (!V.isString(str)) return [];
+        return str.trim().match(noHTMLWhitespaceRegex) || [];
+    }
+
+    VPrototype.hasClass = function(className) {
+        if (!V.isString(className)) return false;
+        return this.node.classList.contains(className.trim());
     };
 
     VPrototype.addClass = function(className) {
-
-        if (className && !this.hasClass(className)) {
-            var prevClasses = this.node.getAttribute('class') || '';
-            this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
-        }
-
+        this.node.classList.add(...getTokenList(className));
         return this;
     };
 
     VPrototype.removeClass = function(className) {
-
-        if (className && this.hasClass(className)) {
-            var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
-            this.node.setAttribute('class', newClasses);
-        }
-
+        this.node.classList.remove(...getTokenList(className));
         return this;
     };
 
     VPrototype.toggleClass = function(className, toAdd) {
-
-        var toRemove = V.isUndefined(toAdd) ? this.hasClass(className) : !toAdd;
-
-        if (toRemove) {
-            this.removeClass(className);
-        } else {
-            this.addClass(className);
+        const tokens = getTokenList(className);
+        for (let i = 0; i < tokens.length; i++) {
+            this.node.classList.toggle(tokens[i], toAdd);
         }
-
         return this;
     };
 

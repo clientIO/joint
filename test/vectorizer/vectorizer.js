@@ -1501,6 +1501,65 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(rect.node.className.baseVal, 'test1');
             rect.addClass('test2');
             assert.equal(rect.node.className.baseVal, 'test1 test2');
+            rect.addClass('test3 test4');
+            assert.equal(rect.node.className.baseVal, 'test1 test2 test3 test4');
+            rect.addClass(' test5 ');
+            assert.equal(rect.node.className.baseVal, 'test1 test2 test3 test4 test5');
         });
+
+        QUnit.test('removeClass()', function(assert) {
+            var res;
+            var rect = V('rect');
+            res = rect.removeClass();
+            assert.ok(res === rect);
+            assert.equal(rect.node.className.baseVal, '');
+            res = rect.removeClass('test1');
+            assert.ok(res === rect);
+            assert.equal(rect.node.className.baseVal, '');
+            rect.addClass('test1 test2 test3 test4 test5');
+            rect.removeClass('test2');
+            assert.equal(rect.node.className.baseVal, 'test1 test3 test4 test5');
+            rect.removeClass('test3 test4');
+            assert.equal(rect.node.className.baseVal, 'test1 test5');
+            rect.removeClass(' test5 ');
+            assert.equal(rect.node.className.baseVal, 'test1');
+        });
+
+        QUnit.test('toggleClass()', function(assert) {
+            var res;
+            var rect = V('rect');
+            res = rect.toggleClass();
+            assert.ok(res === rect);
+            assert.equal(rect.node.className.baseVal, '');
+            res = rect.toggleClass('test1');
+            assert.ok(res === rect);
+            assert.equal(rect.node.className.baseVal, 'test1');
+            rect.toggleClass('test1');
+            assert.equal(rect.node.className.baseVal, '');
+            rect.toggleClass('test1 test2');
+            assert.equal(rect.node.className.baseVal, 'test1 test2');
+            rect.toggleClass('test1 test2');
+            assert.equal(rect.node.className.baseVal, '');
+            rect.addClass('test1');
+            rect.toggleClass('test1 test2');
+            assert.equal(rect.node.className.baseVal, 'test2');
+            rect.toggleClass('test1 test2');
+            assert.equal(rect.node.className.baseVal, 'test1');
+        });
+
+        QUnit.test('hasClass()', function(assert) {
+            var rect = V('rect');
+            assert.equal(rect.hasClass(), false);
+            assert.equal(rect.hasClass('test1'), false);
+            rect.addClass('test1');
+            assert.equal(rect.hasClass('test1'), true);
+            assert.equal(rect.hasClass('test2'), false);
+            rect.addClass('test2');
+            assert.equal(rect.hasClass('test1'), true);
+            assert.equal(rect.hasClass('test2'), true);
+            assert.equal(rect.hasClass(' test1 '), true);
+            assert.equal(rect.hasClass(' test3 '), false);
+        });
+
     });
 });
