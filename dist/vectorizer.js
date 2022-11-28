@@ -1,4 +1,4 @@
-/*! JointJS v3.6.2 (2022-10-21) - JavaScript diagramming library
+/*! JointJS v3.6.3 (2022-11-28) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -6443,11 +6443,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     var V = (function() {
 
-        var hasSvg = typeof window === 'object' &&
-            !!(
-                window.SVGAngle ||
-                document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')
-            );
+        var hasSvg = typeof window === 'object' && !!window.SVGAngle;
 
         // SVG support is required.
         if (!hasSvg) {
@@ -7466,41 +7462,39 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return this;
         };
 
-        VPrototype.hasClass = function(className) {
 
-            return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
+        // Split a string into an array of tokens.
+        // https://infra.spec.whatwg.org/#ascii-whitespace
+        var noHTMLWhitespaceRegex = /[^\x20\t\r\n\f]+/g;
+        function getTokenList(str) {
+            if (!V.isString(str)) { return []; }
+            return str.trim().match(noHTMLWhitespaceRegex) || [];
+        }
+
+        VPrototype.hasClass = function(className) {
+            if (!V.isString(className)) { return false; }
+            return this.node.classList.contains(className.trim());
         };
 
         VPrototype.addClass = function(className) {
+            var ref;
 
-            if (className && !this.hasClass(className)) {
-                var prevClasses = this.node.getAttribute('class') || '';
-                this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
-            }
-
+            (ref = this.node.classList).add.apply(ref, getTokenList(className));
             return this;
         };
 
         VPrototype.removeClass = function(className) {
+            var ref;
 
-            if (className && this.hasClass(className)) {
-                var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
-                this.node.setAttribute('class', newClasses);
-            }
-
+            (ref = this.node.classList).remove.apply(ref, getTokenList(className));
             return this;
         };
 
         VPrototype.toggleClass = function(className, toAdd) {
-
-            var toRemove = V.isUndefined(toAdd) ? this.hasClass(className) : !toAdd;
-
-            if (toRemove) {
-                this.removeClass(className);
-            } else {
-                this.addClass(className);
+            var tokens = getTokenList(className);
+            for (var i = 0; i < tokens.length; i++) {
+                this.node.classList.toggle(tokens[i], toAdd);
             }
-
             return this;
         };
 
