@@ -1,4 +1,4 @@
-/*! JointJS v3.6.2 (2022-10-21) - JavaScript diagramming library
+/*! JointJS v3.6.3 (2022-11-28) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -8217,11 +8217,7 @@ var joint = (function (exports, Backbone, _, $) {
 
 	var V = (function() {
 
-	    var hasSvg = typeof window === 'object' &&
-	        !!(
-	            window.SVGAngle ||
-	            document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')
-	        );
+	    var hasSvg = typeof window === 'object' && !!window.SVGAngle;
 
 	    // SVG support is required.
 	    if (!hasSvg) {
@@ -9240,41 +9236,39 @@ var joint = (function (exports, Backbone, _, $) {
 	        return this;
 	    };
 
-	    VPrototype.hasClass = function(className) {
 
-	        return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
+	    // Split a string into an array of tokens.
+	    // https://infra.spec.whatwg.org/#ascii-whitespace
+	    var noHTMLWhitespaceRegex = /[^\x20\t\r\n\f]+/g;
+	    function getTokenList(str) {
+	        if (!V.isString(str)) { return []; }
+	        return str.trim().match(noHTMLWhitespaceRegex) || [];
+	    }
+
+	    VPrototype.hasClass = function(className) {
+	        if (!V.isString(className)) { return false; }
+	        return this.node.classList.contains(className.trim());
 	    };
 
 	    VPrototype.addClass = function(className) {
+	        var ref;
 
-	        if (className && !this.hasClass(className)) {
-	            var prevClasses = this.node.getAttribute('class') || '';
-	            this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
-	        }
-
+	        (ref = this.node.classList).add.apply(ref, getTokenList(className));
 	        return this;
 	    };
 
 	    VPrototype.removeClass = function(className) {
+	        var ref;
 
-	        if (className && this.hasClass(className)) {
-	            var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
-	            this.node.setAttribute('class', newClasses);
-	        }
-
+	        (ref = this.node.classList).remove.apply(ref, getTokenList(className));
 	        return this;
 	    };
 
 	    VPrototype.toggleClass = function(className, toAdd) {
-
-	        var toRemove = V.isUndefined(toAdd) ? this.hasClass(className) : !toAdd;
-
-	        if (toRemove) {
-	            this.removeClass(className);
-	        } else {
-	            this.addClass(className);
+	        var tokens = getTokenList(className);
+	        for (var i = 0; i < tokens.length; i++) {
+	            this.node.classList.toggle(tokens[i], toAdd);
 	        }
-
 	        return this;
 	    };
 
@@ -13911,7 +13905,9 @@ var joint = (function (exports, Backbone, _, $) {
 
 	        // A nested property
 	        var nestedPath = pathArray.slice(1);
-	        var propertyValue = cloneDeep(this.get(property));
+	        var propertyValue = this.get(property);
+	        if (propertyValue === undefined || propertyValue === null) { return this; }
+	        propertyValue = cloneDeep(propertyValue);
 
 	        unsetByPath(propertyValue, nestedPath, '/');
 
@@ -33144,10 +33140,48 @@ var joint = (function (exports, Backbone, _, $) {
 	        var offset = (this.options.snapHandle) ? 0 : (coords[axis] - position[axis]);
 	        var link = relatedView.model;
 	        var vertices = cloneDeep(link.vertices());
-	        var vertex = vertices[index$1];
-	        var nextVertex = vertices[index$1 + 1];
 	        var anchorFn = this.options.anchor;
 	        if (typeof anchorFn !== 'function') { anchorFn = null; }
+
+	        var handleIndex = handle.options.index;
+
+	        var vertexPoints = [relatedView.sourcePoint.clone() ].concat( vertices, [relatedView.targetPoint.clone()]);
+	        var indexOffset = 0;
+
+	        // check if vertex before handle vertex exists
+	        if (handleIndex - 1 >= 0) {
+	            var v1 = vertexPoints[handleIndex - 1];
+	            var v2 = vertexPoints[handleIndex];
+
+	            var theta = new Line(v1, v2).vector().theta();
+
+	            // check only non-orthogonal segments
+	            if (theta % 90 !== 0) {
+	                vertices.splice(handleIndex - 1, 0, data.originalVertices[handleIndex - 1]);
+	                indexOffset++;
+	                this.shiftHandleIndexes(1);
+	            }
+	        }
+
+	        var vertex = vertices[index$1 + indexOffset];
+	        var nextVertex = vertices[index$1 + 1 + indexOffset];
+
+	        // check if vertex after handle vertex exists
+	        if (handleIndex + 2 < vertexPoints.length) {
+	            var v1$1 = vertexPoints[handleIndex + 1];
+	            var v2$1 = vertexPoints[handleIndex + 2];
+
+	            var theta$1 = new Line(v1$1, v2$1).vector().theta();
+
+	            // check only non-orthogonal segments
+	            if (theta$1 % 90 !== 0) {
+	                var isSingleVertex = data.originalVertices.length === 1;
+	                var origVIndex = isSingleVertex ? 0 : handleIndex;
+	                var additionalOffset = data.firstHandleShifted && !isSingleVertex ? 1 : 0;
+	                var nextVIndex = 1 + indexOffset;
+	                vertices.splice(handleIndex + nextVIndex, 0, data.originalVertices[origVIndex - additionalOffset]);
+	            }
+	        }
 
 	        // First Segment
 	        var sourceView = relatedView.sourceView;
@@ -33164,6 +33198,7 @@ var joint = (function (exports, Backbone, _, $) {
 	                // we left the area of the source magnet for the first time
 	                vertices.unshift(vertex);
 	                this.shiftHandleIndexes(1);
+	                data.firstHandleShifted = true;
 	                deleteSourceAnchor = true;
 	            }
 	        } else if (index$1 === 0) {
@@ -33229,7 +33264,6 @@ var joint = (function (exports, Backbone, _, $) {
 	                this.resetAnchor('target', data.targetAnchorDef);
 	            }
 	        }
-
 	        link.vertices(vertices, { ui: true, tool: this.cid });
 	        this.updateHandle(handle, vertex, nextVertex, offset);
 	        if (!options.stopPropagation) { relatedView.notifyPointermove(normalizedEvent, coords.x, coords.y); }
@@ -33251,7 +33285,9 @@ var joint = (function (exports, Backbone, _, $) {
 	            sourceAnchor: linkView.sourceAnchor.clone(),
 	            targetAnchor: linkView.targetAnchor.clone(),
 	            sourceAnchorDef: clone(model.prop(['source', 'anchor'])),
-	            targetAnchorDef: clone(model.prop(['target', 'anchor']))
+	            targetAnchorDef: clone(model.prop(['target', 'anchor'])),
+	            originalVertices: cloneDeep(model.vertices()),
+	            firstHandleShifted: false
 	        });
 	        model.startBatch('segment-move', { ui: true, tool: this.cid });
 	        if (!options.stopPropagation) { linkView.notifyPointerdown.apply(linkView, paper.getPointerArgs(evt)); }
@@ -34305,7 +34341,7 @@ var joint = (function (exports, Backbone, _, $) {
 		Control: Control
 	});
 
-	var version = "3.6.2";
+	var version = "3.6.3";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

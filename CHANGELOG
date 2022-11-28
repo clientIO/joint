@@ -1,13 +1,20 @@
+28-11-2022 (v3.6.3)
+
+  * dia.Cell - prevent exception when `removeProp()` called on non-existing top-level attribute
+  * linkTools.Segments - fix non-orthogonal edge cases
+  * Vectorizer - fix removing & toggling multiple classes at once
+  * Vectorizer - remove deprecated hasFeature check
+
 20-10-2022 (v3.6.2)
 
-  * dia.Cell: fix `isEmbeddedIn()` with `deep` option set to `false`
-  * util.svg: support embedded expressions
-  * util.svg: prevent `className` set to `null`
+  * dia.Cell - fix `isEmbeddedIn()` with `deep` option set to `false`
+  * util.svg - support embedded expressions
+  * util.svg - prevent `className` set to `null`
 
 14-10-2022 (v3.6.1)
 
-  * util.breakText: prevent infinite loop when using `preserveSpaces`
-  * util.breakText: always account for `height` when using `preserveSpaces`
+  * util.breakText - prevent infinite loop when using `preserveSpaces`
+  * util.breakText - always account for `height` when using `preserveSpaces`
 
 12-10-2022 (v3.6.0)
 
