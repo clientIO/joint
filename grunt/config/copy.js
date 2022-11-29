@@ -33,7 +33,8 @@ module.exports = function(grunt) {
                         'css/**/*',
                         'demo/**/*',
                         'js/**/*',
-                        'images/**/*'
+                        'images/**/*',
+                        'fonts/**/*'
                     ],
                     dest: 'build/docs/'
                 },
@@ -73,16 +74,8 @@ module.exports = function(grunt) {
                     dest: 'build/docs/css/lib/joint.min.css'
                 },
                 {
-                    expand: true,
-                    flatten: true,
-                    cwd: 'node_modules/open-sans-fontface/',
-                    src: [
-                        'fonts/**/*.{ttf,eot,svg,woff,woff2}'
-                    ],
-                    dest: 'build/docs/fonts/OpenSans/'
-                },
-                {
-                    src: 'node_modules/prismjs/themes/prism.css',
+                    nonull: true,
+                    src: 'node_modules/prism-themes/themes/prism-one-light.css',
                     dest: 'build/docs/css/prism.css'
                 }
             ]

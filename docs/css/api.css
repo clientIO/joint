@@ -1,131 +1,90 @@
 @font-face {
-    font-family: 'OpenSans';
+    font-family: 'PPFraktionSans';
     font-style: normal;
-    font-weight: 700;
-    src: url('../fonts/OpenSans/OpenSans-Bold.eot');
-    src: local('OpenSans-Bold'),
-    url('../fonts/OpenSans/OpenSans-Bold.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-Bold.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-Bold.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-Bold.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-Bold.svg#OpenSans-Bold') format('svg');
+    font-weight: 300;
+    src: url('../fonts/PPFraktionSans/PPFraktionSans-Regular.woff') format('woff');
 }
 
 @font-face {
-    font-family: 'OpenSans';
+    font-family: 'PPFraktionSans';
     font-style: italic;
-    font-weight: 700;
-    src: url('../fonts/OpenSans/OpenSans-BoldItalic.eot');
-    src: local('OpenSans-BoldItalic'),
-    url('../fonts/OpenSans/OpenSans-BoldItalic.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-BoldItalic.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-BoldItalic.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-BoldItalic.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-BoldItalic.svg#OpenSans-BoldItalic') format('svg');
+    font-weight: 300;
+    src: url('../fonts/PPFraktionSans/PPFraktionSans-RegularItalic.woff') format('woff');
 }
 
 @font-face {
-    font-family: 'OpenSans';
-    font-style: normal;
-    font-weight: 900;
-    src: url('../fonts/OpenSans/OpenSans-ExtraBold.eot');
-    src: local('OpenSans-Extrabold'),
-    url('../fonts/OpenSans/OpenSans-ExtraBold.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-ExtraBold.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-ExtraBold.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-ExtraBold.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-ExtraBold.svg#OpenSans-Extrabold') format('svg');
-}
-
-@font-face {
-    font-family: 'OpenSans';
-    font-style: italic;
-    font-weight: 900;
-    src: url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.eot');
-    src: local('OpenSans-ExtraboldItalic'),
-    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-ExtraBoldItalic.svg#OpenSans-ExtraboldItalic') format('svg');
-}
-
-@font-face {
-    font-family: 'OpenSans';
-    font-style: italic;
-    font-weight: 400;
-    src: url('../fonts/OpenSans/OpenSans-Italic.eot');
-    src: local('OpenSans-Italic'),
-    url('../fonts/OpenSans/OpenSans-Italic.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-Italic.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-Italic.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-Italic.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-Italic.svg#OpenSans-Italic') format('svg');
-}
-
-@font-face {
-    font-family: 'OpenSans';
-    font-style: normal;
-    font-weight: 200;
-    src: url('../fonts/OpenSans/OpenSans-Light.eot');
-    src: local('OpenSans-Light'),
-    url('../fonts/OpenSans/OpenSans-Light.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-Light.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-Light.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-Light.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-Light.svg#OpenSans-Light') format('svg');
-}
-
-@font-face {
-    font-family: 'OpenSans';
-    font-style: italic;
-    font-weight: 200;
-    src: url('../fonts/OpenSans/OpenSans-LightItalic.eot');
-    src: local('OpenSansLight-Italic'),
-    url('../fonts/OpenSans/OpenSans-LightItalic.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-LightItalic.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-LightItalic.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-LightItalic.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-LightItalic.svg#OpenSansLight-Italic') format('svg');
-}
-
-@font-face {
-    font-family: 'OpenSans';
-    font-style: normal;
-    font-weight: 400;
-    src: url('../fonts/OpenSans/OpenSans-Regular.eot');
-    src: local('OpenSans'),
-    url('../fonts/OpenSans/OpenSans-Regular.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-Regular.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-Regular.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-Regular.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-Regular.svg#OpenSans') format('svg');
-}
-
-@font-face {
-    font-family: 'OpenSans';
+    font-family: 'PPFraktionSans';
     font-style: normal;
     font-weight: 600;
-    src: url('../fonts/OpenSans/OpenSans-Semibold.eot');
-    src: local('OpenSans-Semibold'),
-    url('../fonts/OpenSans/OpenSans-Semibold.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-Semibold.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-Semibold.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-Semibold.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-Semibold.svg#OpenSans-Semibold') format('svg');
+    src: url('../fonts/PPFraktionSans/PPFraktionSans-Bold.woff') format('woff');
 }
 
 @font-face {
-    font-family: 'OpenSans';
+    font-family: 'PPFraktionSans';
     font-style: italic;
     font-weight: 600;
-    src: url('../fonts/OpenSans/OpenSans-SemiboldItalic.eot');
-    src: local('OpenSans-SemiboldItalic'),
-    url('../fonts/OpenSans/OpenSans-SemiboldItalic.eot?#iefix') format('embedded-opentype'),
-    url('../fonts/OpenSans/OpenSans-SemiboldItalic.woff2') format('woff2'),
-    url('../fonts/OpenSans/OpenSans-SemiboldItalic.woff') format('woff'),
-    url('../fonts/OpenSans/OpenSans-SemiboldItalic.ttf') format('truetype'),
-    url('../fonts/OpenSans/OpenSans-SemiboldItalic.svg#OpenSans-SemiboldItalic') format('svg');
+    src: url('../fonts/PPFraktionSans/PPFraktionSans-BoldItalic.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'PPFraktionMono';
+    font-style: normal;
+    font-weight: 300;
+    src: url('../fonts/PPFraktionMono/PPFraktionMono-Regular.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'PPFraktionMono';
+    font-style: italic;
+    font-weight: 300;
+    src: url('../fonts/PPFraktionMono/PPFraktionMono-RegularItalic.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'PPFraktionMono';
+    font-style: normal;
+    font-weight: 600;
+    src: url('../fonts/PPFraktionMono/PPFraktionMono-Bold.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'PPFraktionMono';
+    font-style: italic;
+    font-weight: 600;
+    src: url('../fonts/fonts/PPFraktionMono/PPFraktionMono-BoldItalic.woff') format('woff');
+}
+
+:root {
+    /* Theme */
+    --primary-red: hsl(355, 85%, 54%);
+    --primary-blue:  hsl(210, 37%, 12%);
+
+    /* Text */
+    --text-color: hsl(210, 20%, 28%);
+    --text-font-size: 1rem;
+    --text-font-style: normal;
+    --text-font-weight: 300;
+    --text-font-weight-bold: 600;
+    --text-line-height: 1.6;
+    --text-letter-spacing: -0.5px;
+
+    /* Minimal Header */
+    --minimal-header-background-color: hsl(204, 31%, 94%);
+    --minimal-header-border-color: hsl(210, 16%, 80%);
+    --minimal-header-font-size: 12px;
+    --minimal-header-font-weight: var(--text-font-weight-bold);
+    --minimal-header-text-color: var(--primary-blue);
+    --minimal-header-text-transform: uppercase;
+
+    /* Sidebar */
+    --sidebar-color-primary: hsl(206, 33%, 92%);
+    --sidebar-color-secondary: hsl(206, 25%, 81%);
+    --sidebar-color-hover: hsl(206, 33%, 88%);
+    --sidebar-background-color: hsl(206, 33%, 96%);
+    --sidebar-font-weight-bold: var(--text-font-weight-bold);
+    --sidebar-text-color-primary: var(--primary-blue);
+    --sidebar-text-color-secondary: var(--text-color);
+    --sidebar-text-color-hover: var(--primary-red);
 }
 
 html, body {
@@ -134,16 +93,17 @@ html, body {
 }
 
 body {
-    font-family: 'OpenSans', sans-serif, arial;
-    font-weight: 200;
-    background: #f6f6f6;
+    background-color: hsl(0, 0%, 100%);
+    color: var(--text-color);
+    font-family: 'PPFraktionSans', sans-serif;
+    font-size: var(--text-font-size);
+    font-weight: var(--text-font-weight);
 }
 
 .docs-main {
     position: relative;
     z-index: 20;
     display: inline-block;
-    vertical-align: top;
     width: 100%;
 }
 
@@ -156,20 +116,27 @@ body {
     z-index: 40;
     overflow-y: auto;
     overflow-x: hidden;
-    background-color: #6764A7;
+    background-color: var(--sidebar-background-color);
     background-position: top left;
     background-repeat: no-repeat;
 }
 
 .docs-nav-search {
     display: block;
-    width: 220px;
     color: #666;
-    background-color: #e6eaf1;
-    border: none;
+    font-family: 'PPFraktionSans', sans-serif;
     outline: none;
     margin: 10px;
     padding: 8px;
+    width: 240px;
+}
+
+input.docs-nav-search {
+    /* Override .docs-nav-search styles in header.css for version >= v.3.6 */
+    background-color: #fff;
+    border:  1px solid #8E8E8E;
+    border-bottom: 2px solid var(--primary-blue);
+    border-radius: 0px;
 }
 
 .docs-nav-items {
@@ -185,43 +152,40 @@ body {
 .docs-nav > .docs-nav-items > .docs-nav-item > .docs-nav-item-link {
     display: block;
     width: 100%;
-    font-size: 0.9em;
+    background-color: var(--sidebar-color-primary);
+    font-size: 1em;
     text-decoration: none;
-    letter-spacing: .5px;
-    background-color: rgba(14, 20, 84, 0.15);
+    letter-spacing: var(--text-letter-spacing);
+    line-height: var(--text-line-height);
     box-sizing: border-box;
     padding: 8px 16px;
-    margin: 0;
+    margin-bottom: 1px;
     border: none;
     font-weight: normal;
 }
 
-.docs-nav > .docs-nav-items > .docs-nav-item > .docs-nav-item-link:hover {
-    border: none;
-    background-color: #3B368B;
-}
-
 .docs-nav-item-link {
     background: transparent;
-    color: #f6f6f6;
-    font-size: 12px;
+    color: var(--text-color);
+    font-size: 14px;
+    font-weight: var(--text-font-weight-bold);
     display: block;
+    letter-spacing: var(--text-letter-spacing);
+    line-height: var(--text-line-height);
     margin: 0;
     padding: 6px 6px 6px 27px;
     border-left: 3px solid transparent;
     text-decoration: none;
-    font-weight: bold;
 }
 
 .docs-nav-item-link:hover {
-    color: #feb663;
-    border-color: #feb663;
+    color: var(--primary-red);
+    border-color: var(--primary-red);
     text-decoration: none;
 }
 
-.docs-nav-item-link + .docs-nav-items,
-.docs-nav-item + .docs-nav-item {
-    margin-top: 1px;
+.docs-nav > .docs-nav-items > .docs-nav-item > .docs-nav-item-link:hover {
+    background-color: var(--sidebar-color-hover);
 }
 
 .docs-nav-items .open .docs-nav-items {
@@ -229,18 +193,13 @@ body {
 }
 
 .docs-nav-items .docs-nav-items {
+    border-left: 2px solid var(--sidebar-background-color);
     display: none;
-    font-size: 0.9rem;
-    border-left: 2px solid rgba(105, 108, 138, 0.15);
     margin-left: 16px;
 }
 
 .docs-nav-items .docs-nav-items .docs-nav-item-link {
     background-color: transparent;
-}
-
-.docs-nav-items .docs-nav-items .docs-nav-item-link:hover {
-    background-color: rgba(105, 108, 138, 0.15);
 }
 
 .docs-content {
@@ -250,12 +209,11 @@ body {
 }
 
 .docs-content a {
-    color: #3c4260;
-    text-decoration: underline;
+    color: var(--primary-blue);
 }
 
 .docs-content a:hover {
-    color: #31d0c6;
+    color: var(--primary-red);
 }
 
 .docs-content p,
@@ -266,6 +224,16 @@ body {
 .docs-content h5,
 .docs-content pre {
     line-height: 150%;
+}
+
+.docs-content h1,
+.docs-content h2,
+.docs-content h3,
+.docs-content h4,
+.docs-content h5,
+.docs-content h6 {
+    color: var(--primary-blue);
+    font-weight: var(--text-font-weight-bold);
 }
 
 .docs-content h1 {
@@ -283,23 +251,19 @@ body {
 .docs-content h4,
 .docs-content h5,
 .docs-content h6 {
-    font-size: 1em;
+    font-size: 1.1em;
 }
 
-.docs-item-anchor {
+.docs-content .docs-item-anchor {
     display: inline-block;
-    vertical-align: top;
     padding-right: 22px;
     margin-top: 30px;
 }
 
-.docs-item-anchor:hover {
+.docs-content .docs-item-anchor:hover {
     background: transparent url('../images/anchor.svg') right center no-repeat;
     background-size: 16px 16px;
-}
-
-a.docs-item-anchor:hover {
-    color: #3c4260;
+    color: var(--primary-blue);
 }
 
 .docs-content h3.docs-item-header {
@@ -308,31 +272,40 @@ a.docs-item-anchor:hover {
 }
 
 .docs-content p {
-    font-size: 1em;
+    color: var(--text-color);
+    font-size: var(--text-font-size);
+    font-weight: var(--text-font-weight);
+    line-height: var(--text-line-height);
+}
+
+code,
+pre {
+    background: hsl(230, 1%, 98%);
+}
+
+pre {
+    border-left: 4px solid lightgray;
+    border-radius: 0.3em;
 }
 
 .docs-content code {
     position: relative;
-    top: -2px;
     display: inline;
-    font-family: 'Courier New';
-    font-size: 0.8em;
-    background: #efefef;
-    border: 1px solid #cfcfcf;
+    font-family: 'PPFraktionMono', monospace;
+    font-size: var(--text-font-size);
+    font-weight: var(--text-font-weight);
+    line-height: var(--text-line-height);
     border-radius: 3px;
-    padding: 3px;
+    padding: 0.2em 0.3em;
 }
 
 .docs-content pre {
     max-width: 100%;
     color: #444;
-    font-family: 'Courier New';
-    font-size: 0.9em;
-    background: #efefef;
-    border: 1px solid #cfcfcf;
-    border-radius: 5px;
+    font-family: 'PPFraktionMono', monospace;
+    font-size: var(--text-font-size);
     overflow-x: auto;
-    padding: 10px;
+    padding: 16px;
 }
 
 .docs-content pre code {
@@ -376,7 +349,12 @@ a.docs-item-anchor:hover {
 .docs-content td {
     background: #fefefe;
     border: 1px solid #e6e6e6;
+    color: var(--text-color);
     padding: 16px;
+}
+
+.docs-content th {
+    font-weight: var(--text-font-weight-bold);
 }
 
 .docs-content th:first-child,
@@ -541,12 +519,13 @@ html.no-js .docs-content iframe {
     opacity: 0.9;
 }
 
-.docs-nav-search-clear {
-    position: absolute;
-    width: 20px;
-    left: 222px;
-    top: 16px;
+img.docs-nav-search-clear {
     opacity: 0.2;
+    position: absolute;
+    /* Override .docs-nav-search-clear styles in header.css for version >= v.3.6 */
+    width: 16px;
+    left: 245px;
+    top: 22px;
 }
 
 .docs-important-note {
