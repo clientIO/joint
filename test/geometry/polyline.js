@@ -98,7 +98,7 @@ QUnit.module('polyline', function() {
         QUnit.test('creates a new Polyline object from svg string with spaces around', function(assert) {
 
             const polyline = new g.Polyline('  10,10 20,20  ');
-            assert.equal(polyline.points.length, 2, 'has expected number of points (svg string with spaces around)');
+            assert.equal(polyline.points.length, 2);
             assert.equal(polyline.points[0].toString(), '10@10');
             assert.equal(polyline.points[1].toString(), '20@20');
         });
@@ -114,7 +114,7 @@ QUnit.module('polyline', function() {
         QUnit.test('creates a new Polyline object from string with a mixture of commas and spaces', function(assert) {
 
             const polyline = new g.Polyline('10 10,20 , 20');
-            assert.equal(polyline.points.length, 2,);
+            assert.equal(polyline.points.length, 2);
             assert.equal(polyline.points[0].toString(), '10@10');
             assert.equal(polyline.points[1].toString(), '20@20');
         });

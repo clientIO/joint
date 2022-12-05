@@ -7,7 +7,7 @@ export function parsePoints(svgString) {
     const points = [];
 
     // replace sequences of multiple spaces with single spaces
-    const simplifiedString = trimmedString.replace(/\s{2,}/, ' ');
+    const simplifiedString = trimmedString.replace(/\s{2,}/g, ' ');
     // split at commas (+ their surrounding spaces) or at single spaces
     const coords = simplifiedString.split(/\s?,\s?|\s/);
 
