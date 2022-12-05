@@ -1,10 +1,21 @@
 export function parsePoints(svgString) {
-    svgString = svgString.trim();
-    if (svgString === '') return [];
+
+    // discard surrounding spaces
+    const trimmedString = svgString.trim();
+    if (trimmedString === '') return [];
+
     const points = [];
-    const coords = svgString.split(/\s*,\s*|\s+/);
-    const n = coords.length;
-    for (let i = 0; i < n; i += 2) {
+
+    // replace sequences of multiple spaces with single spaces
+    const simplifiedString = trimmedString.replace(/\s{2,}/, ' ');
+    // split at commas (+ their surrounding spaces) or at single spaces
+    const coords = svgString.split(/\s?,\s?|\s/);
+
+    const numCoords = coords.length;
+    for (let i = 0; i < numCoords; i += 2) {
+        // convert each coord to number
+        // note: if the coord cannot be converted to a number, it will be `NaN`
+        // note: if we got an odd number of coords, the last coord will be `NaN`
         points.push({ x: +coords[i], y: +coords[i + 1] });
     }
     return points;
