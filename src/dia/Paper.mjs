@@ -2059,14 +2059,7 @@ export const Paper = View.extend({
         if (evt.button === 2) {
             this.contextMenuFired = true;
             const event = $.Event(evt, { type: 'contextmenu', data: evt.data });
-            if (evt.target.closest('.joint-cell') && evt.target.getAttribute('magnet')) {
-                event.currentTarget = evt.target;
-                this.magnetContextMenuFired = true;
-                this.magnetContextMenuTrigger(event);
-            }
-            if (!event.isPropagationStopped()) {
-                this.contextMenuTrigger(event);
-            }
+            this.contextMenuTrigger(event);
         } else {
             var view = this.findView(evt.target);
 
@@ -2327,11 +2320,20 @@ export const Paper = View.extend({
 
     onmagnet: function(evt) {
 
-        this.magnetEvent(evt, function(view, evt, _, x, y) {
-            view.onmagnet(evt, x, y);
-        });
+        if (evt.button === 2) {
+            this.contextMenuFired = true;
+            this.magnetContextMenuFired = true;
+            const event = $.Event(evt, { type: 'contextmenu', data: evt.data });
+            this.magnetContextMenuTrigger(event);
+            if (event.isPropagationStopped()) {
+                evt.stopPropagation();
+            }
+        } else {
+            this.magnetEvent(evt, function(view, evt, _, x, y) {
+                view.onmagnet(evt, x, y);
+            });
+        }
     },
-
 
     magnetpointerdblclick: function(evt) {
 
