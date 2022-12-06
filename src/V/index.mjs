@@ -1401,6 +1401,12 @@ const V = (function() {
     V.transformRegex = /(\w+)\(([^,)]+),?([^)]+)?\)/gi;
     V.transformSeparatorRegex = /[ ,]+/;
     V.transformationListRegex = /^(\w+)\((.*)\)/;
+    // Note: These are more restrictive than the official regex
+    // Note: These cannot be /g because we are using the capturing group
+    // ReDos mitigation: Capturing group used to be `(.*?)` but this is safer
+    V.transformTranslateRegex = /translate\(([^)]+)\)/;
+    V.transformRotateRegex = /rotate\(([^)]+)\)/;
+    V.transformScaleRegex = /scale\(([^)]+)\)/;
 
     V.transformStringToMatrix = function(transform) {
 
@@ -1511,15 +1517,17 @@ const V = (function() {
 
             } else {
 
-                var translateMatch = transform.match(/translate\((.*?)\)/);
+                // Note: We only detect the first match of each method (if any)
+                // `match` function returns value of capturing group as `[1]`
+                let translateMatch = transform.match(V.transformTranslateRegex);
                 if (translateMatch) {
                     translate = translateMatch[1].split(separator);
                 }
-                var rotateMatch = transform.match(/rotate\((.*?)\)/);
+                let rotateMatch = transform.match(V.transformRotateRegex);
                 if (rotateMatch) {
                     rotate = rotateMatch[1].split(separator);
                 }
-                var scaleMatch = transform.match(/scale\((.*?)\)/);
+                let scaleMatch = transform.match(V.transformScaleRegex);
                 if (scaleMatch) {
                     scale = scaleMatch[1].split(separator);
                 }
