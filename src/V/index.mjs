@@ -1398,44 +1398,59 @@ const V = (function() {
         };
     };
 
-    V.transformRegex = /(\w+)\(([^,)]+),?([^)]+)?\)/gi;
+    // Note: This allows multiple commas as separator which is incorrect in SVG
     V.transformSeparatorRegex = /[ ,]+/;
-    V.transformationListRegex = /^(\w+)\((.*)\)/;
-    // Note: These are more restrictive than the official regex
-    // Note: These cannot be /g because we are using the capturing group
-    // ReDoS mitigation: Avoids backtracking (uses `[^()]+` instead of `.*?`)
-    // ReDoS mitigation: Doesn't match initial `(` inside repeated part
+    // Note: All following regexes are more restrictive than SVG specification
+    // ReDoS mitigation: Avoid backtracking (uses `[^()]+` instead of `.*?`)
+    // ReDoS mitigation: Don't match initial `(` inside repeated part
+    // The following regex needs to use /g (= cannot use capturing groups)
+    V.transformRegex = /\w+\([^()]+\)/g;
+    // The following regexes need to use capturing groups (= cannot use /g)
+    V.transformFunctionRegex = /(\w+)\(([^()]+)\)/;
     V.transformTranslateRegex = /translate\(([^()]+)\)/;
     V.transformRotateRegex = /rotate\(([^()]+)\)/;
     V.transformScaleRegex = /scale\(([^()]+)\)/;
 
     V.transformStringToMatrix = function(transform) {
 
-        var transformationMatrix = V.createSVGMatrix();
-        var matches = transform && transform.match(V.transformRegex);
-        if (!matches) {
+        // Initialize result matrix as identity matrix
+        let transformationMatrix = V.createSVGMatrix();
+
+        // Note: Multiple transform functions are allowed in `transform` string
+        // `match()` returns `null` if none found
+        const transformMatches = transform && transform.match(V.transformRegex);
+        if (!transformMatches) {
+            // Return identity matrix
             return transformationMatrix;
         }
 
-        for (var i = 0, n = matches.length; i < n; i++) {
-            var transformationString = matches[i];
+        const numMatches = transformMatches.length;
+        for (let i = 0; i < numMatches; i++) {
 
-            var transformationMatch = transformationString.match(V.transformationListRegex);
-            if (transformationMatch) {
-                var sx, sy, tx, ty, angle;
-                var ctm = V.createSVGMatrix();
-                var args = transformationMatch[2].split(V.transformSeparatorRegex);
-                switch (transformationMatch[1].toLowerCase()) {
+            const transformMatch = transformMatches[i];
+            // Use same regex as above, but with capturing groups
+            // `match()` returns values of capturing groups as `[1]`, `[2]`
+            const transformFunctionMatch = transformMatch.match(V.transformFunctionRegex);
+            if (transformFunctionMatch) {
+
+                let sx, sy, tx, ty, angle;
+                let ctm = V.createSVGMatrix();
+                const transformFunction = transformFunctionMatch[1].toLowerCase();
+                const args = transformFunctionMatch[2].split(V.transformSeparatorRegex);
+                switch (transformFunction) {
+
                     case 'scale':
                         sx = parseFloat(args[0]);
                         sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
                         ctm = ctm.scaleNonUniform(sx, sy);
                         break;
+
                     case 'translate':
                         tx = parseFloat(args[0]);
                         ty = parseFloat(args[1]);
                         ctm = ctm.translate(tx, ty);
                         break;
+
                     case 'rotate':
                         angle = parseFloat(args[0]);
                         tx = parseFloat(args[1]) || 0;
@@ -1446,14 +1461,17 @@ const V = (function() {
                             ctm = ctm.rotate(angle);
                         }
                         break;
+
                     case 'skewx':
                         angle = parseFloat(args[0]);
                         ctm = ctm.skewX(angle);
                         break;
+
                     case 'skewy':
                         angle = parseFloat(args[0]);
                         ctm = ctm.skewY(angle);
                         break;
+
                     case 'matrix':
                         ctm.a = parseFloat(args[0]);
                         ctm.b = parseFloat(args[1]);
@@ -1462,10 +1480,12 @@ const V = (function() {
                         ctm.e = parseFloat(args[4]);
                         ctm.f = parseFloat(args[5]);
                         break;
+
                     default:
                         continue;
                 }
 
+                // Multiply current transformation into result matrix
                 transformationMatrix = transformationMatrix.multiply(ctm);
             }
 
