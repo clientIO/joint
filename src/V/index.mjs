@@ -1402,11 +1402,11 @@ const V = (function() {
     V.transformSeparatorRegex = /[ ,]+/;
     V.transformationListRegex = /^(\w+)\((.*)\)/;
     // Note: These are more restrictive than the official regex
-    // Note: These cannot be /g because we are using the capturing group
-    // ReDos mitigation: Capturing group used to be `(.*?)` but this is safer
-    V.transformTranslateRegex = /translate\(([^)]+)\)/;
-    V.transformRotateRegex = /rotate\(([^)]+)\)/;
-    V.transformScaleRegex = /scale\(([^)]+)\)/;
+    // ReDos mitigation: Avoids backtracking (uses `[^)]+` instead of `.*?`)
+    // ReDos mitigation: Doesn't use capturing group
+    V.transformTranslateRegex = /translate\([^)]+\)/;
+    V.transformRotateRegex = /rotate\([^)]+\)/;
+    V.transformScaleRegex = /scale\([^)]+\)/;
 
     V.transformStringToMatrix = function(transform) {
 
@@ -1518,18 +1518,23 @@ const V = (function() {
             } else {
 
                 // Note: We only detect the first match of each method (if any)
-                // `match` function returns value of capturing group as `[1]`
-                let translateMatch = transform.match(V.transformTranslateRegex);
+                const translateMatch = transform.match(V.transformTranslateRegex);
                 if (translateMatch) {
-                    translate = translateMatch[1].split(separator);
+                    // get content of parentheses ("translate(" = 10 characters)
+                    const translateMatchContents = translateMatch[0].slice(10, -1);
+                    translate = translateMatchContents.split(separator);
                 }
-                let rotateMatch = transform.match(V.transformRotateRegex);
+                const rotateMatch = transform.match(V.transformRotateRegex);
                 if (rotateMatch) {
-                    rotate = rotateMatch[1].split(separator);
+                    // get content of parentheses ("rotate(" = 7 characters)
+                    const rotateMatchContents = rotateMatch[0].slice(7, -1);
+                    rotate = rotateMatchContents.split(separator);
                 }
-                let scaleMatch = transform.match(V.transformScaleRegex);
+                const scaleMatch = transform.match(V.transformScaleRegex);
                 if (scaleMatch) {
-                    scale = scaleMatch[1].split(separator);
+                    // get contents of parentheses ("scale(" = 6 characters)
+                    const scaleMatchContents = scaleMatch[0].slice(6, -1);
+                    scale = scaleMatchContents.split(separator);
                 }
             }
         }
