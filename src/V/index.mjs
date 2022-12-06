@@ -1398,7 +1398,8 @@ const V = (function() {
         };
     };
 
-    // Note: This allows multiple commas as separator which is incorrect in SVG
+    // Note: This regex allows multiple commas as separator which is incorrect in SVG
+    // This regex is used by `split()`, so it doesn't need to use /g
     V.transformSeparatorRegex = /[ ,]+/;
     // Note: All following regexes are more restrictive than SVG specification
     // ReDoS mitigation: Use an anchor at the beginning of the match
