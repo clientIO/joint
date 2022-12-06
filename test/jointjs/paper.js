@@ -2437,6 +2437,59 @@ QUnit.module('paper', function(hooks) {
             assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('cell:pointerclick')));
         });
 
+        QUnit.test('right button click contextmenu interactions', function(assert) {
+
+            const paper = this.paper;
+            const spy = sinon.spy();
+
+            paper.on('all', spy);
+
+            const magnet = document.createElement('div');
+            magnet.setAttribute('magnet', 'true');
+            elRect.appendChild(magnet);
+
+            simulate.click({
+                el: elRect,
+                button: 2,
+                clientX: 1200,
+                clientY: 1300
+            });
+
+            let events = getEventNames(spy);
+            assert.equal(events.length, 2);
+            assert.equal(events[0], 'cell:contextmenu');
+            assert.equal(events[1], 'element:contextmenu');
+            spy.resetHistory();
+
+            simulate.click({
+                el: magnet,
+                button: 2,
+                clientX: 1200,
+                clientY: 1300
+            });
+
+            events = getEventNames(spy);
+            assert.equal(events.length, 3);
+            assert.equal(events[0], 'element:magnet:contextmenu');
+            assert.equal(events[1], 'cell:contextmenu');
+            assert.equal(events[2], 'element:contextmenu');
+            spy.resetHistory();
+
+            paper.on('element:magnet:contextmenu', function(_, evt) {
+                evt.stopPropagation();
+            });
+            simulate.click({
+                el: magnet,
+                button: 2,
+                clientX: 1200,
+                clientY: 1300
+            });
+            events = getEventNames(spy);
+            assert.equal(events.length, 1);
+            assert.equal(events[0], 'element:magnet:contextmenu');
+            spy.resetHistory();
+        });
+
         QUnit.test('blank:pointerclick', function(assert) {
 
             var eventName = 'blank:pointerclick';
