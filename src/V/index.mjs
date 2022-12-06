@@ -1402,11 +1402,12 @@ const V = (function() {
     V.transformSeparatorRegex = /[ ,]+/;
     V.transformationListRegex = /^(\w+)\((.*)\)/;
     // Note: These are more restrictive than the official regex
-    // ReDos mitigation: Avoids backtracking (uses `[^)]+` instead of `.*?`)
-    // ReDos mitigation: Doesn't use capturing group
-    V.transformTranslateRegex = /translate\([^)]+\)/;
-    V.transformRotateRegex = /rotate\([^)]+\)/;
-    V.transformScaleRegex = /scale\([^)]+\)/;
+    // ReDoS mitigation: Avoids backtracking (uses `[^())]+` instead of `.*?`)
+    // ReDoS mitigation: Doesn't use capturing group
+    // ReDoS mitigation: Doesn't match initial `(` inside repeated part
+    V.transformTranslateRegex = /translate\([^()]+\)/;
+    V.transformRotateRegex = /rotate\([^()]+\)/;
+    V.transformScaleRegex = /scale\([^()]+\)/;
 
     V.transformStringToMatrix = function(transform) {
 
