@@ -1403,7 +1403,7 @@ const V = (function() {
     V.transformationListRegex = /^(\w+)\((.*)\)/;
     // Note: These are more restrictive than the official regex
     // Note: These cannot be /g because we are using the capturing group
-    // ReDoS mitigation: Avoids backtracking (uses `[^())]+` instead of `.*?`)
+    // ReDoS mitigation: Avoids backtracking (uses `[^()]+` instead of `.*?`)
     // ReDoS mitigation: Doesn't match initial `(` inside repeated part
     V.transformTranslateRegex = /translate\(([^()]+)\)/;
     V.transformRotateRegex = /rotate\(([^()]+)\)/;

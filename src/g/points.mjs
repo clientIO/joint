@@ -1,21 +1,25 @@
 export function parsePoints(svgString) {
 
-    // discard surrounding spaces
+    // Step 1: Discard surrounding spaces
     const trimmedString = svgString.trim();
     if (trimmedString === '') return [];
 
     const points = [];
 
-    // replace sequences of multiple spaces with single spaces
+    // ReDoS mitigation: First simplify spaces, then split without repetitions
+    // Step 2: Replace sequences of multiple spaces with single spaces
+    // Note: We are using /g to replace all occurrences
     const simplifiedString = trimmedString.replace(/\s{2,}/g, ' ');
-    // split at commas (+ their surrounding spaces) or at single spaces
+    // Step 3: Split at commas (+ their surrounding spaces) or at single spaces
+    // Note: This doesn't simplify double (or more) commas - causes empty coords
     const coords = simplifiedString.split(/\s?,\s?|\s/);
 
     const numCoords = coords.length;
     for (let i = 0; i < numCoords; i += 2) {
-        // convert each coord to number
-        // note: if the coord cannot be converted to a number, it will be `NaN`
-        // note: if we got an odd number of coords, the last coord will be `NaN`
+        // Step 4: Convert each coord to number
+        // Note: If the coord cannot be converted to a number, it will be `NaN`
+        // Note: If the coord is empty ("", e.g. from ",," input), it will be `0`
+        // Note: If we end up with an odd number of coords, the last point's second coord will be `NaN`
         points.push({ x: +coords[i], y: +coords[i + 1] });
     }
     return points;
