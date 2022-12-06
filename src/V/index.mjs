@@ -1494,16 +1494,21 @@ const V = (function() {
 
             var separator = V.transformSeparatorRegex;
 
-            // Allow reading transform string with a single matrix
+            // Special handling for `transform` with one or more matrix functions
             if (transform.trim().indexOf('matrix') >= 0) {
 
+                // Convert EVERYTHING in `transform` string to a matrix
+                // Will combine ALL matrixes * ALL translates * ALL scales * ALL rotates
+                // Note: In non-matrix case, we only take first one of each (if any)
                 var matrix = V.transformStringToMatrix(transform);
                 var decomposedMatrix = V.decomposeMatrix(matrix);
 
+                // Extract `translate`, `scale`, `rotate` from matrix
                 translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
                 scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
                 rotate = [decomposedMatrix.rotation];
 
+                // Rewrite `transform` string in `translate scale rotate` format
                 var transformations = [];
                 if (translate[0] !== 0 || translate[1] !== 0) {
                     transformations.push('translate(' + translate + ')');
@@ -1518,8 +1523,9 @@ const V = (function() {
 
             } else {
 
-                // Note: We only detect the first match of each method (if any)
-                // `match` function returns value of capturing group as `[1]`
+                // Extract `translate`, `rotate`, `scale` functions from `transform` string
+                // Note: We only detect the first match of each (if any)
+                // `match()` returns value of capturing group as `[1]`
                 const translateMatch = transform.match(V.transformTranslateRegex);
                 if (translateMatch) {
                     translate = translateMatch[1].split(separator);
