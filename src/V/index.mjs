@@ -1401,15 +1401,16 @@ const V = (function() {
     // Note: This allows multiple commas as separator which is incorrect in SVG
     V.transformSeparatorRegex = /[ ,]+/;
     // Note: All following regexes are more restrictive than SVG specification
+    // ReDoS mitigation: Use an anchor at the beginning of the match
     // ReDoS mitigation: Avoid backtracking (uses `[^()]+` instead of `.*?`)
     // ReDoS mitigation: Don't match initial `(` inside repeated part
     // The following regex needs to use /g (= cannot use capturing groups)
-    V.transformRegex = /\w+\([^()]+\)/g;
+    V.transformRegex = /\b\w+\([^()]+\)/g;
     // The following regexes need to use capturing groups (= cannot use /g)
-    V.transformFunctionRegex = /(\w+)\(([^()]+)\)/;
-    V.transformTranslateRegex = /translate\(([^()]+)\)/;
-    V.transformRotateRegex = /rotate\(([^()]+)\)/;
-    V.transformScaleRegex = /scale\(([^()]+)\)/;
+    V.transformFunctionRegex = /\b(\w+)\(([^()]+)\)/;
+    V.transformTranslateRegex = /\btranslate\(([^()]+)\)/;
+    V.transformRotateRegex = /\brotate\(([^()]+)\)/;
+    V.transformScaleRegex = /\bscale\(([^()]+)\)/;
 
     V.transformStringToMatrix = function(transform) {
 
