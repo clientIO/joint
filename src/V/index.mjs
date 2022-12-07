@@ -1398,37 +1398,61 @@ const V = (function() {
         };
     };
 
-    V.transformRegex = /(\w+)\(([^,)]+),?([^)]+)?\)/gi;
+    // Note: This regex allows multiple commas as separator which is incorrect in SVG
+    // This regex is used by `split()`, so it doesn't need to use /g
     V.transformSeparatorRegex = /[ ,]+/;
-    V.transformationListRegex = /^(\w+)\((.*)\)/;
+    // Note: All following regexes are more restrictive than SVG specification
+    // ReDoS mitigation: Use an anchor at the beginning of the match
+    // ReDoS mitigation: Avoid backtracking (uses `[^()]+` instead of `.*?`)
+    // ReDoS mitigation: Don't match initial `(` inside repeated part
+    // The following regex needs to use /g (= cannot use capturing groups)
+    V.transformRegex = /\b\w+\([^()]+\)/g;
+    // The following regexes need to use capturing groups (= cannot use /g)
+    V.transformFunctionRegex = /\b(\w+)\(([^()]+)\)/;
+    V.transformTranslateRegex = /\btranslate\(([^()]+)\)/;
+    V.transformRotateRegex = /\brotate\(([^()]+)\)/;
+    V.transformScaleRegex = /\bscale\(([^()]+)\)/;
 
     V.transformStringToMatrix = function(transform) {
 
-        var transformationMatrix = V.createSVGMatrix();
-        var matches = transform && transform.match(V.transformRegex);
-        if (!matches) {
+        // Initialize result matrix as identity matrix
+        let transformationMatrix = V.createSVGMatrix();
+
+        // Note: Multiple transform functions are allowed in `transform` string
+        // `match()` returns `null` if none found
+        const transformMatches = transform && transform.match(V.transformRegex);
+        if (!transformMatches) {
+            // Return identity matrix
             return transformationMatrix;
         }
 
-        for (var i = 0, n = matches.length; i < n; i++) {
-            var transformationString = matches[i];
+        const numMatches = transformMatches.length;
+        for (let i = 0; i < numMatches; i++) {
 
-            var transformationMatch = transformationString.match(V.transformationListRegex);
-            if (transformationMatch) {
-                var sx, sy, tx, ty, angle;
-                var ctm = V.createSVGMatrix();
-                var args = transformationMatch[2].split(V.transformSeparatorRegex);
-                switch (transformationMatch[1].toLowerCase()) {
+            const transformMatch = transformMatches[i];
+            // Use same regex as above, but with capturing groups
+            // `match()` returns values of capturing groups as `[1]`, `[2]`
+            const transformFunctionMatch = transformMatch.match(V.transformFunctionRegex);
+            if (transformFunctionMatch) {
+
+                let sx, sy, tx, ty, angle;
+                let ctm = V.createSVGMatrix();
+                const transformFunction = transformFunctionMatch[1].toLowerCase();
+                const args = transformFunctionMatch[2].split(V.transformSeparatorRegex);
+                switch (transformFunction) {
+
                     case 'scale':
                         sx = parseFloat(args[0]);
                         sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
                         ctm = ctm.scaleNonUniform(sx, sy);
                         break;
+
                     case 'translate':
                         tx = parseFloat(args[0]);
                         ty = parseFloat(args[1]);
                         ctm = ctm.translate(tx, ty);
                         break;
+
                     case 'rotate':
                         angle = parseFloat(args[0]);
                         tx = parseFloat(args[1]) || 0;
@@ -1439,14 +1463,17 @@ const V = (function() {
                             ctm = ctm.rotate(angle);
                         }
                         break;
+
                     case 'skewx':
                         angle = parseFloat(args[0]);
                         ctm = ctm.skewX(angle);
                         break;
+
                     case 'skewy':
                         angle = parseFloat(args[0]);
                         ctm = ctm.skewY(angle);
                         break;
+
                     case 'matrix':
                         ctm.a = parseFloat(args[0]);
                         ctm.b = parseFloat(args[1]);
@@ -1455,10 +1482,12 @@ const V = (function() {
                         ctm.e = parseFloat(args[4]);
                         ctm.f = parseFloat(args[5]);
                         break;
+
                     default:
                         continue;
                 }
 
+                // Multiply current transformation into result matrix
                 transformationMatrix = transformationMatrix.multiply(ctm);
             }
 
@@ -1487,16 +1516,21 @@ const V = (function() {
 
             var separator = V.transformSeparatorRegex;
 
-            // Allow reading transform string with a single matrix
+            // Special handling for `transform` with one or more matrix functions
             if (transform.trim().indexOf('matrix') >= 0) {
 
+                // Convert EVERYTHING in `transform` string to a matrix
+                // Will combine ALL matrixes * ALL translates * ALL scales * ALL rotates
+                // Note: In non-matrix case, we only take first one of each (if any)
                 var matrix = V.transformStringToMatrix(transform);
                 var decomposedMatrix = V.decomposeMatrix(matrix);
 
+                // Extract `translate`, `scale`, `rotate` from matrix
                 translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
                 scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
                 rotate = [decomposedMatrix.rotation];
 
+                // Rewrite `transform` string in `translate scale rotate` format
                 var transformations = [];
                 if (translate[0] !== 0 || translate[1] !== 0) {
                     transformations.push('translate(' + translate + ')');
@@ -1511,15 +1545,18 @@ const V = (function() {
 
             } else {
 
-                var translateMatch = transform.match(/translate\((.*?)\)/);
+                // Extract `translate`, `rotate`, `scale` functions from `transform` string
+                // Note: We only detect the first match of each (if any)
+                // `match()` returns value of capturing group as `[1]`
+                const translateMatch = transform.match(V.transformTranslateRegex);
                 if (translateMatch) {
                     translate = translateMatch[1].split(separator);
                 }
-                var rotateMatch = transform.match(/rotate\((.*?)\)/);
+                const rotateMatch = transform.match(V.transformRotateRegex);
                 if (rotateMatch) {
                     rotate = rotateMatch[1].split(separator);
                 }
-                var scaleMatch = transform.match(/scale\((.*?)\)/);
+                const scaleMatch = transform.match(V.transformScaleRegex);
                 if (scaleMatch) {
                     scale = scaleMatch[1].split(separator);
                 }
