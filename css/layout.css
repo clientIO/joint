@@ -57,6 +57,7 @@ the whole group of elements. Each plugin can provide its own stylesheet.
 }
 
 .joint-element * {
+   -webkit-user-drag: none;
    user-drag: none;
 }
 
