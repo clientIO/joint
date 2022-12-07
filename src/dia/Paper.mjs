@@ -2058,7 +2058,8 @@ export const Paper = View.extend({
 
         if (evt.button === 2) {
             this.contextMenuFired = true;
-            this.contextMenuTrigger($.Event(evt, { type: 'contextmenu', data: evt.data }));
+            const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+            this.contextMenuTrigger(contextmenuEvt);
         } else {
             var view = this.findView(evt.target);
 
@@ -2319,11 +2320,20 @@ export const Paper = View.extend({
 
     onmagnet: function(evt) {
 
-        this.magnetEvent(evt, function(view, evt, _, x, y) {
-            view.onmagnet(evt, x, y);
-        });
+        if (evt.button === 2) {
+            this.contextMenuFired = true;
+            this.magnetContextMenuFired = true;
+            const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+            this.magnetContextMenuTrigger(contextmenuEvt);
+            if (contextmenuEvt.isPropagationStopped()) {
+                evt.stopPropagation();
+            }
+        } else {
+            this.magnetEvent(evt, function(view, evt, _, x, y) {
+                view.onmagnet(evt, x, y);
+            });
+        }
     },
-
 
     magnetpointerdblclick: function(evt) {
 
@@ -2333,8 +2343,17 @@ export const Paper = View.extend({
     },
 
     magnetcontextmenu: function(evt) {
-
         if (this.options.preventContextMenu) evt.preventDefault();
+
+        if (this.magnetContextMenuFired) {
+            this.magnetContextMenuFired = false;
+            return;
+        }
+
+        this.magnetContextMenuTrigger(evt);
+    },
+
+    magnetContextMenuTrigger: function(evt) {
         this.magnetEvent(evt, function(view, evt, magnet, x, y) {
             view.magnetcontextmenu(evt, magnet, x, y);
         });
