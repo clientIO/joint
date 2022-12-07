@@ -2058,8 +2058,8 @@ export const Paper = View.extend({
 
         if (evt.button === 2) {
             this.contextMenuFired = true;
-            const event = $.Event(evt, { type: 'contextmenu', data: evt.data });
-            this.contextMenuTrigger(event);
+            const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+            this.contextMenuTrigger(contextmenuEvt);
         } else {
             var view = this.findView(evt.target);
 
@@ -2323,9 +2323,9 @@ export const Paper = View.extend({
         if (evt.button === 2) {
             this.contextMenuFired = true;
             this.magnetContextMenuFired = true;
-            const event = $.Event(evt, { type: 'contextmenu', data: evt.data });
-            this.magnetContextMenuTrigger(event);
-            if (event.isPropagationStopped()) {
+            const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+            this.magnetContextMenuTrigger(contextmenuEvt);
+            if (contextmenuEvt.isPropagationStopped()) {
                 evt.stopPropagation();
             }
         } else {
