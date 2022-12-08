@@ -1,4 +1,4 @@
-/*! JointJS v3.6.3 (2022-11-28) - JavaScript diagramming library
+/*! JointJS v3.6.4 (2022-12-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3404,12 +3404,25 @@ var joint = (function (exports, Backbone, _, $) {
 	var rect = Rect;
 
 	function parsePoints(svgString) {
-	    svgString = svgString.trim();
-	    if (svgString === '') { return []; }
+
+	    // Step 1: Discard surrounding spaces
+	    var trimmedString = svgString.trim();
+	    if (trimmedString === '') { return []; }
+
 	    var points = [];
-	    var coords = svgString.split(/\s*,\s*|\s+/);
-	    var n = coords.length;
-	    for (var i = 0; i < n; i += 2) {
+
+	    // Step 2: Split at commas (+ their surrounding spaces) or at multiple spaces
+	    // ReDoS mitigation: Have an anchor at the beginning of each alternation
+	    // Note: This doesn't simplify double (or more) commas - causes empty coords
+	    // This regex is used by `split()`, so it doesn't need to use /g
+	    var coords = trimmedString.split(/\b\s*,\s*|,\s*|\s+/);
+
+	    var numCoords = coords.length;
+	    for (var i = 0; i < numCoords; i += 2) {
+	        // Step 3: Convert each coord to number
+	        // Note: If the coord cannot be converted to a number, it will be `NaN`
+	        // Note: If the coord is empty ("", e.g. from ",," input), it will be `0`
+	        // Note: If we end up with an odd number of coords, the last point's second coord will be `NaN`
 	        points.push({ x: +coords[i], y: +coords[i + 1] });
 	    }
 	    return points;
@@ -9615,37 +9628,61 @@ var joint = (function (exports, Backbone, _, $) {
 	        };
 	    };
 
-	    V.transformRegex = /(\w+)\(([^,)]+),?([^)]+)?\)/gi;
+	    // Note: This regex allows multiple commas as separator which is incorrect in SVG
+	    // This regex is used by `split()`, so it doesn't need to use /g
 	    V.transformSeparatorRegex = /[ ,]+/;
-	    V.transformationListRegex = /^(\w+)\((.*)\)/;
+	    // Note: All following regexes are more restrictive than SVG specification
+	    // ReDoS mitigation: Use an anchor at the beginning of the match
+	    // ReDoS mitigation: Avoid backtracking (uses `[^()]+` instead of `.*?`)
+	    // ReDoS mitigation: Don't match initial `(` inside repeated part
+	    // The following regex needs to use /g (= cannot use capturing groups)
+	    V.transformRegex = /\b\w+\([^()]+\)/g;
+	    // The following regexes need to use capturing groups (= cannot use /g)
+	    V.transformFunctionRegex = /\b(\w+)\(([^()]+)\)/;
+	    V.transformTranslateRegex = /\btranslate\(([^()]+)\)/;
+	    V.transformRotateRegex = /\brotate\(([^()]+)\)/;
+	    V.transformScaleRegex = /\bscale\(([^()]+)\)/;
 
 	    V.transformStringToMatrix = function(transform) {
 
+	        // Initialize result matrix as identity matrix
 	        var transformationMatrix = V.createSVGMatrix();
-	        var matches = transform && transform.match(V.transformRegex);
-	        if (!matches) {
+
+	        // Note: Multiple transform functions are allowed in `transform` string
+	        // `match()` returns `null` if none found
+	        var transformMatches = transform && transform.match(V.transformRegex);
+	        if (!transformMatches) {
+	            // Return identity matrix
 	            return transformationMatrix;
 	        }
 
-	        for (var i = 0, n = matches.length; i < n; i++) {
-	            var transformationString = matches[i];
+	        var numMatches = transformMatches.length;
+	        for (var i = 0; i < numMatches; i++) {
 
-	            var transformationMatch = transformationString.match(V.transformationListRegex);
-	            if (transformationMatch) {
-	                var sx, sy, tx, ty, angle;
+	            var transformMatch = transformMatches[i];
+	            // Use same regex as above, but with capturing groups
+	            // `match()` returns values of capturing groups as `[1]`, `[2]`
+	            var transformFunctionMatch = transformMatch.match(V.transformFunctionRegex);
+	            if (transformFunctionMatch) {
+
+	                var sx = (void 0), sy = (void 0), tx = (void 0), ty = (void 0), angle = (void 0);
 	                var ctm = V.createSVGMatrix();
-	                var args = transformationMatch[2].split(V.transformSeparatorRegex);
-	                switch (transformationMatch[1].toLowerCase()) {
+	                var transformFunction = transformFunctionMatch[1].toLowerCase();
+	                var args = transformFunctionMatch[2].split(V.transformSeparatorRegex);
+	                switch (transformFunction) {
+
 	                    case 'scale':
 	                        sx = parseFloat(args[0]);
 	                        sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
 	                        ctm = ctm.scaleNonUniform(sx, sy);
 	                        break;
+
 	                    case 'translate':
 	                        tx = parseFloat(args[0]);
 	                        ty = parseFloat(args[1]);
 	                        ctm = ctm.translate(tx, ty);
 	                        break;
+
 	                    case 'rotate':
 	                        angle = parseFloat(args[0]);
 	                        tx = parseFloat(args[1]) || 0;
@@ -9656,14 +9693,17 @@ var joint = (function (exports, Backbone, _, $) {
 	                            ctm = ctm.rotate(angle);
 	                        }
 	                        break;
+
 	                    case 'skewx':
 	                        angle = parseFloat(args[0]);
 	                        ctm = ctm.skewX(angle);
 	                        break;
+
 	                    case 'skewy':
 	                        angle = parseFloat(args[0]);
 	                        ctm = ctm.skewY(angle);
 	                        break;
+
 	                    case 'matrix':
 	                        ctm.a = parseFloat(args[0]);
 	                        ctm.b = parseFloat(args[1]);
@@ -9672,10 +9712,12 @@ var joint = (function (exports, Backbone, _, $) {
 	                        ctm.e = parseFloat(args[4]);
 	                        ctm.f = parseFloat(args[5]);
 	                        break;
+
 	                    default:
 	                        continue;
 	                }
 
+	                // Multiply current transformation into result matrix
 	                transformationMatrix = transformationMatrix.multiply(ctm);
 	            }
 
@@ -9704,16 +9746,21 @@ var joint = (function (exports, Backbone, _, $) {
 
 	            var separator = V.transformSeparatorRegex;
 
-	            // Allow reading transform string with a single matrix
+	            // Special handling for `transform` with one or more matrix functions
 	            if (transform.trim().indexOf('matrix') >= 0) {
 
+	                // Convert EVERYTHING in `transform` string to a matrix
+	                // Will combine ALL matrixes * ALL translates * ALL scales * ALL rotates
+	                // Note: In non-matrix case, we only take first one of each (if any)
 	                var matrix = V.transformStringToMatrix(transform);
 	                var decomposedMatrix = V.decomposeMatrix(matrix);
 
+	                // Extract `translate`, `scale`, `rotate` from matrix
 	                translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
 	                scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
 	                rotate = [decomposedMatrix.rotation];
 
+	                // Rewrite `transform` string in `translate scale rotate` format
 	                var transformations = [];
 	                if (translate[0] !== 0 || translate[1] !== 0) {
 	                    transformations.push('translate(' + translate + ')');
@@ -9728,15 +9775,18 @@ var joint = (function (exports, Backbone, _, $) {
 
 	            } else {
 
-	                var translateMatch = transform.match(/translate\((.*?)\)/);
+	                // Extract `translate`, `rotate`, `scale` functions from `transform` string
+	                // Note: We only detect the first match of each (if any)
+	                // `match()` returns value of capturing group as `[1]`
+	                var translateMatch = transform.match(V.transformTranslateRegex);
 	                if (translateMatch) {
 	                    translate = translateMatch[1].split(separator);
 	                }
-	                var rotateMatch = transform.match(/rotate\((.*?)\)/);
+	                var rotateMatch = transform.match(V.transformRotateRegex);
 	                if (rotateMatch) {
 	                    rotate = rotateMatch[1].split(separator);
 	                }
-	                var scaleMatch = transform.match(/scale\((.*?)\)/);
+	                var scaleMatch = transform.match(V.transformScaleRegex);
 	                if (scaleMatch) {
 	                    scale = scaleMatch[1].split(separator);
 	                }
@@ -28804,7 +28854,8 @@ var joint = (function (exports, Backbone, _, $) {
 
 	        if (evt.button === 2) {
 	            this.contextMenuFired = true;
-	            this.contextMenuTrigger($.Event(evt, { type: 'contextmenu', data: evt.data }));
+	            var contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+	            this.contextMenuTrigger(contextmenuEvt);
 	        } else {
 	            var view = this.findView(evt.target);
 
@@ -29067,11 +29118,20 @@ var joint = (function (exports, Backbone, _, $) {
 
 	    onmagnet: function(evt) {
 
-	        this.magnetEvent(evt, function(view, evt, _, x, y) {
-	            view.onmagnet(evt, x, y);
-	        });
+	        if (evt.button === 2) {
+	            this.contextMenuFired = true;
+	            this.magnetContextMenuFired = true;
+	            var contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+	            this.magnetContextMenuTrigger(contextmenuEvt);
+	            if (contextmenuEvt.isPropagationStopped()) {
+	                evt.stopPropagation();
+	            }
+	        } else {
+	            this.magnetEvent(evt, function(view, evt, _, x, y) {
+	                view.onmagnet(evt, x, y);
+	            });
+	        }
 	    },
-
 
 	    magnetpointerdblclick: function(evt) {
 
@@ -29081,8 +29141,17 @@ var joint = (function (exports, Backbone, _, $) {
 	    },
 
 	    magnetcontextmenu: function(evt) {
-
 	        if (this.options.preventContextMenu) { evt.preventDefault(); }
+
+	        if (this.magnetContextMenuFired) {
+	            this.magnetContextMenuFired = false;
+	            return;
+	        }
+
+	        this.magnetContextMenuTrigger(evt);
+	    },
+
+	    magnetContextMenuTrigger: function(evt) {
 	        this.magnetEvent(evt, function(view, evt, magnet, x, y) {
 	            view.magnetcontextmenu(evt, magnet, x, y);
 	        });
@@ -34341,7 +34410,7 @@ var joint = (function (exports, Backbone, _, $) {
 		Control: Control
 	});
 
-	var version = "3.6.3";
+	var version = "3.6.4";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

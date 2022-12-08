@@ -1,3 +1,10 @@
+08-12-2022 (v3.6.4)
+
+  * dia.Paper - preserve contextmenu events hierarchy
+  * dia.Paper - fix element user-drag property
+  * Vectorizer - fix RegEx to avoid potential ReDoS attacks
+  * Geometry - fix RegEx to avoid potential ReDoS attacks
+
 28-11-2022 (v3.6.3)
 
   * dia.Cell - prevent exception when `removeProp()` called on non-existing top-level attribute
