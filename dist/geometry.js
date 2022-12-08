@@ -1,4 +1,4 @@
-/*! JointJS v3.6.3 (2022-11-28) - JavaScript diagramming library
+/*! JointJS v3.6.4 (2022-12-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1633,12 +1633,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     var rect = Rect;
 
     function parsePoints(svgString) {
-        svgString = svgString.trim();
-        if (svgString === '') { return []; }
+
+        // Step 1: Discard surrounding spaces
+        var trimmedString = svgString.trim();
+        if (trimmedString === '') { return []; }
+
         var points = [];
-        var coords = svgString.split(/\s*,\s*|\s+/);
-        var n = coords.length;
-        for (var i = 0; i < n; i += 2) {
+
+        // Step 2: Split at commas (+ their surrounding spaces) or at multiple spaces
+        // ReDoS mitigation: Have an anchor at the beginning of each alternation
+        // Note: This doesn't simplify double (or more) commas - causes empty coords
+        // This regex is used by `split()`, so it doesn't need to use /g
+        var coords = trimmedString.split(/\b\s*,\s*|,\s*|\s+/);
+
+        var numCoords = coords.length;
+        for (var i = 0; i < numCoords; i += 2) {
+            // Step 3: Convert each coord to number
+            // Note: If the coord cannot be converted to a number, it will be `NaN`
+            // Note: If the coord is empty ("", e.g. from ",," input), it will be `0`
+            // Note: If we end up with an odd number of coords, the last point's second coord will be `NaN`
             points.push({ x: +coords[i], y: +coords[i + 1] });
         }
         return points;

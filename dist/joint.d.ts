@@ -1,4 +1,4 @@
-/*! JointJS v3.6.3 (2022-11-28) - JavaScript diagramming library
+/*! JointJS v3.6.4 (2022-12-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1776,8 +1776,11 @@ export namespace dia {
         doubleToolMarkup?: string;
         vertexMarkup: string;
         arrowHeadMarkup: string;
+        defaultLabel?: Link.Label; // default label props
+        /**
+         * @deprecated use `defaultLabel.markup` instead
+         */
         labelMarkup?: string | MarkupJSON; // default label markup
-        labelProps?: Link.Label; // default label props
 
         isElement(): boolean;
 
