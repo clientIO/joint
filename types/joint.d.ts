@@ -614,6 +614,7 @@ export namespace dia {
         doubleToolMarkup?: string;
         vertexMarkup: string;
         arrowHeadMarkup: string;
+        defaultLabel?: Link.Label;
         labelMarkup?: string | MarkupJSON; // default label markup
         labelProps?: Link.Label; // default label props
 
