@@ -133,14 +133,14 @@
             strokeDasharray: '4 2',
             sourceMarker: {
                 'type': 'image',
-                'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+                'xlink:href': 'https://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
                 'width': 24,
                 'height': 24,
                 'y': -12
             },
             targetMarker: {
                 'type': 'image',
-                'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+                'xlink:href': 'https://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
                 'width': 24,
                 'height': 24,
                 'y': -12
