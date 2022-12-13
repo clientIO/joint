@@ -4,12 +4,17 @@ You need to build JointJS first. Go to the root folder and run:
 
 ```
 npm install
-grunt install
+npm run grunt:install --workspaces --if-present
 ```
 
 Navigate to this directory, then run:
 
 ```
 npm install
-npm start
+```
+
+Then open index.html in your browser:
+
+```
+open index.html
 ```
