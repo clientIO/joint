@@ -111,7 +111,7 @@ const Anchor = ToolView.extend({
         if (!isFinite(padding)) padding = 0;
         var bbox, angle, center;
         if (view.isNodeConnection(magnet)) {
-            bbox = view.getBBox();
+            bbox = view.getNodeBBox(magnet);
             angle = 0;
             center = bbox.center();
         } else {
@@ -129,7 +129,11 @@ const Anchor = ToolView.extend({
         areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle + ')');
     },
     toggleArea: function(visible) {
-        this.childNodes.area.style.display = (visible) ? '' : 'none';
+        var childNodes = this.childNodes;
+        if (!childNodes) return;
+        var areaNode = childNodes.area;
+        if (!areaNode) return;
+        areaNode.style.display = (visible) ? '' : 'none';
     },
     onPointerDown: function(evt) {
         if (this.guard(evt)) return;

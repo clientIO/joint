@@ -64,6 +64,67 @@ QUnit.module('linkTools', function(hooks) {
                 assert.deepEqual(link.prop(['target', 'anchor']), testCase.resultAnchor);
             });
         });
+
+        QUnit.test('No area', function(assert) {
+            const CustomAnchor = joint.linkTools.TargetAnchor.extend({
+                children: [{
+                    tagName: 'circle',
+                    selector: 'anchor',
+                    attributes: {
+                        'cursor': 'pointer'
+                    }
+                }]
+            });
+            const anchor = new CustomAnchor();
+            linkView.addTools(new joint.dia.ToolsView({ tools: [anchor] }));
+            assert.ok(true, 'The anchor tool does not require an area node.');
+        });
+
+        QUnit.test('No anchor', function(assert) {
+            const CustomAnchor = joint.linkTools.TargetAnchor.extend({
+                children: [{
+                    tagName: 'rect',
+                    selector: 'area',
+                    attributes: {
+                        'pointer-events': 'none',
+                        'fill': 'none',
+                        'stroke': '#33334F',
+                        'stroke-dasharray': '2,4',
+                        'rx': 5,
+                        'ry': 5
+                    }
+                }]
+            });
+            const anchor = new CustomAnchor();
+            linkView.addTools(new joint.dia.ToolsView({ tools: [anchor] }));
+            assert.ok(true, 'The anchor tool does not require an anchor node.');
+        });
+
+        QUnit.test('Element area bounding box', function(assert) {
+            paper.translate(11, 13);
+            const areaPadding = 7;
+            const anchor = new joint.linkTools.TargetAnchor({ areaPadding });
+            linkView.addTools(new joint.dia.ToolsView({ tools: [anchor] }));
+            anchor.toggleArea(true);
+            const areaBBox = V(anchor.childNodes.area).getBBox({ target: paper.viewport });
+            assert.checkBboxApproximately(1e-6, areaBBox, link.getTargetCell().getBBox().inflate(areaPadding));
+        });
+
+        QUnit.test('Link area bounding box', function(assert) {
+            const link2 = new joint.shapes.standard.Link({
+                source: { x: 100, y: 100 },
+                target: { x: 200, y: 200 }
+            });
+            graph.addCell(link2);
+            link.target(link2);
+            paper.translate(11, 13);
+            const areaPadding = 7;
+            const anchor = new joint.linkTools.TargetAnchor({ areaPadding });
+            linkView.addTools(new joint.dia.ToolsView({ tools: [anchor] }));
+            anchor.toggleArea(true);
+            const areaBBox = V(anchor.childNodes.area).getBBox({ target: paper.viewport });
+            assert.checkBboxApproximately(1e-6, areaBBox, link.getTargetCell().getBBox().inflate(areaPadding));
+        });
     });
 
     QUnit.module('SourceAnchor', function() {
@@ -84,6 +145,32 @@ QUnit.module('linkTools', function(hooks) {
                 anchor.onPointerDblClick(/* evt */);
                 assert.deepEqual(link.prop(['source', 'anchor']), testCase.resultAnchor);
             });
+        });
+
+        QUnit.test('Element area bounding box', function(assert) {
+            paper.translate(11, 13);
+            const areaPadding = 7;
+            const anchor = new joint.linkTools.SourceAnchor({ areaPadding });
+            linkView.addTools(new joint.dia.ToolsView({ tools: [anchor] }));
+            anchor.toggleArea(true);
+            const areaBBox = V(anchor.childNodes.area).getBBox({ target: paper.viewport });
+            assert.checkBboxApproximately(1e-6, areaBBox, link.getSourceCell().getBBox().inflate(areaPadding));
+        });
+
+        QUnit.test('Link area bounding box', function(assert) {
+            const link2 = new joint.shapes.standard.Link({
+                source: { x: 100, y: 100 },
+                target: { x: 200, y: 200 }
+            });
+            graph.addCell(link2);
+            link.source(link2);
+            paper.translate(11, 13);
+            const areaPadding = 7;
+            const anchor = new joint.linkTools.SourceAnchor({ areaPadding });
+            linkView.addTools(new joint.dia.ToolsView({ tools: [anchor] }));
+            anchor.toggleArea(true);
+            const areaBBox = V(anchor.childNodes.area).getBBox({ target: paper.viewport });
+            assert.checkBboxApproximately(1e-6, areaBBox, link.getSourceCell().getBBox().inflate(areaPadding));
         });
     });
 
