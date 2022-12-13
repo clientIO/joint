@@ -103,6 +103,7 @@
     "joint.mjs"
   ],
   "dependencies": {
+    "@clientIO/joint": "file:packages/joint",
     "backbone": "~1.4.1",
     "dagre": "~0.8.5",
     "graphlib": "~2.1.8",
@@ -176,5 +177,8 @@
   "volta": {
     "node": "16.18.1",
     "npm": "8.19.2"
-  }
+  },
+  "workspaces": [
+    ".packages/*"
+  ]
 }

@@ -1,0 +1,8 @@
+{
+  "name": "joint",
+  "version": "3.6.4",
+  "description": "Joint module for clientIO/joint",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {}
+}
