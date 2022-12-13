@@ -58,10 +58,10 @@
     rect.resize(150, 60);
     rect.attr({
         link: {
-            xlinkHref: 'https://jointjs.com'
+            xlinkHref: 'https://www.jointjs.com'
         },
         label: {
-            text: 'Label as link\nhttps://jointjs.com',
+            text: 'Label as link\nhttps://www.jointjs.com',
         }
     });
     rect.addTo(graph);
@@ -102,10 +102,10 @@
     rect2.resize(150, 60);
     rect2.attr({
         link: {
-            xlinkHref: 'https://jointjs.com'
+            xlinkHref: 'https://www.jointjs.com'
         },
         label: {
-            text: 'Whole element as link\nhttps://jointjs.com',
+            text: 'Whole element as link\nhttps://www.jointjs.com',
         }
     });
     rect2.addTo(graph);

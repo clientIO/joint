@@ -5,9 +5,9 @@ function processItem(baseDir, item) {
     item.key = docFilePathToKey(item.file, baseDir);
     item.isIntro = item.key.substr(item.key.lastIndexOf('.') + 1) === 'intro';
 
-    item.title = item.key;
+    item.heading = item.key;
     if (item.isIntro) {
-        item.title = item.title.substr(0, item.title.lastIndexOf('.'));
+        item.heading = item.heading.substr(0, item.heading.lastIndexOf('.'));
     }
 
     return item;
@@ -19,6 +19,9 @@ function docFilePathToKey(filePath, baseDir) {
 }
 
 module.exports = function(grunt) {
+
+    const utils = require('../resources/utils')(grunt);
+    const pkg = utils.pkg;
 
     (function registerPartials(partials) {
 
@@ -40,6 +43,15 @@ module.exports = function(grunt) {
         return this.key.indexOf('.') === -1 ? this.key : this.key.substr(this.key.lastIndexOf('.') + 1);
     });
 
+    /* 
+        Create unique title tag for documentation page that includes version number.
+        For SEO performance, title and h1 tags should be unique, and titles need 
+        to be unique across different versions of the documentation.
+    */
+    Handlebars.registerHelper('title', function() {
+        return `${this.heading} - version ${pkg.version.split('.').slice(0, -1).join('.')}`;
+    });
+
     return {
         all: {
             options: {
@@ -50,7 +62,7 @@ module.exports = function(grunt) {
             files: [
                 {
                     meta: {
-                        title: 'Geometry API',
+                        heading: 'Geometry API',
                         searchPlaceholder: 'i.e. point'
                     },
                     intro: 'docs/src/geometry/intro.md',
@@ -60,7 +72,7 @@ module.exports = function(grunt) {
                 },
                 {
                     meta: {
-                        title: 'Joint API',
+                        heading: 'Joint API',
                         searchPlaceholder: 'i.e. graph'
                     },
                     intro: 'docs/src/joint/intro.html',
@@ -70,7 +82,7 @@ module.exports = function(grunt) {
                 },
                 {
                     meta: {
-                        title: 'Vectorizer API',
+                        heading: 'Vectorizer API',
                         searchPlaceholder: 'i.e. addClass'
                     },
                     intro: 'docs/src/vectorizer/intro.html',

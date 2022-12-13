@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
 
-        <link rel="canonical" href="http://www.jointjs.com/" />
+        <link rel="canonical" href="https://www.jointjs.com" />
         <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
         <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
 
@@ -70,8 +70,8 @@
 
             <div>
                 <?xml version="1.0" standalone="no"?>
-                <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-                <svg width="600" height="200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "https://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+                <svg width="600" height="200" version="1.1" xmlns="https://www.w3.org/2000/svg">
 
                 <defs>
                 <pattern id="path-pattern" patternUnits="userSpaceOnUse" x="0" y="0" width="160" height="160">
@@ -93,7 +93,7 @@
             <p>The idea is simple. We create and render a link. We create an
                 <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Canvas" target="_blank">HTML 5 canvas element</a> of the size of
                 the bounding box of the link. We draw onto the canvas anything we'd like the link to look like. We generate
-                a <a href="http://en.wikipedia.org/wiki/Data_URI_scheme" target="_blank">Data URI image</a> from the canvas
+                a <a href="https://en.wikipedia.org/wiki/Data_URI_scheme" target="_blank">Data URI image</a> from the canvas
                 and tell the link to use this image as an SVG pattern for the link stroke. And we repeat all this every time
                 the link gets changed.</p>
 
@@ -105,7 +105,7 @@
             <p>Each time we change a link attribute, source or target, we add a vertex or we move an element that is
                 connected to the link - the link has to be updated.
                 Normally, the <a href="/docs/jointjs/v1.0/joint.html#dia.LinkView" target="_top">joint.dia.LinkView</a> takes care of this.
-                It inherits from the <a href="http://backbonejs.org/#View" target="_blank">Backbone.View</a> and extends it
+                It inherits from the <a href="https://backbonejs.org/#View" target="_blank">Backbone.View</a> and extends it
                 by new methods and properties. We're going to introduce some of them.
                 <br>
                 <br>The <code>linkView.render()</code> method creates SVG elements from the defined link markup and appends
