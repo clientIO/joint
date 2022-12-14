@@ -1,7 +1,7 @@
 {
-  "name": "@clientIO/joint-core",
+  "name": "@joint/core",
   "title": "JointJS Core",
-  "description": "Core module for clientIO/joint",
+  "description": "Core module for JointJS",
   "scripts": {
     "test": "grunt test",
     "lint": "eslint types/**/*.d.ts src/**/*.mjs",
