@@ -1,4 +1,4 @@
-/*! JointJS v3.6.4 (2022-12-08) - JavaScript diagramming library
+/*! JointJS v3.6.5 (2022-12-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -33664,7 +33664,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        if (!isFinite(padding)) { padding = 0; }
 	        var bbox, angle, center;
 	        if (view.isNodeConnection(magnet)) {
-	            bbox = view.getBBox();
+	            bbox = view.getNodeBBox(magnet);
 	            angle = 0;
 	            center = bbox.center();
 	        } else {
@@ -33682,7 +33682,11 @@ var joint = (function (exports, Backbone, _, $) {
 	        areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle + ')');
 	    },
 	    toggleArea: function(visible) {
-	        this.childNodes.area.style.display = (visible) ? '' : 'none';
+	        var childNodes = this.childNodes;
+	        if (!childNodes) { return; }
+	        var areaNode = childNodes.area;
+	        if (!areaNode) { return; }
+	        areaNode.style.display = (visible) ? '' : 'none';
 	    },
 	    onPointerDown: function(evt) {
 	        if (this.guard(evt)) { return; }
@@ -34410,7 +34414,7 @@ var joint = (function (exports, Backbone, _, $) {
 		Control: Control
 	});
 
-	var version = "3.6.4";
+	var version = "3.6.5";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
