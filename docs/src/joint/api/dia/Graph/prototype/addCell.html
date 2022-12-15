@@ -11,9 +11,11 @@
 </p>
 
 <p>
-    If using the default <code>paper</code> <a href="#dia.Paper.prototype.options.sorting"><code>sorting</code></a> option, setting 
-    <code>opt.sort</code> to <code>false</code> means the <code>cell</code> won't change its sorting order based on the 
-    <a href="#dia.Element.intro.z"><code>z</code></a> property, and it will be rendered in the order in which it's added.
+    If <code>opt.async</code> is set to <code>false</code>, this ensures the <code>cell</code> is rendered synchronously.
+</p>
+
+<p>
+    If <code>opt.sort</code> is set to <code>false</code>, the <code>cell</code> will be added at the end of the collection.
 </p>
 
 <pre><code>const rect = new joint.shapes.standard.Rectangle({ 
