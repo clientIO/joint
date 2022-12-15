@@ -1,15 +1,25 @@
 <pre class="docs-method-signature"><code>graph.addCell(cell[, opt])</code></pre>
 
-<p>Add a new cell to the graph. If <code>cell</code> is an array, all the cells in the array will be added to the graph.</p>
+<p>
+    Add a new cell to the graph. If <code>cell</code> is an array, all the cells in the array will be added to the graph.
+    Any additional option or custom property provided in the options object will be accessible in the callback function of 
+    the graph add event.
+</p>
 
 <p>
     If <code>opt.dry</code> is set to <code>true</code>, the graph reference is not stored on the <code>cell</code> after it's added.
 </p>
 
-<pre><code>const rect = new joint.shapes.basic.Rect({ 
+<p>
+    If using the default <code>paper</code> <a href="#dia.Paper.prototype.options.sorting"><code>sorting</code></a> option, setting 
+    <code>opt.sort</code> to <code>false</code> means the <code>cell</code> won't change its sorting order based on the 
+    <a href="#dia.Element.intro.z"><code>z</code></a> property, and it will be rendered in the order in which it's added.
+</p>
+
+<pre><code>const rect = new joint.shapes.standard.Rectangle({ 
     position: { x: 100, y: 100 },
-    size: { width: 70, height: 30 },
-    attrs: { text: { text: 'my rectangle' } }
+    size: { width: 90, height: 30 },
+    attrs: { label: { text: 'my rectangle' } }
 });
 const rect2 = rect.clone();
 const link = new joint.dia.Link({ source: { id: rect.id }, target: { id: rect2.id } });
