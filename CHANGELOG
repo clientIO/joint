@@ -1,3 +1,8 @@
+15-12-2022 (v3.6.5)
+
+  * dia.Paper - remove element unprefixed user-drag property
+  * linkTools.Anchor - fix area bounding box when the link is connected to a link
+
 08-12-2022 (v3.6.4)
 
   * dia.Paper - preserve contextmenu events hierarchy
