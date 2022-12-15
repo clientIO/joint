@@ -1,13 +1,29 @@
-<pre class="docs-method-signature"><code>graph.addCell(cell)</code></pre>
+<pre class="docs-method-signature"><code>graph.addCell(cell[, opt])</code></pre>
 
-<p>Add a new cell to the graph. If <code>cell</code> is an array, all the cells in the array will be added to the graph.</p>
+<p>
+    Add a new cell to the graph. If <code>cell</code> is an array, all the cells in the array will be added to the graph.
+    Any additional option or custom property provided in the options object will be accessible in the callback function of 
+    the graph add event.
+</p>
 
-<pre><code>var rect = new joint.shapes.basic.Rect({ 
+<p>
+    If <code>opt.dry</code> is set to <code>true</code>, the graph reference is not stored on the <code>cell</code> after it's added.
+</p>
+
+<p>
+    If <code>opt.async</code> is set to <code>false</code>, this ensures the <code>cell</code> is rendered synchronously.
+</p>
+
+<p>
+    If <code>opt.sort</code> is set to <code>false</code>, the <code>cell</code> will be added at the end of the collection.
+</p>
+
+<pre><code>const rect = new joint.shapes.standard.Rectangle({ 
     position: { x: 100, y: 100 },
-    size: { width: 70, height: 30 },
-    attrs: { text: { text: 'my rectangle' } }
-})
-var rect2 = rect.clone()
-var link = new joint.dia.Link({ source: { id: rect.id }, target: { id: rect2.id }  });
-var graph = new joint.dia.Graph
-graph.addCell(rect).addCell(rect2).addCell(link)</code></pre>
+    size: { width: 90, height: 30 },
+    attrs: { label: { text: 'my rectangle' } }
+});
+const rect2 = rect.clone();
+const link = new joint.dia.Link({ source: { id: rect.id }, target: { id: rect2.id } });
+const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+graph.addCell(rect).addCell(rect2).addCell(link);</code></pre>
