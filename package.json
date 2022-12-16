@@ -2,12 +2,7 @@
   "name": "jointjs",
   "title": "JointJS",
   "description": "JavaScript diagramming library",
-  "keywords": [
-    "diagram",
-    "flowchart",
-    "graph",
-    "visualization"
-  ],
+  "keywords": [ "joint", "jointjs", "diagram", "diagrams", "chart", "charts", "svg", "flowchart", "graph", "visualization", "visual", "data", "dataviz", "flow", "workflow", "process", "network", "sequence", "circuit", "hierarchy", "hierarchical", "editor", "javascript", "typescript", "library", "layout", "tree", "grid", "stack", "directed", "tree-layout", "stack-layout", "grid-layout", "force-directed", "visio", "bpmn", "vsm", "value-stream", "mapping", "family-tree", "treeview", "entity-relationship", "er-diagram", "er", "planogram", "database", "orgchart", "org", "uml", "chatbot", "kanban", "mindmap", "vector", "yamazumi", "shortest", "path", "finder", "shortest-path-finder" ],
   "scripts": {
     "test": "grunt test",
     "lint": "eslint types/**/*.d.ts src/**/*.mjs",
