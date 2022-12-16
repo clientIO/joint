@@ -538,6 +538,9 @@ export const Cell = Backbone.Model.extend({
                 opt.propertyPath = path;
                 opt.propertyValue = value;
                 opt.propertyPathArray = pathArray;
+                if (!('rewrite' in opt)) {
+                    opt.rewrite = false;
+                }
 
                 if (pathArrayLength === 1) {
                     // Property is not nested. We can simply use `set()`.
@@ -578,7 +581,15 @@ export const Cell = Backbone.Model.extend({
             }
         }
 
-        return this.set(merge({}, this.attributes, props), value);
+        const options = value || {};
+        options.propertyPath = null; // Note: '' is not the path to root. It's a path with an empty string i.e. { '': {}}.
+        options.propertyValue = props;
+        options.propertyPathArray = [];
+        if (!('rewrite' in options)) {
+            options.rewrite = false;
+        }
+
+        return this.set(merge({}, this.attributes, props), options);
     },
 
     // A convenient way to unset nested properties
