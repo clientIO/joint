@@ -451,6 +451,99 @@ QUnit.module('cell', function(hooks) {
                 assert.equal(el.prop(['ob/ject', '123']), 'property');
             });
         });
+
+        QUnit.module('options', function() {
+
+            QUnit.test('rewrite flag', function(assert) {
+
+                const changeSpy = sinon.spy();
+                el.on('change', changeSpy);
+
+                el.prop('level0/level1/otherProperty', 'otherValue', { silent: true });
+                el.prop('level0/level1', { level2: 'a' });
+                assert.ok(changeSpy.calledWithExactly(el, sinon.match((o) => o.rewrite === false)));
+                assert.equal(el.prop('level0/level1/otherProperty'), 'otherValue');
+                changeSpy.resetHistory();
+
+                el.prop('level0/level1/otherProperty', 'otherValue', { silent: true });
+                el.prop('level0/level1', { level1: 'b' }, { rewrite: false });
+                assert.ok(changeSpy.calledWithExactly(el, sinon.match((o) => o.rewrite === false)));
+                assert.equal(el.prop('level0/level1/otherProperty'), 'otherValue');
+                changeSpy.resetHistory();
+
+                el.prop('level0/level1/otherProperty', 'otherValue', { silent: true });
+                el.prop('level0/level1', { level1: 'b' }, { rewrite: true });
+                assert.ok(changeSpy.calledWithExactly(el, sinon.match((o) => o.rewrite === true)));
+                assert.equal(el.prop('level0/level1/otherProperty'), undefined);
+                changeSpy.resetHistory();
+            });
+
+            QUnit.module('propertyPathArray, propertyValue', function() {
+
+                QUnit.test('rewrite=false', function(assert) {
+
+                    el.prop('level0/otherProperty', 'otherValue');
+
+                    const colors = ['red', 'blue', 'green', 'yellow'];
+                    assert.expect(colors.length * 4);
+
+                    let i = 0;
+                    el.on('change', (_, options) => {
+                        const { propertyPathArray, propertyValue, rewrite } = options;
+                        let attributes;
+                        if (propertyPathArray.length > 0) {
+                            attributes = joint.util.setByPath({}, propertyPathArray, propertyValue);
+                        } else {
+                            attributes = propertyValue;
+                        }
+                        const flattenAttributes = joint.util.flattenObject(attributes, '/');
+                        const propertiesPaths = Object.keys(flattenAttributes);
+                        assert.equal(rewrite, false);
+                        assert.equal(propertiesPaths.length, 1);
+                        assert.equal(propertiesPaths[0], 'level0/level1');
+                        assert.equal(flattenAttributes['level0/level1'], colors[i++]);
+                    });
+
+                    el.prop('level0/level1', colors[0]);
+                    el.prop(['level0', 'level1'], colors[1]);
+                    el.prop('level0', { level1: colors[2] });
+                    el.prop({ level0: { level1: colors[3] }});
+                });
+
+                QUnit.test('rewrite=true', function(assert) {
+
+                    el.prop('level0/otherProperty', 'otherValue');
+
+                    const colors = ['red', 'blue', 'green', 'yellow'];
+                    assert.expect(colors.length * 4);
+
+                    let i = 0;
+                    el.on('change', (_, options) => {
+                        const { propertyPathArray, propertyValue, rewrite } = options;
+                        let attributes;
+                        if (propertyPathArray.length > 0) {
+                            attributes = joint.util.setByPath({}, propertyPathArray, propertyValue);
+                        } else {
+                            attributes = propertyValue;
+                        }
+                        const flattenAttributes = joint.util.flattenObject(attributes, '/');
+                        const propertiesPaths = Object.keys(flattenAttributes);
+                        assert.equal(rewrite, true);
+                        assert.equal(propertiesPaths.length, 1);
+                        assert.equal(propertiesPaths[0], 'level0/level1');
+                        assert.equal(flattenAttributes['level0/level1'], colors[i++]);
+                    });
+
+                    el.prop('level0/level1', colors[0], { rewrite: true });
+                    el.prop('level0/otherProperty', 'otherValue', { silent: true });
+                    el.prop(['level0', 'level1'], colors[1], { rewrite: true });
+                    el.prop('level0/otherProperty', 'otherValue', { silent: true });
+                    el.prop('level0', { level1: colors[2] }, { rewrite: true });
+                    el.prop('level0/otherProperty', 'otherValue', { silent: true });
+                    el.prop({ level0: { level1: colors[3] }}, { rewrite: true });
+                });
+            });
+        });
     });
 
     QUnit.module('toJSON()', function() {

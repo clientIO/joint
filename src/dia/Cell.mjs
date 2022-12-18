@@ -534,21 +534,21 @@ export const Cell = Backbone.Model.extend({
                 var property = pathArray[0];
                 var pathArrayLength = pathArray.length;
 
-                opt = opt || {};
-                opt.propertyPath = path;
-                opt.propertyValue = value;
-                opt.propertyPathArray = pathArray;
-                if (!('rewrite' in opt)) {
-                    opt.rewrite = false;
+                const options = opt || {};
+                options.propertyPath = path;
+                options.propertyValue = value;
+                options.propertyPathArray = pathArray;
+                if (!('rewrite' in options)) {
+                    options.rewrite = false;
                 }
 
                 if (pathArrayLength === 1) {
                     // Property is not nested. We can simply use `set()`.
-                    return this.set(property, value, opt);
+                    return this.set(property, value, options);
                 }
 
                 var update = {};
-                // Initialize the nested object. Subobjects are either arrays or objects.
+                // Initialize the nested object. Sub-objects are either arrays or objects.
                 // An empty array is created if the sub-key is an integer. Otherwise, an empty object is created.
                 // Note that this imposes a limitation on object keys one can use with Inspector.
                 // Pure integer keys will cause issues and are therefore not allowed.
@@ -568,12 +568,12 @@ export const Cell = Backbone.Model.extend({
                 var baseAttributes = merge({}, this.attributes);
                 // if rewrite mode enabled, we replace value referenced by path with
                 // the new one (we don't merge).
-                opt.rewrite && unsetByPath(baseAttributes, path, '/');
+                options.rewrite && unsetByPath(baseAttributes, path, '/');
 
                 // Merge update with the model attributes.
                 var attributes = merge(baseAttributes, update);
                 // Finally, set the property to the updated attributes.
-                return this.set(property, attributes[property], opt);
+                return this.set(property, attributes[property], options);
 
             } else {
 
@@ -582,7 +582,8 @@ export const Cell = Backbone.Model.extend({
         }
 
         const options = value || {};
-        options.propertyPath = null; // Note: '' is not the path to root. It's a path with an empty string i.e. { '': {}}.
+        // Note: '' is not the path to the root. It's a path with an empty string i.e. { '': {}}.
+        options.propertyPath = null;
         options.propertyValue = props;
         options.propertyPathArray = [];
         if (!('rewrite' in options)) {
