@@ -7,7 +7,7 @@ module.exports = {
     ],
 
     css: [
-        'css/layout.css',
-        'css/themes/*.css'
+        'packages/core/css/layout.css',
+        'packages/core/css/themes/*.css'
     ]
 };

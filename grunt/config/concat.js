@@ -5,10 +5,10 @@ module.exports = function(grunt) {
     return {
         types: {
             src: [
-                'types/joint.head.d.ts',
-                'types/geometry.d.ts',
-                'types/vectorizer.d.ts',
-                'types/joint.d.ts'
+                'packages/core/types/joint.head.d.ts',
+                'packages/core/types/geometry.d.ts',
+                'packages/core/types/vectorizer.d.ts',
+                'packages/core/types/joint.d.ts'
             ],
             dest:
                 'build/joint.d.ts'

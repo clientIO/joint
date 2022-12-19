@@ -24,7 +24,7 @@ let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = j
 // e.g. joint.shapes.fsa shapes depends on `basic` shapes, but `basic` shapes shouldn't be
 // included in the resulting joint.shapes.fsa.js file.
 const readNamespace = function(namespace, global) {
-    let location = './src/' + namespace;
+    let location = './packages/core/src/' + namespace;
     const list = fs.readdirSync(path.resolve(location));
     return list.reduce((res, item) => {
         res[path.resolve(location, item)] = global || 'joint.' + namespace;
