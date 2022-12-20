@@ -2,11 +2,6 @@
   "name": "@joint/core",
   "title": "JointJS Core",
   "description": "Core module for JointJS",
-  "scripts": {
-    "test": "grunt test",
-    "lint": "eslint types/**/*.d.ts src/**/*.mjs",
-    "lint:fix": "npm run lint -- --fix"
-  },
   "sideEffects": false,
   "version": "3.6.5",
   "main": "dist/joint.min.js",

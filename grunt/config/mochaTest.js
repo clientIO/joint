@@ -11,7 +11,7 @@ module.exports = {
     },
     server: {
         src: [
-            'test/*-nodejs/*'
+            'packages/core/test/*-nodejs/*'
         ],
         options: {
             reporter: 'spec'

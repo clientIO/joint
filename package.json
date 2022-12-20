@@ -62,6 +62,11 @@
     "finder",
     "shortest-path-finder"
   ],
+  "scripts": {
+    "test": "grunt test",
+    "lint": "eslint packages/**/types/**/*.d.ts packages/**/src/**/*.mjs",
+    "lint:fix": "npm run lint -- --fix"
+  },
   "sideEffects": false,
   "version": "3.6.5",
   "homepage": "http://jointjs.com",

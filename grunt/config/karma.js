@@ -60,15 +60,15 @@ module.exports = function(grunt) {
             // Change to false when debugging
             singleRun: true,
             exclude: [
-                'test/**/require.js',
-                'test/**/browserify.js'
+                'packages/**/test/**/require.js',
+                'packages/**/test/**/browserify.js'
             ]
         },
         geometry: {
             options: {
                 files: [
                     modules.geometry.umd,
-                    'test/geometry/*.js'
+                    'packages/core/test/geometry/*.js'
                 ],
                 preprocessors: karmaPreprocessors([modules.geometry.umd]),
                 coverageReporter: karmaCoverageReporters('geometry')
@@ -79,8 +79,8 @@ module.exports = function(grunt) {
                 files: [
                     modules.geometry.umd,
                     modules.vectorizer.umd,
-                    'test/geometry/*.js',
-                    'test/vectorizer/*.js',
+                    'packages/core/test/geometry/*.js',
+                    'packages/core/test/vectorizer/*.js',
                 ],
                 preprocessors: karmaPreprocessors([modules.vectorizer.umd]),
                 coverageReporter: karmaCoverageReporters('vectorizer')
@@ -93,8 +93,8 @@ module.exports = function(grunt) {
                     modules.geometry.umd,
                     modules.vectorizer.umd,
                     modules.joint.noDependencies,
-                    'test/utils.js',
-                    'test/jointjs/**/*.js'
+                    'packages/core/test/utils.js',
+                    'packages/core/test/jointjs/**/*.js'
                 ],
                 preprocessors: karmaPreprocessors([modules.joint.noDependencies]),
                 coverageReporter: karmaCoverageReporters('joint')

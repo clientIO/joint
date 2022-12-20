@@ -1,7 +1,7 @@
 module.exports = {
     test: {
         tsconfig: {
-            tsconfig: 'test/ts/tsconfig.json',
+            tsconfig: 'packages/core/test/ts/tsconfig.json',
             passThrough: true
         }
     }

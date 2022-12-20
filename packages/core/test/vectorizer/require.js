@@ -1,5 +1,5 @@
 require.config({
-    baseUrl: '../../',
+    baseUrl: '../../../../',
     paths: {
         'qunit': 'node_modules/qunit/qunit/qunit',
     }

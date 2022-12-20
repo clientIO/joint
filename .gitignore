@@ -1,10 +1,8 @@
 build/
-packages/**/build/
 node_modules/
 coverage/
-packages/**/coverage/
 *.log
-/packages/**/demo/**/dist/**
+demo/**/dist/**
 /packages/**/test/ts/*.js*
 .tscache/
 .DS_Store
