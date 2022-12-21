@@ -408,8 +408,11 @@ QUnit.module('cell', function(hooks) {
                 el.prop('name/first', 'john');
                 assert.ok(attrs.hasOwnProperty('name'));
                 assert.equal(attrs.name.first, 'john');
-
                 assert.equal(el.prop('name/first'), 'john');
+
+                el.prop('name/second', 'doe');
+                assert.equal(el.prop('name/first'), 'john');
+                assert.equal(el.prop('name/second'), 'doe');
             });
 
             QUnit.test('path and value as object', function(assert) {
@@ -417,8 +420,36 @@ QUnit.module('cell', function(hooks) {
                 el.prop({ name: { first: 'john' }});
                 assert.ok(attrs.hasOwnProperty('name'));
                 assert.equal(attrs.name.first, 'john');
-
                 assert.equal(el.prop('name/first'), 'john');
+
+                el.prop({ name: { second: 'doe' }});
+                assert.equal(el.prop('name/first'), 'john');
+                assert.equal(el.prop('name/second'), 'doe');
+            });
+
+
+            QUnit.test('path as top-level attribute name and value as object', function(assert) {
+
+                el.prop('name', { first: 'john' });
+                assert.ok(attrs.hasOwnProperty('name'));
+                assert.equal(attrs.name.first, 'john');
+                assert.equal(el.prop('name/first'), 'john');
+
+                el.prop('name', { second: 'doe' });
+                assert.equal(el.prop('name/first'), 'john');
+                assert.equal(el.prop('name/second'), 'doe');
+            });
+
+            QUnit.test('path as top-level attribute name and value as object (rewrite)', function(assert) {
+
+                el.prop('name', { first: 'john' }, { rewrite: true });
+                assert.ok(attrs.hasOwnProperty('name'));
+                assert.equal(attrs.name.first, 'john');
+                assert.equal(el.prop('name/first'), 'john');
+
+                el.prop('name', { second: 'doe' }, { rewrite: true });
+                assert.equal(el.prop('name/first'), undefined);
+                assert.equal(el.prop('name/second'), 'doe');
             });
 
             QUnit.test('path as array - root level', function(assert) {
