@@ -9,10 +9,6 @@
   "style": "./dist/joint.min.css",
   "types": "./dist/joint.d.ts",
   "license": "MPL-2.0",
-  "engines": {
-    "node": "14.21.2",
-    "npm": "9.2.0"
-  },
   "files": [
     "css",
     "dist",
