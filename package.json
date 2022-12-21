@@ -172,5 +172,9 @@
     "webdriverio": "4.13.2",
     "webpack": "4.28.3",
     "webpack-dev-server": "3.1.14"
+  },
+  "volta": {
+    "node": "16.18.1",
+    "npm": "8.19.2"
   }
 }
