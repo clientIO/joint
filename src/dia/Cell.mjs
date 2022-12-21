@@ -542,11 +542,6 @@ export const Cell = Backbone.Model.extend({
                     options.rewrite = false;
                 }
 
-                if (pathArrayLength === 1) {
-                    // Property is not nested. We can simply use `set()`.
-                    return this.set(property, value, options);
-                }
-
                 var update = {};
                 // Initialize the nested object. Sub-objects are either arrays or objects.
                 // An empty array is created if the sub-key is an integer. Otherwise, an empty object is created.
