@@ -785,7 +785,7 @@ export const Paper = View.extend({
         if (shouldNotify) this.notifyBeforeRender(opt);
         const leftover = this.updateView(view, flag, opt);
         if (shouldNotify) {
-            const stats = { updated: 1, batches: 1, priority: view.UPDATE_PRIORITY };
+            const stats = { updated: 1, priority: view.UPDATE_PRIORITY };
             this.notifyAfterRender(stats, opt);
         }
         return leftover;

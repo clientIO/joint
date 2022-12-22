@@ -1197,7 +1197,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                                 ));
                                 assert.equal(afterRenderSpy.callCount, 1);
                                 assert.ok(afterRenderSpy.calledWithExactly(
-                                    sinon.match({ updated: 1, batches: 1, priority: linkView.UPDATE_PRIORITY }),
+                                    sinon.match({ updated: 1, priority: linkView.UPDATE_PRIORITY }),
                                     sinon.match({ test: true }),
                                     paper
                                 ));
