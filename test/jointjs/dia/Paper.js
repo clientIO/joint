@@ -1005,6 +1005,13 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         });
 
                         QUnit.test('force postponed view update', function(assert) {
+                            const beforeRenderSpy = sinon.spy();
+                            const afterRenderSpy = sinon.spy();
+                            paper.options.beforeRender = beforeRenderSpy;
+                            paper.options.afterRender = afterRenderSpy;
+                            assert.equal(beforeRenderSpy.callCount, 0);
+                            assert.equal(afterRenderSpy.callCount, 0);
+
                             paper.options.viewport = function(view) { return view.model.isLink(); };
                             var onViewPostponedSpy = sinon.spy(paper.options, 'onViewPostponed');
                             var rect1 = new joint.shapes.standard.Rectangle();
@@ -1022,6 +1029,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.equal(cellNodesCount(paper), 3);
                             assert.equal(3, paper.getMountedViews().length);
                             assert.equal(0, paper.getUnmountedViews().length);
+                            assert.equal(beforeRenderSpy.callCount, 1);
+                            assert.equal(afterRenderSpy.callCount, 1);
                         });
                     });
                 });
@@ -1153,18 +1162,72 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         assert.equal(rectAlwaysView.el.parentNode, paper.cells);
                     });
 
-                    QUnit.test('requireView()', function(assert) {
-                        assert.equal(paper.requireView(), null);
-                        paper.options.viewport = function() { return false; };
-                        var rect = new joint.shapes.standard.Rectangle();
-                        rect.translate(201, 202);
-                        rect.resize(101, 102);
-                        rect.addTo(graph);
-                        var rectView = rect.findView(paper);
-                        assert.notOk(rectView.el.parentNode);
-                        rectView = paper.requireView(rect);
-                        assert.ok(rectView.el.parentNode, paper.cells);
-                        assert.checkBbox(paper, rect, 201, 202, 101, 102);
+                    QUnit.module('requireView()', function() {
+
+                        QUnit.test('it updates view', function(assert) {
+                            assert.equal(paper.requireView(), null);
+                            paper.options.viewport = function() { return false; };
+                            var rect = new joint.shapes.standard.Rectangle();
+                            rect.translate(201, 202);
+                            rect.resize(101, 102);
+                            rect.addTo(graph);
+                            var rectView = rect.findView(paper);
+                            assert.notOk(rectView.el.parentNode);
+                            rectView = paper.requireView(rect);
+                            assert.ok(rectView.el.parentNode, paper.cells);
+                            assert.checkBbox(paper, rect, 201, 202, 101, 102);
+                        });
+
+                        QUnit.module('events', function() {
+
+                            QUnit.test('it triggers when view requires updates', function(assert) {
+                                paper.freeze();
+                                const link = new joint.shapes.standard.Link();
+                                link.addTo(graph);
+                                const beforeRenderSpy = sinon.spy();
+                                const afterRenderSpy = sinon.spy();
+                                paper.options.beforeRender = beforeRenderSpy;
+                                paper.options.afterRender = afterRenderSpy;
+                                const linkView = paper.requireView(link, { test: true });
+                                assert.ok(beforeRenderSpy.calledBefore(afterRenderSpy));
+                                assert.equal(beforeRenderSpy.callCount, 1);
+                                assert.ok(beforeRenderSpy.calledWithExactly(
+                                    sinon.match({ test: true }),
+                                    paper
+                                ));
+                                assert.equal(afterRenderSpy.callCount, 1);
+                                assert.ok(afterRenderSpy.calledWithExactly(
+                                    sinon.match({ updated: 1, batches: 1, priority: linkView.UPDATE_PRIORITY }),
+                                    sinon.match({ test: true }),
+                                    paper
+                                ));
+                            });
+
+                            QUnit.test('it triggers no events when view requires no update', function(assert) {
+                                const link = new joint.shapes.standard.Link();
+                                link.addTo(graph, { async: false });
+                                const beforeRenderSpy = sinon.spy();
+                                const afterRenderSpy = sinon.spy();
+                                paper.options.beforeRender = beforeRenderSpy;
+                                paper.options.afterRender = afterRenderSpy;
+                                paper.requireView(link, { test: true });
+                                assert.equal(beforeRenderSpy.callCount, 0);
+                                assert.equal(afterRenderSpy.callCount, 0);
+                            });
+
+                            QUnit.test('it triggers no events when silent flag is sent', function(assert) {
+                                paper.freeze();
+                                const link = new joint.shapes.standard.Link();
+                                link.addTo(graph);
+                                const beforeRenderSpy = sinon.spy();
+                                const afterRenderSpy = sinon.spy();
+                                paper.options.beforeRender = beforeRenderSpy;
+                                paper.options.afterRender = afterRenderSpy;
+                                paper.requireView(link, { silent: true });
+                                assert.equal(beforeRenderSpy.callCount, 0);
+                                assert.equal(afterRenderSpy.callCount, 0);
+                            });
+                        });
                     });
 
                     QUnit.module('freeze(), unfreeze(), isFrozen()', function() {
