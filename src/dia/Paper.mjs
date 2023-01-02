@@ -700,23 +700,24 @@ export const Paper = View.extend({
         var model = view.model;
         if (model.isElement()) return false;
         if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
+            var dumpOptions = { silent: true };
             // LinkView is waiting for the target or the source cellView to be rendered
             // This can happen when the cells are not in the viewport.
             var sourceFlag = 0;
             var sourceView = this.findViewByModel(model.getSourceCell());
             if (sourceView && !this.isViewMounted(sourceView)) {
-                sourceFlag = this.dumpView(sourceView);
+                sourceFlag = this.dumpView(sourceView, dumpOptions);
                 view.updateEndMagnet('source');
             }
             var targetFlag = 0;
             var targetView = this.findViewByModel(model.getTargetCell());
             if (targetView && !this.isViewMounted(targetView)) {
-                targetFlag = this.dumpView(targetView);
+                targetFlag = this.dumpView(targetView, dumpOptions);
                 view.updateEndMagnet('target');
             }
             if (sourceFlag === 0 && targetFlag === 0) {
                 // If leftover flag is 0, all view updates were done.
-                return !this.dumpView(view);
+                return !this.dumpView(view, dumpOptions);
             }
         }
         return false;
@@ -777,10 +778,17 @@ export const Paper = View.extend({
         return flag;
     },
 
-    dumpView: function(view, opt) {
-        var flag = this.dumpViewUpdate(view);
+    dumpView: function(view, opt = {}) {
+        const flag = this.dumpViewUpdate(view);
         if (!flag) return 0;
-        return this.updateView(view, flag, opt);
+        const shouldNotify = !opt.silent;
+        if (shouldNotify) this.notifyBeforeRender(opt);
+        const leftover = this.updateView(view, flag, opt);
+        if (shouldNotify) {
+            const stats = { updated: 1, priority: view.UPDATE_PRIORITY };
+            this.notifyAfterRender(stats, opt);
+        }
+        return leftover;
     },
 
     updateView: function(view, flag, opt) {
