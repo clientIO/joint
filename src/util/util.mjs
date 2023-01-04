@@ -565,11 +565,16 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
     var full = [];
     var lines = [];
     var p, h;
-    var lineHeight;
 
     if (preserveSpaces) {
         V(textSpan).attr('xml:space', 'preserve');
     }
+
+    let heightTestTextElement = V('text').attr(styles).node;
+    svgDocument.appendChild(heightTestTextElement);
+
+    let lastL = null;
+    let previousLineCount = 0;
 
     for (var i = 0, l = 0, len = words.length; i < len; i++) {
 
@@ -705,51 +710,44 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
                 i--;
             }
         }
-        var lastL = null;
 
-        if (lines.length > maxLineCount) {
-
-            lastL = maxLineCount - 1;
-
-        } else if (height !== undefined) {
-
-            // if size.height is defined we have to check whether the height of the entire
-            // text exceeds the rect height
-
-            if (lineHeight === undefined && textNode.data !== '') {
-
-                var heightValue;
-
-                // use the same defaults as in V.prototype.text
-                if (styles.lineHeight === 'auto') {
-                    heightValue = { value: 1.5, unit: 'em' };
-                } else {
-                    heightValue = parseCssNumeric(styles.lineHeight, ['em']) || { value: 1, unit: 'em' };
-                }
-
-                lineHeight = heightValue.value;
-                if (heightValue.unit === 'em') {
-                    lineHeight *= textElement.getBBox().height;
-                }
-            }
-
-            if (lineHeight * lines.length > height) {
-
-                // remove overflowing lines
-                lastL = Math.floor(height / lineHeight) - 1;
+        if (height !== undefined) {
+            if (previousLineCount < lines.length) {
+                // new line added to the text add a placeholder tspan to measure correct height of the whole element
+                const placeholderSpan = V('tspan').attr({ x: 0, dy: '1em' }).node;
+                const placeholderNode = document.createTextNode('');
+                placeholderNode.data = 'line';
+                placeholderSpan.appendChild(placeholderNode);
+                placeholderSpan.style.display = 'block';
+                heightTestTextElement.appendChild(placeholderSpan);
+            } else if (previousLineCount > lines.length) {
+                // line removed from the text remove the last placeholder tspan
+                heightTestTextElement.removeChild(heightTestTextElement.lastChild);
             }
         }
 
+        if (lines.length > maxLineCount) {
+
+            lastL = maxLineCount;
+
+        } else if (height !== undefined && heightTestTextElement.getBBox().height > height) {
+            // if size.height is defined we have to check whether the height of the entire
+            // text exceeds the rect height
+            lastL = lines.length - 1;
+        }
+
+        previousLineCount = lines.length;
+
         if (lastL !== null) {
 
-            lines.splice(lastL + 1);
+            lines.splice(lastL);
 
             // add ellipsis
             var ellipsis = opt.ellipsis;
             if (!ellipsis || lastL < 0) break;
             if (typeof ellipsis !== 'string') ellipsis = '\u2026';
 
-            var lastLine = lines[lastL];
+            var lastLine = lines[lastL - 1];
             if (!lastLine && !isEol) break;
             var k = lastLine.length;
             var lastLineWithOmission, lastChar, separatorChar;
@@ -765,7 +763,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
                 lastLineWithOmission += ellipsis;
                 textNode.data = lastLineWithOmission;
                 if (textSpan.getComputedTextLength() <= width) {
-                    lines[lastL] = lastLineWithOmission;
+                    lines[lastL - 1] = lastLineWithOmission;
                     break;
                 }
                 k--;
@@ -776,9 +774,9 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
     if (opt.svgDocument) {
 
-        // svg document was provided, remove the text element only
+        // svg document was provided, remove the text element and text element for height test
         svgDocument.removeChild(textElement);
-
+        svgDocument.removeChild(heightTestTextElement);
     } else {
 
         // clean svg document
