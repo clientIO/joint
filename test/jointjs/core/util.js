@@ -347,6 +347,26 @@ QUnit.module('util', function(hooks) {
             r = joint.util.breakText(' a\nb\nc\nd\ne', { width: 20, height: 20 }, styles, { preserveSpaces: true });
             assert.equal(r, ' a');
         });
+
+        QUnit.test('lineHeight measuring', function(assert) {
+
+            const size = { width: 50, height: 50 };
+            const text = 'This is very very very very very very very very very very very very very very very very very very very very very very long text';
+
+            let emVal = 2;
+            let correctLineHeightPerEm = 14;
+
+            let r = joint.util.breakText(text, size, { ...styles, lineHeight: `${emVal}em` });
+            assert.ok(r.split('\n').length * correctLineHeightPerEm * emVal <= size.height, 'lineHeight in em');
+            
+            let correctLineHeightInPx = 25;
+
+            r = joint.util.breakText(text, size, { ...styles, lineHeight: correctLineHeightInPx });
+            assert.ok(r.split('\n').length * correctLineHeightInPx <= size.height, 'lineHeight in px without unit');
+
+            r = joint.util.breakText(text, size, { ...styles, lineHeight: `${correctLineHeightInPx}px` });
+            assert.ok(r.split('\n').length * correctLineHeightInPx <= size.height, 'lineHeight in px');
+        });
     });
 
     QUnit.test('util.parseCssNumeric', function(assert) {
