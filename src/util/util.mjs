@@ -524,6 +524,22 @@ function splitWordWithEOL(word, eol) {
     return eolWords.filter(word => word !== '');
 }
 
+
+function getLineHeight(heightValue, textElement) {
+    if (heightValue === null) {
+        // Default 1em lineHeight
+        return textElement.getBBox().height;
+    } 
+
+    switch (heightValue.unit) {
+        case 'em':
+            return textElement.getBBox().height * heightValue.value;
+        case 'px':
+        case '':
+            return heightValue.value;
+    }
+}
+
 export const breakText = function(text, size, styles = {}, opt = {}) {
 
     var width = size.width;
@@ -718,23 +734,17 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
             if (lineHeight === undefined && textNode.data !== '') {
 
-                var heightValue;
-
                 // use the same defaults as in V.prototype.text
                 if (styles.lineHeight === 'auto') {
-                    heightValue = { value: 1.5, unit: 'em' };
+                    lineHeight = getLineHeight({ value: 1.5, unit: 'em' }, textElement);
                 } else {
-                    heightValue = parseCssNumeric(styles.lineHeight, ['em']) || { value: 1, unit: 'em' };
-                }
+                    const parsed = parseCssNumeric(styles.lineHeight, ['em', 'px', '']);
 
-                lineHeight = heightValue.value;
-                if (heightValue.unit === 'em') {
-                    lineHeight *= textElement.getBBox().height;
+                    lineHeight = getLineHeight(parsed, textElement);
                 }
             }
 
             if (lineHeight * lines.length > height) {
-
                 // remove overflowing lines
                 lastL = Math.floor(height / lineHeight) - 1;
             }
