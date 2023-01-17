@@ -6,7 +6,7 @@ before_install:
   - npm install -g grunt-cli
 
 install:
-  - npm install --workspaces
+  - npm install
 
 before_script:
   - npm run grunt:install --workspaces --if-present
