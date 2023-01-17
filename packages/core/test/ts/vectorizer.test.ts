@@ -1,4 +1,4 @@
-import { V, Vectorizer } from '../../../../build/joint';
+import { V, Vectorizer } from '../../build/joint';
 
 //** V */
 

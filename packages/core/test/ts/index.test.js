@@ -1,23 +1,7 @@
-"use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-var joint = require("../../build/joint");
-var graph = new joint.dia.Graph({ graphAttribute: true });
-var rectangle = new joint.shapes.standard.Rectangle({
+var _a;
+import * as joint from '../../build/joint';
+const graph = new joint.dia.Graph({ graphAttribute: true });
+const rectangle = new joint.shapes.standard.Rectangle({
     attrs: {
         body: {
             fill: {
@@ -45,7 +29,7 @@ var rectangle = new joint.shapes.standard.Rectangle({
         }
     }
 });
-var link = new joint.shapes.standard.Link({
+const link = new joint.shapes.standard.Link({
     attrs: {
         line: {
             sourceMarker: {
@@ -92,28 +76,32 @@ graph.addCell({
         }
     }
 });
-var cell = graph.get('cells').at(0);
+// `cells` attribute is a collection of cells
+const cell = (_a = graph.get('cells')) === null || _a === void 0 ? void 0 : _a.at(0);
 cell.getBBox({ rotate: true }).inflate(5);
+// ModelSetOptions
 graph.set('test', true, { dry: true });
 rectangle.set('test', true, { silent: true, customOption: true });
-var cylinder = new joint.shapes.standard.Cylinder({ z: 0 });
+// a child inherits attributes from `dia.Element`
+const cylinder = new joint.shapes.standard.Cylinder({ z: 0 });
 cylinder.set({ position: { x: 4, y: 5 } });
-cylinder.set('z', cylinder.attributes.z + 1);
-var paper = new joint.dia.Paper({
+cylinder.set('z', (cylinder.attributes.z || 0) + 1);
+const paper = new joint.dia.Paper({
     model: graph,
     frozen: true,
-    findParentBy: function (_elementView, _evt, x, y) { return graph.findModelsFromPoint({ x: x, y: y }); }
+    findParentBy: (_elementView, _evt, x, y) => graph.findModelsFromPoint({ x, y })
 });
-var cellView = cell.findView(paper);
+const cellView = graph.getCells[0].findView(paper);
 cellView.vel.addClass('test-class');
-var isHTMLView = true;
-var isSVGView = true;
-var _a = rectangle.toJSON(), size = _a.size, position = _a.position;
-var isTypeofSize = true;
-var isTypeofPoint = true;
-var layer = new joint.dia.PaperLayer();
+let isHTMLView = true;
+let isSVGView = true;
+const { size, position } = rectangle.toJSON();
+let isTypeofSize = true;
+let isTypeofPoint = true;
+const layer = new joint.dia.PaperLayer();
 layer.insertNode(cellView.el);
 layer.insertSortedNode(cellView.el, 5);
+// paper events
 paper.on('link:pointerclick', function (linkView, evt) {
     evt.stopPropagation();
     linkView.model.vertices([]);
@@ -132,36 +120,26 @@ paper.on({
 });
 cellView.listenTo(paper, {
     'cell:highlight': function (cellView, node, opt) {
-        var isHighlightingOptions = true;
-        var isSVGElement = true;
+        let isHighlightingOptions = true;
+        let isSVGElement = true;
         if (opt.type === joint.dia.CellView.Highlighting.DEFAULT) {
             cellView.el.classList.add('highlighted');
         }
     }
 });
-var AttributeHighlighterView = (function (_super) {
-    __extends(AttributeHighlighterView, _super);
-    function AttributeHighlighterView() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    AttributeHighlighterView.prototype.preinitialize = function () {
+class AttributeHighlighterView extends joint.dia.HighlighterView {
+    preinitialize() {
         this.UPDATE_ATTRIBUTES = function () { return [this.options.attribute]; };
-    };
-    return AttributeHighlighterView;
-}(joint.dia.HighlighterView));
-var MyList = (function (_super) {
-    __extends(MyList, _super);
-    function MyList() {
-        return _super !== null && _super.apply(this, arguments) || this;
     }
-    MyList.prototype.createListItem = function (item) {
-        var vel = joint.V('text');
-        vel.text("".concat(item + 1));
+}
+class MyList extends joint.highlighters.list {
+    createListItem(item) {
+        const vel = joint.V('text');
+        vel.text(`${item + 1}`);
         return vel.node;
-    };
-    return MyList;
-}(joint.highlighters.list));
-var list = new MyList({
+    }
+}
+const list = new MyList({
     size: 10,
     gap: 10,
     margin: { left: 10 },
@@ -169,7 +147,7 @@ var list = new MyList({
     direction: 'row',
 });
 list.remove();
-var list2 = MyList.add.call(MyList, cellView, 'root', 'id', {
+const list2 = MyList.add.call(MyList, cellView, 'root', 'id', {
     size: { width: 100, height: 5 },
     position: joint.highlighters.list.Positions.BOTTOM_RIGHT,
     direction: joint.highlighters.list.Directions.COLUMN,

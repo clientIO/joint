@@ -1,0 +1,7 @@
+build/
+node_modules/
+coverage/
+*.log
+test/ts/*.js*
+.tscache/
+.DS_Store

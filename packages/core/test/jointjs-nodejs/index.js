@@ -3,7 +3,7 @@
 require('should');
 
 // Test against the latest JointJS build file.
-var joint = require('../../../../build/joint');
+var joint = require('../../build/joint');
 
 describe('Sanity check', function() {
 

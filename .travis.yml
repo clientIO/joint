@@ -5,11 +5,12 @@ node_js:
 before_install:
   - npm install -g grunt-cli
 
-install: npm install
+install:
+  - npm install --workspaces
 
 before_script:
-  - grunt install
+  - npm run grunt:install --workspaces --if-present
 
 script:
-  - npm run test
-  - npm run lint
+  - npm run test --workspaces --if-present
+  - npm run lint --workspaces --if-present
