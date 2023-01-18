@@ -7,6 +7,7 @@ body:
         Thanks for taking the time to create this general Q&A discussion! Review our [technical question guidelines](TODOURL) before proceeding.
 
         Have you searched existing discussions to see if your question was already answered?
+        If you create a question that has already been answered, the discussion will be marked as a duplicate and closed.
   - type: textarea
     id: introduction
     attributes:
@@ -41,3 +42,7 @@ body:
         - JointJS+
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: |
+        If you are satisfied that your question has been answered, press the `'Mark as answer'` button on the chosen answer. Thanks!
