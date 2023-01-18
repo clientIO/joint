@@ -1,10 +1,10 @@
 Use npm to run this demo.
 
-You need to build the jointjs first. Go to the root folder and run:
+You need to build JointJS first. Go to the root folder and run:
 
 ```
 npm install
-grunt
+npm run grunt:install --workspaces --if-present
 ```
 
 Navigate to this directory, then run:
@@ -12,10 +12,4 @@ Navigate to this directory, then run:
 ```
 npm install
 npm start
-```
-
-During development, use:
-
-```
-webpack watch
 ```
