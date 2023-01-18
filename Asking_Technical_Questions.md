@@ -4,8 +4,8 @@
 
 ### 1. Summarize the problem as a title.
 
-Open your question with a title/heading. This is the first thing potential answers will see. Think about your
-problem carefully, and then try to summarize the problem in a short and clear manner.
+Open your question with a title/heading. This is the first thing potential answers will see. 
+Think about your problem carefully, and then try to summarize the problem in a short and clear manner.
 
 These are some examples of helpful openings for a technical question.
 
@@ -19,16 +19,19 @@ If you're having trouble summarizing the problem, write the title last - sometim
 
 ### 2. Explain the problem.
 
-Before providing some code examples, explain the problem in more detail in an opening paragraph. This should provide more context to the opening title. 
+Before providing some code examples, explain the problem in more detail in an opening paragraph. 
+This should provide more context to the opening title. 
 
 
 ### 3. Include steps to reproduce problem.
 
-Provide steps to reproduce the issue. Always include a minimal reproducible example if your question depends on code. It will allow others to reproduce the issue.
+Provide steps to reproduce the issue. Always include a minimal reproducible example if your question depends on code. 
+It will allow others to reproduce the issue.
 
-Try to format you code examples with sensible spacing, and follow popular conventions if possible.
+Try to format your code examples with sensible spacing, and follow popular conventions if possible.
 
-**Note:** *Don't include screenshots of code examples. All code should be in code blocks/plain text which allows users to copy text easily, and to make it accessible for everyone. Please reserve the use of images for diagrams, demonstrating rendering bugs, etc.*
+**Note:** *Don't include screenshots of code examples. All code should be in code blocks/plain text which allows users to copy text easily, 
+and to make it accessible for everyone. Please reserve the use of images for diagrams, demonstrating rendering bugs, etc.*
 
 ### 4. Include any restrictions.
 
@@ -42,27 +45,41 @@ Are you sure the answer can't be found in our documentation? You can find our [d
 
 ### 6. English is hard. Proofread!
 
-Writing in a foreign language is difficult. Once you have finished writing your problem, take some time to proofread and review. Is there anything about it you can improve? Pay attention to  spelling, grammar and punctuation.
+Writing in a foreign language is difficult. Once you have finished writing your problem, take some time to proofread and review the text. 
+Is there anything about it you can improve? Pay attention to  spelling, grammar and punctuation.
 
-Tools like [Grammarly](https://www.grammarly.com) can automatically scan your text and advise on improving the grammar. It has extensions for all modern browsers.
+Tools like [Grammarly](https://www.grammarly.com) can automatically scan your text and advise on improving the grammar. 
+It has extensions for all modern browsers.
 
 Translators like [Deepl](https://www.deepl.com/translator) or [Google Translate](https://translate.google.com/) can also help you improve your questions.
 
-### Extra steps to help.
-If it is possible to create a live example of the problem that you can link to.
+### 7. Extra steps to help.
 
-JSFiddle
-Codepen
-stackblitz
-jsbin
+Any extra help you can provide is always appreciated. If it's possible to create a live example that shows your problem, it can be very helpful.
+
+Create an online demo you can link to with some of the following services:
+
+- [CodePen](https://codepen.io/)
+- [JSFiddle](https://jsfiddle.net/)
+- [CodeSandbox](https://codesandbox.io/)
+- [StackBlitz](https://stackblitz.com/)
 
 ---
 
-## Github Discussion Questions
+## Github Discussion Guidelines
 
-### 1. Have you searched if the question was asked already?
+### 1. Have you searched existing discussions?
 
-### 2. Select as answered.
-It will be pinned to the top allowing others to find the answer easily.
-Allow people to search via filter.
-It also gives a clear indication of what solved your problem and that your problem is solved.
+It's possible somebody has already created a discussion on this topic. Try searching for the topic before creating a new discussion.
+
+If you create a question that has already been answered, the discussion will be marked as a duplicate and closed.
+
+### 2. Mark / Select as answered.
+
+If you are satisfied that your question has been answered, press the `'Mark as answer'` button on the chosen answer.
+
+This has a few benefits:
+
+- It gives a clear indication your problem is solved.
+- The chosen answer will be pinned to the top of the discussion making it easier for other users to find.
+- It enables users to search discussions using a filter of 'Answered'.
