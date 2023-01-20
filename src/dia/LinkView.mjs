@@ -493,7 +493,7 @@ export const LinkView = CellView.extend({
         }
 
         return merge({}, defaultLabelSize, labelSize);
-    }
+    },
 
     updateLabels: function() {
 
