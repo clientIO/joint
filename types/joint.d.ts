@@ -3372,7 +3372,7 @@ export namespace mvc {
         protected onRemove(): void;
     }
 
-    type ModifiedCallback<CallbackArgs extends any[], EventCallback extends Callback> = (...args: [...CallbackArgs, ...Parameters<EventCallback>]) => any;
+    type ModifiedCallback<CallbackArgs extends any[], EventCallback extends Callback> = (...args: any[]) => any;
 
     type EventHashMap<CallbackArgs extends any[], T extends Record<keyof T, Callback>> = {
         [Property in keyof T]?: ModifiedCallback<CallbackArgs, T[Property]>;
