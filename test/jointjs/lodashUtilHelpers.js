@@ -1734,7 +1734,7 @@ QUnit.module('Lodash util helpers', function() {
             const values = [null, undefined];
             const expected = values.map(() => ({ '4': [4], '6':  [6, 6] }));
 
-            var actual = values.map((value, index) => {
+            const actual = values.map((value, index) => {
                 return index ? joint.util.groupBy(array, value) : joint.util.groupBy(array);
             });
 
@@ -2049,7 +2049,7 @@ QUnit.module('Lodash util helpers', function() {
         QUnit.test('should return an empty object when `object` is nullish', function(assert) {
             [null, undefined].forEach((value) => {
                 Object.prototype.a = 1;
-                var actual = joint.util.omit(value, 'valueOf');
+                const actual = joint.util.omit(value, 'valueOf');
                 delete Object.prototype.a;
                 assert.deepEqual(actual, {});
             });
@@ -2164,7 +2164,7 @@ QUnit.module('Lodash util helpers', function() {
             }
             Foo.prototype.b = 2;
 
-            var keys = [];
+            const keys = [];
             joint.util.forIn(new Foo, function(value, key) { keys.push(key); });
             assert.deepEqual(keys.sort(), ['a', 'b']);
         });
@@ -2286,7 +2286,7 @@ QUnit.module('Lodash util helpers', function() {
             function Foo() {}
 
             const source = { 'a': 1 };
-            const actual = _.merge(Foo, source);
+            const actual = joint.util.merge(Foo, source);
 
             assert.strictEqual(actual, Foo);
             assert.strictEqual(Foo.a, 1);
@@ -2376,7 +2376,7 @@ QUnit.module('Lodash util helpers', function() {
             const expected = values.map(() => true);
 
             const actual = values.map((value) => {
-                const object = _.merge({}, { 'a': value, 'b': { 'c': value }});
+                const object = joint.util.merge({}, { 'a': value, 'b': { 'c': value }});
                 return object.a === value && object.b.c === value;
             });
 

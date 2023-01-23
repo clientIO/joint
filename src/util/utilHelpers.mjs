@@ -153,6 +153,9 @@ const reIsUint = /^(?:0|[1-9]\d*)$/;
 const hasUnicodeWord = RegExp.prototype.test.bind(
     /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/
 );
+
+const MAX_ARRAY_INDEX = 4294967295 - 1;
+
 /** Used to match words composed of alphanumeric characters. */
 // eslint-disable-next-line no-control-regex
 const reAsciiWord = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g;
@@ -1920,60 +1923,49 @@ export const invoke = (collection, path, ...args) => {
     return result;
 };
 
-export const sortedIndex = (array, value) => {
+export const sortedIndex = (array, value, iteratee = (val) => val) => {
     let low = 0;
-    let high = array == null ? low : array.length;
-
-    if (typeof value === 'number' && value === value && high <= Number.MAX_SAFE_INTEGER / 2) {
-        while (low < high) {
-            const mid = (low + high) >>> 1;
-            const computed = array[mid];
-            if (computed !== null && !isSymbol(computed) && computed < value) {
-                low = mid + 1;
-            } else {
-                high = mid;
-            }
-        }
-        return high;
+    let high = array == null ? 0 : array.length;
+    if (high == 0) {
+        return 0;
     }
 
-    low = 0;
-    high = array == null ? 0 : array.length;
-    const valueIsNaN = value !== value;
-    const valueIsNull = value === null;
-    const valueIsSymbol = isSymbol(value);
-    const valueIsUndefined = value === undefined;
+    value = iteratee(value);
+
+    const valIsNaN = value !== value;
+    const valIsNull = value === null;
+    const valIsSymbol = isSymbol(value);
+    const valIsUndefined = value === undefined;
 
     while (low < high) {
+        let setLow;
         const mid = Math.floor((low + high) / 2);
-        const computed = array[mid];
+        const computed = iteratee(array[mid]);
         const othIsDefined = computed !== undefined;
         const othIsNull = computed === null;
         const othIsReflexive = computed === computed;
         const othIsSymbol = isSymbol(computed);
 
-        let setLow;
-        if (valueIsNaN) {
+        if (valIsNaN) {
             setLow = othIsReflexive;
-        } else if (valueIsUndefined) {
-            setLow = othIsReflexive && (othIsDefined);
-        } else if (valueIsNull) {
+        } else if (valIsUndefined) {
+            setLow = othIsReflexive &&othIsDefined;
+        } else if (valIsNull) {
             setLow = othIsReflexive && othIsDefined && !othIsNull;
-        } else if (valueIsSymbol) {
+        } else if (valIsSymbol) {
             setLow = othIsReflexive && othIsDefined && !othIsNull && !othIsSymbol;
         } else if (othIsNull || othIsSymbol) {
             setLow = false;
         } else {
-            setLow = (computed < value);
+            setLow = computed < value;
         }
-
         if (setLow) {
             low = mid + 1;
         } else {
             high = mid;
         }
     }
-    return high;
+    return Math.min(high, MAX_ARRAY_INDEX);
 };
 
 export const uniq = (array, iteratee) => {
