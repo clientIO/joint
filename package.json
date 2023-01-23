@@ -27,7 +27,10 @@
   },
   "license": "MPL-2.0",
   "dependencies": {
-    "@joint/core": "file:packages/core"
+    "@joint/core": "file:packages/core",
+    "@joint/decorators": "file:packages/decorators",
+    "@joint/elements": "file:packages/elements",
+    "@joint/elementTools": "file:packages/elementTools"
   },
   "devDependencies": {},
   "volta": {

@@ -1,0 +1,30 @@
+{
+  "name": "@joint/decorators",
+  "title": "JointJS Decorators",
+  "version": "0.2.1",
+  "description": "Decorators module for JointJS",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "homepage": "http://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "http://client.io"
+  },
+  "license": "MPL-2.0",
+  "scripts": {
+    "prepublish": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@joint/core": "file:../core"
+  },
+  "devDependencies": {},
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "jointjs",
+    "shapes",
+    "decorators"
+  ]
+}

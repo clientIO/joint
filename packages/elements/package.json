@@ -1,0 +1,21 @@
+{
+  "name": "@joint/elements",
+  "title": "JointJS Elements",
+  "version": "1.0.0",
+  "description": "Elements module for JointJS",
+  "main": "src/index.ts",
+  "homepage": "http://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "http://client.io"
+  },
+  "license": "MPL-2.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@joint/core": "file:../core",
+    "@joint/decorators": "file:../decorators"
+  },
+  "keywords": []
+}
