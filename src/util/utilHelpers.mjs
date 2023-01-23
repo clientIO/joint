@@ -1072,7 +1072,8 @@ const isIndex = (value, length) => {
 const unset = (object, path) => {
     path = castPath(path, object);
     object = parent(object, path);
-    return object == null || delete object[toKey(path.at(-1))];
+    const lastSegment = path[path.length - 1];
+    return object == null || delete object[toKey(lastSegment)];
 };
 
 const isKeyable = (value) => {
