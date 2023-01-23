@@ -27,7 +27,6 @@
     "lint": "eslint types/**/*.d.ts src/**/*.mjs",
     "lint:fix": "npm run lint -- --fix",
     "grunt:dist": "grunt dist",
-    "prepublish": "npm run grunt:dist",
     "grunt:build:docs": "grunt build:docs"
   },
   "files": [

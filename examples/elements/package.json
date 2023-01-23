@@ -1,0 +1,29 @@
+{
+  "name": "joint-elements",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": {
+    "name": "client IO",
+    "url": "http://client.io"
+  },
+  "license": "MPL-2.0",
+  "scripts": {
+    "start": "webpack-dev-server",
+    "tsc": "tsc"
+  },
+  "dependencies": {
+    "@joint/core": "file:../../packages/core",
+    "@joint/elements": "file:../../packages/elements",
+    "@joint/elementTools": "file:../../packages/elementTools"
+  },
+  "devDependencies": {
+    "raw-loader": "^4.0.2",
+    "ts-loader": "^9.2.5",
+    "typescript": "^4.4.3",
+    "webpack": "^5.53.0",
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.2.1"
+  },
+  "keywords": []
+}
