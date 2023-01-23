@@ -3061,10 +3061,10 @@ export namespace util {
     type CustomizerFunction = (objValue: any, srcValue: any, key: string, object: any, source: any, stack: any) => NotVoid;
 
     /** @deprecated do not use */
-    export function mixin(destinationObject: object, sourceObject: object): object;
+    export function mixin(destinationObject: object, ...sourceObjects: object[]): object;
 
     /** @deprecated do not use */
-    export function deepMixin(destinationObject: object, sourceObject: object): object;
+    export function deepMixin(destinationObject: object, ...sourceObjects: object[]): object;
 
     /** @deprecated do not use */
     export function assign(destinationObject: object, ...sourceObjects: object[]): object;
@@ -3080,11 +3080,11 @@ export namespace util {
     export function defaultsDeep(destinationObject: object, ...sourceObjects: object[]): object;
 
     export function invoke(collection: Collection, methodPath: PropertyPath, args?: any[]): any[];
-    export function invoke(collection: Collection, functionToInvokeForAll: IterateeFunction<any>, args?: any[]): any[];
+    export function invoke<ArgsT>(collection: Collection, functionToInvokeForAll: IterateeFunction<ArgsT>, ...args?: ArgsT): any[];
 
-    export function sortedIndex(sortedArray: any[], valueToInsert: any): number;
+    export function sortedIndex<T>(sortedArray: T[], valueToInsert: T, iteratee?: IterateeFunction<T>): number;
 
-    export function uniq<T>(array: Array<T> | null | undefined, iteratee: IterateeFunction<T>): T[];
+    export function uniq<T>(array: Array<T> | null | undefined, iteratee?: IterateeFunction<T>): T[];
 
     export function clone<T>(value: T): T;
 
@@ -3102,8 +3102,7 @@ export namespace util {
 
     export function debounce<T extends Function>(func: T, wait?: number, options?: { leading: boolean, maxWait: number, trailing: boolean }): T & Cancelable;
 
-    export function groupBy(collection: object, iteratee?: IterateeFunction<any>): object;
-    export function groupBy<T>(collection: T[], iteratee?: IterateeFunction<T>): object;
+    export function groupBy(collection: Collection, iteratee?: IterateeFunction<any>): object;
 
     export function sortBy<T>(collection: object, iteratee?: IterateeFunction<any>[] | IterateeFunction<any>): any[];
     export function sortBy<T>(collection: T[], iteratee?: IterateeFunction<T>[] | IterateeFunction<T>): any[];
@@ -3128,11 +3127,11 @@ export namespace util {
 
     export function bindAll(object: object, methodNames: string | string[]): object;
 
-    export function forIn(object: object, iteratee?: (value: any, key: string, iterable: object) => void | boolean): object;
+    export function forIn<T>(object: T, iteratee?: (value: any, key: string, iterable: object) => void | boolean): void;
 
     export function camelCase(string: string): string;
 
-    export function uniqueId(prefix?: string): string;
+    export function uniqueId(prefix?: string | number): string;
 
     export function getRectPoint(rect: dia.BBox, position: dia.PositionName): g.Point;
 
