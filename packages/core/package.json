@@ -16,14 +16,19 @@
   "license": "MPL-2.0",
   "scripts": {
     "grunt:install": "grunt install",
-    "grunt:dist": "grunt dist",
     "test": "grunt test",
+    "grunt:test:server": "grunt test:server",
+    "grunt:test:client": "grunt test:client",
+    "grunt:ts:test": "grunt ts:test",
     "grunt:test:coverage": "grunt test:coverage",
     "grunt:test:coverage:lcov": "npm run grunt:test:coverage -- --reporter=lcov",
     "grunt:test:e2e": "grunt test:e2e",
     "grunt:test:e2e:all": "grunt test:e2e:all",
     "lint": "eslint types/**/*.d.ts src/**/*.mjs",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "grunt:dist": "grunt dist",
+    "prepublish": "npm run grunt:dist",
+    "grunt:build:docs": "grunt build:docs"
   },
   "files": [
     "css",

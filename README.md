@@ -82,7 +82,7 @@ npm install
 
 Generate build files from the source code:
 ```
-grunt install
+npm run grunt:install --workspaces --if-present
 ```
 
 You are ready now to browse our demos:
@@ -94,17 +94,22 @@ cd demo
 
 To run all tests:
 ```
-grunt test
+npm test --workspaces --if-present
 ```
 
 To run only the server-side tests:
 ```
-grunt test:server
+npm run grunt:test:server --workspaces --if-present
 ```
 
 To run only the client-side tests:
 ```
-grunt test:client
+npm run grunt:test:client --workspaces --if-present
+```
+
+To run only TypeScript tests:
+```
+npm rum grunt:ts:test --workspaces --if-present
 ```
 
 
@@ -113,25 +118,25 @@ grunt test:client
 To check for linting errors in `src` and `types` directories:
 
 ```
-npm run lint
+npm run lint --workspaces --if-present
 ```
 
 To auto fix errors, run eslint for `src` and `types` directories:
 
 ```
-npm run lint:fix
+npm run lint:fix --workspaces --if-present
 ```
 
 ### Code Coverage Reports
 
 To output a code coverage report in HTML:
 ```
-grunt test:coverage
+npm run grunt:test:coverage --workspaces --if-present
 ```
 
 To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php):
 ```
-grunt test:coverage --reporter="lcov"
+npm run grunt:test:coverage:lcov --workspaces --if-present
 ```
 
 The output for all unit tests will be saved in the `coverage` directory.
@@ -141,7 +146,7 @@ The output for all unit tests will be saved in the `coverage` directory.
 
 The `dist` directory contains pre-built distribution files. To re-build them, run the following:
 ```
-grunt dist
+npm run grunt:dist --workspaces --if-present
 ```
 
 
@@ -149,7 +154,7 @@ grunt dist
 
 The source for the *JointJS* documentation (plus *Geometry* and *Vectorizer* libraries) are included in this repository; see the `docs` directory. The documentation can be built into stand-alone HTML documents like this:
 ```
-grunt build:docs
+npm run grunt:build:docs --workspaces --if-present
 ```
 The output of the above command can be found at `build/docs`.
 
