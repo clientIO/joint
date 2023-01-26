@@ -252,6 +252,42 @@ model.addPorts([
 ]);
 </code></pre>
 
+            <h3 id="port-prop">Setting port properties</h3>
+
+            <p>
+                If you are already familiar with the <a href="/docs/jointjs#dia.Element.prototype.attr" target="_blank"><code><code>attr()</code></code></a> 
+                method for Elements and Links, JointJS also provides a similar method for working with ports. 
+                <a href="/docs/jointjs#dia.Element.prototype.portProp" target="_blank"><code>portProp()</code></a> allows users to set 
+                presentation attributes or custom data properties on an element port.
+            </p>
+
+            <pre><code>const port = {
+    id: 'custom-port-id'
+};
+
+const element = new joint.shapes.standard.Rectangle({
+    position: { x: 275, y: 50 },
+    size: { width: 90, height: 90 },
+    attrs: {
+        body: {
+            fill: '#8ECAE6'
+        }
+    },
+    ports: {
+        items: [ port ] 
+    }
+});
+
+element.portProp('custom-port-id', 'attrs/circle', { r: 8, fill: 'darkslateblue' });
+
+const portId = element.getPorts()[0].id;
+
+element.portProp(portId, 'custom', { testAttribute: true });
+console.log(element.portProp(portId, 'custom'));  // {testAttribute: true}
+
+element.portProp(portId, 'attrs/circle/fill', 'tomato');
+</code></pre>
+
             <h3 id="link">Linking elements with ports</h3>
 
             <p>
