@@ -32,15 +32,15 @@
 
 <h4 id="dia.Link.labels.defaultLabel">Default Label</h4>
 
-<p>Properties defined on individual labels may be supplemented by properties from one of a hierarchy of <code>defaultLabel</code> attributes, each of them following the same schema as above.</p>
+<p>The <code>markup</code>, <code>size</code>, <code>attrs</code> and <code>position</code> objects defined on individual labels may be supplemented by properties from one of a hierarchy of <code>defaultLabel</code> objects, each of them following the same schema as above.</p>
 
 <ul>
-    <li>The highest precedence is held by <code>defaultLabel</code> attribute provided as an option when <a href="#dia.Link.intro.labels">creating a new link instance</a>.</li>
-    <li>The second-highest precedence is held by <code>defaultLabel</code> attribute provided when <a href="#dia.Link.intro.customLink">defining a custom Link type</a>.</li>
-    <li>Lower tiers of precedence are followed through the ancestors of the Link type (due to the way type extensions work in JointJS). Effectively, this identifies the closest ancestor's <code>defaultLabel</code>, if any.</li>
+    <li>The highest precedence is held by <code>defaultLabel</code> object provided when <a href="#dia.Link.intro.labels">creating a new link instance</a>.</li>
+    <li>The second-highest precedence is held by <code>defaultLabel</code> object provided when <a href="#dia.Link.intro.customLink">defining a custom Link type</a>.</li>
+    <li>Lower tiers of precedence are followed through the ancestors of the Link type (due to the way type extensions work in JointJS). Effectively, this identifies the closest ancestor's <code>defaultLabel</code> object, if any.</li>
 </ul>
 
-<p>If a <code>defaultLabel</code> attribute is found in one of the above sources, it acts as a template into which the individually-specified label attributes are deep-merged as appropriate. In addition, the properties of the <code>defaultLabel</code> attribute may be important on their own; for example, the <code>linkView.addLabel()</code> <a href="#dia.LinkView.prototype.addLabel">shortcut function</a> is only capable of adding default labels to the link.</p>
+<p>If a <code>defaultLabel</code> object is found in one of the above sources, its <code>markup</code>, <code>size</code>, <code>attrs</code> and <code>position</code> properties act as a template into which the individually-specified label properties are deep-merged as appropriate. In addition, the properties of the highest-precedence <code>defaultLabel</code> object may prove to be important on their own; for example, the <code>linkView.addLabel()</code> <a href="#dia.LinkView.prototype.addLabel">shortcut function</a> is only capable of adding a default label to links.</p>
 
 <h4 id="dia.Link.labels.markup">Markup</h4>
 
@@ -57,19 +57,19 @@
     &lt;text @selector="label"/&gt;
 `</code></pre>
 
-<p>Note that the latter two options allow the user to specify custom selectors for the individual SVGElements; these can then be used for targeting elements from within the <code>attrs</code> <a href="#dia.Link.labels.styling">property</a> (via the <code>ref</code> <a href="#dia.attributes.ref">attribute</a>).</p>
+<p>Note that the latter two options allow the user to specify custom selectors for the individual SVGElements; these can then be used for targeting elements within the <code>attrs</code> <a href="#dia.Link.labels.styling">property</a>.</p>
 
 <p>If no <code>markup</code> property is provided on the individual label, but a <code>defaultLabel</code> is found on the link according to the <code>defaultLabel</code> <a href="#dia.Link.labels.defaultLabel">hierarchy</a>, then the label markup is taken from the <code>defaultLabel.markup</code> property.</p>
 
-<p>However, if no <code>markup</code> property is provided on the individual label, and no <code>defaultLabel</code> is found on the link according to the <code>defaultLabel</code> <a href="#dia.Link.labels.defaultLabel">hierarchy</a> (as is the case when extending from out-of-the-box Link types including <code>joint.dia.Link</code> and <code>joint.shapes.standard.Link</code>), then <a href="#dia.Link.intro.builtinDefaultAttributes">built-in default Link markup</a> is used to maintain backwards compatibility. That object defines <code>markup</code> as a JSON array with a <code>'rect'</code> subelement (a <code>&lt;rect&gt;</code> SVGElement) under a <code>'text'</code> subelement (a <code>&lt;text&gt;</code> SVGElement).</p>
+<p>However, if no <code>markup</code> property is provided on the individual label, and no <code>defaultLabel</code> is found on the link according to the <code>defaultLabel</code> <a href="#dia.Link.labels.defaultLabel">hierarchy</a> (as may be the case when extending from out-of-the-box Link types like <code>joint.dia.Link</code> or <code>joint.shapes.standard.Link</code> without providing one's own <code>defaultLabel</code> object), then <a href="#dia.Link.intro.builtinDefaultAttributes">built-in default Link markup</a> is used to maintain backwards compatibility. That object defines <code>markup</code> as a JSON array with a <code>&lt;rect&gt;</code> SVGElement (<code>'rect'</code>selector) under a <code>&lt;text&gt;</code> SVGElement (<code>'text'</code> selector).</p>
 
 <h4 id="dia.Link.labels.size">Size</h4>
 
-<p>The <code>size</code> property specifies the dimensions of the label. It may be defined as an object with a <code>width</code> and/or <code>height</code> properties. These values are used as the default reference size for all <code>calc()</code> <a href="#dia.attributes">attribute expressions</a> within the link's <code>attrs</code> object (this may be overwritten for an individual subelement with the <code>ref</code> property to choose a different subelement as a reference).</p>
+<p>The <code>size</code> property specifies the dimensions of the label. It may be defined as an object with a <code>width</code> and/or <code>height</code> properties. These values are then used as the reference size for all <code>calc()</code> <a href="#dia.attributes">attribute expressions</a> within the link's <code>attrs</code> object (this may be overwritten for an individual subelement with the <code>ref</code> property to choose a different subelement as a reference).</p>
 
 <p>If a <code>defaultLabel</code> object was found on the link (according to the <code>defaultLabel</code> <a href="#dia.Link.labels.defaultLabel">hierarchy</a>), then the label's own <code>size</code> properties are deep-merged into it as appropriate.</p>
 
-<p>There is no built-in <code>defaultLabel.size</code> object; if no <code>defaultLabel</code> is found, and no <code>size</code> is provided on the individual label, then no <code>size</code> is assigned to that label. (That causes <code>calc()</code> <a href="#dia.attributes.calc">attribute expressions</a> to assign <code>0</code> as the value of all their variables - which may be unexpected - unless used alongside a <code>ref</code> <a href="#dia.attributes.ref">property</a>.)</p>
+<p>There is no built-in <code>defaultLabel.size</code> object; if no <code>defaultLabel</code> is found, and no <code>size</code> is provided on the individual label, then no <code>size</code> is assigned to that label. (That causes <code>calc()</code> <a href="#dia.attributes.calc">attribute expressions</a> to assign <code>0</code> as the value of all their variables - which may be unexpected - unless the expression is used alongside a <code>ref</code> <a href="#dia.attributes.ref">property</a>.)</p>
 
 <table>
     <tr>
@@ -95,17 +95,17 @@
 
 <h4 id="dia.Link.labels.styling">Styling</h4>
 
-<p>The <code>attrs</code> property is an object where the keys are CSS selectors (referring to custom selectors or SVGElements specified in <code>markup</code> - e.g. <code>body</code> in the <a href="#dia.Link.labels.markup">above markup example</a>). They are expected to contain objects that specify native SVG and/or JointJS <a href="#dia.attributes">special attributes</a> (e.g. <code>fill</code>), alongside the value to be assigned (e.g. <code>'white'</code>).</p>
+<p>The <code>attrs</code> property is an object where the keys are CSS selectors (referring to custom selectors or SVGElements specified in <code>markup</code> - e.g. the <code>body</code> selector in the <a href="#dia.Link.labels.markup">above markup example</a>). They are expected to contain objects that specify native SVG attributes and/or JointJS <a href="#dia.attributes">special attributes</a> (e.g. <code>fill</code>), alongside the value to be assigned (e.g. <code>'white'</code>).</p>
 
-<p>If a <code>defaultLabel</code> object was found on the link (according to the <code>defaultLabel</code> <a href="#dia.Link.labels.defaultLabel">hierarchy</a>), then the label's own <code>attrs</code> properties are deep-merged into it as appropriate. For example, this allows you to reference selectors defined in <code>defaultLabel.markup</code> in <code>label.attrs</code>, which may prove useful when you just need to change an attribute quickly for one specific label (e.g. <code>attrs: { body: { stroke: 'black' } }</code>).</p>
+<p>If a <code>defaultLabel</code> object was found on the link (according to the <code>defaultLabel</code> <a href="#dia.Link.labels.defaultLabel">hierarchy</a>), then the label's own <code>attrs</code> properties are deep-merged into it as appropriate. For example, this may prove useful when you just need to change a handful of attributes for one specific label (e.g. <code>attrs: { body: { stroke: 'black' } }</code>). (Note that selectors defined in <code>defaultLabel.markup</code> can be referenced from within a specific label's <code>attrs</code>.)</p>
 
-<p>If the built-in default markup is <a href="#dia.Link.labels.markup">applied on an individual label</a> (i.e. no <code>markup</code> attribute was provided, and no <code>defaultLabel.markup</code> was found), then <a href="#dia.Link.intro.builtinDefaultAttributes">several additional built-in default attributes</a> need to be applied for reasons of backwards compatibility. The individual label's <code>attrs</code> (if any) are deep-merged with <code>defaultLabel.attrs</code> (if found) as appropriate, and the resulting object is then deep-merged with the built-in default <code>attrs</code> as appropriate.</p>
+<p>If the built-in default markup is <a href="#dia.Link.labels.markup">applied on an individual label</a> (i.e. no <code>markup</code> property was provided, and no <code>defaultLabel.markup</code> was found), then <a href="#dia.Link.intro.builtinDefaultAttributes">several additional built-in default attributes</a> need to be applied for reasons of backwards compatibility. The individual label's <code>attrs</code> (if any) are deep-merged with <code>defaultLabel.attrs</code> (if found) as appropriate, and the resulting object is then deep-merged with the built-in default <code>attrs</code> as appropriate. (Note that this is the only case in which the absence of one property - <code>markup</code>/<code>defaultLabel.markup</code> - influences another property - <code>attrs</code>/<code>defaultLabel.attrs</code>.)</p>
 
 <h4 id="dia.Link.labels.position">Position</h4>
 
 <p>Finally, the <code>position</code> property specifies the position of the label relative to the SVG path of the link. It may be defined as a number or as an object with <code>distance</code> and optionally <code>offset</code> and <code>args</code> properties.</p>
 
-<p>The <a href="#dia.Link.intro.builtinDefaultAttributes">built-in default position</a> (<code>{ distance: 0.5 }</code>) is used to maintain backwards compatibility. The individual label's <code>position</code> (if any) is deep-merged with <code>defaultLabel.position</code> (if found in the <code>defaultLabel</code> <a href="#dia.Link.labels.defaultLabel">hierarchy</a>) as appropriate, and the resulting object is then deep-merged with the built-in default <code>position</code> as appropriate. (Note that the built-in default object is always merged in with the other objects, which is a difference from how the other properties treat the built-in defaults.)</p>
+<p>The <a href="#dia.Link.intro.builtinDefaultAttributes">built-in default position</a> (<code>{ distance: 0.5 }</code>) is used to maintain backwards compatibility. The individual label's <code>position</code> (if any) is deep-merged with <code>defaultLabel.position</code> (if found in the <code>defaultLabel</code> <a href="#dia.Link.labels.defaultLabel">hierarchy</a>) as appropriate, and the resulting object is then deep-merged with the built-in default <code>position</code> as appropriate. (Note that the built-in default object is always merged in with the other objects, which is a difference from how the built-in defaults of <code>markup</code> and <code>attrs</code> properties are treated.)</p>
 
 <table>
     <tr>
