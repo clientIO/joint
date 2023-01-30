@@ -10,9 +10,7 @@
     "url": "http://client.io"
   },
   "license": "MPL-2.0",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "dependencies": {
     "@joint/core": "file:../core"
   },

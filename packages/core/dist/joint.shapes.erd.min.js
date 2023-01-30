@@ -1,4 +1,4 @@
-/*! JointJS Core v3.6.5 (2023-01-17) - Core module for JointJS
+/*! JointJS Core v3.6.5 (2023-01-30) - Core module for JointJS
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
