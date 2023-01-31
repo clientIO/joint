@@ -2268,19 +2268,19 @@ export const Paper = View.extend({
         const localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
         const { deltaX, deltaY } = normalizeWheel(originalEvent);
 
+        const pinchHandlers = this._events['paper:pinch'];
+
         // Touchpad devices will send a fake CTRL press when a pinch is performed
-        if(evt.ctrlKey) {
-            // Check if there are any subscribers to this event. If there are none,
-            // just skip the entire block of code (we don't want to blindly call
-            // .preventDefault() if we really don't have to).
-            const handlers = this._events['paper:pinch'];
-            if(handlers && handlers.length > 0) {
-                // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
-                originalEvent.preventDefault();
-                this._mw_evt_buffer.event = originalEvent;
-                this._mw_evt_buffer.deltas.push(deltaY);
-                this._processMouseWheelEvtBuf();
-            }
+        //
+        // We also check if there are any subscribers to paper:pinch event. If there are none,
+        // just skip the entire block of code (we don't want to blindly call
+        // .preventDefault() if we really don't have to).
+        if (evt.ctrlKey && pinchHandlers && pinchHandlers.length > 0) {
+            // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
+            originalEvent.preventDefault();
+            this._mw_evt_buffer.event = originalEvent;
+            this._mw_evt_buffer.deltas.push(deltaY);
+            this._processMouseWheelEvtBuf();
         } else {
             const delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
             if (view) {
