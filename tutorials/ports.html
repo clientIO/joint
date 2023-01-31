@@ -261,10 +261,33 @@ model.addPorts([
                 presentation attributes or custom data properties on an element port.
             </p>
 
-            <pre><code>const port = {
-    id: 'custom-port-id'
+            <pre><code> const port = {
+    id: 'custom-port-id', // set a custom ID
+    label: {
+        markup: [{
+            tagName: 'text',
+            selector: 'label'
+        }]
+    },
+    attrs: { 
+        portBody: { 
+            magnet: true,
+            width: 16,
+            height: 16,
+            x: -8,
+            y: -8,
+            fill:  '#03071E'
+        }, 
+        label: { 
+            text: 'port' 
+        }
+    },
+    markup: [{
+        tagName: 'rect',
+        selector: 'portBody'
+    }]
 };
-
+                        
 const element = new joint.shapes.standard.Rectangle({
     position: { x: 275, y: 50 },
     size: { width: 90, height: 90 },
@@ -278,15 +301,15 @@ const element = new joint.shapes.standard.Rectangle({
     }
 });
 
-element.portProp('custom-port-id', 'attrs/circle', { r: 8, fill: 'darkslateblue' });
+element.portProp('custom-port-id', 'attrs/portBody', { r: 8, fill: 'darkslateblue' });
 
 const portId = element.getPorts()[0].id;
 
 element.portProp(portId, 'custom', { testAttribute: true });
 console.log(element.portProp(portId, 'custom'));  // {testAttribute: true}
 
-element.portProp(portId, 'attrs/circle/fill', 'tomato');
-</code></pre>
+element.portProp(portId, 'attrs/portBody/fill', 'tomato');
+</code></pre> 
 
             <h3 id="link">Linking elements with ports</h3>
 
