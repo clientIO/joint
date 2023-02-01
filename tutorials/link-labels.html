@@ -61,12 +61,14 @@
 
             <h3 id="builtin-default-label">Built-in Default Label</h3>
 
-            <p>A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
+            <p><a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">A simple label
+                definition</a> (including markup, attrs and position) is built into the <code>joint.dia.Link</code>
                 class, from which all subtypes, including <code>joint.shapes.standard.Link</code>, inherit it.
-                The built-in default label has two tags:
-                <code>text</code> (the <code>&lt;text&gt;</code> SVGElement of the label), and
-                <code>rect</code> (the <code>&lt;rect&gt;</code> SVGElement for the label background).
+                The built-in default label markup contains two subelements:
+                <code>&lt;text&gt;</code> SVGElement (<code>'text'</code> selector) for label text, and
+                <code>&lt;rect&gt;</code> SVGElement (<code>'rect'</code>selector) for label background.
                 The built-in default attributes specify a simple vertical-centered text on a white rounded rectangle.
+                Finally, the built-in default position places the label at the midpoint of the link.
                 Thus, adding a label can be as simple as passing a value for the <code>text/text</code> attribute:</p>
 
             <div class="paper" id="paper-links-label-builtin"></div>
@@ -86,8 +88,11 @@
 
             <h3 id="label-position">Label Position</h3>
 
-            <p>Labels are positioned at the center point of the link (<code>distance</code> of <code>0.5</code>) by
-                default.
+            <p><a href="/docs/jointjs#dia.Link.labels.position" target="_blank">You can find a detailed overview of all
+                label position properties in our documentation.</a></p>
+
+            <p>Labels are positioned at the center point of the link (<code>distance</code> of <code>0.5</code>) as a
+                built-in default.
                 Three kinds of <code>label.position.distance</code> values are recognized for setting a custom position.
                 A value between <code>0</code> and <code>1</code> causes the label to be positioned relatively to link length.
                 Positive values signify absolute position in local SVG units away from the start point.
@@ -133,12 +138,25 @@ link.appendLabel({
 
             <p>JointJS source code: <a href="js/link-labels-distance.js" target="_blank">link-labels-distance.js</a></p>
 
+            <p>Note: A <code>label.position.distance</code> value is required for all labels.
+                If a <code>label.position.distance</code> value is not provided for an individual label, the
+                <code>defaultLabel.position.distance</code> value is taken from the
+                <a href="custom-links.html#default-label">definition of the Link subtype</a>.
+                If the Link subtype definition has no <code>defaultLabel</code> object, or if its
+                <code>defaultLabel</code> has no <code>position</code> property, the
+                <a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">default built-in
+                value</a> of <code>0.5</code> is applied.
+                Note that - if necessary - the default built-in <code>position.distance</code> value will be mixined
+                with the rest of the <code>position</code> object you provide (<code>offset</code>, <code>angle</code>,
+                <code>args</code>).</p>
+
             <h3 id="label-offset">Label Offset</h3>
 
             <p>It is also possible to set label offsets.
                 This is done with the <code>label.position.offset</code> property.
-                With a positive number, the label is offset relatively and to the right of the link; a negative number
-                causes the label to be offset to the left.
+                With a positive number, the label is offset relatively and to the right of the link (according to the
+                <code>source</code>-<code>target</code> direction); a negative number causes the label to be offset to
+                the left.
                 An object with <code>x</code> and <code>y</code> coordinates offsets the label absolutely by that amount
                 in the two dimensions.
                 The following example illustrates these three options.
@@ -289,8 +307,15 @@ link.appendLabel({
             <h3 id="label-styling">Label Styling</h3>
 
             <p>Of course, it is also possible to change the appearance of your labels.
-                Simply specify custom <code>markup</code> in JSON format and pass some <code>attrs</code>.
+                To specify <a href="/docs/jointjs#dia.Link.labels.markup" target="_blank">custom markup</a>, you may
+                provide a <code>markup</code> object in JSON format or as a <code>joint.util.svg</code>
+                <a href="/docs/jointjs#util.svg" target="_blank">ES6 tag template</a>.
                 As a bonus, you can define custom selectors to identify individual components of your label.
+                To specify <a href="/docs/jointjs#dia.Link.labels.styling" target="_blank">custom attributes</a>, you
+                may provide an <code>attrs</code> object with SVG attributes or
+                <a href="special-attributes.html">JointJS special attributes</a>.
+                Finally, to specify <a href="/docs/jointjs#dia.Link.labels.size" target="_blank">custom size</a> of the
+                label, you may provide a <code>size</code> object with width and/or height properties.
                 Let's define a complex circular label that shows what JointJS can do:</p>
 
             <div class="paper" id="paper-link-labels-styling"></div>
@@ -311,6 +336,7 @@ link.appendLabel({
             selector: 'asterisk'
         }
     ],
+    // no `size` object provided = calc() operations need `ref` property
     attrs: {
         label: {
             text: '½',
@@ -321,6 +347,7 @@ link.appendLabel({
             pointerEvents: 'none'
         },
         body: {
+            // calc() is responsive to size of 'label':
             ref: 'label',
             fill: '#ffffff',
             stroke: '#000000',
@@ -330,6 +357,7 @@ link.appendLabel({
             cy: 0
         },
         asterisk: {
+            // calc() is responsive to size of 'label':
             ref: 'label',
             text: '＊',
             fill: '#ff0000',
@@ -341,6 +369,7 @@ link.appendLabel({
             y: 'calc(y-2)'
         },
         asteriskBody: {
+            // calc() is responsive to size of 'asterisk':
             ref: 'asterisk',
             fill: '#ffffff',
             stroke: '#000000',
@@ -354,9 +383,28 @@ link.appendLabel({
 
             <p>JointJS source code: <a href="js/link-labels-styling.js" target="_blank">link-labels-styling.js</a></p>
 
-            <p>The <code>ref</code> attributes are an example of JointJS special attributes.
-                <a href="special-attributes.html#text-relative-dimensions">These are discussed in detail elsewhere in
-                the tutorial.</a></p>
+            <p>We did not specify any <code>size</code> object in our example, so JointJS was missing overarching
+                reference width and height dimensions for use in the various <code>calc()</code>
+                <a href="/docs/jointjs#dia.attributes.intro" target="_blank">operations</a> inside the
+                <code>attrs</code> object.
+                In order to use <code>calc()</code> operations anyways, we instead provided <code>ref</code>
+                <a href="special-attributes.html#text-relative-dimensions">special attributes</a> where necessary, to
+                identify a reference subelement from which each <code>attrs</code> property could determine its
+                dimensions.
+                In our example, <code>attrs/body</code> and <code>attrs/asterisk</code> used the dimensions of the
+                <code>label</code> SVGTextElement for reference, while <code>attrs/asteriskBody</code> used the
+                dimensions of the <code>asterisk</code> SVGTextElement for reference.
+                (If we had specified neither <code>size</code> nor an individual <code>ref</code> attribute on
+                <code>attrs/body</code>, the <code>defaultLabel.size</code> from the definition of the Link subtype
+                would have been used for reference instead.
+                However, if there had been no <code>defaultLabel</code> object in the Link subtype definition, or if its
+                <code>defaultLabel</code> had had no <code>size</code> property, the calculations would have used
+                <code>0</code> as the reference width and height.)</p>
+
+            <p>Additionally, note that in our example, the <code>x</code> and <code>y</code> position of the
+                <code>body</code> subelement is determined by reference to the <code>label</code> via a
+                <code>calc()</code> operation, as is the case for <code>asteriskBody</code> subelement which calculates
+                its position by reference to the <code>asterisk</code>.</p>
 
             <h3>Interaction</h3>
 

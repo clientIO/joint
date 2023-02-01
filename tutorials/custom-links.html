@@ -471,18 +471,22 @@ graph.getLinks()[0].appendLabel({
     }
 });</code></pre>
 
-            <p>Note: We did not specify any <code>defaultLabel.size</code> object in our example, so JointJS was missing
+            <p>We did not specify any <code>defaultLabel.size</code> object in our example, so JointJS was missing
                 overarching reference width and height dimensions for use in the various <code>attrs/body</code>
                 <code>calc()</code> <a href="/docs/jointjs#dia.attributes.intro" target="_blank">operations</a> or
                 anywhere else.
                 In order to use <code>calc()</code> operations anyways - specifically on <code>attrs/body</code> - we
-                instead provided a <code>ref</code> <a href="special-attributes.html">special attribute</a> to identify
-                a reference subelement from which the dimensions could be determined.
+                instead provided a <code>ref</code> <a href="special-attributes.html#text-relative-dimensions">special
+                attribute</a> to identify a reference subelement from which the dimensions could be determined.
                 In our example, the reference subelement was the <code>label</code> SVGTextElement, so JointJS used its
                 dimensions for the <code>calc()</code> operations inside <code>attrs/body</code>.
-                (If we specified neither <code>defaultLabel.size</code> nor an individual <code>ref</code> attribute on
-                <code>attrs/body</code>, however, the calculations would have used <code>0</code> as the reference width
-                and height.)</p>
+                (If we had specified neither <code>defaultLabel.size</code> nor an individual <code>ref</code> attribute
+                on <code>attrs/body</code>, however, the calculations would have used <code>0</code> as the reference
+                width and height.)</p>
+
+            <p>Additionally, note that in our example, the <code>x</code> and <code>y</code> position of the
+                <code>body</code> subelement is determined by reference to the <code>label</code> subelement via a
+                <code>calc()</code> operation.</p>
 
             <p>The following example shows the default look of <code>joint.shapes.standard.Link</code> (i.e. with no
                 instance attributes set) alongside the default look of our custom link and the randomized results of the

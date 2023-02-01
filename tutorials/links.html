@@ -444,17 +444,20 @@
             <ul>
                 <li><a href="/docs/jointjs#dia.Link.prototype.labels" target="_blank"><code>link.labels()</code></a>
                     - sets the <code>labels</code> array of the link.
-                    Labels have <code>markup</code>, <code>size</code>, <code>attrs</code>, and <code>position</code> properties.</li>
+                    Labels have <code>markup</code>, <code>size</code>, <code>attrs</code>, and <code>position</code>
+                    properties.</li>
             </ul>
 
             <p><a href="link-labels.html">Link labels are explained in more detail in a separate section of this
                 tutorial</a>.
-                A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
+                <a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">A simple label
+                definition</a> (including markup, attrs and position) is built into the <code>joint.dia.Link</code>
                 class, from which the <code>joint.shapes.standard.Link</code> type inherits it.
                 The built-in default label markup contains two subelements:
                 <code>&lt;text&gt;</code> SVGElement (<code>'text'</code> selector) for label text, and
                 <code>&lt;rect&gt;</code> SVGElement (<code>'rect'</code>selector) for label background.
                 The built-in default attributes specify a simple vertical-centered text on a white rounded rectangle.
+                Finally, the built-in default position places the label at the midpoint of the link.
                 Thus, adding a label can be as simple as passing a value for the <code>text/text</code> attribute:</p>
 
             <div class="paper" id="paper-links-label-builtin"></div>
