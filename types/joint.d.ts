@@ -3082,6 +3082,8 @@ export namespace util {
     export function invoke(collection: Collection, methodPath: PropertyPath, args?: any[]): any[];
     export function invoke<ArgsT>(collection: Collection, functionToInvokeForAll: IterateeFunction<ArgsT>, ...args?: ArgsT): any[];
 
+    export function invokeProperty(object: object, propertyPath: PropertyPath, args?: any[]): any;
+
     export function sortedIndex<T>(sortedArray: T[], valueToInsert: T, iteratee?: IterateeFunction<T>): number;
 
     export function uniq<T>(array: Array<T> | null | undefined, iteratee?: IterateeFunction<T>): T[];
@@ -3135,7 +3137,7 @@ export namespace util {
 
     export function getRectPoint(rect: dia.BBox, position: dia.PositionName): g.Point;
 
-    export function merge(destinationObject: object, ...sources: object[]): object;
+    export function merge(destinationObject: object, ...sources: object[], customizer?: CustomizerFunction): object;
 
     // ADDITIONAL SIMPLE UTIL FUNCTIONS:
 

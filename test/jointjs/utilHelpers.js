@@ -1,3 +1,5 @@
+// code originates from https://github.com/lodash/lodash/blob/4.17.15-post/test/test.js 
+
 QUnit.module('Lodash util helpers', function() {
     function toArgs(array) {
         return (function() { return arguments; }.apply(undefined, array));
@@ -21,6 +23,9 @@ QUnit.module('Lodash util helpers', function() {
     const arrayViews = typedArrays.concat('DataView');
         
     const falsey = [null, undefined, false, 0, NaN, ''];
+
+    const MAX_ARRAY_LENGTH = 4294967295;
+    const MAX_ARRAY_INDEX = MAX_ARRAY_LENGTH - 1;
     
     QUnit.module('assign', function() {
         
@@ -290,6 +295,66 @@ QUnit.module('Lodash util helpers', function() {
         });
     });
 
+    QUnit.module('invokeProperty', function() {
+
+        QUnit.test('should invoke a method on `object`', function(assert) {
+            const object = { 'a': () => 'A' };
+            const actual = joint.util.invokeProperty(object, 'a');
+
+            assert.strictEqual(actual, 'A');
+        });
+
+        QUnit.test('should support invoking with arguments', function(assert) {
+            const object = { 'a': function(a, b) { return [a, b]; } };
+            const actual = joint.util.invokeProperty(object, 'a', 1, 2);
+
+            assert.deepEqual(actual, [1, 2]);
+        });
+
+        QUnit.test('should not error on nullish elements', function(assert) {
+            const values = [null, undefined];
+            const expected = values.map(() => undefined);
+
+            var actual = values.map((value) => {
+                try {
+                    return joint.util.invokeProperty(value, 'a.b', 1, 2);
+                } catch (e) {
+                    throw new Error('should not error on nullish elements');
+                }
+            });
+
+            assert.deepEqual(actual, expected);
+        });
+
+        QUnit.test('should preserve the sign of `0`', function(assert) {
+            const object = { '-0': () => 'a', '0': () => 'b' };
+            const props = [-0, Object(-0), 0, Object(0)];
+
+            var actual = props.map(function(key) {
+                return joint.util.invokeProperty(object, key);
+            });
+
+            assert.deepEqual(actual, ['a', 'a', 'b', 'b']);
+        });
+
+        QUnit.test('should support deep paths', function(assert) {
+            const object = { 'a': { 'b': function(a, b) { return [a, b]; } }};
+
+            ['a.b', ['a', 'b']].forEach((path) => {
+                var actual = joint.util.invokeProperty(object, path, 1, 2);
+                assert.deepEqual(actual, [1, 2]);
+            });
+        });
+
+        QUnit.test('should invoke deep property methods with the correct `this` binding', function(assert) {
+            const object = { 'a': { 'b': function() { return this.c; }, 'c': 1 }};
+
+            ['a.b', ['a', 'b']].forEach((path) => {
+                assert.deepEqual(_.invoke(object, path), 1);
+            });
+        });
+    });
+
     QUnit.module('sortedIndex', function() {
 
         QUnit.test('should return the insert index', function(assert) {
@@ -366,7 +431,65 @@ QUnit.module('Lodash util helpers', function() {
         });
     });
 
+    QUnit.module('sortedIndex with iteratee (sortedIndexBy)', function() {
+
+        QUnit.test('should provide correct `iteratee` arguments', function(assert) {
+            let args;
+
+            joint.util.sortedIndex([30, 50], 40, function(assert) {
+                args || (args = Array.prototype.slice.call(arguments));
+            });
+
+            assert.deepEqual(args, [40]);
+        });
+
+        QUnit.test('should work with `property` shorthands', function(assert) {
+            const objects = [{ 'x': 30 }, { 'x': 50 }];
+            const actual = joint.util.sortedIndex(objects, { 'x': 40 }, 'x');
+
+            assert.strictEqual(actual, 1);
+        });
+
+        QUnit.test('should avoid calling iteratee when length is 0', function(assert) {
+            const objects = [];
+            const iteratee = function() {
+                throw new Error;
+            };
+            const actual = joint.util.sortedIndex(objects, { 'x': 50 }, iteratee);
+
+            assert.strictEqual(actual, 0);
+        });
+
+        QUnit.test('should support arrays larger than `MAX_ARRAY_LENGTH / 2`', function(assert) {
+            const customIsNaN = (value) => value !== value;
+
+            [Math.ceil(MAX_ARRAY_LENGTH / 2), MAX_ARRAY_LENGTH].forEach((length) => {
+                let array = [];
+                const values = [MAX_ARRAY_LENGTH, NaN, undefined];
+
+                array.length = length;
+
+                values.forEach((value) => {
+                    let steps = 0;
+
+                    const actual = joint.util.sortedIndex(array, value, function(value) {
+                        steps++;
+                        return value;
+                    });
+
+                    const expected = !customIsNaN(value)
+                        ? 0
+                        : Math.min(length, MAX_ARRAY_INDEX);
+
+                    assert.ok(steps == 32 || steps == 33);
+                    assert.strictEqual(actual, expected);
+                });
+            });
+        });
+    });
+
     QUnit.module('uniq', function() {
+
         QUnit.test('should perform an unsorted uniq when used as an iteratee for methods like `map`', function(assert) {
             const array = [[2, 1, 2], [1, 2, 1]];
             const actual = array.map((arr) => joint.util.uniq(arr));
@@ -2514,6 +2637,53 @@ QUnit.module('Lodash util helpers', function() {
             });
 
             assert.deepEqual(actual, expected);
+        });
+    });
+
+    QUnit.module('merge with customizer (mergeWith)', function() {
+
+        QUnit.test('should handle merging when `customizer` returns `undefined`', function(assert) {
+            let actual = joint.util.merge({ 'a': { 'b': [1, 1] }}, { 'a': { 'b': [0] }}, () => {});
+            assert.deepEqual(actual, { 'a': { 'b': [0, 1] }});
+
+            actual = joint.util.merge([], [undefined], (val) => val);
+            assert.deepEqual(actual, [undefined]);
+        });
+
+        QUnit.test('should clone sources when `customizer` returns `undefined`', function(assert) {
+            const source1 = { 'a': { 'b': { 'c': 1 }}};
+            const source2 = { 'a': { 'b': { 'd': 2 }}};
+
+            joint.util.merge({}, source1, source2, () => {});
+            assert.deepEqual(source1.a.b, { 'c': 1 });
+        });
+
+        QUnit.test('should defer to `customizer` for non `undefined` results', function(assert) {
+            const actual = joint.util.merge({ 'a': { 'b': [0, 1] }}, { 'a': { 'b': [2] }}, function(a, b) {
+                return Array.isArray(a) ? a.concat(b) : undefined;
+            });
+
+            assert.deepEqual(actual, { 'a': { 'b': [0, 1, 2] }});
+        });
+
+        QUnit.test('should overwrite primitives with source object clones', function(assert) {
+            const actual = joint.util.merge({ 'a': 0 }, { 'a': { 'b': ['c'] }}, function(a, b) {
+                return Array.isArray(a) ? a.concat(b) : undefined;
+            });
+
+            assert.deepEqual(actual, { 'a': { 'b': ['c'] }});
+        });
+
+        QUnit.test('should pop the stack of sources for each sibling property', function(assert) {
+            const array = ['b', 'c'];
+            const object = { 'a': ['a'] };
+            const source = { 'a': array, 'b': array };
+
+            const actual = joint.util.merge(object, source, function(a, b) {
+                return Array.isArray(a) ? a.concat(b) : undefined;
+            });
+
+            assert.deepEqual(actual, { 'a': ['a', 'b', 'c'], 'b': ['b', 'c'] });
         });
     });
 });

@@ -1,3 +1,5 @@
+// code is inspired by https://github.com/lodash/lodash
+
 /* eslint-disable no-case-declarations */
 // -- helper constants
 const argsTag = '[object Arguments]';
@@ -1273,13 +1275,6 @@ function last(array) {
     return length ? array[length - 1] : undefined;
 }
 
-const invokeProperty = (object, path, ...args) => {
-    path = castPath(path, object);
-    object = parent(object, path);
-    const func = object == null ? object : object[toKey(last(path))];
-    return func == null ? undefined : func.apply(object, args);
-};
-
 const createSet = (Set && (1 / setToArray(new Set([undefined,-0]))[1]) == 1 / 0)
     ? (values) => new Set(values)
     : () => {};
@@ -1912,6 +1907,7 @@ export const deepSupplement = function defaultsDeep(...args) {
 
 export const defaultsDeep = deepSupplement;
 
+// _.invokeMap
 export const invoke = (collection, path, ...args) => {
     let index = -1;
     const isFunc = typeof path === 'function';
@@ -1924,13 +1920,22 @@ export const invoke = (collection, path, ...args) => {
     return result;
 };
 
-export const sortedIndex = (array, value, iteratee = (val) => val) => {
+// _.invoke
+export const invokeProperty = (object, path, ...args) => {
+    path = castPath(path, object);
+    object = parent(object, path);
+    const func = object == null ? object : object[toKey(last(path))];
+    return func == null ? undefined : func.apply(object, args);
+};
+
+export const sortedIndex = (array, value, iteratee) => {
     let low = 0;
     let high = array == null ? 0 : array.length;
     if (high == 0) {
         return 0;
     }
 
+    iteratee = getIteratee(iteratee, 2);
     value = iteratee(value);
 
     const valIsNaN = value !== value;
