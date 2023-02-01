@@ -418,7 +418,7 @@ graph.getLinks()[0].appendLabel({
                 selector: 'label'
             }
         ],
-        // no `size` provided = calc() operations need `ref` property
+        // no `size` object provided = calc() operations need `ref` property
         attrs: {
             label: {
                 fill: 'black', // default text color
@@ -471,9 +471,10 @@ graph.getLinks()[0].appendLabel({
     }
 });</code></pre>
 
-            <p>Note: We did not specify any <code>defaultLabel.size</code> object, so JointJS was missing an overarching
-                reference width and height for use in the various <code>attrs/body</code> <code>calc()</code>
-                <a href="/docs/jointjs#dia.attributes.intro" target="_blank">operations</a> or anywhere else.
+            <p>Note: We did not specify any <code>defaultLabel.size</code> object in our example, so JointJS was missing
+                overarching reference width and height dimensions for use in the various <code>attrs/body</code>
+                <code>calc()</code> <a href="/docs/jointjs#dia.attributes.intro" target="_blank">operations</a> or
+                anywhere else.
                 In order to use <code>calc()</code> operations anyways - specifically on <code>attrs/body</code> - we
                 instead provided a <code>ref</code> <a href="special-attributes.html">special attribute</a> to identify
                 a reference subelement from which the dimensions could be determined.
