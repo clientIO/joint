@@ -44,7 +44,7 @@ var link2 = new joint.dia.Link({
 
 <p>As we can see, the <code>joint.shapes.standard.Link</code> shape consists of two <q>subelements</q>: one SVGPathElement named <code>'wrapper'</code> and one SVGPathElement named <code>'line'</code>. The <a href="#dia.Link.intro.styling"><code>attrs</code></a> object refers to the subelements' names (<q>selectors</q>) to provide SVG attributes to these constituent SVGElements.</p>
 
-<p><div class="docs-important-note">Direct use of <code>joint.dia.Link</code> is deprecated. Use links from the <a href="#shapes.standard"><code>standard</code></a> namespace.</div></p>
+<p class="docs-important-note">Direct use of <code>joint.dia.Link</code> is deprecated. Use links from the <a href="#shapes.standard"><code>standard</code></a> namespace.</p>
 
 <p>The <code>joint.dia.Link</code> markup looks like the following:</p>
 
@@ -73,7 +73,7 @@ var link2 = new joint.dia.Link({
     '.marker-target': { fill: 'yellow', d: 'M 10 0 L 0 5 L 10 10 z' }
 });</code></pre>
 
-<p><div class="docs-important-note">The <code>markup</code> attribute is not the only presentation attribute that may be specified for a <code>joint.dia.Link</code>. However, the following four Link properties are deprecated and included only for backwards compatibility. Use <a href="#linkTools">link tools</a> instead.</div></p>
+<p class="docs-important-note">The <code>markup</code> attribute is not the only presentation attribute that may be specified for a <code>joint.dia.Link</code>. However, the following four Link properties are deprecated and included only for backwards compatibility. Use <a href="#linkTools">link tools</a> instead.</p>
 
 <ul>
     <li><code>vertexMarkup</code> - provide default vertex markup for all vertices created on an instance of this Link type (on hover).</li>
