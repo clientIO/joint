@@ -457,7 +457,7 @@ export const LinkView = CellView.extend({
     },
 
 
-    // merge default label attrs into label attrs (or use builtin default label attrs if neither is provided)
+    // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
     // keep `undefined` or `null` because `{}` means something else
     _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
 
@@ -479,7 +479,7 @@ export const LinkView = CellView.extend({
         return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
     },
 
-    // merge default label size into label size (no builtin)
+    // merge default label size into label size (no built-in default)
     // keep `undefined` or `null` because `{}` means something else
     _mergeLabelSize: function(labelSize, defaultLabelSize) {
 

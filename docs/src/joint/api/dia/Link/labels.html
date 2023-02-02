@@ -35,8 +35,8 @@
 <p>The <code>markup</code>, <code>size</code>, <code>attrs</code> and <code>position</code> objects defined on individual labels may be supplemented by properties from one of a hierarchy of <code>defaultLabel</code> objects, each of them following the same schema as above.</p>
 
 <ul>
-    <li>The highest precedence is held by <code>defaultLabel</code> object provided when <a href="#dia.Link.intro.labels">creating a new link instance</a>.</li>
-    <li>The second-highest precedence is held by <code>defaultLabel</code> object provided when <a href="#dia.Link.intro.customLink">defining a custom Link type</a>.</li>
+    <li>The highest precedence is held by the <code>defaultLabel</code> object provided when <a href="#dia.Link.intro.labels">creating a new link instance</a>.</li>
+    <li>The second-highest precedence is held by the <code>defaultLabel</code> object provided when <a href="#dia.Link.intro.customLink">defining a custom Link type</a>.</li>
     <li>Lower tiers of precedence are followed through the ancestors of the Link type (due to the way type extensions work in JointJS). Effectively, this identifies the closest ancestor's <code>defaultLabel</code> object, if any.</li>
 </ul>
 
@@ -49,7 +49,7 @@
 <ul>
     <li>As a parsable SVG (e.g. <code>'&lt;rect /&gt;&lt;text /&gt;'</code>).</li>
     <li>As a JSON array (e.g.<code>[{ tagName: 'rect', selector: 'body' }, { tagName: 'text', selector: 'label' }]</code>).</li>
-    <li>Or as an <code>joint.util.svg</code> <a href="#util.svg">ES6 tag template</a>:</li>
+    <li>Or as a <code>joint.util.svg</code> <a href="#util.svg">ES6 tag template</a>:</li>
 </ul>
 
 <pre><code data-lang="javascript">joint.util.svg`
