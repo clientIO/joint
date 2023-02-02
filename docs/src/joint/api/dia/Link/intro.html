@@ -84,19 +84,19 @@ var link2 = new joint.dia.Link({
 
 <h4 id="dia.Link.intro.styling">Styling</h4>
 
-<p>The keys of the <code>attrs</code> object are <q>selectors</q> that match subelements defined in the link's <a href="#dia.Link.intro.presentation"><code>markup</code></a> (see above). The values of this object are <a href="#dia.attributes">special JointJS attributes</a> or SVG attributes that should be set on the selected subelements. (A list of SVG attributes and their descriptions can be found online, e.g. on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">MDN</a>.)</p>
+<p>The keys of the <code>attrs</code> object are <q>selectors</q> that match subelements defined in the link's <a href="#dia.Link.intro.presentation"><code>markup</code></a> (see above). The values of this object are <a href="#dia.attributes">special JointJS attributes</a> or native SVG attributes that should be set on the selected subelements. (A list of native SVG attributes and their descriptions can be found online, e.g. on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">MDN</a>.)</p>
 
 <p>For example, in order to set a red stroke color on a subelement called <code>'line'</code>, the <code>attrs</code> object would contain:</p>
 
 <pre><code>line: { stroke: 'red' }</code></pre>
 
-<p>If you simply need to change a value of an attribute, it is not recommended to modify the <code>attrs</code> object of the link directly. Instead, use the <a href="#dia.Link.prototype.attr"><code>link.attr()</code></a> method. For example, to set the attributes according to the above example, you would write:</p>
+<p>If you simply need to change a value of an attribute, it is not recommended to modify the <code>attrs</code> object of the link directly. You should use the <code>link.attr()</code> <a href="#dia.Link.prototype.attr">method</a> instead. For example, to set the attributes according to the above example, you would write:</p>
 
 <pre><code data-lang="javascript">link.attr({
     line: { stroke: 'red' }
 });</code></pre>
 
-<p>We can use the <a href="#shapes.standard.Link"><code>joint.shapes.standard.Link</code></a> (which inherits from <code>joint.dia.Link</code>) as an example. The <code>attrs</code> object in its definition is provided below:</p>
+<p>We can use the <a href="#shapes.standard.Link"><code>joint.shapes.standard.Link</code></a> type (which inherits from <code>joint.dia.Link</code>) as an example. The <code>attrs</code> object in its definition is provided below:</p>
 
 <pre><code>attrs: {
     line: {
@@ -116,7 +116,7 @@ var link2 = new joint.dia.Link({
     }
 }</code></pre>
 
-<p>Notice that the object makes use of special JointJS attributes (e.g. <a href="#dia.attributes.connection"><code>connection</code></a>, <a href="#dia.attributes.targetMarker"><code>targetMarker</code></a>) on top of standard SVG attributes (e.g. <code>stroke</code>, <code>strokeWidth</code>). All of these <q>special attributes</q> are listed in the <a href="#dia.attributes">attributes</a> section of this documentation. You should also refer to our <a href="https://resources.jointjs.com/tutorial/special-attributes">tutorial on special attributes</a>.</p>
+<p>Notice that the object makes use of special JointJS attributes (e.g. <a href="#dia.attributes.connection"><code>connection</code></a>, <a href="#dia.attributes.targetMarker"><code>targetMarker</code></a>) on top of native SVG attributes (e.g. <code>stroke</code>, <code>strokeWidth</code>). All of these <q>special attributes</q> are listed in the <a href="#dia.attributes">attributes</a> section of this documentation. You should also refer to our <a href="https://resources.jointjs.com/tutorial/special-attributes">tutorial on special attributes</a>.</p>
 
 <p>In the context of links, the most important special attribute is <code>connection</code>. It specifies that the SVGPathElement(s) in question should follow the path of the Link's model, as provided by the interplay of <a href="#dia.Link.intro.geometry">link geometry methods</a>.</p>
 
@@ -181,7 +181,7 @@ var link2 = new joint.dia.Link({
     },
     labels: [{
         // specification of an individual label:
-        size: { width: 200 }, // partly overwrites `defaultLabel.size`
+        size: { width: 200 }, // partially overwrites `defaultLabel.size`
         attrs: {
             label: {
                 text: 'Hello World'
@@ -234,7 +234,7 @@ var link2 = new joint.dia.Link({
 
 <h4 id="dia.Link.intro.customLink">Custom Link</h4>
 
-<p>It is possible to extend the <code>joint.dia.Link</code> class to create a custom link. A custom link may override default Link properties to assign its own defaults. These values override built-in defaults, if provided, and are applied to all instances of the new Link type, unless an individual instance overrides them with its own values. The following Link properties are applicable in this context:</p>
+<p>It is possible to extend the <code>joint.dia.Link</code> class to create a custom link. A custom link may override default Link properties to assign its own defaults. These values override built-in defaults, if necessary, and are applied to all instances of the new Link type, unless an individual instance overrides them with its own values. The following Link properties are applicable in this context:</p>
 
 <ul>
     <li><code>markup</code> - provide default link markup for all instances of this Link type, specified with a <a href="#dia.Cell.markup.json">JSON array</a>.</li>
@@ -345,6 +345,6 @@ var link = new CustomLink({
     }
 }</code></pre>
 
-<p>If custom <code>markup</code> is not provided (neither as a type default nor as an instance value), built-in default label markup is applied, alongside the built-in default label <code>attrs</code> object. However, it is very highly recommended that you provide both your own <code>markup</code> and your own <code>attrs</code> - unless you want to use the built-in default precisely as-is.</p>
+<p>If custom <code>markup</code> object is not provided (i.e. there is no <a href="#dia.Link.intro.customLink">class-specific</a> <code>defaultLabel.markup</code> object, nor any <a href="#dia.Link.intro.labels">instance-specific</a> <code>defaultLabel.markup</code>, nor an <a href="#dia.Link.intro.labels">individual label-specific</a> <code>markup</code> property), then built-in default label <code>markup</code> is applied (as reproduced above). Alongside, the built-in default label <code>attrs</code> object is applied. Note that the built-in default <code>attrs</code> object is applied as a template in this context, which means that you may enhance it with a custom <code>attrs</code> object (class-specific / instance-specific / individual label-specific). However, in the interest of keeping your code maintainable and easy to understand, it is very highly recommended that you provide both your own <code>markup</code> object and your own <code>attrs</code> object, unless you want to use the built-in default precisely as-is.</p>
 
-<p>The built-in default <code>position</code> object behaves slightly differently. It is always merged with custom <code>position</code> objects (i.e. instance-specific <code>position</code> and/or type default <code>defaultLabel.position</code> objects), but it has the lowest priority of the three. That is, if one of the custom <code>position</code> objects provides a different <code>distance</code> value, that value has precedence over the built-in default position distance; but if no custom <code>position.distance</code> is provided, then <code>0.5</code> is used (placing labels at midpoints of links).</p>
+<p>The built-in default <code>position</code> object behaves slightly differently. Regardless of <code>markup</code>, it is always merged with custom <code>position</code> objects (class-specific / instance-specific / individual label-specific) -  but it has the lowest priority of the four. That is, if at least one of the custom <code>position</code> objects provides a <code>distance</code> value, that value will have precedence over the built-in default <code>position.distance</code>. If no custom <code>position.distance</code> is provided, then the built-in default is applied (placing labels at midpoints of links).</p>
