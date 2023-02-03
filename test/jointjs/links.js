@@ -782,8 +782,8 @@ QUnit.module('links', function(hooks) {
                 this.graph.addCell([r1, r2, r3]);
 
                 // test that defaultLabel does not have effect on subelements with a `ref` attribute
-                // use joint.dia.Link, whose built-in `defaultLabel.attrs/rect/ref' = 'text'`
-                var l0 = new joint.dia.Link({
+                // use joint.shapes.standard.Link, whose built-in `defaultLabel.attrs/rect/ref' = 'text'`
+                var l0 = new joint.shapes.standard.Link({
                     source: { id: r1.id },
                     target: { id: r2.id },
                     attrs: { '.connection': { stroke: 'black' }},
@@ -817,7 +817,7 @@ QUnit.module('links', function(hooks) {
 
                 // test local `label.size`
                 // create a custom link type #1 with defaultLabel where `attrs/rect` doesn't have `ref` attribute
-                var NoRefLabelLink = joint.dia.Link.define('example.NoRefLabelLink', {
+                var NoRefLabelLink = joint.shapes.standard.Link.define('example.NoRefLabelLink', {
                     defaultLabel: {
                         attrs: {
                             rect: {
@@ -969,8 +969,8 @@ QUnit.module('links', function(hooks) {
                 this.graph.addCell([r1, r2, r3]);
 
                 // test that defaultLabel does not have effect on subelements with a `ref` attribute
-                // use joint.dia.Link, whose built-in `defaultLabel.attrs/rect/ref' = 'text'`
-                var l0 = new joint.dia.Link({
+                // use joint.shapes.standard.Link, whose built-in `defaultLabel.attrs/rect/ref' = 'text'`
+                var l0 = new joint.shapes.standard.Link({
                     source: { id: r1.id },
                     target: { id: r2.id },
                     attrs: { '.connection': { stroke: 'black' }},
@@ -1004,7 +1004,7 @@ QUnit.module('links', function(hooks) {
 
                 // test local `label.size`
                 // create a custom link type #1 with defaultLabel where `attrs/rect` doesn't have `ref` attribute and all `ref_` attributes are replaced by `calc()` operations
-                var CalcNoRefLabelLink = joint.dia.Link.define('example.CalcNoRefLabelLink', {
+                var CalcNoRefLabelLink = joint.shapes.standard.Link.define('example.CalcNoRefLabelLink', {
                     defaultLabel: {
                         attrs: {
                             rect: {
