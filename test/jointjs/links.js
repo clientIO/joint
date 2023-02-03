@@ -786,7 +786,6 @@ QUnit.module('links', function(hooks) {
                 var l0 = new joint.shapes.standard.Link({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     labels: [{
                         // l0-label0 - expect default dimensions (based on text size)
                         attrs: { text: { text: 'test'}}
@@ -830,7 +829,6 @@ QUnit.module('links', function(hooks) {
                 var l1 = new NoRefLabelLink({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     labels: [{
                         // l1-label0 - expect default dimensions (based on text size)
                         attrs: { text: { text: 'test'}}
@@ -860,7 +858,6 @@ QUnit.module('links', function(hooks) {
                 var l2 = new NoRefLabelLink({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     defaultLabel: {
                         size: { width: 102, height: 32 }
                     },
@@ -900,7 +897,6 @@ QUnit.module('links', function(hooks) {
                 var l3 = new DefaultLabelSizeLink({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     labels: [{
                         // l3-label0 - expect class-specific `defaultLabel.size` dimensions = (103, 33)
                         attrs: { text: { text: 'test'}}
@@ -930,7 +926,6 @@ QUnit.module('links', function(hooks) {
                 var l4 = new DefaultLabelSizeLink({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     defaultLabel: {
                         size: { width: 104, height: 34 }
                     },
@@ -973,7 +968,6 @@ QUnit.module('links', function(hooks) {
                 var l0 = new joint.shapes.standard.Link({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     labels: [{
                         // l0-label0 - expect default dimensions (based on text size)
                         attrs: { text: { text: 'test'}}
@@ -1025,7 +1019,6 @@ QUnit.module('links', function(hooks) {
                 var l1 = new CalcNoRefLabelLink({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     labels: [{
                         // l1-label0 - expect default dimensions (based on text size)
                         attrs: { text: { text: 'test'}}
@@ -1055,7 +1048,6 @@ QUnit.module('links', function(hooks) {
                 var l2 = new CalcNoRefLabelLink({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     defaultLabel: {
                         size: { width: 102, height: 32 }
                     },
@@ -1095,7 +1087,6 @@ QUnit.module('links', function(hooks) {
                 var l3 = new CalcDefaultLabelSizeLink({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     labels: [{
                         // l3-label0 - expect class-specific `defaultLabel.size` dimensions = (103, 33)
                         attrs: { text: { text: 'test'}}
@@ -1125,7 +1116,6 @@ QUnit.module('links', function(hooks) {
                 var l4 = new CalcDefaultLabelSizeLink({
                     source: { id: r1.id },
                     target: { id: r2.id },
-                    attrs: { '.connection': { stroke: 'black' }},
                     defaultLabel: {
                         size: { width: 104, height: 34 }
                     },
