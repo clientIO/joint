@@ -141,14 +141,13 @@ new joint.dia.Paper({
 
 joint.dia.Link.define('standard.Link', {
     attrs: {
-        // Default Attributes
+        // Attributes
     }
 }, {
     markup: [{
         // Markup
     }]
-});
-</code></pre>
+});</code></pre>
     
             <p>
                 By default, JointJS reads cell definitions from the <code>joint.shapes</code> namespace. If for some reason you would like to change this behaviour, 
@@ -200,8 +199,7 @@ graph.getLinks()[0].appendLabel({
             text: 'customNamespace.shapeGroup.Link'
         }
     }
-});
-</code></pre>
+});</code></pre>
 
             <p>
                 As you can see, <code>type</code> is very important, especially if you want to import a graph from JSON. 
