@@ -775,6 +775,8 @@ QUnit.module('links', function(hooks) {
 
             QUnit.test('label.size - ref', function(assert) {
 
+                assert.expect(22);
+
                 var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
                 var r2 = r1.clone().translate(300);
                 var r3 = r2.clone().translate(300);
@@ -956,6 +958,8 @@ QUnit.module('links', function(hooks) {
             });
 
             QUnit.test('label.size - calc()', function(assert) {
+
+                assert.expect(22);
 
                 var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
                 var r2 = r1.clone().translate(300);
