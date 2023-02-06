@@ -55,7 +55,7 @@ export const Link = Cell.extend({
         '</g>'
     ].join(''),
 
-    // may be overwritten by user to change default label (its markup, attrs, position)
+    // may be overwritten by user to change default label (its markup, size, attrs, position)
     defaultLabel: undefined,
 
     // deprecated

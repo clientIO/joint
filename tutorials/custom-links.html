@@ -147,8 +147,7 @@ joint.dia.Link.define('standard.Link', {
     markup: [{
         // Markup
     }]
-});
-</code></pre>
+});</code></pre>
     
             <p>
                 By default, JointJS reads cell definitions from the <code>joint.shapes</code> namespace. If for some reason you would like to change this behaviour, 
@@ -200,8 +199,7 @@ graph.getLinks()[0].appendLabel({
             text: 'customNamespace.shapeGroup.Link'
         }
     }
-});
-</code></pre>
+});</code></pre>
 
             <p>
                 As you can see, <code>type</code> is very important, especially if you want to import a graph from JSON. 
@@ -327,29 +325,36 @@ graph.getLinks()[0].appendLabel({
 
             <p>The second argument of the <code>define()</code> function (default instance properties) is also where
                 <code>defaultLabel</code> for custom Link subtypes may be specified.
-                This allows you to provide custom default markup and attrs for labels that are created on an instance of
-                your custom Link type.
-                The <code>joint.shapes.standard.Link</code>
+                This allows you to provide custom default markup, size, attrs and position for labels that are created
+                on an instance of your custom Link type.
+                The <code>defaultLabel</code> property is explained in our
+                <a href="/docs/jointjs#dia.Link.labels.defaultLabel" target="_blank">documentation</a>.</p>
+
+            <p>The <code>joint.shapes.standard.Link</code>
                 <a href="/docs/jointjs#dia.Link.intro.customLink" target="_blank">does not define its own custom default
                 label</a>, so the
-                <a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">builtin default markup
-                and attributes</a> are used unless they are overridden by individual label <code>markup</code> and
-                <code>attrs</code>.</p>
+                <a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">built-in default markup,
+                attributes and position</a> are used unless they are overridden by individual label <code>markup</code>,
+                <code>attrs</code> and <code>position</code>.</p>
 
-            <p>The <code>defaultLabel</code> accepts three properties:</p>
+            <p>The <code>defaultLabel</code> accepts four optional properties:</p>
 
             <ul>
                 <li><code>defaultLabel.markup</code> - sets the default markup of labels created on this Link subtype.
-                Expected in the JSON markup format.</li>
+                Expected in the JSON markup format or as a <code>joint.util.svg</code>
+                <a href="/docs/jointjs#util.svg" target="_blank">ES6 tag template</a>.
                 (An SVG-parsable string is also accepted, but it is slower.)
                 <a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">See default.</a></li>
+                <li><code>defaultLabel.size</code> - sets the default dimensions of labels created on this Link subtype.
+                No default value.</li>
                 <li><code>defaultLabel.attrs</code> - sets the default attributes of label subelements on this Link
                 subtype.
                 Uses selectors defined in <code>markup</code>.
                 <a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">See default.</a></li>
                 <li><code>defaultLabel.position</code> - sets the default position along the line at which labels will
                 be added for instances of this Link subtype.
-                Default is <code>0.5</code> (midpoint of the connection path).</li>
+                <a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">The default</a> is
+                <code>{distance: 0.5}</code> (midpoint of the connection path).</li>
             </ul>
 
             <p><a href="link-labels.html">Link labels are explained in depth in a separate section of the intermediate
@@ -411,6 +416,7 @@ graph.getLinks()[0].appendLabel({
                 selector: 'label'
             }
         ],
+        // no `size` object provided = calc() operations need `ref` property
         attrs: {
             label: {
                 fill: 'black', // default text color
@@ -420,7 +426,8 @@ graph.getLinks()[0].appendLabel({
                 pointerEvents: 'none'
             },
             body: {
-                ref: 'label',
+                // calc() is responsive to size of 'label':
+                ref: 'label', // subelement identified by 'label' selector
                 fill: 'white',
                 stroke: 'cornflowerblue',
                 strokeWidth: 2,
@@ -461,6 +468,23 @@ graph.getLinks()[0].appendLabel({
         return link;
     }
 });</code></pre>
+
+            <p>We did not specify any <code>defaultLabel.size</code> object in our example, so JointJS was missing
+                overarching reference width and height dimensions for use in the various <code>attrs/body</code>
+                <code>calc()</code> <a href="/docs/jointjs#dia.attributes.intro" target="_blank">operations</a>.
+                In order to use <code>calc()</code> operations anyways - specifically on <code>attrs/body</code> - we
+                instead provided a <code>ref</code> <a href="special-attributes.html#text-relative-dimensions">special
+                attribute</a> to identify a reference subelement from which the dimensions could be determined.
+                In our example, the reference subelement was the <code>label</code> SVGTextElement, so JointJS used its
+                dimensions for the <code>calc()</code> operations inside <code>attrs/body</code>.
+                (If we had specified neither <code>defaultLabel.size</code> nor an individual <code>ref</code> attribute
+                on <code>attrs/body</code>, however, the calculations would have used <code>0</code> as the reference
+                width and height, which would have been unexpected.)</p>
+
+            <p>Additionally, note that in our example the <code>x</code> and <code>y</code> position of the
+                <code>body</code> subelement is also determined by reference to the <code>label</code> subelement - via
+                <code>calc()</code> <a href="/docs/jointjs#dia.attributes.intro" target="_blank">operations</a> which
+                refer to the <code>x</code> and <code>y</code> variables.</p>
 
             <p>The following example shows the default look of <code>joint.shapes.standard.Link</code> (i.e. with no
                 instance attributes set) alongside the default look of our custom link and the randomized results of the

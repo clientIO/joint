@@ -457,7 +457,7 @@ export const LinkView = CellView.extend({
     },
 
 
-    // merge default label attrs into label attrs
+    // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
     // keep `undefined` or `null` because `{}` means something else
     _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
 
@@ -479,6 +479,22 @@ export const LinkView = CellView.extend({
         return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
     },
 
+    // merge default label size into label size (no built-in default)
+    // keep `undefined` or `null` because `{}` means something else
+    _mergeLabelSize: function(labelSize, defaultLabelSize) {
+
+        if (labelSize === null) return null;
+        if (labelSize === undefined) {
+
+            if (defaultLabelSize === null) return null;
+            if (defaultLabelSize === undefined) return undefined;
+
+            return defaultLabelSize;
+        }
+
+        return merge({}, defaultLabelSize, labelSize);
+    },
+
     updateLabels: function() {
 
         if (!this._V.labels) return this;
@@ -493,6 +509,7 @@ export const LinkView = CellView.extend({
         var defaultLabel = model._getDefaultLabel();
         var defaultLabelMarkup = defaultLabel.markup;
         var defaultLabelAttrs = defaultLabel.attrs;
+        var defaultLabelSize = defaultLabel.size;
 
         for (var i = 0, n = labels.length; i < n; i++) {
 
@@ -504,6 +521,7 @@ export const LinkView = CellView.extend({
             var label = labels[i];
             var labelMarkup = label.markup;
             var labelAttrs = label.attrs;
+            var labelSize = label.size;
 
             var attrs = this._mergeLabelAttrs(
                 (labelMarkup || defaultLabelMarkup),
@@ -512,8 +530,13 @@ export const LinkView = CellView.extend({
                 builtinDefaultLabelAttrs
             );
 
+            var size = this._mergeLabelSize(
+                labelSize,
+                defaultLabelSize
+            );
+
             this.updateDOMSubtreeAttributes(labelNode, attrs, {
-                rootBBox: new Rect(label.size),
+                rootBBox: new Rect(size),
                 selectors: selectors
             });
         }
