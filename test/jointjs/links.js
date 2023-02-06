@@ -1152,33 +1152,52 @@ QUnit.module('links', function(hooks) {
 
         QUnit.test('labelMove', function(assert) {
 
-            assert.expect(2);
+            assert.expect(4);
 
             var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 }});
             var r2 = r1.clone().translate(250);
 
             this.graph.addCell([r1, r2]);
 
-            var l0 = new joint.dia.Link({
-                source: { id: r1.id },
-                target: { id: r2.id },
-                attrs: { '.connection': { stroke: 'black' }},
-                labels: [
-                    { position: .5, attrs: { text: { text: 'test label' }}}
-                ]
+            var l0 = new joint.shapes.standard.Link({
+                source: { id: r1.id }, // left anchor = (100, 75)
+                target: { id: r2.id }, // right anchor = (300, 75)
+                labels: [{
+                    position: .5, // midpoint = (200, 75)
+                    attrs: { text: { text: 'test label' }} // text anchor = center = midpoint
+                }]
             });
 
             this.graph.addCell(l0);
 
             var v0 = this.paper.findViewByModel(l0);
-
             v0.options.interactive = { labelMove: true };
             var event = { currentTarget: v0.$('.label')[0], type: 'mousedown' };
-            v0.dragLabelStart(event);
+            v0.dragLabelStart(event, 200, 75); // mousedown exactly on-center = midpoint
             v0.pointermove(event, 150, 25);
-            assert.equal(l0.get('labels')[0].position.offset, -50, 'offset was set during the label drag');
-            assert.equal(l0.get('labels')[0].position.distance, .25, 'distance was set during the label drag');
+            assert.equal(l0.get('labels')[0].position.offset, -50, 'offset was set during the label drag (on-center pointerdown)');
+            assert.equal(l0.get('labels')[0].position.distance, .25, 'distance was set during the label drag (on-center pointerdown');
             v0.pointerup(event);
+
+            var l1 = new joint.shapes.standard.Link({
+                source: { id: r1.id }, // left anchor = (100, 75)
+                target: { id: r2.id }, // right anchor = (300, 75)
+                labels: [{
+                    position: .5, // midpoint = (200, 75)
+                    attrs: { text: { text: 'test label' }}
+                }]
+            });
+
+            this.graph.addCell(l1);
+
+            var v1 = this.paper.findViewByModel(l1);
+            v1.options.interactive = { labelMove: true };
+            var event = { currentTarget: v1.$('.label')[0], type: 'mousedown' };
+            v1.dragLabelStart(event, 202, 77); // mousedown off-center = midpoint + (2, 2)
+            v1.pointermove(event, 152, 27); // same movement as above = same resulting `position` as above
+            assert.equal(l1.get('labels')[0].position.offset, -50, 'offset was set during the label drag (off-center pointerdown)');
+            assert.equal(l1.get('labels')[0].position.distance, .25, 'distance was set during the label drag (off-center pointerdown)');
+            v1.pointerup(event);
         });
 
         QUnit.test('change:labels', function(assert) {
