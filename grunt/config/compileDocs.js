@@ -49,7 +49,7 @@ module.exports = function(grunt) {
         to be unique across different versions of the documentation.
     */
     Handlebars.registerHelper('title', function() {
-        return `${this.heading} - version ${pkg.version.split('.').slice(0, -1).join('.')}`;
+        return `${this.heading} (v${pkg.version.split('.').slice(0, -1).join('.')}) - JointJS Docs`;
     });
 
     return {
