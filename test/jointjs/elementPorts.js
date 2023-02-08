@@ -358,6 +358,47 @@ QUnit.module('element ports', function() {
             assert.equal(shapeView.$el.find('.custom-rect').prop('tagName'), 'rect');
         });
 
+        QUnit.test('ports are rendered only once on resize', function(assert) {
+            const model = new joint.shapes.standard.Rectangle({
+                size: { width: 100, height: 100 },
+                ports: {
+                    items: [{ id: 'port1' }, { id: 'port2' }]
+                }
+            });
+            const shapeView = new joint.dia.ElementView({ model: model });
+            const renderPortsSpy = sinon.spy(shapeView, '_renderPorts');
+            const updatePortsSpy = sinon.spy(shapeView, '_updatePorts');
+            const flags = joint.dia.ElementView.Flags;
+
+            // 1 update exactly
+            [
+                [flags.PORTS], // on ports change
+                [flags.UPDATE], // on attrs change
+                [flags.RESIZE, flags.PORTS, flags.TOOLS], // on resize
+            ].forEach(flags => {
+                renderPortsSpy.resetHistory();
+                updatePortsSpy.resetHistory();
+                shapeView.confirmUpdate(shapeView.getFlag(flags), {});
+                assert.equal(renderPortsSpy.callCount, 1);
+                assert.equal(updatePortsSpy.callCount, 1);
+            });
+
+            // No update
+            [
+                [flags.TRANSLATE], // on position change
+                [flags.ROTATE], // on angle change
+            ].forEach(flags => {
+                renderPortsSpy.resetHistory();
+                updatePortsSpy.resetHistory();
+                shapeView.confirmUpdate(shapeView.getFlag(flags), {});
+                assert.equal(renderPortsSpy.callCount, 0);
+                assert.equal(updatePortsSpy.callCount, 0);
+            });
+
+
+        });
+
+
         QUnit.test('Selectors', function(assert) {
 
             var shape = create({

@@ -88,6 +88,10 @@ export const ElementView = CellView.extend({
                 updateHighlighters = true;
                 // Resize method is calling `update()` internally
                 flag = this.removeFlag(flag, [Flags.RESIZE, Flags.UPDATE]);
+                if (useCSSSelectors) {
+                    // `resize()` rendered the ports when useCSSSelectors are enabled
+                    flag = this.removeFlag(flag, Flags.PORTS);
+                }
             }
             if (this.hasFlag(flag, Flags.UPDATE)) {
                 this.update(this.model, null, opt);
