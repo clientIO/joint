@@ -52,6 +52,16 @@ module.exports = function(grunt) {
         return `${this.heading} (v${pkg.version.split('.').slice(0, -1).join('.')}) - JointJS Docs`;
     });
 
+    /* 
+        Create unique content to insert into documentation meta description using the page heading and version number.
+        `Joint API v(3.6)`
+        For SEO performance, each documentation page meta description should be unique, and also unique across
+        different versions of the documentation.
+    */
+    Handlebars.registerHelper('description', function() {
+        return `${this.heading} (v${pkg.version.split('.').slice(0, -1).join('.')})`;
+    });
+
     return {
         all: {
             options: {

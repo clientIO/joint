@@ -100,22 +100,23 @@ img {
 }
 
 h1 {
+    border-bottom: 1px solid #eee;
     color: var(--primary-blue);
     font-size: 35px;
     font-weight: var(--text-font-weight-bold);
     word-spacing: 3.5px;
+    letter-spacing: var(--text-letter-spacing);
+    padding-bottom: 30px;
     letter-spacing: 1px;
     text-align: center;
     text-transform: capitalize;
-    margin: 49px 0 46px;
+    margin: 40px 0 46px;
 }
 
 h2 {
     font-size: 24px;
     text-align: center;
     text-transform: uppercase;
-    border-bottom: 1px solid #d1d2d8;
-    padding-bottom: 30px;
     margin: 32px 0 0;
 }
 
