@@ -760,8 +760,19 @@ export const elementViewPortPrototype = {
         }
 
         const labelRootSelector = 'labelRoot';
-        if (labelElement && !(labelRootSelector in portContainerSelectors)) {
-            portContainerSelectors[labelRootSelector] = labelElement.node;
+        const labelTextSelector = 'labelText';
+        if (labelElement) {
+            const labelNode = labelElement.node;
+            if (!(labelRootSelector in portContainerSelectors)) {
+                portContainerSelectors[labelRootSelector] = labelNode;
+            }
+            if (!(labelTextSelector in portContainerSelectors)) {
+                const labelTextNode = (labelElement.tagName() === 'TEXT')
+                    ? labelNode
+                    : Array.from(labelNode.querySelectorAll('text'));
+                portContainerSelectors[labelTextSelector] = labelTextNode;
+                labelSelectors[labelTextSelector] = labelTextNode;
+            }
         }
 
         portContainerElement.append(portElement.addClass('joint-port-body'));
