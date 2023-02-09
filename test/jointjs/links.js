@@ -1200,6 +1200,67 @@ QUnit.module('links', function(hooks) {
             v1.pointerup(event);
         });
 
+        QUnit.test('label - keepGradient', function(assert) {
+
+            assert.expect(2);
+
+            var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 }});
+            var r2 = r1.clone().translate(250);
+
+            this.graph.addCell([r1, r2]);
+
+            var l0 = new joint.shapes.standard.Link({
+                source: { id: r1.id }, // left anchor = (100, 75)
+                target: { id: r2.id }, // right anchor = (300, 75)
+                labels: [{
+                    position: {
+                        distance: .5, // midpoint = (200, 75)
+                        args: {
+                            keepGradient: true
+                        }
+                    },
+                    attrs: { text: { text: 'test label' }} // text anchor = center = midpoint
+                }]
+            });
+
+            this.graph.addCell(l0);
+
+            var v0 = this.paper.findViewByModel(l0);
+            v0.options.interactive = { labelMove: true };
+            var event = { currentTarget: v0.$('.label')[0], type: 'mousedown' };
+            v0.dragLabelStart(event, 200, 75);
+            v0.pointermove(event, 200, 25);
+            var l0labelRotation = V.decomposeMatrix(v0.el.getElementsByClassName('labels')[0].getElementsByClassName('label')[0].getCTM()).rotation;
+            assert.equal(l0labelRotation, 0, 'label angle does not change when label is moved around straight-line link (relative offset)');
+            v0.pointerup(event);
+
+            var l1 = new joint.shapes.standard.Link({
+                source: { id: r1.id }, // left anchor = (100, 75)
+                target: { id: r2.id }, // right anchor = (300, 75)
+                labels: [{
+                    position: {
+                        distance: .5, // midpoint = (200, 75)
+                        args: {
+                            keepGradient: true,
+                            absoluteOffset: true,
+                        }
+                    },
+                    attrs: { text: { text: 'test label' }} // text anchor = center = midpoint
+                }]
+            });
+
+            this.graph.addCell(l1);
+
+            var v1 = this.paper.findViewByModel(l1);
+            v1.options.interactive = { labelMove: true };
+            var event = { currentTarget: v1.$('.label')[0], type: 'mousedown' };
+            v1.dragLabelStart(event, 200, 75);
+            v1.pointermove(event, 200, 25);
+            var l1labelRotation = V.decomposeMatrix(v1.el.getElementsByClassName('labels')[0].getElementsByClassName('label')[0].getCTM()).rotation;
+            assert.equal(l1labelRotation, 0, 'label angle does not change when label is moved around straight-line link (absolute offset)');
+            v1.pointerup(event);
+        });
+
         QUnit.test('change:labels', function(assert) {
 
             var l = new joint.dia.Link({
