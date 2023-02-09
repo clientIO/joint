@@ -795,20 +795,19 @@ export const elementViewPortPrototype = {
             var portId = metrics.portId;
             var cached = this._portElementsCache[portId] || {};
             var portTransformation = metrics.portTransformation;
-            this.applyPortTransform(cached.portElement, portTransformation);
-            this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
-                rootBBox: new Rect(metrics.portSize),
-                selectors: cached.portSelectors
-            });
-
             var labelTransformation = metrics.labelTransformation;
             if (labelTransformation && cached.portLabelElement) {
-                this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
                 this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
                     rootBBox: new Rect(metrics.labelSize),
                     selectors: cached.portLabelSelectors
                 });
+                this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
             }
+            this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
+                rootBBox: new Rect(metrics.portSize),
+                selectors: cached.portSelectors
+            });
+            this.applyPortTransform(cached.portElement, portTransformation);
         }
     },
 

@@ -970,4 +970,95 @@ QUnit.module('element ports', function() {
             shape.addPorts([{ id: 'x' }, { id: 'y' }]);
         });
     });
+
+    QUnit.module('rendering', function(hooks) {
+
+        let graph, paper;
+
+        hooks.beforeEach(function() {
+            graph = new joint.dia.Graph;
+            var fixtures = document.getElementById('qunit-fixture');
+            var paperEl = document.createElement('div');
+            fixtures.appendChild(paperEl);
+            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+        });
+
+        hooks.afterEach(function() {
+            paper.remove();
+        });
+
+        QUnit.test('referencing port label node', function(assert) {
+            const model = new joint.shapes.standard.Rectangle({
+                size: { width: 200, height: 200 },
+                portLabelMarkup: [
+                    {
+                        tagName: 'rect',
+                        selector: 'rectCopy'
+                    },
+                    {
+                        tagName: 'rect',
+                        selector: 'rectRef'
+                    }
+                ],
+                ports: {
+                    groups: {
+                        left: {
+                            position: 'left',
+                            label: {
+                                position: {
+                                    name: 'manual',
+                                    args: {
+                                        attrs: {
+                                            'rectRef': {
+                                                x: -11,
+                                                y: -13
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            attrs: {
+                                rectCopy: {
+                                    ref: 'rectRef',
+                                    fill: 'red',
+                                    x: 'calc(x)',
+                                    y: 'calc(y)',
+                                    width: 'calc(w)',
+                                    height: 'calc(h)'
+                                },
+                                rectRef: {
+                                    width: 100,
+                                    height: 20,
+                                },
+                            }
+                        },
+                    },
+                    items: [{
+                        id: 'p1',
+                        group: 'left'
+                    }]
+                }
+            });
+            model.addTo(graph, { async: false });
+            const shapeView = model.findView(paper);
+            const rectRefNode = shapeView.findPortNode('p1', 'rectRef');
+            const rectCopyNode = shapeView.findPortNode('p1', 'rectCopy');
+            const x = Number(rectRefNode.getAttribute('x'));
+            const y = Number(rectRefNode.getAttribute('y'));
+            const width = Number(rectRefNode.getAttribute('width'));
+            const height = Number(rectRefNode.getAttribute('height'));
+            // Reference rectangle should have a position and size set.
+            assert.notEqual(x, 0);
+            assert.notEqual(y, 0);
+            assert.notEqual(width, 0);
+            assert.notEqual(height, 0);
+            // Rectangle copy should have the same position and size
+            // as the reference rectangle.
+            assert.equal(Number(rectCopyNode.getAttribute('x')), x);
+            assert.equal(Number(rectCopyNode.getAttribute('y')), y);
+            assert.equal(Number(rectCopyNode.getAttribute('width')), width);
+            assert.equal(Number(rectCopyNode.getAttribute('height')), height);
+        });
+    });
+
 });
