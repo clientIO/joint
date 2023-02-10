@@ -1670,7 +1670,7 @@ export const LinkView = CellView.extend({
         var angle = labelAngle;
         if (tangent) {
             if (isOffsetAbsolute) {
-                translation = tangent.start;
+                translation = tangent.start.clone();
                 translation.offset(labelOffsetCoordinates);
             } else {
                 var normal = tangent.clone();
@@ -1678,15 +1678,17 @@ export const LinkView = CellView.extend({
                 normal.setLength(labelOffset);
                 translation = normal.end;
             }
+
             if (isKeepGradient) {
                 angle = (tangent.angle() + labelAngle);
                 if (isEnsureLegibility) {
                     angle = normalizeAngle(((angle + 90) % 180) - 90);
                 }
             }
+
         } else {
             // fallback - the connection has zero length
-            translation = path.start;
+            translation = path.start.clone();
             if (isOffsetAbsolute) translation.offset(labelOffsetCoordinates);
         }
 
