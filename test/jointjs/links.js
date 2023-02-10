@@ -1227,12 +1227,12 @@ QUnit.module('links', function(hooks) {
 
             var v0 = this.paper.findViewByModel(l0);
             v0.options.interactive = { labelMove: true };
-            var event = { currentTarget: v0.$('.label')[0], type: 'mousedown' };
-            v0.dragLabelStart(event, 200, 75);
-            v0.pointermove(event, 200, 25);
-            var l0labelRotation = V.decomposeMatrix(v0.el.getElementsByClassName('labels')[0].getElementsByClassName('label')[0].getCTM()).rotation;
+            var evt0 = { currentTarget: v0.$('.label')[0], type: 'mousedown' };
+            v0.dragLabelStart(evt0, 200, 75);
+            v0.pointermove(evt0, 200, 25);
+            var l0labelRotation = V.decomposeMatrix(v0.el.querySelector('.labels .label').getCTM()).rotation;
             assert.equal(l0labelRotation, 0, 'label angle does not change when label is moved around straight-line link (relative offset)');
-            v0.pointerup(event);
+            v0.pointerup(evt0);
 
             var l1 = new joint.shapes.standard.Link({
                 source: { id: r1.id }, // left anchor = (100, 75)
@@ -1253,12 +1253,12 @@ QUnit.module('links', function(hooks) {
 
             var v1 = this.paper.findViewByModel(l1);
             v1.options.interactive = { labelMove: true };
-            var event = { currentTarget: v1.$('.label')[0], type: 'mousedown' };
-            v1.dragLabelStart(event, 200, 75);
-            v1.pointermove(event, 200, 25);
-            var l1labelRotation = V.decomposeMatrix(v1.el.getElementsByClassName('labels')[0].getElementsByClassName('label')[0].getCTM()).rotation;
+            var evt1 = { currentTarget: v1.$('.label')[0], type: 'mousedown' };
+            v1.dragLabelStart(evt1, 200, 75);
+            v1.pointermove(evt1, 200, 25);
+            var l1labelRotation = V.decomposeMatrix(v1.el.querySelector('.labels .label').getCTM()).rotation;
             assert.equal(l1labelRotation, 0, 'label angle does not change when label is moved around straight-line link (absolute offset)');
-            v1.pointerup(event);
+            v1.pointerup(evt1);
         });
 
         QUnit.test('change:labels', function(assert) {
