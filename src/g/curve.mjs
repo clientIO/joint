@@ -591,14 +591,14 @@ Curve.prototype = {
         // - (i.e. cubic curves cannot intersect the baseline more than once)
         // - therefore starting from iteration = 2 ensures that subsequent iterations do not produce sampling with equal length
         // - (unless it's a straight-line curve, see below)
-        var minIterations = 2; // = pow(2, 1)
+        var minIterations = 2; // = 2*1
 
         // special case #3: straight-line curves have the same observed length in all iterations
         // - this causes observed precision ratio to always be 0 (= lower than `precisionRatio`, which is our exit condition)
-        // - we enforce the expected number of iterations = 2^precision
+        // - we enforce the expected number of iterations = 2 * precision
         var isLine = ((control1.cross(start, end) === 0) && (control2.cross(start, end) === 0));
         if (isLine) {
-            minIterations = pow(2, precision);
+            minIterations = (2 * precision);
         }
 
         // recursively divide curve at `t = 0.5`
