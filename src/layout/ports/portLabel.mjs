@@ -32,14 +32,15 @@ function outsideLayout(portPosition, elBBox, autoOrient, opt) {
         ty = 0;
         textAnchor = 'start';
     } else if (angle < x[0]) {
-        y = '0';
         tx = 0;
         ty = -offset;
         if (autoOrient) {
             orientAngle = -90;
             textAnchor = 'start';
+            y = '.3em';
         } else {
             textAnchor = 'middle';
+            y = '0';
         }
     } else if (angle < x[3]) {
         y = '.3em';
@@ -47,14 +48,15 @@ function outsideLayout(portPosition, elBBox, autoOrient, opt) {
         ty = 0;
         textAnchor = 'end';
     } else {
-        y = '.6em';
         tx = 0;
         ty = offset;
         if (autoOrient) {
             orientAngle = 90;
             textAnchor = 'start';
+            y = '.3em';
         } else {
             textAnchor = 'middle';
+            y = '.6em';
         }
     }
 
@@ -101,14 +103,15 @@ function insideLayout(portPosition, elBBox, autoOrient, opt) {
         ty = 0;
         textAnchor = 'end';
     } else if (angle < bBoxAngles[0]) {
-        y = '.6em';
         tx = 0;
         ty = offset;
         if (autoOrient) {
             orientAngle = 90;
             textAnchor = 'start';
+            y = '.3em';
         } else {
             textAnchor = 'middle';
+            y = '.6em';
         }
     } else if (angle < bBoxAngles[3]) {
         y = '.3em';
@@ -116,14 +119,15 @@ function insideLayout(portPosition, elBBox, autoOrient, opt) {
         ty = 0;
         textAnchor = 'start';
     } else {
-        y = '0em';
         tx = 0;
         ty = -offset;
         if (autoOrient) {
             orientAngle = -90;
             textAnchor = 'start';
+            y = '.3em';
         } else {
             textAnchor = 'middle';
+            y = '0';
         }
     }
 
@@ -182,8 +186,8 @@ function radialLayout(portCenterOffset, autoOrient, opt) {
     });
 }
 
-export const manual = function(portPosition, elBBox, opt) {
-    return labelAttributes(opt, elBBox);
+export const manual = function(_portPosition, _elBBox, opt) {
+    return labelAttributes(opt);
 };
 
 export const left = function(portPosition, elBBox, opt) {
