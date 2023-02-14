@@ -733,6 +733,45 @@ QUnit.module('curve', function() {
                 assert.equal(Array.isArray(curve.getSubdivisions({ precision: 5 })), true);
             });
 
+            QUnit.test('special case #1 - point-like curves', function(assert) {
+
+                assert.expect(2);
+
+                var curve = new g.Curve('100 100', '100 100', '100 100', '100 100');
+                var curveSubdivisions = curve.getSubdivisions();
+                assert.equal(curveSubdivisions.length, 1); // shortcut code => 1 subdivision
+                assert.deepEqual(curveSubdivisions, [
+                    new g.Curve(new g.Point(100, 100), new g.Point(100, 100), new g.Point(100, 100), new g.Point(100, 100))
+                ]);
+            });
+
+            QUnit.test('special case #2 - sine-like curves', function(assert) {
+
+                assert.expect(3);
+
+                var curve = new g.Curve('0 0', '100 100', '200 -100', '300 0');
+                var curveSubdivisions = curve.getSubdivisions({ precision: 1 });
+                assert.equal(curveSubdivisions.length, 4); // iterations = minIterations = 2 iteration, so 2^(2) = 4 subdivisions
+                assert.equal(curveSubdivisions[0].end.x, 300/4);
+                assert.deepEqual(curveSubdivisions, [
+                    new g.Curve(new g.Point(0, 0), new g.Point(25, 25), new g.Point(50, 31.25), new g.Point(75, 28.125)),
+                    new g.Curve(new g.Point(75, 28.125), new g.Point(100, 25), new g.Point(125, 12.5), new g.Point(150, 0)),
+                    new g.Curve(new g.Point(150, 0), new g.Point(175, -12.5), new g.Point(200, -25), new g.Point(225, -28.125)),
+                    new g.Curve(new g.Point(225, -28.125), new g.Point(250, -31.25), new g.Point(275, -25), new g.Point(300, 0))
+                ]);
+            });
+
+            QUnit.test('special case #3 - straight-line curves', function(assert) {
+
+                assert.expect(3);
+
+                var curve = new g.Curve('0 0', '100 0', '200 0', '300 0');
+                var curveSubdivisions = curve.getSubdivisions(); // using default precision = 3
+                assert.equal(curveSubdivisions.length, 64); // iterations = 2*precision = 2*3 = 6, so 2^(6) = 64 subdivisions
+                assert.equal(curveSubdivisions[0].end.x, 300/64);
+                assert.deepEqual(curveSubdivisions[0], new g.Curve(new g.Point(0, 0), new g.Point(1.5625, 0), new g.Point(3.125, 0), new g.Point(4.6875, 0)));
+            });
+
             QUnit.test('returns an array with curve subdivisions up to precision', function(assert) {
 
                 var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
