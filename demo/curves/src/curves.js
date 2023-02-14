@@ -1,4 +1,4 @@
-const { dia, shapes, linkTools, connectors } = joint;
+const { dia, shapes, elementTools, linkTools, connectors } = joint;
 const { Polygon, Ellipse, Rect, toDeg } = g;
 const { TangentDirections } = connectors.curve;
 
@@ -162,7 +162,7 @@ const BaseShape = dia.Element.define(ShapeTypes.BASE, {
 
     getTools() {
         return [
-            new linkTools.Connect({
+            new elementTools.Connect({
                 focusOpacity: 0,
                 markup: this.getConnectToolMarkup()
             })
