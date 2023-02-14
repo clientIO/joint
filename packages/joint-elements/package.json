@@ -1,0 +1,19 @@
+{
+  "name": "@joint/elements",
+  "title": "JointJS Elements",
+  "version": "1.0.0",
+  "description": "Elements module for JointJS",
+  "main": "src/index.ts",
+  "homepage": "http://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "http://client.io"
+  },
+  "license": "MPL-2.0",
+  "scripts": {},
+  "dependencies": {
+    "@joint/core": "file:../joint-core",
+    "@joint/decorators": "file:../joint-decorators"
+  },
+  "keywords": []
+}

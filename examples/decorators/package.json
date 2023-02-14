@@ -13,9 +13,9 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "@joint/core": "file:../../packages/core",
-    "@joint/decorators": "file:../../packages/decorators",
-    "@joint/elementTools": "file:../../packages/elementTools"
+    "@joint/core": "file:../../packages/joint-core",
+    "@joint/decorators": "file:../../packages/joint-decorators",
+    "@joint/elementTools": "file:../../packages/joint-element-tools"
   },
   "devDependencies": {
     "ts-loader": "^9.2.5",
