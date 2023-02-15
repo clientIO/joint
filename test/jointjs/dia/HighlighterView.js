@@ -769,6 +769,19 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.notOk(paper.isDefined(highlighter.getMaskId()));
         });
 
+        QUnit.test('Purging the mask nodes', function(assert) {
+            // class names
+            const HighlighterView = joint.highlighters.mask;
+            const id = 'highlighter-id';
+            elementView.el.classList.add('root');
+            elementView.el.querySelector('rect').classList.add('body');
+            elementView.el.querySelector('text').classList.add('label');
+            const highlighter = HighlighterView.add(elementView, 'root', id, { deep: true });
+            const maskEl = paper.svg.getElementById(highlighter.getMaskId());
+            assert.notOk(maskEl.querySelector('.root'));
+            assert.notOk(maskEl.querySelector('.body'));
+            assert.notOk(maskEl.querySelector('.label'));
+        });
     });
 
     QUnit.module('stroke', function() {
