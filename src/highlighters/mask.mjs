@@ -41,7 +41,8 @@ export const mask = HighlighterView.extend({
         'marker-end',
         'marker-mid',
         'transform',
-        'stroke-dasharray'
+        'stroke-dasharray',
+        'class',
     ],
 
     MASK_CHILD_ATTRIBUTE_BLACKLIST: [
@@ -53,7 +54,8 @@ export const mask = HighlighterView.extend({
         'fill-opacity',
         'marker-start',
         'marker-end',
-        'marker-mid'
+        'marker-mid',
+        'class',
     ],
 
     // TODO: change the list to a function callback
