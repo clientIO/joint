@@ -157,7 +157,7 @@ export namespace dia {
         }
     }
 
-    class Graph<A = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Graph<A extends Backbone.ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
         constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
@@ -314,7 +314,7 @@ export namespace dia {
         }
     }
 
-    class Cell<A = Cell.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Cell<A extends Backbone.ObjectHash = Cell.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
         constructor(attributes?: A, opt?: Graph.Options);
 
@@ -485,7 +485,7 @@ export namespace dia {
         }
     }
 
-    class Element<A = Element.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
+    class Element<A extends Backbone.ObjectHash = Element.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         isElement(): boolean;
 
@@ -608,7 +608,7 @@ export namespace dia {
         }
     }
 
-    class Link<A = Link.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
+    class Link<A extends Backbone.ObjectHash = Link.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         toolMarkup: string;
         doubleToolMarkup?: string;
@@ -1816,7 +1816,7 @@ export namespace dia {
         }
     }
 
-    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined, SVGElement> {
+    class HighlighterView<Options extends mvc.ViewOptions<undefined, SVGElement> = HighlighterView.Options> extends mvc.View<undefined, SVGElement> {
 
         constructor(options?: Options);
 
@@ -2015,7 +2015,7 @@ export namespace highlighters {
         }
     }
 
-    class list<Item = any, Options = list.Options> extends dia.HighlighterView<Options> {
+    class list<Item = any, Options extends mvc.ViewOptions<undefined, SVGElement> = list.Options> extends dia.HighlighterView<Options> {
 
         options: Options;
 
@@ -2189,7 +2189,7 @@ export namespace shapes {
 
         type CylinderAttributes = dia.Element.GenericAttributes<CylinderSelectors>;
 
-        class Cylinder<S = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
+        class Cylinder<S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
             topRy(): string | number;
             topRy(t: string | number, opt?: S): this;
         }
@@ -3300,6 +3300,7 @@ export namespace mvc {
 
     interface ViewOptions<T extends (Backbone.Model | undefined), E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
         theme?: string;
+        [key: string]: any;
     }
 
     interface viewEventData {
@@ -4136,7 +4137,7 @@ export namespace elementTools {
         }
     }
 
-    abstract class Control<T = Control.Options> extends dia.ToolView {
+    abstract class Control<T extends mvc.ViewOptions<undefined, SVGElement> = Control.Options> extends dia.ToolView {
         options: T;
         constructor(opt?: T);
 

@@ -2,13 +2,23 @@ module.exports = {
     test: {
         src: ['test/ts/*.ts'],
         options: {
-            noImplicitAny: true,
+            strict: true,
+            pretty: true,
             forceConsistentCasingInFileNames: true,
             noImplicitReturns: true,
-            noImplicitThis: true,
-            strictNullChecks: false,
             suppressImplicitAnyIndexErrors: true,
-            noUnusedLocals: false
+            noUnusedLocals: false,
+            /* 
+                'strict' is shorthand for the following options:
+                    noImplicitAny: true,
+                    noImplicitThis: true,
+                    alwaysStrict: true,
+                    strictBindCallApply: true,
+                    strictNullChecks: true,
+                    strictFunctionTypes: true,
+                    strictPropertyInitialization: true,
+                    useUnknownInCatchVariables: true,
+            */    
         }
     }
 };
