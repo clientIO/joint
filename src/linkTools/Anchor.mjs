@@ -211,8 +211,8 @@ const Anchor = ToolView.extend({
         this.toggleArea(false);
         var linkView = this.relatedView;
         if (this.options.redundancyRemoval) linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
-        linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
         linkView.checkMouseleave(normalizedEvent);
+        linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
     },
 
     onPointerDblClick: function() {
