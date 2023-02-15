@@ -204,6 +204,7 @@ const Anchor = ToolView.extend({
     },
 
     onPointerUp: function(evt) {
+        const normalizedEvent = util.normalizeEvent(evt);
         this.paper.delegateEvents();
         this.undelegateDocumentEvents();
         this.blur();
@@ -211,6 +212,7 @@ const Anchor = ToolView.extend({
         var linkView = this.relatedView;
         if (this.options.redundancyRemoval) linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
         linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
+        linkView.checkMouseleave(normalizedEvent);
     },
 
     onPointerDblClick: function() {
