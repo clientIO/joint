@@ -769,7 +769,7 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.notOk(paper.isDefined(highlighter.getMaskId()));
         });
 
-        QUnit.test('Purifying the mask element', function(assert) {
+        QUnit.test('Purging the mask nodes', function(assert) {
             // class names
             const HighlighterView = joint.highlighters.mask;
             const id = 'highlighter-id';
