@@ -204,12 +204,14 @@ const Anchor = ToolView.extend({
     },
 
     onPointerUp: function(evt) {
+        const normalizedEvent = util.normalizeEvent(evt);
         this.paper.delegateEvents();
         this.undelegateDocumentEvents();
         this.blur();
         this.toggleArea(false);
         var linkView = this.relatedView;
         if (this.options.redundancyRemoval) linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+        linkView.checkMouseleave(normalizedEvent);
         linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
     },
 
