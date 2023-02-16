@@ -3,6 +3,7 @@ node_modules/
 coverage/
 *.log
 demo/**/dist/**
-/test/ts/*.js*
+/test/ts/*.js
+/test/ts/*.js.map
 .tscache/
 .DS_Store

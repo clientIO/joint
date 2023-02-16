@@ -84,7 +84,7 @@ graph.addCell({
 });
 
 // `cells` attribute is a collection of cells
-const cell = graph.get('cells').at(0);
+const cell = graph.get('cells')?.at(0);
 (<joint.dia.Element>cell).getBBox({ rotate: true }).inflate(5);
 
 // ModelSetOptions
@@ -94,7 +94,7 @@ rectangle.set('test', true, { silent: true, customOption: true });
 // a child inherits attributes from `dia.Element`
 const cylinder = new joint.shapes.standard.Cylinder({ z: 0 });
 cylinder.set({ position: { x: 4, y: 5 }});
-cylinder.set('z', cylinder.attributes.z + 1);
+cylinder.set('z', (cylinder.attributes.z || 0) + 1);
 
 const paper = new joint.dia.Paper({
     model: graph,
@@ -102,7 +102,7 @@ const paper = new joint.dia.Paper({
     findParentBy: (_elementView, _evt, x, y) => graph.findModelsFromPoint({ x, y })
 });
 
-const cellView = cell.findView(paper);
+const cellView = graph.getCells[0].findView(paper);
 cellView.vel.addClass('test-class');
 
 let isHTMLView: AssertExtends<typeof paper.vel, null> = true;

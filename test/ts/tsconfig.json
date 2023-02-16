@@ -1,0 +1,32 @@
+{
+    "include": [
+        "**/*.ts",
+    ],
+    "compilerOptions": {
+        "target": "es6",
+        "moduleResolution": "node",
+        "pretty": true,
+        "sourceMap": true,
+        // The following options are enabled when using 'strict: true'
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        /* 
+            Rule is disabled due to design limitation with overloads in TypeScript
+            https://github.com/microsoft/TypeScript/issues/38353
+            https://github.com/microsoft/TypeScript/issues/42196
+        */
+        "strictBindCallApply": false,
+        "strictFunctionTypes": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "useUnknownInCatchVariables": true,
+        // 'strict' options **End**
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "noUnusedLocals": false,
+        "skipLibCheck": false,
+        "types": [],
+    }
+}
