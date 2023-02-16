@@ -5,7 +5,7 @@ import { V, Vectorizer } from '../../build/joint';
 // Object
 const rect1 = V('rect');
 rect1.attr('fill', 'red');
-V.prototype.attr.call(rect1, ['fill', 'blue']);
+V.prototype.attr.call(rect1, 'fill', 'blue');
 
 // Static
 if (V.isV(rect1)) {
@@ -25,7 +25,7 @@ V.createSVGMatrix({});
 // Object
 const rect3 = Vectorizer('rect');
 rect3.attr('fill', 'red');
-Vectorizer.prototype.attr.call(rect3, ['fill', 'blue']);
+Vectorizer.prototype.attr.call(rect3, 'fill', 'blue');
 
 // Static
 if (Vectorizer.isV(rect3)) {

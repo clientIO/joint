@@ -12,6 +12,8 @@ export namespace dia {
 
     type Event = JQuery.TriggeredEvent;
 
+    type ObjectHash = { [key: string]: any };
+
     type Point = g.PlainPoint;
 
     type BBox = g.PlainRect;
@@ -157,7 +159,7 @@ export namespace dia {
         }
     }
 
-    class Graph<A extends Backbone.ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
         constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
@@ -314,7 +316,7 @@ export namespace dia {
         }
     }
 
-    class Cell<A extends Backbone.ObjectHash = Cell.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Cell<A extends ObjectHash = Cell.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
         constructor(attributes?: A, opt?: Graph.Options);
 
@@ -485,7 +487,7 @@ export namespace dia {
         }
     }
 
-    class Element<A extends Backbone.ObjectHash = Element.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
+    class Element<A extends ObjectHash = Element.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         isElement(): boolean;
 
@@ -608,7 +610,7 @@ export namespace dia {
         }
     }
 
-    class Link<A extends Backbone.ObjectHash = Link.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
+    class Link<A extends ObjectHash = Link.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         toolMarkup: string;
         doubleToolMarkup?: string;
