@@ -23,7 +23,7 @@ module.exports = {
             'expand/expand.paper.js',
             'chess/src/garbochess.js',
             'vuejs/demo.js',
-            'petri nets/src/pn.js',
+            'petri-nets/src/pn.js',
             'org/src/org.js',
             'custom-router.js',
             'archive/links.js',

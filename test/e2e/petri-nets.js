@@ -1,5 +1,5 @@
 /*
- * e2e test for PETRI NETS demo: http://jointjs.com/demos/pn
+ * e2e test for PETRI NETS demo: http://jointjs.com/demos/petri-nets
  */
 
 'use strict';
@@ -14,7 +14,7 @@ describe('Petri Nets', function() {
 
     before(function(done) {
 
-        url = e2eHelpers.staticUrl('/demo/petri nets/index.html');
+        url = e2eHelpers.staticUrl('/demo/petri-nets/index.html');
         client = e2eHelpers.client(done);
     });
 
