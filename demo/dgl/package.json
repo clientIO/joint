@@ -19,7 +19,7 @@
     "@babel/core": "7.10.4",
     "@babel/preset-env": "7.10.4",
     "babel-loader": "8.1.0",
-    "copy-webpack-plugin": "5.0.4",
+    "copy-webpack-plugin": "5.1.1",
     "core-js": "3.6.1",
     "css-loader": "3.5.3",
     "elkjs": "0.6.2",
