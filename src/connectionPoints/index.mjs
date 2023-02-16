@@ -132,6 +132,8 @@ function boundaryIntersection(line, view, magnet, opt) {
 
     if (typeof selector === 'string') {
         node = view.findBySelector(selector)[0];
+    } else if (selector === false) {
+        node = magnet;
     } else if (Array.isArray(selector)) {
         node = util.getByPath(magnet, selector);
     } else {

@@ -3691,7 +3691,7 @@ export namespace connectionPoints {
     }
 
     interface BoundaryConnectionPointArguments extends StrokeConnectionPointArguments {
-        selector?: Array<string | number> | string;
+        selector?: Array<string | number> | string | false;
         precision?: number;
         extrapolate?: boolean;
         sticky?: boolean;

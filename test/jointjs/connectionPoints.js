@@ -266,6 +266,28 @@ QUnit.module('connectionPoints', function(hooks) {
                 line = new g.Line(tp.clone(), sp.clone());
                 cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { selector: null });
                 assert.ok(cp.round().equals(r1.getBBox().rightMiddle()));
+
+                // Disabling the magnet lookup should use the magnet
+                // passed to the connector even if it is a group node.
+                r1.set('markup', [{
+                    tagName: 'g',
+                    selector: 'wrapper',
+                    children: [{
+                        tagName: 'rect',
+                        selector: 'quarter'
+                    }, {
+                        tagName: 'rect',
+                        selector: 'full',
+                    }]
+                }]);
+                // lookup off
+                line = new g.Line(tp.clone(), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.findBySelector('wrapper')[0], { selector: false });
+                assert.ok(cp.round().equals(r1.getBBox().rightMiddle()));
+                // lookup on
+                line = new g.Line(tp.clone(), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.findBySelector('wrapper')[0], { selector: undefined });
+                assert.ok(cp.round().equals(r1.getBBox().center().offset(25, 0)));
             });
 
 

@@ -39,7 +39,7 @@
     <tr>
         <th>selector</th>
         <td><i>string</i></td>
-        <td>A selector to identify subelement/magnet of the end element at whose boundary we want the connection point to be found. Default is <code>undefined</code>, meaning that the first non-group descendant of the end element's node will be considered. (An example of another setting that may be useful is <code>'root'</code>, which forces the usage of the root group bbox instead.)</td>
+        <td>A selector to identify subelement/magnet of the end element at whose boundary we want the connection point to be found. Default is <code>undefined</code>, meaning that the first non-group descendant of the end element's node will be considered. (An example of another setting that may be useful is <code>'root'</code>, which forces the usage of the root group bbox instead.). If set to <code>false</code>, the magnet is used as is, even if it is an SVGGroup (it's the most suitable for use in conjunction with <a href="#dia.attributes.magnetSelector">magnetSelector</a>).</td>
     </tr>
     <tr>
         <th>stroke</th>
