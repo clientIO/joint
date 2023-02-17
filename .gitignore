@@ -1,4 +1,3 @@
 node_modules/
-demo/**/dist/**
 .tscache/
 .DS_Store
