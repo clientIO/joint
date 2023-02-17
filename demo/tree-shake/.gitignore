@@ -1,0 +1,4 @@
+package-lock.json
+dist/
+stats*.html
+stats*.json
