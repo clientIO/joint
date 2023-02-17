@@ -1,0 +1,19 @@
+{
+  "name": "jointjs-custom-shapes",
+  "version": "1.0.0",
+  "description": "JointJS - Custom Shapes Demo",
+  "main": "index.html",
+  "author": "client IO",
+  "private": true,
+  "scripts": {
+    "analyze": "webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json",
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack serve --config webpack.config.js"
+  },
+  "dependencies": {
+    "webpack": "5.20.2",
+    "webpack-cli": "4.10.0",
+    "webpack-dev-server": "4.9.3",
+    "webpack-bundle-analyzer": "4.5.0"
+  }
+}
