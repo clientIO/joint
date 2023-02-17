@@ -51,7 +51,7 @@
     font-family: 'PPFraktionMono';
     font-style: italic;
     font-weight: 600;
-    src: url('../fonts/fonts/PPFraktionMono/PPFraktionMono-BoldItalic.woff') format('woff');
+    src: url('../fonts/PPFraktionMono/PPFraktionMono-BoldItalic.woff') format('woff');
 }
 
 :root {
