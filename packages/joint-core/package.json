@@ -22,6 +22,8 @@
     "grunt:ts:test": "grunt ts:test",
     "grunt:test:coverage": "grunt test:coverage",
     "grunt:test:coverage:lcov": "npm run grunt:test:coverage -- --reporter=lcov",
+    "grunt:test:bundles": "grunt test:bundles",
+    "grunt:build:bundles": "grunt build:bundles",
     "grunt:test:e2e": "grunt test:e2e",
     "grunt:test:e2e:all": "grunt test:e2e:all",
     "lint": "eslint types/**/*.d.ts src/**/*.mjs",
