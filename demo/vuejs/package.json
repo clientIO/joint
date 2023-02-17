@@ -9,6 +9,6 @@
   "author": "Ian Sietro",
   "license": "ISC",
   "dependencies": {
-    "vue": "^3.0.0"
+    "vue": "3.0.0"
   }
 }
