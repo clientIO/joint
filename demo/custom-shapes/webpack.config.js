@@ -22,5 +22,3 @@ module.exports = [{
         compress: true
     },
 }];
-
-
