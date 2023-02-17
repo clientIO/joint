@@ -33,7 +33,7 @@ var e2eHelpers = module.exports = {
     createStaticServer: function(cb) {
 
         app = express();
-        app.use(serveStatic(__dirname));
+        app.use(serveStatic(__dirname + '/..'));
         app.server = app.listen(port, host);
         cb();
     },
