@@ -1848,7 +1848,7 @@ export const isString = function(value) {
     return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === stringTag);
 };
 
-export const assign  = createAssigner((object, source) => {
+export const assign = createAssigner((object, source) => {
     if (isPrototype(source) || isArrayLike(source)) {
         copyObject(source, keys(source), object);
         return;
@@ -2375,7 +2375,7 @@ export const forIn = (object, iteratee = (value) => value) => {
     }
 };
 
-export const camelCase = (string) => (
+export const camelCase = (string = '') => (
     words(`${string}`.replace(/['\u2019]/g, ''))
         .reduce((result, word, index) => {
             word = word.toLowerCase();
