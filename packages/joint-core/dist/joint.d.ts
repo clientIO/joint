@@ -1,4 +1,4 @@
-/*! JointJS Core v3.6.5 (2023-02-14) - Core module for JointJS
+/*! JointJS v3.6.5 (2022-12-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4548,7 +4548,7 @@ export namespace mvc {
         callbackArguments: Args;
 
         listenTo<CB extends Callback>(object: any, evt: string, callback: ModifiedCallback<Args, CB>, context?: any): void;
-        listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void;
+        listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void
 
         stopListening(): void;
     }
