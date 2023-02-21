@@ -1,0 +1,48 @@
+title: "[Q&A]: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to create this general Q&A discussion! Review our [technical question guidelines](https://github.com/clientIO/joint/wiki/Asking-Technical-Questions) before proceeding.
+
+        Have you searched existing discussions to see if your question was already answered?
+        If you create a question that has already been answered, the discussion will be marked as a duplicate and closed.
+  - type: textarea
+    id: introduction
+    attributes:
+      label: Introduce the question.
+      description: Provide more context to your title.
+      placeholder: Description.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to reproduce.
+      description: If applicable, provide steps to reproduce the issue. Add code examples or screenshots if relevant. Don't use images of code!
+      placeholder: Step (1)... Step (2)... etc.
+    validations:
+      required: false
+  - type: textarea
+    id: restrictions
+    attributes:
+      label: Restrictions & Constraints.
+      description: If applicable, mention any limitations you have which means you can't use a certain solution.
+      placeholder: Limitations.
+    validations:
+      required: false
+  - type: dropdown
+    id: library
+    attributes:
+      label: Does your question relate to JointJS or JointJS+. Select both if applicable.
+      multiple: true
+      options:
+        - JointJS
+        - JointJS+
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        If you are satisfied that your question has been answered, press the `'Mark as answer'` button on the chosen answer. Thanks!
