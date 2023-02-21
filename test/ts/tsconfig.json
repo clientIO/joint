@@ -12,11 +12,11 @@
         "noImplicitAny": true,
         "noImplicitThis": true,
         /* 
-            Rule is disabled due to design limitation with overloads in TypeScript
+            strictBindCallApply has design limitation with overloads in TypeScript
             https://github.com/microsoft/TypeScript/issues/38353
             https://github.com/microsoft/TypeScript/issues/42196
         */
-        "strictBindCallApply": false,
+        "strictBindCallApply": true,
         "strictFunctionTypes": true,
         "strictNullChecks": true,
         "strictPropertyInitialization": true,
