@@ -14,7 +14,7 @@ describe('Links demo', function() {
 
     before(function(done) {
 
-        url = e2eHelpers.staticUrl('/demo/links/index.html');
+        url = e2eHelpers.staticUrl('/packages/joint-core/demo/links/index.html');
         client = e2eHelpers.client(done);
     });
 

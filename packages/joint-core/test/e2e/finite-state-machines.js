@@ -14,7 +14,7 @@ describe('Finite State Machines', function() {
 
     before(function(done) {
 
-        url = e2eHelpers.staticUrl('/demo/fsa/index.html');
+        url = e2eHelpers.staticUrl('/packages/joint-core/demo/fsa/index.html');
         client = e2eHelpers.client(done);
     });
 

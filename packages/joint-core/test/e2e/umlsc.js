@@ -14,7 +14,7 @@ describe('Unified Modeling Language - The Statechart Diagram', function() {
 
     before(function(done) {
 
-        url = e2eHelpers.staticUrl('/demo/umlsc/index.html');
+        url = e2eHelpers.staticUrl('/packages/joint-core/demo/umlsc/index.html');
         client = e2eHelpers.client(done);
     });
 

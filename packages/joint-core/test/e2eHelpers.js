@@ -12,7 +12,7 @@ var config = {
         'page load': 30000
     },
     // Uncomment the following line to enable verbose logging for webdriverio.
-    // logLevel: 'verbose'
+    //logLevel: 'verbose'
 };
 
 var app;
@@ -24,6 +24,7 @@ var e2eHelpers = module.exports = {
     config: config,
     staticUrl: function(uri) {
 
+        //console.log("url: " + 'http://' + host + ':' + port + uri);
         return 'http://' + host + ':' + port + uri;
     },
     setUp: function(cb) {
@@ -33,7 +34,8 @@ var e2eHelpers = module.exports = {
     createStaticServer: function(cb) {
 
         app = express();
-        app.use(serveStatic(__dirname + '/..'));
+        //console.log("server: " + __dirname + '/../../..')
+        app.use(serveStatic(__dirname + '/../../..'));
         app.server = app.listen(port, host);
         cb();
     },
@@ -70,9 +72,12 @@ var e2eHelpers = module.exports = {
 
         var options = {
             // https://code.google.com/p/selenium/wiki/DesiredCapabilities
+            // https://stackoverflow.com/questions/31295720/couldnt-connect-to-selenium-server-to-execute-a-webdriverio-test
             desiredCapabilities: {
                 browserName: process.env.E2E_BROWSER || 'chrome'
-            }
+            },
+            host: 'localhost',
+            port: 4444
         };
 
         if (process.env.E2E_DESIRED) {

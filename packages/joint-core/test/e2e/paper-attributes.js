@@ -14,7 +14,7 @@ describe('Paper attributes', function() {
 
     before(function(done) {
 
-        url = e2eHelpers.staticUrl('/demo/paper/index.html');
+        url = e2eHelpers.staticUrl('/packages/joint-core/demo/paper/index.html');
         client = e2eHelpers.client(done);
     });
 

@@ -14,7 +14,7 @@ describe('Petri Nets', function() {
 
     before(function(done) {
 
-        url = e2eHelpers.staticUrl('/demo/petri-nets/index.html');
+        url = e2eHelpers.staticUrl('/packages/joint-core/demo/petri-nets/index.html');
         client = e2eHelpers.client(done);
     });
 
