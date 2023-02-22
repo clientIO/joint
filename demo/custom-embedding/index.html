@@ -3,11 +3,23 @@
     <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+
         <title>Custom Embedding</title>
+
         <link rel="stylesheet" type="text/css" href="../../build/joint.css" />
+
+        <style>
+            #paper {
+                border: 1px solid gray;
+                display: inline-block;
+            }
+        </style>
     </head>
     <body>
+        <div id="paper"></div>
+
         <script src="../../build/joint.webpack-bundle.js"></script>
+
         <script src="./custom-embedding.js"></script>
     </body>
 </html>
