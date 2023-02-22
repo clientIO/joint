@@ -1,4 +1,4 @@
-# Jointjs Decorators
+# JointJS Decorators
 
 ECMAScript / TypeScript decorator for defining [JointJS](https://www.jointjs.com/) shapes.
 
@@ -459,3 +459,5 @@ class MyElementView extends dia.ElementView {
 ```
 
 ---
+
+Copyright © 2013-2023 client IO

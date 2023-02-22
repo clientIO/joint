@@ -110,6 +110,9 @@
     "webpack": "4.28.3",
     "webpack-dev-server": "3.1.14"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "joint",
     "jointjs",

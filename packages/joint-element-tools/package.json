@@ -16,5 +16,13 @@
     "@joint/decorators": "file:../joint-decorators",
     "@joint/elements": "file:../joint-elements"
   },
-  "keywords": []
+  "devDependencies": {},
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "jointjs",
+    "tools",
+    "elements"
+  ]
 }

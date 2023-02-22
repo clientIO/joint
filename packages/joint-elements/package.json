@@ -15,5 +15,13 @@
     "@joint/core": "file:../joint-core",
     "@joint/decorators": "file:../joint-decorators"
   },
-  "keywords": []
+  "devDependencies": {},
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "jointjs",
+    "shapes",
+    "elements"
+  ]
 }
