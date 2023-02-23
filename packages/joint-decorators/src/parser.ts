@@ -44,10 +44,10 @@ export function parseFromSVGString(str: string): SVGParserResult {
 }
 
 const spaceRegex = /[^\S\r\n]+/g;
-// ReDoS mitigation: Avoid backtracking (uses `[^,]+` instead of `.+`)
-const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[((?:(?:[-\w. ]+|[-\w.]+), *)*(?:[-\w. ]+|[-\w.]+))](?:\s*,\s*([^,]+))*\))}}/g;
-// ReDoS mitigation: Avoid backtracking (uses `[^,]+` instead of `.+`)
-const fnRegex = /^(\w+)\((\[[\w\s,]+\]|\w+)(?:\s*,\s*([^,]+))*\)$/;
+// ReDoS mitigation: Avoid backtracking (uses `[^,\n\r]+` instead of `.+`)
+const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[((?:(?:[-\w. ]+|[-\w.]+), *)*(?:[-\w. ]+|[-\w.]+))](?:\s*,\s*([^,\n\r]+))*\))}}/g;
+// ReDoS mitigation: Avoid backtracking (uses `[^,\n\r]+` instead of `.+`)
+const fnRegex = /^(\w+)\((\[[\w\s,]+\]|\w+)(?:\s*,\s*([^,\n\r]+))*\)$/;
 
 
 let idCounter = 0;
