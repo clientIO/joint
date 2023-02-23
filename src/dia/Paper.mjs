@@ -290,7 +290,9 @@ export const Paper = View.extend({
 
         linkAnchorNamespace: linkAnchors,
 
-        connectionPointNamespace: connectionPoints
+        connectionPointNamespace: connectionPoints,
+
+        overflow: false
     },
 
     events: {
@@ -567,6 +569,8 @@ export const Paper = View.extend({
         this.renderChildren();
         const { childNodes, options } = this;
         const { svg, defs, layers, background, grid } = childNodes;
+
+        svg.style.overflow = options.overflow ? 'visible' : 'hidden';
 
         this.svg = svg;
         this.defs = defs;
