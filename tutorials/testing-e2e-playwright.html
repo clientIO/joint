@@ -259,7 +259,7 @@ Received: "JointJS App"
         <p>
             After visiting your JointJS application, you may want to perform some simple sanity checks in order to check if the state 
             corresponds to your expectations. A tried and tested way of doing this is to determine if the text is displayed correctly. 
-            Playwright provides some nice <a href="https://playwright.dev/docs/selectors" target="_blank"><code>Selectors</code></a> to 
+            Playwright provides some nice <a href="https://playwright.dev/docs/locators#locate-by-css-or-xpath" target="_blank"><code>Selectors</code></a> to 
             target elements which we expect to be present in the normal flow of our app. As we want our testing to be as robust and reliable 
             as possible, we will prioritize user-facing attributes, that means we will use mainly text or CSS selectors.
         </p>
@@ -547,7 +547,7 @@ test('visual regression', async ({ page }) => {
         </p>
 
         <p>
-            The first tool we will look at is the Playwright <a href="https://playwright.dev/docs/inspector" target="_blank">Inspector</a>.
+            The first tool we will look at is the Playwright <a href="https://playwright.dev/docs/debug" target="_blank">Inspector</a>.
             Inspector is a GUI tool that helps authoring and debugging Playwright scripts. To launch the inspector, we need to set the
             <code>PWDEBUG</code> environment variable to run our scripts in debug mode. This configures Playwright for debugging and opens 
             the Inspector.
