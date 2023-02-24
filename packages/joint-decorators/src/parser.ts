@@ -48,7 +48,7 @@ const spaceRegex = /[^\S\r\n]+/g;
 
 // regex to identify typescript callbacks:
 // ReDoS mitigation: Avoid overlapping backtracking (x2)
-const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[((?:[-\w. ]+)(?:,(?:[-\w. ]+))*)]\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\))}}/g;
+const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[([-\w. ]+(?:,[-\w. ]+)*)]\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\))}}/g;
 
 // regex to identify typescript functions:
 // ReDoS mitigation: Avoid overlapping backtracking
