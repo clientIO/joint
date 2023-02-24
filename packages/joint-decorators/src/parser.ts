@@ -47,13 +47,12 @@ export function parseFromSVGString(str: string): SVGParserResult {
 const spaceRegex = /[^\S\r\n]+/g;
 
 // regex to identify typescript callbacks:
-// ReDoS mitigation: Avoid overlapping backtracking (uses `(?:(?:[-\w. ]+|[-\w.]+),)*` instead of (?:(?:[-\w. ]+|[-\w.]+), *)*
-// ReDoS mitigation: Avoid overlapping backtracking (uses `(?:\s*,\s*([^,\s\n\r]+))*\s*` instead of `(?:\s*,\s*(.+))*`)
-const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[((?:(?:[-\w. ]+|[-\w.]+),)*(?:[-\w. ]+|[-\w.]+))](?:\s*,\s*([^,\s\n\r]+))*\s*\))}}/g;
+// ReDoS mitigation: Avoid overlapping backtracking (x2)
+const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[((?:[-\w. ]+)(?:,(?:[-\w. ]+))*)]\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\))}}/g;
 
 // regex to identify typescript functions:
-// ReDoS mitigation: Avoid overlapping backtracking (uses `(?:\s*,\s*([^,\s\n\r]+))*\s*` instead of `(?:\s*,\s*(.+))*`)
-const fnRegex = /^(\w+)\((\[[\w\s,]+\]|\w+)(?:\s*,\s*([^,\s\n\r]+))*\s*\)$/;
+// ReDoS mitigation: Avoid overlapping backtracking
+const fnRegex = /^(\w+)\((\[[\w\s,]+]|\w+)\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\)$/;
 
 let idCounter = 0;
 
