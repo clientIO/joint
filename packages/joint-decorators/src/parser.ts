@@ -46,11 +46,11 @@ export function parseFromSVGString(str: string): SVGParserResult {
 // regex to identify whitespace:
 const spaceRegex = /[^\S\r\n]+/g;
 
-// regex to identify typescript callbacks:
+// regex to identify binding expressions:
 // ReDoS mitigation: Avoid overlapping backtracking (x2)
 const cbRegex = /{{(?:[\w|\(\),:\s]+|(\w+)\(\[([-\w. ]+(?:,[-\w. ]+)*)]\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\))}}/g;
 
-// regex to identify typescript functions:
+// regex to identify binding expression functions:
 // ReDoS mitigation: Avoid overlapping backtracking
 const fnRegex = /^(\w+)\((\[[\w\s,]+]|\w+)\s*(?:,\s*([^,\s\n\r][^,\n\r]*))*\)$/;
 
