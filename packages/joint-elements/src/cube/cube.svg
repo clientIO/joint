@@ -1,0 +1,44 @@
+<g title="Cube">
+    <path @selector="background"
+        :d="{{backgroundData([cornerX,cornerY])}}"
+        fill="transparent"
+        stroke-linejoin="round"
+    />
+    <rect @selector="front"
+        :x="{{cornerX}}"
+        :y="{{cornerY}}"
+        :width="calc(w-{{cornerX}})"
+        :height="calc(h-{{cornerY}})"
+        fill="white"
+        stroke="#333"
+        stroke-width="2"
+        stroke-linejoin="round"
+        />
+
+    <path @selector="top"
+        :d={{topData([cornerX,cornerY])}}
+        fill="#f5f5f5"
+        stroke="#333"
+        stroke-width="2"
+        stroke-linejoin="round"
+        />
+
+    <path @selector="side"
+        :d={{sideData([cornerX,cornerY])}}
+        fill="#ededed"
+        stroke="#333"
+        stroke-width="2"
+        stroke-linejoin="round"
+        />
+
+    <text @selector="label"
+        text-anchor="middle"
+        text-vertical-anchor="top"
+        font-family="sans-serif"
+        font-size="13"
+        fill="#333"
+        y="calc(h+10)"
+        x="calc(0.5*w)"
+        text="Cube"
+    />
+</g>

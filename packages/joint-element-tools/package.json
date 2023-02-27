@@ -1,0 +1,28 @@
+{
+  "name": "@joint/elementTools",
+  "title": "JointJS Element Tools",
+  "version": "1.0.0",
+  "description": "Element Tools module for JointJS",
+  "main": "src/index.ts",
+  "homepage": "http://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "http://client.io"
+  },
+  "license": "MPL-2.0",
+  "scripts": {},
+  "dependencies": {
+    "@joint/core": "file:../joint-core",
+    "@joint/decorators": "file:../joint-decorators",
+    "@joint/elements": "file:../joint-elements"
+  },
+  "devDependencies": {},
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "jointjs",
+    "tools",
+    "elements"
+  ]
+}

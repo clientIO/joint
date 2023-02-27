@@ -1,0 +1,21 @@
+<g title="Shipment">
+    <rect @selector="background"
+        width="calc(w)"
+        height="calc(h)"
+        fill="transparent"
+    />
+    <image @selector="body"
+        width="calc(w)"
+        height="calc(h)"
+        :href='{{image(color)}}'
+    />
+    <text @selector="label"
+        text-anchor="middle"
+        text-vertical-anchor="top"
+        font-size="13"
+        font-family="sans-serif"
+        fill="#333"
+        y="calc(h+10)"
+        x="calc(0.5*w)"
+    >Shipment</text>
+</g>
