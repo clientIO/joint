@@ -358,7 +358,7 @@ QUnit.module('util', function(hooks) {
 
             let r = joint.util.breakText(text, size, { ...styles, lineHeight: `${emVal}em` });
             assert.ok(r.split('\n').length * correctLineHeightPerEm * emVal <= size.height, 'lineHeight in em');
-            
+
             let correctLineHeightInPx = 25;
 
             r = joint.util.breakText(text, size, { ...styles, lineHeight: correctLineHeightInPx });
@@ -1409,6 +1409,41 @@ QUnit.module('util', function(hooks) {
                 <g><rect style="pointer-events:auto"/><circle stroke="${color}"/>textContent</g>
             `;
             testMarkup(assert, markup);
+        });
+
+        QUnit.test('foreignObject', function(assert) {
+            const markup = joint.util.svg/*xml*/`
+                <rect @selector="rect1"/>
+                <foreignObject>
+                    <div xmlns="http://www.w3.org/1999/xhtml">
+                        <p @selector="p1"></p>
+                    </div>
+                </foreignObject>
+                <rect @selector="rect2"/>
+            `;
+            assert.equal(markup.length, 3);
+            assert.equal(markup[0].namespaceURI, 'http://www.w3.org/2000/svg');
+            assert.equal(markup[0].tagName, 'rect');
+            assert.equal(markup[1].namespaceURI, 'http://www.w3.org/2000/svg');
+            assert.equal(markup[1].tagName, 'foreignObject');
+            assert.equal(markup[1].children[0].namespaceURI, 'http://www.w3.org/1999/xhtml');
+            assert.equal(markup[1].children[0].tagName, 'div');
+            assert.equal(markup[1].children[0].children[0].namespaceURI, 'http://www.w3.org/1999/xhtml');
+            assert.equal(markup[1].children[0].children[0].tagName, 'p');
+            assert.equal(markup[2].namespaceURI, 'http://www.w3.org/2000/svg');
+            assert.equal(markup[2].tagName, 'rect');
+        });
+
+        QUnit.test('textContent', function(assert) {
+            const markup = joint.util.svg/*xml*/`
+                <text>a<tspan>b</tspan>c</text>
+            `;
+            assert.equal(markup.length, 1);
+            assert.equal(markup[0].tagName, 'text');
+            assert.equal(markup[0].textContent, 'ac', 'textContent does not contain the tspan element');
+            assert.equal(markup[0].children.length, 1);
+            assert.equal(markup[0].children[0].tagName, 'tspan');
+            assert.equal(markup[0].children[0].textContent, 'b');
         });
     });
 

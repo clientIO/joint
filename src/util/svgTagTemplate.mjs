@@ -1,3 +1,5 @@
+import V from '../V/index.mjs';
+
 export function svg(strings, ...expressions) {
     const svgParts = [];
     strings.forEach((part, index) => {
@@ -27,10 +29,15 @@ function build(root) {
 
     Array.from(root.children).forEach(node => {
         const markupNode = {};
-        const { tagName, attributes, textContent, namespaceURI, style } = node;
+        const { tagName, attributes, namespaceURI, style, childNodes } = node;
 
-        markupNode.tagName = tagName;
         markupNode.namespaceURI = namespaceURI;
+        markupNode.tagName = (namespaceURI === V.namespace.xhtml)
+            // XHTML documents must use lower case for all HTML element and attribute names.
+            // The tagName property returns upper case value for HTML elements.
+            // e.g. <DIV> vs.<div/>
+            ? tagName.toLowerCase()
+            : tagName;
 
         const stylesObject = {};
         for (var i = style.length; i--;) {
@@ -59,8 +66,14 @@ function build(root) {
             markupNode.className = className.value;
         }
 
-        if (textContent) {
-            markupNode.textContent = textContent;
+        const textNodes = Array.from(childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
+        if (textNodes.length > 0) {
+            // TODO: handle multiple text nodes
+            // Currently, there is no way to describe
+            // multiple text nodes (and other nodes in between) in the JSON markup
+            // e.g <text>a<tspan>b</tspan>c</text>
+            // The above markup will be converted to <text>ab<tspan>c</tspan></text>
+            markupNode.textContent = textNodes.map(node => node.textContent).join('');
         }
 
         const nodeAttrs = {};
