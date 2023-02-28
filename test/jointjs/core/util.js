@@ -1434,16 +1434,47 @@ QUnit.module('util', function(hooks) {
             assert.equal(markup[2].tagName, 'rect');
         });
 
-        QUnit.test('textContent', function(assert) {
-            const markup = joint.util.svg/*xml*/`
-                <text>a<tspan>b</tspan>c</text>
-            `;
-            assert.equal(markup.length, 1);
-            assert.equal(markup[0].tagName, 'text');
-            assert.equal(markup[0].textContent, 'ac', 'textContent does not contain the tspan element');
-            assert.equal(markup[0].children.length, 1);
-            assert.equal(markup[0].children[0].tagName, 'tspan');
-            assert.equal(markup[0].children[0].textContent, 'b');
+        QUnit.module('textContent', function() {
+
+            QUnit.test('multiple text nodes', function(assert) {
+                const markup = joint.util.svg/*xml*/`
+                    <text>a<tspan>b</tspan>c</text>
+                `;
+                assert.equal(markup.length, 1);
+                assert.equal(markup[0].tagName, 'text');
+                assert.equal(markup[0].textContent, 'ac', 'textContent does not contain the tspan element');
+                assert.equal(markup[0].children.length, 1);
+                assert.equal(markup[0].children[0].tagName, 'tspan');
+                assert.equal(markup[0].children[0].textContent, 'b');
+            });
+
+            QUnit.test('no text nodes', function(assert) {
+                const markup = joint.util.svg/*xml*/`
+                    <!-- 1. no characters -->
+                    <text></text>
+                    <!-- 2. spaces -->
+                    <text> </text>
+                    <!-- 3. and new line character -->
+                    <text>
+</text>
+                    <!-- 4. spaces and new line characters -->
+                    <text>
+
+                    </text>
+                    <!-- 5. spaces and elements -->
+                    <text>  <tspan>a</tspan> </text>
+                    <!-- 6. spaces, new line characters and elements -->
+                    <text>
+                         <tspan>a</tspan>
+                    </text>
+                    <!-- 7. comment -->
+                    <text><!-- the comment --></text>
+                `;
+                assert.equal(markup.length, 7);
+                markup.forEach(node => {
+                    assert.strictEqual(node.textContent, undefined);
+                });
+            });
         });
     });
 

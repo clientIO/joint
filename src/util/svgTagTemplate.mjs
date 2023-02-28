@@ -73,7 +73,10 @@ function build(root) {
             // multiple text nodes (and other nodes in between) in the JSON markup
             // e.g <text>a<tspan>b</tspan>c</text>
             // The above markup will be converted to <text>ab<tspan>c</tspan></text>
-            markupNode.textContent = textNodes.map(node => node.textContent).join('');
+            const textContent = textNodes.map(node => node.textContent).join('').trim();
+            if (textContent.length > 0) {
+                markupNode.textContent = textContent;
+            }
         }
 
         const nodeAttrs = {};
