@@ -64,7 +64,7 @@
   ],
   "scripts": {
     "test": "grunt test",
-    "lint": "eslint types/**/*.d.ts src/**/*.mjs",
+    "lint": "eslint types/**/*.d.ts src --ext .mjs,.js",
     "lint:fix": "npm run lint -- --fix"
   },
   "sideEffects": false,
