@@ -1,5 +1,5 @@
 import { dia, elementTools, g } from '@joint/core';
-import { Arrow } from '@joint/elements';
+import { Arrow } from '@joint/general-shapes';
 
 export interface ArrowOffsetControlOptions
     extends elementTools.Control.Options {

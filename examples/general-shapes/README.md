@@ -1,4 +1,4 @@
-# JointJS Elements Example Application
+# JointJS General Shapes Example Application
 
 ## Setup
 

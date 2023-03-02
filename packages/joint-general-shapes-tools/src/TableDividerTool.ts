@@ -1,5 +1,5 @@
 import { dia, elementTools } from '@joint/core';
-import { Table } from "@joint/elements";
+import { Table } from "@joint/general-shapes";
 
 export interface TableDividerToolOptions extends elementTools.Control.Options {
 

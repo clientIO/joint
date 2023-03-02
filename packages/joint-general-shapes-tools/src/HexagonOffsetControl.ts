@@ -1,5 +1,5 @@
 import { dia, elementTools, g } from '@joint/core';
-import { Hexagon } from '@joint/elements';
+import { Hexagon } from '@joint/general-shapes';
 
 export interface HexagonOffsetControlOptions extends elementTools.Control.Options {
 

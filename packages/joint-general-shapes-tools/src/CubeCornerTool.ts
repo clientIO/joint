@@ -1,5 +1,5 @@
 import { dia, elementTools, g } from '@joint/core';
-import { Cube } from "@joint/elements";
+import { Cube } from "@joint/general-shapes";
 
 export interface CubeCornerToolOptions extends elementTools.Control.Options {
 
