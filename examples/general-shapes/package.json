@@ -1,5 +1,5 @@
 {
-  "name": "joint-elements",
+  "name": "joint-general-shapes",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@joint/core": "file:../../packages/joint-core",
-    "@joint/elements": "file:../../packages/joint-elements",
-    "@joint/elementTools": "file:../../packages/joint-element-tools"
+    "@joint/general-shapes": "file:../../packages/joint-general-shapes",
+    "@joint/general-shapes-tools": "file:../../packages/joint-general-shapes-tools"
   },
   "devDependencies": {
     "raw-loader": "^4.0.2",

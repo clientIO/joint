@@ -1,8 +1,8 @@
 {
-  "name": "@joint/elementTools",
-  "title": "JointJS Element Tools",
+  "name": "@joint/general-shapes",
+  "title": "JointJS General Shapes",
   "version": "1.0.0",
-  "description": "Element Tools module for JointJS",
+  "description": "General Shapes module for JointJS",
   "main": "src/index.ts",
   "homepage": "http://jointjs.com",
   "author": {
@@ -13,8 +13,7 @@
   "scripts": {},
   "dependencies": {
     "@joint/core": "file:../joint-core",
-    "@joint/decorators": "file:../joint-decorators",
-    "@joint/elements": "file:../joint-elements"
+    "@joint/decorators": "file:../joint-decorators"
   },
   "devDependencies": {},
   "publishConfig": {
@@ -22,7 +21,8 @@
   },
   "keywords": [
     "jointjs",
-    "tools",
-    "elements"
+    "general",
+    "shapes",
+    "decorators"
   ]
 }

@@ -46,8 +46,8 @@
   "dependencies": {
     "@joint/core": "file:packages/joint-core",
     "@joint/decorators": "file:packages/joint-decorators",
-    "@joint/elements": "file:packages/joint-elements",
-    "@joint/elementTools": "file:packages/joint-element-tools"
+    "@joint/general-shapes": "file:packages/joint-general-shapes",
+    "@joint/general-shapes-tools": "file:packages/joint-general-shapes-tools"
   },
   "devDependencies": {},
   "volta": {

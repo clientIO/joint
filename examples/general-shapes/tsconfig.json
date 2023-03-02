@@ -4,6 +4,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitAny": false,
-    "outDir": "./build",
+    "outDir": "./build"
   }
 }

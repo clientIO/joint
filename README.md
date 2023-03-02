@@ -117,7 +117,7 @@ npm run test:client
 
 To run only TypeScript tests:
 ```bash
-npm rum test:ts
+npm run test:ts
 ```
 
 ### Lint
@@ -155,7 +155,7 @@ npm run dist
 
 ## Documentation
 
-The source for the *JointJS* documentation (plus *Geometry* and *Vectorizer* libraries) are included in this repository; see the `packages/joint-core/docs` directory. The documentation can be built into stand-alone HTML documents like this:
+The source files for the *JointJS* documentation (plus *Geometry* and *Vectorizer* libraries) are included in this repository; see the `packages/joint-core/docs` directory. The documentation can be built into stand-alone HTML documents like this:
 ```bash
 npm run build:docs
 ```
