@@ -1,6 +1,6 @@
 # JointJS Core
 
-The base of the [JointJS](https://www.jointjs.com/) library.
+The base of the *[JointJS](https://www.jointjs.com/)* library.
 
 ## Development Environment
 
@@ -16,30 +16,30 @@ Make sure you have the following dependencies installed on your system:
 ### Setup
 
 Clone the root git repository:
-```
+```bash
 git clone https://github.com/clientIO/joint.git
 ```
 
-Change into the root joint directory:
-```
+Navigate to the root `joint` directory:
+```bash
 cd joint
 ```
 
 Install all NPM dependencies:
-```
+```bash
 npm install
 ```
 
 Generate build files from the source code:
-```
-npm run grunt:install --workspaces --if-present
+```bash
+npm run build
 ```
 
 You are now ready to browse our demos:
-```
+```bash
 cd packages/joint-core/demo
 ```
-Most demos can be run by simply opening the `index.html` file in your browser. Some demos have additional instructions, which you can find in their respective `README.txt` files.
+Most demos can be run by simply opening the `index.html` file in your browser. Some demos have additional instructions, which you can find in their respective `README.md` files.
 
 ## License
 

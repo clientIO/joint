@@ -9,8 +9,8 @@ install:
   - npm install
 
 before_script:
-  - npm run grunt:install --workspaces --if-present
+  - npm run build
 
 script:
-  - npm run test --workspaces --if-present
-  - npm run lint --workspaces --if-present
+  - npm run test
+  - npm run lint

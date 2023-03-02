@@ -26,6 +26,23 @@
     "url": "https://github.com/clientIO/joint/issues"
   },
   "license": "MPL-2.0",
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:server": "npm run test:server --workspaces --if-present",
+    "test:client": "npm run test:client --workspaces --if-present",
+    "test:ts": "npm run test:ts --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "test:coverage:lcov": "npm run test:coverage:lcov --workspaces --if-present",
+    "test:bundles": "npm run test:bundles --workspaces --if-present",
+    "build:bundles": "npm run build:bundles --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "test:e2e:all": "npm run test:e2e:all --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "dist": "npm run dist --workspaces --if-present",
+    "build:docs": "npm run build:docs --workspaces --if-present"
+  },
   "dependencies": {
     "@joint/core": "file:packages/joint-core",
     "@joint/decorators": "file:packages/joint-decorators",

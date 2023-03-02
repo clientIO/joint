@@ -1,15 +1,23 @@
-Use npm to run this demo.
+# JointJS Custom Embedding Demo
 
-You need to build JointJS first. Go to the root folder and run:
+## Setup
 
-```
+Use NPM to run this demo.
+
+You need to build *JointJS* first. Navigate to the root folder and run:
+```bash
 npm install
-npm run grunt:install --workspaces --if-present
-npm run grunt:build:bundles --workspaces --if-present
+npm run build
+npm run build:bundles
 ```
 
-Then navigate to this directory and open index.html in your browser:
-
-```
+Then navigate to this directory and open `index.html` in your browser:
+```bash
 open index.html
 ```
+
+## License
+
+The *JointJS* library is licensed under the [Mozilla Public License 2.0](https://github.com/clientIO/joint/blob/master/LICENSE).
+
+Copyright © 2013-2023 client IO

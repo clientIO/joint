@@ -67,83 +67,81 @@ Make sure that you are using NPM version >= 7.0.0 (comes with Node version >= 15
 ### Setup
 
 Clone this git repository:
-```
+```bash
 git clone https://github.com/clientIO/joint.git
 ```
 
-Change into the joint directory:
-```
+Navigate to the `joint` directory:
+```bash
 cd joint
 ```
 
 Install all NPM dependencies:
-```
+```bash
 npm install
 ```
 
 Generate build files from the source code:
-```
-npm run grunt:install --workspaces --if-present
+```bash
+npm run build
 ```
 
 You are now ready to browse our example applications, which combine functionality from multiple JointJS packages:
-```
+```bash
 cd examples
 ```
-Refer to each application's `README.txt` file for additional instructions.
+Refer to each application's `README.md` file for additional instructions.
 
 You can also browse the demo applications of our JointJS Core package:
-```
+```bash
 cd packages/joint-core/demo
 ```
-Most demos can be run by simply opening the `index.html` file in your browser. Some demos have additional instructions, which you can find in their respective `README.txt` files.
+Most demos can be run by simply opening the `index.html` file in your browser. Some demos have additional instructions, which you can find in their respective `README.md` files.
 
 ### Tests
 
 To run all tests:
-```
-npm test --workspaces --if-present
+```bash
+npm run test
 ```
 
 To run only the server-side tests:
-```
-npm run grunt:test:server --workspaces --if-present
+```bash
+npm run test:server
 ```
 
 To run only the client-side tests:
-```
-npm run grunt:test:client --workspaces --if-present
+```bash
+npm run test:client
 ```
 
 To run only TypeScript tests:
-```
-npm rum grunt:ts:test --workspaces --if-present
+```bash
+npm rum test:ts
 ```
 
 ### Lint
 
 To check for linting errors in `src` and `types` directories:
-
-```
-npm run lint --workspaces --if-present
+```bash
+npm run lint
 ```
 
 To auto fix errors, run eslint for `src` and `types` directories:
-
-```
-npm run lint:fix --workspaces --if-present
+```bash
+npm run lint:fix
 ```
 
 ### Code Coverage Reports
 
 To output a code coverage report in HTML:
-```
-npm run grunt:test:coverage --workspaces --if-present
+```bash
+npm run test:coverage
 ```
 
 To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php):
-```
-npm run grunt:test:coverage:lcov --workspaces --if-present
+```bash
+npm run test:coverage:lcov
 ```
 
 The output for all unit tests will be saved in the `packages/joint-core/coverage` directory.
@@ -151,15 +149,15 @@ The output for all unit tests will be saved in the `packages/joint-core/coverage
 ### Building Distribution Files
 
 The `packages/joint-core/dist` directory contains pre-built distribution files. To re-build them, run the following:
-```
-npm run grunt:dist --workspaces --if-present
+```bash
+npm run dist
 ```
 
 ## Documentation
 
 The source for the *JointJS* documentation (plus *Geometry* and *Vectorizer* libraries) are included in this repository; see the `packages/joint-core/docs` directory. The documentation can be built into stand-alone HTML documents like this:
-```
-npm run grunt:build:docs --workspaces --if-present
+```bash
+npm run build:docs
 ```
 The output of the above command can be found at `packages/joint-core/build/docs`.
 

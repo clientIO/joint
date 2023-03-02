@@ -1,20 +1,21 @@
 # JointJS Decorators
 
-ECMAScript / TypeScript decorator for defining [JointJS](https://www.jointjs.com/) shapes.
+ECMAScript / TypeScript decorator for defining *[JointJS](https://www.jointjs.com/)* shapes.
 
-This library fully depends on [jointjs](https://github.com/clientio/joint) (*>=3.5*), so please read its README before using this library.
+This library fully depends on *[JointJS](https://github.com/clientio/joint) (>=3.5)*, so please read its `README.md` before using this library.
+
+## Setup
+
+Enable the [experimentalDecorators](https://www.typescriptlang.org/docs/handbook/decorators.html) compiler option in your `tsconfig.json`.
+
+Then install JointJS Decorators from NPM:
+```bash
+npm i -S @joint/decorators
+```
 
 ## License
 
 [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)
-
-## Install
-
-Enable the [experimentalDecorators](https://www.typescriptlang.org/docs/handbook/decorators.html) compiler option in your `tsconfig.json`.
-
-```bash
-npm i -S @joint/decorators
-```
 
 ## Usage
 
