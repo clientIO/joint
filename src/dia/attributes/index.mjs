@@ -1,6 +1,7 @@
 import { Point, Path, Polyline } from '../../g/index.mjs';
 import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../../util/util.mjs';
 import { isCalcAttribute, evalCalcAttribute } from './calc.mjs';
+import * as propertyAttributes from './props.mjs';
 import $ from 'jquery';
 import V from '../../V/index.mjs';
 
@@ -696,6 +697,8 @@ attributesNS['xlink:href'] = attributesNS.xlinkHref;
     };
 });
 
+// Property attributes (they are not set as attributes, but as properties)
+Object.assign(attributesNS, propertyAttributes);
 
 // Aliases
 attributesNS.refR = attributesNS.refRInscribed;
