@@ -1,4 +1,4 @@
-title: "[Q&A]: "
+title: ""
 labels: []
 body:
   - type: markdown
@@ -6,20 +6,19 @@ body:
       value: |
         Thanks for taking the time to create this general Q&A discussion! Review our [technical question guidelines](https://github.com/clientIO/joint/wiki/Asking-Technical-Questions) before proceeding.
 
-        Have you searched existing discussions to see if your question was already answered?
-        If you create a question that has already been answered, the discussion will be marked as a duplicate and closed.
+        Have you searched existing discussions to see if your question was already answered? If you create a question that has already been answered, the discussion will be marked as a duplicate.
   - type: textarea
     id: introduction
     attributes:
-      label: Introduce the question.
-      description: Provide more context to your title.
-      placeholder: Description.
+      label: Introduction
+      description: Introduce the topic, and provide more context to your title.
+      placeholder: Topic description.
     validations:
       required: true
   - type: textarea
     id: reproduction-steps
     attributes:
-      label: Steps to reproduce.
+      label: Steps to reproduce
       description: If applicable, provide steps to reproduce the issue. Add code examples or screenshots if relevant. Don't use images of code!
       placeholder: Step (1)... Step (2)... etc.
     validations:
@@ -27,7 +26,7 @@ body:
   - type: textarea
     id: restrictions
     attributes:
-      label: Restrictions & Constraints.
+      label: Restrictions & Constraints
       description: If applicable, mention any limitations you have which means you can't use a certain solution.
       placeholder: Limitations.
     validations:
