@@ -4,13 +4,14 @@ node_js:
 
 before_install:
   - npm install -g grunt-cli
+  - corepack enable
 
 install:
-  - npm install
+  - yarn install
 
 before_script:
-  - npm run build
+  - yarn run build
 
 script:
-  - npm run test
-  - npm run lint
+  - yarn run test
+  - yarn run lint
