@@ -13,7 +13,10 @@ module.exports = {
     mode: 'development',
     module: {
         rules: [
-            { test: /\.ts?$/, loader: 'ts-loader' }
+            { test: /\.ts?$/, loader: 'ts-loader' },
+            // `sideEffects: true` = prevent tree-shaking to import css
+            // https://webpack.js.org/guides/tree-shaking/#mark-the-file-as-side-effect-free
+            { test: /\.css$/, sideEffects: true, use: ['style-loader', 'css-loader'] }
         ]
     },
     devServer: {

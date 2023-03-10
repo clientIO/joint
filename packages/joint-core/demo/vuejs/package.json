@@ -1,14 +1,17 @@
 {
-  "name": "jointjs-vuejs",
+  "name": "@joint/demo-vuejs",
   "version": "1.0.0",
   "description": "JointJS - VueJS Demo",
   "main": "index.html",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "author": {
+    "name": "client IO",
+    "url": "http://client.io"
   },
-  "author": "Ian Sietro",
-  "license": "ISC",
+  "license": "MPL-2.0",
+  "private": true,
+  "scripts": {},
   "dependencies": {
     "vue": "3.0.0"
-  }
+  },
+  "devDependencies": {}
 }

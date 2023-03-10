@@ -1,14 +1,17 @@
 {
-  "name": "jointjs-rough",
+  "name": "@joint/demo-rough",
   "version": "1.0.0",
   "description": "JointJS - RoughJS Demo",
   "main": "index.html",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "author": {
+    "name": "client IO",
+    "url": "http://client.io"
   },
-  "author": "Roman Bruckner",
-  "license": "ISC",
+  "license": "MPL-2.0",
+  "private": true,
+  "scripts": {},
   "dependencies": {
     "roughjs": "^3.1.0"
-  }
+  },
+  "devDependencies": {}
 }

@@ -10,15 +10,15 @@
     "url": "http://client.io"
   },
   "license": "MPL-2.0",
-  "scripts": {},
-  "dependencies": {
-    "@joint/core": "file:../joint-core",
-    "@joint/decorators": "file:../joint-decorators"
-  },
-  "devDependencies": {},
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {},
+  "dependencies": {
+    "@joint/core": "~3.6.5",
+    "@joint/decorators": "~0.2.2"
+  },
+  "devDependencies": {},
   "keywords": [
     "jointjs",
     "general",

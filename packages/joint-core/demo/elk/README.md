@@ -1,4 +1,4 @@
-# JointJS Eclipse Layout Kernel Demo
+# JointJS Eclipse Layout Kernel Graph Demo
 
 ## Setup
 

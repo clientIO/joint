@@ -1,3 +1,4 @@
+package-lock.json
 build/
 node_modules/
 coverage/

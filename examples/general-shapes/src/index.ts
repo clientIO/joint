@@ -1,3 +1,4 @@
+import '@joint/core/dist/joint.css';
 import { dia } from '@joint/core';
 import {
     LinkedProcess,

@@ -1,9 +1,13 @@
 {
-  "name": "elk-graph-demo",
+  "name": "@joint/demo-elk-graph",
   "version": "1.1.0",
-  "description": "ELK Graph Demo",
+  "description": "JointJS - Eclipse Layout Kernel Graph Demo",
   "main": "index.html",
-  "author": "client IO",
+  "author": {
+    "name": "client IO",
+    "url": "http://client.io"
+  },
+  "license": "MPL-2.0",
   "private": true,
   "scripts": {
     "analyze": "webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json",

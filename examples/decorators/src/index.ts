@@ -1,3 +1,4 @@
+import '@joint/core/dist/joint.css';
 import { g, dia, shapes } from '@joint/core';
 import { Model, View, On, SVGAttribute, Function } from '@joint/decorators';
 

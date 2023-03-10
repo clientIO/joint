@@ -1,4 +1,4 @@
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 
 const Y_BODY = .4;
 const Y_LEGS = .7;
