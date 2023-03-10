@@ -698,8 +698,8 @@ export const ElementView = CellView.extend({
     onmagnet: function(evt, x, y) {
 
         const { currentTarget: targetMagnet } = evt;
-        this.eventData(evt, { targetMagnet });
         this.magnetpointerdown(evt, targetMagnet, x, y);
+        this.eventData(evt, { targetMagnet });
         this.dragMagnetStart(evt, x, y);
     },
 
@@ -754,25 +754,26 @@ export const ElementView = CellView.extend({
 
         const { paper } = this;
 
-        if (!this.isDefaultActionPrevented(evt) && this.can('addLinkFromMagnet')) {
+        if (this.isDefaultActionPrevented(evt) || !this.can('addLinkFromMagnet')) {
+            return;
+        }
 
-            const { targetMagnet = evt.currentTarget } = this.eventData(evt);
+        const { targetMagnet = evt.currentTarget } = this.eventData(evt);
 
-            evt.stopPropagation();
+        evt.stopPropagation();
 
-            if (paper.options.validateMagnet(this, targetMagnet, evt)) {
+        if (paper.options.validateMagnet(this, targetMagnet, evt)) {
 
-                if (paper.options.magnetThreshold <= 0) {
-                    this.dragLinkStart(evt, targetMagnet, x, y);
-                }
-
-                this.eventData(evt, { action: 'magnet' });
-                this.stopPropagation(evt);
-
-            } else {
-
-                this.pointerdown(evt, x, y);
+            if (paper.options.magnetThreshold <= 0) {
+                this.dragLinkStart(evt, targetMagnet, x, y);
             }
+
+            this.eventData(evt, { action: 'magnet' });
+            this.stopPropagation(evt);
+
+        } else {
+
+            this.pointerdown(evt, x, y);
         }
 
         paper.delegateDragEvents(this, evt.data);

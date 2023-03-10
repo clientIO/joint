@@ -2537,29 +2537,75 @@ QUnit.module('paper', function(hooks) {
             assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('blank:pointerup') + 1));
         });
 
-        QUnit.test('event.data', function(assert) {
+        QUnit.module('event.data', function() {
 
-            assert.expect(2);
-            var paper = this.paper;
-            paper.options.clickThreshold = 5;
-            paper.on({
-                'element:pointerdown': function(view, evt) {
-                    evt.data = { test: 1 };
-                },
-                'element:pointermove': function(view, evt) {
-                    evt.data.test += 1;
-                },
-                'element:pointerup': function(view, evt) {
-                    assert.equal(evt.data.test, 2);
-                },
-                'element:pointerclick': function(view, evt) {
-                    assert.equal(evt.data.test, 2);
-                }
+            QUnit.test('element', function(assert) {
+
+                assert.expect(3);
+                var paper = this.paper;
+                paper.options.clickThreshold = 5;
+                paper.on({
+                    'element:pointerdown': function(view, evt) {
+                        evt.data = { test: 1 };
+                    },
+                    'element:pointermove': function(view, evt) {
+                        assert.equal(evt.data.test, 1);
+                        evt.data.test += 1;
+                    },
+                    'element:pointerup': function(view, evt) {
+                        assert.equal(evt.data.test, 2);
+                        evt.data.test += 1;
+                    },
+                    'element:pointerclick': function(view, evt) {
+                        assert.equal(evt.data.test, 3);
+                    }
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect });
+                simulate.mouseup({ el: elRect });
             });
 
-            simulate.mousedown({ el: elRect });
-            simulate.mousemove({ el: elRect });
-            simulate.mouseup({ el: elRect });
+            QUnit.test('magnet', function(assert) {
+
+                assert.expect(6);
+                elRect.setAttribute('magnet', true);
+                const paper = this.paper;
+                paper.options.clickThreshold = 5;
+                paper.on({
+                    'element:magnet:pointerdown': function(view, evt) {
+                        evt.data = { test: 1 };
+                        view.preventDefaultAction(evt);
+                    },
+                    'element:pointerdown': function(view, evt) {
+                        assert.equal(evt.data.test, 1);
+                        evt.data.test += 1;
+                    },
+                    'element:magnet:pointermove': function(view, evt) {
+                        assert.equal(evt.data.test, 2);
+                        evt.data.test += 1;
+                    },
+                    'element:pointermove': function(view, evt) {
+                        assert.equal(evt.data.test, 3);
+                        evt.data.test += 1;
+                    },
+                    'element:magnet:pointerup': function(view, evt) {
+                        assert.equal(evt.data.test, 4);
+                        evt.data.test += 1;
+                    },
+                    'element:pointerup': function(view, evt) {
+                        assert.equal(evt.data.test, 5);
+                        evt.data.test += 1;
+                    },
+                    'element:pointerclick': function(view, evt) {
+                        assert.equal(evt.data.test, 6);
+                    }
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect });
+                simulate.mouseup({ el: elRect });
+            });
         });
 
         QUnit.module('preventDefaultAction()', function() {
