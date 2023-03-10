@@ -24,23 +24,26 @@
     "test:client": "grunt test:client",
     "test:ts": "grunt ts:test",
     "test:coverage": "grunt test:coverage",
-    "test:coverage:lcov": "npm run test:coverage -- --reporter=lcov",
+    "test:coverage:lcov": "yarn run test:coverage --reporter=lcov",
     "test:bundles": "grunt test:bundles",
     "build:bundles": "grunt build:bundles",
     "test:e2e": "grunt test:e2e",
     "test:e2e:all": "grunt test:e2e:all",
     "lint": "eslint types/**/*.d.ts src --ext .mjs,.js",
-    "lint:fix": "npm run lint -- --fix",
+    "lint:fix": "yarn run lint --fix",
     "dist": "grunt dist",
     "build:docs": "grunt build:docs"
   },
   "files": [
-    "css",
-    "dist",
-    "src",
-    "types",
-    "index.js",
-    "joint.mjs"
+    "css/",
+    "dist/",
+    "src/",
+    "types/*.d.ts",
+    "./CHANGELOG",
+    "./index.js",
+    "./joint.mjs",
+    "./LICENSE",
+    "./SECURITY.md"
   ],
   "dependencies": {
     "backbone": "~1.4.1",
@@ -112,6 +115,11 @@
     "webdriverio": "4.13.2",
     "webpack": "4.28.3",
     "webpack-dev-server": "3.1.14"
+  },
+  "volta": {
+    "node": "16.18.1",
+    "npm": "8.19.2",
+    "yarn": "3.4.1"
   },
   "keywords": [
     "joint",

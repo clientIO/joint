@@ -1,4 +1,4 @@
-import { dia, elementTools, g } from '@joint/core';
+import { dia, elementTools } from '@joint/core';
 import { Plus } from '@joint/general-shapes';
 
 export interface PlusOffsetControlOptions extends elementTools.Control.Options {

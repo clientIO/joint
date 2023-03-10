@@ -12,6 +12,7 @@ Make sure you have the following dependencies installed on your system:
 * [Node.js](https://nodejs.org/)
 * [grunt-cli](http://gruntjs.com/using-the-cli)
 * [git](https://git-scm.com/)
+* [yarn](https://yarnpkg.com/getting-started/install)
 
 ### Setup
 
@@ -27,12 +28,12 @@ cd joint
 
 Install all NPM dependencies:
 ```bash
-npm install
+yarn install
 ```
 
 Generate build files from the source code:
 ```bash
-npm run build
+yarn run build
 ```
 
 You are now ready to browse our demos:

@@ -2,11 +2,11 @@
 
 ## Setup
 
-Use NPM to run this example.
+Use Yarn and NPM to run this example.
 
 You need to build *JointJS* first. Navigate to the root folder and run:
 ```bash
-npm install
+yarn install
 ```
 
 Navigate to this directory, then run:

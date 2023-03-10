@@ -13,13 +13,29 @@
   "publishConfig": {
     "access": "public"
   },
-  "scripts": {},
-  "dependencies": {
-    "@joint/core": "~3.6.5",
-    "@joint/decorators": "~0.2.2",
-    "@joint/general-shapes": "~1.0.0"
+  "scripts": {
+    "dist": "tsc"
   },
-  "devDependencies": {},
+  "files": [
+    "build/",
+    "src/",
+    "./LICENSE",
+    "./SECURITY.md",
+    "./svg.d.ts"
+  ],
+  "dependencies": {
+    "@joint/core": "workspace:^",
+    "@joint/decorators": "workspace:^",
+    "@joint/general-shapes": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "4.4.4"
+  },
+  "volta": {
+    "node": "16.18.1",
+    "npm": "8.19.2",
+    "yarn": "3.4.1"
+  },
   "keywords": [
     "jointjs",
     "general",

@@ -61,8 +61,9 @@ Make sure you have the following dependencies installed on your system:
 * [Node.js](https://nodejs.org/)
 * [grunt-cli](http://gruntjs.com/using-the-cli)
 * [git](https://git-scm.com/)
+* [yarn](https://yarnpkg.com/getting-started/install)
 
-Make sure that you are using NPM version >= 7.0.0 (comes with Node version >= 15.0.0), so that you have access to [NPM workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces) functionality. If you are using [Volta](https://volta.sh/), it will automatically read this restriction from `package.json`.
+Make sure that you are using Yarn version >= 2.0.0, so that you have access to [Yarn workspace ranges](https://yarnpkg.com/features/workspaces#workspace-ranges-workspace) functionality. If you are using [Volta](https://volta.sh/), it will automatically read this restriction from `package.json`.
 
 ### Setup
 
@@ -76,14 +77,14 @@ Navigate to the `joint` directory:
 cd joint
 ```
 
-Install all NPM dependencies:
+Install all dependencies:
 ```bash
-npm install
+yarn install
 ```
 
 Generate build files from the source code:
 ```bash
-npm run build
+yarn run build
 ```
 
 You are now ready to browse our example applications, which combine functionality from multiple JointJS packages:
@@ -102,46 +103,46 @@ Most demos can be run by simply opening the `index.html` file in your browser. S
 
 To run all tests:
 ```bash
-npm run test
+yarn run test
 ```
 
 To run only the server-side tests:
 ```bash
-npm run test:server
+yarn run test:server
 ```
 
 To run only the client-side tests:
 ```bash
-npm run test:client
+yarn run test:client
 ```
 
 To run only TypeScript tests:
 ```bash
-npm run test:ts
+yarn run test:ts
 ```
 
 ### Lint
 
 To check for linting errors in `src` and `types` directories:
 ```bash
-npm run lint
+yarn run lint
 ```
 
 To auto fix errors, run eslint for `src` and `types` directories:
 ```bash
-npm run lint:fix
+yarn run lint:fix
 ```
 
 ### Code Coverage Reports
 
 To output a code coverage report in HTML:
 ```bash
-npm run test:coverage
+yarn run test:coverage
 ```
 
 To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php):
 ```bash
-npm run test:coverage:lcov
+yarn run test:coverage:lcov
 ```
 
 The output for all unit tests will be saved in the `packages/joint-core/coverage` directory.
@@ -150,14 +151,14 @@ The output for all unit tests will be saved in the `packages/joint-core/coverage
 
 The `packages/joint-core/dist` directory contains pre-built distribution files. To re-build them, run the following:
 ```bash
-npm run dist
+yarn run dist
 ```
 
 ## Documentation
 
 The source files for the *JointJS* documentation (plus *Geometry* and *Vectorizer* libraries) are included in this repository; see the `packages/joint-core/docs` directory. The documentation can be built into stand-alone HTML documents like this:
 ```bash
-npm run build:docs
+yarn run build:docs
 ```
 The output of the above command can be found at `packages/joint-core/build/docs`.
 

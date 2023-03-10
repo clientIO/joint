@@ -28,34 +28,29 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "build": "npm run build --workspace=packages --if-present",
-    "test": "npm run test --workspace=packages --if-present",
-    "test:server": "npm run test:server --workspace=packages --if-present",
-    "test:client": "npm run test:client --workspace=packages --if-present",
-    "test:ts": "npm run test:ts --workspace=packages --if-present",
-    "test:coverage": "npm run test:coverage --workspace=packages --if-present",
-    "test:coverage:lcov": "npm run test:coverage:lcov --workspace=packages --if-present",
-    "test:bundles": "npm run test:bundles --workspace=packages --if-present",
-    "build:bundles": "npm run build:bundles --workspace=packages --if-present",
-    "test:e2e": "npm run test:e2e --workspace=packages --if-present",
-    "test:e2e:all": "npm run test:e2e:all --workspace=packages --if-present",
-    "lint": "npm run lint --workspace=packages --if-present",
-    "lint:fix": "npm run lint:fix --workspace=packages --if-present",
-    "dist": "npm run dist --workspace=packages --if-present",
-    "build:docs": "npm run build:docs --workspace=packages --if-present"
-  },
-  "dependencies": {},
-  "devDependencies": {
-    "@joint/core": "~3.6.5",
-    "@joint/decorators": "~0.2.2",
-    "@joint/general-shapes": "~1.0.0",
-    "@joint/general-shapes-tools": "~1.0.0"
-  },
-  "volta": {
-    "node": "16.18.1",
-    "npm": "8.19.2"
+    "build": "yarn workspaces foreach run build",
+    "test": "yarn workspaces foreach run test",
+    "test:server": "yarn workspaces foreach run test:server",
+    "test:client": "yarn workspaces foreach run test:client",
+    "test:ts": "yarn workspaces foreach run test:ts",
+    "test:coverage": "yarn workspaces foreach run test:coverage",
+    "test:coverage:lcov": "yarn workspaces foreach run test:coverage:lcov",
+    "test:bundles": "yarn workspaces foreach run test:bundles",
+    "build:bundles": "yarn workspaces foreach run build:bundles",
+    "test:e2e": "yarn workspaces foreach run test:e2e",
+    "test:e2e:all": "yarn workspaces foreach run test:e2e:all",
+    "lint": "yarn workspaces foreach run lint",
+    "lint:fix": "yarn workspaces foreach run lint:fix",
+    "dist": "yarn workspaces foreach run dist",
+    "build:docs": "yarn workspaces foreach run build:docs"
   },
   "workspaces": [
     "./packages/*"
-  ]
+  ],
+  "volta": {
+    "node": "16.18.1",
+    "npm": "8.19.2",
+    "yarn": "3.4.1"
+  },
+  "packageManager": "yarn@3.4.1"
 }
