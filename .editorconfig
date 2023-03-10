@@ -1,10 +1,19 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
 root = true
 
 [*]
 end_of_line = lf
 insert_final_newline = true
 
-[*.{js,json,yml}]
+# 4 space indentation
+[*.{js,ts}]
+indent_style = space
+indent_size = 4
+
+# 2 space indentation
+[*.{json,yml}]
 charset = utf-8
 indent_style = space
 indent_size = 2
