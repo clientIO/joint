@@ -1943,6 +1943,8 @@ export const LinkView = CellView.extend({
 
         if (this.can('labelMove')) {
 
+            if (this.isDefaultActionPrevented(evt)) return;
+
             var labelNode = evt.currentTarget;
             var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
@@ -2012,6 +2014,8 @@ export const LinkView = CellView.extend({
     },
 
     dragStart: function(evt, x, y) {
+
+        if (this.isDefaultActionPrevented(evt)) return;
 
         if (!this.can('linkMove')) return;
 

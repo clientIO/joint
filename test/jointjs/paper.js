@@ -2185,8 +2185,10 @@ QUnit.module('paper', function(hooks) {
                     var eventOrder;
                     if (magnetType === 'passive') {
                         eventOrder = [
+                            'element:magnet:pointerdown',
                             'cell:pointerdown',
                             'element:pointerdown',
+                            'element:magnet:pointerup',
                             'element:pointerup',
                             'cell:pointerup',
                             eventName,
@@ -2197,6 +2199,8 @@ QUnit.module('paper', function(hooks) {
                         ];
                     } else {
                         eventOrder = [
+                            'element:magnet:pointerdown',
+                            'element:magnet:pointerup',
                             eventName,
                             'cell:mouseleave',
                             'element:mouseleave',
@@ -2556,6 +2560,111 @@ QUnit.module('paper', function(hooks) {
             simulate.mousedown({ el: elRect });
             simulate.mousemove({ el: elRect });
             simulate.mouseup({ el: elRect });
+        });
+
+        QUnit.module('preventDefaultAction()', function() {
+
+            QUnit.test('element move', function(assert) {
+
+                assert.expect(2);
+                const paper = this.paper;
+                const position = el.position();
+                paper.on({
+                    'element:pointerdown': function(view, evt) {
+                        view.preventDefaultAction(evt);
+                    },
+                    'element:pointerup': function(view, evt) {
+                        const newPosition = el.position();
+                        assert.equal(newPosition.x, position.x);
+                        assert.equal(newPosition.y, position.y);
+                    },
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect, clientX: 123, clientY: 987 });
+                simulate.mouseup({ el: elRect });
+            });
+
+            QUnit.test('add link from magnet', function(assert) {
+
+                assert.expect(3);
+                const { paper, graph } = this;
+                el.attr(['body', 'magnet'], true);
+                const position = el.position();
+                const cellsCount = graph.getCells().length;
+                paper.on({
+                    'element:magnet:pointerdown': function(view, evt) {
+                        view.preventDefaultAction(evt);
+                    },
+                    'element:magnet:pointerup': function(view, evt) {
+                        // link is not created
+                        assert.equal(graph.getCells().length, cellsCount);
+                        // element is not moved
+                        const newPosition = el.position();
+                        assert.equal(newPosition.x, position.x);
+                        assert.equal(newPosition.y, position.y);
+
+                    },
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect, clientX: 123, clientY: 987 });
+                simulate.mouseup({ el: elRect });
+            });
+
+            QUnit.test('link move', function(assert) {
+
+                assert.expect(2);
+                const { paper, graph } = this;
+                const link = new joint.shapes.standard.Link();
+                graph.addCell(link);
+                const elLink = link.findView(paper).el;
+                const position = link.getSourcePoint();
+                paper.on({
+                    'link:pointerdown': function(view, evt) {
+                        view.preventDefaultAction(evt);
+                    },
+                    'link:pointerup': function(view, evt) {
+                        const newPosition = link.getSourcePoint();
+                        assert.equal(newPosition.x, position.x);
+                        assert.equal(newPosition.y, position.y);
+                    },
+                });
+
+                simulate.mousedown({ el: elLink });
+                simulate.mousemove({ el: elLink, clientX: 123, clientY: 987 });
+                simulate.mouseup({ el: elLink });
+            });
+
+
+            QUnit.test('label move', function(assert) {
+
+                assert.expect(1);
+                const { paper, graph } = this;
+                const position = 0.5;
+                const link = new joint.shapes.standard.Link({
+                    labels: [{
+                        position: {
+                            distance: position
+                        }
+                    }]
+                });
+                graph.addCell(link);
+                const elLabel = link.findView(paper).findLabelNode(0);
+                paper.on({
+                    'link:pointerdown': function(view, evt) {
+                        view.preventDefaultAction(evt);
+                    },
+                    'link:pointerup': function(view, evt) {
+                        const newPosition = link.prop('labels/0/position/distance');
+                        assert.equal(newPosition, position);
+                    },
+                });
+
+                simulate.mousedown({ el: elLabel });
+                simulate.mousemove({ el: elLabel, clientX: 123, clientY: 987 });
+                simulate.mouseup({ el: elLabel });
+            });
         });
     });
 });

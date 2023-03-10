@@ -145,6 +145,9 @@ export const Paper = View.extend({
         // Prevent the default action for blank:pointer<action>.
         preventDefaultBlankAction: true,
 
+        // Prevent the default action for cell:pointer<action>.
+        preventDefaultViewAction: true,
+
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
         //  true - the translation is restricted to the paper area
@@ -310,10 +313,6 @@ export const Paper = View.extend({
         'mouseleave .joint-cell': 'mouseleave',
         'mouseenter .joint-tools': 'mouseenter',
         'mouseleave .joint-tools': 'mouseleave',
-        'mousedown .joint-cell [event]': 'onevent', // interaction with cell with `event` attribute set
-        'touchstart .joint-cell [event]': 'onevent',
-        'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
-        'touchstart .joint-cell [magnet]': 'onmagnet',
         'dblclick .joint-cell [magnet]': 'magnetpointerdblclick',
         'contextmenu .joint-cell [magnet]': 'magnetcontextmenu',
         'mousedown .joint-link .label': 'onlabel', // interaction with link label
@@ -2097,27 +2096,55 @@ export const Paper = View.extend({
 
     pointerdown: function(evt) {
 
-        // onmagnet stops propagation when `addLinkFromMagnet` is allowed
-        // onevent can stop propagation
-
         evt = normalizeEvent(evt);
 
-        if (evt.button === 2) {
+        const { target, button } = evt;
+
+        // Custom event
+        if (target.matches('[event], .joint-cell [event] *')) {
+            const currentTarget = target.closest('[event]');
+            const eventEvt = $.Event(evt, { data: evt.data, currentTarget });
+            this.onevent(eventEvt);
+            if (eventEvt.isDefaultPrevented()) {
+                evt.preventDefault();
+            }
+            // `onevent` can stop propagation
+            if (eventEvt.isPropagationStopped()) return;
+            evt.data = eventEvt.data;
+        }
+
+        // Element magnet
+        if (target.matches('[magnet], .joint-cell [magnet] *')) {
+            const currentTarget = target.closest('[magnet]');
+            const magnetEvt = $.Event(evt, { data: evt.data, currentTarget });
+            this.onmagnet(magnetEvt);
+            if (magnetEvt.isDefaultPrevented()) {
+                evt.preventDefault();
+            }
+            // `onmagnet` stops propagation when `addLinkFromMagnet` is allowed
+            if (magnetEvt.isPropagationStopped()) return;
+            evt.data = magnetEvt.data;
+        }
+
+        if (button === 2) {
             this.contextMenuFired = true;
             const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
             this.contextMenuTrigger(contextmenuEvt);
         } else {
-            var view = this.findView(evt.target);
+            var view = this.findView(target);
 
             if (this.guard(evt, view)) return;
             var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
             if (view) {
-                evt.preventDefault();
+                if (this.options.preventDefaultViewAction) {
+                    evt.preventDefault();
+                }
                 view.pointerdown(evt, localPoint.x, localPoint.y);
             } else {
-                if (this.options.preventDefaultBlankAction) evt.preventDefault();
-
+                if (this.options.preventDefaultBlankAction) {
+                    evt.preventDefault();
+                }
                 this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
             }
 
@@ -2432,7 +2459,7 @@ export const Paper = View.extend({
         this.delegateDocumentEvents(null, data);
     },
 
-    // Guard the specified event. If the event is not interesting, guard returns `true`.
+    // Guard the specified event. If the event should be ignored, guard returns `true`.
     // Otherwise, it returns `false`.
     guard: function(evt, view) {
 

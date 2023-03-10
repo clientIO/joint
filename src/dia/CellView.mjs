@@ -1065,6 +1065,15 @@ export const CellView = View.extend({
     // Interaction. The controller part.
     // ---------------------------------
 
+    preventDefaultAction(evt) {
+        this.eventData(evt, { defaultActionPrevented: true  });
+    },
+
+    isDefaultActionPrevented(evt) {
+        const { defaultActionPrevented = false } = this.eventData(evt);
+        return defaultActionPrevented;
+    },
+
     // Interaction is handled by the paper and delegated to the view in interest.
     // `x` & `y` parameters passed to these functions represent the coordinates already snapped to the paper grid.
     // If necessary, real coordinates can be obtained from the `evt` event object.

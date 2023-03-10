@@ -1255,6 +1255,7 @@ export namespace dia {
             // events
             guard?: (evt: dia.Event, view: CellView) => boolean;
             preventContextMenu?: boolean;
+            preventDefaultViewAction?: boolean;
             preventDefaultBlankAction?: boolean;
             clickThreshold?: number;
             moveThreshold?: number;
