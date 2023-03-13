@@ -30,41 +30,43 @@
             <p>
                 In the wonderful world of SVG elements, 
                 <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject" target="_blank">foreignObject</a> stands 
-                out from the rest as it provides some unique behaviour that other SVG elements do not. SVG, like other XML dialects, is namespaced. 
-                That means if you want to include elements from a different XML namespace right in your SVG, you need some mechanism to enable this 
-                functionality. That's where foreignObject comes into play.
+                out from the rest as it provides some unique behaviour that other SVG elements do not. SVG, like other XML dialects, is
+                namespaced. That means if you want to include elements from a different XML namespace right in your SVG, you need some
+                mechanism to enable this functionality. That's where foreignObject comes into play.
             </p>
 
             <p>
-                How does this relate to creating diagrams with JointJS? While JointJS provides a lot of functionality and customization for users,
-                we as developers are a habitual bunch. If we want to create some basic interactive elements, we often want to reach for technologies
-                we are already familiar with, and in Web land, the dominant force in this regard is still good old HTML.
+                How does this relate to creating diagrams with JointJS? While JointJS provides a lot of functionality and customization
+                for users, we as developers are a habitual bunch. If we want to create some basic interactive elements, we often want to
+                reach for technologies we are already familiar with, and in Web land, the dominant force in this regard is still good old HTML.
             </p>
 
             <p>
-                Historically, recommending foreignObject to users of JointJS was a little bit tricky, the main reason for this was the inherent lack of 
-                support for foreignObject in Internet Explorer. Hence, the difficulty in integrating support into the library due to the requirement of 
-                supporting all users, including the users who were still using IE. Luckily for us, the days in which we had to support IE are now at an end, 
-                and all other major browsers have full support which can be seen in the following 
-                <a href="https://caniuse.com/?search=foreignObject" target="_blank">caniuse</a> reference table.
+                Historically, recommending foreignObject to users of JointJS was a little bit tricky, the main reason for this was the
+                inherent lack of support for foreignObject in Internet Explorer. Hence, the difficulty in integrating support into the 
+                library due to the requirement of supporting all users, including the users who were still using IE. Luckily for us, 
+                the days in which we had to support IE are now at an end, and all other major browsers have full support which can be
+                seen in the following <a href="https://caniuse.com/?search=foreignObject" target="_blank">caniuse</a> reference table.
             </p>
 
             <p>
-                Now that we can confidently recommend the use of foreignObject with JointJS, users can now enjoy the benefits of HTML in their diagrams. 
-                Embedding HTML text in SVG, creating basic interactive elements like buttons, or working with HTML inputs should now be a more 
-                straightforward process. With this addition, combining the power of JointJS with foreignObject opens up a world of possibilities 
-                for interactivity within your JointJS diagrams.
+                Now that we can confidently recommend the use of foreignObject with JointJS, users can now enjoy the benefits of
+                HTML in their diagrams. Embedding HTML text in SVG, creating basic interactive elements like buttons, or working
+                with HTML inputs should now be a more straightforward process. With this addition, combining the power of JointJS 
+                with foreignObject opens up a world of possibilities for interactivity within your JointJS diagrams.
             </p>
 
             <p>
-                In order to get a general idea of how the foreignObject element can be utilized, let's get started with a simple example without JointJS.
+                In order to get a general idea of how the foreignObject element can be utilized, let's get started with a simple
+                example without JointJS.
             </p>
 
             <h3>foreignObject</h3>
 
             <p>
-                In the following example, <code>foreignObject</code> is placed within our SVG tag. Note, that it's mandatory in this instance to include the XHTML 
-                namespace on the <code>div</code> element. This example creates a simple SVG rect element with some HTML text. 
+                In the following example, <code>foreignObject</code> is placed within our SVG tag. Note, that it's mandatory in
+                this instance to include the XHTML namespace on the <code>div</code> element. This example creates a simple SVG
+                rect element with some HTML text. 
             </p>
 
             <pre><code>&lt;svg version="1.1" width="300" height="200" xmlns="http://www.w3.org/2000/svg"&gt;
