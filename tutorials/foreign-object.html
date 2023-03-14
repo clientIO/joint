@@ -29,10 +29,10 @@
 
             <p>
                 In the wonderful world of SVG elements, 
-                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject" target="_blank">foreignObject</a> stands 
-                out from the rest as it provides some unique behaviour that other SVG elements do not. SVG, like other XML dialects, is
+                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject" target="_blank"><code>foreignObject</code></a> 
+                stands out from the rest as it provides some unique behaviour that other SVG elements do not. SVG, like other XML dialects, is
                 namespaced. That means if you want to include elements from a different XML namespace right in your SVG, you need some
-                mechanism to enable this functionality. That's where foreignObject comes into play.
+                mechanism to enable this functionality. That's where <code>foreignObject</code> comes into play.
             </p>
 
             <p>
@@ -42,41 +42,39 @@
             </p>
 
             <p>
-                Historically, recommending foreignObject to users of JointJS was a little bit tricky, the main reason for this was the
-                inherent lack of support for foreignObject in Internet Explorer. Hence, the difficulty in integrating support into the 
-                library due to the requirement of supporting all users, including the users who were still using IE. Luckily for us, 
+                Historically, recommending <code>foreignObject</code> to users of JointJS was a little bit tricky, the main reason for this was the
+                inherent lack of support for <code>foreignObject</code> in Internet Explorer. Hence, the difficulty in integrating support into the 
+                library due to the requirement of supporting all users, including those who were still using IE. Luckily for us, 
                 the days in which we had to support IE are now at an end, and all other major browsers have full support which can be
                 seen in the following <a href="https://caniuse.com/?search=foreignObject" target="_blank">caniuse</a> reference table.
             </p>
 
             <p>
-                Now that we can confidently recommend the use of foreignObject with JointJS, users can now enjoy the benefits of
+                Now that we can more confidently recommend the use of <code>foreignObject</code> with JointJS, users can now enjoy the benefits of
                 HTML in their diagrams. Embedding HTML text in SVG, creating basic interactive elements like buttons, or working
                 with HTML inputs should now be a more straightforward process. With this addition, combining the power of JointJS 
-                with foreignObject opens up a world of possibilities for interactivity within your JointJS diagrams.
+                with <code>foreignObject</code> opens up a world of possibilities for interactivity within your JointJS diagrams.
             </p>
 
             <p>
-                In order to get a general idea of how the foreignObject element can be utilized, let's get started with a simple
-                example without JointJS.
+                In order to get a general idea of how <code>foreignObject</code> can be utilized in SVG, let's start with a simple example without using
+                JointJS.
             </p>
 
-            <h3>foreignObject</h3>
+            <h3>Using foreignObject</h3>
 
             <p>
-                In the following example, <code>foreignObject</code> is placed within our SVG tag. Note, that it's mandatory in
-                this instance to include the XHTML namespace on the <code>div</code> element. This example creates a simple SVG
-                rect element with some HTML text. 
+                In the following example, <code>foreignObject</code> is placed within our SVG tag. When using HTML elements within
+                <code>foreignObject</code>, note, that it's mandatory to include the XHTML namespace on the outermost element. In 
+                this instance, that is our <code>div</code> element. This example creates a simple card-like SVG <code>rect</code>
+                element where the user is easily able to select the text.
             </p>
 
-            <pre><code>&lt;svg version="1.1" width="300" height="200" xmlns="http://www.w3.org/2000/svg"&gt;
+            <pre><code>&lt;svg version="1.1" width="300" height="110" xmlns="http://www.w3.org/2000/svg"&gt;
     &lt;style&gt;
-        div {
+        foreignObject p {
             color: white;
             font: 16px sans-serif;
-        }
-
-        p {
             margin: 0;
         }
     &lt;/style&gt;
@@ -89,9 +87,175 @@
 &lt;/svg&gt;
 </code></pre>
 
+        <svg version="1.1" width="300" height="110" xmlns="http://www.w3.org/2000/svg">
+            <style>
+                svg {
+                    margin-top: 10px;
+                }    
+                foreignObject p {
+                    color: white;
+                    font: 16px sans-serif;
+                    margin: 0;
+                }
+            </style>
+            <rect x="0", width="180" height="100" rx="5" ry="5" fill="#4b5d67" />
+            <foreignObject x="10" y="10" width="160" height="80">
+                <div xmlns="http://www.w3.org/1999/xhtml">
+                    <p style="padding: 5px">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                </div>
+            </foreignObject>
+        </svg>
+
         <p>
-            Now that we have an idea of what foreignObject is all about. How would we create an equivalent example in JointJS?
+            Now that we have a better understanding of what <code>foreignObject</code> is all about, how would we create 
+            an equivalent example with JointJS? Using <code>foreignObject</code> with JointJS is much the same as creating any 
+            <a href="/tutorial/custom-elements" target="_blank"><code>custom element</code></a> which you can see in the following
+            code example.
         </p>
+
+        <pre><code>const namespace = joint.shapes;
+
+const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+
+const paper = new joint.dia.Paper({
+    // paper options
+    guard: (evt) => ['P'].includes(evt.target.tagName)
+});
+
+const Card = joint.dia.Element.define('example.ForeignObject', {
+    attrs: {
+        body: {
+            width: 'calc(w)',
+            height: 'calc(h)',
+            stroke: '#4b5d67',
+            fill: '#4b5d67',
+            strokeWidth: 1,
+            rx: 5,
+            ry: 5
+        },
+        foreignObject: {
+            width: 160,
+            height: 80,
+            x: 10,
+            y: 10
+        }
+    },
+}, {
+    markup: [
+        {
+            tagName: 'rect',
+            selector: 'body'
+        },
+        {
+            tagName: 'foreignObject',
+            selector: 'foreignObject',
+            children: [
+                {
+                    tagName: 'div',
+                    namespaceURI: 'http://www.w3.org/1999/xhtml',
+                    selector: 'content',
+                    style: {
+                        fontFamily: 'sans-serif',
+                        fontSize: 16,
+                        color: 'white'
+                    },
+                    children: [
+                        {
+                            tagName: 'p',
+                            selector: 'textContent',
+                            style: {
+                                padding: 5,
+                                margin: 0
+                            },
+                            textContent: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+});
+
+joint.shapes.example.ForeignObjectView = joint.dia.ElementView.extend();
+
+const card = new Card({
+    position: { x: 10, y: 10 },
+    attrs: {
+        body: { width: 180, height: 100 }
+    }
+});
+
+card.addTo(graph);
+</code></pre>
+
+        <p>
+            As mentioned earlier, we would like to create an equivalent example with JointJS, that means selecting text needs
+            to be possible. In order to achieve this functionality, we need to use the <code>paper</code>
+            <a href="/docs/jointjs#dia.Paper.prototype.options.guard" target="_blank"><code>guard</code></a> option available
+            in JointJS to prevent the <code>paper</code> from handling UI events related to <code>&lt;p&gt;</code>
+            tags. In our <code>guard</code> function, we can return <code>true</code> if the <code>evt.target.tagName</code> 
+            is <code>'P'</code>.
+        </p>
+
+        <p>
+            While <code>guard</code> will handle events, we also need to allow the user select text via CSS. As the default CSS 
+            in JointJS sets the <code>user-select</code> property to <code>'none'</code>, we need to override this on our element.
+            The <code>guard</code> option combined the with following CSS override enables users to select text in the same manner 
+            as the vanilla SVG example from earlier. We can also adjust the <code>cursor</code> value in order to see the text cursor.
+        </p>
+
+        <pre><code>g[data-type="example.ForeignObject"] {
+    -webkit-user-select: text;  // prefix needed for Safari
+    user-select: text;
+}
+
+g[data-type="example.ForeignObject"] p {
+    cursor: auto;
+}
+</code></pre>
+
+        <p>
+            As our <code>foreignObject</code> might contain lots of HTML, there are moments when we certainly want to
+            be more concise when creating custom elements. Taking advantage of the SVG  
+            <a href="/docs/jointjs#util.svg" target="_blank"><code>util</code></a> in JointJS,
+            we can convert a string into a <code>markup</code> object while declaring a <code>Cell</code>. The resulting
+            custom element will be more compact, and maybe easier to read for some users.
+        </p>
+
+        <pre><code>const Card = joint.dia.Element.define('example.ForeignObject', {
+    attrs: {
+        body: {
+            width: 'calc(w)',
+            height: 'calc(h)',
+            stroke: '#4b5d67',
+            fill: '#4b5d67',
+            strokeWidth: 1,
+            rx: 5,
+            ry: 5
+        },
+        foreignObject: {
+            width: 160,
+            height: 80,
+            x: 10,
+            y: 10
+        }
+    },
+}, {
+    markup: joint.util.svg/* xml */`
+        &lt;rect @selector="body"/&gt;
+        &lt;foreignObject @selector="foreignObject"&gt;
+            &lt;div @selector="content"
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    style="font-family: sans-serif; font-size: 16px; color: white;"
+            &gt;
+                &lt;p @selector="textContent"
+                    style="margin: 0; padding: 5px"
+                &gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit.&lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/foreignObject&gt;
+    `
+});
+</code></pre>
 
         <h3>Conclusion</h3>
 
