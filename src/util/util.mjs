@@ -269,6 +269,7 @@ export const toKebabCase = function(string) {
 
 export const normalizeEvent = function(evt) {
 
+    if (evt.isNormalized) return evt;
     var normalizedEvent = evt;
     var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
     if (touchEvt) {
@@ -288,6 +289,8 @@ export const normalizeEvent = function(evt) {
         var useElement = target.correspondingUseElement;
         if (useElement) normalizedEvent.target = useElement;
     }
+
+    normalizedEvent.isNormalized = true;
 
     return normalizedEvent;
 };

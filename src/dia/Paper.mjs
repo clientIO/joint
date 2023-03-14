@@ -2099,47 +2099,63 @@ export const Paper = View.extend({
         evt = normalizeEvent(evt);
 
         const { target, button } = evt;
+        const view = this.findView(target);
+        const isContextMenu = (button === 2);
+        if (view) {
 
-        // Custom event
-        if (target.matches('[event], .joint-cell [event] *')) {
-            const currentTarget = target.closest('[event]');
-            const eventEvt = $.Event(evt, { data: evt.data, currentTarget });
-            this.onevent(eventEvt);
-            if (eventEvt.isDefaultPrevented()) {
+            if (!isContextMenu && this.guard(evt, view)) return;
+
+            if (this.options.preventDefaultViewAction) {
                 evt.preventDefault();
             }
-            // `onevent` can stop propagation
-            if (eventEvt.isPropagationStopped()) return;
-            evt.data = eventEvt.data;
-        }
 
-        // Element magnet
-        if (target.matches('[magnet], .joint-cell [magnet] *')) {
-            const currentTarget = target.closest('[magnet]');
-            const magnetEvt = $.Event(evt, { data: evt.data, currentTarget });
-            this.onmagnet(magnetEvt);
-            if (magnetEvt.isDefaultPrevented()) {
-                evt.preventDefault();
+            // Custom event
+            const eventNode = target.closest('[event]');
+            if (eventNode && this.svg.contains(eventNode)) {
+                const eventEvt = $.Event(evt, {
+                    data: evt.data,
+                    currentTarget: eventNode,
+                    isNormalized: true
+                });
+                this.onevent(eventEvt);
+                if (eventEvt.isDefaultPrevented()) {
+                    evt.preventDefault();
+                }
+                // `onevent` can stop propagation
+                if (eventEvt.isPropagationStopped()) return;
+                evt.data = eventEvt.data;
             }
-            // `onmagnet` stops propagation when `addLinkFromMagnet` is allowed
-            if (magnetEvt.isPropagationStopped()) return;
-            evt.data = magnetEvt.data;
+
+            // Element magnet
+            const magnetNode = target.closest('[magnet]');
+            if (magnetNode && this.svg.contains(magnetNode)) {
+                const magnetEvt = $.Event(evt, {
+                    data: evt.data,
+                    currentTarget: magnetNode,
+                    isNormalized: true
+                });
+                this.onmagnet(magnetEvt);
+                if (magnetEvt.isDefaultPrevented()) {
+                    evt.preventDefault();
+                }
+                // `onmagnet` stops propagation when `addLinkFromMagnet` is allowed
+                if (magnetEvt.isPropagationStopped()) {
+                    // `magnet:pointermove` and `magnet:pointerup` events must be fired
+                    if (isContextMenu) return;
+                    this.delegateDragEvents(view, magnetEvt.data);
+                    return;
+                }
+                evt.data = magnetEvt.data;
+            }
         }
 
-        if (button === 2) {
+        if (isContextMenu) {
             this.contextMenuFired = true;
             const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
             this.contextMenuTrigger(contextmenuEvt);
         } else {
-            var view = this.findView(target);
-
-            if (this.guard(evt, view)) return;
-            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-
+            const localPoint = this.snapToGrid(evt.clientX, evt.clientY);
             if (view) {
-                if (this.options.preventDefaultViewAction) {
-                    evt.preventDefault();
-                }
                 view.pointerdown(evt, localPoint.x, localPoint.y);
             } else {
                 if (this.options.preventDefaultBlankAction) {

@@ -16,6 +16,10 @@ const Flags = {
     RENDER: 'RENDER'
 };
 
+const DragActions = {
+    MOVE: 'move',
+    MAGNET: 'magnet',
+};
 // Element base view and controller.
 // -------------------------------------------
 
@@ -607,7 +611,6 @@ export const ElementView = CellView.extend({
 
     pointerdown: function(evt, x, y) {
 
-        if (this.isPropagationStopped(evt)) return;
         this.notifyPointerdown(evt, x, y);
         this.dragStart(evt, x, y);
     },
@@ -622,13 +625,14 @@ export const ElementView = CellView.extend({
         }
 
         switch (action) {
-            case 'magnet':
+            case DragActions.MAGNET:
                 this.dragMagnet(evt, x, y);
                 break;
-            case 'move':
+            case DragActions.MOVE:
                 (delegatedView || this).drag(evt, x, y);
             // eslint: no-fallthrough=false
             default:
+                if (data.preventPointerEvents) break;
                 this.notifyPointermove(evt, x, y);
                 break;
         }
@@ -648,13 +652,14 @@ export const ElementView = CellView.extend({
         }
 
         switch (action) {
-            case 'magnet':
+            case DragActions.MAGNET:
                 this.dragMagnetEnd(evt, x, y);
                 break;
-            case 'move':
+            case DragActions.MOVE:
                 (delegatedView || this).dragEnd(evt, x, y);
             // eslint: no-fallthrough=false
             default:
+                if (data.preventPointerEvents) break;
                 this.notifyPointerup(evt, x, y);
         }
 
@@ -738,7 +743,7 @@ export const ElementView = CellView.extend({
         if (!view || !view.can('elementMove')) return;
 
         this.eventData(evt, {
-            action: 'move',
+            action: DragActions.MOVE,
             delegatedView: view
         });
 
@@ -753,30 +758,44 @@ export const ElementView = CellView.extend({
     dragMagnetStart: function(evt, x, y) {
 
         const { paper } = this;
+        const isPropagationAlreadyStopped = evt.isPropagationStopped();
+        if (isPropagationAlreadyStopped) {
+            // Special case when the propagation was already stopped
+            // on the `element:magnet:pointerdown` event.
+            // Do not trigger any `element:pointer*` events
+            // but still start the magnet dragging.
+            this.eventData(evt, { preventPointerEvents: true });
+        }
 
         if (this.isDefaultActionPrevented(evt) || !this.can('addLinkFromMagnet')) {
+            // Stop the default action, which is to start dragging a link.
             return;
         }
 
         const { targetMagnet = evt.currentTarget } = this.eventData(evt);
-
         evt.stopPropagation();
 
-        if (paper.options.validateMagnet(this, targetMagnet, evt)) {
-
-            if (paper.options.magnetThreshold <= 0) {
-                this.dragLinkStart(evt, targetMagnet, x, y);
+        // Invalid (Passive) magnet. Start dragging the element.
+        if (!paper.options.validateMagnet.call(paper, this, targetMagnet, evt)) {
+            if (isPropagationAlreadyStopped) {
+                // Do not trigger `element:pointerdown` and start element dragging
+                // if the propagation was stopped.
+                this.dragStart(evt, x, y);
+                // The `element:pointerdown` event is not triggered because
+                // of `preventPointerEvents` flag.
+            } else {
+                // We need to reset the action
+                // to `MOVE` so that the element is dragged.
+                this.pointerdown(evt, x, y);
             }
-
-            this.eventData(evt, { action: 'magnet' });
-            this.stopPropagation(evt);
-
-        } else {
-
-            this.pointerdown(evt, x, y);
+            return;
         }
 
-        paper.delegateDragEvents(this, evt.data);
+        // Valid magnet. Start dragging a link.
+        if (paper.options.magnetThreshold <= 0) {
+            this.dragLinkStart(evt, targetMagnet, x, y);
+        }
+        this.eventData(evt, { action: DragActions.MAGNET });
     },
 
     // Drag Handlers

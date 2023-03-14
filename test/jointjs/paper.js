@@ -810,7 +810,7 @@ QUnit.module('paper', function(hooks) {
             paper.options.magnetThreshold = 0;
             data = {};
 
-            paper.onmagnet($.Event('mousedown', { currentTarget: elRect, data: data }));
+            paper.pointerdown($.Event('mousedown', { target: elRect, data: data }));
             assert.equal(graph.getLinks().length, 1);
             paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
         });
@@ -824,7 +824,7 @@ QUnit.module('paper', function(hooks) {
             paper.options.magnetThreshold = 2;
             data = {};
 
-            paper.onmagnet($.Event('mousedown', { currentTarget: elRect, data: data }));
+            paper.pointerdown($.Event('mousedown', { target: elRect, data: data }));
             paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
             paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
             assert.equal(graph.getLinks().length, 0);
@@ -842,7 +842,7 @@ QUnit.module('paper', function(hooks) {
             paper.options.magnetThreshold = 'onleave';
             data = {};
 
-            paper.onmagnet($.Event('mousedown', { currentTarget: elRect, data: data }));
+            paper.pointerdown($.Event('mousedown', { target: elRect, data: data }));
             paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
             paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
             assert.equal(graph.getLinks().length, 0);
@@ -909,7 +909,7 @@ QUnit.module('paper', function(hooks) {
         this.paper.options.linkPinning = true;
         source.attr('.', { magnet: true });
         data = {};
-        sourceView.dragMagnetStart({ currentTarget: sourceView.el, target: sourceView.el, type: 'mousedown', data: data, stopPropagation: function() {} }, 150, 150);
+        sourceView.dragMagnetStart({ currentTarget: sourceView.el, target: sourceView.el, type: 'mousedown', data: data, stopPropagation: () => {}, isPropagationStopped: () => false }, 150, 150);
         sourceView.pointermove({ type: 'mousemove', data: data }, 150, 400);
 
         newLink = _.reject(this.graph.getLinks(), { id: 'link' })[0];
@@ -2298,7 +2298,7 @@ QUnit.module('paper', function(hooks) {
                     ));
                 });
 
-                QUnit.test(magnetType + 'magnet:contextmenu', function(assert) {
+                QUnit.test(magnetType + ' magnet:contextmenu', function(assert) {
 
                     el.attr(['body', 'magnet'], magnetType);
 
@@ -2342,6 +2342,41 @@ QUnit.module('paper', function(hooks) {
                         localPoint.x,
                         localPoint.y
                     ));
+                });
+
+                QUnit.test(magnetType + ' magnet:pointerdown', function(assert) {
+
+                    assert.expect(3);
+                    elRect.setAttribute('magnet', magnetType);
+                    const paper = this.paper;
+                    paper.on({
+                        'element:magnet:pointerdown': function(view, evt) {
+                            assert.ok(true);
+                            evt.stopPropagation();
+                        },
+                        'element:pointerdown': function(view, evt) {
+                            assert.ok(false);
+                        },
+                        'element:magnet:pointermove': function(view, evt) {
+                            assert.ok(true);
+                        },
+                        'element:pointermove': function(view, evt) {
+                            assert.ok(false);
+                        },
+                        'element:magnet:pointerup': function(view, evt) {
+                            assert.ok(true);
+                        },
+                        'element:pointerup': function(view, evt) {
+                            assert.ok(false);
+                        },
+                        'element:pointerclick': function(view, evt) {
+                            assert.ok(false);
+                        }
+                    });
+
+                    simulate.mousedown({ el: elRect });
+                    simulate.mousemove({ el: elRect });
+                    simulate.mouseup({ el: elRect });
                 });
             });
         });
