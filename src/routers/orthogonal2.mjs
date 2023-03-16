@@ -136,7 +136,7 @@ export function orthogonal2(vertices, opt, linkView) {
             { x: tox, y }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'top') {
-        if (soy > toy) {
+        if (soy - spacing > toy) {
             let x = middleOfVerticalSides;
             let y = soy;
 
@@ -153,7 +153,7 @@ export function orthogonal2(vertices, opt, linkView) {
             if (Math.abs(tx0 - sx1) < spacing && ty0 < sy1 + spacing) {
                 x = tx1 + spacing;
                 y = Math.max(ty1 + spacing, soy);
-            } else if(Math.abs(tx1 - sx0) < spacing && ty0 < sy1 + spacing) {
+            } else if (Math.abs(tx1 - sx0) < spacing && ty0 < sy1 + spacing) {
                 x = tx0 - spacing;
                 y = Math.max(ty1 + spacing, soy);
             } 
