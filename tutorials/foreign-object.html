@@ -3,7 +3,6 @@
     <head>
 
         <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
-        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
 
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prism-themes/themes/prism-one-light.css">
@@ -216,10 +215,11 @@ g[data-type="example.ForeignObject"] p {
 
         <p>
             As our <code>foreignObject</code> might contain lots of HTML, there are moments when we certainly want to
-            be more concise when creating custom elements. Taking advantage of the SVG  
-            <a href="/docs/jointjs#util.svg" target="_blank"><code>util</code></a> in JointJS,
-            we can convert a string into a <code>markup</code> object while declaring a <code>Cell</code>. The resulting
-            custom element will be more compact, and maybe easier to read for some users.
+            be more concise when creating custom elements. Taking advantage of
+            <a href="/docs/jointjs#util.svg" target="_blank"><code>util.svg</code></a> in JointJS,
+            we can convert a string into a <a href="/docs/jointjs#dia.Cell.markup" target="_blank""><code>markup</code></a>
+            object while declaring a <code>Cell</code>. The resulting custom element will be more compact, and maybe easier to
+            read for some users.
         </p>
 
         <pre><code>const Card = joint.dia.Element.define('example.ForeignObject', {
@@ -250,18 +250,27 @@ g[data-type="example.ForeignObject"] p {
             &gt;
                 &lt;p @selector="textContent"
                     style="margin: 0; padding: 5px"
-                &gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit.&lt;/p&gt;
+                &gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                &lt;/p&gt;
             &lt;/div&gt;
         &lt;/foreignObject&gt;
     `
 });
 </code></pre>
 
+        <h3>Accepting User Input</h3>
+
+        <p>
+            While creating a static card-like element was a good introduction to working with <code>foreignObject</code>, a lot
+            of users will mostly likely want to work with more interactive elements. One of the most common interactive controls on 
+            the web is the text <code>input</code>, so let's try to create a custom element which accepts some data from the user.
+        </p>
+
         <h3>Conclusion</h3>
 
         <p>
-            We believe foreignObject support is a big step forward for JointJS. It will allow our users to create even more 
-            innovative and interactive diagramming solutions, and we can't wait to see what they create. 
+            We believe <code>foreignObject</code> support is a big step forward for JointJS. It will allow our users to create 
+            even more innovative and interactive diagramming solutions, and we can't wait to see what they create.
         </p>
 
         <script src="../node_modules/prismjs/prism.js"></script>
