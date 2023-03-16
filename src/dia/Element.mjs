@@ -347,7 +347,7 @@ export const Element = Cell.extend({
         const childElements = this.getEmbeddedCells().filter(cell => cell.isElement());
         if (childElements.length === 0) return this;
 
-        this.startBatch('fit-to-children', opt);
+        this.startBatch('fit-embeds', opt);
 
         if (opt.deep) {
             // `opt.deep = true` means "fit to all descendants".
@@ -361,7 +361,7 @@ export const Element = Cell.extend({
         // - inflated by given `opt.padding`
         this._fitToElements(Object.assign({ elements: childElements }, opt));
 
-        this.stopBatch('fit-to-children');
+        this.stopBatch('fit-embeds');
 
         return this;
     },
