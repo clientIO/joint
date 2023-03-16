@@ -66,7 +66,7 @@ const Example = joint.dia.Element.define('example.ForeignObject', {
                 tagName: 'input',
                 selector: 'firstname',
                 attributes: {
-                    'type': 'input',
+                    'type': 'text',
                     'name': 'firstname'
                 },
                 style: {
@@ -80,7 +80,7 @@ const Example = joint.dia.Element.define('example.ForeignObject', {
                 tagName: 'input',
                 selector: 'lastname',
                 attributes: {
-                    'type': 'input',
+                    'type': 'text',
                     'name': 'lastname'
                 },
                 style: {
@@ -126,9 +126,9 @@ const Example2 = joint.dia.Element.define('example.ForeignObject2', {
                 style="font-size: 14px; width: 100%; height: 100%; position: static; background-color: transparent; text-align: center; margin: 0px; padding: 0px 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center;"
             >
                 <span>First Name</span>
-                <input @selector="firstname" type="input" style="position: static; width: 100%;"/>
+                <input @selector="firstname" type="text" style="position: static; width: 100%;"/>
                 <span>Last Name</span>
-                <input @selector="lastname" type="input" style="position: static; width: 100%;"/>
+                <input @selector="lastname" type="text" style="position: static; width: 100%;"/>
                 <span>Color</span>
                 <select @selector="color" style="position: static; width: 100%;">
                     <option value="white">White</option>
