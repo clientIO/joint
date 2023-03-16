@@ -359,7 +359,7 @@ export const Element = Cell.extend({
         // Set new size and position of this element, based on:
         // - union of bboxes of all children
         // - inflated by given `opt.padding`
-        this._fitToElements({ elements: childElements, ...opt });
+        this._fitToElements(Object.assign({ elements: childElements }, opt));
 
         this.stopBatch('fit-to-children');
 
@@ -387,7 +387,7 @@ export const Element = Cell.extend({
         // Set new size and position of parent element, based on:
         // - union of bboxes of all children of parent element (i.e. this element + any sibling elements)
         // - inflated by given `opt.padding`
-        parentElement._fitToElements({ elements: siblingElements, ...opt });
+        parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
 
         if (opt.deep) {
             // `opt.deep = true` means "fit all ancestors to their respective children".
@@ -438,8 +438,8 @@ export const Element = Cell.extend({
 
         // Set the new size and position of this element.
         this.set({
-            position: { resultBBox.x, resultBBox.y },
-            size: { resultBBox.width, resultBBox.height }
+            position: { x: resultBBox.x, y: resultBBox.y },
+            size: { width: resultBBox.width, height: resultBBox.height }
         }, opt);
     },
 
