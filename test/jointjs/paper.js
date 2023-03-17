@@ -2119,6 +2119,35 @@ QUnit.module('paper', function(hooks) {
             });
         }
 
+        QUnit.test('originalEvent', function(assert) {
+
+            const paper = this.paper;
+            const events = [
+                'element:pointerdown',
+                'element:pointermove',
+                'element:pointerup',
+                'element:pointerclick',
+                'element:magnet:pointerdown',
+                'element:magnet:pointermove',
+                'element:magnet:pointerup',
+                'element:magnet:pointerclick',
+            ];
+
+            assert.expect(events.length);
+            events.forEach(function(eventName) {
+                paper.on(eventName, function(view, evt) {
+                    assert.ok(evt.originalEvent instanceof MouseEvent);
+                });
+            });
+
+            paper.options.clickThreshold = 1;
+            el.attr(['body', 'magnet'], 'passive');
+            simulate.mousedown({ el: elRect });
+            simulate.mousemove({ el: elRect });
+            simulate.mouseup({ el: elRect });
+
+        });
+
         QUnit.module('Labels', function(hooks) {
 
             var link, linkView;
@@ -2483,9 +2512,6 @@ QUnit.module('paper', function(hooks) {
 
             paper.on('all', spy);
 
-            const magnet = document.createElement('div');
-            magnet.setAttribute('magnet', 'true');
-            elRect.appendChild(magnet);
 
             simulate.click({
                 el: elRect,
@@ -2500,8 +2526,10 @@ QUnit.module('paper', function(hooks) {
             assert.equal(events[1], 'element:contextmenu');
             spy.resetHistory();
 
+            elRect.setAttribute('magnet', 'true');
+
             simulate.click({
-                el: magnet,
+                el: elRect,
                 button: 2,
                 clientX: 1200,
                 clientY: 1300
@@ -2518,7 +2546,7 @@ QUnit.module('paper', function(hooks) {
                 evt.stopPropagation();
             });
             simulate.click({
-                el: magnet,
+                el: elRect,
                 button: 2,
                 clientX: 1200,
                 clientY: 1300

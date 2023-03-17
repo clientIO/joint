@@ -319,7 +319,7 @@ const attributesNS = {
             if (isCalcAttribute(x)) {
                 textAttrs.x = evalCalcAttribute(x, refBBox);
             }
-            
+
             let fontSizeAttr = attrs['font-size'] || attrs['fontSize'];
             if (isCalcAttribute(fontSizeAttr)) {
                 fontSizeAttr = evalCalcAttribute(fontSizeAttr, refBBox);

@@ -2112,7 +2112,7 @@ export const Paper = View.extend({
             // Custom event
             const eventNode = target.closest('[event]');
             if (eventNode && this.svg.contains(eventNode)) {
-                const eventEvt = $.Event(evt, {
+                const eventEvt = $.Event(evt.originalEvent, {
                     data: evt.data,
                     currentTarget: eventNode,
                     isNormalized: true
@@ -2129,7 +2129,7 @@ export const Paper = View.extend({
             // Element magnet
             const magnetNode = target.closest('[magnet]');
             if (magnetNode && this.svg.contains(magnetNode)) {
-                const magnetEvt = $.Event(evt, {
+                const magnetEvt = $.Event(evt.originalEvent, {
                     data: evt.data,
                     currentTarget: magnetNode,
                     isNormalized: true
@@ -2151,7 +2151,7 @@ export const Paper = View.extend({
 
         if (isContextMenu) {
             this.contextMenuFired = true;
-            const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+            const contextmenuEvt = $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
             this.contextMenuTrigger(contextmenuEvt);
         } else {
             const localPoint = this.snapToGrid(evt.clientX, evt.clientY);
@@ -2216,7 +2216,7 @@ export const Paper = View.extend({
         }
 
         if (!normalizedEvt.isPropagationStopped()) {
-            this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+            this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
         }
 
         evt.stopImmediatePropagation();
@@ -2412,7 +2412,11 @@ export const Paper = View.extend({
         if (evt.button === 2) {
             this.contextMenuFired = true;
             this.magnetContextMenuFired = true;
-            const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+            const contextmenuEvt = $.Event(evt.originalEvent, {
+                type: 'contextmenu',
+                data: evt.data,
+                currentTarget: evt.currentTarget,
+            });
             this.magnetContextMenuTrigger(contextmenuEvt);
             if (contextmenuEvt.isPropagationStopped()) {
                 evt.stopPropagation();
