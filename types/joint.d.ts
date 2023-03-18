@@ -1288,6 +1288,7 @@ export namespace dia {
             onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
             beforeRender?: Paper.BeforeRenderCallback;
             afterRender?: Paper.AfterRenderCallback;
+            overflow?: boolean;
         }
 
         interface ScaleContentOptions {
