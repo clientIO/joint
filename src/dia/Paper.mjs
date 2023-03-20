@@ -349,6 +349,7 @@ export const Paper = View.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
+    FORM_CONTROL_TAG_NAMES: ['SELECT', 'TEXTAREA', 'INPUT', 'OPTION', 'BUTTON'],
     MIN_SCALE: 1e-6,
 
     init: function() {
@@ -2101,12 +2102,24 @@ export const Paper = View.extend({
         const { target, button } = evt;
         const view = this.findView(target);
         const isContextMenu = (button === 2);
+
         if (view) {
 
             if (!isContextMenu && this.guard(evt, view)) return;
 
-            if (this.options.preventDefaultViewAction) {
+            const isTargetFormNode = this.FORM_CONTROL_TAG_NAMES.includes(target.tagName);
+
+            if (this.options.preventDefaultViewAction && !isTargetFormNode) {
+                // If the target is a form element, we do not want to prevent the default action.
+                // For example, we want to be able to select text in a text input or
+                // to be able to click on a checkbox.
                 evt.preventDefault();
+            }
+
+            if (isTargetFormNode) {
+                // If the target is a form element, we do not want to start dragging the element.
+                // For example, we want to be able to select text by dragging the mouse.
+                view.preventDefaultAction(evt);
             }
 
             // Custom event
