@@ -353,6 +353,15 @@ pre {
     padding: 16px;
 }
 
+.docs-content td p:first-child {
+    margin-top: 0;
+}
+
+.docs-content td p:last-child,
+.docs-content td ul:last-child {
+    margin-bottom: 0;
+}
+
 .docs-content th {
     font-weight: var(--text-font-weight-bold);
 }
