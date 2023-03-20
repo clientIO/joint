@@ -62,25 +62,18 @@ Array.from({ length: 10 }).forEach(function(_, index) {
 g3.addPort({
     group: 'a',
     attrs: {
-        circle: {
-            stroke: '#fe854f',
-            strokeWidth: 2,
-            magnet: true
-        },
         portLabelBody: {
             stroke: '#fe854f',
+            strokeWidth: 2,
             fill: '#fe854f',
             width: 100,
-            height: 20
+            height: 20,
+            magnet: true,
         },
         portLabelText: {
             x: '0.5em',
-            y: '0.9em'
-        },
-        text: {
-            x: '0.5em',
-            text: 'custom label',
             y: '0.9em',
+            text: 'custom label',
             textAnchor: 'start',
             fill: '#ffffff'
         }
@@ -146,25 +139,18 @@ Array.from({ length: 3 }).forEach(function(_, index) {
 g33.addPort({
     group: 'a',
     attrs: {
-        circle: {
-            stroke: '#fe854f',
-            strokeWidth: 2,
-            magnet: true
-        },
         portLabelBody: {
             stroke: '#fe854f',
+            strokeWidth: 2,
             fill: '#fe854f',
             width: 150,
-            height: 20
+            height: 20,
+            magnet: true,
         },
         portLabelText: {
             x: '0.5em',
-            y: '0.9em'
-        },
-        text: {
-            x: '0.5em',
-            text: 'custom label - manual',
             y: '0.9em',
+            text: 'custom label - manual',
             textAnchor: 'start',
             fill: '#ffffff'
         }

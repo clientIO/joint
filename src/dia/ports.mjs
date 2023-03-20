@@ -754,14 +754,34 @@ export const elementViewPortPrototype = {
             portContainerSelectors = portSelectors || labelSelectors || {};
         }
 
+        // The `portRootSelector` points to the root SVGNode of the port.
+        // Either the implicit wrapping group <g/> in case the port consist of multiple SVGNodes.
+        // Or the single SVGNode of the port.
         const portRootSelector = 'portRoot';
+        // The `labelRootSelector` points to the root SVGNode of the label.
+        const labelRootSelector = 'labelRoot';
+        // The `labelTextSelector` points to all text SVGNodes of the label.
+        const labelTextSelector = 'labelText';
+
         if (!(portRootSelector in portContainerSelectors)) {
             portContainerSelectors[portRootSelector] = portElement.node;
         }
 
-        const labelRootSelector = 'labelRoot';
-        if (labelElement && !(labelRootSelector in portContainerSelectors)) {
-            portContainerSelectors[labelRootSelector] = labelElement.node;
+        if (labelElement) {
+            const labelNode = labelElement.node;
+            if (!(labelRootSelector in portContainerSelectors)) {
+                portContainerSelectors[labelRootSelector] = labelNode;
+            }
+            if (!(labelTextSelector in portContainerSelectors)) {
+                // If the label is a <text> element, we can use it directly.
+                // Otherwise, we need to find the <text> element within the label.
+                const labelTextNode = (labelElement.tagName() === 'TEXT')
+                    ? labelNode
+                    : Array.from(labelNode.querySelectorAll('text'));
+                portContainerSelectors[labelTextSelector] = labelTextNode;
+                if (!labelSelectors) labelSelectors = {};
+                labelSelectors[labelTextSelector] = labelTextNode;
+            }
         }
 
         portContainerElement.append(portElement.addClass('joint-port-body'));

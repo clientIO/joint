@@ -182,6 +182,7 @@ markup: [{
         <p>The default port label markup is <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.</p>
         <p>The root of the label markup is referenced by the <code>labelRoot</code> selector.</p>
         <p>If the markup contains more than one node, an extra group is created to wrap the nodes. This group becomes the new <code>labelRoot</code>.</p>
+        <p>All <code>&lt;text/&gt;</code> nodes of the port are referenced by the <code>labelText</code> selector, unless the markup contains <code>labelText</code> explicitly.</p>
         <p>Use an empty array <code>[]</code> to prevent the label from being rendered.</p>
     </td>
 </tr>
