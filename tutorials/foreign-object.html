@@ -18,6 +18,29 @@
 
         <title>JointJS - JavaScript diagramming library - Getting started.</title>
 
+        <style>
+             g[data-type="example.Form"] {
+                filter: drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
+            }
+
+            form {
+                font-size: 16px;
+                margin: 1.2rem;
+            }
+
+            label {
+                display: inline-block;
+                margin-bottom: 0.4rem;
+            }
+
+            input {
+                box-sizing: border-box;
+                font-size: inherit;
+                margin-bottom: 0.8rem;
+                width: 100%;
+            }
+        </style>
+
     </head>
     <body class="language-javascript tutorial-page">
 
@@ -241,6 +264,8 @@ g[data-type="example.ForeignObject"] p {
         }
     },
 }, {
+    // The /* xml */ comment is optional.
+    // It is used to tell the IDE that the markup is XML.
     markup: joint.util.svg/* xml */`
         &lt;rect @selector="body"/&gt;
         &lt;foreignObject @selector="foreignObject"&gt;
@@ -263,8 +288,118 @@ g[data-type="example.ForeignObject"] p {
         <p>
             While creating a static card-like element was a good introduction to working with <code>foreignObject</code>, a lot
             of users will mostly likely want to work with more interactive elements. One of the most common interactive controls on 
-            the web is the text <code>input</code>, so let's try to create a custom element which accepts some data from the user.
+            the web for submitting information is a <code>form</code>, so let's try to create a custom element which accepts some 
+            data from the user.
         </p>
+
+        <p>
+            The base of our custom element will be much like the previous example. The only difference in terms of element structure
+            will be the HTML for our <code>form</code> located within the <code>foreignObject</code> element.
+        </p>
+
+        <pre><code>const Form = joint.dia.Element.define('example.Form', {
+    attrs: {
+        body: {
+            width: 'calc(w)',
+            height: 'calc(h)',
+            fill: 'white',
+            rx: 5,
+            ry: 5
+        },
+        foreignObject: {
+            width: 'calc(w)',
+            height: 'calc(h)',
+            x: 0,
+            y: 10
+        }
+    }
+}, {
+    markup: joint.util.svg/* xml */`
+        &lt;rect @selector="body" /&gt;
+        &lt;foreignObject @selector="foreignObject"&gt;
+            &lt;div @selector="content"
+                xmlns="http://www.w3.org/1999/xhtml"
+                style="font-family: sans-serif;"
+            &gt;
+                &lt;form @selector="formContent" id="form"&gt;
+                    &lt;label @selector="label" for="name">Name&gt;/label&gt;
+                    &lt;input @selector="name" type="text" id="name" name="name"/&gt;
+                    &lt;input @selector="submit" type="submit" value="submit"/&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/foreignObject&gt;
+    `
+}, {});
+</code></pre>
+
+        <p>
+            Just to make our form a little more presentable, we will also add the following CSS.
+        </p>
+
+        <pre><code>g[data-type="example.Form"] {
+    filter: drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
+}
+
+form {
+    font-size: 16px;
+    margin: 1.2rem;
+}
+
+label {
+    display: inline-block;
+    margin-bottom: 0.4rem;
+}
+
+input {
+    box-sizing: border-box;
+    font-size: inherit;
+    margin-bottom: 0.8rem;
+    width: 100%;
+}   
+</code></pre>
+
+        <p>
+            The joy of working with <code>foreignObject</code> in our shapes is that we still get to take advantage of some neat functionality such
+            as clicking on a <code>label</code> element, and the related <code>input</code> will be focused. In our case, the <code>label</code> has
+            the attribute <code></code> which corresponds to the <code>input</code> with the same <code>'id'</code> attribute.
+        </p>
+
+        <p>
+            We will however need to remove focus when the user clicks on a blank <code>paper</code> area, or on another element. We can do this with
+            the following event:
+        </p>
+
+        <pre><code>paper.on('blank:pointerdown cell:pointerdown', () => {
+        document.activeElement.blur();
+});
+</code></pre>
+
+        <p>
+            Once again, as we want to prevent the <code>paper</code> from handling browser UI events relating to our <code>input</code>,
+            we can include it in the paper <code>guard</code> option. Now, we can type normally in our <code>input</code>.
+        </p>
+
+        <pre><code>// paper option
+guard: (evt) => ['INPUT'].includes(evt.target.tagName)
+</code></pre>
+
+        <p>
+            At this stage, we have handled most of the functionality related to our events. Mostly likely when using a form, you will want to
+            prevent the default browser behaviour when submitting user data. We will simply query our form, and add an event listener. If using
+            the <code>paper</code> <code>async</code> option, you may need to update all views in the DOM via the <code>paper</code> 
+            <a href="/docs/jointjs#dia.Paper.prototype.dumpViews"><code>dumpViews()</code></a> method.
+        </p>
+
+        <pre><code>paper.dumpViews();
+
+const formHTML = document.querySelector('form');
+    
+formHTML.addEventListener('submit', (e) => {
+    e.preventDefault();
+});
+</code></pre>
+
+        <div class="paper" id="paper-foreign-object"></div>
 
         <h3>Conclusion</h3>
 
@@ -274,6 +409,8 @@ g[data-type="example.ForeignObject"] p {
         </p>
 
         <script src="../node_modules/prismjs/prism.js"></script>
+
+        <script src="js/foreign-object.js"></script>
     </body>
 </html>
 
