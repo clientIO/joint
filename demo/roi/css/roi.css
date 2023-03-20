@@ -1,0 +1,50 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+#paper {
+    position: absolute;
+    inset: 0 0 0 0;
+}
+
+input:invalid {
+    background-color: ivory;
+    border: 2px solid lightgray;
+    outline: 2px solid red;
+}
+
+* {
+    font-family: sans-serif;
+}
+
+.jj-form {
+    font-size: 14px;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    text-align: center;
+    margin: 0px;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    touch-action: none;
+}
+
+.jj-field {
+     display: flex;
+     flex-direction: row;
+     align-items: center;
+     justify-content: space-between;
+     width: 100%;
+     padding: 5px 0;
+}
+
+.jj-input {
+    width: 100%;
+    text-align:right;
+}
