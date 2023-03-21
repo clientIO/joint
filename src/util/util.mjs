@@ -93,11 +93,11 @@ export const parseDOMJSON = function(json, namespace) {
             }
             // Groups
             if (nodeDef.hasOwnProperty('groupSelector')) {
-                var nodeGroups = nodeDef.groupSelector;
+                let nodeGroups = nodeDef.groupSelector;
                 if (!Array.isArray(nodeGroups)) nodeGroups = [nodeGroups];
-                for (var j = 0; j < nodeGroups.length; j++) {
-                    var nodeGroup = nodeGroups[j];
-                    var group = groupSelectors[nodeGroup];
+                for (let j = 0; j < nodeGroups.length; j++) {
+                    const nodeGroup = nodeGroups[j];
+                    let group = groupSelectors[nodeGroup];
                     if (!group) group = groupSelectors[nodeGroup] = [];
                     group.push(node);
                 }
