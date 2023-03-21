@@ -161,7 +161,7 @@
                 this.resize(140, 30);
             } else {
                 buttonD = 'M 2 7 12 7';
-                this.fitChildren();
+                this.fitToChildElements();
             }
             this.attr(['buttonIcon','d'], buttonD);
             this.set('collapsed', collapsed);
@@ -171,9 +171,22 @@
             return Boolean(this.get('collapsed'));
         },
 
-        fitChildren: function() {
+        fitToChildElements: function() {
             var padding = 10;
-            this.fitEmbeds({
+            this.fitToChildren({
+                padding: {
+                    top: headerHeight + padding,
+                    left: padding,
+                    right: padding,
+                    bottom: padding
+                }
+            })
+        },
+
+        fitAncestorElements: function() {
+            var padding = 10;
+            this.fitParent({
+                deep: true,
                 padding: {
                     top: headerHeight + padding,
                     left: padding,
