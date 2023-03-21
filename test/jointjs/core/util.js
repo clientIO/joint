@@ -1389,10 +1389,10 @@ QUnit.module('util', function(hooks) {
             assert.equal(markup[1].groupSelector[0], 'group-selector1');
             assert.equal(markup[1].groupSelector[1], 'group-selector2');
             assert.equal(markup[1].className, 'circle');
-            assert.equal(markup[2].children.length, 2);
-            assert.equal(markup[2].textContent, 'textContent');
+            assert.equal(markup[2].children.length, 3);
             assert.equal(markup[2].children[0].style['pointer-events'], 'auto');
             assert.equal(markup[2].children[1].attributes['stroke'], 'red');
+            assert.equal(markup[2].children[2].textContent, 'textContent');
         }
 
         QUnit.test('function', function(assert) {
@@ -1442,10 +1442,14 @@ QUnit.module('util', function(hooks) {
                 `;
                 assert.equal(markup.length, 1);
                 assert.equal(markup[0].tagName, 'text');
-                assert.equal(markup[0].textContent, 'ac', 'textContent does not contain the tspan element');
-                assert.equal(markup[0].children.length, 1);
-                assert.equal(markup[0].children[0].tagName, 'tspan');
-                assert.equal(markup[0].children[0].textContent, 'b');
+                assert.equal(markup[0].textContent, undefined, 'textContent does not textContent property because it has non-text children');
+                assert.equal(markup[0].children.length, 3);
+                assert.equal(markup[0].children[0].tagName, '#text');
+                assert.equal(markup[0].children[0].textContent, 'a');
+                assert.equal(markup[0].children[1].tagName, 'tspan');
+                assert.equal(markup[0].children[1].textContent, 'b');
+                assert.equal(markup[0].children[2].tagName, '#text');
+                assert.equal(markup[0].children[2].textContent, 'c');
             });
 
             QUnit.test('no text nodes', function(assert) {
