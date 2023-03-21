@@ -23,7 +23,7 @@ markup: '&lt;rect&gt;&lt;g&gt;&lt;circle/&gt;&lt;circle/&gt;&lt;/g&gt;'</code></
 <h4 id="dia.Cell.markup.json">JSON Markup</h4>
 
 <p>
-    JSON markup is defined recursively as an array of <code>JSONElement</code>, where <code>JSONElement</code> is a plain object with the following properties:
+    JSON markup is defined recursively as an array of <code>JSONElement</code> or strings representing text nodes, where <code>JSONElement</code> is a plain object with the following properties:
 </p>
 
 <ul>
@@ -60,7 +60,9 @@ markup: [{
         tagName: 'circle',
         selector: 'circle1',
         groupSelector: 'circles'
-    }, {
+    },
+    'text content',
+    {
         tagName: 'circle',
         selector: 'circle2',
         groupSelector: 'circles'
@@ -95,6 +97,7 @@ markup: svg`
             @selector="circle1"
             @group-selector="circles"
         /&gt
+        text content
         &ltcircle
             @selector="circle2"
             @group-selector="circles"

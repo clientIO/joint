@@ -70,7 +70,7 @@ export namespace dia {
         textContent?: string;
     };
 
-    type MarkupJSON = MarkupNodeJSON[];
+    type MarkupJSON = Array<MarkupNodeJSON | string>;
 
     type Path = string | Array<string | number>;
 
