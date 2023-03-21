@@ -25,9 +25,7 @@ function parseFromSVGString(str) {
 }
 
 function buildNode(node) {
-    const markupNode = {
-        children: []
-    };
+    const markupNode = {};
     const { tagName, attributes, namespaceURI, style, childNodes } = node;
 
     markupNode.namespaceURI = namespaceURI;
@@ -65,23 +63,27 @@ function buildNode(node) {
         markupNode.className = className.value;
     }
 
+    const children = [];
     childNodes.forEach(node => {
         switch (node.nodeType) {
             case Node.TEXT_NODE: {
                 const trimmedText = node.data.replace(/\s\s+/g, ' ');
                 if (trimmedText.trim()) {
-                    markupNode.children.push(trimmedText);
+                    children.push(trimmedText);
                 }
                 break;
             }
             case Node.ELEMENT_NODE: {
-                markupNode.children.push(buildNode(node));
+                children.push(buildNode(node));
                 break;
             }
             default:
                 break;
         }
     });
+    if (children.length) {
+        markupNode.children = children;
+    }
 
     const nodeAttrs = {};
 
