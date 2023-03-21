@@ -43,62 +43,66 @@ export const parseDOMJSON = function(json, namespace) {
     const fragment = document.createDocumentFragment();
 
     const parseNode = function(siblingsDef, parentNode, ns) {
-        for (let i = 0, n = siblingsDef.length; i < n; i++) {
+        for (let i = 0; i < siblingsDef.length; i++) {
             const nodeDef = siblingsDef[i];
+
+            // Text node
+            if (typeof nodeDef === 'string') {
+                const textNode = document.createTextNode(nodeDef);
+                parentNode.appendChild(textNode);
+                continue;
+            }
+
             // TagName
             if (!nodeDef.hasOwnProperty('tagName')) throw new Error('json-dom-parser: missing tagName');
             const tagName = nodeDef.tagName;
 
             let node;
 
-            // Process text nodes
-            if (tagName === '#text') {
-                node = document.createTextNode(nodeDef.textContent);
-            } else {
-                // Namespace URI
-                if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
-                node = document.createElementNS(ns, tagName);
-                const svg = (ns === svgNamespace);
+            // Namespace URI
+            if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
+            node = document.createElementNS(ns, tagName);
+            const svg = (ns === svgNamespace);
 
-                const wrapper = (svg) ? V : $;
-                // Attributes
-                const attributes = nodeDef.attributes;
-                if (attributes) wrapper(node).attr(attributes);
-                // Style
-                const style = nodeDef.style;
-                if (style) $(node).css(style);
-                // ClassName
-                if (nodeDef.hasOwnProperty('className')) {
-                    const className = nodeDef.className;
-                    if (svg) {
-                        node.className.baseVal = className;
-                    } else {
-                        node.className = className;
-                    }
-                }
-                // TextContent
-                if (nodeDef.hasOwnProperty('textContent')) {
-                    node.textContent = nodeDef.textContent;
-                }
-                // Selector
-                if (nodeDef.hasOwnProperty('selector')) {
-                    const nodeSelector = nodeDef.selector;
-                    if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
-                    selectors[nodeSelector] = node;
-                    wrapper(node).attr('joint-selector', nodeSelector);
-                }
-                // Groups
-                if (nodeDef.hasOwnProperty('groupSelector')) {
-                    var nodeGroups = nodeDef.groupSelector;
-                    if (!Array.isArray(nodeGroups)) nodeGroups = [nodeGroups];
-                    for (var j = 0, m = nodeGroups.length; j < m; j++) {
-                        var nodeGroup = nodeGroups[j];
-                        var group = groupSelectors[nodeGroup];
-                        if (!group) group = groupSelectors[nodeGroup] = [];
-                        group.push(node);
-                    }
+            const wrapper = (svg) ? V : $;
+            // Attributes
+            const attributes = nodeDef.attributes;
+            if (attributes) wrapper(node).attr(attributes);
+            // Style
+            const style = nodeDef.style;
+            if (style) $(node).css(style);
+            // ClassName
+            if (nodeDef.hasOwnProperty('className')) {
+                const className = nodeDef.className;
+                if (svg) {
+                    node.className.baseVal = className;
+                } else {
+                    node.className = className;
                 }
             }
+            // TextContent
+            if (nodeDef.hasOwnProperty('textContent')) {
+                node.textContent = nodeDef.textContent;
+            }
+            // Selector
+            if (nodeDef.hasOwnProperty('selector')) {
+                const nodeSelector = nodeDef.selector;
+                if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
+                selectors[nodeSelector] = node;
+                wrapper(node).attr('joint-selector', nodeSelector);
+            }
+            // Groups
+            if (nodeDef.hasOwnProperty('groupSelector')) {
+                var nodeGroups = nodeDef.groupSelector;
+                if (!Array.isArray(nodeGroups)) nodeGroups = [nodeGroups];
+                for (var j = 0; j < nodeGroups.length; j++) {
+                    var nodeGroup = nodeGroups[j];
+                    var group = groupSelectors[nodeGroup];
+                    if (!group) group = groupSelectors[nodeGroup] = [];
+                    group.push(node);
+                }
+            }
+
             parentNode.appendChild(node);
 
             // Children

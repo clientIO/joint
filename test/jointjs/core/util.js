@@ -1392,7 +1392,7 @@ QUnit.module('util', function(hooks) {
             assert.equal(markup[2].children.length, 3);
             assert.equal(markup[2].children[0].style['pointer-events'], 'auto');
             assert.equal(markup[2].children[1].attributes['stroke'], 'red');
-            assert.equal(markup[2].children[2].textContent, 'textContent');
+            assert.equal(markup[2].children[2], 'textContent');
         }
 
         QUnit.test('function', function(assert) {
@@ -1442,14 +1442,35 @@ QUnit.module('util', function(hooks) {
                 `;
                 assert.equal(markup.length, 1);
                 assert.equal(markup[0].tagName, 'text');
-                assert.equal(markup[0].textContent, undefined, 'textContent does not textContent property because it has non-text children');
+                assert.equal(markup[0].textContent, undefined, 'text element does not have textContent property because it has non-text children');
                 assert.equal(markup[0].children.length, 3);
-                assert.equal(markup[0].children[0].tagName, '#text');
-                assert.equal(markup[0].children[0].textContent, 'a');
+                assert.equal(markup[0].children[0], 'a');
                 assert.equal(markup[0].children[1].tagName, 'tspan');
-                assert.equal(markup[0].children[1].textContent, 'b');
-                assert.equal(markup[0].children[2].tagName, '#text');
-                assert.equal(markup[0].children[2].textContent, 'c');
+                assert.equal(markup[0].children[1].children[0], 'b');
+                assert.equal(markup[0].children[2], 'c');
+            });
+
+            QUnit.test('spaces handling', function(assert) {
+                const markup1 = joint.util.svg/*xml*/`
+                    <text>  a <tspan>b</tspan>
+                    c</text>
+                `;
+                assert.equal(markup1.length, 1);
+                assert.equal(markup1[0].children[0], ' a ');
+                assert.equal(markup1[0].children[1].children[0], 'b');
+                assert.equal(markup1[0].children[2], ' c');
+
+                const markup2 = joint.util.svg/*xml*/`
+                <text>a
+
+                <tspan>b           </tspan>c
+                </text>
+                `;
+
+                assert.equal(markup2.length, 1);
+                assert.equal(markup2[0].children[0], 'a ');
+                assert.equal(markup2[0].children[1].children[0], 'b ');
+                assert.equal(markup2[0].children[2], 'c ');
             });
 
             QUnit.test('no text nodes', function(assert) {

@@ -65,32 +65,23 @@ function buildNode(node) {
         markupNode.className = className.value;
     }
 
-    const children = Array.from(childNodes);
-    if (children.some(n => n.nodeType !== Node.TEXT_NODE)) {
-        childNodes.forEach(node => {
-            switch (node.nodeType) {
-                case Node.TEXT_NODE: {
-                    const trimmedText = node.data.replace(/\s\s+/g, ' ');
-                    if (trimmedText.trim()) {
-                        markupNode.children.push({ tagName: '#text' , textContent: trimmedText });
-                    }
-                    break;
+    childNodes.forEach(node => {
+        switch (node.nodeType) {
+            case Node.TEXT_NODE: {
+                const trimmedText = node.data.replace(/\s\s+/g, ' ');
+                if (trimmedText.trim()) {
+                    markupNode.children.push(trimmedText);
                 }
-                case Node.ELEMENT_NODE: {
-                    markupNode.children.push(buildNode(node));
-                    break;
-                }
-                default:
-                    break;
+                break;
             }
-        });
-    } else {
-        const textContent = children.map(node => node.textContent).join('').replace(/\s\s+/g, ' ');
-        if (textContent.trim()) {
-            markupNode.textContent = textContent;
+            case Node.ELEMENT_NODE: {
+                markupNode.children.push(buildNode(node));
+                break;
+            }
+            default:
+                break;
         }
-    }
-
+    });
 
     const nodeAttrs = {};
 
