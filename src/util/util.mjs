@@ -35,37 +35,45 @@ export const removeClassNamePrefix = function(className) {
 
 export const parseDOMJSON = function(json, namespace) {
 
-    var selectors = {};
-    var groupSelectors = {};
-    var svgNamespace = V.namespace.svg;
+    const selectors = {};
+    const groupSelectors = {};
+    const svgNamespace = V.namespace.svg;
 
-    var ns = namespace || svgNamespace;
-    var fragment = document.createDocumentFragment();
-    var queue = [json, fragment, ns];
-    while (queue.length > 0) {
-        ns = queue.pop();
-        var parentNode = queue.pop();
-        var siblingsDef = queue.pop();
-        for (var i = 0, n = siblingsDef.length; i < n; i++) {
-            var nodeDef = siblingsDef[i];
+    const ns = namespace || svgNamespace;
+    const fragment = document.createDocumentFragment();
+
+    const parseNode = function(siblingsDef, parentNode, ns) {
+        for (let i = 0; i < siblingsDef.length; i++) {
+            const nodeDef = siblingsDef[i];
+
+            // Text node
+            if (typeof nodeDef === 'string') {
+                const textNode = document.createTextNode(nodeDef);
+                parentNode.appendChild(textNode);
+                continue;
+            }
+
             // TagName
             if (!nodeDef.hasOwnProperty('tagName')) throw new Error('json-dom-parser: missing tagName');
-            var tagName = nodeDef.tagName;
+            const tagName = nodeDef.tagName;
+
+            let node;
+
             // Namespace URI
             if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
-            var node = document.createElementNS(ns, tagName);
-            var svg = (ns === svgNamespace);
+            node = document.createElementNS(ns, tagName);
+            const svg = (ns === svgNamespace);
 
-            var wrapper = (svg) ? V : $;
+            const wrapper = (svg) ? V : $;
             // Attributes
-            var attributes = nodeDef.attributes;
+            const attributes = nodeDef.attributes;
             if (attributes) wrapper(node).attr(attributes);
             // Style
-            var style = nodeDef.style;
+            const style = nodeDef.style;
             if (style) $(node).css(style);
             // ClassName
             if (nodeDef.hasOwnProperty('className')) {
-                var className = nodeDef.className;
+                const className = nodeDef.className;
                 if (svg) {
                     node.className.baseVal = className;
                 } else {
@@ -78,28 +86,33 @@ export const parseDOMJSON = function(json, namespace) {
             }
             // Selector
             if (nodeDef.hasOwnProperty('selector')) {
-                var nodeSelector = nodeDef.selector;
+                const nodeSelector = nodeDef.selector;
                 if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
                 selectors[nodeSelector] = node;
                 wrapper(node).attr('joint-selector', nodeSelector);
             }
             // Groups
             if (nodeDef.hasOwnProperty('groupSelector')) {
-                var nodeGroups = nodeDef.groupSelector;
+                let nodeGroups = nodeDef.groupSelector;
                 if (!Array.isArray(nodeGroups)) nodeGroups = [nodeGroups];
-                for (var j = 0, m = nodeGroups.length; j < m; j++) {
-                    var nodeGroup = nodeGroups[j];
-                    var group = groupSelectors[nodeGroup];
+                for (let j = 0; j < nodeGroups.length; j++) {
+                    const nodeGroup = nodeGroups[j];
+                    let group = groupSelectors[nodeGroup];
                     if (!group) group = groupSelectors[nodeGroup] = [];
                     group.push(node);
                 }
             }
+
             parentNode.appendChild(node);
+
             // Children
-            var childrenDef = nodeDef.children;
-            if (Array.isArray(childrenDef)) queue.push(childrenDef, node, ns);
+            const childrenDef = nodeDef.children;
+            if (Array.isArray(childrenDef)) {
+                parseNode(childrenDef, node, ns);
+            }
         }
-    }
+    };
+    parseNode(json, fragment, ns);
     return {
         fragment: fragment,
         selectors: selectors,
@@ -529,7 +542,7 @@ function getLineHeight(heightValue, textElement) {
     if (heightValue === null) {
         // Default 1em lineHeight
         return textElement.getBBox().height;
-    } 
+    }
 
     switch (heightValue.unit) {
         case 'em':
