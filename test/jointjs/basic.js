@@ -946,7 +946,15 @@ QUnit.module('basic', function(hooks) {
         });
     });
 
+    // tests for `dia.Element.fitToChildren()` can be found in `/test/jointjs/elements.js`
     QUnit.test('fitEmbeds()', function(assert) {
+        // structure of objects:
+        // `mainGroup` has the following children:
+        // - `group1` has the following children:
+        //   - `a`
+        //   - `b`
+        // - `group2` has the following children:
+        //   - `c`
 
         var mainGroup = new joint.shapes.basic.Rect;
         var group1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
@@ -955,27 +963,52 @@ QUnit.module('basic', function(hooks) {
         var b = new joint.shapes.basic.Rect({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 }});
         var c = new joint.shapes.basic.Rect({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 }});
 
+        // embed
         mainGroup.embed(group2.embed(c)).embed(group1.embed(a).embed(b));
+
+        // - missing graph:
+        assert.throws(function() {
+            a.fitEmbeds();
+        }, /graph/, 'Shallow: Calling method on element that is not part of a graph throws an error.');
 
         assert.throws(function() {
             a.fitEmbeds({ deep: true });
-        }, /graph/, 'Calling method on element that is not part of a graph throws an error.');
+        }, /graph/, 'Deep: Calling method on element that is not part of a graph throws an error.');
 
+        // add to graph
         this.graph.addCells([mainGroup, group1, group2, a, b, c]);
 
+        // - shallow:
+        // -- no embedded children:
         a.fitEmbeds();
-        assert.deepEqual(a.getBBox(), g.rect(100, 100, 20, 20), 'Calling method on element that has no embeds has no effect.');
+        assert.deepEqual(a.getBBox(), g.rect(100, 100, 20, 20), 'Shallow: Calling method on element that has no embeds has no effect.');
+
+        mainGroup.fitEmbeds();
+        assert.deepEqual(mainGroup.getBBox(), g.rect(0, 0, 1010, 1010), 'Shallow: Call takes embeds only one level deep into account.');
 
         mainGroup.fitEmbeds({ deep: false });
-        assert.deepEqual(mainGroup.getBBox(), g.rect(0, 0, 1010, 1010), 'Shallow call takes embeds only one level deep into account.');
+        assert.deepEqual(mainGroup.getBBox(), g.rect(0, 0, 1010, 1010), 'Shallow: Call takes embeds only one level deep into account.');
+
+        // -- padding:
+        mainGroup.fitEmbeds({ padding: 10 });
+        assert.deepEqual(mainGroup.getBBox(), g.rect(-10, -10, 1030, 1030), 'Shallow: Using padding options is expanding the groups.');
+
+        // - deep:
+        // -- no embedded children:
+        a.fitEmbeds({ deep: true });
+        assert.deepEqual(a.getBBox(), g.rect(100, 100, 20, 20), 'Deep: Calling method on element that has no embeds has no effect.');
 
         mainGroup.fitEmbeds({ deep: true });
-        assert.deepEqual(mainGroup.getBBox(), g.rect(100, 100, 120, 120), 'Deep call takes all descendant embeds into account.');
-        assert.deepEqual(group1.getBBox(), g.rect(100, 100, 120, 20), 'After the call the first group fits its embeds.');
-        assert.deepEqual(group2.getBBox(), g.rect(150, 200, 20, 20), 'So the second group.');
+        assert.deepEqual(mainGroup.getBBox(), g.rect(100, 100, 120, 120), 'Deep: Call takes all descendant embeds into account.');
+        assert.deepEqual(group1.getBBox(), g.rect(100, 100, 120, 20), 'Deep: After the call the first group fits its embeds.');
+        assert.deepEqual(group2.getBBox(), g.rect(150, 200, 20, 20), 'Deep: After the call the second group fits its embeds.');
 
+        // -- padding:
         mainGroup.fitEmbeds({ deep: true, padding: 10 });
-        assert.deepEqual(mainGroup.getBBox(), g.rect(80, 80, 160, 160), 'Using padding options is expanding the groups.');
+        assert.deepEqual(mainGroup.getBBox(), g.rect(80, 80, 160, 160), 'Deep: Using padding options is expanding the groups.');
+        assert.deepEqual(group1.getBBox(), g.rect(90, 90, 140, 40), 'Deep: Using padding is expanding first group.');
+        assert.deepEqual(group2.getBBox(), g.rect(140, 190, 40, 40), 'Deep: Using padding is expanding second group.');
+
     });
 
     QUnit.test('clone()', function(assert) {
