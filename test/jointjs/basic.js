@@ -291,6 +291,24 @@ QUnit.module('basic', function(hooks) {
         assert.ok(raSpy.calledWithExactly(17, 19, raOpt));
     });
 
+    QUnit.test('z()', function(assert) {
+        const r1 = new joint.shapes.standard.Rectangle;
+
+        assert.equal(r1.z(), 0);
+
+        r1.set('z', 10);
+        assert.equal(r1.z(), 10);
+
+        r1.set('z', -10);
+        assert.equal(r1.z(), -10);
+
+        r1.set('z', undefined);
+        assert.equal(r1.z(), 0);
+
+        r1.set('z', null);
+        assert.equal(r1.z(), 0);
+    });
+
     QUnit.test('translate()', function(assert) {
 
         var myrect = new joint.shapes.basic.Rect({
@@ -944,6 +962,70 @@ QUnit.module('basic', function(hooks) {
                 });
             });
         });
+    });
+
+    QUnit.test('toFront() preserve stacking of nested elements (z-indexes)', function(assert) {
+        const Rect = joint.shapes.standard.Rectangle;
+
+        const r1 = new Rect({ z: 1 });
+        const r2 = new Rect({ z: 6 });
+        const r3 = new Rect({ z: 4 });
+        const r4 = new Rect({ z: 2 });
+
+        const r5 = new Rect({ z: 3 }); // this rectangle forces r1 to go front
+
+        r1.embed(r2);
+        r1.embed(r3);
+        r1.embed(r4);
+
+        this.graph.addCells([r1, r2, r3, r4, r5]);
+
+        r1.toFront({ deep: true });
+
+        assert.equal(r1.get('z'), 7);
+        assert.equal(r2.get('z'), 10);
+        assert.equal(r3.get('z'), 9);
+        assert.equal(r4.get('z'), 8);
+
+        r1.toFront({ deep: true });
+        r1.toFront({ deep: true }); // calling toFront again doesn't change anything
+
+        assert.equal(r1.get('z'), 7);
+        assert.equal(r2.get('z'), 10);
+        assert.equal(r3.get('z'), 9);
+        assert.equal(r4.get('z'), 8);
+    });
+
+    QUnit.test('toBack() preserve stacking of nested elements (z-indexes)', function(assert) {
+        const Rect = joint.shapes.standard.Rectangle;
+
+        const r1 = new Rect({ z: 2 });
+        const r2 = new Rect({ z: 7 });
+        const r3 = new Rect({ z: 5 });
+        const r4 = new Rect({ z: 3 });
+
+        const r5 = new Rect({ z: 1 }); // this rectangle forces r1 to go back
+
+        r1.embed(r2);
+        r1.embed(r3);
+        r1.embed(r4);
+
+        this.graph.addCells([r1, r2, r3, r4, r5]);
+
+        r1.toBack({ deep: true });
+
+        assert.equal(r1.get('z'), -3);
+        assert.equal(r2.get('z'), 0);
+        assert.equal(r3.get('z'), -1);
+        assert.equal(r4.get('z'), -2);
+
+        r1.toBack({ deep: true });
+        r1.toBack({ deep: true }); // calling toBack again doesn't change anything
+
+        assert.equal(r1.get('z'), -3);
+        assert.equal(r2.get('z'), 0);
+        assert.equal(r3.get('z'), -1);
+        assert.equal(r4.get('z'), -2);
     });
 
     // tests for `dia.Element.fitToChildren()` can be found in `/test/jointjs/elements.js`

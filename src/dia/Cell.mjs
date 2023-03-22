@@ -24,7 +24,8 @@ import {
     without,
     cancelFrame,
     defaultsDeep,
-    has
+    has,
+    sortBy
 } from '../util/util.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes/index.mjs';
@@ -224,16 +225,11 @@ export const Cell = Backbone.Model.extend({
     },
 
     toFront: function(opt) {
-
         var graph = this.graph;
         if (graph) {
-
             opt = opt || {};
 
-            var z = graph.maxZIndex();
-
-            var cells;
-
+            let cells;
             if (opt.deep) {
                 cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
                 cells.unshift(this);
@@ -241,13 +237,17 @@ export const Cell = Backbone.Model.extend({
                 cells = [this];
             }
 
-            z = z - cells.length + 1;
+            const sortedCells = sortBy(cells, cell => cell.z());
 
-            var collection = graph.get('cells');
-            var shouldUpdate = (collection.indexOf(this) !== (collection.length - cells.length));
+            const maxZ = graph.maxZIndex();
+            let z = maxZ - cells.length + 1;
+
+            const collection = graph.get('cells');
+
+            let shouldUpdate = (collection.indexOf(this) !== (collection.length - cells.length));
             if (!shouldUpdate) {
-                shouldUpdate = cells.some(function(cell, index) {
-                    return cell.get('z') !== z + index;
+                shouldUpdate = sortedCells.some(function(cell, index) {
+                    return cell.z() !== z + index;
                 });
             }
 
@@ -256,7 +256,7 @@ export const Cell = Backbone.Model.extend({
 
                 z = z + cells.length;
 
-                cells.forEach(function(cell, index) {
+                sortedCells.forEach(function(cell, index) {
                     cell.set('z', z + index, opt);
                 });
 
@@ -268,16 +268,11 @@ export const Cell = Backbone.Model.extend({
     },
 
     toBack: function(opt) {
-
         var graph = this.graph;
         if (graph) {
-
             opt = opt || {};
 
-            var z = graph.minZIndex();
-
-            var cells;
-
+            let cells;
             if (opt.deep) {
                 cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
                 cells.unshift(this);
@@ -285,11 +280,16 @@ export const Cell = Backbone.Model.extend({
                 cells = [this];
             }
 
+            const sortedCells = sortBy(cells, cell => cell.z());
+
+            let z = graph.minZIndex();
+
             var collection = graph.get('cells');
-            var shouldUpdate = (collection.indexOf(this) !== 0);
+
+            let shouldUpdate = (collection.indexOf(this) !== 0);
             if (!shouldUpdate) {
-                shouldUpdate = cells.some(function(cell, index) {
-                    return cell.get('z') !== z + index;
+                shouldUpdate = sortedCells.some(function(cell, index) {
+                    return cell.z() !== z + index;
                 });
             }
 
@@ -298,7 +298,7 @@ export const Cell = Backbone.Model.extend({
 
                 z -= cells.length;
 
-                cells.forEach(function(cell, index) {
+                sortedCells.forEach(function(cell, index) {
                     cell.set('z', z + index, opt);
                 });
 
@@ -831,6 +831,10 @@ export const Cell = Backbone.Model.extend({
 
         // To be overridden.
         return new g.Point(0, 0);
+    },
+
+    z: function() {
+        return this.get('z') || 0;
     },
 
     getPointFromConnectedLink: function() {
