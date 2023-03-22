@@ -29,7 +29,7 @@ Available options:
         <th>deep</th>
         <td><i>boolean</i></td>
         <td>
-            <p>If <code>true</code>, this algorithm is applied recursively on all embedded children of this element which have embedded children of their own, and so on. The bounding box algorithm is evaluated in reverse-depth order - starting from the deepest descendant, then going up (to this element). This ensures that any paddings applied on lower-level elements are taken into account by higher-level elements.</p>
+            <p>If <code>true</code>, this algorithm is applied recursively on all embedded children of this element which have embedded children of their own, and so on. The bounding box algorithm is evaluated in reverse-depth order - starting from the deepest descendant, then going up (i.e. to this element). This ensures that any paddings applied on lower-level elements are taken into account by higher-level elements.</p>
             <p>Note that if this option is used in conjunction with <code>opt.shrinkOnly</code>, the algorithm is still applied strictly recursively - one level at a time. Therefore, even if this element's current bounding box completely overlaps one of its grandchild elements, this element's calculated bounding box will shrink only based on the grandchild's parent (this element's child), which may mean that the grandchild element will end up outside of the calculated bounding box of this element.</p>
         </td>
     </tr>

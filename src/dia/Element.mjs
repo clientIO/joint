@@ -373,7 +373,7 @@ export const Element = Cell.extend({
 
         // When `opt.deep = true`, we want `opt.terminator` to be the last ancestor processed.
         // If the current element is `opt.terminator`, it means that this element has already been processed as parent so we can exit now.
-        if (opt.deep && opt.terminator && (opt.terminator === this.getIdAttribute())) return this;
+        if (opt.deep && opt.terminator && ((opt.terminator === this) || (opt.terminator === this.id))) return this;
 
         const parentElement = this.getParentCell();
         if (!parentElement || !parentElement.isElement()) return this;
