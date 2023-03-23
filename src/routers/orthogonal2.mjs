@@ -1,4 +1,14 @@
-export function orthogonal2(vertices, opt, linkView) {
+const Directions = {
+    AUTO: 'auto',
+    LEFT: 'left',
+    RIGHT: 'right',
+    TOP: 'top',
+    BOTTOM: 'bottom'
+};
+
+orthogonal2.Directions = Directions;
+
+export function orthogonal2(_vertices, opt, linkView) {
     const sourceBBox = linkView.sourceBBox;
     const targetBBox = linkView.targetBBox;
     const sourcePoint = linkView.sourceAnchor;
@@ -6,8 +16,9 @@ export function orthogonal2(vertices, opt, linkView) {
     const { x: tx0, y: ty0 } = targetBBox;
     const { x: sx0, y: sy0 } = sourceBBox;
     const sourceOutsidePoint = sourcePoint.clone();
-    const spacing = opt.spacing || 28;
-    const sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
+    const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, spacing = 20 } = opt;
+
+    const sourceSide = sourceDirection === Directions.AUTO ? sourceBBox.sideNearestToPoint(sourcePoint) : sourceDirection;
     switch (sourceSide) {
         case 'left':
             sourceOutsidePoint.x = sx0 - spacing;
@@ -23,7 +34,8 @@ export function orthogonal2(vertices, opt, linkView) {
             break;
     }
     const targetOutsidePoint = targetPoint.clone();
-    const targetSide = targetBBox.sideNearestToPoint(targetPoint);
+    
+    const targetSide = targetDirection === Directions.AUTO ? targetBBox.sideNearestToPoint(targetPoint) : targetDirection;
     switch (targetSide) {
         case 'left':
             targetOutsidePoint.x = targetBBox.x - spacing;
@@ -59,7 +71,7 @@ export function orthogonal2(vertices, opt, linkView) {
     const ssy1 = sy1 + spacing;
 
     if (sourceSide === 'left' && targetSide === 'right') {
-        if (sox < tox) {
+        if (sx0 <= tx1) {
             let y = middleOfHorizontalSides;
             if (sox < tx0) {
                 if (ty1 >= ssy0 && tcy < scy) {
@@ -82,7 +94,7 @@ export function orthogonal2(vertices, opt, linkView) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'right' && targetSide === 'left') {
-        if (sox > tox) {
+        if (sx1 > tx0) {
             let y = middleOfHorizontalSides;
             if (sox > tx1) {
                 if (ty1 >= ssy0 && tcy < scy) {
@@ -467,11 +479,11 @@ export function orthogonal2(vertices, opt, linkView) {
             { x: tox, y }
         ];
     } else if (sourceSide === 'left' && targetSide === 'top') {
-        if (sox > tox && soy <= toy) {
+        if (sox > tox && soy <= ty0) {
             return [{ x: tox, y: soy }];
         }
 
-        if (sox > tx1) {
+        if (sox >= tx1) {
             if (soy > toy) {
                 const x = (sx0 + tx1) / 2;
                 return [
@@ -502,7 +514,7 @@ export function orthogonal2(vertices, opt, linkView) {
         ];
         
     } else if (sourceSide === 'right' && targetSide === 'top') {
-        if (sox < tox && soy <= toy) {
+        if (sox < tox && soy <= ty0) {
             return [{ x: tox, y: soy }];
         }
 
