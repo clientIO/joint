@@ -349,7 +349,16 @@ export const Paper = View.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
-    FORM_CONTROL_TAG_NAMES: ['SELECT', 'TEXTAREA', 'INPUT', 'OPTION', 'BUTTON'],
+    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT', 'OPTION'] ,
+    GUARDED_TAG_NAMES: [
+        // Guard <select> for consistency. When you click on it:
+        // Chrome: triggers `pointerdown`, `pointerup`, `pointerclick` to open
+        // Firefox: triggers `pointerdown` on open, `pointerup` (and `pointerclick` only if you haven't moved).
+        //          on close. However, if you open and then close by clicking elsewhere on the page,
+        //           no other event is triggered.
+        // Safari: when you open it, it triggers `pointerdown`. That's it.
+        'SELECT',
+    ],
     MIN_SCALE: 1e-6,
 
     init: function() {
@@ -2509,11 +2518,17 @@ export const Paper = View.extend({
             return evt.data.guarded;
         }
 
+        const { target } = evt;
+
+        if (this.GUARDED_TAG_NAMES.includes(target.tagName)) {
+            return true;
+        }
+
         if (view && view.model && (view.model instanceof Cell)) {
             return false;
         }
 
-        if (this.svg === evt.target || this.el === evt.target || $.contains(this.svg, evt.target)) {
+        if (this.svg === target || this.el === target || $.contains(this.svg, target)) {
             return false;
         }
 
