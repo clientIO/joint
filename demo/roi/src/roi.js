@@ -211,11 +211,7 @@ class Product extends ForeignObjectElement {
                     class="jj-form"
                     xmlns="http://www.w3.org/1999/xhtml"
                 >
-                    <p>
-                        <span>What percentage did you invest in</span>
-                        <b @selector="label" style="margin-left: 4px"></b>
-                        <span>?</span>
-                    </p>
+                    <p>What percentage did you invest in <b @selector="label"></b>?</p>
                     <div class="jj-field">
                         <input @selector="percentage"
                             class="jj-input"
@@ -328,11 +324,7 @@ class OverallPerformance extends ForeignObjectElement {
                     xmlns="http://www.w3.org/1999/xhtml"
                     style="justify-content: space-between;"
                 >
-                    <p>
-                        <span>This is your portfolio now in </span>
-                        <b style="margin-left: 4px;">${currentYear}</b>
-                        <span>.</span>
-                    </p>
+                    <p>This is your portfolio now in <b>${currentYear}</b>.</p>
                     <div style="width: 100%">
                         <p>Your overall performance of investment is:</p>
                         <div class="jj-field">
