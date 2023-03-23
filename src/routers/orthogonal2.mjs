@@ -316,7 +316,7 @@ export function orthogonal2(_vertices, opt, linkView) {
             return [{ x: sox, y: toy }];
         }
 
-        const x = middleOfVerticalSides;
+        const x = (sx0 + tx1) / 2;
 
         if (sox > tox && sy1 >= toy) {
             return [
@@ -355,7 +355,7 @@ export function orthogonal2(_vertices, opt, linkView) {
             return [{ x: sox, y: toy }];
         }
 
-        const x = middleOfVerticalSides;
+        const x = (sx1 + tx0) / 2;
 
         if (sox < tox && sy1 >= toy) {
             return [
@@ -460,11 +460,8 @@ export function orthogonal2(_vertices, opt, linkView) {
             }
         }
 
-        const x = Math.min(sx0, tx0) - spacing;
-        let y = Math.max(sy1, ty1) + spacing;
-
         if (tox <= sx1 && toy < soy) {
-            y = (ty1 + sy0) / 2;
+            const y = (ty1 + sy0) / 2;
 
             return [
                 { x: sox, y: soy },
@@ -473,13 +470,16 @@ export function orthogonal2(_vertices, opt, linkView) {
             ];
         }
 
+        const x = toy > soy ? Math.min(sx0, tx0) - spacing : sox;
+        const y = Math.max(sy1, ty1) + spacing;
+
         return [
             { x, y: soy },
             { x, y },
             { x: tox, y }
         ];
     } else if (sourceSide === 'left' && targetSide === 'top') {
-        if (sox > tox && soy <= ty0) {
+        if (sox > tox && soy < ty0) {
             return [{ x: tox, y: soy }];
         }
 
@@ -494,11 +494,8 @@ export function orthogonal2(_vertices, opt, linkView) {
             }
         }
 
-        const x = Math.min(sx0, tx0) - spacing;
-        let y = Math.min(sy0, ty0) - spacing;
-
         if (tox <= sx1 && toy > soy) {
-            y = (ty0 + sy1) / 2;
+            const y = (ty0 + sy1) / 2;
 
             return [
                 { x: sox, y: soy },
@@ -507,6 +504,9 @@ export function orthogonal2(_vertices, opt, linkView) {
             ];
         }
 
+        const x = toy < soy ? Math.min(sx0, tx0) - spacing : ssx0;
+        const y = Math.min(sy0, ty0) - spacing;
+
         return [
             { x, y: soy },
             { x, y },
@@ -514,7 +514,7 @@ export function orthogonal2(_vertices, opt, linkView) {
         ];
         
     } else if (sourceSide === 'right' && targetSide === 'top') {
-        if (sox < tox && soy <= ty0) {
+        if (sox < tox && soy < ty0) {
             return [{ x: tox, y: soy }];
         }
 
@@ -540,8 +540,6 @@ export function orthogonal2(_vertices, opt, linkView) {
                 { x: tox, y: y }
             ];
         }
-
-        const y = (sy1 + ty0) / 2;
         if (y <= sy1 && tox < sx0) {
             const x = Math.max(sx1, tx1) + spacing;
             const y = Math.min(sy0, ty0) - spacing;
@@ -552,26 +550,30 @@ export function orthogonal2(_vertices, opt, linkView) {
             ];
         }
 
+        const y = (sy1 + ty0) / 2;
+
         return [
             { x: sox, y: soy },
             { x: sox, y: y },
             { x: tox, y: y }
         ];  
     } else if (sourceSide === 'right' && targetSide === 'bottom') {
-        let x = (sx1 + tx0) / 2;
-        if (sx1 < x) {
-            if (soy < toy) {
-                return [
-                    { x, y: soy },
-                    { x, y: toy },
-                    { x: tox, y: toy }
-                ];
-            }
+        if (sox <= tox && soy >= ty1) {
             return [{ x: tox, y: soy }];
         }
 
+        const x = (sx1 + tx0) / 2;
+
+        if (sox <= tx0 && soy < toy) {
+            return [
+                { x, y: soy },
+                { x, y: toy },
+                { x: tox, y: toy }
+            ];
+        }
+
         if (x < sx1 + spacing && sy0 < ty1) {
-            x = Math.max(tx1 + spacing, sox);
+            const x = Math.max(tx1 + spacing, sox);
             const y = Math.max(sy1, ty1) + spacing;
 
             return [
@@ -582,15 +584,6 @@ export function orthogonal2(_vertices, opt, linkView) {
         }
 
         const y = (sy0 + ty1) / 2;
-        if (y >= sy0 && tox < sx0) {
-            const x = Math.max(sx1, tx1) + spacing;
-            const y = Math.max(sy1, ty1) + spacing;
-            return [
-                { x, y: soy },
-                { x, y },
-                { x: tox, y }
-            ];
-        }
 
         return [
             { x: sox, y: soy },
