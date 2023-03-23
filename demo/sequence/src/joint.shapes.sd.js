@@ -29,7 +29,7 @@
         placeholder: 'What\'s the group\'s name?',
 
         fitRoles: function() {
-            this.fitEmbeds({ padding: 10 });
+            this.fitToChildren({ padding: 10 });
         }
     });
 

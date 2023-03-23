@@ -197,7 +197,7 @@ export const DirectedGraph = {
                     return bCluster.getAncestors().length - aCluster.getAncestors().length;
                 });
 
-            util.invoke(clusters, 'fitEmbeds', { padding: opt.clusterPadding });
+            util.invoke(clusters, 'fitToChildren', { padding: opt.clusterPadding });
         }
 
         graph.stopBatch('layout');

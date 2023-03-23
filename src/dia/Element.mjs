@@ -332,42 +332,115 @@ export const Element = Cell.extend({
         return this;
     },
 
-    fitEmbeds: function(opt = {}) {
+    fitEmbeds: function(opt) {
+
+        return this.fitToChildren(opt);
+    },
+
+    fitToChildren: function(opt = {}) {
 
         // Getting the children's size and position requires the collection.
-        // Cell.get('embeds') helds an array of cell ids only.
+        // Cell.get('embeds') holds an array of cell ids only.
         const { graph } = this;
         if (!graph) throw new Error('Element must be part of a graph.');
 
-        const embeddedCells = this.getEmbeddedCells().filter(cell => cell.isElement());
-        if (embeddedCells.length === 0) return this;
+        const childElements = this.getEmbeddedCells().filter(cell => cell.isElement());
+        if (childElements.length === 0) return this;
 
         this.startBatch('fit-embeds', opt);
 
         if (opt.deep) {
-            // Recursively apply fitEmbeds on all embeds first.
-            invoke(embeddedCells, 'fitEmbeds', opt);
+            // `opt.deep = true` means "fit to all descendants".
+            // As the first action of the fitting algorithm, recursively apply `fitToChildren()` on all descendants.
+            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant, then go up (= this element).
+            invoke(childElements, 'fitToChildren', opt);
         }
 
-        // Compute cell's size and position based on the children bbox
-        // and given padding.
-        const { left, right, top, bottom } = normalizeSides(opt.padding);
-        let { x, y, width, height } = graph.getCellsBBox(embeddedCells);
-        // Apply padding computed above to the bbox.
-        x -= left;
-        y -= top;
-        width += left + right;
-        height += bottom + top;
-
-        // Set new element dimensions finally.
-        this.set({
-            position: { x, y },
-            size: { width, height }
-        }, opt);
+        // Set new size and position of this element, based on:
+        // - union of bboxes of all children
+        // - inflated by given `opt.padding`
+        this._fitToElements(Object.assign({ elements: childElements }, opt));
 
         this.stopBatch('fit-embeds');
 
         return this;
+    },
+
+    fitParent: function(opt = {}) {
+
+        const { graph } = this;
+        if (!graph) throw new Error('Element must be part of a graph.');
+
+        // When `opt.deep = true`, we want `opt.terminator` to be the last ancestor processed.
+        // If the current element is `opt.terminator`, it means that this element has already been processed as parent so we can exit now.
+        if (opt.deep && opt.terminator && ((opt.terminator === this) || (opt.terminator === this.id))) return this;
+
+        const parentElement = this.getParentCell();
+        if (!parentElement || !parentElement.isElement()) return this;
+
+        // Get all children of parent element (i.e. this element + any sibling elements).
+        const siblingElements = parentElement.getEmbeddedCells().filter(cell => cell.isElement());
+        if (siblingElements.length === 0) return this;
+
+        this.startBatch('fit-parent', opt);
+
+        // Set new size and position of parent element, based on:
+        // - union of bboxes of all children of parent element (i.e. this element + any sibling elements)
+        // - inflated by given `opt.padding`
+        parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
+
+        if (opt.deep) {
+            // `opt.deep = true` means "fit all ancestors to their respective children".
+            // As the last action of the fitting algorithm, recursively apply `fitParent()` on all ancestors.
+            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant (= this element), then go up.
+            parentElement.fitParent(opt);
+        }
+
+        this.stopBatch('fit-parent');
+
+        return this;
+    },
+
+    // Assumption: This element is part of a graph.
+    _fitToElements: function(opt = {}) {
+
+        const elementsBBox = this.graph.getCellsBBox(opt.elements);
+        // If no `opt.elements` were provided, do nothing.
+        if (!elementsBBox) return;
+
+        const { expandOnly, shrinkOnly } = opt;
+        // This combination is meaningless, do nothing.
+        if (expandOnly && shrinkOnly) return;
+
+        // Calculate new size and position of this element based on:
+        // - union of bboxes of `opt.elements`
+        // - inflated by `opt.padding` (if not provided, all four properties = 0)
+        let { x, y, width, height } = elementsBBox;
+        const { left, right, top, bottom } = normalizeSides(opt.padding);
+        x -= left;
+        y -= top;
+        width += left + right;
+        height += bottom + top;
+        let resultBBox = new Rect(x, y, width, height);
+
+        if (expandOnly) {
+            // Non-shrinking is enforced by taking union of this element's current bbox with bbox calculated from `opt.elements`.
+            resultBBox = this.getBBox().union(resultBBox);
+
+        } else if (shrinkOnly) {
+            // Non-expansion is enforced by taking intersection of this element's current bbox with bbox calculated from `opt.elements`.
+            const intersectionBBox = this.getBBox().intersect(resultBBox);
+            // If all children are outside this element's current bbox, then `intersectionBBox` is `null` - does not make sense, do nothing.
+            if (!intersectionBBox) return;
+
+            resultBBox =  intersectionBBox;
+        }
+
+        // Set the new size and position of this element.
+        this.set({
+            position: { x: resultBBox.x, y: resultBBox.y },
+            size: { width: resultBBox.width, height: resultBBox.height }
+        }, opt);
     },
 
     // Rotate element by `angle` degrees, optionally around `origin` point.

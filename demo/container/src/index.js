@@ -116,18 +116,12 @@
     paper.on('element:button:pointerdown', function(elementView) {
         var element = elementView.model;
         element.toggle();
-        fitAncestors(element);
+        element.fitAncestorElements();
     });
 
     paper.on('element:pointermove', function(elementView) {
         var element = elementView.model;
-        fitAncestors(element);
+        element.fitAncestorElements();
     });
-
-    function fitAncestors(element) {
-        element.getAncestors().forEach(function(container) {
-            container.fitChildren();
-        });
-    }
 
 })(joint);
