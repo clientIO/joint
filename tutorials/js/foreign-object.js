@@ -33,6 +33,9 @@
                 height: 'calc(h)',
                 x: 0,
                 y: 10
+            },
+            userData: {
+                text: ''
             }
         }
     }, {
@@ -44,28 +47,35 @@
                         style="font-family: sans-serif;"
                     >
                         <form @selector="formContent" id="form">
-                            <label @selector="label" for="name">Name</label>
-                            <input @selector="name" type="text" id="name" name="name"/>
+                            <label @selector="label" for="diagramName">Diagram Name</label>
+                            <input @selector="diagramName" type="text" id="diagramName" name="diagramName"/>
                             <input @selector="submit" type="submit" value="submit"/>
                         </form>
                     </div>
             </foreignObject>
+            <text @selector="userData" />
         `
     }, {});
+
+    joint.shapes.example.FormView = joint.dia.ElementView.extend({
+
+        events: {
+            'submit form': 'onSubmit'
+        },
+
+        onSubmit: function(evt) {
+            // console.log('submit', evt.target.children.diagramName.value, evt);
+            evt.preventDefault();
+            this.model.attr('userData/text', evt.target.children.diagramName.value);
+            evt.target.children.diagramName.value = '';
+        },
+
+    });
     
     
     const form = new Form({});
-    form.position(100, 20);
+    form.position(90, 40);
     form.resize(200, 200);
     
     form.addTo(graph);
-    
-    paper.dumpViews();
-    
-    const formHTML = document.querySelector('form');
-    
-    formHTML.addEventListener('submit', (e) => {
-        e.preventDefault();
-    });
-
 }());

@@ -20,7 +20,7 @@
 
         <style>
              g[data-type="example.Form"] {
-                filter: drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
+                 filter: drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
             }
 
             form {
@@ -109,11 +109,12 @@
 &lt;/svg&gt;
 </code></pre>
 
+        <p>
+            The SVG markup above produces the following element:
+        </p>
+
         <svg version="1.1" width="300" height="110" xmlns="http://www.w3.org/2000/svg">
             <style>
-                svg {
-                    margin-top: 10px;
-                }    
                 foreignObject p {
                     color: white;
                     font: 16px sans-serif;
@@ -210,6 +211,10 @@ const card = new Card({
 card.addTo(graph);
 </code></pre>
 
+        <!-- TODO
+            guard to become default, section may need to be rewritten
+         -->
+
         <p>
             As mentioned earlier, we would like to create an equivalent example with JointJS, that means selecting text needs
             to be possible. In order to achieve this functionality, we need to use the <code>paper</code>
@@ -275,7 +280,8 @@ g[data-type="example.ForeignObject"] p {
             &gt;
                 &lt;p @selector="textContent"
                     style="margin: 0; padding: 5px"
-                &gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                &gt;
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                 &lt;/p&gt;
             &lt;/div&gt;
         &lt;/foreignObject&gt;
@@ -322,8 +328,8 @@ g[data-type="example.ForeignObject"] p {
                 style="font-family: sans-serif;"
             &gt;
                 &lt;form @selector="formContent" id="form"&gt;
-                    &lt;label @selector="label" for="name">Name&gt;/label&gt;
-                    &lt;input @selector="name" type="text" id="name" name="name"/&gt;
+                    &lt;label @selector="label" for="diagramName">Name&gt;/label&gt;
+                    &lt;input @selector="diagramName" type="text" id="diagramName" name="diagramName"/&gt;
                     &lt;input @selector="submit" type="submit" value="submit"/&gt;
                 &lt;/form&gt;
             &lt;/div&gt;
@@ -384,22 +390,85 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
 </code></pre>
 
         <p>
-            At this stage, we have handled most of the functionality related to our events. Mostly likely when using a form, you will want to
-            prevent the default browser behaviour when submitting user data. We will simply query our form, and add an event listener. If using
-            the <code>paper</code> <code>async</code> option, you may need to update all views in the DOM via the <code>paper</code> 
-            <a href="/docs/jointjs#dia.Paper.prototype.dumpViews"><code>dumpViews()</code></a> method.
+            At this stage, we have handled most of the functionality related to our events. When using a form, you might want to prevent the default 
+            browser behaviour when submitting user data. In order to prevent this behaviour, we will create a custom 
+            <a href="/docs/jointjs#dia.CellView.custom" target="_blank"><code>CellView</code></a>. It will contain an events hash which specifies a 
+            DOM event that will be bound to a method on the view. The <i>key</i> is made up of the event name plus a CSS selector, 
+            and the <i>value</i> is a method on our custom view.
         </p>
 
-        <pre><code>paper.dumpViews();
+        <p>
+            In the following example, we specify the event name <code>'submit'</code>, plus our CSS element selector <code>'form'</code>, and lastly the 
+            name of our method <code>'onSubmit'</code>. We prevent a browser refresh by using <code>evt.preventDefault()</code>, and clear the value of the
+            HTML input value afterwards.
+        </p>
 
-const formHTML = document.querySelector('form');
-    
-formHTML.addEventListener('submit', (e) => {
-    e.preventDefault();
+        <pre><code>joint.shapes.example.FormView = joint.dia.ElementView.extend({
+
+    events: {
+        'submit form': 'onSubmit'
+    },
+
+    onSubmit: function(evt) {
+        evt.preventDefault();
+        evt.target.children.diagramName.value = ''; // remove input value after submit
+    },
+
 });
 </code></pre>
 
         <div class="paper" id="paper-foreign-object"></div>
+
+        <!-- TODO
+            - how to use
+            - test specificity, inline vs stylesheet
+            - syntax with curly brackets?
+        -->
+
+        <h3>CSS Styles</h3>
+
+        <!-- TODO
+            Section on Caveats
+            - safari issues with foreignObject, link to some bugs
+         -->
+
+        <h3>Caveats</h3>
+
+
+        <h4>Usage Caveats</h4>
+
+        <!-- TODO
+            - attributes without a value such as shorthand will cause an error. (controls on video, needs to be controls=controls)
+            - elements need to be closed, <br> needs to be <br/>, or <input> needs to be '<input></input>' or <input />
+            - foreignObject export in JointJS+
+            - HTML entities can throw an error, needs to be written as the # version.
+         -->
+
+
+        <h4>Browser Related Caveats</h4>
+
+        <p>
+            While all that we have covered so far is great for users of JointJS, even in this day and age, it's not without some caveats.
+            Earlier, we mentioned how <code>foreignObject</code> is fully supported in all modern browsers, unfortunately, in Safari,
+            some elements or properties within <code>foreignObject</code> can show some inconsistencies or unexpected behaviour compared
+            to other browsers, so it is something you should be aware of.
+        </p>
+
+        <p>
+            Among the elements that show some unexpected behaviour is the <code>video</code> element. A property such as <code>opacity</code>
+            can also cause some issues.
+        </p>
+
+        <!-- TODO
+            - Workarounds for video - position: fixed;
+            https://stackoverflow.com/questions/61895287/wrong-position-of-video-element-inside-svg-foreignobject-on-safari
+            https://github.com/bkrem/react-d3-tree/issues/284
+            - May be needed to remove use of opacity, elements with positioning, opacity, or transform seem to be affected.
+            https://bugs.webkit.org/show_bug.cgi?id=23113
+            - Select element even outside of foreignObject does not fire click event, pointerup.
+            https://bugs.webkit.org/show_bug.cgi?id=239964
+            https://bugs.webkit.org/show_bug.cgi?id=197612
+         -->
 
         <h3>Conclusion</h3>
 
