@@ -3426,12 +3426,27 @@ export namespace routers {
         padding?: dia.Sides;
     }
 
+    enum Orthogonal2Directions {
+        AUTO = 'auto',
+        LEFT = 'left',
+        RIGHT = 'right',
+        TOP = 'top',
+        BOTTOM = 'bottom'
+    }
+
+    interface Orthogonal2RouterArguments {
+        spacing?: number;
+        sourceDirection?: Orthogonal2Directions;
+        targetDirection?: Orthogonal2Directions;
+    }
+
     interface RouterArgumentsMap {
         'normal': NormalRouterArguments;
         'manhattan': ManhattanRouterArguments;
         'metro': ManhattanRouterArguments;
         'orthogonal': OrthogonalRouterArguments;
         'oneSide': OneSideRouterArguments;
+        'orthogonal2': Orthogonal2RouterArguments;
         [key: string]: { [key: string]: any };
     }
 
@@ -3463,6 +3478,7 @@ export namespace routers {
     export var normal: GenericRouter<'normal'>;
     export var orthogonal: GenericRouter<'orthogonal'>;
     export var oneSide: GenericRouter<'oneSide'>;
+    export var orthogonal2: GenericRouter<'orthogonal2'>;
 }
 
 // connectors
