@@ -2,14 +2,13 @@
 
 <p>The difference between <code>vertices</code> and the route is that the vertices are user-defined while the route is computed. The route inserts additional private vertices to complement user vertices as necessary (e.g. to make sure the route is orthogonal).</p>
 
-<p>There are six built-in routers:</p>
+<p>There are five built-in routers:</p>
 
 <ul>
     <li><code>'manhattan'</code> - <a href="#routers.manhattan">smart orthogonal router</a></li>
     <li><code>'metro'</code> - <a href="#routers.metro">smart octolinear router</a></li>
     <li><code>'normal'</code> - <a href="#routers.normal">default simple router</a></li>
     <li><code>'orthogonal'</code> - <a href="#routers.orthogonal">basic orthogonal router</a></li>
-    <li><code>'oneSide'</code> - <a href="#routers.oneSide">restricted orthogonal router</a></li>
     <li><code>'rightAngle'</code> - <a href="#routers.rightAngle">vertices ignoring orthogonal router</a></li>
 </ul>
 
@@ -30,7 +29,7 @@
 
 <p>The <code>'manhattan'</code> and <code>'metro'</code> routers are our <q>smart routers</q>; they automatically avoid obstacles (elements) in their way.</p>
 
-<p>The <code>'orthogonal'</code>, <code>'manhattan'</code>, <code>'oneSide'</code> and <code>'rightAngle'</code> routers generate routes consisting exclusively of vertical and horizontal segments. The <code>'metro'</code> router generates routes consisting of orthogonal and diagonal segments.</p>
+<p>The <code>'orthogonal'</code>, <code>'manhattan'</code> and <code>'rightAngle'</code> routers generate routes consisting exclusively of vertical and horizontal segments. The <code>'metro'</code> router generates routes consisting of orthogonal and diagonal segments.</p>
 
 <p>JointJS also contains mechanisms to define one's own <a href="#routers.custom">custom routers</a>.</p>
 

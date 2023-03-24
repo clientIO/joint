@@ -3447,6 +3447,9 @@ export namespace routers {
         'manhattan': ManhattanRouterArguments;
         'metro': ManhattanRouterArguments;
         'orthogonal': OrthogonalRouterArguments;
+        /**
+         * @deprecated use `rightAngle` instead
+         */
         'oneSide': OneSideRouterArguments;
         'rightAngle': RightAngleRouterArguments;
         [key: string]: { [key: string]: any };
@@ -3479,6 +3482,9 @@ export namespace routers {
     export var metro: GenericRouter<'metro'>;
     export var normal: GenericRouter<'normal'>;
     export var orthogonal: GenericRouter<'orthogonal'>;
+    /**
+     * @deprecated use `rightAngle` instead
+     */
     export var oneSide: GenericRouter<'oneSide'>;
     export var rightAngle: GenericRouter<'rightAngle'>;
 }
