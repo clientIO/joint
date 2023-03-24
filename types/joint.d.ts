@@ -393,6 +393,8 @@ export namespace dia {
 
         position(): g.Point;
 
+        z(): number;
+
         angle(): number;
 
         getBBox(): g.Rect;
