@@ -3,62 +3,108 @@ const Directions = {
     LEFT: 'left',
     RIGHT: 'right',
     TOP: 'top',
-    BOTTOM: 'bottom'
+    BOTTOM: 'bottom',
+    ANCHOR_SIDE: 'magnet',
+    MAGNET_SIDE: 'model'
 };
 
 orthogonal2.Directions = Directions;
 
+const NO_VIEW_DEFAULT_DIRECTION = Directions.LEFT;
+const DEFINED_DIRECTIONS = [Directions.LEFT, Directions.RIGHT, Directions.TOP, Directions.BOTTOM];
+
 export function orthogonal2(_vertices, opt, linkView) {
+    const spacing = opt.spacing || 20;
+    let { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
+
+    const sourceView = linkView.sourceView;
+    const targetView = linkView.targetView;
+
+    const isSourcePort = !!linkView.model.source().port;
+    const isTargetPort = !!linkView.model.target().port;
+
+    if (sourceDirection === Directions.AUTO) {
+        sourceDirection = isSourcePort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
+    }
+
+    if (targetDirection === Directions.AUTO) {
+        targetDirection = isTargetPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
+    }
+
     const sourceBBox = linkView.sourceBBox;
     const targetBBox = linkView.targetBBox;
     const sourcePoint = linkView.sourceAnchor;
     const targetPoint = linkView.targetAnchor;
-    const { x: tx0, y: ty0 } = targetBBox;
-    const { x: sx0, y: sy0 } = sourceBBox;
-    const sourceOutsidePoint = sourcePoint.clone();
-    const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO, spacing = 20 } = opt;
+    let { x: sx0, y: sy0, width: sourceWidth = 0, height: sourceHeight = 0 } = sourceView ? sourceView.getBBox() : linkView.sourceAnchor;
+    let { x: tx0, y: ty0, width: targetWidth = 0, height: targetHeight = 0 } = targetView ? targetView.getBBox() : linkView.targetAnchor;
+    const tx1 = tx0 + targetWidth;
+    const ty1 = ty0 + targetHeight;
+    const sx1 = sx0 + sourceWidth;
+    const sy1 = sy0 + sourceHeight;
 
-    const sourceSide = sourceDirection === Directions.AUTO ? sourceBBox.sideNearestToPoint(sourcePoint) : sourceDirection;
+    const sourceOutsidePoint = sourcePoint.clone();
+
+    let sourceSide;
+
+    if (!sourceView) {
+        sourceSide = DEFINED_DIRECTIONS.includes(sourceDirection) ? sourceDirection : NO_VIEW_DEFAULT_DIRECTION;
+    } else if (sourceDirection === Directions.ANCHOR_SIDE) {
+        sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
+    } else if (sourceDirection === Directions.MAGNET_SIDE) {
+        sourceSide = sourceView.model.getBBox().sideNearestToPoint(sourcePoint);
+    } else {
+        sourceSide = sourceDirection;
+    }
+
     switch (sourceSide) {
         case 'left':
             sourceOutsidePoint.x = sx0 - spacing;
             break;
         case 'right':
-            sourceOutsidePoint.x = sx0 + sourceBBox.width + spacing;
+            sourceOutsidePoint.x = sx1 + spacing;
             break;
         case 'top':
             sourceOutsidePoint.y = sy0 - spacing;
             break;
         case 'bottom':
-            sourceOutsidePoint.y = sy0 + sourceBBox.height + spacing;
+            sourceOutsidePoint.y = sy1 + spacing;
             break;
     }
     const targetOutsidePoint = targetPoint.clone();
     
-    const targetSide = targetDirection === Directions.AUTO ? targetBBox.sideNearestToPoint(targetPoint) : targetDirection;
+    
+    let targetSide;
+
+    
+    if (!targetView) {
+        targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : NO_VIEW_DEFAULT_DIRECTION;
+    } else if (targetDirection === Directions.ANCHOR_SIDE) {
+        targetSide = targetBBox.sideNearestToPoint(targetPoint);
+    } else if (targetDirection === Directions.MAGNET_SIDE) {
+        targetSide = targetView.model.getBBox().sideNearestToPoint(targetPoint);
+    } else {
+        targetSide = targetDirection;
+    }
+
     switch (targetSide) {
         case 'left':
-            targetOutsidePoint.x = targetBBox.x - spacing;
+            targetOutsidePoint.x = tx0 - spacing;
             break;
         case 'right':
-            targetOutsidePoint.x = targetBBox.x + targetBBox.width + spacing;
+            targetOutsidePoint.x = tx1 + spacing;
             break;
         case 'top':
-            targetOutsidePoint.y = targetBBox.y - spacing;
+            targetOutsidePoint.y = ty0 - spacing;
             break;
         case 'bottom':
-            targetOutsidePoint.y = targetBBox.y + targetBBox.height + spacing;
+            targetOutsidePoint.y = ty1 + spacing;
             break;
     }
 
     const { x: sox, y: soy } = sourceOutsidePoint;
     const { x: tox, y: toy } = targetOutsidePoint;
-    const tx1 = tx0 + targetBBox.width;
-    const ty1 = ty0 + targetBBox.height;
     const tcx = (tx0 + tx1) / 2;
     const tcy = (ty0 + ty1) / 2;
-    const sx1 = sx0 + sourceBBox.width;
-    const sy1 = sy0 + sourceBBox.height;
     const scx = (sx0 + sx1) / 2;
     const scy = (sy0 + sy1) / 2;
     const middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
@@ -198,8 +244,8 @@ export function orthogonal2(_vertices, opt, linkView) {
 
         return [
             { x: sox, y: y2 },
-            { x: x, y: y2 },
-            { x: x, y: y1 },
+            { x, y: y2 },
+            { x, y: y1 },
             { x: tox, y: y1 }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
@@ -236,8 +282,8 @@ export function orthogonal2(_vertices, opt, linkView) {
 
         return [
             { x: sox, y: y2 },
-            { x: x, y: y2 },
-            { x: x, y: y1 },
+            { x, y: y2 },
+            { x, y: y1 },
             { x: tox, y: y1 }
         ];
     } else if (sourceSide === 'left' && targetSide === 'left') {
@@ -266,8 +312,8 @@ export function orthogonal2(_vertices, opt, linkView) {
 
         return [
             { x: x2, y: soy },
-            { x: x2, y: y },
-            { x: x1, y: y },
+            { x: x2, y },
+            { x: x1, y },
             { x: x1, y: toy }
         ];
     } else if (sourceSide === 'right' && targetSide === 'right') {
@@ -296,8 +342,8 @@ export function orthogonal2(_vertices, opt, linkView) {
 
         return [
             { x: x2, y: soy },
-            { x: x2, y: y },
-            { x: x1, y: y },
+            { x: x2, y },
+            { x: x1, y },
             { x: x1, y: toy }
         ];
     } else if (sourceSide === 'top' && targetSide === 'right') {
@@ -514,57 +560,12 @@ export function orthogonal2(_vertices, opt, linkView) {
         ];
         
     } else if (sourceSide === 'right' && targetSide === 'top') {
-        if (sox < tox && soy < ty0) {
+        if (sox <= tox && soy < ty0) {
             return [{ x: tox, y: soy }];
         }
 
-        let x = (sx1 + tx0) / 2;
-
-        if (sx1 < tx0) {
-            if (soy > toy) {
-                return [
-                    { x, y: soy },
-                    { x, y: toy },
-                    { x: tox, y: toy }
-                ];
-            }
-        }
-
-        if (x < sx1 + spacing && sy1 > ty0) {
-            x = Math.max(tx1 + spacing, sox);
-            const y = Math.min(sy0, ty0) - spacing;
-
-            return [
-                { x, y: soy },
-                { x, y: y },
-                { x: tox, y: y }
-            ];
-        }
-        if (y <= sy1 && tox < sx0) {
-            const x = Math.max(sx1, tx1) + spacing;
-            const y = Math.min(sy0, ty0) - spacing;
-            return [
-                { x, y: soy },
-                { x, y },
-                { x: tox, y }
-            ];
-        }
-
-        const y = (sy1 + ty0) / 2;
-
-        return [
-            { x: sox, y: soy },
-            { x: sox, y: y },
-            { x: tox, y: y }
-        ];  
-    } else if (sourceSide === 'right' && targetSide === 'bottom') {
-        if (sox <= tox && soy >= ty1) {
-            return [{ x: tox, y: soy }];
-        }
-
-        const x = (sx1 + tx0) / 2;
-
-        if (sox <= tx0 && soy < toy) {
+        if (sx1 < tx0 && soy > toy) {
+            let x = (sx1 + tx0) / 2;
             return [
                 { x, y: soy },
                 { x, y: toy },
@@ -572,23 +573,54 @@ export function orthogonal2(_vertices, opt, linkView) {
             ];
         }
 
-        if (x < sx1 + spacing && sy0 < ty1) {
-            const x = Math.max(tx1 + spacing, sox);
-            const y = Math.max(sy1, ty1) + spacing;
+        if (tox < sox && ty0 > sy1) {
+            const y = (sy1 + ty0) / 2;
 
             return [
+                { x: sox, y: soy },
+                { x: sox, y },
+                { x: tox, y }
+            ];  
+        }
+
+        const x = Math.max(sx1, tx1) + spacing;
+        const y = Math.min(sy0, ty0) - spacing;
+        return [
+            { x, y: soy },
+            { x, y },
+            { x: tox, y }
+        ];
+    } else if (sourceSide === 'right' && targetSide === 'bottom') {
+        if (sox <= tox && soy > ty1) {
+            return [{ x: tox, y: soy }];
+        }
+
+        if (sox <= tx0 && soy < toy) {
+            const x = (sx1 + tx0) / 2;
+            return [
                 { x, y: soy },
-                { x, y: y },
-                { x: tox, y: y }
+                { x, y: toy },
+                { x: tox, y: toy }
             ];
         }
 
-        const y = (sy0 + ty1) / 2;
+        if (tox > sx0 && ty1 < sy0) {
+            const y = (sy0 + ty1) / 2;
+
+            return [
+                { x: sox, y: soy },
+                { x: sox, y },
+                { x: tox, y }
+            ];
+        }
+        
+        const x = Math.max(tx1 + spacing, sox);
+        const y = Math.max(sy1, ty1) + spacing;
 
         return [
-            { x: sox, y: soy },
-            { x: sox, y: y },
-            { x: tox, y: y }
+            { x, y: soy },
+            { x, y },
+            { x: tox, y }
         ];
     }
 }
