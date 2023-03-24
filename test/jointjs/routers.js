@@ -445,7 +445,7 @@ QUnit.module('routers', function(hooks) {
     const height = 50;
     const size = { width, height };
     const spacing = 28;
-    const router = { name: 'orthogonal2', args: { spacing }};
+    const router = { name: 'rightAngle', args: { spacing }};
     const position = { x: 0, y: 150 };
 
     this.addTestSubjects = function(sourceSide, targetSide ){
@@ -472,7 +472,7 @@ QUnit.module('routers', function(hooks) {
         `${position.y + width / 2} 0`,
     ];
 
-    QUnit.test('orthogonal2 routing - source: top, target: top', function(assert) {
+    QUnit.test('rightAngle routing - source: top, target: top', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('top', 'top');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -551,7 +551,7 @@ QUnit.module('routers', function(hooks) {
         `${width} ${height / 2}`
     ];
 
-    QUnit.test('orthogonal2 routing - source: top, target: right', function(assert) {
+    QUnit.test('rightAngle routing - source: top, target: right', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('top', 'right');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -632,7 +632,7 @@ QUnit.module('routers', function(hooks) {
         `${width / 2} ${height}`
     ];
 
-    QUnit.test('orthogonal2 routing - source: top, target: bottom', function(assert) {
+    QUnit.test('rightAngle routing - source: top, target: bottom', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('top', 'bottom');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -711,7 +711,7 @@ QUnit.module('routers', function(hooks) {
         `0 ${height / 2}`
     ];
 
-    QUnit.test('orthogonal2 routing - source: top, target: left', function(assert) {
+    QUnit.test('rightAngle routing - source: top, target: left', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('top', 'left');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -758,7 +758,7 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, path, 'Target on the left of source');
     });
 
-    QUnit.test('orthogonal2 routing - source: right, target: top', function(assert) {
+    QUnit.test('rightAngle routing - source: right, target: top', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('right', 'top');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -814,7 +814,7 @@ QUnit.module('routers', function(hooks) {
         `${position.y + width} ${height / 2}`
     ];
 
-    QUnit.test('orthogonal2 routing - source: right, target: right', function(assert) {
+    QUnit.test('rightAngle routing - source: right, target: right', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('right', 'right');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -887,7 +887,7 @@ QUnit.module('routers', function(hooks) {
         `${width / 2} ${height}`
     ];
 
-    QUnit.test('orthogonal2 routing - source: right, target: bottom', function(assert) {
+    QUnit.test('rightAngle routing - source: right, target: bottom', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('right', 'bottom');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -968,7 +968,7 @@ QUnit.module('routers', function(hooks) {
         `0 ${height / 2}`
     ];
 
-    QUnit.test('orthogonal2 routing - source: right, target: left', function(assert) {
+    QUnit.test('rightAngle routing - source: right, target: left', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('right', 'left');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -1015,7 +1015,7 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, path, 'Target on the left of source');
     });
 
-    QUnit.test('orthogonal2 routing - source: bottom, target: top', function(assert) {
+    QUnit.test('rightAngle routing - source: bottom, target: top', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('bottom', 'top');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -1062,7 +1062,7 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, path, 'Target on the left of source');
     });
 
-    QUnit.test('orthogonal2 routing - source: bottom, target: right', function(assert) {
+    QUnit.test('rightAngle routing - source: bottom, target: right', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('bottom', 'right');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -1125,7 +1125,7 @@ QUnit.module('routers', function(hooks) {
         `${position.y + width / 2} ${height}`
     ];
 
-    QUnit.test('orthogonal2 routing - source: bottom, target: bottom', function(assert) {
+    QUnit.test('rightAngle routing - source: bottom, target: bottom', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('bottom', 'bottom');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -1204,7 +1204,7 @@ QUnit.module('routers', function(hooks) {
         `0 ${height / 2}`
     ];
 
-    QUnit.test('orthogonal2 routing - source: bottom, target: left', function(assert) {
+    QUnit.test('rightAngle routing - source: bottom, target: left', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('bottom', 'left');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -1251,7 +1251,7 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, path, 'Target on the left of source');
     });
 
-    QUnit.test('orthogonal2 routing - source: left, target: top', function(assert) {
+    QUnit.test('rightAngle routing - source: left, target: top', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('left', 'top');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -1298,7 +1298,7 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, path, 'Target on the left of source');
     });
 
-    QUnit.test('orthogonal2 routing - source: left, target: right', function(assert) {
+    QUnit.test('rightAngle routing - source: left, target: right', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('left', 'right');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -1345,7 +1345,7 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, path, 'Target on the left of source');
     });
 
-    QUnit.test('orthogonal2 routing - source: left, target: bottom', function(assert) {
+    QUnit.test('rightAngle routing - source: left, target: bottom', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('left', 'bottom');
 
         let d = this.paper.findViewByModel(l).metrics.data;
@@ -1401,7 +1401,7 @@ QUnit.module('routers', function(hooks) {
         `${position.y} ${height / 2}`
     ];
 
-    QUnit.test('orthogonal2 routing - source: left, target: left', function(assert) {
+    QUnit.test('rightAngle routing - source: left, target: left', function(assert) {
         const [r1, r2, l] = this.addTestSubjects('left', 'left');
 
         let d = this.paper.findViewByModel(l).metrics.data;

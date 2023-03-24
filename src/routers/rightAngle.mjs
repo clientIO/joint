@@ -8,12 +8,12 @@ const Directions = {
     MAGNET_SIDE: 'model'
 };
 
-orthogonal2.Directions = Directions;
+rightAngle.Directions = Directions;
 
 const NO_VIEW_DEFAULT_DIRECTION = Directions.LEFT;
 const DEFINED_DIRECTIONS = [Directions.LEFT, Directions.RIGHT, Directions.TOP, Directions.BOTTOM];
 
-export function orthogonal2(_vertices, opt, linkView) {
+export function rightAngle(_vertices, opt, linkView) {
     const spacing = opt.spacing || 20;
     let { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
 
