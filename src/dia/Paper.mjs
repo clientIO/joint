@@ -2876,7 +2876,7 @@ export const Paper = View.extend({
                 if (transform) {
                     // get children of document fragment = array
                     const markerContentVEls = this._applyTransformToVEls(transform, markerContentVEl.children());
-                    markerVEl.append(markerContentVEls)
+                    markerVEl.append(markerContentVEls);
                 } else {
                     markerVEl.append(markerContentVEl);
                 }
