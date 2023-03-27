@@ -541,6 +541,84 @@ QUnit.module('Attributes', function() {
                 assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
             });
 
+            QUnit.test('sourceMarker - json markup', function(assert) {
+
+                cell.attr('body/sourceMarker', {
+                    markup: [{
+                        tagName: 'circle',
+                        attributes: {
+                            'r': 10,
+                            'test-content-attribute': true
+                        }
+                    }],
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('marker-start');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'MARKER');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+                assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+            });
+
+            QUnit.test('targetMarker - string markup', function(assert) {
+
+                cell.attr('body/targetMarker', {
+                    markup: '<circle cx="6" cy="0" r="10" test-content-attribute="true" />',
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('marker-end');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'MARKER');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+                assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+                V(markerNode).children().forEach((child) => {
+                    assert.equal(child.attr('transform'), 'rotate(180)');
+                });
+            });
+
+            QUnit.test('targetMarker - string markup - two sibling elements', function(assert) {
+
+                cell.attr('body/targetMarker', {
+                    markup: '<circle cx="6" cy="0" r="10" test-content-attribute="true" /><circle cx="6" cy="0" r="10" test-content-attribute="true" />',
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('marker-end');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'MARKER');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+                assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+                V(markerNode).children().forEach((child) => {
+                    assert.equal(child.attr('transform'), 'rotate(180)');
+                });
+            });
+
             QUnit.test('targetMarker - json markup', function(assert) {
 
                 cell.attr('body/targetMarker', {
@@ -569,8 +647,94 @@ QUnit.module('Attributes', function() {
                 assert.equal(V(markerNode).tagName(), 'MARKER');
                 assert.equal(markerNode.getAttribute('test-attribute'), 'true');
                 assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+                V(markerNode).children().forEach((child) => {
+                    assert.equal(child.attr('transform'), 'rotate(180)');
+                });
             });
 
+            QUnit.test('targetMarker - json markup - two sibling elements', function(assert) {
+
+                cell.attr('body/targetMarker', {
+                    markup: [{
+                        tagName: 'circle',
+                        attributes: {
+                            'cx': 6,
+                            'cy': 0,
+                            'r': 10,
+                            'test-content-attribute': true
+                        }
+                    }, {
+                        tagName: 'circle',
+                        attributes: {
+                            'cx': 6,
+                            'cy': 0,
+                            'r': 10,
+                            'test-content-attribute': true
+                        }
+                    }],
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('marker-end');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'MARKER');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+                assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+                V(markerNode).children().forEach((child) => {
+                    assert.equal(child.attr('transform'), 'rotate(180)');
+                });
+            });
+
+            QUnit.test('targetMarker - combining manual transform value with automatic transform value', function(assert) {
+
+                cell.attr('body/targetMarker', {
+                    markup: [{
+                        tagName: 'circle',
+                        attributes: {
+                            'cx': 6,
+                            'cy': 0,
+                            'r': 10,
+                            'test-content-attribute': true,
+                            'transform': 'rotate(90)'
+                        }
+                    }, {
+                        tagName: 'circle',
+                        attributes: {
+                            'cx': 6,
+                            'cy': 0,
+                            'r': 10,
+                            'test-content-attribute': true,
+                            'transform': 'scale(2)'
+                        }
+                    }],
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('marker-end');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'MARKER');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+                assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+                var markerChildren = V(markerNode).children();
+                assert.equal(markerChildren[0].attr('transform'), 'rotate(90) rotate(180)');
+                assert.equal(markerChildren[1].attr('transform'), 'scale(2) rotate(180)');
+            });
 
             QUnit.test('vertexMarker - with type and id', function(assert) {
 
