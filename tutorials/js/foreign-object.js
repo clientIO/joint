@@ -78,4 +78,48 @@
     form.resize(200, 200);
     
     form.addTo(graph);
+
+    // const Card = joint.dia.Element.define('example.ForeignObject', {
+    //     attrs: {
+    //         body: {
+    //             width: 'calc(w)',
+    //             height: 'calc(h)',
+    //             stroke: '#4b5d67',
+    //             fill: '#4b5d67',
+    //             strokeWidth: 1,
+    //             rx: 5,
+    //             ry: 5
+    //         },
+    //         foreignObject: {
+    //             width: 'calc(w-20)',
+    //             height: 'calc(h-20)',
+    //             x: 10,
+    //             y: 10
+    //         }
+    //     },
+    // }, {
+    //     // The /* xml */ comment is optional.
+    //     // It is used to tell the IDE that the markup is XML.
+    //     markup: joint.util.svg/* xml */`
+    //         <rect @selector="body"/>
+    //         <foreignObject @selector="foreignObject">
+    //             <div @selector="content"
+    //                     xmlns="http://www.w3.org/1999/xhtml"
+    //                     style="font-family: sans-serif; font-size: 16px; color: white;"
+    //             >
+    //                 <p @selector="textContent"
+    //                     style="margin: 0; padding: 5px"
+    //                 >
+    //                     Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    //                 </p>
+    //             </div>
+    //         </foreignObject>
+    //     `
+    // });
+
+    // const card = new Card({});
+    // card.position(90, 40);
+    // card.resize(180, 100);
+    
+    // card.addTo(graph);
 }());

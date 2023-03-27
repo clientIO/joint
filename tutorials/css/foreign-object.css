@@ -1,0 +1,22 @@
+g[data-type="example.Form"] {
+    filter: drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
+}
+
+form {
+   font-size: 16px;
+   margin: 1.2rem;
+}
+
+label {
+   color: darkslategray;
+   display: inline-block;
+   font-size: 12px;
+   margin-bottom: 0.4rem;
+}
+
+input {
+   box-sizing: border-box;
+   font-size: inherit;
+   margin-bottom: 0.8rem;
+   width: 100%;
+}

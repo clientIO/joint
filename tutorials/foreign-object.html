@@ -14,33 +14,10 @@
 
 
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <link rel="stylesheet" href="css/foreign-object.css">
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
         <title>JointJS - JavaScript diagramming library - Getting started.</title>
-
-        <style>
-             g[data-type="example.Form"] {
-                 filter: drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
-            }
-
-            form {
-                font-size: 16px;
-                margin: 1.2rem;
-            }
-
-            label {
-                display: inline-block;
-                margin-bottom: 0.4rem;
-            }
-
-            input {
-                box-sizing: border-box;
-                font-size: inherit;
-                margin-bottom: 0.8rem;
-                width: 100%;
-            }
-        </style>
-
     </head>
     <body class="language-javascript tutorial-page">
 
@@ -157,8 +134,8 @@ const Card = joint.dia.Element.define('example.ForeignObject', {
             ry: 5
         },
         foreignObject: {
-            width: 160,
-            height: 80,
+            width: 'calc(w-20)',
+            height: 'calc(h-20)',
             x: 10,
             y: 10
         }
@@ -262,8 +239,8 @@ g[data-type="example.ForeignObject"] p {
             ry: 5
         },
         foreignObject: {
-            width: 160,
-            height: 80,
+            width: 'calc(w-20)',
+            height: 'calc(h-20)',
             x: 10,
             y: 10
         }
@@ -352,7 +329,9 @@ form {
 }
 
 label {
+    color: darkslategray;
     display: inline-block;
+    font-size: 12px;
     margin-bottom: 0.4rem;
 }
 
@@ -361,7 +340,7 @@ input {
     font-size: inherit;
     margin-bottom: 0.8rem;
     width: 100%;
-}   
+}
 </code></pre>
 
         <p>
@@ -376,7 +355,7 @@ input {
         </p>
 
         <pre><code>paper.on('blank:pointerdown cell:pointerdown', () => {
-        document.activeElement.blur();
+    document.activeElement.blur();
 });
 </code></pre>
 
@@ -419,6 +398,12 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
 
         <div class="paper" id="paper-foreign-object"></div>
 
+        <p>
+            preventDefault paper option
+        </p>
+
+        <div class="paper" id="paper-foreign-object-prevent-default"></div>
+
         <!-- TODO
             - how to use
             - test specificity, inline vs stylesheet
@@ -432,10 +417,34 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
             - safari issues with foreignObject, link to some bugs
          -->
 
-        <h3>Caveats</h3>
+        <h3>Caveats!!!</h3>
+
+        <p>
+            While all that we have covered so far is great for users of JointJS, even in this day and age, it's not without some caveats.
+            Firstly, we will cover some relatively minor caveats regarding syntax, and afterwards we'll look at some browser related quirks.
+        </p>
 
 
-        <h4>Usage Caveats</h4>
+        <h4>Syntax</h4>
+
+
+        <p><i>Boolean Attributes</i></p>
+
+        <p>
+            Boolean Attributes are those data types where the presence or absence of the attribute represents its <i>truthy</i> or <i>falsy</i>
+            value respectively. Some common examples are <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/required" target="_blank"> 
+            <code>required</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/disabled" target="_blank"><code>disabled</code></a>, and 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#checked" target="_blank"><code>checked</code></a>.
+        </p>
+
+        <p>
+            Usually, boolean attributes can be utilized in 3 different ways, you can omit the value, use an empty string, or set the value as a case-insensitive 
+            match for the attribute's name. In our case, we cannot omit the value, so we must use the 2nd or 3rd option. This is demonstrated in the following example.
+        </p>
+
+        <p>
+
+        </p>
 
         <!-- TODO
             - attributes without a value such as shorthand will cause an error. (controls on video, needs to be controls=controls)
@@ -470,6 +479,14 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
             https://bugs.webkit.org/show_bug.cgi?id=197612
          -->
 
+         <!-- 
+            when you open the <select> in:
+            Chrome: it triggers pointerdown, pointerup, pointerclick as soon as its open
+            Firefox: it triggers pointerdown on open and pointerup (and pointerclick only if you didn’t move) on close. But! If you open and then close by clickc somewhere else on the page, no other event is triggered.
+            Safari: it triggers pointerdown on open. that’s it.
+            There is another bug in Safari.
+            <select multiple=“true”> does not allow you to select option with mouse (it works with keyboard)
+          -->
         <h3>Conclusion</h3>
 
         <p>
@@ -480,6 +497,7 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
         <script src="../node_modules/prismjs/prism.js"></script>
 
         <script src="js/foreign-object.js"></script>
+        <script src="js/foreign-object-prevent-default.js"></script>
     </body>
 </html>
 
