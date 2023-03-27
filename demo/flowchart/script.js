@@ -42,7 +42,7 @@ const paper = new dia.Paper({
             extrapolate: true
         }
     },
-    defaultRouter: { name: 'orthogonal2', args: { spacing: unit * 7 }},
+    defaultRouter: { name: 'rightAngle', args: { spacing: unit * 7 }},
     defaultConnector: bevelledConnector
 });
 paperContainer.appendChild(paper.el);
