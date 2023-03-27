@@ -3450,8 +3450,8 @@ export namespace routers {
         RIGHT = 'right',
         TOP = 'top',
         BOTTOM = 'bottom',
-        ANCHOR_SIDE = 'magnet',
-        MAGNET_SIDE = 'model'
+        ANCHOR_SIDE = 'anchor-side',
+        MAGNET_SIDE = 'magnet-side'
     }
 
     interface RightAngleRouterArguments {

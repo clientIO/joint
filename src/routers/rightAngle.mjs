@@ -4,8 +4,8 @@ const Directions = {
     RIGHT: 'right',
     TOP: 'top',
     BOTTOM: 'bottom',
-    ANCHOR_SIDE: 'magnet',
-    MAGNET_SIDE: 'model'
+    ANCHOR_SIDE: 'anchor-side',
+    MAGNET_SIDE: 'magnet-side'
 };
 
 rightAngle.Directions = Directions;
@@ -31,12 +31,26 @@ export function rightAngle(_vertices, opt, linkView) {
         targetDirection = isTargetPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
 
+    const paper = this.paper;
+
     const sourceBBox = linkView.sourceBBox;
     const targetBBox = linkView.targetBBox;
     const sourcePoint = linkView.sourceAnchor;
     const targetPoint = linkView.targetAnchor;
-    let { x: sx0, y: sy0, width: sourceWidth = 0, height: sourceHeight = 0 } = sourceView ? sourceView.getBBox() : linkView.sourceAnchor;
-    let { x: tx0, y: ty0, width: targetWidth = 0, height: targetHeight = 0 } = targetView ? targetView.getBBox() : linkView.targetAnchor;
+    let { 
+        x: sx0,
+        y: sy0,
+        width: sourceWidth = 0,
+        height: sourceHeight = 0
+    } = sourceView ? paper.paperToLocalRect(sourceView.getBBox()) : linkView.sourceAnchor;
+    
+    let {
+        x: tx0,
+        y: ty0,
+        width: targetWidth = 0,
+        height: targetHeight = 0
+    } = targetView ? paper.paperToLocalRect(targetView.getBBox()) : linkView.targetAnchor;
+
     const tx1 = tx0 + targetWidth;
     const ty1 = ty0 + targetHeight;
     const sx1 = sx0 + sourceWidth;
