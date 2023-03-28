@@ -732,8 +732,8 @@ QUnit.module('Attributes', function() {
                 assert.equal(markerNode.getAttribute('test-attribute'), 'true');
                 assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
                 var markerChildren = V(markerNode).children();
-                assert.equal(markerChildren[0].attr('transform'), 'rotate(90) rotate(180)');
-                assert.equal(markerChildren[1].attr('transform'), 'scale(2) rotate(180)');
+                assert.equal(markerChildren[0].attr('transform'), 'rotate(180) rotate(90)');
+                assert.equal(markerChildren[1].attr('transform'), 'rotate(180) scale(2)');
             });
 
             QUnit.test('vertexMarker - with type and id', function(assert) {

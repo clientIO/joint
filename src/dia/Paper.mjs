@@ -2833,12 +2833,6 @@ export const Paper = View.extend({
             // (e.g. defined when creating link via `attrs/line/sourceMarker/attrs`)
             // note: `transform` attrs are ignored by browsers
             attrs = {},
-            // automatically-applied transformations
-            // (e.g. as applied for `dia.attributes.targetMarker`)
-            // - applied alongside `transform` attributes specified within `markup`
-            // note: we cannot apply `transform` directly on `markerVEl` because it isn't passed on to individual instances
-            // - we need to apply `transform` on individual items within `markerContentVEl`
-            transform,
             // deprecated - use `attrs/markerUnits` instead (which has higher priority)
             markerUnits = 'userSpaceOnUse'
         } = marker;
@@ -2855,53 +2849,50 @@ export const Paper = View.extend({
         markerVEl.attr(attrs);
         if (markup) {
             if (typeof markup === 'string') {
-                // marker object has a `markup` property of type string
-                // construct V from provided string
-                // - if markup describes a single element, we get a single V element here
-                // - otherwise, we get an array of V elements here
+                // Marker object has a `markup` property of type string.
+                // - We need to construct V from the provided string.
                 const markerContentVEl = V(markup);
-                if (transform) {
-                    // convert `markerContentVEl` to an array if necessary
-                    const markerContentVEls = this._applyTransformToVEls(transform, (Array.isArray(markerContentVEl)) ? markerContentVEl : [markerContentVEl]);
-                    markerVEl.append(markerContentVEls);
-                } else {
-                    markerVEl.append(markerContentVEl);
-                }
+                markerVEl.append(markerContentVEl);
             } else {
-                // marker object has a `markup` property of type object
-                // construct V from object by parsing as DOM JSON
-                // - we get a single document fragment here
+                // Marker object has a `markup` property of type object.
+                // - We need to construct V from object by parsing it as DOM JSON.
                 const { fragment } = parseDOMJSON(markup);
                 const markerContentVEl = V(fragment);
-                if (transform) {
-                    // get children of document fragment = array
-                    const markerContentVEls = this._applyTransformToVEls(transform, markerContentVEl.children());
-                    markerVEl.append(markerContentVEls);
-                } else {
-                    markerVEl.append(markerContentVEl);
-                }
+                markerVEl.append(markerContentVEl);
             }
         } else {
-            // marker object is a flat structure
-            // construct V from `marker.type` and set its attributes to sibling properties from within `marker`
-            // - we get a single V element here
-            // - attributes applied here typically involve `stroke`, `fill`, `stroke-opacity`, `fill-opacity` and `transform`
+            // Marker object is a flat structure.
+            // - We need to construct a new V of type `marker.type`.
             const { type = 'path' } = marker;
-            const markerContentVEl = V(type, omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits'));
+            const markerContentVEl = V(type);
             markerVEl.append(markerContentVEl);
         }
+        // Assign attributes to marker content node(s):
+        const contentVEls = markerVEl.children();
+        // - Attributes are taken from non-special properties of `marker`.
+        const contentAttrs = omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits');
+        const contentAttrsKeys = Object.keys(contentAttrs);
+        contentVEls.forEach((contentVEl) => {
+            contentAttrsKeys.forEach((key) => {
+                const currentValue = contentVEl.attr(key);
+                const newValue = contentAttrs[key];
+                if (currentValue == null) {
+                    // Default logic:
+                    // - Assign newValue if marker content node does not have a value yet.
+                    contentVEl.attr(key, newValue);
+                } else {
+                    // Properties with special logic should be added as cases to this switch block:
+                    switch(key) {
+                        case 'transform':
+                            // - Prepend new `transform` to existing value.
+                            contentVEl.attr(key, (newValue + ' ' + currentValue));
+                            break;
+                    }
+                }
+            });
+        });
         markerVEl.appendTo(defs);
         return id;
-    },
-
-    _applyTransformToVEls: function(transform, vels) {
-        vels.forEach((vel) => {
-            // we must not overwrite existing `transform` parts - appending instead
-            const currentTransform = vel.attr('transform');
-            const newTransform = ((currentTransform) ? (currentTransform + ' ') : '') + transform;
-            vel.attr({ transform: newTransform });
-        });
-        return vels;
     }
 
 }, {

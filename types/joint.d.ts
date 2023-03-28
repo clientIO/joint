@@ -109,7 +109,6 @@ export namespace dia {
         id?: string;
         markup: string | MarkupJSON;
         attrs?: attributes.NativeSVGAttributes;
-        transform?: string;
     }
 
     interface SVGSimpleMarkerJSON extends attributes.NativeSVGAttributes {
