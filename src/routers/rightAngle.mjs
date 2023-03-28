@@ -1,3 +1,5 @@
+import * as g from '../g/index.mjs';
+
 const Directions = {
     AUTO: 'auto',
     LEFT: 'left',
@@ -10,8 +12,23 @@ const Directions = {
 
 rightAngle.Directions = Directions;
 
-const NO_VIEW_DEFAULT_DIRECTION = Directions.LEFT;
 const DEFINED_DIRECTIONS = [Directions.LEFT, Directions.RIGHT, Directions.TOP, Directions.BOTTOM];
+
+function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
+    const segment = linkView.path.segments.find(segment => segment.previousSegment && new g.Line(segment.start, segment.end).containsPoint(connectionPoint));
+    const roundedAngle = Math.round(segment.angle() / 90) * 90;
+
+    switch (roundedAngle) {
+        case 0:
+            return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
+        case 90:
+            return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
+        case 180:
+            return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
+        case 270:
+            return linkOrigin.x < connectionPoint.x ? Directions.RIGHT : Directions.LEFT;
+    }
+}
 
 export function rightAngle(_vertices, opt, linkView) {
     const spacing = opt.spacing || 20;
@@ -31,8 +48,6 @@ export function rightAngle(_vertices, opt, linkView) {
         targetDirection = isTargetPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
 
-    const paper = this.paper;
-
     const sourceBBox = linkView.sourceBBox;
     const targetBBox = linkView.targetBBox;
     const sourcePoint = linkView.sourceAnchor;
@@ -42,14 +57,14 @@ export function rightAngle(_vertices, opt, linkView) {
         y: sy0,
         width: sourceWidth = 0,
         height: sourceHeight = 0
-    } = sourceView ? paper.paperToLocalRect(sourceView.getBBox()) : linkView.sourceAnchor;
+    } = sourceView && sourceView.model.isElement() ? g.Rect.fromRectUnion(sourceBBox, sourceView.model.getBBox()) : linkView.sourceAnchor;
     
     let {
         x: tx0,
         y: ty0,
         width: targetWidth = 0,
         height: targetHeight = 0
-    } = targetView ? paper.paperToLocalRect(targetView.getBBox()) : linkView.targetAnchor;
+    } = targetView && targetView.model.isElement() ? g.Rect.fromRectUnion(targetBBox, targetView.model.getBBox()) : linkView.targetAnchor;
 
     const tx1 = tx0 + targetWidth;
     const ty1 = ty0 + targetHeight;
@@ -61,7 +76,10 @@ export function rightAngle(_vertices, opt, linkView) {
     let sourceSide;
 
     if (!sourceView) {
-        sourceSide = DEFINED_DIRECTIONS.includes(sourceDirection) ? sourceDirection : NO_VIEW_DEFAULT_DIRECTION;
+        const sourceLinkAnchorBBox = new g.Rect(sx0, sy0, 0, 0);
+        sourceSide = DEFINED_DIRECTIONS.includes(sourceDirection) ? sourceDirection : sourceLinkAnchorBBox.sideNearestToPoint(targetPoint);
+    } else if (sourceView.model.isLink()) {
+        sourceSide = getDirectionForLinkConnection(targetPoint, sourcePoint, sourceView);
     } else if (sourceDirection === Directions.ANCHOR_SIDE) {
         sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
     } else if (sourceDirection === Directions.MAGNET_SIDE) {
@@ -91,7 +109,10 @@ export function rightAngle(_vertices, opt, linkView) {
 
     
     if (!targetView) {
-        targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : NO_VIEW_DEFAULT_DIRECTION;
+        const targetLinkAnchorBBox = new g.Rect(tx0, ty0, 0, 0);
+        targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : targetLinkAnchorBBox.sideNearestToPoint(sourcePoint);
+    } else if (targetView.model.isLink()) {
+        targetSide = getDirectionForLinkConnection(sourcePoint, targetPoint, targetView);
     } else if (targetDirection === Directions.ANCHOR_SIDE) {
         targetSide = targetBBox.sideNearestToPoint(targetPoint);
     } else if (targetDirection === Directions.MAGNET_SIDE) {
