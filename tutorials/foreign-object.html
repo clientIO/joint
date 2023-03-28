@@ -412,11 +412,6 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
 
         <h3>CSS Styles</h3>
 
-        <!-- TODO
-            Section on Caveats
-            - safari issues with foreignObject, link to some bugs
-         -->
-
         <h3>Caveats!!!</h3>
 
         <p>
@@ -431,26 +426,66 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
         <p><i>Boolean Attributes</i></p>
 
         <p>
-            Boolean Attributes are those data types where the presence or absence of the attribute represents its <i>truthy</i> or <i>falsy</i>
+            Boolean attributes are those data types where the presence or absence of the attribute represents its <i>truthy</i> or <i>falsy</i>
             value respectively. Some common examples are <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/required" target="_blank"> 
-            <code>required</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/disabled" target="_blank"><code>disabled</code></a>, and 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#checked" target="_blank"><code>checked</code></a>.
+            <code>required</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/disabled" target="_blank"><code>disabled</code></a>, 
+            and <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/readonly" target="_blank"><code>readonly</code></a>.
         </p>
 
         <p>
-            Usually, boolean attributes can be utilized in 3 different ways, you can omit the value, use an empty string, or set the value as a case-insensitive 
-            match for the attribute's name. In our case, we cannot omit the value, so we must use the 2nd or 3rd option. This is demonstrated in the following example.
+            Usually, boolean attributes can be utilized in 3 different ways, you can omit the value, use an empty string, or set the value as a
+            case-insensitive match for the attribute's name. In our case, we cannot omit the value, so we must use the 2nd or 3rd option. This is 
+            demonstrated in the following example which uses the <code>required</code> attribute.
+        </p>
+
+        <pre><code>// omitted value will throw error ❌
+&lt;input @selector="name" type="text" id="name" name="name" required /&gt;
+
+// use an empty string
+&lt;input @selector="name" type="text" id="name" name="name" required="" /&gt;
+
+// use a case-insensitive match for the attribute's name
+&lt;input @selector="name" type="text" id="name" name="name" required="required" /&gt;
+</code></pre>
+
+        <p><i>Closing Tags</i></p>
+
+        <p>
+            In the past, developers traditionally used start and end tags for HTML elements. If we wanted some text on the page, we might 
+            create the following paragraph element <code>&lt;p&gt;Lorem ipsum dolor sit amet consectetur.&lt;/p&gt;</code>. With the advent 
+            of HTML5, it's not strictly necessary to close certain elements which are considered 
+            <a href="https://developer.mozilla.org/en-US/docs/Glossary/Void_element" target="_blank">void</a>, i.e., elements which can't have 
+            child nodes.
         </p>
 
         <p>
-
+            In HTML, it is possible to write a line-break element as <code>&lt;br&gt;</code> or <code>&lt;br /&gt;</code>. The trailing slash
+            in the tag has no meaning, and browsers simply ignore it. However, in XML, XHTML, and SVG, self closing tags are required in void elements, 
+            so a trailing slash is necessary. This can be observed in the following example:
         </p>
+
+        <pre><code>&lt;rect @selector="body" /&gt;
+&lt;foreignObject @selector="foreignObject"&gt;
+    &lt;div @selector="content"
+        xmlns="http://www.w3.org/1999/xhtml"
+        style="font-family: sans-serif;"
+    &gt;
+        &lt;p&gt;Lorem ipsum dolor sit amet consectetur.&lt;/p&gt;
+        &lt;br&gt; // line-break element without slash will throw an error ❌
+        &lt;p&gt;Lorem ipsum dolor sit amet consectetur.&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/foreignObject&gt;
+</code></pre>
+
+        <p><i>HTML Entities</i></p>
+        
+        <!-- 
+            Working in examples I have tried?
+         -->
 
         <!-- TODO
-            - attributes without a value such as shorthand will cause an error. (controls on video, needs to be controls=controls)
-            - elements need to be closed, <br> needs to be <br/>, or <input> needs to be '<input></input>' or <input />
-            - foreignObject export in JointJS+
             - HTML entities can throw an error, needs to be written as the # version.
+            - foreignObject export in JointJS+
          -->
 
 
@@ -467,6 +502,11 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
             Among the elements that show some unexpected behaviour is the <code>video</code> element. A property such as <code>opacity</code>
             can also cause some issues.
         </p>
+
+        <!-- TODO
+            Section on Caveats
+            - safari issues with foreignObject, link to some bugs
+        -->
 
         <!-- TODO
             - Workarounds for video - position: fixed;
