@@ -15,8 +15,8 @@ rightAngle.Directions = Directions;
 const DEFINED_DIRECTIONS = [Directions.LEFT, Directions.RIGHT, Directions.TOP, Directions.BOTTOM];
 
 function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
-    const segment = linkView.path.segments.find(segment => segment.previousSegment && new g.Line(segment.start, segment.end).containsPoint(connectionPoint));
-    const roundedAngle = Math.round(segment.angle() / 90) * 90;
+    const tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
+    const roundedAngle = Math.round(tangent.angle() / 90) * 90;
 
     switch (roundedAngle) {
         case 0:
@@ -26,7 +26,7 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
         case 180:
             return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
         case 270:
-            return linkOrigin.x < connectionPoint.x ? Directions.RIGHT : Directions.LEFT;
+            return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
     }
 }
 
