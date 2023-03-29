@@ -159,23 +159,30 @@ class Investment extends ForeignObjectElement {
                     xmlns="http://www.w3.org/1999/xhtml"
                 >
                     <h2>Investment</h2>
-                    <p id="test">How much did you invest?</p>
-                    <input @selector="funds" class="jj-input" type="number"/>
-                    <p>What year it was?</p>
-                    <select @selector="year" class="jj-input" type="number">
-                        <option value="2013">2013</option>
-                        <option value="2014">2014</option>
-                        <option value="2015">2015</option>
-                        <option value="2016">2016</option>
-                        <option value="2017">2017</option>
-                        <option value="2018">2018</option>
-                        <option value="2019">2019</option>
-                        <option value="2020">2020</option>
-                        <option value="2021">2021</option>
-                        <option value="2022">2022</option>
-                        <option value="2023">2023</option>
-                    </select>
-
+                    <div class="jj-field-vertical">
+                        <label>
+                            How much did you invest?
+                            <input @selector="funds" class="jj-input" type="number"/>
+                        </label>
+                    </div>
+                    <div class="jj-field-vertical">
+                        <label>
+                            What year it was?
+                            <select @selector="year" class="jj-input" type="number">
+                                <option value="2013">2013</option>
+                                <option value="2014">2014</option>
+                                <option value="2015">2015</option>
+                                <option value="2016">2016</option>
+                                <option value="2017">2017</option>
+                                <option value="2018">2018</option>
+                                <option value="2019">2019</option>
+                                <option value="2020">2020</option>
+                                <option value="2021">2021</option>
+                                <option value="2022">2022</option>
+                                <option value="2023">2023</option>
+                            </select>
+                        </label>
+                    </div>
                 </div>
             </foreignObject>
         `;
@@ -211,17 +218,20 @@ class Product extends ForeignObjectElement {
                     class="jj-form"
                     xmlns="http://www.w3.org/1999/xhtml"
                 >
-                    <p>What percentage did you invest in <b @selector="label"></b>?</p>
-                    <div class="jj-field">
-                        <input @selector="percentage"
-                            class="jj-input"
-                            type="number"
-                            style="width: 100%;"
-                            min="0"
-                            max="100"
-                            step="1"
-                        />
-                        <label style="margin-left: 4px;">%</label>
+                    <div class="jj-field-vertical">
+                        <label>
+                            What percentage did you invest in <strong @selector="label"></strong>?
+                            <span class="jj-input-container">
+                                <input @selector="percentage"
+                                    class="jj-input"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                />
+                                <span class="jj-input-unit">%</span>
+                            </span>
+                        </label>
                     </div>
                 </div>
             </foreignObject>
@@ -266,27 +276,33 @@ class ProductPerformance extends ForeignObjectElement {
                     class="jj-form"
                     xmlns="http://www.w3.org/1999/xhtml"
                 >
-                    <b @selector="label"></b>
-                    <div class="jj-field">
-                        <label for="value">Value</label>
-                        <input @selector="value"
-                            class="jj-input"
-                            name="value"
-                            type="number"
-                            readonly="true"
-                            style="width: 100px;"
-                        />
-                    </div>
-                    <div class="jj-field">
-                        <label for="roi">ROI</label>
-                        <input @selector="roi"
-                            class="jj-input"
-                            name="roi"
-                            type="number"
-                            readonly="true"
-                            style="width: 100px;"
-                        />
-                    </div>
+                    <fieldset>
+                        <legend>
+                            <strong @selector="label"></strong>
+                        </legend>
+                        <div class="jj-field-horizontal">
+                            <label>
+                                <span>Value</span>
+                                <input @selector="value"
+                                    class="jj-input"
+                                    name="value"
+                                    type="number"
+                                    readonly="true"
+                                />
+                            </label>
+                        </div>
+                        <div class="jj-field-horizontal">
+                            <label>
+                                <span>ROI</span>
+                                <input @selector="roi"
+                                    class="jj-input"
+                                    name="roi"
+                                    type="number"
+                                    readonly="true"
+                                />
+                            </label>
+                        </div>
+                        </fieldset>
                 </div>
             </foreignObject>
         `;
@@ -321,33 +337,35 @@ class OverallPerformance extends ForeignObjectElement {
             <foreignObject @selector="foreignObject" overflow="hidden">
                 <div @selector="content"
                     class="jj-form"
+                    style="justify-content: space-between"
                     xmlns="http://www.w3.org/1999/xhtml"
-                    style="justify-content: space-between;"
                 >
-                    <p>This is your portfolio now in <b>${currentYear}</b>.</p>
-                    <div style="width: 100%">
-                        <p>Your overall performance of investment is:</p>
-                        <div class="jj-field">
-                            <label for="value">Value</label>
-                            <input @selector="value"
-                                class="jj-input"
-                                name="value"
-                                type="number"
-                                readonly="true"
-                                style="width: 150px;"
-                            />
+                    <p>This is your portfolio now in <strong>${currentYear}</strong>.</p>
+                    <fieldset>
+                        <legend style="margin-bottom:10px">Your overall performance of investment is:</legend>
+                        <div class="jj-field-horizontal">
+                            <label>
+                                <span>Value</span>
+                                <input @selector="value"
+                                    class="jj-input"
+                                    name="value"
+                                    type="number"
+                                    readonly="true"
+                                />
+                            </label>
                         </div>
-                        <div class="jj-field">
-                            <label for="roi">ROI</label>
-                            <input @selector="roi"
-                                class="jj-input"
-                                name="roi"
-                                type="number"
-                                readonly="true"
-                                style="width: 150px;"
-                            />
+                        <div class="jj-field-horizontal">
+                            <label>
+                                <span>ROI</span>
+                                <input @selector="roi"
+                                    class="jj-input"
+                                    name="roi"
+                                    type="number"
+                                    readonly="true"
+                                />
+                            </label>
                         </div>
-                    </div>
+                    </fieldset>
                 </div>
             </foreignObject>
         `;
@@ -585,7 +603,7 @@ const link6 = new Link({
     }
 });
 
-const products  = [gold, bitcoin, sp500];
+const products = [gold, bitcoin, sp500];
 const productPerformances = [goldPerformance, bitcoinPerformance, sp500Performance];
 const links = [link1, link2, link3, link4, link5, link6];
 graph.resetCells([investment, ...products, performance, ...productPerformances, ...links]);
@@ -608,7 +626,7 @@ graph.on('change:attrs', (cell, attrs, { calc, previousValue, propertyValue }) =
         sortedProducts.forEach((product, index) => {
             const percentage = product.getPercentage() + diff;
             product.setPercentage(Math.max(percentage, 0));
-            diff = (percentage < 0) ? percentage: 0;
+            diff = (percentage < 0) ? percentage : 0;
         });
     }
     calculatePerformance();
@@ -634,7 +652,7 @@ function calculateProductValue(product) {
     const productName = product.getName();
     const buyUnitPrice = data[year][productName];
     const sellUnitPrice = data[currentYear][productName];
-    return funds * product.getPercentage() / 100 * (sellUnitPrice / buyUnitPrice) ;
+    return funds * product.getPercentage() / 100 * (sellUnitPrice / buyUnitPrice);
 }
 
 function calculateProductROI(percentage, value) {
@@ -644,4 +662,3 @@ function calculateProductROI(percentage, value) {
 }
 
 calculatePerformance();
-

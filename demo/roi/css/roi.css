@@ -1,12 +1,18 @@
+
+* {
+    font-family: sans-serif;
+}
+
 body {
     margin: 0;
     padding: 0;
     background-color: #f0f0f0;
 }
 
-#paper {
-    position: absolute;
-    inset: 0 0 0 0;
+fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
 }
 
 input:invalid {
@@ -15,36 +21,68 @@ input:invalid {
     outline: 2px solid red;
 }
 
-* {
-    font-family: sans-serif;
+#paper {
+    position: absolute;
+    inset: 0 0 0 0;
 }
 
 .jj-form {
-    font-size: 14px;
-    width: 100%;
-    height: 100%;
     position: fixed;
+    font-size: 14px;
     text-align: center;
-    margin: 0px;
+    touch-action: none;
     padding: 10px;
-    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: start;
-    touch-action: none;
+    box-sizing: border-box;
+    height: 100%;
 }
 
-.jj-field {
-     display: flex;
-     flex-direction: row;
-     align-items: center;
-     justify-content: space-between;
-     width: 100%;
-     padding: 5px 0;
+.jj-field-vertical {
+    display: flex;
+    flex-direction: column;
+}
+
+.jj-field-vertical label {
+    margin-top: 15px;
+}
+
+.jj-field-vertical .jj-input {
+    margin-top: 10px;
+}
+
+.jj-field-horizontal label {
+    display: flex;
+    align-items: center;
+    text-align: left;
+}
+
+.jj-field-horizontal label > span:first-child {
+    width: 30%;
+}
+
+.jj-field-horizontal .jj-input {
+    width: 70%;
 }
 
 .jj-input {
+    box-sizing: border-box;
+    text-align: right;
+    margin: 5px 0;
+}
+
+.jj-field-vertical .jj-input {
     width: 100%;
-    text-align:right;
+}
+
+.jj-input-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.jj-input-unit {
+    flex-shrink: 0;
+    padding-left: 5px;
+    text-align: right;
 }
