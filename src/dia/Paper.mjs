@@ -2819,16 +2819,21 @@ export const Paper = View.extend({
 
     defineMarker: function(marker) {
         if (!isObject(marker)) {
-            throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
+            throw new TypeError('dia.Paper: defineMarker() requires the first argument to be an object.');
         }
         const { svg, defs } = this;
         const {
             // Generate a hash code from the stringified filter definition. This gives us
             // a unique filter ID for different definitions.
             id = svg.id + hashCode(JSON.stringify(marker)),
+            // user-provided markup
+            // (e.g. defined when creating link via `attrs/line/sourceMarker/markup`)
             markup,
+            // user-provided attributes
+            // (e.g. defined when creating link via `attrs/line/sourceMarker/attrs`)
+            // note: `transform` attrs are ignored by browsers
             attrs = {},
-            // deprecated in favour of `attrs`
+            // deprecated - use `attrs/markerUnits` instead (which has higher priority)
             markerUnits = 'userSpaceOnUse'
         } = marker;
         // If the marker already exists in the document,
@@ -2842,19 +2847,57 @@ export const Paper = View.extend({
         });
         markerVEl.id = id;
         markerVEl.attr(attrs);
+        let markerContentVEl;
         if (markup) {
+            let markupVEl;
             if (typeof markup === 'string') {
-                markerVEl.append(V(markup));
+                // Marker object has a `markup` property of type string.
+                // - Construct V from the provided string.
+                markupVEl = V(markup);
+                // `markupVEl` is now either a single VEl, or an array of VEls.
+                // - Coerce it to an array.
+                markupVEl = (Array.isArray(markupVEl) ? markupVEl : [markupVEl]);
             } else {
+                // Marker object has a `markup` property of type object.
+                // - Construct V from the object by parsing it as DOM JSON.
                 const { fragment } = parseDOMJSON(markup);
-                markerVEl.append(fragment);
+                markupVEl = V(fragment).children();
+            }
+            // `markupVEl` is an array with one or more VEls inside.
+            // - If there are multiple VEls, wrap them in a newly-constructed <g> element
+            if (markupVEl.length > 1) {
+                markerContentVEl = V('g').append(markupVEl);
+            } else {
+                markerContentVEl = markupVEl[0];
             }
         } else {
-            // marker object is a flat structure
+            // Marker object is a flat structure.
+            // - Construct a new V of type `marker.type`.
             const { type = 'path' } = marker;
-            const markerContentVEl = V(type, omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits'));
-            markerVEl.append(markerContentVEl);
+            markerContentVEl = V(type);
         }
+        // `markerContentVEl` is a single VEl.
+        // Assign additional attributes to it (= context attributes + marker attributes):
+        // - Attribute values are taken from non-special properties of `marker`.
+        const markerAttrs = omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits');
+        const markerAttrsKeys = Object.keys(markerAttrs);
+        markerAttrsKeys.forEach((key) => {
+            const value = markerAttrs[key];
+            const markupValue = markerContentVEl.attr(key); // value coming from markupVEl (if any) = higher priority
+            if (markupValue == null) {
+                // Default logic:
+                markerContentVEl.attr(key, value);
+            } else {
+                // Properties with special logic should be added as cases to this switch block:
+                switch(key) {
+                    case 'transform':
+                        // - Prepend `transform` to existing value.
+                        markerContentVEl.attr(key, (value + ' ' + markupValue));
+                        break;
+                }
+            }
+        });
+        markerContentVEl.appendTo(markerVEl);
         markerVEl.appendTo(defs);
         return id;
     }
