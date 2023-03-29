@@ -2856,7 +2856,7 @@ export const Paper = View.extend({
                 markupVEl = V(markup);
                 // `markupVEl` is now either a single VEl, or an array of VEls.
                 // - Coerce it to an array.
-                markupVEl = (Array.isArray(markupVEl) ? markupVEl : [markupVEl])
+                markupVEl = (Array.isArray(markupVEl) ? markupVEl : [markupVEl]);
             } else {
                 // Marker object has a `markup` property of type object.
                 // - Construct V from the object by parsing it as DOM JSON.
