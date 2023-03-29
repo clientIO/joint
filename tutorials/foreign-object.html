@@ -483,6 +483,21 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
 </code></pre>
 
         <p><i>HTML Entities</i></p>
+
+        <p>
+            HTML Entities are used in place of some characters that are reserved depending on the language. For example,
+            the greater than (>) or less than (<) sign cannot be used in HTML as it would cause a conflict with tags.
+            This is also one are to be careful with when using tagged templates. You must use the entity number rather than
+            the entity name. Entity names are the ones which use the # symbol. That means using <code>&amp;#169;</code> 
+            is preferable over <code>&amp;copy;</code>.
+        </p>
+
+        <pre><code>&lt;foreignObject @selector="foreignObject"&gt;
+    &lt;div @selector="content" xmlns="http://www.w3.org/1999/xhtml"&gt;
+        &amp;copy; // copy HTML entity name will throw an error ❌
+    &lt;/div&gt;
+&lt;/foreignObject&gt;
+</code></pre>
         
         <!-- 
             Working in examples I have tried?
