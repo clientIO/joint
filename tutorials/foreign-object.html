@@ -56,14 +56,14 @@
             </p>
 
             <p>
-                In order to get a general idea of how <code>foreignObject</code> can be utilized in SVG, let's start with a simple example without using
-                JointJS.
+                In order to get a general idea of how <code>foreignObject</code> can be utilized in SVG, let's start with a simple 
+                example without using JointJS.
             </p>
 
             <h3>Using foreignObject</h3>
 
             <p>
-                In the following example, <code>foreignObject</code> is placed within our SVG tag. When using HTML elements within
+                In the following example, a <code>foreignObject</code> element is placed within our SVG tag. When using HTML elements within
                 <code>foreignObject</code>, note, that it's mandatory to include the XHTML namespace on the outermost element. In 
                 this instance, that is our <code>div</code> element. This example creates a simple card-like SVG <code>rect</code>
                 element where the user is easily able to select the text.
@@ -71,7 +71,7 @@
 
             <pre><code>&lt;svg version="1.1" width="300" height="110" xmlns="http://www.w3.org/2000/svg"&gt;
     &lt;style&gt;
-        foreignObject p {
+        foreignObject p.text {
             color: white;
             font: 16px sans-serif;
             margin: 0;
@@ -80,7 +80,7 @@
     &lt;rect x="0", width="180" height="100" rx="5" ry="5" fill="#4b5d67" /&gt;
     &lt;foreignObject x="10" y="10" width="160" height="80"&gt;
         &lt;div xmlns="http://www.w3.org/1999/xhtml"&gt;
-            &lt;p style="padding: 5px">Lorem ipsum dolor sit amet, consectetur adipiscing elit.&lt;/p&gt;
+            &lt;p style="padding: 5px" class="text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.&lt;/p&gt;
         &lt;/div&gt;
     &lt;/foreignObject&gt;
 &lt;/svg&gt;
@@ -92,7 +92,7 @@
 
         <svg version="1.1" width="300" height="110" xmlns="http://www.w3.org/2000/svg">
             <style>
-                foreignObject p {
+                foreignObject p.text {
                     color: white;
                     font: 16px sans-serif;
                     margin: 0;
@@ -101,7 +101,7 @@
             <rect x="0", width="180" height="100" rx="5" ry="5" fill="#4b5d67" />
             <foreignObject x="10" y="10" width="160" height="80">
                 <div xmlns="http://www.w3.org/1999/xhtml">
-                    <p style="padding: 5px">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+                    <p style="padding: 5px" class="text">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
                 </div>
             </foreignObject>
         </svg>
@@ -188,10 +188,6 @@ const card = new Card({
 card.addTo(graph);
 </code></pre>
 
-        <!-- TODO
-            guard to become default, section may need to be rewritten
-         -->
-
         <p>
             As mentioned earlier, we would like to create an equivalent example with JointJS, that means selecting text needs
             to be possible. In order to achieve this functionality, we need to use the <code>paper</code>
@@ -209,7 +205,7 @@ card.addTo(graph);
         </p>
 
         <pre><code>g[data-type="example.ForeignObject"] {
-    -webkit-user-select: text;  // prefix needed for Safari
+    -webkit-user-select: text;  /* prefix needed for Safari */
     user-select: text;
 }
 
@@ -266,7 +262,16 @@ g[data-type="example.ForeignObject"] p {
 });
 </code></pre>
 
-        <h3>Accepting User Input</h3>
+        <h3>A more interactive example</h3>
+
+        <p>
+            One common way for diagram libraries to allow the use of HTML is to render HTML on top of an underlying element. An obvious disadvantage
+            of this approach is the need to keep dimensions and position of the HTML in sync with the element itself which isn't ideal. We have used 
+            this approach in the past, and still to this day, this is how many diagram libraries provide this functionality, especially if they use
+            HTML <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas" target="_blank">canvas</a>. As SVG works will with
+            other web standards such as HTML, <code>foreignObject</code> can provide us with this functionality without having to give it a lot
+            of thought.
+        </p>
 
         <p>
             While creating a static card-like element was a good introduction to working with <code>foreignObject</code>, a lot
@@ -277,7 +282,7 @@ g[data-type="example.ForeignObject"] p {
 
         <p>
             The base of our custom element will be much like the previous example. The only difference in terms of element structure
-            will be the HTML for our <code>form</code> located within the <code>foreignObject</code> element.
+            will be the markup for our <code>form</code> located within the <code>foreignObject</code> element.
         </p>
 
         <pre><code>const Form = joint.dia.Element.define('example.Form', {

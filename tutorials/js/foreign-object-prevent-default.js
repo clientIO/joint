@@ -72,9 +72,7 @@
                         xmlns="http://www.w3.org/1999/xhtml"
                         style="font-family: sans-serif;"
                     >
-                    <p @selector="p1" style="color: black;">Lorem ipsum dolor sit amet consectetur.</p>
-                    <br />
-                    <p @selector="p2" style="color: black;">Lorem ipsum dolor sit amet consectetur.</p>
+                    &#169;
                         <form @selector="formContent" id="form">
                             <label @selector="label" for="diagramName">Diagram Name</label>
                             <input @selector="diagramName" type="text" id="diagramName" name="diagramName"/>
