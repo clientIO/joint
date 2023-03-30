@@ -101,7 +101,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             const testGraph = new joint.dia.Graph();
             testGraph.addCells([
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 75,
                         'y': 175
@@ -110,19 +110,9 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         'width': 100,
                         'height': 40
                     },
-                    'angle': 0,
-                    'id': 'a43d5761-c4d3-474d-b765-f4f899a61480',
-                    'attrs': {
-                        'body': {
-                            'd': 'M 0 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) 0 calc(h) Z'
-                        },
-                        'label': {
-                            'text': 'joint'
-                        }
-                    }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 200,
                         'y': 275
@@ -130,20 +120,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'size': {
                         'width': 100,
                         'height': 40
-                    },
-                    'angle': 0,
-                    'id': 'b3b4231e-8699-4448-b65f-4c249f2742d7',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'dia'
-                        }
                     }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 200,
                         'y': 75
@@ -151,20 +131,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'size': {
                         'width': 100,
                         'height': 40
-                    },
-                    'angle': 0,
-                    'id': '88d8ef50-9084-4644-9531-98d5f5d666f5',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'util'
-                        }
                     }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 200,
                         'y': 175
@@ -172,20 +142,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'size': {
                         'width': 100,
                         'height': 40
-                    },
-                    'angle': 0,
-                    'id': '47cb7150-39ca-4c24-83f6-f46f5f081637',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'shapes'
-                        }
                     }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 325,
                         'y': 175
@@ -193,20 +153,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'size': {
                         'width': 100,
                         'height': 40
-                    },
-                    'angle': 0,
-                    'id': '8496b157-c0eb-4e57-9bd2-839521e5d08c',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(0.8 * w) calc(h / 2) calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'basic'
-                        }
                     }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 450,
                         'y': 150
@@ -214,20 +164,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'size': {
                         'width': 100,
                         'height': 40
-                    },
-                    'angle': 0,
-                    'id': 'd9421776-1d2a-413d-bd05-94d76d924fe4',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'Path'
-                        }
                     }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 450,
                         'y': 200
@@ -235,20 +175,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'size': {
                         'width': 100,
                         'height': 40
-                    },
-                    'angle': 0,
-                    'id': 'e2147caf-b9f3-431a-839e-f0ac79449840',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'Text'
-                        }
                     }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 325,
                         'y': 250
@@ -256,20 +186,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'size': {
                         'width': 100,
                         'height': 40
-                    },
-                    'angle': 0,
-                    'id': '081b2e35-348b-4d92-87d7-232a2ca936fe',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'Paper'
-                        }
                     }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 325,
                         'y': 300
@@ -277,20 +197,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'size': {
                         'width': 100,
                         'height': 40
-                    },
-                    'angle': 0,
-                    'id': 'ad464767-7004-45ff-825a-c3b093639a1e',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'Graph'
-                        }
                     }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 325,
                         'y': 100
@@ -299,19 +209,9 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         'width': 100,
                         'height': 40
                     },
-                    'angle': 0,
-                    'id': '0ceb97d4-dd9e-473c-879d-c1e5f04d7b49',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'getByPath'
-                        }
-                    }
                 },
                 {
-                    'type': 'standard.Path',
+                    'type': 'standard.Rectangle',
                     'position': {
                         'x': 325,
                         'y': 50
@@ -319,16 +219,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'size': {
                         'width': 100,
                         'height': 40
-                    },
-                    'angle': 0,
-                    'id': '5648dd2a-d6c8-4935-8f9c-e0edcb5f2513',
-                    'attrs': {
-                        'body': {
-                            'd': 'M calc(0.2 * w) 0 L calc(w) 0 calc(w) calc(h) calc(0.2 * w) calc(h) 0 calc(h / 2) Z'
-                        },
-                        'label': {
-                            'text': 'setByPath'
-                        }
                     }
                 }
             ]);

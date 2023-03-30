@@ -1313,6 +1313,9 @@ export namespace dia {
             horizontalAlign?: 'left' | 'middle' | 'right';
         }
 
+        /**
+         * @deprecated
+        */
         type ScaleContentOptions = TransformToFitContentOptions;
 
         interface FitToContentOptions {
@@ -1507,6 +1510,9 @@ export namespace dia {
 
         getFitToContentArea(opt?: Paper.FitToContentOptions): g.Rect;
 
+        /**
+         * @deprecated use transformToFitContent
+         */
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
 
         transformToFitContent(opt?: Paper.TransformToFitContentOptions): void;
