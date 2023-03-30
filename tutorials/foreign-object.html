@@ -64,7 +64,7 @@
 
             <p>
                 In the following example, a <code>foreignObject</code> element is placed within our SVG tag. When using HTML elements within
-                <code>foreignObject</code>, note, that it's mandatory to include the XHTML namespace on the outermost element. In 
+                <code>foreignObject</code>, note, that it's mandatory to include the XHTML namespace on the outermost or root element. In 
                 this instance, that is our <code>div</code> element. This example creates a simple card-like SVG <code>rect</code>
                 element where the user is easily able to select the text.
             </p>
@@ -415,7 +415,7 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
             - syntax with curly brackets?
         -->
 
-        <h3>CSS Styles</h3>
+        <!-- <h3>CSS Styles</h3> -->
 
         <h3>Caveats!!!</h3>
 
@@ -464,19 +464,19 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
         </p>
 
         <p>
-            In HTML, it is possible to write a line-break element as <code>&lt;br&gt;</code> or <code>&lt;br /&gt;</code>. The trailing slash
+            In HTML, it's possible to write a line-break element as <code>&lt;br&gt;</code> or <code>&lt;br /&gt;</code>. The trailing slash
             in the tag has no meaning, and browsers simply ignore it. However, in XML, XHTML, and SVG, self closing tags are required in void elements, 
-            so a trailing slash is necessary. This can be observed in the following example:
+            so a trailing slash is necessary. When working with tagged templates in JointJS, you must use a trailing slash. This can be 
+            observed in the following example:
         </p>
 
-        <pre><code>&lt;rect @selector="body" /&gt;
-&lt;foreignObject @selector="foreignObject"&gt;
+        <pre><code>&lt;foreignObject @selector="foreignObject"&gt;
     &lt;div @selector="content"
         xmlns="http://www.w3.org/1999/xhtml"
         style="font-family: sans-serif;"
     &gt;
         &lt;p&gt;Lorem ipsum dolor sit amet consectetur.&lt;/p&gt;
-        &lt;br&gt; // line-break element without slash will throw an error ❌
+        &lt;br&gt; // line-break element without trailing slash will throw an error ❌
         &lt;p&gt;Lorem ipsum dolor sit amet consectetur.&lt;/p&gt;
     &lt;/div&gt;
 &lt;/foreignObject&gt;
@@ -487,7 +487,7 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
         <p>
             HTML Entities are used in place of some characters that are reserved depending on the language. For example,
             the greater than (>) or less than (<) sign cannot be used in HTML as it would cause a conflict with tags.
-            This is also one are to be careful with when using tagged templates. You must use the entity number rather than
+            This is also one area to be careful with when using tagged templates. You must use the entity number rather than
             the entity name. Entity names are the ones which use the # symbol. That means using <code>&amp;#169;</code> 
             is preferable over <code>&amp;copy;</code>.
         </p>
@@ -499,29 +499,73 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
 &lt;/foreignObject&gt;
 </code></pre>
         
-        <!-- 
-            Working in examples I have tried?
-         -->
-
         <!-- TODO
-            - HTML entities can throw an error, needs to be written as the # version.
             - foreignObject export in JointJS+
          -->
 
 
-        <h4>Browser Related Caveats</h4>
+        <h4>Browser Related Quirks</h4>
 
         <p>
-            While all that we have covered so far is great for users of JointJS, even in this day and age, it's not without some caveats.
-            Earlier, we mentioned how <code>foreignObject</code> is fully supported in all modern browsers, unfortunately, in Safari,
-            some elements or properties within <code>foreignObject</code> can show some inconsistencies or unexpected behaviour compared
-            to other browsers, so it is something you should be aware of.
+            At the beginning of this tutorial, we mentioned how <code>foreignObject</code> is fully supported in all browsers.
+            Unfortunately, that doesn't mean some inconsistencies exist, or that some unexpected behaviour might occur. 
         </p>
 
         <p>
-            Among the elements that show some unexpected behaviour is the <code>video</code> element. A property such as <code>opacity</code>
-            can also cause some issues.
+            Our experience with both Chrome and Firefox has been very positive, but we have ran into some quirks when using Safari. 
+            In this section, we will cover some issues we discovered, and some related 
+            <a href="https://bugs.webkit.org/query.cgi" target="_blank">webkit</a> bugs, but this also isn't an exhaustive list, so you 
+            might run into an issue with Safari that isn't mentioned here.
         </p>
+
+        <p>
+            The first issue arose when we tried to add a HTML5 <code>video</code> element to our shape. While this went as expected
+            with Chrome and Firefox, the video seemed to be rendered in an incorrect position on Safari. After searching for a solution,
+            we stumbled on the following <a href="https://bugs.webkit.org/show_bug.cgi?id=23113" target="_blank">webkit bug</a>.
+        </p>
+
+        <p>
+            Upon reading, we couldn't help but notice others suggesting that properties like <code>opacity</code>, or <code>transform</code>
+            were also causing issues for Safari users, so we added some styles to our elements, and sure enough, we saw similar results.
+            Elements which had both <code>opacity</code> or <code>transform</code> applied were also in the incorrect position.
+        </p>
+
+        <p>
+            Naturally, we also search the same bug report for any potential solutions, and found reporting that adding a style of
+            <code>'position: fixed'</code> to the outermost <code>div</code> element fixed some of the issued that people had. Once again,
+            the information proved to be helpful, and the elements seemed to be positioned correctly again.
+        </p>
+
+        <p>
+            Upon further inspection, we did realize, we still had one major issue with the video. After dragging our JointJS shape, the video
+            was still rendered in the incorrect position after changing position which was disappointing. The silver lining is that the
+            <code>opacity</code> and <code>transform</code> applied to our <code>label</code> and <code>input</code> was working correctly.
+        </p>
+
+        <pre><code>&lt;foreignObject @selector="foreignObject"&gt;
+    &lt;div @selector="content"
+        xmlns="http://www.w3.org/1999/xhtml"
+        style="position: fixed; font-family: sans-serif;"
+    &gt;
+        &lt;span style="opacity: 0.5">First Name&lt;/span&gt;
+        &lt;input @selector="firstname" type="text" style="transform: translateX(10px); width: 100%;"/&gt;
+        &lt;span>Last Name&lt;/span>
+        &lt;input @selector="lastname" type="text" style="width: 100%;"/&gt;
+        &lt;span>Video&lt;/span>
+        &lt;video @selector="video" controls="controls" width="200"&gt;
+            &lt;source src="path_to_video.mp4" type="video/mp4" /&gt;
+        &lt;/video&gt;
+    &lt;/div&gt;
+&lt;/foreignObject&gt;
+</code></pre>
+
+        <p>
+            It's unfortunate that Safari still lags behind other modern browsers in relation to <code>foreignObject</code>, but there are also reasons to be positive.
+            One reason to have a brighter outlook is that the issues we had here are currently being worked on according to this 
+            <a href="https://bugs.webkit.org/show_bug.cgi?id=90738" target="_blank">bug</a> report, so hopefully in the not too distant future the majority of these issues
+            will cease to exist.
+        </p>
+
 
         <!-- TODO
             Section on Caveats
