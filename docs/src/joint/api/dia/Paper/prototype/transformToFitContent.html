@@ -1,0 +1,18 @@
+<pre class="docs-method-signature"><code>paper.transformToFitContent([opt])</code></pre>
+<p>Transforms the paper so that it fits the content.</p>
+
+<p>The function accepts an object with additional settings (all optional):</p>
+
+<ul>
+  <li><code>opt.padding</code> – a number or an object of the form <code>{ top?: [number], right?: [number], bottom?: [number], left?: [number], vertical?: [number], horizontal?: [number] }</code> that specifies the width of additional padding that should be added around the resulting (scaled) paper content. Default is <code>0</code>.</li>
+  <li><code>opt.preserveAspectRatio</code> – should the original aspect ratio of the paper content be preserved in the scaled version? Default is <code>true</code>.</li>
+  <li><code>opt.minScaleX</code>, <code>opt.minScaleY</code>, <code>opt.maxScaleX</code>, <code>opt.maxScaleY</code> – the minimum and maximum allowed scale factors for both axes.</li>
+  <li><code>opt.scaleGrid</code> – a number to be used as a rounding factor for the resulting scale. For example, if you pass <code>0.2</code> to this option and the scale factor is calculated as <code>1.15</code>, then the resulting scale factor will be rounded to <code>1.2</code>.</li>
+  <li><code>opt.useModelGeometry</code> – should paper content bounding box be calculated from cell models instead of views? Default is <code>false</code>. See the documentation of the <code>paper.getContentBBox</code> <a href="#dia.Paper.prototype.getContentBBox">function</a> for more details.</li>
+  <li><code>opt.fittingBBox</code> – an object of the form <code>{ x: [number], y: [number], width: [number], height: [number] }</code> is the area of the paper that the content should be scaled to. By default <code>opt.fittingBBox</code> is <code>{ x: 0, y: 0, width: paper.options.width, height: paper.options.height }</code>, i.e. the bounding box of the paper in the paper coordinate system.</li>
+  <li><code>opt.contentArea</code> – an object of the form <code>{ x: [number], y: [number], width: [number], height: [number] }</code> is the area representing the content in local coordinate system that should be scaled to fit the <code>opt.fittingBBox</code>. By default <code>opt.contentArea</code> is <code>paper.getContentArea(opt)</code>.</li>
+  <li><code>opt.verticalAlign</code> – a string which specifies how the content shold be vertically aligned in the transformed paper. The options are <code>'top'</code>, <code>'middle'</code> and <code>'bottom'</code>. By default the <code>opt.verticalAlign</code> is <code>'top'</code>.</li>
+  <li><code>opt.horizontalAlign</code> – a string which specifies how the content shold be horizontally aligned in the transformed paper. The options are <code>'left'</code>, <code>'middle'</code> and <code>'right'</code>. By default the <code>opt.horizontalAlign</code> is <code>'left'</code>.</li>
+</ul>
+
+<p>The function is illustrated in our <a href="https://www.jointjs.com/demos/paper-attributes">paper demo</a>.</p>

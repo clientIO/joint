@@ -1302,8 +1302,7 @@ export const Paper = View.extend({
         return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
     },
 
-    scaleContentToFit: function(opt) {
-
+    transformToFitContent: function(opt) {
         opt || (opt = {});
 
         let contentBBox, contentLocalOrigin;
@@ -1332,8 +1331,6 @@ export const Paper = View.extend({
             //maxScaleY
             //fittingBBox
         });
-
-        console.log(opt);
 
         const padding = normalizeSides(opt.padding);
 
@@ -1385,22 +1382,21 @@ export const Paper = View.extend({
         newSx = Math.min(maxScaleX, Math.max(minScaleX, newSx));
         newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
 
+        const scaleDiff = {
+            x: newSx / currentScale.sx,
+            y: newSy / currentScale.sy
+        };
+
         const origin = this.options.origin;
         let newOx = fittingBBox.x - contentLocalOrigin.x * newSx - origin.x;
         let newOy = fittingBBox.y - contentLocalOrigin.y * newSy - origin.y;
 
-        console.log(fittingBBox);
-        console.log(newSx);
-        console.log(newSy);
-        console.log(newOx);
-        console.log(newOy);
-
         switch (opt.verticalAlign) {
             case 'middle':
-                newOy = newOy + (fittingBBox.height / 2 - contentBBox.height / 2) * newSy;
+                newOy = newOy + (fittingBBox.height - contentBBox.height * scaleDiff.y) / 2;
                 break;
             case 'bottom':
-                newOy = newOy + (fittingBBox.height - contentBBox.height) * newSy;
+                newOy = newOy + (fittingBBox.height - contentBBox.height * scaleDiff.y);
                 break;
             case 'top':
             default:
@@ -1409,21 +1405,22 @@ export const Paper = View.extend({
 
         switch (opt.horizontalAlign) {
             case 'middle':
-                newOx = newOx + (fittingBBox.width / 2 - contentBBox.width / 2) * newSx;
+                newOx = newOx + (fittingBBox.width - contentBBox.width * scaleDiff.x) / 2;
                 break;
             case 'right':
-                newOx = newOx + (fittingBBox.width - contentBBox.width) * newSx;
+                newOx = newOx + (fittingBBox.width - contentBBox.width * scaleDiff.x);
                 break;
             case 'left':
             default:
                 break;
         }
 
-        console.log(newOx);
-        console.log(newOy);
-
         this.scale(newSx, newSy);
         this.translate(newOx, newOy);
+    },
+
+    scaleContentToFit: function(opt) {
+        this.transformToFitContent(opt);
     },
 
     // Return the dimensions of the content area in local units (without transformations).

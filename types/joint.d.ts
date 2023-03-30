@@ -1296,7 +1296,7 @@ export namespace dia {
             overflow?: boolean;
         }
 
-        interface ScaleContentOptions {
+        interface TransformToFitContentOptions {
             padding?: Padding;
             preserveAspectRatio?: boolean;
             minScale?: number;
@@ -1309,7 +1309,11 @@ export namespace dia {
             useModelGeometry?: boolean;
             fittingBBox?: BBox;
             contentArea?: BBox;
+            vertivalAlign?: 'top' | 'middle' | 'bottom';
+            horizontalAlign?: 'left' | 'middle' | 'right';
         }
+
+        type ScaleContentOptions = TransformToFitContentOptions;
 
         interface FitToContentOptions {
             gridWidth?: number;
@@ -1504,6 +1508,8 @@ export namespace dia {
         getFitToContentArea(opt?: Paper.FitToContentOptions): g.Rect;
 
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
+
+        transformToFitContent(opt?: Paper.TransformToFitContentOptions): void;
 
         drawBackground(opt?: Paper.BackgroundOptions): this;
 
