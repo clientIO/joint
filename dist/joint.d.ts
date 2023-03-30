@@ -1,4 +1,4 @@
-/*! JointJS v3.6.5 (2022-12-15) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-03-30) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1174,6 +1174,8 @@ export namespace dia {
 
     type Event = JQuery.TriggeredEvent;
 
+    type ObjectHash = { [key: string]: any };
+
     type Point = g.PlainPoint;
 
     type BBox = g.PlainRect;
@@ -1230,7 +1232,7 @@ export namespace dia {
         textContent?: string;
     };
 
-    type MarkupJSON = MarkupNodeJSON[];
+    type MarkupJSON = Array<MarkupNodeJSON | string>;
 
     type Path = string | Array<string | number>;
 
@@ -1319,7 +1321,7 @@ export namespace dia {
         }
     }
 
-    class Graph<A = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
         constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
@@ -1476,7 +1478,7 @@ export namespace dia {
         }
     }
 
-    class Cell<A = Cell.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Cell<A extends ObjectHash = Cell.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
         constructor(attributes?: A, opt?: Graph.Options);
 
@@ -1552,6 +1554,8 @@ export namespace dia {
         stopBatch(name: string, opt?: Graph.Options): this;
 
         position(): g.Point;
+
+        z(): number;
 
         angle(): number;
 
@@ -1647,7 +1651,7 @@ export namespace dia {
         }
     }
 
-    class Element<A = Element.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
+    class Element<A extends ObjectHash = Element.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         isElement(): boolean;
 
@@ -1669,7 +1673,10 @@ export namespace dia {
 
         scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
-        fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;
+        fitEmbeds(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
+        fitToChildren(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
+
+        fitParent(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean, terminator?: Cell | Cell.ID }): this;
 
         getBBox(opt?: Element.BBoxOptions): g.Rect;
 
@@ -1770,7 +1777,7 @@ export namespace dia {
         }
     }
 
-    class Link<A = Link.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
+    class Link<A extends ObjectHash = Link.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         toolMarkup: string;
         doubleToolMarkup?: string;
@@ -2448,6 +2455,7 @@ export namespace dia {
             onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
             beforeRender?: Paper.BeforeRenderCallback;
             afterRender?: Paper.AfterRenderCallback;
+            overflow?: boolean;
         }
 
         interface ScaleContentOptions {
@@ -2978,7 +2986,7 @@ export namespace dia {
         }
     }
 
-    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined, SVGElement> {
+    class HighlighterView<Options extends mvc.ViewOptions<undefined, SVGElement> = HighlighterView.Options> extends mvc.View<undefined, SVGElement> {
 
         constructor(options?: Options);
 
@@ -3177,7 +3185,7 @@ export namespace highlighters {
         }
     }
 
-    class list<Item = any, Options = list.Options> extends dia.HighlighterView<Options> {
+    class list<Item = any, Options extends mvc.ViewOptions<undefined, SVGElement> = list.Options> extends dia.HighlighterView<Options> {
 
         options: Options;
 
@@ -3351,7 +3359,7 @@ export namespace shapes {
 
         type CylinderAttributes = dia.Element.GenericAttributes<CylinderSelectors>;
 
-        class Cylinder<S = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
+        class Cylinder<S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
             topRy(): string | number;
             topRy(t: string | number, opt?: S): this;
         }
@@ -4462,6 +4470,7 @@ export namespace mvc {
 
     interface ViewOptions<T extends (Backbone.Model | undefined), E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
         theme?: string;
+        [key: string]: any;
     }
 
     interface viewEventData {
@@ -4548,7 +4557,7 @@ export namespace mvc {
         callbackArguments: Args;
 
         listenTo<CB extends Callback>(object: any, evt: string, callback: ModifiedCallback<Args, CB>, context?: any): void;
-        listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void
+        listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void;
 
         stopListening(): void;
     }
@@ -4853,7 +4862,7 @@ export namespace connectionPoints {
     }
 
     interface BoundaryConnectionPointArguments extends StrokeConnectionPointArguments {
-        selector?: Array<string | number> | string;
+        selector?: Array<string | number> | string | false;
         precision?: number;
         extrapolate?: boolean;
         sticky?: boolean;
@@ -5298,7 +5307,7 @@ export namespace elementTools {
         }
     }
 
-    abstract class Control<T = Control.Options> extends dia.ToolView {
+    abstract class Control<T extends mvc.ViewOptions<undefined, SVGElement> = Control.Options> extends dia.ToolView {
         options: T;
         constructor(opt?: T);
 

@@ -1,4 +1,4 @@
-/*! JointJS v3.6.5 (2022-12-15) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-03-30) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4448,13 +4448,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // Returns a list of curves whose flattened length is better than `opt.precision`.
 	    // That is, observed difference in length between recursions is less than 10^(-3) = 0.001 = 0.1%
 	    // (Observed difference is not real precision, but close enough as long as special cases are covered)
-	    // (That is why skipping iteration 1 is important)
-	    // As a rule of thumb, increasing `precision` by 1 requires two more division operations
-	    // - Precision 0 (endpointDistance) - total of 2^0 - 1 = 0 operations (1 subdivision)
-	    // - Precision 1 (<10% error) - total of 2^2 - 1 = 3 operations (4 subdivisions)
-	    // - Precision 2 (<1% error) - total of 2^4 - 1 = 15 operations requires 4 division operations on all elements (15 operations total) (16 subdivisions)
-	    // - Precision 3 (<0.1% error) - total of 2^6 - 1 = 63 operations - acceptable when drawing (64 subdivisions)
-	    // - Precision 4 (<0.01% error) - total of 2^8 - 1 = 255 operations - high resolution, can be used to interpolate `t` (256 subdivisions)
+	    // As a rule of thumb, increasing `precision` by 1 requires 2 more iterations (= levels of division operations)
+	    // - Precision 0 (endpointDistance) - 0 iterations => total of 2^0 - 1 = 0 operations (1 subdivision)
+	    // - Precision 1 (<10% error) - 2 iterations => total of 2^2 - 1 = 3 operations (4 subdivisions)
+	    // - Precision 2 (<1% error) - 4 iterations => total of 2^4 - 1 = 15 operations requires 4 division operations on all elements (15 operations total) (16 subdivisions)
+	    // - Precision 3 (<0.1% error) - 6 iterations => total of 2^6 - 1 = 63 operations - acceptable when drawing (64 subdivisions)
+	    // - Precision 4 (<0.01% error) - 8 iterations => total of 2^8 - 1 = 255 operations - high resolution, can be used to interpolate `t` (256 subdivisions)
 	    // (Variation of 1 recursion worse or better is possible depending on the curve, doubling/halving the number of operations accordingly)
 	    getSubdivisions: function(opt) {
 
@@ -4463,15 +4462,41 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // not using opt.subdivisions
 	        // not using localOpt
 
-	        var subdivisions = [new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end)];
+	        var start = this.start;
+	        var control1 = this.controlPoint1;
+	        var control2 = this.controlPoint2;
+	        var end = this.end;
+
+	        var subdivisions = [new Curve(start, control1, control2, end)];
 	        if (precision === 0) { return subdivisions; }
+
+	        // special case #1: point-like curves
+	        // - no need to calculate subdivisions, they would all be identical
+	        var isPoint = !this.isDifferentiable();
+	        if (isPoint) { return subdivisions; }
 
 	        var previousLength = this.endpointDistance();
 
 	        var precisionRatio = pow$3(10, -precision);
 
+	        // special case #2: sine-like curves may have the same observed length in iteration 0 and 1 - skip iteration 1
+	        // - not a problem for further iterations because cubic curves cannot have more than two local extrema
+	        // - (i.e. cubic curves cannot intersect the baseline more than once)
+	        // - therefore starting from iteration = 2 ensures that subsequent iterations do not produce sampling with equal length
+	        // - (unless it's a straight-line curve, see below)
+	        var minIterations = 2; // = 2*1
+
+	        // special case #3: straight-line curves have the same observed length in all iterations
+	        // - this causes observed precision ratio to always be 0 (= lower than `precisionRatio`, which is our exit condition)
+	        // - we enforce the expected number of iterations = 2 * precision
+	        var isLine = ((control1.cross(start, end) === 0) && (control2.cross(start, end) === 0));
+	        if (isLine) {
+	            minIterations = (2 * precision);
+	        }
+
 	        // recursively divide curve at `t = 0.5`
-	        // until the difference between observed length at subsequent iterations is lower than precision
+	        // until we reach `minIterations`
+	        // and until the difference between observed length at subsequent iterations is lower than `precision`
 	        var iteration = 0;
 	        while (true) {
 	            iteration += 1;
@@ -4495,14 +4520,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                length += currentNewSubdivision.endpointDistance();
 	            }
 
-	            // check if we have reached required observed precision
-	            // sine-like curves may have the same observed length in iteration 0 and 1 - skip iteration 1
-	            // not a problem for further iterations because cubic curves cannot have more than two local extrema
-	            // (i.e. cubic curves cannot intersect the baseline more than once)
-	            // therefore two subsequent iterations cannot produce sampling with equal length
-	            var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
-	            if (iteration > 1 && observedPrecisionRatio < precisionRatio) {
-	                return newSubdivisions;
+	            // check if we have reached minimum number of iterations
+	            if (iteration >= minIterations) {
+
+	                // check if we have reached required observed precision
+	                var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
+	                if (observedPrecisionRatio < precisionRatio) {
+	                    return newSubdivisions;
+	                }
 	            }
 
 	            // otherwise, set up for next iteration
@@ -10545,19 +10570,27 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    var ns = namespace || svgNamespace;
 	    var fragment = document.createDocumentFragment();
-	    var queue = [json, fragment, ns];
-	    while (queue.length > 0) {
-	        ns = queue.pop();
-	        var parentNode = queue.pop();
-	        var siblingsDef = queue.pop();
-	        for (var i = 0, n = siblingsDef.length; i < n; i++) {
+
+	    var parseNode = function(siblingsDef, parentNode, ns) {
+	        for (var i = 0; i < siblingsDef.length; i++) {
 	            var nodeDef = siblingsDef[i];
+
+	            // Text node
+	            if (typeof nodeDef === 'string') {
+	                var textNode = document.createTextNode(nodeDef);
+	                parentNode.appendChild(textNode);
+	                continue;
+	            }
+
 	            // TagName
 	            if (!nodeDef.hasOwnProperty('tagName')) { throw new Error('json-dom-parser: missing tagName'); }
 	            var tagName = nodeDef.tagName;
+
+	            var node = (void 0);
+
 	            // Namespace URI
 	            if (nodeDef.hasOwnProperty('namespaceURI')) { ns = nodeDef.namespaceURI; }
-	            var node = document.createElementNS(ns, tagName);
+	            node = document.createElementNS(ns, tagName);
 	            var svg = (ns === svgNamespace);
 
 	            var wrapper = (svg) ? V : $;
@@ -10591,19 +10624,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            if (nodeDef.hasOwnProperty('groupSelector')) {
 	                var nodeGroups = nodeDef.groupSelector;
 	                if (!Array.isArray(nodeGroups)) { nodeGroups = [nodeGroups]; }
-	                for (var j = 0, m = nodeGroups.length; j < m; j++) {
+	                for (var j = 0; j < nodeGroups.length; j++) {
 	                    var nodeGroup = nodeGroups[j];
 	                    var group = groupSelectors[nodeGroup];
 	                    if (!group) { group = groupSelectors[nodeGroup] = []; }
 	                    group.push(node);
 	                }
 	            }
+
 	            parentNode.appendChild(node);
+
 	            // Children
 	            var childrenDef = nodeDef.children;
-	            if (Array.isArray(childrenDef)) { queue.push(childrenDef, node, ns); }
+	            if (Array.isArray(childrenDef)) {
+	                parseNode(childrenDef, node, ns);
+	            }
 	        }
-	    }
+	    };
+	    parseNode(json, fragment, ns);
 	    return {
 	        fragment: fragment,
 	        selectors: selectors,
@@ -11031,6 +11069,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return eolWords.filter(function (word) { return word !== ''; });
 	}
 
+
+	function getLineHeight(heightValue, textElement) {
+	    if (heightValue === null) {
+	        // Default 1em lineHeight
+	        return textElement.getBBox().height;
+	    }
+
+	    switch (heightValue.unit) {
+	        case 'em':
+	            return textElement.getBBox().height * heightValue.value;
+	        case 'px':
+	        case '':
+	            return heightValue.value;
+	    }
+	}
+
 	var breakText = function(text, size, styles, opt) {
 	    if ( styles === void 0 ) styles = {};
 	    if ( opt === void 0 ) opt = {};
@@ -11228,23 +11282,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	            if (lineHeight === undefined && textNode.data !== '') {
 
-	                var heightValue;
-
 	                // use the same defaults as in V.prototype.text
 	                if (styles.lineHeight === 'auto') {
-	                    heightValue = { value: 1.5, unit: 'em' };
+	                    lineHeight = getLineHeight({ value: 1.5, unit: 'em' }, textElement);
 	                } else {
-	                    heightValue = parseCssNumeric(styles.lineHeight, ['em']) || { value: 1, unit: 'em' };
-	                }
+	                    var parsed = parseCssNumeric(styles.lineHeight, ['em', 'px', '']);
 
-	                lineHeight = heightValue.value;
-	                if (heightValue.unit === 'em') {
-	                    lineHeight *= textElement.getBBox().height;
+	                    lineHeight = getLineHeight(parsed, textElement);
 	                }
 	            }
 
 	            if (lineHeight * lines.length > height) {
-
 	                // remove overflowing lines
 	                lastL = Math.floor(height / lineHeight) - 1;
 	            }
@@ -13431,16 +13479,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    toFront: function(opt) {
-
 	        var graph = this.graph;
 	        if (graph) {
-
 	            opt = opt || {};
 
-	            var z = graph.maxZIndex();
-
 	            var cells;
-
 	            if (opt.deep) {
 	                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
 	                cells.unshift(this);
@@ -13448,13 +13491,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                cells = [this];
 	            }
 
-	            z = z - cells.length + 1;
+	            var sortedCells = sortBy(cells, function (cell) { return cell.z(); });
+
+	            var maxZ = graph.maxZIndex();
+	            var z = maxZ - cells.length + 1;
 
 	            var collection = graph.get('cells');
+
 	            var shouldUpdate = (collection.indexOf(this) !== (collection.length - cells.length));
 	            if (!shouldUpdate) {
-	                shouldUpdate = cells.some(function(cell, index) {
-	                    return cell.get('z') !== z + index;
+	                shouldUpdate = sortedCells.some(function(cell, index) {
+	                    return cell.z() !== z + index;
 	                });
 	            }
 
@@ -13463,7 +13510,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	                z = z + cells.length;
 
-	                cells.forEach(function(cell, index) {
+	                sortedCells.forEach(function(cell, index) {
 	                    cell.set('z', z + index, opt);
 	                });
 
@@ -13475,16 +13522,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    toBack: function(opt) {
-
 	        var graph = this.graph;
 	        if (graph) {
-
 	            opt = opt || {};
 
-	            var z = graph.minZIndex();
-
 	            var cells;
-
 	            if (opt.deep) {
 	                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
 	                cells.unshift(this);
@@ -13492,11 +13534,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                cells = [this];
 	            }
 
+	            var sortedCells = sortBy(cells, function (cell) { return cell.z(); });
+
+	            var z = graph.minZIndex();
+
 	            var collection = graph.get('cells');
+
 	            var shouldUpdate = (collection.indexOf(this) !== 0);
 	            if (!shouldUpdate) {
-	                shouldUpdate = cells.some(function(cell, index) {
-	                    return cell.get('z') !== z + index;
+	                shouldUpdate = sortedCells.some(function(cell, index) {
+	                    return cell.z() !== z + index;
 	                });
 	            }
 
@@ -13505,7 +13552,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	                z -= cells.length;
 
-	                cells.forEach(function(cell, index) {
+	                sortedCells.forEach(function(cell, index) {
 	                    cell.set('z', z + index, opt);
 	                });
 
@@ -13747,18 +13794,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                var property = pathArray[0];
 	                var pathArrayLength = pathArray.length;
 
-	                opt = opt || {};
-	                opt.propertyPath = path;
-	                opt.propertyValue = value;
-	                opt.propertyPathArray = pathArray;
-
-	                if (pathArrayLength === 1) {
-	                    // Property is not nested. We can simply use `set()`.
-	                    return this.set(property, value, opt);
+	                var options$1 = opt || {};
+	                options$1.propertyPath = path;
+	                options$1.propertyValue = value;
+	                options$1.propertyPathArray = pathArray;
+	                if (!('rewrite' in options$1)) {
+	                    options$1.rewrite = false;
 	                }
 
 	                var update = {};
-	                // Initialize the nested object. Subobjects are either arrays or objects.
+	                // Initialize the nested object. Sub-objects are either arrays or objects.
 	                // An empty array is created if the sub-key is an integer. Otherwise, an empty object is created.
 	                // Note that this imposes a limitation on object keys one can use with Inspector.
 	                // Pure integer keys will cause issues and are therefore not allowed.
@@ -13778,12 +13823,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                var baseAttributes = merge({}, this.attributes);
 	                // if rewrite mode enabled, we replace value referenced by path with
 	                // the new one (we don't merge).
-	                opt.rewrite && unsetByPath(baseAttributes, path, '/');
+	                options$1.rewrite && unsetByPath(baseAttributes, path, '/');
 
 	                // Merge update with the model attributes.
 	                var attributes = merge(baseAttributes, update);
 	                // Finally, set the property to the updated attributes.
-	                return this.set(property, attributes[property], opt);
+	                return this.set(property, attributes[property], options$1);
 
 	            } else {
 
@@ -13791,7 +13836,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 	        }
 
-	        return this.set(merge({}, this.attributes, props), value);
+	        var options = value || {};
+	        // Note: '' is not the path to the root. It's a path with an empty string i.e. { '': {}}.
+	        options.propertyPath = null;
+	        options.propertyValue = props;
+	        options.propertyPathArray = [];
+	        if (!('rewrite' in options)) {
+	            options.rewrite = false;
+	        }
+
+	        return this.set(merge({}, this.attributes, props), options);
 	    },
 
 	    // A convenient way to unset nested properties
@@ -14051,6 +14105,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return new Point(0, 0);
 	    },
 
+	    z: function() {
+	        return this.get('z') || 0;
+	    },
+
 	    getPointFromConnectedLink: function() {
 
 	        // To be overridden
@@ -14192,68 +14250,91 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return build(svg);
 	}
 
+	function buildNode(node) {
+	    var markupNode = {};
+	    var tagName = node.tagName;
+	    var attributes = node.attributes;
+	    var namespaceURI = node.namespaceURI;
+	    var style = node.style;
+	    var childNodes = node.childNodes;
+
+	    markupNode.namespaceURI = namespaceURI;
+	    markupNode.tagName = (namespaceURI === V.namespace.xhtml)
+	        // XHTML documents must use lower case for all HTML element and attribute names.
+	        // The tagName property returns upper case value for HTML elements.
+	        // e.g. <DIV> vs.<div/>
+	        ? tagName.toLowerCase()
+	        : tagName;
+
+	    var stylesObject = {};
+	    for (var i = style.length; i--;) {
+	        var nameString = style[i];
+	        stylesObject[nameString] = style.getPropertyValue(nameString);
+	    }
+	    markupNode.style = stylesObject;
+
+	    // selector fallbacks to tagName
+	    var selectorAttribute = attributes.getNamedItem('@selector');
+	    if (selectorAttribute) {
+	        markupNode.selector = selectorAttribute.value;
+	        attributes.removeNamedItem('@selector');
+	    }
+
+	    var groupSelectorAttribute = attributes.getNamedItem('@group-selector');
+	    if (groupSelectorAttribute) {
+	        var groupSelectors = groupSelectorAttribute.value.split(',');
+	        markupNode.groupSelector = groupSelectors.map(function (s) { return s.trim(); });
+
+	        attributes.removeNamedItem('@group-selector');
+	    }
+
+	    var className = attributes.getNamedItem('class');
+	    if (className) {
+	        markupNode.className = className.value;
+	    }
+
+	    var children = [];
+	    childNodes.forEach(function (node) {
+	        switch (node.nodeType) {
+	            case Node.TEXT_NODE: {
+	                var trimmedText = node.data.replace(/\s\s+/g, ' ');
+	                if (trimmedText.trim()) {
+	                    children.push(trimmedText);
+	                }
+	                break;
+	            }
+	            case Node.ELEMENT_NODE: {
+	                children.push(buildNode(node));
+	                break;
+	            }
+	            default:
+	                break;
+	        }
+	    });
+	    if (children.length) {
+	        markupNode.children = children;
+	    }
+
+	    var nodeAttrs = {};
+
+	    Array.from(attributes).forEach(function (nodeAttribute) {
+	        var name = nodeAttribute.name;
+	        var value = nodeAttribute.value;
+	        nodeAttrs[name] = value;
+	    });
+
+	    if (Object.keys(nodeAttrs).length > 0) {
+	        markupNode.attributes = nodeAttrs;
+	    }
+
+	    return markupNode;
+	}
+
 	function build(root) {
 	    var markup = [];
 
 	    Array.from(root.children).forEach(function (node) {
-	        var markupNode = {};
-	        var tagName = node.tagName;
-	        var attributes = node.attributes;
-	        var textContent = node.textContent;
-	        var namespaceURI = node.namespaceURI;
-	        var style = node.style;
-
-	        markupNode.tagName = tagName;
-	        markupNode.namespaceURI = namespaceURI;
-
-	        var stylesObject = {};
-	        for (var i = style.length; i--;) {
-	            var nameString = style[i];
-	            stylesObject[nameString] = style.getPropertyValue(nameString);
-	        }
-	        markupNode.style = stylesObject;
-
-	        // selector fallbacks to tagName
-	        var selectorAttribute = attributes.getNamedItem('@selector');
-	        if (selectorAttribute) {
-	            markupNode.selector = selectorAttribute.value;
-	            attributes.removeNamedItem('@selector');
-	        }
-
-	        var groupSelectorAttribute = attributes.getNamedItem('@group-selector');
-	        if (groupSelectorAttribute) {
-	            var groupSelectors = groupSelectorAttribute.value.split(',');
-	            markupNode.groupSelector = groupSelectors.map(function (s) { return s.trim(); });
-
-	            attributes.removeNamedItem('@group-selector');
-	        }
-
-	        var className = attributes.getNamedItem('class');
-	        if (className) {
-	            markupNode.className = className.value;
-	        }
-
-	        if (textContent) {
-	            markupNode.textContent = textContent;
-	        }
-
-	        var nodeAttrs = {};
-
-	        Array.from(attributes).forEach(function (nodeAttribute) {
-	            var name = nodeAttribute.name;
-	            var value = nodeAttribute.value;
-	            nodeAttrs[name] = value;
-	        });
-
-	        if (Object.keys(nodeAttrs).length > 0) {
-	            markupNode.attributes = nodeAttrs;
-	        }
-
-	        if (node.childElementCount > 0) {
-	            markupNode.children = build(node);
-	        }
-
-	        markup.push(markupNode);
+	        markup.push(buildNode(node));
 	    });
 
 	    return markup;
@@ -14613,12 +14694,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        x: 0,
 	        y: 0,
 	        angle: 0,
-	        attrs: {
-	            '.': {
-	                y: '0',
-	                'text-anchor': 'start'
-	            }
-	        }
+	        attrs: {}
 	    });
 	}
 
@@ -14638,14 +14714,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        ty = 0;
 	        textAnchor = 'start';
 	    } else if (angle < x[0]) {
-	        y = '0';
 	        tx = 0;
 	        ty = -offset;
 	        if (autoOrient) {
 	            orientAngle = -90;
 	            textAnchor = 'start';
+	            y = '.3em';
 	        } else {
 	            textAnchor = 'middle';
+	            y = '0';
 	        }
 	    } else if (angle < x[3]) {
 	        y = '.3em';
@@ -14653,14 +14730,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        ty = 0;
 	        textAnchor = 'end';
 	    } else {
-	        y = '.6em';
 	        tx = 0;
 	        ty = offset;
 	        if (autoOrient) {
 	            orientAngle = 90;
 	            textAnchor = 'start';
+	            y = '.3em';
 	        } else {
 	            textAnchor = 'middle';
+	            y = '.6em';
 	        }
 	    }
 
@@ -14669,12 +14747,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        x: round(tx),
 	        y: round(ty),
 	        angle: orientAngle,
-	        attrs: {
-	            '.': {
-	                y: y,
-	                'text-anchor': textAnchor
-	            }
-	        }
+	        attrs: { labelText: { y: y, textAnchor: textAnchor }}
 	    });
 	}
 
@@ -14707,14 +14780,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        ty = 0;
 	        textAnchor = 'end';
 	    } else if (angle < bBoxAngles[0]) {
-	        y = '.6em';
 	        tx = 0;
 	        ty = offset;
 	        if (autoOrient) {
 	            orientAngle = 90;
 	            textAnchor = 'start';
+	            y = '.3em';
 	        } else {
 	            textAnchor = 'middle';
+	            y = '.6em';
 	        }
 	    } else if (angle < bBoxAngles[3]) {
 	        y = '.3em';
@@ -14722,14 +14796,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        ty = 0;
 	        textAnchor = 'start';
 	    } else {
-	        y = '0em';
 	        tx = 0;
 	        ty = -offset;
 	        if (autoOrient) {
 	            orientAngle = -90;
 	            textAnchor = 'start';
+	            y = '.3em';
 	        } else {
 	            textAnchor = 'middle';
+	            y = '0';
 	        }
 	    }
 
@@ -14738,12 +14813,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        x: round(tx),
 	        y: round(ty),
 	        angle: orientAngle,
-	        attrs: {
-	            '.': {
-	                y: y,
-	                'text-anchor': textAnchor
-	            }
-	        }
+	        attrs: { labelText: { y: y, textAnchor: textAnchor }}
 	    });
 	}
 
@@ -14780,32 +14850,44 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        y: round(offset.y),
 	        angle: autoOrient ? orientAngle : 0,
 	        attrs: {
-	            '.': {
+	            labelText: {
 	                y: y,
-	                'text-anchor': textAnchor
+	                textAnchor: textAnchor
 	            }
 	        }
 	    });
 	}
 
-	var manual = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, elBBox);
+	var manual = function(_portPosition, _elBBox, opt) {
+	    return labelAttributes(opt);
 	};
 
 	var left$1 = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' }}});
+	    return labelAttributes(opt, {
+	        x: -15,
+	        attrs: { labelText: { y: '.3em', textAnchor: 'end' }},
+	    });
 	};
 
 	var right$1 = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, { x: 15, attrs: { '.': { y: '.3em', 'text-anchor': 'start' }}});
+	    return labelAttributes(opt, {
+	        x: 15,
+	        attrs: { labelText: { y: '.3em', textAnchor: 'start' }},
+	    });
 	};
 
 	var top$1 = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, { y: -15, attrs: { '.': { 'text-anchor': 'middle' }}});
+	    return labelAttributes(opt, {
+	        y: -15,
+	        attrs: { labelText: { y: '0', textAnchor: 'middle' }},
+	    });
 	};
 
 	var bottom$1 = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, { y: 15, attrs: { '.': { y: '.6em', 'text-anchor': 'middle' }}});
+	    return labelAttributes(opt, {
+	        y: 15,
+	        attrs: { labelText: { y: '.6em', textAnchor: 'middle' }},
+	    });
 	};
 
 	var outsideOriented = function(portPosition, elBBox, opt) {
@@ -15599,14 +15681,34 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            portContainerSelectors = portSelectors || labelSelectors || {};
 	        }
 
+	        // The `portRootSelector` points to the root SVGNode of the port.
+	        // Either the implicit wrapping group <g/> in case the port consist of multiple SVGNodes.
+	        // Or the single SVGNode of the port.
 	        var portRootSelector = 'portRoot';
+	        // The `labelRootSelector` points to the root SVGNode of the label.
+	        var labelRootSelector = 'labelRoot';
+	        // The `labelTextSelector` points to all text SVGNodes of the label.
+	        var labelTextSelector = 'labelText';
+
 	        if (!(portRootSelector in portContainerSelectors)) {
 	            portContainerSelectors[portRootSelector] = portElement.node;
 	        }
 
-	        var labelRootSelector = 'labelRoot';
-	        if (labelElement && !(labelRootSelector in portContainerSelectors)) {
-	            portContainerSelectors[labelRootSelector] = labelElement.node;
+	        if (labelElement) {
+	            var labelNode = labelElement.node;
+	            if (!(labelRootSelector in portContainerSelectors)) {
+	                portContainerSelectors[labelRootSelector] = labelNode;
+	            }
+	            if (!(labelTextSelector in portContainerSelectors)) {
+	                // If the label is a <text> element, we can use it directly.
+	                // Otherwise, we need to find the <text> element within the label.
+	                var labelTextNode = (labelElement.tagName() === 'TEXT')
+	                    ? labelNode
+	                    : Array.from(labelNode.querySelectorAll('text'));
+	                portContainerSelectors[labelTextSelector] = labelTextNode;
+	                if (!labelSelectors) { labelSelectors = {}; }
+	                labelSelectors[labelTextSelector] = labelTextNode;
+	            }
 	        }
 
 	        portContainerElement.append(portElement.addClass('joint-port-body'));
@@ -15640,20 +15742,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            var portId = metrics.portId;
 	            var cached = this._portElementsCache[portId] || {};
 	            var portTransformation = metrics.portTransformation;
-	            this.applyPortTransform(cached.portElement, portTransformation);
-	            this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
-	                rootBBox: new Rect(metrics.portSize),
-	                selectors: cached.portSelectors
-	            });
-
 	            var labelTransformation = metrics.labelTransformation;
 	            if (labelTransformation && cached.portLabelElement) {
-	                this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
 	                this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
 	                    rootBBox: new Rect(metrics.labelSize),
 	                    selectors: cached.portLabelSelectors
 	                });
+	                this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
 	            }
+	            this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
+	                rootBBox: new Rect(metrics.portSize),
+	                selectors: cached.portSelectors
+	            });
+	            this.applyPortTransform(cached.portElement, portTransformation);
 	        }
 	    },
 
@@ -16028,52 +16129,130 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    fitEmbeds: function(opt) {
+
+	        return this.fitToChildren(opt);
+	    },
+
+	    fitToChildren: function(opt) {
 	        if ( opt === void 0 ) opt = {};
 
 
 	        // Getting the children's size and position requires the collection.
-	        // Cell.get('embeds') helds an array of cell ids only.
+	        // Cell.get('embeds') holds an array of cell ids only.
 	        var ref = this;
 	        var graph = ref.graph;
 	        if (!graph) { throw new Error('Element must be part of a graph.'); }
 
-	        var embeddedCells = this.getEmbeddedCells().filter(function (cell) { return cell.isElement(); });
-	        if (embeddedCells.length === 0) { return this; }
+	        var childElements = this.getEmbeddedCells().filter(function (cell) { return cell.isElement(); });
+	        if (childElements.length === 0) { return this; }
 
 	        this.startBatch('fit-embeds', opt);
 
 	        if (opt.deep) {
-	            // Recursively apply fitEmbeds on all embeds first.
-	            invoke(embeddedCells, 'fitEmbeds', opt);
+	            // `opt.deep = true` means "fit to all descendants".
+	            // As the first action of the fitting algorithm, recursively apply `fitToChildren()` on all descendants.
+	            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant, then go up (= this element).
+	            invoke(childElements, 'fitToChildren', opt);
 	        }
 
-	        // Compute cell's size and position based on the children bbox
-	        // and given padding.
-	        var ref$1 = normalizeSides(opt.padding);
-	        var left = ref$1.left;
-	        var right = ref$1.right;
-	        var top = ref$1.top;
-	        var bottom = ref$1.bottom;
-	        var ref$2 = graph.getCellsBBox(embeddedCells);
-	        var x = ref$2.x;
-	        var y = ref$2.y;
-	        var width = ref$2.width;
-	        var height = ref$2.height;
-	        // Apply padding computed above to the bbox.
-	        x -= left;
-	        y -= top;
-	        width += left + right;
-	        height += bottom + top;
-
-	        // Set new element dimensions finally.
-	        this.set({
-	            position: { x: x, y: y },
-	            size: { width: width, height: height }
-	        }, opt);
+	        // Set new size and position of this element, based on:
+	        // - union of bboxes of all children
+	        // - inflated by given `opt.padding`
+	        this._fitToElements(Object.assign({ elements: childElements }, opt));
 
 	        this.stopBatch('fit-embeds');
 
 	        return this;
+	    },
+
+	    fitParent: function(opt) {
+	        if ( opt === void 0 ) opt = {};
+
+
+	        var ref = this;
+	        var graph = ref.graph;
+	        if (!graph) { throw new Error('Element must be part of a graph.'); }
+
+	        // When `opt.deep = true`, we want `opt.terminator` to be the last ancestor processed.
+	        // If the current element is `opt.terminator`, it means that this element has already been processed as parent so we can exit now.
+	        if (opt.deep && opt.terminator && ((opt.terminator === this) || (opt.terminator === this.id))) { return this; }
+
+	        var parentElement = this.getParentCell();
+	        if (!parentElement || !parentElement.isElement()) { return this; }
+
+	        // Get all children of parent element (i.e. this element + any sibling elements).
+	        var siblingElements = parentElement.getEmbeddedCells().filter(function (cell) { return cell.isElement(); });
+	        if (siblingElements.length === 0) { return this; }
+
+	        this.startBatch('fit-parent', opt);
+
+	        // Set new size and position of parent element, based on:
+	        // - union of bboxes of all children of parent element (i.e. this element + any sibling elements)
+	        // - inflated by given `opt.padding`
+	        parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
+
+	        if (opt.deep) {
+	            // `opt.deep = true` means "fit all ancestors to their respective children".
+	            // As the last action of the fitting algorithm, recursively apply `fitParent()` on all ancestors.
+	            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant (= this element), then go up.
+	            parentElement.fitParent(opt);
+	        }
+
+	        this.stopBatch('fit-parent');
+
+	        return this;
+	    },
+
+	    // Assumption: This element is part of a graph.
+	    _fitToElements: function(opt) {
+	        if ( opt === void 0 ) opt = {};
+
+
+	        var elementsBBox = this.graph.getCellsBBox(opt.elements);
+	        // If no `opt.elements` were provided, do nothing.
+	        if (!elementsBBox) { return; }
+
+	        var expandOnly = opt.expandOnly;
+	        var shrinkOnly = opt.shrinkOnly;
+	        // This combination is meaningless, do nothing.
+	        if (expandOnly && shrinkOnly) { return; }
+
+	        // Calculate new size and position of this element based on:
+	        // - union of bboxes of `opt.elements`
+	        // - inflated by `opt.padding` (if not provided, all four properties = 0)
+	        var x = elementsBBox.x;
+	        var y = elementsBBox.y;
+	        var width = elementsBBox.width;
+	        var height = elementsBBox.height;
+	        var ref = normalizeSides(opt.padding);
+	        var left = ref.left;
+	        var right = ref.right;
+	        var top = ref.top;
+	        var bottom = ref.bottom;
+	        x -= left;
+	        y -= top;
+	        width += left + right;
+	        height += bottom + top;
+	        var resultBBox = new Rect(x, y, width, height);
+
+	        if (expandOnly) {
+	            // Non-shrinking is enforced by taking union of this element's current bbox with bbox calculated from `opt.elements`.
+	            resultBBox = this.getBBox().union(resultBBox);
+
+	        } else if (shrinkOnly) {
+	            // Non-expansion is enforced by taking intersection of this element's current bbox with bbox calculated from `opt.elements`.
+	            var intersectionBBox = this.getBBox().intersect(resultBBox);
+	            // If all children are outside this element's current bbox, then `intersectionBBox` is `null` - does not make sense, do nothing.
+	            if (!intersectionBBox) { return; }
+
+	            resultBBox =  intersectionBBox;
+	        }
+
+	        // Set the new size and position of this element.
+	        this.set({
+	            position: { x: resultBBox.x, y: resultBBox.y },
+	            size: { width: resultBBox.width, height: resultBBox.height }
+	        }, opt);
 	    },
 
 	    // Rotate element by `angle` degrees, optionally around `origin` point.
@@ -18169,6 +18348,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                updateHighlighters = true;
 	                // Resize method is calling `update()` internally
 	                flag = this.removeFlag(flag, [Flags.RESIZE, Flags.UPDATE]);
+	                if (useCSSSelectors) {
+	                    // `resize()` rendered the ports when useCSSSelectors are enabled
+	                    flag = this.removeFlag(flag, Flags.PORTS);
+	                }
 	            }
 	            if (this.hasFlag(flag, Flags.UPDATE)) {
 	                this.update(this.model, null, opt);
@@ -19379,7 +19562,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        '</g>'
 	    ].join(''),
 
-	    // may be overwritten by user to change default label (its markup, attrs, position)
+	    // may be overwritten by user to change default label (its markup, size, attrs, position)
 	    defaultLabel: undefined,
 
 	    // deprecated
@@ -21897,8 +22080,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        'marker-end',
 	        'marker-mid',
 	        'transform',
-	        'stroke-dasharray'
-	    ],
+	        'stroke-dasharray',
+	        'class' ],
 
 	    MASK_CHILD_ATTRIBUTE_BLACKLIST: [
 	        'stroke',
@@ -21909,8 +22092,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        'fill-opacity',
 	        'marker-start',
 	        'marker-end',
-	        'marker-mid'
-	    ],
+	        'marker-mid',
+	        'class' ],
 
 	    // TODO: change the list to a function callback
 	    MASK_REPLACE_TAGS: [
@@ -22398,6 +22581,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    if (typeof selector === 'string') {
 	        node = view.findBySelector(selector)[0];
+	    } else if (selector === false) {
+	        node = magnet;
 	    } else if (Array.isArray(selector)) {
 	        node = getByPath(magnet, selector);
 	    } else {
@@ -25775,7 +25960,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 
-	    // merge default label attrs into label attrs
+	    // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
 	    // keep `undefined` or `null` because `{}` means something else
 	    _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
 
@@ -25797,6 +25982,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
 	    },
 
+	    // merge default label size into label size (no built-in default)
+	    // keep `undefined` or `null` because `{}` means something else
+	    _mergeLabelSize: function(labelSize, defaultLabelSize) {
+
+	        if (labelSize === null) { return null; }
+	        if (labelSize === undefined) {
+
+	            if (defaultLabelSize === null) { return null; }
+	            if (defaultLabelSize === undefined) { return undefined; }
+
+	            return defaultLabelSize;
+	        }
+
+	        return merge({}, defaultLabelSize, labelSize);
+	    },
+
 	    updateLabels: function() {
 
 	        if (!this._V.labels) { return this; }
@@ -25811,6 +26012,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var defaultLabel = model._getDefaultLabel();
 	        var defaultLabelMarkup = defaultLabel.markup;
 	        var defaultLabelAttrs = defaultLabel.attrs;
+	        var defaultLabelSize = defaultLabel.size;
 
 	        for (var i = 0, n = labels.length; i < n; i++) {
 
@@ -25822,6 +26024,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            var label = labels[i];
 	            var labelMarkup = label.markup;
 	            var labelAttrs = label.attrs;
+	            var labelSize = label.size;
 
 	            var attrs = this._mergeLabelAttrs(
 	                (labelMarkup || defaultLabelMarkup),
@@ -25830,8 +26033,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                builtinDefaultLabelAttrs
 	            );
 
+	            var size = this._mergeLabelSize(
+	                labelSize,
+	                defaultLabelSize
+	            );
+
 	            this.updateDOMSubtreeAttributes(labelNode, attrs, {
-	                rootBBox: new Rect(label.size),
+	                rootBBox: new Rect(size),
 	                selectors: selectors
 	            });
 	        }
@@ -26321,12 +26529,40 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.targetAnchor.offset(tx, ty);
 	    },
 
+	    // combine default label position with built-in default label position
+	    _getDefaultLabelPositionProperty: function() {
+
+	        var model = this.model;
+
+	        var builtinDefaultLabel = model._builtins.defaultLabel;
+	        var builtinDefaultLabelPosition = builtinDefaultLabel.position;
+
+	        var defaultLabel = model._getDefaultLabel();
+	        var defaultLabelPosition = this._normalizeLabelPosition(defaultLabel.position);
+
+	        return merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
+	    },
+
 	    // if label position is a number, normalize it to a position object
 	    // this makes sure that label positions can be merged properly
 	    _normalizeLabelPosition: function(labelPosition) {
 
 	        if (typeof labelPosition === 'number') { return { distance: labelPosition, offset: null, angle: 0, args: null }; }
 	        return labelPosition;
+	    },
+
+	    // expects normalized position properties
+	    // e.g. `this._normalizeLabelPosition(labelPosition)` and `this._getDefaultLabelPositionProperty()`
+	    _mergeLabelPositionProperty: function(normalizedLabelPosition, normalizedDefaultLabelPosition) {
+
+	        if (normalizedLabelPosition === null) { return null; }
+	        if (normalizedLabelPosition === undefined) {
+
+	            if (normalizedDefaultLabelPosition === null) { return null; }
+	            return normalizedDefaultLabelPosition;
+	        }
+
+	        return merge({}, normalizedDefaultLabelPosition, normalizedLabelPosition);
 	    },
 
 	    updateLabelPositions: function() {
@@ -26343,20 +26579,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var labels = model.get('labels') || [];
 	        if (!labels.length) { return this; }
 
-	        var builtinDefaultLabel = model._builtins.defaultLabel;
-	        var builtinDefaultLabelPosition = builtinDefaultLabel.position;
-
-	        var defaultLabel = model._getDefaultLabel();
-	        var defaultLabelPosition = this._normalizeLabelPosition(defaultLabel.position);
-
-	        var defaultPosition = merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
+	        var defaultLabelPosition = this._getDefaultLabelPositionProperty();
 
 	        for (var idx = 0, n = labels.length; idx < n; idx++) {
 	            var labelNode = this._labelCache[idx];
 	            if (!labelNode) { continue; }
 	            var label = labels[idx];
 	            var labelPosition = this._normalizeLabelPosition(label.position);
-	            var position = merge({}, defaultPosition, labelPosition);
+	            var position = this._mergeLabelPositionProperty(labelPosition, defaultLabelPosition);
 	            var transformationMatrix = this._getLabelTransformationMatrix(position);
 	            labelNode.setAttribute('transform', V.matrixToTransformString(transformationMatrix));
 	            this._cleanLabelMatrices(idx);
@@ -26506,15 +26736,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    },
 
+	    _getLabelPositionProperty: function(idx) {
+
+	        return (this.model.label(idx).position || {});
+	    },
+
 	    _getLabelPositionAngle: function(idx) {
 
-	        var labelPosition = this.model.label(idx).position || {};
+	        var labelPosition = this._getLabelPositionProperty(idx);
 	        return (labelPosition.angle || 0);
 	    },
 
 	    _getLabelPositionArgs: function(idx) {
 
-	        var labelPosition = this.model.label(idx).position || {};
+	        var labelPosition = this._getLabelPositionProperty(idx);
 	        return labelPosition.args;
 	    },
 
@@ -26955,7 +27190,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var angle = labelAngle;
 	        if (tangent) {
 	            if (isOffsetAbsolute) {
-	                translation = tangent.start;
+	                translation = tangent.start.clone();
 	                translation.offset(labelOffsetCoordinates);
 	            } else {
 	                var normal = tangent.clone();
@@ -26963,15 +27198,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                normal.setLength(labelOffset);
 	                translation = normal.end;
 	            }
+
 	            if (isKeepGradient) {
 	                angle = (tangent.angle() + labelAngle);
 	                if (isEnsureLegibility) {
 	                    angle = normalizeAngle(((angle + 90) % 180) - 90);
 	                }
 	            }
+
 	        } else {
 	            // fallback - the connection has zero length
-	            translation = path.start;
+	            translation = path.start.clone();
 	            if (isOffsetAbsolute) { translation.offset(labelOffsetCoordinates); }
 	        }
 
@@ -27222,12 +27459,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	    },
 
-	    dragLabelStart: function(evt, _x, _y) {
+	    dragLabelStart: function(evt, x, y) {
 
 	        if (this.can('labelMove')) {
 
 	            var labelNode = evt.currentTarget;
 	            var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
+
+	            var defaultLabelPosition = this._getDefaultLabelPositionProperty();
+	            var initialLabelPosition = this._normalizeLabelPosition(this._getLabelPositionProperty(labelIdx));
+	            var position = this._mergeLabelPositionProperty(initialLabelPosition, defaultLabelPosition);
+
+	            var coords = this.getLabelCoordinates(position);
+	            var dx = coords.x - x; // how much needs to be added to cursor x to get to label x
+	            var dy = coords.y - y; // how much needs to be added to cursor y to get to label y
 
 	            var positionAngle = this._getLabelPositionAngle(labelIdx);
 	            var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
@@ -27237,6 +27482,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.eventData(evt, {
 	                action: 'label-move',
 	                labelIdx: labelIdx,
+	                dx: dx,
+	                dy: dy,
 	                positionAngle: positionAngle,
 	                positionArgs: positionArgs,
 	                stopPropagation: true
@@ -27299,7 +27546,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    dragLabel: function(evt, x, y) {
 
 	        var data = this.eventData(evt);
-	        var label = { position: this.getLabelPosition(x, y, data.positionAngle, data.positionArgs) };
+	        var label = { position: this.getLabelPosition((x + data.dx), (y + data.dy), data.positionAngle, data.positionArgs) };
 	        if (this.paper.options.snapLabels) { delete label.position.offset; }
 	        this.model.label(data.labelIdx, label);
 	    },
@@ -28117,7 +28364,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        linkAnchorNamespace: linkAnchors,
 
-	        connectionPointNamespace: connectionPoints
+	        connectionPointNamespace: connectionPoints,
+
+	        overflow: false
 	    },
 
 	    events: {
@@ -28403,6 +28652,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var background = childNodes.background;
 	        var grid = childNodes.grid;
 
+	        svg.style.overflow = options.overflow ? 'visible' : 'hidden';
+
 	        this.svg = svg;
 	        this.defs = defs;
 	        this.layers = layers;
@@ -28543,23 +28794,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var model = view.model;
 	        if (model.isElement()) { return false; }
 	        if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
+	            var dumpOptions = { silent: true };
 	            // LinkView is waiting for the target or the source cellView to be rendered
 	            // This can happen when the cells are not in the viewport.
 	            var sourceFlag = 0;
 	            var sourceView = this.findViewByModel(model.getSourceCell());
 	            if (sourceView && !this.isViewMounted(sourceView)) {
-	                sourceFlag = this.dumpView(sourceView);
+	                sourceFlag = this.dumpView(sourceView, dumpOptions);
 	                view.updateEndMagnet('source');
 	            }
 	            var targetFlag = 0;
 	            var targetView = this.findViewByModel(model.getTargetCell());
 	            if (targetView && !this.isViewMounted(targetView)) {
-	                targetFlag = this.dumpView(targetView);
+	                targetFlag = this.dumpView(targetView, dumpOptions);
 	                view.updateEndMagnet('target');
 	            }
 	            if (sourceFlag === 0 && targetFlag === 0) {
 	                // If leftover flag is 0, all view updates were done.
-	                return !this.dumpView(view);
+	                return !this.dumpView(view, dumpOptions);
 	            }
 	        }
 	        return false;
@@ -28626,9 +28878,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    dumpView: function(view, opt) {
+	        if ( opt === void 0 ) opt = {};
+
 	        var flag = this.dumpViewUpdate(view);
 	        if (!flag) { return 0; }
-	        return this.updateView(view, flag, opt);
+	        var shouldNotify = !opt.silent;
+	        if (shouldNotify) { this.notifyBeforeRender(opt); }
+	        var leftover = this.updateView(view, flag, opt);
+	        if (shouldNotify) {
+	            var stats = { updated: 1, priority: view.UPDATE_PRIORITY };
+	            this.notifyAfterRender(stats, opt);
+	        }
+	        return leftover;
 	    },
 
 	    updateView: function(view, flag, opt) {
@@ -30153,19 +30414,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var deltaX = ref.deltaX;
 	        var deltaY = ref.deltaY;
 
+	        var pinchHandlers = this._events['paper:pinch'];
+
 	        // Touchpad devices will send a fake CTRL press when a pinch is performed
-	        if(evt.ctrlKey) {
-	            // Check if there are any subscribers to this event. If there are none,
-	            // just skip the entire block of code (we don't want to blindly call
-	            // .preventDefault() if we really don't have to).
-	            var handlers = this._events['paper:pinch'];
-	            if(handlers && handlers.length > 0) {
-	                // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
-	                originalEvent.preventDefault();
-	                this._mw_evt_buffer.event = originalEvent;
-	                this._mw_evt_buffer.deltas.push(deltaY);
-	                this._processMouseWheelEvtBuf();
-	            }
+	        //
+	        // We also check if there are any subscribers to paper:pinch event. If there are none,
+	        // just skip the entire block of code (we don't want to blindly call
+	        // .preventDefault() if we really don't have to).
+	        if (evt.ctrlKey && pinchHandlers && pinchHandlers.length > 0) {
+	            // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
+	            originalEvent.preventDefault();
+	            this._mw_evt_buffer.event = originalEvent;
+	            this._mw_evt_buffer.deltas.push(deltaY);
+	            this._processMouseWheelEvtBuf();
 	        } else {
 	            var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
 	            if (view) {
@@ -30703,7 +30964,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    defineMarker: function(marker) {
 	        if (!isObject$1(marker)) {
-	            throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
+	            throw new TypeError('dia.Paper: defineMarker() requires the first argument to be an object.');
 	        }
 	        var ref = this;
 	        var svg = ref.svg;
@@ -30723,20 +30984,58 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	        markerVEl.id = id;
 	        markerVEl.attr(attrs);
+	        var markerContentVEl;
 	        if (markup) {
+	            var markupVEl;
 	            if (typeof markup === 'string') {
-	                markerVEl.append(V(markup));
+	                // Marker object has a `markup` property of type string.
+	                // - Construct V from the provided string.
+	                markupVEl = V(markup);
+	                // `markupVEl` is now either a single VEl, or an array of VEls.
+	                // - Coerce it to an array.
+	                markupVEl = (Array.isArray(markupVEl) ? markupVEl : [markupVEl]);
 	            } else {
+	                // Marker object has a `markup` property of type object.
+	                // - Construct V from the object by parsing it as DOM JSON.
 	                var ref$1 = parseDOMJSON(markup);
 	                var fragment = ref$1.fragment;
-	                markerVEl.append(fragment);
+	                markupVEl = V(fragment).children();
+	            }
+	            // `markupVEl` is an array with one or more VEls inside.
+	            // - If there are multiple VEls, wrap them in a newly-constructed <g> element
+	            if (markupVEl.length > 1) {
+	                markerContentVEl = V('g').append(markupVEl);
+	            } else {
+	                markerContentVEl = markupVEl[0];
 	            }
 	        } else {
-	            // marker object is a flat structure
+	            // Marker object is a flat structure.
+	            // - Construct a new V of type `marker.type`.
 	            var type = marker.type; if ( type === void 0 ) type = 'path';
-	            var markerContentVEl = V(type, omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits'));
-	            markerVEl.append(markerContentVEl);
+	            markerContentVEl = V(type);
 	        }
+	        // `markerContentVEl` is a single VEl.
+	        // Assign additional attributes to it (= context attributes + marker attributes):
+	        // - Attribute values are taken from non-special properties of `marker`.
+	        var markerAttrs = omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits');
+	        var markerAttrsKeys = Object.keys(markerAttrs);
+	        markerAttrsKeys.forEach(function (key) {
+	            var value = markerAttrs[key];
+	            var markupValue = markerContentVEl.attr(key); // value coming from markupVEl (if any) = higher priority
+	            if (markupValue == null) {
+	                // Default logic:
+	                markerContentVEl.attr(key, value);
+	            } else {
+	                // Properties with special logic should be added as cases to this switch block:
+	                switch(key) {
+	                    case 'transform':
+	                        // - Prepend `transform` to existing value.
+	                        markerContentVEl.attr(key, (value + ' ' + markupValue));
+	                        break;
+	                }
+	            }
+	        });
+	        markerContentVEl.appendTo(markerVEl);
 	        markerVEl.appendTo(defs);
 	        return id;
 	    }
@@ -32188,12 +32487,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    onPointerUp: function(evt) {
+	        var normalizedEvent = normalizeEvent(evt);
 	        this.paper.delegateEvents();
 	        this.undelegateDocumentEvents();
 	        this.blur();
 	        this.toggleArea(false);
 	        var linkView = this.relatedView;
 	        if (this.options.redundancyRemoval) { linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid }); }
+	        linkView.checkMouseleave(normalizedEvent);
 	        linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
 	    },
 
@@ -32845,7 +33146,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.6.5";
+	var version = "3.7.0";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
