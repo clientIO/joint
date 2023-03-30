@@ -287,13 +287,13 @@ function fitToContent() {
     svgContainer.showAll();
 }
 
-function scaleToFit() {
+function transformToFitContent() {
 
     svgContainer.removeAll();
 
     var padding = parseInt($stfPadding.val(), 10);
 
-    paper.scaleContentToFit({
+    paper.transformToFitContent({
         padding: padding,
         minScale: parseFloat($stfMinScale.val()),
         maxScale: parseFloat($stfMaxScale.val()),
@@ -345,8 +345,8 @@ function updateBBox() {
 /* events */
 
 $('#fit-to-content input, #fit-to-content select').on('input change', fitToContent);
-$('#scale-to-fit').on('change', scaleToFit);
-$('#stf-scale-to-fit').on('click', scaleToFit);
+$('#scale-to-fit').on('change', transformToFitContent);
+$('#stf-scale-to-fit').on('click', transformToFitContent);
 
 $ox.on('input change', function() {
     paper.setOrigin(parseInt(this.value, 10), parseInt($oy.val(), 10));
