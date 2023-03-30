@@ -114,50 +114,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 {
                     'type': 'standard.Rectangle',
                     'position': {
-                        'x': 200,
-                        'y': 275
-                    },
-                    'size': {
-                        'width': 100,
-                        'height': 40
-                    }
-                },
-                {
-                    'type': 'standard.Rectangle',
-                    'position': {
-                        'x': 200,
-                        'y': 75
-                    },
-                    'size': {
-                        'width': 100,
-                        'height': 40
-                    }
-                },
-                {
-                    'type': 'standard.Rectangle',
-                    'position': {
-                        'x': 200,
-                        'y': 175
-                    },
-                    'size': {
-                        'width': 100,
-                        'height': 40
-                    }
-                },
-                {
-                    'type': 'standard.Rectangle',
-                    'position': {
-                        'x': 325,
-                        'y': 175
-                    },
-                    'size': {
-                        'width': 100,
-                        'height': 40
-                    }
-                },
-                {
-                    'type': 'standard.Rectangle',
-                    'position': {
                         'x': 450,
                         'y': 150
                     },
@@ -181,34 +137,12 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'type': 'standard.Rectangle',
                     'position': {
                         'x': 325,
-                        'y': 250
-                    },
-                    'size': {
-                        'width': 100,
-                        'height': 40
-                    }
-                },
-                {
-                    'type': 'standard.Rectangle',
-                    'position': {
-                        'x': 325,
                         'y': 300
                     },
                     'size': {
                         'width': 100,
                         'height': 40
                     }
-                },
-                {
-                    'type': 'standard.Rectangle',
-                    'position': {
-                        'x': 325,
-                        'y': 100
-                    },
-                    'size': {
-                        'width': 100,
-                        'height': 40
-                    },
                 },
                 {
                     'type': 'standard.Rectangle',
