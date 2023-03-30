@@ -20,6 +20,7 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
 
     switch (roundedAngle) {
         case 0:
+        case 360:
             return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
         case 90:
             return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
@@ -148,17 +149,19 @@ export function rightAngle(_vertices, opt, linkView) {
     const ssx1 = sx1 + spacing;
     const tsx0 = tx0 - spacing;
     const tsx1 = tx1 + spacing;
+    const tsy0 = ty0 - spacing;
+    const tsy1 = ty1 + spacing;
     const ssy0 = sy0 - spacing;
     const ssy1 = sy1 + spacing;
 
     if (sourceSide === 'left' && targetSide === 'right') {
-        if (sx0 <= tx1) {
+        if (ssx0 <= tx1) {
             let y = middleOfHorizontalSides;
-            if (sox < tx0) {
-                if (ty1 >= ssy0 && tcy < scy) {
-                    y = Math.min(ty0 - spacing, ssy0);
-                } else if (ty0 <= ssy1 && tcy >= scy) {
-                    y = Math.max(ty1 + spacing, ssy1);
+            if (sx1 <= tx0) {
+                if (ty1 >= ssy0 && toy < soy) {
+                    y = Math.min(tsy0, ssy0);
+                } else if (ty0 <= ssy1 && toy >= soy) {
+                    y = Math.max(tsy1, ssy1);
                 }
             }
             return [
@@ -175,13 +178,13 @@ export function rightAngle(_vertices, opt, linkView) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'right' && targetSide === 'left') {
-        if (sx1 > tx0) {
+        if (ssx1 >= tx0) {
             let y = middleOfHorizontalSides;
             if (sox > tx1) {
-                if (ty1 >= ssy0 && tcy < scy) {
-                    y = Math.min(ty0 - spacing, ssy0);
-                } else if (ty0 <= ssy1 && tcy >= scy) {
-                    y = Math.max(ty1 + spacing, ssy1);
+                if (ty1 >= ssy0 && toy < soy) {
+                    y = Math.min(tsy0, ssy0);
+                } else if (ty0 <= ssy1 && toy >= soy) {
+                    y = Math.max(tsy1, ssy1);
                 }
             }
 
@@ -204,9 +207,9 @@ export function rightAngle(_vertices, opt, linkView) {
             let y = soy;
 
             if (soy < ty0) {
-                if (tx1 >= ssx0 && tcx < scx) {
+                if (tx1 >= ssx0 && tox < sox) {
                     x = Math.min(tx0 - spacing, ssx0);
-                } else if (tx0 <= ssx1 && tcx >= scx) {
+                } else if (tx0 <= ssx1 && tox >= sox) {
                     x = Math.max(tx1 + spacing, ssx1);
                 }
             }
@@ -229,9 +232,9 @@ export function rightAngle(_vertices, opt, linkView) {
             let y = soy;
 
             if (soy > ty1) {
-                if (tx1 >= ssx0 && tcx < scx) {
+                if (tx1 >= ssx0 && tox < sox) {
                     x = Math.min(tx0 - spacing, ssx0);
-                } else if (tx0 <= ssx1 && tcx >= scx) {
+                } else if (tx0 <= ssx1 && tox >= sox) {
                     x = Math.max(tx1 + spacing, ssx1);
                 }
             }
@@ -270,7 +273,7 @@ export function rightAngle(_vertices, opt, linkView) {
                     { x: sox, y: Math.min(soy,toy) },
                     { x: tox, y: Math.min(soy,toy) }
                 ];
-            } else if (tcx >= scx) {
+            } else if (tox >= sox) {
                 x = Math.max(tox, ssx1);
             } else {
                 x = Math.min(tox, ssx0);
@@ -284,7 +287,7 @@ export function rightAngle(_vertices, opt, linkView) {
             { x: tox, y: y1 }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
-        if (tx0 >= ssx1 || tx1 <= ssx0) {
+        if (tx0 >= sox + spacing || tx1 <= sox - spacing) {
             return [
                 { x: sox, y: Math.max(soy, toy) },
                 { x: tox, y: Math.max(soy, toy) }
@@ -299,7 +302,7 @@ export function rightAngle(_vertices, opt, linkView) {
             y1 = Math.max((sy1 + ty0) / 2, toy);
             y2 = Math.max((sy1 + ty0) / 2, soy);
 
-            if (tox > sox) {
+            if (tox < sox) {
                 x = Math.min(sox, tsx0);
             } else {
                 x = Math.max(sox, tsx1);
@@ -308,10 +311,10 @@ export function rightAngle(_vertices, opt, linkView) {
             y1 = Math.max((sy0 + ty1) / 2, toy);
             y2 = Math.max((sy0 + ty1) / 2, soy);
 
-            if (tcx >= scx) {
-                x = Math.max(tox, ssx1);
-            } else {
+            if (tox < sox) {
                 x = Math.min(tox, ssx0);
+            } else {
+                x = Math.max(tox, ssx1);
             }
         }
 
@@ -526,32 +529,30 @@ export function rightAngle(_vertices, opt, linkView) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'left' && targetSide === 'bottom') {
-        if (sox > tox && soy >= toy) {
+        if (sox > tox && soy >= tsy1) {
             return [{ x: tox, y: soy }];
         }
 
-        if (sox > tx1) {
-            if (soy < toy) {
-                const x = middleOfVerticalSides;
-                return [
-                    { x, y: soy },
-                    { x, y: toy },
-                    { x: tox, y: toy }
-                ];
-            }
+        if (sox >= tx1 && soy < toy) {
+            const x = (sx1 + tx0) / 2;
+            return [
+                { x, y: soy },
+                { x, y: toy },
+                { x: tox, y: toy }
+            ];
         }
 
-        if (tox <= sx1 && toy < soy) {
-            const y = (ty1 + sy0) / 2;
+        if (tox < sx1 && ty1 <= sy0) {
+            const y = (sy0 + ty1) / 2;
 
             return [
                 { x: sox, y: soy },
                 { x: sox, y },
-                { x: tox, y },
+                { x: tox, y }
             ];
         }
-
-        const x = toy > soy ? Math.min(sx0, tx0) - spacing : sox;
+        
+        const x = Math.min(tsx0, sox);
         const y = Math.max(sy1, ty1) + spacing;
 
         return [
@@ -560,7 +561,7 @@ export function rightAngle(_vertices, opt, linkView) {
             { x: tox, y }
         ];
     } else if (sourceSide === 'left' && targetSide === 'top') {
-        if (sox > tox && soy < ty0) {
+        if (sox > tox && soy < tsy0) {
             return [{ x: tox, y: soy }];
         }
 
@@ -595,7 +596,7 @@ export function rightAngle(_vertices, opt, linkView) {
         ];
         
     } else if (sourceSide === 'right' && targetSide === 'top') {
-        if (sox <= tox && soy < ty0) {
+        if (sox < tox && soy < tsy0) {
             return [{ x: tox, y: soy }];
         }
 
@@ -626,7 +627,7 @@ export function rightAngle(_vertices, opt, linkView) {
             { x: tox, y }
         ];
     } else if (sourceSide === 'right' && targetSide === 'bottom') {
-        if (sox <= tox && soy > ty1) {
+        if (sox < tox && soy >= tsy1) {
             return [{ x: tox, y: soy }];
         }
 
