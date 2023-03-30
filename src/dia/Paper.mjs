@@ -2131,14 +2131,15 @@ export const Paper = View.extend({
                 view.preventDefaultAction(evt);
             }
 
+            const rootViewEl = view.el;
+
             // Custom event
             const eventNode = target.closest('[event]');
-            if (eventNode && this.svg.contains(eventNode)) {
-                const eventEvt = $.Event(evt.originalEvent, {
+            if (eventNode && rootViewEl !== eventNode && view.el.contains(eventNode)) {
+                const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
                     data: evt.data,
-                    currentTarget: eventNode,
-                    isNormalized: true
-                });
+                }));
+                eventEvt.currentTarget = eventNode;
                 this.onevent(eventEvt);
                 if (eventEvt.isDefaultPrevented()) {
                     evt.preventDefault();
@@ -2150,12 +2151,11 @@ export const Paper = View.extend({
 
             // Element magnet
             const magnetNode = target.closest('[magnet]');
-            if (magnetNode && this.svg.contains(magnetNode)) {
-                const magnetEvt = $.Event(evt.originalEvent, {
-                    data: evt.data,
-                    currentTarget: magnetNode,
-                    isNormalized: true
-                });
+            if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
+                const magnetEvt = normalizeEvent($.Event(evt.originalEvent, {
+                    data: evt.data
+                }));
+                magnetEvt.currentTarget = magnetNode;
                 this.onmagnet(magnetEvt);
                 if (magnetEvt.isDefaultPrevented()) {
                     evt.preventDefault();

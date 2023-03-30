@@ -777,12 +777,12 @@ QUnit.module('paper', function(hooks) {
 
         paper.options.moveThreshold = 2;
         paper.on('element:pointermove', spy);
-        var data = {};
-        paper.pointerdown($.Event('mousedown', { target: elRect, data: data }));
-        paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
-        paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
-        paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Processed
-        paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+
+        simulate.mousedown({ el: elRect });
+        simulate.mousemove({ el: elRect }); // Ignored
+        simulate.mousemove({ el: elRect }); // Ignored
+        simulate.mousemove({ el: elRect }); // Processed
+        simulate.mouseup({ el: elRect });
 
         assert.ok(spy.calledOnce);
     });
@@ -805,50 +805,44 @@ QUnit.module('paper', function(hooks) {
 
             var graph = this.graph;
             var paper = this.paper;
-            var data;
 
             paper.options.magnetThreshold = 0;
-            data = {};
 
-            paper.pointerdown($.Event('mousedown', { target: elRect, data: data }));
+            simulate.mousedown({ el: elRect });
             assert.equal(graph.getLinks().length, 1);
-            paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+            simulate.mouseup({ el: elRect });
         });
 
         QUnit.test('magnetThreshold: number (1+)', function(assert) {
 
             var graph = this.graph;
             var paper = this.paper;
-            var data;
 
             paper.options.magnetThreshold = 2;
-            data = {};
 
-            paper.pointerdown($.Event('mousedown', { target: elRect, data: data }));
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
+            simulate.mousedown({ el: elRect });
+            simulate.mousemove({ el: elRect }); // Ignored
+            simulate.mousemove({ el: elRect }); // Ignored
             assert.equal(graph.getLinks().length, 0);
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Processed
+            simulate.mousemove({ el: elRect }); // Processed
             assert.equal(graph.getLinks().length, 1);
-            paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+            simulate.mouseup({ el: elRect });
         });
 
         QUnit.test('magnetThreshold: string ("onleave")', function(assert) {
 
             var graph = this.graph;
             var paper = this.paper;
-            var data;
 
             paper.options.magnetThreshold = 'onleave';
-            data = {};
 
-            paper.pointerdown($.Event('mousedown', { target: elRect, data: data }));
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
+            simulate.mousedown({ el: elRect });
+            simulate.mousemove({ el: elRect }); // Ignored
+            simulate.mousemove({ el: elRect }); // Ignored
             assert.equal(graph.getLinks().length, 0);
-            paper.pointermove($.Event('mousemove', { target: paper.svg, data: data })); // Processed
+            simulate.mousemove({ el: paper.svg }); // Processed
             assert.equal(graph.getLinks().length, 1);
-            paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+            simulate.mouseup({ el: paper.svg });
         });
     });
 

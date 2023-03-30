@@ -2032,7 +2032,17 @@ export const LinkView = CellView.extend({
         var data = this.eventData(evt);
         var label = { position: this.getLabelPosition((x + data.dx), (y + data.dy), data.positionAngle, data.positionArgs) };
         if (this.paper.options.snapLabels) delete label.position.offset;
-        this.model.label(data.labelIdx, label);
+        // The `touchmove' events are not fired
+        // when the original event target is removed from the DOM.
+        // The labels are currently re-rendered completely when only
+        // the position changes. This is why we need to make sure that
+        // the label is updated synchronously.
+        // TODO: replace `touchmove` with `pointermove` (breaking change).
+        const setOptions = { ui: true };
+        if (this.paper.isAsync() && evt.type === 'touchmove') {
+            setOptions.async = false;
+        }
+        this.model.label(data.labelIdx, label, setOptions);
     },
 
     dragVertex: function(evt, x, y) {
