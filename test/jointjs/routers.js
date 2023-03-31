@@ -444,8 +444,8 @@ QUnit.module('routers', function(hooks) {
     const width = 50;
     const height = 50;
     const size = { width, height };
-    const spacing = 28;
-    const router = { name: 'rightAngle', args: { spacing }};
+    const margin = 28;
+    const router = { name: 'rightAngle', args: { margin }};
     const position = { x: 0, y: 150 };
 
     this.addTestSubjects = function(sourceSide, targetSide ){
@@ -459,16 +459,16 @@ QUnit.module('routers', function(hooks) {
 
     const topVerticalPathSegments = [
         `${width / 2} 0`,
-        `${width / 2} -${spacing}`,
-        `${width + spacing} -${spacing}`,
-        `${width + spacing} ${(height + position.y) / 2}`,
+        `${width / 2} -${margin}`,
+        `${width + margin} -${margin}`,
+        `${width + margin} ${(height + position.y) / 2}`,
         `${width / 2} ${(height + position.y) / 2}`,
         `${width / 2} ${position.y}`
     ];
     const topHorizontalPathSegments = [
         `${width / 2} 0`,
-        `${width / 2} -${spacing}`,
-        `${position.y + width / 2} -${spacing}`,
+        `${width / 2} -${margin}`,
+        `${position.y + width / 2} -${margin}`,
         `${position.y + width / 2} 0`,
     ];
 
@@ -521,32 +521,32 @@ QUnit.module('routers', function(hooks) {
 
     const topRightS0PathSegmentsVertical = [
         `${width / 2} 0`,
-        `${width / 2} -${spacing}`,
-        `${width + spacing} -${spacing}`,
-        `${width + spacing} ${position.y + (height / 2)}`,
+        `${width / 2} -${margin}`,
+        `${width + margin} -${margin}`,
+        `${width + margin} ${position.y + (height / 2)}`,
         `${width} ${position.y + (height / 2)}`
     ];
 
     const topRightT0PathSegmentsVertical = [
         `${width / 2} ${position.y}`,
         `${width / 2} ${(height + position.y) / 2}`,
-        `${width + spacing} ${(height + position.y) / 2}`,
-        `${width + spacing} ${height / 2}`,
+        `${width + margin} ${(height + position.y) / 2}`,
+        `${width + margin} ${height / 2}`,
         `${width} ${height / 2}`
     ];
 
     const topRightS0PathSegmentsHorizontal = [
         `${width / 2} 0`,
-        `${width / 2} -${spacing}`,
-        `${position.y + width + spacing} -${spacing}`,
-        `${position.y + width + spacing} ${height / 2}`,
+        `${width / 2} -${margin}`,
+        `${position.y + width + margin} -${margin}`,
+        `${position.y + width + margin} ${height / 2}`,
         `${position.y + width} ${height / 2}`
     ];
 
     const topRightT0PathSegmentsHorizontal = [
         `${position.y + width / 2} 0`,
-        `${position.y + width / 2} -${spacing}`,
-        `${(width + position.y) / 2} -${spacing}`,
+        `${position.y + width / 2} -${margin}`,
+        `${(width + position.y) / 2} -${margin}`,
         `${(width + position.y) / 2} ${height / 2}`,
         `${width} ${height / 2}`
     ];
@@ -600,10 +600,10 @@ QUnit.module('routers', function(hooks) {
 
     const topBottomS0PathSegmentsVertical = [
         `${width / 2} 0`,
-        `${width / 2} -${spacing}`,
-        `${width + spacing} -${spacing}`,
-        `${width + spacing} ${position.y + height + spacing}`,
-        `${width / 2} ${position.y + height + spacing}`,
+        `${width / 2} -${margin}`,
+        `${width + margin} -${margin}`,
+        `${width + margin} ${position.y + height + margin}`,
+        `${width / 2} ${position.y + height + margin}`,
         `${width / 2} ${position.y + height}`,
     ];
 
@@ -616,19 +616,19 @@ QUnit.module('routers', function(hooks) {
 
     const topBottomS0PathSegmentsHorizontal = [
         `${width / 2} 0`,
-        `${width / 2} -${spacing}`,
-        `${(width + position.y) / 2} -${spacing}`,
-        `${(width + position.y) / 2} ${height + spacing}`,
-        `${position.y + width / 2} ${height + spacing}`,
+        `${width / 2} -${margin}`,
+        `${(width + position.y) / 2} -${margin}`,
+        `${(width + position.y) / 2} ${height + margin}`,
+        `${position.y + width / 2} ${height + margin}`,
         `${position.y + width / 2} ${height}`,
     ];
 
     const topBottomT0PathSegmentsHorizontal = [
         `${position.y + width / 2} 0`,
-        `${position.y + width / 2} -${spacing}`,
-        `${(width + position.y) / 2} -${spacing}`,
-        `${(width + position.y) / 2} ${height + spacing}`,
-        `${width / 2} ${height + spacing}`,
+        `${position.y + width / 2} -${margin}`,
+        `${(width + position.y) / 2} -${margin}`,
+        `${(width + position.y) / 2} ${height + margin}`,
+        `${width / 2} ${height + margin}`,
         `${width / 2} ${height}`
     ];
 
@@ -681,33 +681,33 @@ QUnit.module('routers', function(hooks) {
 
     const topLeftS0PathSegmentsVertical = [
         `${width / 2} 0`,
-        `${width / 2} -${spacing}`,
-        `-${spacing} -${spacing}`,
-        `-${spacing} ${position.y + height / 2}`,
+        `${width / 2} -${margin}`,
+        `-${margin} -${margin}`,
+        `-${margin} ${position.y + height / 2}`,
         `0 ${position.y + height / 2}`
     ];
 
     const topLeftT0PathSegmentsVertical = [
         `${width / 2} ${position.y}`,
         `${width / 2} ${(height + position.y) / 2}`,
-        `-${spacing} ${(height + position.y) / 2}`,
-        `-${spacing} ${height / 2}`,
+        `-${margin} ${(height + position.y) / 2}`,
+        `-${margin} ${height / 2}`,
         `0 ${height / 2}`
     ];
 
     const topLeftS0PathSegmentsHorizontal = [
         `${width / 2} 0`,
-        `${width / 2} -${spacing}`,
-        `${(width + position.y) / 2} -${spacing}`,
+        `${width / 2} -${margin}`,
+        `${(width + position.y) / 2} -${margin}`,
         `${(width + position.y) / 2} ${height / 2}`,
         `${position.y} ${height / 2}`
     ];
 
     const topLeftT0PathSegmentsHorizontal = [
         `${position.y + width / 2} 0`,
-        `${position.y + width / 2} -${spacing}`,
-        `-${spacing} -${spacing}`,
-        `-${spacing} ${height / 2}`,
+        `${position.y + width / 2} -${margin}`,
+        `-${margin} -${margin}`,
+        `-${margin} ${height / 2}`,
         `0 ${height / 2}`
     ];
 
@@ -808,9 +808,9 @@ QUnit.module('routers', function(hooks) {
     const rightHorizontalPathSegments = [
         `${width} ${height / 2}`,
         `${(width + position.y) / 2} ${height / 2}`,
-        `${(width + position.y) / 2} -${spacing}`,
-        `${position.y + width + spacing} -${spacing}`,
-        `${position.y + width + spacing} ${height / 2}`,
+        `${(width + position.y) / 2} -${margin}`,
+        `${position.y + width + margin} -${margin}`,
+        `${position.y + width + margin} ${height / 2}`,
         `${position.y + width} ${height / 2}`
     ];
 
@@ -857,16 +857,16 @@ QUnit.module('routers', function(hooks) {
 
     const rightBottomS0VerticalPathSegments = [
         `${width} ${height / 2}`,
-        `${width + spacing} ${height / 2}`,
-        `${width + spacing} ${height + position.y + spacing}`,
-        `${width / 2} ${height + position.y + spacing}`,
+        `${width + margin} ${height / 2}`,
+        `${width + margin} ${height + position.y + margin}`,
+        `${width / 2} ${height + position.y + margin}`,
         `${width / 2} ${height + position.y}`
     ];
 
     const rightBottomT0VerticalPathSegments = [
         `${width} ${position.y + height / 2}`,
-        `${width + spacing} ${position.y + height / 2}`,
-        `${width + spacing} ${(height + position.y) / 2}`,
+        `${width + margin} ${position.y + height / 2}`,
+        `${width + margin} ${(height + position.y) / 2}`,
         `${width / 2} ${(height + position.y) / 2}`,
         `${width / 2} ${height}`
     ];
@@ -874,16 +874,16 @@ QUnit.module('routers', function(hooks) {
     const rightBottomS0HorizontalPathSegments = [
         `${width} ${height / 2}`,
         `${(width + position.y) / 2} ${height / 2}`,
-        `${(width + position.y) / 2} ${height + spacing}`,
-        `${position.y + width / 2} ${height + spacing}`,
+        `${(width + position.y) / 2} ${height + margin}`,
+        `${position.y + width / 2} ${height + margin}`,
         `${position.y + width / 2} ${height}`
     ];
 
     const rightBottomT0HorizontalPathSegments = [
         `${position.y + width} ${height / 2}`,
-        `${position.y + width + spacing} ${height / 2}`,
-        `${position.y + width + spacing} ${height + spacing}`,
-        `${width / 2} ${height + spacing}`,
+        `${position.y + width + margin} ${height / 2}`,
+        `${position.y + width + margin} ${height + margin}`,
+        `${width / 2} ${height + margin}`,
         `${width / 2} ${height}`
     ];
 
@@ -936,19 +936,19 @@ QUnit.module('routers', function(hooks) {
 
     const rightLeftS0VerticalPathSegments = [
         `${width} ${height / 2}`,
-        `${width + spacing} ${height / 2}`,
-        `${width + spacing} ${(height + position.y) / 2}`,
-        `-${spacing} ${(height + position.y) / 2}`,
-        `-${spacing} ${height / 2 + position.y}`,
+        `${width + margin} ${height / 2}`,
+        `${width + margin} ${(height + position.y) / 2}`,
+        `-${margin} ${(height + position.y) / 2}`,
+        `-${margin} ${height / 2 + position.y}`,
         `0 ${height / 2 + position.y}`
     ];
 
     const rightLeftT0VerticalPathSegments = [
         `${width} ${position.y + height / 2}`,
-        `${width + spacing} ${position.y + height / 2}`,
-        `${width + spacing} ${(position.y + height) / 2}`,
-        `-${spacing} ${(position.y + height) / 2}`,
-        `-${spacing} ${height / 2}`,
+        `${width + margin} ${position.y + height / 2}`,
+        `${width + margin} ${(position.y + height) / 2}`,
+        `-${margin} ${(position.y + height) / 2}`,
+        `-${margin} ${height / 2}`,
         `0 ${height / 2}`
     ];
 
@@ -961,10 +961,10 @@ QUnit.module('routers', function(hooks) {
 
     const rightLeftT0HorizontalPathSegments = [
         `${position.y + width} ${height / 2}`,
-        `${position.y + width + spacing} ${height / 2}`,
-        `${position.y + width + spacing} ${height + spacing}`,
-        `-${spacing} ${height + spacing}`,
-        `-${spacing} ${height / 2}`,
+        `${position.y + width + margin} ${height / 2}`,
+        `${position.y + width + margin} ${height + margin}`,
+        `-${margin} ${height + margin}`,
+        `-${margin} ${height / 2}`,
         `0 ${height / 2}`
     ];
 
@@ -1112,16 +1112,16 @@ QUnit.module('routers', function(hooks) {
     const bottomVerticalPathSegments = [
         `${width / 2} ${height}`,
         `${width / 2} ${(height + position.y) / 2}`,
-        `${width + spacing} ${(height + position.y) / 2}`,
-        `${width + spacing} ${position.y + height + spacing}`,
-        `${width / 2} ${position.y + height + spacing}`,
+        `${width + margin} ${(height + position.y) / 2}`,
+        `${width + margin} ${position.y + height + margin}`,
+        `${width / 2} ${position.y + height + margin}`,
         `${width / 2} ${position.y + height}`
     ];
 
     const bottomHorizontalPathSegments = [
         `${width / 2} ${height}`,
-        `${width / 2} ${height + spacing}`,
-        `${position.y + width / 2} ${height + spacing}`,
+        `${width / 2} ${height + margin}`,
+        `${position.y + width / 2} ${height + margin}`,
         `${position.y + width / 2} ${height}`
     ];
 
@@ -1175,32 +1175,32 @@ QUnit.module('routers', function(hooks) {
     const bottomLeftS0VerticalPathSegments = [
         `${width / 2} ${height}`,
         `${width / 2} ${(height + position.y) / 2}`,
-        `-${spacing} ${(height + position.y) / 2}`,
-        `-${spacing} ${position.y + height / 2}`,
+        `-${margin} ${(height + position.y) / 2}`,
+        `-${margin} ${position.y + height / 2}`,
         `0 ${position.y + height / 2}`
     ];
 
     const bottomLeftT0VerticalPathSegments = [
         `${width / 2} ${position.y + height}`,
-        `${width / 2} ${position.y + height + spacing}`,
-        `-${spacing} ${position.y + height + spacing}`,
-        `-${spacing} ${height / 2}`,
+        `${width / 2} ${position.y + height + margin}`,
+        `-${margin} ${position.y + height + margin}`,
+        `-${margin} ${height / 2}`,
         `0 ${height / 2}`
     ];
 
     const bottomLeftS0HorizontalPathSegments = [
         `${width / 2} ${height}`,
-        `${width / 2} ${height + spacing}`,
-        `${(position.y + width) / 2} ${height + spacing}`,
+        `${width / 2} ${height + margin}`,
+        `${(position.y + width) / 2} ${height + margin}`,
         `${(position.y + width) / 2} ${height / 2}`,
         `${position.y} ${height / 2}`
     ];
 
     const bottomLeftT0HorizontalPathSegments = [
         `${position.y + width / 2} ${height}`,
-        `${position.y + width / 2} ${height + spacing}`,
-        `-${spacing} ${height + spacing}`,
-        `-${spacing} ${height / 2}`,
+        `${position.y + width / 2} ${height + margin}`,
+        `-${margin} ${height + margin}`,
+        `-${margin} ${height / 2}`,
         `0 ${height / 2}`
     ];
 
@@ -1394,9 +1394,9 @@ QUnit.module('routers', function(hooks) {
 
     const leftHorizontalPathSegments = [
         `0 ${height / 2}`,
-        `-${spacing} ${height / 2}`,
-        `-${spacing} -${spacing}`,
-        `${(width + position.y) / 2} -${spacing}`,
+        `-${margin} ${height / 2}`,
+        `-${margin} -${margin}`,
+        `${(width + position.y) / 2} -${margin}`,
         `${(width + position.y) / 2} ${height / 2}`,
         `${position.y} ${height / 2}`
     ];

@@ -1,4 +1,4 @@
-<p>The <code>'rightAngle'</code> router returns a route with orthogonal line segments just like <code>'orthogonal'</code> router, except it ignores all vertices and constructs the path in compliance with <code>spacing</code> value. This router does not avoid obstacles. The behavior of the router can be modified by passing optional arguments:</p>
+<p>The <code>'rightAngle'</code> router returns a route with orthogonal line segments just like <code>'orthogonal'</code> router, except it ignores all vertices and constructs the path in compliance with <code>margin</code> value. This router does not avoid obstacles. The behavior of the router can be modified by passing optional arguments:</p>
 
 <div class="docs-important-note">
     This router completely ignores vertices, so using vertex tools such as <code>linkTools.Vertices</code> will not result in any change of path.
@@ -8,7 +8,7 @@
 
 <table>
     <tr>
-        <th>spacing</th>
+        <th>margin</th>
         <td><i>number</i></td>
         <td>The minimum distance between the route and the element. Default is <code>20</code>.</td>
     </tr>
@@ -27,7 +27,7 @@
 <p>Example:</p>
 
 <pre><code>link.router('rightAngle', {
-    spacing: 10,
+    margin: 10,
     sourceDirection: rightAngle.Directions.TOP,
     targetDirection: rightAngle.Directions.BOTTOM
 });</code></pre>

@@ -3455,7 +3455,7 @@ export namespace routers {
     }
 
     interface RightAngleRouterArguments {
-        spacing?: number;
+        margin?: number;
         sourceDirection?: RightAngleDirections;
         targetDirection?: RightAngleDirections;
     }
