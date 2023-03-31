@@ -269,30 +269,30 @@ export const toKebabCase = function(string) {
 
 export const normalizeEvent = function(evt) {
 
-    if (evt.isNormalized) return evt;
-    var normalizedEvent = evt;
-    var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
-    if (touchEvt) {
-        for (var property in evt) {
-            // copy all the properties from the input event that are not
-            // defined on the touch event (functions included).
-            if (touchEvt[property] === undefined) {
-                touchEvt[property] = evt[property];
+    if (evt.normalized) return evt;
+
+    const { originalEvent, target } = evt;
+
+    // If the event is a touch event, normalize it to a mouse event.
+    const touch = originalEvent && originalEvent.changedTouches && originalEvent.changedTouches[0];
+    if (touch) {
+        for (let property in touch) {
+            // copy all the properties from the first touch that are not
+            // defined on TouchEvent (clientX, clientY, pageX, pageY, screenX, screenY, identifier, ...)
+            if (evt[property] === undefined) {
+                evt[property] = touch[property];
             }
         }
-        normalizedEvent = touchEvt;
     }
-
     // IE: evt.target could be set to SVGElementInstance for SVGUseElement
-    var target = normalizedEvent.target;
     if (target) {
-        var useElement = target.correspondingUseElement;
-        if (useElement) normalizedEvent.target = useElement;
+        const useElement = target.correspondingUseElement;
+        if (useElement) evt.target = useElement;
     }
 
-    normalizedEvent.isNormalized = true;
+    evt.normalized = true;
 
-    return normalizedEvent;
+    return evt;
 };
 
 export const normalizeWheel = function(evt) {

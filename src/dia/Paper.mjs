@@ -2138,8 +2138,9 @@ export const Paper = View.extend({
             if (eventNode && rootViewEl !== eventNode && view.el.contains(eventNode)) {
                 const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
                     data: evt.data,
+                    // Originally the event listener was attached to the event element.
+                    currentTarget: eventNode
                 }));
-                eventEvt.currentTarget = eventNode;
                 this.onevent(eventEvt);
                 if (eventEvt.isDefaultPrevented()) {
                     evt.preventDefault();
@@ -2153,9 +2154,10 @@ export const Paper = View.extend({
             const magnetNode = target.closest('[magnet]');
             if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
                 const magnetEvt = normalizeEvent($.Event(evt.originalEvent, {
-                    data: evt.data
+                    data: evt.data,
+                    // Originally the event listener was attached to the magnet element.
+                    currentTarget: magnetNode
                 }));
-                magnetEvt.currentTarget = magnetNode;
                 this.onmagnet(magnetEvt);
                 if (magnetEvt.isDefaultPrevented()) {
                     evt.preventDefault();
