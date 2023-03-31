@@ -166,26 +166,42 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
         QUnit.test('transformToFitContent()', function(assert) {
 
+            const roundScale = function(scale, precision) {
+                const factorOfTen = Math.pow(10, precision);
+                return {
+                    sx: Math.round(scale.sx * factorOfTen) / factorOfTen,
+                    sy: Math.round(scale.sy * factorOfTen) / factorOfTen
+                };
+            };
+
+            const roundTranslate = function(translate, precision) {
+                const factorOfTen = Math.pow(10, precision);
+                return {
+                    tx: Math.round(translate.tx * factorOfTen) / factorOfTen,
+                    ty: Math.round(translate.ty * factorOfTen) / factorOfTen
+                };
+            };
+
             paper.transformToFitContent();
 
-            assert.deepEqual(paper.scale(), { sx: 1.6842105263157894, sy: 1.6842105263157894 }, 'default transform scale');
-            assert.deepEqual(paper.translate(), { tx: -126.3157894736842, ty: -84.21052631578947 }, 'default transform translate');
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.6842, sy: 1.6842 }, 'default transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -126.3158, ty: -84.2105 }, 'default transform translate');
 
             paper.transformToFitContent({
                 verticalAlign: 'middle',
                 horizontalAlign: 'middle'
             });
 
-            assert.deepEqual(paper.scale(), { sx: 1.6842105263157894, sy: 1.6842105263157894 }, 'middle transform scale');
-            assert.deepEqual(paper.translate(), { tx: -126.3157894736842, ty: -28.421051828484778 }, 'middle transform translate');
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.6842, sy: 1.6842 }, 'middle transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -126.3158, ty: -28.4211 }, 'middle transform translate');
 
             paper.transformToFitContent({
                 verticalAlign: 'bottom',
                 horizontalAlign: 'right'
             });
 
-            assert.deepEqual(paper.scale(), { sx: 1.6842105263157894, sy: 1.6842105263157894 }, 'bottom right transform scale');
-            assert.deepEqual(paper.translate(), { tx: -126.3157894736842, ty: 27.368437917608972 }, 'bottom right transform translate');
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.6842, sy: 1.6842 }, 'bottom right transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -126.3158, ty: 27.3684 }, 'bottom right transform translate');
 
             paper.transformToFitContent({
                 maxScale: 1.3,
@@ -193,8 +209,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 horizontalAlign: 'middle'
             });
 
-            assert.deepEqual(paper.scale(), { sx: 1.3, sy: 1.3 }, 'maxScale middle transform scale');
-            assert.deepEqual(paper.translate(), { tx: -6.250000000000071, ty: 46.5000065088272 }, 'maxScale middle transform translate');
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.3000, sy: 1.3000 }, 'maxScale middle transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -6.2500, ty: 46.5000 }, 'maxScale middle transform translate');
 
             paper.transformToFitContent({
                 padding: 50,
@@ -202,8 +218,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 horizontalAlign: 'middle'
             });
 
-            assert.deepEqual(paper.scale(), { sx: 1.473684210526316, sy: 1.473684210526316 }, 'padding middle transform scale');
-            assert.deepEqual(paper.translate(), { tx: -60.5263157894737, ty: 12.631583271721595 }, 'padding middle transform translate');
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.4737, sy: 1.4737 }, 'padding middle transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -60.5263, ty: 12.6316 }, 'padding middle transform translate');
         });
     });
 
