@@ -1302,13 +1302,12 @@ export const Paper = View.extend({
         return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
     },
 
-    scaleContentToFit: function(opt) {
-
+    transformToFitContent: function(opt) {
         opt || (opt = {});
 
-        var contentBBox, contentLocalOrigin;
+        let contentBBox, contentLocalOrigin;
         if ('contentArea' in opt) {
-            var contentArea = opt.contentArea;
+            const contentArea = opt.contentArea;
             contentBBox = this.localToPaperRect(contentArea);
             contentLocalOrigin = new Point(contentArea);
         } else {
@@ -1323,7 +1322,9 @@ export const Paper = View.extend({
             preserveAspectRatio: true,
             scaleGrid: null,
             minScale: 0,
-            maxScale: Number.MAX_VALUE
+            maxScale: Number.MAX_VALUE,
+            verticalAlign: 'top',
+            horizontalAlign: 'left',
             //minScaleX
             //minScaleY
             //maxScaleX
@@ -1331,19 +1332,19 @@ export const Paper = View.extend({
             //fittingBBox
         });
 
-        var padding = normalizeSides(opt.padding);
+        const padding = normalizeSides(opt.padding);
 
-        var minScaleX = opt.minScaleX || opt.minScale;
-        var maxScaleX = opt.maxScaleX || opt.maxScale;
-        var minScaleY = opt.minScaleY || opt.minScale;
-        var maxScaleY = opt.maxScaleY || opt.maxScale;
+        const minScaleX = opt.minScaleX || opt.minScale;
+        const maxScaleX = opt.maxScaleX || opt.maxScale;
+        const minScaleY = opt.minScaleY || opt.minScale;
+        const maxScaleY = opt.maxScaleY || opt.maxScale;
 
-        var fittingBBox;
+        let fittingBBox;
         if (opt.fittingBBox) {
             fittingBBox = opt.fittingBBox;
         } else {
-            var currentTranslate = this.translate();
-            var computedSize = this.getComputedSize();
+            const currentTranslate = this.translate();
+            const computedSize = this.getComputedSize();
             fittingBBox = {
                 x: currentTranslate.tx,
                 y: currentTranslate.ty,
@@ -1359,10 +1360,10 @@ export const Paper = View.extend({
             height: -padding.top - padding.bottom
         });
 
-        var currentScale = this.scale();
+        const currentScale = this.scale();
 
-        var newSx = fittingBBox.width / contentBBox.width * currentScale.sx;
-        var newSy = fittingBBox.height / contentBBox.height * currentScale.sy;
+        let newSx = fittingBBox.width / contentBBox.width * currentScale.sx;
+        let newSy = fittingBBox.height / contentBBox.height * currentScale.sy;
 
         if (opt.preserveAspectRatio) {
             newSx = newSy = Math.min(newSx, newSy);
@@ -1371,7 +1372,7 @@ export const Paper = View.extend({
         // snap scale to a grid
         if (opt.scaleGrid) {
 
-            var gridSize = opt.scaleGrid;
+            const gridSize = opt.scaleGrid;
 
             newSx = gridSize * Math.floor(newSx / gridSize);
             newSy = gridSize * Math.floor(newSy / gridSize);
@@ -1381,12 +1382,45 @@ export const Paper = View.extend({
         newSx = Math.min(maxScaleX, Math.max(minScaleX, newSx));
         newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
 
-        var origin = this.options.origin;
-        var newOx = fittingBBox.x - contentLocalOrigin.x * newSx - origin.x;
-        var newOy = fittingBBox.y - contentLocalOrigin.y * newSy - origin.y;
+        const scaleDiff = {
+            x: newSx / currentScale.sx,
+            y: newSy / currentScale.sy
+        };
+
+        const origin = this.options.origin;
+        let newOx = fittingBBox.x - contentLocalOrigin.x * newSx - origin.x;
+        let newOy = fittingBBox.y - contentLocalOrigin.y * newSy - origin.y;
+
+        switch (opt.verticalAlign) {
+            case 'middle':
+                newOy = newOy + (fittingBBox.height - contentBBox.height * scaleDiff.y) / 2;
+                break;
+            case 'bottom':
+                newOy = newOy + (fittingBBox.height - contentBBox.height * scaleDiff.y);
+                break;
+            case 'top':
+            default:
+                break;
+        }
+
+        switch (opt.horizontalAlign) {
+            case 'middle':
+                newOx = newOx + (fittingBBox.width - contentBBox.width * scaleDiff.x) / 2;
+                break;
+            case 'right':
+                newOx = newOx + (fittingBBox.width - contentBBox.width * scaleDiff.x);
+                break;
+            case 'left':
+            default:
+                break;
+        }
 
         this.scale(newSx, newSy);
         this.translate(newOx, newOy);
+    },
+
+    scaleContentToFit: function(opt) {
+        this.transformToFitContent(opt);
     },
 
     // Return the dimensions of the content area in local units (without transformations).

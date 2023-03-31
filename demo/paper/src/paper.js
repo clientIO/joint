@@ -147,6 +147,8 @@ var $stfMinScale = $('#stf-min-scale');
 var $stfMaxScale = $('#stf-max-scale');
 var $stfScaleGrid = $('#stf-scale-grid');
 var $stfRatio = $('#stf-ratio');
+var $stfVerticalAlign = $('#stf-vertical-align');
+var $stfHorizontalAlign = $('#stf-horizontal-align');
 var $bboxX = $('#bbox-x');
 var $bboxY = $('#bbox-y');
 var $bboxW = $('#bbox-width');
@@ -285,18 +287,20 @@ function fitToContent() {
     svgContainer.showAll();
 }
 
-function scaleToFit() {
+function transformToFitContent() {
 
     svgContainer.removeAll();
 
     var padding = parseInt($stfPadding.val(), 10);
 
-    paper.scaleContentToFit({
+    paper.transformToFitContent({
         padding: padding,
         minScale: parseFloat($stfMinScale.val()),
         maxScale: parseFloat($stfMaxScale.val()),
         scaleGrid: parseFloat($stfScaleGrid.val()),
-        preserveAspectRatio: $stfRatio.is(':checked')
+        preserveAspectRatio: $stfRatio.is(':checked'),
+        verticalAlign: $stfVerticalAlign.val(),
+        horizontalAlign: $stfHorizontalAlign.val(),
     });
 
     paper.viewport.getBoundingClientRect(); // MS Edge hack to fix the invisible text.
@@ -341,7 +345,8 @@ function updateBBox() {
 /* events */
 
 $('#fit-to-content input, #fit-to-content select').on('input change', fitToContent);
-$('#scale-to-fit input').on('input change', scaleToFit);
+$('#scale-to-fit').on('change', transformToFitContent);
+$('#stf-scale-to-fit').on('click', transformToFitContent);
 
 $ox.on('input change', function() {
     paper.setOrigin(parseInt(this.value, 10), parseInt($oy.val(), 10));
@@ -402,7 +407,9 @@ paper.on({
 
 graph.on('change', function() {
     svgContainer.hideAll();
-    updateBBox();
+    setTimeout(() => {
+        updateBBox();
+    }, 0);
 });
 
 updateBBox();

@@ -42,8 +42,8 @@
             </div>
             <div class="form-group">
               <label for="width" title="Width of the paper in pixels">Width</label>
-              <input id="width" class="form-control" type="range" value="650" min="100" max="1200" autocomplete="off"/>
-              <output for="width">650</output>
+              <input id="width" class="form-control" type="range" value="600" min="100" max="1200" autocomplete="off"/>
+              <output for="width">600</output>
             </div>
             <div class="form-group">
               <label for="height" title="Height of the paper in pixels">Height</label>
@@ -52,8 +52,8 @@
             </div>
             <div class="form-group">
               <label for="grid" title="Size of the grid in pixels">Grid size</label>
-              <input id="grid" class="range" type="range" value="1" min="1" max="50" autocomplete="off"/>
-              <output for="grid">1</output>
+              <input id="grid" class="range" type="range" value="10" min="1" max="50" autocomplete="off"/>
+              <output for="grid">10</output>
             </div>
           </div>
         </div>
@@ -127,7 +127,7 @@
       </div>
 
       <div id="scale-to-fit" class="panel panel-primary">
-        <div class="panel-heading"><a href="http://resources.jointjs.com/docs/jointjs/#dia.Paper.prototype.scaleContentToFit" target="_top">Scale content to fit</a></div>
+        <div class="panel-heading"><a href="http://resources.jointjs.com/docs/jointjs/#dia.Paper.prototype.transformToFitContent" target="_top">Transform to fit content.</a></div>
         <div class="panel-body">
           <div class="form-group">
             <label for="stf-padding" title="Add an additional padding in the resulting, scaled, paper content">Padding</label>
@@ -141,8 +141,8 @@
           </div>
           <div class="form-group">
             <label for="stf-max-scale" title="Set the maximum allowed scale factor">Max scale</label>
-            <input id="stf-max-scale" class="range" type="range" value="3.0" step="0.1" min="1" max="3" autocomplete="off"/>
-            <output for="stf-max-scale">3.0</output>
+            <input id="stf-max-scale" class="range" type="range" value="1.0" step="0.1" min="1" max="3" autocomplete="off"/>
+            <output for="stf-max-scale">1.0</output>
           </div>
           <div class="form-group">
             <label for="stf-scale-grid" title="Set the rounding factor for the resulting scale">Scale grid</label>
@@ -154,6 +154,23 @@
               <input id="stf-ratio" type="checkbox" checked autocomplete="off"/>Preserve aspect ratio
             </label>
           </div>
+          <div class="form-group">
+            <label for="stf-vertical-align">Vertical align</label>
+            <select id="stf-vertical-align">
+              <option value="top">top</option>
+              <option value="middle" selected>middle</option>
+              <option value="bottom">bottom</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="stf-horizontal-align">Horizontal align</label>
+            <select id="stf-horizontal-align">
+              <option value="left">left</option>
+              <option value="middle" selected>middle</option>
+              <option value="right">right</option>
+            </select>
+          </div>
+          <button id="stf-scale-to-fit">Transform to fit</button>
         </div>
       </div>
 

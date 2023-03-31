@@ -95,6 +95,134 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
     });
 
+    QUnit.module('transformToFitContent', function() {
+
+        hooks.beforeEach(function() {
+            const testGraph = new joint.dia.Graph();
+            testGraph.addCells([
+                {
+                    'type': 'standard.Rectangle',
+                    'position': {
+                        'x': 75,
+                        'y': 175
+                    },
+                    'size': {
+                        'width': 100,
+                        'height': 40
+                    },
+                },
+                {
+                    'type': 'standard.Rectangle',
+                    'position': {
+                        'x': 450,
+                        'y': 150
+                    },
+                    'size': {
+                        'width': 100,
+                        'height': 40
+                    }
+                },
+                {
+                    'type': 'standard.Rectangle',
+                    'position': {
+                        'x': 450,
+                        'y': 200
+                    },
+                    'size': {
+                        'width': 100,
+                        'height': 40
+                    }
+                },
+                {
+                    'type': 'standard.Rectangle',
+                    'position': {
+                        'x': 325,
+                        'y': 300
+                    },
+                    'size': {
+                        'width': 100,
+                        'height': 40
+                    }
+                },
+                {
+                    'type': 'standard.Rectangle',
+                    'position': {
+                        'x': 325,
+                        'y': 50
+                    },
+                    'size': {
+                        'width': 100,
+                        'height': 40
+                    }
+                }
+            ]);
+
+            paper = new Paper({
+                el: paperEl,
+                model: testGraph,
+                async: false
+            });
+        });
+
+        QUnit.test('transformToFitContent()', function(assert) {
+
+            const roundScale = function(scale, precision) {
+                const factorOfTen = Math.pow(10, precision);
+                return {
+                    sx: Math.round(scale.sx * factorOfTen) / factorOfTen,
+                    sy: Math.round(scale.sy * factorOfTen) / factorOfTen
+                };
+            };
+
+            const roundTranslate = function(translate, precision) {
+                const factorOfTen = Math.pow(10, precision);
+                return {
+                    tx: Math.round(translate.tx * factorOfTen) / factorOfTen,
+                    ty: Math.round(translate.ty * factorOfTen) / factorOfTen
+                };
+            };
+
+            paper.transformToFitContent();
+
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.6842, sy: 1.6842 }, 'default transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -126.3158, ty: -84.2105 }, 'default transform translate');
+
+            paper.transformToFitContent({
+                verticalAlign: 'middle',
+                horizontalAlign: 'middle'
+            });
+
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.6842, sy: 1.6842 }, 'middle transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -126.3158, ty: -28.4211 }, 'middle transform translate');
+
+            paper.transformToFitContent({
+                verticalAlign: 'bottom',
+                horizontalAlign: 'right'
+            });
+
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.6842, sy: 1.6842 }, 'bottom right transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -126.3158, ty: 27.3684 }, 'bottom right transform translate');
+
+            paper.transformToFitContent({
+                maxScale: 1.3,
+                verticalAlign: 'middle',
+                horizontalAlign: 'middle'
+            });
+
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.3000, sy: 1.3000 }, 'maxScale middle transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -6.2500, ty: 46.5000 }, 'maxScale middle transform translate');
+
+            paper.transformToFitContent({
+                padding: 50,
+                verticalAlign: 'middle',
+                horizontalAlign: 'middle'
+            });
+
+            assert.deepEqual(roundScale(paper.scale(), 4), { sx: 1.4737, sy: 1.4737 }, 'padding middle transform scale');
+            assert.deepEqual(roundTranslate(paper.translate(), 4), { tx: -60.5263, ty: 12.6316 }, 'padding middle transform translate');
+        });
+    });
+
     QUnit.module('async = FALSE', function(hooks) {
 
         hooks.beforeEach(function() {
