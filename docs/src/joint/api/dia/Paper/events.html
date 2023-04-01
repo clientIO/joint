@@ -346,6 +346,19 @@
         <p>Triggered when interacting with a magnet target.</p>
         <p>The callback function is passed <code>elementView</code>, <code>evt</code>, <code>magnetSVGElement</code>, <code>x</code>, <code>y</code> as arguments.</p>
         <table>
+
+          <tr>
+            <th>element:magnet:pointerdown</th>
+            <td>Triggered when pointer is pressed down on a magnet element.</td>
+          </tr>
+          <tr>
+            <th>element:magnet:pointermove</th>
+            <td>Triggered when pointer is moved after pointerdown on the magnet element.</td>
+          </tr>
+          <tr>
+            <th>element:magnet:pointerup</th>
+            <td>Triggered when pointer is released after pointerdown on the magnet element.</td>
+          </tr>
           <tr>
             <th>element:magnet:pointerclick</th>
             <td>Triggered when pointer is clicked on an element magnet and no link was created yet from this magnet (controlled by <a href="#dia.Paper.prototype.options.magnetThreshold">magnetThreshold</a> option). Calling <code>evt.stopPropagation()</code> prevents triggering <code>cell:pointerclick</code> and <code>element:pointerclick</code> events.</td>
