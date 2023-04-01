@@ -811,6 +811,10 @@ export namespace dia {
 
         dragLinkEnd(evt: dia.Event, x: number, y: number): void;
 
+        preventDefaultAction(evt: dia.Event): void;
+
+        isDefaultActionPrevented(evt: dia.Event): boolean;
+
         protected removeHighlighters(): void;
 
         protected updateHighlighters(): void;
