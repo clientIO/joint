@@ -4,14 +4,13 @@ QUnit.module('cell', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        var $fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
-        var $paper = $('<div/>');
-        $fixture.append($paper);
+        const fixtureEl = fixtures.getElement();
+        const paperEl = document.createElement('div');
+        fixtureEl.appendChild(paperEl);
 
         this.graph = new joint.dia.Graph;
         this.paper = new joint.dia.Paper({
-
-            el: $paper,
+            el: paperEl,
             gridSize: 10,
             model: this.graph
         });

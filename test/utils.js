@@ -150,5 +150,59 @@ window.simulate = {
 
         this.mousedown(opt);
         return this.mouseup(opt);
+    },
+
+    touchevent: function(touchInit) {
+
+        const touchEvt = new TouchEvent(touchInit.type, {
+            cancelable: true,
+            bubbles: true,
+            changedTouches: [new Touch({
+                ...touchInit,
+                identifier: Date.now(),
+            })],
+        });
+
+        if (touchInit.target) {
+            touchInit.target.dispatchEvent(touchEvt);
+        }
+        return touchEvt;
+    },
+
+    touchstart: function(touchInit) {
+        return this.touchevent({ ...touchInit, type: 'touchstart' });
+    },
+
+    touchmove: function(touchInit) {
+        return this.touchevent({ ...touchInit, type: 'touchmove' });
+    },
+
+    touchend: function(touchInit) {
+        return this.touchevent({ ...touchInit, type: 'touchend' });
     }
 };
+
+window.fixtures = {
+    getElement: function() {
+        let fixtureEl = document.getElementById('qunit-fixture');
+        if (fixtureEl) return fixtureEl;
+        fixtureEl = document.createElement('div');
+        fixtureEl.id = 'qunit-fixture';
+        document.body.appendChild(fixtureEl);
+        return fixtureEl;
+    },
+
+    moveToViewport: function() {
+        const fixtureEl = this.getElement();
+        fixtureEl.style.top = '0px';
+        fixtureEl.style.left = '0px';
+    },
+
+    moveOffscreen: function() {
+        const fixtureEl = this.getElement();
+        // The actual move offscreen is done in the CSS file.
+        fixtureEl.style.top = '';
+        fixtureEl.style.left = '';
+    }
+};
+

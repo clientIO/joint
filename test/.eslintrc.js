@@ -19,7 +19,8 @@ module.exports = {
         'QUnit': true,
         'sinon': true,
         'blanket': true,
-        'simulate': true
+        'simulate': true,
+        'fixtures': true,
     },
     'overrides': [{
         'files': ['ts/*.ts'],

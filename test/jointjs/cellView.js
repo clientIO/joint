@@ -9,10 +9,9 @@ QUnit.module('cellView', function(hooks) {
 
         // !! TODO !!
         // Should be able to create a CellView instance without the graph or paper.
-
-        var $fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
+        const fixtureEl = fixtures.getElement();
         paper = new joint.dia.Paper;
-        paper.render().$el.appendTo($fixture);
+        fixtureEl.appendChild(paper.render().el);
 
         var cell = new joint.dia.Element({
             type: 'element',

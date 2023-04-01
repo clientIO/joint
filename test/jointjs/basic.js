@@ -2,13 +2,12 @@ QUnit.module('basic', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        this.$fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
-        var $paper = $('<div/>');
-        this.$fixture.append($paper);
-
+        const fixtureEl = fixtures.getElement();
+        const paperEl = document.createElement('div');
+        fixtureEl.appendChild(paperEl);
         this.graph = new joint.dia.Graph;
         this.paper = new joint.dia.Paper({
-            el: $paper,
+            el: paperEl,
             gridSize: 10,
             model: this.graph
         });
@@ -19,8 +18,6 @@ QUnit.module('basic', function(hooks) {
         this.paper.remove();
         this.graph = null;
         this.paper = null;
-        this.$fixture.empty();
-        this.$fixture = null;
     });
 
     this.setupTestNestedGraph = function(graph) {

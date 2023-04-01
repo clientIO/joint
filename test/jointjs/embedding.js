@@ -1,13 +1,14 @@
 QUnit.module('embedding', function(hooks) {
+
     hooks.beforeEach(function() {
 
-        var $fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
-        var $paper = $('<div/>');
-        $fixture.append($paper);
+        const fixtureEl = fixtures.getElement();
+        const paperEl = document.createElement('div');
+        fixtureEl.appendChild(paperEl);
 
         this.graph = new joint.dia.Graph;
         this.paper = new joint.dia.Paper({
-            el: $paper,
+            el: paperEl,
             gridSize: 1,
             model: this.graph,
             embeddingMode: true
@@ -20,7 +21,6 @@ QUnit.module('embedding', function(hooks) {
         this.graph = null;
         this.paper = null;
     });
-
 
     QUnit.test('sanity', function(assert) {
 

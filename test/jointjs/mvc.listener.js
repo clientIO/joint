@@ -1,13 +1,10 @@
 'use strict';
 
 const createPaperHTMLElement = () => {
-    const fixtureEl = document.createElement('div');
-    fixtureEl.setAttribute('id', 'qunit-fixture');
-    document.body.appendChild(fixtureEl);
 
+    const fixtureEl = fixtures.getElement();
     const paperEl = document.createElement('div');
     fixtureEl.appendChild(paperEl);
-
     return paperEl;
 };
 
@@ -33,11 +30,11 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
             this.graph = null;
             this.rect = null;
         });
-        
+
         QUnit.test('stop listening', (assert) => {
             const newPosition = { x: 100, y: 100 };
             const newSize = { width: 100, height: 100 };
-            
+
             const positionCb = sinon.spy();
             const sizeCb = sinon.spy();
             const rectEvents = {
@@ -80,7 +77,7 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
 
                 listener.listenTo(this.graph, graphEvents);
                 listener.listenTo(paper, paperEvents);
-            
+
                 this.rect.position(newPosition.x, newPosition.y);
                 this.rect.remove();
                 assert.ok(graphCb.calledWith(...args, this.rect, newPosition));
@@ -102,7 +99,7 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
 
                 const listener = new joint.mvc.Listener();
                 listener.listenTo(this.graph, events);
-            
+
                 this.rect.position(newPosition.x, newPosition.y);
                 this.rect.remove();
                 assert.ok(removeCb.calledWith(this.rect));
@@ -123,7 +120,7 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
 
                 const listener = new joint.mvc.Listener(...args);
                 listener.listenTo(this.graph, events);
-            
+
                 this.rect.position(newPosition.x, newPosition.y);
                 this.rect.remove();
                 assert.ok(removeCb.calledWith(...args, this.rect));
@@ -145,7 +142,7 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
 
                 const listener = new joint.mvc.Listener(...args);
                 listener.listenTo(this.graph, events, context);
-            
+
                 this.rect.position(newPosition.x, newPosition.y);
                 this.rect.remove();
                 assert.ok(removeCb.calledOn(context));
@@ -169,7 +166,7 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
                 const paperCb = sinon.spy();
                 listener.listenTo(this.graph, 'change:position', graphCb);
                 listener.listenTo(paper, 'render:done', paperCb);
-            
+
                 this.rect.position(newPosition.x, newPosition.y);
                 assert.ok(graphCb.calledWith(this.rect, newPosition));
                 assert.ok(paperCb.called);
@@ -183,7 +180,7 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
                 const listener = new joint.mvc.Listener();
                 const callback = sinon.spy();
                 listener.listenTo(this.graph, 'change:position', callback);
-            
+
                 this.rect.position(newPosition.x, newPosition.y);
                 assert.ok(callback.calledWith(this.rect, newPosition));
             });
@@ -195,7 +192,7 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
                 const listener = new joint.mvc.Listener(...args);
                 const callback = sinon.spy();
                 listener.listenTo(this.graph, 'change:position', callback);
-            
+
                 this.rect.position(newPosition.x, newPosition.y);
                 assert.ok(callback.calledWith(...args, this.rect, newPosition));
             });
@@ -208,7 +205,7 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
                 const listener = new joint.mvc.Listener(...args);
                 const callback = sinon.spy();
                 listener.listenTo(this.graph, 'change:position', callback, context);
-            
+
                 this.rect.position(newPosition.x, newPosition.y);
                 assert.ok(callback.calledOn(context));
                 assert.ok(callback.calledWith(...args, this.rect, newPosition));

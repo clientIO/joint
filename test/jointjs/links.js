@@ -2,14 +2,13 @@ QUnit.module('links', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        var $fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
-        var $paper = $('<div/>');
-        $fixture.append($paper);
+        const fixtureEl = fixtures.getElement();
+        const paperEl = document.createElement('div');
+        fixtureEl.appendChild(paperEl);
 
         this.graph = new joint.dia.Graph;
         this.paper = new joint.dia.Paper({
-
-            el: $paper,
+            el: paperEl,
             gridSize: 10,
             model: this.graph
         });
@@ -790,7 +789,7 @@ QUnit.module('links', function(hooks) {
                     target: { id: r2.id },
                     labels: [{
                         // l0-label0 - expect default dimensions (based on text size)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l0-label1 - expect default dimensions (based on text size)
                         size: { width: 100, height: 30 }, // this should have no effect
@@ -833,7 +832,7 @@ QUnit.module('links', function(hooks) {
                     target: { id: r2.id },
                     labels: [{
                         // l1-label0 - expect default dimensions (based on text size)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l1-label1 - expect `label.size` dimensions = (101,31)
                         size: { width: 101, height: 31 },
@@ -865,7 +864,7 @@ QUnit.module('links', function(hooks) {
                     },
                     labels: [{
                         // l2-label0 - expect instance-specific `defaultLabel.size` dimensions = (102,32)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l2-label1 - expect `label.size` dimensions = (101,31)
                         size: { width: 101, height: 31 },
@@ -901,7 +900,7 @@ QUnit.module('links', function(hooks) {
                     target: { id: r2.id },
                     labels: [{
                         // l3-label0 - expect class-specific `defaultLabel.size` dimensions = (103, 33)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l3-label1 - expect `label.size` dimensions = (101,31)
                         size: { width: 101, height: 31 },
@@ -933,7 +932,7 @@ QUnit.module('links', function(hooks) {
                     },
                     labels: [{
                         // l4-label0 - expect instance-specific `defaultLabel.size` dimensions = (104,34)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l4-label1 - expect `label.size` dimensions = (101,31)
                         size: { width: 101, height: 31 },
@@ -974,7 +973,7 @@ QUnit.module('links', function(hooks) {
                     target: { id: r2.id },
                     labels: [{
                         // l0-label0 - expect default dimensions (based on text size)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l0-label1 - expect default dimensions (based on text size)
                         size: { width: 100, height: 30 }, // this should have no effect
@@ -1025,7 +1024,7 @@ QUnit.module('links', function(hooks) {
                     target: { id: r2.id },
                     labels: [{
                         // l1-label0 - expect default dimensions (based on text size)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l1-label1 - expect `label.size` dimensions = (101,31)
                         size: { width: 101, height: 31 },
@@ -1057,7 +1056,7 @@ QUnit.module('links', function(hooks) {
                     },
                     labels: [{
                         // l2-label0 - expect instance-specific `defaultLabel.size` dimensions = (102,32)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l2-label1 - expect `label.size` dimensions = (101,31)
                         size: { width: 101, height: 31 },
@@ -1093,7 +1092,7 @@ QUnit.module('links', function(hooks) {
                     target: { id: r2.id },
                     labels: [{
                         // l3-label0 - expect class-specific `defaultLabel.size` dimensions = (103, 33)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l3-label1 - expect `label.size` dimensions = (101,31)
                         size: { width: 101, height: 31 },
@@ -1125,7 +1124,7 @@ QUnit.module('links', function(hooks) {
                     },
                     labels: [{
                         // l4-label0 - expect instance-specific `defaultLabel.size` dimensions = (104,34)
-                        attrs: { text: { text: 'test'}}
+                        attrs: { text: { text: 'test' }}
                     },{
                         // l4-label1 - expect `label.size` dimensions = (101,31)
                         size: { width: 101, height: 31 },

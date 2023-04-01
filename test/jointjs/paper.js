@@ -2,13 +2,12 @@ QUnit.module('paper', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        var $fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
-        var $paper = $('<div/>');
-        $fixture.append($paper);
-
+        const fixtureEl = fixtures.getElement();
+        const paperEl = document.createElement('div');
+        fixtureEl.appendChild(paperEl);
         this.graph = new joint.dia.Graph;
         this.paper = new joint.dia.Paper({
-            el: $paper,
+            el: paperEl,
             gridSize: 10,
             model: this.graph
         });
@@ -787,6 +786,27 @@ QUnit.module('paper', function(hooks) {
         assert.ok(spy.calledOnce);
     });
 
+    QUnit.test('paper.options: moveThreshold < TOUCH EVENTS', function(assert) {
+
+        var graph = this.graph;
+        var paper = this.paper;
+        var el = (new joint.shapes.basic.Rect()).size(100, 100).position(0, 0).addTo(graph);
+        var elView = el.findView(paper);
+        var elRect = elView.el.querySelector('rect');
+        var spy = sinon.spy();
+
+        paper.options.moveThreshold = 2;
+        paper.on('element:pointermove', spy);
+
+        simulate.touchstart({ target: elRect });
+        simulate.touchmove({ target: elRect }); // Ignored
+        simulate.touchmove({ target: elRect }); // Ignored
+        simulate.touchmove({ target: elRect }); // Processed
+        simulate.touchend({ target: elRect });
+
+        assert.ok(spy.calledOnce);
+    });
+
 
     QUnit.module('paper.options: magnetThreshold', function(hooks) {
 
@@ -813,6 +833,18 @@ QUnit.module('paper', function(hooks) {
             simulate.mouseup({ el: elRect });
         });
 
+        QUnit.test('magnetThreshold: number (0) < TOUCH EVENTS', function(assert) {
+
+            var graph = this.graph;
+            var paper = this.paper;
+
+            paper.options.magnetThreshold = 0;
+
+            simulate.touchstart({ target: elRect });
+            assert.equal(graph.getLinks().length, 1);
+            simulate.touchend({ target: elRect });
+        });
+
         QUnit.test('magnetThreshold: number (1+)', function(assert) {
 
             var graph = this.graph;
@@ -829,6 +861,23 @@ QUnit.module('paper', function(hooks) {
             simulate.mouseup({ el: elRect });
         });
 
+
+        QUnit.test('magnetThreshold: number (1+) > TOUCH EVENTS', function(assert) {
+
+            var graph = this.graph;
+            var paper = this.paper;
+
+            paper.options.magnetThreshold = 2;
+
+            simulate.touchstart({ target: elRect });
+            simulate.touchmove({ target: elRect }); // Ignored
+            simulate.touchmove({ target: elRect }); // Ignored
+            assert.equal(graph.getLinks().length, 0);
+            simulate.touchmove({ target: elRect }); // Processed
+            assert.equal(graph.getLinks().length, 1);
+            simulate.touchend({ target: elRect });
+        });
+
         QUnit.test('magnetThreshold: string ("onleave")', function(assert) {
 
             var graph = this.graph;
@@ -843,6 +892,31 @@ QUnit.module('paper', function(hooks) {
             simulate.mousemove({ el: paper.svg }); // Processed
             assert.equal(graph.getLinks().length, 1);
             simulate.mouseup({ el: paper.svg });
+        });
+
+        QUnit.test('magnetThreshold: string ("onleave") < TOUCH EVENTS', function(assert) {
+
+            // document.elementFromPoint() does not work with negative coordinates.
+            fixtures.moveToViewport();
+
+            var graph = this.graph;
+            var paper = this.paper;
+
+            paper.options.magnetThreshold = 'onleave';
+
+            const rect = elRect.getBoundingClientRect();
+            const clientX = rect.left + rect.width / 2;
+            const clientY = rect.top + rect.height / 2;
+
+            simulate.touchstart({ target: elRect });
+            simulate.touchmove({ target: elRect, clientX, clientY }); // Ignored
+            simulate.touchmove({ target: elRect, clientX, clientY }); // Ignored
+            assert.equal(graph.getLinks().length, 0);
+            simulate.touchmove({ target: elRect, clientX: clientX + rect.width, clientY }); // Processed
+            assert.equal(graph.getLinks().length, 1);
+            simulate.touchend({ target: elRect });
+
+            fixtures.moveOffscreen();
         });
     });
 
