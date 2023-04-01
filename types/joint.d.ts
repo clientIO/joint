@@ -1433,6 +1433,9 @@ export namespace dia {
         $grid: JQuery;
         $background: JQuery;
 
+        GUARDED_TAG_NAMES: string[];
+        FORM_CONTROLS_TAG_NAMES: string[];
+
         matrix(): SVGMatrix;
         matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
 
