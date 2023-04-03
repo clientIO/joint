@@ -29,7 +29,7 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     }
 }
 
-function rightAngle(_vertices, opt, linkView) {
+function rightAngleRouter(_vertices, opt, linkView) {
     const margin = opt.margin || 20;
     let { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
 
@@ -51,13 +51,13 @@ function rightAngle(_vertices, opt, linkView) {
     const targetBBox = linkView.targetBBox;
     const sourcePoint = linkView.sourceAnchor;
     const targetPoint = linkView.targetAnchor;
-    let { 
+    let {
         x: sx0,
         y: sy0,
         width: sourceWidth = 0,
         height: sourceHeight = 0
     } = sourceView && sourceView.model.isElement() ? g.Rect.fromRectUnion(sourceBBox, sourceView.model.getBBox()) : linkView.sourceAnchor;
-    
+
     let {
         x: tx0,
         y: ty0,
@@ -112,11 +112,11 @@ function rightAngle(_vertices, opt, linkView) {
             break;
     }
     const targetOutsidePoint = targetPoint.clone();
-    
-    
+
+
     let targetSide;
 
-    
+
     if (!targetView) {
         const targetLinkAnchorBBox = new g.Rect(tx0, ty0, 0, 0);
         targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : targetLinkAnchorBBox.sideNearestToPoint(sourcePoint);
@@ -195,7 +195,7 @@ function rightAngle(_vertices, opt, linkView) {
                 { x: tox, y: toy }
             ];
         }
-        
+
         const x = (sox + tox) / 2;
         return [
             { x, y: soy },
@@ -541,7 +541,7 @@ function rightAngle(_vertices, opt, linkView) {
                 { x: tox, y }
             ];
         }
-        
+
         const x = Math.min(tmx0, sox);
         const y = Math.max(sy1, ty1) + margin;
 
@@ -584,7 +584,7 @@ function rightAngle(_vertices, opt, linkView) {
             { x, y },
             { x: tox, y }
         ];
-        
+
     } else if (sourceSide === 'right' && targetSide === 'top') {
         if (sox < tox && soy < tmy0) {
             return [{ x: tox, y: soy }];
@@ -606,7 +606,7 @@ function rightAngle(_vertices, opt, linkView) {
                 { x: sox, y: soy },
                 { x: sox, y },
                 { x: tox, y }
-            ];  
+            ];
         }
 
         const x = Math.max(sx1, tx1) + margin;
@@ -639,7 +639,7 @@ function rightAngle(_vertices, opt, linkView) {
                 { x: tox, y }
             ];
         }
-        
+
         const x = Math.max(tmx1, sox);
         const y = Math.max(sy1, ty1) + margin;
 
@@ -651,5 +651,6 @@ function rightAngle(_vertices, opt, linkView) {
     }
 }
 
-rightAngle.Directions = Directions;
-export default rightAngle;
+rightAngleRouter.Directions = Directions;
+
+export const rightAngle = rightAngleRouter;
