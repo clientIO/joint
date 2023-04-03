@@ -1,0 +1,11 @@
+<p>The value is not rendered as part of the graphics, but it's used to set the value of the form control element (used typically with an <i>input</i> inside the <i>foreignObject</i>).</p>
+
+<pre><code>element.attr('input/value', 'Text');</code></pre>
+
+<p>When setting a value of the <i>select</i> element, pass the value of the <i>option</i> element.</p>
+
+<pre><code>element.attr('select/value', 'option1');</code></pre>
+
+<p>For the <i>select</i> with multiple options, pass an array of values.</p>
+
+<pre><code>element.attr('select/value', ['option1', 'option2]', { rewrite: true });</code></pre>

@@ -970,14 +970,17 @@ QUnit.module('Attributes', function() {
                     <select @selector="select" multiple="true">
                         <option value="foo">Foo</option>
                         <option value="bar">Bar</option>
+                        <option value="baz">Baz</option>
                     </select>
                 `);
                 const selectNode = paper.svg.querySelector('select');
                 assert.notOk(selectNode.options[0].selected);
                 assert.notOk(selectNode.options[1].selected);
+                assert.notOk(selectNode.options[1].selected);
                 fo.attr('select/value', ['foo', 'bar']);
                 assert.ok(selectNode.options[0].selected);
                 assert.ok(selectNode.options[1].selected);
+                assert.notOk(selectNode.options[2].selected);
             });
         });
 
