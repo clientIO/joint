@@ -283,10 +283,11 @@ class ProductPerformance extends ForeignObjectElement {
                         <div class="jj-field-horizontal">
                             <label>
                                 <span>Value</span>
+                                <!-- Why is there text instead of a number? See the accessibility notes at the end of the demo. -->
                                 <input @selector="value"
                                     class="jj-input"
                                     name="value"
-                                    type="number"
+                                    type="text"
                                     readonly="true"
                                 />
                             </label>
@@ -297,7 +298,7 @@ class ProductPerformance extends ForeignObjectElement {
                                 <input @selector="roi"
                                     class="jj-input"
                                     name="roi"
-                                    type="number"
+                                    type="text"
                                     readonly="true"
                                 />
                             </label>
@@ -309,15 +310,16 @@ class ProductPerformance extends ForeignObjectElement {
     }
 
     setValue(value) {
-        this.attr('value/value', value);
+        this.set('value', value);
+        this.attr('value/value', formatValue(value));
     }
 
     getValue() {
-        return Number(this.attr('value/value'));
+        return this.get('value');
     }
 
     setROI(roi) {
-        this.attr('roi/value', roi);
+        this.attr('roi/value', formatValue(roi));
     }
 }
 
@@ -349,7 +351,7 @@ class OverallPerformance extends ForeignObjectElement {
                                 <input @selector="value"
                                     class="jj-input"
                                     name="value"
-                                    type="number"
+                                    type="text"
                                     readonly="true"
                                 />
                             </label>
@@ -360,7 +362,7 @@ class OverallPerformance extends ForeignObjectElement {
                                 <input @selector="roi"
                                     class="jj-input"
                                     name="roi"
-                                    type="number"
+                                    type="text"
                                     readonly="true"
                                 />
                             </label>
@@ -372,11 +374,12 @@ class OverallPerformance extends ForeignObjectElement {
     }
 
     setValue(value) {
-        this.attr('value/value', value);
+        this.set('value', value);
+        this.attr('value/value', formatValue(value));
     }
 
     setROI(roi) {
-        this.attr('roi/value', roi);
+        this.attr('roi/value', formatValue(roi));
     }
 }
 
@@ -408,6 +411,7 @@ const investment = new Investment({
     attrs: {
         funds: {
             value: 100,
+            // Do tab indexes greater than zero violate accessibility? See the accessibility notes at the end of the demo.
             tabindex: 1,
         },
         year: {
@@ -637,13 +641,13 @@ function calculatePerformance() {
         const [product] = graph.getNeighbors(productPerf, { inbound: true });
         const value = calculateProductValue(product);
         const roi = calculateProductROI(product.getPercentage(), value);
-        productPerf.setValue(value.toFixed(2));
-        productPerf.setROI(roi.toFixed(2));
+        productPerf.setValue(value);
+        productPerf.setROI(roi);
     });
     const overallValue = productPerformances.reduce((total, productPerf) => total + productPerf.getValue(), 0);
     const overallRoi = calculateProductROI(100, overallValue);
-    performance.setValue(overallValue.toFixed(2));
-    performance.setROI(overallRoi.toFixed(2));
+    performance.setValue(overallValue);
+    performance.setROI(overallRoi);
 }
 
 function calculateProductValue(product) {
@@ -658,7 +662,30 @@ function calculateProductValue(product) {
 function calculateProductROI(percentage, value) {
     const funds = investment.getFunds();
     const cost = funds * percentage / 100;
-    return (value - cost) / cost * 100;
+    return cost === 0 ? 0 : (value - cost) / cost * 100;
+}
+
+function formatValue(value) {
+    return value.toLocaleString('en', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
 calculatePerformance();
+
+// Accessibility notes
+//
+//   Tab indexes
+//      The use of tab indices greater than zero is generally considered an anti-pattern for accessibility. Focus
+//      should be done by appropriately arranging the elements in the DOM. However, since we are combining
+//      SVG and XHTML in this sample, the order of elements in the DOM must also meet the requirements of SVG. In this
+//      case, using tab indexes with natural number values can be a useful way to define the desired order of focus.
+//
+//   Input types (number vs text)
+//      The "number" type is commonly used for inputs that contain numeric values. However, if this type is used
+//      combined with the "read-only" attribute, some screen readers (such as VoiceOver on macOS) may not be able
+//      to handle reading in read-only mode correctly and may even allow the input value to be changed.
+//      This problem can be circumvented by using the "text" attribute with the "read-only" attribute and
+//      format the value correctly so that it is displayed as a number.
+

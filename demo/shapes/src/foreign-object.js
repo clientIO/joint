@@ -8,13 +8,16 @@ const paper = new joint.dia.Paper({
     model: graph,
     async: true,
     cellViewNamespace: joint.shapes,
-    guard: (evt) => ['SELECT', 'INPUT', 'BUTTON'].includes(evt.target.tagName)
+    preventDefaultBlankAction: false,
+    preventDefaultViewAction: false,
 });
 
-// Remove focus from the input when the user clicks on the paper.
-paper.on('blank:pointerdown cell:pointerdown', () => {
-    document.activeElement.blur();
-});
+// Disable the default touch action on the paper.
+// This is required in order to disable the scrolling of the page when the user starts interacting
+// with the elements on the paper using touch.
+// We set the `preventDefaultViewAction` option to `false` so clicking the element will
+// blur the form control elements (input, select, textarea)
+paper.el.style.touchAction = 'none';
 
 const Example = joint.dia.Element.define('example.ForeignObject', {
     attrs: {
@@ -27,7 +30,7 @@ const Example = joint.dia.Element.define('example.ForeignObject', {
         },
         foreignObject: {
             width: 'calc(w)',
-            height: 'calc(h)',
+            height: 'calc(h)'
         }
     }
 }, {
@@ -57,16 +60,21 @@ const Example = joint.dia.Element.define('example.ForeignObject', {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                // Prevents the browser from scrolling the page when the user
+                // tries to touch the foreignObject.
+                // Works in Chrome, but not in Safari. If set on the paper,
+                // it works everywhere.
+                // touchAction: 'none'
             },
             children: [{
                 tagName: 'span',
-                textContent: 'First Name'
+                textContent: 'First Name',
             }, {
                 tagName: 'input',
                 selector: 'firstname',
                 attributes: {
-                    'type': 'input',
+                    'type': 'text',
                     'name': 'firstname'
                 },
                 style: {
@@ -80,7 +88,7 @@ const Example = joint.dia.Element.define('example.ForeignObject', {
                 tagName: 'input',
                 selector: 'lastname',
                 attributes: {
-                    'type': 'input',
+                    'type': 'text',
                     'name': 'lastname'
                 },
                 style: {
@@ -90,14 +98,6 @@ const Example = joint.dia.Element.define('example.ForeignObject', {
             }]
         }]
     }]
-}, {
-    attributes: {
-        value: {
-            set: function(text, _, node) {
-                if ('value' in node) node.value = text;
-            }
-        }
-    }
 });
 
 
@@ -123,18 +123,24 @@ const Example2 = joint.dia.Element.define('example.ForeignObject2', {
         <foreignObject @selector="foreignObject" overflow="hidden">
             <div @selector="content"
                 xmlns="http://www.w3.org/1999/xhtml"
-                style="font-size: 14px; width: 100%; height: 100%; position: static; background-color: transparent; text-align: center; margin: 0px; padding: 0px 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center;"
+                style="font-size: 14px; width: 100%; height: 100%; position: static; background-color: transparent; text-align: center; margin: 0px; padding: 0px 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: top;"
             >
                 <span>First Name</span>
-                <input @selector="firstname" type="input" style="position: static; width: 100%;"/>
+                <input @selector="firstname" type="text" style="width: 100%;"/>
                 <span>Last Name</span>
-                <input @selector="lastname" type="input" style="position: static; width: 100%;"/>
+                <input @selector="lastname" type="text" style="width: 100%;"/>
                 <span>Color</span>
-                <select @selector="color" style="position: static; width: 100%;">
+                <select @selector="color" style="width: 100%;">
                     <option value="white">White</option>
                     <option value="black">Black</option>
                 </select>
                 <span>Data</span>
+                <!-- Video (does not work well in Safari) -->
+                <!-- <video @selector="video" controls="true" width="200">
+                    <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm" type="video/webm" />
+                    <source src="/media/cc0-videos/flower.mp4" type="video/mp4" />
+                </video> -->
+                <!-- Table -->
                 <table class="element-table">
                     <tr>
                         <td>A</td>
@@ -157,21 +163,14 @@ const Example2 = joint.dia.Element.define('example.ForeignObject2', {
                         <td>8</td>
                     </tr>
                 </table>
+                <!-- Image -->
                 <span>Image</span>
                 <img @selector="image" src="https://picsum.photos/180/100" style="position: static; width: 100%; height: 100px;"/>
-                <span>Button</span>
+                <span event="hello">Button</span>
                 <button @selector="button" style="position: static; width: 100%;">Click me</button>
             </div>
         </foreignObject>
-    `,
-}, {
-    attributes: {
-        value: {
-            set: function(text, _, node) {
-                if ('value' in node) node.value = text;
-            }
-        }
-    }
+    `
 });
 
 joint.shapes.example.ForeignObjectView = joint.dia.ElementView.extend({
@@ -204,6 +203,7 @@ joint.shapes.example.ForeignObject2View = joint.dia.ElementView.extend({
         const { width } = this.model.size();
         this.model.attr('image/src', `https://picsum.photos/id/${this.imageId++}/${width-20}/100`);
     }
+
 });
 
 const ex = new Example({
