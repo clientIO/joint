@@ -42,7 +42,7 @@ const paper = new dia.Paper({
             extrapolate: true
         }
     },
-    defaultRouter: { name: 'rightAngle', args: { spacing: unit * 7 }},
+    defaultRouter: { name: 'rightAngle', args: { margin: unit * 7 }},
     defaultConnector: bevelledConnector
 });
 paperContainer.appendChild(paper.el);
@@ -241,20 +241,17 @@ graph.addCells([
 
 const graphBBox = graph.getBBox();
 
-function scaleToFit() {
-    paper.scaleContentToFit({
+function transformToFitContent() {
+    paper.transformToFitContent({
         padding: 30,
         contentArea: graphBBox,
+        verticalAlign: 'middle',
+        horizontalAlign: 'middle',
     });
-    const { sy } = paper.scale();
-    const area = paper.getArea();
-    const yTop = (area.height / 2 - graphBBox.y - graphBBox.height / 2);
-    const xLeft = (area.width / 2 - graphBBox.x - graphBBox.width / 2);
-    paper.translate(xLeft * sy, yTop * sy);
 }
 
-window.addEventListener('resize', () => scaleToFit());
-scaleToFit();
+window.addEventListener('resize', () => transformToFitContent());
+transformToFitContent();
 
 // Theme switcher.
 
