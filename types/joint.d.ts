@@ -3444,22 +3444,6 @@ export namespace routers {
         padding?: dia.Sides;
     }
 
-    enum RightAngleDirections {
-        AUTO = 'auto',
-        LEFT = 'left',
-        RIGHT = 'right',
-        TOP = 'top',
-        BOTTOM = 'bottom',
-        ANCHOR_SIDE = 'anchor-side',
-        MAGNET_SIDE = 'magnet-side'
-    }
-
-    interface RightAngleRouterArguments {
-        margin?: number;
-        sourceDirection?: RightAngleDirections;
-        targetDirection?: RightAngleDirections;
-    }
-
     interface RouterArgumentsMap {
         'normal': NormalRouterArguments;
         'manhattan': ManhattanRouterArguments;
@@ -3504,7 +3488,30 @@ export namespace routers {
      * @deprecated use `rightAngle` instead
      */
     export var oneSide: GenericRouter<'oneSide'>;
-    export var rightAngle: GenericRouter<'rightAngle'>;
+
+    /* Right Angle Router */
+
+    enum RightAngleDirections {
+        AUTO = 'auto',
+        LEFT = 'left',
+        RIGHT = 'right',
+        TOP = 'top',
+        BOTTOM = 'bottom',
+        ANCHOR_SIDE = 'anchor-side',
+        MAGNET_SIDE = 'magnet-side'
+    }
+
+    interface RightAngleRouterArguments {
+        margin?: number;
+        sourceDirection?: RightAngleDirections;
+        targetDirection?: RightAngleDirections;
+    }
+
+    interface RightAngleRouter extends GenericRouter<'rightAngle'> {
+        Directions: typeof RightAngleDirections;
+    }
+
+    export var rightAngle: RightAngleRouter;
 }
 
 // connectors

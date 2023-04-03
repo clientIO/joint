@@ -176,3 +176,9 @@ const list2 = MyList.add.call(MyList, cellView, 'root', 'id', <joint.highlighter
     direction: joint.highlighters.list.Directions.COLUMN,
 });
 list2.remove();
+
+joint.routers.rightAngle([], {
+    margin: 10,
+    sourceDirection: joint.routers.rightAngle.Directions.ANCHOR_SIDE,
+    targetDirection: joint.routers.rightAngle.Directions.MAGNET_SIDE
+});
