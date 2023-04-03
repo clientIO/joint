@@ -266,12 +266,6 @@ document.querySelector('.theme-switch').addEventListener('click', () => {
 
 const { mask: MaskHighlighter, stroke: StrokeHighlighter } = highlighters;
 
-// Unnecessary from v3.6.6
-// Prevent applying existing CSS to the mask elements
-// by blacklisting (do not copy) the `class` attribute.
-MaskHighlighter.prototype.MASK_ROOT_ATTRIBUTE_BLACKLIST.push('class');
-MaskHighlighter.prototype.MASK_CHILD_ATTRIBUTE_BLACKLIST.push('class');
-
 paper.on('cell:mouseenter', (cellView, evt) => {
     let selector, padding;
     if (cellView.model.isLink()) {
