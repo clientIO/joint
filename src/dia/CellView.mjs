@@ -1065,13 +1065,13 @@ export const CellView = View.extend({
     // Interaction. The controller part.
     // ---------------------------------
 
-    preventDefaultAction(evt) {
-        this.eventData(evt, { defaultActionPrevented: true  });
+    preventDefaultInteraction(evt) {
+        this.eventData(evt, { defaultInteractionPrevented: true  });
     },
 
-    isDefaultActionPrevented(evt) {
-        const { defaultActionPrevented = false } = this.eventData(evt);
-        return defaultActionPrevented;
+    isDefaultInteractionPrevented(evt) {
+        const { defaultInteractionPrevented = false } = this.eventData(evt);
+        return defaultInteractionPrevented;
     },
 
     // Interaction is handled by the paper and delegated to the view in interest.

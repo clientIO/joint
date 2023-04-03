@@ -737,7 +737,7 @@ export const ElementView = CellView.extend({
 
     dragStart: function(evt, x, y) {
 
-        if (this.isDefaultActionPrevented(evt)) return;
+        if (this.isDefaultInteractionPrevented(evt)) return;
 
         var view = this.getDelegatedView();
         if (!view || !view.can('elementMove')) return;
@@ -767,7 +767,7 @@ export const ElementView = CellView.extend({
             this.eventData(evt, { preventPointerEvents: true });
         }
 
-        if (this.isDefaultActionPrevented(evt) || !this.can('addLinkFromMagnet')) {
+        if (this.isDefaultInteractionPrevented(evt) || !this.can('addLinkFromMagnet')) {
             // Stop the default action, which is to start dragging a link.
             return;
         }

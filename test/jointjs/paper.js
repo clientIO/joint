@@ -2706,7 +2706,7 @@ QUnit.module('paper', function(hooks) {
                 paper.on({
                     'element:magnet:pointerdown': function(view, evt) {
                         evt.data = { test: 1 };
-                        view.preventDefaultAction(evt);
+                        view.preventDefaultInteraction(evt);
                     },
                     'element:pointerdown': function(view, evt) {
                         assert.equal(evt.data.test, 1);
@@ -2739,7 +2739,7 @@ QUnit.module('paper', function(hooks) {
             });
         });
 
-        QUnit.module('preventDefaultAction()', function() {
+        QUnit.module('preventDefaultInteraction()', function() {
 
             QUnit.test('element move', function(assert) {
 
@@ -2748,7 +2748,7 @@ QUnit.module('paper', function(hooks) {
                 const position = el.position();
                 paper.on({
                     'element:pointerdown': function(view, evt) {
-                        view.preventDefaultAction(evt);
+                        view.preventDefaultInteraction(evt);
                     },
                     'element:pointerup': function(view, evt) {
                         const newPosition = el.position();
@@ -2771,7 +2771,7 @@ QUnit.module('paper', function(hooks) {
                 const cellsCount = graph.getCells().length;
                 paper.on({
                     'element:magnet:pointerdown': function(view, evt) {
-                        view.preventDefaultAction(evt);
+                        view.preventDefaultInteraction(evt);
                     },
                     'element:magnet:pointerup': function(view, evt) {
                         // link is not created
@@ -2799,7 +2799,7 @@ QUnit.module('paper', function(hooks) {
                 const position = link.getSourcePoint();
                 paper.on({
                     'link:pointerdown': function(view, evt) {
-                        view.preventDefaultAction(evt);
+                        view.preventDefaultInteraction(evt);
                     },
                     'link:pointerup': function(view, evt) {
                         const newPosition = link.getSourcePoint();
@@ -2830,7 +2830,7 @@ QUnit.module('paper', function(hooks) {
                 const elLabel = link.findView(paper).findLabelNode(0);
                 paper.on({
                     'link:pointerdown': function(view, evt) {
-                        view.preventDefaultAction(evt);
+                        view.preventDefaultInteraction(evt);
                     },
                     'link:pointerup': function(view, evt) {
                         const newPosition = link.prop('labels/0/position/distance');
@@ -2841,6 +2841,55 @@ QUnit.module('paper', function(hooks) {
                 simulate.mousedown({ el: elLabel });
                 simulate.mousemove({ el: elLabel, clientX: 123, clientY: 987 });
                 simulate.mouseup({ el: elLabel });
+            });
+        });
+
+        QUnit.module('isDefaultInteractionPrevented()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                assert.expect(4);
+                const paper = this.paper;
+                paper.on({
+                    'element:pointerdown': function(view, evt) {
+                        assert.notOk(view.isDefaultInteractionPrevented(evt));
+                        view.preventDefaultInteraction(evt);
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                    'element:pointermove': function(view, evt) {
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                    'element:pointerup': function(view, evt) {
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect });
+                simulate.mouseup({ el: elRect });
+            });
+
+            QUnit.test('sanity < TOUCH EVENTS', function(assert) {
+
+                assert.expect(4);
+                const paper = this.paper;
+                paper.on({
+                    'element:pointerdown': function(view, evt) {
+                        assert.notOk(view.isDefaultInteractionPrevented(evt));
+                        view.preventDefaultInteraction(evt);
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                    'element:pointermove': function(view, evt) {
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                    'element:pointerup': function(view, evt) {
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                });
+
+                simulate.touchstart({ target: elRect });
+                simulate.touchmove({ target: elRect, clientX: 123, clientY: 987 });
+                simulate.touchend({ target: elRect });
             });
         });
     });

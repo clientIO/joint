@@ -2128,7 +2128,7 @@ export const Paper = View.extend({
             if (isTargetFormNode) {
                 // If the target is a form element, we do not want to start dragging the element.
                 // For example, we want to be able to select text by dragging the mouse.
-                view.preventDefaultAction(evt);
+                view.preventDefaultInteraction(evt);
             }
 
             const rootViewEl = view.el;
