@@ -8,7 +8,7 @@ const validProperties = validPropertiesList.reduce((acc, key) => {
 }, {});
 
 const props = {
-    qualify: function(properties, node) {
+    qualify: function(properties) {
         return isPlainObject(properties);
     },
     set: function(properties, _, node) {
