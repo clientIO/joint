@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-03-30) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-04) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -10798,27 +10798,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var normalizeEvent = function(evt) {
 
-	    var normalizedEvent = evt;
-	    var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
-	    if (touchEvt) {
-	        for (var property in evt) {
-	            // copy all the properties from the input event that are not
-	            // defined on the touch event (functions included).
-	            if (touchEvt[property] === undefined) {
-	                touchEvt[property] = evt[property];
+	    if (evt.normalized) { return evt; }
+
+	    var originalEvent = evt.originalEvent;
+	    var target = evt.target;
+
+	    // If the event is a touch event, normalize it to a mouse event.
+	    var touch = originalEvent && originalEvent.changedTouches && originalEvent.changedTouches[0];
+	    if (touch) {
+	        for (var property in touch) {
+	            // copy all the properties from the first touch that are not
+	            // defined on TouchEvent (clientX, clientY, pageX, pageY, screenX, screenY, identifier, ...)
+	            if (evt[property] === undefined) {
+	                evt[property] = touch[property];
 	            }
 	        }
-	        normalizedEvent = touchEvt;
 	    }
-
 	    // IE: evt.target could be set to SVGElementInstance for SVGUseElement
-	    var target = normalizedEvent.target;
 	    if (target) {
 	        var useElement = target.correspondingUseElement;
-	        if (useElement) { normalizedEvent.target = useElement; }
+	        if (useElement) { evt.target = useElement; }
 	    }
 
-	    return normalizedEvent;
+	    evt.normalized = true;
+
+	    return evt;
 	};
 
 	var normalizeWheel = function(evt) {
@@ -12873,7 +12877,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            if (isCalcAttribute(x)) {
 	                textAttrs.x = evalCalcAttribute(x, refBBox);
 	            }
-	            
+
 	            var fontSizeAttr = attrs['font-size'] || attrs['fontSize'];
 	            if (isCalcAttribute(fontSizeAttr)) {
 	                fontSizeAttr = evalCalcAttribute(fontSizeAttr, refBBox);
@@ -18132,11 +18136,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // Interaction. The controller part.
 	    // ---------------------------------
 
+	    preventDefaultInteraction: function preventDefaultInteraction(evt) {
+	        this.eventData(evt, { defaultInteractionPrevented: true  });
+	    },
+
+	    isDefaultInteractionPrevented: function isDefaultInteractionPrevented(evt) {
+	        var ref = this.eventData(evt);
+	        var defaultInteractionPrevented = ref.defaultInteractionPrevented; if ( defaultInteractionPrevented === void 0 ) defaultInteractionPrevented = false;
+	        return defaultInteractionPrevented;
+	    },
+
 	    // Interaction is handled by the paper and delegated to the view in interest.
 	    // `x` & `y` parameters passed to these functions represent the coordinates already snapped to the paper grid.
 	    // If necessary, real coordinates can be obtained from the `evt` event object.
 
-	    // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
+	    // These functions are supposed to be overridden by the views that inherit from `joint.dia.Cell`,
 	    // i.e. `joint.dia.Element` and `joint.dia.Link`.
 
 	    pointerdblclick: function(evt, x, y) {
@@ -18276,6 +18290,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    RENDER: 'RENDER'
 	};
 
+	var DragActions = {
+	    MOVE: 'move',
+	    MAGNET: 'magnet',
+	};
 	// Element base view and controller.
 	// -------------------------------------------
 
@@ -18881,8 +18899,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    pointerdown: function(evt, x, y) {
 
-	        if (this.isPropagationStopped(evt)) { return; }
-
 	        this.notifyPointerdown(evt, x, y);
 	        this.dragStart(evt, x, y);
 	    },
@@ -18890,15 +18906,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    pointermove: function(evt, x, y) {
 
 	        var data = this.eventData(evt);
+	        var targetMagnet = data.targetMagnet;
+	        var action = data.action;
+	        var delegatedView = data.delegatedView;
 
-	        switch (data.action) {
-	            case 'magnet':
+	        if (targetMagnet) {
+	            this.magnetpointermove(evt, targetMagnet, x, y);
+	        }
+
+	        switch (action) {
+	            case DragActions.MAGNET:
 	                this.dragMagnet(evt, x, y);
 	                break;
-	            case 'move':
-	                (data.delegatedView || this).drag(evt, x, y);
+	            case DragActions.MOVE:
+	                (delegatedView || this).drag(evt, x, y);
 	            // eslint: no-fallthrough=false
 	            default:
+	                if (data.preventPointerEvents) { break; }
 	                this.notifyPointermove(evt, x, y);
 	                break;
 	        }
@@ -18911,19 +18935,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    pointerup: function(evt, x, y) {
 
 	        var data = this.eventData(evt);
-	        switch (data.action) {
-	            case 'magnet':
+	        var targetMagnet = data.targetMagnet;
+	        var action = data.action;
+	        var delegatedView = data.delegatedView;
+
+	        if (targetMagnet) {
+	            this.magnetpointerup(evt, targetMagnet, x, y);
+	        }
+
+	        switch (action) {
+	            case DragActions.MAGNET:
 	                this.dragMagnetEnd(evt, x, y);
 	                break;
-	            case 'move':
-	                (data.delegatedView || this).dragEnd(evt, x, y);
+	            case DragActions.MOVE:
+	                (delegatedView || this).dragEnd(evt, x, y);
 	            // eslint: no-fallthrough=false
 	            default:
+	                if (data.preventPointerEvents) { break; }
 	                this.notifyPointerup(evt, x, y);
 	        }
 
-	        var magnet = data.targetMagnet;
-	        if (magnet) { this.magnetpointerclick(evt, magnet, x, y); }
+	        if (targetMagnet) {
+	            this.magnetpointerclick(evt, targetMagnet, x, y);
+	        }
 
 	        this.checkMouseleave(evt);
 	    },
@@ -18960,7 +18994,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    onmagnet: function(evt, x, y) {
 
+	        var targetMagnet = evt.currentTarget;
+	        this.magnetpointerdown(evt, targetMagnet, x, y);
+	        this.eventData(evt, { targetMagnet: targetMagnet });
 	        this.dragMagnetStart(evt, x, y);
+	    },
+
+	    magnetpointerdown: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointerdown', evt, magnet, x, y);
+	    },
+
+	    magnetpointermove: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointermove', evt, magnet, x, y);
+	    },
+
+	    magnetpointerup: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointerup', evt, magnet, x, y);
 	    },
 
 	    magnetpointerdblclick: function(evt, magnet, x, y) {
@@ -18977,11 +19029,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    dragStart: function(evt, x, y) {
 
+	        if (this.isDefaultInteractionPrevented(evt)) { return; }
+
 	        var view = this.getDelegatedView();
 	        if (!view || !view.can('elementMove')) { return; }
 
 	        this.eventData(evt, {
-	            action: 'move',
+	            action: DragActions.MOVE,
 	            delegatedView: view
 	        });
 
@@ -18995,28 +19049,47 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    dragMagnetStart: function(evt, x, y) {
 
-	        if (!this.can('addLinkFromMagnet')) { return; }
-
-	        var magnet = evt.currentTarget;
-	        var paper = this.paper;
-	        this.eventData(evt, { targetMagnet: magnet });
-	        evt.stopPropagation();
-
-	        if (paper.options.validateMagnet(this, magnet, evt)) {
-
-	            if (paper.options.magnetThreshold <= 0) {
-	                this.dragLinkStart(evt, magnet, x, y);
-	            }
-
-	            this.eventData(evt, { action: 'magnet' });
-	            this.stopPropagation(evt);
-
-	        } else {
-
-	            this.pointerdown(evt, x, y);
+	        var ref = this;
+	        var paper = ref.paper;
+	        var isPropagationAlreadyStopped = evt.isPropagationStopped();
+	        if (isPropagationAlreadyStopped) {
+	            // Special case when the propagation was already stopped
+	            // on the `element:magnet:pointerdown` event.
+	            // Do not trigger any `element:pointer*` events
+	            // but still start the magnet dragging.
+	            this.eventData(evt, { preventPointerEvents: true });
 	        }
 
-	        paper.delegateDragEvents(this, evt.data);
+	        if (this.isDefaultInteractionPrevented(evt) || !this.can('addLinkFromMagnet')) {
+	            // Stop the default action, which is to start dragging a link.
+	            return;
+	        }
+
+	        var ref$1 = this.eventData(evt);
+	        var targetMagnet = ref$1.targetMagnet; if ( targetMagnet === void 0 ) targetMagnet = evt.currentTarget;
+	        evt.stopPropagation();
+
+	        // Invalid (Passive) magnet. Start dragging the element.
+	        if (!paper.options.validateMagnet.call(paper, this, targetMagnet, evt)) {
+	            if (isPropagationAlreadyStopped) {
+	                // Do not trigger `element:pointerdown` and start element dragging
+	                // if the propagation was stopped.
+	                this.dragStart(evt, x, y);
+	                // The `element:pointerdown` event is not triggered because
+	                // of `preventPointerEvents` flag.
+	            } else {
+	                // We need to reset the action
+	                // to `MOVE` so that the element is dragged.
+	                this.pointerdown(evt, x, y);
+	            }
+	            return;
+	        }
+
+	        // Valid magnet. Start dragging a link.
+	        if (paper.options.magnetThreshold <= 0) {
+	            this.dragLinkStart(evt, targetMagnet, x, y);
+	        }
+	        this.eventData(evt, { action: DragActions.MAGNET });
 	    },
 
 	    // Drag Handlers
@@ -21427,7 +21500,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    else
 	        { options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null; }
 
-	    var completeRoute = [sourcePoint ].concat( route.map(function (p) { return new Point(p); }), [targetPoint]);
+	    var completeRoute = [sourcePoint ].concat( route, [targetPoint]).map(function (p) { return new Point(p); });
 
 	    // The calculation of a sourceTangent
 	    var sourceTangent;
@@ -24061,6 +24134,661 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return manhattan(vertices, assign({}, config$2, opt), linkView);
 	};
 
+	var Directions$2 = {
+	    AUTO: 'auto',
+	    LEFT: 'left',
+	    RIGHT: 'right',
+	    TOP: 'top',
+	    BOTTOM: 'bottom',
+	    ANCHOR_SIDE: 'anchor-side',
+	    MAGNET_SIDE: 'magnet-side'
+	};
+
+	var DEFINED_DIRECTIONS = [Directions$2.LEFT, Directions$2.RIGHT, Directions$2.TOP, Directions$2.BOTTOM];
+
+	function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
+	    var tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
+	    var roundedAngle = Math.round(tangent.angle() / 90) * 90;
+
+	    switch (roundedAngle) {
+	        case 0:
+	        case 360:
+	            return linkOrigin.y < connectionPoint.y ? Directions$2.TOP : Directions$2.BOTTOM;
+	        case 90:
+	            return linkOrigin.x < connectionPoint.x ? Directions$2.LEFT : Directions$2.RIGHT;
+	        case 180:
+	            return linkOrigin.y < connectionPoint.y ? Directions$2.TOP : Directions$2.BOTTOM;
+	        case 270:
+	            return linkOrigin.x < connectionPoint.x ? Directions$2.LEFT : Directions$2.RIGHT;
+	    }
+	}
+
+	function rightAngleRouter(_vertices, opt, linkView) {
+	    var margin = opt.margin || 20;
+	    var sourceDirection = opt.sourceDirection; if ( sourceDirection === void 0 ) sourceDirection = Directions$2.AUTO;
+	    var targetDirection = opt.targetDirection; if ( targetDirection === void 0 ) targetDirection = Directions$2.AUTO;
+
+	    var sourceView = linkView.sourceView;
+	    var targetView = linkView.targetView;
+
+	    var isSourcePort = !!linkView.model.source().port;
+	    var isTargetPort = !!linkView.model.target().port;
+
+	    if (sourceDirection === Directions$2.AUTO) {
+	        sourceDirection = isSourcePort ? Directions$2.MAGNET_SIDE : Directions$2.ANCHOR_SIDE;
+	    }
+
+	    if (targetDirection === Directions$2.AUTO) {
+	        targetDirection = isTargetPort ? Directions$2.MAGNET_SIDE : Directions$2.ANCHOR_SIDE;
+	    }
+
+	    var sourceBBox = linkView.sourceBBox;
+	    var targetBBox = linkView.targetBBox;
+	    var sourcePoint = linkView.sourceAnchor;
+	    var targetPoint = linkView.targetAnchor;
+	    var ref = sourceView && sourceView.model.isElement() ? Rect.fromRectUnion(sourceBBox, sourceView.model.getBBox()) : linkView.sourceAnchor;
+	    var sx0 = ref.x;
+	    var sy0 = ref.y;
+	    var sourceWidth = ref.width; if ( sourceWidth === void 0 ) sourceWidth = 0;
+	    var sourceHeight = ref.height; if ( sourceHeight === void 0 ) sourceHeight = 0;
+
+	    var ref$1 = targetView && targetView.model.isElement() ? Rect.fromRectUnion(targetBBox, targetView.model.getBBox()) : linkView.targetAnchor;
+	    var tx0 = ref$1.x;
+	    var ty0 = ref$1.y;
+	    var targetWidth = ref$1.width; if ( targetWidth === void 0 ) targetWidth = 0;
+	    var targetHeight = ref$1.height; if ( targetHeight === void 0 ) targetHeight = 0;
+
+	    var tx1 = tx0 + targetWidth;
+	    var ty1 = ty0 + targetHeight;
+	    var sx1 = sx0 + sourceWidth;
+	    var sy1 = sy0 + sourceHeight;
+
+	    // Key coordinates including the margin
+	    var smx0 = sx0 - margin;
+	    var smx1 = sx1 + margin;
+	    var smy0 = sy0 - margin;
+	    var smy1 = sy1 + margin;
+	    var tmx0 = tx0 - margin;
+	    var tmx1 = tx1 + margin;
+	    var tmy0 = ty0 - margin;
+	    var tmy1 = ty1 + margin;
+
+	    var sourceOutsidePoint = sourcePoint.clone();
+
+	    var sourceSide;
+
+	    if (!sourceView) {
+	        var sourceLinkAnchorBBox = new Rect(sx0, sy0, 0, 0);
+	        sourceSide = DEFINED_DIRECTIONS.includes(sourceDirection) ? sourceDirection : sourceLinkAnchorBBox.sideNearestToPoint(targetPoint);
+	    } else if (sourceView.model.isLink()) {
+	        sourceSide = getDirectionForLinkConnection(targetPoint, sourcePoint, sourceView);
+	    } else if (sourceDirection === Directions$2.ANCHOR_SIDE) {
+	        sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
+	    } else if (sourceDirection === Directions$2.MAGNET_SIDE) {
+	        sourceSide = sourceView.model.getBBox().sideNearestToPoint(sourcePoint);
+	    } else {
+	        sourceSide = sourceDirection;
+	    }
+
+	    switch (sourceSide) {
+	        case 'left':
+	            sourceOutsidePoint.x = smx0;
+	            break;
+	        case 'right':
+	            sourceOutsidePoint.x = smx1;
+	            break;
+	        case 'top':
+	            sourceOutsidePoint.y = smy0;
+	            break;
+	        case 'bottom':
+	            sourceOutsidePoint.y = smy1;
+	            break;
+	    }
+	    var targetOutsidePoint = targetPoint.clone();
+
+
+	    var targetSide;
+
+
+	    if (!targetView) {
+	        var targetLinkAnchorBBox = new Rect(tx0, ty0, 0, 0);
+	        targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : targetLinkAnchorBBox.sideNearestToPoint(sourcePoint);
+	    } else if (targetView.model.isLink()) {
+	        targetSide = getDirectionForLinkConnection(sourcePoint, targetPoint, targetView);
+	    } else if (targetDirection === Directions$2.ANCHOR_SIDE) {
+	        targetSide = targetBBox.sideNearestToPoint(targetPoint);
+	    } else if (targetDirection === Directions$2.MAGNET_SIDE) {
+	        targetSide = targetView.model.getBBox().sideNearestToPoint(targetPoint);
+	    } else {
+	        targetSide = targetDirection;
+	    }
+
+	    switch (targetSide) {
+	        case 'left':
+	            targetOutsidePoint.x = tmx0;
+	            break;
+	        case 'right':
+	            targetOutsidePoint.x = tmx1;
+	            break;
+	        case 'top':
+	            targetOutsidePoint.y = tmy0;
+	            break;
+	        case 'bottom':
+	            targetOutsidePoint.y = tmy1;
+	            break;
+	    }
+
+	    var sox = sourceOutsidePoint.x;
+	    var soy = sourceOutsidePoint.y;
+	    var tox = targetOutsidePoint.x;
+	    var toy = targetOutsidePoint.y;
+	    var tcx = (tx0 + tx1) / 2;
+	    var tcy = (ty0 + ty1) / 2;
+	    var scx = (sx0 + sx1) / 2;
+	    var scy = (sy0 + sy1) / 2;
+	    var middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
+	    var middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
+
+	    if (sourceSide === 'left' && targetSide === 'right') {
+	        if (smx0 <= tx1) {
+	            var y = middleOfHorizontalSides;
+	            if (sx1 <= tx0) {
+	                if (ty1 >= smy0 && toy < soy) {
+	                    y = Math.min(tmy0, smy0);
+	                } else if (ty0 <= smy1 && toy >= soy) {
+	                    y = Math.max(tmy1, smy1);
+	                }
+	            }
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y },
+	                { x: tox, y: y },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        var x = (sox + tox) / 2;
+	        return [
+	            { x: x, y: soy },
+	            { x: x, y: toy }
+	        ];
+	    } else if (sourceSide === 'right' && targetSide === 'left') {
+	        if (smx1 >= tx0) {
+	            var y$1 = middleOfHorizontalSides;
+	            if (sox > tx1) {
+	                if (ty1 >= smy0 && toy < soy) {
+	                    y$1 = Math.min(tmy0, smy0);
+	                } else if (ty0 <= smy1 && toy >= soy) {
+	                    y$1 = Math.max(tmy1, smy1);
+	                }
+	            }
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$1 },
+	                { x: tox, y: y$1 },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        var x$1 = (sox + tox) / 2;
+	        return [
+	            { x: x$1, y: soy },
+	            { x: x$1, y: toy }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'bottom') {
+	        if (soy < toy) {
+	            var x$2 = middleOfVerticalSides;
+	            var y$2 = soy;
+
+	            if (soy < ty0) {
+	                if (tx1 >= smx0 && tox < sox) {
+	                    x$2 = Math.min(tmx0, smx0);
+	                } else if (tx0 <= smx1 && tox >= sox) {
+	                    x$2 = Math.max(tmx1, smx1);
+	                }
+	            }
+
+	            return [
+	                { x: sox, y: y$2 },
+	                { x: x$2, y: y$2 },
+	                { x: x$2, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+	        var y$3 = (soy + toy) / 2;
+	        return [
+	            { x: sox, y: y$3 },
+	            { x: tox, y: y$3 }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'top') {
+	        if (soy - margin > toy) {
+	            var x$3 = middleOfVerticalSides;
+	            var y$4 = soy;
+
+	            if (soy > ty1) {
+	                if (tx1 >= smx0 && tox < sox) {
+	                    x$3 = Math.min(tmx0, smx0);
+	                } else if (tx0 <= smx1 && tox >= sox) {
+	                    x$3 = Math.max(tmx1, smx1);
+	                }
+	            }
+
+	            return [
+	                { x: sox, y: y$4 },
+	                { x: x$3, y: y$4 },
+	                { x: x$3, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+	        var y$5 = (soy + toy) / 2;
+	        return [
+	            { x: sox, y: y$5 },
+	            { x: tox, y: y$5 }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'top') {
+	        var x$4;
+	        var y1 = Math.min((sy1 + ty0) / 2, toy);
+	        var y2 = Math.min((sy0 + ty1) / 2, soy);
+
+	        if (toy < soy) {
+	            if (sox >= tmx1 || sox <= tmx0) {
+	                return [
+	                    { x: sox, y: Math.min(soy,toy) },
+	                    { x: tox, y: Math.min(soy,toy) }
+	                ];
+	            } else if (tox > sox) {
+	                x$4 = Math.min(sox, tmx0);
+	            } else {
+	                x$4 = Math.max(sox, tmx1);
+	            }
+	        } else {
+	            if (tox >= smx1 || tox <= smx0) {
+	                return [
+	                    { x: sox, y: Math.min(soy,toy) },
+	                    { x: tox, y: Math.min(soy,toy) }
+	                ];
+	            } else if (tox >= sox) {
+	                x$4 = Math.max(tox, smx1);
+	            } else {
+	                x$4 = Math.min(tox, smx0);
+	            }
+	        }
+
+	        return [
+	            { x: sox, y: y2 },
+	            { x: x$4, y: y2 },
+	            { x: x$4, y: y1 },
+	            { x: tox, y: y1 }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
+	        if (tx0 >= sox + margin || tx1 <= sox - margin) {
+	            return [
+	                { x: sox, y: Math.max(soy, toy) },
+	                { x: tox, y: Math.max(soy, toy) }
+	            ];
+	        }
+
+	        var x$5;
+	        var y1$1;
+	        var y2$1;
+
+	        if (toy > soy) {
+	            y1$1 = Math.max((sy1 + ty0) / 2, toy);
+	            y2$1 = Math.max((sy1 + ty0) / 2, soy);
+
+	            if (tox > sox) {
+	                x$5 = Math.min(sox, tmx0);
+	            } else {
+	                x$5 = Math.max(sox, tmx1);
+	            }
+	        } else {
+	            y1$1 = Math.max((sy0 + ty1) / 2, toy);
+	            y2$1 = Math.max((sy0 + ty1) / 2, soy);
+
+	            if (tox > sox) {
+	                x$5 = Math.min(tox, smx0);
+	            } else {
+	                x$5 = Math.max(tox, smx1);
+	            }
+	        }
+
+	        return [
+	            { x: sox, y: y2$1 },
+	            { x: x$5, y: y2$1 },
+	            { x: x$5, y: y1$1 },
+	            { x: tox, y: y1$1 }
+	        ];
+	    } else if (sourceSide === 'left' && targetSide === 'left') {
+	        var y$6;
+	        var x1 = Math.min((sx1 + tx0) / 2, tox);
+	        var x2 = Math.min((sx0 + tx1) / 2, sox);
+
+	        if (tox > sox) {
+	            if (toy <= soy) {
+	                y$6 = Math.min(smy0, toy);
+	            } else {
+	                y$6 = Math.max(smy1, toy);
+	            }
+	        } else {
+	            if (toy >= soy) {
+	                y$6 = Math.min(tmy0, soy);
+	            } else {
+	                y$6 = Math.max(tmy1, soy);
+	            }
+	        }
+
+	        return [
+	            { x: x2, y: soy },
+	            { x: x2, y: y$6 },
+	            { x: x1, y: y$6 },
+	            { x: x1, y: toy }
+	        ];
+	    } else if (sourceSide === 'right' && targetSide === 'right') {
+	        var y$7;
+	        var x1$1 = Math.max((sx0 + tx1) / 2, tox);
+	        var x2$1 = Math.max((sx1 + tx0) / 2, sox);
+
+	        if (tox < sox) {
+	            if (toy <= soy) {
+	                y$7 = Math.min(smy0, toy);
+	            } else {
+	                y$7 = Math.max(smy1, toy);
+	            }
+	        } else {
+	            if (toy >= soy) {
+	                y$7 = Math.min(tmy0, soy);
+	            } else {
+	                y$7 = Math.max(tmy1, soy);
+	            }
+	        }
+
+	        return [
+	            { x: x2$1, y: soy },
+	            { x: x2$1, y: y$7 },
+	            { x: x1$1, y: y$7 },
+	            { x: x1$1, y: toy }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'right') {
+	        if (soy > toy) {
+	            if (sox < tox) {
+	                var y$8 = (sy0 + ty1) / 2;
+	                if (y$8 > tcy && y$8 < tmy1 && sox < tmx0) {
+	                    y$8 = tmy0;
+	                }
+	                return [
+	                    { x: sox, y: y$8 },
+	                    { x: tox, y: y$8 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        }
+
+	        var x$6 = (sx0 + tx1) / 2;
+
+	        if (sox > tox && sy1 >= toy) {
+	            return [
+	                { x: sox, y: soy },
+	                { x: x$6, y: soy },
+	                { x: x$6, y: toy }];
+	        }
+
+	        if (x$6 > smx0 && soy < ty1) {
+	            var y$9 = Math.min(sy0, ty0) - margin;
+	            var x$7 = Math.max(sx1, tx1) + margin;
+	            return [
+	                { x: sox, y: y$9 },
+	                { x: x$7, y: y$9 },
+	                { x: x$7, y: toy }
+	            ];
+	        }
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$6, y: soy },
+	            { x: x$6, y: toy }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'left') {
+	        if (soy > toy) {
+	            if (sox > tox) {
+	                var y$10 = (sy0 + ty1) / 2;
+	                if (y$10 > tcy && y$10 < tmy1 && sox > tmx1) {
+	                    y$10 = tmy0;
+	                }
+	                return [
+	                    { x: sox, y: y$10 },
+	                    { x: tox, y: y$10 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        }
+
+	        var x$8 = (sx1 + tx0) / 2;
+
+	        if (sox < tox && sy1 >= toy) {
+	            return [
+	                { x: sox, y: soy },
+	                { x: x$8, y: soy },
+	                { x: x$8, y: toy }];
+	        }
+
+	        if (x$8 < smx1 && soy < ty1) {
+	            var y$11 = Math.min(sy0, ty0) - margin;
+	            var x$9 = Math.min(sx0, tx0) - margin;
+	            return [
+	                { x: sox, y: y$11 },
+	                { x: x$9, y: y$11 },
+	                { x: x$9, y: toy }
+	            ];
+	        }
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$8, y: soy },
+	            { x: x$8, y: toy }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'right') {
+	        if (soy < toy) {
+	            if (sox < tox) {
+	                var y$12 = (sy1 + ty0) / 2;
+	                if (y$12 < tcy && y$12 > tmy0 && sox < tmx0) {
+	                    y$12 = tmy1;
+	                }
+	                return [
+	                    { x: sox, y: y$12 },
+	                    { x: tox, y: y$12 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        } else {
+	            if (sx0 < tox) {
+	                var y$13 = Math.max(sy1, ty1) + margin;
+	                var x$10 = Math.max(sx1, tx1) + margin;
+	                return [
+	                    { x: sox, y: y$13 },
+	                    { x: x$10, y: y$13 },
+	                    { x: x$10, y: toy }
+	                ];
+	            }
+	        }
+
+	        var x$11 = middleOfVerticalSides;
+
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$11, y: soy },
+	            { x: x$11, y: toy }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'left') {
+	        if (soy < toy) {
+	            if (sox > tox) {
+	                var y$14 = (sy1 + ty0) / 2;
+	                if (y$14 < tcy && y$14 > tmy0 && sox > tmx1) {
+	                    y$14 = tmy1;
+	                }
+	                return [
+	                    { x: sox, y: y$14 },
+	                    { x: tox, y: y$14 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        } else {
+	            if (sx1 > tox) {
+	                var y$15 = Math.max(sy1, ty1) + margin;
+	                var x$12 = Math.min(sx0, tx0) - margin;
+	                return [
+	                    { x: sox, y: y$15 },
+	                    { x: x$12, y: y$15 },
+	                    { x: x$12, y: toy }
+	                ];
+	            }
+	        }
+
+	        var x$13 = middleOfVerticalSides;
+
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$13, y: soy },
+	            { x: x$13, y: toy }
+	        ];
+	    } else if (sourceSide === 'left' && targetSide === 'bottom') {
+	        if (sox > tox && soy >= tmy1) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sox >= tx1 && soy < toy) {
+	            var x$14 = (sx1 + tx0) / 2;
+	            return [
+	                { x: x$14, y: soy },
+	                { x: x$14, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        if (tox < sx1 && ty1 <= sy0) {
+	            var y$16 = (sy0 + ty1) / 2;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$16 },
+	                { x: tox, y: y$16 }
+	            ];
+	        }
+
+	        var x$15 = Math.min(tmx0, sox);
+	        var y$17 = Math.max(sy1, ty1) + margin;
+
+	        return [
+	            { x: x$15, y: soy },
+	            { x: x$15, y: y$17 },
+	            { x: tox, y: y$17 }
+	        ];
+	    } else if (sourceSide === 'left' && targetSide === 'top') {
+	        if (sox > tox && soy < tmy0) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sox >= tx1) {
+	            if (soy > toy) {
+	                var x$16 = (sx0 + tx1) / 2;
+	                return [
+	                    { x: x$16, y: soy },
+	                    { x: x$16, y: toy },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	        }
+
+	        if (tox <= sx1 && toy > soy) {
+	            var y$18 = (ty0 + sy1) / 2;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$18 },
+	                { x: tox, y: y$18 } ];
+	        }
+
+	        var x$17 = toy < soy ? Math.min(sx0, tx0) - margin : smx0;
+	        var y$19 = Math.min(sy0, ty0) - margin;
+
+	        return [
+	            { x: x$17, y: soy },
+	            { x: x$17, y: y$19 },
+	            { x: tox, y: y$19 }
+	        ];
+
+	    } else if (sourceSide === 'right' && targetSide === 'top') {
+	        if (sox < tox && soy < tmy0) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sx1 < tx0 && soy > toy) {
+	            var x$18 = (sx1 + tx0) / 2;
+	            return [
+	                { x: x$18, y: soy },
+	                { x: x$18, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        if (tox < sox && ty0 > sy1) {
+	            var y$20 = (sy1 + ty0) / 2;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$20 },
+	                { x: tox, y: y$20 }
+	            ];
+	        }
+
+	        var x$19 = Math.max(sx1, tx1) + margin;
+	        var y$21 = Math.min(sy0, ty0) - margin;
+	        return [
+	            { x: x$19, y: soy },
+	            { x: x$19, y: y$21 },
+	            { x: tox, y: y$21 }
+	        ];
+	    } else if (sourceSide === 'right' && targetSide === 'bottom') {
+	        if (sox < tox && soy >= tmy1) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sox <= tx0 && soy < toy) {
+	            var x$20 = (sx1 + tx0) / 2;
+	            return [
+	                { x: x$20, y: soy },
+	                { x: x$20, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        if (tox > sx0 && ty1 < sy0) {
+	            var y$22 = (sy0 + ty1) / 2;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$22 },
+	                { x: tox, y: y$22 }
+	            ];
+	        }
+
+	        var x$21 = Math.max(tmx1, sox);
+	        var y$23 = Math.max(sy1, ty1) + margin;
+
+	        return [
+	            { x: x$21, y: soy },
+	            { x: x$21, y: y$23 },
+	            { x: tox, y: y$23 }
+	        ];
+	    }
+	}
+
+	rightAngleRouter.Directions = Directions$2;
+
+	var rightAngle = rightAngleRouter;
+
 
 
 	var routers = ({
@@ -24068,7 +24796,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		oneSide: oneSide,
 		orthogonal: orthogonal,
 		manhattan: manhattan,
-		metro: metro
+		metro: metro,
+		rightAngle: rightAngle
 	});
 
 	function connectionRatio(view, _magnet, _refPoint, opt) {
@@ -27463,6 +28192,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        if (this.can('labelMove')) {
 
+	            if (this.isDefaultInteractionPrevented(evt)) { return; }
+
 	            var labelNode = evt.currentTarget;
 	            var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
@@ -27533,6 +28264,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    dragStart: function(evt, x, y) {
 
+	        if (this.isDefaultInteractionPrevented(evt)) { return; }
+
 	        if (!this.can('linkMove')) { return; }
 
 	        this.eventData(evt, {
@@ -27548,7 +28281,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var data = this.eventData(evt);
 	        var label = { position: this.getLabelPosition((x + data.dx), (y + data.dy), data.positionAngle, data.positionArgs) };
 	        if (this.paper.options.snapLabels) { delete label.position.offset; }
-	        this.model.label(data.labelIdx, label);
+	        // The `touchmove' events are not fired
+	        // when the original event target is removed from the DOM.
+	        // The labels are currently re-rendered completely when only
+	        // the position changes. This is why we need to make sure that
+	        // the label is updated synchronously.
+	        // TODO: replace `touchmove` with `pointermove` (breaking change).
+	        var setOptions = { ui: true };
+	        if (this.paper.isAsync() && evt.type === 'touchmove') {
+	            setOptions.async = false;
+	        }
+	        this.model.label(data.labelIdx, label, setOptions);
 	    },
 
 	    dragVertex: function(evt, x, y) {
@@ -28219,6 +28962,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // Prevent the default action for blank:pointer<action>.
 	        preventDefaultBlankAction: true,
 
+	        // Prevent the default action for cell:pointer<action>.
+	        preventDefaultViewAction: true,
+
 	        // Restrict the translation of elements by given bounding box.
 	        // Option accepts a boolean:
 	        //  true - the translation is restricted to the paper area
@@ -28384,10 +29130,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        'mouseleave .joint-cell': 'mouseleave',
 	        'mouseenter .joint-tools': 'mouseenter',
 	        'mouseleave .joint-tools': 'mouseleave',
-	        'mousedown .joint-cell [event]': 'onevent', // interaction with cell with `event` attribute set
-	        'touchstart .joint-cell [event]': 'onevent',
-	        'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
-	        'touchstart .joint-cell [magnet]': 'onmagnet',
 	        'dblclick .joint-cell [magnet]': 'magnetpointerdblclick',
 	        'contextmenu .joint-cell [magnet]': 'magnetcontextmenu',
 	        'mousedown .joint-link .label': 'onlabel', // interaction with link label
@@ -28424,6 +29166,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
 	    UPDATE_DELAYING_BATCHES: ['translate'],
+	    // If you interact with these elements,
+	    // the default interaction such as `element move` is prevented.
+	    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT', 'OPTION'] ,
+	    // If you interact with these elements, the events are not propagated to the paper
+	    // i.e. paper events such as `element:pointerdown` are not triggered.
+	    GUARDED_TAG_NAMES: [
+	        // Guard <select> for consistency. When you click on it:
+	        // Chrome: triggers `pointerdown`, `pointerup`, `pointerclick` to open
+	        // Firefox: triggers `pointerdown` on open, `pointerup` (and `pointerclick` only if you haven't moved).
+	        //          on close. However, if you open and then close by clicking elsewhere on the page,
+	        //           no other event is triggered.
+	        // Safari: when you open it, it triggers `pointerdown`. That's it.
+	        'SELECT' ],
 	    MIN_SCALE: 1e-6,
 
 	    init: function() {
@@ -29418,8 +30173,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
 	    },
 
-	    scaleContentToFit: function(opt) {
-
+	    transformToFitContent: function(opt) {
 	        opt || (opt = {});
 
 	        var contentBBox, contentLocalOrigin;
@@ -29439,7 +30193,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            preserveAspectRatio: true,
 	            scaleGrid: null,
 	            minScale: 0,
-	            maxScale: Number.MAX_VALUE
+	            maxScale: Number.MAX_VALUE,
+	            verticalAlign: 'top',
+	            horizontalAlign: 'left',
 	            //minScaleX
 	            //minScaleY
 	            //maxScaleX
@@ -29497,12 +30253,45 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        newSx = Math.min(maxScaleX, Math.max(minScaleX, newSx));
 	        newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
 
+	        var scaleDiff = {
+	            x: newSx / currentScale.sx,
+	            y: newSy / currentScale.sy
+	        };
+
 	        var origin = this.options.origin;
 	        var newOx = fittingBBox.x - contentLocalOrigin.x * newSx - origin.x;
 	        var newOy = fittingBBox.y - contentLocalOrigin.y * newSy - origin.y;
 
+	        switch (opt.verticalAlign) {
+	            case 'middle':
+	                newOy = newOy + (fittingBBox.height - contentBBox.height * scaleDiff.y) / 2;
+	                break;
+	            case 'bottom':
+	                newOy = newOy + (fittingBBox.height - contentBBox.height * scaleDiff.y);
+	                break;
+	            case 'top':
+	            default:
+	                break;
+	        }
+
+	        switch (opt.horizontalAlign) {
+	            case 'middle':
+	                newOx = newOx + (fittingBBox.width - contentBBox.width * scaleDiff.x) / 2;
+	                break;
+	            case 'right':
+	                newOx = newOx + (fittingBBox.width - contentBBox.width * scaleDiff.x);
+	                break;
+	            case 'left':
+	            default:
+	                break;
+	        }
+
 	        this.scale(newSx, newSy);
 	        this.translate(newOx, newOy);
+	    },
+
+	    scaleContentToFit: function(opt) {
+	        this.transformToFitContent(opt);
 	    },
 
 	    // Return the dimensions of the content area in local units (without transformations).
@@ -30203,27 +30992,86 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    pointerdown: function(evt) {
 
-	        // onmagnet stops propagation when `addLinkFromMagnet` is allowed
-	        // onevent can stop propagation
-
 	        evt = normalizeEvent(evt);
 
-	        if (evt.button === 2) {
+	        var target = evt.target;
+	        var button = evt.button;
+	        var view = this.findView(target);
+	        var isContextMenu = (button === 2);
+
+	        if (view) {
+
+	            if (!isContextMenu && this.guard(evt, view)) { return; }
+
+	            var isTargetFormNode = this.FORM_CONTROL_TAG_NAMES.includes(target.tagName);
+
+	            if (this.options.preventDefaultViewAction && !isTargetFormNode) {
+	                // If the target is a form element, we do not want to prevent the default action.
+	                // For example, we want to be able to select text in a text input or
+	                // to be able to click on a checkbox.
+	                evt.preventDefault();
+	            }
+
+	            if (isTargetFormNode) {
+	                // If the target is a form element, we do not want to start dragging the element.
+	                // For example, we want to be able to select text by dragging the mouse.
+	                view.preventDefaultInteraction(evt);
+	            }
+
+	            var rootViewEl = view.el;
+
+	            // Custom event
+	            var eventNode = target.closest('[event]');
+	            if (eventNode && rootViewEl !== eventNode && view.el.contains(eventNode)) {
+	                var eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+	                    data: evt.data,
+	                    // Originally the event listener was attached to the event element.
+	                    currentTarget: eventNode
+	                }));
+	                this.onevent(eventEvt);
+	                if (eventEvt.isDefaultPrevented()) {
+	                    evt.preventDefault();
+	                }
+	                // `onevent` can stop propagation
+	                if (eventEvt.isPropagationStopped()) { return; }
+	                evt.data = eventEvt.data;
+	            }
+
+	            // Element magnet
+	            var magnetNode = target.closest('[magnet]');
+	            if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
+	                var magnetEvt = normalizeEvent($.Event(evt.originalEvent, {
+	                    data: evt.data,
+	                    // Originally the event listener was attached to the magnet element.
+	                    currentTarget: magnetNode
+	                }));
+	                this.onmagnet(magnetEvt);
+	                if (magnetEvt.isDefaultPrevented()) {
+	                    evt.preventDefault();
+	                }
+	                // `onmagnet` stops propagation when `addLinkFromMagnet` is allowed
+	                if (magnetEvt.isPropagationStopped()) {
+	                    // `magnet:pointermove` and `magnet:pointerup` events must be fired
+	                    if (isContextMenu) { return; }
+	                    this.delegateDragEvents(view, magnetEvt.data);
+	                    return;
+	                }
+	                evt.data = magnetEvt.data;
+	            }
+	        }
+
+	        if (isContextMenu) {
 	            this.contextMenuFired = true;
-	            var contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+	            var contextmenuEvt = $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
 	            this.contextMenuTrigger(contextmenuEvt);
 	        } else {
-	            var view = this.findView(evt.target);
-
-	            if (this.guard(evt, view)) { return; }
 	            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-
 	            if (view) {
-	                evt.preventDefault();
 	                view.pointerdown(evt, localPoint.x, localPoint.y);
 	            } else {
-	                if (this.options.preventDefaultBlankAction) { evt.preventDefault(); }
-
+	                if (this.options.preventDefaultBlankAction) {
+	                    evt.preventDefault();
+	                }
 	                this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
 	            }
 
@@ -30279,7 +31127,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (!normalizedEvt.isPropagationStopped()) {
-	            this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+	            this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
 	        }
 
 	        evt.stopImmediatePropagation();
@@ -30477,7 +31325,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (evt.button === 2) {
 	            this.contextMenuFired = true;
 	            this.magnetContextMenuFired = true;
-	            var contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+	            var contextmenuEvt = $.Event(evt.originalEvent, {
+	                type: 'contextmenu',
+	                data: evt.data,
+	                currentTarget: evt.currentTarget,
+	            });
 	            this.magnetContextMenuTrigger(contextmenuEvt);
 	            if (contextmenuEvt.isPropagationStopped()) {
 	                evt.stopPropagation();
@@ -30542,7 +31394,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.delegateDocumentEvents(null, data);
 	    },
 
-	    // Guard the specified event. If the event is not interesting, guard returns `true`.
+	    // Guard the specified event. If the event should be ignored, guard returns `true`.
 	    // Otherwise, it returns `false`.
 	    guard: function(evt, view) {
 
@@ -30559,11 +31411,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return evt.data.guarded;
 	        }
 
+	        var target = evt.target;
+
+	        if (this.GUARDED_TAG_NAMES.includes(target.tagName)) {
+	            return true;
+	        }
+
 	        if (view && view.model && (view.model instanceof Cell)) {
 	            return false;
 	        }
 
-	        if (this.svg === evt.target || this.el === evt.target || $.contains(this.svg, evt.target)) {
+	        if (this.svg === target || this.el === target || $.contains(this.svg, target)) {
 	            return false;
 	        }
 

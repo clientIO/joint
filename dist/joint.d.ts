@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-03-30) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-04) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1973,6 +1973,10 @@ export namespace dia {
 
         dragLinkEnd(evt: dia.Event, x: number, y: number): void;
 
+        preventDefaultInteraction(evt: dia.Event): void;
+
+        isDefaultInteractionPrevented(evt: dia.Event): boolean;
+
         protected removeHighlighters(): void;
 
         protected updateHighlighters(): void;
@@ -2417,6 +2421,7 @@ export namespace dia {
             // events
             guard?: (evt: dia.Event, view: CellView) => boolean;
             preventContextMenu?: boolean;
+            preventDefaultViewAction?: boolean;
             preventDefaultBlankAction?: boolean;
             clickThreshold?: number;
             moveThreshold?: number;
@@ -2458,7 +2463,7 @@ export namespace dia {
             overflow?: boolean;
         }
 
-        interface ScaleContentOptions {
+        interface TransformToFitContentOptions {
             padding?: Padding;
             preserveAspectRatio?: boolean;
             minScale?: number;
@@ -2471,7 +2476,14 @@ export namespace dia {
             useModelGeometry?: boolean;
             fittingBBox?: BBox;
             contentArea?: BBox;
+            vertivalAlign?: 'top' | 'middle' | 'bottom';
+            horizontalAlign?: 'left' | 'middle' | 'right';
         }
+
+        /**
+         * @deprecated
+        */
+        type ScaleContentOptions = TransformToFitContentOptions;
 
         interface FitToContentOptions {
             gridWidth?: number;
@@ -2583,6 +2595,9 @@ export namespace dia {
         $grid: JQuery;
         $background: JQuery;
 
+        GUARDED_TAG_NAMES: string[];
+        FORM_CONTROLS_TAG_NAMES: string[];
+
         matrix(): SVGMatrix;
         matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
 
@@ -2665,7 +2680,12 @@ export namespace dia {
 
         getFitToContentArea(opt?: Paper.FitToContentOptions): g.Rect;
 
+        /**
+         * @deprecated use transformToFitContent
+         */
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
+
+        transformToFitContent(opt?: Paper.TransformToFitContentOptions): void;
 
         drawBackground(opt?: Paper.BackgroundOptions): this;
 
@@ -4599,7 +4619,11 @@ export namespace routers {
         'manhattan': ManhattanRouterArguments;
         'metro': ManhattanRouterArguments;
         'orthogonal': OrthogonalRouterArguments;
+        /**
+         * @deprecated use `rightAngle` instead
+         */
         'oneSide': OneSideRouterArguments;
+        'rightAngle': RightAngleRouterArguments;
         [key: string]: { [key: string]: any };
     }
 
@@ -4630,7 +4654,34 @@ export namespace routers {
     export var metro: GenericRouter<'metro'>;
     export var normal: GenericRouter<'normal'>;
     export var orthogonal: GenericRouter<'orthogonal'>;
+    /**
+     * @deprecated use `rightAngle` instead
+     */
     export var oneSide: GenericRouter<'oneSide'>;
+
+    /* Right Angle Router */
+
+    enum RightAngleDirections {
+        AUTO = 'auto',
+        LEFT = 'left',
+        RIGHT = 'right',
+        TOP = 'top',
+        BOTTOM = 'bottom',
+        ANCHOR_SIDE = 'anchor-side',
+        MAGNET_SIDE = 'magnet-side'
+    }
+
+    interface RightAngleRouterArguments {
+        margin?: number;
+        sourceDirection?: RightAngleDirections;
+        targetDirection?: RightAngleDirections;
+    }
+
+    interface RightAngleRouter extends GenericRouter<'rightAngle'> {
+        Directions: typeof RightAngleDirections;
+    }
+
+    export var rightAngle: RightAngleRouter;
 }
 
 // connectors
@@ -4657,32 +4708,29 @@ export namespace connectors {
         radius?: number;
     }
 
-    namespace Curve {
+    enum CurveDirections {
+        AUTO = 'auto',
+        HORIZONTAL = 'horizontal',
+        VERTICAL = 'vertical',
+        CLOSEST_POINT = 'closest-point',
+        OUTWARDS = 'outwards'
+    }
 
-        enum Directions {
-            AUTO = 'auto',
-            HORIZONTAL = 'horizontal',
-            VERTICAL = 'vertical',
-            CLOSEST_POINT = 'closest-point',
-            OUTWARDS = 'outwards'
-        }
-
-        enum TangentDirections {
-            UP = 'up',
-            DOWN = 'down',
-            LEFT = 'left',
-            RIGHT = 'right',
-            AUTO = 'auto',
-            CLOSEST_POINT = 'closest-point',
-            OUTWARDS = 'outwards'
-        }
+    enum CurveTangentDirections {
+        UP = 'up',
+        DOWN = 'down',
+        LEFT = 'left',
+        RIGHT = 'right',
+        AUTO = 'auto',
+        CLOSEST_POINT = 'closest-point',
+        OUTWARDS = 'outwards'
     }
 
     interface CurveConnectorArguments {
         raw?: boolean;
-        direction?: Curve.Directions;
-        sourceDirection?: Curve.TangentDirections | dia.Point | number;
-        targetDirection?: Curve.TangentDirections | dia.Point | number;
+        direction?: CurveDirections;
+        sourceDirection?: CurveTangentDirections | dia.Point | number;
+        targetDirection?: CurveTangentDirections | dia.Point | number;
         sourceTangent?: dia.Point;
         targetTangent?: dia.Point;
         distanceCoefficient?: number;
@@ -4719,6 +4767,11 @@ export namespace connectors {
         args?: GenericConnectorArguments<K>;
     }
 
+    interface CurveConnector extends GenericConnector<'curve'> {
+        Directions: typeof CurveDirections;
+        TangentDirections: typeof CurveTangentDirections;
+    }
+
     type ConnectorArguments = GenericConnectorArguments<ConnectorType>;
 
     type Connector = GenericConnector<ConnectorType>;
@@ -4729,7 +4782,7 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
-    export var curve: GenericConnector<'curve'>;
+    export var curve: CurveConnector;
 }
 
 // anchors
