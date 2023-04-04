@@ -1,35 +1,30 @@
-function propertyWrapper(property) {
-    return {
-        qualify: function(_, node) {
-            return property in node;
-        },
-        set: function(value, _, node) {
-            node[property] = value;
-        }
-    };
-}
+import { isPlainObject } from '../../util/util.mjs';
 
-export const checked = propertyWrapper('checked');
+const validPropertiesList = ['checked', 'selected', 'disabled', 'readOnly', 'contentEditable', 'value', 'indeterminate'];
 
-export const selected = propertyWrapper('selected');
+const validProperties = validPropertiesList.reduce((acc, key) => {
+    acc[key] = true;
+    return acc;
+}, {});
 
-export const disabled = propertyWrapper('disabled');
-
-export const readonly = propertyWrapper('readOnly');
-
-export const contenteditable = propertyWrapper('contentEditable');
-
-export const value = {
-    qualify: function(_, node) {
-        return 'value' in node;
+const props = {
+    qualify: function(properties, node) {
+        return isPlainObject(properties);
     },
-    set: function(value, _, node) {
-        if (node.tagName === 'SELECT' && Array.isArray(value)) {
-            Array.from(node.options).forEach(function(option, index) {
-                option.selected = value.includes(option.value);
-            });
-        } else {
-            node.value = value;
-        }
+    set: function(properties, _, node) {
+        Object.keys(properties).forEach(function(key) {
+            if (validProperties[key] && key in node) {
+                const value = properties[key];
+                if (node.tagName === 'SELECT' && Array.isArray(value)) {
+                    Array.from(node.options).forEach(function(option, index) {
+                        option.selected = value.includes(option.value);
+                    });
+                } else {
+                    node[key] = value;
+                }
+            }
+        });
     }
 };
+
+export default props;

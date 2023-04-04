@@ -937,7 +937,7 @@ QUnit.module('Attributes', function() {
                 const fo = createForeignObjectShape('<input @selector="input" type="text"/>');
                 const inputNode = paper.svg.querySelector('input');
                 assert.equal(inputNode.value, '');
-                fo.attr('input/value', 'foo');
+                fo.attr('input/props/value', 'foo');
                 assert.equal(inputNode.value, 'foo');
                 assert.strictEqual(inputNode.getAttribute('value'), null);
             });
@@ -946,7 +946,7 @@ QUnit.module('Attributes', function() {
                 const fo = createForeignObjectShape('<textarea @selector="textarea"></textarea>');
                 const textareaNode = paper.svg.querySelector('textarea');
                 assert.equal(textareaNode.value, '');
-                fo.attr('textarea/value', 'foo');
+                fo.attr('textarea/props/value', 'foo');
                 assert.equal(textareaNode.value, 'foo');
                 assert.strictEqual(textareaNode.getAttribute('value'), null);
             });
@@ -960,7 +960,7 @@ QUnit.module('Attributes', function() {
                 `);
                 const selectNode = paper.svg.querySelector('select');
                 assert.equal(selectNode.value, 'foo');
-                fo.attr('select/value', 'bar');
+                fo.attr('select/props/value', 'bar');
                 assert.equal(selectNode.value, 'bar');
                 assert.strictEqual(selectNode.getAttribute('value'), null);
             });
@@ -977,7 +977,7 @@ QUnit.module('Attributes', function() {
                 assert.notOk(selectNode.options[0].selected);
                 assert.notOk(selectNode.options[1].selected);
                 assert.notOk(selectNode.options[1].selected);
-                fo.attr('select/value', ['foo', 'bar']);
+                fo.attr('select/props/value', ['foo', 'bar']);
                 assert.ok(selectNode.options[0].selected);
                 assert.ok(selectNode.options[1].selected);
                 assert.notOk(selectNode.options[2].selected);
@@ -990,7 +990,7 @@ QUnit.module('Attributes', function() {
                 const fo = createForeignObjectShape('<input @selector="input" type="checkbox"/>');
                 const inputNode = paper.svg.querySelector('input');
                 assert.equal(inputNode.checked, false);
-                fo.attr('input/checked', true);
+                fo.attr('input/props/checked', true);
                 assert.equal(inputNode.checked, true);
                 assert.strictEqual(inputNode.getAttribute('checked'), null);
             });
@@ -999,7 +999,7 @@ QUnit.module('Attributes', function() {
                 const fo = createForeignObjectShape('<input @selector="input" type="radio" name="radio"/>');
                 const inputNode = paper.svg.querySelector('input');
                 assert.equal(inputNode.checked, false);
-                fo.attr('input/checked', true);
+                fo.attr('input/props/checked', true);
                 assert.equal(inputNode.checked, true);
                 assert.strictEqual(inputNode.getAttribute('checked'), null);
             });
@@ -1011,18 +1011,18 @@ QUnit.module('Attributes', function() {
                 const fo = createForeignObjectShape('<input @selector="input" type="text"/>');
                 const inputNode = paper.svg.querySelector('input');
                 assert.equal(inputNode.disabled, false);
-                fo.attr('input/disabled', true);
+                fo.attr('input/props/disabled', true);
                 assert.equal(inputNode.disabled, true);
             });
         });
 
-        QUnit.module('readonly', function(assert) {
+        QUnit.module('readOnly', function(assert) {
 
             QUnit.test('<input/>', function(assert) {
                 const fo = createForeignObjectShape('<input @selector="input" type="text"/>');
                 const inputNode = paper.svg.querySelector('input');
                 assert.equal(inputNode.readOnly, false);
-                fo.attr('input/readonly', true);
+                fo.attr('input/props/readOnly', true);
                 assert.equal(inputNode.readOnly, true);
             });
         });
@@ -1038,18 +1038,18 @@ QUnit.module('Attributes', function() {
                 `);
                 const selectNode = paper.svg.querySelector('select');
                 assert.equal(selectNode.value, 'foo');
-                fo.attr('option2/selected', true);
+                fo.attr('option2/props/selected', true);
                 assert.equal(selectNode.value, 'bar');
             });
         });
 
-        QUnit.module('contenteditable', function(assert) {
+        QUnit.module('contentEditable', function(assert) {
 
             QUnit.test('<div/>', function(assert) {
                 const fo = createForeignObjectShape('<div class="test-div" @selector="div">foo</div>');
                 const divNode = paper.svg.querySelector('.test-div');
                 assert.notOk(divNode.isContentEditable);
-                fo.attr('div/contenteditable', true);
+                fo.attr('div/props/contentEditable', true);
                 assert.ok(divNode.isContentEditable);
             });
         });

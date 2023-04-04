@@ -1,0 +1,22 @@
+<p>Special attribute for setting the properties of the HTMLElement. The value is not set as a node attribute, but using the DOM property.</p>
+
+<pre><code>element.attr('input', {
+    props: { value: 'text', readonly: false },
+    type: 'text',
+    placeholder: 'Enter text'
+});
+</code></pre>
+
+<p><code>props</code> is an object with one or more of the following properties: <code>value</code>, <code>checked</code>, <code>disabled</code>, <code>readOnly</code>, <code>contentEditable</code>, <code>multiple</code>, <code>selected</code>, <code>indeterminate</code>.</p>
+
+<p>For example, to set the content of the <i>textarea</i> element, use the following syntax:</p>
+
+<pre><code>element.attr('textarea/props/value', 'textarea content');</code></pre>
+
+<p>When setting a value of the <i>select</i> element, pass the value of the <i>option</i> element.</p>
+
+<pre><code>element.attr('select/props/value', 'option1');</code></pre>
+
+<p>For the <i>select</i> with multiple options, pass an array of values.</p>
+
+<pre><code>element.attr('select/props/value', ['option1', 'option2]', { rewrite: true });</code></pre>

@@ -166,7 +166,7 @@ const Example2 = joint.dia.Element.define('example.ForeignObject2', {
                 <!-- Image -->
                 <span>Image</span>
                 <img @selector="image" src="https://picsum.photos/180/100" style="position: static; width: 100%; height: 100px;"/>
-                <span event="hello">Button</span>
+                <span>Button</span>
                 <button @selector="button" style="position: static; width: 100%;">Click me</button>
             </div>
         </foreignObject>
@@ -181,7 +181,7 @@ joint.shapes.example.ForeignObjectView = joint.dia.ElementView.extend({
 
     onInputChange: function(evt) {
         const input = evt.target;
-        this.model.attr(input.name + '/value', input.value);
+        this.model.attr(input.name + '/props/value', input.value);
     }
 });
 
@@ -194,7 +194,7 @@ joint.shapes.example.ForeignObject2View = joint.dia.ElementView.extend({
 
     onInputChange: function(evt) {
         const input = evt.target;
-        this.model.attr(input.getAttribute('joint-selector') + '/value', input.value);
+        this.model.attr(input.getAttribute('joint-selector') + '/props/value', input.value);
     },
 
     imageId: 0,
@@ -216,8 +216,8 @@ const ex = new Example({
 });
 ex.resize(200, 100);
 ex.position(100, 100);
-ex.attr('firstname/value', 'Bobby');
-ex.attr('lastname/value', 'Fisher');
+ex.attr('firstname/props/value', 'Bobby');
+ex.attr('lastname/props/value', 'Fisher');
 ex.addTo(graph);
 
 const ex2 = new Example2({
@@ -230,7 +230,7 @@ const ex2 = new Example2({
 });
 ex2.resize(200, 380);
 ex2.position(400, 10);
-ex2.attr('firstname/value', 'Garry');
-ex2.attr('lastname/value', 'Kasparov');
-ex2.attr('color/value', 'white');
+ex2.attr('firstname/props/value', 'Garry');
+ex2.attr('lastname/props/value', 'Kasparov');
+ex2.attr('color/props/value', 'black');
 ex2.addTo(graph);
