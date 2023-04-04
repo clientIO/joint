@@ -1,0 +1,212 @@
+:root {
+    /* JointJS Palette */
+    --jj-color1: #ed2637;
+    --jj-color2: #131e29;
+    --jj-color3: #dde6ed;
+    --jj-color4: #f6f740;
+    --jj-color5: #0075f2;
+    --jj-color6: #1a2938;
+    --jj-color7: #cad8e3;
+
+    /* Dark Theme */
+    --step-stroke-color: var(--jj-color1);
+    --step-fill-color: var(--jj-color2);
+    --step-text-color: var(--jj-color3);
+    --decision-stroke-color: var(--jj-color3);
+    --decision-fill-color: var(--jj-color2);
+    --decision-text-color: var(--jj-color3);
+    --start-stroke-color: var(--jj-color1);
+    --start-fill-color: var(--jj-color2);
+    --start-text-color: var(--jj-color1);
+    --flow-stroke-color: var(--jj-color1);
+    --flow-label-stroke-color: var(--jj-color2);
+    --flow-label-fill-color: var(--jj-color1);
+    --flow-label-text-color: var(--jj-color3);
+    --flow-selection-color: var(--jj-color6);
+    --frame-color: var(--jj-color4);
+    --background-color: var(--jj-color2);
+    --switch-color: var(--jj-color3);
+    --switch-background-color: var(--jj-color1);
+    --logo-color: var(--jj-color3);
+}
+
+/* Light Theme */
+
+.light-theme {
+    --step-stroke-color: var(--jj-color1);
+    --step-fill-color: var(--jj-color3);
+    --step-text-color: var(--jj-color2);
+    --decision-stroke-color: var(--jj-color2);
+    --decision-fill-color: var(--jj-color3);
+    --decision-text-color: var(--jj-color2);
+    --start-stroke-color: var(--jj-color1);
+    --start-fill-color: var(--jj-color3);
+    --start-text-color: var(--jj-color1);
+    --flow-stroke-color: var(--jj-color1);
+    --flow-label-stroke-color: var(--jj-color3);
+    --flow-label-fill-color: var(--jj-color1);
+    --flow-label-text-color: var(--jj-color3);
+    --flow-selection-color: var(--jj-color7);
+    --frame-color: var(--jj-color5);
+    --background-color: var(--jj-color3);
+    --switch-color: var(--jj-color3);
+    --switch-background-color: var(--jj-color2);
+    --logo-color: var(--jj-color2);
+}
+
+/* Font */
+
+@font-face {
+    font-family: "PPFraktionSans";
+    font-style: normal;
+    font-weight: 300;
+    src: url("./fonts/PPFraktionSans-Regular.woff") format("woff");
+}
+
+@font-face {
+    font-family: "PPFraktionSans";
+    font-style: italic;
+    font-weight: 300;
+    src: url("./fonts/PPFraktionSans-RegularItalic.woff") format("woff");
+}
+
+@font-face {
+    font-family: "PPFraktionSans";
+    font-style: normal;
+    font-weight: 600;
+    src: url("./fonts/PPFraktionSans-Bold.woff") format("woff");
+}
+
+/* Flowchart */
+
+.jj-start-body {
+    fill: var(--start-fill-color);
+    stroke: var(--start-stroke-color);
+}
+
+.jj-start-text {
+    fill: var(--start-text-color);
+}
+
+.jj-step-body {
+    fill: var(--step-fill-color);
+    stroke: var(--step-stroke-color);
+}
+
+.jj-step-text {
+    fill: var(--step-text-color);
+}
+
+.jj-decision-body {
+    fill: var(--decision-fill-color);
+    stroke: var(--decision-stroke-color);
+    stroke-width: 3;
+}
+
+.jj-decision-text {
+    fill: var(--decision-text-color);
+}
+
+.jj-flow-line {
+    stroke: var(--flow-stroke-color);
+    stroke-width: 1;
+}
+
+.jj-flow-outline {
+    stroke: var(--background-color);
+    stroke-width: calc(calc(var(--flow-spacing) * 2) + 1px);
+}
+
+.jj-flow-label-body {
+    stroke: var(--flow-label-stroke-color);
+    fill: var(--flow-label-fill-color);
+    stroke-width: calc(var(--flow-spacing));
+}
+
+.jj-flow-label-text {
+    fill: var(--flow-label-text-color);
+}
+
+.jj-flow-arrowhead {
+    stroke: var(--flow-stroke-color);
+    fill: var(--flow-stroke-color);
+}
+
+.jj-frame {
+    fill: var(--frame-color);
+}
+
+.jj-flow-tools circle {
+    stroke: var(--frame-color);
+    fill: var(--background-color);
+    stroke-width: 2;
+}
+
+.jj-flow-tools rect {
+    stroke: var(--frame-color);
+}
+
+.jj-flow-selection {
+    stroke: var(--flow-selection-color);
+    stroke-width: 20px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+/* Canvas */
+
+body {
+    background: var(--background-color);
+}
+
+#canvas {
+    position: absolute;
+    inset: 0 0 0 0;
+}
+
+#logo {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    fill: var(--logo-color);
+}
+
+/* Theme toggle */
+
+.theme-switch {
+    width: 70px;
+    height: 30px;
+    background: var(--switch-background-color);
+    border-radius: 50px;
+    position: absolute;
+    display: inline-block;
+    right: 16px;
+    top: 16px;
+}
+
+.switch {
+    width: 24px;
+    height: 24px;
+    background: var(--switch-color);
+    border-radius: 100%;
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    transition: 0.5s all ease;
+}
+
+.light-icon {
+    position: absolute;
+    top: 5px;
+    left: 6px;
+}
+
+.dark-icon {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+}
+
+.light-theme .theme-switch .switch {
+    transform: translateX(37px);
+}

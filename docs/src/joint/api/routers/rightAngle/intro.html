@@ -1,0 +1,38 @@
+<p>
+    The <code>'rightAngle'</code> router returns a route with orthogonal line segments just like <code>'orthogonal'</code> router,
+    except it chooses the direction of the link based on the position of the source and target anchors (or port position).
+    This router avoids collisions with source and target elements, but does not avoid other obstacles.
+    The behavior of the router can be modified by passing optional arguments:
+</p>
+
+<div class="docs-important-note">
+    This router completely ignores vertices, so using vertex tools such as <code>linkTools.Vertices</code> will not result in any change of path.
+</div>
+
+<br>
+
+<table>
+    <tr>
+        <th>margin</th>
+        <td><i>number</i></td>
+        <td>The minimum distance between the route and the element. The default is <code>20</code>.</td>
+    </tr>
+    <tr>
+        <th>sourceDirection</th>
+        <td><i>rightAngle.Directions</i></td>
+        <td>The direction of the link from the source anchor. The default is <code>rightAngle.Directions.AUTO</code>.</td>
+    </tr>
+    <tr>
+        <th>targetDirection</th>
+        <td><i>rightAngle.Directions</i></td>
+        <td>The direction of the link from the target anchor. The default is <code>rightAngle.Directions.AUTO</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.router('rightAngle', {
+    margin: 10,
+    sourceDirection: routers.rightAngle.Directions.TOP,
+    targetDirection: routers.rightAngle.Directions.BOTTOM
+});</code></pre>

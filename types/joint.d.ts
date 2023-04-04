@@ -3449,7 +3449,11 @@ export namespace routers {
         'manhattan': ManhattanRouterArguments;
         'metro': ManhattanRouterArguments;
         'orthogonal': OrthogonalRouterArguments;
+        /**
+         * @deprecated use `rightAngle` instead
+         */
         'oneSide': OneSideRouterArguments;
+        'rightAngle': RightAngleRouterArguments;
         [key: string]: { [key: string]: any };
     }
 
@@ -3480,7 +3484,34 @@ export namespace routers {
     export var metro: GenericRouter<'metro'>;
     export var normal: GenericRouter<'normal'>;
     export var orthogonal: GenericRouter<'orthogonal'>;
+    /**
+     * @deprecated use `rightAngle` instead
+     */
     export var oneSide: GenericRouter<'oneSide'>;
+
+    /* Right Angle Router */
+
+    enum RightAngleDirections {
+        AUTO = 'auto',
+        LEFT = 'left',
+        RIGHT = 'right',
+        TOP = 'top',
+        BOTTOM = 'bottom',
+        ANCHOR_SIDE = 'anchor-side',
+        MAGNET_SIDE = 'magnet-side'
+    }
+
+    interface RightAngleRouterArguments {
+        margin?: number;
+        sourceDirection?: RightAngleDirections;
+        targetDirection?: RightAngleDirections;
+    }
+
+    interface RightAngleRouter extends GenericRouter<'rightAngle'> {
+        Directions: typeof RightAngleDirections;
+    }
+
+    export var rightAngle: RightAngleRouter;
 }
 
 // connectors
