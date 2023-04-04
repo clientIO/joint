@@ -349,7 +349,11 @@ export const Paper = View.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
+    // If you interact with these elements,
+    // the default interaction such as `element move` is prevented.
     FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT', 'OPTION'] ,
+    // If you interact with these elements, the events are not propagated to the paper
+    // i.e. paper events such as `element:pointerdown` are not triggered.
     GUARDED_TAG_NAMES: [
         // Guard <select> for consistency. When you click on it:
         // Chrome: triggers `pointerdown`, `pointerup`, `pointerclick` to open
