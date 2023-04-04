@@ -9,7 +9,7 @@ const paper = new joint.dia.Paper({
     async: true,
     cellViewNamespace: joint.shapes,
     preventDefaultBlankAction: false,
-    preventDefaultViewAction: false,
+    preventDefaultViewAction: false
 });
 
 // Disable the default touch action on the paper.
@@ -60,7 +60,7 @@ const Example = joint.dia.Element.define('example.ForeignObject', {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: 'center'
                 // Prevents the browser from scrolling the page when the user
                 // tries to touch the foreignObject.
                 // Works in Chrome, but not in Safari. If set on the paper,
@@ -69,7 +69,7 @@ const Example = joint.dia.Element.define('example.ForeignObject', {
             },
             children: [{
                 tagName: 'span',
-                textContent: 'First Name',
+                textContent: 'First Name'
             }, {
                 tagName: 'input',
                 selector: 'firstname',
@@ -112,7 +112,7 @@ const Example2 = joint.dia.Element.define('example.ForeignObject2', {
         },
         foreignObject: {
             width: 'calc(w)',
-            height: 'calc(h)',
+            height: 'calc(h)'
         }
     }
 }, {

@@ -87,10 +87,10 @@ const paper = new dia.Paper({
         name: 'curve'
     },
     defaultConnectionPoint: {
-        name: 'anchor',
+        name: 'anchor'
     },
     background: {
-        color: '#f6f4f4',
+        color: '#f6f4f4'
     },
     preventDefaultViewAction: false,
     interactive: {
@@ -99,7 +99,7 @@ const paper = new dia.Paper({
     elementView: dia.ElementView.extend({
 
         events: {
-            'change input,select': 'onInputChange',
+            'change input,select': 'onInputChange'
         },
 
         onInputChange: function(evt) {
@@ -131,7 +131,7 @@ class ForeignObjectElement extends dia.Element {
                 },
                 foreignObject: {
                     width: 'calc(w)',
-                    height: 'calc(h)',
+                    height: 'calc(h)'
                 }
             }
         };
@@ -146,7 +146,7 @@ class Investment extends ForeignObjectElement {
             size: {
                 width: 140,
                 height: 225
-            },
+            }
         };
     }
 
@@ -206,7 +206,7 @@ class Product extends ForeignObjectElement {
             size: {
                 width: 140,
                 height: 120
-            },
+            }
         };
     }
 
@@ -264,7 +264,7 @@ class ProductPerformance extends ForeignObjectElement {
             size: {
                 width: 200,
                 height: 100
-            },
+            }
         };
     }
 
@@ -329,7 +329,7 @@ class OverallPerformance extends ForeignObjectElement {
     defaults() {
         return {
             ...super.defaults(),
-            type: 'OverallPerformance',
+            type: 'OverallPerformance'
         };
     }
 
@@ -392,7 +392,7 @@ class Link extends shapes.standard.DoubleLink {
                 line: {
                     stroke: '#333333',
                     targetMarker: {
-                        'stroke-width': 2,
+                        'stroke-width': 2
                     }
                 },
                 outline: {
@@ -412,11 +412,11 @@ const investment = new Investment({
         funds: {
             value: 100,
             // Do tab indexes greater than zero violate accessibility? See the accessibility notes at the end of the demo.
-            tabindex: 1,
+            tabindex: 1
         },
         year: {
             value: 2018,
-            tabindex: 2,
+            tabindex: 2
         }
     }
 
@@ -435,7 +435,7 @@ const gold = new Product({
         },
         percentage: {
             value: 25,
-            tabindex: 3,
+            tabindex: 3
         }
     }
 });
@@ -453,7 +453,7 @@ const bitcoin = new Product({
         },
         percentage: {
             value: 25,
-            tabindex: 4,
+            tabindex: 4
         }
     }
 });
@@ -471,7 +471,7 @@ const sp500 = new Product({
         },
         percentage: {
             value: 50,
-            tabindex: 5,
+            tabindex: 5
         }
     }
 });
@@ -484,10 +484,10 @@ const goldPerformance = new ProductPerformance({
             html: 'Gold'
         },
         value: {
-            tabindex: 6,
+            tabindex: 6
         },
         roi: {
-            tabindex: 7,
+            tabindex: 7
         }
     }
 });
@@ -500,10 +500,10 @@ const bitcoinPerformance = new ProductPerformance({
             html: 'Bitcoin'
         },
         value: {
-            tabindex: 8,
+            tabindex: 8
         },
         roi: {
-            tabindex: 9,
+            tabindex: 9
         }
     }
 });
@@ -516,10 +516,10 @@ const sp500Performance = new ProductPerformance({
             html: 'S&P 500'
         },
         value: {
-            tabindex: 10,
+            tabindex: 10
         },
         roi: {
-            tabindex: 11,
+            tabindex: 11
         }
     }
 });
@@ -532,10 +532,10 @@ const performance = new OverallPerformance({
             fill: SECONDARY_COLOR
         },
         value: {
-            tabindex: 12,
+            tabindex: 12
         },
         roi: {
-            tabindex: 13,
+            tabindex: 13
         }
     }
 });
@@ -546,7 +546,7 @@ const link1 = new Link({
     z: 2,
     attrs: {
         line: {
-            stroke: MAIN_COLOR,
+            stroke: MAIN_COLOR
         }
     }
 });
@@ -557,7 +557,7 @@ const link2 = new Link({
     z: 2,
     attrs: {
         line: {
-            stroke: MAIN_COLOR,
+            stroke: MAIN_COLOR
         }
     }
 });
@@ -568,7 +568,7 @@ const link3 = new Link({
     z: 2,
     attrs: {
         line: {
-            stroke: MAIN_COLOR,
+            stroke: MAIN_COLOR
         }
     }
 });
@@ -579,7 +579,7 @@ const link4 = new Link({
     z: 4,
     attrs: {
         line: {
-            stroke: GOLD_COLOR,
+            stroke: GOLD_COLOR
         }
     }
 });
@@ -590,7 +590,7 @@ const link5 = new Link({
     z: 5,
     attrs: {
         line: {
-            stroke: BTC_COLOR,
+            stroke: BTC_COLOR
         }
     }
 
@@ -602,7 +602,7 @@ const link6 = new Link({
     z: 7,
     attrs: {
         line: {
-            stroke: SP500_COLOR,
+            stroke: SP500_COLOR
         }
     }
 });
