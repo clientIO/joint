@@ -2,13 +2,12 @@ QUnit.module('paper', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        var $fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
-        var $paper = $('<div/>');
-        $fixture.append($paper);
-
+        const fixtureEl = fixtures.getElement();
+        const paperEl = document.createElement('div');
+        fixtureEl.appendChild(paperEl);
         this.graph = new joint.dia.Graph;
         this.paper = new joint.dia.Paper({
-            el: $paper,
+            el: paperEl,
             gridSize: 10,
             model: this.graph
         });
@@ -777,12 +776,33 @@ QUnit.module('paper', function(hooks) {
 
         paper.options.moveThreshold = 2;
         paper.on('element:pointermove', spy);
-        var data = {};
-        paper.pointerdown($.Event('mousedown', { target: elRect, data: data }));
-        paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
-        paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
-        paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Processed
-        paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+
+        simulate.mousedown({ el: elRect });
+        simulate.mousemove({ el: elRect }); // Ignored
+        simulate.mousemove({ el: elRect }); // Ignored
+        simulate.mousemove({ el: elRect }); // Processed
+        simulate.mouseup({ el: elRect });
+
+        assert.ok(spy.calledOnce);
+    });
+
+    QUnit.test('paper.options: moveThreshold < TOUCH EVENTS', function(assert) {
+
+        var graph = this.graph;
+        var paper = this.paper;
+        var el = (new joint.shapes.basic.Rect()).size(100, 100).position(0, 0).addTo(graph);
+        var elView = el.findView(paper);
+        var elRect = elView.el.querySelector('rect');
+        var spy = sinon.spy();
+
+        paper.options.moveThreshold = 2;
+        paper.on('element:pointermove', spy);
+
+        simulate.touchstart({ target: elRect });
+        simulate.touchmove({ target: elRect }); // Ignored
+        simulate.touchmove({ target: elRect }); // Ignored
+        simulate.touchmove({ target: elRect }); // Processed
+        simulate.touchend({ target: elRect });
 
         assert.ok(spy.calledOnce);
     });
@@ -805,50 +825,98 @@ QUnit.module('paper', function(hooks) {
 
             var graph = this.graph;
             var paper = this.paper;
-            var data;
 
             paper.options.magnetThreshold = 0;
-            data = {};
 
-            paper.onmagnet($.Event('mousedown', { currentTarget: elRect, data: data }));
+            simulate.mousedown({ el: elRect });
             assert.equal(graph.getLinks().length, 1);
-            paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+            simulate.mouseup({ el: elRect });
+        });
+
+        QUnit.test('magnetThreshold: number (0) < TOUCH EVENTS', function(assert) {
+
+            var graph = this.graph;
+            var paper = this.paper;
+
+            paper.options.magnetThreshold = 0;
+
+            simulate.touchstart({ target: elRect });
+            assert.equal(graph.getLinks().length, 1);
+            simulate.touchend({ target: elRect });
         });
 
         QUnit.test('magnetThreshold: number (1+)', function(assert) {
 
             var graph = this.graph;
             var paper = this.paper;
-            var data;
 
             paper.options.magnetThreshold = 2;
-            data = {};
 
-            paper.onmagnet($.Event('mousedown', { currentTarget: elRect, data: data }));
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
+            simulate.mousedown({ el: elRect });
+            simulate.mousemove({ el: elRect }); // Ignored
+            simulate.mousemove({ el: elRect }); // Ignored
             assert.equal(graph.getLinks().length, 0);
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Processed
+            simulate.mousemove({ el: elRect }); // Processed
             assert.equal(graph.getLinks().length, 1);
-            paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+            simulate.mouseup({ el: elRect });
+        });
+
+
+        QUnit.test('magnetThreshold: number (1+) > TOUCH EVENTS', function(assert) {
+
+            var graph = this.graph;
+            var paper = this.paper;
+
+            paper.options.magnetThreshold = 2;
+
+            simulate.touchstart({ target: elRect });
+            simulate.touchmove({ target: elRect }); // Ignored
+            simulate.touchmove({ target: elRect }); // Ignored
+            assert.equal(graph.getLinks().length, 0);
+            simulate.touchmove({ target: elRect }); // Processed
+            assert.equal(graph.getLinks().length, 1);
+            simulate.touchend({ target: elRect });
         });
 
         QUnit.test('magnetThreshold: string ("onleave")', function(assert) {
 
             var graph = this.graph;
             var paper = this.paper;
-            var data;
 
             paper.options.magnetThreshold = 'onleave';
-            data = {};
 
-            paper.onmagnet($.Event('mousedown', { currentTarget: elRect, data: data }));
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
-            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
+            simulate.mousedown({ el: elRect });
+            simulate.mousemove({ el: elRect }); // Ignored
+            simulate.mousemove({ el: elRect }); // Ignored
             assert.equal(graph.getLinks().length, 0);
-            paper.pointermove($.Event('mousemove', { target: paper.svg, data: data })); // Processed
+            simulate.mousemove({ el: paper.svg }); // Processed
             assert.equal(graph.getLinks().length, 1);
-            paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+            simulate.mouseup({ el: paper.svg });
+        });
+
+        QUnit.test('magnetThreshold: string ("onleave") < TOUCH EVENTS', function(assert) {
+
+            // document.elementFromPoint() does not work with negative coordinates.
+            fixtures.moveToViewport();
+
+            var graph = this.graph;
+            var paper = this.paper;
+
+            paper.options.magnetThreshold = 'onleave';
+
+            const rect = elRect.getBoundingClientRect();
+            const clientX = rect.left + rect.width / 2;
+            const clientY = rect.top + rect.height / 2;
+
+            simulate.touchstart({ target: elRect });
+            simulate.touchmove({ target: elRect, clientX, clientY }); // Ignored
+            simulate.touchmove({ target: elRect, clientX, clientY }); // Ignored
+            assert.equal(graph.getLinks().length, 0);
+            simulate.touchmove({ target: elRect, clientX: clientX + rect.width, clientY }); // Processed
+            assert.equal(graph.getLinks().length, 1);
+            simulate.touchend({ target: elRect });
+
+            fixtures.moveOffscreen();
         });
     });
 
@@ -909,7 +977,7 @@ QUnit.module('paper', function(hooks) {
         this.paper.options.linkPinning = true;
         source.attr('.', { magnet: true });
         data = {};
-        sourceView.dragMagnetStart({ currentTarget: sourceView.el, target: sourceView.el, type: 'mousedown', data: data, stopPropagation: function() {} }, 150, 150);
+        sourceView.dragMagnetStart({ currentTarget: sourceView.el, target: sourceView.el, type: 'mousedown', data: data, stopPropagation: () => {}, isPropagationStopped: () => false }, 150, 150);
         sourceView.pointermove({ type: 'mousemove', data: data }, 150, 400);
 
         newLink = _.reject(this.graph.getLinks(), { id: 'link' })[0];
@@ -2119,6 +2187,35 @@ QUnit.module('paper', function(hooks) {
             });
         }
 
+        QUnit.test('originalEvent', function(assert) {
+
+            const paper = this.paper;
+            const events = [
+                'element:pointerdown',
+                'element:pointermove',
+                'element:pointerup',
+                'element:pointerclick',
+                'element:magnet:pointerdown',
+                'element:magnet:pointermove',
+                'element:magnet:pointerup',
+                'element:magnet:pointerclick',
+            ];
+
+            assert.expect(events.length);
+            events.forEach(function(eventName) {
+                paper.on(eventName, function(view, evt) {
+                    assert.ok(evt.originalEvent instanceof MouseEvent);
+                });
+            });
+
+            paper.options.clickThreshold = 1;
+            el.attr(['body', 'magnet'], 'passive');
+            simulate.mousedown({ el: elRect });
+            simulate.mousemove({ el: elRect });
+            simulate.mouseup({ el: elRect });
+
+        });
+
         QUnit.module('Labels', function(hooks) {
 
             var link, linkView;
@@ -2185,8 +2282,10 @@ QUnit.module('paper', function(hooks) {
                     var eventOrder;
                     if (magnetType === 'passive') {
                         eventOrder = [
+                            'element:magnet:pointerdown',
                             'cell:pointerdown',
                             'element:pointerdown',
+                            'element:magnet:pointerup',
                             'element:pointerup',
                             'cell:pointerup',
                             eventName,
@@ -2197,6 +2296,8 @@ QUnit.module('paper', function(hooks) {
                         ];
                     } else {
                         eventOrder = [
+                            'element:magnet:pointerdown',
+                            'element:magnet:pointerup',
                             eventName,
                             'cell:mouseleave',
                             'element:mouseleave',
@@ -2294,7 +2395,7 @@ QUnit.module('paper', function(hooks) {
                     ));
                 });
 
-                QUnit.test(magnetType + 'magnet:contextmenu', function(assert) {
+                QUnit.test(magnetType + ' magnet:contextmenu', function(assert) {
 
                     el.attr(['body', 'magnet'], magnetType);
 
@@ -2338,6 +2439,41 @@ QUnit.module('paper', function(hooks) {
                         localPoint.x,
                         localPoint.y
                     ));
+                });
+
+                QUnit.test(magnetType + ' magnet:pointerdown', function(assert) {
+
+                    assert.expect(3);
+                    elRect.setAttribute('magnet', magnetType);
+                    const paper = this.paper;
+                    paper.on({
+                        'element:magnet:pointerdown': function(view, evt) {
+                            assert.ok(true);
+                            evt.stopPropagation();
+                        },
+                        'element:pointerdown': function(view, evt) {
+                            assert.ok(false);
+                        },
+                        'element:magnet:pointermove': function(view, evt) {
+                            assert.ok(true);
+                        },
+                        'element:pointermove': function(view, evt) {
+                            assert.ok(false);
+                        },
+                        'element:magnet:pointerup': function(view, evt) {
+                            assert.ok(true);
+                        },
+                        'element:pointerup': function(view, evt) {
+                            assert.ok(false);
+                        },
+                        'element:pointerclick': function(view, evt) {
+                            assert.ok(false);
+                        }
+                    });
+
+                    simulate.mousedown({ el: elRect });
+                    simulate.mousemove({ el: elRect });
+                    simulate.mouseup({ el: elRect });
                 });
             });
         });
@@ -2444,9 +2580,6 @@ QUnit.module('paper', function(hooks) {
 
             paper.on('all', spy);
 
-            const magnet = document.createElement('div');
-            magnet.setAttribute('magnet', 'true');
-            elRect.appendChild(magnet);
 
             simulate.click({
                 el: elRect,
@@ -2461,8 +2594,10 @@ QUnit.module('paper', function(hooks) {
             assert.equal(events[1], 'element:contextmenu');
             spy.resetHistory();
 
+            elRect.setAttribute('magnet', 'true');
+
             simulate.click({
-                el: magnet,
+                el: elRect,
                 button: 2,
                 clientX: 1200,
                 clientY: 1300
@@ -2479,7 +2614,7 @@ QUnit.module('paper', function(hooks) {
                 evt.stopPropagation();
             });
             simulate.click({
-                el: magnet,
+                el: elRect,
                 button: 2,
                 clientX: 1200,
                 clientY: 1300
@@ -2533,29 +2668,229 @@ QUnit.module('paper', function(hooks) {
             assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('blank:pointerup') + 1));
         });
 
-        QUnit.test('event.data', function(assert) {
+        QUnit.module('event.data', function() {
 
-            assert.expect(2);
-            var paper = this.paper;
-            paper.options.clickThreshold = 5;
-            paper.on({
-                'element:pointerdown': function(view, evt) {
-                    evt.data = { test: 1 };
-                },
-                'element:pointermove': function(view, evt) {
-                    evt.data.test += 1;
-                },
-                'element:pointerup': function(view, evt) {
-                    assert.equal(evt.data.test, 2);
-                },
-                'element:pointerclick': function(view, evt) {
-                    assert.equal(evt.data.test, 2);
-                }
+            QUnit.test('element', function(assert) {
+
+                assert.expect(3);
+                var paper = this.paper;
+                paper.options.clickThreshold = 5;
+                paper.on({
+                    'element:pointerdown': function(view, evt) {
+                        evt.data = { test: 1 };
+                    },
+                    'element:pointermove': function(view, evt) {
+                        assert.equal(evt.data.test, 1);
+                        evt.data.test += 1;
+                    },
+                    'element:pointerup': function(view, evt) {
+                        assert.equal(evt.data.test, 2);
+                        evt.data.test += 1;
+                    },
+                    'element:pointerclick': function(view, evt) {
+                        assert.equal(evt.data.test, 3);
+                    }
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect });
+                simulate.mouseup({ el: elRect });
             });
 
-            simulate.mousedown({ el: elRect });
-            simulate.mousemove({ el: elRect });
-            simulate.mouseup({ el: elRect });
+            QUnit.test('magnet', function(assert) {
+
+                assert.expect(6);
+                elRect.setAttribute('magnet', true);
+                const paper = this.paper;
+                paper.options.clickThreshold = 5;
+                paper.on({
+                    'element:magnet:pointerdown': function(view, evt) {
+                        evt.data = { test: 1 };
+                        view.preventDefaultInteraction(evt);
+                    },
+                    'element:pointerdown': function(view, evt) {
+                        assert.equal(evt.data.test, 1);
+                        evt.data.test += 1;
+                    },
+                    'element:magnet:pointermove': function(view, evt) {
+                        assert.equal(evt.data.test, 2);
+                        evt.data.test += 1;
+                    },
+                    'element:pointermove': function(view, evt) {
+                        assert.equal(evt.data.test, 3);
+                        evt.data.test += 1;
+                    },
+                    'element:magnet:pointerup': function(view, evt) {
+                        assert.equal(evt.data.test, 4);
+                        evt.data.test += 1;
+                    },
+                    'element:pointerup': function(view, evt) {
+                        assert.equal(evt.data.test, 5);
+                        evt.data.test += 1;
+                    },
+                    'element:pointerclick': function(view, evt) {
+                        assert.equal(evt.data.test, 6);
+                    }
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect });
+                simulate.mouseup({ el: elRect });
+            });
+        });
+
+        QUnit.module('preventDefaultInteraction()', function() {
+
+            QUnit.test('element move', function(assert) {
+
+                assert.expect(2);
+                const paper = this.paper;
+                const position = el.position();
+                paper.on({
+                    'element:pointerdown': function(view, evt) {
+                        view.preventDefaultInteraction(evt);
+                    },
+                    'element:pointerup': function(view, evt) {
+                        const newPosition = el.position();
+                        assert.equal(newPosition.x, position.x);
+                        assert.equal(newPosition.y, position.y);
+                    },
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect, clientX: 123, clientY: 987 });
+                simulate.mouseup({ el: elRect });
+            });
+
+            QUnit.test('add link from magnet', function(assert) {
+
+                assert.expect(3);
+                const { paper, graph } = this;
+                el.attr(['body', 'magnet'], true);
+                const position = el.position();
+                const cellsCount = graph.getCells().length;
+                paper.on({
+                    'element:magnet:pointerdown': function(view, evt) {
+                        view.preventDefaultInteraction(evt);
+                    },
+                    'element:magnet:pointerup': function(view, evt) {
+                        // link is not created
+                        assert.equal(graph.getCells().length, cellsCount);
+                        // element is not moved
+                        const newPosition = el.position();
+                        assert.equal(newPosition.x, position.x);
+                        assert.equal(newPosition.y, position.y);
+
+                    },
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect, clientX: 123, clientY: 987 });
+                simulate.mouseup({ el: elRect });
+            });
+
+            QUnit.test('link move', function(assert) {
+
+                assert.expect(2);
+                const { paper, graph } = this;
+                const link = new joint.shapes.standard.Link();
+                graph.addCell(link);
+                const elLink = link.findView(paper).el;
+                const position = link.getSourcePoint();
+                paper.on({
+                    'link:pointerdown': function(view, evt) {
+                        view.preventDefaultInteraction(evt);
+                    },
+                    'link:pointerup': function(view, evt) {
+                        const newPosition = link.getSourcePoint();
+                        assert.equal(newPosition.x, position.x);
+                        assert.equal(newPosition.y, position.y);
+                    },
+                });
+
+                simulate.mousedown({ el: elLink });
+                simulate.mousemove({ el: elLink, clientX: 123, clientY: 987 });
+                simulate.mouseup({ el: elLink });
+            });
+
+
+            QUnit.test('label move', function(assert) {
+
+                assert.expect(1);
+                const { paper, graph } = this;
+                const position = 0.5;
+                const link = new joint.shapes.standard.Link({
+                    labels: [{
+                        position: {
+                            distance: position
+                        }
+                    }]
+                });
+                graph.addCell(link);
+                const elLabel = link.findView(paper).findLabelNode(0);
+                paper.on({
+                    'link:pointerdown': function(view, evt) {
+                        view.preventDefaultInteraction(evt);
+                    },
+                    'link:pointerup': function(view, evt) {
+                        const newPosition = link.prop('labels/0/position/distance');
+                        assert.equal(newPosition, position);
+                    },
+                });
+
+                simulate.mousedown({ el: elLabel });
+                simulate.mousemove({ el: elLabel, clientX: 123, clientY: 987 });
+                simulate.mouseup({ el: elLabel });
+            });
+        });
+
+        QUnit.module('isDefaultInteractionPrevented()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                assert.expect(4);
+                const paper = this.paper;
+                paper.on({
+                    'element:pointerdown': function(view, evt) {
+                        assert.notOk(view.isDefaultInteractionPrevented(evt));
+                        view.preventDefaultInteraction(evt);
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                    'element:pointermove': function(view, evt) {
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                    'element:pointerup': function(view, evt) {
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                });
+
+                simulate.mousedown({ el: elRect });
+                simulate.mousemove({ el: elRect });
+                simulate.mouseup({ el: elRect });
+            });
+
+            QUnit.test('sanity < TOUCH EVENTS', function(assert) {
+
+                assert.expect(4);
+                const paper = this.paper;
+                paper.on({
+                    'element:pointerdown': function(view, evt) {
+                        assert.notOk(view.isDefaultInteractionPrevented(evt));
+                        view.preventDefaultInteraction(evt);
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                    'element:pointermove': function(view, evt) {
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                    'element:pointerup': function(view, evt) {
+                        assert.ok(view.isDefaultInteractionPrevented(evt));
+                    },
+                });
+
+                simulate.touchstart({ target: elRect });
+                simulate.touchmove({ target: elRect, clientX: 123, clientY: 987 });
+                simulate.touchend({ target: elRect });
+            });
         });
     });
 });

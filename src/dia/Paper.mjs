@@ -145,6 +145,9 @@ export const Paper = View.extend({
         // Prevent the default action for blank:pointer<action>.
         preventDefaultBlankAction: true,
 
+        // Prevent the default action for cell:pointer<action>.
+        preventDefaultViewAction: true,
+
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
         //  true - the translation is restricted to the paper area
@@ -310,10 +313,6 @@ export const Paper = View.extend({
         'mouseleave .joint-cell': 'mouseleave',
         'mouseenter .joint-tools': 'mouseenter',
         'mouseleave .joint-tools': 'mouseleave',
-        'mousedown .joint-cell [event]': 'onevent', // interaction with cell with `event` attribute set
-        'touchstart .joint-cell [event]': 'onevent',
-        'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
-        'touchstart .joint-cell [magnet]': 'onmagnet',
         'dblclick .joint-cell [magnet]': 'magnetpointerdblclick',
         'contextmenu .joint-cell [magnet]': 'magnetcontextmenu',
         'mousedown .joint-link .label': 'onlabel', // interaction with link label
@@ -350,6 +349,20 @@ export const Paper = View.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
+    // If you interact with these elements,
+    // the default interaction such as `element move` is prevented.
+    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT', 'OPTION'] ,
+    // If you interact with these elements, the events are not propagated to the paper
+    // i.e. paper events such as `element:pointerdown` are not triggered.
+    GUARDED_TAG_NAMES: [
+        // Guard <select> for consistency. When you click on it:
+        // Chrome: triggers `pointerdown`, `pointerup`, `pointerclick` to open
+        // Firefox: triggers `pointerdown` on open, `pointerup` (and `pointerclick` only if you haven't moved).
+        //          on close. However, if you open and then close by clicking elsewhere on the page,
+        //           no other event is triggered.
+        // Safari: when you open it, it triggers `pointerdown`. That's it.
+        'SELECT',
+    ],
     MIN_SCALE: 1e-6,
 
     init: function() {
@@ -2097,27 +2110,85 @@ export const Paper = View.extend({
 
     pointerdown: function(evt) {
 
-        // onmagnet stops propagation when `addLinkFromMagnet` is allowed
-        // onevent can stop propagation
-
         evt = normalizeEvent(evt);
 
-        if (evt.button === 2) {
+        const { target, button } = evt;
+        const view = this.findView(target);
+        const isContextMenu = (button === 2);
+
+        if (view) {
+
+            if (!isContextMenu && this.guard(evt, view)) return;
+
+            const isTargetFormNode = this.FORM_CONTROL_TAG_NAMES.includes(target.tagName);
+
+            if (this.options.preventDefaultViewAction && !isTargetFormNode) {
+                // If the target is a form element, we do not want to prevent the default action.
+                // For example, we want to be able to select text in a text input or
+                // to be able to click on a checkbox.
+                evt.preventDefault();
+            }
+
+            if (isTargetFormNode) {
+                // If the target is a form element, we do not want to start dragging the element.
+                // For example, we want to be able to select text by dragging the mouse.
+                view.preventDefaultInteraction(evt);
+            }
+
+            const rootViewEl = view.el;
+
+            // Custom event
+            const eventNode = target.closest('[event]');
+            if (eventNode && rootViewEl !== eventNode && view.el.contains(eventNode)) {
+                const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+                    data: evt.data,
+                    // Originally the event listener was attached to the event element.
+                    currentTarget: eventNode
+                }));
+                this.onevent(eventEvt);
+                if (eventEvt.isDefaultPrevented()) {
+                    evt.preventDefault();
+                }
+                // `onevent` can stop propagation
+                if (eventEvt.isPropagationStopped()) return;
+                evt.data = eventEvt.data;
+            }
+
+            // Element magnet
+            const magnetNode = target.closest('[magnet]');
+            if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
+                const magnetEvt = normalizeEvent($.Event(evt.originalEvent, {
+                    data: evt.data,
+                    // Originally the event listener was attached to the magnet element.
+                    currentTarget: magnetNode
+                }));
+                this.onmagnet(magnetEvt);
+                if (magnetEvt.isDefaultPrevented()) {
+                    evt.preventDefault();
+                }
+                // `onmagnet` stops propagation when `addLinkFromMagnet` is allowed
+                if (magnetEvt.isPropagationStopped()) {
+                    // `magnet:pointermove` and `magnet:pointerup` events must be fired
+                    if (isContextMenu) return;
+                    this.delegateDragEvents(view, magnetEvt.data);
+                    return;
+                }
+                evt.data = magnetEvt.data;
+            }
+        }
+
+        if (isContextMenu) {
             this.contextMenuFired = true;
-            const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+            const contextmenuEvt = $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
             this.contextMenuTrigger(contextmenuEvt);
         } else {
-            var view = this.findView(evt.target);
-
-            if (this.guard(evt, view)) return;
-            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-
+            const localPoint = this.snapToGrid(evt.clientX, evt.clientY);
             if (view) {
-                evt.preventDefault();
                 view.pointerdown(evt, localPoint.x, localPoint.y);
             } else {
-                if (this.options.preventDefaultBlankAction) evt.preventDefault();
-
+                if (this.options.preventDefaultBlankAction) {
+                    evt.preventDefault();
+                }
                 this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
             }
 
@@ -2173,7 +2244,7 @@ export const Paper = View.extend({
         }
 
         if (!normalizedEvt.isPropagationStopped()) {
-            this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+            this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
         }
 
         evt.stopImmediatePropagation();
@@ -2369,7 +2440,11 @@ export const Paper = View.extend({
         if (evt.button === 2) {
             this.contextMenuFired = true;
             this.magnetContextMenuFired = true;
-            const contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+            const contextmenuEvt = $.Event(evt.originalEvent, {
+                type: 'contextmenu',
+                data: evt.data,
+                currentTarget: evt.currentTarget,
+            });
             this.magnetContextMenuTrigger(contextmenuEvt);
             if (contextmenuEvt.isPropagationStopped()) {
                 evt.stopPropagation();
@@ -2432,7 +2507,7 @@ export const Paper = View.extend({
         this.delegateDocumentEvents(null, data);
     },
 
-    // Guard the specified event. If the event is not interesting, guard returns `true`.
+    // Guard the specified event. If the event should be ignored, guard returns `true`.
     // Otherwise, it returns `false`.
     guard: function(evt, view) {
 
@@ -2449,11 +2524,17 @@ export const Paper = View.extend({
             return evt.data.guarded;
         }
 
+        const { target } = evt;
+
+        if (this.GUARDED_TAG_NAMES.includes(target.tagName)) {
+            return true;
+        }
+
         if (view && view.model && (view.model instanceof Cell)) {
             return false;
         }
 
-        if (this.svg === evt.target || this.el === evt.target || $.contains(this.svg, evt.target)) {
+        if (this.svg === target || this.el === target || $.contains(this.svg, target)) {
             return false;
         }
 

@@ -811,6 +811,10 @@ export namespace dia {
 
         dragLinkEnd(evt: dia.Event, x: number, y: number): void;
 
+        preventDefaultInteraction(evt: dia.Event): void;
+
+        isDefaultInteractionPrevented(evt: dia.Event): boolean;
+
         protected removeHighlighters(): void;
 
         protected updateHighlighters(): void;
@@ -1255,6 +1259,7 @@ export namespace dia {
             // events
             guard?: (evt: dia.Event, view: CellView) => boolean;
             preventContextMenu?: boolean;
+            preventDefaultViewAction?: boolean;
             preventDefaultBlankAction?: boolean;
             clickThreshold?: number;
             moveThreshold?: number;
@@ -1427,6 +1432,9 @@ export namespace dia {
         $document: JQuery;
         $grid: JQuery;
         $background: JQuery;
+
+        GUARDED_TAG_NAMES: string[];
+        FORM_CONTROLS_TAG_NAMES: string[];
 
         matrix(): SVGMatrix;
         matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;

@@ -1065,11 +1065,20 @@ export const CellView = View.extend({
     // Interaction. The controller part.
     // ---------------------------------
 
+    preventDefaultInteraction(evt) {
+        this.eventData(evt, { defaultInteractionPrevented: true  });
+    },
+
+    isDefaultInteractionPrevented(evt) {
+        const { defaultInteractionPrevented = false } = this.eventData(evt);
+        return defaultInteractionPrevented;
+    },
+
     // Interaction is handled by the paper and delegated to the view in interest.
     // `x` & `y` parameters passed to these functions represent the coordinates already snapped to the paper grid.
     // If necessary, real coordinates can be obtained from the `evt` event object.
 
-    // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
+    // These functions are supposed to be overridden by the views that inherit from `joint.dia.Cell`,
     // i.e. `joint.dia.Element` and `joint.dia.Link`.
 
     pointerdblclick: function(evt, x, y) {

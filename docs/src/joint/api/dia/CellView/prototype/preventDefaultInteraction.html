@@ -1,0 +1,46 @@
+<pre class="docs-method-signature"><code>cellView.preventDefaultInteraction(event)</code></pre>
+<p>The method tells the view that its default interactivity action should not be taken as it normally would be.</p>
+
+<p>For example, if the view is a <a href="#dia.ElementView">joint.dia.ElementView</a> and the user clicks on it, the view will normally enter the <a href="#dia.Paper.prototype.options.interactive">interactive mode</a> and starts moving the element.
+
+<p>Calling <code>preventDefaultInteraction</code> will prevent the view from entering the interactive mode. The view will still trigger all events, but it will not react to them in the default way.</p>
+
+<p>It is useful when you want to handle the pointer events yourself. For example, you can use it to implement your own custom interaction with the view. A selection lasso can be drawn whenever the user holds down the shift key and starts dragging from any point on the paper (regardless of whether it is an element, a link or a blank space).</p>
+
+<pre><code>paper.on('element:pointerdown', (elementView, evt) => {
+    if (evt.shiftKey) {
+        // prevent element movement
+        elementView.preventDefaultInteraction(evt);
+        // start drawing selection lasso
+    }
+});</code></pre>
+
+<p>The following table shows which default interaction will be stopped depending on what point the method was called.</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Paper <a href="#dia.Paper.events">events</a></th>
+            <th>Description</th>
+            <th>Paper <a href="#dia.Paper.prototype.options.interactive">interactive option</a></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>'element:pointerdown'</code></td>
+            <td>Prevents element movement.</td>
+            <td><i>elementMove</i></td>
+        </tr>
+        <tr>
+            <td><code>'element:magnet:pointerdown'</code></td>
+            <td>Prevents adding link from magnet and element movement.</td>
+            <td><i>addLinkFromMagnet</i></td>
+        </tr>
+        <tr>
+            <td><code>'link:pointerdown'</code></td>
+            <td>Prevents link label and link movement.</td>
+            <td><i>labelMove</i> and <i>linkMove</i></td>
+        </tr>
+    </tbody>
+</table>
+
