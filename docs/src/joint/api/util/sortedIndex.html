@@ -1,2 +1,19 @@
-<pre class="docs-method-signature"><code>util.sortedIndex(sortedArray, valueToInsert [, iteratee])</code></pre>
-<p>An alias for <b><code>_.sortedIndexBy</code></b>. See the <a href="https://lodash.com/docs/4.17.10#sortedIndexBy">Lodash documentation entry</a> for more information.</p>
+<pre class="docs-method-signature"><code>util.sortedIndex(array, value, [iteratee])</code></pre>
+<p>Uses a binary search to determine the lowest index at which value should be inserted into array in order to maintain its sort order. In addition this method accepts iteratee which is invoked for value and each element of array to compute their sort ranking. The iteratee is invoked with one argument: <i>(value)</i></p>
+<table>
+    <tr>
+        <th>array</th>
+        <td>any[]</td>
+        <td>The sorted array to inspect</td>
+    </tr>
+    <tr>
+        <th>value</th>
+        <td>any</td>
+        <td>The value to evaluate</td>
+    </tr>
+    <tr>
+        <th>[iteratee]</th>
+        <td>Function</td>
+        <td>The iteratee invoked per element</td>
+    </tr>
+</table>

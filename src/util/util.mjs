@@ -1,7 +1,47 @@
-import _ from 'lodash';
 import $ from 'jquery';
 import V from '../V/index.mjs';
 import { config } from '../config/index.mjs';
+import { 
+    isBoolean,
+    isObject,
+    isNumber,
+    isString,
+    mixin,
+    deepMixin,
+    supplement,
+    defaults,
+    defaultsDeep,
+    deepSupplement,
+    assign,
+    invoke,
+    invokeProperty,
+    sortedIndex,
+    uniq,
+    clone,
+    cloneDeep,
+    isEmpty,
+    isEqual,
+    isFunction,
+    isPlainObject,
+    toArray,
+    debounce,
+    groupBy,
+    sortBy,
+    flattenDeep,
+    without,
+    difference,
+    intersection,
+    union,
+    has,
+    result,
+    omit,
+    pick,
+    bindAll,
+    forIn,
+    camelCase,
+    uniqueId,
+    merge
+} from './utilHelpers.mjs';
 
 export const addClassNamePrefix = function(className) {
 
@@ -1725,101 +1765,46 @@ export const toggleFullScreen = function(el) {
     }
 };
 
-// Deprecated
-// Copy all the properties to the first argument from the following arguments.
-// All the properties will be overwritten by the properties from the following
-// arguments. Inherited properties are ignored.
-export const mixin = _.assign;
-
-// Deprecated
-// Copy all properties to the first argument from the following
-// arguments only in case if they don't exists in the first argument.
-// All the function propererties in the first argument will get
-// additional property base pointing to the extenders same named
-// property function's call method.
-export const supplement = _.defaults;
-
-// Same as `mixin()` but deep version.
-export const deepMixin = mixin;
-
-// Deprecated
-// Same as `supplement()` but deep version.
-export const deepSupplement = _.defaultsDeep;
-
-// Replacements for deprecated functions
-export const assign = _.assign;
-export const defaults = _.defaults;
-// no better-named replacement for `deepMixin`
-export const defaultsDeep = _.defaultsDeep;
-
-// Lodash 3 vs 4 incompatible
-export const invoke = _.invokeMap || _.invoke;
-export const sortedIndex = _.sortedIndexBy || _.sortedIndex;
-export const uniq = _.uniqBy || _.uniq;
-
-export const clone = _.clone;
-export const cloneDeep = _.cloneDeep;
-export const isEmpty = _.isEmpty;
-export const isEqual = _.isEqual;
-export const isFunction = _.isFunction;
-export const isPlainObject = _.isPlainObject;
-export const toArray = _.toArray;
-export const debounce = _.debounce;
-export const groupBy = _.groupBy;
-export const sortBy = _.sortBy;
-export const flattenDeep = _.flattenDeep;
-export const without = _.without;
-export const difference = _.difference;
-export const intersection = _.intersection;
-export const union = _.union;
-export const has = _.has;
-export const result = _.result;
-export const omit = _.omit;
-export const pick = _.pick;
-export const bindAll = _.bindAll;
-export const forIn = _.forIn;
-export const camelCase = _.camelCase;
-export const uniqueId = _.uniqueId;
-
-export const merge = function() {
-    if (_.mergeWith) {
-        var args = Array.from(arguments);
-        var last = args[args.length - 1];
-
-        var customizer = isFunction(last) ? last : noop;
-        args.push(function(a, b) {
-            var customResult = customizer(a, b);
-            if (customResult !== undefined) {
-                return customResult;
-            }
-
-            if (Array.isArray(a) && !Array.isArray(b)) {
-                return b;
-            }
-        });
-
-        return _.mergeWith.apply(this, args);
-    }
-    return _.merge.apply(this, arguments);
-};
-
-export const isBoolean = function(value) {
-    var toString = Object.prototype.toString;
-    return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
-};
-
-export const isObject = function(value) {
-    return !!value && (typeof value === 'object' || typeof value === 'function');
-};
-
-export const isNumber = function(value) {
-    var toString = Object.prototype.toString;
-    return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === '[object Number]');
-};
-
-export const isString = function(value) {
-    var toString = Object.prototype.toString;
-    return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
+export { 
+    isBoolean,
+    isObject,
+    isNumber,
+    isString,
+    mixin,
+    deepMixin,
+    supplement,
+    defaults,
+    deepSupplement,
+    defaultsDeep,
+    assign,
+    invoke,
+    invokeProperty,
+    sortedIndex,
+    uniq,
+    clone,
+    cloneDeep,
+    isEmpty,
+    isEqual,
+    isFunction,
+    isPlainObject,
+    toArray,
+    debounce,
+    groupBy,
+    sortBy,
+    flattenDeep, 
+    without,
+    difference,
+    intersection,
+    union,
+    has,
+    result,
+    omit,
+    pick,
+    bindAll,
+    forIn,
+    camelCase,
+    uniqueId,
+    merge
 };
 
 export const noop = function() {
