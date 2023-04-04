@@ -1,15 +1,28 @@
-30-03-2023 (v3.7.0)
+04-04-2023 (v3.7.0)
 
-  * demo.CustomEmbedding - new demo to show custom embedding functionality
+  * demo.ROI - new demo with foreign objects
+  * demo.Flowchart - new demo illustrating `rightAngle` router
+  * demo.CustomEmbedding - new demo with custom embedding functionality
   * dia.Paper - add `overflow` option
+  * dia.Paper - add `element:magnet:pointerdown`, `element:magnet:pointermove` and `element:magnet:pointerup` events
+  * dia.Paper - improve event handling of form control elements inside <foreignObject> elements
+  * dia.Paper - add `preventDefaultViewAction` option
+  * dia.Paper - add `transformToFitContent()` method
+  * dia.Paper - change `scaleContentToFit()` method into an alias of `transformToFitContent()` method
+  * dia.Paper - add `verticalAlign` and `horizontalAlign` options to `transformToFitContent()` method
   * dia.Paper - fix to trigger render callbacks and event when `requireView()` is called
   * dia.Paper - fix to send `mousewheel` events when CTRL key is pressed while there are no `paper:pinch` subscribers
   * dia.Paper - fix to auto-rotate target markers as expected when using `marker.markup`
+  * dia.Paper - fix event handlers to correctly receive `dia.Event` on touch screens
+  * dia.Paper - fix event handlers so that `originalEvent` always points to a native event
+  * dia.Paper - fix to trigger `element:magnet:pointerclick` when user clicks an invalid magnet
   * dia.ElementView - fix to prevent double rendering of ports when CSS selectors are enabled
+  * dia.LinkView - enable link label dragging on touch screens in async mode
   * dia.LinkView - fix to take `defaultLabel.size` into account for link label size calculations
   * dia.LinkView - fix to remember initial cursor offset from label anchor coordinates when dragging
   * dia.LinkView - fix label jumping while being dragged along straight-line Curve links
   * dia.LinkView - fix incorrect rotation of labels using `keepGradient` and `absoluteOffset` options
+  * dia.CellView - add `preventDefaultInteraction()` and `isDefaultInteractionPrevented()` methods
   * dia.Element - add `fitToChildren()` and `fitParent()` methods
   * dia.Element - change `fitEmbeds()` method into an alias of `fitToChildren()` method
   * dia.Element - add `expandOnly` and `shrinkOnly` options to `fitToChildren()` and `fitParent()` methods
@@ -20,11 +33,13 @@
   * highlighters.mask - fix to prevent copying of `class` attribute to <mask> elements
   * layout.PortLabel - fix to center position of labels in outside/inside oriented layouts
   * layout.PortLabel - fix to stop sending redundant information for `manual()` layout
-  * connectionPoints.Boundary - add option to disable automatic magnet lookup within <g> elements
+  * connectionPoints.boundary - add option to disable automatic magnet lookup within <g> elements
+  * routers.rightAngle - add new router, and deprecate `oneSide` router
   * util.svg - fix to support <foreignObject> elements
   * util.svg - keep correct order of HTML text nodes when parsing to JSON
   * util.parseDOMJSON - add logic to process JSON with string array items as HTML text nodes
   * util.breakText - support `lineHeight` in px units
+  * util.normalizeEvent - fix to always return a `dia.Event`
   * Geometry - fix `getSubdivisions()` method for straight-line Curve objects
 
 15-12-2022 (v3.6.5)
