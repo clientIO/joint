@@ -66,13 +66,6 @@ const data = {
     }
 };
 
-// TODO: fixed in other PR
-joint.dia.attributes.value = {
-    set: function(value, _, node) {
-        node.value = value;
-    }
-};
-
 const shapes = { ...defaultShapes };
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
