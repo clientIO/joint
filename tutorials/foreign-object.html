@@ -265,45 +265,41 @@ g[data-type="example.ForeignObject"] p {
         <h3>A more interactive example</h3>
 
         <p>
-            One common way for diagram libraries to allow the use of HTML is to render HTML on top of an underlying element. An obvious disadvantage
-            of this approach is the need to keep dimensions and position of the HTML in sync with the element itself which isn't ideal. We have used 
-            this approach in the past, and still to this day, this is how many diagram libraries provide this functionality, especially if they use
-            HTML <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas" target="_blank">canvas</a>. As SVG works will with
-            other web standards such as HTML, <code>foreignObject</code> can provide us with this functionality without having to give it a lot
-            of thought.
+            One typical method which diagram libraries utilize to allow users work with HTML is to render HTML on top of an underlying element.
+            While this approach can be successful, it comes with a lot of additional complexity such as the need to keep dimensions and position 
+            of the HTML in sync with the element itself which isn't ideal. It's possible to use this approach with JointJS, and still to this day,
+            this is how many diagram libraries provide this functionality, especially if they use
+            HTML <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas" target="_blank">canvas</a>.
         </p>
 
         <p>
-            While creating a static card-like element was a good introduction to working with <code>foreignObject</code>, a lot
-            of users will mostly likely want to work with more interactive elements. One of the most common interactive controls on 
-            the web for submitting information is a <code>form</code>, so let's try to create a custom element which accepts some 
-            data from the user.
+            As JointJS primarily works with SVG, and SVG was designed to work well with other web standards such as HTML, taking advantage of
+            <code>foreignObject</code> can allow users of JointJS create HTML-rich elements while avoiding some of the difficulties of other 
+            approaches.
         </p>
 
         <p>
-            The base of our custom element will be much like the previous example. The only difference in terms of element structure
-            will be the markup for our <code>form</code> located within the <code>foreignObject</code> element.
+            Creating a static card-like element was a gentle introduction to working with <code>foreignObject</code>, but if we are being realistic,
+            a lot of users will most likely want to work with more interactive elements. One of the most common interactive controls on the web is 
+            the <code>form</code>, so let's try to create a custom element which allows the user to submit some data.
+        </p>
+
+        <p>
+            In our previous example, we created an SVG <code>rect</code> element alongside our <code>foreignObject</code>. If your shape requires
+            other SVG elements, it's possible to add them in the same manner, but it's also not a requirement. You may find that 
+            <code>foreignObject</code> is sufficient, and it's the only SVG element you wish to define explicitly. In our <code>form</code>
+            example, that's exactly the route will take, and you can see it demonstrated in the following code example.
         </p>
 
         <pre><code>const Form = joint.dia.Element.define('example.Form', {
     attrs: {
-        body: {
-            width: 'calc(w)',
-            height: 'calc(h)',
-            fill: 'white',
-            rx: 5,
-            ry: 5
-        },
         foreignObject: {
             width: 'calc(w)',
-            height: 'calc(h)',
-            x: 0,
-            y: 10
+            height: 'calc(h)'
         }
     }
 }, {
     markup: joint.util.svg/* xml */`
-        &lt;rect @selector="body" /&gt;
         &lt;foreignObject @selector="foreignObject"&gt;
             &lt;div @selector="content"
                 xmlns="http://www.w3.org/1999/xhtml"
@@ -317,7 +313,7 @@ g[data-type="example.ForeignObject"] p {
             &lt;/div&gt;
         &lt;/foreignObject&gt;
     `
-}, {});
+});
 </code></pre>
 
         <p>
@@ -347,6 +343,8 @@ input {
     width: 100%;
 }
 </code></pre>
+
+        <div class="paper" id="paper-foreign-object-prevent-default"></div>
 
         <p>
             The joy of working with <code>foreignObject</code> in our shapes is that we still get to take advantage of some neat functionality such
@@ -401,13 +399,17 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
 });
 </code></pre>
 
+        <!-- 
+            Show example with CSS layouts, 3 elements (maybe in grid)
+         -->
+
         <div class="paper" id="paper-foreign-object"></div>
 
         <p>
             preventDefault paper option
         </p>
 
-        <div class="paper" id="paper-foreign-object-prevent-default"></div>
+        
 
         <!-- TODO
             - how to use
@@ -563,7 +565,7 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
             It's unfortunate that Safari still lags behind other modern browsers in relation to <code>foreignObject</code>, but there are also reasons to be positive.
             One reason to have a brighter outlook is that the issues we had here are currently being worked on according to this 
             <a href="https://bugs.webkit.org/show_bug.cgi?id=90738" target="_blank">bug</a> report, so hopefully in the not too distant future the majority of these issues
-            will cease to exist.
+            will cease to exist.`
         </p>
 
 
@@ -591,6 +593,10 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
             There is another bug in Safari.
             <select multiple=“true”> does not allow you to select option with mouse (it works with keyboard)
           -->
+
+          <!-- 
+            position: static + overflow issue
+           -->
         <h3>Conclusion</h3>
 
         <p>

@@ -1,4 +1,4 @@
-g[data-type="example.Form"] {
+/* g[data-type="example.Form"] {
     filter: drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
 }
 
@@ -19,4 +19,91 @@ input {
    font-size: inherit;
    margin-bottom: 0.8rem;
    width: 100%;
+} */
+
+
+/* 
+   ---------------------------
+*/
+
+/* .container {
+   background: linear-gradient(92.05deg, #d2a8ff 12.09%, #f778ba 42.58%, #ff7b72 84.96%);;
+} */
+
+.content {
+   width: 100%;
+   height: 100%;
+   background: linear-gradient(92.05deg, #F74402 12.09%, #FF4252 42.58%, #ed2637 84.96%);
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   padding: 6px;
 }
+
+.inner {
+   font-size: 32px !important;
+   line-height: 36px !important;
+   font-family: "Alliance No.1",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+   font-feature-settings: "ss02" on,"ss01" on;
+   font-weight: 600 !important;
+   letter-spacing: -0.01em !important;
+   width: 100%;
+   height: 100%;
+   background-color: #131e29;
+   color: white;
+   /* padding: 48px; */
+}
+
+/* input:auto-fill { 
+   background-color: transparent;
+} */
+
+/* input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: grey;
+  -webkit-box-shadow: 0 0 0px 30rem black inset;
+  -webkit-font-size:16px;
+} */
+
+.field {
+   background: #010409;
+   height: 56px;
+   display: flex;
+}
+
+.form-input {
+   all: unset;
+   background-color: transparent;
+   /* border: unset; */
+   color: white;
+   font-size:16px;
+   width: 100%;
+   padding: 0 32px;
+   outline-color: #FF4252;
+   outline-width: 1px;
+   /* outline-width: thin; */
+}
+
+.form-input::placeholder {
+   color: grey;
+}
+
+.form-input:focus-visible {
+   outline-style: inset;
+}
+
+input[type="submit"] {
+   /* all: unset; */
+   background: linear-gradient(92.05deg, #F74402 12.09%, #FF4252 42.58%, #ed2637 84.96%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: rgba(0,0,0,0);
+    border: unset;
+    font-size: 20px;
+    width: 100%;
+   /* width: auto; */
+}
+
+
+
