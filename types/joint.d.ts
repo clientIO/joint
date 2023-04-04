@@ -3538,32 +3538,29 @@ export namespace connectors {
         radius?: number;
     }
 
-    namespace Curve {
+    enum CurveDirections {
+        AUTO = 'auto',
+        HORIZONTAL = 'horizontal',
+        VERTICAL = 'vertical',
+        CLOSEST_POINT = 'closest-point',
+        OUTWARDS = 'outwards'
+    }
 
-        enum Directions {
-            AUTO = 'auto',
-            HORIZONTAL = 'horizontal',
-            VERTICAL = 'vertical',
-            CLOSEST_POINT = 'closest-point',
-            OUTWARDS = 'outwards'
-        }
-
-        enum TangentDirections {
-            UP = 'up',
-            DOWN = 'down',
-            LEFT = 'left',
-            RIGHT = 'right',
-            AUTO = 'auto',
-            CLOSEST_POINT = 'closest-point',
-            OUTWARDS = 'outwards'
-        }
+    enum CurveTangentDirections {
+        UP = 'up',
+        DOWN = 'down',
+        LEFT = 'left',
+        RIGHT = 'right',
+        AUTO = 'auto',
+        CLOSEST_POINT = 'closest-point',
+        OUTWARDS = 'outwards'
     }
 
     interface CurveConnectorArguments {
         raw?: boolean;
-        direction?: Curve.Directions;
-        sourceDirection?: Curve.TangentDirections | dia.Point | number;
-        targetDirection?: Curve.TangentDirections | dia.Point | number;
+        direction?: CurveDirections;
+        sourceDirection?: CurveTangentDirections | dia.Point | number;
+        targetDirection?: CurveTangentDirections | dia.Point | number;
         sourceTangent?: dia.Point;
         targetTangent?: dia.Point;
         distanceCoefficient?: number;
@@ -3600,6 +3597,11 @@ export namespace connectors {
         args?: GenericConnectorArguments<K>;
     }
 
+    interface CurveConnector extends GenericConnector<'curve'> {
+        Directions: typeof CurveDirections;
+        TangentDirections: typeof CurveTangentDirections;
+    }
+
     type ConnectorArguments = GenericConnectorArguments<ConnectorType>;
 
     type Connector = GenericConnector<ConnectorType>;
@@ -3610,7 +3612,7 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
-    export var curve: GenericConnector<'curve'>;
+    export var curve: CurveConnector;
 }
 
 // anchors

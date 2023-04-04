@@ -182,3 +182,9 @@ joint.routers.rightAngle([], {
     sourceDirection: joint.routers.rightAngle.Directions.ANCHOR_SIDE,
     targetDirection: joint.routers.rightAngle.Directions.MAGNET_SIDE
 });
+
+joint.connectors.curve({ x: 0, y: 0 }, { x: 20, y: 20 }, [], {
+    sourceDirection: joint.connectors.curve.TangentDirections.CLOSEST_POINT,
+    targetDirection: joint.connectors.curve.TangentDirections.CLOSEST_POINT,
+    direction: joint.connectors.curve.Directions.HORIZONTAL
+});
