@@ -51,7 +51,7 @@ export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, li
     else
         options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null;
 
-    const completeRoute = [sourcePoint, ...route.map(p => new Point(p)), targetPoint];
+    const completeRoute = [sourcePoint, ...route, targetPoint].map(p => new Point(p));
 
     // The calculation of a sourceTangent
     let sourceTangent;
