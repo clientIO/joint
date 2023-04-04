@@ -3080,7 +3080,7 @@ export namespace util {
     export function defaultsDeep(destinationObject: object, ...sourceObjects: object[]): object;
 
     export function invoke(collection: Collection, methodPath: PropertyPath, args?: any[]): any[];
-    export function invoke<ArgsT>(collection: Collection, functionToInvokeForAll: IterateeFunction<ArgsT>, ...args?: ArgsT): any[];
+    export function invoke<ArgsT>(collection: Collection, functionToInvokeForAll: IterateeFunction<ArgsT>, ...args: ArgsT[]): any[];
 
     export function invokeProperty(object: object, propertyPath: PropertyPath, args?: any[]): any;
 
@@ -3137,7 +3137,7 @@ export namespace util {
 
     export function getRectPoint(rect: dia.BBox, position: dia.PositionName): g.Point;
 
-    export function merge(destinationObject: object, ...sources: object[], customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, ...args: any[]): object;
 
     // ADDITIONAL SIMPLE UTIL FUNCTIONS:
 
