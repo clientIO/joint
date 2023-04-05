@@ -1070,6 +1070,8 @@ export namespace dia {
 
         findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
 
+        removeRedundantLinearVertices(opt?: { [key: string]: any }): void;
+
         protected updateRoute(): void;
 
         protected updatePath(): void;
