@@ -33,7 +33,7 @@ input {
 .content {
    width: 100%;
    height: 100%;
-   background: linear-gradient(92.05deg, #F74402 12.09%, #FF4252 42.58%, #ed2637 84.96%);
+   background: linear-gradient(92.05deg, #FF5C69 12.09%, #FF4252 42.58%, #ed2637 84.96%);
    display: flex;
    justify-content: center;
    align-items: center;
@@ -72,17 +72,33 @@ input:-webkit-autofill:focus {
    display: flex;
 }
 
+.container {
+   height: 100%;
+   width: 100%;
+}
+
+.form {
+   display: flex;
+   flex-direction: column;
+   height: 100%;
+   width: 100%;
+   justify-content: space-evenly;
+   padding: 0 32px;
+}
+
 .form-input {
    all: unset;
-   background-color: transparent;
-   /* border: unset; */
+   background: #010409;
+   box-sizing: border-box;
    color: white;
+   cursor: text;
    font-size:16px;
-   width: 100%;
-   padding: 0 32px;
+   height: 56px;
    outline-color: #FF4252;
    outline-width: 1px;
    /* outline-width: thin; */
+   padding: 0 32px;
+   width: 100%;
 }
 
 .form-input::placeholder {
@@ -93,17 +109,20 @@ input:-webkit-autofill:focus {
    outline-style: inset;
 }
 
-input[type="submit"] {
-   /* all: unset; */
-   background: linear-gradient(92.05deg, #F74402 12.09%, #FF4252 42.58%, #ed2637 84.96%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: rgba(0,0,0,0);
-    border: unset;
-    font-size: 20px;
-    width: 100%;
-   /* width: auto; */
+button {
+   background-color: #010409;
+   border: unset;
+   cursor: pointer;
+   font-size: 20px;
+   height: 56px;
+   width: 100%;
 }
 
+button span {
+   background: linear-gradient(92.05deg, #FF5C69 12.09%, #FF4252 42.58%, #ed2637 84.96%);
+   -webkit-background-clip: text;
+   background-clip: text; 
+   -webkit-text-fill-color: rgba(0,0,0,0);
+}
 
 

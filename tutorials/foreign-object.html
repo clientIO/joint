@@ -280,15 +280,16 @@ g[data-type="example.ForeignObject"] p {
 
         <p>
             Creating a static card-like element was a gentle introduction to working with <code>foreignObject</code>, but if we are being realistic,
-            a lot of users will most likely want to work with more interactive elements. One of the most common interactive controls on the web is 
-            the <code>form</code>, so let's try to create a custom element which allows the user to submit some data.
+            a lot of users will most likely want to work with more interactive elements. A <code>form</code> element is a section which usually 
+            contains some of the most interactive controls on the web, so let's try to create a custom element which allows the user to submit some 
+            data.
         </p>
 
         <p>
             In our previous example, we created an SVG <code>rect</code> element alongside our <code>foreignObject</code>. If your shape requires
             other SVG elements, it's possible to add them in the same manner, but it's also not a requirement. You may find that 
             <code>foreignObject</code> is sufficient, and it's the only SVG element you wish to define explicitly. In our <code>form</code>
-            example, that's exactly the route will take, and you can see it demonstrated in the following code example.
+            example, that's exactly the route we will take, and you can see it demonstrated in the following code example.
         </p>
 
         <pre><code>const Form = joint.dia.Element.define('example.Form', {
@@ -317,7 +318,11 @@ g[data-type="example.ForeignObject"] p {
 </code></pre>
 
         <p>
-            Just to make our form a little more presentable, we will also add the following CSS.
+            As the default styles for our <code>form</code> are a little boring, we will also add the following CSS just to make our elements a 
+            little more presentable. It's also possible to add CSS via an SVG 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/style" target="_blank"><code>style</code></a> element, or inline 
+            styles via the <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/style" target="_blank">style</a> attribute 
+            if you prefer, but as we are adding a substantial amount of CSS, we will use a separate stylesheet.
         </p>
 
         <pre><code>g[data-type="example.Form"] {
@@ -345,16 +350,23 @@ input {
 </code></pre>
 
         <div class="paper" id="paper-foreign-object-prevent-default"></div>
+        <p>JointJS source code: <a href="js/foreign-object-part-2.js" target="_blank">foreign-object-part-2.js</a></p>
+
 
         <p>
-            The joy of working with <code>foreignObject</code> in our shapes is that we still get to take advantage of some neat functionality such
-            as clicking on a <code>label</code> element, and the related <code>input</code> will be focused. In our case, the <code>label</code> has
-            the attribute <code></code> which corresponds to the <code>input</code> with the same <code>'id'</code> attribute.
+            The joy of working with <code>foreignObject</code> in our shapes is that we still get to take advantage of native web functionality.
+            When using a <code>form</code>, you might be use to programmatically associating a <code>label</code> with an <code>input</code> 
+            by providing an <code>'id'</code>
+            attribute to the <code>input</code>, and a <code>'for'</code> attribute to the <code>label</code> which has the same value. This has
+            a number of advantages such as screen readers reading the label when the associated input is focused, and also that the focus is 
+            passed to the input when the associated label is clicked.
         </p>
 
         <p>
-            We will however need to remove focus when the user clicks on a blank <code>paper</code> area, or on another element. We can do this with
-            the following event:
+            On the other hand, when working with JointJS, you will have to make decisions about how HTML elements lose focus. If a user clicks on
+            a blank area, you may wish that an <code>input</code> lose focus which is behavior we are used to with HTML. In order to mimic this 
+            behaviour in JointJS, we can create an event to remove focus when the user clicks on a blank <code>paper</code> area, or even on
+            any JointJS element.
         </p>
 
         <pre><code>paper.on('blank:pointerdown cell:pointerdown', () => {
@@ -398,6 +410,10 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
 
 });
 </code></pre>
+
+        <!-- 
+            propsPR example
+         -->
 
         <!-- 
             Show example with CSS layouts, 3 elements (maybe in grid)
@@ -607,7 +623,7 @@ guard: (evt) => ['INPUT'].includes(evt.target.tagName)
         <script src="../node_modules/prismjs/prism.js"></script>
 
         <script src="js/foreign-object.js"></script>
-        <script src="js/foreign-object-prevent-default.js"></script>
+        <script src="js/foreign-object-part-2.js"></script>
     </body>
 </html>
 

@@ -12,7 +12,7 @@
         gridSize: 1,
         async: true,
         cellViewNamespace: namespace,
-        guard: (evt) => ['INPUT'].includes(evt.target.tagName)
+        // guard: (evt) => ['INPUT'].includes(evt.target.tagName)
     });
 
     paper.on('blank:pointerdown cell:pointerdown', () => {
@@ -38,13 +38,11 @@
                         class="content"
                     >
                        <div @selector="inner" class="inner">
-                            <div>
-                                <form @selector="formContent" id="form">
-                                    <div content="field" class="field">
-                                        <!-- <label @selector="label" for="diagramName">Diagram Name</label> -->
-                                        <input @selector="diagramName" type="text" id="diagramName" name="diagramName" class="form-input" autocomplete="off"  placeholder="Your diagram name" />
-                                        <input @selector="submit" type="submit" value="Submit"/>
-                                    </div>
+                            <div class="container">
+                                <form @selector="formContent" id="form" class="form">
+                                    <!-- <label @selector="label" for="diagramName">Diagram Name</label> -->
+                                    <input @selector="diagramName" type="text" id="diagramName" name="diagramName" class="form-input" autocomplete="off"  placeholder="Your diagram name" />
+                                    <button @selector="submit"><span>Submit</span></button>
                                 </form>
                             </div>
                        </div>
@@ -72,7 +70,7 @@
     
     const form = new Form({});
     form.position(10, 40);
-    form.resize(500, 200);
+    form.resize(450, 200);
     
     form.addTo(graph);
 
