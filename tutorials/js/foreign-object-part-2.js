@@ -11,8 +11,9 @@
         height: 370,
         gridSize: 1,
         async: true,
+        frozen: true,
         cellViewNamespace: namespace,
-        // guard: (evt) => ['INPUT'].includes(evt.target.tagName)
+        // guard: (evt) => ['SPAN'].includes(evt.target.tagName)
     });
 
     paper.on('blank:pointerdown cell:pointerdown', () => {
@@ -62,7 +63,7 @@
             // console.log('submit', evt.target.children.diagramName.value, evt);
             evt.preventDefault();
             // this.model.attr('userData/text', evt.target.children.diagramName.value);
-            // evt.target.children.diagramName.value = '';
+            evt.target.children.diagramName.value = '';
         },
 
     });
@@ -73,6 +74,18 @@
     form.resize(450, 200);
     
     form.addTo(graph);
+
+    paper.unfreeze();
+
+
+    form.attr('input/props/value', 'test');
+
+    console.log(form);
+
+    paper.dumpViews();
+
+    const input = document.querySelector('input');
+    console.log(input);
 
     // const Handle = joint.dia.Element.define('example.Handle', {
     //     attrs: {
