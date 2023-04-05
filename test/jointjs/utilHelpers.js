@@ -1,4 +1,4 @@
-// code originates from https://github.com/lodash/lodash/blob/4.17.15-post/test/test.js 
+// code originates from https://github.com/lodash/lodash/blob/4.17.15-post/test/test.js
 
 QUnit.module('Lodash util helpers', function() {
     function toArgs(array) {
@@ -21,21 +21,21 @@ QUnit.module('Lodash util helpers', function() {
 
     /** Used to check whether methods support array views. */
     const arrayViews = typedArrays.concat('DataView');
-        
+
     const falsey = [null, undefined, false, 0, NaN, ''];
 
     const MAX_ARRAY_LENGTH = 4294967295;
     const MAX_ARRAY_INDEX = MAX_ARRAY_LENGTH - 1;
-    
+
     QUnit.module('assign', function() {
-        
+
         QUnit.test('should assign source properties to `object`', function(assert) {
             const actual = joint.util.assign({ 'a': 1 }, { 'b': 2 });
             assert.deepEqual(actual, { 'a': 1, 'b': 2 });
         });
 
         QUnit.test('should accept multiple sources', function(assert) {
-            const actual = joint.util.assign({ 'a': 1, 'b': 2 }, { 'a': 3, 'b': 2, 'c': 1 });   
+            const actual = joint.util.assign({ 'a': 1, 'b': 2 }, { 'a': 3, 'b': 2, 'c': 1 });
             assert.deepEqual(actual, { 'a': 3, 'b': 2, 'c': 1 });
         });
 
@@ -54,7 +54,7 @@ QUnit.module('Lodash util helpers', function() {
     });
 
     QUnit.module('defaults', function() {
-        
+
         QUnit.test('should assign source properties if missing on `object`', function(assert) {
             const actual = joint.util.defaults({ 'a': 1 }, { 'a': 2, 'b': 2 });
             assert.deepEqual(actual, { 'a': 1, 'b': 2 });
@@ -561,7 +561,7 @@ QUnit.module('Lodash util helpers', function() {
     });
 
     QUnit.module('clone and cloneDeep', function() {
-        
+
         QUnit.test('should perform a shallow clone', function(assert) {
             const array = [{ 'a': 0 }, { 'b': 1 }];
             const actual = joint.util.clone(array);
@@ -788,7 +788,7 @@ QUnit.module('Lodash util helpers', function() {
     QUnit.module('isEmpty', function() {
 
         const empties = [[], {}].concat(falsey.slice(1));
-        
+
         QUnit.test('should return `true` for empty values', function(assert) {
             const expected = empties.map(() => true);
             const actual = empties.map((val) => joint.util.isEmpty(val));
@@ -2290,6 +2290,18 @@ QUnit.module('Lodash util helpers', function() {
             const keys = [];
             joint.util.forIn(new Foo, function(value, key) { keys.push(key); });
             assert.deepEqual(keys.sort(), ['a', 'b']);
+        });
+
+        QUnit.test('should provide correct `key` arguments', function(assert) {
+            const args = [];
+            joint.util.forIn({ 'a': 1, 'b': 2 }, function(value, key) { args.push(key); });
+            assert.deepEqual(args, ['a', 'b']);
+        });
+
+        QUnit.test('should provide correct `key` arguments for arrays', function(assert) {
+            const args = [];
+            joint.util.forIn([1, 2], function(value, key) { args.push(key); });
+            assert.deepEqual(args, ['0', '1']);
         });
     });
 
