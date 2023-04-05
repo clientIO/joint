@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-04) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-05) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4240,9 +4240,7 @@ export namespace util {
 
     type PropertyPath = string | string[];
 
-    type Iteratee = IterateeFunction | IterateeShorthand;
-    type IterateeFunction = (value: any) => NotVoid;
-    type IterateeShorthand = PropertyPath; // there are other shorthands in Lodash but not in the methods we duplicate
+    type IterateeFunction<T> = (value: T) => NotVoid;
 
     interface Cancelable {
         cancel(): void;
@@ -4256,7 +4254,7 @@ export namespace util {
     export function mixin(destinationObject: object, ...sourceObjects: object[]): object;
 
     /** @deprecated do not use */
-    export function deepMixin(destinationObject: object, sourceObject: object, options?: object): object;
+    export function deepMixin(destinationObject: object, ...sourceObjects: object[]): object;
 
     /** @deprecated do not use */
     export function assign(destinationObject: object, ...sourceObjects: object[]): object;
@@ -4272,11 +4270,13 @@ export namespace util {
     export function defaultsDeep(destinationObject: object, ...sourceObjects: object[]): object;
 
     export function invoke(collection: Collection, methodPath: PropertyPath, args?: any[]): any[];
-    export function invoke(collection: Collection, functionToInvokeForAll: IterateeFunction, args?: any[]): any[];
+    export function invoke<ArgsT>(collection: Collection, functionToInvokeForAll: IterateeFunction<ArgsT>, ...args: ArgsT[]): any[];
 
-    export function sortedIndex(sortedArray: any[], valueToInsert: any, iteratee?: Iteratee): number;
+    export function invokeProperty(object: object, propertyPath: PropertyPath, args?: any[]): any;
 
-    export function uniq(array: any[], iteratee?: Iteratee): any[];
+    export function sortedIndex<T>(sortedArray: T[], valueToInsert: T, iteratee?: IterateeFunction<T>): number;
+
+    export function uniq<T>(array: Array<T> | null | undefined, iteratee?: IterateeFunction<T>): T[];
 
     export function clone<T>(value: T): T;
 
@@ -4292,21 +4292,22 @@ export namespace util {
 
     export function toArray(value: any): any[];
 
-    export function debounce<T extends Function>(func: T, wait?: number, options?: object): T & Cancelable;
+    export function debounce<T extends Function>(func: T, wait?: number, options?: { leading: boolean, maxWait: number, trailing: boolean }): T & Cancelable;
 
-    export function groupBy(collection: Collection, iteratee?: Iteratee): object;
+    export function groupBy(collection: Collection, iteratee?: IterateeFunction<any>): object;
 
-    export function sortBy(collection: Collection, iteratee?: Iteratee[] | Iteratee): any[];
+    export function sortBy<T>(collection: object, iteratee?: IterateeFunction<any>[] | IterateeFunction<any>): any[];
+    export function sortBy<T>(collection: T[], iteratee?: IterateeFunction<T>[] | IterateeFunction<T>): any[];
 
     export function flattenDeep(array: any[]): any[];
 
-    export function without(array: any[], ...values: any[]): any[];
+    export function without<T>(array: T[], ...values: T[]): T[];
 
-    export function difference(array: any[], ...excludedValuesArrays: any[][]): any[];
+    export function difference<T>(array: T[], ...excludedValuesArrays: T[][]): T[];
 
-    export function intersection(...arrays: any[][]): any[];
+    export function intersection<T>(...arrays: T[][]): T[];
 
-    export function union(...arrays: any[][]): any[];
+    export function union<T>(...arrays: T[][]): T[];
 
     export function has(object: object, path: PropertyPath): boolean;
 
@@ -4316,24 +4317,17 @@ export namespace util {
 
     export function pick(object: object, ...propertyPathsToPick: PropertyPath[]): object;
 
-    export function bindAll(object: object, methodNames: PropertyPath[]): object;
+    export function bindAll(object: object, methodNames: string | string[]): object;
 
-    export function forIn(object: object, iteratee?: Iteratee): object;
+    export function forIn<T>(object: T, iteratee?: (value: any, key: string, iterable: object) => void | boolean): void;
 
     export function camelCase(string: string): string;
 
-    export function uniqueId(prefix?: string): string;
+    export function uniqueId(prefix?: string | number): string;
 
     export function getRectPoint(rect: dia.BBox, position: dia.PositionName): g.Point;
 
-    // `merge` has a weird signature
-    // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
-    export function merge(destinationObject: object, sourceObject: object, customizer?: CustomizerFunction): object;
-    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, customizer?: CustomizerFunction): object;
-    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, customizer?: CustomizerFunction): object;
-    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, sourceObject4: object, customizer?: CustomizerFunction): object;
-    // generic but less precise signature for `merge`
-    export function merge(destinationObject: object, ...sourceObjectsOptionalFinalCustomizer: SourceObjectsOptionalFinalCustomizer): object;
+    export function merge(destinationObject: object, ...args: any[]): object;
 
     // ADDITIONAL SIMPLE UTIL FUNCTIONS:
 
@@ -5092,6 +5086,17 @@ export namespace attributes {
         text?: string;
     }
 
+    interface SVGAttributeProps {
+        checked?: boolean;
+        disabled?: boolean;
+        multiple?: boolean;
+        readOnly?: boolean;
+        selected?: boolean;
+        indeterminate?: boolean;
+        contentEditable?: boolean;
+        value?: any;
+    }
+
     interface SVGAttributes extends NativeSVGAttributes {
         // Special attributes
         eol?: string;
@@ -5101,6 +5106,7 @@ export namespace attributes {
         sourceMarker?: dia.SVGMarkerJSON;
         targetMarker?: dia.SVGMarkerJSON;
         vertexMarker?: dia.SVGMarkerJSON;
+        props?: SVGAttributeProps;
         text?: string;
         textWrap?: SVGAttributeTextWrap;
         lineHeight?: number | string;
