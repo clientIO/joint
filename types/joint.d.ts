@@ -667,7 +667,7 @@ export namespace dia {
         vertex(index: number, vertex: Link.Vertex, opt?: S): this;
 
         vertices(): Link.Vertex[];
-        vertices(vertices: Link.Vertex[]): this;
+        vertices(vertices: Link.Vertex[], opt?: S): this;
 
         insertVertex(index: number, vertex: Link.Vertex, opt?: S): Link.Vertex[];
 
@@ -1073,6 +1073,8 @@ export namespace dia {
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
         findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
+
+        removeRedundantLinearVertices(opt?: dia.ModelSetOptions): number;
 
         protected updateRoute(): void;
 
