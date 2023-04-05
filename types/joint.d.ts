@@ -667,7 +667,7 @@ export namespace dia {
         vertex(index: number, vertex: Link.Vertex, opt?: S): this;
 
         vertices(): Link.Vertex[];
-        vertices(vertices: Link.Vertex[], opt?: dia.ModelSetOptions): this;
+        vertices(vertices: Link.Vertex[], opt?: S): this;
 
         insertVertex(index: number, vertex: Link.Vertex, opt?: S): Link.Vertex[];
 
