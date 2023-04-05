@@ -895,5 +895,164 @@ QUnit.module('Attributes', function() {
 
         });
     });
+
+    QUnit.module('Property Attributes', function(hooks) {
+
+        var paper, graph, cell;
+
+        hooks.beforeEach(function() {
+            graph = new joint.dia.Graph;
+            const fixtures = document.getElementById('qunit-fixture');
+            const paperEl = document.createElement('div');
+            fixtures.appendChild(paperEl);
+            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            cell = new joint.shapes.standard.Rectangle();
+            cell.addTo(graph);
+        });
+
+        hooks.afterEach(function() {
+            paper.remove();
+        });
+
+        function createForeignObjectShape(markup) {
+            const fo = new joint.dia.Element({
+                type: 'foreignObjectElement',
+                attrs: {
+                    foreignObject: {
+                        width: 'calc(w)',
+                        height: 'calc(h)',
+                    }
+                },
+                markup:  joint.util.svg/*xml*/`
+                    <foreignObject @selector="foreignObject">${markup}</foreignObject>
+                `
+            });
+            graph.addCell(fo);
+            return fo;
+        }
+
+        QUnit.module('value', function(assert) {
+
+            QUnit.test('<input/>', function(assert) {
+                const fo = createForeignObjectShape('<input @selector="input" type="text"/>');
+                const inputNode = paper.svg.querySelector('input');
+                assert.equal(inputNode.value, '');
+                fo.attr('input/props/value', 'foo');
+                assert.equal(inputNode.value, 'foo');
+                assert.strictEqual(inputNode.getAttribute('value'), null);
+            });
+
+            QUnit.test('<textarea/>', function(assert) {
+                const fo = createForeignObjectShape('<textarea @selector="textarea"></textarea>');
+                const textareaNode = paper.svg.querySelector('textarea');
+                assert.equal(textareaNode.value, '');
+                fo.attr('textarea/props/value', 'foo');
+                assert.equal(textareaNode.value, 'foo');
+                assert.strictEqual(textareaNode.getAttribute('value'), null);
+            });
+
+            QUnit.test('<select/>', function(assert) {
+                const fo = createForeignObjectShape(`
+                    <select @selector="select">
+                        <option value="foo">Foo</option>
+                        <option value="bar">Bar</option>
+                    </select>
+                `);
+                const selectNode = paper.svg.querySelector('select');
+                assert.equal(selectNode.value, 'foo');
+                fo.attr('select/props/value', 'bar');
+                assert.equal(selectNode.value, 'bar');
+                assert.strictEqual(selectNode.getAttribute('value'), null);
+            });
+
+            QUnit.test('<select multiple/>', function(assert) {
+                const fo = createForeignObjectShape(`
+                    <select @selector="select" multiple="true">
+                        <option value="foo">Foo</option>
+                        <option value="bar">Bar</option>
+                        <option value="baz">Baz</option>
+                    </select>
+                `);
+                const selectNode = paper.svg.querySelector('select');
+                assert.notOk(selectNode.options[0].selected);
+                assert.notOk(selectNode.options[1].selected);
+                assert.notOk(selectNode.options[1].selected);
+                fo.attr('select/props/value', ['foo', 'bar']);
+                assert.ok(selectNode.options[0].selected);
+                assert.ok(selectNode.options[1].selected);
+                assert.notOk(selectNode.options[2].selected);
+            });
+        });
+
+        QUnit.module('checked', function(assert) {
+
+            QUnit.test('<input type="checkbox"/>', function(assert) {
+                const fo = createForeignObjectShape('<input @selector="input" type="checkbox"/>');
+                const inputNode = paper.svg.querySelector('input');
+                assert.equal(inputNode.checked, false);
+                fo.attr('input/props/checked', true);
+                assert.equal(inputNode.checked, true);
+                assert.strictEqual(inputNode.getAttribute('checked'), null);
+            });
+
+            QUnit.test('<input type="radio"/>', function(assert) {
+                const fo = createForeignObjectShape('<input @selector="input" type="radio" name="radio"/>');
+                const inputNode = paper.svg.querySelector('input');
+                assert.equal(inputNode.checked, false);
+                fo.attr('input/props/checked', true);
+                assert.equal(inputNode.checked, true);
+                assert.strictEqual(inputNode.getAttribute('checked'), null);
+            });
+        });
+
+        QUnit.module('disabled', function(assert) {
+
+            QUnit.test('<input/>', function(assert) {
+                const fo = createForeignObjectShape('<input @selector="input" type="text"/>');
+                const inputNode = paper.svg.querySelector('input');
+                assert.equal(inputNode.disabled, false);
+                fo.attr('input/props/disabled', true);
+                assert.equal(inputNode.disabled, true);
+            });
+        });
+
+        QUnit.module('readOnly', function(assert) {
+
+            QUnit.test('<input/>', function(assert) {
+                const fo = createForeignObjectShape('<input @selector="input" type="text"/>');
+                const inputNode = paper.svg.querySelector('input');
+                assert.equal(inputNode.readOnly, false);
+                fo.attr('input/props/readOnly', true);
+                assert.equal(inputNode.readOnly, true);
+            });
+        });
+
+        QUnit.module('selected', function(assert) {
+
+            QUnit.test('<option/>', function(assert) {
+                const fo = createForeignObjectShape(`
+                    <select @selector="select">
+                        <option @selector="option1" value="foo">Foo</option>
+                        <option @selector="option2" value="bar">Bar</option>
+                    </select>
+                `);
+                const selectNode = paper.svg.querySelector('select');
+                assert.equal(selectNode.value, 'foo');
+                fo.attr('option2/props/selected', true);
+                assert.equal(selectNode.value, 'bar');
+            });
+        });
+
+        QUnit.module('contentEditable', function(assert) {
+
+            QUnit.test('<div/>', function(assert) {
+                const fo = createForeignObjectShape('<div class="test-div" @selector="div">foo</div>');
+                const divNode = paper.svg.querySelector('.test-div');
+                assert.notOk(divNode.isContentEditable);
+                fo.attr('div/props/contentEditable', true);
+                assert.ok(divNode.isContentEditable);
+            });
+        });
+    });
 });
 

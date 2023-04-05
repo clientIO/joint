@@ -66,13 +66,6 @@ const data = {
     }
 };
 
-// TODO: fixed in other PR
-joint.dia.attributes.value = {
-    set: function(value, _, node) {
-        node.value = value;
-    }
-};
-
 const shapes = { ...defaultShapes };
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
@@ -105,7 +98,7 @@ const paper = new dia.Paper({
         onInputChange: function(evt) {
             const input = evt.target;
             if (!input.validity.valid) return;
-            const valuePath = input.getAttribute('joint-selector') + '/value';
+            const valuePath = input.getAttribute('joint-selector') + '/props/value';
             const currentValue = this.model.attr(valuePath);
             this.model.attr(valuePath, input.value, { previousValue: currentValue, calc: true });
         }
@@ -189,11 +182,11 @@ class Investment extends ForeignObjectElement {
     }
 
     getFunds() {
-        return Number(this.attr('funds/value'));
+        return Number(this.attr('funds/props/value'));
     }
 
     getYear() {
-        return Number(this.attr('year/value'));
+        return Number(this.attr('year/props/value'));
     }
 }
 
@@ -239,15 +232,15 @@ class Product extends ForeignObjectElement {
     }
 
     getPercentage() {
-        return Number(this.attr('percentage/value'));
+        return Number(this.attr('percentage/props/value'));
     }
 
     setPercentage(value) {
-        this.attr('percentage/value', value);
+        this.attr('percentage/props/value', value);
     }
 
     getValue() {
-        return Number(this.attr('value/value'));
+        return Number(this.attr('value/props/value'));
     }
 
     getName() {
@@ -311,7 +304,7 @@ class ProductPerformance extends ForeignObjectElement {
 
     setValue(value) {
         this.set('value', value);
-        this.attr('value/value', formatValue(value));
+        this.attr('value/props/value', formatValue(value));
     }
 
     getValue() {
@@ -319,7 +312,7 @@ class ProductPerformance extends ForeignObjectElement {
     }
 
     setROI(roi) {
-        this.attr('roi/value', formatValue(roi));
+        this.attr('roi/props/value', formatValue(roi));
     }
 }
 
@@ -375,11 +368,11 @@ class OverallPerformance extends ForeignObjectElement {
 
     setValue(value) {
         this.set('value', value);
-        this.attr('value/value', formatValue(value));
+        this.attr('value/props/value', formatValue(value));
     }
 
     setROI(roi) {
-        this.attr('roi/value', formatValue(roi));
+        this.attr('roi/props/value', formatValue(roi));
     }
 }
 
@@ -410,12 +403,12 @@ const investment = new Investment({
     z: 1,
     attrs: {
         funds: {
-            value: 100,
+            props: { value: 100 },
             // Do tab indexes greater than zero violate accessibility? See the accessibility notes at the end of the demo.
             tabindex: 1
         },
         year: {
-            value: 2018,
+            props: { value: 2018 },
             tabindex: 2
         }
     }
@@ -434,7 +427,7 @@ const gold = new Product({
             html: 'Gold'
         },
         percentage: {
-            value: 25,
+            props: { value: 25 },
             tabindex: 3
         }
     }
@@ -452,7 +445,7 @@ const bitcoin = new Product({
             html: 'Bitcoin'
         },
         percentage: {
-            value: 25,
+            props: { value: 25 },
             tabindex: 4
         }
     }
@@ -470,7 +463,7 @@ const sp500 = new Product({
             html: 'S&P 500'
         },
         percentage: {
-            value: 50,
+            props: { value: 50 },
             tabindex: 5
         }
     }

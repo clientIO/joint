@@ -3924,6 +3924,17 @@ export namespace attributes {
         text?: string;
     }
 
+    interface SVGAttributeProps {
+        checked?: boolean;
+        disabled?: boolean;
+        multiple?: boolean;
+        readOnly?: boolean;
+        selected?: boolean;
+        indeterminate?: boolean;
+        contentEditable?: boolean;
+        value?: any;
+    }
+
     interface SVGAttributes extends NativeSVGAttributes {
         // Special attributes
         eol?: string;
@@ -3933,6 +3944,7 @@ export namespace attributes {
         sourceMarker?: dia.SVGMarkerJSON;
         targetMarker?: dia.SVGMarkerJSON;
         vertexMarker?: dia.SVGMarkerJSON;
+        props?: SVGAttributeProps;
         text?: string;
         textWrap?: SVGAttributeTextWrap;
         lineHeight?: number | string;

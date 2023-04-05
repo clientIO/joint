@@ -1,6 +1,7 @@
 import { Point, Path, Polyline } from '../../g/index.mjs';
 import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../../util/util.mjs';
 import { isCalcAttribute, evalCalcAttribute } from './calc.mjs';
+import props from './props.mjs';
 import $ from 'jquery';
 import V from '../../V/index.mjs';
 
@@ -486,6 +487,9 @@ const attributesNS = {
         }
     },
 
+    // Properties setter (set various properties on the node)
+    props,
+
     ref: {
         // We do not set `ref` attribute directly on an element.
         // The attribute itself does not qualify for relative positioning.
@@ -695,7 +699,6 @@ attributesNS['xlink:href'] = attributesNS.xlinkHref;
         }
     };
 });
-
 
 // Aliases
 attributesNS.refR = attributesNS.refRInscribed;
