@@ -3540,16 +3540,9 @@ export namespace connectors {
         radius?: number;
     }
 
-    enum CornerTypes {
-        POINT = 'point',
-        CUBIC = 'cubic',
-        LINE = 'line',
-        GAP = 'gap'
-    }
-
     interface StraightConnectorArguments {
         raw?: boolean;
-        cornerType?: CornerTypes;
+        cornerType?: 'point' | 'cubic' | 'line' | 'gap';
         cornerRadius?: number;
         cornerPreserveAspectRatio?: boolean;
         precision?: number;
