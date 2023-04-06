@@ -3542,6 +3542,14 @@ export namespace connectors {
         radius?: number;
     }
 
+    interface StraightConnectorArguments {
+        raw?: boolean;
+        cornerType?: 'point' | 'cubic' | 'line' | 'gap';
+        cornerRadius?: number;
+        cornerPreserveAspectRatio?: boolean;
+        precision?: number;
+    }
+
     enum CurveDirections {
         AUTO = 'auto',
         HORIZONTAL = 'horizontal',
@@ -3578,6 +3586,7 @@ export namespace connectors {
         'rounded': RoundedConnectorArguments;
         'smooth': SmoothConnectorArguments;
         'jumpover': JumpOverConnectorArguments;
+        'straight': StraightConnectorArguments;
         'curve': CurveConnectorArguments;
         [key: string]: { [key: string]: any };
     }
@@ -3616,6 +3625,7 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
+    export var straight: GenericConnector<'straight'>;
     export var curve: CurveConnector;
 }
 

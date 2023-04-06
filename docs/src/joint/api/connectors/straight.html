@@ -1,0 +1,67 @@
+<p>The <code>'straight'</code> connector connects provided route points with straight lines while handling corners on the route in different ways depending on provided arguments (point, rounded, bevelled, gap). It accepts four additional arguments, which can be passed within the <code>connector.args</code> property:</p>
+
+<table>
+    <tr>
+        <th>cornerType</th>
+        <td><i>string</i></td>
+        <td>(<i>Optional</i>) How should corners on the route be handled? The default is <code>'point'</code>. The available values are the following:
+            <table>
+                <tr>
+                    <th><code>'point'</code></th>
+                    <td>Route segments meet at corner point with no special behavior.</td>
+                </tr>
+                <tr>
+                    <th><code>'cubic'</code></th>
+                    <td>A cubic curve segment is inserted to smooth the corner. The curve radius of the smoothed corner is determined by <code>cornerRadius</code> argument.</td>
+                </tr>
+                <tr>
+                    <th><code>'line'</code></th>
+                    <td>A straight line segment is inserted at the corner to form a bevel. The distance of the two endpoints of the bevel from the corner point is determined by <code>cornerRadius</code> argument.</td>
+                </tr>
+                <tr>
+                    <th><code>'gap'</code></th>
+                    <td>A gap is created at the corner. The distance of the two endpoints of the gap from the corner point is determined by the <code>cornerRadius</code> argument.</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <th>cornerRadius</th>
+        <td><i>number</i></td>
+        <td>(<i>Optional</i>) The distance of endpoints of line segments around corner points (e.g. curve radius for <code>'cubic'</code> corner type). Default is <code>10</code>. This argument is ignored for <code>cornerType: 'point'</code>.</td>
+    </tr>
+    <tr>
+        <th>cornerPreserveAspectRatio</th>
+        <td><i>boolean</i></td>
+        <td>(<i>Optional</i>) Should distance of both endpoints be adjusted if one of them needs to be placed closer to a corner point than specified by the <code>cornerRadius</code> argument; or are the two allowed to be independent? (This situation happens when the distance between two consecutive route points is lower than <code>cornerRadius * 2</code>.) Default is <code>false</code>. This argument is ignored for <code>cornerType: 'point'</code></td>
+    </tr>
+    <tr>
+        <th>precision</th>
+        <td><i>number</i></td>
+        <td>(<i>Optional</i>) To how many decimal places should the returned point coordinates be rounded? Default is <code>1</code>. This argument is ignored for <code>cornerType: 'point'</code>.</td>
+</table>
+
+<p>Example of a bevelled connector:</p>
+
+<pre><code>link.connector('straight', {
+    cornerType: 'line',
+    cornerPreserveAspectRatio: true
+});</code></pre>
+
+<p>Example of a rounded connector:</p>
+
+<pre><code>link.connector('straight', {
+    cornerType: 'cubic',
+    cornerRadius: 20
+});</code></pre>
+
+<p>Example of a connector with gaps at corners:</p>
+
+<pre><code>link.connector('straight', {
+    cornerType: 'gap',
+    cornerRadius: 2
+});</code></pre>
+
+<p>Example of a connector with simple angled lines connecting route points:</p>
+
+<pre><code>link.connector('straight');</code></pre>
