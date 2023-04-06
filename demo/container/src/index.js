@@ -19,6 +19,7 @@
             var element = view.model;
             // Hide any element or link which is embedded inside a collapsed parent (or parent of the parent).
             var hidden = element.getAncestors().some(function(ancestor) {
+                // `isCollapsed()` method is defined at `joint.shapes.container.Parent` in `./joint.shapes.container.js`
                 return ancestor.isCollapsed();
             });
             return !hidden;
@@ -110,17 +111,21 @@
     link_4_5.reparent();
     link_1_b.reparent();
 
+    // `toggle()` method is defined at `joint.shapes.container.Parent` in `./joint.shapes.container.js`
     container_b.toggle(false);
     container_a.toggle(false);
 
     paper.on('element:button:pointerdown', function(elementView) {
         var element = elementView.model;
+        // `toggle()` method is defined at `joint.shapes.container.Parent` in `./joint.shapes.container.js`
         element.toggle();
+        // `fitAncestorElements()` method is defined at `joint.shapes.container.Base` in `./joint.shapes.container.js`
         element.fitAncestorElements();
     });
 
     paper.on('element:pointermove', function(elementView) {
         var element = elementView.model;
+        // `fitAncestorElements()` method is defined at `joint.shapes.container.Base` in `./joint.shapes.container.js`
         element.fitAncestorElements();
     });
 
