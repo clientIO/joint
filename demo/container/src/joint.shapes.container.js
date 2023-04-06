@@ -30,20 +30,7 @@
                     bottom: padding
                 }
             });
-        },
-
-        fitToChildElements: function() {
-            var padding = 10;
-            this.fitToChildren({
-                padding: {
-                    top: headerHeight + padding,
-                    left: padding,
-                    right: padding,
-                    bottom: padding
-                }
-            })
-        },
-
+        }
     });
 
     joint.shapes.container.Base.define('container.Child', {
@@ -190,7 +177,6 @@
                 this.resize(140, 30);
             } else {
                 buttonD = 'M 2 7 12 7';
-                // `fitToChildElements()` method is defined at `joint.shapes.container.Base`
                 this.fitToChildElements();
             }
             this.attr(['buttonIcon','d'], buttonD);
@@ -199,6 +185,18 @@
 
         isCollapsed: function() {
             return Boolean(this.get('collapsed'));
+        },
+
+        fitToChildElements: function() {
+            var padding = 10;
+            this.fitToChildren({
+                padding: {
+                    top: headerHeight + padding,
+                    left: padding,
+                    right: padding,
+                    bottom: padding
+                }
+            })
         }
     });
 
