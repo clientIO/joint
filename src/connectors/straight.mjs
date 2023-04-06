@@ -7,8 +7,6 @@ const CornerTypes = {
     GAP: 'gap'
 };
 
-const DEFINED_CORNER_TYPES = Object.keys(CornerTypes).map((key) => (CornerTypes[key]));
-
 const CORNER_RADIUS = 10;
 const PRECISION = 1;
 
@@ -22,7 +20,7 @@ export const straight = function(sourcePoint, targetPoint, routePoints = [], opt
         raw = false
     } = opt;
 
-    if (DEFINED_CORNER_TYPES.indexOf(cornerType) === -1) {
+    if (Object.values(CornerTypes).indexOf(cornerType) === -1) {
         // unknown `cornerType` provided => error
         throw new Error('Invalid `cornerType` provided to `straight` connector.');
     }
