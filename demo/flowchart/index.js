@@ -43,7 +43,7 @@ const paper = new dia.Paper({
         }
     },
     defaultRouter: { name: 'rightAngle', args: { margin: unit * 7 }},
-    defaultConnector: bevelledConnector
+    defaultConnector: { name: 'straight', args: { cornerType: 'line', cornerPreserveAspectRatio: true }} // bevelled path
 });
 paperContainer.appendChild(paper.el);
 
@@ -333,26 +333,3 @@ paper.on('blank:pointerdown', () => {
     paper.removeTools();
     dia.HighlighterView.removeAll(paper);
 });
-
-// A custom connector that creates a bevelled path.
-
-function bevelledConnector(sourcePoint, targetPoint, routePoints, opt) {
-    const path = new g.Path();
-    path.appendSegment(g.Path.createSegment('M', sourcePoint));
-    let nextDistance;
-    for (let index = 0, n = routePoints.length; index < n; index++) {
-        const curr = new g.Point(routePoints[index]);
-        const prev = routePoints[index - 1] || sourcePoint;
-        const next = routePoints[index + 1] || targetPoint;
-        const prevDistance = nextDistance || (curr.distance(prev) / 2);
-        nextDistance = curr.distance(next) / 2;
-        const startMove = -Math.min(bevel, prevDistance);
-        const roundedStart = curr.clone().move(prev, startMove).round();
-        path.appendSegment(g.Path.createSegment('L', roundedStart));
-        const endMove = -Math.min(bevel, nextDistance);
-        const roundedEnd = curr.clone().move(next, endMove).round();
-        path.appendSegment(g.Path.createSegment('L', roundedEnd));
-    }
-    path.appendSegment(g.Path.createSegment('L', targetPoint));
-    return path;
-}
