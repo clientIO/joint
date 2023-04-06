@@ -56,8 +56,10 @@ export const ToolsView = mvc.View.extend({
                 tool.update();
             }
         }
-        if (!isRendered) {
+        if (!isRendered || !this.isMounted()) {
             this.mount();
+        }
+        if (!isRendered) {
             // Make sure tools are visible (if they were hidden and the tool removed)
             this.blurTool();
             this.isRendered = true;
@@ -120,6 +122,15 @@ export const ToolsView = mvc.View.extend({
                 relatedView.el.appendChild(el);
             }
         }
+        return this;
+    },
+
+    isMounted: function() {
+        return this.el.isConnected;
+    },
+
+    unmount: function() {
+        this.vel.remove();
         return this;
     }
 

@@ -39,6 +39,22 @@ QUnit.module('elementTools', function(hooks) {
         elementView = null;
     });
 
+    QUnit.module('Mount & Unmount', function() {
+
+        QUnit.test('are mounted and unmounted  with the element view', function(assert) {
+            const remove = new joint.elementTools.Remove();
+            const toolsView = new joint.dia.ToolsView({ tools: [remove] });
+            elementView.addTools(toolsView);
+            assert.ok(toolsView.el.parentNode);
+            assert.ok(toolsView.isMounted());
+            paper.checkViewport({ viewport: () => false });
+            assert.notOk(toolsView.el.parentNode);
+            assert.notOk(toolsView.isMounted());
+            paper.checkViewport({ viewport: () => true });
+            assert.ok(toolsView.el.parentNode);
+            assert.ok(toolsView.isMounted());
+        });
+    });
 
     QUnit.module('Remove', function() {
         [{

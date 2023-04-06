@@ -7,9 +7,9 @@ import { elementViewPortPrototype } from './ports.mjs';
 import { Rect, snapToGrid } from '../g/index.mjs';
 
 const Flags = {
+    TOOLS: CellView.Flags.TOOLS,
     UPDATE: 'UPDATE',
     TRANSLATE: 'TRANSLATE',
-    TOOLS: 'TOOLS',
     RESIZE: 'RESIZE',
     PORTS: 'PORTS',
     ROTATE: 'ROTATE',
