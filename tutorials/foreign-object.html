@@ -383,9 +383,16 @@ input {
         <p>
             The simple explanation is that JointJS prevents its own default interactions when working with HTML form controls. That means for example, 
             if you try to drag an <code>input</code>, the element doesn't move as a whole, but it selects the text inside the input. The elements 
-            where JointJS prevents the default interaction are as follows: <code>textarea</code>, <code>input</code>, <code>button</code>, 
-            <code>select</code>, and <code>option</code>.
+            where JointJS prevents the default interaction are as follows:
         </p>
+
+        <ul>
+            <li><code>textarea</code></li>
+            <li><code>input</code></li>
+            <li><code>button</code></li>
+            <li><code>select</code></li>
+            <li><code>option</code></li>
+        </ul>
 
         <p>
             In the example above, we created a paper event with the aim of managing focus. One detail you may not have noticed is that the 
@@ -433,8 +440,50 @@ input {
 
         <p>
             The last point which we would like to cover when discussing HTML form controls is the special 
-            <a href="/docs/jointjs##dia.attributes.props" target="_blank"><code>props</code></a> attribute. 
+            <a href="/docs/jointjs##dia.attributes.props" target="_blank"><code>props</code></a> attribute. When creating HTML elements, it's 
+            possible to define various attributes to initialize certain DOM properties. In some cases such as <code>'id'</code>, 
+            this is a one-to-one relationship, while in others such as <code>'value'</code>, the attribute doesn't reflect the property, and it
+            serves more like an initial and current state. 
         </p>
+
+        <p>
+            When working with JointJS, it wouldn't make sense that users can only set an initial <code>'value'</code> attribute for an 
+            <code>input</code>, and then have to access DOM elements themselves to update the <code>'value'</code> property. If using 
+            <code>foreignObject</code>, users should be able to set the <code>'value'</code> at any time they want through the model. It's for this
+            exact reason that we created the special <code>props</code> attribute, and it can be utilized as follows:
+        </p>
+
+        <pre><code>// Example markup
+&lt;input @selector="example" type="text" value="initial" /&gt;
+
+// Set the input value on the model
+element.attr('example/props/value', 'current');
+
+
+// For illustration purposes - not required to access DOM elements to set values
+const input = document.querySelector('input');
+
+// Expected values
+console.log(input.value); // current
+console.log(input.defaultValue); // initial
+console.log(input.getAttribute('value')); // initial
+</code></pre>
+
+        <p>
+            The supported properties when using <code>props</code> are:
+        </p>
+
+        <ul>
+            <li><code>checked</code></li>
+            <li><code>selected</code></li>
+            <li><code>disabled</code></li>
+            <li><code>readOnly</code></li>
+            <li><code>contentEditable</code></li>
+            <li><code>value</code></li>
+            <li><code>indeterminate</code></li>
+            <li><code>multiple</code></li>
+        </ul>
+
 
         <!-- 
             propsPR example

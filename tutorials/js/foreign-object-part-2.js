@@ -26,9 +26,9 @@
                 width: 'calc(w)',
                 height: 'calc(h)'
             },
-            userData: {
-                text: ''
-            }
+            // userData: {
+            //     text: ''
+            // }
         }
     }, {
         markup: joint.util.svg/* xml */`
@@ -42,7 +42,7 @@
                             <div class="container">
                                 <form @selector="formContent" id="form" class="form">
                                     <!-- <label @selector="label" for="diagramName">Diagram Name</label> -->
-                                    <input @selector="diagramName" type="text" id="diagramName" name="diagramName" class="form-input" autocomplete="off"  placeholder="Your diagram name" />
+                                    <input @selector="diagramName" type="text" id="diagramName" name="diagramName" class="form-input" autocomplete="off"  placeholder="Your diagram name" value="initial" />
                                     <button @selector="submit"><span>Submit</span></button>
                                 </form>
                             </div>
@@ -78,14 +78,6 @@
     paper.unfreeze();
 
 
-    form.attr('input/props/value', 'test');
-
-    console.log(form);
-
-    paper.dumpViews();
-
-    const input = document.querySelector('input');
-    console.log(input);
 
     // const Handle = joint.dia.Element.define('example.Handle', {
     //     attrs: {
