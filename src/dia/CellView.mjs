@@ -30,6 +30,10 @@ const HighlightingTypes = {
     ELEMENT_AVAILABILITY: 'elementAvailability'
 };
 
+const Flags = {
+    TOOLS: 'TOOLS',
+};
+
 // CellView base view and controller.
 // --------------------------------------------
 
@@ -151,6 +155,13 @@ export const CellView = View.extend({
 
     onMount() {
         // To be overridden
+    },
+
+    onUnmount() {
+        const { _toolsView } = this;
+        if (_toolsView) {
+            _toolsView.unmount();
+        }
     },
 
     startListening: function() {
@@ -1005,6 +1016,10 @@ export const CellView = View.extend({
         return this;
     },
 
+    requestToolsUpdate(opt) {
+        this.requestUpdate(this.getFlag(Flags.TOOLS), opt);
+    },
+
     updateTools: function(opt) {
 
         var toolsView = this._toolsView;
@@ -1192,6 +1207,8 @@ export const CellView = View.extend({
         this.options.interactive = value;
     }
 }, {
+
+    Flags,
 
     Highlighting: HighlightingTypes,
 

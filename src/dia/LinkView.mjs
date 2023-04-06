@@ -8,9 +8,9 @@ import * as connectors from '../connectors/index.mjs';
 import $ from 'jquery';
 
 const Flags = {
+    TOOLS: CellView.Flags.TOOLS,
     RENDER: 'RENDER',
     UPDATE: 'UPDATE',
-    TOOLS: 'TOOLS',
     LEGACY_TOOLS: 'LEGACY_TOOLS',
     LABELS: 'LABELS',
     VERTICES: 'VERTICES',
