@@ -8,11 +8,11 @@
             <table>
                 <tr>
                     <th><code>'point'</code></th>
-                    <td>Route segments meet at corner point with no special behavior. This corresponds to the behavior of the deprecated <code>'normal'</code> <a href="#connectors.normal">connector</a>.</td>
+                    <td>Route segments meet at corner point with no special behavior.</td>
                 </tr>
                 <tr>
                     <th><code>'cubic'</code></th>
-                    <td>A cubic curve segment is inserted to smooth the corner. The curve radius of the smoothed corner is determined by <code>cornerRadius</code> argument. This corresponds to the behavior of the deprecated <code>'rounded'</code> <a href="#connectors.rounded">connector</a>.</td>
+                    <td>A cubic curve segment is inserted to smooth the corner. The curve radius of the smoothed corner is determined by <code>cornerRadius</code> argument.</td>
                 </tr>
                 <tr>
                     <th><code>'line'</code></th>
@@ -48,13 +48,20 @@
     cornerPreserveAspectRatio: true
 });</code></pre>
 
-<p>To replicate the functionality of the deprecated <code>'rounded'</code> <a href="#connectors.rounded">connector</a>, you can do the following:</p>
+<p>Example of a rounded connector:</p>
 
 <pre><code>link.connector('straight', {
     cornerType: 'cubic',
-    precision: 0
+    cornerRadius: 20
 });</code></pre>
 
-<p>To replicate the functionality of the deprecated <code>'normal'</code> <a href="#connectors.normal">connector</a>, you can do the following:</p>
+<p>Example of a connector with gaps at corners:</p>
+
+<pre><code>link.connector('straight', {
+    cornerType: 'gap',
+    cornerRadius: 2
+});</code></pre>
+
+<p>Example of a connector with simple angled lines connecting route points:</p>
 
 <pre><code>link.connector('straight');</code></pre>
