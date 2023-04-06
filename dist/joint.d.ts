@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-05) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1829,7 +1829,7 @@ export namespace dia {
         vertex(index: number, vertex: Link.Vertex, opt?: S): this;
 
         vertices(): Link.Vertex[];
-        vertices(vertices: Link.Vertex[]): this;
+        vertices(vertices: Link.Vertex[], opt?: S): this;
 
         insertVertex(index: number, vertex: Link.Vertex, opt?: S): Link.Vertex[];
 
@@ -2235,6 +2235,8 @@ export namespace dia {
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
         findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
+
+        removeRedundantLinearVertices(opt?: dia.ModelSetOptions): number;
 
         protected updateRoute(): void;
 
@@ -4702,6 +4704,14 @@ export namespace connectors {
         radius?: number;
     }
 
+    interface StraightConnectorArguments {
+        raw?: boolean;
+        cornerType?: 'point' | 'cubic' | 'line' | 'gap';
+        cornerRadius?: number;
+        cornerPreserveAspectRatio?: boolean;
+        precision?: number;
+    }
+
     enum CurveDirections {
         AUTO = 'auto',
         HORIZONTAL = 'horizontal',
@@ -4738,6 +4748,7 @@ export namespace connectors {
         'rounded': RoundedConnectorArguments;
         'smooth': SmoothConnectorArguments;
         'jumpover': JumpOverConnectorArguments;
+        'straight': StraightConnectorArguments;
         'curve': CurveConnectorArguments;
         [key: string]: { [key: string]: any };
     }
@@ -4776,6 +4787,7 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
+    export var straight: GenericConnector<'straight'>;
     export var curve: CurveConnector;
 }
 

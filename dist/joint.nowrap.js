@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-05) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -11025,10 +11025,13 @@ var joint = (function (exports, Backbone, $) {
 	    }
 	    for (var key in value) {
 	        if ((inherited || hasOwnProperty.call(value, key)) &&
-	        !(skipIndexes && (
-	            (key === 'length' ||
-	            typeof key === 'number' && key > -1 && key % 1 === 0 && key < length)
-	        ))) {
+	            !(skipIndexes && (
+	                // Safari 9 has enumerable `arguments.length` in strict mode.
+	                key === 'length' ||
+	                // Skip index properties.
+	                isIndex(key, length)
+	            ))
+	        ) {
 	            result.push(key);
 	        }
 	    }
@@ -11059,8 +11062,8 @@ var joint = (function (exports, Backbone, $) {
 	    }
 	    var type = typeof index;
 
-	    var isPossibleIteratee = type == 'number' ? 
-	        (isArrayLike(object) && index > -1 && index < object.length) : 
+	    var isPossibleIteratee = type == 'number' ?
+	        (isArrayLike(object) && index > -1 && index < object.length) :
 	        (type == 'string' && index in object);
 
 	    if (isPossibleIteratee) {
@@ -11246,7 +11249,7 @@ var joint = (function (exports, Backbone, $) {
 
 	var getAllKeysIn = function (object) {
 	    var result = [];
-	    
+
 	    for (var key in object) {
 	        result.push(key);
 	    }
@@ -11698,7 +11701,7 @@ var joint = (function (exports, Backbone, $) {
 
 	    while (othIndex--) {
 	        array = arrays[othIndex];
-	        
+
 	        maxLength = Math.min(array.length, maxLength);
 	        caches[othIndex] = length >= 120 && array.length >= 120
 	            ? new SetCache(othIndex && array)
@@ -11800,14 +11803,14 @@ var joint = (function (exports, Backbone, $) {
 	    }
 
 	    stack.set(value, result);
-	    
+
 	    if (isMap(value)) {
 	        value.forEach(function (subValue, key) {
 	            result.set(key, baseClone(subValue, isDeep, isFlat, isFull, customizer, key, value, stack));
 	        });
 
 	        return result;
-	    } 
+	    }
 
 	    if (isSet(value)) {
 	        value.forEach(function (subValue) {
@@ -11815,8 +11818,8 @@ var joint = (function (exports, Backbone, $) {
 	        });
 
 	        return result;
-	    } 
-	    
+	    }
+
 	    if(isTypedArray(value)) {
 	        return result;
 	    }
@@ -12854,7 +12857,7 @@ var joint = (function (exports, Backbone, $) {
 
 	var cloneDeep = function (value) { return baseClone(value, true); };
 
-	var isEmpty = function (value) { 
+	var isEmpty = function (value) {
 	    if (value == null) {
 	        return true;
 	    }
@@ -13106,7 +13109,7 @@ var joint = (function (exports, Backbone, $) {
 	      return isObjectLike(array) && isArrayLike(array) ?
 	        diff(array, values.flat(1)) : [];
 	};
-	        
+
 	var intersection$1 = function () {
 	    var arrays = [], len = arguments.length;
 	    while ( len-- ) arrays[ len ] = arguments[ len ];
@@ -25503,6 +25506,116 @@ var joint = (function (exports, Backbone, $) {
 		rightAngle: rightAngle
 	});
 
+	var CornerTypes = {
+	    POINT: 'point',
+	    CUBIC: 'cubic',
+	    LINE: 'line',
+	    GAP: 'gap'
+	};
+
+	var DEFINED_CORNER_TYPES = Object.values(CornerTypes);
+
+	var CORNER_RADIUS = 10;
+	var PRECISION = 1;
+
+	var straight = function(sourcePoint, targetPoint, routePoints, opt) {
+	    if ( routePoints === void 0 ) routePoints = [];
+	    if ( opt === void 0 ) opt = {};
+
+
+	    var cornerType = opt.cornerType; if ( cornerType === void 0 ) cornerType = CornerTypes.POINT;
+	    var cornerRadius = opt.cornerRadius; if ( cornerRadius === void 0 ) cornerRadius = CORNER_RADIUS;
+	    var cornerPreserveAspectRatio = opt.cornerPreserveAspectRatio; if ( cornerPreserveAspectRatio === void 0 ) cornerPreserveAspectRatio = false;
+	    var precision = opt.precision; if ( precision === void 0 ) precision = PRECISION;
+	    var raw = opt.raw; if ( raw === void 0 ) raw = false;
+
+	    if (DEFINED_CORNER_TYPES.indexOf(cornerType) === -1) {
+	        // unknown `cornerType` provided => error
+	        throw new Error('Invalid `cornerType` provided to `straight` connector.');
+	    }
+
+	    var path;
+
+	    if ((cornerType === CornerTypes.POINT) || !cornerRadius) {
+	        // default option => normal connector
+	        // simply connect all points with straight lines
+	        var points = [sourcePoint].concat(routePoints).concat([targetPoint]);
+	        var polyline = new Polyline(points);
+	        path = new Path(polyline);
+
+	    } else {
+	        // `cornerType` is not unknown and not 'point' (default) => must be one of other valid types
+	        path = new Path();
+
+	        // add initial gap segment = to source point
+	        path.appendSegment(Path.createSegment('M', sourcePoint));
+
+	        var nextDistance;
+	        var routePointsLength = routePoints.length;
+	        for (var i = 0; i < routePointsLength; i++) {
+
+	            var curr = new Point(routePoints[i]);
+	            var prev = (routePoints[i - 1] || sourcePoint);
+	            var next = (routePoints[i + 1] || targetPoint);
+	            var prevDistance = (nextDistance || (curr.distance(prev) / 2)); // try to re-use previously-computed `nextDistance`
+	            nextDistance = (curr.distance(next) / 2);
+
+	            var startMove = (void 0), endMove = (void 0);
+	            if (!cornerPreserveAspectRatio) {
+	                // `startMove` and `endMove` may be different
+	                // (this happens when next or previous path point is closer than `2 * cornerRadius`)
+	                startMove = -Math.min(cornerRadius, prevDistance);
+	                endMove = -Math.min(cornerRadius, nextDistance);
+	            } else {
+	                // force `startMove` and `endMove` to be the same
+	                startMove = endMove = -Math.min(cornerRadius, prevDistance, nextDistance);
+	            }
+
+	            // to find `cornerStart` and `cornerEnd`, the logic is as follows (using `cornerStart` as example):
+	            // - find a point lying on the line `prev - startMove` such that...
+	            // - ...the point lies `abs(startMove)` distance away from `curr`...
+	            // - ...and its coordinates are rounded to whole numbers
+	            var cornerStart = curr.clone().move(prev, startMove).round(precision);
+	            var cornerEnd = curr.clone().move(next, endMove).round(precision);
+
+	            // add in-between straight segment = from previous route point to corner start point
+	            // (may have zero length)
+	            path.appendSegment(Path.createSegment('L', cornerStart));
+
+	            // add corner segment = from corner start point to corner end point
+	            switch (cornerType) {
+	                case CornerTypes.CUBIC: {
+	                    // corner is rounded
+	                    var _13 = (1 / 3);
+	                    var _23 = (2 / 3);
+	                    var control1 = new Point((_13 * cornerStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * cornerStart.y));
+	                    var control2 = new Point((_13 * cornerEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * cornerEnd.y));
+	                    path.appendSegment(Path.createSegment('C', control1, control2, cornerEnd));
+	                    break;
+	                }
+	                case CornerTypes.LINE: {
+	                    // corner has bevel
+	                    path.appendSegment(Path.createSegment('L', cornerEnd));
+	                    break;
+	                }
+	                case CornerTypes.GAP: {
+	                    // corner has empty space
+	                    path.appendSegment(Path.createSegment('M', cornerEnd));
+	                    break;
+	                }
+	                // default: no segment is created
+	            }
+	        }
+
+	        // add final straight segment = from last corner end point to target point
+	        // (= or from start point to end point, if there are no route points)
+	        // (may have zero length)
+	        path.appendSegment(Path.createSegment('L', targetPoint));
+	    }
+
+	    return ((raw) ? path : path.serialize());
+	};
+
 	// default size of jump if not specified in options
 	var JUMP_SIZE = 5;
 
@@ -25907,68 +26020,37 @@ var joint = (function (exports, Backbone, $) {
 	};
 
 	var normal$1 = function(sourcePoint, targetPoint, route, opt) {
+	    if ( route === void 0 ) route = [];
+	    if ( opt === void 0 ) opt = {};
 
-	    var raw = opt && opt.raw;
-	    var points = [sourcePoint].concat(route).concat([targetPoint]);
 
-	    var polyline = new Polyline(points);
-	    var path = new Path(polyline);
+	    var raw = opt.raw;
+	    var localOpt = {
+	        cornerType: 'point',
+	        raw: raw
+	    };
 
-	    return (raw) ? path : path.serialize();
+	    return straight(sourcePoint, targetPoint, route, localOpt);
 	};
 
+	var CORNER_RADIUS$1 = 10;
+	var PRECISION$1 = 0;
+
 	var rounded = function(sourcePoint, targetPoint, route, opt) {
+	    if ( route === void 0 ) route = [];
+	    if ( opt === void 0 ) opt = {};
 
-	    opt || (opt = {});
 
-	    var offset = opt.radius || 10;
+	    var radius = opt.radius; if ( radius === void 0 ) radius = CORNER_RADIUS$1;
 	    var raw = opt.raw;
-	    var path = new Path();
-	    var segment;
+	    var localOpt = {
+	        cornerType: 'cubic',
+	        cornerRadius: radius,
+	        precision: PRECISION$1,
+	        raw: raw
+	    };
 
-	    segment = Path.createSegment('M', sourcePoint);
-	    path.appendSegment(segment);
-
-	    var _13 = 1 / 3;
-	    var _23 = 2 / 3;
-
-	    var curr;
-	    var prev, next;
-	    var prevDistance, nextDistance;
-	    var startMove, endMove;
-	    var roundedStart, roundedEnd;
-	    var control1, control2;
-
-	    for (var index = 0, n = route.length; index < n; index++) {
-
-	        curr = new Point(route[index]);
-
-	        prev = route[index - 1] || sourcePoint;
-	        next = route[index + 1] || targetPoint;
-
-	        prevDistance = nextDistance || (curr.distance(prev) / 2);
-	        nextDistance = curr.distance(next) / 2;
-
-	        startMove = -Math.min(offset, prevDistance);
-	        endMove = -Math.min(offset, nextDistance);
-
-	        roundedStart = curr.clone().move(prev, startMove).round();
-	        roundedEnd = curr.clone().move(next, endMove).round();
-
-	        control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
-	        control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
-
-	        segment = Path.createSegment('L', roundedStart);
-	        path.appendSegment(segment);
-
-	        segment = Path.createSegment('C', control1, control2, roundedEnd);
-	        path.appendSegment(segment);
-	    }
-
-	    segment = Path.createSegment('L', targetPoint);
-	    path.appendSegment(segment);
-
-	    return (raw) ? path : path.serialize();
+	    return straight(sourcePoint, targetPoint, route, localOpt);
 	};
 
 	var smooth = function(sourcePoint, targetPoint, route, opt) {
@@ -26574,6 +26656,7 @@ var joint = (function (exports, Backbone, $) {
 
 
 	var connectors = ({
+		straight: straight,
 		jumpover: jumpover,
 		normal: normal$1,
 		rounded: rounded,

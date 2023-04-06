@@ -1,4 +1,4 @@
-05-04-2023 (v3.7.0)
+06-04-2023 (v3.7.0)
 
   * demo.CustomEmbedding - new demo illustrating custom embedding functionality
   * demo.Flowchart - new demo illustrating `rightAngle` router
@@ -16,6 +16,7 @@
   * dia.Paper - fix event handlers to correctly receive `dia.Event` on touch screens
   * dia.Paper - fix event handlers so that `originalEvent` always points to a native event
   * dia.Paper - fix to trigger `element:magnet:pointerclick` when user clicks an invalid magnet
+  * dia.Paper - fix to hide tools when associated cell view is unmounted
   * dia.ElementView - fix to correctly update port nodes with `ref` on size change
   * dia.ElementView - fix to prevent double rendering of ports when CSS selectors are enabled
   * dia.LinkView - enable link label dragging on touch screens in async mode
@@ -36,10 +37,12 @@
   * layout.PortLabel - fix to correctly set vertical position of text labels
   * layout.PortLabel - fix to stop sending redundant information for `manual` layout
   * connectionPoints.boundary - add option to disable automatic magnet lookup within <g> elements
+  * connectors.straight - add new connector, and deprecate `normal` and `rounded` connectors
   * routers.rightAngle - add new router, and deprecate `oneSide` router
   * dia.attributes - add `props` special attribute for setting various HTML form control properties
   * dia.ports - fix to apply port layout transformations before ref nodes bbox measuring
   * dia.ports - fix to apply port layout attributes to text element
+  * util - remove lodash util functions
   * util.breakText - support `lineHeight` in px units
   * util.normalizeEvent - fix to always return a `dia.Event`
   * util.parseDOMJSON - add logic to process JSON with string array items as HTML text nodes
