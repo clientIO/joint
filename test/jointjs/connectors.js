@@ -36,43 +36,64 @@ QUnit.module('connectors', function(hooks) {
         });
 
         assert.throws(function() {
-
             this.graph.addCell(l0);
-
-        }, /non-existing/, 'Recognize an unexisting connector.');
+        }, /non-existing/, 'Recognize a non-existing connector.');
 
         l0.set('connector', { name: 'normal' });
-
         this.graph.addCell(l0);
-
-        assert.equal(this.graph.getLinks().length, 1,
-            'A link with the normal connector was succesfully added to the graph');
+        assert.equal(this.graph.getLinks().length, 1, 'A link with the normal connector was successfully added to the graph');
+        assert.checkDataPath(this.paper.findViewByModel(l0).metrics.data, 'M 102 110 L 150 200 L 320 104', 'A link with the normal connector was correctly rendered');
 
         var l1 = l0.clone().set('connector', { name: 'rounded' });
-
         this.graph.addCell(l1);
-
-        assert.equal(this.graph.getLinks().length, 2,
-            'A link with the rounded connector was succesfully added to the graph');
+        assert.equal(this.graph.getLinks().length, 2, 'A link with the rounded connector was successfully added to the graph');
+        assert.checkDataPath(this.paper.findViewByModel(l1).metrics.data, 'M 102 110 L 145 191 C 148.33333333333331 196.99999999999997 153 198.33333333333331 159 195 L 320 104', 'A link with the rounded connector was correctly rendered');
 
         var l2 = l0.clone().set('connector', { name: 'smooth' });
-
         this.graph.addCell(l2);
+        assert.equal(this.graph.getLinks().length, 3, 'A link with the smooth connector was successfully added to the graph');
+        assert.checkDataPath(this.paper.findViewByModel(l2).metrics.data, 'M 102 110 C 107.83333333333333 155.5 113.66666666666666 201 150 200 C 186.33333333333334 199 253.16666666666669 151.5 320 104', 'A link with the smooth connector was correctly rendered');
 
-        assert.equal(this.graph.getLinks().length, 3,
-            'A link with the smooth connector was succesfully added to the graph');
+        var l3 = l0.clone().set('connector', { name: 'straight', args: { cornerType: 'non-existing' }});
+        assert.throws(function() {
+            this.graph.addCell(l3);
+        }, /Invalid `cornerType` provided to `straight` connector/, 'Recognize invalid corner type of straight connector.');
+
+        l3.set('connector', { name: 'straight' });
+        this.graph.addCell(l3);
+        assert.equal(this.graph.getLinks().length, 4, 'A link with the (default) straight connector was successfully added to the graph');
+        assert.checkDataPath(this.paper.findViewByModel(l3).metrics.data, 'M 102 110 L 150 200 L 320 104', 'A link with the (default) straight connector was correctly rendered');
+        assert.checkDataPath(this.paper.findViewByModel(l3).metrics.data, this.paper.findViewByModel(l0).metrics.data, 'A link with the (default) straight connector was rendered same as if it had the normal connector');
+
+        var l4 = l0.clone().set('connector', { name: 'straight', args: { cornerType: 'point' }});
+        this.graph.addCell(l4);
+        assert.equal(this.graph.getLinks().length, 5, 'A link with the (point) straight connector was successfully added to the graph');
+        assert.checkDataPath(this.paper.findViewByModel(l4).metrics.data, 'M 102 110 L 150 200 L 320 104', 'A link with the (point) straight connector was correctly rendered');
+        assert.checkDataPath(this.paper.findViewByModel(l4).metrics.data, this.paper.findViewByModel(l0).metrics.data, 'A link with the (point) straight connector was rendered same as if it had the normal connector');
+
+        var l5 = l0.clone().set('connector', { name: 'straight', args: { cornerType: 'cubic', precision: 0 }});
+        this.graph.addCell(l5);
+        assert.equal(this.graph.getLinks().length, 6, 'A link with the (cubic) straight connector was successfully added to the graph');
+        assert.checkDataPath(this.paper.findViewByModel(l5).metrics.data, 'M 102 110 L 145 191 C 148.33333333333331 196.99999999999997 153 198.33333333333331 159 195 L 320 104', 'A link with the (cubic) straight connector was correctly rendered');
+        assert.checkDataPath(this.paper.findViewByModel(l5).metrics.data, this.paper.findViewByModel(l1).metrics.data, 'A link with the (cubic) straight connector was rendered same as if it had the rounded connector');
+
+        var l6 = l0.clone().set('connector', { name: 'straight', args: { cornerType: 'line' }});
+        this.graph.addCell(l6);
+        assert.equal(this.graph.getLinks().length, 7, 'A link with the (line) straight connector was successfully added to the graph');
+        assert.checkDataPath(this.paper.findViewByModel(l6).metrics.data, 'M 102 110 L 145.3 191.2 L 158.7 195.1 L 320 104', 'A link with the (line) straight connector was correctly rendered');
+
+        var l7 = l0.clone().set('connector', { name: 'straight', args: { cornerType: 'gap' }});
+        this.graph.addCell(l7);
+        assert.equal(this.graph.getLinks().length, 8, 'A link with the (gap) straight connector was successfully added to the graph');
+        assert.checkDataPath(this.paper.findViewByModel(l7).metrics.data, 'M 102 110 L 145.3 191.2 M 158.7 195.1 L 320 104', 'A link with the (gap) straight connector was correctly rendered');
 
         var customCalled = 0;
-        var l3 = l0.clone().set('connector', function() {
+        var l99 = l0.clone().set('connector', function() {
             customCalled += 1;
             return 'M 0 0';
         });
-
-        this.graph.addCell(l3);
-
-        assert.equal(customCalled, 1,
-            'A link with the custom connector was succesfully added to the graph');
-
+        this.graph.addCell(l99);
+        assert.equal(customCalled, 1, 'A link with the custom connector was successfully added to the graph');
     });
 
     QUnit.test('curve connector direction auto', function(assert) {
