@@ -220,10 +220,13 @@ const arrayLikeKeys = (value, inherited) => {
     }
     for (const key in value) {
         if ((inherited || hasOwnProperty.call(value, key)) &&
-        !(skipIndexes && (
-            (key === 'length' ||
-            typeof key === 'number' && key > -1 && key % 1 === 0 && key < length)
-        ))) {
+            !(skipIndexes && (
+                // Safari 9 has enumerable `arguments.length` in strict mode.
+                key === 'length' ||
+                // Skip index properties.
+                isIndex(key, length)
+            ))
+        ) {
             result.push(key);
         }
     }
@@ -254,8 +257,8 @@ const isIterateeCall = (value, index, object) => {
     }
     const type = typeof index;
 
-    const isPossibleIteratee = type == 'number' ? 
-        (isArrayLike(object) && index > -1 && index < object.length) : 
+    const isPossibleIteratee = type == 'number' ?
+        (isArrayLike(object) && index > -1 && index < object.length) :
         (type == 'string' && index in object);
 
     if (isPossibleIteratee) {
@@ -441,7 +444,7 @@ const getSymbolsIn = (object) => {
 
 const getAllKeysIn = (object) => {
     const result = [];
-    
+
     for (const key in object) {
         result.push(key);
     }
@@ -885,7 +888,7 @@ const intersect = (arrays) => {
 
     while (othIndex--) {
         array = arrays[othIndex];
-        
+
         maxLength = Math.min(array.length, maxLength);
         caches[othIndex] = length >= 120 && array.length >= 120
             ? new SetCache(othIndex && array)
@@ -983,14 +986,14 @@ const baseClone = (value, isDeep = false, isFlat = false, isFull = true, customi
     }
 
     stack.set(value, result);
-    
+
     if (isMap(value)) {
         value.forEach((subValue, key) => {
             result.set(key, baseClone(subValue, isDeep, isFlat, isFull, customizer, key, value, stack));
         });
 
         return result;
-    } 
+    }
 
     if (isSet(value)) {
         value.forEach(subValue => {
@@ -998,8 +1001,8 @@ const baseClone = (value, isDeep = false, isFlat = false, isFull = true, customi
         });
 
         return result;
-    } 
-    
+    }
+
     if(isTypedArray(value)) {
         return result;
     }
@@ -2030,7 +2033,7 @@ export const clone = (value) => baseClone(value);
 
 export const cloneDeep = (value) => baseClone(value, true);
 
-export const isEmpty = (value) => { 
+export const isEmpty = (value) => {
     if (value == null) {
         return true;
     }
@@ -2265,12 +2268,12 @@ export const flattenDeep = (array) => {
 
 export const without = (array, ...values) => isArrayLike(array) ? diff(array, values) : [];
 
-export const difference = (array, ...values) => 
+export const difference = (array, ...values) =>
     isObjectLike(array) && isArrayLike(array) ?
         diff(array, values.flat(1)) : [];
-        
+
 export const intersection = (...arrays) => {
-    const mapped = arrays.map((array) => 
+    const mapped = arrays.map((array) =>
         isObjectLike(array) && isArrayLike(array) ?
             array : []
     );
