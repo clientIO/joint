@@ -13,7 +13,27 @@
         }
     });
 
-    joint.dia.Element.define('container.Child', {
+    var headerHeight = 30;
+    var buttonSize = 14;
+
+    joint.dia.Element.define('container.Base', {
+        // no default attributes
+    }, {
+        fitAncestorElements: function() {
+            var padding = 10;
+            this.fitParent({
+                deep: true,
+                padding: {
+                    top: headerHeight + padding,
+                    left: padding,
+                    right: padding,
+                    bottom: padding
+                }
+            });
+        }
+    });
+
+    joint.shapes.container.Base.define('container.Child', {
         size: { width: 50, height: 50 },
         attrs: {
             root: {
@@ -57,10 +77,7 @@
         }]
     });
 
-    var headerHeight = 30;
-    var buttonSize = 14;
-
-    joint.dia.Element.define('container.Parent', {
+    joint.shapes.container.Base.define('container.Parent', {
         collapsed: false,
         attrs: {
             root: {
@@ -128,7 +145,6 @@
             }
         }
     }, {
-
         markup: [{
             tagName: 'rect',
             selector: 'shadow'
@@ -181,19 +197,6 @@
                     bottom: padding
                 }
             })
-        },
-
-        fitAncestorElements: function() {
-            var padding = 10;
-            this.fitParent({
-                deep: true,
-                padding: {
-                    top: headerHeight + padding,
-                    left: padding,
-                    right: padding,
-                    bottom: padding
-                }
-            });
         }
     });
 
