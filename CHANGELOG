@@ -1,8 +1,9 @@
 06-04-2023 (v3.7.0)
 
-  * demo.CustomEmbedding - new demo illustrating custom embedding functionality
-  * demo.Flowchart - new demo illustrating `rightAngle` router
-  * demo.ROI - new demo with foreign objects
+  * demo.CustomEmbedding - add new demo to illustrate custom embedding functionality
+  * demo.Flowchart - add new demo to illustrate `rightAngle` router and `straight` connector
+  * demo.ROI - add new demo to illustrate working with foreign objects
+  * demo.FTA - revamp demo to illustrate custom highlighter, `straight` connector, and alignment options of `dia.Paper.transformToFitContent()`
   * dia.Paper - add `overflow` option
   * dia.Paper - add `transformToFitContent()` method
   * dia.Paper - change `scaleContentToFit()` into an alias of `transformToFitContent()`

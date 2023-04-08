@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-06) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1967,6 +1967,8 @@ export namespace dia {
 
         requestUpdate(flags: number, opt?: { [key: string]: any }): void;
 
+        requestToolsUpdate(flags: number, opt?: { [key: string]: any }): void;
+
         dragLinkStart(evt: dia.Event, magnet: SVGElement, x: number, y: number): void;
 
         dragLink(evt: dia.Event, x: number, y: number): void;
@@ -2953,6 +2955,10 @@ export namespace dia {
         hide(): this;
 
         mount(): this;
+
+        unmount(): this;
+
+        isMounted(): boolean;
 
         protected simulateRelatedView(el: SVGElement): void;
     }
@@ -4557,6 +4563,8 @@ export namespace mvc {
         protected onSetTheme(oldTheme: string, newTheme: string): void;
 
         protected onRemove(): void;
+
+        protected onUnmount(): void;
     }
 
     type ModifiedCallback<CallbackArgs extends any[], EventCallback extends Callback> = (...args: [...CallbackArgs, ...Parameters<EventCallback>]) => any;

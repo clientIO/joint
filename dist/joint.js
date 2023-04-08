@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-06) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -20667,6 +20667,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        } else {
 	            this.$el.remove();
 	        }
+	        this.onUnmount();
+	    },
+
+	    onUnmount: function() {
+	        // to be overridden
 	    },
 
 	    renderChildren: function(children) {
@@ -21439,6 +21444,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    ELEMENT_AVAILABILITY: 'elementAvailability'
 	};
 
+	var Flags = {
+	    TOOLS: 'TOOLS',
+	};
+
 	// CellView base view and controller.
 	// --------------------------------------------
 
@@ -21560,6 +21569,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    onMount: function onMount() {
 	        // To be overridden
+	    },
+
+	    onUnmount: function onUnmount() {
+	        var ref = this;
+	        var _toolsView = ref._toolsView;
+	        if (_toolsView) {
+	            _toolsView.unmount();
+	        }
 	    },
 
 	    startListening: function() {
@@ -22435,6 +22452,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return this;
 	    },
 
+	    requestToolsUpdate: function requestToolsUpdate(opt) {
+	        this.requestUpdate(this.getFlag(Flags.TOOLS), opt);
+	    },
+
 	    updateTools: function(opt) {
 
 	        var toolsView = this._toolsView;
@@ -22629,6 +22650,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	}, {
 
+	    Flags: Flags,
+
 	    Highlighting: HighlightingTypes,
 
 	    addPresentationAttributes: function(presentationAttributes) {
@@ -22641,10 +22664,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	});
 
-	var Flags = {
+	var Flags$1 = {
+	    TOOLS: CellView.Flags.TOOLS,
 	    UPDATE: 'UPDATE',
 	    TRANSLATE: 'TRANSLATE',
-	    TOOLS: 'TOOLS',
 	    RESIZE: 'RESIZE',
 	    PORTS: 'PORTS',
 	    ROTATE: 'ROTATE',
@@ -22692,69 +22715,69 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    presentationAttributes: {
-	        'attrs': [Flags.UPDATE],
-	        'position': [Flags.TRANSLATE, Flags.TOOLS],
-	        'size': [Flags.RESIZE, Flags.PORTS, Flags.TOOLS],
-	        'angle': [Flags.ROTATE, Flags.TOOLS],
-	        'markup': [Flags.RENDER],
-	        'ports': [Flags.PORTS],
+	        'attrs': [Flags$1.UPDATE],
+	        'position': [Flags$1.TRANSLATE, Flags$1.TOOLS],
+	        'size': [Flags$1.RESIZE, Flags$1.PORTS, Flags$1.TOOLS],
+	        'angle': [Flags$1.ROTATE, Flags$1.TOOLS],
+	        'markup': [Flags$1.RENDER],
+	        'ports': [Flags$1.PORTS],
 	    },
 
-	    initFlag: [Flags.RENDER],
+	    initFlag: [Flags$1.RENDER],
 
 	    UPDATE_PRIORITY: 0,
 
 	    confirmUpdate: function(flag, opt) {
 
 	        var useCSSSelectors = config.useCSSSelectors;
-	        if (this.hasFlag(flag, Flags.PORTS)) {
+	        if (this.hasFlag(flag, Flags$1.PORTS)) {
 	            this._removePorts();
 	            this._cleanPortsCache();
 	        }
 	        var transformHighlighters = false;
-	        if (this.hasFlag(flag, Flags.RENDER)) {
+	        if (this.hasFlag(flag, Flags$1.RENDER)) {
 	            this.render();
 	            this.updateTools(opt);
 	            this.updateHighlighters(true);
 	            transformHighlighters = true;
-	            flag = this.removeFlag(flag, [Flags.RENDER, Flags.UPDATE, Flags.RESIZE, Flags.TRANSLATE, Flags.ROTATE, Flags.PORTS, Flags.TOOLS]);
+	            flag = this.removeFlag(flag, [Flags$1.RENDER, Flags$1.UPDATE, Flags$1.RESIZE, Flags$1.TRANSLATE, Flags$1.ROTATE, Flags$1.PORTS, Flags$1.TOOLS]);
 	        } else {
 	            var updateHighlighters = false;
 
 	            // Skip this branch if render is required
-	            if (this.hasFlag(flag, Flags.RESIZE)) {
+	            if (this.hasFlag(flag, Flags$1.RESIZE)) {
 	                this.resize(opt);
 	                updateHighlighters = true;
 	                // Resize method is calling `update()` internally
-	                flag = this.removeFlag(flag, [Flags.RESIZE, Flags.UPDATE]);
+	                flag = this.removeFlag(flag, [Flags$1.RESIZE, Flags$1.UPDATE]);
 	                if (useCSSSelectors) {
 	                    // `resize()` rendered the ports when useCSSSelectors are enabled
-	                    flag = this.removeFlag(flag, Flags.PORTS);
+	                    flag = this.removeFlag(flag, Flags$1.PORTS);
 	                }
 	            }
-	            if (this.hasFlag(flag, Flags.UPDATE)) {
+	            if (this.hasFlag(flag, Flags$1.UPDATE)) {
 	                this.update(this.model, null, opt);
-	                flag = this.removeFlag(flag, Flags.UPDATE);
+	                flag = this.removeFlag(flag, Flags$1.UPDATE);
 	                updateHighlighters = true;
 	                if (useCSSSelectors) {
 	                    // `update()` will render ports when useCSSSelectors are enabled
-	                    flag = this.removeFlag(flag, Flags.PORTS);
+	                    flag = this.removeFlag(flag, Flags$1.PORTS);
 	                }
 	            }
-	            if (this.hasFlag(flag, Flags.TRANSLATE)) {
+	            if (this.hasFlag(flag, Flags$1.TRANSLATE)) {
 	                this.translate();
-	                flag = this.removeFlag(flag, Flags.TRANSLATE);
+	                flag = this.removeFlag(flag, Flags$1.TRANSLATE);
 	                transformHighlighters = true;
 	            }
-	            if (this.hasFlag(flag, Flags.ROTATE)) {
+	            if (this.hasFlag(flag, Flags$1.ROTATE)) {
 	                this.rotate();
-	                flag = this.removeFlag(flag, Flags.ROTATE);
+	                flag = this.removeFlag(flag, Flags$1.ROTATE);
 	                transformHighlighters = true;
 	            }
-	            if (this.hasFlag(flag, Flags.PORTS)) {
+	            if (this.hasFlag(flag, Flags$1.PORTS)) {
 	                this._renderPorts();
 	                updateHighlighters = true;
-	                flag = this.removeFlag(flag, Flags.PORTS);
+	                flag = this.removeFlag(flag, Flags$1.PORTS);
 	            }
 
 	            if (updateHighlighters) {
@@ -22766,9 +22789,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.transformHighlighters();
 	        }
 
-	        if (this.hasFlag(flag, Flags.TOOLS)) {
+	        if (this.hasFlag(flag, Flags$1.TOOLS)) {
 	            this.updateTools(opt);
-	            flag = this.removeFlag(flag, Flags.TOOLS);
+	            flag = this.removeFlag(flag, Flags$1.TOOLS);
 	        }
 
 	        return flag;
@@ -23511,7 +23534,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	}, {
 
-	    Flags: Flags,
+	    Flags: Flags$1,
 	});
 
 	assign(ElementView.prototype, elementViewPortPrototype);
@@ -26667,10 +26690,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		curve: curve
 	});
 
-	var Flags$1 = {
+	var Flags$2 = {
+	    TOOLS: CellView.Flags.TOOLS,
 	    RENDER: 'RENDER',
 	    UPDATE: 'UPDATE',
-	    TOOLS: 'TOOLS',
 	    LEGACY_TOOLS: 'LEGACY_TOOLS',
 	    LABELS: 'LABELS',
 	    VERTICES: 'VERTICES',
@@ -26735,22 +26758,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    presentationAttributes: {
-	        markup: [Flags$1.RENDER],
-	        attrs: [Flags$1.UPDATE],
-	        router: [Flags$1.UPDATE],
-	        connector: [Flags$1.CONNECTOR],
-	        smooth: [Flags$1.UPDATE],
-	        manhattan: [Flags$1.UPDATE],
-	        toolMarkup: [Flags$1.LEGACY_TOOLS],
-	        labels: [Flags$1.LABELS],
-	        labelMarkup: [Flags$1.LABELS],
-	        vertices: [Flags$1.VERTICES, Flags$1.UPDATE],
-	        vertexMarkup: [Flags$1.VERTICES],
-	        source: [Flags$1.SOURCE, Flags$1.UPDATE],
-	        target: [Flags$1.TARGET, Flags$1.UPDATE]
+	        markup: [Flags$2.RENDER],
+	        attrs: [Flags$2.UPDATE],
+	        router: [Flags$2.UPDATE],
+	        connector: [Flags$2.CONNECTOR],
+	        smooth: [Flags$2.UPDATE],
+	        manhattan: [Flags$2.UPDATE],
+	        toolMarkup: [Flags$2.LEGACY_TOOLS],
+	        labels: [Flags$2.LABELS],
+	        labelMarkup: [Flags$2.LABELS],
+	        vertices: [Flags$2.VERTICES, Flags$2.UPDATE],
+	        vertexMarkup: [Flags$2.VERTICES],
+	        source: [Flags$2.SOURCE, Flags$2.UPDATE],
+	        target: [Flags$2.TARGET, Flags$2.UPDATE]
 	    },
 
-	    initFlag: [Flags$1.RENDER, Flags$1.SOURCE, Flags$1.TARGET, Flags$1.TOOLS],
+	    initFlag: [Flags$2.RENDER, Flags$2.SOURCE, Flags$2.TARGET, Flags$2.TOOLS],
 
 	    UPDATE_PRIORITY: 1,
 
@@ -26758,14 +26781,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        opt || (opt = {});
 
-	        if (this.hasFlag(flags, Flags$1.SOURCE)) {
+	        if (this.hasFlag(flags, Flags$2.SOURCE)) {
 	            if (!this.updateEndProperties('source')) { return flags; }
-	            flags = this.removeFlag(flags, Flags$1.SOURCE);
+	            flags = this.removeFlag(flags, Flags$2.SOURCE);
 	        }
 
-	        if (this.hasFlag(flags, Flags$1.TARGET)) {
+	        if (this.hasFlag(flags, Flags$2.TARGET)) {
 	            if (!this.updateEndProperties('target')) { return flags; }
-	            flags = this.removeFlag(flags, Flags$1.TARGET);
+	            flags = this.removeFlag(flags, Flags$2.TARGET);
 	        }
 
 	        var ref = this;
@@ -26777,40 +26800,40 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return flags;
 	        }
 
-	        if (this.hasFlag(flags, Flags$1.RENDER)) {
+	        if (this.hasFlag(flags, Flags$2.RENDER)) {
 	            this.render();
 	            this.updateHighlighters(true);
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, [Flags$1.RENDER, Flags$1.UPDATE, Flags$1.VERTICES, Flags$1.LABELS, Flags$1.TOOLS, Flags$1.LEGACY_TOOLS, Flags$1.CONNECTOR]);
+	            flags = this.removeFlag(flags, [Flags$2.RENDER, Flags$2.UPDATE, Flags$2.VERTICES, Flags$2.LABELS, Flags$2.TOOLS, Flags$2.LEGACY_TOOLS, Flags$2.CONNECTOR]);
 	            return flags;
 	        }
 
 	        var updateHighlighters = false;
 
-	        if (this.hasFlag(flags, Flags$1.VERTICES)) {
+	        if (this.hasFlag(flags, Flags$2.VERTICES)) {
 	            this.renderVertexMarkers();
-	            flags = this.removeFlag(flags, Flags$1.VERTICES);
+	            flags = this.removeFlag(flags, Flags$2.VERTICES);
 	        }
 
 	        var ref$1 = this;
 	        var model = ref$1.model;
 	        var attributes = model.attributes;
-	        var updateLabels = this.hasFlag(flags, Flags$1.LABELS);
-	        var updateLegacyTools = this.hasFlag(flags, Flags$1.LEGACY_TOOLS);
+	        var updateLabels = this.hasFlag(flags, Flags$2.LABELS);
+	        var updateLegacyTools = this.hasFlag(flags, Flags$2.LEGACY_TOOLS);
 
 	        if (updateLabels) {
 	            this.onLabelsChange(model, attributes.labels, opt);
-	            flags = this.removeFlag(flags, Flags$1.LABELS);
+	            flags = this.removeFlag(flags, Flags$2.LABELS);
 	            updateHighlighters = true;
 	        }
 
 	        if (updateLegacyTools) {
 	            this.renderTools();
-	            flags = this.removeFlag(flags, Flags$1.LEGACY_TOOLS);
+	            flags = this.removeFlag(flags, Flags$2.LEGACY_TOOLS);
 	        }
 
-	        var updateAll = this.hasFlag(flags, Flags$1.UPDATE);
-	        var updateConnector = this.hasFlag(flags, Flags$1.CONNECTOR);
+	        var updateAll = this.hasFlag(flags, Flags$2.UPDATE);
+	        var updateConnector = this.hasFlag(flags, Flags$2.CONNECTOR);
 	        if (updateAll || updateConnector) {
 	            if (!updateAll) {
 	                // Keep the current route and update the geometry
@@ -26825,7 +26848,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                this.update();
 	            }
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, [Flags$1.UPDATE, Flags$1.TOOLS, Flags$1.CONNECTOR]);
+	            flags = this.removeFlag(flags, [Flags$2.UPDATE, Flags$2.TOOLS, Flags$2.CONNECTOR]);
 	            updateLabels = false;
 	            updateLegacyTools = false;
 	            updateHighlighters = true;
@@ -26843,16 +26866,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.updateHighlighters();
 	        }
 
-	        if (this.hasFlag(flags, Flags$1.TOOLS)) {
+	        if (this.hasFlag(flags, Flags$2.TOOLS)) {
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, Flags$1.TOOLS);
+	            flags = this.removeFlag(flags, Flags$2.TOOLS);
 	        }
 
 	        return flags;
 	    },
 
 	    requestConnectionUpdate: function(opt) {
-	        this.requestUpdate(this.getFlag(Flags$1.UPDATE), opt);
+	        this.requestUpdate(this.getFlag(Flags$2.UPDATE), opt);
 	    },
 
 	    isLabelsRenderRequired: function(opt) {
@@ -29268,7 +29291,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	}, {
 
-	    Flags: Flags$1,
+	    Flags: Flags$2,
 	});
 
 	Object.defineProperty(LinkView.prototype, 'sourceBBox', {
@@ -30449,12 +30472,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // no docs yet
 	        onViewUpdate: function(view, flag, priority, opt, paper) {
+	            var mounting = opt.mounting;
+	            var isolate = opt.isolate;
+	            if (mounting) {
+	                if (view.hasTools()) { view.requestToolsUpdate(); }
+	                return;
+	            }
 	            // Do not update connected links when:
 	            // 1. the view was just inserted (added to the graph and rendered)
 	            // 2. the view was just mounted (added back to the paper by viewport function)
+	            //    (Note: we already exited above)
 	            // 3. the change was marked as `isolate`.
 	            // 4. the view model was just removed from the graph
-	            if ((flag & (view.FLAG_INSERT | view.FLAG_REMOVE)) || opt.mounting || opt.isolate) { return; }
+	            if ((flag & (view.FLAG_INSERT | view.FLAG_REMOVE)) || isolate) { return; }
 	            paper.requestConnectedLinksUpdate(view, priority, opt);
 	        },
 
@@ -33590,8 +33620,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                tool.update();
 	            }
 	        }
-	        if (!isRendered) {
+	        if (!isRendered || !this.isMounted()) {
 	            this.mount();
+	        }
+	        if (!isRendered) {
 	            // Make sure tools are visible (if they were hidden and the tool removed)
 	            this.blurTool();
 	            this.isRendered = true;
@@ -33658,6 +33690,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                relatedView.el.appendChild(el);
 	            }
 	        }
+	        return this;
+	    },
+
+	    isMounted: function() {
+	        return this.el.parentNode !== null;
+	    },
+
+	    unmount: function() {
+	        this.vel.remove();
 	        return this;
 	    }
 
