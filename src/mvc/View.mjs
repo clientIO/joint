@@ -43,11 +43,10 @@ export const View = Backbone.View.extend({
         } else {
             this.$el.remove();
         }
-        this.onUnmount();
     },
 
-    onUnmount: function() {
-        // to be overridden
+    isMounted: function() {
+        return this.el.parentNode !== null;
     },
 
     renderChildren: function(children) {

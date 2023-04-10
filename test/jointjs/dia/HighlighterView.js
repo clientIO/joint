@@ -185,17 +185,17 @@ QUnit.module('HighlighterView', function(hooks) {
                 // Layer = Back/Front
                 ['back', 'front'].forEach(function(layer) {
                     var vLayer = V(paper.getLayerNode(layer));
-                    var backChildrenCount = vLayer.children().length;
+                    var layerChildrenCount = vLayer.children().length;
                     highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
                         layer: layer
                     });
                     assert.ok(highlighter.vel.parent().hasClass('highlight-transform'));
                     assert.ok(vLayer.contains(highlighter.el));
-                    assert.equal(vLayer.children().length, backChildrenCount + 1);
+                    assert.equal(vLayer.children().length, layerChildrenCount + 1);
                     joint.dia.HighlighterView.update(elementView, id);
-                    assert.equal(vLayer.children().length, backChildrenCount + 1);
+                    assert.equal(vLayer.children().length, layerChildrenCount + 1);
                     joint.dia.HighlighterView.remove(elementView, id);
-                    assert.equal(vLayer.children().length, backChildrenCount);
+                    assert.equal(vLayer.children().length, layerChildrenCount);
                 });
 
                 // Layer = Null
@@ -220,6 +220,54 @@ QUnit.module('HighlighterView', function(hooks) {
                 assert.equal(frontLayerNode.children[2], h2.el.parentNode);
             });
 
+        });
+
+        QUnit.module('Mount & Unmount', function() {
+
+            QUnit.test('are mounted back with the same transformation as when they were unmounted', function(assert) {
+                const id = 'highlighter-id';
+                const layer = 'back';
+                const highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, { layer });
+                const transformation = V.matrixToTransformString(highlighter.el.getCTM());
+                assert.ok(highlighter.el.isConnected);
+                highlighter.unmount();
+                assert.notEqual(V.matrixToTransformString(highlighter.el.getCTM()), transformation);
+                assert.notOk(highlighter.el.isConnected);
+                highlighter.mount();
+                assert.equal(
+                    V.matrixToTransformString(highlighter.el.getCTM()),
+                    transformation,
+                    'Highlighter should be mounted with the same transformation as before.'
+                );
+                assert.ok(highlighter.el.isConnected);
+                joint.dia.HighlighterView.remove(elementView, id);
+            });
+
+            QUnit.test('are mounted and unmounted with the element view', function(assert) {
+                ['back', null].forEach(layer => {
+                    const id = 'highlighter-id';
+                    const highlighter = joint.dia.HighlighterView.add(elementView, 'root', id, { layer });
+                    assert.ok(highlighter.el.isConnected);
+                    paper.dumpViews({ viewport: () => false });
+                    assert.notOk(highlighter.el.isConnected);
+                    paper.dumpViews({ viewport: () => true });
+                    assert.ok(highlighter.el.isConnected);
+                    joint.dia.HighlighterView.remove(elementView, id);
+                });
+            });
+
+            QUnit.test('are mounted and unmounted with the link view', function(assert) {
+                ['back', null].forEach(layer => {
+                    const id = 'highlighter-id';
+                    const highlighter = joint.dia.HighlighterView.add(linkView, 'root', id, { layer });
+                    assert.ok(highlighter.el.isConnected);
+                    paper.dumpViews({ viewport: () => false });
+                    assert.notOk(highlighter.el.isConnected);
+                    paper.dumpViews({ viewport: () => true });
+                    assert.ok(highlighter.el.isConnected);
+                    joint.dia.HighlighterView.remove(linkView, id);
+                });
+            });
         });
 
         QUnit.test('Highlight element by a node', function(assert) {

@@ -127,11 +127,6 @@ export const ToolsView = mvc.View.extend({
 
     isMounted: function() {
         return this.el.parentNode !== null;
-    },
-
-    unmount: function() {
-        this.vel.remove();
-        return this;
     }
 
 });

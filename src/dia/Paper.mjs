@@ -259,18 +259,12 @@ export const Paper = View.extend({
 
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
-            const { mounting, isolate } = opt;
-            if (mounting) {
-                if (view.hasTools()) view.requestToolsUpdate();
-                return;
-            }
             // Do not update connected links when:
             // 1. the view was just inserted (added to the graph and rendered)
             // 2. the view was just mounted (added back to the paper by viewport function)
-            //    (Note: we already exited above)
             // 3. the change was marked as `isolate`.
             // 4. the view model was just removed from the graph
-            if ((flag & (view.FLAG_INSERT | view.FLAG_REMOVE)) || isolate) return;
+            if ((flag & (view.FLAG_INSERT | view.FLAG_REMOVE)) || opt.mounting || opt.isolate) return;
             paper.requestConnectedLinksUpdate(view, priority, opt);
         },
 
@@ -1008,7 +1002,7 @@ export const Paper = View.extend({
                         // Unmount View
                         if (!isDetached) {
                             this.registerUnmountedView(view);
-                            view.unmount();
+                            this.unmountView(view);
                         }
                         updates.unmounted[cid] |= currentFlag;
                         delete priorityUpdates[cid];
@@ -1116,11 +1110,16 @@ export const Paper = View.extend({
             }
             unmountCount++;
             var flag = this.registerUnmountedView(view);
-            if (flag) view.unmount();
+            if (flag) this.unmountView(view);
         }
         // Get rid of views, that have been unmounted
         mountedCids.splice(0, i);
         return unmountCount;
+    },
+
+    unmountView(view) {
+        view.unmount();
+        view.onUnmount();
     },
 
     checkViewport: function(opt) {

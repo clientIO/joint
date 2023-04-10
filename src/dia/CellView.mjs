@@ -153,17 +153,6 @@ export const CellView = View.extend({
         this.startListening();
     },
 
-    onMount() {
-        // To be overridden
-    },
-
-    onUnmount() {
-        const { _toolsView } = this;
-        if (_toolsView) {
-            _toolsView.unmount();
-        }
-    },
-
     startListening: function() {
         this.listenTo(this.model, 'change', this.onAttributesChange);
     },
@@ -990,6 +979,19 @@ export const CellView = View.extend({
         processedAttrs.normal = roProcessedAttrs.normal;
     },
 
+    // Lifecycle methods
+
+    onMount() {
+        if (this.el.childNodes.length === 0) return;
+        this.mountTools();
+        this.mountHighlighters();
+    },
+
+    onUnmount() {
+        this.unmountTools();
+        this.unmountHighlighters();
+    },
+
     onRemove: function() {
         this.removeTools();
         this.removeHighlighters();
@@ -1016,8 +1018,18 @@ export const CellView = View.extend({
         return this;
     },
 
-    requestToolsUpdate(opt) {
-        this.requestUpdate(this.getFlag(Flags.TOOLS), opt);
+    unmountTools() {
+        const { _toolsView } = this;
+        if (_toolsView && _toolsView.isMounted()) {
+            _toolsView.unmount();
+        }
+    },
+
+    mountTools() {
+        const { _toolsView } = this;
+        if (_toolsView && !_toolsView.isMounted()) {
+            _toolsView.mount();
+        }
     },
 
     updateTools: function(opt) {
@@ -1071,6 +1083,14 @@ export const CellView = View.extend({
 
     updateHighlighters: function(dirty = false) {
         HighlighterView.update(this, null, dirty);
+    },
+
+    mountHighlighters: function() {
+        HighlighterView.mount(this);
+    },
+
+    unmountHighlighters: function() {
+        HighlighterView.unmount(this);
     },
 
     transformHighlighters: function() {
