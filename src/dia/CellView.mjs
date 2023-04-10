@@ -984,12 +984,12 @@ export const CellView = View.extend({
     onMount() {
         if (this.el.childNodes.length === 0) return;
         this.mountTools();
-        this.mountHighlighters();
+        HighlighterView.mount(this);
     },
 
     onUnmount() {
         this.unmountTools();
-        this.unmountHighlighters();
+        HighlighterView.unmount(this);
     },
 
     onRemove: function() {
@@ -1083,14 +1083,6 @@ export const CellView = View.extend({
 
     updateHighlighters: function(dirty = false) {
         HighlighterView.update(this, null, dirty);
-    },
-
-    mountHighlighters: function() {
-        HighlighterView.mount(this);
-    },
-
-    unmountHighlighters: function() {
-        HighlighterView.unmount(this);
     },
 
     transformHighlighters: function() {
