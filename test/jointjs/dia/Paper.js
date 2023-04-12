@@ -73,7 +73,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         paper.model.addCell({ type: 'standard.Rectangle' });
         paper.model.addCell({ type: 'standard.Link' });
         paper.remove();
-        assert.throws(paper.unfreeze, Error);
+        assert.throws(() => paper.unfreeze(), Error);
     });
 
     QUnit.module('options', function() {
