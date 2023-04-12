@@ -99,6 +99,8 @@ export const Paper = View.extend({
 
     className: 'paper',
 
+    idle: false,
+
     options: {
 
         width: 800,
@@ -247,7 +249,7 @@ export const Paper = View.extend({
         // Number of required mousemove events before the first pointermove event will be triggered.
         moveThreshold: 0,
 
-        // Number of required mousemove events before the a link is created out of the magnet.
+        // Number of required mousemove events before a link is created out of the magnet.
         // Or string `onleave` so the link is created when the pointer leaves the magnet
         magnetThreshold: 0,
 
@@ -257,8 +259,16 @@ export const Paper = View.extend({
 
         frozen: false,
 
+        // Freeze paper when waiting for view updates
+        freezeWhenIdle: false,
+
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
+            if (this.options.freezeWhenIdle && this.isIdle()) {
+                this.idle = false;
+                this.unfreeze();
+            }
+
             const { mounting, isolate } = opt;
             if (mounting) {
                 if (view.hasTools()) view.requestToolsUpdate();
@@ -419,7 +429,8 @@ export const Paper = View.extend({
             count: 0,
             keyFrozen: false,
             freezeKey: null,
-            sort: false
+            sort: false,
+            disabled: false
         };
     },
 
@@ -946,6 +957,10 @@ export const Paper = View.extend({
             // The current frame could have been canceled in a callback
             if (updates.id !== id) return;
         }
+
+        if (updates.disabled) {
+            throw new Error('dia.Paper: can not unfreeze the paper after it was removed');
+        }
         updates.id = nextFrame(this.updateViewsAsync, this, opt, data);
     },
 
@@ -965,6 +980,10 @@ export const Paper = View.extend({
         }
         if (typeof afterFn === 'function') {
             afterFn.call(this, stats, opt, this);
+        }
+        this.idle = true;
+        if (this.options.freezeWhenIdle) {
+            this.freeze();
         }
         this.trigger('render:done', stats, opt);
     },
@@ -1191,6 +1210,10 @@ export const Paper = View.extend({
         return !!this.options.frozen;
     },
 
+    isIdle: function() {
+        return this.idle;
+    },
+
     isExactSorting: function() {
         return this.options.sorting === sortingTypes.EXACT;
     },
@@ -1198,6 +1221,7 @@ export const Paper = View.extend({
     onRemove: function() {
 
         this.freeze();
+        this._updates.disabled = true;
         //clean up all DOM elements/views to prevent memory leaks
         this.removeLayers();
         this.removeViews();
