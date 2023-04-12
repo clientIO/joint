@@ -67,6 +67,15 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         assert.equal(getNumberOfViews(), initialCount);
     });
 
+
+    QUnit.test('unfreeze throws error after removing', function(assert) {
+        paper = new Paper({ el: paperEl, async: true });
+        paper.model.addCell({ type: 'standard.Rectangle' });
+        paper.model.addCell({ type: 'standard.Link' });
+        paper.remove();
+        assert.throws(() => paper.unfreeze(), Error);
+    });
+
     QUnit.module('options', function() {
 
         QUnit.test('cloning', function(assert) {

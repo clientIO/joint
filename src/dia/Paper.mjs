@@ -247,7 +247,7 @@ export const Paper = View.extend({
         // Number of required mousemove events before the first pointermove event will be triggered.
         moveThreshold: 0,
 
-        // Number of required mousemove events before the a link is created out of the magnet.
+        // Number of required mousemove events before a link is created out of the magnet.
         // Or string `onleave` so the link is created when the pointer leaves the magnet
         magnetThreshold: 0,
 
@@ -419,7 +419,8 @@ export const Paper = View.extend({
             count: 0,
             keyFrozen: false,
             freezeKey: null,
-            sort: false
+            sort: false,
+            disabled: false
         };
     },
 
@@ -946,6 +947,10 @@ export const Paper = View.extend({
             // The current frame could have been canceled in a callback
             if (updates.id !== id) return;
         }
+
+        if (updates.disabled) {
+            throw new Error('dia.Paper: can not unfreeze the paper after it was removed');
+        }
         updates.id = nextFrame(this.updateViewsAsync, this, opt, data);
     },
 
@@ -1198,6 +1203,7 @@ export const Paper = View.extend({
     onRemove: function() {
 
         this.freeze();
+        this._updates.disabled = true;
         //clean up all DOM elements/views to prevent memory leaks
         this.removeLayers();
         this.removeViews();
