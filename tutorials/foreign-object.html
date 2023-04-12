@@ -49,10 +49,10 @@
             </p>
 
             <p>
-                Now that we can more confidently recommend the use of <code>foreignObject</code> with JointJS, users can now enjoy the benefits of
-                HTML in their diagrams. Embedding HTML text in SVG, creating basic interactive elements like buttons, or working
-                with HTML inputs should now be a more straightforward process. With this addition, combining the power of JointJS 
-                with <code>foreignObject</code> opens up a world of possibilities for interactivity within your JointJS diagrams.
+                Now that we can more confidently recommend the use of <code>foreignObject</code> with JointJS, embedding HTML text in SVG, 
+                creating basic interactive elements like buttons, or working with HTML inputs should now be a more straightforward process. 
+                With this addition, combining the power of JointJS with <code>foreignObject</code> opens up a world of possibilities for 
+                interactivity within your JointJS diagrams.
             </p>
 
             <p>
@@ -302,15 +302,16 @@ g[data-type="example.ForeignObject"] p {
 }, {
     markup: joint.util.svg/* xml */`
         &lt;foreignObject @selector="foreignObject"&gt;
-            &lt;div @selector="content"
+            &lt;div @selector="outer"
                 xmlns="http://www.w3.org/1999/xhtml"
-                style="font-family: sans-serif;"
+                class="outer"
             &gt;
-                &lt;form @selector="formContent" id="form"&gt;
-                    &lt;label @selector="label" for="diagramName">Name&gt;/label&gt;
-                    &lt;input @selector="diagramName" type="text" id="diagramName" name="diagramName"/&gt;
-                    &lt;input @selector="submit" type="submit" value="submit"/&gt;
-                &lt;/form&gt;
+                &lt;div @selector="inner" class="inner"&gt;
+                    &lt;form @selector="form" id="form"&gt;
+                        &lt;input @selector="name" type="text" id="name" name="name"/&gt;
+                        &lt;input @selector="submit" type="submit" value="submit"/&gt;
+                    &lt;/form&gt;
+                &lt;/div&gt;
             &lt;/div&gt;
         &lt;/foreignObject&gt;
     `
@@ -325,32 +326,75 @@ g[data-type="example.ForeignObject"] p {
             if you prefer, but as we are adding a substantial amount of CSS, we will use a separate stylesheet.
         </p>
 
-        <pre><code>g[data-type="example.Form"] {
-    filter: drop-shadow(0.35rem 0.35rem 0.4rem rgba(0, 0, 0, 0.5));
+        <pre><code>.outer {
+    background: linear-gradient(92.05deg, hsl(355, 100%, 68%) 12.09%, hsl(355, 100%, 63%) 42.58%, hsl(355, 85%, 54%) 84.96%);
+    padding: 6px;
+    width: 100%;
+    height: 100%;
 }
 
-form {
-    font-size: 16px;
-    margin: 1.2rem;
+.inner {
+    background-color: hsl(210deg 36.67% 11.76%);;
+    width: 100%;
+    height: 100%;
 }
 
-label {
-    color: darkslategray;
-    display: inline-block;
-    font-size: 12px;
-    margin-bottom: 0.4rem;
+.form {
+    display: flex;
+    font-family: sans-serif;
+    flex-direction: column;
+    justify-content: space-evenly;
+    padding: 0 32px;
+    width: 100%;
+    height: 100%;
 }
 
 input {
-    box-sizing: border-box;
-    font-size: inherit;
-    margin-bottom: 0.8rem;
-    width: 100%;
+    all: unset;
+    background: hsl(218, 80%, 2%);
+    color: white;
+    cursor: text;
+    font-size: 1rem;
+    height: 56px; 
+    outline-color: hsl(355, 100%, 63%);
+    outline-width: thin;
+    padding: 0 32px;
+}
+
+input::placeholder {
+    color: hsl(0, 0%, 50%);
+}
+
+input:focus-visible {
+    outline-style: inset;
+}
+
+button {
+    background-color: hsl(218, 80%, 2%);
+    border: unset;
+    cursor: pointer;
+    font-family: sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    height: 56px;
+    outline-color: hsl(355, 100%, 63%);
+    outline-width: thin;
+}
+
+button:focus-visible {
+    outline-style: inset;
+}
+
+button span {
+    background: linear-gradient(92.05deg, hsl(355, 100%, 68%) 12.09%, hsl(355, 100%, 63%) 42.58%, hsl(355, 85%, 54%) 84.96%);
+    -webkit-background-clip: text;
+    background-clip: text; 
+    -webkit-text-fill-color: hsl(0deg 0% 0% / 0%);
 }
 </code></pre>
 
         <div class="paper" id="paper-foreign-object-prevent-default"></div>
-        <p>JointJS source code: <a href="js/foreign-object-part-2.js" target="_blank">foreign-object-part-2.js</a></p>
+        <p>JointJS source code: <a href="js/foreign-object.js" target="_blank">foreign-object.js</a></p>
 
 
         <p>
@@ -387,11 +431,11 @@ input {
         </p>
 
         <ul>
-            <li><code>textarea</code></li>
-            <li><code>input</code></li>
-            <li><code>button</code></li>
-            <li><code>select</code></li>
-            <li><code>option</code></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea" target="_blank"><code>textarea</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input" target="_blank"><code>input</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button" target="_blank"><code>button</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select" target="_blank"><code>select</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/option" target="_blank"><code>option</code></a></li>
         </ul>
 
         <p>
@@ -430,7 +474,8 @@ input {
 
     onSubmit: function(evt) {
         evt.preventDefault();
-        evt.target.children.diagramName.value = ''; // remove input value after submit
+        this.model.attr('name/props/value', '');
+        evt.target.children.name.value = '';
     },
 
 });
@@ -449,22 +494,25 @@ input {
         <p>
             When working with JointJS, it wouldn't make sense that users can only set an initial <code>'value'</code> attribute for an 
             <code>input</code>, and then have to access DOM elements themselves to update the <code>'value'</code> property. If using 
-            <code>foreignObject</code>, users should be able to set the <code>'value'</code> at any time they want through the model. It's for this
+            <code>foreignObject</code>, users should be able to set the <code>'value'</code> through the model at any time they want. It's for this
             exact reason that we created the special <code>props</code> attribute, and it can be utilized as follows:
         </p>
 
         <pre><code>// Example markup
 &lt;input @selector="example" type="text" value="initial" /&gt;
 
+...
+
 // Set the input value on the model
 element.attr('example/props/value', 'current');
 
+...
 
-// For illustration purposes - not required to access DOM elements to set values
+// For illustration purposes - not required to access DOM elements in this manner
 const input = document.querySelector('input');
 
 // Expected values
-console.log(input.value); // current
+console.log(input.value); // current (JointJS sets DOM property internally)
 console.log(input.defaultValue); // initial
 console.log(input.getAttribute('value')); // initial
 </code></pre>
@@ -473,59 +521,43 @@ console.log(input.getAttribute('value')); // initial
             The supported properties when using <code>props</code> are:
         </p>
 
+        <!-- 
+            Link pointers not working in Chrome
+         -->
+
         <ul>
-            <li><code>checked</code></li>
-            <li><code>selected</code></li>
-            <li><code>disabled</code></li>
-            <li><code>readOnly</code></li>
-            <li><code>contentEditable</code></li>
-            <li><code>value</code></li>
-            <li><code>indeterminate</code></li>
-            <li><code>multiple</code></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#checked" target="_blank"><code>checked</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/option#attributes" target="_blank"><code>selected</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#disabled" target="_blank"><code>disabled</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#readonly" target="_blank"><code>readOnly</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/contenteditable" target="_blank"><code>contentEditable</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#value" target="_blank"><code>value</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/checkbox#indeterminate_state_checkboxes" target="_blank"><code>indeterminate</code></a></li>
+            <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select#attributes" target="_blank"><code>multiple</code></a></li>
         </ul>
 
+        <br>
 
-        <!-- 
-            propsPR example
-         -->
-
-        <!-- 
-            Show example with CSS layouts, 3 elements (maybe in grid)
-         -->
-
-        <!-- <div class="paper" id="paper-foreign-object"></div> -->
-
-        <!-- <p>
-            preventDefault paper option
-        </p> -->
-
-        
-
-        <!-- TODO
-            - how to use
-            - test specificity, inline vs stylesheet
-            - syntax with curly brackets?
-        -->
-
-        <!-- <h3>CSS Styles</h3> -->
-
-        <h3>Caveats!!!</h3>
+        <h3>Caveats!</h3>
 
         <p>
             While all that we have covered so far is great for users of JointJS, even in this day and age, it's not without some caveats.
-            Firstly, we will cover some relatively minor caveats regarding syntax, and afterwards we'll look at some browser related quirks.
+            Firstly, we will cover some minor points regarding syntax that you should be aware of when using HTML within your <code>markup</code>.
+            Afterwards, we'll look at some browser related quirks which mostly centre around Safari.
         </p>
 
 
         <h4>Syntax</h4>
 
 
-        <p><i>Boolean Attributes</i></p>
+        <h4 style="font-weight: normal;">Boolean Attributes</h4>
 
         <p>
             Boolean attributes are those data types where the presence or absence of the attribute represents its <i>truthy</i> or <i>falsy</i>
-            value respectively. Some common examples are <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/required" target="_blank"> 
-            <code>required</code></a>, <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/disabled" target="_blank"><code>disabled</code></a>, 
+            value respectively. Some common examples are 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/required" target="_blank"> 
+            <code>required</code></a>, 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/disabled" target="_blank"><code>disabled</code></a>, 
             and <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/readonly" target="_blank"><code>readonly</code></a>.
         </p>
 
@@ -535,17 +567,17 @@ console.log(input.getAttribute('value')); // initial
             demonstrated in the following example which uses the <code>required</code> attribute.
         </p>
 
-        <pre><code>// omitted value will throw error ❌
+        <pre><code>// Omitted value will throw error ❌
 &lt;input @selector="name" type="text" id="name" name="name" required /&gt;
 
-// use an empty string
+// Use an empty string ✅
 &lt;input @selector="name" type="text" id="name" name="name" required="" /&gt;
 
-// use a case-insensitive match for the attribute's name
+// Use a case-insensitive match for the attribute's name ✅
 &lt;input @selector="name" type="text" id="name" name="name" required="required" /&gt;
 </code></pre>
 
-        <p><i>Closing Tags</i></p>
+        <h4 style="font-weight: normal;">Closing Tags</h4>
 
         <p>
             In the past, developers traditionally used start and end tags for HTML elements. If we wanted some text on the page, we might 
@@ -572,9 +604,14 @@ console.log(input.getAttribute('value')); // initial
         &lt;p&gt;Lorem ipsum dolor sit amet consectetur.&lt;/p&gt;
     &lt;/div&gt;
 &lt;/foreignObject&gt;
+
+...
+
+// Use a trailing slash ✅
+&lt;br/&gt;
 </code></pre>
 
-        <p><i>HTML Entities</i></p>
+        <h4 style="font-weight: normal;">HTML Entities</h4>
 
         <p>
             HTML Entities are used in place of some characters that are reserved depending on the language. For example,
@@ -589,13 +626,13 @@ console.log(input.getAttribute('value')); // initial
         &amp;copy; // copy HTML entity name will throw an error ❌
     &lt;/div&gt;
 &lt;/foreignObject&gt;
+
+...
+
+// Use an entity number ✅
+&amp;#169;
 </code></pre>
         
-        <!-- TODO
-            - foreignObject export in JointJS+
-         -->
-
-
         <h4>Browser Related Quirks</h4>
 
         <p>
@@ -611,27 +648,29 @@ console.log(input.getAttribute('value')); // initial
         </p>
 
         <p>
-            The first issue arose when we tried to add a HTML5 <code>video</code> element to our shape. While this went as expected
+            The first issue arose when we tried to add a HTML5 <code>video</code> element to a shape. While this went as expected
             with Chrome and Firefox, the video seemed to be rendered in an incorrect position on Safari. After searching for a solution,
             we stumbled on the following <a href="https://bugs.webkit.org/show_bug.cgi?id=23113" target="_blank">webkit bug</a>.
         </p>
 
         <p>
             Upon reading, we couldn't help but notice others suggesting that properties like <code>opacity</code>, or <code>transform</code>
-            were also causing issues for Safari users, so we added some styles to our elements, and sure enough, we saw similar results.
-            Elements which had both <code>opacity</code> or <code>transform</code> applied were also in the incorrect position.
+            were also causing issues for Safari users, so we added those styles to our elements, and sure enough, we saw similar results.
+            HTML elements which had <code>opacity</code> or <code>transform</code> applied were also in the incorrect position.
         </p>
 
         <p>
-            Naturally, we also search the same bug report for any potential solutions, and found reporting that adding a style of
+            Naturally, we also searched the same bug report for any potential solutions, and found suggestions that adding a style of
             <code>'position: fixed'</code> to the outermost <code>div</code> element fixed some of the issued that people had. Once again,
             the information proved to be helpful, and the elements seemed to be positioned correctly again.
         </p>
 
         <p>
-            Upon further inspection, we did realize, we still had one major issue with the video. After dragging our JointJS shape, the video
-            was still rendered in the incorrect position after changing position which was disappointing. The silver lining is that the
-            <code>opacity</code> and <code>transform</code> applied to our <code>label</code> and <code>input</code> was working correctly.
+            Upon further inspection, we realized, we still had one major issue with the video. After dragging our JointJS shape, the video
+            was still rendered in the incorrect position after changing position which was disappointing. The silver lining was that the
+            <code>opacity</code> and <code>transform</code> applied to our <code>label</code> and <code>input</code> respectively was working 
+            correctly, and those elements seemed to maintain the correct position. The following is some example code we had issues with in 
+            Safari, your mileage may vary.
         </p>
 
         <pre><code>&lt;foreignObject @selector="foreignObject"&gt;
@@ -645,17 +684,51 @@ console.log(input.getAttribute('value')); // initial
         &lt;input @selector="lastname" type="text" style="width: 100%;"/&gt;
         &lt;span>Video&lt;/span>
         &lt;video @selector="video" controls="controls" width="200"&gt;
-            &lt;source src="path_to_video.mp4" type="video/mp4" /&gt;
+            &lt;source src="path_to_your_example_video.mp4" type="video/mp4" /&gt;
         &lt;/video&gt;
     &lt;/div&gt;
 &lt;/foreignObject&gt;
 </code></pre>
 
         <p>
-            It's unfortunate that Safari still lags behind other modern browsers in relation to <code>foreignObject</code>, but there are also reasons to be positive.
-            One reason to have a brighter outlook is that the issues we had here are currently being worked on according to this 
-            <a href="https://bugs.webkit.org/show_bug.cgi?id=90738" target="_blank">bug</a> report, so hopefully in the not too distant future the majority of these issues
-            will cease to exist.`
+            That's all well and good, but can we learn anything from the webkit bug reports? Well, it seems that when some HTML content inside a 
+            <code>foreignObject</code> gets a RenderLayer, the content can render in the incorrect position.
+        </p>
+
+        <p>Use of the following two properties should be approached with caution:</p>
+
+        <ul>
+            <li><code>transform</code></li>
+            <li><code>opacity</code></li>
+        </ul>
+
+        <p>
+            We already discoverd that users should be wary that 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video" target="_blank"><code>video</code></a> elements have the 
+            correct position, but are there any more elements to be careful with? Unfortunately, yes! Enter the 
+            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select" target="_blank"><code>select</code></a> element!
+        </p>
+
+        <p>
+            I'm not sure if you have ever tested which events are triggered when a user clicks on a <code>select</code> element, but if you 
+            haven't, you are in luck. We did it, so you don't have to. It turns out the events that get triggered are quite inconsistent across
+            all major browsers when interacting with the <code>select</code> element. As a result, the JointJS <code>paper</code> does not handle UI 
+            events related to the <code>select</code> element by default. This means <code>select</code> is included by default in that 
+            <code>paper</code> <code>guard</code> option we mentioned earlier.
+        </p>
+
+        <p>
+            Another delightful quirk of working with the <code>select</code> element in Safari is that when the attribute <code>multiple</code>
+            is set to <code>'true'</code>, Safari does not allow you to select an option with a mouse. It does however work with keyboard 
+            navigation.
+        </p>
+
+        <p>
+            As mentioned already, this isn't an exhaustive list of issues with Safari, so it's possible you may run into some other inconsistencies.
+            It's unfortunate that Safari still lags behind other modern browsers in relation to <code>foreignObject</code>, but there are also 
+            reasons to be positive. One reason to have a brighter outlook is that the issues we experienced here are currently being worked on 
+            according to this <a href="https://bugs.webkit.org/show_bug.cgi?id=90738" target="_blank">bug</a> report, so hopefully in the not too 
+            distant future the majority of these issues will cease to exist.
         </p>
 
 
@@ -678,7 +751,8 @@ console.log(input.getAttribute('value')); // initial
          <!-- 
             when you open the <select> in:
             Chrome: it triggers pointerdown, pointerup, pointerclick as soon as its open
-            Firefox: it triggers pointerdown on open and pointerup (and pointerclick only if you didn’t move) on close. But! If you open and then close by clickc somewhere else on the page, no other event is triggered.
+            Firefox: it triggers pointerdown on open and pointerup (and pointerclick only if you didn’t move) on close. But! 
+            If you open and then close by clickc somewhere else on the page, no other event is triggered.
             Safari: it triggers pointerdown on open. that’s it.
             There is another bug in Safari.
             <select multiple=“true”> does not allow you to select option with mouse (it works with keyboard)
@@ -687,6 +761,10 @@ console.log(input.getAttribute('value')); // initial
           <!-- 
             position: static + overflow issue
            -->
+
+        <!-- TODO
+        - foreignObject export in JointJS+
+        -->
         <h3>Conclusion</h3>
 
         <p>
@@ -694,10 +772,17 @@ console.log(input.getAttribute('value')); // initial
             even more innovative and interactive diagramming solutions, and we can't wait to see what they create.
         </p>
 
+        <p> 
+            <a href="https://github.com/clientIO/joint" target="_blank">
+                <img src="./images/github.png" alt="github logo" width="16" style="vertical-align:text-bottom;margin:2px;">
+                <strong>Star JointJS on GitHub!</strong>
+            </a> 
+            If you are a fan of JointJS, this is an easy way to support our underrated project, and help boost our ranking on GitHub.
+        </p>
+
         <script src="../node_modules/prismjs/prism.js"></script>
 
         <script src="js/foreign-object.js"></script>
-        <script src="js/foreign-object-part-2.js"></script>
     </body>
 </html>
 

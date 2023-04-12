@@ -1,18 +1,21 @@
-(function foreignObject() {
+(function foreignObjectPreventDefault() {
 
     const namespace = joint.shapes;
 
     const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     const paper = new joint.dia.Paper({
-        el: document.getElementById('paper-foreign-object'),
+        el: document.getElementById('paper-foreign-object-prevent-default'),
         model: graph,
-        width: 400,
-        height: 270,
-        gridSize: 1,
+        width: 500,
+        height: 350,
         async: true,
+        frozen: true,
         cellViewNamespace: namespace,
-        guard: (evt) => ['INPUT'].includes(evt.target.tagName)
+        background: {
+            color: '#F7F7F7'
+        },
+        // guard: (evt) => ['SPAN'].includes(evt.target.tagName)
     });
 
     paper.on('blank:pointerdown cell:pointerdown', () => {
@@ -21,41 +24,28 @@
 
     const Form = joint.dia.Element.define('example.Form', {
         attrs: {
-            body: {
-                width: 'calc(w)',
-                height: 'calc(h)',
-                fill: 'white',
-                rx: 5,
-                ry: 5
-            },
             foreignObject: {
                 width: 'calc(w)',
-                height: 'calc(h)',
-                x: 0,
-                y: 10
-            },
-            userData: {
-                text: ''
+                height: 'calc(h)'
             }
         }
     }, {
         markup: joint.util.svg/* xml */`
-            <rect @selector="body" />
             <foreignObject @selector="foreignObject">
-                    <div @selector="content"
+                    <div @selector="outer"
                         xmlns="http://www.w3.org/1999/xhtml"
-                        style="font-family: sans-serif;"
+                        class="outer"
                     >
-                        <form @selector="formContent" id="form">
-                            <label @selector="label" for="diagramName">Diagram Name</label>
-                            <input @selector="diagramName" type="text" id="diagramName" name="diagramName"/>
-                            <input @selector="submit" type="submit" value="submit"/>
-                        </form>
+                       <div @selector="inner" class="inner">
+                            <form @selector="form" class="form">
+                                <input @selector="name" type="text" id="name" name="name" autocomplete="off"  placeholder="Your diagram name" />
+                                <button @selector="submit"><span>Submit</span></button>
+                            </form>
+                       </div>
                     </div>
             </foreignObject>
-            <text @selector="userData" />
         `
-    }, {});
+    });
 
     joint.shapes.example.FormView = joint.dia.ElementView.extend({
 
@@ -64,20 +54,19 @@
         },
 
         onSubmit: function(evt) {
-            // console.log('submit', evt.target.children.diagramName.value, evt);
             evt.preventDefault();
-            this.model.attr('userData/text', evt.target.children.diagramName.value);
-            evt.target.children.diagramName.value = '';
+            this.model.attr('name/props/value', '');
+            evt.target.children.name.value = '';
         },
 
     });
     
-    
-    const form = new Form({});
-    form.position(90, 40);
-    form.resize(200, 200);
-    
+    const form = new Form();
+    form.position(72, 70);
+    form.resize(355, 200);
     form.addTo(graph);
+
+    paper.unfreeze();
 
     // const Card = joint.dia.Element.define('example.ForeignObject', {
     //     attrs: {
