@@ -99,8 +99,6 @@ export const Paper = View.extend({
 
     className: 'paper',
 
-    idle: false,
-
     options: {
 
         width: 800,
@@ -259,16 +257,8 @@ export const Paper = View.extend({
 
         frozen: false,
 
-        // Freeze paper when waiting for view updates
-        freezeWhenIdle: false,
-
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
-            if (this.options.freezeWhenIdle && this.isIdle()) {
-                this.idle = false;
-                this.unfreeze();
-            }
-
             const { mounting, isolate } = opt;
             if (mounting) {
                 if (view.hasTools()) view.requestToolsUpdate();
@@ -981,10 +971,6 @@ export const Paper = View.extend({
         if (typeof afterFn === 'function') {
             afterFn.call(this, stats, opt, this);
         }
-        this.idle = true;
-        if (this.options.freezeWhenIdle) {
-            this.freeze();
-        }
         this.trigger('render:done', stats, opt);
     },
 
@@ -1208,10 +1194,6 @@ export const Paper = View.extend({
 
     isFrozen: function() {
         return !!this.options.frozen;
-    },
-
-    isIdle: function() {
-        return this.idle;
     },
 
     isExactSorting: function() {
