@@ -1019,17 +1019,16 @@ export const CellView = View.extend({
     },
 
     unmountTools() {
-        const { _toolsView } = this;
-        if (_toolsView && _toolsView.isMounted()) {
-            _toolsView.unmount();
-        }
+        const toolsView = this._toolsView;
+        if (toolsView) toolsView.unmount();
+        return this;
     },
 
     mountTools() {
-        const { _toolsView } = this;
-        if (_toolsView && !_toolsView.isMounted()) {
-            _toolsView.mount();
-        }
+        const toolsView = this._toolsView;
+        // Prevent unnecessary re-appending of the tools.
+        if (toolsView && !toolsView.isMounted()) toolsView.mount();
+        return this;
     },
 
     updateTools: function(opt) {

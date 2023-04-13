@@ -250,8 +250,16 @@ QUnit.module('HighlighterView', function(hooks) {
                     assert.ok(highlighter.el.isConnected);
                     paper.dumpViews({ viewport: () => false });
                     assert.notOk(highlighter.el.isConnected);
+                    if (layer) {
+                        assert.notOk(highlighter.transformGroup);
+                        assert.ok(highlighter.detachedTransformGroup);
+                    }
                     paper.dumpViews({ viewport: () => true });
                     assert.ok(highlighter.el.isConnected);
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup);
+                        assert.notOk(highlighter.detachedTransformGroup);
+                    }
                     joint.dia.HighlighterView.remove(elementView, id);
                 });
             });
@@ -263,8 +271,16 @@ QUnit.module('HighlighterView', function(hooks) {
                     assert.ok(highlighter.el.isConnected);
                     paper.dumpViews({ viewport: () => false });
                     assert.notOk(highlighter.el.isConnected);
+                    if (layer) {
+                        assert.notOk(highlighter.transformGroup);
+                        assert.ok(highlighter.detachedTransformGroup);
+                    }
                     paper.dumpViews({ viewport: () => true });
                     assert.ok(highlighter.el.isConnected);
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup);
+                        assert.notOk(highlighter.detachedTransformGroup);
+                    }
                     joint.dia.HighlighterView.remove(linkView, id);
                 });
             });

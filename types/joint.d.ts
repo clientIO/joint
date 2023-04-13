@@ -783,6 +783,10 @@ export namespace dia {
 
         updateTools(opt?: { [key: string]: any }): this;
 
+        mountTools(): this;
+
+        unmountTools(): this;
+
         getNodeMatrix(node: SVGElement): SVGMatrix;
 
         getNodeRotateMatrix(node: SVGElement): SVGMatrix;

@@ -103,8 +103,8 @@ export const HighlighterView = mvc.View.extend({
                 this.detachedTransformGroup = null;
             } else {
                 vGroup = V('g').addClass('highlight-transform').append(el);
-                this.transformGroup = vGroup;
             }
+            this.transformGroup = vGroup;
             paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
         } else {
             // TODO: prepend vs append
