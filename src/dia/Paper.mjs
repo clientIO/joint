@@ -761,11 +761,14 @@ export const Paper = View.extend({
     },
 
     scheduleViewUpdate: function(view, type, priority, opt) {
-        if (this.options.autoFreeze && this._updates.idle) {
-            this._updates.idle = false;
-            this.unfreeze();
-        }
         const { _updates: updates, options } = this;
+        if (updates.idle) {
+            if (options.autoFreeze) {
+                updates.idle = false;
+                console.log('unfreeze');
+                this.unfreeze();
+            }
+        }
         const { FLAG_REMOVE, FLAG_INSERT, UPDATE_PRIORITY, cid } = view;
         let priorityUpdates = updates.priorities[priority];
         if (!priorityUpdates) priorityUpdates = updates.priorities[priority] = {};
@@ -912,23 +915,23 @@ export const Paper = View.extend({
     updateViewsAsync: function(opt, data) {
         opt || (opt = {});
         data || (data = { processed: 0, priority: MIN_PRIORITY });
-        var updates = this._updates;
-        var id = updates.id;
+        const { _updates: updates, options } = this;
+        const id = updates.id;
         if (id) {
             cancelFrame(id);
             if (data.processed === 0 && this.hasScheduledUpdates()) {
                 this.notifyBeforeRender(opt);
             }
-            var stats = this.updateViewsBatch(opt);
-            var passingOpt = defaults({}, opt, {
+            const stats = this.updateViewsBatch(opt);
+            const passingOpt = defaults({}, opt, {
                 mountBatchSize: MOUNT_BATCH_SIZE - stats.mounted,
                 unmountBatchSize: MOUNT_BATCH_SIZE - stats.unmounted
             });
-            var checkStats = this.checkViewport(passingOpt);
-            var unmountCount = checkStats.unmounted;
-            var mountCount = checkStats.mounted;
-            var processed = data.processed;
-            var total = updates.count;
+            const checkStats = this.checkViewport(passingOpt);
+            const unmountCount = checkStats.unmounted;
+            const mountCount = checkStats.mounted;
+            let processed = data.processed;
+            const total = updates.count;
             if (stats.updated > 0) {
                 // Some updates have been just processed
                 processed += stats.updated + stats.unmounted;
@@ -946,20 +949,22 @@ export const Paper = View.extend({
                     data.processed = processed;
                 }
             } else {
-                if (this.options.autoFreeze && !updates.idle) {
-                    updates.idle = true;
-                    this.freeze();
+                if (!updates.idle) {
+                    if (options.autoFreeze) {
+                        updates.idle = true;
+                        console.log('freeze');
+                        this.freeze();
+                    }
                 }
             }
             // Progress callback
-            var progressFn = opt.progress;
+            const progressFn = opt.progress;
             if (total && typeof progressFn === 'function') {
                 progressFn.call(this, stats.empty, processed, total, stats, this);
             }
             // The current frame could have been canceled in a callback
             if (updates.id !== id) return;
         }
-
         if (updates.disabled) {
             throw new Error('dia.Paper: can not unfreeze the paper after it was removed');
         }
