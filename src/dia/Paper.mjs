@@ -765,7 +765,6 @@ export const Paper = View.extend({
         if (updates.idle) {
             if (options.autoFreeze) {
                 updates.idle = false;
-                console.log('unfreeze');
                 this.unfreeze();
             }
         }
@@ -952,7 +951,6 @@ export const Paper = View.extend({
                 if (!updates.idle) {
                     if (options.autoFreeze) {
                         updates.idle = true;
-                        console.log('freeze');
                         this.freeze();
                     }
                 }
