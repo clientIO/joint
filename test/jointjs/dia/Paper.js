@@ -1227,6 +1227,66 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                                     paper.checkViewport({ viewport: function() { return false; } });
                                     assert.equal(cellNodesCount(paper), 1);
                                 });
+
+                                QUnit.test('cell view life cycle', function(assert) {
+
+                                    paper.freeze();
+
+                                    const rect1 = (new joint.shapes.standard.Rectangle()).addTo(graph);
+                                    const rect1view = rect1.findView(paper);
+                                    const onDetachSpy = sinon.spy(rect1view, 'onDetach');
+                                    const onMountSpy = sinon.spy(rect1view, 'onMount');
+                                    const onRemoveSpy = sinon.spy(rect1view, 'onRemove');
+                                    const resetSpies = () => {
+                                        onDetachSpy.resetHistory();
+                                        onMountSpy.resetHistory();
+                                        onRemoveSpy.resetHistory();
+                                    };
+
+                                    paper.unfreeze();
+
+                                    assert.equal(onMountSpy.callCount, 1);
+                                    assert.equal(onDetachSpy.callCount, 0);
+                                    assert.equal(onRemoveSpy.callCount, 0);
+                                    assert.ok(onMountSpy.calledWithExactly(true));
+                                    resetSpies();
+
+                                    paper.dumpViews({ viewport: function() { return false; } });
+                                    assert.equal(onDetachSpy.callCount, 1);
+                                    assert.equal(onMountSpy.callCount, 0);
+                                    assert.equal(onRemoveSpy.callCount, 0);
+                                    resetSpies();
+
+                                    paper.dumpViews({ viewport: function() { return true; } });
+                                    assert.equal(onDetachSpy.callCount, 0);
+                                    assert.equal(onMountSpy.callCount, 1);
+                                    assert.equal(onRemoveSpy.callCount, 0);
+                                    assert.ok(onMountSpy.calledWithExactly(false));
+                                    resetSpies();
+
+                                    paper.dumpViews({ viewport: function() { return false; } });
+                                    assert.equal(onDetachSpy.callCount, 1);
+                                    assert.equal(onMountSpy.callCount, 0);
+                                    assert.equal(onRemoveSpy.callCount, 0);
+                                    resetSpies();
+
+                                    paper.dumpViews({ viewport: function() { return true; } });
+                                    assert.equal(onDetachSpy.callCount, 0);
+                                    assert.equal(onMountSpy.callCount, 1);
+                                    assert.equal(onRemoveSpy.callCount, 0);
+                                    assert.ok(onMountSpy.calledWithExactly(false));
+                                    resetSpies();
+
+                                    rect1.remove();
+                                    assert.equal(onDetachSpy.callCount, 0);
+                                    assert.equal(onMountSpy.callCount, 0);
+                                    assert.equal(onRemoveSpy.callCount, 1);
+                                    resetSpies();
+
+                                    onDetachSpy.restore();
+                                    onMountSpy.restore();
+                                    onRemoveSpy.restore();
+                                });
                             });
                         });
                     });
