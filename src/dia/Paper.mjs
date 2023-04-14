@@ -810,14 +810,18 @@ export const Paper = View.extend({
 
     updateView: function(view, flag, opt) {
         if (!view) return 0;
-        const { FLAG_REMOVE, FLAG_INSERT, model } = view;
+        const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT, model } = view;
         if (view instanceof CellView) {
             if (flag & FLAG_REMOVE) {
                 this.removeView(model);
                 return 0;
             }
             if (flag & FLAG_INSERT) {
-                this.insertView(view);
+                const isInitialInsert = !!(flag & FLAG_INIT);
+                if (isInitialInsert) {
+                    flag ^= FLAG_INIT;
+                }
+                this.insertView(view, isInitialInsert);
                 flag ^= FLAG_INSERT;
             }
         }
@@ -1002,7 +1006,7 @@ export const Paper = View.extend({
                         // Unmount View
                         if (!isDetached) {
                             this.registerUnmountedView(view);
-                            this.unmountView(view);
+                            this.detachView(view);
                         }
                         updates.unmounted[cid] |= currentFlag;
                         delete priorityUpdates[cid];
@@ -1110,16 +1114,11 @@ export const Paper = View.extend({
             }
             unmountCount++;
             var flag = this.registerUnmountedView(view);
-            if (flag) this.unmountView(view);
+            if (flag) this.detachView(view);
         }
         // Get rid of views, that have been unmounted
         mountedCids.splice(0, i);
         return unmountCount;
-    },
-
-    unmountView(view) {
-        view.unmount();
-        view.onUnmount();
     },
 
     checkViewport: function(opt) {
@@ -1565,7 +1564,7 @@ export const Paper = View.extend({
         if (create) {
             view = views[id] = this.createViewForModel(cell);
             view.paper = this;
-            flag = this.registerUnmountedView(view) | view.getFlag(result(view, 'initFlag'));
+            flag = this.registerUnmountedView(view) | this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
         }
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
         return view;
@@ -1630,7 +1629,7 @@ export const Paper = View.extend({
         });
     },
 
-    insertView: function(view) {
+    insertView: function(view, isInitialInsert) {
         const layerView = this.getLayerView(LayersNames.CELLS);
         const { el, model } = view;
         switch (this.options.sorting) {
@@ -1642,7 +1641,12 @@ export const Paper = View.extend({
                 layerView.insertNode(el);
                 break;
         }
-        view.onMount();
+        view.onMount(isInitialInsert);
+    },
+
+    detachView(view) {
+        view.unmount();
+        view.onDetach();
     },
 
     scale: function(sx, sy, ox, oy) {

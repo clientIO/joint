@@ -2551,8 +2551,8 @@ export const LinkView = CellView.extend({
         this.mountLabels();
     },
 
-    onUnmount: function() {
-        CellView.prototype.onUnmount.apply(this, arguments);
+    onDetach: function() {
+        CellView.prototype.onDetach.apply(this, arguments);
         this.unmountLabels();
     },
 

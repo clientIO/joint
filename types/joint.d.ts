@@ -875,9 +875,9 @@ export namespace dia {
 
         protected getNodeShape(magnet: SVGElement): g.Shape;
 
-        protected onMount(): void;
+        protected onMount(isInitialMount: boolean): void;
 
-        protected onUnmount(): void;
+        protected onDetach(): void;
 
         static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
     }
@@ -1739,6 +1739,10 @@ export namespace dia {
         protected renderView(cell: Cell): CellView;
 
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
+
+        protected insertView(cellView: CellView, isInitialInsert: boolean): void;
+
+        protected detachView(cellView: CellView): void;
     }
 
     namespace PaperLayer {

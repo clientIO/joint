@@ -20,6 +20,7 @@ export const View = Backbone.View.extend({
     UPDATE_PRIORITY: 2,
     FLAG_INSERT: 1<<30,
     FLAG_REMOVE: 1<<29,
+    FLAG_INIT: 1<<28,
 
     constructor: function(options) {
 

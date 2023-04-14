@@ -981,17 +981,24 @@ export const CellView = View.extend({
 
     // Lifecycle methods
 
-    onMount() {
-        if (this.el.childNodes.length === 0) return;
+    // Called when the view is attached to the DOM,
+    // as result of `cell.addTo(graph)` being called (isInitialMount === true)
+    // or `paper.options.viewport` returning `true` (isInitialMount === false).
+    onMount(isInitialMount) {
+        if (isInitialMount) return;
         this.mountTools();
         HighlighterView.mount(this);
     },
 
-    onUnmount() {
+    // Called when the view is detached from the DOM,
+    // as result of `paper.options.viewport` returning `false`.
+    onDetach() {
         this.unmountTools();
         HighlighterView.unmount(this);
     },
 
+    // Called when the view is removed from the DOM
+    // as result of `cell.remove()`.
     onRemove: function() {
         this.removeTools();
         this.removeHighlighters();
