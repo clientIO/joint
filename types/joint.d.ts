@@ -3353,6 +3353,7 @@ export namespace mvc {
         DETACHABLE: boolean;
         FLAG_INSERT: number;
         FLAG_REMOVE: number;
+        FLAG_INIT: number;
 
         vel: E extends HTMLElement ? null : Vectorizer;
 
