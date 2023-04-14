@@ -153,17 +153,6 @@ export const CellView = View.extend({
         this.startListening();
     },
 
-    onMount() {
-        // To be overridden
-    },
-
-    onUnmount() {
-        const { _toolsView } = this;
-        if (_toolsView) {
-            _toolsView.unmount();
-        }
-    },
-
     startListening: function() {
         this.listenTo(this.model, 'change', this.onAttributesChange);
     },
@@ -990,6 +979,26 @@ export const CellView = View.extend({
         processedAttrs.normal = roProcessedAttrs.normal;
     },
 
+    // Lifecycle methods
+
+    // Called when the view is attached to the DOM,
+    // as result of `cell.addTo(graph)` being called (isInitialMount === true)
+    // or `paper.options.viewport` returning `true` (isInitialMount === false).
+    onMount(isInitialMount) {
+        if (isInitialMount) return;
+        this.mountTools();
+        HighlighterView.mount(this);
+    },
+
+    // Called when the view is detached from the DOM,
+    // as result of `paper.options.viewport` returning `false`.
+    onDetach() {
+        this.unmountTools();
+        HighlighterView.unmount(this);
+    },
+
+    // Called when the view is removed from the DOM
+    // as result of `cell.remove()`.
     onRemove: function() {
         this.removeTools();
         this.removeHighlighters();
@@ -1016,8 +1025,17 @@ export const CellView = View.extend({
         return this;
     },
 
-    requestToolsUpdate(opt) {
-        this.requestUpdate(this.getFlag(Flags.TOOLS), opt);
+    unmountTools() {
+        const toolsView = this._toolsView;
+        if (toolsView) toolsView.unmount();
+        return this;
+    },
+
+    mountTools() {
+        const toolsView = this._toolsView;
+        // Prevent unnecessary re-appending of the tools.
+        if (toolsView && !toolsView.isMounted()) toolsView.mount();
+        return this;
     },
 
     updateTools: function(opt) {

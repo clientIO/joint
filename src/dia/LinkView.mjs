@@ -439,15 +439,6 @@ export const LinkView = CellView.extend({
         }
     },
 
-    onMount: function() {
-        this.mountLabels();
-    },
-
-    unmount: function() {
-        CellView.prototype.unmount.apply(this, arguments);
-        this.unmountLabels();
-    },
-
     findLabelNode: function(labelIndex, selector) {
         const labelRoot = this._labelCache[labelIndex];
         if (!labelRoot) return null;
@@ -2551,6 +2542,18 @@ export const LinkView = CellView.extend({
         }
 
         return data;
+    },
+
+    // Lifecycle methods
+
+    onMount: function() {
+        CellView.prototype.onMount.apply(this, arguments);
+        this.mountLabels();
+    },
+
+    onDetach: function() {
+        CellView.prototype.onDetach.apply(this, arguments);
+        this.unmountLabels();
     },
 
     onRemove: function() {

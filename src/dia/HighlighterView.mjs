@@ -25,6 +25,7 @@ export const HighlighterView = mvc.View.extend({
     node: null,
     updateRequested: false,
     transformGroup: null,
+    detachedTransformGroup: null,
 
     requestUpdate(cellView, nodeSelector) {
         const { paper } = cellView;
@@ -91,12 +92,19 @@ export const HighlighterView = mvc.View.extend({
     },
 
     mount() {
-        const { MOUNTABLE, cellView, el, options, transformGroup } = this;
+        const { MOUNTABLE, cellView, el, options, transformGroup, detachedTransformGroup } = this;
         if (!MOUNTABLE || transformGroup) return;
         const { vel: cellViewRoot, paper } = cellView;
         const { layer: layerName } = options;
         if (layerName) {
-            const vGroup = this.transformGroup = V('g').addClass('highlight-transform').append(el);
+            let vGroup;
+            if (detachedTransformGroup) {
+                vGroup = detachedTransformGroup;
+                this.detachedTransformGroup = null;
+            } else {
+                vGroup = V('g').addClass('highlight-transform').append(el);
+            }
+            this.transformGroup = vGroup;
             paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
         } else {
             // TODO: prepend vs append
@@ -112,6 +120,7 @@ export const HighlighterView = mvc.View.extend({
         if (!MOUNTABLE) return;
         if (transformGroup) {
             this.transformGroup = null;
+            this.detachedTransformGroup = transformGroup;
             transformGroup.remove();
         } else {
             vel.remove();
@@ -280,6 +289,14 @@ export const HighlighterView = mvc.View.extend({
         toArray(this.get(cellView, id)).forEach(view => {
             if (view.UPDATABLE) view.transform();
         });
+    },
+
+    unmount(cellView, id = null) {
+        toArray(this.get(cellView, id)).forEach(view => view.unmount());
+    },
+
+    mount(cellView, id = null) {
+        toArray(this.get(cellView, id)).forEach(view => view.mount());
     },
 
     uniqueId(node, opt = '') {
