@@ -755,7 +755,6 @@ export const Paper = View.extend({
         opt || (opt = {});
         if (this.options.autoFreeze && this.isIdle()) {
             this.idle = false;
-            console.log('unfreeze');
             this.unfreeze();
         }
         this.scheduleViewUpdate(view, flag, priority, opt);
@@ -949,7 +948,6 @@ export const Paper = View.extend({
                 }
             } else {
                 if (this.options.autoFreeze) {
-                    console.log('freeze');
                     this.freeze();
                 }
             }
@@ -985,7 +983,6 @@ export const Paper = View.extend({
         if (typeof afterFn === 'function') {
             afterFn.call(this, stats, opt, this);
         }
-        this.idle = true;
         this.trigger('render:done', stats, opt);
     },
 

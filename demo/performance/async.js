@@ -45,6 +45,7 @@ var paper = new Paper({
     sorting: Paper.sorting.APPROX,
     defaultAnchor: { name: 'modelCenter' },
     defaultConnectionPoint: { name: 'boundary' },
+    autoFreeze: true,
     viewport: function(view, isInViewport) {
         if (leaveDraggedInViewport && view.cid === draggedCid) return true;
         if (leaveRenderedInViewport && isInViewport) return true;
