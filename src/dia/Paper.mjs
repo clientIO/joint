@@ -99,6 +99,8 @@ export const Paper = View.extend({
 
     className: 'paper',
 
+    idle: false,
+
     options: {
 
         width: 800,
@@ -256,6 +258,8 @@ export const Paper = View.extend({
         sorting: sortingTypes.EXACT,
 
         frozen: false,
+
+        autoFreeze: false,
 
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
@@ -749,6 +753,11 @@ export const Paper = View.extend({
 
     requestViewUpdate: function(view, flag, priority, opt) {
         opt || (opt = {});
+        if (this.options.autoFreeze && this.isIdle()) {
+            this.idle = false;
+            console.log('unfreeze');
+            this.unfreeze();
+        }
         this.scheduleViewUpdate(view, flag, priority, opt);
         var isAsync = this.isAsync();
         if (this.isFrozen() || (isAsync && opt.async !== false)) return;
@@ -938,6 +947,11 @@ export const Paper = View.extend({
                 } else {
                     data.processed = processed;
                 }
+            } else {
+                if (this.options.autoFreeze) {
+                    console.log('freeze');
+                    this.freeze();
+                }
             }
             // Progress callback
             var progressFn = opt.progress;
@@ -971,6 +985,7 @@ export const Paper = View.extend({
         if (typeof afterFn === 'function') {
             afterFn.call(this, stats, opt, this);
         }
+        this.idle = true;
         this.trigger('render:done', stats, opt);
     },
 
@@ -1194,6 +1209,10 @@ export const Paper = View.extend({
 
     isFrozen: function() {
         return !!this.options.frozen;
+    },
+
+    isIdle: function() {
+        return this.idle;
     },
 
     isExactSorting: function() {
