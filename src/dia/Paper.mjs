@@ -99,8 +99,6 @@ export const Paper = View.extend({
 
     className: 'paper',
 
-    idle: false,
-
     options: {
 
         width: 800,
@@ -424,7 +422,8 @@ export const Paper = View.extend({
             keyFrozen: false,
             freezeKey: null,
             sort: false,
-            disabled: false
+            disabled: false,
+            idle: false
         };
     },
 
@@ -753,10 +752,6 @@ export const Paper = View.extend({
 
     requestViewUpdate: function(view, flag, priority, opt) {
         opt || (opt = {});
-        if (this.options.autoFreeze && this.isIdle()) {
-            this.idle = false;
-            this.unfreeze();
-        }
         this.scheduleViewUpdate(view, flag, priority, opt);
         var isAsync = this.isAsync();
         if (this.isFrozen() || (isAsync && opt.async !== false)) return;
@@ -766,6 +761,10 @@ export const Paper = View.extend({
     },
 
     scheduleViewUpdate: function(view, type, priority, opt) {
+        if (this.options.autoFreeze && this._updates.idle) {
+            this._updates.idle = false;
+            this.unfreeze();
+        }
         const { _updates: updates, options } = this;
         const { FLAG_REMOVE, FLAG_INSERT, UPDATE_PRIORITY, cid } = view;
         let priorityUpdates = updates.priorities[priority];
@@ -947,7 +946,8 @@ export const Paper = View.extend({
                     data.processed = processed;
                 }
             } else {
-                if (this.options.autoFreeze) {
+                if (this.options.autoFreeze && !updates.idle) {
+                    updates.idle = true;
                     this.freeze();
                 }
             }
@@ -1206,10 +1206,6 @@ export const Paper = View.extend({
 
     isFrozen: function() {
         return !!this.options.frozen;
-    },
-
-    isIdle: function() {
-        return this.idle;
     },
 
     isExactSorting: function() {
