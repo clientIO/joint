@@ -1205,8 +1205,27 @@ export const CellView = View.extend({
     },
 
     checkMouseleave(evt) {
-        const { paper } = this;
+        const { paper, model } = this;
         if (paper.isAsync()) {
+            // Make sure the source/target views are updated before this view.
+            // It's not 100% bulletproof (see below) but it's a good enough solution for now.
+            // The connected cells could be links as well. In that case, we would
+            // need to recursively go through all the connected links and update
+            // their source/target views as well.
+            if (model.isLink()) {
+                // The `this.sourceView` and `this.targetView` might not be updated yet.
+                // We need to find the view by the model.
+                const sourceElement = model.getSourceElement();
+                if (sourceElement) {
+                    const sourceView = paper.findViewByModel(sourceElement);
+                    if (sourceView) paper.dumpView(sourceView);
+                }
+                const targetElement = model.getTargetElement();
+                if (targetElement) {
+                    const targetView = paper.findViewByModel(targetElement);
+                    if (targetView) paper.dumpView(targetView);
+                }
+            }
             // Do the updates of the current view synchronously now
             paper.dumpView(this);
         }

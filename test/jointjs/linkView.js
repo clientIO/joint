@@ -841,7 +841,7 @@ QUnit.module('linkView', function(hooks) {
             assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 150 });
         });
 
-        QUnit.test('joint.linkAchors - target', function(assert) {
+        QUnit.test('joint.linkAnchors - target', function(assert) {
 
             link2.source({ x: 100, y: 100 });
             link2.target({ x: 200, y: 100 });
@@ -999,7 +999,7 @@ QUnit.module('linkView', function(hooks) {
         });
 
         QUnit.test('sanity', function(assert) {
-            // Sourcer connectionPoint
+            // Source connectionPoint
             var sourcePoint = new g.Point(1, -1);
             var sourceConnectionPointSpy = joint.connectionPoints.test1 = sinon.spy(function() {
                 return sourcePoint;
@@ -1461,6 +1461,49 @@ QUnit.module('linkView', function(hooks) {
                 paper.trigger('tools:event', 'show');
                 assert.ok(toolView1.isVisible());
                 assert.ok(toolView2.isVisible());
+            });
+        });
+    });
+
+    QUnit.module('link:connect', function(hooks) {
+
+        ['source', 'target'].forEach(function(end) {
+
+            QUnit.test(`it updates correctly when the ${end} element size changes during reconnecting`, function(assert) {
+                const done  = assert.async();
+                const { model: graph } = paper;
+                const rect = new joint.shapes.standard.Rectangle({
+                    position: { x: 2, y: 3 },
+                    size: { width: 5, height: 7 },
+                });
+                const rectView = rect.addTo(graph).findView(paper);
+                // Do not let any highlighter to request an update
+                paper.options.highlighting = false;
+                paper.options.async = true;
+                paper.unfreeze();
+                paper.on({
+                    'render:done': (stats) => {
+                        if (paper.hasScheduledUpdates()) {
+                            // Wait for the next render:done event. This is the synchronous
+                            // element view size update caused by the `checkMouseleave` method.
+                            return;
+                        }
+                        // The link is connected to the center of the resized rectangle.
+                        assert.ok(linkView.getEndAnchor(end).equals(rect.getBBox().center()));
+                        done();
+                    },
+                    'link:connect': () => {
+                        // Resize the rectangle just after the link is connected.
+                        rect.resize(11, 13);
+                    }
+                });
+                const evt = {};
+                linkView.startArrowheadMove(end);
+                evt.target = paper.el;
+                linkView.pointermove(evt, 0, 0);
+                evt.target = rectView.el;
+                linkView.pointermove(evt, 0, 0);
+                linkView.pointerup(evt, 0, 0);
             });
         });
     });
