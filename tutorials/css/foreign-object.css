@@ -51,6 +51,9 @@ button {
    background-color: hsl(218, 80%, 2%);
    border: unset;
    cursor: pointer;
+   display: flex;
+   justify-content: center;
+   align-items: center;
    font-family: sans-serif;
    font-size: 1rem;
    font-weight: 600;
@@ -68,4 +71,48 @@ button span {
    -webkit-background-clip: text;
    background-clip: text; 
    -webkit-text-fill-color: hsl(0deg 0% 0% / 0%);
+   font-size: 1.2rem;
 }
+
+.octicon {
+   /* display: flex;
+   flex-direction: row;
+   justify-content: center;
+   align-items: center; */
+}
+
+.arrow-target-mktg .octicon {
+   width: 1em;
+   height: 1em;
+}
+
+button .arrow-symbol-mktg, .arrow-target-mktg .arrow-symbol-mktg {
+   transition: transform .2s;
+   transform: translateX(0);
+}
+
+button .arrow-symbol-mktg path:last-child, .arrow-target-mktg .arrow-symbol-mktg path:last-child {
+   stroke-dasharray: 10;
+   stroke-dashoffset: 10;
+   transition: stroke-dashoffset .2s;
+}
+
+button:hover .arrow-symbol-mktg path:last-child, 
+.arrow-target-mktg:hover .arrow-symbol-mktg path:last-child, 
+.arrow-target-mktg:focus .arrow-symbol-mktg path:last-child  {  
+   stroke-dashoffset: 20;
+}
+
+@keyframes position {
+   0% {
+     transform: translateX(0);
+   }
+   
+   50% {
+      transform: translateX(10);
+   }
+ 
+   100% {
+      transform: translateX(0);
+   }
+ }
