@@ -45,7 +45,6 @@ var paper = new Paper({
     sorting: Paper.sorting.APPROX,
     defaultAnchor: { name: 'modelCenter' },
     defaultConnectionPoint: { name: 'boundary' },
-    autoFreeze: true,
     viewport: function(view, isInViewport) {
         if (leaveDraggedInViewport && view.cid === draggedCid) return true;
         if (leaveRenderedInViewport && isInViewport) return true;
@@ -115,6 +114,16 @@ var viewportInput = document.getElementById('viewport');
 var viewportRect = viewportInput.checked;
 viewportInput.addEventListener('click', function(evt) {
     viewportRect = evt.target.checked;
+}, false);
+
+var autoFreezeInput = document.getElementById('autofreeze');
+var autoFreeze = autoFreezeInput.checked;
+autoFreezeInput.addEventListener('click', function(evt) {
+    autoFreeze = evt.target.checked;
+    paper.options.autoFreeze = autoFreeze;
+    if (!autoFreeze) {
+        paper.unfreeze();
+    }
 }, false);
 
 var leaveRenderedInput = document.getElementById('leave-rendered-in-viewport');
