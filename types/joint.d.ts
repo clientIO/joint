@@ -1322,7 +1322,7 @@ export namespace dia {
             useModelGeometry?: boolean;
             fittingBBox?: BBox;
             contentArea?: BBox;
-            vertivalAlign?: 'top' | 'middle' | 'bottom';
+            verticalAlign?: 'top' | 'middle' | 'bottom';
             horizontalAlign?: 'left' | 'middle' | 'right';
         }
 
