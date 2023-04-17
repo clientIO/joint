@@ -13,8 +13,18 @@ var windowBBox;
 function setWindowBBox() {
     windowBBox = paper.pageToLocalRect(window.scrollX, window.scrollY, window.innerWidth, window.innerHeight);
 }
-window.onscroll = function() { setWindowBBox(); };
-window.onresize = function() { setWindowBBox(); };
+window.onscroll = function() {
+    setWindowBBox();
+    if (autoFreeze) {
+        paper.checkViewport();
+    }
+};
+window.onresize = function() {
+    setWindowBBox();
+    if (autoFreeze) {
+        paper.checkViewport();
+    }
+};
 
 var viewportTemplate = new Rectangle({
     size: { width: 200, height: 200 },
