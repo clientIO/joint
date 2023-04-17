@@ -950,8 +950,9 @@ export const Paper = View.extend({
             } else {
                 if (!updates.idle) {
                     if (options.autoFreeze) {
-                        updates.idle = true;
                         this.freeze();
+                        updates.idle = true;
+                        this.trigger('render:idle', opt);
                     }
                 }
             }
@@ -1603,6 +1604,11 @@ export const Paper = View.extend({
     resetViews: function(cells, opt) {
         opt || (opt = {});
         cells || (cells = []);
+        if (this._updates && this._updates.idle) {
+            if (this.options.autoFreeze) {
+                this.unfreeze();
+            }
+        }
         this._resetUpdates();
         // clearing views removes any event listeners
         this.removeViews();

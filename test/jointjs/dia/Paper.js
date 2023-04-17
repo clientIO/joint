@@ -1591,7 +1591,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         QUnit.test('autofreeze check', function(assert) {
             var done = assert.async();
 
-            paper = new Paper({
+            var testPaper = new Paper({
                 el: paperEl,
                 model: graph,
                 async: true,
@@ -1599,34 +1599,26 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 sorting: Paper.sorting.APPROX
             });
 
-            assert.ok(paper.isFrozen());
-            assert.ok(paper.isAsync());
-            assert.equal(cellNodesCount(paper), 0);
+            assert.ok(testPaper.isFrozen());
+            assert.ok(testPaper.isAsync());
+            assert.equal(cellNodesCount(testPaper), 0);
             let isUpdated = false;
 
-            var spy = sinon.spy(() => {
-                assert.ok(!paper.isFrozen(), 'still not frozen after render');
+            testPaper.on('render:idle', () => {
+                assert.notOk(testPaper.hasScheduledUpdates(), 'has no updates');
+                assert.ok(testPaper.isFrozen(), 'frozen after updating');
                 if (!isUpdated) {
-                    assert.equal(cellNodesCount(paper), 1, 'cell rendered');
+                    assert.equal(cellNodesCount(testPaper), 1, 'cell rendered');
+                    rect.position(201, 202);
+                    isUpdated = true;
+                } else {
+                    const position = rect.position();
+                    assert.deepEqual({ x: position.x, y: position.y }, { x: 201, y: 202 }, 'view was correctly updated');
+                    done();
                 }
-
-                setTimeout(() => {
-                    assert.ok(paper.isFrozen(), 'frozen after updating');
-                    if (!isUpdated) {
-                        rect.position(201, 202);
-                        isUpdated = true;
-                    } else {
-                        assert.equal(spy.callCount, 2, 'rendered 2 times');
-                        done();
-                    }
-                }, 20);
             });
-
-            paper.on('render:done', spy);
             var rect = new joint.shapes.standard.Rectangle();
             graph.resetCells([rect]);
-
-            paper.unfreeze();
         });
     });
 
