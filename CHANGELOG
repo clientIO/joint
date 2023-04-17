@@ -1,4 +1,4 @@
-06-04-2023 (v3.7.0)
+17-04-2023 (v3.7.0)
 
   * demo.CustomEmbedding - add new demo to illustrate custom embedding functionality
   * demo.Flowchart - add new demo to illustrate `rightAngle` router and `straight` connector
@@ -17,7 +17,8 @@
   * dia.Paper - fix event handlers to correctly receive `dia.Event` on touch screens
   * dia.Paper - fix event handlers so that `originalEvent` always points to a native event
   * dia.Paper - fix to trigger `element:magnet:pointerclick` when user clicks an invalid magnet
-  * dia.Paper - fix to hide tools when associated cell view is unmounted
+  * dia.Paper - fix to hide tools and highlighters when associated cell view is detached
+  * dia.Paper - fix to throw an error when `unfreeze()` is called on a paper which has been removed
   * dia.ElementView - fix to correctly update port nodes with `ref` on size change
   * dia.ElementView - fix to prevent double rendering of ports when CSS selectors are enabled
   * dia.LinkView - enable link label dragging on touch screens in async mode
@@ -26,6 +27,7 @@
   * dia.LinkView - fix incorrect rotation of labels using `keepGradient` and `absoluteOffset` options
   * dia.LinkView - fix to prevent label jumping while being dragged along straight-line Curve links
   * dia.CellView - add `preventDefaultInteraction()` and `isDefaultInteractionPrevented()` methods
+  * dia.CellView - fix link update if connected element changes at the same time the connection is made
   * dia.Element - add `fitToChildren()` and `fitParent()` methods
   * dia.Element - change `fitEmbeds()` into an alias of `fitToChildren()`
   * dia.Element - add `expandOnly` and `shrinkOnly` options to `fitToChildren()` and `fitParent()`

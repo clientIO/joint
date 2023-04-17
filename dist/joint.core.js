@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-08) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-17) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -18733,6 +18733,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    UPDATE_PRIORITY: 2,
 	    FLAG_INSERT: 1<<30,
 	    FLAG_REMOVE: 1<<29,
+	    FLAG_INIT: 1<<28,
 
 	    constructor: function(options) {
 
@@ -18756,11 +18757,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        } else {
 	            this.$el.remove();
 	        }
-	        this.onUnmount();
 	    },
 
-	    onUnmount: function() {
-	        // to be overridden
+	    isMounted: function() {
+	        return this.el.parentNode !== null;
 	    },
 
 	    renderChildren: function(children) {
@@ -19135,6 +19135,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    node: null,
 	    updateRequested: false,
 	    transformGroup: null,
+	    detachedTransformGroup: null,
 
 	    requestUpdate: function requestUpdate(cellView, nodeSelector) {
 	        var paper = cellView.paper;
@@ -19215,12 +19216,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var el = ref.el;
 	        var options = ref.options;
 	        var transformGroup = ref.transformGroup;
+	        var detachedTransformGroup = ref.detachedTransformGroup;
 	        if (!MOUNTABLE || transformGroup) { return; }
 	        var cellViewRoot = cellView.vel;
 	        var paper = cellView.paper;
 	        var layerName = options.layer;
 	        if (layerName) {
-	            var vGroup = this.transformGroup = V('g').addClass('highlight-transform').append(el);
+	            var vGroup;
+	            if (detachedTransformGroup) {
+	                vGroup = detachedTransformGroup;
+	                this.detachedTransformGroup = null;
+	            } else {
+	                vGroup = V('g').addClass('highlight-transform').append(el);
+	            }
+	            this.transformGroup = vGroup;
 	            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
 	        } else {
 	            // TODO: prepend vs append
@@ -19239,6 +19248,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (!MOUNTABLE) { return; }
 	        if (transformGroup) {
 	            this.transformGroup = null;
+	            this.detachedTransformGroup = transformGroup;
 	            transformGroup.remove();
 	        } else {
 	            vel.remove();
@@ -19440,6 +19450,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	    },
 
+	    unmount: function unmount(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.unmount(); });
+	    },
+
+	    mount: function mount(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.mount(); });
+	    },
+
 	    uniqueId: function uniqueId(node, opt) {
 	        if ( opt === void 0 ) opt = '';
 
@@ -19577,18 +19599,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.$el.data('view', this);
 
 	        this.startListening();
-	    },
-
-	    onMount: function onMount() {
-	        // To be overridden
-	    },
-
-	    onUnmount: function onUnmount() {
-	        var ref = this;
-	        var _toolsView = ref._toolsView;
-	        if (_toolsView) {
-	            _toolsView.unmount();
-	        }
 	    },
 
 	    startListening: function() {
@@ -20438,6 +20448,26 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        processedAttrs.normal = roProcessedAttrs.normal;
 	    },
 
+	    // Lifecycle methods
+
+	    // Called when the view is attached to the DOM,
+	    // as result of `cell.addTo(graph)` being called (isInitialMount === true)
+	    // or `paper.options.viewport` returning `true` (isInitialMount === false).
+	    onMount: function onMount(isInitialMount) {
+	        if (isInitialMount) { return; }
+	        this.mountTools();
+	        HighlighterView.mount(this);
+	    },
+
+	    // Called when the view is detached from the DOM,
+	    // as result of `paper.options.viewport` returning `false`.
+	    onDetach: function onDetach() {
+	        this.unmountTools();
+	        HighlighterView.unmount(this);
+	    },
+
+	    // Called when the view is removed from the DOM
+	    // as result of `cell.remove()`.
 	    onRemove: function() {
 	        this.removeTools();
 	        this.removeHighlighters();
@@ -20464,8 +20494,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return this;
 	    },
 
-	    requestToolsUpdate: function requestToolsUpdate(opt) {
-	        this.requestUpdate(this.getFlag(Flags.TOOLS), opt);
+	    unmountTools: function unmountTools() {
+	        var toolsView = this._toolsView;
+	        if (toolsView) { toolsView.unmount(); }
+	        return this;
+	    },
+
+	    mountTools: function mountTools() {
+	        var toolsView = this._toolsView;
+	        // Prevent unnecessary re-appending of the tools.
+	        if (toolsView && !toolsView.isMounted()) { toolsView.mount(); }
+	        return this;
 	    },
 
 	    updateTools: function(opt) {
@@ -20642,7 +20681,27 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    checkMouseleave: function checkMouseleave(evt) {
 	        var ref = this;
 	        var paper = ref.paper;
+	        var model = ref.model;
 	        if (paper.isAsync()) {
+	            // Make sure the source/target views are updated before this view.
+	            // It's not 100% bulletproof (see below) but it's a good enough solution for now.
+	            // The connected cells could be links as well. In that case, we would
+	            // need to recursively go through all the connected links and update
+	            // their source/target views as well.
+	            if (model.isLink()) {
+	                // The `this.sourceView` and `this.targetView` might not be updated yet.
+	                // We need to find the view by the model.
+	                var sourceElement = model.getSourceElement();
+	                if (sourceElement) {
+	                    var sourceView = paper.findViewByModel(sourceElement);
+	                    if (sourceView) { paper.dumpView(sourceView); }
+	                }
+	                var targetElement = model.getTargetElement();
+	                if (targetElement) {
+	                    var targetView = paper.findViewByModel(targetElement);
+	                    if (targetView) { paper.dumpView(targetView); }
+	                }
+	            }
 	            // Do the updates of the current view synchronously now
 	            paper.dumpView(this);
 	        }
@@ -29146,15 +29205,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    },
 
-	    onMount: function() {
-	        this.mountLabels();
-	    },
-
-	    unmount: function() {
-	        CellView.prototype.unmount.apply(this, arguments);
-	        this.unmountLabels();
-	    },
-
 	    findLabelNode: function(labelIndex, selector) {
 	        var labelRoot = this._labelCache[labelIndex];
 	        if (!labelRoot) { return null; }
@@ -31295,6 +31345,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return data;
 	    },
 
+	    // Lifecycle methods
+
+	    onMount: function() {
+	        CellView.prototype.onMount.apply(this, arguments);
+	        this.mountLabels();
+	    },
+
+	    onDetach: function() {
+	        CellView.prototype.onDetach.apply(this, arguments);
+	        this.unmountLabels();
+	    },
+
 	    onRemove: function() {
 	        CellView.prototype.onRemove.apply(this, arguments);
 	        this.unmountLabels();
@@ -31540,7 +31602,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // Number of required mousemove events before the first pointermove event will be triggered.
 	        moveThreshold: 0,
 
-	        // Number of required mousemove events before the a link is created out of the magnet.
+	        // Number of required mousemove events before a link is created out of the magnet.
 	        // Or string `onleave` so the link is created when the pointer leaves the magnet
 	        magnetThreshold: 0,
 
@@ -31552,19 +31614,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // no docs yet
 	        onViewUpdate: function(view, flag, priority, opt, paper) {
-	            var mounting = opt.mounting;
-	            var isolate = opt.isolate;
-	            if (mounting) {
-	                if (view.hasTools()) { view.requestToolsUpdate(); }
-	                return;
-	            }
 	            // Do not update connected links when:
 	            // 1. the view was just inserted (added to the graph and rendered)
 	            // 2. the view was just mounted (added back to the paper by viewport function)
-	            //    (Note: we already exited above)
 	            // 3. the change was marked as `isolate`.
 	            // 4. the view model was just removed from the graph
-	            if ((flag & (view.FLAG_INSERT | view.FLAG_REMOVE)) || isolate) { return; }
+	            if ((flag & (view.FLAG_INSERT | view.FLAG_REMOVE)) || opt.mounting || opt.isolate) { return; }
 	            paper.requestConnectedLinksUpdate(view, priority, opt);
 	        },
 
@@ -31714,7 +31769,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            count: 0,
 	            keyFrozen: false,
 	            freezeKey: null,
-	            sort: false
+	            sort: false,
+	            disabled: false
 	        };
 	    },
 
@@ -32134,6 +32190,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (!view) { return 0; }
 	        var FLAG_REMOVE = view.FLAG_REMOVE;
 	        var FLAG_INSERT = view.FLAG_INSERT;
+	        var FLAG_INIT = view.FLAG_INIT;
 	        var model = view.model;
 	        if (view instanceof CellView) {
 	            if (flag & FLAG_REMOVE) {
@@ -32141,7 +32198,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                return 0;
 	            }
 	            if (flag & FLAG_INSERT) {
-	                this.insertView(view);
+	                var isInitialInsert = !!(flag & FLAG_INIT);
+	                if (isInitialInsert) {
+	                    flag ^= FLAG_INIT;
+	                }
+	                this.insertView(view, isInitialInsert);
 	                flag ^= FLAG_INSERT;
 	            }
 	        }
@@ -32264,6 +32325,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // The current frame could have been canceled in a callback
 	            if (updates.id !== id) { return; }
 	        }
+
+	        if (updates.disabled) {
+	            throw new Error('dia.Paper: can not unfreeze the paper after it was removed');
+	        }
 	        updates.id = nextFrame(this.updateViewsAsync, this, opt, data);
 	    },
 
@@ -32330,7 +32395,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                        // Unmount View
 	                        if (!isDetached) {
 	                            this.registerUnmountedView(view);
-	                            view.unmount();
+	                            this.detachView(view);
 	                        }
 	                        updates.unmounted[cid] |= currentFlag;
 	                        delete priorityUpdates[cid];
@@ -32438,7 +32503,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 	            unmountCount++;
 	            var flag = this.registerUnmountedView(view);
-	            if (flag) { view.unmount(); }
+	            if (flag) { this.detachView(view); }
 	        }
 	        // Get rid of views, that have been unmounted
 	        mountedCids.splice(0, i);
@@ -32520,6 +32585,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    onRemove: function() {
 
 	        this.freeze();
+	        this._updates.disabled = true;
 	        //clean up all DOM elements/views to prevent memory leaks
 	        this.removeLayers();
 	        this.removeViews();
@@ -32909,7 +32975,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (create) {
 	            view = views[id] = this.createViewForModel(cell);
 	            view.paper = this;
-	            flag = this.registerUnmountedView(view) | view.getFlag(result(view, 'initFlag'));
+	            flag = this.registerUnmountedView(view) | this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
 	        }
 	        this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
 	        return view;
@@ -32974,7 +33040,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	    },
 
-	    insertView: function(view) {
+	    insertView: function(view, isInitialInsert) {
 	        var layerView = this.getLayerView(LayersNames.CELLS);
 	        var el = view.el;
 	        var model = view.model;
@@ -32987,7 +33053,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                layerView.insertNode(el);
 	                break;
 	        }
-	        view.onMount();
+	        view.onMount(isInitialInsert);
+	    },
+
+	    detachView: function detachView(view) {
+	        view.unmount();
+	        view.onDetach();
 	    },
 
 	    scale: function(sx, sy, ox, oy) {
@@ -34700,7 +34771,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                tool.update();
 	            }
 	        }
-	        if (!isRendered || !this.isMounted()) {
+	        if (!this.isMounted()) {
 	            this.mount();
 	        }
 	        if (!isRendered) {
@@ -34775,11 +34846,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    isMounted: function() {
 	        return this.el.parentNode !== null;
-	    },
-
-	    unmount: function() {
-	        this.vel.remove();
-	        return this;
 	    }
 
 	});

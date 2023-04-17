@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-08) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-17) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1945,6 +1945,10 @@ export namespace dia {
 
         updateTools(opt?: { [key: string]: any }): this;
 
+        mountTools(): this;
+
+        unmountTools(): this;
+
         getNodeMatrix(node: SVGElement): SVGMatrix;
 
         getNodeRotateMatrix(node: SVGElement): SVGMatrix;
@@ -1966,8 +1970,6 @@ export namespace dia {
         getFlag(label: CellView.FlagLabel): number;
 
         requestUpdate(flags: number, opt?: { [key: string]: any }): void;
-
-        requestToolsUpdate(flags: number, opt?: { [key: string]: any }): void;
 
         dragLinkStart(evt: dia.Event, magnet: SVGElement, x: number, y: number): void;
 
@@ -2034,6 +2036,10 @@ export namespace dia {
         protected getNodeData(magnet: SVGElement): CellView.NodeData;
 
         protected getNodeShape(magnet: SVGElement): g.Shape;
+
+        protected onMount(isInitialMount: boolean): void;
+
+        protected onDetach(): void;
 
         static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
     }
@@ -2295,8 +2301,6 @@ export namespace dia {
         protected notifyPointermove(evt: dia.Event, x: number, y: number): void;
 
         protected notifyPointerup(evt: dia.Event, x: number, y: number): void;
-
-        protected onMount(): void;
 
         protected mountLabels(): void;
 
@@ -2897,6 +2901,10 @@ export namespace dia {
         protected renderView(cell: Cell): CellView;
 
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
+
+        protected insertView(cellView: CellView, isInitialInsert: boolean): void;
+
+        protected detachView(cellView: CellView): void;
     }
 
     namespace PaperLayer {
@@ -4507,6 +4515,7 @@ export namespace mvc {
         DETACHABLE: boolean;
         FLAG_INSERT: number;
         FLAG_REMOVE: number;
+        FLAG_INIT: number;
 
         vel: E extends HTMLElement ? null : Vectorizer;
 
@@ -4563,8 +4572,6 @@ export namespace mvc {
         protected onSetTheme(oldTheme: string, newTheme: string): void;
 
         protected onRemove(): void;
-
-        protected onUnmount(): void;
     }
 
     type ModifiedCallback<CallbackArgs extends any[], EventCallback extends Callback> = (...args: [...CallbackArgs, ...Parameters<EventCallback>]) => any;
