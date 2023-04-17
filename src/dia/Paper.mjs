@@ -1604,10 +1604,10 @@ export const Paper = View.extend({
     resetViews: function(cells, opt) {
         opt || (opt = {});
         cells || (cells = []);
+        // Patching frozen state in the idle mode as unfrozen for this.freeze({ key: 'reset' }) call
+        // It allows this.unfreeze({ key: 'reset' }) call to start cycle instead of remaining in the frozen state
         if (this._updates && this._updates.idle) {
-            if (this.options.autoFreeze) {
-                this.unfreeze();
-            }
+            this.options.frozen = false;
         }
         this._resetUpdates();
         // clearing views removes any event listeners
