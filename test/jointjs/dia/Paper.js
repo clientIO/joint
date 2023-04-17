@@ -1586,6 +1586,50 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
     });
 
+    QUnit.module('async = TRUE, autoFreeze = TRUE', function(hooks) {
+
+        QUnit.test('autofreeze check', function(assert) {
+            var done = assert.async();
+
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                sorting: Paper.sorting.APPROX
+            });
+
+            assert.ok(paper.isFrozen());
+            assert.ok(paper.isAsync());
+            assert.equal(cellNodesCount(paper), 0);
+            let isUpdated = false;
+
+            var spy = sinon.spy(() => {
+                assert.ok(!paper.isFrozen(), 'still not frozen after render');
+                if (!isUpdated) {
+                    assert.equal(cellNodesCount(paper), 1, 'cell rendered');
+                }
+
+                setTimeout(() => {
+                    assert.ok(paper.isFrozen(), 'frozen after updating');
+                    if (!isUpdated) {
+                        rect.position(201, 202);
+                        isUpdated = true;
+                    } else {
+                        assert.equal(spy.callCount, 2, 'rendered 2 times');
+                        done();
+                    }
+                }, 20);
+            });
+
+            paper.on('render:done', spy);
+            var rect = new joint.shapes.standard.Rectangle();
+            graph.resetCells([rect]);
+
+            paper.unfreeze();
+        });
+    });
+
     QUnit.module('async = TRUE, frozen = TRUE', function(hooks) {
 
         hooks.beforeEach(function() {
