@@ -69,18 +69,34 @@
                 element where the user is easily able to select the text.
             </p>
 
-            <pre><code>&lt;svg version="1.1" width="300" height="110" xmlns="http://www.w3.org/2000/svg"&gt;
+            <pre><code>&lt;svg version="1.1" width="300" height="130" xmlns="http://www.w3.org/2000/svg"&gt;
     &lt;style&gt;
-        p.svg {
-            color: white;
+        div.card__background {
+            background-color: #131e29;
+            height: 100%;
+        }
+        p.card__text {
+            color: #F2F2F2;
             font: 16px sans-serif;
+            padding: 10px;
             margin: 0;
         }
+        rect.card { fill: url(#gradient); }
+        .stop1 { stop-color: #ff5c69; }
+        .stop2 { stop-color: #ff4252; }
+        .stop3 { stop-color: #ed2637; }
     &lt;/style&gt;
-    &lt;rect x="0", width="180" height="100" rx="5" ry="5" fill="#4b5d67" /&gt;
-    &lt;foreignObject x="10" y="10" width="160" height="80"&gt;
-        &lt;div xmlns="http://www.w3.org/1999/xhtml"&gt;
-            &lt;p style="padding: 5px" class="svg">Lorem ipsum dolor sit amet, consectetur adipiscing elit.&lt;/p&gt;
+    &lt;defs>
+        &lt;linearGradient id="gradient"&gt;
+            &lt;stop class="stop1" offset="0%" /&gt;
+            &lt;stop class="stop2" offset="50%" /&gt;
+            &lt;stop class="stop3" offset="100%" /&gt;
+        &lt;/linearGradient&gt;
+    &lt;/defs>
+    &lt;rect x="20" y="20" width="180" height="100" class="card" /&gt;
+    &lt;foreignObject x="26" y="26" width="168" height="88"&gt;
+        &lt;div xmlns="http://www.w3.org/1999/xhtml" class="card__background"&gt;
+            &lt;p class="card__text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.&lt;/p&gt;
         &lt;/div&gt;
     &lt;/foreignObject&gt;
 &lt;/svg&gt;
@@ -90,18 +106,34 @@
             The SVG markup above produces the following element:
         </p>
 
-        <svg version="1.1" width="300" height="110" xmlns="http://www.w3.org/2000/svg">
+        <svg version="1.1" width="300" height="130" xmlns="http://www.w3.org/2000/svg">
             <style>
-                p.svg {
-                    color: white;
+                div.card__background {
+                    background-color: #131e29;
+                    height: 100%;
+                }
+                p.card__text {
+                    color: #F2F2F2;
                     font: 16px sans-serif;
+                    padding: 10px;
                     margin: 0;
                 }
+                rect.card { fill: url(#gradient); }
+                .stop1 { stop-color: #ff5c69; }
+                .stop2 { stop-color: #ff4252; }
+                .stop3 { stop-color: #ed2637; }                
             </style>
-            <rect x="0", width="180" height="100" rx="5" ry="5" fill="#4b5d67" />
-            <foreignObject x="10" y="10" width="160" height="80">
-                <div xmlns="http://www.w3.org/1999/xhtml">
-                    <p style="padding: 5px" class="svg">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+            <defs>
+                <linearGradient id="gradient">
+                    <stop class="stop1" offset="0%" />
+                    <stop class="stop2" offset="50%" />
+                    <stop class="stop3" offset="100%" />
+                </linearGradient>
+            </defs>
+            <rect x="20" y="20" width="180" height="100" class="card" />
+            <foreignObject x="26" y="26" width="168" height="88">
+                <div xmlns="http://www.w3.org/1999/xhtml" class="card__background">
+                    <p class="card__text">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
                 </div>
             </foreignObject>
         </svg>
@@ -127,17 +159,20 @@ const Card = joint.dia.Element.define('example.ForeignObject', {
         body: {
             width: 'calc(w)',
             height: 'calc(h)',
-            stroke: '#4b5d67',
-            fill: '#4b5d67',
-            strokeWidth: 1,
-            rx: 5,
-            ry: 5
+            fill: {
+                type: 'linearGradient',
+                stops: [
+                    { offset: 0, color: '#ff5c69' },
+                    { offset: 0.5, color: '#ff4252' },
+                    { offset: 1, color: '#ed2637' }
+                ]
+            }
         },
         foreignObject: {
-            width: 'calc(w-20)',
-            height: 'calc(h-20)',
-            x: 10,
-            y: 10
+            width: 'calc(w-12)',
+            height: 'calc(h-12)',
+            x: 6,
+            y: 6
         }
     },
 }, {
@@ -153,19 +188,20 @@ const Card = joint.dia.Element.define('example.ForeignObject', {
                 {
                     tagName: 'div',
                     namespaceURI: 'http://www.w3.org/1999/xhtml',
-                    selector: 'content',
+                    selector: 'background',
                     style: {
-                        fontFamily: 'sans-serif',
-                        fontSize: 16,
-                        color: 'white'
+                        backgroundColor: '#131e29',
+                        height: '100%'
                     },
                     children: [
                         {
                             tagName: 'p',
-                            selector: 'textContent',
+                            selector: 'text',
                             style: {
-                                padding: 5,
-                                margin: 0
+                                color: '#F2F2F2',
+                                font: '16px sans-serif',
+                                padding: '10px',
+                                margin: 0,
                             },
                             textContent: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
                         }
@@ -175,8 +211,6 @@ const Card = joint.dia.Element.define('example.ForeignObject', {
         }
     ]
 });
-
-joint.shapes.example.ForeignObjectView = joint.dia.ElementView.extend();
 
 const card = new Card({
     position: { x: 10, y: 10 },
@@ -228,31 +262,46 @@ g[data-type="example.ForeignObject"] p {
         body: {
             width: 'calc(w)',
             height: 'calc(h)',
-            stroke: '#4b5d67',
-            fill: '#4b5d67',
-            strokeWidth: 1,
-            rx: 5,
-            ry: 5
+            fill: {
+                type: 'linearGradient',
+                stops: [
+                    { offset: 0, color: '#ff5c69' },
+                    { offset: 0.5, color: '#ff4252' },
+                    { offset: 1, color: '#ed2637' }
+                ]
+            }
         },
         foreignObject: {
-            width: 'calc(w-20)',
-            height: 'calc(h-20)',
-            x: 10,
-            y: 10
+            width: 'calc(w-12)',
+            height: 'calc(h-12)',
+            x: 6,
+            y: 6
         }
     },
 }, {
     // The /* xml */ comment is optional.
     // It is used to tell the IDE that the markup is XML.
     markup: joint.util.svg/* xml */`
+        &lt;style&gt;
+            div.card__background {
+                background-color: #131e29;
+                height: 100%;
+            }
+            p.card__text {
+                color: #F2F2F2;
+                font: 16px sans-serif;
+                padding: 10px;
+                margin: 0;
+            }             
+        &lt;/style&gt;
         &lt;rect @selector="body"/&gt;
         &lt;foreignObject @selector="foreignObject"&gt;
-            &lt;div @selector="content"
-                    xmlns="http://www.w3.org/1999/xhtml"
-                    style="font-family: sans-serif; font-size: 16px; color: white;"
+            &lt;div @selector="background"
+                xmlns="http://www.w3.org/1999/xhtml"
+                class="card__background"
             &gt;
-                &lt;p @selector="textContent"
-                    style="margin: 0; padding: 5px"
+                &lt;p @selector="text"
+                    class="card__text"
                 &gt;
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                 &lt;/p&gt;
@@ -390,6 +439,7 @@ button span {
     -webkit-background-clip: text;
     background-clip: text; 
     -webkit-text-fill-color: hsl(0deg 0% 0% / 0%);
+    font-size: 1.2rem;
 }
 </code></pre>
 
@@ -474,8 +524,8 @@ button span {
 
     onSubmit: function(evt) {
         evt.preventDefault();
-        this.model.attr('name/props/value', '');
         evt.target.children.name.value = '';
+        this.model.attr('name/props/value', '');
     },
 
 });
@@ -520,10 +570,6 @@ console.log(input.getAttribute('value')); // initial
         <p>
             The supported properties when using the <code>props</code> attribute are:
         </p>
-
-        <!-- 
-            Link pointers not working in Chrome
-         -->
 
         <ul>
             <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#checked" target="_blank"><code>checked</code></a></li>
@@ -739,14 +785,6 @@ console.log(input.getAttribute('value')); // initial
             worked on according to this <a href="https://bugs.webkit.org/show_bug.cgi?id=90738" target="_blank">bug</a> report, so hopefully in the 
             not too distant future, the majority of these issues will cease to exist.
         </p>
-
-        <!-- 
-        position: static + overflow issue
-        -->
-
-        <!-- TODO
-        - foreignObject export in JointJS+
-        -->
 
         <h3>Conclusion</h3>
 
