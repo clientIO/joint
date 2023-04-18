@@ -1,0 +1,6 @@
+<code>autoFreeze</code> - By default, the paper periodically checks the viewport calling <a href="#dia.Paper.prototype.options.viewport"><code>viewport</code></a> callback for every view.
+The options <code>autoFreeze</code> can be used to suppress this behavior. When the option is enabled, it freezes the paper as soon as there are no more updates and unfreezes it when there is an update scheduled.
+(paper has no updates to perform when <a href="#dia.Paper.prototype.hasScheduledUpdates">hasScheduledUpdates()</a> returns <code>false</code>).
+In that case, the user needs to <a href="#dia.Paper.prototype.checkViewport"><code>checkViewport</code></a> manually when he wants to reinvoke <a href="#dia.Paper.prototype.options.viewport"><code>viewport</code></a>
+when external changes occurred, e. g. during scrolling and zooming. The freeze state will be set on the next frame cycle after processing all updates. On this cycle paper will call <a href="#dia.Paper.prototype.options.viewport"><code>viewport</code></a> callback
+and freeze itself.

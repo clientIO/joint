@@ -13,8 +13,19 @@ var windowBBox;
 function setWindowBBox() {
     windowBBox = paper.pageToLocalRect(window.scrollX, window.scrollY, window.innerWidth, window.innerHeight);
 }
-window.onscroll = function() { setWindowBBox(); };
-window.onresize = function() { setWindowBBox(); };
+
+window.onscroll = function() {
+    setWindowBBox();
+    if (autoFreeze && paper.isFrozen()) {
+        paper.unfreeze();
+    }
+};
+window.onresize = function() {
+    setWindowBBox();
+    if (autoFreeze && paper.isFrozen()) {
+        paper.unfreeze();
+    }
+};
 
 var viewportTemplate = new Rectangle({
     size: { width: 200, height: 200 },
@@ -114,6 +125,16 @@ var viewportInput = document.getElementById('viewport');
 var viewportRect = viewportInput.checked;
 viewportInput.addEventListener('click', function(evt) {
     viewportRect = evt.target.checked;
+}, false);
+
+var autoFreezeInput = document.getElementById('autofreeze');
+var autoFreeze = autoFreezeInput.checked;
+autoFreezeInput.addEventListener('click', function(evt) {
+    autoFreeze = evt.target.checked;
+    paper.options.autoFreeze = autoFreeze;
+    if (!autoFreeze) {
+        paper.unfreeze();
+    }
 }, false);
 
 var leaveRenderedInput = document.getElementById('leave-rendered-in-viewport');

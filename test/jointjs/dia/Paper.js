@@ -104,7 +104,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
     });
 
-    QUnit.module('transformToFitContent', function() {
+    QUnit.module('transformToFitContent', function(hooks) {
 
         hooks.beforeEach(function() {
             const testGraph = new joint.dia.Graph();
@@ -171,6 +171,11 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 model: testGraph,
                 async: false
             });
+        });
+
+        hooks.afterEach(function() {
+            if (paper) paper.remove();
+            paper = null;
         });
 
         QUnit.test('transformToFitContent()', function(assert) {
@@ -1643,6 +1648,65 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(labelsLayer.children.length, 1);
                 assert.equal(cellsLayer.children.length, 1);
             });
+        });
+    });
+
+    QUnit.module('async = TRUE, autoFreeze = TRUE', function(hooks) {
+
+        QUnit.test('autofreeze check', function(assert) {
+            const done = assert.async();
+
+            const testPaper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                sorting: Paper.sorting.APPROX
+            });
+
+            assert.ok(testPaper.isFrozen());
+            assert.ok(testPaper.isAsync());
+            assert.equal(cellNodesCount(testPaper), 0);
+            let idleCounter = 0;
+
+            const rect = new joint.shapes.standard.Rectangle();
+            const circle = new joint.shapes.standard.Circle();
+
+            testPaper.on('render:idle', () => {
+                assert.notOk(testPaper.hasScheduledUpdates(), 'has no updates');
+                assert.ok(testPaper.isFrozen(), 'frozen after updating');
+                switch (idleCounter) {
+                    case 0: {
+                        assert.equal(cellNodesCount(testPaper), 1, 'cell rendered');
+                        rect.position(201, 202);
+                        break;
+                    }
+                    case 1: {
+                        const view = testPaper.findViewByModel(rect);
+                        const viewBbox = view.getBBox();
+                        assert.deepEqual({ x: viewBbox.x, y: viewBbox.y }, { x: 201, y: 202 }, 'view was correctly updated');
+                        graph.addCell(circle);
+                        break;
+                    }
+                    case 2: {
+                        assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered');
+                        graph.removeCells(rect);
+                        break;
+                    }
+                    case 3: {
+                        assert.equal(cellNodesCount(testPaper), 1, 'cell rendered');
+                        const circleView = testPaper.findViewByModel(circle);
+                        const rectView = testPaper.findViewByModel(rect);
+                        assert.ok(circleView.el.isConnected, 'circle is present');
+                        assert.notOk(rectView, 'rect is removed');
+                        done();
+                        break;
+                    }
+                }
+                idleCounter++;
+            });
+
+            graph.resetCells([rect]);
         });
     });
 

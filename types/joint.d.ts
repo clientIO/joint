@@ -1302,6 +1302,7 @@ export namespace dia {
             async?: boolean;
             sorting?: sorting;
             frozen?: boolean;
+            autoFreeze?: boolean;
             viewport?: ViewportCallback | null;
             onViewUpdate?: (view: mvc.View<any, any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
