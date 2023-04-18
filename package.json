@@ -82,9 +82,11 @@
     "David Durman <david@client.io> (https://github.com/DavidDurman)",
     "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
     "Vladimir Talas <lades@client.io> (https://github.com/vtalas)",
-    "James Williams <james@client.io> (https://github.com/jamesgeorgewilliams)",
-    "Arthur Khokhlov <arthur@client.io> (https://github.com/Geliogabalus)",
-    "Martin Kanera <martinkanera@client.io> (https://github.com/MartinKanera)"
+    "James Williams <james@jointjs.com> (https://github.com/jamesgeorgewilliams)",
+    "Arthur Khokhlov <arthur@jointjs.com> (https://github.com/Geliogabalus)",
+    "Martin Kanera <martin@jointjs.com> (https://github.com/MartinKanera)",
+    "Vojtech Kohout <vojtech@jointjs.com> (https://github.com/Tharos)",
+    "Zbynek Stara <zbynek@jointjs.com> (https://github.com/zbynekstara)"
   ],
   "repository": {
     "type": "git",

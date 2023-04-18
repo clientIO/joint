@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-17) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-18) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -2409,6 +2409,7 @@ export namespace dia {
             perpendicularLinks?: boolean;
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
+            drawGridSize?: number | null;
             background?: BackgroundOptions;
             labelsLayer?: boolean | Paper.Layers | string;
             // interactions
@@ -2463,6 +2464,7 @@ export namespace dia {
             async?: boolean;
             sorting?: sorting;
             frozen?: boolean;
+            autoFreeze?: boolean;
             viewport?: ViewportCallback | null;
             onViewUpdate?: (view: mvc.View<any, any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
@@ -2484,7 +2486,7 @@ export namespace dia {
             useModelGeometry?: boolean;
             fittingBBox?: BBox;
             contentArea?: BBox;
-            vertivalAlign?: 'top' | 'middle' | 'bottom';
+            verticalAlign?: 'top' | 'middle' | 'bottom';
             horizontalAlign?: 'left' | 'middle' | 'right';
         }
 

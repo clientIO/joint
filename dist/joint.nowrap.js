@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-17) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-18) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -30377,10 +30377,11 @@ var joint = (function (exports, Backbone, $) {
 	        height: 600,
 	        origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
 	        gridSize: 1,
-
 	        // Whether or not to draw the grid lines on the paper's DOM element.
 	        // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
 	        drawGrid: false,
+	        // If not set, the size of the visual grid is the same as the `gridSize`.
+	        drawGridSize: null,
 
 	        // Whether or not to draw the background on the paper's DOM element.
 	        // e.g. background: { color: 'lightblue', image: '/paper-background.png', repeat: 'flip-xy' }
@@ -30528,6 +30529,8 @@ var joint = (function (exports, Backbone, $) {
 	        sorting: sortingTypes.EXACT,
 
 	        frozen: false,
+
+	        autoFreeze: false,
 
 	        // no docs yet
 	        onViewUpdate: function(view, flag, priority, opt, paper) {
@@ -30687,7 +30690,8 @@ var joint = (function (exports, Backbone, $) {
 	            keyFrozen: false,
 	            freezeKey: null,
 	            sort: false,
-	            disabled: false
+	            disabled: false,
+	            idle: false
 	        };
 	    },
 
@@ -31042,6 +31046,12 @@ var joint = (function (exports, Backbone, $) {
 	        var ref = this;
 	        var updates = ref._updates;
 	        var options = ref.options;
+	        if (updates.idle) {
+	            if (options.autoFreeze) {
+	                updates.idle = false;
+	                this.unfreeze();
+	            }
+	        }
 	        var FLAG_REMOVE = view.FLAG_REMOVE;
 	        var FLAG_INSERT = view.FLAG_INSERT;
 	        var UPDATE_PRIORITY = view.UPDATE_PRIORITY;
@@ -31200,7 +31210,9 @@ var joint = (function (exports, Backbone, $) {
 	    updateViewsAsync: function(opt, data) {
 	        opt || (opt = {});
 	        data || (data = { processed: 0, priority: MIN_PRIORITY });
-	        var updates = this._updates;
+	        var ref = this;
+	        var updates = ref._updates;
+	        var options = ref.options;
 	        var id = updates.id;
 	        if (id) {
 	            cancelFrame(id);
@@ -31233,6 +31245,14 @@ var joint = (function (exports, Backbone, $) {
 	                } else {
 	                    data.processed = processed;
 	                }
+	            } else {
+	                if (!updates.idle) {
+	                    if (options.autoFreeze) {
+	                        this.freeze();
+	                        updates.idle = true;
+	                        this.trigger('render:idle', opt);
+	                    }
+	                }
 	            }
 	            // Progress callback
 	            var progressFn = opt.progress;
@@ -31242,7 +31262,6 @@ var joint = (function (exports, Backbone, $) {
 	            // The current frame could have been canceled in a callback
 	            if (updates.id !== id) { return; }
 	        }
-
 	        if (updates.disabled) {
 	            throw new Error('dia.Paper: can not unfreeze the paper after it was removed');
 	        }
@@ -31911,11 +31930,13 @@ var joint = (function (exports, Backbone, $) {
 	        this._resetUpdates();
 	        // clearing views removes any event listeners
 	        this.removeViews();
-	        this.freeze({ key: 'reset' });
+	        // Allows to unfreeze normally while in the idle state using autoFreeze option
+	        var key = this.options.autoFreeze ? null : 'reset';
+	        this.freeze({ key: key });
 	        for (var i = 0, n = cells.length; i < n; i++) {
 	            this.renderView(cells[i], opt);
 	        }
-	        this.unfreeze({ key: 'reset' });
+	        this.unfreeze({ key: key });
 	        this.sortViews();
 	    },
 
@@ -32901,9 +32922,12 @@ var joint = (function (exports, Backbone, $) {
 
 	    setGridSize: function(gridSize) {
 
-	        this.options.gridSize = gridSize;
+	        var ref = this;
+	        var options = ref.options;
+	        options.gridSize = gridSize;
 
-	        if (this.options.drawGrid) {
+	        if (options.drawGrid && !options.drawGridSize) {
+	            // Do not redraw the grid if the `drawGridSize` is set.
 	            this.drawGrid();
 	        }
 
@@ -32994,7 +33018,7 @@ var joint = (function (exports, Backbone, $) {
 
 	    drawGrid: function(opt) {
 
-	        var gridSize = this.options.gridSize;
+	        var gridSize = this.options.drawGridSize || this.options.gridSize;
 	        if (gridSize <= 1) {
 	            return this.clearGrid();
 	        }

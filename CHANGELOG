@@ -11,6 +11,8 @@
   * dia.Paper - add `element:magnet:pointerdown`, `element:magnet:pointermove` and `element:magnet:pointerup` events
   * dia.Paper - improve event handling of form control elements inside <foreignObject> elements
   * dia.Paper - add `preventDefaultViewAction` option
+  * dia.Paper - add `drawGridSize` option
+  * dia.Paper - add `autoFreeze` option
   * dia.Paper - fix to trigger render callbacks and event when `requireView()` is called
   * dia.Paper - fix to send `mousewheel` events when CTRL key is pressed while there are no `paper:pinch` subscribers
   * dia.Paper - fix to auto-rotate target markers as expected when using `marker.markup`
