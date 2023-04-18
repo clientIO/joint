@@ -1,4 +1,4 @@
-17-04-2023 (v3.7.0)
+18-04-2023 (v3.7.0)
 
   * demo.CustomEmbedding - add new demo to illustrate custom embedding functionality
   * demo.Flowchart - add new demo to illustrate `rightAngle` router and `straight` connector
