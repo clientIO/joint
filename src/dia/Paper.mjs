@@ -105,10 +105,11 @@ export const Paper = View.extend({
         height: 600,
         origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
         gridSize: 1,
-
         // Whether or not to draw the grid lines on the paper's DOM element.
         // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
         drawGrid: false,
+        // If not set, the size of the visual grid is the same as the `gridSize`.
+        drawGridSize: null,
 
         // Whether or not to draw the background on the paper's DOM element.
         // e.g. background: { color: 'lightblue', image: '/paper-background.png', repeat: 'flip-xy' }
@@ -2558,9 +2559,11 @@ export const Paper = View.extend({
 
     setGridSize: function(gridSize) {
 
-        this.options.gridSize = gridSize;
+        const { options } = this;
+        options.gridSize = gridSize;
 
-        if (this.options.drawGrid) {
+        if (options.drawGrid && !options.drawGridSize) {
+            // Do not redraw the grid if the `drawGridSize` is set.
             this.drawGrid();
         }
 
@@ -2651,7 +2654,7 @@ export const Paper = View.extend({
 
     drawGrid: function(opt) {
 
-        var gridSize = this.options.gridSize;
+        const gridSize = this.options.drawGridSize || this.options.gridSize;
         if (gridSize <= 1) {
             return this.clearGrid();
         }

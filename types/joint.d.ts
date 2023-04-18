@@ -1247,6 +1247,7 @@ export namespace dia {
             perpendicularLinks?: boolean;
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
+            drawGridSize?: number | null;
             background?: BackgroundOptions;
             labelsLayer?: boolean | Paper.Layers | string;
             // interactions
