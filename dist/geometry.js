@@ -1,4 +1,4 @@
-/*! JointJS v3.6.5 (2022-12-15) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-18) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -2947,13 +2947,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // Returns a list of curves whose flattened length is better than `opt.precision`.
         // That is, observed difference in length between recursions is less than 10^(-3) = 0.001 = 0.1%
         // (Observed difference is not real precision, but close enough as long as special cases are covered)
-        // (That is why skipping iteration 1 is important)
-        // As a rule of thumb, increasing `precision` by 1 requires two more division operations
-        // - Precision 0 (endpointDistance) - total of 2^0 - 1 = 0 operations (1 subdivision)
-        // - Precision 1 (<10% error) - total of 2^2 - 1 = 3 operations (4 subdivisions)
-        // - Precision 2 (<1% error) - total of 2^4 - 1 = 15 operations requires 4 division operations on all elements (15 operations total) (16 subdivisions)
-        // - Precision 3 (<0.1% error) - total of 2^6 - 1 = 63 operations - acceptable when drawing (64 subdivisions)
-        // - Precision 4 (<0.01% error) - total of 2^8 - 1 = 255 operations - high resolution, can be used to interpolate `t` (256 subdivisions)
+        // As a rule of thumb, increasing `precision` by 1 requires 2 more iterations (= levels of division operations)
+        // - Precision 0 (endpointDistance) - 0 iterations => total of 2^0 - 1 = 0 operations (1 subdivision)
+        // - Precision 1 (<10% error) - 2 iterations => total of 2^2 - 1 = 3 operations (4 subdivisions)
+        // - Precision 2 (<1% error) - 4 iterations => total of 2^4 - 1 = 15 operations requires 4 division operations on all elements (15 operations total) (16 subdivisions)
+        // - Precision 3 (<0.1% error) - 6 iterations => total of 2^6 - 1 = 63 operations - acceptable when drawing (64 subdivisions)
+        // - Precision 4 (<0.01% error) - 8 iterations => total of 2^8 - 1 = 255 operations - high resolution, can be used to interpolate `t` (256 subdivisions)
         // (Variation of 1 recursion worse or better is possible depending on the curve, doubling/halving the number of operations accordingly)
         getSubdivisions: function(opt) {
 
@@ -2962,15 +2961,41 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             // not using opt.subdivisions
             // not using localOpt
 
-            var subdivisions = [new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end)];
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            var subdivisions = [new Curve(start, control1, control2, end)];
             if (precision === 0) { return subdivisions; }
+
+            // special case #1: point-like curves
+            // - no need to calculate subdivisions, they would all be identical
+            var isPoint = !this.isDifferentiable();
+            if (isPoint) { return subdivisions; }
 
             var previousLength = this.endpointDistance();
 
             var precisionRatio = pow$3(10, -precision);
 
+            // special case #2: sine-like curves may have the same observed length in iteration 0 and 1 - skip iteration 1
+            // - not a problem for further iterations because cubic curves cannot have more than two local extrema
+            // - (i.e. cubic curves cannot intersect the baseline more than once)
+            // - therefore starting from iteration = 2 ensures that subsequent iterations do not produce sampling with equal length
+            // - (unless it's a straight-line curve, see below)
+            var minIterations = 2; // = 2*1
+
+            // special case #3: straight-line curves have the same observed length in all iterations
+            // - this causes observed precision ratio to always be 0 (= lower than `precisionRatio`, which is our exit condition)
+            // - we enforce the expected number of iterations = 2 * precision
+            var isLine = ((control1.cross(start, end) === 0) && (control2.cross(start, end) === 0));
+            if (isLine) {
+                minIterations = (2 * precision);
+            }
+
             // recursively divide curve at `t = 0.5`
-            // until the difference between observed length at subsequent iterations is lower than precision
+            // until we reach `minIterations`
+            // and until the difference between observed length at subsequent iterations is lower than `precision`
             var iteration = 0;
             while (true) {
                 iteration += 1;
@@ -2994,14 +3019,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     length += currentNewSubdivision.endpointDistance();
                 }
 
-                // check if we have reached required observed precision
-                // sine-like curves may have the same observed length in iteration 0 and 1 - skip iteration 1
-                // not a problem for further iterations because cubic curves cannot have more than two local extrema
-                // (i.e. cubic curves cannot intersect the baseline more than once)
-                // therefore two subsequent iterations cannot produce sampling with equal length
-                var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
-                if (iteration > 1 && observedPrecisionRatio < precisionRatio) {
-                    return newSubdivisions;
+                // check if we have reached minimum number of iterations
+                if (iteration >= minIterations) {
+
+                    // check if we have reached required observed precision
+                    var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
+                    if (observedPrecisionRatio < precisionRatio) {
+                        return newSubdivisions;
+                    }
                 }
 
                 // otherwise, set up for next iteration

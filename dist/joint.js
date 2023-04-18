@@ -1,4 +1,4 @@
-/*! JointJS v3.6.5 (2022-12-15) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-18) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -6,13 +6,12 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('backbone'), require('lodash'), require('jquery')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'backbone', 'lodash', 'jquery'], factory) :
-	(global = global || self, factory(global.joint = {}, global.Backbone, global._, global.$));
-}(this, function (exports, Backbone, _, $) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('backbone'), require('jquery')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'backbone', 'jquery'], factory) :
+	(global = global || self, factory(global.joint = {}, global.Backbone, global.$));
+}(this, function (exports, Backbone, $) { 'use strict';
 
 	Backbone = Backbone && Backbone.hasOwnProperty('default') ? Backbone['default'] : Backbone;
-	_ = _ && _.hasOwnProperty('default') ? _['default'] : _;
 	$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
 
 	var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -136,10 +135,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	  throw TypeError("Can't convert object to primitive value");
 	};
 
-	var hasOwnProperty = {}.hasOwnProperty;
+	var hasOwnProperty$1 = {}.hasOwnProperty;
 
 	var has = function (it, key) {
-	  return hasOwnProperty.call(it, key);
+	  return hasOwnProperty$1.call(it, key);
 	};
 
 	var document$1 = global_1.document;
@@ -4721,13 +4720,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // Returns a list of curves whose flattened length is better than `opt.precision`.
 	    // That is, observed difference in length between recursions is less than 10^(-3) = 0.001 = 0.1%
 	    // (Observed difference is not real precision, but close enough as long as special cases are covered)
-	    // (That is why skipping iteration 1 is important)
-	    // As a rule of thumb, increasing `precision` by 1 requires two more division operations
-	    // - Precision 0 (endpointDistance) - total of 2^0 - 1 = 0 operations (1 subdivision)
-	    // - Precision 1 (<10% error) - total of 2^2 - 1 = 3 operations (4 subdivisions)
-	    // - Precision 2 (<1% error) - total of 2^4 - 1 = 15 operations requires 4 division operations on all elements (15 operations total) (16 subdivisions)
-	    // - Precision 3 (<0.1% error) - total of 2^6 - 1 = 63 operations - acceptable when drawing (64 subdivisions)
-	    // - Precision 4 (<0.01% error) - total of 2^8 - 1 = 255 operations - high resolution, can be used to interpolate `t` (256 subdivisions)
+	    // As a rule of thumb, increasing `precision` by 1 requires 2 more iterations (= levels of division operations)
+	    // - Precision 0 (endpointDistance) - 0 iterations => total of 2^0 - 1 = 0 operations (1 subdivision)
+	    // - Precision 1 (<10% error) - 2 iterations => total of 2^2 - 1 = 3 operations (4 subdivisions)
+	    // - Precision 2 (<1% error) - 4 iterations => total of 2^4 - 1 = 15 operations requires 4 division operations on all elements (15 operations total) (16 subdivisions)
+	    // - Precision 3 (<0.1% error) - 6 iterations => total of 2^6 - 1 = 63 operations - acceptable when drawing (64 subdivisions)
+	    // - Precision 4 (<0.01% error) - 8 iterations => total of 2^8 - 1 = 255 operations - high resolution, can be used to interpolate `t` (256 subdivisions)
 	    // (Variation of 1 recursion worse or better is possible depending on the curve, doubling/halving the number of operations accordingly)
 	    getSubdivisions: function(opt) {
 
@@ -4736,15 +4734,41 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // not using opt.subdivisions
 	        // not using localOpt
 
-	        var subdivisions = [new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end)];
+	        var start = this.start;
+	        var control1 = this.controlPoint1;
+	        var control2 = this.controlPoint2;
+	        var end = this.end;
+
+	        var subdivisions = [new Curve(start, control1, control2, end)];
 	        if (precision === 0) { return subdivisions; }
+
+	        // special case #1: point-like curves
+	        // - no need to calculate subdivisions, they would all be identical
+	        var isPoint = !this.isDifferentiable();
+	        if (isPoint) { return subdivisions; }
 
 	        var previousLength = this.endpointDistance();
 
 	        var precisionRatio = pow$3(10, -precision);
 
+	        // special case #2: sine-like curves may have the same observed length in iteration 0 and 1 - skip iteration 1
+	        // - not a problem for further iterations because cubic curves cannot have more than two local extrema
+	        // - (i.e. cubic curves cannot intersect the baseline more than once)
+	        // - therefore starting from iteration = 2 ensures that subsequent iterations do not produce sampling with equal length
+	        // - (unless it's a straight-line curve, see below)
+	        var minIterations = 2; // = 2*1
+
+	        // special case #3: straight-line curves have the same observed length in all iterations
+	        // - this causes observed precision ratio to always be 0 (= lower than `precisionRatio`, which is our exit condition)
+	        // - we enforce the expected number of iterations = 2 * precision
+	        var isLine = ((control1.cross(start, end) === 0) && (control2.cross(start, end) === 0));
+	        if (isLine) {
+	            minIterations = (2 * precision);
+	        }
+
 	        // recursively divide curve at `t = 0.5`
-	        // until the difference between observed length at subsequent iterations is lower than precision
+	        // until we reach `minIterations`
+	        // and until the difference between observed length at subsequent iterations is lower than `precision`
 	        var iteration = 0;
 	        while (true) {
 	            iteration += 1;
@@ -4768,14 +4792,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                length += currentNewSubdivision.endpointDistance();
 	            }
 
-	            // check if we have reached required observed precision
-	            // sine-like curves may have the same observed length in iteration 0 and 1 - skip iteration 1
-	            // not a problem for further iterations because cubic curves cannot have more than two local extrema
-	            // (i.e. cubic curves cannot intersect the baseline more than once)
-	            // therefore two subsequent iterations cannot produce sampling with equal length
-	            var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
-	            if (iteration > 1 && observedPrecisionRatio < precisionRatio) {
-	                return newSubdivisions;
+	            // check if we have reached minimum number of iterations
+	            if (iteration >= minIterations) {
+
+	                // check if we have reached required observed precision
+	                var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
+	                if (observedPrecisionRatio < precisionRatio) {
+	                    return newSubdivisions;
+	                }
 	            }
 
 	            // otherwise, set up for next iteration
@@ -10783,6 +10807,2459 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    doubleTapInterval: 300
 	};
 
+	// code is inspired by https://github.com/lodash/lodash
+
+	/* eslint-disable no-case-declarations */
+	// -- helper constants
+	var argsTag = '[object Arguments]';
+	var arrayTag = '[object Array]';
+	var boolTag = '[object Boolean]';
+	var dateTag = '[object Date]';
+	var errorTag = '[object Error]';
+	var funcTag = '[object Function]';
+	var mapTag = '[object Map]';
+	var numberTag = '[object Number]';
+	var nullTag = '[object Null]';
+	var objectTag = '[object Object]';
+	var regexpTag = '[object RegExp]';
+	var setTag = '[object Set]';
+	var stringTag = '[object String]';
+	var symbolTag = '[object Symbol]';
+	var undefinedTag = '[object Undefined]';
+	var weakMapTag = '[object WeakMap]';
+	var arrayBufferTag = '[object ArrayBuffer]';
+	var dataViewTag = '[object DataView]';
+	var float32Tag = '[object Float32Array]';
+	var float64Tag = '[object Float64Array]';
+	var int8Tag = '[object Int8Array]';
+	var int16Tag = '[object Int16Array]';
+	var int32Tag = '[object Int32Array]';
+	var uint8Tag = '[object Uint8Array]';
+	var uint8ClampedTag = '[object Uint8ClampedArray]';
+	var uint16Tag = '[object Uint16Array]';
+	var uint32Tag = '[object Uint32Array]';
+
+	var CLONEABLE_TAGS = {};
+	CLONEABLE_TAGS[argsTag] = true;
+	CLONEABLE_TAGS[arrayTag] = true;
+	CLONEABLE_TAGS[arrayBufferTag] = true;
+	CLONEABLE_TAGS[dataViewTag] = true;
+	CLONEABLE_TAGS[boolTag] = true;
+	CLONEABLE_TAGS[dateTag] = true;
+	CLONEABLE_TAGS[float32Tag] = true;
+	CLONEABLE_TAGS[float64Tag] = true;
+	CLONEABLE_TAGS[int8Tag] = true;
+	CLONEABLE_TAGS[int16Tag] = true;
+	CLONEABLE_TAGS[int32Tag] = true;
+	CLONEABLE_TAGS[mapTag] = true;
+	CLONEABLE_TAGS[numberTag] = true;
+	CLONEABLE_TAGS[objectTag] = true;
+	CLONEABLE_TAGS[regexpTag] = true;
+	CLONEABLE_TAGS[setTag] = true;
+	CLONEABLE_TAGS[stringTag] = true;
+	CLONEABLE_TAGS[symbolTag] = true;
+	CLONEABLE_TAGS[uint8Tag] = true;
+	CLONEABLE_TAGS[uint8ClampedTag] = true;
+	CLONEABLE_TAGS[uint16Tag] = true;
+	CLONEABLE_TAGS[uint32Tag] = true;
+	CLONEABLE_TAGS[errorTag] = false;
+	CLONEABLE_TAGS[funcTag] = false;
+	CLONEABLE_TAGS[weakMapTag] = false;
+
+	/** Used to compose unicode character classes. */
+	var rsAstralRange = '\\ud800-\\udfff';
+	var rsComboMarksRange = '\\u0300-\\u036f';
+	var reComboHalfMarksRange = '\\ufe20-\\ufe2f';
+	var rsComboSymbolsRange = '\\u20d0-\\u20ff';
+	var rsComboMarksExtendedRange = '\\u1ab0-\\u1aff';
+	var rsComboMarksSupplementRange = '\\u1dc0-\\u1dff';
+	var rsComboRange = rsComboMarksRange + reComboHalfMarksRange + rsComboSymbolsRange + rsComboMarksExtendedRange + rsComboMarksSupplementRange;
+	var rsDingbatRange = '\\u2700-\\u27bf';
+	var rsLowerRange = 'a-z\\xdf-\\xf6\\xf8-\\xff';
+	var rsMathOpRange = '\\xac\\xb1\\xd7\\xf7';
+	var rsNonCharRange = '\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf';
+	var rsPunctuationRange = '\\u2000-\\u206f';
+	var rsSpaceRange = ' \\t\\x0b\\f\\xa0\\ufeff\\n\\r\\u2028\\u2029\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u202f\\u205f\\u3000';
+	var rsUpperRange = 'A-Z\\xc0-\\xd6\\xd8-\\xde';
+	var rsVarRange = '\\ufe0e\\ufe0f';
+	var rsBreakRange = rsMathOpRange + rsNonCharRange + rsPunctuationRange + rsSpaceRange;
+
+	/** Used to compose unicode capture groups. */
+	var rsApos = '[\'\u2019]';
+	var rsBreak = "[" + rsBreakRange + "]";
+	var rsCombo = "[" + rsComboRange + "]";
+	var rsDigit = '\\d';
+	var rsDingbat = "[" + rsDingbatRange + "]";
+	var rsLower = "[" + rsLowerRange + "]";
+	var rsMisc = "[^" + rsAstralRange + (rsBreakRange + rsDigit + rsDingbatRange + rsLowerRange + rsUpperRange) + "]";
+	var rsFitz = '\\ud83c[\\udffb-\\udfff]';
+	var rsModifier = "(?:" + rsCombo + "|" + rsFitz + ")";
+	var rsNonAstral = "[^" + rsAstralRange + "]";
+	var rsRegional = '(?:\\ud83c[\\udde6-\\uddff]){2}';
+	var rsSurrPair = '[\\ud800-\\udbff][\\udc00-\\udfff]';
+	var rsUpper = "[" + rsUpperRange + "]";
+	var rsZWJ = '\\u200d';
+
+	/** Used to compose unicode regexes. */
+	var rsMiscLower = "(?:" + rsLower + "|" + rsMisc + ")";
+	var rsMiscUpper = "(?:" + rsUpper + "|" + rsMisc + ")";
+	var rsOptContrLower = "(?:" + rsApos + "(?:d|ll|m|re|s|t|ve))?";
+	var rsOptContrUpper = "(?:" + rsApos + "(?:D|LL|M|RE|S|T|VE))?";
+	var reOptMod = rsModifier + "?";
+	var rsOptVar = "[" + rsVarRange + "]?";
+	var rsOptJoin = "(?:" + rsZWJ + "(?:" + ([rsNonAstral, rsRegional, rsSurrPair].join('|')) + ")" + (rsOptVar + reOptMod) + ")*";
+	var rsOrdLower = '\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])';
+	var rsOrdUpper = '\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])';
+	var rsSeq = rsOptVar + reOptMod + rsOptJoin;
+	var rsEmoji = "(?:" + ([rsDingbat, rsRegional, rsSurrPair].join('|')) + ")" + rsSeq;
+
+	var reUnicodeWords = RegExp([
+	    (rsUpper + "?" + rsLower + "+" + rsOptContrLower + "(?=" + ([rsBreak, rsUpper, '$'].join('|')) + ")"),
+	    (rsMiscUpper + "+" + rsOptContrUpper + "(?=" + ([rsBreak, rsUpper + rsMiscLower, '$'].join('|')) + ")"),
+	    (rsUpper + "?" + rsMiscLower + "+" + rsOptContrLower),
+	    (rsUpper + "+" + rsOptContrUpper),
+	    rsOrdUpper,
+	    rsOrdLower,
+	    (rsDigit + "+"),
+	    rsEmoji
+	].join('|'), 'g');
+
+	var LARGE_ARRAY_SIZE = 200;
+	var HASH_UNDEFINED = '__hash_undefined__';
+
+	// Used to match `toStringTag` values of typed arrays
+	var reTypedTag = /^\[object (?:Float(?:32|64)|(?:Int|Uint)(?:8|16|32)|Uint8Clamped)Array\]$/;
+
+	// Used to compose unicode capture groups
+	var rsAstral = "[" + rsAstralRange + "]";
+
+	// Used to compose unicode regexes
+	var rsNonAstralCombo = "" + rsNonAstral + rsCombo + "?";
+	var rsSymbol = "(?:" + ([rsNonAstralCombo, rsCombo, rsRegional, rsSurrPair, rsAstral].join('|')) + ")";
+
+	// Used to match [string symbols](https://mathiasbynens.be/notes/javascript-unicode)
+	var reUnicode = RegExp((rsFitz + "(?=" + rsFitz + ")|" + (rsSymbol + rsSeq)), 'g');
+
+	var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/;
+	var reIsPlainProp = /^\w*$/;
+
+	var charCodeOfDot = '.'.charCodeAt(0);
+	var reEscapeChar = /\\(\\)?/g;
+	var rePropName = RegExp(
+	    // Match anything that isn't a dot or bracket.
+	    '[^.[\\]]+' + '|' +
+	  // Or match property names within brackets.
+	  '\\[(?:' +
+	    // Match a non-string expression.
+	    '([^"\'][^[]*)' + '|' +
+	    // Or match strings (supports escaping characters).
+	    '(["\'])((?:(?!\\2)[^\\\\]|\\\\.)*?)\\2' +
+	  ')\\]'+ '|' +
+	  // Or match "" as the space between consecutive dots or empty brackets.
+	  '(?=(?:\\.|\\[\\])(?:\\.|\\[\\]|$))'
+	    , 'g');
+	var reIsUint = /^(?:0|[1-9]\d*)$/;
+
+	var hasUnicodeWord = RegExp.prototype.test.bind(
+	    /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/
+	);
+
+	var MAX_ARRAY_INDEX = 4294967295 - 1;
+
+	/** Used to match words composed of alphanumeric characters. */
+	// eslint-disable-next-line no-control-regex
+	var reAsciiWord = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g;
+
+
+
+	// -- helper functions
+	var hasUnicode = function (string) {
+	    return reUnicode.test(string);
+	};
+
+	var unicodeToArray = function (string) {
+	    return string.match(reUnicode) || [];
+	};
+
+	var asciiToArray = function (string) {
+	    return string.split('');
+	};
+
+	var stringToArray = function (string) {
+	    return hasUnicode(string) ? unicodeToArray(string) : asciiToArray(string);
+	};
+
+	var values = function (object) {
+	    if (object == null) {
+	        return [];
+	    }
+
+	    return keys$1(object).map(function (key) { return object[key]; });
+	};
+
+	var keys$1 = function (object) {
+	    return isArrayLike(object) ? arrayLikeKeys(object) : Object.keys(Object(object));
+	};
+
+	var baseKeys = function (object) {
+	    if (!isPrototype(object)) {
+	        return Object.keys(object);
+	    }
+	    var result = [];
+	    for (var key in Object(object)) {
+	        if (hasOwnProperty.call(object, key) && key != 'constructor') {
+	            result.push(key);
+	        }
+	    }
+
+	    return result;
+	};
+
+	var arrayLikeKeys = function (value, inherited) {
+	    var isArr = Array.isArray(value);
+	    var isArg = !isArr && isObjectLike(value) && getTag(value) === argsTag;
+	    var isType = !isArr && !isArg && isTypedArray(value);
+	    var skipIndexes = isArr || isArg || isType;
+	    var length = value.length;
+	    var result = new Array(skipIndexes ? length : 0);
+	    var index = skipIndexes ? -1 : length;
+	    while (++index < length) {
+	        result[index] = "" + index;
+	    }
+	    for (var key in value) {
+	        if ((inherited || hasOwnProperty.call(value, key)) &&
+	            !(skipIndexes && (
+	                // Safari 9 has enumerable `arguments.length` in strict mode.
+	                key === 'length' ||
+	                // Skip index properties.
+	                isIndex(key, length)
+	            ))
+	        ) {
+	            result.push(key);
+	        }
+	    }
+	    return result;
+	};
+
+	var assocIndexOf = function (array, key) {
+	    var length = array.length;
+	    while (length--) {
+	        if (eq(array[length][0], key)) {
+	            return length;
+	        }
+	    }
+	    return -1;
+	};
+
+	var eq = function (value, other) {
+	    return value === other || (value !== value && other !== other);
+	};
+
+	var isObjectLike = function (value) {
+	    return value != null && typeof value == 'object';
+	};
+
+	var isIterateeCall = function (value, index, object) {
+	    if (!isObject$1(object)) {
+	        return false;
+	    }
+	    var type = typeof index;
+
+	    var isPossibleIteratee = type == 'number' ?
+	        (isArrayLike(object) && index > -1 && index < object.length) :
+	        (type == 'string' && index in object);
+
+	    if (isPossibleIteratee) {
+	        return eq(object[index], value);
+	    }
+	    return false;
+	};
+
+	var isSet = function (value) {
+	    return isObjectLike(value) && getTag(value) == setTag;
+	};
+
+	var isMap = function (value) {
+	    return isObjectLike(value) && getTag(value) == mapTag;
+	};
+
+	var isPrototype = function (value) {
+	    var Ctor = value && value.constructor;
+	    var proto = (typeof Ctor === 'function' && Ctor.prototype) || Object.prototype;
+
+	    return value === proto;
+	};
+
+	var assignValue = function (object, key, value) {
+	    var objValue = object[key];
+	    if (!(hasOwnProperty.call(object, key) && eq(objValue, value)) ||
+	        (value === undefined && !(key in object))) {
+	        object[key] = value;
+	    }
+	};
+
+	var copyObject = function (source, props, object) {
+	    var index = -1;
+	    var length = props.length;
+
+	    while (++index < length) {
+	        var key = props[index];
+	        assignValue(object, key, source[key]);
+	    }
+	    return object;
+	};
+
+	var isArrayLike = function (value) {
+	    return value != null && typeof value !== 'function' && typeof value.length === 'number' &&
+	        value.length > -1 && value.length % 1 === 0;
+	};
+
+	var isSymbol = function (value) {
+	    return typeof value == 'symbol' ||
+	        (isObjectLike(value) && getTag(value) === symbolTag);
+	};
+
+	var initCloneArray = function (array) {
+	    var length = array.length;
+	    var result = new array.constructor(length);
+
+	    if (length && typeof array[0] == 'string' && hasOwnProperty.call(array, 'index')) {
+	        result.index = array.index;
+	        result.input = array.input;
+	    }
+
+	    return result;
+	};
+
+	var copyArray = function (source, array) {
+	    var index = -1;
+	    var length = source.length;
+
+	    array || (array = new Array(length));
+	    while (++index < length) {
+	        array[index] = source[index];
+	    }
+	    return array;
+	};
+
+	var getTag = function (value) {
+	    if (value == null) {
+	        return value === undefined ? undefinedTag : nullTag;
+	    }
+
+	    return Object.prototype.toString.call(value);
+	};
+
+	var cloneArrayBuffer = function (arrayBuffer) {
+	    var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
+	    new Uint8Array(result).set(new Uint8Array(arrayBuffer));
+	    return result;
+	};
+
+	var cloneTypedArray = function (typedArray, isDeep) {
+	    var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
+	    return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
+	};
+
+	var cloneRegExp = function (regexp) {
+	    var result = new regexp.constructor(regexp.source, /\w*$/.exec(regexp));
+	    result.lastIndex = regexp.lastIndex;
+	    return result;
+	};
+
+	var initCloneObject = function (object) {
+	    return (typeof object.constructor == 'function' && !isPrototype(object))
+	        ? Object.create(Object.getPrototypeOf(object))
+	        : {};
+	};
+
+	var getSymbols = function (object) {
+	    if (object == null) {
+	        return [];
+	    }
+
+	    object = Object(object);
+	    var symbols = Object.getOwnPropertySymbols(object);
+
+	    return symbols.filter(function (symbol) { return propertyIsEnumerable.call(object, symbol); });
+	};
+
+	var copySymbols = function (source, object) {
+	    return copyObject(source, getSymbols(source), object);
+	};
+
+	function cloneDataView(dataView, isDeep) {
+	    var buffer = isDeep ? cloneArrayBuffer(dataView.buffer) : dataView.buffer;
+	    return new dataView.constructor(buffer, dataView.byteOffset, dataView.byteLength);
+	}
+
+	var initCloneByTag = function (object, tag, isDeep) {
+	    var Constructor = object.constructor;
+	    switch(tag) {
+	        case arrayBufferTag:
+	            return cloneArrayBuffer(object, isDeep);
+	        case boolTag:
+	        case dateTag:
+	            return new Constructor(+object);
+	        case dataViewTag:
+	            return cloneDataView(object, isDeep);
+	        case float32Tag:
+	        case float64Tag:
+	        case int8Tag:
+	        case int16Tag:
+	        case int32Tag:
+	        case uint8Tag:
+	        case uint8ClampedTag:
+	        case uint16Tag:
+	        case uint32Tag:
+	            return cloneTypedArray(object, isDeep);
+	        case mapTag:
+	            return new Constructor(object);
+	        case numberTag:
+	        case stringTag:
+	            return new Constructor(object);
+	        case regexpTag:
+	            return cloneRegExp(object);
+	        case setTag:
+	            return new Constructor;
+	        case symbolTag:
+	            return Symbol.prototype.valueOf ? Object(Symbol.prototype.valueOf.call(object)) : {};
+	    }
+	};
+
+	var isTypedArray = function (value) {
+	    return isObjectLike(value) && reTypedTag.test(getTag(value));
+	};
+
+	var getAllKeys = function (object) {
+	    var result = Object.keys(object);
+	    if(!Array.isArray(object) && object != null) {
+	        result.push.apply(result, getSymbols(Object(object)));
+	    }
+
+	    return result;
+	};
+
+	var getSymbolsIn = function (object) {
+	    var result = [];
+	    while (object) {
+	        result.push.apply(result, getSymbols(object));
+	        object = Object.getPrototypeOf(Object(object));
+	    }
+
+	    return result;
+	};
+
+	var getAllKeysIn = function (object) {
+	    var result = [];
+
+	    for (var key in object) {
+	        result.push(key);
+	    }
+
+	    if (!Array.isArray(object)) {
+	        result.push.apply(result, getSymbolsIn(object));
+	    }
+
+	    return result;
+	};
+
+	var getMapData = function (ref, key) {
+	    var __data__ = ref.__data__;
+
+	    var data = __data__;
+	    return isKeyable(key)
+	        ? data[typeof key === 'string' ? 'string' : 'hash']
+	        : data.map;
+	};
+
+	var equalObjects = function (object, other, equalFunc, stack) {
+	    var objProps = getAllKeys(object);
+	    var objLength = objProps.length;
+	    var othProps = getAllKeys(other);
+	    var othLength = othProps.length;
+
+	    if (objLength != othLength) {
+	        return false;
+	    }
+	    var key;
+	    var index = objLength;
+	    while (index--) {
+	        key = objProps[index];
+	        if (!(hasOwnProperty.call(other, key))) {
+	            return false;
+	        }
+	    }
+
+	    var objStacked = stack.get(object);
+	    var othStacked = stack.get(other);
+	    if (objStacked && othStacked) {
+	        return objStacked == other && othStacked == object;
+	    }
+	    var result = true;
+	    stack.set(object, other);
+	    stack.set(other, object);
+
+	    var compared;
+	    var skipCtor;
+
+	    while (++index < objLength) {
+	        key = objProps[index];
+	        var objValue = object[key];
+	        var othValue = other[key];
+
+	        if (!(compared === undefined
+	            ? (objValue === othValue || equalFunc(objValue, othValue, stack))
+	            : compared
+	        )) {
+	            result = false;
+	            break;
+	        }
+	        skipCtor || (skipCtor = key == 'constructor');
+	    }
+
+	    if (result && !skipCtor) {
+	        var objCtor = object.constructor;
+	        var othCtor = other.constructor;
+
+	        if (objCtor != othCtor &&
+	        ('constructor' in object && 'constructor' in other) &&
+	        !(typeof objCtor === 'function' && objCtor instanceof objCtor &&
+	            typeof othCtor === 'function' && othCtor instanceof othCtor)) {
+	            result = false;
+	        }
+	    }
+	    stack['delete'](object);
+	    stack['delete'](other);
+	    return result;
+	};
+
+	var baseIsEqual = function (value, other, stack) {
+	    if (value === other) {
+	        return true;
+	    }
+	    if (value == null || other == null || (!isObjectLike(value) && !isObjectLike(other))) {
+	        return value !== value && other !== other;
+	    }
+
+	    return baseIsEqualDeep(value, other, baseIsEqual, stack);
+	};
+
+	var baseIsEqualDeep = function (object, other, equalFunc, stack) {
+	    var objIsArr = Array.isArray(object);
+	    var othIsArr = Array.isArray(other);
+	    var objTag = objIsArr ? arrayTag : getTag(object);
+	    var othTag = othIsArr ? arrayTag : getTag(other);
+
+	    objTag = objTag == argsTag ? objectTag : objTag;
+	    othTag = othTag == argsTag ? objectTag : othTag;
+
+	    var objIsObj = objTag == objectTag;
+	    var othIsObj = othTag == objectTag;
+	    var isSameTag = objTag == othTag;
+
+	    if (isSameTag && !objIsObj) {
+	        stack || (stack = new Stack);
+	        return (objIsArr || isTypedArray(object))
+	            ? equalArrays(object, other, false, equalFunc, stack)
+	            : equalByTag(object, other, objTag, equalFunc, stack);
+	    }
+
+	    var objIsWrapped = objIsObj && hasOwnProperty.call(object, '__wrapped__');
+	    var othIsWrapped = othIsObj && hasOwnProperty.call(other, '__wrapped__');
+
+	    if (objIsWrapped || othIsWrapped) {
+	        var objUnwrapped = objIsWrapped ? object.value() : object;
+	        var othUnwrapped = othIsWrapped ? other.value() : other;
+
+	        stack || (stack = new Stack);
+	        return equalFunc(objUnwrapped, othUnwrapped, stack);
+	    }
+
+	    if (!isSameTag) {
+	        return false;
+	    }
+
+	    stack || (stack = new Stack);
+	    return equalObjects(object, other, equalFunc, stack);
+	};
+
+	var equalArrays = function (array, other, compareUnordered, equalFunc, stack) {
+	    var isPartial = false;
+	    var arrLength = array.length;
+	    var othLength = other.length;
+
+	    if (arrLength != othLength && !(isPartial && othLength > arrLength)) {
+	        return false;
+	    }
+	    // Assume cyclic values are equal.
+	    var arrStacked = stack.get(array);
+	    var othStacked = stack.get(other);
+	    if (arrStacked && othStacked) {
+	        return arrStacked == other && othStacked == array;
+	    }
+	    var index = -1;
+	    var result = true;
+	    var seen = compareUnordered ? new SetCache : undefined;
+
+	    stack.set(array, other);
+	    stack.set(other, array);
+
+	    var loop = function () {
+	        var compared = (void 0);
+	        var arrValue = array[index];
+	        var othValue = other[index];
+
+	        if (compared !== undefined) {
+	            if (compared) {
+	                return;
+	            }
+	            result = false;
+	            return 'break';
+	        }
+
+	        if (seen) {
+	            if (!some(other, function (othValue, othIndex) {
+	                if (!cacheHas(seen, othIndex) &&
+	            (arrValue === othValue || equalFunc(arrValue, othValue, stack))) {
+	                    return seen.push(othIndex);
+	                }
+	            })) {
+	                result = false;
+	                return 'break';
+	            }
+	        } else if (!(
+	            arrValue === othValue ||
+	            equalFunc(arrValue, othValue, stack)
+	        )) {
+	            result = false;
+	            return 'break';
+	        }
+	    };
+
+	    while (++index < arrLength) {
+	      var returned = loop();
+
+	      if ( returned === 'break' ) break;
+	    }
+	    stack['delete'](array);
+	    stack['delete'](other);
+	    return result;
+	};
+
+	var some = function (array, predicate) {
+	    var index = -1;
+	    var length = array == null ? 0 : array.length;
+
+	    while (++index < length) {
+	        if (predicate(array[index], index, array)) {
+	            return true;
+	        }
+	    }
+	    return false;
+	};
+
+	var cacheHas = function (cache, key) {
+	    return cache.has(key);
+	};
+
+	var compareArrayBufferTag = function (object, other, equalFunc, stack) {
+	    if ((object.byteLength != other.byteLength) ||
+	                !equalFunc(new Uint8Array(object), new Uint8Array(other), stack)) {
+	        return false;
+	    }
+	    return true;
+	};
+
+	var equalByTag = function (object, other, tag, equalFunc, stack) {
+
+	    switch (tag) {
+	        case dataViewTag:
+	            if ((object.byteLength != other.byteLength) ||
+	                (object.byteOffset != other.byteOffset)) {
+	                return false;
+	            }
+	            object = object.buffer;
+	            other = other.buffer;
+	            return compareArrayBufferTag(object, other, equalFunc, stack);
+	        case arrayBufferTag:
+	            return compareArrayBufferTag(object, other, equalFunc, stack);
+	        case boolTag:
+	        case dateTag:
+	        case numberTag:
+	            return eq(+object, +other);
+	        case errorTag:
+	            return object.name == other.name && object.message == other.message;
+	        case regexpTag:
+	        case stringTag:
+	            return object == ("" + other);
+	        case mapTag:
+	            var convert = mapToArray;
+	        // Intentional fallthrough
+	        // eslint-disable-next-line no-fallthrough
+	        case setTag:
+	            convert || (convert = setToArray);
+
+	            if (object.size != other.size) {
+	                return false;
+	            }
+	            // Assume cyclic values are equal.
+	            var stacked = stack.get(object);
+	            if (stacked) {
+	                return stacked == other;
+	            }
+
+	            // Recursively compare objects (susceptible to call stack limits).
+	            stack.set(object, other);
+	            var result = equalArrays(convert(object), convert(other), true, equalFunc, stack);
+	            stack['delete'](object);
+	            return result;
+	        case symbolTag:
+	            return Symbol.prototype.valueOf.call(object) == Symbol.prototype.valueOf.call(other);
+	    }
+
+	    return false;
+	};
+
+	var mapToArray = function (map) {
+	    var index = -1;
+	    var result = Array(map.size);
+
+	    map.forEach(function (value, key) {
+	        result[++index] = [key, value];
+	    });
+	    return result;
+	};
+
+	var setToArray = function (set) {
+	    var index = -1;
+	    var result = new Array(set.size);
+
+	    set.forEach(function (value) {
+	        result[++index] = value;
+	    });
+	    return result;
+	};
+
+	var isKey = function (value, object) {
+	    if (Array.isArray(value)) {
+	        return false;
+	    }
+	    var type = typeof value;
+	    if (type === 'number' || type === 'boolean' || value == null || isSymbol(value)) {
+	        return true;
+	    }
+	    return reIsPlainProp.test(value) || !reIsDeepProp.test(value) ||
+	    (object != null && value in Object(object));
+	};
+
+	var stringToPath = function (string) {
+	    var result = [];
+	    if (string.charCodeAt(0) === charCodeOfDot) {
+	        result.push('');
+	    }
+	    string.replace(rePropName, function (match, expression, quote, subString) {
+	        var key = match;
+	        if (quote) {
+	            key = subString.replace(reEscapeChar, '$1');
+	        }
+	        else if (expression) {
+	            key = expression.trim();
+	        }
+	        result.push(key);
+	    });
+	    return result;
+	};
+
+	var castPath = function (path, object) {
+	    if (Array.isArray(path)) {
+	        return path;
+	    }
+
+	    return isKey(path, object) ? [path] : stringToPath(("" + path));
+	};
+
+	var get$1 = function (object, path) {
+	    path = castPath(path, object);
+
+	    var index = 0;
+	    var length = path.length;
+
+	    while (object != null && index < length) {
+	        object = object[toKey(path[index])];
+	        index++;
+	    }
+
+	    return (index && index == length) ? object : undefined;
+	};
+
+	function compareAscending(value, other) {
+	    if (value !== other) {
+	        var valIsDefined = value !== undefined;
+	        var valIsNull = value === null;
+	        var valIsReflexive = value === value;
+	        var valIsSymbol = isSymbol(value);
+
+	        var othIsDefined = other !== undefined;
+	        var othIsNull = other === null;
+	        var othIsReflexive = other === other;
+	        var othIsSymbol = isSymbol(other);
+
+	        if ((!othIsNull && !othIsSymbol && !valIsSymbol && value > other) ||
+	            (valIsSymbol && othIsDefined && othIsReflexive && !othIsNull && !othIsSymbol) ||
+	            (valIsNull && othIsDefined && othIsReflexive) ||
+	            (!valIsDefined && othIsReflexive) ||
+	            !valIsReflexive) {
+	            return 1;
+	        }
+	        if ((!valIsNull && !valIsSymbol && !othIsSymbol && value < other) ||
+	            (othIsSymbol && valIsDefined && valIsReflexive && !valIsNull && !valIsSymbol) ||
+	            (othIsNull && valIsDefined && valIsReflexive) ||
+	            (!othIsDefined && valIsReflexive) ||
+	            !othIsReflexive) {
+	            return -1;
+	        }
+	    }
+	    return 0;
+	}
+
+	function compareMultiple(object, other, orders) {
+	    var index = -1;
+	    var objCriteria = object.criteria;
+	    var othCriteria = other.criteria;
+	    var length = objCriteria.length;
+	    var ordersLength = orders.length;
+
+	    while (++index < length) {
+	        var order = index < ordersLength ? orders[index] : null;
+	        var cmpFn = (order && typeof order === 'function') ? order : compareAscending;
+	        var result = cmpFn(objCriteria[index], othCriteria[index]);
+	        if (result) {
+	            if (order && typeof order !== 'function') {
+	                return result * (order == 'desc' ? -1 : 1);
+	            }
+	            return result;
+	        }
+	    }
+
+	    return object.index - other.index;
+	}
+
+	var diff = function (array, values) {
+	    var includes = function (array, value) {
+	        var length = array == null ? 0 : array.length;
+	        return !!length && array.indexOf(value) > -1;
+	    };
+	    var isCommon = true;
+	    var result = [];
+	    var valuesLength = values.length;
+
+	    if (!array.length) {
+	        return result;
+	    }
+
+	    if (values.length >= LARGE_ARRAY_SIZE) {
+	        includes = function (cache, key) { return cache.has(key); };
+	        isCommon = false;
+	        values = new SetCache(values);
+	    }
+
+	    outer:
+	    for (var key in array) {
+	        var value = array[key];
+	        var computed = value;
+
+	        value = (value !== 0) ? value : 0;
+	        if (isCommon && computed === computed) {
+	            var valuesIndex = valuesLength;
+	            while (valuesIndex--) {
+	                if (values[valuesIndex] === computed) {
+	                    continue outer;
+	                }
+	            }
+	            result.push(value);
+	        }
+	        else if (!includes(values, computed)) {
+	            result.push(value);
+	        }
+	    }
+
+	    return result;
+	};
+
+	var intersect = function (arrays) {
+	    var includes = function (array, value) {
+	        var length = array == null ? 0 : array.length;
+	        return !!length && array.indexOf(value) > -1;
+	    };
+	    var cacheHas = function (cache, key) { return cache.has(key); };
+	    var length = arrays[0].length;
+	    var othLength = arrays.length;
+	    var caches = new Array(othLength);
+	    var result = [];
+
+	    var array;
+	    var maxLength = Infinity;
+	    var othIndex = othLength;
+
+	    while (othIndex--) {
+	        array = arrays[othIndex];
+
+	        maxLength = Math.min(array.length, maxLength);
+	        caches[othIndex] = length >= 120 && array.length >= 120
+	            ? new SetCache(othIndex && array)
+	            : undefined;
+	    }
+	    array = arrays[0];
+
+	    var index = -1;
+	    var seen = caches[0];
+
+	    outer:
+	    while (++index < length && result.length < maxLength) {
+	        var value = array[index];
+	        var computed = value;
+
+	        value = (value !== 0) ? value : 0;
+	        if (!(seen
+	            ? cacheHas(seen, computed)
+	            : includes(result, computed)
+	        )) {
+	            othIndex = othLength;
+	            while (--othIndex) {
+	                var cache = caches[othIndex];
+	                if (!(cache
+	                    ? cacheHas(cache, computed)
+	                    : includes(arrays[othIndex], computed))
+	                ) {
+	                    continue outer;
+	                }
+	            }
+	            if (seen) {
+	                seen.push(computed);
+	            }
+	            result.push(value);
+	        }
+	    }
+	    return result;
+	};
+
+	var toKey = function (value) {
+	    if (typeof value === 'string' || isSymbol(value)) {
+	        return value;
+	    }
+	    var result = "" + value;
+	    return (result == '0' && (1 / value) == -Infinity) ? '-0' : result;
+	};
+
+	var baseClone = function (value, isDeep, isFlat, isFull, customizer, key, object, stack) {
+	    if ( isDeep === void 0 ) isDeep = false;
+	    if ( isFlat === void 0 ) isFlat = false;
+	    if ( isFull === void 0 ) isFull = true;
+
+	    var result;
+
+	    if (customizer) {
+	        result = object ? customizer(value, key, object, stack) : customizer(value);
+	    }
+
+	    if (result !== undefined) {
+	        return result;
+	    }
+
+	    if (!isObject$1(value)) {
+	        return value;
+	    }
+
+	    var isArr = Array.isArray(value);
+	    var tag = getTag(value);
+
+	    if (isArr) {
+	        result = initCloneArray(value);
+
+	        if (!isDeep) {
+	            return copyArray(value, result);
+	        }
+	    } else {
+	        var isFunc = typeof value === 'function';
+
+	        if (tag === objectTag || tag === argsTag || (isFunc && !object)) {
+	            result = (isFlat || isFunc) ? {} : initCloneObject(value);
+	            if (!isDeep) {
+	                return isFlat ?
+	                    copySymbolsIn(value, copyObject(value, Object.keys(value), result)) :
+	                    copySymbols(value, Object.assign(result, value));
+	            }
+	        } else {
+	            if (isFunc || !CLONEABLE_TAGS[tag]) {
+	                return object ? value : {};
+	            }
+	            result = initCloneByTag(value, tag, isDeep);
+	        }
+	    }
+
+	    stack || (stack = new Stack);
+	    var stacked = stack.get(value);
+
+	    if (stacked) {
+	        return stacked;
+	    }
+
+	    stack.set(value, result);
+
+	    if (isMap(value)) {
+	        value.forEach(function (subValue, key) {
+	            result.set(key, baseClone(subValue, isDeep, isFlat, isFull, customizer, key, value, stack));
+	        });
+
+	        return result;
+	    }
+
+	    if (isSet(value)) {
+	        value.forEach(function (subValue) {
+	            result.add(baseClone(subValue, isDeep, isFlat, isFull, customizer, subValue, value, stack));
+	        });
+
+	        return result;
+	    }
+
+	    if(isTypedArray(value)) {
+	        return result;
+	    }
+
+	    var keysFunc = isFull
+	        ? (isFlat ? getAllKeysIn : getAllKeys)
+	        : (isFlat ? keysIn : keys$1);
+
+	    var props =  isArr ? undefined : keysFunc(value);
+
+	    (props || value).forEach(function (subValue, key) {
+	        if (props) {
+	            key = subValue;
+	            subValue = value[key];
+	        }
+
+	        assignValue(result, key, baseClone(subValue, isDeep, isFlat, isFull, customizer, key, value, stack));
+	    });
+
+	    return result;
+	};
+
+	var copySymbolsIn = function (source, object) {
+	    return copyObject(source, getSymbolsIn(source), object);
+	};
+
+	var parent = function (object, path) {
+	    return path.length < 2 ? object : get$1(object, path.slice(0, -1));
+	};
+
+	var set$1 = function (object, path, value) {
+	    if (!isObject$1(object)) {
+	        return object;
+	    }
+	    path = castPath(path, object);
+
+	    var length = path.length;
+	    var lastIndex = length - 1;
+
+	    var index = -1;
+	    var nested = object;
+
+	    while (nested != null && ++index < length) {
+	        var key = toKey(path[index]);
+	        var newValue = value;
+
+	        if (index != lastIndex) {
+	            var objValue = nested[key];
+	            newValue = undefined;
+	            if (newValue === undefined) {
+	                newValue = isObject$1(objValue)
+	                    ? objValue
+	                    : (isIndex(path[index + 1]) ? [] : {});
+	            }
+	        }
+	        assignValue(nested, key, newValue);
+	        nested = nested[key];
+	    }
+	    return object;
+	};
+
+	var isIndex = function (value, length) {
+	    var type = typeof value;
+	    length = length == null ? Number.MAX_SAFE_INTEGER : length;
+
+	    return !!length &&
+	    (type === 'number' ||
+	        (type !== 'symbol' && reIsUint.test(value))) &&
+	        (value > -1 && value % 1 == 0 && value < length);
+	};
+
+	var unset = function (object, path) {
+	    path = castPath(path, object);
+	    object = parent(object, path);
+	    var lastSegment = path[path.length - 1];
+	    return object == null || delete object[toKey(lastSegment)];
+	};
+
+	var isKeyable = function (value) {
+	    var type = typeof value;
+	    return (type === 'string' || type === 'number' || type === 'symbol' || type === 'boolean')
+	        ? (value !== '__proto__')
+	        : (value === null);
+	};
+
+	var keysIn = function (object) {
+	    var result = [];
+	    for (var key in object) {
+	        result.push(key);
+	    }
+	    return result;
+	};
+
+	var toPlainObject = function (value) {
+	    value = Object(value);
+	    var result = {};
+	    for (var key in value) {
+	        result[key] = value[key];
+	    }
+	    return result;
+	};
+
+	var safeGet = function (object, key) {
+	    if (key === 'constructor' && typeof object[key] === 'function') {
+	        return;
+	    }
+
+	    if (key == '__proto__') {
+	        return;
+	    }
+
+	    return object[key];
+	};
+
+	function createAssigner(assigner, isMerge) {
+	    if ( isMerge === void 0 ) isMerge = false;
+
+	    return function (object) {
+	        var sources = [], len = arguments.length - 1;
+	        while ( len-- > 0 ) sources[ len ] = arguments[ len + 1 ];
+
+	        var index = -1;
+	        var length = sources.length;
+	        var customizer = length > 1 ? sources[length - 1] : undefined;
+	        var guard = length > 2 ? sources[2] : undefined;
+
+	        customizer = (assigner.length > 3 && typeof customizer === 'function')
+	            ? (length--, customizer)
+	            : isMerge ? function (a, b) {
+	                if (Array.isArray(a) && !Array.isArray(b)) {
+	                    return b;
+	                }
+	            } : undefined;
+
+	        if (guard && isIterateeCall(sources[0], sources[1], guard)) {
+	            customizer = length < 3 ? undefined : customizer;
+	            length = 1;
+	        }
+	        object = Object(object);
+	        while (++index < length) {
+	            var source = sources[index];
+	            if (source) {
+	                assigner(object, source, index, customizer);
+	            }
+	        }
+	        return object;
+	    };
+	}
+
+	var baseMerge = function (object, source, srcIndex, customizer, stack) {
+	    if (object === source) {
+	        return;
+	    }
+
+	    forIn(source, function (srcValue, key) {
+	        if (isObject$1(srcValue)) {
+	            stack || (stack = new Stack);
+	            baseMergeDeep(object, source, key, srcIndex, baseMerge, customizer, stack);
+	        } else {
+	            var newValue = customizer
+	                ? customizer(object[key], srcValue, ("" + key), object, source, stack)
+	                : undefined;
+
+	            if (newValue === undefined) {
+	                newValue = srcValue;
+	            }
+
+	            assignMergeValue(object, key, newValue);
+	        }
+	    }, keysIn);
+	};
+
+	var baseMergeDeep = function (object, source, key, srcIndex, mergeFunc, customizer, stack) {
+	    var objValue = safeGet(object, key);
+	    var srcValue = safeGet(source, key);
+	    var stacked = stack.get(srcValue);
+
+	    if (stacked) {
+	        assignMergeValue(object, key, stacked);
+	        return;
+	    }
+
+	    var newValue = customizer
+	        ? customizer(objValue, srcValue, ("" + key), object, source, stack)
+	        : undefined;
+
+	    var isCommon = newValue === undefined;
+
+	    if (isCommon) {
+	        var isArr = Array.isArray(srcValue);
+	        var isTyped = !isArr && isTypedArray(srcValue);
+
+	        newValue = srcValue;
+	        if (isArr || isTyped) {
+	            if (Array.isArray(objValue)) {
+	                newValue = objValue;
+	            }
+	            else if (isObjectLike(objValue) && isArrayLike(objValue)) {
+	                newValue = copyArray(objValue);
+	            }
+	            else if (isTyped) {
+	                isCommon = false;
+	                newValue = cloneTypedArray(srcValue, true);
+	            }
+	            else {
+	                newValue = [];
+	            }
+	        }
+	        else if (isPlainObject(srcValue) || isArguments(srcValue)) {
+	            newValue = objValue;
+	            if (isArguments(objValue)) {
+	                newValue = toPlainObject(objValue);
+	            }
+	            else if (typeof objValue === 'function' || !isObject$1(objValue)) {
+	                newValue = initCloneObject(srcValue);
+	            }
+	        }
+	        else {
+	            isCommon = false;
+	        }
+	    }
+	    if (isCommon) {
+	    // Recursively merge objects and arrays (susceptible to call stack limits).
+	        stack.set(srcValue, newValue);
+	        mergeFunc(newValue, srcValue, srcIndex, customizer, stack);
+	        stack['delete'](srcValue);
+	    }
+	    assignMergeValue(object, key, newValue);
+	};
+
+	var assignMergeValue = function (object, key, value) {
+	    if ((value !== undefined && !eq(object[key], value)) ||
+	        (value === undefined && !(key in object))) {
+	        assignValue(object, key, value);
+	    }
+	};
+
+	function baseFor(object, iteratee, keysFunc) {
+	    var iterable = Object(object);
+	    var props = keysFunc(object);
+	    var length = props.length;
+	    var index = -1;
+
+	    while (length--) {
+	        var key = props[++index];
+	        if (iteratee(iterable[key], key, iterable) === false) {
+	            break;
+	        }
+	    }
+	    return object;
+	}
+
+	var baseForOwn = function (object, iteratee) {
+	    return object && baseFor(object, iteratee, keys$1);
+	};
+
+	var baseEach = function (collection, iteratee) {
+	    if (collection == null) {
+	        return collection;
+	    }
+	    if (!isArrayLike(collection)) {
+	        return baseForOwn(collection, iteratee);
+	    }
+	    var length = collection.length;
+	    var iterable = Object(collection);
+	    var index = -1;
+
+	    while (++index < length) {
+	        if (iteratee(iterable[index], index, iterable) === false) {
+	            break;
+	        }
+	    }
+	    return collection;
+	};
+
+	function last(array) {
+	    var length = array == null ? 0 : array.length;
+	    return length ? array[length - 1] : undefined;
+	}
+
+	var createSet = (Set && (1 / setToArray(new Set([undefined,-0]))[1]) == 1 / 0)
+	    ? function (values) { return new Set(values); }
+	    : function () {};
+
+	function customDefaultsMerge(objValue, srcValue, key, object, source, stack) {
+	    if (isObject$1(objValue) && isObject$1(srcValue)) {
+	    // Recursively merge objects and arrays (susceptible to call stack limits).
+	        stack.set(srcValue, objValue);
+	        baseMerge(objValue, srcValue, undefined, customDefaultsMerge, stack);
+	        stack['delete'](srcValue);
+	    }
+	    return objValue;
+	}
+
+	function baseOrderBy(collection, iteratees, orders) {
+	    if (iteratees.length) {
+	        iteratees = iteratees.map(function (iteratee) {
+	            if (Array.isArray(iteratee)) {
+	                return function (value) { return get$1(value, iteratee.length === 1 ? iteratee[0] : iteratee); };
+	            }
+
+	            return iteratee;
+	        });
+	    } else {
+	        iteratees = [function (value) { return value; }];
+	    }
+
+	    var criteriaIndex = -1;
+	    var eachIndex = -1;
+
+	    var result = isArrayLike(collection) ? new Array(collection.length) : [];
+
+	    baseEach(collection, function (value) {
+	        var criteria = iteratees.map(function (iteratee) { return iteratee(value); });
+
+	        result[++eachIndex] = {
+	            criteria: criteria,
+	            index: ++criteriaIndex,
+	            value: value
+	        };
+	    });
+
+	    return baseSortBy(result, function (object, other) { return compareMultiple(object, other, orders); });
+	}
+
+	function baseSortBy(array, comparer) {
+	    var length = array.length;
+
+	    array.sort(comparer);
+	    while (length--) {
+	        array[length] = array[length].value;
+	    }
+	    return array;
+	}
+
+	function isStrictComparable(value) {
+	    return value === value && !isObject$1(value);
+	}
+
+	function matchesStrictComparable(key, srcValue) {
+	    return function (object) {
+	        if (object == null) {
+	            return false;
+	        }
+	        return object[key] === srcValue &&
+	            (srcValue !== undefined || (key in Object(object)));
+	    };
+	}
+
+	function hasIn(object, path) {
+	    return object != null && hasPath(object, path, baseHasIn);
+	}
+
+	function baseMatchesProperty(path, srcValue) {
+	    if (isKey(path) && isStrictComparable(srcValue)) {
+	        return matchesStrictComparable(toKey(path), srcValue);
+	    }
+	    return function (object) {
+	        var objValue = get$1(object, path);
+	        return (objValue === undefined && objValue === srcValue)
+	            ? hasIn(object, path)
+	            : baseIsEqual(srcValue, objValue);
+	    };
+	}
+
+	function baseMatches(source) {
+	    var matchData = getMatchData(source);
+	    if (matchData.length === 1 && matchData[0][2]) {
+	        return matchesStrictComparable(matchData[0][0], matchData[0][1]);
+	    }
+	    return function (object) { return object === source || baseIsMatch(object, source, matchData); };
+	}
+
+	function getMatchData(object) {
+	    var result = keys$1(object);
+	    var length = result.length;
+
+	    while (length--) {
+	        var key = result[length];
+	        var value = object[key];
+	        result[length] = [key, value, isStrictComparable(value)];
+	    }
+	    return result;
+	}
+
+	function baseIsMatch(object, source, matchData, customizer) {
+	    var index = matchData.length;
+	    var length = index;
+	    var noCustomizer = !customizer;
+
+	    if (object == null) {
+	        return !length;
+	    }
+	    var data;
+	    var result;
+	    object = Object(object);
+	    while (index--) {
+	        data = matchData[index];
+	        if ((noCustomizer && data[2])
+	            ? data[1] !== object[data[0]]
+	            : !(data[0] in object)
+	        ) {
+	            return false;
+	        }
+	    }
+	    while (++index < length) {
+	        data = matchData[index];
+	        var key = data[0];
+	        var objValue = object[key];
+	        var srcValue = data[1];
+
+	        if (noCustomizer && data[2]) {
+	            if (objValue === undefined && !(key in object)) {
+	                return false;
+	            }
+	        } else {
+	            var stack = new Stack;
+	            if (customizer) {
+	                result = customizer(objValue, srcValue, key, object, source, stack);
+	            }
+	            if (!(result === undefined
+	                ? baseIsEqual(srcValue, objValue, stack)
+	                : result
+	            )) {
+	                return false;
+	            }
+	        }
+	    }
+	    return true;
+	}
+
+	function property(path) {
+	    return isKey(path) ? baseProperty(toKey(path)) : basePropertyDeep(path);
+	}
+
+	function baseProperty(key) {
+	    return function (object) { return object == null ? undefined : object[key]; };
+	}
+
+	function basePropertyDeep(path) {
+	    return function (object) { return get$1(object, path); };
+	}
+
+	function baseIteratee(value) {
+	    if (typeof value == 'function') {
+	        return value;
+	    }
+	    if (value == null) {
+	        return function (val) { return val; };
+	    }
+	    if (typeof value == 'object') {
+	        return Array.isArray(value)
+	            ? baseMatchesProperty(value[0], value[1])
+	            : baseMatches(value);
+	    }
+	    return property(value);
+	}
+
+	function getIteratee() {
+	    var result = baseIteratee;
+	    return arguments.length ? result(arguments[0], arguments[1]) : result;
+	}
+
+	var arrayReduce = function (array, iteratee, accumulator, initAccum) {
+	    var index = -1;
+	    var length = array == null ? 0 : array.length;
+
+	    if (initAccum && length) {
+	        accumulator = array[++index];
+	    }
+	    while (++index < length) {
+	        accumulator = iteratee(accumulator, array[index], index, array);
+	    }
+	    return accumulator;
+	};
+
+	var baseReduce = function (collection, iteratee, accumulator, initAccum, eachFunc) {
+	    eachFunc(collection, function (value, index, collection) {
+	        accumulator = initAccum
+	            ? (initAccum = false, value)
+	            : iteratee(accumulator, value, index, collection);
+	    });
+	    return accumulator;
+	};
+
+	function reduce(collection, iteratee, accumulator) {
+	    var func = Array.isArray(collection) ? arrayReduce : baseReduce;
+	    var initAccum = arguments.length < 3;
+	    return func(collection, iteratee, accumulator, initAccum, baseEach);
+	}
+
+	var isFlattenable = function (value) {
+	    return Array.isArray(value) || isArguments(value) ||
+	    !!(value && value[Symbol.isConcatSpreadable]);
+	};
+
+	function baseFlatten(array, depth, predicate, isStrict, result) {
+	    var index = -1;
+	    var length = array.length;
+
+	    predicate || (predicate = isFlattenable);
+	    result || (result = []);
+
+	    while (++index < length) {
+	        var value = array[index];
+	        if (depth > 0 && predicate(value)) {
+	            if (depth > 1) {
+	                // Recursively flatten arrays (susceptible to call stack limits).
+	                baseFlatten(value, depth - 1, predicate, isStrict, result);
+	            } else {
+	                result.push.apply(result, value);
+	            }
+	        } else if (!isStrict) {
+	            result[result.length] = value;
+	        }
+	    }
+	    return result;
+	}
+
+	var isArguments = function (value) {
+	    return isObjectLike(value) && getTag(value) == '[object Arguments]';
+	};
+
+	var basePick = function (object, paths) {
+	    return basePickBy(object, paths, function (value, path) { return hasIn(object, path); });
+	};
+
+	var basePickBy = function (object, paths, predicate) {
+	    var index = -1;
+	    var length = paths.length;
+	    var result = {};
+
+	    while (++index < length) {
+	        var path = paths[index];
+	        var value = get$1(object, path);
+	        if (predicate(value, path)) {
+	            set$1(result, castPath(path, object), value);
+	        }
+	    }
+	    return result;
+	};
+
+	var isLength = function (value) {
+	    return typeof value == 'number' &&
+	        value > -1 && value % 1 == 0 && value <= Number.MAX_SAFE_INTEGER;
+	};
+
+	var baseHasIn = function (object, key) {
+	    return object != null && key in Object(object);
+	};
+
+	var hasPath = function (object, path, hasFunc) {
+	    path = castPath(path, object);
+
+	    var index = -1,
+	        length = path.length,
+	        result = false;
+
+	    while (++index < length) {
+	        var key = toKey(path[index]);
+	        if (!(result = object != null && hasFunc(object, key))) {
+	            break;
+	        }
+	        object = object[key];
+	    }
+	    if (result || ++index != length) {
+	        return result;
+	    }
+	    length = object == null ? 0 : object.length;
+	    return !!length && isLength(length) && isIndex(key, length) &&
+	        (Array.isArray(object) || isArguments(object));
+	};
+
+	var asciiWords = function (string) {
+	    return string.match(reAsciiWord);
+	};
+
+	var unicodeWords = function (string) {
+	    return string.match(reUnicodeWords);
+	};
+
+	var words = function (string, pattern) {
+	    if (pattern === undefined) {
+	        var result = hasUnicodeWord(string) ? unicodeWords(string) : asciiWords(string);
+	        return result || [];
+	    }
+	    return string.match(pattern) || [];
+	};
+
+	var castSlice = function (array, start, end) {
+	    var length = array.length;
+	    end = end === undefined ? length : end;
+	    return (!start && end >= length) ? array : array.slice(start, end);
+	};
+
+	var upperFirst = createCaseFirst('toUpperCase');
+
+	function createCaseFirst(methodName) {
+	    return function (string) {
+	        if (!string) {
+	            return '';
+	        }
+
+	        var strSymbols = hasUnicode(string)
+	            ? stringToArray(string)
+	            : undefined;
+
+	        var chr = strSymbols
+	            ? strSymbols[0]
+	            : string[0];
+
+	        var trailing = strSymbols
+	            ? castSlice(strSymbols, 1).join('')
+	            : string.slice(1);
+
+	        return chr[methodName]() + trailing;
+	    };
+	}
+
+	// -- helper classes
+	var Stack = function Stack(entries) {
+	      var data = this.__data__ = new ListCache(entries);
+	      this.size = data.size;
+	  };
+
+	  Stack.prototype.clear = function clear () {
+	      this.__data__ = new ListCache;
+	      this.size = 0;
+	  };
+
+	  Stack.prototype.delete = function delete$1 (key) {
+	      var data = this.__data__;
+	      var result = data['delete'](key);
+
+	      this.size = data.size;
+	      return result;
+	  };
+
+	  Stack.prototype.get = function get (key) {
+	      return this.__data__.get(key);
+	  };
+
+	  Stack.prototype.has = function has (key) {
+	      return this.__data__.has(key);
+	  };
+
+	  Stack.prototype.set = function set (key, value) {
+	      var data = this.__data__;
+	      if (data instanceof ListCache) {
+	          var pairs = data.__data__;
+	          if (pairs.length < LARGE_ARRAY_SIZE - 1) {
+	              pairs.push([key, value]);
+	              this.size = ++data.size;
+	              return this;
+	          }
+	          data = this.__data__ = new MapCache(pairs);
+	      }
+	      data.set(key, value);
+	      this.size = data.size;
+	      return this;
+	  };
+
+	var ListCache = function ListCache(entries) {
+	      var index = -1;
+	      var length = entries == null ? 0 : entries.length;
+
+	      this.clear();
+	      while (++index < length) {
+	          var entry = entries[index];
+	          this.set(entry[0], entry[1]);
+	      }
+	  };
+
+	  ListCache.prototype.clear = function clear () {
+	      this.__data__ = [];
+	      this.size = 0;
+	  };
+
+	  ListCache.prototype.delete = function delete$2 (key) {
+	      var data = this.__data__;
+	      var index = assocIndexOf(data, key);
+
+	      if (index < 0) {
+	          return false;
+	      }
+	      var lastIndex = data.length - 1;
+	      if (index == lastIndex) {
+	          data.pop();
+	      } else {
+	          data.splice(index, 1);
+	      }
+	      --this.size;
+	      return true;
+	  };
+
+	  ListCache.prototype.get = function get (key) {
+	      var data = this.__data__;
+	      var index = assocIndexOf(data, key);
+	      return index < 0 ? undefined : data[index][1];
+	  };
+
+	  ListCache.prototype.has = function has (key) {
+	      return assocIndexOf(this.__data__, key) > -1;
+	  };
+
+	  ListCache.prototype.set = function set (key, value) {
+	      var data = this.__data__;
+	      var index = assocIndexOf(data, key);
+
+	      if (index < 0) {
+	          ++this.size;
+	          data.push([key, value]);
+	      } else {
+	          data[index][1] = value;
+	      }
+	      return this;
+	  };
+
+	var MapCache = function MapCache(entries) {
+	      var index = -1;
+	      var length = entries == null ? 0 : entries.length;
+
+	      this.clear();
+	      while (++index < length) {
+	          var entry = entries[index];
+	          this.set(entry[0], entry[1]);
+	      }
+	  };
+
+	  MapCache.prototype.clear = function clear () {
+	      this.size = 0;
+	      this.__data__ = {
+	          'hash': new Hash,
+	          'map': new Map,
+	          'string': new Hash
+	      };
+	  };
+
+	  MapCache.prototype.delete = function delete$3 (key) {
+	      var result = getMapData(this, key)['delete'](key);
+	      this.size -= result ? 1 : 0;
+	      return result;
+	  };
+
+	  MapCache.prototype.get = function get (key) {
+	      return getMapData(this, key).get(key);
+	  };
+
+	  MapCache.prototype.has = function has (key) {
+	      return getMapData(this, key).has(key);
+	  };
+
+	  MapCache.prototype.set = function set (key, value) {
+	      var data = getMapData(this, key);
+	      var size = data.size;
+
+	      data.set(key, value);
+	      this.size += data.size == size ? 0 : 1;
+	      return this;
+	  };
+
+	var Hash = function Hash(entries) {
+	      var index = -1;
+	      var length = entries == null ? 0 : entries.length;
+
+	      this.clear();
+	      while (++index < length) {
+	          var entry = entries[index];
+	          this.set(entry[0], entry[1]);
+	      }
+	  };
+
+	  Hash.prototype.clear = function clear () {
+	      this.__data__ = Object.create(null);
+	      this.size = 0;
+	  };
+
+	  Hash.prototype.delete = function delete$4 (key) {
+	      var result = this.has(key) && delete this.__data__[key];
+	      this.size -= result ? 1 : 0;
+	      return result;
+	  };
+
+	  Hash.prototype.get = function get (key) {
+	      var data = this.__data__;
+	      var result = data[key];
+	      return result === HASH_UNDEFINED ? undefined : result;
+	  };
+
+	  Hash.prototype.has = function has (key) {
+	      var data = this.__data__;
+	      return data[key] !== undefined;
+	  };
+
+	  Hash.prototype.set = function set (key, value) {
+	      var data = this.__data__;
+	      this.size += this.has(key) ? 0 : 1;
+	      data[key] = value === undefined ? HASH_UNDEFINED : value;
+	      return this;
+	  };
+
+	var SetCache = function SetCache(values) {
+	      var index = -1;
+	      var length = values == null ? 0 : values.length;
+
+	      this.__data__ = new MapCache;
+	      while (++index < length) {
+	          this.add(values[index]);
+	      }
+	  };
+
+	  SetCache.prototype.add = function add (value) {
+	      this.__data__.set(value, HASH_UNDEFINED);
+	      return this;
+	  };
+
+	  SetCache.prototype.has = function has (value) {
+	      return this.__data__.has(value);
+	  };
+
+	SetCache.prototype.push = SetCache.prototype.add;
+
+	// -- top level functions
+
+	var isBoolean = function(value) {
+	    var toString = Object.prototype.toString;
+	    return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === boolTag);
+	};
+
+	var isObject$1 = function(value) {
+	    return !!value && (typeof value === 'object' || typeof value === 'function');
+	};
+
+	var isNumber = function(value) {
+	    var toString = Object.prototype.toString;
+	    return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === numberTag);
+	};
+
+	var isString = function(value) {
+	    var toString = Object.prototype.toString;
+	    return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === stringTag);
+	};
+
+	var assign = createAssigner(function (object, source) {
+	    if (isPrototype(source) || isArrayLike(source)) {
+	        copyObject(source, keys$1(source), object);
+	        return;
+	    }
+	    for (var key in source) {
+	        if (hasOwnProperty.call(source, key)) {
+	            assignValue(object, key, source[key]);
+	        }
+	    }
+	});
+
+	var mixin = assign;
+
+	var deepMixin = mixin;
+
+	var supplement = function (object) {
+	    var sources = [], len = arguments.length - 1;
+	    while ( len-- > 0 ) sources[ len ] = arguments[ len + 1 ];
+
+	    var index = -1;
+	    var length = sources.length;
+	    var guard = length > 2 ? sources[2] : undefined;
+
+	    if (guard && isIterateeCall(sources[0], sources[1], guard)) {
+	        length = 1;
+	    }
+
+	    while (++index < length) {
+	        var source = sources[index];
+
+	        if (source == null) {
+	            continue;
+	        }
+
+	        var props = Object.keys(source);
+	        var propsLength = props.length;
+	        var propsIndex = -1;
+
+	        while (++propsIndex < propsLength) {
+	            var key = props[propsIndex];
+	            var value = object[key];
+
+	            if (value === undefined ||
+	                (eq(value, Object.prototype[key]) && !hasOwnProperty.call(object, key))) {
+	                object[key] = source[key];
+	            }
+	        }
+	    }
+
+	    return object;
+	};
+
+	var defaults = supplement;
+
+	var deepSupplement = function defaultsDeep() {
+	    var args = [], len = arguments.length;
+	    while ( len-- ) args[ len ] = arguments[ len ];
+
+	    args.push(undefined, customDefaultsMerge);
+	    return merge.apply(undefined, args);
+	};
+
+	var defaultsDeep = deepSupplement;
+
+	// _.invokeMap
+	var invoke = function (collection, path) {
+	    var args = [], len = arguments.length - 2;
+	    while ( len-- > 0 ) args[ len ] = arguments[ len + 2 ];
+
+	    var index = -1;
+	    var isFunc = typeof path === 'function';
+	    var result = isArrayLike(collection) ? new Array(collection.length) : [];
+
+	    baseEach(collection, function (value) {
+	        result[++index] = isFunc ? path.apply(value, args) : invokeProperty.apply(void 0, [ value, path ].concat( args ));
+	    });
+
+	    return result;
+	};
+
+	// _.invoke
+	var invokeProperty = function (object, path) {
+	    var args = [], len = arguments.length - 2;
+	    while ( len-- > 0 ) args[ len ] = arguments[ len + 2 ];
+
+	    path = castPath(path, object);
+	    object = parent(object, path);
+	    var func = object == null ? object : object[toKey(last(path))];
+	    return func == null ? undefined : func.apply(object, args);
+	};
+
+	var sortedIndex = function (array, value, iteratee) {
+	    var low = 0;
+	    var high = array == null ? 0 : array.length;
+	    if (high == 0) {
+	        return 0;
+	    }
+
+	    iteratee = getIteratee(iteratee, 2);
+	    value = iteratee(value);
+
+	    var valIsNaN = value !== value;
+	    var valIsNull = value === null;
+	    var valIsSymbol = isSymbol(value);
+	    var valIsUndefined = value === undefined;
+
+	    while (low < high) {
+	        var setLow = (void 0);
+	        var mid = Math.floor((low + high) / 2);
+	        var computed = iteratee(array[mid]);
+	        var othIsDefined = computed !== undefined;
+	        var othIsNull = computed === null;
+	        var othIsReflexive = computed === computed;
+	        var othIsSymbol = isSymbol(computed);
+
+	        if (valIsNaN) {
+	            setLow = othIsReflexive;
+	        } else if (valIsUndefined) {
+	            setLow = othIsReflexive &&othIsDefined;
+	        } else if (valIsNull) {
+	            setLow = othIsReflexive && othIsDefined && !othIsNull;
+	        } else if (valIsSymbol) {
+	            setLow = othIsReflexive && othIsDefined && !othIsNull && !othIsSymbol;
+	        } else if (othIsNull || othIsSymbol) {
+	            setLow = false;
+	        } else {
+	            setLow = computed < value;
+	        }
+	        if (setLow) {
+	            low = mid + 1;
+	        } else {
+	            high = mid;
+	        }
+	    }
+	    return Math.min(high, MAX_ARRAY_INDEX);
+	};
+
+	var uniq = function (array, iteratee) {
+	    var index = -1;
+	    var includes = function (array, value) {
+	        var length = array == null ? 0 : array.length;
+	        return !!length && array.indexOf(value) > -1;
+	    };
+	    iteratee = getIteratee(iteratee, 2);
+	    var isCommon = true;
+
+	    var length = array.length;
+	    var result = [];
+	    var seen = result;
+
+	    if (length >= LARGE_ARRAY_SIZE) {
+	        var set = iteratee ? null : createSet(array);
+	        if (set) {
+	            return setToArray(set);
+	        }
+	        isCommon = false;
+	        includes = function (cache, key) { return cache.has(key); };
+	        seen = new SetCache;
+	    } else {
+	        seen = iteratee ? [] : result;
+	    }
+	    outer:
+	    while (++index < length) {
+	        var value = array[index];
+	        var computed = iteratee ? iteratee(value) : value;
+
+	        value = (value !== 0) ? value : 0;
+	        if (isCommon && computed === computed) {
+	            var seenIndex = seen.length;
+	            while (seenIndex--) {
+	                if (seen[seenIndex] === computed) {
+	                    continue outer;
+	                }
+	            }
+	            if (iteratee) {
+	                seen.push(computed);
+	            }
+	            result.push(value);
+	        }
+	        else if (!includes(seen, computed)) {
+	            if (seen !== result) {
+	                seen.push(computed);
+	            }
+	            result.push(value);
+	        }
+	    }
+	    return result;
+	};
+
+	var clone = function (value) { return baseClone(value); };
+
+	var cloneDeep = function (value) { return baseClone(value, true); };
+
+	var isEmpty = function (value) {
+	    if (value == null) {
+	        return true;
+	    }
+	    if (isArrayLike(value) &&
+	        (Array.isArray(value) || typeof value === 'string' || typeof value.splice === 'function' ||
+	            isTypedArray(value) || isArguments(value))) {
+	        return !value.length;
+	    }
+	    var tag = getTag(value);
+	    if (tag == '[object Map]' || tag == '[object Set]') {
+	        return !value.size;
+	    }
+	    if (isPrototype(value)) {
+	        return !baseKeys(value).length;
+	    }
+	    for (var key in value) {
+	        if (hasOwnProperty.call(value, key)) {
+	            return false;
+	        }
+	    }
+	    return true;
+	};
+	var isEqual = function (object, other) { return baseIsEqual(object, other); };
+
+	var isFunction = function (value) { return typeof value === 'function'; };
+
+	var isPlainObject = function (value) {
+	    if (!isObjectLike(value) || getTag(value) != '[object Object]') {
+	        return false;
+	    }
+	    if (Object.getPrototypeOf(value) === null) {
+	        return true;
+	    }
+	    var proto = value;
+	    while (Object.getPrototypeOf(proto) !== null) {
+	        proto = Object.getPrototypeOf(proto);
+	    }
+	    return Object.getPrototypeOf(value) === proto;
+	};
+
+	var toArray = function (value) {
+	    if (!value) {
+	        return [];
+	    }
+
+	    if (isArrayLike(value)) {
+	        return isString(value) ? stringToArray(value) : copyArray(value);
+	    }
+
+	    if (Symbol.iterator && Symbol.iterator in Object(value)) {
+	        var iterator = value[Symbol.iterator]();
+	        var data;
+	        var result = [];
+
+	        while (!(data = iterator.next()).done) {
+	            result.push(data.value);
+	        }
+	        return result;
+	    }
+
+	    var tag = getTag(value);
+	    var func = tag == mapTag ? mapToArray : (tag == setTag ? setToArray : values);
+
+	    return func(value);
+	};
+
+	function debounce(func, wait, opt) {
+	    if (typeof func !== 'function') {
+	        throw new TypeError('Expected a function');
+	    }
+
+	    var lastArgs;
+	    var lastThis;
+	    var maxWait;
+	    var result;
+	    var timerId;
+	    var lastCallTime;
+	    var lastInvokeTime = 0;
+	    var leading = false;
+	    var maxing = false;
+	    var trailing = true;
+
+	    var useRaf = (!wait && wait !== 0 && window && typeof window.requestAnimationFrame === 'function');
+
+	    wait = +wait || 0;
+
+	    if (isObject$1(opt)) {
+	        leading = !!opt.leading;
+	        maxing = 'maxWait' in opt;
+	        maxWait = maxing ? Math.max(+opt.maxWait || 0, wait) : maxWait;
+	        trailing = 'trailing' in opt ? !!opt.trailing : trailing;
+	    }
+
+	    function invokeFunc(time) {
+	        var args = lastArgs;
+	        var thisArg = lastThis;
+
+	        lastArgs = lastThis = undefined;
+	        lastInvokeTime = time;
+	        result = func.apply(thisArg, args);
+	        return result;
+	    }
+
+	    function startTimer(pendingFunc, wait) {
+	        if (useRaf) {
+	            window.cancelAnimationFrame(timerId);
+	            return window.requestAnimationFrame(pendingFunc);
+	        }
+	        return setTimeout(pendingFunc, wait);
+	    }
+
+	    function cancelTimer(id) {
+	        if (useRaf) {
+	            return window.cancelAnimationFrame(id);
+	        }
+	        clearTimeout(id);
+	    }
+
+	    function leadingEdge(time) {
+	        lastInvokeTime = time;
+	        timerId = startTimer(timerExpired, wait);
+	        return leading ? invokeFunc(time) : result;
+	    }
+
+	    function remainingWait(time) {
+	        var timeSinceLastCall = time - lastCallTime;
+	        var timeSinceLastInvoke = time - lastInvokeTime;
+	        var timeWaiting = wait - timeSinceLastCall;
+
+	        return maxing ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke) : timeWaiting;
+	    }
+
+	    function shouldInvoke(time) {
+	        var timeSinceLastCall = time - lastCallTime;
+	        var timeSinceLastInvoke = time - lastInvokeTime;
+
+	        return (lastCallTime === undefined || (timeSinceLastCall >= wait) || (timeSinceLastCall < 0) ||
+	            (maxing && timeSinceLastInvoke >= maxWait));
+	    }
+
+	    function timerExpired() {
+	        var time = Date.now();
+	        if (shouldInvoke(time)) {
+	            return trailingEdge(time);
+	        }
+	        timerId = startTimer(timerExpired, remainingWait(time));
+	    }
+
+	    function trailingEdge(time) {
+	        timerId = undefined;
+
+	        if (trailing && lastArgs) {
+	            return invokeFunc(time);
+	        }
+	        lastArgs = lastThis = undefined;
+	        return result;
+	    }
+
+	    function debounced() {
+	        var args = [], len = arguments.length;
+	        while ( len-- ) args[ len ] = arguments[ len ];
+
+	        var time = Date.now();
+	        var isInvoking = shouldInvoke(time);
+
+	        lastArgs = args;
+	        lastThis = this;
+	        lastCallTime = time;
+
+	        if (isInvoking) {
+	            if (timerId === undefined) {
+	                return leadingEdge(lastCallTime);
+	            }
+	            if (maxing) {
+	                timerId = startTimer(timerExpired, wait);
+	                return invokeFunc(lastCallTime);
+	            }
+	        }
+	        if (timerId === undefined) {
+	            timerId = startTimer(timerExpired, wait);
+	        }
+	        return result;
+	    }
+
+	    debounced.cancel = function () {
+	        if (timerId !== undefined) {
+	            cancelTimer(timerId);
+	        }
+	        lastInvokeTime = 0;
+	        lastArgs = lastCallTime = lastThis = timerId = undefined;
+	    };
+	    debounced.flush = function () { return timerId === undefined ? result : trailingEdge(Date.now()); };
+	    debounced.pending = function () { return timerId !== undefined; };
+
+	    return debounced;
+	}
+
+	var groupBy = function (collection, iteratee) {
+	    iteratee = getIteratee(iteratee, 2);
+
+	    return reduce(collection, function (result, value, key) {
+	        key = iteratee(value);
+	        if (hasOwnProperty.call(result, key)) {
+	            result[key].push(value);
+	        } else {
+	            assignValue(result, key, [value]);
+	        }
+	        return result;
+	    }, {});
+	};
+
+	var sortBy = function (collection, iteratees) {
+	    if ( iteratees === void 0 ) iteratees = [];
+
+	    if (collection == null) {
+	        return [];
+	    }
+
+	    var length = iteratees.length;
+	    if (length > 1 && isIterateeCall(collection, iteratees[0], iteratees[1])) {
+	        iteratees = [];
+	    } else if (length > 2 && isIterateeCall(iteratees[0], iteratees[1], iteratees[2])) {
+	        iteratees = [iteratees[0]];
+	    }
+
+	    if (!Array.isArray(iteratees)) {
+	        iteratees = [getIteratee(iteratees, 2)];
+	    }
+
+	    return baseOrderBy(collection, iteratees.flat(1), []);
+	};
+
+	var flattenDeep = function (array) {
+	    var length = array == null ? 0 : array.length;
+	    return length ? baseFlatten(array, Infinity) : [];
+	};
+
+	var without = function (array) {
+	  var values = [], len = arguments.length - 1;
+	  while ( len-- > 0 ) values[ len ] = arguments[ len + 1 ];
+
+	  return isArrayLike(array) ? diff(array, values) : [];
+	};
+
+	var difference = function (array) {
+	      var values = [], len = arguments.length - 1;
+	      while ( len-- > 0 ) values[ len ] = arguments[ len + 1 ];
+
+	      return isObjectLike(array) && isArrayLike(array) ?
+	        diff(array, values.flat(1)) : [];
+	};
+
+	var intersection$1 = function () {
+	    var arrays = [], len = arguments.length;
+	    while ( len-- ) arrays[ len ] = arguments[ len ];
+
+	    var mapped = arrays.map(function (array) { return isObjectLike(array) && isArrayLike(array) ?
+	            array : []; }
+	    );
+
+	    return mapped.length && mapped[0] === arrays[0] ?
+	        intersect(mapped) : [];
+	};
+
+	var union = function () {
+	    var arrays = [], len = arguments.length;
+	    while ( len-- ) arrays[ len ] = arguments[ len ];
+
+	    var array = arrays.flat(1);
+	    return uniq(array);
+	};
+
+	var has$2 = function (object, key) {
+	    if (object == null) {
+	        return false;
+	    }
+
+	    if (typeof key === 'string') {
+	        key = key.split('.');
+	    }
+
+	    var index = -1;
+	    var value = object;
+
+	    while (++index < key.length) {
+	        if (!value || !hasOwnProperty.call(value, key[index])) {
+	            return false;
+	        }
+	        value = value[key[index]];
+	    }
+
+	    return true;
+	};
+
+	var result = function (object, path, defaultValue) {
+	    path = castPath(path, object);
+
+	    var index = -1;
+	    var length = path.length;
+
+	    if (!length) {
+	        length = 1;
+	        object = undefined;
+	    }
+	    while (++index < length) {
+	        var value = object == null ? undefined : object[toKey(path[index])];
+	        if (value === undefined) {
+	            index = length;
+	            value = defaultValue;
+	        }
+	        object = typeof value === 'function' ? value.call(object) : value;
+	    }
+	    return object;
+	};
+
+	var omit = function (object) {
+	    var paths = [], len = arguments.length - 1;
+	    while ( len-- > 0 ) paths[ len ] = arguments[ len + 1 ];
+
+	    var result = {};
+	    if (object == null) {
+	        return result;
+	    }
+	    var isDeep = false;
+	    paths = paths.flat(1).map(function (path) {
+	        path = castPath(path, object);
+	        isDeep || (isDeep = path.length > 1);
+	        return path;
+	    });
+	    copyObject(object, getAllKeysIn(object), result);
+	    if (isDeep) {
+	        result = baseClone(result, true, true, true, function (value) { return isPlainObject(value) ? undefined : value; });
+	    }
+	    var length = paths.length;
+	    while (length--) {
+	        unset(result, paths[length]);
+	    }
+	    return result;
+	};
+
+	var pick = function (object) {
+	    var paths = [], len = arguments.length - 1;
+	    while ( len-- > 0 ) paths[ len ] = arguments[ len + 1 ];
+
+	    return object == null ? {} : basePick(object, paths.flat(Infinity));
+	};
+
+	var bindAll = function (object) {
+	    var methodNames = [], len = arguments.length - 1;
+	    while ( len-- > 0 ) methodNames[ len ] = arguments[ len + 1 ];
+
+	    methodNames.flat(1).forEach(function (key) {
+	        key = toKey(key);
+	        assignValue(object, key, object[key].bind(object));
+	    });
+	    return object;
+	};
+
+	var forIn = function (object, iteratee) {
+	    if ( iteratee === void 0 ) iteratee = function (value) { return value; };
+
+	    var index = -1;
+	    var iterable = Object(object);
+	    var props = isArrayLike(object) ? arrayLikeKeys(object, true) : keysIn(object);
+	    var length = props.length;
+
+	    while(length--) {
+	        var key = props[++index];
+	        if (iteratee(iterable[key], key, iterable) === false) {
+	            break;
+	        }
+	    }
+	};
+
+	var camelCase = function (string) {
+	  if ( string === void 0 ) string = '';
+
+	  return (
+	    words(("" + string).replace(/['\u2019]/g, ''))
+	        .reduce(function (result, word, index) {
+	            word = word.toLowerCase();
+	            return result + (index ? upperFirst(word) : word);
+	        }, '')
+	);
+	};
+
+	var idCounter = 0;
+
+	var uniqueId = function (prefix) {
+	    if ( prefix === void 0 ) prefix = '';
+
+	    var id = ++idCounter;
+	    return "" + prefix + id;
+	};
+
+	var merge = createAssigner(function (object, source, srcIndex, customizer) {
+	    baseMerge(object, source, srcIndex, customizer);
+	}, true);
+
 	var addClassNamePrefix = function(className) {
 
 	    if (!className) { return className; }
@@ -10821,19 +13298,27 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    var ns = namespace || svgNamespace;
 	    var fragment = document.createDocumentFragment();
-	    var queue = [json, fragment, ns];
-	    while (queue.length > 0) {
-	        ns = queue.pop();
-	        var parentNode = queue.pop();
-	        var siblingsDef = queue.pop();
-	        for (var i = 0, n = siblingsDef.length; i < n; i++) {
+
+	    var parseNode = function(siblingsDef, parentNode, ns) {
+	        for (var i = 0; i < siblingsDef.length; i++) {
 	            var nodeDef = siblingsDef[i];
+
+	            // Text node
+	            if (typeof nodeDef === 'string') {
+	                var textNode = document.createTextNode(nodeDef);
+	                parentNode.appendChild(textNode);
+	                continue;
+	            }
+
 	            // TagName
 	            if (!nodeDef.hasOwnProperty('tagName')) { throw new Error('json-dom-parser: missing tagName'); }
 	            var tagName = nodeDef.tagName;
+
+	            var node = (void 0);
+
 	            // Namespace URI
 	            if (nodeDef.hasOwnProperty('namespaceURI')) { ns = nodeDef.namespaceURI; }
-	            var node = document.createElementNS(ns, tagName);
+	            node = document.createElementNS(ns, tagName);
 	            var svg = (ns === svgNamespace);
 
 	            var wrapper = (svg) ? V : $;
@@ -10867,19 +13352,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            if (nodeDef.hasOwnProperty('groupSelector')) {
 	                var nodeGroups = nodeDef.groupSelector;
 	                if (!Array.isArray(nodeGroups)) { nodeGroups = [nodeGroups]; }
-	                for (var j = 0, m = nodeGroups.length; j < m; j++) {
+	                for (var j = 0; j < nodeGroups.length; j++) {
 	                    var nodeGroup = nodeGroups[j];
 	                    var group = groupSelectors[nodeGroup];
 	                    if (!group) { group = groupSelectors[nodeGroup] = []; }
 	                    group.push(node);
 	                }
 	            }
+
 	            parentNode.appendChild(node);
+
 	            // Children
 	            var childrenDef = nodeDef.children;
-	            if (Array.isArray(childrenDef)) { queue.push(childrenDef, node, ns); }
+	            if (Array.isArray(childrenDef)) {
+	                parseNode(childrenDef, node, ns);
+	            }
 	        }
-	    }
+	    };
+	    parseNode(json, fragment, ns);
 	    return {
 	        fragment: fragment,
 	        selectors: selectors,
@@ -11036,27 +13526,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var normalizeEvent = function(evt) {
 
-	    var normalizedEvent = evt;
-	    var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
-	    if (touchEvt) {
-	        for (var property in evt) {
-	            // copy all the properties from the input event that are not
-	            // defined on the touch event (functions included).
-	            if (touchEvt[property] === undefined) {
-	                touchEvt[property] = evt[property];
+	    if (evt.normalized) { return evt; }
+
+	    var originalEvent = evt.originalEvent;
+	    var target = evt.target;
+
+	    // If the event is a touch event, normalize it to a mouse event.
+	    var touch = originalEvent && originalEvent.changedTouches && originalEvent.changedTouches[0];
+	    if (touch) {
+	        for (var property in touch) {
+	            // copy all the properties from the first touch that are not
+	            // defined on TouchEvent (clientX, clientY, pageX, pageY, screenX, screenY, identifier, ...)
+	            if (evt[property] === undefined) {
+	                evt[property] = touch[property];
 	            }
 	        }
-	        normalizedEvent = touchEvt;
 	    }
-
 	    // IE: evt.target could be set to SVGElementInstance for SVGUseElement
-	    var target = normalizedEvent.target;
 	    if (target) {
 	        var useElement = target.correspondingUseElement;
-	        if (useElement) { normalizedEvent.target = useElement; }
+	        if (useElement) { evt.target = useElement; }
 	    }
 
-	    return normalizedEvent;
+	    evt.normalized = true;
+
+	    return evt;
 	};
 
 	var normalizeWheel = function(evt) {
@@ -11307,6 +13801,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return eolWords.filter(function (word) { return word !== ''; });
 	}
 
+
+	function getLineHeight(heightValue, textElement) {
+	    if (heightValue === null) {
+	        // Default 1em lineHeight
+	        return textElement.getBBox().height;
+	    }
+
+	    switch (heightValue.unit) {
+	        case 'em':
+	            return textElement.getBBox().height * heightValue.value;
+	        case 'px':
+	        case '':
+	            return heightValue.value;
+	    }
+	}
+
 	var breakText = function(text, size, styles, opt) {
 	    if ( styles === void 0 ) styles = {};
 	    if ( opt === void 0 ) opt = {};
@@ -11504,23 +14014,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	            if (lineHeight === undefined && textNode.data !== '') {
 
-	                var heightValue;
-
 	                // use the same defaults as in V.prototype.text
 	                if (styles.lineHeight === 'auto') {
-	                    heightValue = { value: 1.5, unit: 'em' };
+	                    lineHeight = getLineHeight({ value: 1.5, unit: 'em' }, textElement);
 	                } else {
-	                    heightValue = parseCssNumeric(styles.lineHeight, ['em']) || { value: 1, unit: 'em' };
-	                }
+	                    var parsed = parseCssNumeric(styles.lineHeight, ['em', 'px', '']);
 
-	                lineHeight = heightValue.value;
-	                if (heightValue.unit === 'em') {
-	                    lineHeight *= textElement.getBBox().height;
+	                    lineHeight = getLineHeight(parsed, textElement);
 	                }
 	            }
 
 	            if (lineHeight * lines.length > height) {
-
 	                // remove overflowing lines
 	                lastL = Math.floor(height / lineHeight) - 1;
 	            }
@@ -12485,103 +14989,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	};
 
-	// Deprecated
-	// Copy all the properties to the first argument from the following arguments.
-	// All the properties will be overwritten by the properties from the following
-	// arguments. Inherited properties are ignored.
-	var mixin = _.assign;
-
-	// Deprecated
-	// Copy all properties to the first argument from the following
-	// arguments only in case if they don't exists in the first argument.
-	// All the function propererties in the first argument will get
-	// additional property base pointing to the extenders same named
-	// property function's call method.
-	var supplement = _.defaults;
-
-	// Same as `mixin()` but deep version.
-	var deepMixin = mixin;
-
-	// Deprecated
-	// Same as `supplement()` but deep version.
-	var deepSupplement = _.defaultsDeep;
-
-	// Replacements for deprecated functions
-	var assign = _.assign;
-	var defaults = _.defaults;
-	// no better-named replacement for `deepMixin`
-	var defaultsDeep = _.defaultsDeep;
-
-	// Lodash 3 vs 4 incompatible
-	var invoke = _.invokeMap || _.invoke;
-	var sortedIndex = _.sortedIndexBy || _.sortedIndex;
-	var uniq = _.uniqBy || _.uniq;
-
-	var clone = _.clone;
-	var cloneDeep = _.cloneDeep;
-	var isEmpty = _.isEmpty;
-	var isEqual = _.isEqual;
-	var isFunction = _.isFunction;
-	var isPlainObject = _.isPlainObject;
-	var toArray = _.toArray;
-	var debounce = _.debounce;
-	var groupBy = _.groupBy;
-	var sortBy = _.sortBy;
-	var flattenDeep = _.flattenDeep;
-	var without = _.without;
-	var difference = _.difference;
-	var intersection$1 = _.intersection;
-	var union = _.union;
-	var has$2 = _.has;
-	var result = _.result;
-	var omit = _.omit;
-	var pick = _.pick;
-	var bindAll = _.bindAll;
-	var forIn = _.forIn;
-	var camelCase = _.camelCase;
-	var uniqueId = _.uniqueId;
-
-	var merge = function() {
-	    if (_.mergeWith) {
-	        var args = Array.from(arguments);
-	        var last = args[args.length - 1];
-
-	        var customizer = isFunction(last) ? last : noop;
-	        args.push(function(a, b) {
-	            var customResult = customizer(a, b);
-	            if (customResult !== undefined) {
-	                return customResult;
-	            }
-
-	            if (Array.isArray(a) && !Array.isArray(b)) {
-	                return b;
-	            }
-	        });
-
-	        return _.mergeWith.apply(this, args);
-	    }
-	    return _.merge.apply(this, arguments);
-	};
-
-	var isBoolean = function(value) {
-	    var toString = Object.prototype.toString;
-	    return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
-	};
-
-	var isObject$1 = function(value) {
-	    return !!value && (typeof value === 'object' || typeof value === 'function');
-	};
-
-	var isNumber = function(value) {
-	    var toString = Object.prototype.toString;
-	    return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === '[object Number]');
-	};
-
-	var isString = function(value) {
-	    var toString = Object.prototype.toString;
-	    return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
-	};
-
 	var noop = function() {
 	};
 
@@ -12649,6 +15056,33 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    return cloneMap;
 	}
+
+	var validPropertiesList = ['checked', 'selected', 'disabled', 'readOnly', 'contentEditable', 'value', 'indeterminate'];
+
+	var validProperties = validPropertiesList.reduce(function (acc, key) {
+	    acc[key] = true;
+	    return acc;
+	}, {});
+
+	var props$1 = {
+	    qualify: function(properties) {
+	        return isPlainObject(properties);
+	    },
+	    set: function(properties, _, node) {
+	        Object.keys(properties).forEach(function(key) {
+	            if (validProperties[key] && key in node) {
+	                var value = properties[key];
+	                if (node.tagName === 'SELECT' && Array.isArray(value)) {
+	                    Array.from(node.options).forEach(function(option, index) {
+	                        option.selected = value.includes(option.value);
+	                    });
+	                } else {
+	                    node[key] = value;
+	                }
+	            }
+	        });
+	    }
+	};
 
 	function setWrapper(attrName, dimension) {
 	    return function(value, refBBox) {
@@ -12966,7 +15400,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            if (isCalcAttribute(x)) {
 	                textAttrs.x = evalCalcAttribute(x, refBBox);
 	            }
-	            
+
 	            var fontSizeAttr = attrs['font-size'] || attrs['fontSize'];
 	            if (isCalcAttribute(fontSizeAttr)) {
 	                fontSizeAttr = evalCalcAttribute(fontSizeAttr, refBBox);
@@ -13132,6 +15566,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            $(node).html(html + '');
 	        }
 	    },
+
+	    // Properties setter (set various properties on the node)
+	    props: props$1,
 
 	    ref: {
 	        // We do not set `ref` attribute directly on an element.
@@ -13348,7 +15785,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    };
 	});
-
 
 	// Aliases
 	attributesNS.refR = attributesNS.refRInscribed;
@@ -13575,16 +16011,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    toFront: function(opt) {
-
 	        var graph = this.graph;
 	        if (graph) {
-
 	            opt = opt || {};
 
-	            var z = graph.maxZIndex();
-
 	            var cells;
-
 	            if (opt.deep) {
 	                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
 	                cells.unshift(this);
@@ -13592,13 +16023,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                cells = [this];
 	            }
 
-	            z = z - cells.length + 1;
+	            var sortedCells = sortBy(cells, function (cell) { return cell.z(); });
+
+	            var maxZ = graph.maxZIndex();
+	            var z = maxZ - cells.length + 1;
 
 	            var collection = graph.get('cells');
+
 	            var shouldUpdate = (collection.indexOf(this) !== (collection.length - cells.length));
 	            if (!shouldUpdate) {
-	                shouldUpdate = cells.some(function(cell, index) {
-	                    return cell.get('z') !== z + index;
+	                shouldUpdate = sortedCells.some(function(cell, index) {
+	                    return cell.z() !== z + index;
 	                });
 	            }
 
@@ -13607,7 +16042,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	                z = z + cells.length;
 
-	                cells.forEach(function(cell, index) {
+	                sortedCells.forEach(function(cell, index) {
 	                    cell.set('z', z + index, opt);
 	                });
 
@@ -13619,16 +16054,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    toBack: function(opt) {
-
 	        var graph = this.graph;
 	        if (graph) {
-
 	            opt = opt || {};
 
-	            var z = graph.minZIndex();
-
 	            var cells;
-
 	            if (opt.deep) {
 	                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
 	                cells.unshift(this);
@@ -13636,11 +16066,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                cells = [this];
 	            }
 
+	            var sortedCells = sortBy(cells, function (cell) { return cell.z(); });
+
+	            var z = graph.minZIndex();
+
 	            var collection = graph.get('cells');
+
 	            var shouldUpdate = (collection.indexOf(this) !== 0);
 	            if (!shouldUpdate) {
-	                shouldUpdate = cells.some(function(cell, index) {
-	                    return cell.get('z') !== z + index;
+	                shouldUpdate = sortedCells.some(function(cell, index) {
+	                    return cell.z() !== z + index;
 	                });
 	            }
 
@@ -13649,7 +16084,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	                z -= cells.length;
 
-	                cells.forEach(function(cell, index) {
+	                sortedCells.forEach(function(cell, index) {
 	                    cell.set('z', z + index, opt);
 	                });
 
@@ -13891,18 +16326,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                var property = pathArray[0];
 	                var pathArrayLength = pathArray.length;
 
-	                opt = opt || {};
-	                opt.propertyPath = path;
-	                opt.propertyValue = value;
-	                opt.propertyPathArray = pathArray;
-
-	                if (pathArrayLength === 1) {
-	                    // Property is not nested. We can simply use `set()`.
-	                    return this.set(property, value, opt);
+	                var options$1 = opt || {};
+	                options$1.propertyPath = path;
+	                options$1.propertyValue = value;
+	                options$1.propertyPathArray = pathArray;
+	                if (!('rewrite' in options$1)) {
+	                    options$1.rewrite = false;
 	                }
 
 	                var update = {};
-	                // Initialize the nested object. Subobjects are either arrays or objects.
+	                // Initialize the nested object. Sub-objects are either arrays or objects.
 	                // An empty array is created if the sub-key is an integer. Otherwise, an empty object is created.
 	                // Note that this imposes a limitation on object keys one can use with Inspector.
 	                // Pure integer keys will cause issues and are therefore not allowed.
@@ -13922,12 +16355,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                var baseAttributes = merge({}, this.attributes);
 	                // if rewrite mode enabled, we replace value referenced by path with
 	                // the new one (we don't merge).
-	                opt.rewrite && unsetByPath(baseAttributes, path, '/');
+	                options$1.rewrite && unsetByPath(baseAttributes, path, '/');
 
 	                // Merge update with the model attributes.
 	                var attributes = merge(baseAttributes, update);
 	                // Finally, set the property to the updated attributes.
-	                return this.set(property, attributes[property], opt);
+	                return this.set(property, attributes[property], options$1);
 
 	            } else {
 
@@ -13935,7 +16368,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 	        }
 
-	        return this.set(merge({}, this.attributes, props), value);
+	        var options = value || {};
+	        // Note: '' is not the path to the root. It's a path with an empty string i.e. { '': {}}.
+	        options.propertyPath = null;
+	        options.propertyValue = props;
+	        options.propertyPathArray = [];
+	        if (!('rewrite' in options)) {
+	            options.rewrite = false;
+	        }
+
+	        return this.set(merge({}, this.attributes, props), options);
 	    },
 
 	    // A convenient way to unset nested properties
@@ -14195,6 +16637,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return new Point(0, 0);
 	    },
 
+	    z: function() {
+	        return this.get('z') || 0;
+	    },
+
 	    getPointFromConnectedLink: function() {
 
 	        // To be overridden
@@ -14336,68 +16782,91 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return build(svg);
 	}
 
+	function buildNode(node) {
+	    var markupNode = {};
+	    var tagName = node.tagName;
+	    var attributes = node.attributes;
+	    var namespaceURI = node.namespaceURI;
+	    var style = node.style;
+	    var childNodes = node.childNodes;
+
+	    markupNode.namespaceURI = namespaceURI;
+	    markupNode.tagName = (namespaceURI === V.namespace.xhtml)
+	        // XHTML documents must use lower case for all HTML element and attribute names.
+	        // The tagName property returns upper case value for HTML elements.
+	        // e.g. <DIV> vs.<div/>
+	        ? tagName.toLowerCase()
+	        : tagName;
+
+	    var stylesObject = {};
+	    for (var i = style.length; i--;) {
+	        var nameString = style[i];
+	        stylesObject[nameString] = style.getPropertyValue(nameString);
+	    }
+	    markupNode.style = stylesObject;
+
+	    // selector fallbacks to tagName
+	    var selectorAttribute = attributes.getNamedItem('@selector');
+	    if (selectorAttribute) {
+	        markupNode.selector = selectorAttribute.value;
+	        attributes.removeNamedItem('@selector');
+	    }
+
+	    var groupSelectorAttribute = attributes.getNamedItem('@group-selector');
+	    if (groupSelectorAttribute) {
+	        var groupSelectors = groupSelectorAttribute.value.split(',');
+	        markupNode.groupSelector = groupSelectors.map(function (s) { return s.trim(); });
+
+	        attributes.removeNamedItem('@group-selector');
+	    }
+
+	    var className = attributes.getNamedItem('class');
+	    if (className) {
+	        markupNode.className = className.value;
+	    }
+
+	    var children = [];
+	    childNodes.forEach(function (node) {
+	        switch (node.nodeType) {
+	            case Node.TEXT_NODE: {
+	                var trimmedText = node.data.replace(/\s\s+/g, ' ');
+	                if (trimmedText.trim()) {
+	                    children.push(trimmedText);
+	                }
+	                break;
+	            }
+	            case Node.ELEMENT_NODE: {
+	                children.push(buildNode(node));
+	                break;
+	            }
+	            default:
+	                break;
+	        }
+	    });
+	    if (children.length) {
+	        markupNode.children = children;
+	    }
+
+	    var nodeAttrs = {};
+
+	    Array.from(attributes).forEach(function (nodeAttribute) {
+	        var name = nodeAttribute.name;
+	        var value = nodeAttribute.value;
+	        nodeAttrs[name] = value;
+	    });
+
+	    if (Object.keys(nodeAttrs).length > 0) {
+	        markupNode.attributes = nodeAttrs;
+	    }
+
+	    return markupNode;
+	}
+
 	function build(root) {
 	    var markup = [];
 
 	    Array.from(root.children).forEach(function (node) {
-	        var markupNode = {};
-	        var tagName = node.tagName;
-	        var attributes = node.attributes;
-	        var textContent = node.textContent;
-	        var namespaceURI = node.namespaceURI;
-	        var style = node.style;
-
-	        markupNode.tagName = tagName;
-	        markupNode.namespaceURI = namespaceURI;
-
-	        var stylesObject = {};
-	        for (var i = style.length; i--;) {
-	            var nameString = style[i];
-	            stylesObject[nameString] = style.getPropertyValue(nameString);
-	        }
-	        markupNode.style = stylesObject;
-
-	        // selector fallbacks to tagName
-	        var selectorAttribute = attributes.getNamedItem('@selector');
-	        if (selectorAttribute) {
-	            markupNode.selector = selectorAttribute.value;
-	            attributes.removeNamedItem('@selector');
-	        }
-
-	        var groupSelectorAttribute = attributes.getNamedItem('@group-selector');
-	        if (groupSelectorAttribute) {
-	            var groupSelectors = groupSelectorAttribute.value.split(',');
-	            markupNode.groupSelector = groupSelectors.map(function (s) { return s.trim(); });
-
-	            attributes.removeNamedItem('@group-selector');
-	        }
-
-	        var className = attributes.getNamedItem('class');
-	        if (className) {
-	            markupNode.className = className.value;
-	        }
-
-	        if (textContent) {
-	            markupNode.textContent = textContent;
-	        }
-
-	        var nodeAttrs = {};
-
-	        Array.from(attributes).forEach(function (nodeAttribute) {
-	            var name = nodeAttribute.name;
-	            var value = nodeAttribute.value;
-	            nodeAttrs[name] = value;
-	        });
-
-	        if (Object.keys(nodeAttrs).length > 0) {
-	            markupNode.attributes = nodeAttrs;
-	        }
-
-	        if (node.childElementCount > 0) {
-	            markupNode.children = build(node);
-	        }
-
-	        markup.push(markupNode);
+	        markup.push(buildNode(node));
 	    });
 
 	    return markup;
@@ -14508,14 +16977,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		format: format,
 		template: template,
 		toggleFullScreen: toggleFullScreen,
+		isBoolean: isBoolean,
+		isObject: isObject$1,
+		isNumber: isNumber,
+		isString: isString,
 		mixin: mixin,
-		supplement: supplement,
 		deepMixin: deepMixin,
-		deepSupplement: deepSupplement,
-		assign: assign,
+		supplement: supplement,
 		defaults: defaults,
+		deepSupplement: deepSupplement,
 		defaultsDeep: defaultsDeep,
+		assign: assign,
 		invoke: invoke,
+		invokeProperty: invokeProperty,
 		sortedIndex: sortedIndex,
 		uniq: uniq,
 		clone: clone,
@@ -14542,10 +17016,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		camelCase: camelCase,
 		uniqueId: uniqueId,
 		merge: merge,
-		isBoolean: isBoolean,
-		isObject: isObject$1,
-		isNumber: isNumber,
-		isString: isString,
 		noop: noop,
 		cloneCells: cloneCells,
 		svg: svg
@@ -14757,12 +17227,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        x: 0,
 	        y: 0,
 	        angle: 0,
-	        attrs: {
-	            '.': {
-	                y: '0',
-	                'text-anchor': 'start'
-	            }
-	        }
+	        attrs: {}
 	    });
 	}
 
@@ -14782,14 +17247,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        ty = 0;
 	        textAnchor = 'start';
 	    } else if (angle < x[0]) {
-	        y = '0';
 	        tx = 0;
 	        ty = -offset;
 	        if (autoOrient) {
 	            orientAngle = -90;
 	            textAnchor = 'start';
+	            y = '.3em';
 	        } else {
 	            textAnchor = 'middle';
+	            y = '0';
 	        }
 	    } else if (angle < x[3]) {
 	        y = '.3em';
@@ -14797,14 +17263,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        ty = 0;
 	        textAnchor = 'end';
 	    } else {
-	        y = '.6em';
 	        tx = 0;
 	        ty = offset;
 	        if (autoOrient) {
 	            orientAngle = 90;
 	            textAnchor = 'start';
+	            y = '.3em';
 	        } else {
 	            textAnchor = 'middle';
+	            y = '.6em';
 	        }
 	    }
 
@@ -14813,12 +17280,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        x: round(tx),
 	        y: round(ty),
 	        angle: orientAngle,
-	        attrs: {
-	            '.': {
-	                y: y,
-	                'text-anchor': textAnchor
-	            }
-	        }
+	        attrs: { labelText: { y: y, textAnchor: textAnchor }}
 	    });
 	}
 
@@ -14851,14 +17313,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        ty = 0;
 	        textAnchor = 'end';
 	    } else if (angle < bBoxAngles[0]) {
-	        y = '.6em';
 	        tx = 0;
 	        ty = offset;
 	        if (autoOrient) {
 	            orientAngle = 90;
 	            textAnchor = 'start';
+	            y = '.3em';
 	        } else {
 	            textAnchor = 'middle';
+	            y = '.6em';
 	        }
 	    } else if (angle < bBoxAngles[3]) {
 	        y = '.3em';
@@ -14866,14 +17329,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        ty = 0;
 	        textAnchor = 'start';
 	    } else {
-	        y = '0em';
 	        tx = 0;
 	        ty = -offset;
 	        if (autoOrient) {
 	            orientAngle = -90;
 	            textAnchor = 'start';
+	            y = '.3em';
 	        } else {
 	            textAnchor = 'middle';
+	            y = '0';
 	        }
 	    }
 
@@ -14882,12 +17346,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        x: round(tx),
 	        y: round(ty),
 	        angle: orientAngle,
-	        attrs: {
-	            '.': {
-	                y: y,
-	                'text-anchor': textAnchor
-	            }
-	        }
+	        attrs: { labelText: { y: y, textAnchor: textAnchor }}
 	    });
 	}
 
@@ -14924,32 +17383,44 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        y: round(offset.y),
 	        angle: autoOrient ? orientAngle : 0,
 	        attrs: {
-	            '.': {
+	            labelText: {
 	                y: y,
-	                'text-anchor': textAnchor
+	                textAnchor: textAnchor
 	            }
 	        }
 	    });
 	}
 
-	var manual = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, elBBox);
+	var manual = function(_portPosition, _elBBox, opt) {
+	    return labelAttributes(opt);
 	};
 
 	var left$1 = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' }}});
+	    return labelAttributes(opt, {
+	        x: -15,
+	        attrs: { labelText: { y: '.3em', textAnchor: 'end' }},
+	    });
 	};
 
 	var right$1 = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, { x: 15, attrs: { '.': { y: '.3em', 'text-anchor': 'start' }}});
+	    return labelAttributes(opt, {
+	        x: 15,
+	        attrs: { labelText: { y: '.3em', textAnchor: 'start' }},
+	    });
 	};
 
 	var top$1 = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, { y: -15, attrs: { '.': { 'text-anchor': 'middle' }}});
+	    return labelAttributes(opt, {
+	        y: -15,
+	        attrs: { labelText: { y: '0', textAnchor: 'middle' }},
+	    });
 	};
 
 	var bottom$1 = function(portPosition, elBBox, opt) {
-	    return labelAttributes(opt, { y: 15, attrs: { '.': { y: '.6em', 'text-anchor': 'middle' }}});
+	    return labelAttributes(opt, {
+	        y: 15,
+	        attrs: { labelText: { y: '.6em', textAnchor: 'middle' }},
+	    });
 	};
 
 	var outsideOriented = function(portPosition, elBBox, opt) {
@@ -15043,7 +17514,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        '</g>'
 	    ].join(''),
 
-	    // may be overwritten by user to change default label (its markup, attrs, position)
+	    // may be overwritten by user to change default label (its markup, size, attrs, position)
 	    defaultLabel: undefined,
 
 	    // deprecated
@@ -16363,14 +18834,34 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            portContainerSelectors = portSelectors || labelSelectors || {};
 	        }
 
+	        // The `portRootSelector` points to the root SVGNode of the port.
+	        // Either the implicit wrapping group <g/> in case the port consist of multiple SVGNodes.
+	        // Or the single SVGNode of the port.
 	        var portRootSelector = 'portRoot';
+	        // The `labelRootSelector` points to the root SVGNode of the label.
+	        var labelRootSelector = 'labelRoot';
+	        // The `labelTextSelector` points to all text SVGNodes of the label.
+	        var labelTextSelector = 'labelText';
+
 	        if (!(portRootSelector in portContainerSelectors)) {
 	            portContainerSelectors[portRootSelector] = portElement.node;
 	        }
 
-	        var labelRootSelector = 'labelRoot';
-	        if (labelElement && !(labelRootSelector in portContainerSelectors)) {
-	            portContainerSelectors[labelRootSelector] = labelElement.node;
+	        if (labelElement) {
+	            var labelNode = labelElement.node;
+	            if (!(labelRootSelector in portContainerSelectors)) {
+	                portContainerSelectors[labelRootSelector] = labelNode;
+	            }
+	            if (!(labelTextSelector in portContainerSelectors)) {
+	                // If the label is a <text> element, we can use it directly.
+	                // Otherwise, we need to find the <text> element within the label.
+	                var labelTextNode = (labelElement.tagName() === 'TEXT')
+	                    ? labelNode
+	                    : Array.from(labelNode.querySelectorAll('text'));
+	                portContainerSelectors[labelTextSelector] = labelTextNode;
+	                if (!labelSelectors) { labelSelectors = {}; }
+	                labelSelectors[labelTextSelector] = labelTextNode;
+	            }
 	        }
 
 	        portContainerElement.append(portElement.addClass('joint-port-body'));
@@ -16404,20 +18895,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            var portId = metrics.portId;
 	            var cached = this._portElementsCache[portId] || {};
 	            var portTransformation = metrics.portTransformation;
-	            this.applyPortTransform(cached.portElement, portTransformation);
-	            this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
-	                rootBBox: new Rect(metrics.portSize),
-	                selectors: cached.portSelectors
-	            });
-
 	            var labelTransformation = metrics.labelTransformation;
 	            if (labelTransformation && cached.portLabelElement) {
-	                this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
 	                this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
 	                    rootBBox: new Rect(metrics.labelSize),
 	                    selectors: cached.portLabelSelectors
 	                });
+	                this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
 	            }
+	            this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
+	                rootBBox: new Rect(metrics.portSize),
+	                selectors: cached.portSelectors
+	            });
+	            this.applyPortTransform(cached.portElement, portTransformation);
 	        }
 	    },
 
@@ -16792,52 +19282,130 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    fitEmbeds: function(opt) {
+
+	        return this.fitToChildren(opt);
+	    },
+
+	    fitToChildren: function(opt) {
 	        if ( opt === void 0 ) opt = {};
 
 
 	        // Getting the children's size and position requires the collection.
-	        // Cell.get('embeds') helds an array of cell ids only.
+	        // Cell.get('embeds') holds an array of cell ids only.
 	        var ref = this;
 	        var graph = ref.graph;
 	        if (!graph) { throw new Error('Element must be part of a graph.'); }
 
-	        var embeddedCells = this.getEmbeddedCells().filter(function (cell) { return cell.isElement(); });
-	        if (embeddedCells.length === 0) { return this; }
+	        var childElements = this.getEmbeddedCells().filter(function (cell) { return cell.isElement(); });
+	        if (childElements.length === 0) { return this; }
 
 	        this.startBatch('fit-embeds', opt);
 
 	        if (opt.deep) {
-	            // Recursively apply fitEmbeds on all embeds first.
-	            invoke(embeddedCells, 'fitEmbeds', opt);
+	            // `opt.deep = true` means "fit to all descendants".
+	            // As the first action of the fitting algorithm, recursively apply `fitToChildren()` on all descendants.
+	            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant, then go up (= this element).
+	            invoke(childElements, 'fitToChildren', opt);
 	        }
 
-	        // Compute cell's size and position based on the children bbox
-	        // and given padding.
-	        var ref$1 = normalizeSides(opt.padding);
-	        var left = ref$1.left;
-	        var right = ref$1.right;
-	        var top = ref$1.top;
-	        var bottom = ref$1.bottom;
-	        var ref$2 = graph.getCellsBBox(embeddedCells);
-	        var x = ref$2.x;
-	        var y = ref$2.y;
-	        var width = ref$2.width;
-	        var height = ref$2.height;
-	        // Apply padding computed above to the bbox.
-	        x -= left;
-	        y -= top;
-	        width += left + right;
-	        height += bottom + top;
-
-	        // Set new element dimensions finally.
-	        this.set({
-	            position: { x: x, y: y },
-	            size: { width: width, height: height }
-	        }, opt);
+	        // Set new size and position of this element, based on:
+	        // - union of bboxes of all children
+	        // - inflated by given `opt.padding`
+	        this._fitToElements(Object.assign({ elements: childElements }, opt));
 
 	        this.stopBatch('fit-embeds');
 
 	        return this;
+	    },
+
+	    fitParent: function(opt) {
+	        if ( opt === void 0 ) opt = {};
+
+
+	        var ref = this;
+	        var graph = ref.graph;
+	        if (!graph) { throw new Error('Element must be part of a graph.'); }
+
+	        // When `opt.deep = true`, we want `opt.terminator` to be the last ancestor processed.
+	        // If the current element is `opt.terminator`, it means that this element has already been processed as parent so we can exit now.
+	        if (opt.deep && opt.terminator && ((opt.terminator === this) || (opt.terminator === this.id))) { return this; }
+
+	        var parentElement = this.getParentCell();
+	        if (!parentElement || !parentElement.isElement()) { return this; }
+
+	        // Get all children of parent element (i.e. this element + any sibling elements).
+	        var siblingElements = parentElement.getEmbeddedCells().filter(function (cell) { return cell.isElement(); });
+	        if (siblingElements.length === 0) { return this; }
+
+	        this.startBatch('fit-parent', opt);
+
+	        // Set new size and position of parent element, based on:
+	        // - union of bboxes of all children of parent element (i.e. this element + any sibling elements)
+	        // - inflated by given `opt.padding`
+	        parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
+
+	        if (opt.deep) {
+	            // `opt.deep = true` means "fit all ancestors to their respective children".
+	            // As the last action of the fitting algorithm, recursively apply `fitParent()` on all ancestors.
+	            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant (= this element), then go up.
+	            parentElement.fitParent(opt);
+	        }
+
+	        this.stopBatch('fit-parent');
+
+	        return this;
+	    },
+
+	    // Assumption: This element is part of a graph.
+	    _fitToElements: function(opt) {
+	        if ( opt === void 0 ) opt = {};
+
+
+	        var elementsBBox = this.graph.getCellsBBox(opt.elements);
+	        // If no `opt.elements` were provided, do nothing.
+	        if (!elementsBBox) { return; }
+
+	        var expandOnly = opt.expandOnly;
+	        var shrinkOnly = opt.shrinkOnly;
+	        // This combination is meaningless, do nothing.
+	        if (expandOnly && shrinkOnly) { return; }
+
+	        // Calculate new size and position of this element based on:
+	        // - union of bboxes of `opt.elements`
+	        // - inflated by `opt.padding` (if not provided, all four properties = 0)
+	        var x = elementsBBox.x;
+	        var y = elementsBBox.y;
+	        var width = elementsBBox.width;
+	        var height = elementsBBox.height;
+	        var ref = normalizeSides(opt.padding);
+	        var left = ref.left;
+	        var right = ref.right;
+	        var top = ref.top;
+	        var bottom = ref.bottom;
+	        x -= left;
+	        y -= top;
+	        width += left + right;
+	        height += bottom + top;
+	        var resultBBox = new Rect(x, y, width, height);
+
+	        if (expandOnly) {
+	            // Non-shrinking is enforced by taking union of this element's current bbox with bbox calculated from `opt.elements`.
+	            resultBBox = this.getBBox().union(resultBBox);
+
+	        } else if (shrinkOnly) {
+	            // Non-expansion is enforced by taking intersection of this element's current bbox with bbox calculated from `opt.elements`.
+	            var intersectionBBox = this.getBBox().intersect(resultBBox);
+	            // If all children are outside this element's current bbox, then `intersectionBBox` is `null` - does not make sense, do nothing.
+	            if (!intersectionBBox) { return; }
+
+	            resultBBox =  intersectionBBox;
+	        }
+
+	        // Set the new size and position of this element.
+	        this.set({
+	            position: { x: resultBBox.x, y: resultBBox.y },
+	            size: { width: resultBBox.width, height: resultBBox.height }
+	        }, opt);
 	    },
 
 	    // Rotate element by `angle` degrees, optionally around `origin` point.
@@ -18076,6 +20644,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    UPDATE_PRIORITY: 2,
 	    FLAG_INSERT: 1<<30,
 	    FLAG_REMOVE: 1<<29,
+	    FLAG_INIT: 1<<28,
 
 	    constructor: function(options) {
 
@@ -18099,6 +20668,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        } else {
 	            this.$el.remove();
 	        }
+	    },
+
+	    isMounted: function() {
+	        return this.el.parentNode !== null;
 	    },
 
 	    renderChildren: function(children) {
@@ -18550,6 +21123,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    node: null,
 	    updateRequested: false,
 	    transformGroup: null,
+	    detachedTransformGroup: null,
 
 	    requestUpdate: function requestUpdate(cellView, nodeSelector) {
 	        var paper = cellView.paper;
@@ -18630,12 +21204,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var el = ref.el;
 	        var options = ref.options;
 	        var transformGroup = ref.transformGroup;
+	        var detachedTransformGroup = ref.detachedTransformGroup;
 	        if (!MOUNTABLE || transformGroup) { return; }
 	        var cellViewRoot = cellView.vel;
 	        var paper = cellView.paper;
 	        var layerName = options.layer;
 	        if (layerName) {
-	            var vGroup = this.transformGroup = V('g').addClass('highlight-transform').append(el);
+	            var vGroup;
+	            if (detachedTransformGroup) {
+	                vGroup = detachedTransformGroup;
+	                this.detachedTransformGroup = null;
+	            } else {
+	                vGroup = V('g').addClass('highlight-transform').append(el);
+	            }
+	            this.transformGroup = vGroup;
 	            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
 	        } else {
 	            // TODO: prepend vs append
@@ -18654,6 +21236,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (!MOUNTABLE) { return; }
 	        if (transformGroup) {
 	            this.transformGroup = null;
+	            this.detachedTransformGroup = transformGroup;
 	            transformGroup.remove();
 	        } else {
 	            vel.remove();
@@ -18855,6 +21438,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	    },
 
+	    unmount: function unmount(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.unmount(); });
+	    },
+
+	    mount: function mount(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.mount(); });
+	    },
+
 	    uniqueId: function uniqueId(node, opt) {
 	        if ( opt === void 0 ) opt = '';
 
@@ -18869,6 +21464,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    CONNECTING: 'connecting',
 	    MAGNET_AVAILABILITY: 'magnetAvailability',
 	    ELEMENT_AVAILABILITY: 'elementAvailability'
+	};
+
+	var Flags = {
+	    TOOLS: 'TOOLS',
 	};
 
 	// CellView base view and controller.
@@ -18988,10 +21587,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.$el.data('view', this);
 
 	        this.startListening();
-	    },
-
-	    onMount: function onMount() {
-	        // To be overridden
 	    },
 
 	    startListening: function() {
@@ -19841,6 +22436,26 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        processedAttrs.normal = roProcessedAttrs.normal;
 	    },
 
+	    // Lifecycle methods
+
+	    // Called when the view is attached to the DOM,
+	    // as result of `cell.addTo(graph)` being called (isInitialMount === true)
+	    // or `paper.options.viewport` returning `true` (isInitialMount === false).
+	    onMount: function onMount(isInitialMount) {
+	        if (isInitialMount) { return; }
+	        this.mountTools();
+	        HighlighterView.mount(this);
+	    },
+
+	    // Called when the view is detached from the DOM,
+	    // as result of `paper.options.viewport` returning `false`.
+	    onDetach: function onDetach() {
+	        this.unmountTools();
+	        HighlighterView.unmount(this);
+	    },
+
+	    // Called when the view is removed from the DOM
+	    // as result of `cell.remove()`.
 	    onRemove: function() {
 	        this.removeTools();
 	        this.removeHighlighters();
@@ -19864,6 +22479,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            toolsView.configure({ relatedView: this });
 	            toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
 	        }
+	        return this;
+	    },
+
+	    unmountTools: function unmountTools() {
+	        var toolsView = this._toolsView;
+	        if (toolsView) { toolsView.unmount(); }
+	        return this;
+	    },
+
+	    mountTools: function mountTools() {
+	        var toolsView = this._toolsView;
+	        // Prevent unnecessary re-appending of the tools.
+	        if (toolsView && !toolsView.isMounted()) { toolsView.mount(); }
 	        return this;
 	    },
 
@@ -19929,11 +22557,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // Interaction. The controller part.
 	    // ---------------------------------
 
+	    preventDefaultInteraction: function preventDefaultInteraction(evt) {
+	        this.eventData(evt, { defaultInteractionPrevented: true  });
+	    },
+
+	    isDefaultInteractionPrevented: function isDefaultInteractionPrevented(evt) {
+	        var ref = this.eventData(evt);
+	        var defaultInteractionPrevented = ref.defaultInteractionPrevented; if ( defaultInteractionPrevented === void 0 ) defaultInteractionPrevented = false;
+	        return defaultInteractionPrevented;
+	    },
+
 	    // Interaction is handled by the paper and delegated to the view in interest.
 	    // `x` & `y` parameters passed to these functions represent the coordinates already snapped to the paper grid.
 	    // If necessary, real coordinates can be obtained from the `evt` event object.
 
-	    // These functions are supposed to be overriden by the views that inherit from `joint.dia.Cell`,
+	    // These functions are supposed to be overridden by the views that inherit from `joint.dia.Cell`,
 	    // i.e. `joint.dia.Element` and `joint.dia.Link`.
 
 	    pointerdblclick: function(evt, x, y) {
@@ -20031,7 +22669,27 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    checkMouseleave: function checkMouseleave(evt) {
 	        var ref = this;
 	        var paper = ref.paper;
+	        var model = ref.model;
 	        if (paper.isAsync()) {
+	            // Make sure the source/target views are updated before this view.
+	            // It's not 100% bulletproof (see below) but it's a good enough solution for now.
+	            // The connected cells could be links as well. In that case, we would
+	            // need to recursively go through all the connected links and update
+	            // their source/target views as well.
+	            if (model.isLink()) {
+	                // The `this.sourceView` and `this.targetView` might not be updated yet.
+	                // We need to find the view by the model.
+	                var sourceElement = model.getSourceElement();
+	                if (sourceElement) {
+	                    var sourceView = paper.findViewByModel(sourceElement);
+	                    if (sourceView) { paper.dumpView(sourceView); }
+	                }
+	                var targetElement = model.getTargetElement();
+	                if (targetElement) {
+	                    var targetView = paper.findViewByModel(targetElement);
+	                    if (targetView) { paper.dumpView(targetView); }
+	                }
+	            }
 	            // Do the updates of the current view synchronously now
 	            paper.dumpView(this);
 	        }
@@ -20051,6 +22709,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	}, {
 
+	    Flags: Flags,
+
 	    Highlighting: HighlightingTypes,
 
 	    addPresentationAttributes: function(presentationAttributes) {
@@ -20063,16 +22723,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	});
 
-	var Flags = {
+	var Flags$1 = {
+	    TOOLS: CellView.Flags.TOOLS,
 	    UPDATE: 'UPDATE',
 	    TRANSLATE: 'TRANSLATE',
-	    TOOLS: 'TOOLS',
 	    RESIZE: 'RESIZE',
 	    PORTS: 'PORTS',
 	    ROTATE: 'ROTATE',
 	    RENDER: 'RENDER'
 	};
 
+	var DragActions = {
+	    MOVE: 'move',
+	    MAGNET: 'magnet',
+	};
 	// Element base view and controller.
 	// -------------------------------------------
 
@@ -20110,65 +22774,69 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    presentationAttributes: {
-	        'attrs': [Flags.UPDATE],
-	        'position': [Flags.TRANSLATE, Flags.TOOLS],
-	        'size': [Flags.RESIZE, Flags.PORTS, Flags.TOOLS],
-	        'angle': [Flags.ROTATE, Flags.TOOLS],
-	        'markup': [Flags.RENDER],
-	        'ports': [Flags.PORTS],
+	        'attrs': [Flags$1.UPDATE],
+	        'position': [Flags$1.TRANSLATE, Flags$1.TOOLS],
+	        'size': [Flags$1.RESIZE, Flags$1.PORTS, Flags$1.TOOLS],
+	        'angle': [Flags$1.ROTATE, Flags$1.TOOLS],
+	        'markup': [Flags$1.RENDER],
+	        'ports': [Flags$1.PORTS],
 	    },
 
-	    initFlag: [Flags.RENDER],
+	    initFlag: [Flags$1.RENDER],
 
 	    UPDATE_PRIORITY: 0,
 
 	    confirmUpdate: function(flag, opt) {
 
 	        var useCSSSelectors = config.useCSSSelectors;
-	        if (this.hasFlag(flag, Flags.PORTS)) {
+	        if (this.hasFlag(flag, Flags$1.PORTS)) {
 	            this._removePorts();
 	            this._cleanPortsCache();
 	        }
 	        var transformHighlighters = false;
-	        if (this.hasFlag(flag, Flags.RENDER)) {
+	        if (this.hasFlag(flag, Flags$1.RENDER)) {
 	            this.render();
 	            this.updateTools(opt);
 	            this.updateHighlighters(true);
 	            transformHighlighters = true;
-	            flag = this.removeFlag(flag, [Flags.RENDER, Flags.UPDATE, Flags.RESIZE, Flags.TRANSLATE, Flags.ROTATE, Flags.PORTS, Flags.TOOLS]);
+	            flag = this.removeFlag(flag, [Flags$1.RENDER, Flags$1.UPDATE, Flags$1.RESIZE, Flags$1.TRANSLATE, Flags$1.ROTATE, Flags$1.PORTS, Flags$1.TOOLS]);
 	        } else {
 	            var updateHighlighters = false;
 
 	            // Skip this branch if render is required
-	            if (this.hasFlag(flag, Flags.RESIZE)) {
+	            if (this.hasFlag(flag, Flags$1.RESIZE)) {
 	                this.resize(opt);
 	                updateHighlighters = true;
 	                // Resize method is calling `update()` internally
-	                flag = this.removeFlag(flag, [Flags.RESIZE, Flags.UPDATE]);
+	                flag = this.removeFlag(flag, [Flags$1.RESIZE, Flags$1.UPDATE]);
+	                if (useCSSSelectors) {
+	                    // `resize()` rendered the ports when useCSSSelectors are enabled
+	                    flag = this.removeFlag(flag, Flags$1.PORTS);
+	                }
 	            }
-	            if (this.hasFlag(flag, Flags.UPDATE)) {
+	            if (this.hasFlag(flag, Flags$1.UPDATE)) {
 	                this.update(this.model, null, opt);
-	                flag = this.removeFlag(flag, Flags.UPDATE);
+	                flag = this.removeFlag(flag, Flags$1.UPDATE);
 	                updateHighlighters = true;
 	                if (useCSSSelectors) {
 	                    // `update()` will render ports when useCSSSelectors are enabled
-	                    flag = this.removeFlag(flag, Flags.PORTS);
+	                    flag = this.removeFlag(flag, Flags$1.PORTS);
 	                }
 	            }
-	            if (this.hasFlag(flag, Flags.TRANSLATE)) {
+	            if (this.hasFlag(flag, Flags$1.TRANSLATE)) {
 	                this.translate();
-	                flag = this.removeFlag(flag, Flags.TRANSLATE);
+	                flag = this.removeFlag(flag, Flags$1.TRANSLATE);
 	                transformHighlighters = true;
 	            }
-	            if (this.hasFlag(flag, Flags.ROTATE)) {
+	            if (this.hasFlag(flag, Flags$1.ROTATE)) {
 	                this.rotate();
-	                flag = this.removeFlag(flag, Flags.ROTATE);
+	                flag = this.removeFlag(flag, Flags$1.ROTATE);
 	                transformHighlighters = true;
 	            }
-	            if (this.hasFlag(flag, Flags.PORTS)) {
+	            if (this.hasFlag(flag, Flags$1.PORTS)) {
 	                this._renderPorts();
 	                updateHighlighters = true;
-	                flag = this.removeFlag(flag, Flags.PORTS);
+	                flag = this.removeFlag(flag, Flags$1.PORTS);
 	            }
 
 	            if (updateHighlighters) {
@@ -20180,9 +22848,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.transformHighlighters();
 	        }
 
-	        if (this.hasFlag(flag, Flags.TOOLS)) {
+	        if (this.hasFlag(flag, Flags$1.TOOLS)) {
 	            this.updateTools(opt);
-	            flag = this.removeFlag(flag, Flags.TOOLS);
+	            flag = this.removeFlag(flag, Flags$1.TOOLS);
 	        }
 
 	        return flag;
@@ -20674,8 +23342,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    pointerdown: function(evt, x, y) {
 
-	        if (this.isPropagationStopped(evt)) { return; }
-
 	        this.notifyPointerdown(evt, x, y);
 	        this.dragStart(evt, x, y);
 	    },
@@ -20683,15 +23349,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    pointermove: function(evt, x, y) {
 
 	        var data = this.eventData(evt);
+	        var targetMagnet = data.targetMagnet;
+	        var action = data.action;
+	        var delegatedView = data.delegatedView;
 
-	        switch (data.action) {
-	            case 'magnet':
+	        if (targetMagnet) {
+	            this.magnetpointermove(evt, targetMagnet, x, y);
+	        }
+
+	        switch (action) {
+	            case DragActions.MAGNET:
 	                this.dragMagnet(evt, x, y);
 	                break;
-	            case 'move':
-	                (data.delegatedView || this).drag(evt, x, y);
+	            case DragActions.MOVE:
+	                (delegatedView || this).drag(evt, x, y);
 	            // eslint: no-fallthrough=false
 	            default:
+	                if (data.preventPointerEvents) { break; }
 	                this.notifyPointermove(evt, x, y);
 	                break;
 	        }
@@ -20704,19 +23378,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    pointerup: function(evt, x, y) {
 
 	        var data = this.eventData(evt);
-	        switch (data.action) {
-	            case 'magnet':
+	        var targetMagnet = data.targetMagnet;
+	        var action = data.action;
+	        var delegatedView = data.delegatedView;
+
+	        if (targetMagnet) {
+	            this.magnetpointerup(evt, targetMagnet, x, y);
+	        }
+
+	        switch (action) {
+	            case DragActions.MAGNET:
 	                this.dragMagnetEnd(evt, x, y);
 	                break;
-	            case 'move':
-	                (data.delegatedView || this).dragEnd(evt, x, y);
+	            case DragActions.MOVE:
+	                (delegatedView || this).dragEnd(evt, x, y);
 	            // eslint: no-fallthrough=false
 	            default:
+	                if (data.preventPointerEvents) { break; }
 	                this.notifyPointerup(evt, x, y);
 	        }
 
-	        var magnet = data.targetMagnet;
-	        if (magnet) { this.magnetpointerclick(evt, magnet, x, y); }
+	        if (targetMagnet) {
+	            this.magnetpointerclick(evt, targetMagnet, x, y);
+	        }
 
 	        this.checkMouseleave(evt);
 	    },
@@ -20753,7 +23437,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    onmagnet: function(evt, x, y) {
 
+	        var targetMagnet = evt.currentTarget;
+	        this.magnetpointerdown(evt, targetMagnet, x, y);
+	        this.eventData(evt, { targetMagnet: targetMagnet });
 	        this.dragMagnetStart(evt, x, y);
+	    },
+
+	    magnetpointerdown: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointerdown', evt, magnet, x, y);
+	    },
+
+	    magnetpointermove: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointermove', evt, magnet, x, y);
+	    },
+
+	    magnetpointerup: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointerup', evt, magnet, x, y);
 	    },
 
 	    magnetpointerdblclick: function(evt, magnet, x, y) {
@@ -20770,11 +23472,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    dragStart: function(evt, x, y) {
 
+	        if (this.isDefaultInteractionPrevented(evt)) { return; }
+
 	        var view = this.getDelegatedView();
 	        if (!view || !view.can('elementMove')) { return; }
 
 	        this.eventData(evt, {
-	            action: 'move',
+	            action: DragActions.MOVE,
 	            delegatedView: view
 	        });
 
@@ -20788,28 +23492,47 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    dragMagnetStart: function(evt, x, y) {
 
-	        if (!this.can('addLinkFromMagnet')) { return; }
-
-	        var magnet = evt.currentTarget;
-	        var paper = this.paper;
-	        this.eventData(evt, { targetMagnet: magnet });
-	        evt.stopPropagation();
-
-	        if (paper.options.validateMagnet(this, magnet, evt)) {
-
-	            if (paper.options.magnetThreshold <= 0) {
-	                this.dragLinkStart(evt, magnet, x, y);
-	            }
-
-	            this.eventData(evt, { action: 'magnet' });
-	            this.stopPropagation(evt);
-
-	        } else {
-
-	            this.pointerdown(evt, x, y);
+	        var ref = this;
+	        var paper = ref.paper;
+	        var isPropagationAlreadyStopped = evt.isPropagationStopped();
+	        if (isPropagationAlreadyStopped) {
+	            // Special case when the propagation was already stopped
+	            // on the `element:magnet:pointerdown` event.
+	            // Do not trigger any `element:pointer*` events
+	            // but still start the magnet dragging.
+	            this.eventData(evt, { preventPointerEvents: true });
 	        }
 
-	        paper.delegateDragEvents(this, evt.data);
+	        if (this.isDefaultInteractionPrevented(evt) || !this.can('addLinkFromMagnet')) {
+	            // Stop the default action, which is to start dragging a link.
+	            return;
+	        }
+
+	        var ref$1 = this.eventData(evt);
+	        var targetMagnet = ref$1.targetMagnet; if ( targetMagnet === void 0 ) targetMagnet = evt.currentTarget;
+	        evt.stopPropagation();
+
+	        // Invalid (Passive) magnet. Start dragging the element.
+	        if (!paper.options.validateMagnet.call(paper, this, targetMagnet, evt)) {
+	            if (isPropagationAlreadyStopped) {
+	                // Do not trigger `element:pointerdown` and start element dragging
+	                // if the propagation was stopped.
+	                this.dragStart(evt, x, y);
+	                // The `element:pointerdown` event is not triggered because
+	                // of `preventPointerEvents` flag.
+	            } else {
+	                // We need to reset the action
+	                // to `MOVE` so that the element is dragged.
+	                this.pointerdown(evt, x, y);
+	            }
+	            return;
+	        }
+
+	        // Valid magnet. Start dragging a link.
+	        if (paper.options.magnetThreshold <= 0) {
+	            this.dragLinkStart(evt, targetMagnet, x, y);
+	        }
+	        this.eventData(evt, { action: DragActions.MAGNET });
 	    },
 
 	    // Drag Handlers
@@ -20870,7 +23593,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	}, {
 
-	    Flags: Flags,
+	    Flags: Flags$1,
 	});
 
 	assign(ElementView.prototype, elementViewPortPrototype);
@@ -22202,6 +24925,661 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return manhattan(vertices, assign({}, config$2, opt), linkView);
 	};
 
+	var Directions = {
+	    AUTO: 'auto',
+	    LEFT: 'left',
+	    RIGHT: 'right',
+	    TOP: 'top',
+	    BOTTOM: 'bottom',
+	    ANCHOR_SIDE: 'anchor-side',
+	    MAGNET_SIDE: 'magnet-side'
+	};
+
+	var DEFINED_DIRECTIONS = [Directions.LEFT, Directions.RIGHT, Directions.TOP, Directions.BOTTOM];
+
+	function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
+	    var tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
+	    var roundedAngle = Math.round(tangent.angle() / 90) * 90;
+
+	    switch (roundedAngle) {
+	        case 0:
+	        case 360:
+	            return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
+	        case 90:
+	            return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
+	        case 180:
+	            return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
+	        case 270:
+	            return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
+	    }
+	}
+
+	function rightAngleRouter(_vertices, opt, linkView) {
+	    var margin = opt.margin || 20;
+	    var sourceDirection = opt.sourceDirection; if ( sourceDirection === void 0 ) sourceDirection = Directions.AUTO;
+	    var targetDirection = opt.targetDirection; if ( targetDirection === void 0 ) targetDirection = Directions.AUTO;
+
+	    var sourceView = linkView.sourceView;
+	    var targetView = linkView.targetView;
+
+	    var isSourcePort = !!linkView.model.source().port;
+	    var isTargetPort = !!linkView.model.target().port;
+
+	    if (sourceDirection === Directions.AUTO) {
+	        sourceDirection = isSourcePort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
+	    }
+
+	    if (targetDirection === Directions.AUTO) {
+	        targetDirection = isTargetPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
+	    }
+
+	    var sourceBBox = linkView.sourceBBox;
+	    var targetBBox = linkView.targetBBox;
+	    var sourcePoint = linkView.sourceAnchor;
+	    var targetPoint = linkView.targetAnchor;
+	    var ref = sourceView && sourceView.model.isElement() ? Rect.fromRectUnion(sourceBBox, sourceView.model.getBBox()) : linkView.sourceAnchor;
+	    var sx0 = ref.x;
+	    var sy0 = ref.y;
+	    var sourceWidth = ref.width; if ( sourceWidth === void 0 ) sourceWidth = 0;
+	    var sourceHeight = ref.height; if ( sourceHeight === void 0 ) sourceHeight = 0;
+
+	    var ref$1 = targetView && targetView.model.isElement() ? Rect.fromRectUnion(targetBBox, targetView.model.getBBox()) : linkView.targetAnchor;
+	    var tx0 = ref$1.x;
+	    var ty0 = ref$1.y;
+	    var targetWidth = ref$1.width; if ( targetWidth === void 0 ) targetWidth = 0;
+	    var targetHeight = ref$1.height; if ( targetHeight === void 0 ) targetHeight = 0;
+
+	    var tx1 = tx0 + targetWidth;
+	    var ty1 = ty0 + targetHeight;
+	    var sx1 = sx0 + sourceWidth;
+	    var sy1 = sy0 + sourceHeight;
+
+	    // Key coordinates including the margin
+	    var smx0 = sx0 - margin;
+	    var smx1 = sx1 + margin;
+	    var smy0 = sy0 - margin;
+	    var smy1 = sy1 + margin;
+	    var tmx0 = tx0 - margin;
+	    var tmx1 = tx1 + margin;
+	    var tmy0 = ty0 - margin;
+	    var tmy1 = ty1 + margin;
+
+	    var sourceOutsidePoint = sourcePoint.clone();
+
+	    var sourceSide;
+
+	    if (!sourceView) {
+	        var sourceLinkAnchorBBox = new Rect(sx0, sy0, 0, 0);
+	        sourceSide = DEFINED_DIRECTIONS.includes(sourceDirection) ? sourceDirection : sourceLinkAnchorBBox.sideNearestToPoint(targetPoint);
+	    } else if (sourceView.model.isLink()) {
+	        sourceSide = getDirectionForLinkConnection(targetPoint, sourcePoint, sourceView);
+	    } else if (sourceDirection === Directions.ANCHOR_SIDE) {
+	        sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
+	    } else if (sourceDirection === Directions.MAGNET_SIDE) {
+	        sourceSide = sourceView.model.getBBox().sideNearestToPoint(sourcePoint);
+	    } else {
+	        sourceSide = sourceDirection;
+	    }
+
+	    switch (sourceSide) {
+	        case 'left':
+	            sourceOutsidePoint.x = smx0;
+	            break;
+	        case 'right':
+	            sourceOutsidePoint.x = smx1;
+	            break;
+	        case 'top':
+	            sourceOutsidePoint.y = smy0;
+	            break;
+	        case 'bottom':
+	            sourceOutsidePoint.y = smy1;
+	            break;
+	    }
+	    var targetOutsidePoint = targetPoint.clone();
+
+
+	    var targetSide;
+
+
+	    if (!targetView) {
+	        var targetLinkAnchorBBox = new Rect(tx0, ty0, 0, 0);
+	        targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : targetLinkAnchorBBox.sideNearestToPoint(sourcePoint);
+	    } else if (targetView.model.isLink()) {
+	        targetSide = getDirectionForLinkConnection(sourcePoint, targetPoint, targetView);
+	    } else if (targetDirection === Directions.ANCHOR_SIDE) {
+	        targetSide = targetBBox.sideNearestToPoint(targetPoint);
+	    } else if (targetDirection === Directions.MAGNET_SIDE) {
+	        targetSide = targetView.model.getBBox().sideNearestToPoint(targetPoint);
+	    } else {
+	        targetSide = targetDirection;
+	    }
+
+	    switch (targetSide) {
+	        case 'left':
+	            targetOutsidePoint.x = tmx0;
+	            break;
+	        case 'right':
+	            targetOutsidePoint.x = tmx1;
+	            break;
+	        case 'top':
+	            targetOutsidePoint.y = tmy0;
+	            break;
+	        case 'bottom':
+	            targetOutsidePoint.y = tmy1;
+	            break;
+	    }
+
+	    var sox = sourceOutsidePoint.x;
+	    var soy = sourceOutsidePoint.y;
+	    var tox = targetOutsidePoint.x;
+	    var toy = targetOutsidePoint.y;
+	    var tcx = (tx0 + tx1) / 2;
+	    var tcy = (ty0 + ty1) / 2;
+	    var scx = (sx0 + sx1) / 2;
+	    var scy = (sy0 + sy1) / 2;
+	    var middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
+	    var middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
+
+	    if (sourceSide === 'left' && targetSide === 'right') {
+	        if (smx0 <= tx1) {
+	            var y = middleOfHorizontalSides;
+	            if (sx1 <= tx0) {
+	                if (ty1 >= smy0 && toy < soy) {
+	                    y = Math.min(tmy0, smy0);
+	                } else if (ty0 <= smy1 && toy >= soy) {
+	                    y = Math.max(tmy1, smy1);
+	                }
+	            }
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y },
+	                { x: tox, y: y },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        var x = (sox + tox) / 2;
+	        return [
+	            { x: x, y: soy },
+	            { x: x, y: toy }
+	        ];
+	    } else if (sourceSide === 'right' && targetSide === 'left') {
+	        if (smx1 >= tx0) {
+	            var y$1 = middleOfHorizontalSides;
+	            if (sox > tx1) {
+	                if (ty1 >= smy0 && toy < soy) {
+	                    y$1 = Math.min(tmy0, smy0);
+	                } else if (ty0 <= smy1 && toy >= soy) {
+	                    y$1 = Math.max(tmy1, smy1);
+	                }
+	            }
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$1 },
+	                { x: tox, y: y$1 },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        var x$1 = (sox + tox) / 2;
+	        return [
+	            { x: x$1, y: soy },
+	            { x: x$1, y: toy }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'bottom') {
+	        if (soy < toy) {
+	            var x$2 = middleOfVerticalSides;
+	            var y$2 = soy;
+
+	            if (soy < ty0) {
+	                if (tx1 >= smx0 && tox < sox) {
+	                    x$2 = Math.min(tmx0, smx0);
+	                } else if (tx0 <= smx1 && tox >= sox) {
+	                    x$2 = Math.max(tmx1, smx1);
+	                }
+	            }
+
+	            return [
+	                { x: sox, y: y$2 },
+	                { x: x$2, y: y$2 },
+	                { x: x$2, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+	        var y$3 = (soy + toy) / 2;
+	        return [
+	            { x: sox, y: y$3 },
+	            { x: tox, y: y$3 }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'top') {
+	        if (soy - margin > toy) {
+	            var x$3 = middleOfVerticalSides;
+	            var y$4 = soy;
+
+	            if (soy > ty1) {
+	                if (tx1 >= smx0 && tox < sox) {
+	                    x$3 = Math.min(tmx0, smx0);
+	                } else if (tx0 <= smx1 && tox >= sox) {
+	                    x$3 = Math.max(tmx1, smx1);
+	                }
+	            }
+
+	            return [
+	                { x: sox, y: y$4 },
+	                { x: x$3, y: y$4 },
+	                { x: x$3, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+	        var y$5 = (soy + toy) / 2;
+	        return [
+	            { x: sox, y: y$5 },
+	            { x: tox, y: y$5 }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'top') {
+	        var x$4;
+	        var y1 = Math.min((sy1 + ty0) / 2, toy);
+	        var y2 = Math.min((sy0 + ty1) / 2, soy);
+
+	        if (toy < soy) {
+	            if (sox >= tmx1 || sox <= tmx0) {
+	                return [
+	                    { x: sox, y: Math.min(soy,toy) },
+	                    { x: tox, y: Math.min(soy,toy) }
+	                ];
+	            } else if (tox > sox) {
+	                x$4 = Math.min(sox, tmx0);
+	            } else {
+	                x$4 = Math.max(sox, tmx1);
+	            }
+	        } else {
+	            if (tox >= smx1 || tox <= smx0) {
+	                return [
+	                    { x: sox, y: Math.min(soy,toy) },
+	                    { x: tox, y: Math.min(soy,toy) }
+	                ];
+	            } else if (tox >= sox) {
+	                x$4 = Math.max(tox, smx1);
+	            } else {
+	                x$4 = Math.min(tox, smx0);
+	            }
+	        }
+
+	        return [
+	            { x: sox, y: y2 },
+	            { x: x$4, y: y2 },
+	            { x: x$4, y: y1 },
+	            { x: tox, y: y1 }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
+	        if (tx0 >= sox + margin || tx1 <= sox - margin) {
+	            return [
+	                { x: sox, y: Math.max(soy, toy) },
+	                { x: tox, y: Math.max(soy, toy) }
+	            ];
+	        }
+
+	        var x$5;
+	        var y1$1;
+	        var y2$1;
+
+	        if (toy > soy) {
+	            y1$1 = Math.max((sy1 + ty0) / 2, toy);
+	            y2$1 = Math.max((sy1 + ty0) / 2, soy);
+
+	            if (tox > sox) {
+	                x$5 = Math.min(sox, tmx0);
+	            } else {
+	                x$5 = Math.max(sox, tmx1);
+	            }
+	        } else {
+	            y1$1 = Math.max((sy0 + ty1) / 2, toy);
+	            y2$1 = Math.max((sy0 + ty1) / 2, soy);
+
+	            if (tox > sox) {
+	                x$5 = Math.min(tox, smx0);
+	            } else {
+	                x$5 = Math.max(tox, smx1);
+	            }
+	        }
+
+	        return [
+	            { x: sox, y: y2$1 },
+	            { x: x$5, y: y2$1 },
+	            { x: x$5, y: y1$1 },
+	            { x: tox, y: y1$1 }
+	        ];
+	    } else if (sourceSide === 'left' && targetSide === 'left') {
+	        var y$6;
+	        var x1 = Math.min((sx1 + tx0) / 2, tox);
+	        var x2 = Math.min((sx0 + tx1) / 2, sox);
+
+	        if (tox > sox) {
+	            if (toy <= soy) {
+	                y$6 = Math.min(smy0, toy);
+	            } else {
+	                y$6 = Math.max(smy1, toy);
+	            }
+	        } else {
+	            if (toy >= soy) {
+	                y$6 = Math.min(tmy0, soy);
+	            } else {
+	                y$6 = Math.max(tmy1, soy);
+	            }
+	        }
+
+	        return [
+	            { x: x2, y: soy },
+	            { x: x2, y: y$6 },
+	            { x: x1, y: y$6 },
+	            { x: x1, y: toy }
+	        ];
+	    } else if (sourceSide === 'right' && targetSide === 'right') {
+	        var y$7;
+	        var x1$1 = Math.max((sx0 + tx1) / 2, tox);
+	        var x2$1 = Math.max((sx1 + tx0) / 2, sox);
+
+	        if (tox < sox) {
+	            if (toy <= soy) {
+	                y$7 = Math.min(smy0, toy);
+	            } else {
+	                y$7 = Math.max(smy1, toy);
+	            }
+	        } else {
+	            if (toy >= soy) {
+	                y$7 = Math.min(tmy0, soy);
+	            } else {
+	                y$7 = Math.max(tmy1, soy);
+	            }
+	        }
+
+	        return [
+	            { x: x2$1, y: soy },
+	            { x: x2$1, y: y$7 },
+	            { x: x1$1, y: y$7 },
+	            { x: x1$1, y: toy }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'right') {
+	        if (soy > toy) {
+	            if (sox < tox) {
+	                var y$8 = (sy0 + ty1) / 2;
+	                if (y$8 > tcy && y$8 < tmy1 && sox < tmx0) {
+	                    y$8 = tmy0;
+	                }
+	                return [
+	                    { x: sox, y: y$8 },
+	                    { x: tox, y: y$8 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        }
+
+	        var x$6 = (sx0 + tx1) / 2;
+
+	        if (sox > tox && sy1 >= toy) {
+	            return [
+	                { x: sox, y: soy },
+	                { x: x$6, y: soy },
+	                { x: x$6, y: toy }];
+	        }
+
+	        if (x$6 > smx0 && soy < ty1) {
+	            var y$9 = Math.min(sy0, ty0) - margin;
+	            var x$7 = Math.max(sx1, tx1) + margin;
+	            return [
+	                { x: sox, y: y$9 },
+	                { x: x$7, y: y$9 },
+	                { x: x$7, y: toy }
+	            ];
+	        }
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$6, y: soy },
+	            { x: x$6, y: toy }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'left') {
+	        if (soy > toy) {
+	            if (sox > tox) {
+	                var y$10 = (sy0 + ty1) / 2;
+	                if (y$10 > tcy && y$10 < tmy1 && sox > tmx1) {
+	                    y$10 = tmy0;
+	                }
+	                return [
+	                    { x: sox, y: y$10 },
+	                    { x: tox, y: y$10 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        }
+
+	        var x$8 = (sx1 + tx0) / 2;
+
+	        if (sox < tox && sy1 >= toy) {
+	            return [
+	                { x: sox, y: soy },
+	                { x: x$8, y: soy },
+	                { x: x$8, y: toy }];
+	        }
+
+	        if (x$8 < smx1 && soy < ty1) {
+	            var y$11 = Math.min(sy0, ty0) - margin;
+	            var x$9 = Math.min(sx0, tx0) - margin;
+	            return [
+	                { x: sox, y: y$11 },
+	                { x: x$9, y: y$11 },
+	                { x: x$9, y: toy }
+	            ];
+	        }
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$8, y: soy },
+	            { x: x$8, y: toy }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'right') {
+	        if (soy < toy) {
+	            if (sox < tox) {
+	                var y$12 = (sy1 + ty0) / 2;
+	                if (y$12 < tcy && y$12 > tmy0 && sox < tmx0) {
+	                    y$12 = tmy1;
+	                }
+	                return [
+	                    { x: sox, y: y$12 },
+	                    { x: tox, y: y$12 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        } else {
+	            if (sx0 < tox) {
+	                var y$13 = Math.max(sy1, ty1) + margin;
+	                var x$10 = Math.max(sx1, tx1) + margin;
+	                return [
+	                    { x: sox, y: y$13 },
+	                    { x: x$10, y: y$13 },
+	                    { x: x$10, y: toy }
+	                ];
+	            }
+	        }
+
+	        var x$11 = middleOfVerticalSides;
+
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$11, y: soy },
+	            { x: x$11, y: toy }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'left') {
+	        if (soy < toy) {
+	            if (sox > tox) {
+	                var y$14 = (sy1 + ty0) / 2;
+	                if (y$14 < tcy && y$14 > tmy0 && sox > tmx1) {
+	                    y$14 = tmy1;
+	                }
+	                return [
+	                    { x: sox, y: y$14 },
+	                    { x: tox, y: y$14 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        } else {
+	            if (sx1 > tox) {
+	                var y$15 = Math.max(sy1, ty1) + margin;
+	                var x$12 = Math.min(sx0, tx0) - margin;
+	                return [
+	                    { x: sox, y: y$15 },
+	                    { x: x$12, y: y$15 },
+	                    { x: x$12, y: toy }
+	                ];
+	            }
+	        }
+
+	        var x$13 = middleOfVerticalSides;
+
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$13, y: soy },
+	            { x: x$13, y: toy }
+	        ];
+	    } else if (sourceSide === 'left' && targetSide === 'bottom') {
+	        if (sox > tox && soy >= tmy1) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sox >= tx1 && soy < toy) {
+	            var x$14 = (sx1 + tx0) / 2;
+	            return [
+	                { x: x$14, y: soy },
+	                { x: x$14, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        if (tox < sx1 && ty1 <= sy0) {
+	            var y$16 = (sy0 + ty1) / 2;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$16 },
+	                { x: tox, y: y$16 }
+	            ];
+	        }
+
+	        var x$15 = Math.min(tmx0, sox);
+	        var y$17 = Math.max(sy1, ty1) + margin;
+
+	        return [
+	            { x: x$15, y: soy },
+	            { x: x$15, y: y$17 },
+	            { x: tox, y: y$17 }
+	        ];
+	    } else if (sourceSide === 'left' && targetSide === 'top') {
+	        if (sox > tox && soy < tmy0) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sox >= tx1) {
+	            if (soy > toy) {
+	                var x$16 = (sx0 + tx1) / 2;
+	                return [
+	                    { x: x$16, y: soy },
+	                    { x: x$16, y: toy },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	        }
+
+	        if (tox <= sx1 && toy > soy) {
+	            var y$18 = (ty0 + sy1) / 2;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$18 },
+	                { x: tox, y: y$18 } ];
+	        }
+
+	        var x$17 = toy < soy ? Math.min(sx0, tx0) - margin : smx0;
+	        var y$19 = Math.min(sy0, ty0) - margin;
+
+	        return [
+	            { x: x$17, y: soy },
+	            { x: x$17, y: y$19 },
+	            { x: tox, y: y$19 }
+	        ];
+
+	    } else if (sourceSide === 'right' && targetSide === 'top') {
+	        if (sox < tox && soy < tmy0) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sx1 < tx0 && soy > toy) {
+	            var x$18 = (sx1 + tx0) / 2;
+	            return [
+	                { x: x$18, y: soy },
+	                { x: x$18, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        if (tox < sox && ty0 > sy1) {
+	            var y$20 = (sy1 + ty0) / 2;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$20 },
+	                { x: tox, y: y$20 }
+	            ];
+	        }
+
+	        var x$19 = Math.max(sx1, tx1) + margin;
+	        var y$21 = Math.min(sy0, ty0) - margin;
+	        return [
+	            { x: x$19, y: soy },
+	            { x: x$19, y: y$21 },
+	            { x: tox, y: y$21 }
+	        ];
+	    } else if (sourceSide === 'right' && targetSide === 'bottom') {
+	        if (sox < tox && soy >= tmy1) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sox <= tx0 && soy < toy) {
+	            var x$20 = (sx1 + tx0) / 2;
+	            return [
+	                { x: x$20, y: soy },
+	                { x: x$20, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        if (tox > sx0 && ty1 < sy0) {
+	            var y$22 = (sy0 + ty1) / 2;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$22 },
+	                { x: tox, y: y$22 }
+	            ];
+	        }
+
+	        var x$21 = Math.max(tmx1, sox);
+	        var y$23 = Math.max(sy1, ty1) + margin;
+
+	        return [
+	            { x: x$21, y: soy },
+	            { x: x$21, y: y$23 },
+	            { x: tox, y: y$23 }
+	        ];
+	    }
+	}
+
+	rightAngleRouter.Directions = Directions;
+
+	var rightAngle = rightAngleRouter;
+
 
 
 	var routers = ({
@@ -22209,8 +25587,119 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		oneSide: oneSide,
 		orthogonal: orthogonal,
 		manhattan: manhattan,
-		metro: metro
+		metro: metro,
+		rightAngle: rightAngle
 	});
+
+	var CornerTypes = {
+	    POINT: 'point',
+	    CUBIC: 'cubic',
+	    LINE: 'line',
+	    GAP: 'gap'
+	};
+
+	var DEFINED_CORNER_TYPES = Object.values(CornerTypes);
+
+	var CORNER_RADIUS = 10;
+	var PRECISION = 1;
+
+	var straight = function(sourcePoint, targetPoint, routePoints, opt) {
+	    if ( routePoints === void 0 ) routePoints = [];
+	    if ( opt === void 0 ) opt = {};
+
+
+	    var cornerType = opt.cornerType; if ( cornerType === void 0 ) cornerType = CornerTypes.POINT;
+	    var cornerRadius = opt.cornerRadius; if ( cornerRadius === void 0 ) cornerRadius = CORNER_RADIUS;
+	    var cornerPreserveAspectRatio = opt.cornerPreserveAspectRatio; if ( cornerPreserveAspectRatio === void 0 ) cornerPreserveAspectRatio = false;
+	    var precision = opt.precision; if ( precision === void 0 ) precision = PRECISION;
+	    var raw = opt.raw; if ( raw === void 0 ) raw = false;
+
+	    if (DEFINED_CORNER_TYPES.indexOf(cornerType) === -1) {
+	        // unknown `cornerType` provided => error
+	        throw new Error('Invalid `cornerType` provided to `straight` connector.');
+	    }
+
+	    var path;
+
+	    if ((cornerType === CornerTypes.POINT) || !cornerRadius) {
+	        // default option => normal connector
+	        // simply connect all points with straight lines
+	        var points = [sourcePoint].concat(routePoints).concat([targetPoint]);
+	        var polyline = new Polyline(points);
+	        path = new Path(polyline);
+
+	    } else {
+	        // `cornerType` is not unknown and not 'point' (default) => must be one of other valid types
+	        path = new Path();
+
+	        // add initial gap segment = to source point
+	        path.appendSegment(Path.createSegment('M', sourcePoint));
+
+	        var nextDistance;
+	        var routePointsLength = routePoints.length;
+	        for (var i = 0; i < routePointsLength; i++) {
+
+	            var curr = new Point(routePoints[i]);
+	            var prev = (routePoints[i - 1] || sourcePoint);
+	            var next = (routePoints[i + 1] || targetPoint);
+	            var prevDistance = (nextDistance || (curr.distance(prev) / 2)); // try to re-use previously-computed `nextDistance`
+	            nextDistance = (curr.distance(next) / 2);
+
+	            var startMove = (void 0), endMove = (void 0);
+	            if (!cornerPreserveAspectRatio) {
+	                // `startMove` and `endMove` may be different
+	                // (this happens when next or previous path point is closer than `2 * cornerRadius`)
+	                startMove = -Math.min(cornerRadius, prevDistance);
+	                endMove = -Math.min(cornerRadius, nextDistance);
+	            } else {
+	                // force `startMove` and `endMove` to be the same
+	                startMove = endMove = -Math.min(cornerRadius, prevDistance, nextDistance);
+	            }
+
+	            // to find `cornerStart` and `cornerEnd`, the logic is as follows (using `cornerStart` as example):
+	            // - find a point lying on the line `prev - startMove` such that...
+	            // - ...the point lies `abs(startMove)` distance away from `curr`...
+	            // - ...and its coordinates are rounded to whole numbers
+	            var cornerStart = curr.clone().move(prev, startMove).round(precision);
+	            var cornerEnd = curr.clone().move(next, endMove).round(precision);
+
+	            // add in-between straight segment = from previous route point to corner start point
+	            // (may have zero length)
+	            path.appendSegment(Path.createSegment('L', cornerStart));
+
+	            // add corner segment = from corner start point to corner end point
+	            switch (cornerType) {
+	                case CornerTypes.CUBIC: {
+	                    // corner is rounded
+	                    var _13 = (1 / 3);
+	                    var _23 = (2 / 3);
+	                    var control1 = new Point((_13 * cornerStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * cornerStart.y));
+	                    var control2 = new Point((_13 * cornerEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * cornerEnd.y));
+	                    path.appendSegment(Path.createSegment('C', control1, control2, cornerEnd));
+	                    break;
+	                }
+	                case CornerTypes.LINE: {
+	                    // corner has bevel
+	                    path.appendSegment(Path.createSegment('L', cornerEnd));
+	                    break;
+	                }
+	                case CornerTypes.GAP: {
+	                    // corner has empty space
+	                    path.appendSegment(Path.createSegment('M', cornerEnd));
+	                    break;
+	                }
+	                // default: no segment is created
+	            }
+	        }
+
+	        // add final straight segment = from last corner end point to target point
+	        // (= or from start point to end point, if there are no route points)
+	        // (may have zero length)
+	        path.appendSegment(Path.createSegment('L', targetPoint));
+	    }
+
+	    return ((raw) ? path : path.serialize());
+	};
 
 	// default size of jump if not specified in options
 	var JUMP_SIZE = 5;
@@ -22616,68 +26105,37 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	var normal$1 = function(sourcePoint, targetPoint, route, opt) {
+	    if ( route === void 0 ) route = [];
+	    if ( opt === void 0 ) opt = {};
 
-	    var raw = opt && opt.raw;
-	    var points = [sourcePoint].concat(route).concat([targetPoint]);
 
-	    var polyline = new Polyline(points);
-	    var path = new Path(polyline);
+	    var raw = opt.raw;
+	    var localOpt = {
+	        cornerType: 'point',
+	        raw: raw
+	    };
 
-	    return (raw) ? path : path.serialize();
+	    return straight(sourcePoint, targetPoint, route, localOpt);
 	};
 
+	var CORNER_RADIUS$1 = 10;
+	var PRECISION$1 = 0;
+
 	var rounded = function(sourcePoint, targetPoint, route, opt) {
+	    if ( route === void 0 ) route = [];
+	    if ( opt === void 0 ) opt = {};
 
-	    opt || (opt = {});
 
-	    var offset = opt.radius || 10;
+	    var radius = opt.radius; if ( radius === void 0 ) radius = CORNER_RADIUS$1;
 	    var raw = opt.raw;
-	    var path = new Path();
-	    var segment;
+	    var localOpt = {
+	        cornerType: 'cubic',
+	        cornerRadius: radius,
+	        precision: PRECISION$1,
+	        raw: raw
+	    };
 
-	    segment = Path.createSegment('M', sourcePoint);
-	    path.appendSegment(segment);
-
-	    var _13 = 1 / 3;
-	    var _23 = 2 / 3;
-
-	    var curr;
-	    var prev, next;
-	    var prevDistance, nextDistance;
-	    var startMove, endMove;
-	    var roundedStart, roundedEnd;
-	    var control1, control2;
-
-	    for (var index = 0, n = route.length; index < n; index++) {
-
-	        curr = new Point(route[index]);
-
-	        prev = route[index - 1] || sourcePoint;
-	        next = route[index + 1] || targetPoint;
-
-	        prevDistance = nextDistance || (curr.distance(prev) / 2);
-	        nextDistance = curr.distance(next) / 2;
-
-	        startMove = -Math.min(offset, prevDistance);
-	        endMove = -Math.min(offset, nextDistance);
-
-	        roundedStart = curr.clone().move(prev, startMove).round();
-	        roundedEnd = curr.clone().move(next, endMove).round();
-
-	        control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
-	        control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
-
-	        segment = Path.createSegment('L', roundedStart);
-	        path.appendSegment(segment);
-
-	        segment = Path.createSegment('C', control1, control2, roundedEnd);
-	        path.appendSegment(segment);
-	    }
-
-	    segment = Path.createSegment('L', targetPoint);
-	    path.appendSegment(segment);
-
-	    return (raw) ? path : path.serialize();
+	    return straight(sourcePoint, targetPoint, route, localOpt);
 	};
 
 	var smooth = function(sourcePoint, targetPoint, route, opt) {
@@ -22723,7 +26181,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return (raw) ? path : path.serialize();
 	};
 
-	var Directions = {
+	var Directions$1 = {
 	    AUTO: 'auto',
 	    HORIZONTAL: 'horizontal',
 	    VERTICAL: 'vertical',
@@ -22754,7 +26212,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // targetTangent - a tangent vector along the curve at the targetPoint.
 	    // targetDirection - a unit direction vector along the curve at the targetPoint.
 	    // precision - a rounding precision for path values.
-	    var direction = opt.direction; if ( direction === void 0 ) direction = Directions.AUTO;
+	    var direction = opt.direction; if ( direction === void 0 ) direction = Directions$1.AUTO;
 	    var precision = opt.precision; if ( precision === void 0 ) precision = 3;
 	    var options = {
 	        coeff: opt.distanceCoefficient || 0.6,
@@ -22778,7 +26236,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    else
 	        { options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null; }
 
-	    var completeRoute = [sourcePoint ].concat( route.map(function (p) { return new Point(p); }), [targetPoint]);
+	    var completeRoute = [sourcePoint ].concat( route, [targetPoint]).map(function (p) { return new Point(p); });
 
 	    // The calculation of a sourceTangent
 	    var sourceTangent;
@@ -22821,7 +26279,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    return (raw) ? path : path.serialize();
 	};
-	curve.Directions = Directions;
+	curve.Directions = Directions$1;
 	curve.TangentDirections = TangentDirections;
 
 	function getHorizontalSourceDirection(linkView, route, options) {
@@ -23113,15 +26571,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 
 	    switch (direction) {
-	        case Directions.HORIZONTAL:
+	        case Directions$1.HORIZONTAL:
 	            return getHorizontalSourceDirection(linkView, route, options);
-	        case Directions.VERTICAL:
+	        case Directions$1.VERTICAL:
 	            return getVerticalSourceDirection(linkView, route, options);
-	        case Directions.CLOSEST_POINT:
+	        case Directions$1.CLOSEST_POINT:
 	            return getClosestPointSourceDirection(linkView, route, options);
-	        case Directions.OUTWARDS:
+	        case Directions$1.OUTWARDS:
 	            return getOutwardsSourceDirection(linkView, route, options);
-	        case Directions.AUTO:
+	        case Directions$1.AUTO:
 	        default:
 	            return getAutoSourceDirection(linkView, route, options);
 	    }
@@ -23150,15 +26608,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 
 	    switch (direction) {
-	        case Directions.HORIZONTAL:
+	        case Directions$1.HORIZONTAL:
 	            return getHorizontalTargetDirection(linkView, route, options);
-	        case Directions.VERTICAL:
+	        case Directions$1.VERTICAL:
 	            return getVerticalTargetDirection(linkView, route, options);
-	        case Directions.CLOSEST_POINT:
+	        case Directions$1.CLOSEST_POINT:
 	            return getClosestPointTargetDirection(linkView, route, options);
-	        case Directions.OUTWARDS:
+	        case Directions$1.OUTWARDS:
 	            return getOutwardsTargetDirection(linkView, route, options);
-	        case Directions.AUTO:
+	        case Directions$1.AUTO:
 	        default:
 	            return getAutoTargetDirection(linkView, route, options);
 	    }
@@ -23283,6 +26741,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
 	var connectors = ({
+		straight: straight,
 		jumpover: jumpover,
 		normal: normal$1,
 		rounded: rounded,
@@ -23290,10 +26749,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		curve: curve
 	});
 
-	var Flags$1 = {
+	var Flags$2 = {
+	    TOOLS: CellView.Flags.TOOLS,
 	    RENDER: 'RENDER',
 	    UPDATE: 'UPDATE',
-	    TOOLS: 'TOOLS',
 	    LEGACY_TOOLS: 'LEGACY_TOOLS',
 	    LABELS: 'LABELS',
 	    VERTICES: 'VERTICES',
@@ -23358,22 +26817,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    presentationAttributes: {
-	        markup: [Flags$1.RENDER],
-	        attrs: [Flags$1.UPDATE],
-	        router: [Flags$1.UPDATE],
-	        connector: [Flags$1.CONNECTOR],
-	        smooth: [Flags$1.UPDATE],
-	        manhattan: [Flags$1.UPDATE],
-	        toolMarkup: [Flags$1.LEGACY_TOOLS],
-	        labels: [Flags$1.LABELS],
-	        labelMarkup: [Flags$1.LABELS],
-	        vertices: [Flags$1.VERTICES, Flags$1.UPDATE],
-	        vertexMarkup: [Flags$1.VERTICES],
-	        source: [Flags$1.SOURCE, Flags$1.UPDATE],
-	        target: [Flags$1.TARGET, Flags$1.UPDATE]
+	        markup: [Flags$2.RENDER],
+	        attrs: [Flags$2.UPDATE],
+	        router: [Flags$2.UPDATE],
+	        connector: [Flags$2.CONNECTOR],
+	        smooth: [Flags$2.UPDATE],
+	        manhattan: [Flags$2.UPDATE],
+	        toolMarkup: [Flags$2.LEGACY_TOOLS],
+	        labels: [Flags$2.LABELS],
+	        labelMarkup: [Flags$2.LABELS],
+	        vertices: [Flags$2.VERTICES, Flags$2.UPDATE],
+	        vertexMarkup: [Flags$2.VERTICES],
+	        source: [Flags$2.SOURCE, Flags$2.UPDATE],
+	        target: [Flags$2.TARGET, Flags$2.UPDATE]
 	    },
 
-	    initFlag: [Flags$1.RENDER, Flags$1.SOURCE, Flags$1.TARGET, Flags$1.TOOLS],
+	    initFlag: [Flags$2.RENDER, Flags$2.SOURCE, Flags$2.TARGET, Flags$2.TOOLS],
 
 	    UPDATE_PRIORITY: 1,
 
@@ -23381,14 +26840,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        opt || (opt = {});
 
-	        if (this.hasFlag(flags, Flags$1.SOURCE)) {
+	        if (this.hasFlag(flags, Flags$2.SOURCE)) {
 	            if (!this.updateEndProperties('source')) { return flags; }
-	            flags = this.removeFlag(flags, Flags$1.SOURCE);
+	            flags = this.removeFlag(flags, Flags$2.SOURCE);
 	        }
 
-	        if (this.hasFlag(flags, Flags$1.TARGET)) {
+	        if (this.hasFlag(flags, Flags$2.TARGET)) {
 	            if (!this.updateEndProperties('target')) { return flags; }
-	            flags = this.removeFlag(flags, Flags$1.TARGET);
+	            flags = this.removeFlag(flags, Flags$2.TARGET);
 	        }
 
 	        var ref = this;
@@ -23400,40 +26859,40 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return flags;
 	        }
 
-	        if (this.hasFlag(flags, Flags$1.RENDER)) {
+	        if (this.hasFlag(flags, Flags$2.RENDER)) {
 	            this.render();
 	            this.updateHighlighters(true);
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, [Flags$1.RENDER, Flags$1.UPDATE, Flags$1.VERTICES, Flags$1.LABELS, Flags$1.TOOLS, Flags$1.LEGACY_TOOLS, Flags$1.CONNECTOR]);
+	            flags = this.removeFlag(flags, [Flags$2.RENDER, Flags$2.UPDATE, Flags$2.VERTICES, Flags$2.LABELS, Flags$2.TOOLS, Flags$2.LEGACY_TOOLS, Flags$2.CONNECTOR]);
 	            return flags;
 	        }
 
 	        var updateHighlighters = false;
 
-	        if (this.hasFlag(flags, Flags$1.VERTICES)) {
+	        if (this.hasFlag(flags, Flags$2.VERTICES)) {
 	            this.renderVertexMarkers();
-	            flags = this.removeFlag(flags, Flags$1.VERTICES);
+	            flags = this.removeFlag(flags, Flags$2.VERTICES);
 	        }
 
 	        var ref$1 = this;
 	        var model = ref$1.model;
 	        var attributes = model.attributes;
-	        var updateLabels = this.hasFlag(flags, Flags$1.LABELS);
-	        var updateLegacyTools = this.hasFlag(flags, Flags$1.LEGACY_TOOLS);
+	        var updateLabels = this.hasFlag(flags, Flags$2.LABELS);
+	        var updateLegacyTools = this.hasFlag(flags, Flags$2.LEGACY_TOOLS);
 
 	        if (updateLabels) {
 	            this.onLabelsChange(model, attributes.labels, opt);
-	            flags = this.removeFlag(flags, Flags$1.LABELS);
+	            flags = this.removeFlag(flags, Flags$2.LABELS);
 	            updateHighlighters = true;
 	        }
 
 	        if (updateLegacyTools) {
 	            this.renderTools();
-	            flags = this.removeFlag(flags, Flags$1.LEGACY_TOOLS);
+	            flags = this.removeFlag(flags, Flags$2.LEGACY_TOOLS);
 	        }
 
-	        var updateAll = this.hasFlag(flags, Flags$1.UPDATE);
-	        var updateConnector = this.hasFlag(flags, Flags$1.CONNECTOR);
+	        var updateAll = this.hasFlag(flags, Flags$2.UPDATE);
+	        var updateConnector = this.hasFlag(flags, Flags$2.CONNECTOR);
 	        if (updateAll || updateConnector) {
 	            if (!updateAll) {
 	                // Keep the current route and update the geometry
@@ -23448,7 +26907,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                this.update();
 	            }
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, [Flags$1.UPDATE, Flags$1.TOOLS, Flags$1.CONNECTOR]);
+	            flags = this.removeFlag(flags, [Flags$2.UPDATE, Flags$2.TOOLS, Flags$2.CONNECTOR]);
 	            updateLabels = false;
 	            updateLegacyTools = false;
 	            updateHighlighters = true;
@@ -23466,16 +26925,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.updateHighlighters();
 	        }
 
-	        if (this.hasFlag(flags, Flags$1.TOOLS)) {
+	        if (this.hasFlag(flags, Flags$2.TOOLS)) {
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, Flags$1.TOOLS);
+	            flags = this.removeFlag(flags, Flags$2.TOOLS);
 	        }
 
 	        return flags;
 	    },
 
 	    requestConnectionUpdate: function(opt) {
-	        this.requestUpdate(this.getFlag(Flags$1.UPDATE), opt);
+	        this.requestUpdate(this.getFlag(Flags$2.UPDATE), opt);
 	    },
 
 	    isLabelsRenderRequired: function(opt) {
@@ -23735,15 +27194,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    },
 
-	    onMount: function() {
-	        this.mountLabels();
-	    },
-
-	    unmount: function() {
-	        CellView.prototype.unmount.apply(this, arguments);
-	        this.unmountLabels();
-	    },
-
 	    findLabelNode: function(labelIndex, selector) {
 	        var labelRoot = this._labelCache[labelIndex];
 	        if (!labelRoot) { return null; }
@@ -23754,7 +27204,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 
-	    // merge default label attrs into label attrs
+	    // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
 	    // keep `undefined` or `null` because `{}` means something else
 	    _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
 
@@ -23776,6 +27226,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
 	    },
 
+	    // merge default label size into label size (no built-in default)
+	    // keep `undefined` or `null` because `{}` means something else
+	    _mergeLabelSize: function(labelSize, defaultLabelSize) {
+
+	        if (labelSize === null) { return null; }
+	        if (labelSize === undefined) {
+
+	            if (defaultLabelSize === null) { return null; }
+	            if (defaultLabelSize === undefined) { return undefined; }
+
+	            return defaultLabelSize;
+	        }
+
+	        return merge({}, defaultLabelSize, labelSize);
+	    },
+
 	    updateLabels: function() {
 
 	        if (!this._V.labels) { return this; }
@@ -23790,6 +27256,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var defaultLabel = model._getDefaultLabel();
 	        var defaultLabelMarkup = defaultLabel.markup;
 	        var defaultLabelAttrs = defaultLabel.attrs;
+	        var defaultLabelSize = defaultLabel.size;
 
 	        for (var i = 0, n = labels.length; i < n; i++) {
 
@@ -23801,6 +27268,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            var label = labels[i];
 	            var labelMarkup = label.markup;
 	            var labelAttrs = label.attrs;
+	            var labelSize = label.size;
 
 	            var attrs = this._mergeLabelAttrs(
 	                (labelMarkup || defaultLabelMarkup),
@@ -23809,8 +27277,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                builtinDefaultLabelAttrs
 	            );
 
+	            var size = this._mergeLabelSize(
+	                labelSize,
+	                defaultLabelSize
+	            );
+
 	            this.updateDOMSubtreeAttributes(labelNode, attrs, {
-	                rootBBox: new Rect(label.size),
+	                rootBBox: new Rect(size),
 	                selectors: selectors
 	            });
 	        }
@@ -24300,12 +27773,40 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.targetAnchor.offset(tx, ty);
 	    },
 
+	    // combine default label position with built-in default label position
+	    _getDefaultLabelPositionProperty: function() {
+
+	        var model = this.model;
+
+	        var builtinDefaultLabel = model._builtins.defaultLabel;
+	        var builtinDefaultLabelPosition = builtinDefaultLabel.position;
+
+	        var defaultLabel = model._getDefaultLabel();
+	        var defaultLabelPosition = this._normalizeLabelPosition(defaultLabel.position);
+
+	        return merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
+	    },
+
 	    // if label position is a number, normalize it to a position object
 	    // this makes sure that label positions can be merged properly
 	    _normalizeLabelPosition: function(labelPosition) {
 
 	        if (typeof labelPosition === 'number') { return { distance: labelPosition, offset: null, angle: 0, args: null }; }
 	        return labelPosition;
+	    },
+
+	    // expects normalized position properties
+	    // e.g. `this._normalizeLabelPosition(labelPosition)` and `this._getDefaultLabelPositionProperty()`
+	    _mergeLabelPositionProperty: function(normalizedLabelPosition, normalizedDefaultLabelPosition) {
+
+	        if (normalizedLabelPosition === null) { return null; }
+	        if (normalizedLabelPosition === undefined) {
+
+	            if (normalizedDefaultLabelPosition === null) { return null; }
+	            return normalizedDefaultLabelPosition;
+	        }
+
+	        return merge({}, normalizedDefaultLabelPosition, normalizedLabelPosition);
 	    },
 
 	    updateLabelPositions: function() {
@@ -24322,20 +27823,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var labels = model.get('labels') || [];
 	        if (!labels.length) { return this; }
 
-	        var builtinDefaultLabel = model._builtins.defaultLabel;
-	        var builtinDefaultLabelPosition = builtinDefaultLabel.position;
-
-	        var defaultLabel = model._getDefaultLabel();
-	        var defaultLabelPosition = this._normalizeLabelPosition(defaultLabel.position);
-
-	        var defaultPosition = merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
+	        var defaultLabelPosition = this._getDefaultLabelPositionProperty();
 
 	        for (var idx = 0, n = labels.length; idx < n; idx++) {
 	            var labelNode = this._labelCache[idx];
 	            if (!labelNode) { continue; }
 	            var label = labels[idx];
 	            var labelPosition = this._normalizeLabelPosition(label.position);
-	            var position = merge({}, defaultPosition, labelPosition);
+	            var position = this._mergeLabelPositionProperty(labelPosition, defaultLabelPosition);
 	            var transformationMatrix = this._getLabelTransformationMatrix(position);
 	            labelNode.setAttribute('transform', V.matrixToTransformString(transformationMatrix));
 	            this._cleanLabelMatrices(idx);
@@ -24485,15 +27980,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    },
 
+	    _getLabelPositionProperty: function(idx) {
+
+	        return (this.model.label(idx).position || {});
+	    },
+
 	    _getLabelPositionAngle: function(idx) {
 
-	        var labelPosition = this.model.label(idx).position || {};
+	        var labelPosition = this._getLabelPositionProperty(idx);
 	        return (labelPosition.angle || 0);
 	    },
 
 	    _getLabelPositionArgs: function(idx) {
 
-	        var labelPosition = this.model.label(idx).position || {};
+	        var labelPosition = this._getLabelPositionProperty(idx);
 	        return labelPosition.args;
 	    },
 
@@ -24934,7 +28434,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var angle = labelAngle;
 	        if (tangent) {
 	            if (isOffsetAbsolute) {
-	                translation = tangent.start;
+	                translation = tangent.start.clone();
 	                translation.offset(labelOffsetCoordinates);
 	            } else {
 	                var normal = tangent.clone();
@@ -24942,15 +28442,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                normal.setLength(labelOffset);
 	                translation = normal.end;
 	            }
+
 	            if (isKeepGradient) {
 	                angle = (tangent.angle() + labelAngle);
 	                if (isEnsureLegibility) {
 	                    angle = normalizeAngle(((angle + 90) % 180) - 90);
 	                }
 	            }
+
 	        } else {
 	            // fallback - the connection has zero length
-	            translation = path.start;
+	            translation = path.start.clone();
 	            if (isOffsetAbsolute) { translation.offset(labelOffsetCoordinates); }
 	        }
 
@@ -25201,12 +28703,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	    },
 
-	    dragLabelStart: function(evt, _x, _y) {
+	    dragLabelStart: function(evt, x, y) {
 
 	        if (this.can('labelMove')) {
 
+	            if (this.isDefaultInteractionPrevented(evt)) { return; }
+
 	            var labelNode = evt.currentTarget;
 	            var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
+
+	            var defaultLabelPosition = this._getDefaultLabelPositionProperty();
+	            var initialLabelPosition = this._normalizeLabelPosition(this._getLabelPositionProperty(labelIdx));
+	            var position = this._mergeLabelPositionProperty(initialLabelPosition, defaultLabelPosition);
+
+	            var coords = this.getLabelCoordinates(position);
+	            var dx = coords.x - x; // how much needs to be added to cursor x to get to label x
+	            var dy = coords.y - y; // how much needs to be added to cursor y to get to label y
 
 	            var positionAngle = this._getLabelPositionAngle(labelIdx);
 	            var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
@@ -25216,6 +28728,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.eventData(evt, {
 	                action: 'label-move',
 	                labelIdx: labelIdx,
+	                dx: dx,
+	                dy: dy,
 	                positionAngle: positionAngle,
 	                positionArgs: positionArgs,
 	                stopPropagation: true
@@ -25265,6 +28779,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    dragStart: function(evt, x, y) {
 
+	        if (this.isDefaultInteractionPrevented(evt)) { return; }
+
 	        if (!this.can('linkMove')) { return; }
 
 	        this.eventData(evt, {
@@ -25278,9 +28794,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    dragLabel: function(evt, x, y) {
 
 	        var data = this.eventData(evt);
-	        var label = { position: this.getLabelPosition(x, y, data.positionAngle, data.positionArgs) };
+	        var label = { position: this.getLabelPosition((x + data.dx), (y + data.dy), data.positionAngle, data.positionArgs) };
 	        if (this.paper.options.snapLabels) { delete label.position.offset; }
-	        this.model.label(data.labelIdx, label);
+	        // The `touchmove' events are not fired
+	        // when the original event target is removed from the DOM.
+	        // The labels are currently re-rendered completely when only
+	        // the position changes. This is why we need to make sure that
+	        // the label is updated synchronously.
+	        // TODO: replace `touchmove` with `pointermove` (breaking change).
+	        var setOptions = { ui: true };
+	        if (this.paper.isAsync() && evt.type === 'touchmove') {
+	            setOptions.async = false;
+	        }
+	        this.model.label(data.labelIdx, label, setOptions);
 	    },
 
 	    dragVertex: function(evt, x, y) {
@@ -25808,6 +29334,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return data;
 	    },
 
+	    // Lifecycle methods
+
+	    onMount: function() {
+	        CellView.prototype.onMount.apply(this, arguments);
+	        this.mountLabels();
+	    },
+
+	    onDetach: function() {
+	        CellView.prototype.onDetach.apply(this, arguments);
+	        this.unmountLabels();
+	    },
+
 	    onRemove: function() {
 	        CellView.prototype.onRemove.apply(this, arguments);
 	        this.unmountLabels();
@@ -25815,7 +29353,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	}, {
 
-	    Flags: Flags$1,
+	    Flags: Flags$2,
 	});
 
 	Object.defineProperty(LinkView.prototype, 'sourceBBox', {
@@ -25996,8 +29534,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        'marker-end',
 	        'marker-mid',
 	        'transform',
-	        'stroke-dasharray'
-	    ],
+	        'stroke-dasharray',
+	        'class' ],
 
 	    MASK_CHILD_ATTRIBUTE_BLACKLIST: [
 	        'stroke',
@@ -26008,8 +29546,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        'fill-opacity',
 	        'marker-start',
 	        'marker-end',
-	        'marker-mid'
-	    ],
+	        'marker-mid',
+	        'class' ],
 
 	    // TODO: change the list to a function callback
 	    MASK_REPLACE_TAGS: [
@@ -26231,7 +29769,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    className: className
 	});
 
-	var Directions$1 = {
+	var Directions$2 = {
 	    ROW: 'row',
 	    COLUMN: 'column'
 	};
@@ -26254,10 +29792,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var attribute = ref.attribute;
 	        var size = ref.size; if ( size === void 0 ) size = 20;
 	        var gap = ref.gap; if ( gap === void 0 ) gap = 5;
-	        var direction = ref.direction; if ( direction === void 0 ) direction = Directions$1.ROW;
+	        var direction = ref.direction; if ( direction === void 0 ) direction = Directions$2.ROW;
 	        if (!attribute) { throw new Error('List: attribute is required'); }
 	        var normalizedSize = (typeof size === 'number') ? { width: size, height: size } : size;
-	        var isRowDirection = (direction === Directions$1.ROW);
+	        var isRowDirection = (direction === Directions$2.ROW);
 	        var itemWidth = isRowDirection ? normalizedSize.width : normalizedSize.height;
 	        var items = element.get(attribute);
 	        if (!Array.isArray(items)) { items = []; }
@@ -26345,7 +29883,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        vel.attr('transform', ("translate(" + x + ", " + y + ")"));
 	    }
 	}, {
-	    Directions: Directions$1,
+	    Directions: Directions$2,
 	    Positions: Positions
 	});
 
@@ -26576,6 +30114,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    if (typeof selector === 'string') {
 	        node = view.findBySelector(selector)[0];
+	    } else if (selector === false) {
+	        node = magnet;
 	    } else if (Array.isArray(selector)) {
 	        node = getByPath(magnet, selector);
 	    } else {
@@ -26840,10 +30380,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        height: 600,
 	        origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
 	        gridSize: 1,
-
 	        // Whether or not to draw the grid lines on the paper's DOM element.
 	        // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
 	        drawGrid: false,
+	        // If not set, the size of the visual grid is the same as the `gridSize`.
+	        drawGridSize: null,
 
 	        // Whether or not to draw the background on the paper's DOM element.
 	        // e.g. background: { color: 'lightblue', image: '/paper-background.png', repeat: 'flip-xy' }
@@ -26879,6 +30420,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // Prevent the default action for blank:pointer<action>.
 	        preventDefaultBlankAction: true,
+
+	        // Prevent the default action for cell:pointer<action>.
+	        preventDefaultViewAction: true,
 
 	        // Restrict the translation of elements by given bounding box.
 	        // Option accepts a boolean:
@@ -26979,7 +30523,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // Number of required mousemove events before the first pointermove event will be triggered.
 	        moveThreshold: 0,
 
-	        // Number of required mousemove events before the a link is created out of the magnet.
+	        // Number of required mousemove events before a link is created out of the magnet.
 	        // Or string `onleave` so the link is created when the pointer leaves the magnet
 	        magnetThreshold: 0,
 
@@ -26988,6 +30532,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        sorting: sortingTypes.EXACT,
 
 	        frozen: false,
+
+	        autoFreeze: false,
 
 	        // no docs yet
 	        onViewUpdate: function(view, flag, priority, opt, paper) {
@@ -27025,7 +30571,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        linkAnchorNamespace: linkAnchors,
 
-	        connectionPointNamespace: connectionPoints
+	        connectionPointNamespace: connectionPoints,
+
+	        overflow: false
 	    },
 
 	    events: {
@@ -27043,10 +30591,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        'mouseleave .joint-cell': 'mouseleave',
 	        'mouseenter .joint-tools': 'mouseenter',
 	        'mouseleave .joint-tools': 'mouseleave',
-	        'mousedown .joint-cell [event]': 'onevent', // interaction with cell with `event` attribute set
-	        'touchstart .joint-cell [event]': 'onevent',
-	        'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
-	        'touchstart .joint-cell [magnet]': 'onmagnet',
 	        'dblclick .joint-cell [magnet]': 'magnetpointerdblclick',
 	        'contextmenu .joint-cell [magnet]': 'magnetcontextmenu',
 	        'mousedown .joint-link .label': 'onlabel', // interaction with link label
@@ -27083,6 +30627,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
 	    UPDATE_DELAYING_BATCHES: ['translate'],
+	    // If you interact with these elements,
+	    // the default interaction such as `element move` is prevented.
+	    FORM_CONTROL_TAG_NAMES: ['TEXTAREA', 'INPUT', 'BUTTON', 'SELECT', 'OPTION'] ,
+	    // If you interact with these elements, the events are not propagated to the paper
+	    // i.e. paper events such as `element:pointerdown` are not triggered.
+	    GUARDED_TAG_NAMES: [
+	        // Guard <select> for consistency. When you click on it:
+	        // Chrome: triggers `pointerdown`, `pointerup`, `pointerclick` to open
+	        // Firefox: triggers `pointerdown` on open, `pointerup` (and `pointerclick` only if you haven't moved).
+	        //          on close. However, if you open and then close by clicking elsewhere on the page,
+	        //           no other event is triggered.
+	        // Safari: when you open it, it triggers `pointerdown`. That's it.
+	        'SELECT' ],
 	    MIN_SCALE: 1e-6,
 
 	    init: function() {
@@ -27135,7 +30692,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            count: 0,
 	            keyFrozen: false,
 	            freezeKey: null,
-	            sort: false
+	            sort: false,
+	            disabled: false,
+	            idle: false
 	        };
 	    },
 
@@ -27311,6 +30870,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var background = childNodes.background;
 	        var grid = childNodes.grid;
 
+	        svg.style.overflow = options.overflow ? 'visible' : 'hidden';
+
 	        this.svg = svg;
 	        this.defs = defs;
 	        this.layers = layers;
@@ -27451,23 +31012,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var model = view.model;
 	        if (model.isElement()) { return false; }
 	        if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
+	            var dumpOptions = { silent: true };
 	            // LinkView is waiting for the target or the source cellView to be rendered
 	            // This can happen when the cells are not in the viewport.
 	            var sourceFlag = 0;
 	            var sourceView = this.findViewByModel(model.getSourceCell());
 	            if (sourceView && !this.isViewMounted(sourceView)) {
-	                sourceFlag = this.dumpView(sourceView);
+	                sourceFlag = this.dumpView(sourceView, dumpOptions);
 	                view.updateEndMagnet('source');
 	            }
 	            var targetFlag = 0;
 	            var targetView = this.findViewByModel(model.getTargetCell());
 	            if (targetView && !this.isViewMounted(targetView)) {
-	                targetFlag = this.dumpView(targetView);
+	                targetFlag = this.dumpView(targetView, dumpOptions);
 	                view.updateEndMagnet('target');
 	            }
 	            if (sourceFlag === 0 && targetFlag === 0) {
 	                // If leftover flag is 0, all view updates were done.
-	                return !this.dumpView(view);
+	                return !this.dumpView(view, dumpOptions);
 	            }
 	        }
 	        return false;
@@ -27487,6 +31049,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var ref = this;
 	        var updates = ref._updates;
 	        var options = ref.options;
+	        if (updates.idle) {
+	            if (options.autoFreeze) {
+	                updates.idle = false;
+	                this.unfreeze();
+	            }
+	        }
 	        var FLAG_REMOVE = view.FLAG_REMOVE;
 	        var FLAG_INSERT = view.FLAG_INSERT;
 	        var UPDATE_PRIORITY = view.UPDATE_PRIORITY;
@@ -27534,15 +31102,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    dumpView: function(view, opt) {
+	        if ( opt === void 0 ) opt = {};
+
 	        var flag = this.dumpViewUpdate(view);
 	        if (!flag) { return 0; }
-	        return this.updateView(view, flag, opt);
+	        var shouldNotify = !opt.silent;
+	        if (shouldNotify) { this.notifyBeforeRender(opt); }
+	        var leftover = this.updateView(view, flag, opt);
+	        if (shouldNotify) {
+	            var stats = { updated: 1, priority: view.UPDATE_PRIORITY };
+	            this.notifyAfterRender(stats, opt);
+	        }
+	        return leftover;
 	    },
 
 	    updateView: function(view, flag, opt) {
 	        if (!view) { return 0; }
 	        var FLAG_REMOVE = view.FLAG_REMOVE;
 	        var FLAG_INSERT = view.FLAG_INSERT;
+	        var FLAG_INIT = view.FLAG_INIT;
 	        var model = view.model;
 	        if (view instanceof CellView) {
 	            if (flag & FLAG_REMOVE) {
@@ -27550,7 +31128,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                return 0;
 	            }
 	            if (flag & FLAG_INSERT) {
-	                this.insertView(view);
+	                var isInitialInsert = !!(flag & FLAG_INIT);
+	                if (isInitialInsert) {
+	                    flag ^= FLAG_INIT;
+	                }
+	                this.insertView(view, isInitialInsert);
 	                flag ^= FLAG_INSERT;
 	            }
 	        }
@@ -27631,7 +31213,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    updateViewsAsync: function(opt, data) {
 	        opt || (opt = {});
 	        data || (data = { processed: 0, priority: MIN_PRIORITY });
-	        var updates = this._updates;
+	        var ref = this;
+	        var updates = ref._updates;
+	        var options = ref.options;
 	        var id = updates.id;
 	        if (id) {
 	            cancelFrame(id);
@@ -27664,6 +31248,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                } else {
 	                    data.processed = processed;
 	                }
+	            } else {
+	                if (!updates.idle) {
+	                    if (options.autoFreeze) {
+	                        this.freeze();
+	                        updates.idle = true;
+	                        this.trigger('render:idle', opt);
+	                    }
+	                }
 	            }
 	            // Progress callback
 	            var progressFn = opt.progress;
@@ -27672,6 +31264,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 	            // The current frame could have been canceled in a callback
 	            if (updates.id !== id) { return; }
+	        }
+	        if (updates.disabled) {
+	            throw new Error('dia.Paper: can not unfreeze the paper after it was removed');
 	        }
 	        updates.id = nextFrame(this.updateViewsAsync, this, opt, data);
 	    },
@@ -27739,7 +31334,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                        // Unmount View
 	                        if (!isDetached) {
 	                            this.registerUnmountedView(view);
-	                            view.unmount();
+	                            this.detachView(view);
 	                        }
 	                        updates.unmounted[cid] |= currentFlag;
 	                        delete priorityUpdates[cid];
@@ -27847,7 +31442,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 	            unmountCount++;
 	            var flag = this.registerUnmountedView(view);
-	            if (flag) { view.unmount(); }
+	            if (flag) { this.detachView(view); }
 	        }
 	        // Get rid of views, that have been unmounted
 	        mountedCids.splice(0, i);
@@ -27929,6 +31524,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    onRemove: function() {
 
 	        this.freeze();
+	        this._updates.disabled = true;
 	        //clean up all DOM elements/views to prevent memory leaks
 	        this.removeLayers();
 	        this.removeViews();
@@ -28065,8 +31661,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
 	    },
 
-	    scaleContentToFit: function(opt) {
-
+	    transformToFitContent: function(opt) {
 	        opt || (opt = {});
 
 	        var contentBBox, contentLocalOrigin;
@@ -28086,7 +31681,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            preserveAspectRatio: true,
 	            scaleGrid: null,
 	            minScale: 0,
-	            maxScale: Number.MAX_VALUE
+	            maxScale: Number.MAX_VALUE,
+	            verticalAlign: 'top',
+	            horizontalAlign: 'left',
 	            //minScaleX
 	            //minScaleY
 	            //maxScaleX
@@ -28144,12 +31741,45 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        newSx = Math.min(maxScaleX, Math.max(minScaleX, newSx));
 	        newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
 
+	        var scaleDiff = {
+	            x: newSx / currentScale.sx,
+	            y: newSy / currentScale.sy
+	        };
+
 	        var origin = this.options.origin;
 	        var newOx = fittingBBox.x - contentLocalOrigin.x * newSx - origin.x;
 	        var newOy = fittingBBox.y - contentLocalOrigin.y * newSy - origin.y;
 
+	        switch (opt.verticalAlign) {
+	            case 'middle':
+	                newOy = newOy + (fittingBBox.height - contentBBox.height * scaleDiff.y) / 2;
+	                break;
+	            case 'bottom':
+	                newOy = newOy + (fittingBBox.height - contentBBox.height * scaleDiff.y);
+	                break;
+	            case 'top':
+	            default:
+	                break;
+	        }
+
+	        switch (opt.horizontalAlign) {
+	            case 'middle':
+	                newOx = newOx + (fittingBBox.width - contentBBox.width * scaleDiff.x) / 2;
+	                break;
+	            case 'right':
+	                newOx = newOx + (fittingBBox.width - contentBBox.width * scaleDiff.x);
+	                break;
+	            case 'left':
+	            default:
+	                break;
+	        }
+
 	        this.scale(newSx, newSy);
 	        this.translate(newOx, newOy);
+	    },
+
+	    scaleContentToFit: function(opt) {
+	        this.transformToFitContent(opt);
 	    },
 
 	    // Return the dimensions of the content area in local units (without transformations).
@@ -28284,7 +31914,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (create) {
 	            view = views[id] = this.createViewForModel(cell);
 	            view.paper = this;
-	            flag = this.registerUnmountedView(view) | view.getFlag(result(view, 'initFlag'));
+	            flag = this.registerUnmountedView(view) | this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
 	        }
 	        this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
 	        return view;
@@ -28303,11 +31933,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this._resetUpdates();
 	        // clearing views removes any event listeners
 	        this.removeViews();
-	        this.freeze({ key: 'reset' });
+	        // Allows to unfreeze normally while in the idle state using autoFreeze option
+	        var key = this.options.autoFreeze ? null : 'reset';
+	        this.freeze({ key: key });
 	        for (var i = 0, n = cells.length; i < n; i++) {
 	            this.renderView(cells[i], opt);
 	        }
-	        this.unfreeze({ key: 'reset' });
+	        this.unfreeze({ key: key });
 	        this.sortViews();
 	    },
 
@@ -28349,7 +31981,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	    },
 
-	    insertView: function(view) {
+	    insertView: function(view, isInitialInsert) {
 	        var layerView = this.getLayerView(LayersNames.CELLS);
 	        var el = view.el;
 	        var model = view.model;
@@ -28362,7 +31994,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                layerView.insertNode(el);
 	                break;
 	        }
-	        view.onMount();
+	        view.onMount(isInitialInsert);
+	    },
+
+	    detachView: function detachView(view) {
+	        view.unmount();
+	        view.onDetach();
 	    },
 
 	    scale: function(sx, sy, ox, oy) {
@@ -28850,27 +32487,86 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    pointerdown: function(evt) {
 
-	        // onmagnet stops propagation when `addLinkFromMagnet` is allowed
-	        // onevent can stop propagation
-
 	        evt = normalizeEvent(evt);
 
-	        if (evt.button === 2) {
+	        var target = evt.target;
+	        var button = evt.button;
+	        var view = this.findView(target);
+	        var isContextMenu = (button === 2);
+
+	        if (view) {
+
+	            if (!isContextMenu && this.guard(evt, view)) { return; }
+
+	            var isTargetFormNode = this.FORM_CONTROL_TAG_NAMES.includes(target.tagName);
+
+	            if (this.options.preventDefaultViewAction && !isTargetFormNode) {
+	                // If the target is a form element, we do not want to prevent the default action.
+	                // For example, we want to be able to select text in a text input or
+	                // to be able to click on a checkbox.
+	                evt.preventDefault();
+	            }
+
+	            if (isTargetFormNode) {
+	                // If the target is a form element, we do not want to start dragging the element.
+	                // For example, we want to be able to select text by dragging the mouse.
+	                view.preventDefaultInteraction(evt);
+	            }
+
+	            var rootViewEl = view.el;
+
+	            // Custom event
+	            var eventNode = target.closest('[event]');
+	            if (eventNode && rootViewEl !== eventNode && view.el.contains(eventNode)) {
+	                var eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+	                    data: evt.data,
+	                    // Originally the event listener was attached to the event element.
+	                    currentTarget: eventNode
+	                }));
+	                this.onevent(eventEvt);
+	                if (eventEvt.isDefaultPrevented()) {
+	                    evt.preventDefault();
+	                }
+	                // `onevent` can stop propagation
+	                if (eventEvt.isPropagationStopped()) { return; }
+	                evt.data = eventEvt.data;
+	            }
+
+	            // Element magnet
+	            var magnetNode = target.closest('[magnet]');
+	            if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
+	                var magnetEvt = normalizeEvent($.Event(evt.originalEvent, {
+	                    data: evt.data,
+	                    // Originally the event listener was attached to the magnet element.
+	                    currentTarget: magnetNode
+	                }));
+	                this.onmagnet(magnetEvt);
+	                if (magnetEvt.isDefaultPrevented()) {
+	                    evt.preventDefault();
+	                }
+	                // `onmagnet` stops propagation when `addLinkFromMagnet` is allowed
+	                if (magnetEvt.isPropagationStopped()) {
+	                    // `magnet:pointermove` and `magnet:pointerup` events must be fired
+	                    if (isContextMenu) { return; }
+	                    this.delegateDragEvents(view, magnetEvt.data);
+	                    return;
+	                }
+	                evt.data = magnetEvt.data;
+	            }
+	        }
+
+	        if (isContextMenu) {
 	            this.contextMenuFired = true;
-	            var contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+	            var contextmenuEvt = $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
 	            this.contextMenuTrigger(contextmenuEvt);
 	        } else {
-	            var view = this.findView(evt.target);
-
-	            if (this.guard(evt, view)) { return; }
 	            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-
 	            if (view) {
-	                evt.preventDefault();
 	                view.pointerdown(evt, localPoint.x, localPoint.y);
 	            } else {
-	                if (this.options.preventDefaultBlankAction) { evt.preventDefault(); }
-
+	                if (this.options.preventDefaultBlankAction) {
+	                    evt.preventDefault();
+	                }
 	                this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
 	            }
 
@@ -28926,7 +32622,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (!normalizedEvt.isPropagationStopped()) {
-	            this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+	            this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
 	        }
 
 	        evt.stopImmediatePropagation();
@@ -29061,19 +32757,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var deltaX = ref.deltaX;
 	        var deltaY = ref.deltaY;
 
+	        var pinchHandlers = this._events['paper:pinch'];
+
 	        // Touchpad devices will send a fake CTRL press when a pinch is performed
-	        if(evt.ctrlKey) {
-	            // Check if there are any subscribers to this event. If there are none,
-	            // just skip the entire block of code (we don't want to blindly call
-	            // .preventDefault() if we really don't have to).
-	            var handlers = this._events['paper:pinch'];
-	            if(handlers && handlers.length > 0) {
-	                // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
-	                originalEvent.preventDefault();
-	                this._mw_evt_buffer.event = originalEvent;
-	                this._mw_evt_buffer.deltas.push(deltaY);
-	                this._processMouseWheelEvtBuf();
-	            }
+	        //
+	        // We also check if there are any subscribers to paper:pinch event. If there are none,
+	        // just skip the entire block of code (we don't want to blindly call
+	        // .preventDefault() if we really don't have to).
+	        if (evt.ctrlKey && pinchHandlers && pinchHandlers.length > 0) {
+	            // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
+	            originalEvent.preventDefault();
+	            this._mw_evt_buffer.event = originalEvent;
+	            this._mw_evt_buffer.deltas.push(deltaY);
+	            this._processMouseWheelEvtBuf();
 	        } else {
 	            var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
 	            if (view) {
@@ -29124,7 +32820,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (evt.button === 2) {
 	            this.contextMenuFired = true;
 	            this.magnetContextMenuFired = true;
-	            var contextmenuEvt = $.Event(evt, { type: 'contextmenu', data: evt.data });
+	            var contextmenuEvt = $.Event(evt.originalEvent, {
+	                type: 'contextmenu',
+	                data: evt.data,
+	                currentTarget: evt.currentTarget,
+	            });
 	            this.magnetContextMenuTrigger(contextmenuEvt);
 	            if (contextmenuEvt.isPropagationStopped()) {
 	                evt.stopPropagation();
@@ -29189,7 +32889,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.delegateDocumentEvents(null, data);
 	    },
 
-	    // Guard the specified event. If the event is not interesting, guard returns `true`.
+	    // Guard the specified event. If the event should be ignored, guard returns `true`.
 	    // Otherwise, it returns `false`.
 	    guard: function(evt, view) {
 
@@ -29206,11 +32906,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return evt.data.guarded;
 	        }
 
+	        var target = evt.target;
+
+	        if (this.GUARDED_TAG_NAMES.includes(target.tagName)) {
+	            return true;
+	        }
+
 	        if (view && view.model && (view.model instanceof Cell)) {
 	            return false;
 	        }
 
-	        if (this.svg === evt.target || this.el === evt.target || $.contains(this.svg, evt.target)) {
+	        if (this.svg === target || this.el === target || $.contains(this.svg, target)) {
 	            return false;
 	        }
 
@@ -29219,9 +32925,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    setGridSize: function(gridSize) {
 
-	        this.options.gridSize = gridSize;
+	        var ref = this;
+	        var options = ref.options;
+	        options.gridSize = gridSize;
 
-	        if (this.options.drawGrid) {
+	        if (options.drawGrid && !options.drawGridSize) {
+	            // Do not redraw the grid if the `drawGridSize` is set.
 	            this.drawGrid();
 	        }
 
@@ -29312,7 +33021,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    drawGrid: function(opt) {
 
-	        var gridSize = this.options.gridSize;
+	        var gridSize = this.options.drawGridSize || this.options.gridSize;
 	        if (gridSize <= 1) {
 	            return this.clearGrid();
 	        }
@@ -29611,7 +33320,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    defineMarker: function(marker) {
 	        if (!isObject$1(marker)) {
-	            throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
+	            throw new TypeError('dia.Paper: defineMarker() requires the first argument to be an object.');
 	        }
 	        var ref = this;
 	        var svg = ref.svg;
@@ -29631,20 +33340,58 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	        markerVEl.id = id;
 	        markerVEl.attr(attrs);
+	        var markerContentVEl;
 	        if (markup) {
+	            var markupVEl;
 	            if (typeof markup === 'string') {
-	                markerVEl.append(V(markup));
+	                // Marker object has a `markup` property of type string.
+	                // - Construct V from the provided string.
+	                markupVEl = V(markup);
+	                // `markupVEl` is now either a single VEl, or an array of VEls.
+	                // - Coerce it to an array.
+	                markupVEl = (Array.isArray(markupVEl) ? markupVEl : [markupVEl]);
 	            } else {
+	                // Marker object has a `markup` property of type object.
+	                // - Construct V from the object by parsing it as DOM JSON.
 	                var ref$1 = parseDOMJSON(markup);
 	                var fragment = ref$1.fragment;
-	                markerVEl.append(fragment);
+	                markupVEl = V(fragment).children();
+	            }
+	            // `markupVEl` is an array with one or more VEls inside.
+	            // - If there are multiple VEls, wrap them in a newly-constructed <g> element
+	            if (markupVEl.length > 1) {
+	                markerContentVEl = V('g').append(markupVEl);
+	            } else {
+	                markerContentVEl = markupVEl[0];
 	            }
 	        } else {
-	            // marker object is a flat structure
+	            // Marker object is a flat structure.
+	            // - Construct a new V of type `marker.type`.
 	            var type = marker.type; if ( type === void 0 ) type = 'path';
-	            var markerContentVEl = V(type, omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits'));
-	            markerVEl.append(markerContentVEl);
+	            markerContentVEl = V(type);
 	        }
+	        // `markerContentVEl` is a single VEl.
+	        // Assign additional attributes to it (= context attributes + marker attributes):
+	        // - Attribute values are taken from non-special properties of `marker`.
+	        var markerAttrs = omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits');
+	        var markerAttrsKeys = Object.keys(markerAttrs);
+	        markerAttrsKeys.forEach(function (key) {
+	            var value = markerAttrs[key];
+	            var markupValue = markerContentVEl.attr(key); // value coming from markupVEl (if any) = higher priority
+	            if (markupValue == null) {
+	                // Default logic:
+	                markerContentVEl.attr(key, value);
+	            } else {
+	                // Properties with special logic should be added as cases to this switch block:
+	                switch(key) {
+	                    case 'transform':
+	                        // - Prepend `transform` to existing value.
+	                        markerContentVEl.attr(key, (value + ' ' + markupValue));
+	                        break;
+	                }
+	            }
+	        });
+	        markerContentVEl.appendTo(markerVEl);
 	        markerVEl.appendTo(defs);
 	        return id;
 	    }
@@ -29968,8 +33715,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                tool.update();
 	            }
 	        }
-	        if (!isRendered) {
+	        if (!this.isMounted()) {
 	            this.mount();
+	        }
+	        if (!isRendered) {
 	            // Make sure tools are visible (if they were hidden and the tool removed)
 	            this.blurTool();
 	            this.isRendered = true;
@@ -30037,6 +33786,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 	        }
 	        return this;
+	    },
+
+	    isMounted: function() {
+	        return this.el.parentNode !== null;
 	    }
 
 	});
@@ -30255,7 +34008,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                    return bCluster.getAncestors().length - aCluster.getAncestors().length;
 	                });
 
-	            invoke(clusters, 'fitEmbeds', { padding: opt.clusterPadding });
+	            invoke(clusters, 'fitToChildren', { padding: opt.clusterPadding });
 	        }
 
 	        graph.stopBatch('layout');
@@ -33760,12 +37513,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    onPointerUp: function(evt) {
+	        var normalizedEvent = normalizeEvent(evt);
 	        this.paper.delegateEvents();
 	        this.undelegateDocumentEvents();
 	        this.blur();
 	        this.toggleArea(false);
 	        var linkView = this.relatedView;
 	        if (this.options.redundancyRemoval) { linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid }); }
+	        linkView.checkMouseleave(normalizedEvent);
 	        linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
 	    },
 
@@ -34417,7 +38172,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.6.5";
+	var version = "3.7.0";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

@@ -1,4 +1,4 @@
-/*! JointJS v3.6.5 (2022-12-15) - JavaScript diagramming library
+/*! JointJS v3.7.0 (2023-04-18) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1174,6 +1174,8 @@ export namespace dia {
 
     type Event = JQuery.TriggeredEvent;
 
+    type ObjectHash = { [key: string]: any };
+
     type Point = g.PlainPoint;
 
     type BBox = g.PlainRect;
@@ -1230,7 +1232,7 @@ export namespace dia {
         textContent?: string;
     };
 
-    type MarkupJSON = MarkupNodeJSON[];
+    type MarkupJSON = Array<MarkupNodeJSON | string>;
 
     type Path = string | Array<string | number>;
 
@@ -1319,7 +1321,7 @@ export namespace dia {
         }
     }
 
-    class Graph<A = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
         constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
@@ -1476,7 +1478,7 @@ export namespace dia {
         }
     }
 
-    class Cell<A = Cell.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Cell<A extends ObjectHash = Cell.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
         constructor(attributes?: A, opt?: Graph.Options);
 
@@ -1552,6 +1554,8 @@ export namespace dia {
         stopBatch(name: string, opt?: Graph.Options): this;
 
         position(): g.Point;
+
+        z(): number;
 
         angle(): number;
 
@@ -1647,7 +1651,7 @@ export namespace dia {
         }
     }
 
-    class Element<A = Element.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
+    class Element<A extends ObjectHash = Element.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         isElement(): boolean;
 
@@ -1669,7 +1673,10 @@ export namespace dia {
 
         scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
-        fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;
+        fitEmbeds(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
+        fitToChildren(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
+
+        fitParent(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean, terminator?: Cell | Cell.ID }): this;
 
         getBBox(opt?: Element.BBoxOptions): g.Rect;
 
@@ -1770,7 +1777,7 @@ export namespace dia {
         }
     }
 
-    class Link<A = Link.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
+    class Link<A extends ObjectHash = Link.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         toolMarkup: string;
         doubleToolMarkup?: string;
@@ -1822,7 +1829,7 @@ export namespace dia {
         vertex(index: number, vertex: Link.Vertex, opt?: S): this;
 
         vertices(): Link.Vertex[];
-        vertices(vertices: Link.Vertex[]): this;
+        vertices(vertices: Link.Vertex[], opt?: S): this;
 
         insertVertex(index: number, vertex: Link.Vertex, opt?: S): Link.Vertex[];
 
@@ -1938,6 +1945,10 @@ export namespace dia {
 
         updateTools(opt?: { [key: string]: any }): this;
 
+        mountTools(): this;
+
+        unmountTools(): this;
+
         getNodeMatrix(node: SVGElement): SVGMatrix;
 
         getNodeRotateMatrix(node: SVGElement): SVGMatrix;
@@ -1965,6 +1976,10 @@ export namespace dia {
         dragLink(evt: dia.Event, x: number, y: number): void;
 
         dragLinkEnd(evt: dia.Event, x: number, y: number): void;
+
+        preventDefaultInteraction(evt: dia.Event): void;
+
+        isDefaultInteractionPrevented(evt: dia.Event): boolean;
 
         protected removeHighlighters(): void;
 
@@ -2021,6 +2036,10 @@ export namespace dia {
         protected getNodeData(magnet: SVGElement): CellView.NodeData;
 
         protected getNodeShape(magnet: SVGElement): g.Shape;
+
+        protected onMount(isInitialMount: boolean): void;
+
+        protected onDetach(): void;
 
         static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
     }
@@ -2225,6 +2244,8 @@ export namespace dia {
 
         findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
 
+        removeRedundantLinearVertices(opt?: dia.ModelSetOptions): number;
+
         protected updateRoute(): void;
 
         protected updatePath(): void;
@@ -2280,8 +2301,6 @@ export namespace dia {
         protected notifyPointermove(evt: dia.Event, x: number, y: number): void;
 
         protected notifyPointerup(evt: dia.Event, x: number, y: number): void;
-
-        protected onMount(): void;
 
         protected mountLabels(): void;
 
@@ -2390,6 +2409,7 @@ export namespace dia {
             perpendicularLinks?: boolean;
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
+            drawGridSize?: number | null;
             background?: BackgroundOptions;
             labelsLayer?: boolean | Paper.Layers | string;
             // interactions
@@ -2410,6 +2430,7 @@ export namespace dia {
             // events
             guard?: (evt: dia.Event, view: CellView) => boolean;
             preventContextMenu?: boolean;
+            preventDefaultViewAction?: boolean;
             preventDefaultBlankAction?: boolean;
             clickThreshold?: number;
             moveThreshold?: number;
@@ -2443,14 +2464,16 @@ export namespace dia {
             async?: boolean;
             sorting?: sorting;
             frozen?: boolean;
+            autoFreeze?: boolean;
             viewport?: ViewportCallback | null;
             onViewUpdate?: (view: mvc.View<any, any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
             beforeRender?: Paper.BeforeRenderCallback;
             afterRender?: Paper.AfterRenderCallback;
+            overflow?: boolean;
         }
 
-        interface ScaleContentOptions {
+        interface TransformToFitContentOptions {
             padding?: Padding;
             preserveAspectRatio?: boolean;
             minScale?: number;
@@ -2463,7 +2486,14 @@ export namespace dia {
             useModelGeometry?: boolean;
             fittingBBox?: BBox;
             contentArea?: BBox;
+            verticalAlign?: 'top' | 'middle' | 'bottom';
+            horizontalAlign?: 'left' | 'middle' | 'right';
         }
+
+        /**
+         * @deprecated
+        */
+        type ScaleContentOptions = TransformToFitContentOptions;
 
         interface FitToContentOptions {
             gridWidth?: number;
@@ -2575,6 +2605,9 @@ export namespace dia {
         $grid: JQuery;
         $background: JQuery;
 
+        GUARDED_TAG_NAMES: string[];
+        FORM_CONTROLS_TAG_NAMES: string[];
+
         matrix(): SVGMatrix;
         matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
 
@@ -2657,7 +2690,12 @@ export namespace dia {
 
         getFitToContentArea(opt?: Paper.FitToContentOptions): g.Rect;
 
+        /**
+         * @deprecated use transformToFitContent
+         */
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
+
+        transformToFitContent(opt?: Paper.TransformToFitContentOptions): void;
 
         drawBackground(opt?: Paper.BackgroundOptions): this;
 
@@ -2865,6 +2903,10 @@ export namespace dia {
         protected renderView(cell: Cell): CellView;
 
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
+
+        protected insertView(cellView: CellView, isInitialInsert: boolean): void;
+
+        protected detachView(cellView: CellView): void;
     }
 
     namespace PaperLayer {
@@ -2924,6 +2966,10 @@ export namespace dia {
 
         mount(): this;
 
+        unmount(): this;
+
+        isMounted(): boolean;
+
         protected simulateRelatedView(el: SVGElement): void;
     }
 
@@ -2978,7 +3024,7 @@ export namespace dia {
         }
     }
 
-    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined, SVGElement> {
+    class HighlighterView<Options extends mvc.ViewOptions<undefined, SVGElement> = HighlighterView.Options> extends mvc.View<undefined, SVGElement> {
 
         constructor(options?: Options);
 
@@ -3177,7 +3223,7 @@ export namespace highlighters {
         }
     }
 
-    class list<Item = any, Options = list.Options> extends dia.HighlighterView<Options> {
+    class list<Item = any, Options extends mvc.ViewOptions<undefined, SVGElement> = list.Options> extends dia.HighlighterView<Options> {
 
         options: Options;
 
@@ -3351,7 +3397,7 @@ export namespace shapes {
 
         type CylinderAttributes = dia.Element.GenericAttributes<CylinderSelectors>;
 
-        class Cylinder<S = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
+        class Cylinder<S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
             topRy(): string | number;
             topRy(t: string | number, opt?: S): this;
         }
@@ -4212,9 +4258,7 @@ export namespace util {
 
     type PropertyPath = string | string[];
 
-    type Iteratee = IterateeFunction | IterateeShorthand;
-    type IterateeFunction = (value: any) => NotVoid;
-    type IterateeShorthand = PropertyPath; // there are other shorthands in Lodash but not in the methods we duplicate
+    type IterateeFunction<T> = (value: T) => NotVoid;
 
     interface Cancelable {
         cancel(): void;
@@ -4228,7 +4272,7 @@ export namespace util {
     export function mixin(destinationObject: object, ...sourceObjects: object[]): object;
 
     /** @deprecated do not use */
-    export function deepMixin(destinationObject: object, sourceObject: object, options?: object): object;
+    export function deepMixin(destinationObject: object, ...sourceObjects: object[]): object;
 
     /** @deprecated do not use */
     export function assign(destinationObject: object, ...sourceObjects: object[]): object;
@@ -4244,11 +4288,13 @@ export namespace util {
     export function defaultsDeep(destinationObject: object, ...sourceObjects: object[]): object;
 
     export function invoke(collection: Collection, methodPath: PropertyPath, args?: any[]): any[];
-    export function invoke(collection: Collection, functionToInvokeForAll: IterateeFunction, args?: any[]): any[];
+    export function invoke<ArgsT>(collection: Collection, functionToInvokeForAll: IterateeFunction<ArgsT>, ...args: ArgsT[]): any[];
 
-    export function sortedIndex(sortedArray: any[], valueToInsert: any, iteratee?: Iteratee): number;
+    export function invokeProperty(object: object, propertyPath: PropertyPath, args?: any[]): any;
 
-    export function uniq(array: any[], iteratee?: Iteratee): any[];
+    export function sortedIndex<T>(sortedArray: T[], valueToInsert: T, iteratee?: IterateeFunction<T>): number;
+
+    export function uniq<T>(array: Array<T> | null | undefined, iteratee?: IterateeFunction<T>): T[];
 
     export function clone<T>(value: T): T;
 
@@ -4264,21 +4310,22 @@ export namespace util {
 
     export function toArray(value: any): any[];
 
-    export function debounce<T extends Function>(func: T, wait?: number, options?: object): T & Cancelable;
+    export function debounce<T extends Function>(func: T, wait?: number, options?: { leading: boolean, maxWait: number, trailing: boolean }): T & Cancelable;
 
-    export function groupBy(collection: Collection, iteratee?: Iteratee): object;
+    export function groupBy(collection: Collection, iteratee?: IterateeFunction<any>): object;
 
-    export function sortBy(collection: Collection, iteratee?: Iteratee[] | Iteratee): any[];
+    export function sortBy<T>(collection: object, iteratee?: IterateeFunction<any>[] | IterateeFunction<any>): any[];
+    export function sortBy<T>(collection: T[], iteratee?: IterateeFunction<T>[] | IterateeFunction<T>): any[];
 
     export function flattenDeep(array: any[]): any[];
 
-    export function without(array: any[], ...values: any[]): any[];
+    export function without<T>(array: T[], ...values: T[]): T[];
 
-    export function difference(array: any[], ...excludedValuesArrays: any[][]): any[];
+    export function difference<T>(array: T[], ...excludedValuesArrays: T[][]): T[];
 
-    export function intersection(...arrays: any[][]): any[];
+    export function intersection<T>(...arrays: T[][]): T[];
 
-    export function union(...arrays: any[][]): any[];
+    export function union<T>(...arrays: T[][]): T[];
 
     export function has(object: object, path: PropertyPath): boolean;
 
@@ -4288,24 +4335,17 @@ export namespace util {
 
     export function pick(object: object, ...propertyPathsToPick: PropertyPath[]): object;
 
-    export function bindAll(object: object, methodNames: PropertyPath[]): object;
+    export function bindAll(object: object, methodNames: string | string[]): object;
 
-    export function forIn(object: object, iteratee?: Iteratee): object;
+    export function forIn<T>(object: T, iteratee?: (value: any, key: string, iterable: object) => void | boolean): void;
 
     export function camelCase(string: string): string;
 
-    export function uniqueId(prefix?: string): string;
+    export function uniqueId(prefix?: string | number): string;
 
     export function getRectPoint(rect: dia.BBox, position: dia.PositionName): g.Point;
 
-    // `merge` has a weird signature
-    // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
-    export function merge(destinationObject: object, sourceObject: object, customizer?: CustomizerFunction): object;
-    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, customizer?: CustomizerFunction): object;
-    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, customizer?: CustomizerFunction): object;
-    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, sourceObject4: object, customizer?: CustomizerFunction): object;
-    // generic but less precise signature for `merge`
-    export function merge(destinationObject: object, ...sourceObjectsOptionalFinalCustomizer: SourceObjectsOptionalFinalCustomizer): object;
+    export function merge(destinationObject: object, ...args: any[]): object;
 
     // ADDITIONAL SIMPLE UTIL FUNCTIONS:
 
@@ -4462,6 +4502,7 @@ export namespace mvc {
 
     interface ViewOptions<T extends (Backbone.Model | undefined), E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
         theme?: string;
+        [key: string]: any;
     }
 
     interface viewEventData {
@@ -4476,6 +4517,7 @@ export namespace mvc {
         DETACHABLE: boolean;
         FLAG_INSERT: number;
         FLAG_REMOVE: number;
+        FLAG_INIT: number;
 
         vel: E extends HTMLElement ? null : Vectorizer;
 
@@ -4548,7 +4590,7 @@ export namespace mvc {
         callbackArguments: Args;
 
         listenTo<CB extends Callback>(object: any, evt: string, callback: ModifiedCallback<Args, CB>, context?: any): void;
-        listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void
+        listenTo<EventCBMap extends Record<keyof EventCBMap, Callback> = { [eventName: string]: Callback }>(object: any, eventHashMap: EventHashMap<Args, EventCBMap>, context?: any): void;
 
         stopListening(): void;
     }
@@ -4590,7 +4632,11 @@ export namespace routers {
         'manhattan': ManhattanRouterArguments;
         'metro': ManhattanRouterArguments;
         'orthogonal': OrthogonalRouterArguments;
+        /**
+         * @deprecated use `rightAngle` instead
+         */
         'oneSide': OneSideRouterArguments;
+        'rightAngle': RightAngleRouterArguments;
         [key: string]: { [key: string]: any };
     }
 
@@ -4621,7 +4667,34 @@ export namespace routers {
     export var metro: GenericRouter<'metro'>;
     export var normal: GenericRouter<'normal'>;
     export var orthogonal: GenericRouter<'orthogonal'>;
+    /**
+     * @deprecated use `rightAngle` instead
+     */
     export var oneSide: GenericRouter<'oneSide'>;
+
+    /* Right Angle Router */
+
+    enum RightAngleDirections {
+        AUTO = 'auto',
+        LEFT = 'left',
+        RIGHT = 'right',
+        TOP = 'top',
+        BOTTOM = 'bottom',
+        ANCHOR_SIDE = 'anchor-side',
+        MAGNET_SIDE = 'magnet-side'
+    }
+
+    interface RightAngleRouterArguments {
+        margin?: number;
+        sourceDirection?: RightAngleDirections;
+        targetDirection?: RightAngleDirections;
+    }
+
+    interface RightAngleRouter extends GenericRouter<'rightAngle'> {
+        Directions: typeof RightAngleDirections;
+    }
+
+    export var rightAngle: RightAngleRouter;
 }
 
 // connectors
@@ -4648,32 +4721,37 @@ export namespace connectors {
         radius?: number;
     }
 
-    namespace Curve {
+    interface StraightConnectorArguments {
+        raw?: boolean;
+        cornerType?: 'point' | 'cubic' | 'line' | 'gap';
+        cornerRadius?: number;
+        cornerPreserveAspectRatio?: boolean;
+        precision?: number;
+    }
 
-        enum Directions {
-            AUTO = 'auto',
-            HORIZONTAL = 'horizontal',
-            VERTICAL = 'vertical',
-            CLOSEST_POINT = 'closest-point',
-            OUTWARDS = 'outwards'
-        }
+    enum CurveDirections {
+        AUTO = 'auto',
+        HORIZONTAL = 'horizontal',
+        VERTICAL = 'vertical',
+        CLOSEST_POINT = 'closest-point',
+        OUTWARDS = 'outwards'
+    }
 
-        enum TangentDirections {
-            UP = 'up',
-            DOWN = 'down',
-            LEFT = 'left',
-            RIGHT = 'right',
-            AUTO = 'auto',
-            CLOSEST_POINT = 'closest-point',
-            OUTWARDS = 'outwards'
-        }
+    enum CurveTangentDirections {
+        UP = 'up',
+        DOWN = 'down',
+        LEFT = 'left',
+        RIGHT = 'right',
+        AUTO = 'auto',
+        CLOSEST_POINT = 'closest-point',
+        OUTWARDS = 'outwards'
     }
 
     interface CurveConnectorArguments {
         raw?: boolean;
-        direction?: Curve.Directions;
-        sourceDirection?: Curve.TangentDirections | dia.Point | number;
-        targetDirection?: Curve.TangentDirections | dia.Point | number;
+        direction?: CurveDirections;
+        sourceDirection?: CurveTangentDirections | dia.Point | number;
+        targetDirection?: CurveTangentDirections | dia.Point | number;
         sourceTangent?: dia.Point;
         targetTangent?: dia.Point;
         distanceCoefficient?: number;
@@ -4687,6 +4765,7 @@ export namespace connectors {
         'rounded': RoundedConnectorArguments;
         'smooth': SmoothConnectorArguments;
         'jumpover': JumpOverConnectorArguments;
+        'straight': StraightConnectorArguments;
         'curve': CurveConnectorArguments;
         [key: string]: { [key: string]: any };
     }
@@ -4710,6 +4789,11 @@ export namespace connectors {
         args?: GenericConnectorArguments<K>;
     }
 
+    interface CurveConnector extends GenericConnector<'curve'> {
+        Directions: typeof CurveDirections;
+        TangentDirections: typeof CurveTangentDirections;
+    }
+
     type ConnectorArguments = GenericConnectorArguments<ConnectorType>;
 
     type Connector = GenericConnector<ConnectorType>;
@@ -4720,7 +4804,8 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
-    export var curve: GenericConnector<'curve'>;
+    export var straight: GenericConnector<'straight'>;
+    export var curve: CurveConnector;
 }
 
 // anchors
@@ -4853,7 +4938,7 @@ export namespace connectionPoints {
     }
 
     interface BoundaryConnectionPointArguments extends StrokeConnectionPointArguments {
-        selector?: Array<string | number> | string;
+        selector?: Array<string | number> | string | false;
         precision?: number;
         extrapolate?: boolean;
         sticky?: boolean;
@@ -5030,6 +5115,17 @@ export namespace attributes {
         text?: string;
     }
 
+    interface SVGAttributeProps {
+        checked?: boolean;
+        disabled?: boolean;
+        multiple?: boolean;
+        readOnly?: boolean;
+        selected?: boolean;
+        indeterminate?: boolean;
+        contentEditable?: boolean;
+        value?: any;
+    }
+
     interface SVGAttributes extends NativeSVGAttributes {
         // Special attributes
         eol?: string;
@@ -5039,6 +5135,7 @@ export namespace attributes {
         sourceMarker?: dia.SVGMarkerJSON;
         targetMarker?: dia.SVGMarkerJSON;
         vertexMarker?: dia.SVGMarkerJSON;
+        props?: SVGAttributeProps;
         text?: string;
         textWrap?: SVGAttributeTextWrap;
         lineHeight?: number | string;
@@ -5298,7 +5395,7 @@ export namespace elementTools {
         }
     }
 
-    abstract class Control<T = Control.Options> extends dia.ToolView {
+    abstract class Control<T extends mvc.ViewOptions<undefined, SVGElement> = Control.Options> extends dia.ToolView {
         options: T;
         constructor(opt?: T);
 
