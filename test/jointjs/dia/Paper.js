@@ -104,7 +104,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
     });
 
-    QUnit.module('transformToFitContent', function() {
+    QUnit.module('transformToFitContent', function(hooks) {
 
         hooks.beforeEach(function() {
             const testGraph = new joint.dia.Graph();
@@ -171,6 +171,11 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 model: testGraph,
                 async: false
             });
+        });
+
+        hooks.afterEach(function() {
+            if (paper) paper.remove();
+            paper = null;
         });
 
         QUnit.test('transformToFitContent()', function(assert) {
@@ -1632,7 +1637,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         assert.equal(cellNodesCount(testPaper), 1, 'cell rendered');
                         const circleView = testPaper.findViewByModel(circle);
                         const rectView = testPaper.findViewByModel(rect);
-                        assert.ok(circleView, 'circle is present');
+                        assert.ok(circleView.el.isConnected, 'circle is present');
                         assert.notOk(rectView, 'rect is removed');
                         done();
                         break;

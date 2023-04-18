@@ -13,16 +13,17 @@ var windowBBox;
 function setWindowBBox() {
     windowBBox = paper.pageToLocalRect(window.scrollX, window.scrollY, window.innerWidth, window.innerHeight);
 }
+
 window.onscroll = function() {
     setWindowBBox();
-    if (autoFreeze) {
-        paper.checkViewport();
+    if (autoFreeze && paper.isFrozen()) {
+        paper.unfreeze();
     }
 };
 window.onresize = function() {
     setWindowBBox();
-    if (autoFreeze) {
-        paper.checkViewport();
+    if (autoFreeze && paper.isFrozen()) {
+        paper.unfreeze();
     }
 };
 
