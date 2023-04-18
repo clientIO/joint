@@ -1398,6 +1398,36 @@ QUnit.module('paper', function(hooks) {
             return paper;
         };
 
+        QUnit.module('drawGridSize option', function(hooks) {
+
+            QUnit.test('is used to draw grid', function(assert) {
+                const paper = new joint.dia.Paper({
+                    drawGrid: true,
+                    gridSize: 1,
+                    drawGridSize: 17
+                });
+                const svg = getGridVel(paper);
+                const pattern = svg.findOne('pattern');
+                assert.ok(pattern);
+                assert.equal(pattern.attr('width'), 17);
+                assert.equal(pattern.attr('height'), 17);
+                paper.remove();
+            });
+
+            QUnit.test('calling setGridSize() does not update the grid', function(assert) {
+                const paper = new joint.dia.Paper({
+                    drawGrid: true,
+                    gridSize: 1,
+                    drawGridSize: 17
+                });
+                const drawGridSpy = sinon.spy(paper, 'drawGrid');
+                paper.setGridSize(5);
+                assert.ok(drawGridSpy.notCalled);
+                drawGridSpy.restore();
+                paper.remove();
+            });
+        });
+
         QUnit.test('no grid', function(assert) {
 
             var paper = preparePaper(false);
