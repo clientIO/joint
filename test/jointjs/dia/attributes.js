@@ -1074,7 +1074,7 @@ QUnit.module('Attributes', function() {
             paper.remove();
         });
 
-        QUnit.test('used with <g>', function(assert) {
+        QUnit.test('used on <g>', function(assert) {
             let titleText;
             assert.equal(cellView.el.querySelectorAll('title').length, 0);
             titleText = 'test-title';
@@ -1087,7 +1087,7 @@ QUnit.module('Attributes', function() {
             assert.equal(cellView.el.firstChild.textContent, titleText);
         });
 
-        QUnit.test('used with <title>', function(assert) {
+        QUnit.test('used on <title>', function(assert) {
             let titleText;
             cell.set('markup', [
                 { tagName: 'title', selector: 'title' },
@@ -1103,6 +1103,27 @@ QUnit.module('Attributes', function() {
             cell.attr('title/title', titleText);
             assert.equal(cellView.el.querySelectorAll('title').length, 1);
             assert.equal(cellView.el.firstChild.textContent, titleText);
+        });
+
+        QUnit.test('used on element with text node', function(assert) {
+            let titleText;
+            const textNodeText = 'test-text-node';
+            cell.set('markup', [
+                textNodeText,
+                { tagName: 'rect', selector: 'body' },
+                { tagName: 'text', selector: 'label' }
+            ]);
+            assert.equal(cellView.el.querySelectorAll('title').length, 0);
+            titleText = 'test-title';
+            cell.attr('root/title', titleText);
+            assert.equal(cellView.el.querySelectorAll('title').length, 1);
+            assert.equal(cellView.el.firstChild.textContent, textNodeText);
+            assert.equal(cellView.el.firstElementChild.textContent, titleText);
+            titleText = 'test-title-2';
+            cell.attr('root/title', titleText);
+            assert.equal(cellView.el.querySelectorAll('title').length, 1);
+            assert.equal(cellView.el.firstChild.textContent, textNodeText);
+            assert.equal(cellView.el.firstElementChild.textContent, titleText);
         });
     });
 });
