@@ -1054,5 +1054,77 @@ QUnit.module('Attributes', function() {
             });
         });
     });
+
+    QUnit.module('Title Attribute', function(hooks) {
+
+        var paper, graph, cell, cellView;
+
+        hooks.beforeEach(function() {
+            graph = new joint.dia.Graph;
+            const fixtures = document.getElementById('qunit-fixture');
+            const paperEl = document.createElement('div');
+            fixtures.appendChild(paperEl);
+            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            cell = new joint.shapes.standard.Rectangle();
+            cell.addTo(graph);
+            cellView = cell.findView(paper);
+        });
+
+        hooks.afterEach(function() {
+            paper.remove();
+        });
+
+        QUnit.test('used on <g>', function(assert) {
+            let titleText;
+            assert.equal(cellView.el.querySelectorAll('title').length, 0);
+            titleText = 'test-title';
+            cell.attr('root/title', titleText);
+            assert.equal(cellView.el.querySelectorAll('title').length, 1);
+            assert.equal(cellView.el.firstChild.textContent, titleText);
+            titleText = 'test-title-2';
+            cell.attr('root/title', titleText);
+            assert.equal(cellView.el.querySelectorAll('title').length, 1);
+            assert.equal(cellView.el.firstChild.textContent, titleText);
+        });
+
+        QUnit.test('used on <title>', function(assert) {
+            let titleText;
+            cell.set('markup', [
+                { tagName: 'title', selector: 'title' },
+                { tagName: 'rect', selector: 'body' },
+                { tagName: 'text', selector: 'label' }
+            ]);
+            assert.equal(cellView.el.querySelectorAll('title').length, 1);
+            titleText = 'test-title';
+            cell.attr('title/title', titleText);
+            assert.equal(cellView.el.querySelectorAll('title').length, 1);
+            assert.equal(cellView.el.firstChild.textContent, titleText);
+            titleText = 'test-title-2';
+            cell.attr('title/title', titleText);
+            assert.equal(cellView.el.querySelectorAll('title').length, 1);
+            assert.equal(cellView.el.firstChild.textContent, titleText);
+        });
+
+        QUnit.test('used on element with text node', function(assert) {
+            let titleText;
+            const textNodeText = 'test-text-node';
+            cell.set('markup', [
+                textNodeText,
+                { tagName: 'rect', selector: 'body' },
+                { tagName: 'text', selector: 'label' }
+            ]);
+            assert.equal(cellView.el.querySelectorAll('title').length, 0);
+            titleText = 'test-title';
+            cell.attr('root/title', titleText);
+            assert.equal(cellView.el.querySelectorAll('title').length, 1);
+            assert.equal(cellView.el.firstChild.textContent, textNodeText);
+            assert.equal(cellView.el.firstElementChild.textContent, titleText);
+            titleText = 'test-title-2';
+            cell.attr('root/title', titleText);
+            assert.equal(cellView.el.querySelectorAll('title').length, 1);
+            assert.equal(cellView.el.firstChild.textContent, textNodeText);
+            assert.equal(cellView.el.firstElementChild.textContent, titleText);
+        });
+    });
 });
 

@@ -427,9 +427,14 @@ const attributesNS = {
             var cache = $node.data(cacheName);
             if (cache === undefined || cache !== title) {
                 $node.data(cacheName, title);
+                if (node.tagName === 'title') {
+                    // The target node is a <title> element.
+                    node.textContent = title;
+                    return;
+                }
                 // Generally <title> element should be the first child element of its parent.
-                var firstChild = node.firstChild;
-                if (firstChild && firstChild.tagName.toUpperCase() === 'TITLE') {
+                var firstChild = node.firstElementChild;
+                if (firstChild && firstChild.tagName === 'title') {
                     // Update an existing title
                     firstChild.textContent = title;
                 } else {
