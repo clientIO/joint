@@ -831,7 +831,7 @@ export const CellView = View.extend({
             // It holds the element when a touchstart triggered.
             type === 'touchmove' || type === 'touchend' ||
             // Pointermove/Pointerup event with the pointer captured
-            ('pointerId' in evt && evt.target.hasPointerCapture(evt.pointerId))
+            ('pointerId' in evt && target.hasPointerCapture(evt.pointerId))
         ) {
             return document.elementFromPoint(clientX, clientY);
         }
