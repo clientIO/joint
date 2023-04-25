@@ -823,10 +823,16 @@ export const CellView = View.extend({
     },
 
     getEventTarget: function(evt, opt = {}) {
-        // Touchmove/Touchend event's target is not reflecting the element under the coordinates as mousemove does.
-        // It holds the element when a touchstart triggered.
         const { target, type, clientX = 0, clientY = 0 } = evt;
-        if (opt.fromPoint || type === 'touchmove' || type === 'touchend') {
+        if (
+            // Explicitly defined `fromPoint` option
+            opt.fromPoint ||
+            // Touchmove/Touchend event's target is not reflecting the element under the coordinates as mousemove does.
+            // It holds the element when a touchstart triggered.
+            type === 'touchmove' || type === 'touchend' ||
+            // Pointermove/Pointerup event with the pointer captured
+            ('pointerId' in evt && target.hasPointerCapture(evt.pointerId))
+        ) {
             return document.elementFromPoint(clientX, clientY);
         }
 
