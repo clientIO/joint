@@ -4,6 +4,21 @@
 
     const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
+    const paper = new joint.dia.Paper({
+        el: document.getElementById('paper-foreign-object-prevent-default'),
+        model: graph,
+        width: 500,
+        height: 350,
+        async: true,
+        frozen: true,
+        cellViewNamespace: namespace,
+        background: {
+            color: '#F7F7F7'
+        },
+        preventDefaultBlankAction: false
+        guard: (evt) => ['SPAN'].includes(evt.target.tagName)
+    });
+
     // const paper = new joint.dia.Paper({
     //     el: document.getElementById('paper-foreign-object-prevent-default'),
     //     model: graph,
@@ -15,70 +30,57 @@
     //     background: {
     //         color: '#F7F7F7'
     //     },
-    //     preventDefaultBlankAction: false
-    //     guard: (evt) => ['SPAN'].includes(evt.target.tagName)
     // });
-
-    const paper = new joint.dia.Paper({
-        el: document.getElementById('paper-foreign-object-prevent-default'),
-        model: graph,
-        width: 500,
-        height: 350,
-        cellViewNamespace: namespace,
-        background: {
-            color: '#F7F7F7'
-        },
-    });
 
     // paper.on('blank:pointerdown cell:pointerdown', () => {
     //     document.activeElement.blur();
     // });
 
-    // const Form = joint.dia.Element.define('example.Form', {
-    //     attrs: {
-    //         foreignObject: {
-    //             width: 'calc(w)',
-    //             height: 'calc(h)'
-    //         }
-    //     }
-    // }, {
-    //     markup: joint.util.svg/* xml */`
-    //         <foreignObject @selector="foreignObject">
-    //             <div @selector="outer"
-    //                 xmlns="http://www.w3.org/1999/xhtml"
-    //                 class="outer"
-    //             >
-    //                 <div @selector="inner" class="inner">
-    //                     <form @selector="form" class="form">
-    //                         <input @selector="name" type="text" id="name" name="name" autocomplete="off" placeholder="Your diagram name"/>
-    //                         <button @selector="submit">
-    //                             <span>Submit</span>
-    //                         </button>
-    //                     </form>
-    //                 </div>
-    //             </div>
-    //         </foreignObject>
-    //     `
-    // });
+    const Form = joint.dia.Element.define('example.Form', {
+        attrs: {
+            foreignObject: {
+                width: 'calc(w)',
+                height: 'calc(h)'
+            }
+        }
+    }, {
+        markup: joint.util.svg/* xml */`
+            <foreignObject @selector="foreignObject">
+                <div @selector="outer"
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    class="outer"
+                >
+                    <div @selector="inner" class="inner">
+                        <form @selector="form" class="form">
+                            <input @selector="name" type="text" id="name" name="name" autocomplete="off" placeholder="Your diagram name"/>
+                            <button @selector="submit">
+                                <span>Submit</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </foreignObject>
+        `
+    });
 
-    // joint.shapes.example.FormView = joint.dia.ElementView.extend({
+    joint.shapes.example.FormView = joint.dia.ElementView.extend({
 
-    //     events: {
-    //         'submit form': 'onSubmit'
-    //     },
+        events: {
+            'submit form': 'onSubmit'
+        },
 
-    //     onSubmit: function(evt) {
-    //         evt.preventDefault();
-    //         evt.target.children.name.value = '';
-    //         this.model.attr('name/props/value', '');
-    //     },
+        onSubmit: function(evt) {
+            evt.preventDefault();
+            evt.target.children.name.value = '';
+            this.model.attr('name/props/value', '');
+        },
     
-    // });
+    });
 
-    // const form = new Form();
-    // form.position(72, 70);
-    // form.resize(355, 200);
-    // form.addTo(graph);
+    const form = new Form();
+    form.position(72, 70);
+    form.resize(355, 200);
+    form.addTo(graph);
 
     const Card = joint.dia.Element.define('example.ForeignObject', {
         attrs: {
@@ -195,16 +197,16 @@
     // });
 
 
-    const card = new Card({
-        position: { x: 10, y: 10 },
-        attrs: {
-            body: { width: 180, height: 100 },
-            // foreignObject: { width: 180, height: 100 },
-        }
-    });
+    // const card = new Card({
+    //     position: { x: 10, y: 10 },
+    //     attrs: {
+    //         body: { width: 180, height: 100 },
+    //         // foreignObject: { width: 168, height: 88 },
+    //     }
+    // });
     
-    card.addTo(graph);
+    // card.addTo(graph);
 
 
-    // paper.unfreeze();
+    paper.unfreeze();
 }());
