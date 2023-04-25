@@ -106,7 +106,7 @@
             The SVG markup above produces the following element:
         </p>
 
-        <svg version="1.1" width="300" height="130" xmlns="http://www.w3.org/2000/svg">
+        <!-- <svg version="1.1" width="300" height="130" xmlns="http://www.w3.org/2000/svg">
             <style>
                 div.card__background {
                     background-color: #131e29;
@@ -136,7 +136,7 @@
                     <p class="card__text">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
                 </div>
             </foreignObject>
-        </svg>
+        </svg> -->
 
         <p>
             Now that we have a better understanding of what <code>foreignObject</code> is all about, how would we create 
@@ -144,6 +144,10 @@
             <a href="/tutorial/custom-elements" target="_blank"><code>custom element</code></a> which you can see in the following
             code example.
         </p>
+
+        <!-- 
+            Remove guard option from code example
+         -->
 
         <pre><code>const namespace = joint.shapes;
 
@@ -222,6 +226,12 @@ const card = new Card({
 card.addTo(graph);
 </code></pre>
 
+        <!-- 
+            Replace guard with preventDefaultViewAction=false + user-select:none.
+            We don't prevent the default action for form??? elements ever.
+            Test with paper.on(element:pointerClick), Is there a diff between guard and preventDefaultViewAction
+         -->
+
         <p>
             As mentioned earlier, we would like to create an equivalent example with JointJS, that means selecting text needs
             to be possible. In order to achieve this functionality, we need to use the <code>paper</code>
@@ -256,6 +266,18 @@ g[data-type="example.ForeignObject"] p {
             object while declaring a <code>Cell</code>. The resulting custom element will be more compact, and maybe easier to
             read for some users.
         </p>
+
+        <!-- 
+
+            Maybe class example, if using TS you can add another method easily
+         -->
+
+        <!-- 
+            Create alternative for CSS
+            maybe use createSVGStyle instead (checkbandwidth demo)
+            If there are 100 elements, it will be for all.
+            Maybe use inlinestyles instead
+         -->
 
         <pre><code>const Card = joint.dia.Element.define('example.ForeignObject', {
     attrs: {
@@ -340,6 +362,11 @@ g[data-type="example.ForeignObject"] p {
             <code>foreignObject</code> is sufficient, and it's the only SVG element you wish to define explicitly. In our <code>form</code>
             example, that's exactly the route we will take, and you can see it demonstrated in the following code example.
         </p>
+
+        <!-- 
+            Remove ID from code examples, try to avoid use of ID
+            If using a label, you should wrap the input in it for focus.
+         -->
 
         <pre><code>const Form = joint.dia.Element.define('example.Form', {
     attrs: {
@@ -446,7 +473,9 @@ button span {
         <div class="paper" id="paper-foreign-object-prevent-default"></div>
         <p>JointJS source code: <a href="js/foreign-object.js" target="_blank">foreign-object.js</a></p>
 
-
+        <!-- 
+            Again rework the section about IDs
+         -->
         <p>
             The joy of working with <code>foreignObject</code> in our shapes is that we still get to take advantage of native web functionality.
             When using a <code>form</code>, you might be used to programmatically associating a <code>label</code> with an <code>input</code> 
@@ -462,6 +491,13 @@ button span {
             this behaviour in JointJS, we can create an event to remove focus when the user clicks on a blank <code>paper</code> area, or even on
             any JointJS element.
         </p>
+
+        <!-- 
+            Alternative is preventDefaultBlankAction instead,
+            we never prevent the default action for form controls ever.
+            Guard is a stronger measure, it also stops the paper from triggering events, that's we guard.
+            With select, we don't know if you clicked.
+         -->
 
         <pre><code>paper.on('blank:pointerdown cell:pointerdown', () => {
     document.activeElement.blur();
@@ -515,6 +551,28 @@ button span {
             the name of our method <code>'onSubmit'</code>. We can prevent that browser refresh by using <code>evt.preventDefault()</code>, and clear 
             the value of the HTML input value afterwards if we wish to do so.
         </p>
+
+        <!-- 
+            Add onchange with props values accessible from the model
+
+            evt.target.name ???? instead
+
+             events: {
+            'submit form': 'onSubmit',
+            'change input': 'onChange'
+        },
+
+        onSubmit: function(evt) {
+            evt.preventDefault();
+            evt.target.children.name.value = '';
+            // this.model.attr('name/props/value', '');
+        },
+
+        onChange: function(evt) {
+            // this.model.attr('name/props/value', evt.target.value);
+        }
+
+         -->
 
         <pre><code>joint.shapes.example.FormView = joint.dia.ElementView.extend({
 
@@ -678,6 +736,10 @@ console.log(input.getAttribute('value')); // initial
 // Use an entity number ✅
 &amp;#169;
 </code></pre>
+
+<!-- 
+    Maybe add ids section for here. can't have 2ids which are the same.
+ -->
         
         <h4>Browser related quirks</h4>
 
@@ -757,6 +819,11 @@ console.log(input.getAttribute('value')); // initial
             <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select" target="_blank"><code>select</code></a> element.
         </p>
 
+        <!-- 
+            There is no mouseup triggered , so we decided not to trigger pointer events too because off this inconsistency
+            With select, we don't know you have clicked. 
+         -->
+
         <p>
             If you've never tested which events are triggered when a user clicks on a <code>select</code> element, don't worry, we've done it, so 
             you don't have to. It turns out the events that get triggered are quite inconsistent across all major browsers when interacting with 
@@ -786,6 +853,10 @@ console.log(input.getAttribute('value')); // initial
             not too distant future, the majority of these issues will cease to exist.
         </p>
 
+        <!-- 
+            Explain this is a living section, if you find anything else, let us know, 
+         -->
+
         <h3>Conclusion</h3>
 
         <p>
@@ -795,14 +866,10 @@ console.log(input.getAttribute('value')); // initial
             is no better time to do so, and we can't wait to see what you create.
         </p>
 
-        <br>
-
-        <p> 
-            <a href="https://github.com/clientIO/joint" target="_blank">
-                <img src="./images/github.png" alt="github logo" width="16" style="vertical-align:text-bottom;margin:2px;">
-                <strong>Star JointJS on GitHub!</strong>
-            </a> 
-            If you are a fan of JointJS, this is an easy way to support our underrated project, and help boost our ranking on GitHub.
+        <p>
+            That's all we will cover in this tutorial. Thanks for staying with us if you got this far. If you would like 
+            to explore any of the features mentioned here in more detail, you can find extra information in our 
+            <a href="/docs/jointjs" target="_blank">JointJS documentation</a>.
         </p>
 
         <script src="../node_modules/prismjs/prism.js"></script>
