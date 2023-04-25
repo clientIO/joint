@@ -60,7 +60,7 @@
                 example without using JointJS.
             </p>
 
-            <h3>Using foreignObject</h3>
+            <h3 id="using-foreign-object">Using foreignObject</h3>
 
             <p>
                 In the following example, a <code>foreignObject</code> element is placed within our SVG tag. When using HTML elements within
@@ -106,7 +106,7 @@
             The SVG markup above produces the following element:
         </p>
 
-        <!-- <svg version="1.1" width="300" height="130" xmlns="http://www.w3.org/2000/svg">
+        <svg version="1.1" width="300" height="130" xmlns="http://www.w3.org/2000/svg">
             <style>
                 div.card__background {
                     background-color: #131e29;
@@ -136,7 +136,7 @@
                     <p class="card__text">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
                 </div>
             </foreignObject>
-        </svg> -->
+        </svg>
 
         <p>
             Now that we have a better understanding of what <code>foreignObject</code> is all about, how would we create 
@@ -145,17 +145,13 @@
             code example.
         </p>
 
-        <!-- 
-            Remove guard option from code example
-         -->
-
         <pre><code>const namespace = joint.shapes;
 
 const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
 const paper = new joint.dia.Paper({
     // paper options
-    guard: (evt) => ['P'].includes(evt.target.tagName)
+    preventDefaultViewAction: false
 });
 
 const Card = joint.dia.Element.define('example.ForeignObject', {
@@ -216,35 +212,23 @@ const Card = joint.dia.Element.define('example.ForeignObject', {
     ]
 });
 
-const card = new Card({
-    position: { x: 10, y: 10 },
-    attrs: {
-        body: { width: 180, height: 100 }
-    }
-});
-
+const card = new Card();
+card.position(10, 10);
+card.resize(180, 100);
 card.addTo(graph);
 </code></pre>
-
-        <!-- 
-            Replace guard with preventDefaultViewAction=false + user-select:none.
-            We don't prevent the default action for form??? elements ever.
-            Test with paper.on(element:pointerClick), Is there a diff between guard and preventDefaultViewAction
-         -->
 
         <p>
             As mentioned earlier, we would like to create an equivalent example with JointJS, that means selecting text needs
             to be possible. In order to achieve this functionality, we need to use the <code>paper</code>
-            <a href="/docs/jointjs#dia.Paper.prototype.options.guard" target="_blank"><code>guard</code></a> option available
-            in JointJS to prevent the <code>paper</code> from handling UI events related to <code>&lt;p&gt;</code>
-            tags. In our <code>guard</code> function, we can return <code>true</code> if the <code>evt.target.tagName</code> 
-            is <code>'P'</code>.
+            <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultViewAction" target="_blank"><code>preventDefaultViewAction</code></a> 
+            option which prevents the default action when a Cell is clicked.
         </p>
 
         <p>
-            While <code>guard</code> will handle events, we also need to allow the user select text via CSS. As the default CSS 
+            While <code>preventDefaultViewAction</code> handles clicking, we also need to allow the user select text via CSS. As the default CSS 
             in JointJS sets the <code>user-select</code> property to <code>'none'</code>, we need to override this on our element.
-            The <code>guard</code> option combined the with following CSS override enables users to select text in the same manner 
+            The <code>preventDefaultViewAction</code> option combined the with following CSS override enables users to select text in the same manner 
             as the vanilla SVG example from earlier. We can also adjust the <code>cursor</code> value in order to see the text cursor.
         </p>
 
@@ -259,6 +243,19 @@ g[data-type="example.ForeignObject"] p {
 </code></pre>
 
         <p>
+            You'll also notice that trying to select text by dragging results in the element moving. If you would like to prevent the element
+            from entering <a href="/docs/jointjs#dia.Paper.prototype.options.interactive" target="_blank"><code>interactive</code></a> mode,
+            therefore preventing the element from reacting to events in the default manner, you could take advantage of the
+            <a href="/docs/jointjs#dia.CellView.prototype.preventDefaultInteraction" target="_blank"><code>preventDefaultInteraction</code></a>
+            method.
+        </p>
+
+        <pre><code>paper.on('cell:pointerdown', (cellView, evt) => {
+    cellView.preventDefaultInteraction(evt);
+});
+</code></pre>
+
+        <p>
             As our <code>foreignObject</code> might contain lots of HTML, there are moments when we certainly want to
             be more concise when creating custom elements. Taking advantage of
             <a href="/docs/jointjs#util.svg" target="_blank"><code>util.svg</code></a> in JointJS,
@@ -266,18 +263,6 @@ g[data-type="example.ForeignObject"] p {
             object while declaring a <code>Cell</code>. The resulting custom element will be more compact, and maybe easier to
             read for some users.
         </p>
-
-        <!-- 
-
-            Maybe class example, if using TS you can add another method easily
-         -->
-
-        <!-- 
-            Create alternative for CSS
-            maybe use createSVGStyle instead (checkbandwidth demo)
-            If there are 100 elements, it will be for all.
-            Maybe use inlinestyles instead
-         -->
 
         <pre><code>const Card = joint.dia.Element.define('example.ForeignObject', {
     attrs: {
@@ -304,27 +289,13 @@ g[data-type="example.ForeignObject"] p {
     // The /* xml */ comment is optional.
     // It is used to tell the IDE that the markup is XML.
     markup: joint.util.svg/* xml */`
-        &lt;style&gt;
-            div.card__background {
-                background-color: #131e29;
-                height: 100%;
-            }
-            p.card__text {
-                color: #F2F2F2;
-                font: 16px sans-serif;
-                padding: 10px;
-                margin: 0;
-            }             
-        &lt;/style&gt;
         &lt;rect @selector="body"/&gt;
         &lt;foreignObject @selector="foreignObject"&gt;
-            &lt;div @selector="background"
+            &lt;div
                 xmlns="http://www.w3.org/1999/xhtml"
-                class="card__background"
+                style="background-color: #131e29; height: 100%;"
             &gt;
-                &lt;p @selector="text"
-                    class="card__text"
-                &gt;
+                &lt;p style="color: #F2F2F2; font: 16px sans-serif; padding: 10px; margin: 0;"&gt;
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                 &lt;/p&gt;
             &lt;/div&gt;
@@ -333,7 +304,7 @@ g[data-type="example.ForeignObject"] p {
 });
 </code></pre>
 
-        <h3>A more interactive example</h3>
+        <h3 id="interactive-example">A more interactive example</h3>
 
         <p>
             One typical method which diagram libraries utilize to allow users work with HTML is to render HTML on top of an underlying element.
@@ -378,14 +349,16 @@ g[data-type="example.ForeignObject"] p {
 }, {
     markup: joint.util.svg/* xml */`
         &lt;foreignObject @selector="foreignObject"&gt;
-            &lt;div @selector="outer"
+            &lt;div
                 xmlns="http://www.w3.org/1999/xhtml"
                 class="outer"
             &gt;
-                &lt;div @selector="inner" class="inner"&gt;
-                    &lt;form @selector="form" id="form"&gt;
-                        &lt;input @selector="name" type="text" id="name" name="name"/&gt;
-                        &lt;input @selector="submit" type="submit" value="submit"/&gt;
+                &lt;div class="inner"&gt;
+                    &lt;form class="form"&gt;
+                        &lt;input @selector="name" type="text" name="name" autocomplete="off" placeholder="Your diagram name"/&gt;
+                        &lt;button>
+                            &lt;span&gt;Submit&lt;/span&gt;
+                        &lt;/button&gt;
                     &lt;/form&gt;
                 &lt;/div&gt;
             &lt;/div&gt;
@@ -589,7 +562,7 @@ button span {
 });
 </code></pre>
 
-        <h4>Props, a special attribute</h4>
+        <h4 id="props">Props, a special attribute</h4>
 
         <p>
             The last point which we would like to cover when discussing HTML form controls is the special 
@@ -642,7 +615,7 @@ console.log(input.getAttribute('value')); // initial
 
         <br>
 
-        <h3>Caveats!</h3>
+        <h3 id="caveats">Caveats!</h3>
 
         <p>
             While all that we have covered so far is great for users of JointJS, even in this day and age, it's not without some caveats.
@@ -651,10 +624,10 @@ console.log(input.getAttribute('value')); // initial
         </p>
 
 
-        <h4>Syntax</h4>
+        <h4 id="syntax">Syntax</h4>
 
 
-        <h4 style="font-weight: normal;">Boolean Attributes</h4>
+        <h4 id="boolean-attributes" style="font-weight: normal;">Boolean Attributes</h4>
 
         <p>
             Boolean attributes are those data types where the presence or absence of the attribute represents its <i>truthy</i> or <i>falsy</i>
@@ -681,7 +654,7 @@ console.log(input.getAttribute('value')); // initial
 &lt;input @selector="name" type="text" id="name" name="name" required="required" /&gt;
 </code></pre>
 
-        <h4 style="font-weight: normal;">Closing Tags</h4>
+        <h4 id="closing-tags" style="font-weight: normal;">Closing Tags</h4>
 
         <p>
             In the past, developers traditionally used start and end tags for HTML elements. If we wanted some text on the page, we might 
@@ -715,7 +688,7 @@ console.log(input.getAttribute('value')); // initial
 &lt;br/&gt;
 </code></pre>
 
-        <h4 style="font-weight: normal;">HTML Entities</h4>
+        <h4 id="html-entities" style="font-weight: normal;">HTML Entities</h4>
 
         <p>
             HTML Entities are used in place of some characters that are reserved depending on the language. For example,
@@ -741,7 +714,7 @@ console.log(input.getAttribute('value')); // initial
     Maybe add ids section for here. can't have 2ids which are the same.
  -->
         
-        <h4>Browser related quirks</h4>
+        <h4 id="browser-related-quirks">Browser related quirks</h4>
 
         <p>
             At the beginning of this tutorial, we mentioned how <code>foreignObject</code> is fully supported in all browsers.
@@ -857,7 +830,7 @@ console.log(input.getAttribute('value')); // initial
             Explain this is a living section, if you find anything else, let us know, 
          -->
 
-        <h3>Conclusion</h3>
+        <h3 id="conclusion">Conclusion</h3>
 
         <p>
             We are very happy that we can now confidently recommend the use of <code>foreignObject</code> to users of JointJS, and that it's
