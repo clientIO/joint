@@ -61,7 +61,7 @@
 
         onSubmit: function(evt) {
             evt.preventDefault();
-            evt.target.children.name.value = '';
+            evt.target.children.name.value = ''; 
         },
 
         onChange: function(evt) {

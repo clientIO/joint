@@ -512,40 +512,22 @@ button span {
             the value of the HTML input value afterwards if we wish to do so.
         </p>
 
-        <!-- 
-            Add onchange with props values accessible from the model
-
-            evt.target.name ???? instead
-
-             events: {
-            'submit form': 'onSubmit',
-            'change input': 'onChange'
-        },
-
-        onSubmit: function(evt) {
-            evt.preventDefault();
-            evt.target.children.name.value = '';
-            // this.model.attr('name/props/value', '');
-        },
-
-        onChange: function(evt) {
-            // this.model.attr('name/props/value', evt.target.value);
-        }
-
-         -->
-
         <pre><code>joint.shapes.example.FormView = joint.dia.ElementView.extend({
 
     events: {
-        'submit form': 'onSubmit'
+        'submit form': 'onSubmit',
+        'change input': 'onChange'
     },
 
     onSubmit: function(evt) {
         evt.preventDefault();
         evt.target.children.name.value = '';
-        this.model.attr('name/props/value', '');
     },
 
+    onChange: function(evt) {
+        // Set the value property which is accessible from the model
+        this.model.attr('name/props/value', evt.target.value);
+    }
 });
 </code></pre>
 
