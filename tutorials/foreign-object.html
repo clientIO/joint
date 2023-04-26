@@ -462,8 +462,8 @@ button span {
         </p>
 
         <p>
-            Earlier, we mentioned that we prevented the default action when a Cell is clicked by using <code>preventDefaultAction</code>.
-            You may be asking yourself, why don't we need to use the <code>preventDefaultAction</code> <code>paper</code> option for this example?
+            Earlier, we mentioned that we prevented the default action when a Cell is clicked by using <code>preventDefaultViewAction</code>.
+            You may be asking yourself, why don't we need to use the <code>preventDefaultViewAction</code> <code>paper</code> option for this example?
         </p>
 
         <p>
@@ -481,10 +481,10 @@ button span {
         </ul>
 
         <p>
-            In the example above, we created a paper event with the aim of managing focus. One detail you may not have noticed is that the 
+            In the example above, we created a <code>paper</code> event with the aim of managing focus. One detail you may not have noticed is that the 
             <code>button</code> text is actually contained within a <code>span</code> element. If we had not applied the <code>paper</code> event, 
-            and the <code>input</code> was in focus, clicking on the <code>span</code> element won't actually cause the input to lose focus. However, 
-            clicking on the <code>button</code> itself will make the <code>input</code> lose focus, as <code>button</code> is one of the 
+            and the <code>input</code> was in focus, clicking on the <code>span</code> element won't actually cause the <code>input</code> to lose focus. 
+            However, clicking on the <code>button</code> itself will make the <code>input</code> lose focus, as <code>button</code> is one of the 
             elements where JointJS prevents its default interaction.
         </p>
 
@@ -758,8 +758,8 @@ console.log(input.getAttribute('value')); // initial
             On further inspection, we realized that we still had one major issue with the video. After dragging our JointJS shape, the video
             was still rendered in the incorrect position which was disappointing. The silver lining was that the <code>opacity</code> and 
             <code>transform</code> applied to our <code>label</code> and <code>input</code> respectively were working correctly, and those 
-            elements seemed to maintain the correct position. The following is some example <code>markup</code> we had issues with in Safari, 
-            your mileage may vary.
+            elements seemed to maintain the correct position. The following is some example <code>markup</code> we had issues with in Safari. 
+            Your mileage may vary.
         </p>
 
         <pre><code>&lt;foreignObject @selector="foreignObject"&gt;
