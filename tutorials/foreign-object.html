@@ -32,9 +32,6 @@
                 stands out from the rest as it provides some unique behaviour that other SVG elements do not. SVG, like other XML dialects, is
                 namespaced. That means if you want to include elements from a different XML namespace right in your SVG, you need some
                 mechanism to enable this functionality. That's where <code>foreignObject</code> comes into play.
-            </p>
-
-            <p>
                 How does this relate to creating diagrams with JointJS? While JointJS provides a lot of functionality and customization
                 for users, we as developers are a habitual bunch. If we want to create some basic interactive elements, we often want to
                 reach for technologies we are already familiar with, and in web land, the dominant force in this regard is still good old HTML.
@@ -44,13 +41,13 @@
                 Historically, recommending <code>foreignObject</code> to users of JointJS was a little bit tricky, the main reason for this was the
                 inherent lack of support for <code>foreignObject</code> in Internet Explorer. Due to the necessity of supporting all our users,
                 including those who were still using IE, there was a hesitancy about integrating support into the library fully. Luckily for us, 
-                the days in which we had to support IE are now at an end, and all other major browsers have full support which can be
-                seen in the following <a href="https://caniuse.com/?search=foreignObject" target="_blank">caniuse</a> reference table.
+                the days in which we had to support IE are now at an end, and all other major browsers have full support, as illustrated by this
+                <a href="https://caniuse.com/?search=foreignObject" target="_blank">caniuse</a> reference table.
             </p>
 
             <p>
-                Now that we can more confidently recommend the use of <code>foreignObject</code> with JointJS, embedding HTML text in SVG, 
-                creating basic interactive elements like buttons, or working with HTML inputs should now be a more straightforward process. 
+                Now, that we can more confidently recommend the use of <code>foreignObject</code> with JointJS, embedding HTML text in SVG, 
+                creating basic interactive elements like buttons, or working with HTML inputs should be a more straightforward process. 
                 With this addition, combining the power of JointJS with <code>foreignObject</code> opens up a world of possibilities for 
                 interactivity within your JointJS diagrams.
             </p>
@@ -63,10 +60,10 @@
             <h3 id="using-foreign-object">Using foreignObject</h3>
 
             <p>
-                In the following example, a <code>foreignObject</code> element is placed within our SVG tag. When using HTML elements within
-                <code>foreignObject</code>, note, that it's mandatory to include the XHTML namespace on the outermost or root element. In 
-                this instance, that is our <code>div</code> element. This example creates a simple card-like SVG <code>rect</code>
-                element where the user is easily able to select the text.
+                In the following example, a <code>foreignObject</code> element is placed within our SVG tag. Note that when using HTML elements within
+                <code>foreignObject</code>, it's mandatory to include the XHTML namespace on the outermost or root element. In this instance, that
+                is our <code>div</code> element. This example creates a simple card-like SVG <code>rect</code> element where the user is easily able
+                to select the text.
             </p>
 
             <pre><code>&lt;svg version="1.1" width="300" height="130" xmlns="http://www.w3.org/2000/svg"&gt;
@@ -219,16 +216,16 @@ card.addTo(graph);
 </code></pre>
 
         <p>
-            As mentioned earlier, we would like to create an equivalent example with JointJS, that means selecting text needs
-            to be possible. In order to achieve this functionality, we need to use the <code>paper</code>
+            In order for our JointJS example to have the equivalent functionality as the first example, we need to make selecting text possible.
+            To do that, we use the <code>paper</code>
             <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultViewAction" target="_blank"><code>preventDefaultViewAction</code></a> 
             option which prevents the default action when a Cell is clicked.
         </p>
 
         <p>
-            While <code>preventDefaultViewAction</code> handles clicking, we also need to allow the user select text via CSS. As the default CSS 
+            While <code>preventDefaultViewAction</code> handles clicking, we also need to allow the user to select text via CSS. As the default CSS 
             in JointJS sets the <code>user-select</code> property to <code>'none'</code>, we need to override this on our element.
-            The <code>preventDefaultViewAction</code> option combined the with following CSS override enables users to select text in the same manner 
+            The <code>preventDefaultViewAction</code> option combined with the following CSS override enables users to select text in the same manner 
             as the vanilla SVG example from earlier. We can also adjust the <code>cursor</code> value in order to see the text cursor.
         </p>
 
@@ -256,12 +253,10 @@ g[data-type="example.ForeignObject"] p {
 </code></pre>
 
         <p>
-            As our <code>foreignObject</code> might contain lots of HTML, there are moments when we certainly want to
-            be more concise when creating custom elements. Taking advantage of
-            <a href="/docs/jointjs#util.svg" target="_blank"><code>util.svg</code></a> in JointJS,
-            we can convert a string into a <a href="/docs/jointjs#dia.Cell.markup" target="_blank""><code>markup</code></a>
-            object while declaring a <code>Cell</code>. The resulting custom element will be more compact, and maybe easier to
-            read for some users.
+            Since our <code>foreignObject</code> contains quite a lot of HTML, we can take advantage of the 
+            <a href="/docs/jointjs#util.svg" target="_blank"><code>util.svg</code></a> method to make our 
+            <a href="/docs/jointjs#dia.Cell.markup" target="_blank""><code>markup</code></a> object more concise. 
+            The resulting custom element definition will be more compact, and might prove easier to read for some developers.
         </p>
 
         <pre><code>const Card = joint.dia.Element.define('example.ForeignObject', {
@@ -307,17 +302,17 @@ g[data-type="example.ForeignObject"] p {
         <h3 id="interactive-example">A more interactive example</h3>
 
         <p>
-            One typical method which diagram libraries utilize to allow users work with HTML is to render HTML on top of an underlying element.
+            One alternative method which diagram libraries utilize to allow users work with HTML is to render HTML on top of an underlying element.
             While this approach can be successful, it comes with a lot of additional complexity such as the need to keep dimensions and position 
-            of the HTML in sync with the element itself which isn't ideal. It's possible to use this approach with JointJS, and still to this day,
-            this is how many diagram libraries provide this functionality, especially if they use
-            HTML <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas" target="_blank">canvas</a>.
+            of the HTML in sync with the element itself. To this day,
+            this approach is used by many competing diagram libraries - especially those that use HTML
+            HTML <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas" target="_blank">Canvas</a> rendering.
         </p>
 
         <p>
-            As JointJS primarily works with SVG, and SVG was designed to work well with other web standards such as HTML, taking advantage of
-            <code>foreignObject</code> can allow users of JointJS create HTML-rich elements while avoiding some of the difficulties of other 
-            approaches.
+            It's possible to use the HTML overlay approach in JointJS, however since JointJS primarily works with SVG - and SVG was designed to work 
+            well with other web standards such as HTML - taking advantage of <code>foreignObject</code> can allow users of JointJS create HTML-rich 
+            elements while avoiding some of the difficulties of other approaches.
         </p>
 
         <p>
@@ -442,8 +437,8 @@ button span {
         <p>JointJS source code: <a href="js/foreign-object.js" target="_blank">foreign-object.js</a></p>
 
         <p>
-            When working with JointJS, you will have to make decisions about how some HTML elements lose focus. If a user clicks 
-            on a blank area, you may wish that an <code>input</code> lose focus which is behavior we are familiar with from HTML. In order to mimic 
+            When working with JointJS, you will have to make decisions about how some HTML elements lose focus. Notably, the default behavior of an 
+            HTML <code>form</code> is that when an user clicks on a blank area, the active input field loses focus. In order to mimic 
             this behaviour in JointJS, we can create an event to remove focus when the user clicks on a blank <code>paper</code> area, or even on
             any JointJS element.
         </p>
@@ -460,6 +455,8 @@ button span {
             <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultBlankAction" target="_blank"><code>preventDefaultBlankAction</code></a> 
             <code>paper</code> options to <code>false</code> would have the same effect on focus.
         </p>
+
+        <h3 id="preventing-default-jointjs-browser-behaviour">Preventing default JointJS and browser behaviour</h3>
 
         <p>
             Earlier, we mentioned that we prevented the default action when a Cell is clicked by using <code>preventDefaultViewAction</code>.
@@ -531,13 +528,13 @@ button span {
 });
 </code></pre>
 
-        <h4 id="props">Props, a special attribute</h4>
+        <h3 id="props">Props, a special attribute</h3>
 
         <p>
             The last point which we would like to cover when discussing HTML form controls is the special 
             <a href="/docs/jointjs##dia.attributes.props" target="_blank"><code>props</code></a> attribute. When creating HTML elements, it's 
-            possible to define various attributes to initialize certain DOM properties. In some cases such as <code>'id'</code>, 
-            this is a one-to-one relationship, while in others such as <code>'value'</code>, the attribute doesn't reflect the property, and it
+            possible to define various attributes to initialize certain DOM properties. In some cases such as (<code>'id'</code>), 
+            this is a one-to-one relationship, but in others such as (<code>'value'</code>), the attribute doesn't reflect the property, and it
             serves more like an initial and current state. 
         </p>
 
@@ -596,7 +593,7 @@ console.log(input.getAttribute('value')); // initial
         <h4 id="syntax">Syntax</h4>
 
 
-        <h4 id="boolean-attributes" style="font-weight: normal;">Boolean Attributes</h4>
+        <h5 id="boolean-attributes" style="font-weight: normal; font-size: 1rem;">Boolean Attributes</h5>
 
         <p>
             Boolean attributes are those data types where the presence or absence of the attribute represents its <i>truthy</i> or <i>falsy</i>
@@ -608,7 +605,7 @@ console.log(input.getAttribute('value')); // initial
         </p>
 
         <p>
-            Usually, boolean attributes can be utilized in 3 different ways, you can omit the value, use an empty string, or set the value as a
+            Usually, boolean attributes can be utilized in 3 different ways: you can omit the value, use an empty string, or set the value as a
             case-insensitive match for the attribute's name. In our case, we cannot omit the value, so we must use the 2nd or 3rd option. This is 
             demonstrated in the following example which uses the <code>required</code> attribute.
         </p>
@@ -623,7 +620,7 @@ console.log(input.getAttribute('value')); // initial
 &lt;input @selector="name" type="text" id="name" name="name" required="required" /&gt;
 </code></pre>
 
-        <h4 id="closing-tags" style="font-weight: normal;">Closing Tags</h4>
+        <h5 id="closing-tags" style="font-weight: normal; font-size: 1rem;">Closing Tags</h5>
 
         <p>
             In the past, developers traditionally used start and end tags for HTML elements. If we wanted some text on the page, we might 
@@ -657,7 +654,7 @@ console.log(input.getAttribute('value')); // initial
 &lt;br/&gt;
 </code></pre>
 
-        <h4 id="html-entities" style="font-weight: normal;">HTML Entities</h4>
+        <h5 id="html-entities" style="font-weight: normal; font-size: 1rem;">HTML Entities</h5>
 
         <p>
             HTML Entities are used in place of some characters that are reserved depending on the language. For example,
@@ -679,7 +676,7 @@ console.log(input.getAttribute('value')); // initial
 &amp;#169;
 </code></pre>
 
-        <h4 id="ids" style="font-weight: normal;">IDs</h4>
+        <h5 id="ids" style="font-weight: normal; font-size: 1rem;">IDs</h5>
 
         <p>
             Since it's preferable for each element in JointJS to have a unique ID, we recommend not including an ID attribute in your HTML Elements.
@@ -726,7 +723,7 @@ console.log(input.getAttribute('value')); // initial
 
         <p>
             At the beginning of this tutorial, we mentioned how <code>foreignObject</code> is fully supported in all browsers.
-            Unfortunately, that doesn't mean some inconsistencies exist, or that some unexpected behaviour might occur. 
+            Unfortunately, that is not completely true - some inconsistencies do exist, and some unexpected behavior may occur.. 
         </p>
 
         <p>
