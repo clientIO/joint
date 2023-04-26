@@ -15,6 +15,9 @@
         background: {
             color: '#F7F7F7'
         },
+        // Other options which are mentioned in the JointJS foreignObject tutorial
+        // preventDefaultViewAction: false,
+        // preventDefaultBlankAction: false,
         // guard: (evt) => ['SPAN'].includes(evt.target.tagName)
     });
 
@@ -52,15 +55,18 @@
     joint.shapes.example.FormView = joint.dia.ElementView.extend({
 
         events: {
-            'submit form': 'onSubmit'
+            'submit form': 'onSubmit',
+            'change input': 'onChange'
         },
 
         onSubmit: function(evt) {
             evt.preventDefault();
-            // evt.target.children.name.value = '';
-            this.model.attr('name/props/value', '');
+            evt.target.children.name.value = '';
         },
-    
+
+        onChange: function(evt) {
+            this.model.attr('name/props/value', evt.target.value);
+        }
     });
 
     const form = new Form();

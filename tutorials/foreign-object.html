@@ -334,11 +334,6 @@ g[data-type="example.ForeignObject"] p {
             example, that's exactly the route we will take, and you can see it demonstrated in the following code example.
         </p>
 
-        <!-- 
-            Remove ID from code examples, try to avoid use of ID
-            If using a label, you should wrap the input in it for focus.
-         -->
-
         <pre><code>const Form = joint.dia.Element.define('example.Form', {
     attrs: {
         foreignObject: {
@@ -383,7 +378,7 @@ g[data-type="example.ForeignObject"] p {
 }
 
 .inner {
-    background-color: hsl(210deg 36.67% 11.76%);;
+    background-color: hsl(210deg 36.67% 11.76%);
     width: 100%;
     height: 100%;
 }
@@ -446,31 +441,12 @@ button span {
         <div class="paper" id="paper-foreign-object-prevent-default"></div>
         <p>JointJS source code: <a href="js/foreign-object.js" target="_blank">foreign-object.js</a></p>
 
-        <!-- 
-            Again rework the section about IDs
-         -->
         <p>
-            The joy of working with <code>foreignObject</code> in our shapes is that we still get to take advantage of native web functionality.
-            When using a <code>form</code>, you might be used to programmatically associating a <code>label</code> with an <code>input</code> 
-            by providing an <code>'id'</code>
-            attribute to the <code>input</code>, and a <code>'for'</code> attribute to the <code>label</code> which has the same value. This has
-            a number of advantages such as screen readers reading the label when the associated input is focused, and also that the focus is 
-            passed to the input when the associated label is clicked.
-        </p>
-
-        <p>
-            On the other hand, when working with JointJS, you will have to make decisions about how some HTML elements lose focus. If a user clicks 
+            When working with JointJS, you will have to make decisions about how some HTML elements lose focus. If a user clicks 
             on a blank area, you may wish that an <code>input</code> lose focus which is behavior we are familiar with from HTML. In order to mimic 
             this behaviour in JointJS, we can create an event to remove focus when the user clicks on a blank <code>paper</code> area, or even on
             any JointJS element.
         </p>
-
-        <!-- 
-            Alternative is preventDefaultBlankAction instead,
-            we never prevent the default action for form controls ever.
-            Guard is a stronger measure, it also stops the paper from triggering events, that's we guard.
-            With select, we don't know if you clicked.
-         -->
 
         <pre><code>paper.on('blank:pointerdown cell:pointerdown', () => {
     document.activeElement.blur();
@@ -478,15 +454,22 @@ button span {
 </code></pre>
 
         <p>
-            Earlier, we mentioned that we wanted to prevent the <code>paper</code> from handling browser UI events related to a paragraph, and we
-            did this via the <code>paper</code> <code>guard</code> option. You may be asking yourself, why don't we need to use the <code>guard</code> 
-            option for this example?
+            Alternatively, setting the 
+            <a href="/docs/jointjs#dia.CellView.prototype.preventDefaultInteraction" target="_blank"><code>preventDefaultViewAction</code></a>
+            and 
+            <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultBlankAction" target="_blank"><code>preventDefaultBlankAction</code></a> 
+            <code>paper</code> options to <code>false</code> would have the same effect on focus.
         </p>
 
         <p>
-            The simple explanation is that JointJS prevents its own default interactions when working with HTML form controls. That means for example, 
+            Earlier, we mentioned that we prevented the default action when a Cell is clicked by using <code>preventDefaultAction</code>.
+            You may be asking yourself, why don't we need to use the <code>preventDefaultAction</code> <code>paper</code> option for this example?
+        </p>
+
+        <p>
+            The simple explanation is that JointJS prevents its own default interactions when working with HTML form controls. That means for example,
             if you try to drag an <code>input</code>, the element doesn't move as a whole, but it selects the text inside the input. The elements 
-            where JointJS prevents the default interaction are as follows:
+            where JointJS prevents its default interaction are as follows:
         </p>
 
         <ul>
@@ -502,13 +485,17 @@ button span {
             <code>button</code> text is actually contained within a <code>span</code> element. If we had not applied the <code>paper</code> event, 
             and the <code>input</code> was in focus, clicking on the <code>span</code> element won't actually cause the input to lose focus. However, 
             clicking on the <code>button</code> itself will make the <code>input</code> lose focus, as <code>button</code> is one of the 
-            elements where JointJS prevents the default interaction.
+            elements where JointJS prevents its default interaction.
         </p>
 
         <p>
-            If we wanted the <code>input</code> to lose focus when a user clicks on the <code>span</code> element, we can take advantage of the
-            <code>guard</code> option as follows <code>guard: (evt) => ['SPAN'].includes(evt.target.tagName)</code>. Although, including the 
-            <code>guard</code> option to manage focus in this instance would be superfluous if the <code>paper</code> event is already applied.
+            If we wanted the <code>input</code> to lose focus when a user clicks on the <code>span</code> element, utilizing the 
+            <code>preventDefaultViewAction</code> option would accomplish this. A stronger measure would be to use the <code>paper</code>
+            <a href="/docs/jointjs#dia.Paper.prototype.options.guard" target="_blank"><code>guard</code></a> option as follows
+            <code>guard: (evt) => ['SPAN'].includes(evt.target.tagName)</code>. When using this option, it's important to note that
+            events are not propagated to the paper, so events such as <code>'element:pointerdown'</code> would not be triggered when a user
+            clicks on the <code>span</code> element. However, including both of these options to manage focus in this instance would be superfluous
+            if the <code>paper</code> event is already applied.
         </p>
 
         <p>
@@ -710,9 +697,48 @@ console.log(input.getAttribute('value')); // initial
 &amp;#169;
 </code></pre>
 
-<!-- 
-    Maybe add ids section for here. can't have 2ids which are the same.
- -->
+        <h4 id="ids" style="font-weight: normal;">IDs</h4>
+
+        <p>
+            Since it's preferable for each element in JointJS to have a unique ID, we recommend not including an ID attribute in your HTML Elements.
+            The first scenario where this may be relevant is when choosing CSS selectors. Using a class attribute in your <code>markup</code> rather 
+            than an ID is advised.
+        </p>
+
+        <p>
+            The second situation where this proves important is programmatically associating a <code>label</code> with an 
+            <code>input</code> element. One method of making this association is by providing an <code>'id'</code> attribute to an <code>input</code>,
+            and a <code>'for'</code> attribute to its <code>label.</code> Each of which would have the same value. This has
+            a number of advantages such as screen readers reading the label when the associated input is focused, and also that the focus is 
+            passed to the input when the associated label is clicked.
+        </p>
+
+        <p>
+            As we don't want to use an ID, we should use an alternative method to make this association such as nesting an <code>input</code> in its 
+            respective <code>label</code> which will have the same effect.
+        </p>
+
+        <pre><code>// Do not use ID attributes in HTML markup ❌
+&lt;p id="paragraph"&gt; 
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+&lt;/p&gt;
+
+// Use a class attribute instead ✅
+&lt;p class="paragraph"&gt;
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+&lt;/p&gt;
+
+...
+
+// Do not use IDs for associating inputs and labels ❌
+&lt;label>First Name&lt;/label&gt;
+&lt;input @selector="firstname" type="text"/&gt;
+
+// Use nesting to make this association instead ✅
+&lt;label>First Name
+    &lt;input @selector="firstname" type="text"/&gt;
+&lt;/label&gt;
+</code></pre>
         
         <h4 id="browser-related-quirks">Browser related quirks</h4>
 
@@ -792,18 +818,13 @@ console.log(input.getAttribute('value')); // initial
             <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select" target="_blank"><code>select</code></a> element.
         </p>
 
-        <!-- 
-            There is no mouseup triggered , so we decided not to trigger pointer events too because off this inconsistency
-            With select, we don't know you have clicked. 
-         -->
-
         <p>
             If you've never tested which events are triggered when a user clicks on a <code>select</code> element, don't worry, we've done it, so 
-            you don't have to. It turns out the events that get triggered are quite inconsistent across all major browsers when interacting with 
-            <code>select</code>. As a result, the JointJS <code>paper</code> does not handle UI events related to the <code>select</code> 
-            element by default. This just means that <code>select</code>, for consistency reasons, is included by default in that 
-            <code>paper</code> <code>guard</code> option we've mentioned several times already. You as a user don't have to do anything about it,
-            but it's something to be aware of.
+            you don't have to. It turns out, the events that get triggered are quite inconsistent across all major browsers when interacting with 
+            <code>select</code>. Safari, for example, only triggers <code>'pointerdown'</code> when you open <code>select</code>. As a result of these
+            inconsistencies, JointJS includes <code>select</code> in the <code>paper</code> <code>guard</code> option by default. Therefore, if you 
+            interact with a <code>select</code> element, JointJS will not trigger its <code>paper</code> events. You as a user are not obliged to do
+            something about this, but it's something you should be aware of.
         </p>
 
         <p>
@@ -826,9 +847,10 @@ console.log(input.getAttribute('value')); // initial
             not too distant future, the majority of these issues will cease to exist.
         </p>
 
-        <!-- 
-            Explain this is a living section, if you find anything else, let us know, 
-         -->
+        <p>
+            This is a section we would like to keep updated as much as possible, so if you encounter any other interesting behaviour, you can let us 
+            know.
+        </p>
 
         <h3 id="conclusion">Conclusion</h3>
 
