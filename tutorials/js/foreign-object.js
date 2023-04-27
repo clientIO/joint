@@ -61,11 +61,12 @@
 
         onSubmit: function(evt) {
             evt.preventDefault();
-            evt.target.children.name.value = ''; 
+            evt.target.children.name.value = '';
+            this.model.attr('name/props/value', '');
         },
 
         onChange: function(evt) {
-            this.model.attr('name/props/value', '');
+            this.model.attr('name/props/value', evt.target.value);
         }
     });
 

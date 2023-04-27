@@ -519,11 +519,12 @@ button span {
     onSubmit: function(evt) {
         evt.preventDefault();
         evt.target.children.name.value = '';
+        this.model.attr('name/props/value', '');
     },
 
     onChange: function(evt) {
         // Set the value property which is accessible from the model
-        this.model.attr('name/props/value', '');
+        this.model.attr('name/props/value', evt.target.value);
     }
 });
 </code></pre>
