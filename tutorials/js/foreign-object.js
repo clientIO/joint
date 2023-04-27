@@ -65,7 +65,7 @@
         },
 
         onChange: function(evt) {
-            this.model.attr('name/props/value', evt.target.value);
+            this.model.attr('name/props/value', '');
         }
     });
 

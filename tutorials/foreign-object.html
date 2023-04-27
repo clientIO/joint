@@ -450,7 +450,7 @@ button span {
 
         <p>
             Alternatively, setting the 
-            <a href="/docs/jointjs#dia.CellView.prototype.preventDefaultInteraction" target="_blank"><code>preventDefaultViewAction</code></a>
+            <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultViewAction" target="_blank"><code>preventDefaultViewAction</code></a>
             and 
             <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultBlankAction" target="_blank"><code>preventDefaultBlankAction</code></a> 
             <code>paper</code> options to <code>false</code> would have the same effect on focus.
@@ -523,7 +523,7 @@ button span {
 
     onChange: function(evt) {
         // Set the value property which is accessible from the model
-        this.model.attr('name/props/value', evt.target.value);
+        this.model.attr('name/props/value', '');
     }
 });
 </code></pre>
@@ -677,9 +677,10 @@ console.log(input.getAttribute('value')); // initial
         <h5 id="ids" style="font-weight: normal; font-size: 1rem;">IDs</h5>
 
         <p>
-            Since it's preferable for each element in JointJS to have a unique ID, we recommend not including an ID attribute in your HTML Elements.
-            The first scenario where this may be relevant is when choosing CSS selectors. Using a class attribute in your <code>markup</code> rather 
-            than an ID is advised.
+            Since having more than one ID of the same value in the DOM is considered invalid according to the 
+            <a href="https://html.spec.whatwg.org/multipage/dom.html#the-id-attribute" target="_blank" rel="noopener noreferrer">HTML</a>
+            specification, we recommend not including an ID attribute in your HTML Elements. The first scenario where this may be relevant is when 
+            choosing CSS selectors. Using a class attribute in your <code>markup</code> rather than an ID is advised.
         </p>
 
         <p>
@@ -746,7 +747,12 @@ console.log(input.getAttribute('value')); // initial
         <p>
             Naturally, we also searched the same bug report for any potential solutions, and found suggestions that adding a style of
             <code>'position: fixed'</code> to the outermost <code>div</code> element fixed some of the issues that people had. Once again,
-            the information proved to be helpful, and the elements seemed to be positioned correctly again.
+            the information proved to be helpful, and the elements seemed to be positioned correctly again. We did notice when transforming the
+            JointJS <code>paper</code> with a method such as 
+            <a href="/docs/jointjs#dia.Paper.prototype.transformToFitContent" target="_blank"><code>transformToFitContent</code></a>, 
+            <code>'position:fixed'</code> again caused issues with element position. Therefore, if you are using <code>paper</code> transforms, 
+            the default <code>'position:static'</code> might be preferable
+            for some use cases.
         </p>
 
         <p>
