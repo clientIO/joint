@@ -306,7 +306,7 @@ g[data-type="example.ForeignObject"] p {
             While this approach can be successful, it comes with a lot of additional complexity such as the need to keep dimensions and position 
             of the HTML in sync with the element itself. To this day,
             this approach is used by many competing diagram libraries - especially those that use HTML
-            HTML <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas" target="_blank">Canvas</a> rendering.
+            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas" target="_blank">Canvas</a> rendering.
         </p>
 
         <p>
@@ -438,7 +438,7 @@ button span {
 
         <p>
             When working with JointJS, you will have to make decisions about how some HTML elements lose focus. Notably, the default behavior of an 
-            HTML <code>form</code> is that when an user clicks on a blank area, the active input field loses focus. In order to mimic 
+            HTML <code>form</code> is that when a user clicks on a blank area, the active input field loses focus. In order to mimic 
             this behaviour in JointJS, we can create an event to remove focus when the user clicks on a blank <code>paper</code> area, or even on
             any JointJS element.
         </p>
@@ -543,12 +543,12 @@ button span {
             follows:
         </p>
 
-        <pre><code>// Example markup
+        <pre><code>// Example markup using the value attribute (initial value of input)
 &lt;input @selector="example" type="text" value="initial" /&gt;
 
 ...
 
-// Set the value property which is accessible from the model
+// Set the value property which is accessible from the model (current value of input)
 element.attr('example/props/value', 'current');
 
 ...
@@ -721,7 +721,7 @@ console.log(input.getAttribute('value')); // initial
 
         <p>
             At the beginning of this tutorial, we mentioned how <code>foreignObject</code> is fully supported in all browsers.
-            Unfortunately, that is not completely true - some inconsistencies do exist, and some unexpected behavior may occur.. 
+            Unfortunately, some inconsistencies do exist, and some unexpected behavior may occur.
         </p>
 
         <p>
