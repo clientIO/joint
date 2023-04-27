@@ -114,7 +114,7 @@ export const Cell = Backbone.Model.extend({
     initialize: function(options) {
 
         const idAttribute = this.getIdAttribute();
-        if (!options || !(idAttribute in options)) {
+        if (!options || options[idAttribute] === undefined) {
             this.set(idAttribute, this.generateId(), { silent: true });
         }
 

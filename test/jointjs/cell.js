@@ -84,6 +84,19 @@ QUnit.module('cell', function(hooks) {
             clone.set('myId', newId);
             assert.equal(graph.getCell(newId), clone);
         });
+
+        QUnit.test('id', function(assert) {
+            const TestElement1 = new joint.dia.Cell({ id: 0 });
+            assert.equal(TestElement1.id, 0);
+            const TestElement2 = new joint.dia.Cell({ id: 1 });
+            assert.equal(TestElement2.id, 1);
+            const TestElement3 = new joint.dia.Cell({ id: '2' });
+            assert.equal(TestElement3.id, '2');
+            const TestElement4 = new (joint.dia.Cell.extend({ generateId() { return 'my-id'; } }))({});
+            assert.equal(TestElement4.id, 'my-id');
+            const TestElement5 = new (joint.dia.Cell.extend({ generateId() { return 'my-id'; } }))({ id: undefined });
+            assert.equal(TestElement5.id, 'my-id');
+        });
     });
 
     QUnit.module('lifecycle methods', function() {
