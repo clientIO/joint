@@ -27,7 +27,7 @@ input:invalid {
 }
 
 .jj-form {
-    position: fixed;
+    position: static;
     font-size: 14px;
     text-align: center;
     touch-action: none;
