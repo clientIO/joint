@@ -61,7 +61,6 @@
 
         onSubmit: function(evt) {
             evt.preventDefault();
-            evt.target.children.name.value = '';
             this.model.attr('name/props/value', '');
         },
 
