@@ -1,3 +1,11 @@
+28-04-2023 (v3.7.1)
+
+  * bump jQuery to v3.6.4
+  * demo.ROI - fix zooming in Safari
+  * dia.CellView - return correct target under the pointer for pointer events
+  * dia.Cell - fix to prevent cell id undefined
+  * dia.attributes - prevent error when title is used on element with a text node
+
 18-04-2023 (v3.7.0)
 
   * demo.CustomEmbedding - add new demo to illustrate custom embedding functionality
