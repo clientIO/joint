@@ -68,7 +68,7 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "sideEffects": false,
-  "version": "3.7.0",
+  "version": "3.7.1",
   "main": "dist/joint.min.js",
   "module": "joint.mjs",
   "style": "./dist/joint.min.css",
@@ -108,7 +108,7 @@
     "backbone": "~1.4.1",
     "dagre": "~0.8.5",
     "graphlib": "~2.1.8",
-    "jquery": "~3.6.1",
+    "jquery": "~3.6.4",
     "lodash": "~4.17.21"
   },
   "devDependencies": {

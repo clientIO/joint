@@ -1,4 +1,4 @@
-/*! JointJS v3.7.0 (2023-04-18) - JavaScript diagramming library
+/*! JointJS v3.7.1 (2023-04-28) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -15504,9 +15504,14 @@ var joint = (function (exports, Backbone, $) {
 	            var cache = $node.data(cacheName);
 	            if (cache === undefined || cache !== title) {
 	                $node.data(cacheName, title);
+	                if (node.tagName === 'title') {
+	                    // The target node is a <title> element.
+	                    node.textContent = title;
+	                    return;
+	                }
 	                // Generally <title> element should be the first child element of its parent.
-	                var firstChild = node.firstChild;
-	                if (firstChild && firstChild.tagName.toUpperCase() === 'TITLE') {
+	                var firstChild = node.firstElementChild;
+	                if (firstChild && firstChild.tagName === 'title') {
 	                    // Update an existing title
 	                    firstChild.textContent = title;
 	                } else {
@@ -15893,7 +15898,7 @@ var joint = (function (exports, Backbone, $) {
 	    initialize: function(options) {
 
 	        var idAttribute = this.getIdAttribute();
-	        if (!options || !(idAttribute in options)) {
+	        if (!options || options[idAttribute] === undefined) {
 	            this.set(idAttribute, this.generateId(), { silent: true });
 	        }
 
@@ -22274,13 +22279,19 @@ var joint = (function (exports, Backbone, $) {
 	    getEventTarget: function(evt, opt) {
 	        if ( opt === void 0 ) opt = {};
 
-	        // Touchmove/Touchend event's target is not reflecting the element under the coordinates as mousemove does.
-	        // It holds the element when a touchstart triggered.
 	        var target = evt.target;
 	        var type = evt.type;
 	        var clientX = evt.clientX; if ( clientX === void 0 ) clientX = 0;
 	        var clientY = evt.clientY; if ( clientY === void 0 ) clientY = 0;
-	        if (opt.fromPoint || type === 'touchmove' || type === 'touchend') {
+	        if (
+	            // Explicitly defined `fromPoint` option
+	            opt.fromPoint ||
+	            // Touchmove/Touchend event's target is not reflecting the element under the coordinates as mousemove does.
+	            // It holds the element when a touchstart triggered.
+	            type === 'touchmove' || type === 'touchend' ||
+	            // Pointermove/Pointerup event with the pointer captured
+	            ('pointerId' in evt && target.hasPointerCapture(evt.pointerId))
+	        ) {
 	            return document.elementFromPoint(clientX, clientY);
 	        }
 
@@ -38169,7 +38180,7 @@ var joint = (function (exports, Backbone, $) {
 		Control: Control
 	});
 
-	var version = "3.7.0";
+	var version = "3.7.1";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
