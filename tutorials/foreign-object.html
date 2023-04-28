@@ -533,8 +533,8 @@ button span {
         <p>
             The last point which we would like to cover when discussing HTML form controls is the special 
             <a href="/docs/jointjs##dia.attributes.props" target="_blank"><code>props</code></a> attribute. When creating HTML elements, it's 
-            possible to define various attributes to initialize certain DOM properties. In some cases such as (<code>'id'</code>), 
-            this is a one-to-one relationship, but in others such as (<code>'value'</code>), the attribute doesn't reflect the property, and it
+            possible to define various attributes to initialize certain DOM properties. In some cases (such as <code>'id'</code>), 
+            this is a one-to-one relationship, but in others (such as <code>'value'</code>), the attribute doesn't reflect the property, and it
             serves more like an initial and current state.
             When working with JointJS, it wouldn't make sense that users can only set an initial <code>'value'</code> attribute for an 
             <code>input</code>, and then have to access DOM elements themselves to update the <code>'value'</code> property. If using 
@@ -686,7 +686,7 @@ console.log(input.getAttribute('value')); // initial
         <p>
             The second situation where this proves important is programmatically associating a <code>label</code> with an 
             <code>input</code> element. One method of making this association is by providing an <code>'id'</code> attribute to an <code>input</code>,
-            and a <code>'for'</code> attribute to its <code>label.</code> Each of which would have the same value. This has
+            and a <code>'for'</code> attribute to its <code>label</code>. Each of which would have the same value. This has
             a number of advantages such as screen readers reading the label when the associated input is focused, and also that the focus is 
             passed to the input when the associated label is clicked.
         </p>
