@@ -35,16 +35,13 @@ input {
    font-size: 1rem;
    height: 56px; 
    outline-color: hsl(355, 100%, 63%);
+   outline-style: solid;
    outline-width: thin;
    padding: 0 32px;
 }
 
 input::placeholder {
    color: hsl(0, 0%, 50%);
-}
-
-input:focus-visible {
-   outline-style: inset;
 }
 
 button {
@@ -59,11 +56,8 @@ button {
    font-weight: 600;
    height: 56px;
    outline-color: hsl(355, 100%, 63%);
+   outline-style: solid;
    outline-width: thin;
-}
-
-button:focus-visible {
-   outline-style: inset;
 }
 
 button span {
