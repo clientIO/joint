@@ -1,0 +1,29 @@
+:root {
+    --bg-color: #dde6ed;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    background-color: var(--bg-color);
+}
+
+@keyframes blink {
+    0% {
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+}
+
+.node-alert {
+    animation: blink 0.5s ease-in alternate infinite;
+}
