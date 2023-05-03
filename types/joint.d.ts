@@ -383,9 +383,9 @@ export namespace dia {
 
         findView(paper: Paper): CellView;
 
-        isLink(): boolean;
+        isLink(): this is Link;
 
-        isElement(): boolean;
+        isElement(): this is Element;
 
         startBatch(name: string, opt?: Graph.Options): this;
 
@@ -490,10 +490,6 @@ export namespace dia {
     }
 
     class Element<A extends ObjectHash = Element.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
-
-        isElement(): boolean;
-
-        isLink(): boolean;
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -627,10 +623,6 @@ export namespace dia {
          */
         labelMarkup?: string | MarkupJSON; // default label markup
 
-        isElement(): boolean;
-
-        isLink(): boolean;
-
         disconnect(): this;
 
         source(): Link.EndJSON;
@@ -653,7 +645,7 @@ export namespace dia {
         label(index: number, label: Link.Label, opt?: S): this;
 
         labels(): Link.Label[];
-        labels(labels: Link.Label[]): this;
+        labels(labels: Link.Label[], opt?: S): this;
 
         hasLabels(): boolean;
 
