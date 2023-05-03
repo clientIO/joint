@@ -1143,6 +1143,43 @@ export const Paper = View.extend({
         return unmountCount;
     },
 
+    checkViewViewport: function(cellView, opt) {
+        const passingOpt = defaults({}, opt, {});
+        let viewportFn = 'viewport' in passingOpt ? passingOpt.viewport : this.options.viewport;
+        const updates = this._updates;
+        const mounted = updates.mounted;
+
+        let isUnmounted = false;
+        let isMounted = false;
+
+        if (cellView.cid in mounted) {
+            if (cellView.DETACHABLE && !viewportFn.call(this, cellView, true, this)) {
+                const flag = this.registerUnmountedView(cellView);
+                if (flag) this.detachView(cellView);
+                const i = updates.mountedCids.indexOf(cellView.cid);
+                updates.mountedCids.splice(i, 1);
+                isUnmounted = true;
+            }
+        }
+
+        const unmounted = updates.unmounted;
+
+        if (!isUnmounted && cellView.cid in unmounted) {
+            if (typeof viewportFn !== 'function') viewportFn = null;
+            if (!cellView.DETACHABLE || !viewportFn || viewportFn.call(this, cellView, false, this)) {
+                const i = updates.unmountedCids.indexOf(cellView.cid);
+                updates.unmountedCids.splice(i, 1);
+                var flag = this.registerMountedView(cellView);
+                if (flag) this.scheduleViewUpdate(cellView, flag, cellView.UPDATE_PRIORITY, { mounting: true });
+                isMounted = true;
+            }
+        }
+        return {
+            mounted: isMounted ? 1 : 0,
+            unmounted: isUnmounted ? 1 : 0
+        };
+    },
+
     checkViewport: function(opt) {
         var passingOpt = defaults({}, opt, {
             mountBatchSize: Infinity,

@@ -1610,6 +1610,13 @@ export namespace dia {
             unmounted: number;
         };
 
+        checkViewViewport(cellView: dia.CellView, opt?: {
+            viewport?: Paper.ViewportCallback;
+        }): {
+            mounted: number;
+            unmounted: number;
+        };
+
         updateViews(opt?: {
             batchSize?: number;
             viewport?: Paper.ViewportCallback;
