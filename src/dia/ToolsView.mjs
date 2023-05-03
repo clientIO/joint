@@ -123,10 +123,6 @@ export const ToolsView = mvc.View.extend({
             }
         }
         return this;
-    },
-
-    isMounted: function() {
-        return this.el.parentNode !== null;
     }
 
 });
