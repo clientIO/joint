@@ -1145,6 +1145,8 @@ export const Paper = View.extend({
 
     checkViewVisibility: function(cellView, opt) {
         let viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
+        if (typeof viewportFn !== 'function') viewportFn = null;
+
         const updates = this._updates;
         const { mounted, unmounted } = updates;
 
@@ -1163,7 +1165,6 @@ export const Paper = View.extend({
 
         if (!isUnmounted) {
             if (cellView.cid in unmounted) {
-                if (typeof viewportFn !== 'function') viewportFn = null;
                 if (!cellView.DETACHABLE || !viewportFn || viewportFn.call(this, cellView, false, this)) {
                     const i = updates.unmountedCids.indexOf(cellView.cid);
                     updates.unmountedCids.splice(i, 1);

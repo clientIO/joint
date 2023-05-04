@@ -1610,13 +1610,6 @@ export namespace dia {
             unmounted: number;
         };
 
-        checkViewVisibility(cellView: dia.CellView, opt?: {
-            viewport?: Paper.ViewportCallback;
-        }): {
-            mounted: number;
-            unmounted: number;
-        };
-
         updateViews(opt?: {
             batchSize?: number;
             viewport?: Paper.ViewportCallback;
@@ -1635,6 +1628,13 @@ export namespace dia {
         on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(events: { [eventName in T]: Paper.EventMap[eventName]; }, context?: any): this;
 
         // protected
+
+        protected checkViewVisibility(cellView: dia.CellView, opt?: {
+            viewport?: Paper.ViewportCallback;
+        }): {
+            mounted: number;
+            unmounted: number;
+        };
 
         protected scheduleViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
