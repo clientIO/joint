@@ -1796,10 +1796,6 @@ export namespace dia {
 
         mount(): this;
 
-        unmount(): this;
-
-        isMounted(): boolean;
-
         protected simulateRelatedView(el: SVGElement): void;
     }
 
@@ -1868,9 +1864,9 @@ export namespace dia {
         nodeSelector: HighlighterView.NodeSelector | null;
         node: SVGElement | null;
         updateRequested: boolean;
+        postponedUpdate: boolean;
         transformGroup: Vectorizer | null;
-
-        public unmount(): void;
+        detachedTransformGroup: Vectorizer | null;
 
         protected findNode(cellView: dia.CellView, nodeSelector: HighlighterView.NodeSelector): SVGElement | null;
 
@@ -3396,6 +3392,8 @@ export namespace mvc {
         confirmUpdate(flag: number, opt: { [key: string]: any }): number;
 
         unmount(): void;
+
+        isMounted(): boolean;
 
         protected init(): void;
 

@@ -264,6 +264,30 @@ QUnit.module('HighlighterView', function(hooks) {
                 });
             });
 
+            QUnit.test('are not mounted to an unmounted element view', function(assert) {
+                ['back', null].forEach(layer => {
+                    const id = 'highlighter-id';
+                    paper.dumpViews({ viewport: () => false });
+                    const highlighter = joint.dia.HighlighterView.add(elementView, 'root', id, { layer });
+                    assert.notOk(highlighter.el.isConnected);
+                    if (layer) {
+                        assert.notOk(highlighter.transformGroup);
+                        assert.notOk(highlighter.detachedTransformGroup);
+                    }
+                    paper.dumpViews({ viewport: () => true });
+                    assert.ok(highlighter.el.isConnected);
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup);
+                        const { tx, ty } = highlighter.transformGroup.translate();
+                        const { x, y } = element.position();
+                        assert.equal(tx, x);
+                        assert.equal(ty, y);
+                        assert.notOk(highlighter.detachedTransformGroup);
+                    }
+                    joint.dia.HighlighterView.remove(elementView, id);
+                });
+            });
+
             QUnit.test('are mounted and unmounted with the link view', function(assert) {
                 ['back', null].forEach(layer => {
                     const id = 'highlighter-id';

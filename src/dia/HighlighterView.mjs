@@ -24,6 +24,7 @@ export const HighlighterView = mvc.View.extend({
     nodeSelector: null,
     node: null,
     updateRequested: false,
+    postponedUpdate: false,
     transformGroup: null,
     detachedTransformGroup: null,
 
@@ -41,6 +42,10 @@ export const HighlighterView = mvc.View.extend({
         // The cellView is now rendered/updated since it has a higher update priority.
         this.updateRequested = false;
         const { cellView, nodeSelector } = this;
+        if (!cellView.isMounted()) {
+            this.postponedUpdate = true;
+            return 0;
+        }
         this.update(cellView, nodeSelector);
         this.mount();
         this.transform();
@@ -92,8 +97,15 @@ export const HighlighterView = mvc.View.extend({
     },
 
     mount() {
-        const { MOUNTABLE, cellView, el, options, transformGroup, detachedTransformGroup } = this;
+        const { MOUNTABLE, cellView, el, options, transformGroup, detachedTransformGroup, postponedUpdate, nodeSelector } = this;
         if (!MOUNTABLE || transformGroup) return;
+        if (postponedUpdate) {
+            // The cellView was not mounted when the update was requested.
+            // The update was postponed until the cellView is mounted.
+            this.update(cellView, nodeSelector);
+            this.transform();
+            return;
+        }
         const { vel: cellViewRoot, paper } = cellView;
         const { layer: layerName } = options;
         if (layerName) {
@@ -139,6 +151,7 @@ export const HighlighterView = mvc.View.extend({
     update() {
         const { node: prevNode, cellView, nodeSelector, updateRequested, id } = this;
         if (updateRequested) return;
+        this.postponedUpdate = false;
         const node = this.node = this.findNode(cellView, nodeSelector);
         if (prevNode) {
             this.unhighlight(cellView, prevNode);
