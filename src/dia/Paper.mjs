@@ -1146,15 +1146,15 @@ export const Paper = View.extend({
     checkViewVisibility: function(cellView, opt = {}) {
         let viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
         if (typeof viewportFn !== 'function') viewportFn = null;
-
         const updates = this._updates;
         const { mounted, unmounted } = updates;
+        const visible = !cellView.DETACHABLE || !viewportFn || viewportFn.call(this, cellView, false, this);
 
         let isUnmounted = false;
         let isMounted = false;
 
         if (cellView.cid in mounted) {
-            if (cellView.DETACHABLE && viewportFn && !viewportFn.call(this, cellView, true, this)) {
+            if (!visible) {
                 const flag = this.registerUnmountedView(cellView);
                 if (flag) this.detachView(cellView);
                 const i = updates.mountedCids.indexOf(cellView.cid);
@@ -1165,7 +1165,7 @@ export const Paper = View.extend({
 
         if (!isUnmounted) {
             if (cellView.cid in unmounted) {
-                if (!cellView.DETACHABLE || !viewportFn || viewportFn.call(this, cellView, false, this)) {
+                if (visible) {
                     const i = updates.unmountedCids.indexOf(cellView.cid);
                     updates.unmountedCids.splice(i, 1);
                     var flag = this.registerMountedView(cellView);
