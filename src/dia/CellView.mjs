@@ -922,25 +922,42 @@ export const CellView = View.extend({
 
         relativeItems.push(...relativeRefItems);
 
-        var rotatableMatrix;
-        for (var i = 0, n = relativeItems.length; i < n; i++) {
+        for (let i = 0, n = relativeItems.length; i < n; i++) {
             item = relativeItems[i];
             node = item.node;
             refNode = item.refNode;
 
             // Find the reference element bounding box. If no reference was provided, we
             // use the optional bounding box.
-            var vRotatable = V(opt.rotatableNode);
-            var refNodeId = refNode ? V.ensureId(refNode) : '';
-            var isRefNodeRotatable = !!vRotatable && !!refNode && vRotatable.contains(refNode);
-            var unrotatedRefBBox = bboxCache[refNodeId];
-            if (!unrotatedRefBBox) {
-                // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
-                // or to the root `<g>` element if no rotatable group present if reference node present.
-                // Uses the bounding box provided.
-                var transformationTarget = (isRefNodeRotatable) ? vRotatable : rootNode;
-                unrotatedRefBBox = bboxCache[refNodeId] = (refNode)
-                    ? V(refNode).getBBox({ target: transformationTarget })
+            const refNodeId = refNode ? V.ensureId(refNode) : '';
+            let refBBox = bboxCache[refNodeId];
+            if (!refBBox) {
+                // Get the bounding box of the reference element using to the common ancestor
+                // transformation space.
+                //
+                // @example 1
+                // <g transform="translate(11, 13)">
+                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
+                //     <rect @selector="a"/>
+                // </g>
+                //
+                // In this case, the reference bounding box can not be affected
+                // by the `transform` attribute of the `<g>` element,
+                // because the exact transformation will be applied to the `a` element
+                // as well as to the `b` element.
+                //
+                // @example 2
+                // <g transform="translate(11, 13)">
+                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
+                // </g>
+                // <rect @selector="a"/>
+                //
+                // In this case, the reference bounding box have to be affected by the
+                // `transform` attribute of the `<g>` element, because the `a` element
+                // is not descendant of the `<g>` element and will not be affected
+                // by the transformation.
+                refBBox = bboxCache[refNodeId] = (refNode)
+                    ? V(refNode).getBBox({ target: getCommonAncestorNode(node, refNode) })
                     : opt.rootBBox;
             }
 
@@ -953,14 +970,6 @@ export const CellView = View.extend({
 
             } else {
                 processedAttrs = item.processedAttributes;
-            }
-
-            var refBBox = unrotatedRefBBox;
-            if (isRefNodeRotatable && !vRotatable.contains(node)) {
-                // if the referenced node is inside the rotatable group while the updated node is outside,
-                // we need to take the rotatable node transformation into account
-                if (!rotatableMatrix) rotatableMatrix = V.transformStringToMatrix(vRotatable.attr('transform'));
-                refBBox = V.transformRect(unrotatedRefBBox, rotatableMatrix);
             }
 
             this.updateRelativeAttributes(node, processedAttrs, refBBox, opt);
@@ -1264,3 +1273,14 @@ export const CellView = View.extend({
         });
     }
 });
+
+// TODO: Move to Vectorizer library.
+function getCommonAncestorNode(node1, node2) {
+    let parent = node1;
+    do {
+        if (parent.contains(node2)) return parent;
+        parent = parent.parentNode;
+    } while (parent);
+    return null;
+}
+
