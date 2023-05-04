@@ -1153,26 +1153,20 @@ export const Paper = View.extend({
         let isUnmounted = false;
         let isMounted = false;
 
-        if (cellView.cid in mounted) {
-            if (!visible) {
-                const flag = this.registerUnmountedView(cellView);
-                if (flag) this.detachView(cellView);
-                const i = updates.mountedCids.indexOf(cellView.cid);
-                updates.mountedCids.splice(i, 1);
-                isUnmounted = true;
-            }
+        if (cellView.cid in mounted && !visible) {
+            const flag = this.registerUnmountedView(cellView);
+            if (flag) this.detachView(cellView);
+            const i = updates.mountedCids.indexOf(cellView.cid);
+            updates.mountedCids.splice(i, 1);
+            isUnmounted = true;
         }
 
-        if (!isUnmounted) {
-            if (cellView.cid in unmounted) {
-                if (visible) {
-                    const i = updates.unmountedCids.indexOf(cellView.cid);
-                    updates.unmountedCids.splice(i, 1);
-                    var flag = this.registerMountedView(cellView);
-                    if (flag) this.scheduleViewUpdate(cellView, flag, cellView.UPDATE_PRIORITY, { mounting: true });
-                    isMounted = true;
-                }
-            }
+        if (!isUnmounted && cellView.cid in unmounted && visible) {
+            const i = updates.unmountedCids.indexOf(cellView.cid);
+            updates.unmountedCids.splice(i, 1);
+            var flag = this.registerMountedView(cellView);
+            if (flag) this.scheduleViewUpdate(cellView, flag, cellView.UPDATE_PRIORITY, { mounting: true });
+            isMounted = true;
         }
 
         return {
