@@ -1629,19 +1629,13 @@ export namespace dia {
 
         // protected
 
-        /*
-            Docs for the next version
-
-            <pre class="docs-method-signature"><code>paper.checkViewVisibility(cellView)</code></pre>
-            <p>For the specified view, calls the visibility viewport function specified by the <a href="#dia.Paper.prototype.options.viewport"><code>paper.options.viewport</code></a> function. If the function returns <code>true</code>, the view is attached to the DOM; in other case it is detached.</p>
-
-            <p>While <a href="#dia.Paper.prototype.options.async"><code>async</code></a> papers do this automatically, synchronous papers require an explicit call to this method for this functionality to be applied. To show the view again, use <a href="#dia.Paper.prototype.requestView"><code>paper.requestView()</code></a>.
-            If you are using <a href="#dia.Paper.prototype.options.autoFreeze"><code>autoFreeze</code></a> option you should call this function if you are calling <a href="#dia.Paper.prototype.requestView"><code>paper.requestView()</code></a> if you want <a href="#dia.Paper.prototype.options.viewport"><code>paper.options.viewport</code></a> function to be applied.</p>
-
-            <pre class="docs-method-signature"><code>paper.checkViewVisibility(cellView, opt)</code></pre>
-            <p>If <code>opt.viewport</code> is provided, it is used as the callback function instead of <a href="#dia.Paper.prototype.options.viewport"><code>paper.options.viewport</code></a>. The format of the callback method is described in the <a href="#dia.Paper.prototype.options.viewport">option's documentation</a>, as are examples of usage.</p>
-
-            <p>In <a href="#dia.Paper.prototype.options.async"><code>async</code></a> papers, providing <code>opt.viewport</code> causes view visibility to be temporarily recalculated according to the provided callback function.</p>
+        /**
+        * For the specified view, calls the visibility viewport function specified by the paper.options.viewport function.
+        * If the function returns true, the view is attached to the DOM; in other case it is detached.
+        * While async papers do this automatically, synchronous papers require an explicit call to this method for this functionality to be applied. To show the view again, use paper.requestView().
+        * If you are using autoFreeze option you should call this function if you are calling paper.requestView() if you want paper.options.viewport function to be applied.
+        * @param cellView cellView for which the visibility check is performed
+        * @param opt if opt.viewport is provided, it is used as the callback function instead of paper.options.viewport.
         */
         protected checkViewVisibility(cellView: dia.CellView, opt?: {
             viewport?: Paper.ViewportCallback;
