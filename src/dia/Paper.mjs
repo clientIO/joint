@@ -1143,7 +1143,7 @@ export const Paper = View.extend({
         return unmountCount;
     },
 
-    checkViewVisibility: function(cellView, opt) {
+    checkViewVisibility: function(cellView, opt = {}) {
         let viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
         if (typeof viewportFn !== 'function') viewportFn = null;
 

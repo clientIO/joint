@@ -1326,6 +1326,32 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         assert.checkBbox(paper, link, 100, 50, 100, 0);
                     });
 
+                    QUnit.test('checkViewVisibility()', function(assert) {
+                        var rect1 = new joint.shapes.standard.Rectangle();
+                        var rect2 = new joint.shapes.standard.Rectangle();
+                        paper.options.viewport = function(view) { return [rect1].indexOf(view.model) > -1; };
+                        paper.freeze();
+                        rect1.addTo(graph);
+                        rect2.addTo(graph);
+                        paper.unfreeze();
+                        var rect1View = rect1.findView(paper);
+                        var rect2View = rect2.findView(paper);
+                        assert.notOk(rect2View.el.isConnected, 'rect2 is not mounted');
+                        assert.ok(rect1View.el.isConnected, 'rect1 is mounted');
+                        paper.requireView(rect2);
+                        assert.ok(rect2View.el.isConnected, 'rect2 is mounted after requireView(rect2)');
+                        paper.checkViewVisibility(rect2View);
+                        assert.notOk(rect2View.el.isConnected, 'rect2 is unmounted after checkViewVisibility(rect2View)');
+                        paper.options.viewport = function(view) { return [rect2].indexOf(view.model) > -1; };
+                        paper.requireView(rect2);
+                        assert.ok(rect2View.el.isConnected, 'rect2 is mounted after requireView(rect2)');
+                        paper.checkViewVisibility(rect2View);
+                        assert.ok(rect2View.el.isConnected, 'rect2 is still mounted after checkViewVisibility(rect2View)');
+                        paper.options.viewport = function(view) { return [rect1].indexOf(view.model) > -1; };
+                        paper.checkViewVisibility(rect2View);
+                        assert.notOk(rect2View.el.isConnected, 'rect2 is unmounted after checkViewVisibility(rect2View) with changed paper.options.viewport');
+                    });
+
                     QUnit.test('checkViewport()', function(assert) {
                         var rect1 = new joint.shapes.standard.Rectangle();
                         var rect2 = new joint.shapes.standard.Rectangle();
