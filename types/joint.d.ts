@@ -1610,7 +1610,7 @@ export namespace dia {
             unmounted: number;
         };
 
-        checkViewViewport(cellView: dia.CellView, opt?: {
+        checkViewVisibility(cellView: dia.CellView, opt?: {
             viewport?: Paper.ViewportCallback;
         }): {
             mounted: number;

@@ -1226,7 +1226,7 @@ export const CellView = View.extend({
                     const sourceView = paper.findViewByModel(sourceElement);
                     if (sourceView) {
                         paper.dumpView(sourceView);
-                        paper.checkViewViewport(sourceView);
+                        paper.checkViewVisibility(sourceView);
                     }
                 }
                 const targetElement = model.getTargetElement();
@@ -1234,13 +1234,13 @@ export const CellView = View.extend({
                     const targetView = paper.findViewByModel(targetElement);
                     if (targetView) {
                         paper.dumpView(targetView);
-                        paper.checkViewViewport(targetView);
+                        paper.checkViewVisibility(targetView);
                     }
                 }
             }
             // Do the updates of the current view synchronously now
             paper.dumpView(this);
-            paper.checkViewViewport(this);
+            paper.checkViewVisibility(this);
         }
         const target = this.getEventTarget(evt, { fromPoint: true });
         const view = paper.findView(target);
