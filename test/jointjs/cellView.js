@@ -125,6 +125,46 @@ QUnit.module('cellView', function(hooks) {
             cell.resize(100,100).position(0, 0);
         });
 
+        QUnit.module('ref', function(hooks) {
+            QUnit.test('should use the ref node ancestor transformation only if it is not a common ancestor', function(assert) {
+                const ax = 1;
+                const ay = 2;
+                const aw = 3;
+                const ah = 4;
+                const gx = 11;
+                const gy = 13;
+                [{
+                    attrs: {
+                        a: { ref: 'b', x: 'calc(x)', y: 'calc(y)', width: 'calc(w)', height: 'calc(h)' },
+                    },
+                    markup: joint.util.svg`
+                        <g transform="translate(${gx},${gy})">
+                            <rect @selector="b" x="${ax}" y="${ay}" width="${aw}" height="${ah}"/>
+                        </g>
+                        <rect @selector="a"/>
+                    `
+                }, {
+                    attrs: {
+                        a: { ref: 'b', x: 'calc(x)', y: 'calc(y)', width: 'calc(w)', height: 'calc(h)' },
+                    },
+                    markup: joint.util.svg`
+                        <g transform="translate(${gx},${gy})">
+                            <rect @selector="b" x="${ax}" y="${ay}" width="${aw}" height="${ah}"/>
+                            <rect @selector="a"/>
+                        </g>
+                    `
+                }].forEach(attributes => {
+                    cell.set(attributes);
+                    const [a] = cellView.findBySelector('a');
+                    const bbox = V(a).getBBox({ target: cellView.el });
+                    assert.equal(bbox.x, ax + gx);
+                    assert.equal(bbox.y, ay + gy);
+                    assert.equal(bbox.width, aw);
+                    assert.equal(bbox.height, ah);
+                });
+            });
+        });
+
         QUnit.module('Merging', function(hooks) {
 
             hooks.beforeEach(function() {
