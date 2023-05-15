@@ -2313,7 +2313,6 @@ export const Paper = View.extend({
             this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
         }
 
-        evt.stopImmediatePropagation();
         this.delegateEvents();
     },
 

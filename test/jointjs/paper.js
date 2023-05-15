@@ -2246,6 +2246,23 @@ QUnit.module('paper', function(hooks) {
 
         });
 
+        QUnit.test('pointerup does not stop immediate propagation', function(assert) {
+            assert.expect(2);
+            const view = new joint.mvc.View();
+            simulate.mousedown({ el: elRect });
+            view.delegateDocumentEvents({
+                mousemove: () => {
+                    assert.ok(true, 'mousemove');
+                },
+                mouseup: () => {
+                    assert.ok(true, 'mouseup');
+                },
+            });
+            simulate.mousemove({ el: elRect });
+            simulate.mouseup({ el: elRect });
+            view.undelegateDocumentEvents();
+        });
+
         QUnit.module('Labels', function(hooks) {
 
             var link, linkView;
