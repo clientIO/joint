@@ -20,90 +20,33 @@
             }
         }
     }, {
-        markup: [{
-            tagName: 'rect',
-            selector: 'placeholder'
-        }],
-        htmlMarkup: [{
-            tagName: 'div',
-            className: 'html-element',
-            selector: 'htmlRoot',
-            groupSelector: 'field',
-            style: {
-                'position': 'absolute',
-                'pointer-events': 'auto',
-                'user-select': 'none',
-                'box-sizing': 'border-box'
-            },
-            attributes: {
-                'data-attribute': 'state'
-            },
-            children: [{
-                tagName: 'label',
-                className: 'html-element-header',
-                groupSelector: 'field',
-                attributes: {
-                    'data-attribute': 'header'
-                }
-            }, {
-                tagName: 'label',
-                className: 'html-element-label',
-                textContent: 'Name',
-                children: [{
-                    tagName: 'input',
-                    className: 'html-element-field',
-                    groupSelector: 'field',
-                    attributes: {
-                        'data-attribute': 'name',
-                        'placeholder': 'Name'
-                    },
-                    style: {
-                        'pointer-events': 'auto'
-                    }
-                }]
-            }, {
-                tagName: 'label',
-                className: 'html-element-label',
-                textContent: 'Resource',
-                children: [{
-                    tagName: 'select',
-                    className: 'html-element-field',
-                    groupSelector: 'field',
-                    attributes: {
-                        'data-attribute': 'resource'
-                    },
-                    style: {
-                        'pointer-events': 'auto'
-                    },
-                    children: [{
-                        tagName: 'option',
-                        textContent: 'Resource',
-                        attributes: {
-                            'value': '',
-                            'disabled': 'true'
-                        }
-                    }, {
-                        tagName: 'option',
-                        textContent: 'John',
-                        attributes: {
-                            'value': 'john'
-                        }
-                    }, {
-                        tagName: 'option',
-                        textContent: 'Mary',
-                        attributes: {
-                            'value': 'mary'
-                        }
-                    }, {
-                        tagName: 'option',
-                        textContent: 'Bob',
-                        attributes: {
-                            'value': 'bob'
-                        }
-                    }]
-                }]
-            }]
-        }]
+
+        htmlMarkup: util.svg`
+            <foreignObject>
+                <div @selector="htmlRoot" @group-selector="field" xmlns="http://www.w3.org/1999/xhtml"
+                    class="html-element"
+                    style="position: absolute; pointer-events: auto; user-select: none; box-sizing: border-box;"
+                    data-attribute="state"
+                >
+                    <label @group-selector="field" class="html-element-header" data-attribute="header"></label>
+                    <label class="html-element-label">Name
+                        <input @group-selector="field" class="html-element-field" data-attribute="name" placeholder="Name" style="pointer-events: auto;" />
+                    </label>
+                    <label class="html-element-label">Resource
+                        <select @group-selector="field" class="html-element-field" data-attribute="resource" style="pointer-events: auto;">
+                            <option value="" disabled="true">Resource</option>
+                            <option value="john">John</option>
+                            <option value="mary">Mary</option>
+                            <option value="bob">Bob</option>
+                        </select>
+                    </label>
+                </div>
+            </foreignObject>
+        `,
+
+        markup: util.svg`
+            <rect @selector="placeholder" />
+        `,
     });
 
     // Custom view for JointJS HTML element that displays an HTML <div></div> above the SVG Element.
@@ -154,7 +97,7 @@
             var fields = doc.groupSelectors.field;
             // React on all box changes. e.g. input change
             html.addEventListener('change', this.onFieldChange.bind(this), false);
-            this.paper.htmlContainer.appendChild(doc.fragment);
+            this.paper.htmlContainer.appendChild(html);
             this.html = html;
             this.fields = fields;
             html.setAttribute('model-id', this.model.id);
