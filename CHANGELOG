@@ -1,3 +1,11 @@
+16-05-2023 (v3.7.2)
+
+  * demo - add DWDM (Dense wavelength-division multiplexing) example
+  * dia.Paper - allow immediate propagation on pointerup
+  * dia.CellView - fix to `checkMouseLeave` working incorrectly when paper has autoFreeze=true
+  * dia.CellView - fix to get correct ref node bounding box
+  * dia.HighlighterView - prevent highlighter mounting to unmounted cell views
+
 28-04-2023 (v3.7.1)
 
   * bump jQuery to v3.6.4
