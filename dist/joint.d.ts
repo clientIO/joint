@@ -1,4 +1,4 @@
-/*! JointJS v3.7.1 (2023-04-28) - JavaScript diagramming library
+/*! JointJS v3.7.2 (2023-05-16) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1545,9 +1545,9 @@ export namespace dia {
 
         findView(paper: Paper): CellView;
 
-        isLink(): boolean;
+        isLink(): this is Link;
 
-        isElement(): boolean;
+        isElement(): this is Element;
 
         startBatch(name: string, opt?: Graph.Options): this;
 
@@ -1652,10 +1652,6 @@ export namespace dia {
     }
 
     class Element<A extends ObjectHash = Element.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
-
-        isElement(): boolean;
-
-        isLink(): boolean;
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -1789,10 +1785,6 @@ export namespace dia {
          */
         labelMarkup?: string | MarkupJSON; // default label markup
 
-        isElement(): boolean;
-
-        isLink(): boolean;
-
         disconnect(): this;
 
         source(): Link.EndJSON;
@@ -1815,7 +1807,7 @@ export namespace dia {
         label(index: number, label: Link.Label, opt?: S): this;
 
         labels(): Link.Label[];
-        labels(labels: Link.Label[]): this;
+        labels(labels: Link.Label[], opt?: S): this;
 
         hasLabels(): boolean;
 
@@ -2799,6 +2791,21 @@ export namespace dia {
 
         // protected
 
+        /**
+        * For the specified view, calls the visibility viewport function specified by the paper.options.viewport function.
+        * If the function returns true, the view is attached to the DOM; in other case it is detached.
+        * While async papers do this automatically, synchronous papers require an explicit call to this method for this functionality to be applied. To show the view again, use paper.requestView().
+        * If you are using autoFreeze option you should call this function if you are calling paper.requestView() if you want paper.options.viewport function to be applied.
+        * @param cellView cellView for which the visibility check is performed
+        * @param opt if opt.viewport is provided, it is used as the callback function instead of paper.options.viewport.
+        */
+        protected checkViewVisibility(cellView: dia.CellView, opt?: {
+            viewport?: Paper.ViewportCallback;
+        }): {
+            mounted: number;
+            unmounted: number;
+        };
+
         protected scheduleViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
         protected dumpViewUpdate(view: mvc.View<any, any>): number;
@@ -2966,10 +2973,6 @@ export namespace dia {
 
         mount(): this;
 
-        unmount(): this;
-
-        isMounted(): boolean;
-
         protected simulateRelatedView(el: SVGElement): void;
     }
 
@@ -3038,9 +3041,9 @@ export namespace dia {
         nodeSelector: HighlighterView.NodeSelector | null;
         node: SVGElement | null;
         updateRequested: boolean;
+        postponedUpdate: boolean;
         transformGroup: Vectorizer | null;
-
-        public unmount(): void;
+        detachedTransformGroup: Vectorizer | null;
 
         protected findNode(cellView: dia.CellView, nodeSelector: HighlighterView.NodeSelector): SVGElement | null;
 
@@ -4566,6 +4569,8 @@ export namespace mvc {
         confirmUpdate(flag: number, opt: { [key: string]: any }): number;
 
         unmount(): void;
+
+        isMounted(): boolean;
 
         protected init(): void;
 

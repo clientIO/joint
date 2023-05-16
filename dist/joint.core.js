@@ -1,4 +1,4 @@
-/*! JointJS v3.7.1 (2023-04-28) - JavaScript diagramming library
+/*! JointJS v3.7.2 (2023-05-16) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -19139,6 +19139,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    nodeSelector: null,
 	    node: null,
 	    updateRequested: false,
+	    postponedUpdate: false,
 	    transformGroup: null,
 	    detachedTransformGroup: null,
 
@@ -19158,6 +19159,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var ref = this;
 	        var cellView = ref.cellView;
 	        var nodeSelector = ref.nodeSelector;
+	        if (!cellView.isMounted()) {
+	            this.postponedUpdate = true;
+	            return 0;
+	        }
 	        this.update(cellView, nodeSelector);
 	        this.mount();
 	        this.transform();
@@ -19222,7 +19227,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var options = ref.options;
 	        var transformGroup = ref.transformGroup;
 	        var detachedTransformGroup = ref.detachedTransformGroup;
+	        var postponedUpdate = ref.postponedUpdate;
+	        var nodeSelector = ref.nodeSelector;
 	        if (!MOUNTABLE || transformGroup) { return; }
+	        if (postponedUpdate) {
+	            // The cellView was not mounted when the update was requested.
+	            // The update was postponed until the cellView is mounted.
+	            this.update(cellView, nodeSelector);
+	            this.transform();
+	            return;
+	        }
 	        var cellViewRoot = cellView.vel;
 	        var paper = cellView.paper;
 	        var layerName = options.layer;
@@ -19280,6 +19294,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var updateRequested = ref.updateRequested;
 	        var id = ref.id;
 	        if (updateRequested) { return; }
+	        this.postponedUpdate = false;
 	        var node = this.node = this.findNode(cellView, nodeSelector);
 	        if (prevNode) {
 	            this.unhighlight(cellView, prevNode);
@@ -20396,7 +20411,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        relativeItems.push.apply(relativeItems, relativeRefItems);
 
-	        var rotatableMatrix;
 	        for (var i = 0, n = relativeItems.length; i < n; i++) {
 	            item = relativeItems[i];
 	            node = item.node;
@@ -20404,17 +20418,35 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	            // Find the reference element bounding box. If no reference was provided, we
 	            // use the optional bounding box.
-	            var vRotatable = V(opt.rotatableNode);
 	            var refNodeId = refNode ? V.ensureId(refNode) : '';
-	            var isRefNodeRotatable = !!vRotatable && !!refNode && vRotatable.contains(refNode);
-	            var unrotatedRefBBox = bboxCache[refNodeId];
-	            if (!unrotatedRefBBox) {
-	                // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
-	                // or to the root `<g>` element if no rotatable group present if reference node present.
-	                // Uses the bounding box provided.
-	                var transformationTarget = (isRefNodeRotatable) ? vRotatable : rootNode;
-	                unrotatedRefBBox = bboxCache[refNodeId] = (refNode)
-	                    ? V(refNode).getBBox({ target: transformationTarget })
+	            var refBBox = bboxCache[refNodeId];
+	            if (!refBBox) {
+	                // Get the bounding box of the reference element using to the common ancestor
+	                // transformation space.
+	                //
+	                // @example 1
+	                // <g transform="translate(11, 13)">
+	                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
+	                //     <rect @selector="a"/>
+	                // </g>
+	                //
+	                // In this case, the reference bounding box can not be affected
+	                // by the `transform` attribute of the `<g>` element,
+	                // because the exact transformation will be applied to the `a` element
+	                // as well as to the `b` element.
+	                //
+	                // @example 2
+	                // <g transform="translate(11, 13)">
+	                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
+	                // </g>
+	                // <rect @selector="a"/>
+	                //
+	                // In this case, the reference bounding box have to be affected by the
+	                // `transform` attribute of the `<g>` element, because the `a` element
+	                // is not descendant of the `<g>` element and will not be affected
+	                // by the transformation.
+	                refBBox = bboxCache[refNodeId] = (refNode)
+	                    ? V(refNode).getBBox({ target: getCommonAncestorNode(node, refNode) })
 	                    : opt.rootBBox;
 	            }
 
@@ -20427,14 +20459,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	            } else {
 	                processedAttrs = item.processedAttributes;
-	            }
-
-	            var refBBox = unrotatedRefBBox;
-	            if (isRefNodeRotatable && !vRotatable.contains(node)) {
-	                // if the referenced node is inside the rotatable group while the updated node is outside,
-	                // we need to take the rotatable node transformation into account
-	                if (!rotatableMatrix) { rotatableMatrix = V.transformStringToMatrix(vRotatable.attr('transform')); }
-	                refBBox = V.transformRect(unrotatedRefBBox, rotatableMatrix);
 	            }
 
 	            this.updateRelativeAttributes(node, processedAttrs, refBBox, opt);
@@ -20705,16 +20729,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                var sourceElement = model.getSourceElement();
 	                if (sourceElement) {
 	                    var sourceView = paper.findViewByModel(sourceElement);
-	                    if (sourceView) { paper.dumpView(sourceView); }
+	                    if (sourceView) {
+	                        paper.dumpView(sourceView);
+	                        paper.checkViewVisibility(sourceView);
+	                    }
 	                }
 	                var targetElement = model.getTargetElement();
 	                if (targetElement) {
 	                    var targetView = paper.findViewByModel(targetElement);
-	                    if (targetView) { paper.dumpView(targetView); }
+	                    if (targetView) {
+	                        paper.dumpView(targetView);
+	                        paper.checkViewVisibility(targetView);
+	                    }
 	                }
 	            }
 	            // Do the updates of the current view synchronously now
 	            paper.dumpView(this);
+	            paper.checkViewVisibility(this);
 	        }
 	        var target = this.getEventTarget(evt, { fromPoint: true });
 	        var view = paper.findView(target);
@@ -20745,6 +20776,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	    }
 	});
+
+	// TODO: Move to Vectorizer library.
+	function getCommonAncestorNode(node1, node2) {
+	    var parent = node1;
+	    do {
+	        if (parent.contains(node2)) { return parent; }
+	        parent = parent.parentNode;
+	    } while (parent);
+	    return null;
+	}
 
 	var Flags$1 = {
 	    TOOLS: CellView.Flags.TOOLS,
@@ -32540,6 +32581,41 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return unmountCount;
 	    },
 
+	    checkViewVisibility: function(cellView, opt) {
+	        if ( opt === void 0 ) opt = {};
+
+	        var viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
+	        if (typeof viewportFn !== 'function') { viewportFn = null; }
+	        var updates = this._updates;
+	        var mounted = updates.mounted;
+	        var unmounted = updates.unmounted;
+	        var visible = !cellView.DETACHABLE || !viewportFn || viewportFn.call(this, cellView, false, this);
+
+	        var isUnmounted = false;
+	        var isMounted = false;
+
+	        if (cellView.cid in mounted && !visible) {
+	            var flag$1 = this.registerUnmountedView(cellView);
+	            if (flag$1) { this.detachView(cellView); }
+	            var i = updates.mountedCids.indexOf(cellView.cid);
+	            updates.mountedCids.splice(i, 1);
+	            isUnmounted = true;
+	        }
+
+	        if (!isUnmounted && cellView.cid in unmounted && visible) {
+	            var i$1 = updates.unmountedCids.indexOf(cellView.cid);
+	            updates.unmountedCids.splice(i$1, 1);
+	            var flag = this.registerMountedView(cellView);
+	            if (flag) { this.scheduleViewUpdate(cellView, flag, cellView.UPDATE_PRIORITY, { mounting: true }); }
+	            isMounted = true;
+	        }
+
+	        return {
+	            mounted: isMounted ? 1 : 0,
+	            unmounted: isUnmounted ? 1 : 0
+	        };
+	    },
+
 	    checkViewport: function(opt) {
 	        var passingOpt = defaults({}, opt, {
 	            mountBatchSize: Infinity,
@@ -33716,7 +33792,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
 	        }
 
-	        evt.stopImmediatePropagation();
 	        this.delegateEvents();
 	    },
 
@@ -34877,10 +34952,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 	        }
 	        return this;
-	    },
-
-	    isMounted: function() {
-	        return this.el.parentNode !== null;
 	    }
 
 	});
@@ -36599,7 +36670,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.7.1";
+	var version = "3.7.2";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
