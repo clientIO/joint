@@ -1,0 +1,50 @@
+<g
+    magnet-selector="base"
+    highlighter-selector="base"
+>
+    <rect @selector="base" @group-selector="common"
+        width="calc(w)"
+        height="calc(h)"
+        fill="#91C7B1"
+        stroke="#333"
+        stroke-linejoin="round"
+    />
+
+    <path @selector="front" @group-selector="iso"
+        fill="#91C7B1"
+        stroke="#333"
+        stroke-linejoin="round"
+        :d="M 0 calc(h) L calc(w) calc(h) L calc(w - {{isometricHeight}}) calc(h - {{isometricHeight}}) L -{{isometricHeight}} calc(h - {{isometricHeight}}) Z"
+    />
+
+    <path @selector="side" @group-selector="iso"
+        fill="#6AB496"
+        stroke="#333"
+        stroke-linejoin="round"
+        :d="M calc(w) calc(h) L calc(w) 0 L calc(w - {{isometricHeight}}) -{{isometricHeight}} L calc(w - {{isometricHeight}}) calc(h - {{isometricHeight}}) Z"
+    />
+
+    <rect @selector="top" @group-selector="iso"
+        width="calc(w)"
+        height="calc(h)"
+        fill="#52A382"
+        stroke="#333"
+        stroke-linejoin="round"
+        :x="{{topXPosition([isometricHeight], 10)}}"
+        :y="{{topYPosition([isometricHeight])}}"
+    />
+
+    <text @selector="label" @group-selector="common"
+        text-anchor="left"
+        text-vertical-anchor="middle"
+        font-family="sans-serif"
+        font-size="11"
+        fill="#333"
+        stroke="#fff"
+        stroke-width="3"
+        paint-order="stroke"
+        y="calc(h + 10)"
+        x="calc(w + 10)"
+        text="Computer"
+    />
+</g>

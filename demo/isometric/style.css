@@ -1,0 +1,23 @@
+#toggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 10px;
+    background: white;
+    border: 2px solid #ed2637;
+    border-radius: 2px;
+    color: #ed2637;
+    font-family: sans-serif;
+    font-size: 1em;
+}
+
+#toggle:hover {
+    background: #ed2637;
+    color: white;
+}
+
+#logo {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}

@@ -1,0 +1,62 @@
+<g
+    magnet-selector="base"
+    highlighter-selector="base"
+>
+    <ellipse @selector="base" @group-selector="common"
+        cx="calc(0.5 * w)"
+        cy="calc(0.5 * h)"
+        rx="calc(0.5 * w)"
+        ry="calc(0.5 * h)"
+        fill="#ADADFF"
+        stroke="#333"
+        stroke-linejoin="round"
+    />
+
+    <path @selector="side" @group-selector="iso"
+        fill="#ADADFF"
+        stroke="#333"
+        stroke-linejoin="round"
+        :d="{{getSideData([size, isometricHeight])}}"
+    />
+
+    <ellipse @selector="top" @group-selector="iso"
+        :cx="{{topCenterX([size, isometricHeight])}}"
+        :cy="{{topCenterY([size, isometricHeight])}}"
+        rx="calc(0.5 * w)"
+        ry="calc(0.5 * h)"
+        fill="#8585FF"
+        stroke="#333"
+        stroke-linejoin="round"
+    />
+
+    <image @selector="topImage" @group-selector="iso"
+        xlink-href="assets/router-icon.svg"
+        width="calc(w - 4)"
+        height="calc(h - 4)"
+        transform="translate(2, 2)"
+        :x="{{topImageXPosition([size, isometricHeight])}}"
+        :y="{{topImageYPosition([size, isometricHeight])}}"
+    />
+
+    <image @selector="2DImage" @group-selector="2d"
+        xlink-href="assets/router-icon.svg"
+        x="2"
+        y="2"
+        width="calc(w - 4)"
+        height="calc(h - 4)"
+    />
+
+    <text @selector="label" @group-selector="common"
+        text-anchor="left"
+        text-vertical-anchor="middle"
+        font-family="sans-serif"
+        font-size="11"
+        fill="#333"
+        stroke="#fff"
+        stroke-width="3"
+        paint-order="stroke"
+        y="calc(h + 10)"
+        x="calc(w + 10)"
+        text="Router"
+    />
+</g>
