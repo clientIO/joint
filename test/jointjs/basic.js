@@ -888,7 +888,7 @@ QUnit.module('basic', function(hooks) {
 
         assert.ok(b1Z < a1Z, 'b root z is lower than a root z');
 
-        a1.toFront({ deep: true });
+        a1.toFront({ deep: true, placeEmbeddedAboveParent: false });
 
         assert.equal(a1.get('z'), a1Z, 'a1 doesn\'t change z during a toFront() if it is already in place');
 
@@ -941,7 +941,7 @@ QUnit.module('basic', function(hooks) {
             QUnit.test('toBack(), toFront() > breadthFirst = ' + testCase.breadthFirst, function(assert) {
 
                 Array.from({ length: 2 }).forEach(function() {
-                    el.toFront({ deep: true, breadthFirst: testCase.breadthFirst });
+                    el.toFront({ deep: true, breadthFirst: testCase.breadthFirst, placeEmbeddedAboveParent: false });
                     assert.deepEqual(
                         cells.map(function(cell) { return cell.get('z'); }),
                         testCase.toFront,
@@ -950,7 +950,7 @@ QUnit.module('basic', function(hooks) {
                 });
 
                 Array.from({ length: 2 }).forEach(function() {
-                    el.toBack({ deep: true, breadthFirst: testCase.breadthFirst });
+                    el.toBack({ deep: true, breadthFirst: testCase.breadthFirst, placeEmbeddedAboveParent: false });
                     assert.deepEqual(
                         cells.map(function(cell) { return cell.get('z'); }),
                         testCase.toBack,
@@ -1023,6 +1023,70 @@ QUnit.module('basic', function(hooks) {
         assert.equal(r2.get('z'), 0);
         assert.equal(r3.get('z'), -1);
         assert.equal(r4.get('z'), -2);
+    });
+
+    QUnit.test('toFront() with placeEmbeddedAboveParent: false', function(assert) {
+        const Rect = joint.shapes.standard.Rectangle;
+
+        const r1 = new Rect({ z: 2 });
+        const r2 = new Rect({ z: 6 });
+        const r3 = new Rect({ z: 4 });
+        const r4 = new Rect({ z: 1 });
+
+        const r5 = new Rect({ z: 3 }); // this rectangle forces r1 to go front
+
+        r1.embed(r2);
+        r1.embed(r3);
+        r1.embed(r4);
+
+        this.graph.addCells([r1, r2, r3, r4, r5]);
+
+        r1.toFront({ deep: true, placeEmbeddedAboveParent: false });
+
+        assert.equal(r1.get('z'), 8);
+        assert.equal(r2.get('z'), 10);
+        assert.equal(r3.get('z'), 9);
+        assert.equal(r4.get('z'), 7);
+
+        r1.toFront({ deep: true, placeEmbeddedAboveParent: false });
+        r1.toFront({ deep: true, placeEmbeddedAboveParent: false }); // calling toFront again doesn't change anything
+
+        assert.equal(r1.get('z'), 8);
+        assert.equal(r2.get('z'), 10);
+        assert.equal(r3.get('z'), 9);
+        assert.equal(r4.get('z'), 7);
+    });
+
+    QUnit.test('toBack() with placeEmbeddedAboveParent: false', function(assert) {
+        const Rect = joint.shapes.standard.Rectangle;
+
+        const r1 = new Rect({ z: 3 });
+        const r2 = new Rect({ z: 7 });
+        const r3 = new Rect({ z: 5 });
+        const r4 = new Rect({ z: 2 });
+
+        const r5 = new Rect({ z: 1 }); // this rectangle forces r1 to go back
+
+        r1.embed(r2);
+        r1.embed(r3);
+        r1.embed(r4);
+
+        this.graph.addCells([r1, r2, r3, r4, r5]);
+
+        r1.toBack({ deep: true, placeEmbeddedAboveParent: false });
+
+        assert.equal(r1.get('z'), -2);
+        assert.equal(r2.get('z'), 0);
+        assert.equal(r3.get('z'), -1);
+        assert.equal(r4.get('z'), -3);
+
+        r1.toBack({ deep: true, placeEmbeddedAboveParent: false });
+        r1.toBack({ deep: true, placeEmbeddedAboveParent: false }); // calling toBack again doesn't change anything
+
+        assert.equal(r1.get('z'), -2);
+        assert.equal(r2.get('z'), 0);
+        assert.equal(r3.get('z'), -1);
+        assert.equal(r4.get('z'), -3);
     });
 
     // tests for `dia.Element.fitToChildren()` can be found in `/test/jointjs/elements.js`

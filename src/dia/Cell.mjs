@@ -25,7 +25,8 @@ import {
     cancelFrame,
     defaultsDeep,
     has,
-    sortBy
+    sortBy,
+    defaults
 } from '../util/util.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes/index.mjs';
@@ -227,24 +228,26 @@ export const Cell = Backbone.Model.extend({
     toFront: function(opt) {
         var graph = this.graph;
         if (graph) {
-            opt = opt || {};
+            opt = defaults(opt || {}, { placeEmbeddedAboveParent: true });
+
+            console.log(opt);
 
             let cells;
             if (opt.deep) {
-                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false, sortSiblings: opt.placeEmbeddedAboveParent });
                 cells.unshift(this);
             } else {
                 cells = [this];
             }
 
-            const sortedCells = sortBy(cells, cell => cell.z());
+            const sortedCells = opt.placeEmbeddedAboveParent ? cells : sortBy(cells, cell => cell.z());
 
             const maxZ = graph.maxZIndex();
             let z = maxZ - cells.length + 1;
 
             const collection = graph.get('cells');
 
-            let shouldUpdate = (collection.indexOf(this) !== (collection.length - cells.length));
+            let shouldUpdate = (collection.indexOf(sortedCells[0]) !== (collection.length - cells.length));
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;
@@ -270,23 +273,23 @@ export const Cell = Backbone.Model.extend({
     toBack: function(opt) {
         var graph = this.graph;
         if (graph) {
-            opt = opt || {};
+            opt = defaults(opt || {}, { placeEmbeddedAboveParent: true });
 
             let cells;
             if (opt.deep) {
-                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false, sortSiblings: opt.placeEmbeddedAboveParent });
                 cells.unshift(this);
             } else {
                 cells = [this];
             }
 
-            const sortedCells = sortBy(cells, cell => cell.z());
+            const sortedCells = opt.placeEmbeddedAboveParent ? cells : sortBy(cells, cell => cell.z());
 
             let z = graph.minZIndex();
 
             var collection = graph.get('cells');
 
-            let shouldUpdate = (collection.indexOf(this) !== 0);
+            let shouldUpdate = (collection.indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;
