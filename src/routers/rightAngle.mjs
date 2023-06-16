@@ -11,6 +11,19 @@ const Directions = {
 };
 
 const DEFINED_DIRECTIONS = [Directions.LEFT, Directions.RIGHT, Directions.TOP, Directions.BOTTOM];
+const ANGLE_DIRECTIONS = {
+    0: Directions.LEFT,
+    90: Directions.TOP,
+    180: Directions.RIGHT,
+    270: Directions.BOTTOM,
+    360: Directions.LEFT
+}
+const OPPOSITE_DIRECTIONS = {
+    [Directions.LEFT]: Directions.RIGHT,
+    [Directions.RIGHT]: Directions.LEFT,
+    [Directions.TOP]: Directions.BOTTOM,
+    [Directions.BOTTOM]: Directions.TOP
+};
 
 function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     const tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
@@ -29,41 +42,50 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     }
 }
 
-function rightAngleRouter(_vertices, opt, linkView) {
-    const margin = opt.margin || 20;
-    let { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
-
-    const sourceView = linkView.sourceView;
-    const targetView = linkView.targetView;
-
-    const isSourcePort = !!linkView.model.source().port;
-    const isTargetPort = !!linkView.model.target().port;
-
-    if (sourceDirection === Directions.AUTO) {
-        sourceDirection = isSourcePort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
+function pointDataFromAnchor(view, point, bbox, direction, isPort) {
+    if (direction === Directions.AUTO) {
+        direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
 
-    if (targetDirection === Directions.AUTO) {
-        targetDirection = isTargetPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
+    let {
+        x: x0,
+        y: y0,
+        width = 0,
+        height = 0
+    } = view && view.model.isElement() ? g.Rect.fromRectUnion(bbox, view.model.getBBox()) : linkView.sourceAnchor;
+
+    return {
+        point,
+        x0,
+        y0,
+        view,
+        bbox,
+        width,
+        height,
+        direction,
+        isVertex: false
     }
+}
 
-    const sourceBBox = linkView.sourceBBox;
-    const targetBBox = linkView.targetBBox;
-    const sourcePoint = linkView.sourceAnchor;
-    const targetPoint = linkView.targetAnchor;
-    let {
-        x: sx0,
-        y: sy0,
-        width: sourceWidth = 0,
-        height: sourceHeight = 0
-    } = sourceView && sourceView.model.isElement() ? g.Rect.fromRectUnion(sourceBBox, sourceView.model.getBBox()) : linkView.sourceAnchor;
+function pointDataFromVertex({ x, y }, direction) {
+    const point = new g.Point(x, y);
 
-    let {
-        x: tx0,
-        y: ty0,
-        width: targetWidth = 0,
-        height: targetHeight = 0
-    } = targetView && targetView.model.isElement() ? g.Rect.fromRectUnion(targetBBox, targetView.model.getBBox()) : linkView.targetAnchor;
+    return {
+        point,
+        x0: point.x,
+        y0: point.y,
+        view: null,
+        bbox: null,
+        width: 0,
+        height: 0,
+        direction,
+        isVertex: true
+    }
+}
+
+function routeBetweenPoints(source, target, margin) {
+    const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, bbox: sourceBBox, width: sourceWidth, height: sourceHeight, direction: sourceDirection, isVertex: isSourceVertex } = source;
+    const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, bbox: targetBBox, width: targetWidth, height: targetHeight, direction: targetDirection, isVertex: isTargetVertex } = target;
 
     const tx1 = tx0 + targetWidth;
     const ty1 = ty0 + targetHeight;
@@ -71,14 +93,17 @@ function rightAngleRouter(_vertices, opt, linkView) {
     const sy1 = sy0 + sourceHeight;
 
     // Key coordinates including the margin
-    const smx0 = sx0 - margin;
-    const smx1 = sx1 + margin;
-    const smy0 = sy0 - margin;
-    const smy1 = sy1 + margin;
-    const tmx0 = tx0 - margin;
-    const tmx1 = tx1 + margin;
-    const tmy0 = ty0 - margin;
-    const tmy1 = ty1 + margin;
+    const isSourceEl = sourceView && sourceView.model.isElement();
+    const smx0 = sx0 - (isSourceEl ? margin : 0);
+    const smx1 = sx1 + (isSourceEl ? margin : 0);
+    const smy0 = sy0 - (isSourceEl ? margin : 0);
+    const smy1 = sy1 + (isSourceEl ? margin : 0);
+
+    const isTargetEl = targetView && targetView.model.isElement();
+    const tmx0 = tx0 - (isTargetEl ? margin : 0);
+    const tmx1 = tx1 + (isTargetEl ? margin : 0);
+    const tmy0 = ty0 - (isTargetEl ? margin : 0);
+    const tmy1 = ty1 + (isTargetEl ? margin : 0);
 
     const sourceOutsidePoint = sourcePoint.clone();
 
@@ -111,11 +136,10 @@ function rightAngleRouter(_vertices, opt, linkView) {
             sourceOutsidePoint.y = smy1;
             break;
     }
+
     const targetOutsidePoint = targetPoint.clone();
 
-
     let targetSide;
-
 
     if (!targetView) {
         const targetLinkAnchorBBox = new g.Rect(tx0, ty0, 0, 0);
@@ -143,6 +167,20 @@ function rightAngleRouter(_vertices, opt, linkView) {
         case 'bottom':
             targetOutsidePoint.y = tmy1;
             break;
+    }
+
+    const line = new g.Line(sourceOutsidePoint, targetOutsidePoint);
+
+    const roundedAngle = Math.round(line.angle() / 90) * 90;
+
+    const sourceToTargetDirection = ANGLE_DIRECTIONS[roundedAngle] === sourceSide;
+    console.log(ANGLE_DIRECTIONS[roundedAngle], targetSide)
+
+
+    // const valid = OPPOSITE_DIRECTIONS[targetDirection] !== sourceSide;
+
+    if (line.angle() % 90 === 0 && !sourceToTargetDirection) {
+        return [{ x: sourceOutsidePoint.x, y: sourceOutsidePoint.y }, { x: targetOutsidePoint.x, y: targetOutsidePoint.y }];
     }
 
     const { x: sox, y: soy } = sourceOutsidePoint;
@@ -649,6 +687,40 @@ function rightAngleRouter(_vertices, opt, linkView) {
             { x: tox, y }
         ];
     }
+}
+
+function rightAngleRouter(_vertices, opt, linkView) {
+    const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
+    const margin = opt.margin || 20;
+
+    const isSourcePort = !!linkView.model.source().port;
+    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort);
+
+    const isTargetPort = !!linkView.model.target().port;
+    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort);
+    // // First point is always the source anchor point
+    let finalVertices = [];
+    let source = sourcePoint
+
+    for (let i = 0; i < _vertices.length; i++) {
+        const current = _vertices[i];
+
+        const line = new g.Line(source.point, current);
+        const roundedAngle = Math.round(line.angle() / 90) * 90;
+        const target = pointDataFromVertex(current, ANGLE_DIRECTIONS[roundedAngle]);
+
+        // 0, 360: from left, 90: from top, 180: from right, 270: from bottom
+
+        const vertices = routeBetweenPoints(source, target, margin);
+        finalVertices.push(...vertices);
+
+        target.direction = OPPOSITE_DIRECTIONS[target.direction];
+        source = target;
+    }
+
+    finalVertices.push(...routeBetweenPoints(source, targetPoint, margin));
+
+    return finalVertices;
 }
 
 rightAngleRouter.Directions = Directions;
