@@ -9,8 +9,4 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // typings: https://github.com/CaselIT/typings-jointjs
 
-/// <reference types="backbone" />
-
-import * as Backbone from 'backbone';
-
 export as namespace joint;
