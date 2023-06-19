@@ -17,13 +17,16 @@ const ANGLE_DIRECTIONS = {
     180: Directions.RIGHT,
     270: Directions.BOTTOM,
     360: Directions.LEFT
-}
+};
+
 const OPPOSITE_DIRECTIONS = {
     [Directions.LEFT]: Directions.RIGHT,
     [Directions.RIGHT]: Directions.LEFT,
     [Directions.TOP]: Directions.BOTTOM,
     [Directions.BOTTOM]: Directions.TOP
 };
+
+const HORIZONTAL_DIRECTIONS = [Directions.LEFT, Directions.RIGHT];
 
 function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     const tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
@@ -42,7 +45,7 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     }
 }
 
-function pointDataFromAnchor(view, point, bbox, direction, isPort) {
+function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAnchor) {
     if (direction === Directions.AUTO) {
         direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
@@ -52,7 +55,7 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort) {
         y: y0,
         width = 0,
         height = 0
-    } = view && view.model.isElement() ? g.Rect.fromRectUnion(bbox, view.model.getBBox()) : linkView.sourceAnchor;
+    } = view && view.model.isElement() ? g.Rect.fromRectUnion(bbox, view.model.getBBox()) : fallBackAnchor;
 
     return {
         point,
@@ -67,7 +70,7 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort) {
     }
 }
 
-function pointDataFromVertex({ x, y }, direction) {
+function pointDataFromVertex({ x, y }, nextBbox) {
     const point = new g.Point(x, y);
 
     return {
@@ -78,14 +81,13 @@ function pointDataFromVertex({ x, y }, direction) {
         bbox: null,
         width: 0,
         height: 0,
-        direction,
-        isVertex: true
+        direction: nextBbox.sideNearestToPoint(point)
     }
 }
 
 function routeBetweenPoints(source, target, margin) {
-    const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, bbox: sourceBBox, width: sourceWidth, height: sourceHeight, direction: sourceDirection, isVertex: isSourceVertex } = source;
-    const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, bbox: targetBBox, width: targetWidth, height: targetHeight, direction: targetDirection, isVertex: isTargetVertex } = target;
+    const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, bbox: sourceBBox, width: sourceWidth, height: sourceHeight, direction: sourceDirection } = source;
+    const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, bbox: targetBBox, width: targetWidth, height: targetHeight, direction: targetDirection } = target;
 
     const tx1 = tx0 + targetWidth;
     const ty1 = ty0 + targetHeight;
@@ -94,16 +96,18 @@ function routeBetweenPoints(source, target, margin) {
 
     // Key coordinates including the margin
     const isSourceEl = sourceView && sourceView.model.isElement();
-    const smx0 = sx0 - (isSourceEl ? margin : 0);
-    const smx1 = sx1 + (isSourceEl ? margin : 0);
-    const smy0 = sy0 - (isSourceEl ? margin : 0);
-    const smy1 = sy1 + (isSourceEl ? margin : 0);
+    const sourceMargin = (isSourceEl ? margin : 0)
+    const smx0 = sx0 - sourceMargin;
+    const smx1 = sx1 + sourceMargin;
+    const smy0 = sy0 - sourceMargin;
+    const smy1 = sy1 + sourceMargin;
 
     const isTargetEl = targetView && targetView.model.isElement();
-    const tmx0 = tx0 - (isTargetEl ? margin : 0);
-    const tmx1 = tx1 + (isTargetEl ? margin : 0);
-    const tmy0 = ty0 - (isTargetEl ? margin : 0);
-    const tmy1 = ty1 + (isTargetEl ? margin : 0);
+    const targetMargin = (isTargetEl ? margin : 0)
+    const tmx0 = tx0 - targetMargin;
+    const tmx1 = tx1 + targetMargin;
+    const tmy0 = ty0 - targetMargin;
+    const tmy1 = ty1 + targetMargin;
 
     const sourceOutsidePoint = sourcePoint.clone();
 
@@ -169,20 +173,6 @@ function routeBetweenPoints(source, target, margin) {
             break;
     }
 
-    const line = new g.Line(sourceOutsidePoint, targetOutsidePoint);
-
-    const roundedAngle = Math.round(line.angle() / 90) * 90;
-
-    const sourceToTargetDirection = ANGLE_DIRECTIONS[roundedAngle] === sourceSide;
-    console.log(ANGLE_DIRECTIONS[roundedAngle], targetSide)
-
-
-    // const valid = OPPOSITE_DIRECTIONS[targetDirection] !== sourceSide;
-
-    if (line.angle() % 90 === 0 && !sourceToTargetDirection) {
-        return [{ x: sourceOutsidePoint.x, y: sourceOutsidePoint.y }, { x: targetOutsidePoint.x, y: targetOutsidePoint.y }];
-    }
-
     const { x: sox, y: soy } = sourceOutsidePoint;
     const { x: tox, y: toy } = targetOutsidePoint;
     const tcx = (tx0 + tx1) / 2;
@@ -193,7 +183,7 @@ function routeBetweenPoints(source, target, margin) {
     const middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
 
     if (sourceSide === 'left' && targetSide === 'right') {
-        if (smx0 <= tx1) {
+        if (smx0 <= tmx1) {
             let y = middleOfHorizontalSides;
             if (sx1 <= tx0) {
                 if (ty1 >= smy0 && toy < soy) {
@@ -216,7 +206,7 @@ function routeBetweenPoints(source, target, margin) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'right' && targetSide === 'left') {
-        if (smx1 >= tx0) {
+        if (smx1 >= tmx0) {
             let y = middleOfHorizontalSides;
             if (sox > tx1) {
                 if (ty1 >= smy0 && toy < soy) {
@@ -265,7 +255,7 @@ function routeBetweenPoints(source, target, margin) {
             { x: tox, y }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'top') {
-        if (soy - margin > toy) {
+        if (soy - sourceMargin > toy) {
             let x = middleOfVerticalSides;
             let y = soy;
 
@@ -297,8 +287,8 @@ function routeBetweenPoints(source, target, margin) {
         if (toy < soy) {
             if (sox >= tmx1 || sox <= tmx0) {
                 return [
-                    { x: sox, y: Math.min(soy,toy) },
-                    { x: tox, y: Math.min(soy,toy) }
+                    { x: sox, y: Math.min(soy, toy) },
+                    { x: tox, y: Math.min(soy, toy) }
                 ];
             } else if (tox > sox) {
                 x = Math.min(sox, tmx0);
@@ -308,8 +298,8 @@ function routeBetweenPoints(source, target, margin) {
         } else {
             if (tox >= smx1 || tox <= smx0) {
                 return [
-                    { x: sox, y: Math.min(soy,toy) },
-                    { x: tox, y: Math.min(soy,toy) }
+                    { x: sox, y: Math.min(soy, toy) },
+                    { x: tox, y: Math.min(soy, toy) }
                 ];
             } else if (tox >= sox) {
                 x = Math.max(tox, smx1);
@@ -325,7 +315,7 @@ function routeBetweenPoints(source, target, margin) {
             { x: tox, y: y1 }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
-        if (tx0 >= sox + margin || tx1 <= sox - margin) {
+        if (tx0 >= sox + sourceMargin || tx1 <= sox - sourceMargin) {
             return [
                 { x: sox, y: Math.max(soy, toy) },
                 { x: tox, y: Math.max(soy, toy) }
@@ -425,31 +415,34 @@ function routeBetweenPoints(source, target, margin) {
                     { x: tox, y: toy }
                 ];
             }
+
             return [{ x: sox, y: toy }];
         }
 
         const x = (sx0 + tx1) / 2;
 
-        if (sox > tox && sy1 >= toy) {
+        if (tox < sox && toy > sy0 && toy < sy1) {
             return [
                 { x: sox, y: soy },
-                { x, y: soy },
-                { x, y: toy }];
+                { x: x, y: soy },
+                { x: x, y: toy }
+            ]
         }
 
-        if (x > smx0 && soy < ty1) {
-            const y = Math.min(sy0, ty0) - margin;
-            const x = Math.max(sx1, tx1) + margin;
+        if ((x > smx0 && toy > sy0) || tx0 > sx1) {
+            const y = Math.min(sy0 - sourceMargin, ty0 - targetMargin);
+            const x = Math.max(sx1 + sourceMargin, tx1 + targetMargin);
             return [
                 { x: sox, y },
                 { x, y },
                 { x, y: toy }
             ];
         }
+
         return [
             { x: sox, y: soy },
-            { x, y: soy },
-            { x, y: toy }
+            { x: Math.max(x, tox), y: soy },
+            { x: Math.max(x, tox), y: toy }
         ];
     } else if (sourceSide === 'top' && targetSide === 'left') {
         if (soy > toy) {
@@ -477,8 +470,8 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         if (x < smx1 && soy < ty1) {
-            const y = Math.min(sy0, ty0) - margin;
-            const x = Math.min(sx0, tx0) - margin;
+            const y = Math.min(smy0, tmy0);
+            const x = Math.min(smx0, tmx0);
             return [
                 { x: sox, y },
                 { x, y },
@@ -506,8 +499,8 @@ function routeBetweenPoints(source, target, margin) {
             return [{ x: sox, y: toy }];
         } else {
             if (sx0 < tox) {
-                const y = Math.max(sy1, ty1) + margin;
-                const x = Math.max(sx1, tx1) + margin;
+                const y = Math.max(smy1, tmy1);
+                const x = Math.max(smx1, tmx1);
                 return [
                     { x: sox, y },
                     { x, y },
@@ -539,8 +532,8 @@ function routeBetweenPoints(source, target, margin) {
             return [{ x: sox, y: toy }];
         } else {
             if (sx1 > tox) {
-                const y = Math.max(sy1, ty1) + margin;
-                const x = Math.min(sx0, tx0) - margin;
+                const y = Math.max(smy1, tmy1);
+                const x = Math.min(smx0, tmx0);
                 return [
                     { x: sox, y },
                     { x, y },
@@ -581,7 +574,7 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         const x = Math.min(tmx0, sox);
-        const y = Math.max(sy1, ty1) + margin;
+        const y = Math.max(smy1, tmy1);
 
         return [
             { x, y: soy },
@@ -614,8 +607,8 @@ function routeBetweenPoints(source, target, margin) {
             ];
         }
 
-        const x = toy < soy ? Math.min(sx0, tx0) - margin : smx0;
-        const y = Math.min(sy0, ty0) - margin;
+        const x = toy < soy ? Math.min(smx0, tmx0) : smx0;
+        const y = Math.min(smy0, tmy0);
 
         return [
             { x, y: soy },
@@ -624,7 +617,7 @@ function routeBetweenPoints(source, target, margin) {
         ];
 
     } else if (sourceSide === 'right' && targetSide === 'top') {
-        if (sox < tox && soy < tmy0) {
+        if (sox <= tox && soy < tmy0) {
             return [{ x: tox, y: soy }];
         }
 
@@ -647,8 +640,8 @@ function routeBetweenPoints(source, target, margin) {
             ];
         }
 
-        const x = Math.max(sx1, tx1) + margin;
-        const y = Math.min(sy0, ty0) - margin;
+        const x = Math.max(smx1, tmx1);
+        const y = Math.min(smy0, tmy0);
         return [
             { x, y: soy },
             { x, y },
@@ -659,7 +652,7 @@ function routeBetweenPoints(source, target, margin) {
             return [{ x: tox, y: soy }];
         }
 
-        if (sox <= tx0 && soy < toy) {
+        if (sox <= tmx0 && soy < toy) {
             const x = (sx1 + tx0) / 2;
             return [
                 { x, y: soy },
@@ -679,7 +672,7 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         const x = Math.max(tmx1, sox);
-        const y = Math.max(sy1, ty1) + margin;
+        const y = Math.max(smy1, tmy1);
 
         return [
             { x, y: soy },
@@ -689,38 +682,35 @@ function routeBetweenPoints(source, target, margin) {
     }
 }
 
-function rightAngleRouter(_vertices, opt, linkView) {
+function rightAngleRouter(vertices, opt, linkView) {
     const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
     const margin = opt.margin || 20;
 
     const isSourcePort = !!linkView.model.source().port;
-    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort);
+    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor);
 
     const isTargetPort = !!linkView.model.target().port;
-    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort);
+    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor);
     // // First point is always the source anchor point
-    let finalVertices = [];
+    let resultVertices = [];
     let source = sourcePoint
 
-    for (let i = 0; i < _vertices.length; i++) {
-        const current = _vertices[i];
+    for (let i = 0; i < vertices.length; i++) {
+        const current = vertices[i];
 
-        const line = new g.Line(source.point, current);
-        const roundedAngle = Math.round(line.angle() / 90) * 90;
-        const target = pointDataFromVertex(current, ANGLE_DIRECTIONS[roundedAngle]);
+        const next = vertices[i + 1] || targetPoint.point;
+        const nextBbox = new g.Rect(next.x, next.y, 0, 0);
+        const target = pointDataFromVertex(current, nextBbox);
 
-        // 0, 360: from left, 90: from top, 180: from right, 270: from bottom
-
-        const vertices = routeBetweenPoints(source, target, margin);
-        finalVertices.push(...vertices);
+        resultVertices.push(...routeBetweenPoints(source, target, margin));
 
         target.direction = OPPOSITE_DIRECTIONS[target.direction];
         source = target;
     }
 
-    finalVertices.push(...routeBetweenPoints(source, targetPoint, margin));
+    resultVertices.push(...routeBetweenPoints(source, targetPoint, margin));
 
-    return finalVertices;
+    return resultVertices;
 }
 
 rightAngleRouter.Directions = Directions;
