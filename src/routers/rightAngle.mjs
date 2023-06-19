@@ -11,13 +11,6 @@ const Directions = {
 };
 
 const DEFINED_DIRECTIONS = [Directions.LEFT, Directions.RIGHT, Directions.TOP, Directions.BOTTOM];
-const ANGLE_DIRECTIONS = {
-    0: Directions.LEFT,
-    90: Directions.TOP,
-    180: Directions.RIGHT,
-    270: Directions.BOTTOM,
-    360: Directions.LEFT
-};
 
 const OPPOSITE_DIRECTIONS = {
     [Directions.LEFT]: Directions.RIGHT,
@@ -25,8 +18,6 @@ const OPPOSITE_DIRECTIONS = {
     [Directions.TOP]: Directions.BOTTOM,
     [Directions.BOTTOM]: Directions.TOP
 };
-
-const HORIZONTAL_DIRECTIONS = [Directions.LEFT, Directions.RIGHT];
 
 function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     const tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
@@ -67,7 +58,7 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAncho
         height,
         direction,
         isVertex: false
-    }
+    };
 }
 
 function pointDataFromVertex({ x, y }, nextBbox) {
@@ -82,7 +73,7 @@ function pointDataFromVertex({ x, y }, nextBbox) {
         width: 0,
         height: 0,
         direction: nextBbox.sideNearestToPoint(point)
-    }
+    };
 }
 
 function routeBetweenPoints(source, target, margin) {
@@ -96,14 +87,14 @@ function routeBetweenPoints(source, target, margin) {
 
     // Key coordinates including the margin
     const isSourceEl = sourceView && sourceView.model.isElement();
-    const sourceMargin = (isSourceEl ? margin : 0)
+    const sourceMargin = (isSourceEl ? margin : 0);
     const smx0 = sx0 - sourceMargin;
     const smx1 = sx1 + sourceMargin;
     const smy0 = sy0 - sourceMargin;
     const smy1 = sy1 + sourceMargin;
 
     const isTargetEl = targetView && targetView.model.isElement();
-    const targetMargin = (isTargetEl ? margin : 0)
+    const targetMargin = (isTargetEl ? margin : 0);
     const tmx0 = tx0 - targetMargin;
     const tmx1 = tx1 + targetMargin;
     const tmy0 = ty0 - targetMargin;
@@ -426,7 +417,7 @@ function routeBetweenPoints(source, target, margin) {
                 { x: sox, y: soy },
                 { x: x, y: soy },
                 { x: x, y: toy }
-            ]
+            ];
         }
 
         if ((x > smx0 && toy > sy0) || tx0 > sx1) {
@@ -693,7 +684,7 @@ function rightAngleRouter(vertices, opt, linkView) {
     const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor);
     // // First point is always the source anchor point
     let resultVertices = [];
-    let source = sourcePoint
+    let source = sourcePoint;
 
     for (let i = 0; i < vertices.length; i++) {
         const current = vertices[i];
