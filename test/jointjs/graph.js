@@ -418,7 +418,7 @@ QUnit.module('graph', function(hooks) {
         assert.notOk(graph3.getCell(d.id));
 
         var e = new joint.shapes.standard.Rectangle();
-        var someCollection = new Backbone.Collection();
+        var someCollection = new joint.mvc.Backbone.Collection();
         someCollection.add(e);
         assert.ok(e.collection === someCollection);
         e.remove();
