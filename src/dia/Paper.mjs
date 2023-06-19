@@ -31,6 +31,7 @@ import {
     toArray,
     has
 } from '../util/index.mjs';
+import { Backbone } from '../mvc/Backbone.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views } from '../mvc/index.mjs';
 import { CellView } from './CellView.mjs';
@@ -46,7 +47,6 @@ import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
 import $ from 'jquery';
-import Backbone from 'backbone';
 
 const sortingTypes = {
     NONE: 'sorting-none',

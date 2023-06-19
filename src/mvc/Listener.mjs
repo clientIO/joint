@@ -1,5 +1,5 @@
-import Backbone from 'backbone';
 import V from '../V/index.mjs';
+import { Backbone } from './Backbone.mjs';
 
 export class Listener {
     constructor(...callbackArguments) {

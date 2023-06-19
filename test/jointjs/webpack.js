@@ -7,7 +7,7 @@ QUnit.module('Webpack', function() {
 
         var paper = new joint.dia.Paper();
 
-        assert.ok(paper instanceof Backbone.View, 'A new dia.Paper object can be initialized');
+        assert.ok(paper instanceof joint.mvc.Backbone.View, 'A new dia.Paper object can be initialized');
 
         paper.remove();
     });

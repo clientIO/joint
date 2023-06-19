@@ -1,7 +1,7 @@
-import Backbone from 'backbone';
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
+import { Backbone } from '../mvc/Backbone.mjs';
 import { Link } from './Link.mjs';
 import { Element } from './Element.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';

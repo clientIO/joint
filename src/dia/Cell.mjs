@@ -1,4 +1,3 @@
-import Backbone from 'backbone';
 import {
     uniqueId,
     union,
@@ -27,6 +26,7 @@ import {
     has,
     sortBy
 } from '../util/util.mjs';
+import { Backbone } from '../mvc/Backbone.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';
