@@ -1,0 +1,21 @@
+<p>The <code>'oneSide'</code> router is a restricted version of the <code>'orthogonal'</code> router. Exactly three route segments are generated. The route leaves the start element in a specified direction (the <code>args.side</code> property), transitions with a single segment towards the end element, and then enters the end element from the specified direction again. Note that this router does not support link <code>vertices</code>. The router does not avoid obstacles. Two arguments are accepted, which can be passed within the <code>router.args</code> property.</p>
+
+<table>
+    <tr>
+        <th>side</th>
+        <td><i>string</i></td>
+        <td>The direction of the route. Either <code>'left'</code>, <code>'right'</code>, <code>'top'</code> or <code>'bottom'</code>. Default is <code>'bottom'.</td>
+    </tr>
+    <tr>
+        <th>padding</th>
+        <td><i>number&nbsp;|&nbsp;object</i></td>
+        <td>The minimum distance from element at which the first/last route angle may be placed. Default is <code>40</code>. The <code>util.normalizeSides</code> <a href="#util.normalizeSides">function</a> is used to understand the provided value. A single number is applied as padding to all sides of the elements. An object may be provided to specify values for <code>left</code>, <code>top</code>, <code>right</code>, <code>bottom</code>, <code>horizontal</code> and/or <code>vertical</code> sides. Only the side specified in the <code>side</code> argument is considered by the router (see above).</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.router('oneSide', {
+    side: 'top',
+    padding: 30
+});</code></pre>

@@ -1,0 +1,9 @@
+package-lock.json
+build/
+node_modules/
+coverage/
+*.log
+demo/**/dist/**
+test/ts/*.js*
+.tscache/
+.DS_Store

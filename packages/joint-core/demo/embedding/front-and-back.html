@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JointJS</title>
+
+    <link rel="stylesheet" type="text/css" href="../../build/joint.css"/>
+    <style>
+		body {
+			background: #f7f7f7;
+		}
+		#demo {
+			width: 400px;
+			margin: 40px auto;
+			text-align: center;
+		}
+		#paper {
+			-webkit-box-shadow: 0 0 14px 0 rgba(0, 0, 0, 0.25);
+			-moz-box-shadow: 0 0 14px 0 rgba(0, 0, 0, 0.25);
+			box-shadow: 0 0 14px 0 rgba(0, 0, 0, 0.25);
+			border-radius: 10px;
+			margin-bottom: 30px;
+			background: white;
+		}
+		button {
+			padding: 10px 15px;
+			margin: 0 8px 8px 0;
+			font-family: monospace;
+		}
+    </style>
+</head>
+<body>
+    <div id="demo">
+        <div id="paper"></div>
+
+        <p>
+            <button id="toFrontButton">red.toFront()</button>
+            <button id="toBackButton">red.toBack()</button>
+        </p>
+    </div>
+
+    <!-- Dependencies: -->
+    <script src="../../../../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../../../../node_modules/lodash/lodash.js"></script>
+    <script src="../../../../node_modules/backbone/backbone.js"></script>
+
+    <script src="../../build/joint.js"></script>
+    <script src="./front-and-back.js"></script>
+</body>
+</html>
