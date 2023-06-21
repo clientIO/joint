@@ -757,7 +757,7 @@ QUnit.module('graph', function(hooks) {
             assert.deepEqual(_.map(subgraph, 'id'), ['a'], 'getSubgraph() returns only the one element if deep is false');
 
             subgraph = graph.getSubgraph([graph.getCell('a')], { deep: true });
-            assert.deepEqual(_.map(subgraph, 'id'), ['a', 'aa', 'c', 'l2', 'aaa', 'l1'], 'getSubgraph() returns all the embedded elements and all the links that connect these elements');
+            assert.deepEqual(_.map(subgraph, 'id'), ['a', 'aa', 'l2', 'aaa', 'c', 'l1'], 'getSubgraph() returns all the embedded elements and all the links that connect these elements');
         });
 
         /* TODO: implement getSubgraph() for link to link connections

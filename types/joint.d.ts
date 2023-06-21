@@ -306,6 +306,7 @@ export namespace dia {
 
         interface GetEmbeddedCellsOptions extends EmbeddableOptions {
             breadthFirst?: boolean;
+            sortSiblings?: boolean;
         }
 
         interface TransitionOptions extends Options {

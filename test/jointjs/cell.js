@@ -682,5 +682,85 @@ QUnit.module('cell', function(hooks) {
         });
     });
 
+    QUnit.module('getEmbeddedCells()', function(hooks) {
+        let topParent;
+
+        hooks.beforeEach(function() {
+            const Circle = joint.shapes.standard.Circle;
+
+            //             a(1)
+            //          /   |   \
+            //       b(3)  c(2)  d(4)
+            //      /   \        /  \
+            //    e(6)  f(5)   g(7)  h(8)
+            //    /   \        /   \
+            //  i(11)  j(9)  k(10)  l(12)
+
+            const a = new Circle({ id: 'a', z: 1 });
+
+            const b = new Circle({ id: 'b', z: 3 });
+            const c = new Circle({ id: 'c', z: 2 });
+            const d = new Circle({ id: 'd', z: 4 });
+
+            const e = new Circle({ id: 'e', z: 6 });
+            const f = new Circle({ id: 'f', z: 5 });
+
+            const g = new Circle({ id: 'g', z: 7 });
+            const h = new Circle({ id: 'h', z: 8 });
+
+            const i = new Circle({ id: 'i', z: 11 });
+            const j = new Circle({ id: 'j', z: 9 });
+
+            const k = new Circle({ id: 'k', z: 10 });
+            const l = new Circle({ id: 'l', z: 12 });
+
+            a.embed([b, c, d]);
+            b.embed([e, f]);
+            d.embed([g, h]);
+            e.embed([i, j]);
+            g.embed([k, l]);
+
+            this.graph.addCells([a, b, c, d, e, f, g, h, i, j, k, l]);
+
+            topParent = a;
+        });
+
+        [
+            {
+                breadthFirst: false,
+                sortSiblings: false,
+                expectedResult: ['b', 'e', 'i', 'j', 'f', 'c', 'd', 'g', 'k', 'l', 'h'],
+            },
+            {
+                breadthFirst: true,
+                sortSiblings: false,
+                expectedResult: ['b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'],
+            },
+            {
+                breadthFirst: false,
+                sortSiblings: true,
+                expectedResult: ['c', 'b', 'f', 'e', 'j', 'i', 'd', 'g', 'k', 'l', 'h'],
+            },
+            {
+                breadthFirst: true,
+                sortSiblings: true,
+                expectedResult: ['c', 'b', 'd', 'f', 'e', 'g', 'h', 'j', 'i', 'k', 'l'],
+            }
+        ].forEach(testCase => {
+            QUnit.test(`{deep: true, breadthFirst: ${testCase.breadthFirst}, sortSiblings: ${testCase.sortSiblings}}`, function(assert) {
+                const embeddedCells = topParent.getEmbeddedCells({
+                    deep: true,
+                    breadthFirst: testCase.breadthFirst,
+                    sortSiblings: testCase.sortSiblings,
+                });
+
+                assert.deepEqual(
+                    embeddedCells.map(cell => cell.id),
+                    testCase.expectedResult,
+                );
+            });
+        });
+    });
+
 });
 

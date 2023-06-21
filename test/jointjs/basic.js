@@ -927,8 +927,8 @@ QUnit.module('basic', function(hooks) {
         [{
             // Test Case { deep: true, breadthFirst: false }
             breadthFirst: false,
-            toFront: [0,0,1,2,4,5,3,6,7],
-            toBack: [0,0,-7,-6,-4,-3,-5,-2,-1]
+            toFront: [0,0,1,2,3,4,5,6,7],
+            toBack: [0,0,-7,-6,-5,-4,-3,-2,-1]
 
         }, {
             // Test Case { deep: true, breadthFirst: true }
@@ -1152,7 +1152,7 @@ QUnit.module('basic', function(hooks) {
         clones = this.graph.getCell('a').clone({ deep: true });
         assert.deepEqual(_.map(clones, function(c) {
             return c.get('name');
-        }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
+        }), ['a', 'aa', 'l2', 'aaa', 'c'], 'clone({ deep: true }) returns clones including all embedded cells');
     });
 
     QUnit.module('embed(), unembed()', function() {
