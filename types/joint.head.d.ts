@@ -9,4 +9,8 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // typings: https://github.com/CaselIT/typings-jointjs
 
+/// <reference types="jquery" />
+
+import * as _ from 'underscore';
+
 export as namespace joint;
