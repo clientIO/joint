@@ -231,16 +231,3 @@ export const lodash = {
         resolve()
     ]
 };
-
-export const backbone = {
-    input: 'node_modules/backbone/backbone.js',
-    external: ['underscore', 'jquery'],
-    output: [{
-        file: 'build/esm/backbone.mjs',
-        format: 'esm'
-    }],
-    plugins: [
-        commonjs()
-    ]
-};
-

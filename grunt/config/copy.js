@@ -40,11 +40,6 @@ module.exports = function(grunt) {
                 },
                 {
                     nonull: true,
-                    src: 'node_modules/backbone/backbone-min.js',
-                    dest: 'build/docs/js/lib/backbone.min.js'
-                },
-                {
-                    nonull: true,
                     src: 'node_modules/dagre/dist/dagre.min.js',
                     dest: 'build/docs/js/lib/dagre.min.js'
                 },
