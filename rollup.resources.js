@@ -73,7 +73,6 @@ export const joint = {
     input: modules.joint.src,
     external: [
         'jquery',
-        'backbone',
         'lodash'
     ],
     output: [{
@@ -84,7 +83,6 @@ export const joint = {
         footer: JOINT_FOOTER,
         globals: {
             'jquery': '$',
-            'backbone': 'Backbone',
             'lodash': '_'
         }
     }, {
@@ -95,7 +93,6 @@ export const joint = {
         footer: JOINT_FOOTER,
         globals: {
             'jquery': '$',
-            'backbone': 'Backbone',
             'lodash': '_'
         }
     }],
@@ -107,7 +104,6 @@ export const jointNoDependencies = {
     input: modules.joint.src,
     external: [
         'jquery',
-        'backbone',
         'lodash'
     ].concat(Object.keys(G_REF)).concat(Object.keys(V_REF)),
     output: [{
@@ -118,7 +114,6 @@ export const jointNoDependencies = {
         freeze: false,
         globals: Object.assign({
             'jquery': '$',
-            'backbone': 'Backbone',
             'lodash': '_'
         }, G_REF, V_REF)
     }],
@@ -129,7 +124,6 @@ export const jointCore = {
     input: modules.jointCore.src,
     external: [
         'jquery',
-        'backbone',
         'lodash'
     ],
     output: [{
@@ -140,7 +134,6 @@ export const jointCore = {
         footer: JOINT_FOOTER,
         globals: {
             'jquery': '$',
-            'backbone': 'Backbone',
             'lodash': '_'
         }
     }],
@@ -167,7 +160,6 @@ export const jointPlugins = Object.keys(modules.plugins).reduce((res, namespace)
             input: item.src,
             external: [
                 'jquery',
-                'backbone',
                 'lodash',
             ].concat(Object.keys(LOCAL_EXTERNALS)),
             output: [{
@@ -177,7 +169,6 @@ export const jointPlugins = Object.keys(modules.plugins).reduce((res, namespace)
                 name: namespace,
                 globals: Object.assign({
                     'jquery': '$',
-                    'backbone': 'Backbone',
                     'lodash': '_',
                 }, LOCAL_EXTERNALS)
             }],
