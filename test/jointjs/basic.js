@@ -1025,6 +1025,70 @@ QUnit.module('basic', function(hooks) {
         assert.equal(r4.get('z'), -2);
     });
 
+    QUnit.test('toFront() with foregroundEmbeds: false', function(assert) {
+        const Rect = joint.shapes.standard.Rectangle;
+
+        const r1 = new Rect({ z: 2 });
+        const r2 = new Rect({ z: 6 });
+        const r3 = new Rect({ z: 4 });
+        const r4 = new Rect({ z: 1 });
+
+        const r5 = new Rect({ z: 3 }); // this rectangle forces r1 to go front
+
+        r1.embed(r2);
+        r1.embed(r3);
+        r1.embed(r4);
+
+        this.graph.addCells([r1, r2, r3, r4, r5]);
+
+        r1.toFront({ deep: true, foregroundEmbeds: false });
+
+        assert.equal(r1.get('z'), 8);
+        assert.equal(r2.get('z'), 10);
+        assert.equal(r3.get('z'), 9);
+        assert.equal(r4.get('z'), 7);
+
+        r1.toFront({ deep: true, foregroundEmbeds: false });
+        r1.toFront({ deep: true, foregroundEmbeds: false }); // calling toFront again doesn't change anything
+
+        assert.equal(r1.get('z'), 8);
+        assert.equal(r2.get('z'), 10);
+        assert.equal(r3.get('z'), 9);
+        assert.equal(r4.get('z'), 7);
+    });
+
+    QUnit.test('toBack() with foregroundEmbeds: false', function(assert) {
+        const Rect = joint.shapes.standard.Rectangle;
+
+        const r1 = new Rect({ z: 3 });
+        const r2 = new Rect({ z: 7 });
+        const r3 = new Rect({ z: 5 });
+        const r4 = new Rect({ z: 2 });
+
+        const r5 = new Rect({ z: 1 }); // this rectangle forces r1 to go back
+
+        r1.embed(r2);
+        r1.embed(r3);
+        r1.embed(r4);
+
+        this.graph.addCells([r1, r2, r3, r4, r5]);
+
+        r1.toBack({ deep: true, foregroundEmbeds: false });
+
+        assert.equal(r1.get('z'), -2);
+        assert.equal(r2.get('z'), 0);
+        assert.equal(r3.get('z'), -1);
+        assert.equal(r4.get('z'), -3);
+
+        r1.toBack({ deep: true, foregroundEmbeds: false });
+        r1.toBack({ deep: true, foregroundEmbeds: false }); // calling toBack again doesn't change anything
+
+        assert.equal(r1.get('z'), -2);
+        assert.equal(r2.get('z'), 0);
+        assert.equal(r3.get('z'), -1);
+        assert.equal(r4.get('z'), -3);
+    });
+
     // tests for `dia.Element.fitToChildren()` can be found in `/test/jointjs/elements.js`
     QUnit.test('fitEmbeds()', function(assert) {
         // structure of objects:

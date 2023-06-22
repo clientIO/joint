@@ -309,6 +309,10 @@ export namespace dia {
             sortSiblings?: boolean;
         }
 
+        interface ToFrontAndBackOptions extends GetEmbeddedCellsOptions {
+            foregroundEmbeds?: boolean;
+        }
+
         interface TransitionOptions extends Options {
             delay?: number;
             duration?: number;
@@ -335,9 +339,9 @@ export namespace dia {
 
         remove(opt?: Cell.DisconnectableOptions): this;
 
-        toFront(opt?: Cell.GetEmbeddedCellsOptions): this;
+        toFront(opt?: Cell.ToFrontAndBackOptions): this;
 
-        toBack(opt?: Cell.GetEmbeddedCellsOptions): this;
+        toBack(opt?: Cell.ToFrontAndBackOptions): this;
 
         parent(): string;
         parent(parentId: Cell.ID): this;
