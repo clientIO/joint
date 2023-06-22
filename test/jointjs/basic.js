@@ -888,7 +888,7 @@ QUnit.module('basic', function(hooks) {
 
         assert.ok(b1Z < a1Z, 'b root z is lower than a root z');
 
-        a1.toFront({ deep: true, foregroundEmbeds: false });
+        a1.toFront({ deep: true });
 
         assert.equal(a1.get('z'), a1Z, 'a1 doesn\'t change z during a toFront() if it is already in place');
 
@@ -941,7 +941,7 @@ QUnit.module('basic', function(hooks) {
             QUnit.test('toBack(), toFront() > breadthFirst = ' + testCase.breadthFirst, function(assert) {
 
                 Array.from({ length: 2 }).forEach(function() {
-                    el.toFront({ deep: true, breadthFirst: testCase.breadthFirst, foregroundEmbeds: false });
+                    el.toFront({ deep: true, breadthFirst: testCase.breadthFirst });
                     assert.deepEqual(
                         cells.map(function(cell) { return cell.get('z'); }),
                         testCase.toFront,
@@ -950,7 +950,7 @@ QUnit.module('basic', function(hooks) {
                 });
 
                 Array.from({ length: 2 }).forEach(function() {
-                    el.toBack({ deep: true, breadthFirst: testCase.breadthFirst, foregroundEmbeds: false });
+                    el.toBack({ deep: true, breadthFirst: testCase.breadthFirst });
                     assert.deepEqual(
                         cells.map(function(cell) { return cell.get('z'); }),
                         testCase.toBack,
