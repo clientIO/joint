@@ -1,4 +1,4 @@
-/*! JointJS v3.7.2 (2023-05-16) - JavaScript diagramming library
+/*! JointJS v3.7.3 (2023-06-22) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -16015,24 +16015,24 @@ var joint = (function (exports, Backbone, $) {
 	    toFront: function(opt) {
 	        var graph = this.graph;
 	        if (graph) {
-	            opt = opt || {};
+	            opt = defaults(opt || {}, { foregroundEmbeds: true });
 
 	            var cells;
 	            if (opt.deep) {
-	                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
+	                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false, sortSiblings: opt.foregroundEmbeds });
 	                cells.unshift(this);
 	            } else {
 	                cells = [this];
 	            }
 
-	            var sortedCells = sortBy(cells, function (cell) { return cell.z(); });
+	            var sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, function (cell) { return cell.z(); });
 
 	            var maxZ = graph.maxZIndex();
 	            var z = maxZ - cells.length + 1;
 
 	            var collection = graph.get('cells');
 
-	            var shouldUpdate = (collection.indexOf(this) !== (collection.length - cells.length));
+	            var shouldUpdate = (collection.indexOf(sortedCells[0]) !== (collection.length - cells.length));
 	            if (!shouldUpdate) {
 	                shouldUpdate = sortedCells.some(function(cell, index) {
 	                    return cell.z() !== z + index;
@@ -16058,23 +16058,23 @@ var joint = (function (exports, Backbone, $) {
 	    toBack: function(opt) {
 	        var graph = this.graph;
 	        if (graph) {
-	            opt = opt || {};
+	            opt = defaults(opt || {}, { foregroundEmbeds: true });
 
 	            var cells;
 	            if (opt.deep) {
-	                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
+	                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false, sortSiblings: opt.foregroundEmbeds });
 	                cells.unshift(this);
 	            } else {
 	                cells = [this];
 	            }
 
-	            var sortedCells = sortBy(cells, function (cell) { return cell.z(); });
+	            var sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, function (cell) { return cell.z(); });
 
 	            var z = graph.minZIndex();
 
 	            var collection = graph.get('cells');
 
-	            var shouldUpdate = (collection.indexOf(this) !== 0);
+	            var shouldUpdate = (collection.indexOf(sortedCells[0]) !== 0);
 	            if (!shouldUpdate) {
 	                shouldUpdate = sortedCells.some(function(cell, index) {
 	                    return cell.z() !== z + index;
@@ -16192,42 +16192,71 @@ var joint = (function (exports, Backbone, $) {
 	        // There is no way this element knows about other cells otherwise.
 	        // This also means that calling e.g. `translate()` on an element with embeds before
 	        // adding it to a graph does not translate its embeds.
-	        if (this.graph) {
-
-	            var cells;
-
-	            if (opt.deep) {
-
-	                if (opt.breadthFirst) {
-
-	                    // breadthFirst algorithm
-	                    cells = [];
-	                    var queue = this.getEmbeddedCells();
-
-	                    while (queue.length > 0) {
-
-	                        var parent = queue.shift();
-	                        cells.push(parent);
-	                        queue.push.apply(queue, parent.getEmbeddedCells());
-	                    }
-
-	                } else {
-
-	                    // depthFirst algorithm
-	                    cells = this.getEmbeddedCells();
-	                    cells.forEach(function(cell) {
-	                        cells.push.apply(cells, cell.getEmbeddedCells(opt));
-	                    });
-	                }
-
-	            } else {
-
-	                cells = toArray(this.get('embeds')).map(this.graph.getCell, this.graph);
-	            }
-
-	            return cells;
+	        if (!this.graph) {
+	            return [];
 	        }
-	        return [];
+
+	        if (opt.deep) {
+	            if (opt.breadthFirst) {
+	                return this._getEmbeddedCellsBfs(opt.sortSiblings);
+	            } else {
+	                return this._getEmbeddedCellsDfs(opt.sortSiblings);
+	            }
+	        }
+
+	        var embeddedIds = this.get('embeds');
+	        if (isEmpty(embeddedIds)) {
+	            return [];
+	        }
+
+	        var cells = embeddedIds.map(this.graph.getCell, this.graph);
+	        if (opt.sortSiblings) {
+	            cells = sortBy(cells, function (cell) { return cell.z(); });
+	        }
+
+	        return cells;
+	    },
+
+	    _getEmbeddedCellsBfs: function(sortSiblings) {
+	        var cells = [];
+
+	        var queue = [];
+	        queue.push(this);
+
+	        while (queue.length > 0) {
+	            var current = queue.shift();
+	            cells.push(current);
+
+	            var embeddedCells = current.getEmbeddedCells({ sortSiblings: sortSiblings });
+
+	            queue.push.apply(queue, embeddedCells);
+	        }
+	        cells.shift();
+
+	        return cells;
+	    },
+
+	    _getEmbeddedCellsDfs: function(sortSiblings) {
+	        var cells = [];
+
+	        var stack = [];
+	        stack.push(this);
+
+	        while (stack.length > 0) {
+	            var current = stack.pop();
+	            cells.push(current);
+
+	            var embeddedCells = current.getEmbeddedCells({ sortSiblings: sortSiblings });
+
+	            // When using the stack, cells that are embedded last are processed first.
+	            // To maintain the original order, we need to push the cells in reverse order
+	            for (var i = embeddedCells.length - 1; i >= 0; --i) {
+	                stack.push(embeddedCells[i]);
+	            }
+	        }
+	        cells.shift();
+
+	        return cells;
 	    },
 
 	    isEmbeddedIn: function(cell, opt) {
@@ -38251,7 +38280,7 @@ var joint = (function (exports, Backbone, $) {
 		Control: Control
 	});
 
-	var version = "3.7.2";
+	var version = "3.7.3";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
