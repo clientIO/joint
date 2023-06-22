@@ -228,19 +228,17 @@ export const Cell = Backbone.Model.extend({
     toFront: function(opt) {
         var graph = this.graph;
         if (graph) {
-            opt = defaults(opt || {}, { placeEmbeddedAboveParent: true });
-
-            console.log(opt);
+            opt = defaults(opt || {}, { foregroundEmbeds: true });
 
             let cells;
             if (opt.deep) {
-                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false, sortSiblings: opt.placeEmbeddedAboveParent });
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false, sortSiblings: opt.foregroundEmbeds });
                 cells.unshift(this);
             } else {
                 cells = [this];
             }
 
-            const sortedCells = opt.placeEmbeddedAboveParent ? cells : sortBy(cells, cell => cell.z());
+            const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
             const maxZ = graph.maxZIndex();
             let z = maxZ - cells.length + 1;
@@ -273,17 +271,17 @@ export const Cell = Backbone.Model.extend({
     toBack: function(opt) {
         var graph = this.graph;
         if (graph) {
-            opt = defaults(opt || {}, { placeEmbeddedAboveParent: true });
+            opt = defaults(opt || {}, { foregroundEmbeds: true });
 
             let cells;
             if (opt.deep) {
-                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false, sortSiblings: opt.placeEmbeddedAboveParent });
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false, sortSiblings: opt.foregroundEmbeds });
                 cells.unshift(this);
             } else {
                 cells = [this];
             }
 
-            const sortedCells = opt.placeEmbeddedAboveParent ? cells : sortBy(cells, cell => cell.z());
+            const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
             let z = graph.minZIndex();
 

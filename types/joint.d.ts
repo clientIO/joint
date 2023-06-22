@@ -310,7 +310,7 @@ export namespace dia {
         }
 
         interface ToFrontAndBackOptions extends GetEmbeddedCellsOptions {
-            placeEmbeddedAboveParent?: boolean;
+            foregroundEmbeds?: boolean;
         }
 
         interface TransitionOptions extends Options {

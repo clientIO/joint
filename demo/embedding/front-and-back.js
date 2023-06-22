@@ -66,15 +66,15 @@ graph.addCells([r1, r2, r3, r4, r5]);
 
 updateLabels();
 
-const placeEmbeddedAboveParent = document.getElementById('placeEmbeddedAboveParent');
+const foregroundEmbeds = document.getElementById('foregroundEmbeds');
 
 document.getElementById('toFrontButton').addEventListener('click', () => {
-    r1.toFront({ deep: true, placeEmbeddedAboveParent: placeEmbeddedAboveParent.checked });
+    r1.toFront({ deep: true, foregroundEmbeds: foregroundEmbeds.checked });
     updateLabels();
 });
 
 
 document.getElementById('toBackButton').addEventListener('click', () => {
-    r1.toBack({ deep: true, placeEmbeddedAboveParent: placeEmbeddedAboveParent.checked });
+    r1.toBack({ deep: true, foregroundEmbeds: foregroundEmbeds.checked });
     updateLabels();
 });
