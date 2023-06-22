@@ -1,3 +1,9 @@
+22-06-2023 (v3.7.3)
+
+  * demo.Isometric - add new demo as example of isometric projection
+  * dia.Cell - add `foregroundEmbeds` option to `toFront()` and `toBack()` methods
+  * dia.Cell - fix the depth-first algorithm in `getEmbeddedCells()` method
+
 16-05-2023 (v3.7.2)
 
   * demo - add DWDM (Dense wavelength-division multiplexing) example

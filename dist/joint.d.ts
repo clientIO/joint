@@ -1,4 +1,4 @@
-/*! JointJS v3.7.2 (2023-05-16) - JavaScript diagramming library
+/*! JointJS v3.7.3 (2023-06-22) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1468,6 +1468,11 @@ export namespace dia {
 
         interface GetEmbeddedCellsOptions extends EmbeddableOptions {
             breadthFirst?: boolean;
+            sortSiblings?: boolean;
+        }
+
+        interface ToFrontAndBackOptions extends GetEmbeddedCellsOptions {
+            foregroundEmbeds?: boolean;
         }
 
         interface TransitionOptions extends Options {
@@ -1496,9 +1501,9 @@ export namespace dia {
 
         remove(opt?: Cell.DisconnectableOptions): this;
 
-        toFront(opt?: Cell.GetEmbeddedCellsOptions): this;
+        toFront(opt?: Cell.ToFrontAndBackOptions): this;
 
-        toBack(opt?: Cell.GetEmbeddedCellsOptions): this;
+        toBack(opt?: Cell.ToFrontAndBackOptions): this;
 
         parent(): string;
         parent(parentId: Cell.ID): this;
