@@ -1,4 +1,4 @@
-/*! JointJS v3.7.3 (2023-06-22) - JavaScript diagramming library
+/*! JointJS v3.7.4 (2023-06-23) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -31059,7 +31059,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var snapPoint = this._snapToPoints({ x: x, y: y }, points, radius);
 
-	        this._connectArrowhead(document.elementFromPoint(snapPoint.x, snapPoint.y), snapPoint.x, snapPoint.y, this.eventData(evt));
+	        var point = paper.localToClientPoint(snapPoint);
+	        this._connectArrowhead(document.elementFromPoint(point.x, point.y), snapPoint.x, snapPoint.y, this.eventData(evt));
 	    },
 
 	    _snapArrowhead: function(evt, x, y) {
@@ -36699,7 +36700,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.7.3";
+	var version = "3.7.4";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
