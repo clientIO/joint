@@ -1,3 +1,7 @@
+23-06-2023 (v3.7.4)
+
+  * dia.LinkView - fix element detection when using `snapLinkSelf: true`
+
 22-06-2023 (v3.7.3)
 
   * demo.Isometric - add new demo as example of isometric projection
