@@ -684,6 +684,7 @@ function routeBetweenPoints(source, target, margin) {
 function rightAngleRouter(vertices, opt, linkView) {
     const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
     const margin = opt.margin || 20;
+    const useVertices = opt.useVertices || false;
 
     const isSourcePort = !!linkView.model.source().port;
     const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor);
@@ -693,6 +694,10 @@ function rightAngleRouter(vertices, opt, linkView) {
     // // First point is always the source anchor point
     let resultVertices = [];
     let source = sourcePoint;
+
+    if (!useVertices) {
+        return routeBetweenPoints(sourcePoint, targetPoint, margin);
+    }
 
     for (let i = 0; i < vertices.length; i++) {
         const current = vertices[i];

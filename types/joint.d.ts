@@ -3535,6 +3535,7 @@ export namespace routers {
 
     interface RightAngleRouterArguments {
         margin?: number;
+        useVertices?: boolean;
         sourceDirection?: RightAngleDirections;
         targetDirection?: RightAngleDirections;
     }
