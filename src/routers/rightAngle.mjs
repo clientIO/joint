@@ -396,7 +396,8 @@ function routeBetweenPoints(source, target, margin) {
     } else if (sourceSide === 'top' && targetSide === 'right') {
         if (soy > toy) {
             if (sox < tox) {
-                let y = (sy0 + ty1) / 2;
+                let y = middleOfHorizontalSides;
+
                 if (y > tcy && y < tmy1 && sox < tmx0) {
                     y = tmy0;
                 }
@@ -410,7 +411,7 @@ function routeBetweenPoints(source, target, margin) {
             return [{ x: sox, y: toy }];
         }
 
-        const x = (sx0 + tx1) / 2;
+        const x = middleOfVerticalSides;
 
         if (tox < sox && toy > sy0 && toy < sy1) {
             return [
@@ -438,7 +439,8 @@ function routeBetweenPoints(source, target, margin) {
     } else if (sourceSide === 'top' && targetSide === 'left') {
         if (soy > toy) {
             if (sox > tox) {
-                let y = (sy0 + ty1) / 2;
+                let y = middleOfHorizontalSides;
+
                 if (y > tcy && y < tmy1 && sox > tmx1) {
                     y = tmy0;
                 }
@@ -451,7 +453,7 @@ function routeBetweenPoints(source, target, margin) {
             return [{ x: sox, y: toy }];
         }
 
-        const x = (sx1 + tx0) / 2;
+        const x = middleOfVerticalSides;
 
         if (sox < tox && sy1 >= toy) {
             return [
@@ -477,7 +479,8 @@ function routeBetweenPoints(source, target, margin) {
     } else if (sourceSide === 'bottom' && targetSide === 'right') {
         if (soy < toy) {
             if (sox < tox) {
-                let y = (sy1 + ty0) / 2;
+                let y = middleOfHorizontalSides;
+
                 if (y < tcy && y > tmy0 && sox < tmx0) {
                     y = tmy1;
                 }
@@ -510,7 +513,8 @@ function routeBetweenPoints(source, target, margin) {
     } else if (sourceSide === 'bottom' && targetSide === 'left') {
         if (soy < toy) {
             if (sox > tox) {
-                let y = (sy1 + ty0) / 2;
+                let y = middleOfHorizontalSides;
+
                 if (y < tcy && y > tmy0 && sox > tmx1) {
                     y = tmy1;
                 }
@@ -546,7 +550,8 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         if (sox >= tx1 && soy < toy) {
-            const x = (sx1 + tx0) / 2;
+            const x = middleOfVerticalSides;
+
             return [
                 { x, y: soy },
                 { x, y: toy },
@@ -555,7 +560,7 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         if (tox < sx1 && ty1 <= sy0) {
-            const y = (sy0 + ty1) / 2;
+            const y = middleOfHorizontalSides;
 
             return [
                 { x: sox, y: soy },
@@ -579,7 +584,8 @@ function routeBetweenPoints(source, target, margin) {
 
         if (sox >= tx1) {
             if (soy > toy) {
-                const x = (sx0 + tx1) / 2;
+                const x = middleOfVerticalSides;
+
                 return [
                     { x, y: soy },
                     { x, y: toy },
@@ -589,7 +595,7 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         if (tox <= sx1 && toy > soy) {
-            const y = (ty0 + sy1) / 2;
+            const y = middleOfHorizontalSides;
 
             return [
                 { x: sox, y: soy },
@@ -613,7 +619,8 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         if (sx1 < tx0 && soy > toy) {
-            let x = (sx1 + tx0) / 2;
+            let x = middleOfVerticalSides;
+
             return [
                 { x, y: soy },
                 { x, y: toy },
@@ -622,7 +629,7 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         if (tox < sox && ty0 > sy1) {
-            const y = (sy1 + ty0) / 2;
+            const y = middleOfHorizontalSides;
 
             return [
                 { x: sox, y: soy },
@@ -644,7 +651,8 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         if (sox <= tmx0 && soy < toy) {
-            const x = (sx1 + tx0) / 2;
+            const x = middleOfVerticalSides;
+
             return [
                 { x, y: soy },
                 { x, y: toy },
@@ -653,7 +661,7 @@ function routeBetweenPoints(source, target, margin) {
         }
 
         if (tox > sx0 && ty1 < sy0) {
-            const y = (sy0 + ty1) / 2;
+            const y = middleOfHorizontalSides;
 
             return [
                 { x: sox, y: soy },
