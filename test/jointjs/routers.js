@@ -22,7 +22,7 @@ QUnit.module('routers', function(hooks) {
 
     QUnit.test('construction', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300);
 
         this.graph.addCell([r1, r2]);
@@ -59,8 +59,8 @@ QUnit.module('routers', function(hooks) {
 
     QUnit.test('normal routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 }});
+        var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 }});
 
         var link = new joint.dia.Link({
             source: { id: r1.id },
@@ -81,8 +81,8 @@ QUnit.module('routers', function(hooks) {
 
         // One vertex.
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 }});
+        var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 }});
 
         var l1 = new joint.dia.Link({
             source: { id: r1.id },
@@ -100,8 +100,8 @@ QUnit.module('routers', function(hooks) {
 
         // No vertex.
 
-        var r3 = new joint.shapes.basic.Rect({ position: { x: 40, y: 40 }, size: { width: 50, height: 30 } });
-        var r4 = new joint.shapes.basic.Rect({ position: { x: 220, y: 120 }, size: { width: 50, height: 30 } });
+        var r3 = new joint.shapes.basic.Rect({ position: { x: 40, y: 40 }, size: { width: 50, height: 30 }});
+        var r4 = new joint.shapes.basic.Rect({ position: { x: 220, y: 120 }, size: { width: 50, height: 30 }});
 
         var l2 = new joint.dia.Link({
             source: { id: r3.id },
@@ -118,8 +118,8 @@ QUnit.module('routers', function(hooks) {
 
         // Check for spikes.
 
-        var r5 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
-        var r6 = new joint.shapes.basic.Rect({ position: { x: 350, y: 40 }, size: { width: 50, height: 30 } });
+        var r5 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 }});
+        var r6 = new joint.shapes.basic.Rect({ position: { x: 350, y: 40 }, size: { width: 50, height: 30 }});
 
         var l3 = new joint.dia.Link({
             source: { id: r5.id },
@@ -138,7 +138,7 @@ QUnit.module('routers', function(hooks) {
 
     QUnit.test('manhattan routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300);
 
         var r3 = r2.clone().translate(300);
@@ -339,7 +339,7 @@ QUnit.module('routers', function(hooks) {
 
     QUnit.test('metro routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300, 300);
 
         var r3 = r2.clone().translate(300, 300);
@@ -381,50 +381,50 @@ QUnit.module('routers', function(hooks) {
 
     QUnit.test('oneSide routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300, 300);
-        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id } });
+        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
 
         this.graph.addCell([r1, r2, l]);
 
         var v = this.paper.findViewByModel(l);
 
         // Left side
-        l.set('router', { name: 'oneSide', args: { padding: 20, side: 'left' } });
+        l.set('router', { name: 'oneSide', args: { padding: 20, side: 'left' }});
         var d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 20 70 L 0 70 L 0 370 L 320 370', 'Route goes only on the left side.');
 
         // Padding option
-        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'left' } });
+        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'left' }});
         d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 20 70 L -20 70 L -20 370 L 320 370', 'Route respects the padding.');
 
         // Right side
-        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'right' } });
+        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'right' }});
         d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 140 70 L 480 70 L 480 370 L 440 370', 'Route goes only on the right side.');
 
         // Top side
-        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'top' } });
+        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'top' }});
         d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 80 30 L 80 -10 L 380 -10 L 380 330', 'Route goes only on the top.');
 
         // Bottom side
-        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'bottom' } });
+        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'bottom' }});
         d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 80 110 L 80 450 L 380 450 L 380 410', 'Route goes only on the bottom');
 
         // Wrong side specified
         assert.throws(function() {
-            l.set('router', { name: 'oneSide', args: { padding: 40, side: 'non-existing' } });
+            l.set('router', { name: 'oneSide', args: { padding: 40, side: 'non-existing' }});
         }, 'An error is thrown when a non-existing side is provided.');
     });
 
     QUnit.test('custom routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300, 300);
-        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id } });
+        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
 
         this.graph.addCell([r1, r2, l]);
 
@@ -443,13 +443,13 @@ QUnit.module('routers', function(hooks) {
     const height = 50;
     const size = { width, height };
     const margin = 28;
-    const router = { name: 'rightAngle', args: { margin } };
+    const router = { name: 'rightAngle', args: { margin }};
     const position = { x: 0, y: 150 };
 
     this.addTestSubjects = function(sourceSide, targetSide) {
         const r1 = new joint.shapes.standard.Rectangle({ size });
         const r2 = r1.clone().position(position.x, position.y);
-        const l = new joint.shapes.standard.Link({ source: { id: r1.id, anchor: { name: sourceSide } }, target: { id: r2.id, anchor: { name: targetSide } }, router });
+        const l = new joint.shapes.standard.Link({ source: { id: r1.id, anchor: { name: sourceSide }}, target: { id: r2.id, anchor: { name: targetSide }}, router });
 
         this.graph.addCells([r1, r2, l]);
         return [r1, r2, l];
@@ -459,7 +459,7 @@ QUnit.module('routers', function(hooks) {
         const [r1, r2, l] = this.addTestSubjects(sourceSide, targetSide);
         l.vertices([vertex]);
         return [r1, r2, l];
-    }
+    };
 
     const topVerticalPathSegments = [
         `${width / 2} 0`,
