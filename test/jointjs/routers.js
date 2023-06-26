@@ -22,7 +22,7 @@ QUnit.module('routers', function(hooks) {
 
     QUnit.test('construction', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
         var r2 = r1.clone().translate(300);
 
         this.graph.addCell([r1, r2]);
@@ -59,8 +59,8 @@ QUnit.module('routers', function(hooks) {
 
     QUnit.test('normal routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 }});
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
+        var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 } });
 
         var link = new joint.dia.Link({
             source: { id: r1.id },
@@ -81,8 +81,8 @@ QUnit.module('routers', function(hooks) {
 
         // One vertex.
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 }});
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
+        var r2 = new joint.shapes.basic.Rect({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 } });
 
         var l1 = new joint.dia.Link({
             source: { id: r1.id },
@@ -100,8 +100,8 @@ QUnit.module('routers', function(hooks) {
 
         // No vertex.
 
-        var r3 = new joint.shapes.basic.Rect({ position: { x: 40, y: 40 }, size: { width: 50, height: 30 }});
-        var r4 = new joint.shapes.basic.Rect({ position: { x: 220, y: 120 }, size: { width: 50, height: 30 }});
+        var r3 = new joint.shapes.basic.Rect({ position: { x: 40, y: 40 }, size: { width: 50, height: 30 } });
+        var r4 = new joint.shapes.basic.Rect({ position: { x: 220, y: 120 }, size: { width: 50, height: 30 } });
 
         var l2 = new joint.dia.Link({
             source: { id: r3.id },
@@ -118,8 +118,8 @@ QUnit.module('routers', function(hooks) {
 
         // Check for spikes.
 
-        var r5 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 }});
-        var r6 = new joint.shapes.basic.Rect({ position: { x: 350, y: 40 }, size: { width: 50, height: 30 }});
+        var r5 = new joint.shapes.basic.Rect({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 } });
+        var r6 = new joint.shapes.basic.Rect({ position: { x: 350, y: 40 }, size: { width: 50, height: 30 } });
 
         var l3 = new joint.dia.Link({
             source: { id: r5.id },
@@ -138,7 +138,7 @@ QUnit.module('routers', function(hooks) {
 
     QUnit.test('manhattan routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
         var r2 = r1.clone().translate(300);
 
         var r3 = r2.clone().translate(300);
@@ -333,13 +333,13 @@ QUnit.module('routers', function(hooks) {
 
         assert.ok(spyIsPointObstacle.called);
         assert.ok(spyIsPointObstacle.alwaysCalledWithExactly(sinon.match.instanceOf(g.Point)));
-        assert.checkDataPath(d, 'M 140 70 L 620 70','isPointObstacle option is taken into account');
+        assert.checkDataPath(d, 'M 140 70 L 620 70', 'isPointObstacle option is taken into account');
 
     });
 
     QUnit.test('metro routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
         var r2 = r1.clone().translate(300, 300);
 
         var r3 = r2.clone().translate(300, 300);
@@ -381,50 +381,50 @@ QUnit.module('routers', function(hooks) {
 
     QUnit.test('oneSide routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
         var r2 = r1.clone().translate(300, 300);
-        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
+        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id } });
 
         this.graph.addCell([r1, r2, l]);
 
         var v = this.paper.findViewByModel(l);
 
         // Left side
-        l.set('router', { name: 'oneSide', args: { padding: 20, side: 'left' }});
+        l.set('router', { name: 'oneSide', args: { padding: 20, side: 'left' } });
         var d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 20 70 L 0 70 L 0 370 L 320 370', 'Route goes only on the left side.');
 
         // Padding option
-        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'left' }});
+        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'left' } });
         d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 20 70 L -20 70 L -20 370 L 320 370', 'Route respects the padding.');
 
         // Right side
-        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'right' }});
+        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'right' } });
         d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 140 70 L 480 70 L 480 370 L 440 370', 'Route goes only on the right side.');
 
         // Top side
-        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'top' }});
+        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'top' } });
         d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 80 30 L 80 -10 L 380 -10 L 380 330', 'Route goes only on the top.');
 
         // Bottom side
-        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'bottom' }});
+        l.set('router', { name: 'oneSide', args: { padding: 40, side: 'bottom' } });
         d = v.$('.connection').attr('d');
         assert.checkDataPath(d, 'M 80 110 L 80 450 L 380 450 L 380 410', 'Route goes only on the bottom');
 
         // Wrong side specified
         assert.throws(function() {
-            l.set('router', { name: 'oneSide', args: { padding: 40, side: 'non-existing' }});
+            l.set('router', { name: 'oneSide', args: { padding: 40, side: 'non-existing' } });
         }, 'An error is thrown when a non-existing side is provided.');
     });
 
     QUnit.test('custom routing', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
         var r2 = r1.clone().translate(300, 300);
-        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
+        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id } });
 
         this.graph.addCell([r1, r2, l]);
 
@@ -443,17 +443,23 @@ QUnit.module('routers', function(hooks) {
     const height = 50;
     const size = { width, height };
     const margin = 28;
-    const router = { name: 'rightAngle', args: { margin }};
+    const router = { name: 'rightAngle', args: { margin } };
     const position = { x: 0, y: 150 };
 
-    this.addTestSubjects = function(sourceSide, targetSide ){
+    this.addTestSubjects = function(sourceSide, targetSide) {
         const r1 = new joint.shapes.standard.Rectangle({ size });
         const r2 = r1.clone().position(position.x, position.y);
-        const l = new joint.shapes.standard.Link({ source: { id: r1.id, anchor: { name: sourceSide }}, target: { id: r2.id, anchor: { name: targetSide }}, router });
+        const l = new joint.shapes.standard.Link({ source: { id: r1.id, anchor: { name: sourceSide } }, target: { id: r2.id, anchor: { name: targetSide } }, router });
 
         this.graph.addCells([r1, r2, l]);
         return [r1, r2, l];
     };
+
+    this.addTestSubjectsWithVertex = function(sourceSide, targetSide, vertex) {
+        const [r1, r2, l] = this.addTestSubjects(sourceSide, targetSide);
+        l.vertices([vertex]);
+        return [r1, r2, l];
+    }
 
     const topVerticalPathSegments = [
         `${width / 2} 0`,
@@ -502,7 +508,7 @@ QUnit.module('routers', function(hooks) {
         path = `M ${moveSegment} L ${segments.join(' L ')}`;
 
         assert.checkDataPath(d, path, 'Source on the left of target');
-    
+
         position1 = r1.position();
         position2 = r2.position();
 
@@ -1438,5 +1444,582 @@ QUnit.module('routers', function(hooks) {
         path = `M ${moveSegment} L ${segments.join(' L ')}`;
 
         assert.checkDataPath(d, path, 'Target on the left of source');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: top, target: top', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('top', 'top', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 100 L 25 100 L 25 150', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 150 L 25 111 L 100 111 L 100 -28 L 25 -28 L 25 0', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 75 -28 L 75 100 L 100 100 L 100 -28 L 175 -28 L 175 0', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 175 0 L 175 -28 L 125 -28 L 125 100 L 100 100 L 100 -28 L 25 -28 L 25 0', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: top, target: right', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('top', 'right', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 175 L 50 175', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 150 L 25 111 L 100 111 L 100 25 L 50 25', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L -28 -28 L -28 100 L 125 100 L 125 100 L 228 100 L 228 25 L 200 25', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 175 0 L 175 -28 L 125 -28 L 125 100 L 100 100 L 100 25 L 50 25', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: top, target: bottom', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('top', 'bottom', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 228 L 25 228 L 25 200', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 150 L 25 125 L 100 125 L 100 100 L 25 100 L 25 50', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L -28 -28 L -28 100 L 175 100 L 175 50', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 175 0 L 175 -28 L 228 -28 L 228 100 L 25 100 L 25 50', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: top, target: left', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('top', 'left', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 100 L 75 100 L 75 100 L -28 100 L -28 175 L 0 175', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 150 L 25 125 L 100 125 L 100 100 L 75 100 L 75 100 L -28 100 L -28 25 L 0 25', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 75 -28 L 75 100 L 100 100 L 100 25 L 150 25', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 175 0 L 175 -28 L 228 -28 L 228 100 L 75 100 L 75 100 L -28 100 L -28 25 L 0 25', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: right, target: top', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('right', 'top', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 25 L 100 25 L 100 100 L 25 100 L 25 150', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 175 L 100 175 L 100 -28 L 25 -28 L 25 0', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 25 L 75 25 L 75 100 L 100 100 L 100 -28 L 175 -28 L 175 0', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 200 25 L 228 25 L 228 100 L 100 100 L 100 -28 L 25 -28 L 25 0', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: right, target: right', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('right', 'right', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 25 L 100 25 L 100 175 L 50 175', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 175 L 100 175 L 100 25 L 50 25', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 25 L 89 25 L 89 100 L 125 100 L 125 100 L 228 100 L 228 25 L 200 25', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 200 25 L 228 25 L 228 100 L 100 100 L 100 25 L 50 25', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: right, target: bottom', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('right', 'bottom', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 25 L 100 25 L 100 228 L 25 228 L 25 200', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 175 L 78 175 L 78 175 L 100 175 L 100 100 L 25 100 L 25 50', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 25 L 89 25 L 89 100 L 175 100 L 175 50', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 200 25 L 228 25 L 228 100 L 125 100 L 125 100 L 25 100 L 25 50', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: right, target: left', function(assert) {
+        const vertex = { x: 100, y: 100 };
+
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('right', 'left', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 25 L 100 25 L 100 100 L 75 100 L 75 100 L -28 100 L -28 175 L 0 175', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 175 L 78 175 L 78 175 L 100 175 L 100 100 L 75 100 L 75 100 L -28 100 L -28 25 L 0 25', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 50 25 L 75 25 L 75 100 L 100 100 L 100 25 L 150 25', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 200 25 L 228 25 L 228 100 L 125 100 L 125 100 L 75 100 L 75 100 L -28 100 L -28 25 L 0 25', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: bottom, target: top', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('bottom', 'top', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 50 L 25 75 L 100 75 L 100 100 L 25 100 L 25 150', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 200 L 25 228 L 100 228 L 100 -28 L 25 -28 L 25 0', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 50 L 25 100 L 100 100 L 100 -28 L 175 -28 L 175 0', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 175 50 L 175 100 L 100 100 L 100 -28 L 25 -28 L 25 0', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: bottom, target: right', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('bottom', 'right', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 50 L 25 89 L 100 89 L 100 175 L 50 175', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 200 L 25 228 L 100 228 L 100 25 L 50 25', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 50 L 25 100 L 125 100 L 125 100 L 228 100 L 228 25 L 200 25', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 175 50 L 175 100 L 100 100 L 100 25 L 50 25', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: bottom, target: bottom', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('bottom', 'bottom', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 50 L 25 89 L 100 89 L 100 228 L 25 228 L 25 200', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 200 L 25 228 L 100 228 L 100 100 L 25 100 L 25 50', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 50 L 25 100 L 175 100 L 175 50', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 175 50 L 175 100 L 25 100 L 25 50', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: bottom, target: left', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('bottom', 'left', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 50 L 25 75 L 100 75 L 100 100 L 75 100 L 75 100 L -28 100 L -28 175 L 0 175', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 200 L 25 228 L 100 228 L 100 100 L 75 100 L 75 100 L -28 100 L -28 25 L 0 25', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 25 50 L 25 100 L 100 100 L 100 25 L 150 25', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 175 50 L 175 100 L 75 100 L 75 100 L -28 100 L -28 25 L 0 25', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: left, target: top', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('left', 'top', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 75 L 100 75 L 100 100 L 25 100 L 25 150', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 175 L -28 175 L -28 228 L 100 228 L 100 -28 L 25 -28 L 25 0', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 100 L 100 100 L 100 -28 L 175 -28 L 175 0', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 150 25 L 125 25 L 125 100 L 100 100 L 100 -28 L 25 -28 L 25 0', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: left, target: right', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('left', 'right', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 -28 L 100 -28 L 100 175 L 50 175', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 175 L -28 175 L -28 228 L 100 228 L 100 25 L 50 25', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 100 L 75 100 L 75 100 L 125 100 L 125 100 L 228 100 L 228 25 L 200 25', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 150 25 L 125 25 L 125 100 L 100 100 L 100 25 L 50 25', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: left, target: bottom', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('left', 'bottom', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 -28 L 100 -28 L 100 228 L 25 228 L 25 200', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 175 L -28 175 L -28 125 L 100 125 L 100 100 L 25 100 L 25 50', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 100 L 75 100 L 75 100 L 175 100 L 175 50', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 150 25 L 111 25 L 111 100 L 25 100 L 25 50', 'Target on the left of source with vertex');
+    });
+
+    QUnit.test('rightAngle routing with vertex - source: left, target: left', function(assert) {
+        const vertex = { x: 100, y: 100 };
+        const [r1, r2, l] = this.addTestSubjectsWithVertex('left', 'left', vertex);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 75 L 100 75 L 100 100 L 75 100 L 75 100 L -28 100 L -28 175 L 0 175', 'Source above target with vertex');
+
+        let position1 = r1.position();
+        let position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 175 L -28 175 L -28 125 L 100 125 L 100 100 L 75 100 L 75 100 L -28 100 L -28 25 L 0 25', 'Target above source with vertex');
+
+        r1.position(0, 0);
+        r2.position(position.y, position.x);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 100 L 100 100 L 100 25 L 150 25', 'Source on the left of target with vertex');
+
+        position1 = r1.position();
+        position2 = r2.position();
+
+        r1.position(position2.x, position2.y);
+        r2.position(position1.x, position1.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 150 25 L 111 25 L 111 100 L 75 100 L 75 100 L -28 100 L -28 25 L 0 25', 'Target on the left of source with vertex');
     });
 });
