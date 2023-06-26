@@ -41,7 +41,7 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAncho
         direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
 
-    let {
+    const {
         x: x0,
         y: y0,
         width = 0,
@@ -61,7 +61,7 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAncho
     };
 }
 
-function pointDataFromVertex({ x, y }, nextBbox) {
+function pointDataFromVertex({ x, y }, nextBBox) {
     const point = new g.Point(x, y);
 
     return {
@@ -72,7 +72,7 @@ function pointDataFromVertex({ x, y }, nextBbox) {
         bbox: null,
         width: 0,
         height: 0,
-        direction: nextBbox.sideNearestToPoint(point)
+        direction: nextBBox.sideNearestToPoint(point)
     };
 }
 
