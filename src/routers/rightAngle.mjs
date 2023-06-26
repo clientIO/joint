@@ -698,8 +698,8 @@ function rightAngleRouter(vertices, opt, linkView) {
         const current = vertices[i];
 
         const next = vertices[i + 1] || targetPoint.point;
-        const nextBbox = new g.Rect(next.x, next.y, 0, 0);
-        const target = pointDataFromVertex(current, nextBbox);
+        const nextBBox = new g.Rect(next.x, next.y, 0, 0);
+        const target = pointDataFromVertex(current, nextBBox);
 
         resultVertices.push(...routeBetweenPoints(source, target, margin));
 
