@@ -443,10 +443,10 @@ QUnit.module('routers', function(hooks) {
     const height = 50;
     const size = { width, height };
     const margin = 28;
-    const router = { name: 'rightAngle', args: { margin }};
+    const rightAngleRouter = { name: 'rightAngle', args: { margin }};
     const position = { x: 0, y: 150 };
 
-    this.addTestSubjects = function(sourceSide, targetSide) {
+    this.addTestSubjects = function(sourceSide, targetSide, router = rightAngleRouter) {
         const r1 = new joint.shapes.standard.Rectangle({ size });
         const r2 = r1.clone().position(position.x, position.y);
         const l = new joint.shapes.standard.Link({ source: { id: r1.id, anchor: { name: sourceSide }}, target: { id: r2.id, anchor: { name: targetSide }}, router });
@@ -456,7 +456,7 @@ QUnit.module('routers', function(hooks) {
     };
 
     this.addTestSubjectsWithVertex = function(sourceSide, targetSide, vertex) {
-        const [r1, r2, l] = this.addTestSubjects(sourceSide, targetSide);
+        const [r1, r2, l] = this.addTestSubjects(sourceSide, targetSide, { ...rightAngleRouter, args: { margin, useVertices: true }});
         l.vertices([vertex]);
         return [r1, r2, l];
     };
