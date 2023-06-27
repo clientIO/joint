@@ -11,6 +11,6 @@
 
 /// <reference types="jquery" />
 
-import * as _ from 'underscore';
+import * as _ from 'lodash';
 
 export as namespace joint;

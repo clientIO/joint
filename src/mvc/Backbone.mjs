@@ -7,7 +7,7 @@
 
 /*global attachEvent, detachEvent*/
 import $ from 'jquery';
-import _ from 'underscore';
+import _ from 'lodash';
 
 // Establish the root object, `window` (`self`) in the browser, or `global` on the server.
 // We use `self` instead of `window` for `WebWorker` support.
