@@ -1,5 +1,5 @@
 import V from '../V/index.mjs';
-import { Backbone } from './Backbone.mjs';
+import { Events } from './BackboneSlim.mjs';
 
 export class Listener {
     constructor(...callbackArguments) {
@@ -15,7 +15,7 @@ export class Listener {
                 if (typeof cb !== 'function') return;
                 // Invoke the callback with callbackArguments passed first
                 if (context || callbackArguments.length > 0) cb = cb.bind(context, ...callbackArguments);
-                Backbone.Events.listenTo.call(this, object, eventName, cb);
+                Events.listenTo.call(this, object, eventName, cb);
             });
         }
         // signature 2 - (object, event, callback, context)
@@ -23,11 +23,11 @@ export class Listener {
             let [cb, context = null] = args;
             // Invoke the callback with callbackArguments passed first
             if (context || callbackArguments.length > 0) cb = cb.bind(context, ...callbackArguments);
-            Backbone.Events.listenTo.call(this, object, evt, cb);
+            Events.listenTo.call(this, object, evt, cb);
         }
     }
 
     stopListening() {
-        Backbone.Events.stopListening.call(this);
+        Events.stopListening.call(this);
     }
 }

@@ -26,7 +26,7 @@ import {
     has,
     sortBy
 } from '../util/util.mjs';
-import { Backbone } from '../mvc/Backbone.mjs';
+import { Model } from '../mvc/BackboneSlim.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';
@@ -35,7 +35,7 @@ import * as g from '../g/index.mjs';
 // Cell base model.
 // --------------------------
 
-export const Cell = Backbone.Model.extend({
+export const Cell = Model.extend({
 
     // This is the same as Backbone.Model with the only difference that is uses util.merge
     // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
@@ -479,7 +479,7 @@ export const Cell = Backbone.Model.extend({
         if (!opt.deep) {
             // Shallow cloning.
 
-            var clone = Backbone.Model.prototype.clone.apply(this, arguments);
+            var clone = Model.prototype.clone.apply(this, arguments);
             // We don't want the clone to have the same ID as the original.
             clone.set(this.getIdAttribute(), this.generateId());
             // A shallow cloned element does not carry over the original embeds.
