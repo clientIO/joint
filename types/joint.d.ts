@@ -3772,7 +3772,7 @@ export namespace mvc {
         without(...values: TModel[]): TModel[];
     }
 
-    interface ViewOptionsBase<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> {
+    interface ViewBaseOptions<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> {
         model?: TModel | undefined;
         // TODO: quickfix, this can't be fixed easy. The collection does not need to have the same model as the parent view.
         collection?: Collection<any> | undefined; // was: Collection<TModel>;
@@ -3784,7 +3784,7 @@ export namespace mvc {
         events?: _Result<EventsHash> | undefined;
     }
 
-    type ViewEventListener = (event: JQuery.Event) => void;
+    type ViewBaseEventListener = (event: JQuery.Event) => void;
 
     class ViewBase<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> extends EventsMixin implements Events {
         /**
@@ -3798,10 +3798,10 @@ export namespace mvc {
          * instantiation logic is run.
          * @see https://backbonejs.org/#View-preinitialize
          */
-        preinitialize(options?: ViewOptionsBase<TModel, TElement>): void;
+        preinitialize(options?: ViewBaseOptions<TModel, TElement>): void;
 
-        constructor(options?: ViewOptionsBase<TModel, TElement>);
-        initialize(options?: ViewOptionsBase<TModel, TElement>): void;
+        constructor(options?: ViewBaseOptions<TModel, TElement>);
+        initialize(options?: ViewBaseOptions<TModel, TElement>): void;
 
         /**
          * Events hash or a method returning the events hash that maps events/selectors to methods on your View.
@@ -3826,9 +3826,9 @@ export namespace mvc {
         render(): this;
         remove(): this;
         delegateEvents(events?: _Result<EventsHash>): this;
-        delegate(eventName: string, selector: string, listener: ViewEventListener): this;
+        delegate(eventName: string, selector: string, listener: ViewBaseEventListener): this;
         undelegateEvents(): this;
-        undelegate(eventName: string, selector?: string, listener?: ViewEventListener): this;
+        undelegate(eventName: string, selector?: string, listener?: ViewBaseEventListener): this;
 
         protected _removeElement(): void;
         protected _setElement(el: TElement | JQuery): void;
@@ -3837,7 +3837,7 @@ export namespace mvc {
         protected _setAttributes(attributes: Record<string, any>): void;
     }
 
-    interface ViewOptions<T extends (mvc.Model | undefined), E extends Element = HTMLElement> extends mvc.ViewOptionsBase<T, E> {
+    interface ViewOptions<T extends (mvc.Model | undefined), E extends Element = HTMLElement> extends mvc.ViewBaseOptions<T, E> {
         theme?: string;
         [key: string]: any;
     }
