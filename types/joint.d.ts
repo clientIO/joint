@@ -3429,14 +3429,6 @@ export namespace mvc {
      * Helper shorthands for classes that implement the Events interface.
      * Define your class like this:
      *
-     * import {
-     *     Events,
-     *     Events_On,
-     *     Events_Off,
-     *     Events_Trigger,
-     *     Events_Listen,
-     *     Events_Stop,
-     * } from 'backbone';
      *
      * class YourClass implements Events {
      *     on: Events_On<YourClass>;
@@ -3479,7 +3471,7 @@ export namespace mvc {
 
     /**
      * Helper to avoid code repetition in type declarations.
-     * Backbone.Events cannot be extended, hence a separate abstract
+     * Events cannot be extended, hence a separate abstract
      * class with a different name. Both classes and interfaces can
      * extend from this helper class to reuse the signatures.
      *
@@ -3552,7 +3544,6 @@ export namespace mvc {
          * For use with models as ES classes. If you define a preinitialize
          * method, it will be invoked when the Model is first created, before
          * any instantiation logic is run for the Model.
-         * @see https://backbonejs.org/#Model-preinitialize
          */
         preinitialize(attributes?: T, options?: CombinedModelConstructorOptions<E, this>): void;
 
@@ -3636,7 +3627,6 @@ export namespace mvc {
          * For use with collections as ES classes. If you define a preinitialize
          * method, it will be invoked when the Collection is first created and
          * before any instantiation logic is run for the Collection.
-         * @see https://backbonejs.org/#Collection-preinitialize
          */
         preinitialize(models?: TModel[] | Array<Record<string, any>>, options?: any): void;
 
@@ -3796,7 +3786,6 @@ export namespace mvc {
          * For use with views as ES classes. If you define a preinitialize
          * method, it will be invoked when the view is first created, before any
          * instantiation logic is run.
-         * @see https://backbonejs.org/#View-preinitialize
          */
         preinitialize(options?: ViewBaseOptions<TModel, TElement>): void;
 
