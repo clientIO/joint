@@ -3345,6 +3345,20 @@ export namespace mvc {
     type _Result<T> = T | (() => T);
     type _StringKey<T> = keyof T & string;
 
+    interface AddOptions extends Silenceable {
+        at?: number | undefined;
+        merge?: boolean | undefined;
+        sort?: boolean | undefined;
+    }
+
+    interface CollectionSetOptions extends Parseable, Silenceable {
+        add?: boolean | undefined;
+        remove?: boolean | undefined;
+        merge?: boolean | undefined;
+        at?: number | undefined;
+        sort?: boolean | undefined;
+    }
+
     interface Silenceable {
         silent?: boolean | undefined;
     }
@@ -3377,30 +3391,16 @@ export namespace mvc {
 
     interface ModelSetOptions extends Silenceable, Validable {}
 
-    interface ModelDestroyOptions extends Waitable, PersistenceOptions {}
-
     interface ModelFetchOptions extends PersistenceOptions, ModelSetOptions, Parseable {}
-
-    interface CollectionFetchOptions extends PersistenceOptions, Parseable, CollectionSetOptions {
-        reset?: boolean | undefined;
-    }
 
     interface ModelSaveOptions extends Silenceable, Waitable, Validable, Parseable, PersistenceOptions {
         patch?: boolean | undefined;
     }
 
-    interface AddOptions extends Silenceable {
-        at?: number | undefined;
-        merge?: boolean | undefined;
-        sort?: boolean | undefined;
-    }
+    interface ModelDestroyOptions extends Waitable, PersistenceOptions {}
 
-    interface CollectionSetOptions extends Parseable, Silenceable {
-        add?: boolean | undefined;
-        remove?: boolean | undefined;
-        merge?: boolean | undefined;
-        at?: number | undefined;
-        sort?: boolean | undefined;
+    interface CollectionFetchOptions extends PersistenceOptions, Parseable, CollectionSetOptions {
+        reset?: boolean | undefined;
     }
 
     type ObjectHash = Record<string, any>;
