@@ -1,5 +1,5 @@
 import V from '../V/index.mjs';
-import { Events } from './BackboneSlim.mjs';
+import { Events } from './Events.mjs';
 
 export class Listener {
     constructor(...callbackArguments) {

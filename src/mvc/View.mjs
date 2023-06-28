@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import * as util from '../util/index.mjs';
 import V from '../V/index.mjs';
-import { ViewBase } from './BackboneSlim.mjs';
+import { ViewBase } from './ViewBase.mjs';
 import { config } from '../config/index.mjs';
 
 export const views = {};

@@ -26,7 +26,7 @@ import {
     has,
     sortBy
 } from '../util/util.mjs';
-import { Model } from '../mvc/BackboneSlim.mjs';
+import { Model } from '../mvc/Model.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';

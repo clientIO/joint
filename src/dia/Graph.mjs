@@ -1,7 +1,8 @@
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
-import { Model, Collection } from '../mvc/BackboneSlim.mjs';
+import { Model } from '../mvc/Model.mjs';
+import { Collection } from '../mvc/Collection.mjs';
 import { Link } from './Link.mjs';
 import { Element } from './Element.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';

@@ -31,7 +31,7 @@ import {
     toArray,
     has
 } from '../util/index.mjs';
-import { ViewBase } from '../mvc/BackboneSlim.mjs';
+import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views } from '../mvc/index.mjs';
 import { CellView } from './CellView.mjs';
