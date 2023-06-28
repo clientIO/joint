@@ -4,9 +4,6 @@ import _ from 'lodash';
 // Helpers
 // -------
 
-// Create a local reference to a common array method we'll want to use later.
-var slice = Array.prototype.slice;
-
 // Helper function to correctly set up the prototype chain for subclasses.
 // Similar to `goog.inherits`, but uses a hash of prototype properties and
 // class properties to be extended.
@@ -181,7 +178,7 @@ var addMethod = function(base, length, method, attribute) {
             return base[method](this[attribute], cb(iteratee, this), defaultVal, context);
         };
         default: return function() {
-            var args = slice.call(arguments);
+            var args = Array.prototype.slice.call(arguments);
             args.unshift(this[attribute]);
             return base[method].apply(base, args);
         };

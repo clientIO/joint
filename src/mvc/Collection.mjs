@@ -9,8 +9,6 @@ import {
     addUnderscoreMethods 
 } from './mvcUtils.mjs';
 
-// Create a local reference to a common array method we'll want to use later.
-var slice = Array.prototype.slice;
 
 // Collection
 // -------------------
@@ -256,7 +254,7 @@ _.extend(Collection.prototype, Events, {
 
     // Slice out a sub-array of models from the collection.
     slice: function() {
-        return slice.apply(this.models, arguments);
+        return Array.prototype.slice.apply(this.models, arguments);
     },
 
     // Get a model from the set by id, cid, model object with id or cid
