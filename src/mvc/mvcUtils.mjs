@@ -53,10 +53,10 @@ export var wrapError = function(model, options) {
 };
 
 
-// Backbone.sync
+// Sync
 // -------------
 
-// Override this function to change the manner in which Backbone persists
+// Override this function to change the manner in which JointJS persists
 // models to the server. You will be passed the type of request, and the
 // model in question. By default, makes a RESTful Ajax request
 // to the model's `url()`. Some possible customizations could be:
@@ -65,7 +65,7 @@ export var wrapError = function(model, options) {
 // * Send up the models as XML instead of JSON.
 // * Persist models via WebSockets instead of Ajax.
 //
-// Turn on `Backbone.emulateHTTP` in order to send `PUT` and `DELETE` requests
+// Turn on `emulateHTTP` in order to send `PUT` and `DELETE` requests
 // as `POST`, with a `_method` parameter containing the true HTTP method,
 // as well as all requests with the body as `application/x-www-form-urlencoded`
 // instead of `application/json` with the model in a param named `model`.
@@ -144,7 +144,7 @@ export var sync = function(method, model, options) {
     return xhr;
 };
 
-// Map from CRUD to HTTP for our default `Backbone.sync` implementation.
+// Map from CRUD to HTTP for our default `sync` implementation.
 var methodMap = {
     'create': 'POST',
     'update': 'PUT',
@@ -153,20 +153,20 @@ var methodMap = {
     'read': 'GET'
 };
 
-// Set the default implementation of `Backbone.ajax` to proxy through to `$`.
+// Set the default implementation of `ajax` to proxy through to `$`.
 // Override this if you'd like to use a different library.
 var ajax = function() {
     return $.ajax.apply($, arguments);
 };
 
-// Proxy Backbone class methods to Underscore functions, wrapping the model's
+// Proxy class methods to Underscore functions, wrapping the model's
 // `attributes` object or collection's `models` array behind the scenes.
 //
 // collection.filter(function(model) { return model.get('age') > 10 });
 // collection.each(this.addView);
 //
 // `Function#apply` can be slow so we use the method's arg count, if we know it.
-export var addMethod = function(base, length, method, attribute) {
+var addMethod = function(base, length, method, attribute) {
     switch (length) {
         case 1: return function() {
             return base[method](this[attribute]);
@@ -195,13 +195,13 @@ export var addUnderscoreMethods = function(Class, base, methods, attribute) {
 };
 
 // Support `collection.sortBy('attr')` and `collection.findWhere({id: 1})`.
-export var cb = function(iteratee, instance) {
+var cb = function(iteratee, instance) {
     if (_.isFunction(iteratee)) return iteratee;
     if (_.isObject(iteratee) && !instance._isModel(iteratee)) return modelMatcher(iteratee);
     if (_.isString(iteratee)) return function(model) { return model.get(iteratee); };
     return iteratee;
 };
-export var modelMatcher = function(attrs) {
+var modelMatcher = function(attrs) {
     var matcher = _.matches(attrs);
     return function(model) {
         return matcher(model.attributes);

@@ -555,7 +555,7 @@ CollectionIterator.prototype.next = function() {
 };
 
 // Underscore methods that we want to implement on the Collection.
-// 90% of the core usefulness of Backbone Collections is actually implemented
+// 90% of the core usefulness of Collections is actually implemented
 // right here:
 var collectionMethods = { forEach: 3, each: 3, map: 3, collect: 3, reduce: 0,
     foldl: 0, inject: 0, reduceRight: 0, foldr: 0, find: 3, detect: 3, filter: 3,

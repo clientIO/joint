@@ -259,7 +259,7 @@ var triggerApi = function(objEvents, name, callback, args) {
 
 // A difficult-to-believe, but optimized internal dispatch function for
 // triggering events. Tries to keep the usual cases speedy (most internal
-// Backbone events have 3 arguments).
+// events have 3 arguments).
 var triggerEvents = function(events, args) {
     var ev, i = -1, l = events.length, a1 = args[0], a2 = args[1], a3 = args[2];
     switch (args.length) {
@@ -285,7 +285,7 @@ var Listening = function(listener, obj) {
 Listening.prototype.on = Events.on;
 
 // Offs a callback (or several).
-// Uses an optimized counter if the listenee uses Backbone.Events.
+// Uses an optimized counter if the listenee uses Events.
 // Otherwise, falls back to manual tracking to support events
 // library interop.
 Listening.prototype.off = function(name, callback) {
