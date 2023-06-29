@@ -79,7 +79,7 @@ export const View = ViewBase.extend({
         return null;
     },
 
-    // Override the Backbone `_ensureElement()` method in order to create an
+    // Override the mvc ViewBase `_ensureElement()` method in order to create an
     // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
     // Expose class name setter as a separate method.
     _ensureElement: function() {

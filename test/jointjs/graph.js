@@ -443,7 +443,7 @@ QUnit.module('graph', function(hooks) {
         graph.clear();
 
         assert.equal(graph.getCells().length, 0, 'all the links and elements (even embeddes) were removed.');
-        assert.equal(graph.get('cells').length, 0, 'collection length is exactly 0 (Backbone v1.2.1 was showing negative values.)');
+        assert.equal(graph.get('cells').length, 0, 'collection length is exactly 0');
     });
 
     QUnit.test('graph.getCells(), graph.getLinks(), graph.getElements()', function(assert) {
