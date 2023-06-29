@@ -37,14 +37,14 @@ import * as g from '../g/index.mjs';
 
 export const Cell = Model.extend({
 
-    // This is the same as Backbone.Model with the only difference that is uses util.merge
+    // This is the same as mvc.Model with the only difference that is uses util.merge
     // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
     constructor: function(attributes, options) {
 
         var defaults;
         var attrs = attributes || {};
         if (typeof this.preinitialize === 'function') {
-            // Check to support an older version of Backbone (prior v1.4)
+            // Check to support an older version
             this.preinitialize.apply(this, arguments);
         }
         this.cid = uniqueId('c');
@@ -195,7 +195,7 @@ export const Cell = Model.extend({
         // after `this.trigger('remove', ...)` down below.
         const { graph, collection } = this;
         if (!graph) {
-            // The collection is a common Backbone collection (not the graph collection).
+            // The collection is a common mvc collection (not the graph collection).
             if (collection) collection.remove(this, opt);
             return this;
         }

@@ -168,7 +168,7 @@ export const Paper = View.extend({
         markAvailable: false,
 
         // Defines what link model is added to the graph after an user clicks on an active magnet.
-        // Value could be the Backbone.model or a function returning the Backbone.model
+        // Value could be the mvc.Model or a function returning the mvc.Model
         // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
         defaultLink: new Link,
 
@@ -2013,7 +2013,7 @@ export const Paper = View.extend({
         return isFunction(this.options.defaultLink)
         // default link is a function producing link model
             ? this.options.defaultLink.call(this, cellView, magnet)
-        // default link is the Backbone model
+        // default link is the mvc model
             : this.options.defaultLink.clone();
     },
 

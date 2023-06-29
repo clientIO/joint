@@ -73,7 +73,7 @@ export const Graph = Model.extend({
         // to the outside world.
         cells.on('all', this.trigger, this);
 
-        // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
+        // mvc Model automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
         this.on('change:z', this._sortOnChangeZ, this);
 
@@ -148,7 +148,7 @@ export const Graph = Model.extend({
 
     _restructureOnReset: function(cells) {
 
-        // Normalize into an array of cells. The original `cells` is GraphCells Backbone collection.
+        // Normalize into an array of cells. The original `cells` is GraphCells mvc collection.
         cells = cells.models;
 
         this._out = {};
@@ -199,7 +199,7 @@ export const Graph = Model.extend({
 
     toJSON: function() {
 
-        // Backbone does not recursively call `toJSON()` on attributes that are themselves models/collections.
+        // mvc Model does not recursively call `toJSON()` on attributes that are themselves models/collections.
         // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitly.
         var json = Model.prototype.toJSON.apply(this, arguments);
         json.cells = this.get('cells').toJSON();
