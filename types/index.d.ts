@@ -10,7 +10,12 @@
 // typings: https://github.com/CaselIT/typings-jointjs
 
 /// <reference types="jquery" />
+/// <reference types="lodash" />
+/// <reference path="./geometry.d.ts" />
+/// <reference path="./vectorizer.d.ts" />
+/// <reference path="./mvc.d.ts" />
+/// <reference path="./joint.d.ts" />
 
-import * as _ from 'lodash';
-
+export = joint;
 export as namespace joint;
+declare namespace joint {}

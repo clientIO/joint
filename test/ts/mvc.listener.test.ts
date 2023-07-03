@@ -1,4 +1,4 @@
-import { dia, shapes, mvc } from '../../build/joint';
+import { dia, shapes, mvc } from '../../build/index';
 
 type Args = [
     { graph: dia.Graph },
