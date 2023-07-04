@@ -1,7 +1,8 @@
-import joint = require('./index');
+import joint from './joint';
+
 type g = typeof joint.g;
 
-declare module './index' {
+declare module './joint' {
 
     export const V: VCallable;
     export type V = VElement;

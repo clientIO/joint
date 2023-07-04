@@ -1,6 +1,6 @@
-import joint = require('./index');
+import joint from './joint';
 
-declare module './index' {
+declare module './joint' {
 
     export namespace mvc {
 

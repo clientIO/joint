@@ -82,8 +82,7 @@ module.exports = function(grunt) {
                     nonull: true,
                     cwd: 'types/',
                     src: [
-                        '**/*',
-                        '!joint.head.d.ts'
+                        '**/*'
                     ],
                     dest: 'build/'
                 },

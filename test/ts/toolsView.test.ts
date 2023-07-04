@@ -1,4 +1,4 @@
-import { dia, linkTools, elementTools } from '../../build/index';
+import { dia, linkTools, elementTools } from '../../build/joint';
 
 class MyVertexHandle extends linkTools.Vertices.VertexHandle {
 }
