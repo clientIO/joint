@@ -30,7 +30,7 @@ module.exports = function(grunt) {
         'build:joint': [
             'shell:rollup-joint',
             'newer:concat:joint',
-            'newer:concat:types',
+            'newer:copy:types',
             'newer:copy:appsLibs'
         ],
         'uglify:all':[

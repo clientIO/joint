@@ -1,4 +1,3 @@
-import Backbone from 'backbone';
 import {
     uniqueId,
     union,
@@ -27,6 +26,7 @@ import {
     has,
     sortBy
 } from '../util/util.mjs';
+import { Model } from '../mvc/Model.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';
@@ -35,16 +35,16 @@ import * as g from '../g/index.mjs';
 // Cell base model.
 // --------------------------
 
-export const Cell = Backbone.Model.extend({
+export const Cell = Model.extend({
 
-    // This is the same as Backbone.Model with the only difference that is uses util.merge
+    // This is the same as mvc.Model with the only difference that is uses util.merge
     // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
     constructor: function(attributes, options) {
 
         var defaults;
         var attrs = attributes || {};
         if (typeof this.preinitialize === 'function') {
-            // Check to support an older version of Backbone (prior v1.4)
+            // Check to support an older version
             this.preinitialize.apply(this, arguments);
         }
         this.cid = uniqueId('c');
@@ -195,7 +195,7 @@ export const Cell = Backbone.Model.extend({
         // after `this.trigger('remove', ...)` down below.
         const { graph, collection } = this;
         if (!graph) {
-            // The collection is a common Backbone collection (not the graph collection).
+            // The collection is a common mvc collection (not the graph collection).
             if (collection) collection.remove(this, opt);
             return this;
         }
@@ -479,7 +479,7 @@ export const Cell = Backbone.Model.extend({
         if (!opt.deep) {
             // Shallow cloning.
 
-            var clone = Backbone.Model.prototype.clone.apply(this, arguments);
+            var clone = Model.prototype.clone.apply(this, arguments);
             // We don't want the clone to have the same ID as the original.
             clone.set(this.getIdAttribute(), this.generateId());
             // A shallow cloned element does not carry over the original embeds.
@@ -897,4 +897,3 @@ export const Cell = Backbone.Model.extend({
         return Cell;
     }
 });
-

@@ -1,12 +1,12 @@
-import Backbone from 'backbone';
 import $ from 'jquery';
 import * as util from '../util/index.mjs';
 import V from '../V/index.mjs';
+import { ViewBase } from './ViewBase.mjs';
 import { config } from '../config/index.mjs';
 
 export const views = {};
 
-export const View = Backbone.View.extend({
+export const View = ViewBase.extend({
 
     options: {},
     theme: null,
@@ -27,7 +27,7 @@ export const View = Backbone.View.extend({
         this.requireSetThemeOverride = options && !!options.theme;
         this.options = util.assign({}, this.options, options);
 
-        Backbone.View.call(this, options);
+        ViewBase.call(this, options);
     },
 
     initialize: function() {
@@ -79,7 +79,7 @@ export const View = Backbone.View.extend({
         return null;
     },
 
-    // Override the Backbone `_ensureElement()` method in order to create an
+    // Override the mvc ViewBase `_ensureElement()` method in order to create an
     // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
     // Expose class name setter as a separate method.
     _ensureElement: function() {
@@ -120,7 +120,7 @@ export const View = Backbone.View.extend({
     // Utilize an alternative DOM manipulation API by
     // adding an element reference wrapped in Vectorizer.
     _setElement: function(el) {
-        this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
+        this.$el = el instanceof $ ? el : $(el);
         this.el = this.$el[0];
         if (this.svgElement) this.vel = V(this.el);
     },
@@ -214,7 +214,7 @@ export const View = Backbone.View.extend({
 
         views[this.cid] = null;
 
-        Backbone.View.prototype.remove.apply(this, arguments);
+        ViewBase.prototype.remove.apply(this, arguments);
 
         return this;
     },
@@ -317,7 +317,7 @@ export const View = Backbone.View.extend({
 
         protoProps.render.__render__ = renderFn;
 
-        return Backbone.View.extend.call(this, protoProps, staticProps);
+        return ViewBase.extend.call(this, protoProps, staticProps);
     }
 });
 

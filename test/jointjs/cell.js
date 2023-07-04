@@ -53,7 +53,7 @@ QUnit.module('cell', function(hooks) {
         });
     });
 
-    QUnit.module('backbone attributes', function() {
+    QUnit.module('mvc Model attributes', function() {
         QUnit.test('idAttribute', function(assert) {
             var graph = this.graph;
             var paper = this.paper;
@@ -683,4 +683,3 @@ QUnit.module('cell', function(hooks) {
     });
 
 });
-

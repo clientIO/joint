@@ -31,6 +31,7 @@ import {
     toArray,
     has
 } from '../util/index.mjs';
+import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views } from '../mvc/index.mjs';
 import { CellView } from './CellView.mjs';
@@ -46,7 +47,6 @@ import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
 import $ from 'jquery';
-import Backbone from 'backbone';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -168,7 +168,7 @@ export const Paper = View.extend({
         markAvailable: false,
 
         // Defines what link model is added to the graph after an user clicks on an active magnet.
-        // Value could be the Backbone.model or a function returning the Backbone.model
+        // Value could be the mvc.Model or a function returning the mvc.Model
         // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
         defaultLink: new Link,
 
@@ -1571,7 +1571,7 @@ export const Paper = View.extend({
         //  1. call the function from the paper options
         //  2. if no view was return, search the namespace for a view
         //  3. if no view was found, use the default
-        var ViewClass = (optionalViewClass.prototype instanceof Backbone.View)
+        var ViewClass = (optionalViewClass.prototype instanceof ViewBase)
             ? namespaceViewClass || optionalViewClass
             : optionalViewClass.call(this, cell) || namespaceViewClass || defaultViewClass;
 
@@ -2013,7 +2013,7 @@ export const Paper = View.extend({
         return isFunction(this.options.defaultLink)
         // default link is a function producing link model
             ? this.options.defaultLink.call(this, cellView, magnet)
-        // default link is the Backbone model
+        // default link is the mvc model
             : this.options.defaultLink.clone();
     },
 
@@ -3281,4 +3281,3 @@ export const Paper = View.extend({
         }]
     }
 });
-
