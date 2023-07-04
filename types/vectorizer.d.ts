@@ -1,4 +1,4 @@
-import joint from './joint';
+import joint = require('./joint');
 
 type g = typeof joint.g;
 

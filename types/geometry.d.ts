@@ -1,4 +1,4 @@
-import joint from './joint';
+import joint = require('./joint');
 
 declare module './joint' {
     export namespace g {
