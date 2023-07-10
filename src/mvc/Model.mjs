@@ -8,6 +8,16 @@ import {
     addUnderscoreMethods,
     sync
 } from './mvcUtils.mjs';
+import {
+    clone,
+    defaults,
+    has,
+    isEqual,
+    isEmpty,
+    result,
+    uniqueId 
+} from '../util/util.mjs';
+import { functions, reduce } from '../util/utilHelpers.mjs';
 
 // Model
 // --------------
@@ -24,12 +34,12 @@ export var Model = function(attributes, options) {
     var attrs = attributes || {};
     options || (options = {});
     this.preinitialize.apply(this, arguments);
-    this.cid = _.uniqueId(this.cidPrefix);
+    this.cid = uniqueId(this.cidPrefix);
     this.attributes = {};
     if (options.collection) this.collection = options.collection;
     if (options.parse) attrs = this.parse(attrs, options) || {};
-    var defaults = _.result(this, 'defaults');
-    attrs = _.defaults(_.extend({}, defaults, attrs), defaults);
+    var attributeDefaults = result(this, 'defaults');
+    attrs = defaults(_.extend({}, attributeDefaults, attrs), attributeDefaults);
     this.set(attrs, options);
     this.changed = {};
     this.initialize.apply(this, arguments);
@@ -62,7 +72,7 @@ _.extend(Model.prototype, Events, {
 
     // Return a copy of the model's `attributes` object.
     toJSON: function(options) {
-        return _.clone(this.attributes);
+        return clone(this.attributes);
     },
 
     // Proxy `sync` by default -- but override this if you need
@@ -120,7 +130,7 @@ _.extend(Model.prototype, Events, {
         this._changing = true;
 
         if (!changing) {
-            this._previousAttributes = _.clone(this.attributes);
+            this._previousAttributes = clone(this.attributes);
             this.changed = {};
         }
 
@@ -131,8 +141,8 @@ _.extend(Model.prototype, Events, {
         // For each `set` attribute, update or delete the current value.
         for (var attr in attrs) {
             val = attrs[attr];
-            if (!_.isEqual(current[attr], val)) changes.push(attr);
-            if (!_.isEqual(prev[attr], val)) {
+            if (!isEqual(current[attr], val)) changes.push(attr);
+            if (!isEqual(prev[attr], val)) {
                 changed[attr] = val;
             } else {
                 delete changed[attr];
@@ -186,8 +196,8 @@ _.extend(Model.prototype, Events, {
     // Determine if the model has changed since the last `"change"` event.
     // If you specify an attribute name, determine if that attribute has changed.
     hasChanged: function(attr) {
-        if (attr == null) return !_.isEmpty(this.changed);
-        return _.has(this.changed, attr);
+        if (attr == null) return !isEmpty(this.changed);
+        return has(this.changed, attr);
     },
 
     // Return an object containing all the attributes that have changed, or
@@ -197,13 +207,13 @@ _.extend(Model.prototype, Events, {
     // You can also pass an attributes object to diff against the model,
     // determining if there *would be* a change.
     changedAttributes: function(diff) {
-        if (!diff) return this.hasChanged() ? _.clone(this.changed) : false;
+        if (!diff) return this.hasChanged() ? clone(this.changed) : false;
         var old = this._changing ? this._previousAttributes : this.attributes;
         var changed = {};
         var hasChanged;
         for (var attr in diff) {
             var val = diff[attr];
-            if (_.isEqual(old[attr], val)) continue;
+            if (isEqual(old[attr], val)) continue;
             changed[attr] = val;
             hasChanged = true;
         }
@@ -220,7 +230,7 @@ _.extend(Model.prototype, Events, {
     // Get all of the attributes of the model at the time of the previous
     // `"change"` event.
     previousAttributes: function() {
-        return _.clone(this._previousAttributes);
+        return clone(this._previousAttributes);
     },
 
     // Fetch the model from the server, merging the response with the model's
@@ -297,7 +307,7 @@ _.extend(Model.prototype, Events, {
     // Optimistically removes the model from its collection, if it has one.
     // If `wait: true` is passed, waits for the server to respond before removal.
     destroy: function(options) {
-        options = options ? _.clone(options) : {};
+        options = options ? clone(options) : {};
         var model = this;
         var success = options.success;
         var wait = options.wait;
@@ -329,8 +339,8 @@ _.extend(Model.prototype, Events, {
     // that will be called.
     url: function() {
         var base =
-      _.result(this, 'urlRoot') ||
-      _.result(this.collection, 'url') ||
+      result(this, 'urlRoot') ||
+      result(this.collection, 'url') ||
       urlError();
         if (this.isNew()) return base;
         var id = this.get(this.idAttribute);
@@ -385,7 +395,7 @@ function proxyMethods(config) {
         attribute = config[2];
     
     Base.mixin = function(obj) {
-        var mappings = _.reduce(_.functions(obj), function(memo, name) {
+        var mappings = reduce(functions(obj), function(memo, name) {
             memo[name] = 0;
             return memo;
         }, {});
