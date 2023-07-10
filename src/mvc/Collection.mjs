@@ -8,6 +8,13 @@ import {
     sync, 
     addUnderscoreMethods 
 } from './mvcUtils.mjs';
+import { 
+    assign,
+    clone,
+    isFunction,
+    isString
+} from '../util/util.mjs';
+import { functions, reduce, some } from '../util/utilHelpers.mjs';
 
 
 // Collection
@@ -30,7 +37,7 @@ export var Collection = function(models, options) {
     if (options.comparator !== void 0) this.comparator = options.comparator;
     this._reset();
     this.initialize.apply(this, arguments);
-    if (models) this.reset(models, _.extend({ silent: true }, options));
+    if (models) this.reset(models, assign({ silent: true }, options));
 };
 
 // Default options for `Collection#set`.
@@ -49,7 +56,7 @@ var splice = function(array, insert, at) {
 };
 
 // Define the Collection's inheritable methods.
-_.extend(Collection.prototype, Events, {
+assign(Collection.prototype, Events, {
 
     // The default model for a collection is just a **Model**.
     // This should be overridden in most cases.
@@ -79,13 +86,13 @@ _.extend(Collection.prototype, Events, {
     // Models or raw JavaScript objects to be converted to Models, or any
     // combination of the two.
     add: function(models, options) {
-        return this.set(models, _.extend({ merge: false }, options, addOptions));
+        return this.set(models, assign({ merge: false }, options, addOptions));
     },
 
     // Remove a model, or a list of models from the set.
     remove: function(models, options) {
-        options = _.extend({}, options);
-        var singular = !_.isArray(models);
+        options = assign({}, options);
+        var singular = !Array.isArray(models);
         models = singular ? [models] : models.slice();
         var removed = this._removeModels(models, options);
         if (!options.silent && removed.length) {
@@ -102,12 +109,12 @@ _.extend(Collection.prototype, Events, {
     set: function(models, options) {
         if (models == null) return;
 
-        options = _.extend({}, setOptions, options);
+        options = assign({}, setOptions, options);
         if (options.parse && !this._isModel(models)) {
             models = this.parse(models, options) || [];
         }
 
-        var singular = !_.isArray(models);
+        var singular = !Array.isArray(models);
         models = singular ? [models] : models.slice();
 
         var at = options.at;
@@ -127,7 +134,7 @@ _.extend(Collection.prototype, Events, {
 
         var sort = false;
         var sortable = this.comparator && at == null && options.sort !== false;
-        var sortAttr = _.isString(this.comparator) ? this.comparator : null;
+        var sortAttr = isString(this.comparator) ? this.comparator : null;
 
         // Turn bare objects into model references, and prevent invalid models
         // from being added.
@@ -177,7 +184,7 @@ _.extend(Collection.prototype, Events, {
         var orderChanged = false;
         var replace = !sortable && add && remove;
         if (set.length && replace) {
-            orderChanged = this.length !== set.length || _.some(this.models, function(m, index) {
+            orderChanged = this.length !== set.length || some(this.models, function(m, index) {
                 return m !== set[index];
             });
             this.models.length = 0;
@@ -219,20 +226,20 @@ _.extend(Collection.prototype, Events, {
     // any granular `add` or `remove` events. Fires `reset` when finished.
     // Useful for bulk operations and optimizations.
     reset: function(models, options) {
-        options = options ? _.clone(options) : {};
+        options = options ? clone(options) : {};
         for (var i = 0; i < this.models.length; i++) {
             this._removeReference(this.models[i], options);
         }
         options.previousModels = this.models;
         this._reset();
-        models = this.add(models, _.extend({ silent: true }, options));
+        models = this.add(models, assign({ silent: true }, options));
         if (!options.silent) this.trigger('reset', this, options);
         return models;
     },
 
     // Add a model to the end of the collection.
     push: function(model, options) {
-        return this.add(model, _.extend({ at: this.length }, options));
+        return this.add(model, assign({ at: this.length }, options));
     },
 
     // Remove a model from the end of the collection.
@@ -243,7 +250,7 @@ _.extend(Collection.prototype, Events, {
 
     // Add a model to the beginning of the collection.
     unshift: function(model, options) {
-        return this.add(model, _.extend({ at: 0 }, options));
+        return this.add(model, assign({ at: 0 }, options));
     },
 
     // Remove a model from the beginning of the collection.
@@ -298,10 +305,10 @@ _.extend(Collection.prototype, Events, {
         options || (options = {});
 
         var length = comparator.length;
-        if (_.isFunction(comparator)) comparator = comparator.bind(this);
+        if (isFunction(comparator)) comparator = comparator.bind(this);
 
         // Run sort based on type of `comparator`.
-        if (length === 1 || _.isString(comparator)) {
+        if (length === 1 || isString(comparator)) {
             this.models = this.sortBy(comparator);
         } else {
             this.models.sort(comparator);
@@ -319,7 +326,7 @@ _.extend(Collection.prototype, Events, {
     // collection when they arrive. If `reset: true` is passed, the response
     // data will be passed through the `reset` method instead of `set`.
     fetch: function(options) {
-        options = _.extend({ parse: true }, options);
+        options = assign({ parse: true }, options);
         var success = options.success;
         var collection = this;
         options.success = function(resp) {
@@ -336,7 +343,7 @@ _.extend(Collection.prototype, Events, {
     // collection immediately, unless `wait: true` is passed, in which case we
     // wait for the server to agree.
     create: function(model, options) {
-        options = options ? _.clone(options) : {};
+        options = options ? clone(options) : {};
         var wait = options.wait;
         model = this._prepareModel(model, options);
         if (!model) return false;
@@ -400,7 +407,7 @@ _.extend(Collection.prototype, Events, {
             if (!attrs.collection) attrs.collection = this;
             return attrs;
         }
-        options = options ? _.clone(options) : {};
+        options = options ? clone(options) : {};
         options.collection = this;
 
         var model;
@@ -575,7 +582,7 @@ function proxyMethods(config) {
         attribute = config[2];
 
     Base.mixin = function(obj) {
-        var mappings = _.reduce(_.functions(obj), function(memo, name) {
+        var mappings = reduce(functions(obj), function(memo, name) {
             memo[name] = 0;
             return memo;
         }, {});

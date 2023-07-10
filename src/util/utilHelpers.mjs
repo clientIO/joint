@@ -631,18 +631,6 @@ const equalArrays = (array, other, compareUnordered, equalFunc, stack) => {
     return result;
 };
 
-const some = (array, predicate) => {
-    let index = -1;
-    const length = array == null ? 0 : array.length;
-
-    while (++index < length) {
-        if (predicate(array[index], index, array)) {
-            return true;
-        }
-    }
-    return false;
-};
-
 const cacheHas = (cache, key) => {
     return cache.has(key);
 };
@@ -1483,11 +1471,6 @@ const baseReduce = (collection, iteratee, accumulator, initAccum, eachFunc) => {
     return accumulator;
 };
 
-function reduce(collection, iteratee, accumulator) {
-    const func = Array.isArray(collection) ? arrayReduce : baseReduce;
-    const initAccum = arguments.length < 3;
-    return func(collection, iteratee, accumulator, initAccum, baseEach);
-}
 
 const isFlattenable = (value) => {
     return Array.isArray(value) || isArguments(value) ||
@@ -1616,6 +1599,49 @@ function createCaseFirst(methodName) {
         return chr[methodName]() + trailing;
     };
 }
+
+const arrayFilter = (array, predicate) => {
+    var index = -1,
+        length = array == null ? 0 : array.length,
+        resIndex = 0,
+        result = [];
+  
+    while (++index < length) {
+        var value = array[index];
+        if (predicate(value, index, array)) {
+            result[resIndex++] = value;
+        }
+    }
+    return result;
+};
+
+const baseFunctions = (object, props) => {
+    return arrayFilter(props, function(key) {
+        return isFunction(object[key]);
+    });
+};
+
+export const functions = (object) => {
+    return object == null ? [] : baseFunctions(object, keys(object));
+};
+
+export function reduce(collection, iteratee, accumulator) {
+    const func = Array.isArray(collection) ? arrayReduce : baseReduce;
+    const initAccum = arguments.length < 3;
+    return func(collection, iteratee, accumulator, initAccum, baseEach);
+}
+
+export const some = (array, predicate) => {
+    let index = -1;
+    const length = array == null ? 0 : array.length;
+
+    while (++index < length) {
+        if (predicate(array[index], index, array)) {
+            return true;
+        }
+    }
+    return false;
+};
 
 // -- helper classes
 class Stack {
