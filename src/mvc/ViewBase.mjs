@@ -1,8 +1,14 @@
 import $ from 'jquery';
-import _ from 'lodash';
 
 import { Events } from './Events.mjs';
 import { extend } from './mvcUtils.mjs';
+import { 
+    assign,
+    isFunction, 
+    pick, 
+    result, 
+    uniqueId 
+} from '../util/util.mjs';
 
 // ViewBase
 // -------------
@@ -18,9 +24,9 @@ import { extend } from './mvcUtils.mjs';
 // Creating a ViewBase creates its initial element outside of the DOM,
 // if an existing element is not provided...
 export var ViewBase = function(options) {
-    this.cid = _.uniqueId('view');
+    this.cid = uniqueId('view');
     this.preinitialize.apply(this, arguments);
-    _.extend(this, _.pick(options, viewOptions));
+    assign(this, pick(options, viewOptions));
     this._ensureElement();
     this.initialize.apply(this, arguments);
 };
@@ -32,7 +38,7 @@ var delegateEventSplitter = /^(\S+)\s*(.*)$/;
 var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
 
 // Set up all inheritable **ViewBase** properties and methods.
-_.extend(ViewBase.prototype, Events, {
+assign(ViewBase.prototype, Events, {
 
     // The default `tagName` of a View's element is `"div"`.
     tagName: 'div',
@@ -106,12 +112,12 @@ _.extend(ViewBase.prototype, Events, {
     // Uses event delegation for efficiency.
     // Omitting the selector binds the event to `this.el`.
     delegateEvents: function(events) {
-        events || (events = _.result(this, 'events'));
+        events || (events = result(this, 'events'));
         if (!events) return this;
         this.undelegateEvents();
         for (var key in events) {
             var method = events[key];
-            if (!_.isFunction(method)) method = this[method];
+            if (!isFunction(method)) method = this[method];
             if (!method) continue;
             var match = key.match(delegateEventSplitter);
             this.delegate(match[1], match[2], method.bind(this));
@@ -154,13 +160,13 @@ _.extend(ViewBase.prototype, Events, {
     // an element from the `id`, `className` and `tagName` properties.
     _ensureElement: function() {
         if (!this.el) {
-            var attrs = _.extend({}, _.result(this, 'attributes'));
-            if (this.id) attrs.id = _.result(this, 'id');
-            if (this.className) attrs['class'] = _.result(this, 'className');
-            this.setElement(this._createElement(_.result(this, 'tagName')));
+            var attrs = assign({}, result(this, 'attributes'));
+            if (this.id) attrs.id = result(this, 'id');
+            if (this.className) attrs['class'] = result(this, 'className');
+            this.setElement(this._createElement(result(this, 'tagName')));
             this._setAttributes(attrs);
         } else {
-            this.setElement(_.result(this, 'el'));
+            this.setElement(result(this, 'el'));
         }
     },
 
