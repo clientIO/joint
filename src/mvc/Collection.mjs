@@ -567,9 +567,9 @@ var collectionMethods = { forEach: 3, each: 3, map: 3, collect: 3, reduce: 0,
 
 // Mix in each Underscore method as a proxy to `Collection#models`.
 
-_.each([
-    [Collection, collectionMethods, 'models']
-], function(config) {
+var config = [Collection, collectionMethods, 'models'];
+
+function proxyMethods(config) {
     var Base = config[0],
         methods = config[1],
         attribute = config[2];
@@ -583,7 +583,9 @@ _.each([
     };
 
     addUnderscoreMethods(Base, _, methods, attribute);
-});
+}
+
+proxyMethods(config);
 
 // Set up inheritance for the collection.
 Collection.extend = extend;

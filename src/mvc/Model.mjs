@@ -377,9 +377,9 @@ _.extend(Model.prototype, Events, {
 var modelMethods = { keys: 1, values: 1, pairs: 1, invert: 1, pick: 0,
     omit: 0, chain: 1, isEmpty: 1 };
 
-_.each([
-    [Model, modelMethods, 'attributes']
-], function(config) {
+var config = [Model, modelMethods, 'attributes'];
+
+function proxyMethods(config) {
     var Base = config[0],
         methods = config[1],
         attribute = config[2];
@@ -393,7 +393,9 @@ _.each([
     };
     
     addUnderscoreMethods(Base, _, methods, attribute);
-});
+}
+
+proxyMethods(config);
 
 // Set up inheritance for the model.
 Model.extend = extend;
