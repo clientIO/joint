@@ -9,7 +9,7 @@ import {
     isFunction,
     isString
 } from '../util/util.mjs';
-import { functions, reduce, some } from '../util/utilHelpers.mjs';
+import { functions } from '../util/utilHelpers.mjs';
 
 
 // Collection
@@ -174,7 +174,7 @@ assign(Collection.prototype, Events, {
         var orderChanged = false;
         var replace = !sortable && add && remove;
         if (set.length && replace) {
-            orderChanged = this.length !== set.length || some(this.models, function(m, index) {
+            orderChanged = this.length !== set.length || Array.some(this.models, function(m, index) {
                 return m !== set[index];
             });
             this.models.length = 0;
@@ -554,7 +554,7 @@ function proxyMethods(config) {
         attribute = config[2];
 
     Base.mixin = function(obj) {
-        var mappings = reduce(functions(obj), function(memo, name) {
+        var mappings = Array.reduce(functions(obj), function(memo, name) {
             memo[name] = 0;
             return memo;
         }, {});

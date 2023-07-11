@@ -631,6 +631,18 @@ const equalArrays = (array, other, compareUnordered, equalFunc, stack) => {
     return result;
 };
 
+const some = (array, predicate) => {
+    let index = -1;
+    const length = array == null ? 0 : array.length;
+
+    while (++index < length) {
+        if (predicate(array[index], index, array)) {
+            return true;
+        }
+    }
+    return false;
+};
+
 const cacheHas = (cache, key) => {
     return cache.has(key);
 };
@@ -1471,6 +1483,11 @@ const baseReduce = (collection, iteratee, accumulator, initAccum, eachFunc) => {
     return accumulator;
 };
 
+function reduce(collection, iteratee, accumulator) {
+    const func = Array.isArray(collection) ? arrayReduce : baseReduce;
+    const initAccum = arguments.length < 3;
+    return func(collection, iteratee, accumulator, initAccum, baseEach);
+}
 
 const isFlattenable = (value) => {
     return Array.isArray(value) || isArguments(value) ||
@@ -1625,23 +1642,9 @@ export const functions = (object) => {
     return object == null ? [] : baseFunctions(object, keys(object));
 };
 
-export function reduce(collection, iteratee, accumulator) {
-    const func = Array.isArray(collection) ? arrayReduce : baseReduce;
-    const initAccum = arguments.length < 3;
-    return func(collection, iteratee, accumulator, initAccum, baseEach);
+export function iteratee(func) {
+    return baseIteratee(typeof func == 'function' ? func : baseClone(func, true));
 }
-
-export const some = (array, predicate) => {
-    let index = -1;
-    const length = array == null ? 0 : array.length;
-
-    while (++index < length) {
-        if (predicate(array[index], index, array)) {
-            return true;
-        }
-    }
-    return false;
-};
 
 // -- helper classes
 class Stack {

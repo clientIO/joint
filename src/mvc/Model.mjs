@@ -3,6 +3,7 @@ import _ from 'lodash';
 import { Events } from './Events';
 import { extend, addUnderscoreMethods } from './mvcUtils.mjs';
 import {
+    assign,
     clone,
     defaults,
     has,
@@ -11,7 +12,7 @@ import {
     result,
     uniqueId 
 } from '../util/util.mjs';
-import { functions, reduce } from '../util/utilHelpers.mjs';
+import { functions, iteratee } from '../util/utilHelpers.mjs';
 
 // Model
 // --------------
@@ -33,14 +34,14 @@ export var Model = function(attributes, options) {
     if (options.collection) this.collection = options.collection;
     if (options.parse) attrs = this.parse(attrs, options) || {};
     var attributeDefaults = result(this, 'defaults');
-    attrs = defaults(_.extend({}, attributeDefaults, attrs), attributeDefaults);
+    attrs = defaults(assign({}, attributeDefaults, attrs), attributeDefaults);
     this.set(attrs, options);
     this.changed = {};
     this.initialize.apply(this, arguments);
 };
 
 // Attach all inheritable methods to the Model prototype.
-_.extend(Model.prototype, Events, {
+assign(Model.prototype, Events, {
 
     // A hash of attributes whose current and previous value differ.
     changed: null,
@@ -87,7 +88,7 @@ _.extend(Model.prototype, Events, {
 
     // Special-cased proxy to underscore's `_.matches` method.
     matches: function(attrs) {
-        return !!_.iteratee(attrs, this)(this.attributes);
+        return !!iteratee(attrs, this)(this.attributes);
     },
 
     // Set a hash of model attributes on the object, firing `"change"`. This is
@@ -171,14 +172,14 @@ _.extend(Model.prototype, Events, {
     // Remove an attribute from the model, firing `"change"`. `unset` is a noop
     // if the attribute doesn't exist.
     unset: function(attr, options) {
-        return this.set(attr, void 0, _.extend({}, options, { unset: true }));
+        return this.set(attr, void 0, assign({}, options, { unset: true }));
     },
 
     // Clear all attributes on the model, firing `"change"`.
     clear: function(options) {
         var attrs = {};
         for (var key in this.attributes) attrs[key] = void 0;
-        return this.set(attrs, _.extend({}, options, { unset: true }));
+        return this.set(attrs, assign({}, options, { unset: true }));
     },
 
     // Determine if the model has changed since the last `"change"` event.
@@ -239,17 +240,17 @@ _.extend(Model.prototype, Events, {
 
     // Check if the model is currently in a valid state.
     isValid: function(options) {
-        return this._validate({}, _.extend({}, options, { validate: true }));
+        return this._validate({}, assign({}, options, { validate: true }));
     },
 
     // Run validation against the next complete set of model attributes,
     // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
     _validate: function(attrs, options) {
         if (!options.validate || !this.validate) return true;
-        attrs = _.extend({}, this.attributes, attrs);
+        attrs = assign({}, this.attributes, attrs);
         var error = this.validationError = this.validate(attrs, options) || null;
         if (!error) return true;
-        this.trigger('invalid', this, error, _.extend(options, { validationError: error }));
+        this.trigger('invalid', this, error, assign(options, { validationError: error }));
         return false;
     }
 
@@ -268,7 +269,7 @@ function proxyMethods(config) {
         attribute = config[2];
     
     Base.mixin = function(obj) {
-        var mappings = reduce(functions(obj), function(memo, name) {
+        var mappings = Array.reduce(functions(obj), function(memo, name) {
             memo[name] = 0;
             return memo;
         }, {});
