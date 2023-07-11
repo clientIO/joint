@@ -1,4 +1,7 @@
-import _ from 'lodash';
+import {
+    isEmpty,
+    uniqueId 
+} from '../util/util.mjs';
 
 // Events
 // ---------------
@@ -29,7 +32,7 @@ var eventsApi = function(iteratee, events, name, callback, opts) {
     if (name && typeof name === 'object') {
         // Handle event maps.
         if (callback !== void 0 && 'context' in opts && opts.context === void 0) opts.context = callback;
-        for (names = _.keys(name); i < names.length ; i++) {
+        for (names = Object.keys(name); i < names.length ; i++) {
             events = eventsApi(iteratee, events, names[i], name[names[i]], opts);
         }
     } else if (name && eventSplitter.test(name)) {
@@ -69,14 +72,14 @@ Events.on = function(name, callback, context) {
 // for easier unbinding later.
 Events.listenTo = function(obj, name, callback) {
     if (!obj) return this;
-    var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
+    var id = obj._listenId || (obj._listenId = uniqueId('l'));
     var listeningTo = this._listeningTo || (this._listeningTo = {});
     var listening = _listening = listeningTo[id];
 
     // This object is not listening to any other events on `obj` yet.
     // Setup the necessary references to track the listening callbacks.
     if (!listening) {
-        this._listenId || (this._listenId = _.uniqueId('l'));
+        this._listenId || (this._listenId = uniqueId('l'));
         listening = _listening = listeningTo[id] = new Listening(this, obj);
     }
 
@@ -133,7 +136,7 @@ Events.stopListening = function(obj, name, callback) {
     var listeningTo = this._listeningTo;
     if (!listeningTo) return this;
 
-    var ids = obj ? [obj._listenId] : _.keys(listeningTo);
+    var ids = obj ? [obj._listenId] : Object.keys(listeningTo);
     for (var i = 0; i < ids.length; i++) {
         var listening = listeningTo[ids[i]];
 
@@ -144,7 +147,7 @@ Events.stopListening = function(obj, name, callback) {
         listening.obj.off(name, callback, this);
         if (listening.interop) listening.off(name, callback);
     }
-    if (_.isEmpty(listeningTo)) this._listeningTo = void 0;
+    if (isEmpty(listeningTo)) this._listeningTo = void 0;
 
     return this;
 };
@@ -158,13 +161,13 @@ var offApi = function(events, name, callback, options) {
 
     // Delete all event listeners and "drop" events.
     if (!name && !context && !callback) {
-        for (names = _.keys(listeners); i < names.length; i++) {
+        for (names = Object.keys(listeners); i < names.length; i++) {
             listeners[names[i]].cleanup();
         }
         return;
     }
 
-    names = name ? [name] : _.keys(events);
+    names = name ? [name] : Object.keys(events);
     for (; i < names.length; i++) {
         name = names[i];
         var handlers = events[name];
@@ -221,13 +224,27 @@ Events.listenToOnce = function(obj, name, callback) {
 // `offer` unbinds the `onceWrapper` after it has been called.
 var onceMap = function(map, name, callback, offer) {
     if (callback) {
-        var once = map[name] = _.once(function() {
+        var once = map[name] = onceInvoke(function() {
             offer(name, once);
             callback.apply(this, arguments);
         });
         once._callback = callback;
     }
     return map;
+};
+
+// Creates a function that is restricted to invoking 'func' once.
+// Repeat calls to the function return the value of the first invocation.
+var onceInvoke = function(fn) {
+    var called = false;
+    var result;
+    return function(...args)  {
+        if (!called) {
+            result = fn(...args);
+            called = true;
+        }
+        return result;
+    };
 };
 
 // Trigger one or many events, firing all bound callbacks. Callbacks are
