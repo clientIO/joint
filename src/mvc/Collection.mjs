@@ -2,12 +2,7 @@ import _ from 'lodash';
 
 import { Events } from './Events';
 import { Model } from './Model.mjs';
-import { 
-    extend, 
-    wrapError, 
-    sync, 
-    addUnderscoreMethods 
-} from './mvcUtils.mjs';
+import { extend, addUnderscoreMethods } from './mvcUtils.mjs';
 import { 
     assign,
     clone,
@@ -75,11 +70,6 @@ assign(Collection.prototype, Events, {
     // models' attributes.
     toJSON: function(options) {
         return this.map(function(model) { return model.toJSON(options); });
-    },
-
-    // Proxy `sync` by default.
-    sync: function() {
-        return sync.apply(this, arguments);
     },
 
     // Add a model, or list of models to the set. `models` may be
@@ -322,23 +312,6 @@ assign(Collection.prototype, Events, {
         return this.map(attr + '');
     },
 
-    // Fetch the default set of models for this collection, resetting the
-    // collection when they arrive. If `reset: true` is passed, the response
-    // data will be passed through the `reset` method instead of `set`.
-    fetch: function(options) {
-        options = assign({ parse: true }, options);
-        var success = options.success;
-        var collection = this;
-        options.success = function(resp) {
-            var method = options.reset ? 'reset' : 'set';
-            collection[method](resp, options);
-            if (success) success.call(options.context, collection, resp, options);
-            collection.trigger('sync', collection, resp, options);
-        };
-        wrapError(this, options);
-        return this.sync('read', this, options);
-    },
-
     // Create a new instance of a model in this collection. Add the model to the
     // collection immediately, unless `wait: true` is passed, in which case we
     // wait for the server to agree.
@@ -481,7 +454,6 @@ assign(Collection.prototype, Events, {
     _onModelEvent: function(event, model, collection, options) {
         if (model) {
             if ((event === 'add' || event === 'remove') && collection !== this) return;
-            if (event === 'destroy') this.remove(model, options);
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
                 var id = this.modelId(model.attributes, model.idAttribute);

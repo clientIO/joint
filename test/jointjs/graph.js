@@ -791,21 +791,6 @@ QUnit.module('graph', function(hooks) {
         */
     });
 
-    QUnit.test('graph.fetch()', function(assert) {
-
-        var json = JSON.parse('{"cells":[{"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
-
-        var ajaxStub = sinon.stub($, 'ajax').yieldsTo('success', json);
-
-        this.graph.url = 'test.url';
-        this.graph.fetch();
-
-        assert.equal(this.graph.getElements().length, 2, 'all the element were fetched.');
-        assert.equal(this.graph.getLinks().length, 1, 'all the links were fetched.');
-
-        ajaxStub.restore();
-    });
-
     QUnit.module('graph.getCellsBBox()', function() {
 
         QUnit.test('sanity', function(assert) {
