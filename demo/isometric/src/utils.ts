@@ -18,37 +18,76 @@ export const transformationMatrix = (view: View = View.Isometric, margin: number
     return matrix;
 }
 
-export const doLinesOverlap = (line1: g.Line, line2: g.Line) => {
-    return (line1.start.y <= line2.start.y && line1.end.y > line2.start.y) ||
-        (line1.start.y >= line2.start.y && line1.start.y < line2.end.y) ||
-        (line1.start.y === line2.start.y && line1.end.y === line2.end.y);
+export interface Node {
+    el: dia.Element,
+    behind: Node[],
+    visited: boolean,
+    depth?: number
 }
 
-/**
- * Sorts elements by their y position. If two elements overlap on y axis,
- * they are sorted by their x position.
- * Note: The lowest z-index is 0. The links are not sorted with this method
- * and should have z-index set to -1.
- */
-export const sortElements = (graph) => {
+const topologicalSort = (nodes: Node[]) => {
+    let depth = 0;
 
-    const elements = graph.getElements();
+    const visitNode = (node: Node) => {
+        if (!node.visited) {
+            node.visited = true;
 
-    elements.sort((a: IsometricShape, b: IsometricShape) => {
-        const aBBox = a.getBBox();
-        const bBBox = b.getBBox();
-        const lineAY = aBBox.rightLine();
-        const lineBY = bBBox.rightLine();
-        const overlapOnY = doLinesOverlap(lineAY, lineBY);
-        if (overlapOnY) {
-            return Math.sign(lineAY.end.x - lineBY.end.x);
+            for (let i = 0; i < node.behind.length; ++i) {
+                if (node.behind[i] == null) {
+                    break;
+                }
+                else {
+                    visitNode(node.behind[i]);
+                    delete node.behind[i];
+                }
+            }
+
+            node.depth = depth++;
+            node.el.set('z', node.depth);
         }
-        return Math.sign(lineAY.end.y - lineBY.end.y);
+    }
+
+    for (let i = 0; i < nodes.length; ++i)
+    {
+        visitNode(nodes[i]);
+    }
+}
+
+export const sortElements = (graph) => {
+    const elements = graph.getElements();
+    const nodes: Node[] = elements.map(el => {
+        return {
+            el: el,
+            behind: [],
+            visited: false
+        }
     });
 
-    elements.forEach((element, index) => {
-        element.set('z', index);
-    });
+    for (let i = 0; i < nodes.length; ++i)
+    {
+        const a = nodes[i].el;
+        const aBBox = a.getBBox();
+        const aMax = aBBox.bottomRight();
+
+        for (let j = 0; j < nodes.length; ++j)
+        {
+            if (i != j)
+            {
+                const b = nodes[j].el;
+                const bBBox = b.getBBox();
+                const bMin = bBBox.topLeft();
+
+                if (bMin.x < aMax.x && bMin.y < aMax.y)
+                {
+                    nodes[i].behind.push(nodes[j]);
+                }
+            }
+        }
+    }
+
+    topologicalSort(nodes);
+
+    return nodes;
 }
 
 export const drawGrid = (paper: dia.Paper, size: number, step: number, color = '#E0E0E0') => {
