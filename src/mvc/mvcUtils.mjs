@@ -1,4 +1,12 @@
-import _ from 'lodash';
+import {
+    assign,
+    forIn,
+    has,
+    isFunction,
+    isObject,
+    isString
+} from '../util/util.mjs';
+import { matches } from '../util/utilHelpers.mjs';
 
 // Helpers
 // -------
@@ -13,18 +21,18 @@ export var extend = function(protoProps, staticProps) {
     // The constructor function for the new subclass is either defined by you
     // (the "constructor" property in your `extend` definition), or defaulted
     // by us to simply call the parent constructor.
-    if (protoProps && _.has(protoProps, 'constructor')) {
+    if (protoProps && has(protoProps, 'constructor')) {
         child = protoProps.constructor;
     } else {
         child = function(){ return parent.apply(this, arguments); };
     }
 
     // Add static properties to the constructor function, if supplied.
-    _.extend(child, parent, staticProps);
+    assign(child, parent, staticProps);
 
     // Set the prototype chain to inherit from `parent`, without calling
     // `parent`'s constructor function and add the prototype properties.
-    child.prototype = _.create(parent.prototype, protoProps);
+    child.prototype = Object.assign(Object.create(parent.prototype), protoProps);
     child.prototype.constructor = child;
 
     // Set a convenience property in case the parent's prototype is needed
@@ -64,20 +72,20 @@ var addMethod = function(base, length, method, attribute) {
 };
 
 export var addUnderscoreMethods = function(Class, base, methods, attribute) {
-    _.each(methods, function(length, method) {
+    forIn(methods, function(length, method) {
         if (base[method]) Class.prototype[method] = addMethod(base, length, method, attribute);
     });
 };
 
 // Support `collection.sortBy('attr')` and `collection.findWhere({id: 1})`.
 var cb = function(iteratee, instance) {
-    if (_.isFunction(iteratee)) return iteratee;
-    if (_.isObject(iteratee) && !instance._isModel(iteratee)) return modelMatcher(iteratee);
-    if (_.isString(iteratee)) return function(model) { return model.get(iteratee); };
+    if (isFunction(iteratee)) return iteratee;
+    if (isObject(iteratee) && !instance._isModel(iteratee)) return modelMatcher(iteratee);
+    if (isString(iteratee)) return function(model) { return model.get(iteratee); };
     return iteratee;
 };
 var modelMatcher = function(attrs) {
-    var matcher = _.matches(attrs);
+    var matcher = matches(attrs);
     return function(model) {
         return matcher(model.attributes);
     };

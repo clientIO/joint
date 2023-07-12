@@ -1646,6 +1646,10 @@ export function iteratee(func) {
     return baseIteratee(typeof func == 'function' ? func : baseClone(func, true));
 }
 
+export function matches(source) {
+    return baseMatches(baseClone(source, true));
+}
+
 // -- helper classes
 class Stack {
     constructor(entries) {
