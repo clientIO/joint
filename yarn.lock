@@ -127,7 +127,7 @@ __metadata:
     grunt-webpack: 3.1.3
     handlebars: 4.7.7
     jit-grunt: 0.10.0
-    jquery: ~3.6.1
+    jquery: ~3.6.4
     karma: 3.1.4
     karma-chrome-launcher: 2.2.0
     karma-coverage: 1.1.2
@@ -6735,7 +6735,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"jquery@npm:~3.6.1":
+"jquery@npm:~3.6.4":
   version: 3.6.4
   resolution: "jquery@npm:3.6.4"
   checksum: 8354f7bd0a0424aa714ee1b6b1ef74b410f834eb5c8501682289b358bc151f11677f11188b544f3bb49309d6ec4d15d1a5de175661250c206b06185a252f706f
