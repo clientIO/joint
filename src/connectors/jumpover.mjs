@@ -94,7 +94,7 @@ function updateJumpOver(paper) {
 function findLineIntersections(line, crossCheckLines) {
     return util.toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
         var intersection = line.intersection(crossCheckLine);
-        if (intersection && !(line.containsPoint(crossCheckLine.start) || line.containsPoint(crossCheckLine.end))) {
+        if (intersection) {
             res.push(intersection);
         }
         return res;
@@ -377,12 +377,20 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt) { // esli
     var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
         // iterate all links and grab the intersections with this line
         // these are then sorted by distance so the line can be split more easily
-
         var intersections = links.reduce(function(res, link, i) {
             // don't intersection with itself
             if (link !== thisModel) {
 
-                var lineIntersections = findLineIntersections(thisLine, linkLines[i]);
+                const overlapIndex = linkLines[i].findIndex((line) => g.Line.overlapExists(thisLine, line));
+                const linkLinesToTest = util.cloneDeep(linkLines[i]);
+
+                // Overlap occurs and the end point of one segment lies on thisLine
+                if (overlapIndex > -1 && thisLine.containsPoint(linkLinesToTest[overlapIndex].end)) {
+                    // Remove the next segment because there will never be an jump
+                    linkLinesToTest.splice(overlapIndex + 1, 1);
+                }
+                var lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
+                // var lineIntersections = findLineIntersections(thisLine, linkLines[i]);
                 res.push.apply(res, lineIntersections);
             }
             return res;
