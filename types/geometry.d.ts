@@ -351,6 +351,8 @@ export namespace g {
         toString(): string;
 
         serialize(): string;
+
+        static overlapExists(line1: Line, line2: Line): boolean;
     }
 
     class Path {
