@@ -1,4 +1,4 @@
-/*! JointJS v3.7.2 (2023-05-16) - JavaScript diagramming library
+/*! JointJS Core v3.7.2 (2023-07-17) - Core module for JointJS
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
