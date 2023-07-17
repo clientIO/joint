@@ -11,7 +11,7 @@ module.exports = function() {
         },
         deps: {
             files: {
-                'build/min/lodash.min.js': '../../node_modules/lodash/lodash.js'
+                'build/min/lodash.min.js': 'node_modules/lodash/lodash.js'
             }
         },
         geometry: {

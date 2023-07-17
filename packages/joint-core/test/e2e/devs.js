@@ -14,7 +14,7 @@ describe('Discrete Event System Specification', function() {
 
     before(function(done) {
 
-        url = e2eHelpers.staticUrl('/packages/joint-core/demo/devs/index.html');
+        url = e2eHelpers.staticUrl('/demo/devs/index.html');
         client = e2eHelpers.client(done);
     });
 

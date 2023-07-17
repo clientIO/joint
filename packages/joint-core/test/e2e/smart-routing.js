@@ -14,7 +14,7 @@ describe('Smart Routing', function() {
 
     before(function(done) {
 
-        url = e2eHelpers.staticUrl('/packages/joint-core/demo/routing/index.html');
+        url = e2eHelpers.staticUrl('/demo/routing/index.html');
         client = e2eHelpers.client(done);
     });
 

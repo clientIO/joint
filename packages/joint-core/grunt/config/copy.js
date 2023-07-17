@@ -40,22 +40,22 @@ module.exports = function(grunt) {
                 },
                 {
                     nonull: true,
-                    src: '../../node_modules/backbone/backbone-min.js',
+                    src: 'node_modules/backbone/backbone-min.js',
                     dest: 'build/docs/js/lib/backbone.min.js'
                 },
                 {
                     nonull: true,
-                    src: '../../node_modules/dagre/dist/dagre.min.js',
+                    src: 'node_modules/dagre/dist/dagre.min.js',
                     dest: 'build/docs/js/lib/dagre.min.js'
                 },
                 {
                     nonull: true,
-                    src: '../../node_modules/graphlib/dist/graphlib.min.js',
+                    src: 'node_modules/graphlib/dist/graphlib.min.js',
                     dest: 'build/docs/js/lib/graphlib.min.js'
                 },
                 {
                     nonull: true,
-                    src: '../../node_modules/jquery/dist/jquery.min.js',
+                    src: 'node_modules/jquery/dist/jquery.min.js',
                     dest: 'build/docs/js/lib/jquery.min.js'
                 },
                 {
@@ -75,7 +75,7 @@ module.exports = function(grunt) {
                 },
                 {
                     nonull: true,
-                    src: '../../node_modules/prism-themes/themes/prism-one-light.css',
+                    src: 'node_modules/prism-themes/themes/prism-one-light.css',
                     dest: 'build/docs/css/prism.css'
                 }
             ]

@@ -193,7 +193,7 @@ export const jointPlugins = Object.keys(modules.plugins).reduce((res, namespace)
 // -----------------------------------------------------------------------------------
 
 export const dagre = {
-    input: '../../node_modules/dagre/index.js',
+    input: 'node_modules/dagre/index.js',
     external: ['lodash'],
     output: [{
         file: 'build/esm/dagre.mjs',
@@ -207,7 +207,7 @@ export const dagre = {
 };
 
 export const jquery = {
-    input: '../../node_modules/jquery/dist/jquery.js',
+    input: 'node_modules/jquery/dist/jquery.js',
     output: [{
         file: 'build/esm/jquery.mjs',
         format: 'esm',
@@ -220,7 +220,7 @@ export const jquery = {
 };
 
 export const lodash = {
-    input: '../../node_modules/lodash/index.js',
+    input: 'node_modules/lodash/index.js',
     output: [{
         file: 'build/esm/lodash.mjs',
         format: 'esm',
@@ -233,7 +233,7 @@ export const lodash = {
 };
 
 export const backbone = {
-    input: '../../node_modules/backbone/backbone.js',
+    input: 'node_modules/backbone/backbone.js',
     external: ['underscore', 'jquery'],
     output: [{
         file: 'build/esm/backbone.mjs',

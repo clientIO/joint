@@ -34,8 +34,8 @@ var e2eHelpers = module.exports = {
     createStaticServer: function(cb) {
 
         app = express();
-        //console.log("server: " + __dirname + '/../../..')
-        app.use(serveStatic(__dirname + '/../../..'));
+        //console.log("server: " + __dirname + '/..')
+        app.use(serveStatic(__dirname + '/..'));
         app.server = app.listen(port, host);
         cb();
     },

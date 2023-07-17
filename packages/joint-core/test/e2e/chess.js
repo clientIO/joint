@@ -14,7 +14,7 @@ describe('Chess', function() {
 
     before(function(done) {
 
-        url = e2eHelpers.staticUrl('/packages/joint-core/demo/chess/index.html');
+        url = e2eHelpers.staticUrl('/demo/chess/index.html');
         client = e2eHelpers.client(done);
     });
 
