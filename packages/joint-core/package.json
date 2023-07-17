@@ -1,7 +1,7 @@
 {
   "name": "@joint/core",
   "title": "JointJS Core",
-  "version": "3.6.5",
+  "version": "3.7.2",
   "description": "Core module for JointJS",
   "sideEffects": false,
   "main": "./dist/joint.min.js",
