@@ -1,4 +1,4 @@
-import { dia, util } from '@joint/core';
+import { dia, util } from 'jointjs';
 import { NODE_BG_COLOR, NODE_HEADER_BG_COLOR, NODE_HEADER_COLOR, NODE_IP_COLOR } from '../../theme';
 
 export const HEADER_HEIGHT = 40;

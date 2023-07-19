@@ -1,4 +1,4 @@
-import { dia, highlighters, util } from '@joint/core';
+import { dia, highlighters, util } from 'jointjs';
 import { Node } from '.';
 import { ALERT_COLOR } from '../theme';
 

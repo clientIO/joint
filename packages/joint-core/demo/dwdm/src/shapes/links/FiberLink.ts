@@ -1,4 +1,4 @@
-import { dia, util } from '@joint/core';
+import { dia, util } from 'jointjs';
 import Link from './Link';
 import { FIBER_LINK_COLOR } from '../../theme';
 

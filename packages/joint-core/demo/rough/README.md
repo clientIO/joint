@@ -2,7 +2,7 @@
 
 ## Setup
 
-Use Yarn and NPM to run this demo.
+Use Yarn to run this demo.
 
 You need to build *JointJS* first. Navigate to the root folder and run:
 ```bash
@@ -12,7 +12,7 @@ yarn run build
 
 Navigate to this directory, then run:
 ```bash
-npm install
+yarn install
 ```
 
 Then open `index.html` in your browser:

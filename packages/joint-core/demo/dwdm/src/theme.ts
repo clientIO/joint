@@ -1,4 +1,4 @@
-import { util } from '@joint/core';
+import { util } from 'jointjs';
 
 const PATTERN_1 = (fgColor: string, bgColor: string) => {
     return {

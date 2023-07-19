@@ -9,9 +9,10 @@
   },
   "license": "MPL-2.0",
   "private": true,
-  "scripts": {},
   "dependencies": {
     "vue": "3.0.0"
   },
-  "devDependencies": {}
+  "volta": {
+    "extends": "../../package.json"
+  }
 }

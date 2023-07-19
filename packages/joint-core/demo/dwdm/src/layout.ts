@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 import { Node, ExternalLink } from './shapes';
 import {
     NODE_MARGIN_HORIZONTAL, NODE_PADDING_VERTICAL,

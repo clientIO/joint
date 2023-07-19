@@ -1,5 +1,4 @@
-import '@joint/core/dist/joint.css';
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 import LinkedProcess from './linked-process';
 import Input from './input';
 import Mark from './mark';

@@ -1,4 +1,4 @@
-import { dia, routers } from '@joint/core';
+import { dia, routers } from 'jointjs';
 import { Node, cellNamespace } from './shapes';
 import { ExpandButton, NodePlaceholder, toggleCellAlert } from './shapes/highlighters';
 import { multiLinkAnchor } from './shapes/anchors';
@@ -10,7 +10,7 @@ import { layout } from './layout';
 import data from './examples/example1';
 
 import '../style.css';
-import '@joint/core/dist/joint.css';
+import 'jointjs/dist/joint.css';
 
 const graph = new dia.Graph({}, { cellNamespace });
 
