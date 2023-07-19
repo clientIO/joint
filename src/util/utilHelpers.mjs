@@ -1617,35 +1617,6 @@ function createCaseFirst(methodName) {
     };
 }
 
-const arrayFilter = (array, predicate) => {
-    var index = -1,
-        length = array == null ? 0 : array.length,
-        resIndex = 0,
-        result = [];
-  
-    while (++index < length) {
-        var value = array[index];
-        if (predicate(value, index, array)) {
-            result[resIndex++] = value;
-        }
-    }
-    return result;
-};
-
-const baseFunctions = (object, props) => {
-    return arrayFilter(props, function(key) {
-        return isFunction(object[key]);
-    });
-};
-
-export const functions = (object) => {
-    return object == null ? [] : baseFunctions(object, keys(object));
-};
-
-export function iteratee(func) {
-    return baseIteratee(typeof func == 'function' ? func : baseClone(func, true));
-}
-
 export function matches(source) {
     return baseMatches(baseClone(source, true));
 }

@@ -244,7 +244,7 @@ export const Cell = Model.extend({
 
             const collection = graph.get('cells');
 
-            let shouldUpdate = (collection.indexOf(this) !== (collection.length - cells.length));
+            let shouldUpdate = (Array.from(collection).indexOf(this) !== (collection.length - cells.length));
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;
@@ -286,7 +286,7 @@ export const Cell = Model.extend({
 
             var collection = graph.get('cells');
 
-            let shouldUpdate = (collection.indexOf(this) !== 0);
+            let shouldUpdate = (Array.from(collection).indexOf(this) !== 0);
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;

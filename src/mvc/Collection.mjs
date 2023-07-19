@@ -1,15 +1,14 @@
-import _ from 'lodash';
-
 import { Events } from './Events';
 import { Model } from './Model.mjs';
-import { extend, addUnderscoreMethods } from './mvcUtils.mjs';
+import { extend, addMethodsUtil } from './mvcUtils.mjs';
 import { 
     assign,
     clone,
     isFunction,
-    isString
+    isString,
+    sortBy,
+    toArray
 } from '../util/util.mjs';
-import { functions } from '../util/utilHelpers.mjs';
 
 
 // Collection
@@ -69,7 +68,7 @@ assign(Collection.prototype, Events, {
     // The JSON representation of a Collection is an array of the
     // models' attributes.
     toJSON: function(options) {
-        return this.map(function(model) { return model.toJSON(options); });
+        return Array.from(this).map(function(model) { return model.toJSON(options); });
     },
 
     // Add a model, or list of models to the set. `models` may be
@@ -274,18 +273,6 @@ assign(Collection.prototype, Events, {
         return this.models[index];
     },
 
-    // Return models with matching attributes. Useful for simple cases of
-    // `filter`.
-    where: function(attrs, first) {
-        return this[first ? 'find' : 'filter'](attrs);
-    },
-
-    // Return the first model with matching attributes. Useful for simple cases
-    // of `find`.
-    findWhere: function(attrs) {
-        return this.where(attrs, true);
-    },
-
     // Force the collection to re-sort itself. You don't need to call this under
     // normal circumstances, as the set will maintain sort order as each item
     // is added.
@@ -309,7 +296,7 @@ assign(Collection.prototype, Events, {
 
     // Pluck an attribute from each model in the collection.
     pluck: function(attr) {
-        return this.map(attr + '');
+        return Array.from(this).map(attr + '');
     },
 
     // Create a new instance of a model in this collection. Add the model to the
@@ -403,7 +390,7 @@ assign(Collection.prototype, Events, {
             var model = this.get(models[i]);
             if (!model) continue;
 
-            var index = this.indexOf(model);
+            var index = Array.from(this).indexOf(model);
             this.models.splice(index, 1);
             this.length--;
 
@@ -531,40 +518,39 @@ CollectionIterator.prototype.next = function() {
     return { value: void 0, done: true };
 };
 
-// Underscore methods that we want to implement on the Collection.
-// 90% of the core usefulness of Collections is actually implemented
-// right here:
-var collectionMethods = { forEach: 3, each: 3, map: 3, collect: 3, reduce: 0,
-    foldl: 0, inject: 0, reduceRight: 0, foldr: 0, find: 3, detect: 3, filter: 3,
-    select: 3, reject: 3, every: 3, all: 3, some: 3, any: 3, include: 3, includes: 3,
-    contains: 3, invoke: 0, max: 3, min: 3, toArray: 1, size: 1, first: 3,
-    head: 3, take: 3, initial: 3, rest: 3, tail: 3, drop: 3, last: 3,
-    without: 0, difference: 0, indexOf: 3, shuffle: 1, lastIndexOf: 3,
-    isEmpty: 1, chain: 1, sample: 3, partition: 3, groupBy: 3, countBy: 3,
-    sortBy: 3, indexBy: 3, findIndex: 3, findLastIndex: 3 };
+//  Methods that we want to implement on the Collection.
+var collectionMethods = { toArray: 1, first: 3, last: 3, sortBy: 3 };
 
 
-// Mix in each Underscore method as a proxy to `Collection#models`.
+// Mix in each method as a proxy to `Collection#models`.
 
-var config = [Collection, collectionMethods, 'models'];
+var config = [ Collection, collectionMethods, 'models' ];
 
-function proxyMethods(config) {
+function addMethods(config) {
     var Base = config[0],
         methods = config[1],
         attribute = config[2];
 
-    Base.mixin = function(obj) {
-        var mappings = Array.reduce(functions(obj), function(memo, name) {
-            memo[name] = 0;
-            return memo;
-        }, {});
-        addUnderscoreMethods(Base, obj, mappings, attribute);
+    function first(array) {
+        return (array && array.length) ? array[0] : undefined;
+    }
+
+    function last(array) {
+        var length = array == null ? 0 : array.length;
+        return length ? array[length - 1] : undefined;
+    }
+
+    const methodsToAdd = {
+        sortBy,
+        first,
+        last,
+        toArray
     };
 
-    addUnderscoreMethods(Base, _, methods, attribute);
+    addMethodsUtil(Base, methodsToAdd, methods, attribute);
 }
 
-proxyMethods(config);
+addMethods(config);
 
 // Set up inheritance for the collection.
 Collection.extend = extend;

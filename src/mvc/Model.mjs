@@ -1,7 +1,5 @@
-import _ from 'lodash';
-
 import { Events } from './Events';
-import { extend, addUnderscoreMethods } from './mvcUtils.mjs';
+import { extend } from './mvcUtils.mjs';
 import {
     assign,
     clone,
@@ -12,7 +10,6 @@ import {
     result,
     uniqueId 
 } from '../util/util.mjs';
-import { functions, iteratee } from '../util/utilHelpers.mjs';
 
 // Model
 // --------------
@@ -75,20 +72,10 @@ assign(Model.prototype, Events, {
         return this.attributes[attr];
     },
 
-    // Get the HTML-escaped value of an attribute.
-    escape: function(attr) {
-        return _.escape(this.get(attr));
-    },
-
     // Returns `true` if the attribute contains a value that is not null
     // or undefined.
     has: function(attr) {
         return this.get(attr) != null;
-    },
-
-    // Special-cased proxy to underscore's `_.matches` method.
-    matches: function(attrs) {
-        return !!iteratee(attrs, this)(this.attributes);
     },
 
     // Set a hash of model attributes on the object, firing `"change"`. This is
@@ -255,31 +242,6 @@ assign(Model.prototype, Events, {
     }
 
 });
-
-// Underscore methods that we want to implement on the Model, mapped to the
-// number of arguments they take.
-var modelMethods = { keys: 1, values: 1, pairs: 1, invert: 1, pick: 0,
-    omit: 0, chain: 1, isEmpty: 1 };
-
-var config = [Model, modelMethods, 'attributes'];
-
-function proxyMethods(config) {
-    var Base = config[0],
-        methods = config[1],
-        attribute = config[2];
-    
-    Base.mixin = function(obj) {
-        var mappings = Array.reduce(functions(obj), function(memo, name) {
-            memo[name] = 0;
-            return memo;
-        }, {});
-        addUnderscoreMethods(Base, obj, mappings, attribute);
-    };
-    
-    addUnderscoreMethods(Base, _, methods, attribute);
-}
-
-proxyMethods(config);
 
 // Set up inheritance for the model.
 Model.extend = extend;

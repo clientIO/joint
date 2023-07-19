@@ -42,11 +42,8 @@ export var extend = function(protoProps, staticProps) {
     return child;
 };
 
-// Proxy class methods to Underscore functions, wrapping the model's
+// Proxy class methods to functions, wrapping the model's
 // `attributes` object or collection's `models` array behind the scenes.
-//
-// collection.filter(function(model) { return model.get('age') > 10 });
-// collection.each(this.addView);
 //
 // `Function#apply` can be slow so we use the method's arg count, if we know it.
 var addMethod = function(base, length, method, attribute) {
@@ -71,19 +68,20 @@ var addMethod = function(base, length, method, attribute) {
     }
 };
 
-export var addUnderscoreMethods = function(Class, base, methods, attribute) {
+export var addMethodsUtil = function(Class, base, methods, attribute) {
     forIn(methods, function(length, method) {
         if (base[method]) Class.prototype[method] = addMethod(base, length, method, attribute);
     });
 };
 
-// Support `collection.sortBy('attr')` and `collection.findWhere({id: 1})`.
+// Support `collection.sortBy('attr')`.
 var cb = function(iteratee, instance) {
     if (isFunction(iteratee)) return iteratee;
     if (isObject(iteratee) && !instance._isModel(iteratee)) return modelMatcher(iteratee);
     if (isString(iteratee)) return function(model) { return model.get(iteratee); };
     return iteratee;
 };
+
 var modelMatcher = function(attrs) {
     var matcher = matches(attrs);
     return function(model) {

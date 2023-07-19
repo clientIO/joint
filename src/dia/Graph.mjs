@@ -405,18 +405,17 @@ export const Graph = Model.extend({
     },
 
     getCells: function() {
-
         return this.get('cells').toArray();
     },
 
     getElements: function() {
 
-        return this.get('cells').filter(cell => cell.isElement());
+        return Array.from(this.get('cells')).filter(cell => cell.isElement());
     },
 
     getLinks: function() {
 
-        return this.get('cells').filter(cell => cell.isLink());
+        return Array.from(this.get('cells')).filter(cell => cell.isLink());
     },
 
     getFirstCell: function() {

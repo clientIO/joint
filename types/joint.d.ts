@@ -10,7 +10,6 @@
 // typings: https://github.com/CaselIT/typings-jointjs
 
 /// <reference types="jquery" />
-/// <reference types="lodash" />
 /// <reference path="./geometry.d.ts" />
 /// <reference path="./vectorizer.d.ts" />
 /// <reference path="./mvc.d.ts" />
