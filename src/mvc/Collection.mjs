@@ -314,7 +314,6 @@ assign(Collection.prototype, Events, {
             if (wait) collection.add(m, callbackOpts);
             if (success) success.call(callbackOpts.context, m, resp, callbackOpts);
         };
-        model.save(null, options);
         return model;
     },
 

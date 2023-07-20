@@ -6,11 +6,6 @@ declare module './joint' {
 
         type List<T> = ArrayLike<T>;
         type ListIterator<T, TResult> = (value: T, index: number, collection: List<T>) => TResult;
-        type MemoIterator<T, TResult> = (prev: TResult, curr: T, indexOrKey: any, list: T[]) => TResult;
-
-        interface Dictionary<T> {
-            [index: string]: T;
-        }
 
         type _Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
         type _Result<T> = T | (() => T);
@@ -62,16 +57,8 @@ declare module './joint' {
 
         interface ModelSetOptions extends Silenceable, Validable {}
 
-        interface ModelFetchOptions extends PersistenceOptions, ModelSetOptions, Parseable {}
-
         interface ModelSaveOptions extends Silenceable, Waitable, Validable, Parseable, PersistenceOptions {
             patch?: boolean | undefined;
-        }
-
-        interface ModelDestroyOptions extends Waitable, PersistenceOptions {}
-
-        interface CollectionFetchOptions extends PersistenceOptions, Parseable, CollectionSetOptions {
-            reset?: boolean | undefined;
         }
 
         type ObjectHash = Record<string, any>;
@@ -171,7 +158,6 @@ declare module './joint' {
         class ModelBase extends EventsMixin {
             parse(response: any, options?: any): any;
             toJSON(options?: any): any;
-            sync(...arg: any[]): JQueryXHR;
         }
 
         /**
@@ -204,11 +190,6 @@ declare module './joint' {
             idAttribute: string;
             validationError: any;
 
-            /**
-             * Returns the relative URL where the model's resource would be located on the server.
-             */
-            url: () => string;
-
             urlRoot: _Result<string>;
 
             /**
@@ -221,7 +202,6 @@ declare module './joint' {
             constructor(attributes?: T, options?: CombinedModelConstructorOptions<E>);
             initialize(attributes?: T, options?: CombinedModelConstructorOptions<E, this>): void;
 
-            fetch(options?: ModelFetchOptions): JQueryXHR;
 
             /**
              * For strongly-typed access to attributes, use the `get` method only privately in public getter properties.
@@ -254,7 +234,6 @@ declare module './joint' {
             changedAttributes(attributes?: Partial<T>): Partial<T> | false;
             clear(options?: Silenceable): this;
             clone(): Model;
-            destroy(options?: ModelDestroyOptions): JQueryXHR | false;
             escape(attribute: _StringKey<T>): string;
             has(attribute: _StringKey<T>): boolean;
             hasChanged(attribute?: _StringKey<T>): boolean;
@@ -262,26 +241,10 @@ declare module './joint' {
             isValid(options?: any): boolean;
             previous<A extends _StringKey<T>>(attribute: A): T[A] | null | undefined;
             previousAttributes(): Partial<T>;
-            save(attributes?: Partial<T> | null, options?: ModelSaveOptions): JQueryXHR;
             unset(attribute: _StringKey<T>, options?: Silenceable): this;
             validate(attributes: Partial<T>, options?: any): any;
             private _validate(attributes: Partial<T>, options: any): boolean;
 
-            // mixins from underscore
-
-            keys(): string[];
-            values(): any[];
-            pairs(): any[];
-            invert(): any;
-            pick<A extends _StringKey<T>>(keys: A[]): Partial<Pick<T, A>>;
-            pick<A extends _StringKey<T>>(...keys: A[]): Partial<Pick<T, A>>;
-            pick(fn: (value: any, key: any, object: any) => any): Partial<T>;
-            omit<A extends _StringKey<T>>(keys: A[]): Partial<_Omit<T, A>>;
-            omit<A extends _StringKey<T>>(...keys: A[]): Partial<_Omit<T, A>>;
-            omit(fn: (value: any, key: any, object: any) => any): Partial<T>;
-            chain(): any;
-            isEmpty(): boolean;
-            matches(attrs: any): boolean;
         }
 
         class Collection<TModel extends Model = Model> extends ModelBase implements Events {
@@ -304,7 +267,6 @@ declare module './joint' {
             constructor(models?: TModel[] | Array<Record<string, any>>, options?: any);
             initialize(models?: TModel[] | Array<Record<string, any>>, options?: any): void;
 
-            fetch(options?: CollectionFetchOptions): JQueryXHR;
 
             /**
              * Specify a model attribute name (string) or function that will be used to sort the collection.
@@ -346,8 +308,6 @@ declare module './joint' {
             shift(options?: Silenceable): TModel;
             sort(options?: Silenceable): this;
             unshift(model: TModel, options?: AddOptions): TModel;
-            where(properties: any): TModel[];
-            findWhere(properties: any): TModel;
             modelId(attrs: any): any;
 
             values(): Iterator<TModel>;
@@ -365,64 +325,14 @@ declare module './joint' {
              */
             slice(min?: number, max?: number): TModel[];
 
-            // mixins from underscore
+            // mixins
 
-            all(iterator?: ListIterator<TModel, boolean>, context?: any): boolean;
-            any(iterator?: ListIterator<TModel, boolean>, context?: any): boolean;
-            chain(): any;
-            collect<TResult>(iterator: ListIterator<TModel, TResult>, context?: any): TResult[];
-            contains(value: TModel): boolean;
-            countBy(iterator?: ListIterator<TModel, any>): Dictionary<number>;
-            countBy(iterator: string): Dictionary<number>;
-            detect(iterator: ListIterator<TModel, boolean>, context?: any): TModel;
-            difference(others: TModel[]): TModel[];
-            drop(n?: number): TModel[];
-            each(iterator: ListIterator<TModel, void>, context?: any): TModel[];
-            every(iterator: ListIterator<TModel, boolean>, context?: any): boolean;
-            filter(iterator: ListIterator<TModel, boolean>, context?: any): TModel[];
-            find(iterator: ListIterator<TModel, boolean>, context?: any): TModel;
-            findIndex(predicate: ListIterator<TModel, boolean>, context?: any): number;
-            findLastIndex(predicate: ListIterator<TModel, boolean>, context?: any): number;
             first(): TModel;
             first(n: number): TModel[];
-            foldl<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult, context?: any): TResult;
-            foldr<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult, context?: any): TResult;
-            forEach(iterator: ListIterator<TModel, void>, context?: any): TModel[];
-            groupBy(iterator: ListIterator<TModel, any> | string, context?: any): Dictionary<TModel[]>;
-            head(): TModel;
-            head(n: number): TModel[];
-            include(value: TModel): boolean;
-            includes(value: TModel): boolean;
-            indexBy(iterator: ListIterator<TModel, any>, context?: any): Dictionary<TModel>;
-            indexBy(iterator: string, context?: any): Dictionary<TModel>;
-            indexOf(value: TModel, isSorted?: boolean): number;
-            initial(): TModel;
-            initial(n: number): TModel[];
-            inject<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult, context?: any): TResult;
-            invoke(methodName: string, ...args: any[]): any;
-            isEmpty(): boolean;
             last(): TModel;
             last(n: number): TModel[];
-            lastIndexOf(value: TModel, from?: number): number;
-            map<TResult>(iterator: ListIterator<TModel, TResult>, context?: any): TResult[];
-            max(iterator?: ListIterator<TModel, any>, context?: any): TModel;
-            min(iterator?: ListIterator<TModel, any>, context?: any): TModel;
-            partition(iterator: ListIterator<TModel, boolean>): TModel[][];
-            reduce<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult, context?: any): TResult;
-            reduceRight<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult, context?: any): TResult;
-            reject(iterator: ListIterator<TModel, boolean>, context?: any): TModel[];
-            rest(n?: number): TModel[];
-            sample(): TModel;
-            sample(n: number): TModel[];
-            select(iterator: ListIterator<TModel, boolean>, context?: any): TModel[];
-            shuffle(): TModel[];
-            size(): number;
-            some(iterator?: ListIterator<TModel, boolean>, context?: any): boolean;
             sortBy(iterator?: ListIterator<TModel, any>, context?: any): TModel[];
             sortBy(iterator: string, context?: any): TModel[];
-            tail(n?: number): TModel[];
-            take(): TModel;
-            take(n: number): TModel[];
             toArray(): TModel[];
 
             /**
@@ -430,7 +340,6 @@ declare module './joint' {
              */
             url: _Result<string>;
 
-            without(...values: TModel[]): TModel[];
         }
 
         interface ViewBaseOptions<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> {
