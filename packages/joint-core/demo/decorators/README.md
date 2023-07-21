@@ -1,8 +1,8 @@
-# JointJS Decorators Example Application
+# JointJS Decorators Demo
 
 ## Setup
 
-Use Yarn and NPM to run this example.
+Use Yarn to run this demo.
 
 You need to build *JointJS* first. Navigate to the root folder and run:
 ```bash
@@ -11,8 +11,8 @@ yarn install
 
 Navigate to this directory, then run:
 ```bash
-npm install
-npm start
+yarn install
+yarn start
 ```
 
 ## License

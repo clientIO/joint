@@ -1,5 +1,4 @@
-import '@joint/core/dist/joint.css';
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 import {
     LinkedProcess,
     Input,
@@ -17,7 +16,7 @@ import {
     Table,
     Cube,
     Card,
-} from '@joint/general-shapes';
+} from '../../../../joint-general-shapes';
 import {
     ParallelogramOffsetControl,
     HexagonOffsetControl,
@@ -30,7 +29,7 @@ import {
     TableDividerTool,
     CubeCornerTool,
     CardOffsetControl,
-} from '@joint/general-shapes-tools';
+} from '../../../../joint-general-shapes-tools';
 
 const namespace = {
     LinkedProcess,
