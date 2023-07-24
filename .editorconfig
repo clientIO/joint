@@ -1,8 +1,9 @@
 # EditorConfig is awesome: https://EditorConfig.org
 
 # top-most EditorConfig file
- root = true
+root = true
 
- # 4 space indentation
- [*.js]
- indent_style = space
+# 4 space indentation
+[*.js]
+indent_style = space
+indent_size = 4

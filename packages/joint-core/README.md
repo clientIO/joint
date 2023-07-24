@@ -26,7 +26,7 @@ Navigate to the root `joint` directory:
 cd joint
 ```
 
-Install all NPM dependencies:
+Install all dependencies:
 ```bash
 yarn install
 ```
