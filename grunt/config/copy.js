@@ -90,7 +90,7 @@ module.exports = function(grunt) {
         },
         appsLibs: {
             files: [
-                { expand: true, nonull: true, cwd: 'build/', src: '**/*.d.ts', dest: 'demo/ts-demo/vendor/' },
+                { nonull: true, src: 'build/joint.d.ts', dest: 'demo/ts-demo/vendor/joint.d.ts' },
                 { nonull: true, src: 'build/joint.js', dest: 'demo/ts-demo/vendor/joint.js' },
                 { nonull: true, src: 'build/joint.css', dest: 'demo/ts-demo/vendor/joint.css' }
             ]

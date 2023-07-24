@@ -23,6 +23,13 @@ module.exports = function(grunt) {
             ],
             options: watchOptions,
             tasks: ['build']
+        },
+        types: {
+            options: watchOptions,
+            files: [
+                'types/**/*'
+            ],
+            tasks: ['newer:concat:types']
         }
     };
 };
