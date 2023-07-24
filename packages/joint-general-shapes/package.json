@@ -1,20 +1,21 @@
 {
   "name": "@joint/general-shapes",
   "title": "JointJS General Shapes",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "General Shapes module for JointJS",
   "main": "src/index.ts",
-  "homepage": "http://jointjs.com",
+  "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
-    "url": "http://client.io"
+    "url": "https://client.io"
   },
   "license": "MPL-2.0",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "dist": "tsc"
+    "prepublish": "tsc",
+    "dist": "yarn run prepublish"
   },
   "files": [
     "build/",
@@ -28,7 +29,7 @@
     "@joint/decorators": "workspace:^"
   },
   "devDependencies": {
-    "typescript": "4.4.4"
+    "typescript": "4.8.3"
   },
   "volta": {
     "node": "16.18.1",

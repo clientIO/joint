@@ -3,10 +3,11 @@
   "version": "3.7.2",
   "title": "JointJS",
   "description": "JavaScript diagramming library",
-  "homepage": "http://jointjs.com",
+  "sideEffects": false,
+  "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
-    "url": "http://client.io"
+    "url": "https://client.io"
   },
   "contributors": [
     "David Durman <david@client.io> (https://github.com/DavidDurman)",
@@ -27,7 +28,6 @@
   },
   "license": "MPL-2.0",
   "private": true,
-  "sideEffects": false,
   "scripts": {
     "build": "yarn workspaces foreach run build",
     "test": "yarn workspaces foreach run test",

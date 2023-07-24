@@ -165,7 +165,7 @@ __metadata:
   resolution: "@joint/decorators@workspace:packages/joint-decorators"
   dependencies:
     "@joint/core": "workspace:^"
-    typescript: 4.4.4
+    typescript: 4.8.3
   languageName: unknown
   linkType: soft
 
@@ -176,7 +176,7 @@ __metadata:
     "@joint/core": "workspace:^"
     "@joint/decorators": "workspace:^"
     "@joint/general-shapes": "workspace:^"
-    typescript: 4.4.4
+    typescript: 4.8.3
   languageName: unknown
   linkType: soft
 
@@ -186,7 +186,7 @@ __metadata:
   dependencies:
     "@joint/core": "workspace:^"
     "@joint/decorators": "workspace:^"
-    typescript: 4.4.4
+    typescript: 4.8.3
   languageName: unknown
   linkType: soft
 
@@ -11639,16 +11639,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.4.4":
-  version: 4.4.4
-  resolution: "typescript@npm:4.4.4"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 89ecb8436bb48ef5594d49289f5f89103071716b6e4844278f4fb3362856e31203e187a9c76d205c3f0b674d221a058fd28310dbcbcf5d95e9a57229bb5203f1
-  languageName: node
-  linkType: hard
-
 "typescript@npm:4.8.3":
   version: 4.8.3
   resolution: "typescript@npm:4.8.3"
@@ -11656,16 +11646,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 8286a5edcaf3d68e65c451aa1e7150ad1cf53ee0813c07ec35b7abdfdb10f355ecaa13c6a226a694ae7a67785fd7eeebf89f845da0b4f7e4a35561ddc459aba0
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@4.4.4#~builtin<compat/typescript>":
-  version: 4.4.4
-  resolution: "typescript@patch:typescript@npm%3A4.4.4#~builtin<compat/typescript>::version=4.4.4&hash=bbeadb"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 3d1b04449662193544b81d055479d03b4c5dca95f1a82f8922596f089d894c9fefbe16639d1d9dfe26a7054419645530cef44001bc17aed1fe1eb3c237e9b3c7
   languageName: node
   linkType: hard
 

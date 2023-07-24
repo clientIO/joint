@@ -2,7 +2,7 @@
 
 ECMAScript / TypeScript decorator for defining *[JointJS](https://www.jointjs.com/)* shapes.
 
-This library fully depends on *[JointJS](https://github.com/clientio/joint) (>=3.5)*, so please read its `README.md` before using this library.
+This library fully depends on [JointJS](https://github.com/clientio/joint) (*>=3.5*), so please read its README before using this library.
 
 ## Setup
 
@@ -217,6 +217,18 @@ The `<g>` wrapper in the template is added automatically and always has a `@sele
 </g>
 ```
 
+To create selectors pointing to multiple SVG elements at once, use `@group-selector`.
+
+```handlebars
+<rect @group-selector="rectangles" fill="red">
+<rect @group-selector="rectangles" fill="blue">
+<rect @group-selector="rectangles" fill="green">
+```
+
+```ts
+// Change the stroke of all rectangles
+model.attr(['rectangles', 'stroke'], 'black');
+```
 
 #### <a id="Model.template.caveats"></a> Caveats
 

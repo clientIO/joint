@@ -2,7 +2,7 @@
 
 A collection of general ECMAScript / TypeScript shapes for *[JointJS](https://www.jointjs.com/)*.
 
-This library fully depends on *[JointJS](https://github.com/clientio/joint) (>=3.5)*, so please read its `README.md` before using this library.
+This library fully depends on [JointJS](https://github.com/clientio/joint) (*>=3.5*), so please read its `README.md` before using this library.
 
 ## License
 

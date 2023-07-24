@@ -66,7 +66,16 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
         selector = (selectorAttribute ? selectorAttribute.value : util.guid({}));
     }
 
+    let groupSelector = markup.groupSelector;
+    if (!groupSelector) {
+        const groupSelectorAttribute = attributes.getNamedItem('@group-selector');
+        if (groupSelectorAttribute) {
+            groupSelector = groupSelectorAttribute.value.split(',').map(s => s.trim());
+        }
+    }
+
     markup.selector = selector;
+    markup.groupSelector = groupSelector;
     markup.tagName = tagName;
 
     if (node.childElementCount === 0) {

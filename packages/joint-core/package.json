@@ -8,10 +8,10 @@
   "module": "joint.mjs",
   "style": "./dist/joint.min.css",
   "types": "./dist/joint.d.ts",
-  "homepage": "http://jointjs.com",
+  "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
-    "url": "http://client.io"
+    "url": "https://client.io"
   },
   "license": "MPL-2.0",
   "publishConfig": {
