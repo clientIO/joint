@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "JointJS - Decorators Demo",
   "main": "index.js",
+  "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
-    "url": "http://client.io"
+    "url": "https://client.io"
   },
   "license": "MPL-2.0",
   "private": true,

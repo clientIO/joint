@@ -4,6 +4,7 @@ module.exports = {
     resolve: {
         extensions: ['.ts', '.tsx', '.js']
     },
+    devtool: 'inline-source-map',
     entry: './src/index.ts',
     output: {
         filename: 'bundle.js',
@@ -13,10 +14,8 @@ module.exports = {
     mode: 'development',
     module: {
         rules: [
-            {
-                test: /\.ts?$/,
-                loader: 'ts-loader'
-            },
+            { test: /\.ts?$/, loader: 'ts-loader' },
+            { test: /\.svg$/, loader: 'raw-loader' },
             {
                 test: /\.css$/,
                 use: [

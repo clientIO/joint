@@ -5,7 +5,7 @@ module.exports = {
         ],
         options: {
             reporter: 'spec',
-            timeout: 1200000,
+            timeout: 120000,
             clearRequireCache: true
         }
     },

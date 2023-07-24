@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "description": "JointJS - DWDM Demo",
   "main": "index.js",
+  "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
-    "url": "http://client.io"
+    "url": "https://client.io"
   },
   "license": "MPL-2.0",
   "private": true,
   "scripts": {
-    "start": "webpack serve --config webpack.config.js",
+    "start": "webpack-dev-server",
     "tsc": "tsc"
   },
   "dependencies": {

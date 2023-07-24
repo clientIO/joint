@@ -1,4 +1,4 @@
-# JointJS Rough Demo
+# JointJS RoughJS Demo
 
 ## Setup
 
