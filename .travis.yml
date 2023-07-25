@@ -3,7 +3,7 @@ node_js:
   - 16
 
 before_install:
-  - yarn global add grunt-cli
+  - npm install -g grunt-cli
   - corepack enable
 
 install:
