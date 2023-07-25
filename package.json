@@ -46,7 +46,8 @@
     "build:docs": "yarn workspaces foreach run build:docs"
   },
   "workspaces": [
-    "./packages/*"
+    "./packages/*",
+    "./examples/*"
   ],
   "volta": {
     "node": "16.18.1",

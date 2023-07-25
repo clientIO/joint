@@ -1,9 +1,0 @@
-{
-  "extends": "../../../../tsconfig.common.json",
-  "compilerOptions": {
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitAny": false,
-    "outDir": "./build"
-  }
-}
