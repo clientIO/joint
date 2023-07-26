@@ -3349,7 +3349,6 @@ export namespace mvc {
     type List<T> = ArrayLike<T>;
     type ListIterator<T, TResult> = (value: T, index: number, collection: List<T>) => TResult;
 
-    type _Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
     type _Result<T> = T | (() => T);
     type _StringKey<T> = keyof T & string;
 
@@ -3375,20 +3374,8 @@ export namespace mvc {
         validate?: boolean | undefined;
     }
 
-    interface Waitable {
-        wait?: boolean | undefined;
-    }
-
     interface Parseable {
         parse?: boolean | undefined;
-    }
-
-    interface PersistenceOptions extends Partial<_Omit<JQueryAjaxSettings, 'success' | 'error'>> {
-        // TODO: Generalize modelOrCollection
-        success?: ((modelOrCollection: any, response: any, options: any) => void) | undefined;
-        error?: ((modelOrCollection: any, response: any, options: any) => void) | undefined;
-        emulateJSON?: boolean | undefined;
-        emulateHTTP?: boolean | undefined;
     }
 
     interface ModelConstructorOptions<TModel extends Model = Model> extends ModelSetOptions, Parseable {
@@ -3398,10 +3385,6 @@ export namespace mvc {
     type CombinedModelConstructorOptions<E, M extends Model<any, any, E> = Model> = ModelConstructorOptions<M> & E;
 
     interface ModelSetOptions extends Silenceable, Validable {}
-
-    interface ModelSaveOptions extends Silenceable, Waitable, Validable, Parseable, PersistenceOptions {
-        patch?: boolean | undefined;
-    }
 
     type ObjectHash = Record<string, any>;
     
@@ -3498,7 +3481,6 @@ export namespace mvc {
     }
 
     class ModelBase extends EventsMixin {
-        parse(response: any, options?: any): any;
         toJSON(options?: any): any;
     }
 
@@ -3531,8 +3513,6 @@ export namespace mvc {
         id: string | number;
         idAttribute: string;
         validationError: any;
-
-        urlRoot: _Result<string>;
 
         /**
          * For use with models as ES classes. If you define a preinitialize
@@ -3579,7 +3559,6 @@ export namespace mvc {
         escape(attribute: _StringKey<T>): string;
         has(attribute: _StringKey<T>): boolean;
         hasChanged(attribute?: _StringKey<T>): boolean;
-        isNew(): boolean;
         isValid(options?: any): boolean;
         previous<A extends _StringKey<T>>(attribute: A): T[A] | null | undefined;
         previousAttributes(): Partial<T>;
@@ -3627,7 +3606,6 @@ export namespace mvc {
         get(id: number | string | Model): TModel;
         has(key: number | string | Model): boolean;
         clone(): this;
-        create(attributes: any, options?: ModelSaveOptions): TModel;
         pluck(attribute: string): any[];
         push(model: TModel, options?: AddOptions): TModel;
         pop(options?: Silenceable): TModel;
@@ -3676,11 +3654,6 @@ export namespace mvc {
         sortBy(iterator?: ListIterator<TModel, any>, context?: any): TModel[];
         sortBy(iterator: string, context?: any): TModel[];
         toArray(): TModel[];
-
-        /**
-         * Sets the url property (or function) on a collection to reference its location on the server.
-         */
-        url: _Result<string>;
 
     }
 

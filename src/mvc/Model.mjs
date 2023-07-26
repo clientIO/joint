@@ -29,7 +29,6 @@ export var Model = function(attributes, options) {
     this.cid = uniqueId(this.cidPrefix);
     this.attributes = {};
     if (options.collection) this.collection = options.collection;
-    if (options.parse) attrs = this.parse(attrs, options) || {};
     var attributeDefaults = result(this, 'defaults');
     attrs = defaults(assign({}, attributeDefaults, attrs), attributeDefaults);
     this.set(attrs, options);
@@ -209,20 +208,9 @@ assign(Model.prototype, Events, {
         return clone(this._previousAttributes);
     },
 
-    // **parse** converts a response into the hash of attributes to be `set` on
-    // the model. The default implementation is just to pass the response along.
-    parse: function(resp, options) {
-        return resp;
-    },
-
     // Create a new model with identical attributes to this one.
     clone: function() {
         return new this.constructor(this.attributes);
-    },
-
-    // A model is new if it has never been saved to the server, and lacks an id.
-    isNew: function() {
-        return !this.has(this.idAttribute);
     },
 
     // Check if the model is currently in a valid state.

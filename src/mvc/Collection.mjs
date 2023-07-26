@@ -99,9 +99,6 @@ assign(Collection.prototype, Events, {
         if (models == null) return;
 
         options = assign({}, setOptions, options);
-        if (options.parse && !this._isModel(models)) {
-            models = this.parse(models, options) || [];
-        }
 
         var singular = !Array.isArray(models);
         models = singular ? [models] : models.slice();
@@ -137,7 +134,6 @@ assign(Collection.prototype, Events, {
             if (existing) {
                 if (merge && model !== existing) {
                     var attrs = this._isModel(model) ? model.attributes : model;
-                    if (options.parse) attrs = existing.parse(attrs, options);
                     existing.set(attrs, options);
                     toMerge.push(existing);
                     if (sortable && !sort) sort = existing.hasChanged(sortAttr);
@@ -173,7 +169,7 @@ assign(Collection.prototype, Events, {
         var orderChanged = false;
         var replace = !sortable && add && remove;
         if (set.length && replace) {
-            orderChanged = this.length !== set.length || Array.some(this.models, function(m, index) {
+            orderChanged = this.length !== set.length || this.models.some(function(m, index) {
                 return m !== set[index];
             });
             this.models.length = 0;
@@ -296,31 +292,7 @@ assign(Collection.prototype, Events, {
 
     // Pluck an attribute from each model in the collection.
     pluck: function(attr) {
-        return Array.from(this).map(attr + '');
-    },
-
-    // Create a new instance of a model in this collection. Add the model to the
-    // collection immediately, unless `wait: true` is passed, in which case we
-    // wait for the server to agree.
-    create: function(model, options) {
-        options = options ? clone(options) : {};
-        var wait = options.wait;
-        model = this._prepareModel(model, options);
-        if (!model) return false;
-        if (!wait) this.add(model, options);
-        var collection = this;
-        var success = options.success;
-        options.success = function(m, resp, callbackOpts) {
-            if (wait) collection.add(m, callbackOpts);
-            if (success) success.call(callbackOpts.context, m, resp, callbackOpts);
-        };
-        return model;
-    },
-
-    // **parse** converts a response into a list of models to be added to the
-    // collection. The default implementation is just to pass it through.
-    parse: function(resp, options) {
-        return resp;
+        return Array.from(this).map((model) => model.get(attr + ''));
     },
 
     // Create a new collection with an identical list of models as this one.
@@ -407,6 +379,7 @@ assign(Collection.prototype, Events, {
             removed.push(model);
             this._removeReference(model, options);
         }
+        if (models.length > 0 && !options.silent) delete options.index;
         return removed;
     },
 

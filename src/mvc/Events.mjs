@@ -12,7 +12,7 @@ import {
 // succession.
 //
 //     const object = {};
-//     _.extend(object, Events);
+//     assign(object, Events);
 //     object.on('expand', function(){ alert('expanded'); });
 //     object.trigger('expand');
 //
@@ -161,12 +161,13 @@ var offApi = function(events, name, callback, options) {
 
     // Delete all event listeners and "drop" events.
     if (!name && !context && !callback) {
-        for (names = Object.keys(listeners); i < names.length; i++) {
-            listeners[names[i]].cleanup();
+        if(listeners != null) {
+            for (names = Object.keys(listeners); i < names.length; i++) {
+                listeners[names[i]].cleanup();
+            }
         }
         return;
     }
-
     names = name ? [name] : Object.keys(events);
     for (; i < names.length; i++) {
         name = names[i];
@@ -235,13 +236,18 @@ var onceMap = function(map, name, callback, offer) {
 
 // Creates a function that is restricted to invoking 'func' once.
 // Repeat calls to the function return the value of the first invocation.
-var onceInvoke = function(fn) {
-    var called = false;
+var onceInvoke = function(func) {
     var result;
-    return function(...args)  {
-        if (!called) {
-            result = fn(...args);
-            called = true;
+    if (typeof func != 'function') {
+        throw new TypeError('Expected a function');
+    }
+    var n = 2;
+    return function() {
+        if (--n > 0) {
+            result = func.apply(this, arguments);
+        }
+        if (n <= 1) {
+            func = undefined;
         }
         return result;
     };
