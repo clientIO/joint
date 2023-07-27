@@ -5,35 +5,6 @@ import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
 import { types } from './types.mjs';
 
-function sortPointsAscending(p1, p2) {
-
-    let { x: x1, y: y1 } = p1;
-    let { x: x2, y: y2 } = p2;
-
-    if (x1 > x2) {
-
-        let swap = x1;
-        x1 = x2;
-        x2 = swap;
-
-        swap = y1;
-        y1 = y2;
-        y2 = swap;
-    }
-
-    if (y1 > y2) {
-        let swap = x1;
-        x1 = x2;
-        x2 = swap;
-
-        swap = y1;
-        y1 = y2;
-        y2 = swap;
-    }
-
-    return [new Point(x1, y1), new Point(x2, y2)];
-}
-
 const {
     max,
     min
@@ -375,17 +346,6 @@ Line.prototype = {
 
         return new Point(this.end.x - this.start.x, this.end.y - this.start.y);
     }
-};
-
-Line.overlapExists = function(line1, line2) {
-
-    const [{ x: x1, y: y1 }, { x: x2, y: y2 }] = sortPointsAscending(line1.start, line1.end);
-    const [{ x: x3, y: y3 }, { x: x4, y: y4 }] = sortPointsAscending(line2.start, line2.end);
-
-    const xMatch = x1 <= x4 && x3 <= x2;
-    const yMatch = y1 <= y4 && y3 <= y2;
-
-    return xMatch && yMatch;
 };
 
 // For backwards compatibility:
