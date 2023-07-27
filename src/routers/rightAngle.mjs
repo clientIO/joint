@@ -19,6 +19,50 @@ const OPPOSITE_DIRECTIONS = {
     [Directions.BOTTOM]: Directions.TOP
 };
 
+const AREA_CROSSING_DIRECTIONS = {
+    90: Directions.TOP,
+    180: Directions.RIGHT,
+    270: Directions.BOTTOM,
+    0: Directions.LEFT
+};
+
+function resolveSides(source, target) {
+    const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, bbox: sourceBBox, direction: sourceDirection } = source;
+    const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, bbox: targetBBox, direction: targetDirection } = target;
+
+    let sourceSide;
+
+    if (!sourceView) {
+        const sourceLinkAnchorBBox = new g.Rect(sx0, sy0, 0, 0);
+        sourceSide = DEFINED_DIRECTIONS.includes(sourceDirection) ? sourceDirection : sourceLinkAnchorBBox.sideNearestToPoint(targetPoint);
+    } else if (sourceView.model.isLink()) {
+        sourceSide = getDirectionForLinkConnection(targetPoint, sourcePoint, sourceView);
+    } else if (sourceDirection === Directions.ANCHOR_SIDE) {
+        sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
+    } else if (sourceDirection === Directions.MAGNET_SIDE) {
+        sourceSide = sourceView.model.getBBox().sideNearestToPoint(sourcePoint);
+    } else {
+        sourceSide = sourceDirection;
+    }
+
+    let targetSide;
+
+    if (!targetView) {
+        const targetLinkAnchorBBox = new g.Rect(tx0, ty0, 0, 0);
+        targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : targetLinkAnchorBBox.sideNearestToPoint(sourcePoint);
+    } else if (targetView.model.isLink()) {
+        targetSide = getDirectionForLinkConnection(sourcePoint, targetPoint, targetView);
+    } else if (targetDirection === Directions.ANCHOR_SIDE) {
+        targetSide = targetBBox.sideNearestToPoint(targetPoint);
+    } else if (targetDirection === Directions.MAGNET_SIDE) {
+        targetSide = targetView.model.getBBox().sideNearestToPoint(targetPoint);
+    } else {
+        targetSide = targetDirection;
+    }
+
+    return [sourceSide, targetSide];
+}
+
 function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     const tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
     const roundedAngle = Math.round(tangent.angle() / 90) * 90;
@@ -56,8 +100,7 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAncho
         bbox,
         width,
         height,
-        direction,
-        isVertex: false
+        direction
     };
 }
 
@@ -77,8 +120,8 @@ function pointDataFromVertex({ x, y }, nextBBox) {
 }
 
 function routeBetweenPoints(source, target, margin) {
-    const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, bbox: sourceBBox, width: sourceWidth, height: sourceHeight, direction: sourceDirection } = source;
-    const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, bbox: targetBBox, width: targetWidth, height: targetHeight, direction: targetDirection } = target;
+    const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, width: sourceWidth, height: sourceHeight } = source;
+    const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, width: targetWidth, height: targetHeight } = target;
 
     const tx1 = tx0 + targetWidth;
     const ty1 = ty0 + targetHeight;
@@ -102,20 +145,7 @@ function routeBetweenPoints(source, target, margin) {
 
     const sourceOutsidePoint = sourcePoint.clone();
 
-    let sourceSide;
-
-    if (!sourceView) {
-        const sourceLinkAnchorBBox = new g.Rect(sx0, sy0, 0, 0);
-        sourceSide = DEFINED_DIRECTIONS.includes(sourceDirection) ? sourceDirection : sourceLinkAnchorBBox.sideNearestToPoint(targetPoint);
-    } else if (sourceView.model.isLink()) {
-        sourceSide = getDirectionForLinkConnection(targetPoint, sourcePoint, sourceView);
-    } else if (sourceDirection === Directions.ANCHOR_SIDE) {
-        sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
-    } else if (sourceDirection === Directions.MAGNET_SIDE) {
-        sourceSide = sourceView.model.getBBox().sideNearestToPoint(sourcePoint);
-    } else {
-        sourceSide = sourceDirection;
-    }
+    const [sourceSide, targetSide] = resolveSides(source, target);
 
     switch (sourceSide) {
         case 'left':
@@ -133,21 +163,6 @@ function routeBetweenPoints(source, target, margin) {
     }
 
     const targetOutsidePoint = targetPoint.clone();
-
-    let targetSide;
-
-    if (!targetView) {
-        const targetLinkAnchorBBox = new g.Rect(tx0, ty0, 0, 0);
-        targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : targetLinkAnchorBBox.sideNearestToPoint(sourcePoint);
-    } else if (targetView.model.isLink()) {
-        targetSide = getDirectionForLinkConnection(sourcePoint, targetPoint, targetView);
-    } else if (targetDirection === Directions.ANCHOR_SIDE) {
-        targetSide = targetBBox.sideNearestToPoint(targetPoint);
-    } else if (targetDirection === Directions.MAGNET_SIDE) {
-        targetSide = targetView.model.getBBox().sideNearestToPoint(targetPoint);
-    } else {
-        targetSide = targetDirection;
-    }
 
     switch (targetSide) {
         case 'left':
@@ -172,6 +187,33 @@ function routeBetweenPoints(source, target, margin) {
     const scy = (sy0 + sy1) / 2;
     const middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
     const middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
+
+    if (!(isSourceEl && isTargetEl) && (sox === tox || soy === toy)) {
+        const line = new g.Line(sourcePoint, targetPoint);
+        const angle = line.angle();
+
+        if (isSourceEl && AREA_CROSSING_DIRECTIONS[angle] !== sourceSide) {
+            const result = [{ x: sox, y: soy }];
+
+            // there can be a rare case where the source and target are the same point
+            // and that can cause trouble
+            if (sox !== tox || soy !== toy) {
+                result.push({ x: tox, y: toy });
+            }
+
+            return result;
+        } else if (isTargetEl && OPPOSITE_DIRECTIONS[AREA_CROSSING_DIRECTIONS[angle]] !== targetSide) {
+            const result = [{ x: tox, y: toy }];
+
+            // there can be a rare case where the source and target are the same point
+            // and that can cause trouble
+            if (sox !== tox || soy !== toy) {
+                result.unshift({ x: sox, y: soy });
+            }
+
+            return result;
+        }
+    }
 
     if (sourceSide === 'left' && targetSide === 'right') {
         if (smx0 <= tmx1) {
@@ -306,7 +348,7 @@ function routeBetweenPoints(source, target, margin) {
             { x: tox, y: y1 }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
-        if (tx0 >= sox + sourceMargin || tx1 <= sox - sourceMargin) {
+        if ((tx0 >= sox + sourceMargin || tx1 <= sox - sourceMargin) && (isTargetEl || isSourceEl)) {
             return [
                 { x: sox, y: Math.max(soy, toy) },
                 { x: tox, y: Math.max(soy, toy) }
@@ -362,12 +404,27 @@ function routeBetweenPoints(source, target, margin) {
             }
         }
 
-        return [
-            { x: x2, y: soy },
+        const result = [
             { x: x2, y },
             { x: x1, y },
-            { x: x1, y: toy }
         ];
+
+        // x1 and x2 are equal - redundant point
+        if (x1 === x2) {
+            result.pop();
+        }
+
+        // There are cases where 2 points are enough to draw the route and
+        // additional points would cause problems
+        if (soy !== y) {
+            result.unshift({ x: x2, y: soy });
+        }
+
+        if (toy !== y) {
+            result.push({ x: x1, y: toy });
+        }
+
+        return result;
     } else if (sourceSide === 'right' && targetSide === 'right') {
         let y;
         let x1 = Math.max((sx0 + tx1) / 2, tox);
@@ -387,12 +444,27 @@ function routeBetweenPoints(source, target, margin) {
             }
         }
 
-        return [
-            { x: x2, y: soy },
-            { x: x2, y },
-            { x: x1, y },
-            { x: x1, y: toy }
-        ];
+        const result = [];
+
+        // Add points to the result array based on the conditions
+        if (x1 !== x2) {
+            result.push({ x: x2, y });
+            result.push({ x: x1, y });
+        } else {
+            result.push({ x: x1, y });
+        }
+
+        // There are cases where 2 points are enough to draw the route and
+        // additional points would cause problems
+        if (soy !== y) {
+            result.unshift({ x: x2, y: soy });
+        }
+
+        if (toy !== y) {
+            result.push({ x: x1, y: toy });
+        }
+
+        return result;
     } else if (sourceSide === 'top' && targetSide === 'right') {
         if (soy > toy) {
             if (sox < tox) {
@@ -691,7 +763,7 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     const isTargetPort = !!linkView.model.target().port;
     const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor);
-    // // First point is always the source anchor point
+
     let resultVertices = [];
     let source = sourcePoint;
 
@@ -706,13 +778,35 @@ function rightAngleRouter(vertices, opt, linkView) {
         const nextBBox = new g.Rect(next.x, next.y, 0, 0);
         const target = pointDataFromVertex(current, nextBBox);
 
+        if (new g.Point(current).equals(resultVertices[resultVertices.length - 1])) {
+            target.direction = OPPOSITE_DIRECTIONS[target.direction];
+            source = target;
+            continue;
+        }
+
         resultVertices.push(...routeBetweenPoints(source, target, margin));
 
         target.direction = OPPOSITE_DIRECTIONS[target.direction];
         source = target;
     }
 
-    resultVertices.push(...routeBetweenPoints(source, targetPoint, margin));
+    const targetPointRoute = routeBetweenPoints(source, targetPoint, margin);
+
+    if (new g.Point(targetPointRoute[0]).equals(resultVertices[resultVertices.length - 1])) resultVertices.push(...targetPointRoute.slice(1));
+    else resultVertices.push(...targetPointRoute);
+
+    // Clean up - remove the first and the last point if they are the same as
+    // the source and target points because they would be redundant
+
+    if (sourcePoint.point.equals(resultVertices[0])) {
+        resultVertices.shift();
+    }
+
+    const lastIndex = resultVertices.length - 1;
+
+    if (targetPoint.point.equals(resultVertices[lastIndex])) {
+        resultVertices.pop();
+    }
 
     return resultVertices;
 }
