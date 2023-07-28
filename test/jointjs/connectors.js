@@ -354,40 +354,4 @@ QUnit.module('connectors', function(hooks) {
 
         assert.checkDataPath(pathData, 'M 335.31 300.31 C 384.148 328.507 435 343.607 435 400', 'curve link with rotate was correctly rendered');
     });
-
-    QUnit.test('jumpover connector - stacked links do not cause jumps', function(assert) {
-        const element1 = new joint.shapes.standard.Rectangle({
-            position: { x: 50, y: 50 },
-            size: { width: 50, height: 50 },
-        });
-
-        const element2 = element1.clone();
-        element2.position(50, 150);
-
-        const link1 = new joint.shapes.standard.Link({
-            source: { x: 25, y: 300 },
-            target: { id: element1.id },
-            connector: { name: 'jumpover' },
-            vertices: [
-                { x: 25, y: 75 }
-            ],
-        });
-
-        const link2 = new joint.shapes.standard.Link({
-            source: { x: 25, y: 300 },
-            target: { id: element2.id },
-            connector: { name: 'jumpover' },
-            vertices: [
-                { x: 25, y: 175 }
-            ]
-        });
-
-        this.graph.addCells([element1, element2, link2, link1]);
-
-        const linkView = link1.findView(this.paper);
-        const pathData = linkView.metrics.data;
-
-        // The link consists of two straight lines - no jumps
-        assert.checkDataPath(pathData, 'M 25 300 L 25 75 L 50 75');
-    });
 });

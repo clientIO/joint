@@ -94,7 +94,7 @@ function updateJumpOver(paper) {
 function findLineIntersections(line, crossCheckLines) {
     return util.toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
         var intersection = line.intersection(crossCheckLine);
-        if (intersection && !(line.containsPoint(crossCheckLine.start) || line.containsPoint(crossCheckLine.end))) {
+        if (intersection) {
             res.push(intersection);
         }
         return res;
