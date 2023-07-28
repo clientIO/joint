@@ -367,6 +367,16 @@ QUnit.module('util', function(hooks) {
             r = joint.util.breakText(text, size, { ...styles, lineHeight: `${correctLineHeightInPx}px` });
             assert.ok(r.split('\n').length * correctLineHeightInPx <= size.height, 'lineHeight in px');
         });
+
+        QUnit.test('NO_SPACE characters are not present in the result', function(assert) {
+            const NO_SPACE = 0;
+            const text = 'aaaaaaaaaaaaaa/ddddd\nc';
+
+            const size = { width: 100, height: 50 };
+            const r = joint.util.breakText(text, size, { ...styles });
+
+            assert.notOk(r.includes(NO_SPACE));
+        });
     });
 
     QUnit.test('util.parseCssNumeric', function(assert) {
