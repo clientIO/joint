@@ -736,7 +736,8 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
                         // move last letter to the beginning of the next word
                         words[i] = word.substring(0, p);
-                        words[i + 1] = word.substring(p) + (words[i + 1] === undefined ? '' : words[i + 1]);
+                        const nextWord = words[i + 1];
+                        words[i + 1] = word.substring(p) + (nextWord === undefined || nextWord === NO_SPACE ? '' : nextWord);
 
                     } else {
 
