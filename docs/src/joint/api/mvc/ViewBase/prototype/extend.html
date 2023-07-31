@@ -1,0 +1,29 @@
+<pre class="docs-method-signature"><code>mvc.ViewBase.extend(properties, [classProperties])</code></pre>
+
+<p>
+    Create a custom view class. You'll want to override the <code>render</code> function, specify your declarative <code>events</code>, and perhaps 
+    the <code>tagName</code>, <code>className</code>, or <code>id</code> of the View's root element.
+</p>
+
+<pre><code>var DocumentRow = mvc.ViewBase.extend({
+
+    tagName: "li",
+
+    className: "document-row",
+
+    events: {
+        "click .icon":          "open",
+        "click .button.edit":   "openEditDialog",
+        "click .button.delete": "destroy"
+    },
+
+    initialize: function() {
+        this.listenTo(this.model, "change", this.render);
+    },
+
+    render: function() {
+        ...
+    }
+
+});
+</code></pre>
