@@ -34,13 +34,13 @@ function outsideLayout(portPosition, elBBox, autoOrient, opt) {
     var offset = opt.offset;
     var orientAngle = 0;
 
-    var bBoxAngles = getBBoxAngles(elBBox);
-    if ((angle < bBoxAngles[1]) || (angle > bBoxAngles[2])) {
+    const [topLeftAngle, bottomLeftAngle, bottomRightAngle, topRightAngle] = getBBoxAngles(elBBox);
+    if ((angle < bottomLeftAngle) || (angle > bottomRightAngle)) {
         y = '.3em';
         tx = offset;
         ty = 0;
         textAnchor = 'start';
-    } else if (angle < bBoxAngles[0]) {
+    } else if (angle < topLeftAngle) {
         tx = 0;
         ty = -offset;
         if (autoOrient) {
@@ -51,7 +51,7 @@ function outsideLayout(portPosition, elBBox, autoOrient, opt) {
             textAnchor = 'middle';
             y = '0';
         }
-    } else if (angle < bBoxAngles[3]) {
+    } else if (angle < topRightAngle) {
         y = '.3em';
         tx = -offset;
         ty = 0;
@@ -87,13 +87,13 @@ function insideLayout(portPosition, elBBox, autoOrient, opt) {
     var offset = opt.offset;
     var orientAngle = 0;
 
-    var bBoxAngles = getBBoxAngles(elBBox);
-    if ((angle < bBoxAngles[1]) || (angle > bBoxAngles[2])) {
+    const [topLeftAngle, bottomLeftAngle, bottomRightAngle, topRightAngle] = getBBoxAngles(elBBox);
+    if ((angle < bottomLeftAngle) || (angle > bottomRightAngle)) {
         y = '.3em';
         tx = -offset;
         ty = 0;
         textAnchor = 'end';
-    } else if (angle < bBoxAngles[0]) {
+    } else if (angle < topLeftAngle) {
         tx = 0;
         ty = offset;
         if (autoOrient) {
@@ -104,7 +104,7 @@ function insideLayout(portPosition, elBBox, autoOrient, opt) {
             textAnchor = 'middle';
             y = '.6em';
         }
-    } else if (angle < bBoxAngles[3]) {
+    } else if (angle < topRightAngle) {
         y = '.3em';
         tx = offset;
         ty = 0;
