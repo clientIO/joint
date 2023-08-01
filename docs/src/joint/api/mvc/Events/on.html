@@ -1,0 +1,14 @@
+<pre class="docs-method-signature"><code>object.on(event, callback, [context])</code></pre>
+
+<p>
+    Bind a callback function to an object. The callback will be invoked whenever the event is fired.
+</p>
+
+<pre><code>model.on('change', ...);
+
+// Space-delimited list for more than one event
+film.on('change:title change:director', ...);
+
+// Supply a context value for "this" when the callback is invoked by passing the optional last argument
+model.on('change', this.render, this);
+</code></pre>

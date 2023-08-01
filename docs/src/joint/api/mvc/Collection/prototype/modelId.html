@@ -1,0 +1,26 @@
+<pre class="docs-method-signature"><code>collection.modelId(attrs, idAttribute)</code></pre>
+
+<p>
+    Override this method to return the value the collection will use to identify a model given its attributes. Useful for combining models from 
+    multiple tables with different <a href=#mvc.Model.prototype.idAttribute""><code>idAttribute</code></a> values into a single collection. 
+</p>
+
+<p>
+    By default returns the value of the given <code>idAttribute</code> within the <code>attrs</code>, or failing that, <code>id</code>. If your 
+    collection uses a <a href="#mvc.Collection.prototype.model">model factory</a> and the id ranges of those models might collide, you must override 
+    this method. 
+</p>
+
+<pre><code>const Shapes = mvc.Collection.extend({
+    modelId: function(attrs) {
+        return attrs.type + attrs.id;
+    }
+});
+
+const shapes = new Shapes([
+  { type: 'a', id: 1 },
+  { type: 'b', id: 1 }
+]);
+
+console.log(shapes.get('a1').id); // 1
+</code></pre>

@@ -1,0 +1,33 @@
+<pre class="docs-method-signature"><code>collection.comparator</code></pre>
+
+<p>
+    By default there is no comparator for a collection. If you define a comparator, it will be used to sort the collection any time a model is 
+    added. A comparator can be defined as a <a href="https://underscorejs.org/#sortBy" target="_blank"><code>sortBy</code></a> (pass a function 
+    that takes a single argument), as a 
+    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort" target="_blank"><code>sort</code></a> 
+    (pass a comparator function that expects two arguments), or as a string indicating the attribute to sort by. 
+</p>
+
+<p>
+    "sortBy" comparator functions take a model and return a numeric or string value by which the model should be ordered relative to others. 
+    "sort" comparator functions take two models, and return <code>-1</code> if the first model should come before the second, <code>0</code> if 
+    they are of the same rank and <code>1</code> if the first model should come after. Note that JointJS depends on the arity of your comparator 
+    function to determine between the two styles, so be careful if your comparator function is bound.
+</p>
+
+<pre><code>const Shape = new mvc.Model;
+const shapes = new mvc.Collection;
+
+shapes.comparator = 'order';
+
+shapes.add(new Shape({ order: 3, letter: "C" }));
+shapes.add(new Shape({ order: 2, letter: "B" }));
+shapes.add(new Shape({ order: 1, letter: "A" }));
+
+console.log(shapes.pluck('letter')); // A, B, C
+</code></pre>
+
+<p>
+    Note: Collections with a comparator will not automatically re-sort if you later change model attributes, so you may wish to call 
+    <code>sort</code> after changing model attributes that would affect the order. 
+</p>

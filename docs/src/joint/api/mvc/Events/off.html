@@ -1,0 +1,23 @@
+<pre class="docs-method-signature"><code>object.off([event], [callback], [context])</code></pre>
+
+<p>
+    Remove a previously-bound callback function from an object. If no context is specified, all of the versions of the callback with 
+    different contexts will be removed. If no callback is specified, all callbacks for the event will be removed. If no event is 
+    specified, callbacks for all events will be removed. 
+</p>
+
+<pre><code>// Removes just the `onChange` callback.
+model.off('change', onChange);
+
+// Removes all "change" callbacks.
+model.off('change');
+
+// Removes the `onChange` callback for all events.
+model.off(null, onChange);
+
+// Removes all callbacks for `context` for all events.
+model.off(null, null, context);
+
+// Removes all callbacks on `model`(including internal JointJS events).
+model.off();
+</code></pre>
