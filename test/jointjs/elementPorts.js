@@ -580,6 +580,1214 @@ QUnit.module('element ports', function() {
         });
     });
 
+    QUnit.module('port labels', function() {
+
+        QUnit.test('label attributes', function(assert) {
+
+            // assert that:
+            // - `group.attrs` (if any) overwrite `group.label.position.args.attrs`
+            //   - `group.label.position.args.attrs` (if any) overwrite portLabel layout function defaults
+            //     - portLabel layout function defaults (if any) overwrite portLabel defaults
+
+            // TODO: check `angle` property overwriting too
+            // - you can use `V.matrixToRotate(V.transformStringToMatrix('matrix(...)'))` to find angle from transform string
+
+            // when adding entries to `data.groups`, don't forget to add corresponding entries to `data.items`, too
+            const data = {
+                groups: {
+                    'manual': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'manual'
+                                //args: { x: 0, y: 0, angle: 0, attrs: {}}
+                            }
+                        }
+                    },
+                    'manualAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'manual'
+                                //args: { x: 0, y: 0, angle: 0 }
+                            }
+                        }
+                    },
+                    'manualLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'manual',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'start' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'manualBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'manual',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'start' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'left': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'left'
+                                //args: { x: -15, y: 0, angle: 0, attrs: { labelText: { y: '.3em', textAnchor: 'end' }}}
+                            }
+                        }
+                    },
+                    'leftAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'left'
+                                //args: { x: -15, y: 0, angle: 0 }
+                            }
+                        }
+                    },
+                    'leftLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'left',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'start' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'leftBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'left',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'start' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'right': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'right'
+                                //args: { x: 15, y: 0, angle: 0, attrs: { labelText: { y: '.3em', textAnchor: 'start' }}}
+                            }
+                        }
+                    },
+                    'rightAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'right'
+                                //args: { x: 15, y: 0, angle: 0 }
+                            }
+                        }
+                    },
+                    'rightLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'right',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'rightBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'right',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'top': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'top'
+                                //args: { x: 0, y: -15, angle: 0, attrs: { labelText: { y: '0', textAnchor: 'middle' }}}
+                            }
+                        }
+                    },
+                    'topAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'start' }
+                        },
+                        label: {
+                            position: {
+                                name: 'top'
+                                //args: { x: 0, y: -15, angle: 0 }
+                            }
+                        }
+                    },
+                    'topLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'top',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'topBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'start' }
+                        },
+                        label: {
+                            position: {
+                                name: 'top',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'bottom': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'bottom'
+                                //args: { x: 0, y: 15, angle: 0, attrs: { labelText: { y: '.6em', textAnchor: 'middle' }}}
+                            }
+                        }
+                    },
+                    'bottomAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'start' }
+                        },
+                        label: {
+                            position: {
+                                name: 'bottom'
+                                //args: { x: 0, y: 15, angle: 0 }
+                            }
+                        }
+                    },
+                    'bottomLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'bottom',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'bottomBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'start' }
+                        },
+                        label: {
+                            position: {
+                                name: 'bottom',
+                                args: { x: 10, y: 20, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'outside': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'outside'
+                                //args: { x: 0, y: 15, angle: 0, attrs: { labelText: { y: '.6em', textAnchor: 'middle' }}}
+                            }
+                        }
+                    },
+                    'outsideAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'start' }
+                        },
+                        label: {
+                            position: {
+                                name: 'outside'
+                                //args: { x: 0, y: 15, angle: 0 }
+                            }
+                        }
+                    },
+                    'outsideLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'outside',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'outsideBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'start' }
+                        },
+                        label: {
+                            position: {
+                                name: 'outside',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'outsideOriented': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'outsideOriented'
+                                //args: { x: 0, y: 15, angle: 90, attrs: { labelText: { y: '.3em', textAnchor: 'start' }}}
+                            }
+                        }
+                    },
+                    'outsideOrientedAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'outsideOriented'
+                                //args: { x: 0, y: 15, angle: 90 }
+                            }
+                        }
+                    },
+                    'outsideOrientedLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'outsideOriented',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 90 }
+                            }
+                        }
+                    },
+                    'outsideOrientedBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'outsideOriented',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 90 }
+                            }
+                        }
+                    },
+                    'inside': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'inside'
+                                //args: { x: 0, y: -15, angle: 0, attrs: { labelText: { y: '0', textAnchor: 'middle' }}}
+                            }
+                        }
+                    },
+                    'insideAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'start' }
+                        },
+                        label: {
+                            position: {
+                                name: 'inside'
+                                //args: { x: 0, y: -15, angle: 0 }
+                            }
+                        }
+                    },
+                    'insideLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'inside',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'insideBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'start' }
+                        },
+                        label: {
+                            position: {
+                                name: 'inside',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'insideOriented': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'insideOriented'
+                                //args: { x: 0, y: -15, angle: -90, attrs: { labelText: { y: '.3em', textAnchor: 'start' }}}
+                            }
+                        }
+                    },
+                    'insideOrientedAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'insideOriented'
+                                //args: { x: 0, y: -15, angle: -90 }
+                            }
+                        }
+                    },
+                    'insideOrientedLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'insideOriented',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: -90 }
+                            }
+                        }
+                    },
+                    'insideOrientedBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'insideOriented',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'end' }}}
+                                //args: { angle: -90 }
+                            }
+                        }
+                    },
+                    'radial': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'radial'
+                                //args: { x: -14, y: 14, angle: 0, attrs: { labelText: { y: '.3em', textAnchor: 'end' }}}
+                            }
+                        }
+                    },
+                    'radialAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'radial'
+                                //args: { x: -14, y: 14, angle: 0 }
+                            }
+                        }
+                    },
+                    'radialLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'radial',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'start' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'radialBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'radial',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'start' }}}
+                                //args: { angle: 0 }
+                            }
+                        }
+                    },
+                    'radialOriented': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'radialOriented'
+                                //args: { x: -14, y: 14, angle: -45, attrs: { labelText: { y: '.3em', textAnchor: 'end' }}}
+                            }
+                        }
+                    },
+                    'radialOrientedAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'radialOriented'
+                                //args: { x: -14, y: 14, angle: -45 }
+                            }
+                        }
+                    },
+                    'radialOrientedLabelAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: {
+                                name: 'radialOriented',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'start' }}}
+                                //args: { angle: -45 }
+                            }
+                        }
+                    },
+                    'radialOrientedBothAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: {
+                                name: 'radialOriented',
+                                args: { offset: 11, attrs: { labelText: { x: '.1em', y: '.2em', textAnchor: 'start' }}}
+                                //args: { angle: -45 }
+                            }
+                        }
+                    }
+                },
+                items: [
+                    {
+                        id: 'manual',
+                        group: 'manual'
+                    },
+                    {
+                        id: 'manualAttrs',
+                        group: 'manualAttrs'
+                    },
+                    {
+                        id: 'manualLabelAttrs',
+                        group: 'manualLabelAttrs'
+                    },
+                    {
+                        id: 'manualBothAttrs',
+                        group: 'manualBothAttrs'
+                    },
+                    {
+                        id: 'left',
+                        group: 'left'
+                    },
+                    {
+                        id: 'leftAttrs',
+                        group: 'leftAttrs'
+                    },
+                    {
+                        id: 'leftLabelAttrs',
+                        group: 'leftLabelAttrs'
+                    },
+                    {
+                        id: 'leftBothAttrs',
+                        group: 'leftBothAttrs'
+                    },
+                    {
+                        id: 'right',
+                        group: 'right'
+                    },
+                    {
+                        id: 'rightAttrs',
+                        group: 'rightAttrs'
+                    },
+                    {
+                        id: 'rightLabelAttrs',
+                        group: 'rightLabelAttrs'
+                    },
+                    {
+                        id: 'rightBothAttrs',
+                        group: 'rightBothAttrs'
+                    },
+                    {
+                        id: 'top',
+                        group: 'top'
+                    },
+                    {
+                        id: 'topAttrs',
+                        group: 'topAttrs'
+                    },
+                    {
+                        id: 'topLabelAttrs',
+                        group: 'topLabelAttrs'
+                    },
+                    {
+                        id: 'topBothAttrs',
+                        group: 'topBothAttrs'
+                    },
+                    {
+                        id: 'bottom',
+                        group: 'bottom'
+                    },
+                    {
+                        id: 'bottomAttrs',
+                        group: 'bottomAttrs'
+                    },
+                    {
+                        id: 'bottomLabelAttrs',
+                        group: 'bottomLabelAttrs'
+                    },
+                    {
+                        id: 'bottomBothAttrs',
+                        group: 'bottomBothAttrs'
+                    },
+                    {
+                        id: 'outside',
+                        group: 'outside'
+                    },
+                    {
+                        id: 'outsideAttrs',
+                        group: 'outsideAttrs'
+                    },
+                    {
+                        id: 'outsideLabelAttrs',
+                        group: 'outsideLabelAttrs'
+                    },
+                    {
+                        id: 'outsideBothAttrs',
+                        group: 'outsideBothAttrs'
+                    },
+                    {
+                        id: 'outsideOriented',
+                        group: 'outsideOriented'
+                    },
+                    {
+                        id: 'outsideOrientedAttrs',
+                        group: 'outsideOrientedAttrs'
+                    },
+                    {
+                        id: 'outsideOrientedLabelAttrs',
+                        group: 'outsideOrientedLabelAttrs'
+                    },
+                    {
+                        id: 'outsideOrientedBothAttrs',
+                        group: 'outsideOrientedBothAttrs'
+                    },
+                    {
+                        id: 'inside',
+                        group: 'inside'
+                    },
+                    {
+                        id: 'insideAttrs',
+                        group: 'insideAttrs'
+                    },
+                    {
+                        id: 'insideLabelAttrs',
+                        group: 'insideLabelAttrs'
+                    },
+                    {
+                        id: 'insideBothAttrs',
+                        group: 'insideBothAttrs'
+                    },
+                    {
+                        id: 'insideOriented',
+                        group: 'insideOriented'
+                    },
+                    {
+                        id: 'insideOrientedAttrs',
+                        group: 'insideOrientedAttrs'
+                    },
+                    {
+                        id: 'insideOrientedLabelAttrs',
+                        group: 'insideOrientedLabelAttrs'
+                    },
+                    {
+                        id: 'insideOrientedBothAttrs',
+                        group: 'insideOrientedBothAttrs'
+                    },
+                    {
+                        id: 'radial',
+                        group: 'radial'
+                    },
+                    {
+                        id: 'radialAttrs',
+                        group: 'radialAttrs'
+                    },
+                    {
+                        id: 'radialLabelAttrs',
+                        group: 'radialLabelAttrs'
+                    },
+                    {
+                        id: 'radialBothAttrs',
+                        group: 'radialBothAttrs'
+                    },
+                    {
+                        id: 'radialOriented',
+                        group: 'radialOriented'
+                    },
+                    {
+                        id: 'radialOrientedAttrs',
+                        group: 'radialOrientedAttrs'
+                    },
+                    {
+                        id: 'radialOrientedLabelAttrs',
+                        group: 'radialOrientedLabelAttrs'
+                    },
+                    {
+                        id: 'radialOrientedBothAttrs',
+                        group: 'radialOrientedBothAttrs'
+                    }
+                ]
+            };
+
+            const shape = create(data);
+            const view = new joint.dia.ElementView({ model: shape }).render();
+
+            // MANUAL:
+
+            const manualG = view.findPortNode('manual').parentElement;
+            assert.equal(manualG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const manualText = manualG.querySelector('text');
+            assert.equal(manualText.getAttribute('transform'), 'matrix(1,0,0,1,0,0)');
+            assert.equal(manualText.getAttribute('x'), null);
+            assert.equal(manualText.getAttribute('y'), null);
+            assert.equal(manualText.getAttribute('text-anchor'), null);
+
+            const manualAttrsG = view.findPortNode('manualAttrs').parentElement;
+            assert.equal(manualAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const manualAttrsText = manualAttrsG.querySelector('text');
+            assert.equal(manualAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,0)');
+            assert.equal(manualAttrsText.getAttribute('x'), '.11em');
+            assert.equal(manualAttrsText.getAttribute('y'), '.12em');
+            assert.equal(manualAttrsText.getAttribute('text-anchor'), 'middle');
+
+            const manualLabelAttrsG = view.findPortNode('manualLabelAttrs').parentElement;
+            assert.equal(manualLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const manualLabelAttrsText = manualLabelAttrsG.querySelector('text');
+            assert.equal(manualLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(manualLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(manualLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(manualLabelAttrsText.getAttribute('text-anchor'), 'start');
+
+            const manualBothAttrsG = view.findPortNode('manualBothAttrs').parentElement;
+            assert.equal(manualBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const manualBothAttrsText = manualBothAttrsG.querySelector('text');
+            assert.equal(manualBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            // `attrs` come from `group.attrs`
+            assert.equal(manualBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(manualBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(manualBothAttrsText.getAttribute('text-anchor'), 'middle');
+
+            // LEFT:
+
+            const leftG = view.findPortNode('left').parentElement;
+            assert.equal(leftG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const leftText = leftG.querySelector('text');
+            assert.equal(leftText.getAttribute('transform'), 'matrix(1,0,0,1,-15,0)');
+            assert.equal(leftText.getAttribute('x'), null);
+            assert.equal(leftText.getAttribute('y'), '.3em');
+            assert.equal(leftText.getAttribute('text-anchor'), 'end');
+
+            const leftAttrsG = view.findPortNode('leftAttrs').parentElement;
+            assert.equal(leftAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const leftAttrsText = leftAttrsG.querySelector('text');
+            assert.equal(leftAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,-15,0)');
+            assert.equal(leftAttrsText.getAttribute('x'), '.11em');
+            assert.equal(leftAttrsText.getAttribute('y'), '.12em');
+            assert.equal(leftAttrsText.getAttribute('text-anchor'), 'middle');
+
+            const leftLabelAttrsG = view.findPortNode('leftLabelAttrs').parentElement;
+            assert.equal(leftLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const leftLabelAttrsText = leftLabelAttrsG.querySelector('text');
+            assert.equal(leftLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(leftLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(leftLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(leftLabelAttrsText.getAttribute('text-anchor'), 'start');
+
+            const leftBothAttrsG = view.findPortNode('leftBothAttrs').parentElement;
+            assert.equal(leftBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const leftBothAttrsText = leftBothAttrsG.querySelector('text');
+            assert.equal(leftBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            // `attrs` come from `group.attrs`
+            assert.equal(leftBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(leftBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(leftBothAttrsText.getAttribute('text-anchor'), 'middle');
+
+            // RIGHT:
+
+            const rightG = view.findPortNode('right').parentElement;
+            assert.equal(rightG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const rightText = rightG.querySelector('text');
+            assert.equal(rightText.getAttribute('transform'), 'matrix(1,0,0,1,15,0)');
+            assert.equal(rightText.getAttribute('x'), null);
+            assert.equal(rightText.getAttribute('y'), '.3em');
+            assert.equal(rightText.getAttribute('text-anchor'), 'start');
+
+            const rightAttrsG = view.findPortNode('rightAttrs').parentElement;
+            assert.equal(rightAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const rightAttrsText = rightAttrsG.querySelector('text');
+            assert.equal(rightAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,15,0)');
+            assert.equal(rightAttrsText.getAttribute('x'), '.11em');
+            assert.equal(rightAttrsText.getAttribute('y'), '.12em');
+            assert.equal(rightAttrsText.getAttribute('text-anchor'), 'middle');
+
+            const rightLabelAttrsG = view.findPortNode('rightLabelAttrs').parentElement;
+            assert.equal(rightLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const rightLabelAttrsText = rightLabelAttrsG.querySelector('text');
+            assert.equal(rightLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(rightLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(rightLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(rightLabelAttrsText.getAttribute('text-anchor'), 'end');
+
+            const rightBothAttrsG = view.findPortNode('rightBothAttrs').parentElement;
+            assert.equal(rightBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const rightBothAttrsText = rightBothAttrsG.querySelector('text');
+            assert.equal(rightBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            // `attrs` come from `group.attrs`
+            assert.equal(rightBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(rightBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(rightBothAttrsText.getAttribute('text-anchor'), 'middle');
+
+            // TOP:
+
+            const topG = view.findPortNode('top').parentElement;
+            assert.equal(topG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const topText = topG.querySelector('text');
+            assert.equal(topText.getAttribute('transform'), 'matrix(1,0,0,1,0,-15)');
+            assert.equal(topText.getAttribute('x'), null);
+            assert.equal(topText.getAttribute('y'), '0');
+            assert.equal(topText.getAttribute('text-anchor'), 'middle');
+
+            const topAttrsG = view.findPortNode('topAttrs').parentElement;
+            assert.equal(topAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const topAttrsText = topAttrsG.querySelector('text');
+            assert.equal(topAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,-15)');
+            assert.equal(topAttrsText.getAttribute('x'), '.11em');
+            assert.equal(topAttrsText.getAttribute('y'), '.12em');
+            assert.equal(topAttrsText.getAttribute('text-anchor'), 'start');
+
+            const topLabelAttrsG = view.findPortNode('bottomLabelAttrs').parentElement;
+            assert.equal(topLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const topLabelAttrsText = topLabelAttrsG.querySelector('text');
+            assert.equal(topLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(topLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(topLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(topLabelAttrsText.getAttribute('text-anchor'), 'end');
+
+            const topBothAttrsG = view.findPortNode('bottomBothAttrs').parentElement;
+            assert.equal(topBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const topBothAttrsText = topBothAttrsG.querySelector('text');
+            assert.equal(topBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            // `attrs` come from `group.attrs`
+            assert.equal(topBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(topBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(topBothAttrsText.getAttribute('text-anchor'), 'start');
+
+            // BOTTOM:
+
+            const bottomG = view.findPortNode('bottom').parentElement;
+            assert.equal(bottomG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const bottomText = bottomG.querySelector('text');
+            assert.equal(bottomText.getAttribute('transform'), 'matrix(1,0,0,1,0,15)');
+            assert.equal(bottomText.getAttribute('x'), null);
+            assert.equal(bottomText.getAttribute('y'), '.6em');
+            assert.equal(bottomText.getAttribute('text-anchor'), 'middle');
+
+            const bottomAttrsG = view.findPortNode('bottomAttrs').parentElement;
+            assert.equal(bottomAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const bottomAttrsText = bottomAttrsG.querySelector('text');
+            assert.equal(bottomAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,15)');
+            assert.equal(bottomAttrsText.getAttribute('x'), '.11em');
+            assert.equal(bottomAttrsText.getAttribute('y'), '.12em');
+            assert.equal(bottomAttrsText.getAttribute('text-anchor'), 'start');
+
+            const bottomLabelAttrsG = view.findPortNode('bottomLabelAttrs').parentElement;
+            assert.equal(bottomLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const bottomLabelAttrsText = bottomLabelAttrsG.querySelector('text');
+            assert.equal(bottomLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(bottomLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(bottomLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(bottomLabelAttrsText.getAttribute('text-anchor'), 'end');
+
+            const bottomBothAttrsG = view.findPortNode('bottomBothAttrs').parentElement;
+            assert.equal(bottomBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const bottomBothAttrsText = bottomBothAttrsG.querySelector('text');
+            assert.equal(bottomBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            // `attrs` come from `group.attrs`
+            assert.equal(bottomBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(bottomBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(bottomBothAttrsText.getAttribute('text-anchor'), 'start');
+
+            // OUTSIDE:
+            // = bottom
+
+            const outsideG = view.findPortNode('outside').parentElement;
+            assert.equal(outsideG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const outsideText = outsideG.querySelector('text');
+            assert.equal(outsideText.getAttribute('transform'), 'matrix(1,0,0,1,0,15)');
+            assert.equal(outsideText.getAttribute('x'), null);
+            assert.equal(outsideText.getAttribute('y'), '.6em');
+            assert.equal(outsideText.getAttribute('text-anchor'), 'middle');
+
+            const outsideAttrsG = view.findPortNode('outsideAttrs').parentElement;
+            assert.equal(outsideAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const outsideAttrsText = outsideAttrsG.querySelector('text');
+            assert.equal(outsideAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,15)');
+            assert.equal(outsideAttrsText.getAttribute('x'), '.11em');
+            assert.equal(outsideAttrsText.getAttribute('y'), '.12em');
+            assert.equal(outsideAttrsText.getAttribute('text-anchor'), 'start');
+
+            const outsideLabelAttrsG = view.findPortNode('outsideLabelAttrs').parentElement;
+            assert.equal(outsideLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const outsideLabelAttrsText = outsideLabelAttrsG.querySelector('text');
+            assert.equal(outsideLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,11)');
+            assert.equal(outsideLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(outsideLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(outsideLabelAttrsText.getAttribute('text-anchor'), 'end');
+
+            const outsideBothAttrsG = view.findPortNode('outsideBothAttrs').parentElement;
+            assert.equal(outsideBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const outsideBothAttrsText = outsideBothAttrsG.querySelector('text');
+            assert.equal(outsideBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,11)');
+            // `attrs` come from `group.attrs`
+            assert.equal(outsideBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(outsideBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(outsideBothAttrsText.getAttribute('text-anchor'), 'start');
+
+            // OUTSIDE ORIENTED:
+            // = like right, written top-down (angle: 90 clockwise)
+
+            const outsideOrientedG = view.findPortNode('outsideOriented').parentElement;
+            assert.equal(outsideOrientedG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const outsideOrientedText = outsideOrientedG.querySelector('text');
+            assert.equal(outsideOrientedText.getAttribute('transform'), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,15)');
+            assert.equal(outsideOrientedText.getAttribute('x'), null);
+            assert.equal(outsideOrientedText.getAttribute('y'), '.3em');
+            assert.equal(outsideOrientedText.getAttribute('text-anchor'), 'start');
+
+            const outsideOrientedAttrsG = view.findPortNode('outsideOrientedAttrs').parentElement;
+            assert.equal(outsideOrientedAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const outsideOrientedAttrsText = outsideOrientedAttrsG.querySelector('text');
+            assert.equal(outsideOrientedAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,15)');
+            assert.equal(outsideOrientedAttrsText.getAttribute('x'), '.11em');
+            assert.equal(outsideOrientedAttrsText.getAttribute('y'), '.12em');
+            assert.equal(outsideOrientedAttrsText.getAttribute('text-anchor'), 'middle');
+
+            const outsideOrientedLabelAttrsG = view.findPortNode('outsideOrientedLabelAttrs').parentElement;
+            assert.equal(outsideOrientedLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const outsideOrientedLabelAttrsText = outsideOrientedLabelAttrsG.querySelector('text');
+            assert.equal(outsideOrientedLabelAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,11)');
+            assert.equal(outsideOrientedLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(outsideOrientedLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(outsideOrientedLabelAttrsText.getAttribute('text-anchor'), 'end');
+
+            const outsideOrientedBothAttrsG = view.findPortNode('outsideOrientedBothAttrs').parentElement;
+            assert.equal(outsideOrientedBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const outsideOrientedBothAttrsText = outsideOrientedBothAttrsG.querySelector('text');
+            assert.equal(outsideOrientedBothAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,11)');
+            // `attrs` come from `group.attrs`
+            assert.equal(outsideOrientedBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(outsideOrientedBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(outsideOrientedBothAttrsText.getAttribute('text-anchor'), 'middle');
+
+            // INSIDE:
+            // = top
+
+            const insideG = view.findPortNode('inside').parentElement;
+            assert.equal(insideG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const insideText = insideG.querySelector('text');
+            assert.equal(insideText.getAttribute('transform'), 'matrix(1,0,0,1,0,-15)');
+            assert.equal(insideText.getAttribute('x'), null);
+            assert.equal(insideText.getAttribute('y'), '0');
+            assert.equal(insideText.getAttribute('text-anchor'), 'middle');
+
+            const insideAttrsG = view.findPortNode('insideAttrs').parentElement;
+            assert.equal(insideAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const insideAttrsText = insideAttrsG.querySelector('text');
+            assert.equal(insideAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,-15)');
+            assert.equal(insideAttrsText.getAttribute('x'), '.11em');
+            assert.equal(insideAttrsText.getAttribute('y'), '.12em');
+            assert.equal(insideAttrsText.getAttribute('text-anchor'), 'start');
+
+            const insideLabelAttrsG = view.findPortNode('insideLabelAttrs').parentElement;
+            assert.equal(insideLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const insideLabelAttrsText = insideLabelAttrsG.querySelector('text');
+            assert.equal(insideLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,-11)');
+            assert.equal(insideLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(insideLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(insideLabelAttrsText.getAttribute('text-anchor'), 'end');
+
+            const insideBothAttrsG = view.findPortNode('insideBothAttrs').parentElement;
+            assert.equal(insideBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const insideBothAttrsText = insideBothAttrsG.querySelector('text');
+            assert.equal(insideBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,-11)');
+            // `attrs` come from `group.attrs`
+            assert.equal(insideBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(insideBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(insideBothAttrsText.getAttribute('text-anchor'), 'start');
+
+            // INSIDE ORIENTED:
+            // = like right, written bottom-up (angle: -90 clockwise)
+
+            const insideOrientedG = view.findPortNode('insideOriented').parentElement;
+            assert.equal(insideOrientedG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const insideOrientedText = insideOrientedG.querySelector('text');
+            assert.equal(insideOrientedText.getAttribute('transform'), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-15)');
+            assert.equal(insideOrientedText.getAttribute('x'), null);
+            assert.equal(insideOrientedText.getAttribute('y'), '.3em');
+            assert.equal(insideOrientedText.getAttribute('text-anchor'), 'start');
+
+            const insideOrientedAttrsG = view.findPortNode('insideOrientedAttrs').parentElement;
+            assert.equal(insideOrientedAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const insideOrientedAttrsText = insideOrientedAttrsG.querySelector('text');
+            assert.equal(insideOrientedAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-15)');
+            assert.equal(insideOrientedAttrsText.getAttribute('x'), '.11em');
+            assert.equal(insideOrientedAttrsText.getAttribute('y'), '.12em');
+            assert.equal(insideOrientedAttrsText.getAttribute('text-anchor'), 'middle');
+
+            const insideOrientedLabelAttrsG = view.findPortNode('insideOrientedLabelAttrs').parentElement;
+            assert.equal(insideOrientedLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const insideOrientedLabelAttrsText = insideOrientedLabelAttrsG.querySelector('text');
+            assert.equal(insideOrientedLabelAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-11)');
+            assert.equal(insideOrientedLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(insideOrientedLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(insideOrientedLabelAttrsText.getAttribute('text-anchor'), 'end');
+
+            const insideOrientedBothAttrsG = view.findPortNode('insideOrientedBothAttrs').parentElement;
+            assert.equal(insideOrientedBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const insideOrientedBothAttrsText = insideOrientedBothAttrsG.querySelector('text');
+            assert.equal(insideOrientedBothAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-11)');
+            // `attrs` come from `group.attrs`
+            assert.equal(insideOrientedBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(insideOrientedBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(insideOrientedBothAttrsText.getAttribute('text-anchor'), 'middle');
+
+            // RADIAL:
+            // = like left, written left-right
+
+            const radialG = view.findPortNode('radial').parentElement;
+            assert.equal(radialG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const radialText = radialG.querySelector('text');
+            assert.equal(radialText.getAttribute('transform'), 'matrix(1,0,0,1,-14,14)');
+            assert.equal(radialText.getAttribute('x'), null);
+            assert.equal(radialText.getAttribute('y'), '.3em');
+            assert.equal(radialText.getAttribute('text-anchor'), 'end');
+
+            const radialAttrsG = view.findPortNode('radialAttrs').parentElement;
+            assert.equal(radialAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const radialAttrsText = radialAttrsG.querySelector('text');
+            assert.equal(radialAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,-14,14)');
+            assert.equal(radialAttrsText.getAttribute('x'), '.11em');
+            assert.equal(radialAttrsText.getAttribute('y'), '.12em');
+            assert.equal(radialAttrsText.getAttribute('text-anchor'), 'middle');
+
+            const radialLabelAttrsG = view.findPortNode('radialLabelAttrs').parentElement;
+            assert.equal(radialLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const radialLabelAttrsText = radialLabelAttrsG.querySelector('text');
+            assert.equal(radialLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,-8,8)');
+            assert.equal(radialLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(radialLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(radialLabelAttrsText.getAttribute('text-anchor'), 'start');
+
+            const radialBothAttrsG = view.findPortNode('radialBothAttrs').parentElement;
+            assert.equal(radialBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const radialBothAttrsText = radialBothAttrsG.querySelector('text');
+            assert.equal(radialBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,-8,8)');
+            // `attrs` come from `group.attrs`
+            assert.equal(radialBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(radialBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(radialBothAttrsText.getAttribute('text-anchor'), 'middle');
+
+            // RADIAL ORIENTED:
+            // = like left, written left-right (angle: -45 clockwise)
+
+            const radialOrientedG = view.findPortNode('radialOriented').parentElement;
+            assert.equal(radialOrientedG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const radialOrientedText = radialOrientedG.querySelector('text');
+            assert.equal(radialOrientedText.getAttribute('transform'), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-14,14)');
+            assert.equal(radialOrientedText.getAttribute('x'), null);
+            assert.equal(radialOrientedText.getAttribute('y'), '.3em');
+            assert.equal(radialOrientedText.getAttribute('text-anchor'), 'end');
+
+            const radialOrientedAttrsG = view.findPortNode('radialOrientedAttrs').parentElement;
+            assert.equal(radialOrientedAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const radialOrientedAttrsText = radialOrientedAttrsG.querySelector('text');
+            assert.equal(radialOrientedAttrsText.getAttribute('transform'), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-14,14)');
+            assert.equal(radialOrientedAttrsText.getAttribute('x'), '.11em');
+            assert.equal(radialOrientedAttrsText.getAttribute('y'), '.12em');
+            assert.equal(radialOrientedAttrsText.getAttribute('text-anchor'), 'middle');
+
+            const radialOrientedLabelAttrsG = view.findPortNode('radialOrientedLabelAttrs').parentElement;
+            assert.equal(radialOrientedLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const radialOrientedLabelAttrsText = radialOrientedLabelAttrsG.querySelector('text');
+            assert.equal(radialOrientedLabelAttrsText.getAttribute('transform'), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-8,8)');
+            assert.equal(radialOrientedLabelAttrsText.getAttribute('x'), '.1em');
+            assert.equal(radialOrientedLabelAttrsText.getAttribute('y'), '.2em');
+            assert.equal(radialOrientedLabelAttrsText.getAttribute('text-anchor'), 'start');
+
+            const radialOrientedBothAttrsG = view.findPortNode('radialOrientedBothAttrs').parentElement;
+            assert.equal(radialOrientedBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            const radialOrientedBothAttrsText = radialOrientedBothAttrsG.querySelector('text');
+            assert.equal(radialOrientedBothAttrsText.getAttribute('transform'), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-8,8)');
+            // `attrs` come from `group.attrs`
+            assert.equal(radialOrientedBothAttrsText.getAttribute('x'), '.11em');
+            assert.equal(radialOrientedBothAttrsText.getAttribute('y'), '.12em');
+            assert.equal(radialOrientedBothAttrsText.getAttribute('text-anchor'), 'middle');
+        });
+    });
+
     QUnit.module('port grouping', function() {
 
         QUnit.test('resolve position args', function(assert) {
@@ -593,7 +1801,7 @@ QUnit.module('element ports', function() {
                         },
                         label: {
                             position: {
-                                name: 'lefts',
+                                name: 'left',
                                 args: { x: 10, y: 20, angle: 30 }
                             }
                         }
