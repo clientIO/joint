@@ -3,6 +3,8 @@ import * as util from '../../util/index.mjs';
 
 function labelAttributes(opt1, opt2) {
 
+    // use value from `opt2` if it is missing in `opt1`
+    // use value from this object if it is missing in `opt2` as well
     return util.defaultsDeep({}, opt1, opt2, {
         x: 0,
         y: 0,
@@ -11,22 +13,34 @@ function labelAttributes(opt1, opt2) {
     });
 }
 
+function getBBoxAngles(elBBox) {
+
+    var center = elBBox.center();
+
+    var tl = center.theta(elBBox.origin());
+    var bl = center.theta(elBBox.bottomLeft());
+    var br = center.theta(elBBox.corner());
+    var tr = center.theta(elBBox.topRight());
+
+    return [tl, tr, br, bl];
+}
+
 function outsideLayout(portPosition, elBBox, autoOrient, opt) {
 
     opt = util.defaults({}, opt, { offset: 15 });
     var angle = elBBox.center().theta(portPosition);
-    var x = getBBoxAngles(elBBox);
 
     var tx, ty, y, textAnchor;
     var offset = opt.offset;
     var orientAngle = 0;
 
-    if (angle < x[1] || angle > x[2]) {
+    var bBoxAngles = getBBoxAngles(elBBox);
+    if ((angle < bBoxAngles[1]) || (angle > bBoxAngles[2])) {
         y = '.3em';
         tx = offset;
         ty = 0;
         textAnchor = 'start';
-    } else if (angle < x[0]) {
+    } else if (angle < bBoxAngles[0]) {
         tx = 0;
         ty = -offset;
         if (autoOrient) {
@@ -37,7 +51,7 @@ function outsideLayout(portPosition, elBBox, autoOrient, opt) {
             textAnchor = 'middle';
             y = '0';
         }
-    } else if (angle < x[3]) {
+    } else if (angle < bBoxAngles[3]) {
         y = '.3em';
         tx = -offset;
         ty = 0;
@@ -56,7 +70,7 @@ function outsideLayout(portPosition, elBBox, autoOrient, opt) {
     }
 
     var round = Math.round;
-    return labelAttributes({
+    return labelAttributes(opt, {
         x: round(tx),
         y: round(ty),
         angle: orientAngle,
@@ -64,30 +78,17 @@ function outsideLayout(portPosition, elBBox, autoOrient, opt) {
     });
 }
 
-function getBBoxAngles(elBBox) {
-
-    var center = elBBox.center();
-
-    var tl = center.theta(elBBox.origin());
-    var bl = center.theta(elBBox.bottomLeft());
-    var br = center.theta(elBBox.corner());
-    var tr = center.theta(elBBox.topRight());
-
-    return [tl, tr, br, bl];
-}
-
 function insideLayout(portPosition, elBBox, autoOrient, opt) {
 
-    var angle = elBBox.center().theta(portPosition);
     opt = util.defaults({}, opt, { offset: 15 });
+    var angle = elBBox.center().theta(portPosition);
 
     var tx, ty, y, textAnchor;
     var offset = opt.offset;
     var orientAngle = 0;
 
     var bBoxAngles = getBBoxAngles(elBBox);
-
-    if (angle < bBoxAngles[1] || angle > bBoxAngles[2]) {
+    if ((angle < bBoxAngles[1]) || (angle > bBoxAngles[2])) {
         y = '.3em';
         tx = -offset;
         ty = 0;
@@ -122,7 +123,7 @@ function insideLayout(portPosition, elBBox, autoOrient, opt) {
     }
 
     var round = Math.round;
-    return labelAttributes({
+    return labelAttributes(opt, {
         x: round(tx),
         y: round(ty),
         angle: orientAngle,
@@ -158,16 +159,11 @@ function radialLayout(portCenterOffset, autoOrient, opt) {
     }
 
     var round = Math.round;
-    return labelAttributes({
+    return labelAttributes(opt, {
         x: round(offset.x),
         y: round(offset.y),
-        angle: autoOrient ? orientAngle : 0,
-        attrs: {
-            labelText: {
-                y,
-                textAnchor
-            }
-        }
+        angle: ((autoOrient) ? orientAngle : 0),
+        attrs: { labelText: { y, textAnchor }}
     });
 }
 
@@ -226,4 +222,3 @@ export const radial = function(portPosition, elBBox, opt) {
 export const radialOriented = function(portPosition, elBBox, opt) {
     return radialLayout(portPosition.difference(elBBox.center()), true, opt);
 };
-
