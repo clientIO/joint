@@ -1,3 +1,9 @@
+02-08-2023 (v3.7.5)
+
+  * layout.PortLabel - fix passing of `label.position.args.attrs` in `inside`, `outside`, `radial` layouts
+  * connectors.Jumpover - fix to prevent stacked links from causing jumps
+  * util.breakText - fix to prevent NO_SPACE characters from appearing in the result
+
 23-06-2023 (v3.7.4)
 
   * dia.LinkView - fix element detection when using `snapLinkSelf: true`
