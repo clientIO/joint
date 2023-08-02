@@ -1,4 +1,4 @@
-/*! JointJS v3.7.4 (2023-06-23) - JavaScript diagramming library
+/*! JointJS v3.7.5 (2023-08-02) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -13960,7 +13960,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	                        // move last letter to the beginning of the next word
 	                        words[i] = word.substring(0, p);
-	                        words[i + 1] = word.substring(p) + (words[i + 1] === undefined ? '' : words[i + 1]);
+	                        var nextWord = words[i + 1];
+	                        words[i + 1] = word.substring(p) + (nextWord === undefined || nextWord === NO_SPACE ? '' : nextWord);
 
 	                    } else {
 
@@ -17257,64 +17258,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	function labelAttributes(opt1, opt2) {
 
+	    // use value from `opt2` if it is missing in `opt1`
+	    // use value from this object if it is missing in `opt2` as well
 	    return defaultsDeep({}, opt1, opt2, {
 	        x: 0,
 	        y: 0,
 	        angle: 0,
 	        attrs: {}
-	    });
-	}
-
-	function outsideLayout(portPosition, elBBox, autoOrient, opt) {
-
-	    opt = defaults({}, opt, { offset: 15 });
-	    var angle = elBBox.center().theta(portPosition);
-	    var x = getBBoxAngles(elBBox);
-
-	    var tx, ty, y, textAnchor;
-	    var offset = opt.offset;
-	    var orientAngle = 0;
-
-	    if (angle < x[1] || angle > x[2]) {
-	        y = '.3em';
-	        tx = offset;
-	        ty = 0;
-	        textAnchor = 'start';
-	    } else if (angle < x[0]) {
-	        tx = 0;
-	        ty = -offset;
-	        if (autoOrient) {
-	            orientAngle = -90;
-	            textAnchor = 'start';
-	            y = '.3em';
-	        } else {
-	            textAnchor = 'middle';
-	            y = '0';
-	        }
-	    } else if (angle < x[3]) {
-	        y = '.3em';
-	        tx = -offset;
-	        ty = 0;
-	        textAnchor = 'end';
-	    } else {
-	        tx = 0;
-	        ty = offset;
-	        if (autoOrient) {
-	            orientAngle = 90;
-	            textAnchor = 'start';
-	            y = '.3em';
-	        } else {
-	            textAnchor = 'middle';
-	            y = '.6em';
-	        }
-	    }
-
-	    var round = Math.round;
-	    return labelAttributes({
-	        x: round(tx),
-	        y: round(ty),
-	        angle: orientAngle,
-	        attrs: { labelText: { y: y, textAnchor: textAnchor }}
 	    });
 	}
 
@@ -17330,23 +17280,42 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return [tl, tr, br, bl];
 	}
 
-	function insideLayout(portPosition, elBBox, autoOrient, opt) {
+	function outsideLayout(portPosition, elBBox, autoOrient, opt) {
 
-	    var angle = elBBox.center().theta(portPosition);
 	    opt = defaults({}, opt, { offset: 15 });
+	    var angle = elBBox.center().theta(portPosition);
 
 	    var tx, ty, y, textAnchor;
 	    var offset = opt.offset;
 	    var orientAngle = 0;
 
-	    var bBoxAngles = getBBoxAngles(elBBox);
-
-	    if (angle < bBoxAngles[1] || angle > bBoxAngles[2]) {
+	    var ref = getBBoxAngles(elBBox);
+	    var topLeftAngle = ref[0];
+	    var bottomLeftAngle = ref[1];
+	    var bottomRightAngle = ref[2];
+	    var topRightAngle = ref[3];
+	    if ((angle < bottomLeftAngle) || (angle > bottomRightAngle)) {
+	        y = '.3em';
+	        tx = offset;
+	        ty = 0;
+	        textAnchor = 'start';
+	    } else if (angle < topLeftAngle) {
+	        tx = 0;
+	        ty = -offset;
+	        if (autoOrient) {
+	            orientAngle = -90;
+	            textAnchor = 'start';
+	            y = '.3em';
+	        } else {
+	            textAnchor = 'middle';
+	            y = '0';
+	        }
+	    } else if (angle < topRightAngle) {
 	        y = '.3em';
 	        tx = -offset;
 	        ty = 0;
 	        textAnchor = 'end';
-	    } else if (angle < bBoxAngles[0]) {
+	    } else {
 	        tx = 0;
 	        ty = offset;
 	        if (autoOrient) {
@@ -17357,7 +17326,48 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            textAnchor = 'middle';
 	            y = '.6em';
 	        }
-	    } else if (angle < bBoxAngles[3]) {
+	    }
+
+	    var round = Math.round;
+	    return labelAttributes(opt, {
+	        x: round(tx),
+	        y: round(ty),
+	        angle: orientAngle,
+	        attrs: { labelText: { y: y, textAnchor: textAnchor }}
+	    });
+	}
+
+	function insideLayout(portPosition, elBBox, autoOrient, opt) {
+
+	    opt = defaults({}, opt, { offset: 15 });
+	    var angle = elBBox.center().theta(portPosition);
+
+	    var tx, ty, y, textAnchor;
+	    var offset = opt.offset;
+	    var orientAngle = 0;
+
+	    var ref = getBBoxAngles(elBBox);
+	    var topLeftAngle = ref[0];
+	    var bottomLeftAngle = ref[1];
+	    var bottomRightAngle = ref[2];
+	    var topRightAngle = ref[3];
+	    if ((angle < bottomLeftAngle) || (angle > bottomRightAngle)) {
+	        y = '.3em';
+	        tx = -offset;
+	        ty = 0;
+	        textAnchor = 'end';
+	    } else if (angle < topLeftAngle) {
+	        tx = 0;
+	        ty = offset;
+	        if (autoOrient) {
+	            orientAngle = 90;
+	            textAnchor = 'start';
+	            y = '.3em';
+	        } else {
+	            textAnchor = 'middle';
+	            y = '.6em';
+	        }
+	    } else if (angle < topRightAngle) {
 	        y = '.3em';
 	        tx = offset;
 	        ty = 0;
@@ -17376,7 +17386,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 
 	    var round = Math.round;
-	    return labelAttributes({
+	    return labelAttributes(opt, {
 	        x: round(tx),
 	        y: round(ty),
 	        angle: orientAngle,
@@ -17412,16 +17422,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 
 	    var round = Math.round;
-	    return labelAttributes({
+	    return labelAttributes(opt, {
 	        x: round(offset.x),
 	        y: round(offset.y),
-	        angle: autoOrient ? orientAngle : 0,
-	        attrs: {
-	            labelText: {
-	                y: y,
-	                textAnchor: textAnchor
-	            }
-	        }
+	        angle: ((autoOrient) ? orientAngle : 0),
+	        attrs: { labelText: { y: y, textAnchor: textAnchor }}
 	    });
 	}
 
@@ -25802,6 +25807,60 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var _13 = 1 / 3;
 	var _23 = 2 / 3;
 
+	function sortPointsAscending(p1, p2) {
+
+	    var x1 = p1.x;
+	    var y1 = p1.y;
+	    var x2 = p2.x;
+	    var y2 = p2.y;
+
+	    if (x1 > x2) {
+
+	        var swap = x1;
+	        x1 = x2;
+	        x2 = swap;
+
+	        swap = y1;
+	        y1 = y2;
+	        y2 = swap;
+	    }
+
+	    if (y1 > y2) {
+	        var swap$1 = x1;
+	        x1 = x2;
+	        x2 = swap$1;
+
+	        swap$1 = y1;
+	        y1 = y2;
+	        y2 = swap$1;
+	    }
+
+	    return [new Point(x1, y1), new Point(x2, y2)];
+	}
+
+	function overlapExists(line1, line2) {
+
+	    var ref = sortPointsAscending(line1.start, line1.end);
+	    var ref_0 = ref[0];
+	    var x1 = ref_0.x;
+	    var y1 = ref_0.y;
+	    var ref_1 = ref[1];
+	    var x2 = ref_1.x;
+	    var y2 = ref_1.y;
+	    var ref$1 = sortPointsAscending(line2.start, line2.end);
+	    var ref$1_0 = ref$1[0];
+	    var x3 = ref$1_0.x;
+	    var y3 = ref$1_0.y;
+	    var ref$1_1 = ref$1[1];
+	    var x4 = ref$1_1.x;
+	    var y4 = ref$1_1.y;
+
+	    var xMatch = x1 <= x4 && x3 <= x2;
+	    var yMatch = y1 <= y4 && y3 <= y2;
+
+	    return xMatch && yMatch;
+	}
+
 	/**
 	 * Transform start/end and route into series of lines
 	 * @param {g.point} sourcePoint start point
@@ -26158,12 +26217,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
 	        // iterate all links and grab the intersections with this line
 	        // these are then sorted by distance so the line can be split more easily
-
 	        var intersections = links.reduce(function(res, link, i) {
 	            // don't intersection with itself
 	            if (link !== thisModel) {
 
-	                var lineIntersections = findLineIntersections(thisLine, linkLines[i]);
+	                var linkLinesToTest = linkLines[i].slice();
+	                var overlapIndex = linkLinesToTest.findIndex(function (line) { return overlapExists(thisLine, line); });
+
+	                // Overlap occurs and the end point of one segment lies on thisLine
+	                if (overlapIndex > -1 && thisLine.containsPoint(linkLinesToTest[overlapIndex].end)) {
+	                    // Remove the next segment because there will never be a jump
+	                    linkLinesToTest.splice(overlapIndex + 1, 1);
+	                } 
+	                var lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
 	                res.push.apply(res, lineIntersections);
 	            }
 	            return res;
@@ -38284,7 +38350,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.7.4";
+	var version = "3.7.5";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
