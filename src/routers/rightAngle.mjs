@@ -1,4 +1,5 @@
 import * as g from '../g/index.mjs';
+import * as util from '../util/index.mjs';
 
 const Directions = {
     AUTO: 'auto',
@@ -104,7 +105,7 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAncho
     };
 }
 
-function pointDataFromVertex({ x, y }, nextBBox) {
+function pointDataFromVertex({ x, y }) {
     const point = new g.Point(x, y);
 
     return {
@@ -112,10 +113,10 @@ function pointDataFromVertex({ x, y }, nextBBox) {
         x0: point.x,
         y0: point.y,
         view: null,
-        bbox: null,
+        bbox: new g.Rect(x, y, 0, 0),
         width: 0,
         height: 0,
-        direction: nextBBox.sideNearestToPoint(point)
+        direction: null
     };
 }
 
@@ -679,11 +680,16 @@ function routeBetweenPoints(source, target, margin) {
         const x = toy < soy ? Math.min(smx0, tmx0) : smx0;
         const y = Math.min(smy0, tmy0);
 
-        return [
-            { x, y: soy },
+        const result = [
             { x, y },
             { x: tox, y }
         ];
+
+        if (y !== soy) {
+            result.unshift({ x, y: soy });
+        }
+
+        return result;
 
     } else if (sourceSide === 'right' && targetSide === 'top') {
         if (sox <= tox && soy < tmy0) {
@@ -712,11 +718,17 @@ function routeBetweenPoints(source, target, margin) {
 
         const x = Math.max(smx1, tmx1);
         const y = Math.min(smy0, tmy0);
-        return [
-            { x, y: soy },
+
+        const result = [
             { x, y },
             { x: tox, y }
         ];
+
+        if (y !== soy) {
+            result.unshift({ x, y: soy });
+        }
+
+        return result;
     } else if (sourceSide === 'right' && targetSide === 'bottom') {
         if (sox < tox && soy >= tmy1) {
             return [{ x: tox, y: soy }];
@@ -753,6 +765,14 @@ function routeBetweenPoints(source, target, margin) {
     }
 }
 
+function routeOverlap(p1, p2, p3, p4) {
+
+    const angle1 = new g.Line(p1, p2).angle();
+    const angle2 = new g.Line(p3, p4).angle();
+
+    return Math.abs(angle1 - angle2) === 180;
+}
+
 function rightAngleRouter(vertices, opt, linkView) {
     const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
     const margin = opt.margin || 20;
@@ -765,47 +785,74 @@ function rightAngleRouter(vertices, opt, linkView) {
     const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor);
 
     let resultVertices = [];
-    let source = sourcePoint;
 
-    if (!useVertices) {
+    if (!useVertices || !vertices.length) {
         return routeBetweenPoints(sourcePoint, targetPoint, margin);
     }
 
-    for (let i = 0; i < vertices.length; i++) {
-        const current = vertices[i];
+    const verticesPoints = [sourcePoint, ...vertices.map((v) => pointDataFromVertex(v)), targetPoint];
+    verticesPoints[1].direction = verticesPoints[1].bbox.sideNearestToPoint(sourcePoint.point);
 
-        const next = vertices[i + 1] || targetPoint.point;
-        const nextBBox = new g.Rect(next.x, next.y, 0, 0);
-        const target = pointDataFromVertex(current, nextBBox);
+    for (let i = 0; i < verticesPoints.length - 1; i++) {
+        const from = verticesPoints[i];
+        const to = verticesPoints[i + 1];
 
-        if (new g.Point(current).equals(resultVertices[resultVertices.length - 1])) {
-            target.direction = OPPOSITE_DIRECTIONS[target.direction];
-            source = target;
-            continue;
+        const route = util.uniq(routeBetweenPoints(from, to, margin), (p) => new g.Point(p.x, p.y).serialize());
+
+        if (new g.Point(resultVertices[resultVertices.length - 1]).equals(route[0])) {
+            route.shift();
         }
 
-        resultVertices.push(...routeBetweenPoints(source, target, margin));
+        if (i > 0) {
+            
+            let skip = false;
 
-        target.direction = OPPOSITE_DIRECTIONS[target.direction];
-        source = target;
-    }
+            // prevent infinite correction
+            if (from.originalDirection) {
+                from.direction = from.originalDirection;
+                skip = true;
+            }
+            
+            const middlePoint = verticesPoints[i].point;
+            const lastPointOfPrevSegment = middlePoint.equals(resultVertices[resultVertices.length - 1]) ? resultVertices[resultVertices.length - 2] : resultVertices[resultVertices.length - 1];
+            const nextPoint = route[0];
+            const existingOverlap = routeOverlap(lastPointOfPrevSegment, middlePoint, middlePoint.clone(), nextPoint);
 
-    const targetPointRoute = routeBetweenPoints(source, targetPoint, margin);
+            // possible correction for lines that might share the same segment
+            if (existingOverlap && !skip) {
 
-    if (new g.Point(targetPointRoute[0]).equals(resultVertices[resultVertices.length - 1])) resultVertices.push(...targetPointRoute.slice(1));
-    else resultVertices.push(...targetPointRoute);
+                const isHorizontal = lastPointOfPrevSegment.y === middlePoint.y;
 
-    // Clean up - remove the first and the last point if they are the same as
-    // the source and target points because they would be redundant
+                from.originalDirection = from.direction;
 
-    if (sourcePoint.point.equals(resultVertices[0])) {
-        resultVertices.shift();
-    }
+                if (isHorizontal) {
+                    const isTargetBelow = to.point.y > middlePoint.y;
+                    const direction = isTargetBelow ? Directions.BOTTOM : Directions.TOP;
+                    from.direction = direction;
+                } else {
+                    const isTargetRight = to.point.x > middlePoint.x;
+                    const direction = isTargetRight ? Directions.RIGHT : Directions.LEFT;
+                    from.direction = direction;
+                }
 
-    const lastIndex = resultVertices.length - 1;
+                i--;
+                continue;
+            }
+        }
 
-    if (targetPoint.point.equals(resultVertices[lastIndex])) {
-        resultVertices.pop();
+        if (!to.point.equals(route[route.length - 1]) && i < verticesPoints.length - 2) {
+            route.push(to.point);
+        }
+
+        resultVertices.push(...route);
+
+        // since the `verticesPoints` includes the source and target points, we don't want to change the direction of the last point
+        if (i < verticesPoints.length - 3) {
+            // modify the direction of the target for the upcoming segment
+            verticesPoints[i + 2].direction = to.direction;
+        }
+
+        to.direction = OPPOSITE_DIRECTIONS[to.direction];
     }
 
     return resultVertices;
