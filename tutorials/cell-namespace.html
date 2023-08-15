@@ -35,10 +35,12 @@
 
             <p>
                 How do we tell JointJS which namespace to use? There are 2 important options to be aware of when creating your diagrams. The
-                first is the <code>graph</code> option <code>cellNamespace</code>, and the second is the <code>paper</code> option 
-                <code>cellViewNamespace</code>. In the following example, for a cell of type <code>'standard.Rectangle'</code>, the 
-                <code>graph</code> looks up the <code>'joint.shapes.standard.Rectangle'</code> path to find the correct constructor. If you don't 
-                plan on creating custom shapes, or playing around with namespaces, the following setup should be fine for your application.
+                first is the <code>graph</code> option <a href="/docs/jointjs#dia.Graph.constructor" target="_blank"><code>cellNamespace</code></a>, 
+                and the second is the <code>paper</code> option 
+                <a href="/docs/jointjs#dia.Paper.prototype.options.cellViewNamespace" target="_blank"><code>cellViewNamespace</code></a>. In the 
+                following example, for a cell of type <code>'standard.Rectangle'</code>, the <code>graph</code> looks up the 
+                <code>'joint.shapes.standard.Rectangle'</code> path to find the correct constructor. If you don't plan on creating custom shapes, 
+                or playing around with namespaces, the following setup should be fine for your application.
             </p>
 
             <pre><code>const namespace = joint.shapes;
@@ -71,14 +73,14 @@ graph.fromJSON({
 
             <p>
                 While our custom namespace is just an object that contains our <code>Link</code> and <code>Rectangle</code> constructors, 
-                the <code>type</code> property of each cell will still state the location as within the <code>'standard'</code> namespace upon making 
+                the <code>type</code> property of each cell will still state the location as within the <code>standard</code> namespace upon making 
                 an instance. In order to set up namespaces correctly, this is something we will have to address.
             </p>
 
             <p>
                 With the aim of updating the <code>type</code>, we take advantage of the 
                 <a href="/docs/jointjs#dia.Element.prototype.prop" target="_blank""><code>prop()</code></a> method, so JointJS no longer looks for 
-                the constructor within a namespace <code>'standard'</code>, but at the top level of our <code>customNamespace</code>. After the 
+                the constructor within a namespace <code>standard</code>, but at the top level of our <code>customNamespace</code>. After the 
                 addition of our <code>rect</code> element, if we were to overwrite the <code>graph</code> via <code>graph.toJSON()</code> passing it 
                 the value returned from <code>graph.toJSON()</code>, no error would occur. We can take this as confirmation that our namespaces are 
                 now set up correctly.
@@ -123,23 +125,23 @@ graph.fromJSON(graph.toJSON());
             <p>
                 With the intention of strengthening this concept in our minds, let's define another shape, so that we are more familiar with this process. 
                 Below, we create a class <code>RectangleTwoLabels</code> with a <code>type</code> property of <code>'custom.RectangleTwoLabels'</code>.
-                JointJS will now expect that our custom <code>RectangleTwoLabels</code> element will be located within the <code>'custom'</code> 
+                JointJS will now expect that our custom <code>RectangleTwoLabels</code> element will be located within the <code>custom</code> 
                 namespace.
             </p>
 
             <p>
-                As we want our <code>'custom'</code> namespace to be at the same level of nesting as built-in JointJS shapes, we will structure our 
+                As we want our <code>custom</code> namespace to be at the same level of nesting as built-in JointJS shapes, we will structure our 
                 cell namespace accordingly. First, we declare a <code>namespace</code> variable, then using the 
                 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#spread_in_object_literals" target="_blank">spread operator</a>,
                 ensure that <code>namespace</code> contains all of the properties of <code>joint.shapes</code>. These properties correspond to shape 
-                namespaces such as <code>'standard'</code>.
+                namespaces such as <code>standard</code>.
             </p>
 
             <p>
                 Afterwards, taking advantage of 
                 <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign" target="_blank"><code>Object.assign()</code></a>, 
                 the properties of <code>customNamespace</code> are copied to our <code>namespace</code> object. As a result,
-                <code>'standard'</code> and <code>'custom'</code> are both defined at the same level in our <code>namespace</code> object.
+                <code>standard</code> and <code>custom</code> are both defined at the same level in our <code>namespace</code> object.
             </p>
 
             <p>
@@ -179,7 +181,7 @@ new joint.dia.Paper({
 </code></pre>
 
             <p>
-               With the objective of defining our <code>'custom'</code> namespace at the same nesting level of <code>'standard'</code> taken care of,
+               With the objective of defining our <code>custom</code> namespace at the same nesting level of <code>standard</code> taken care of,
                it's now possible to add cells to our <code>graph</code> with the confidence that we shouldn't run into any errors regarding cell 
                namespaces.
             </p>
