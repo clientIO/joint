@@ -1,7 +1,14 @@
-<code>cellViewNamespace</code> - this option can be used to change the default behavior of JointJS which by default reads cell view definitions from the <code>joint.shapes</code> namespace.
-                              For example, if a cell is of type <code>'myshapes.MyElement'</code>, then the paper looks up <code>joint.shapes.myshapes.MyElementView</code>
-                              object type when rendering the cell onto the screen. If <code>cellViewNamespace</code> is set,
-                              the paper will read the view definition from the <code>myShapesNamespace.myshapes.MyElementView</code> object instead. This is useful in situations where you - for any reason - don't want to 
-                              use the <code>joint.shapes</code> namespace for defining your own custom shapes. This option is often used in combination with
-                              <code>cellNamespace</code> option on the <a href="#dia.Graph.constructor"><code>joint.dia.Graph</code></a> object.
-                
+<p>
+    <code>cellViewNamespace</code> - In order for the JointJS <code>paper</code> to read cell view definitions from the correct location, 
+    the <code>paper</code> option <code>cellViewNamespace</code> must be provided. Built-in cell view definitions are usually located in the 
+    <code>joint.shapes</code> namespace, so this is a common namespace to use. It's possible to a add custom cell view to this namespace, or 
+    alternatively, you may like to use a different namespace completely.
+</p>
+
+<p>
+    For example, if <code>joint.shapes</code> is provided as the value of <code>cellViewNamespace</code>, and a cell is of type 
+    <code>'custom.Element'</code>, then the <code>paper</code> looks up the <code>joint.shapes.custom.ElementView</code> object type when rendering the 
+    cell onto the screen. If <code>cellViewNamespace</code> is set with a value of <code>myCustomNamespace</code>, the paper will read view 
+    definitions from the <code>myCustomNamespace.custom.ElementView</code> object instead. This option is often used in combination with the
+    <code>cellNamespace</code> option on the <a href="#dia.Graph.constructor"><code>joint.dia.Graph</code></a> object.
+</p>
