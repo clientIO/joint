@@ -44,13 +44,16 @@
                 type: 'standard.Rectangle', 
                 size: { width: 100, height: 60 },
                 position: { x: 50, y: 50 },
-                attrs: { label: { text: 'standard.Rectangle', textWrap: { width: 'calc(w-10)' }}}
+                attrs: { body: { fill: '#C9ECF5' }, label: { text: 'standard.Rectangle', textWrap: { width: 'calc(w-10)' }}}
             },
             { 
                 type: 'custom.RectangleTwoLabels', 
                 size: { width: 140, height: 80 },
-                position: { x: 180, y: 30 },
-                attrs: { 
+                position: { x: 200, y: 30 },
+                attrs: {
+                    body: {
+                        fill: '#F5BDB0'
+                    }, 
                     label: { 
                         text: 'custom.RectangleTwoLabels',
                         textWrap: { width: 'calc(w-10)' } 
@@ -67,5 +70,4 @@
             },
         ]
     });
-
 }());
