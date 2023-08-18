@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prism-themes/themes/prism-one-light.css">
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/lodash.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <div class="tutorial">
+
+            <h1>Cell Namespace</h1>
+
+            <p>
+                A simple, but important aspect of working with JointJS is to ensure that JointJS knows where to look for built-in and custom shapes.
+                In order to achieve this, it's a requirement to tell JointJS where to read cell view definitions. Failure to do so
+                will result in an error in our application. Built-in shapes are usually located in the <code>joint.shapes</code> namespace, so this 
+                is a common namespace to use. It's possible to add custom shapes to this namespace, or alternatively, you may like to use a different 
+                namespace completely. The choice is yours, but you need to state the namespace at the outset when using JointJS.
+            </p>
+
+            <p>
+                Let's begin by creating a simple, custom <code>Rectangle</code> definition which extends <code>joint.dia.Element</code>.
+            </p>
+
+            <pre><code>class Rectangle extends joint.dia.Element {
+    defaults() {
+        return {
+            ...super.defaults,
+            type: 'Rectangle',
+            position: { x: 10, y: 10 },
+            attrs: {
+                body: {
+                    width: 100,
+                    height: 70
+                }
+            }
+        };
+    }
+    
+    preinitialize() {
+        this.markup = joint.util.svg/* xml */ `
+            &lt;rect @selector="body" /&gt;
+        `;
+    }
+}
+</code></pre>
+
+            <p>
+                We will also declare a variable which will contain our shapes, and act as our cell namespace.
+            </p>
+
+            <pre><code>// Built-in JointJS shapes and our custom Rectangle are added
+const namespace = { ...joint.shapes, Rectangle };
+</code></pre>
+
+            <p>
+                If you want a little more organization and nesting in your cell namespace, you can define a <code>type</code> using dot notation, 
+                and structure your shape definitions how you would like.
+            </p>
+
+            <pre><code>class Rectangle extends joint.dia.Element {
+    defaults() {
+        return {
+            ...
+            type: 'custom.Rectangle',
+            ...
+        };
+    }
+    ...
+}
+
+const namespace = { ...joint.shapes, custom: { Rectangle }};
+</code></pre>
+
+            <p>
+                Now that we have created a cell namespace, how do we tell JointJS which namespace to use? There are 2 important options to be aware 
+                of when creating your diagrams. The first is the <code>graph</code> option 
+                <a href="/docs/jointjs#dia.Graph.constructor" target="_blank"><code>cellNamespace</code></a>, and the second is the <code>paper</code> 
+                option <a href="/docs/jointjs#dia.Paper.prototype.options.cellViewNamespace" target="_blank"><code>cellViewNamespace</code></a>. In 
+                the following example, for a cell of type <code>'standard.Rectangle'</code>, the <code>graph</code> looks up the 
+                <code>'joint.shapes.standard.Rectangle'</code> path to find the correct constructor. If you don't plan on creating custom shapes, 
+                or playing around with namespaces, the following setup should be fine for your application.
+            </p>
+
+            <pre><code>const namespace = joint.shapes;
+            
+const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+
+const paper = new joint.dia.Paper({
+    ...
+    cellViewNamespace: namespace
+    ...
+});
+
+graph.fromJSON({
+    cells: [
+        { 
+            type: 'standard.Rectangle', 
+            size: { width: 80, height: 50 },
+            position: { x: 10, y: 10 }
+        }
+    ]
+});
+</code></pre>
+
+            <h2 style="font-size:19px;text-align:initial;text-transform:none;margin:0;">A More Detailed Look</h2>
+            
+            <p>
+                With the intention of strengthening this concept in our minds, let's define another shape, so that we are more familiar with this process. 
+                Below, we create a class <code>RectangleTwoLabels</code> with a <code>type</code> property of <code>'custom.RectangleTwoLabels'</code>.
+                JointJS will now expect that our custom <code>RectangleTwoLabels</code> element will be located within the <code>custom</code> 
+                namespace.
+            </p>
+
+            <p>
+                As we want our <code>custom</code> namespace to be at the same level of nesting as built-in JointJS shapes, we will structure our 
+                cell namespace accordingly. First, we declare a <code>namespace</code> variable, then using the 
+                <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#spread_in_object_literals" target="_blank">spread operator</a>,
+                ensure that <code>namespace</code> contains all of the properties of <code>joint.shapes</code>. These properties correspond to shape 
+                namespaces such as <code>standard</code>.
+            </p>
+
+            <p>
+                Afterwards, we also place our new <code>custom</code> namespace which contains our custom shape definition <code>RectangleTwoLabels</code>
+                alongside our built-in shapes. As a result, <code>standard</code> and <code>custom</code> are both defined at the same level in our 
+                <code>namespace</code> object. Lastly, we make sure that <code>namespace</code> is set as the value of our <code>cellNamespace</code> 
+                and <code>cellViewNamespace</code> options respectively. 
+            </p>
+            
+            <pre><code>class RectangleTwoLabels extends joint.shapes.standard.Rectangle {
+    defaults() {
+        return {
+            ...super.defaults,
+            type: 'custom.RectangleTwoLabels'
+        };
+    }
+    
+    preinitialize() {
+        this.markup = joint.util.svg/* xml */ `
+            &lt;rect @selector="body" /&gt;
+            &lt;text @selector="label" /&gt;
+            &lt;text @selector="labelSecondary" /&gt;
+        `;
+    }
+}
+
+const namespace = { ...joint.shapes, custom: { RectangleTwoLabels }};
+
+const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+
+new joint.dia.Paper({
+    ...
+    cellViewNamespace: namespace
+    ...
+});
+</code></pre>
+
+            <p>
+               With the objective of defining our <code>custom</code> namespace at the same nesting level of <code>standard</code> taken care of,
+               it's now possible to add cells to our <code>graph</code> with the confidence that we shouldn't run into any errors regarding cell 
+               namespaces.
+            </p>
+
+            <pre><code>graph.fromJSON({
+    cells: [
+        {
+            type: 'standard.Rectangle', 
+            size: { width: 100, height: 60 },
+            position: { x: 50, y: 50 },
+            attrs: { body: { fill: '#C9ECF5' }, label: { text: 'standard.Rectangle', textWrap: { width: 'calc(w-10)' }}}
+        },
+        { 
+            type: 'custom.RectangleTwoLabels', 
+            size: { width: 140, height: 80 },
+            position: { x: 200, y: 30 },
+            attrs: {
+                body: {
+                    fill: '#F5BDB0'
+                }, 
+                label: { 
+                    text: 'custom.RectangleTwoLabels',
+                    textWrap: { width: 'calc(w-10)' } 
+                }, 
+                labelSecondary: { 
+                    text: 'SecondaryLabel', 
+                    x: 'calc(w/2)', 
+                    y: 'calc(h+15)', 
+                    textAnchor: 'middle', 
+                    textVerticalAnchor: 'middle',
+                    fontSize: 14 
+                }
+            }
+        },
+    ]
+});
+</code></pre>
+            
+            <div class="paper" id="paper-cell-namespace"></div>
+            <p>JointJS source code: <a href="js/cell-namespace.js" target="_blank">cell-namespace.js</a></p>
+
+            <p>
+                Discovering your cell namespaces are not organized correctly should result in a common JointJS error. If you see the dreaded 
+                <code>Uncaught Error: dia.ElementView: markup required</code> appearing in your console, it's likely 
+                your namespace is not set up correctly, and JointJS cannot find the correct shape.
+            </p>
+
+            <h2 style="font-size:19px;text-align:initial;text-transform:none;margin:0;">Don't Forget Custom Views!</h2>
+
+            <p>
+                Last but not least, the topics covered so far also apply to our custom views. Placing a custom view in the correct location is 
+                necessary, because the JointJS <code>paper</code> will search for any model types with a suffix of 'View' in our provided namespace.
+            </p>
+
+            <p>
+                In this snippet, we create a simple rectangle shape with text input. We also define a custom view that on user input, sets the input 
+                value on the model, and also logs the value to the console. This time around, we choose <code>joint.shapes</code> as our 
+                <code>cellNamespace</code> and <code>cellViewNamespace</code> values, and <code>'example.RectangleInput'</code> as the <code>type</code>
+                for our custom element. Those things combined mean JointJS assumes our custom element & view will be located at 
+                <code>'joint.shapes.example.RectangleInput'</code> and <code>'joint.shapes.example.RectangleInputView'</code> respectively.
+            </p>
+
+            <pre><code>const namespace = joint.shapes;
+
+const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+
+const paper = new joint.dia.Paper({
+    ...
+    cellViewNamespace: namespace,
+    ...
+});
+
+class RectangleInput extends joint.dia.Element {
+    defaults() {
+        return {
+            ...super.defaults,
+            type: 'example.RectangleInput',
+            attrs: {
+                foreignObject: {
+                    width: 'calc(w)',
+                    height: 'calc(h)'
+                }
+            }
+        };
+    }
+    
+    preinitialize() {
+        this.markup = joint.util.svg/* xml */`
+            &lt;foreignObject @selector="foreignObject"&gt;
+                &lt;div
+                    xmlns="http:www.w3.org/1999/xhtml"
+                    style="background:white;border:1px solid black;height:100%;display:flex;justify-content:center;align-items:center;"
+                >
+                    &lt;input
+                        placeholder="Type something"
+                    /&gt;
+                &lt;/div&gt;
+            &lt;/foreignObject&gt;
+        `;
+    }
+}
+
+const RectangleInputView = joint.dia.ElementView.extend({
+
+    events: {
+        // Name of event + CSS selector : custom view method name
+        'input input': 'onInput'
+    },
+
+    onInput: function(evt) {
+        console.log('Input Value:', evt.target.value);
+        this.model.attr('name/props/value', evt.target.value);
+    }
+});
+
+Object.assign(namespace, {
+    example: {
+        RectangleInput,
+        RectangleInputView 
+    }
+});
+
+const rectangleInput = new RectangleInput();
+rectangleInput.position(10, 10);
+rectangleInput.resize(200, 120);
+rectangleInput.addTo(graph);
+</code></pre>
+
+            <h2 style="font-size:19px;text-align:initial;text-transform:none;margin:0;">Quick Validation Tips</h2>
+
+            <p>
+                If you are experimenting with cell namespaces, you may like to perform some quick validation, or double-check exactly what 
+                <code>type</code> values you are working with. Taking advantage of the 
+                <a href="/docs/jointjs#dia.Element.prototype.prop" target="_blank""><code>prop()</code></a> method on both Elements & Links allows you 
+                to quickly access the <code>type</code> value, so it can be useful to keep track of where your shapes are located.
+            </p>
+
+            <pre><code>const rect = new Rectangle({
+    size: { width: 80, height: 50 },
+    position: { x: 10, y: 10 }
+});
+
+console.log(rect.prop('type')); // standard.Rectangle
+</code></pre>
+
+            <p>
+                A concise way to check if your namespaces are set up correctly is to overwrite the <code>graph</code> via <code>graph.toJSON()</code> 
+                passing it the value returned from <code>graph.toJSON()</code>. If no error occurs, you can be more confident that your namespaces are 
+                organized correctly.
+            </p>
+
+            <pre><code>graph.fromJSON(graph.toJSON());
+</code></pre>
+
+            <p>
+                That's all we will cover in this tutorial. Thanks for staying with us if you got this far, and we hope you will have more confidence 
+                when working with cell namespaces in JointJS. If you would like to explore any of the features mentioned here in more detail, you 
+                can find more information in our <a href="/docs/jointjs" target="_blank">JointJS documentation</a>.
+            </p>
+
+        </div><!--end tutorial-->
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+
+        <script src="js/cell-namespace.js"></script>
+    </body>
+</html>
