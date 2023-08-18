@@ -17,10 +17,7 @@
         }
     }
 
-    const namespace = { ...joint.shapes };
-    const customNamespace = { custom: { RectangleTwoLabels }}; 
-
-    Object.assign(namespace, customNamespace);
+    const namespace = { ...joint.shapes, custom: { RectangleTwoLabels }};
 
     const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
