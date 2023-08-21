@@ -10,12 +10,21 @@
     "name": "client IO",
     "url": "https://client.io"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-decorators"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
   "license": "MPL-2.0",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "prepublish": "tsc",
+    "build": "yarn run prepublish",
     "dist": "yarn run prepublish"
   },
   "files": [
@@ -25,7 +34,7 @@
     "./SECURITY.md"
   ],
   "dependencies": {
-    "@joint/core": "workspace:^"
+    "jointjs": "workspace:^"
   },
   "devDependencies": {
     "typescript": "4.8.3"

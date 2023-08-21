@@ -1,4 +1,4 @@
-import { dia, g, elementTools } from '@joint/core';
+import { dia, g, elementTools } from 'jointjs';
 import { CenterBasedHeightControl, PyramidHeightControl, SizeControl, ProportionalSizeControl, CONNECT_TOOL_PRESET } from '../tools';
 
 export const ISOMETRIC_HEIGHT_KEY = 'isometric-height';

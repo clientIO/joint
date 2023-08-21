@@ -1,4 +1,4 @@
-import { shapes } from '@joint/core';
+import { shapes } from 'jointjs';
 
 import { Link } from './link/link'
 import { Switch } from './switch/switch'

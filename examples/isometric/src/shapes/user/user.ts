@@ -1,4 +1,4 @@
-import { g, elementTools } from '@joint/core';
+import { g, elementTools } from 'jointjs';
 import { Model, Function } from '@joint/decorators';
 import svg from './user.svg';
 import IsometricShape, { CONNECT_KEY } from '../isometric-shape';

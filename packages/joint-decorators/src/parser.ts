@@ -1,4 +1,4 @@
-import { util, dia, attributes } from '@joint/core';
+import { util, dia, attributes } from 'jointjs';
 
 // type SVGParserBindings = Record<string, Array<SVGParserBinding>>;
 

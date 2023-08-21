@@ -1,5 +1,5 @@
 //@ts-nocheck
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 import { Model, Function } from '@joint/decorators';
 import svg from './Arrow.svg';
 

@@ -1,5 +1,5 @@
 import { Model, Function } from '@joint/decorators';
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 import svg from './parallelogram.svg';
 
 interface ParallelogramAttributes extends dia.Element.Attributes {

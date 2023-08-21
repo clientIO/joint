@@ -1,4 +1,4 @@
-import { g, dia } from '@joint/core';
+import { g, dia } from 'jointjs';
 import Obstacles from './obstacles';
 import IsometricShape, { View } from './shapes/isometric-shape';
 import { Computer, Database, ActiveDirectory, User, Firewall, Switch, Router, Link, cellNamespace } from './shapes';
@@ -6,7 +6,7 @@ import { sortElements, drawGrid, switchView } from './utils';
 import { GRID_SIZE, GRID_COUNT, HIGHLIGHT_COLOR, SCALE, ISOMETRIC_SCALE } from './theme';
 
 import '../style.css';
-import '@joint/core/dist/joint.css';
+import 'jointjs/dist/joint.css';
 
 const canvasEl = document.getElementById('canvas') as HTMLDivElement;
 const buttonEl = document.getElementById('toggle') as HTMLButtonElement;

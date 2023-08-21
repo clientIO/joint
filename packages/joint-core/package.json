@@ -1,8 +1,8 @@
 {
-  "name": "@joint/core",
-  "title": "JointJS Core",
+  "name": "jointjs",
+  "title": "JointJS",
   "version": "3.7.2",
-  "description": "Core module for JointJS",
+  "description": "JavaScript diagramming library",
   "sideEffects": false,
   "main": "./dist/joint.min.js",
   "module": "joint.mjs",
@@ -13,11 +13,29 @@
     "name": "client IO",
     "url": "https://client.io"
   },
+  "contributors": [
+    "David Durman <david@client.io> (https://github.com/DavidDurman)",
+    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
+    "Vladimir Talas <lades@client.io> (https://github.com/vtalas)",
+    "James Williams <james@jointjs.com> (https://github.com/jamesgeorgewilliams)",
+    "Arthur Khokhlov <arthur@jointjs.com> (https://github.com/Geliogabalus)",
+    "Martin Kanera <martin@jointjs.com> (https://github.com/MartinKanera)",
+    "Vojtech Kohout <vojtech@jointjs.com> (https://github.com/Tharos)",
+    "Zbynek Stara <zbynek@jointjs.com> (https://github.com/zbynekstara)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
   "license": "MPL-2.0",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
+    "prepublish": "grunt dist",
     "build": "grunt install",
     "test": "grunt test",
     "test:server": "grunt test:server",
@@ -31,7 +49,7 @@
     "test:e2e:all": "grunt test:e2e:all",
     "lint": "eslint types/**/*.d.ts src --ext .mjs,.js",
     "lint:fix": "yarn run lint --fix",
-    "dist": "grunt dist",
+    "dist": "yarn run prepublish",
     "build:docs": "grunt build:docs"
   },
   "files": [

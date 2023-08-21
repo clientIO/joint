@@ -1,30 +1,11 @@
 {
-  "name": "jointjs",
+  "name": "joint",
   "version": "3.7.2",
-  "title": "JointJS",
-  "description": "JavaScript diagramming library",
   "sideEffects": false,
   "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
     "url": "https://client.io"
-  },
-  "contributors": [
-    "David Durman <david@client.io> (https://github.com/DavidDurman)",
-    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
-    "Vladimir Talas <lades@client.io> (https://github.com/vtalas)",
-    "James Williams <james@jointjs.com> (https://github.com/jamesgeorgewilliams)",
-    "Arthur Khokhlov <arthur@jointjs.com> (https://github.com/Geliogabalus)",
-    "Martin Kanera <martin@jointjs.com> (https://github.com/MartinKanera)",
-    "Vojtech Kohout <vojtech@jointjs.com> (https://github.com/Tharos)",
-    "Zbynek Stara <zbynek@jointjs.com> (https://github.com/zbynekstara)"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/clientIO/joint.git"
-  },
-  "bugs": {
-    "url": "https://github.com/clientIO/joint/issues"
   },
   "license": "MPL-2.0",
   "private": true,

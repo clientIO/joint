@@ -1,4 +1,4 @@
-import { dia, elementTools } from '@joint/core';
+import { dia, elementTools } from 'jointjs';
 import { Card } from "@joint/general-shapes";
 
 

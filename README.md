@@ -87,7 +87,13 @@ Generate build files from the source code:
 yarn run build
 ```
 
-You are now ready to browse the demo applications of our JointJS Core package:
+You are now ready to browse our example applications, which combine functionality from multiple JointJS packages:
+```bash
+cd examples
+```
+Refer to each application's `README.md` file for additional instructions.
+
+You can also browse the demo applications of our JointJS Core package:
 ```bash
 cd packages/joint-core/demo
 ```

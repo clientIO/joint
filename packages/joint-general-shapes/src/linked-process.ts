@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 
 export class LinkedProcess extends dia.Element {
 

@@ -12,15 +12,15 @@
     "noUnusedParameters": true /* Report errors on unused parameters. */,
     "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
     "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
-    "importHelpers": true,
+    "importHelpers": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "sourceMap": true,
     "lib": [
-      "ES6",
-      "DOM"
+      "es2016",
+      "dom"
     ]
   },
   "exclude": [

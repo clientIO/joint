@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 
 export function isCellHidden(cell: dia.Cell): boolean {
     return Boolean(cell.get('hidden'));

@@ -1,8 +1,7 @@
 {
   "name": "@joint/demo-list",
   "version": "1.0.0",
-  "description": "JointJS - List Demo",
-  "main": "index.js",
+  "main": "src/index.ts",
   "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
@@ -15,7 +14,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "@joint/core": "workspace:^"
+    "jointjs": "workspace:^"
   },
   "devDependencies": {
     "ts-loader": "^9.2.5",

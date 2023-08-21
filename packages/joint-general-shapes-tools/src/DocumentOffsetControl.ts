@@ -1,4 +1,4 @@
-import { dia, elementTools, g } from '@joint/core';
+import { dia, elementTools, g } from 'jointjs';
 import { Document } from '@joint/general-shapes';
 
 export interface DocumentOffsetControlOptions extends elementTools.Control.Options {

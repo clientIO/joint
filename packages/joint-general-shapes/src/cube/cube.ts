@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 import { Function, Model } from "@joint/decorators";
 import svg from "./cube.svg";
 

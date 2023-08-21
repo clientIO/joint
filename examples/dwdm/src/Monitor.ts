@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 import { Card, ExternalLink } from './shapes';
 
 interface MonitorComponent {

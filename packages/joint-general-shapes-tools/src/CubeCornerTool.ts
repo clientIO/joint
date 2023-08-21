@@ -1,4 +1,4 @@
-import { dia, elementTools, g } from '@joint/core';
+import { dia, elementTools, g } from 'jointjs';
 import { Cube } from "@joint/general-shapes";
 
 export interface CubeCornerToolOptions extends elementTools.Control.Options {

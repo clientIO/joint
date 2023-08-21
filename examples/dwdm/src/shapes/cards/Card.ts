@@ -1,4 +1,4 @@
-import { dia, util } from '@joint/core';
+import { dia, util } from 'jointjs';
 import { isCellHidden } from '../utils';
 import { CARD_PORT_BG_COLOR, CARD_PORT_COLOR, CARD_PORT_LABEL_COLOR } from '../../theme';
 

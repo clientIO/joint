@@ -1,4 +1,4 @@
-import { g, dia, shapes } from '@joint/core';
+import { g, dia, shapes } from 'jointjs';
 import { Model, View, On, SVGAttribute, Function } from '@joint/decorators';
 
 const shapeNamespace = {

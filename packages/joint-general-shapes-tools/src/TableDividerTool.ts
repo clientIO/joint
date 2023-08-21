@@ -1,4 +1,4 @@
-import { dia, elementTools } from '@joint/core';
+import { dia, elementTools } from 'jointjs';
 import { Table } from "@joint/general-shapes";
 
 export interface TableDividerToolOptions extends elementTools.Control.Options {

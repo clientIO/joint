@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import { dia } from 'jointjs';
 
 export default abstract class Link extends dia.Link {
 

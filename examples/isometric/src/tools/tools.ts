@@ -1,4 +1,4 @@
-import { dia, linkTools, util } from '@joint/core';
+import { dia, linkTools, util } from 'jointjs';
 import { BG_COLOR, GRID_SIZE, HIGHLIGHT_COLOR } from '../theme';
 
 const SIZE = 6;
