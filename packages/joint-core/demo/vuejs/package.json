@@ -1,0 +1,19 @@
+{
+  "name": "@joint/demo-vuejs",
+  "version": "1.0.0",
+  "description": "JointJS - VueJS Demo",
+  "main": "index.html",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "license": "MPL-2.0",
+  "private": true,
+  "dependencies": {
+    "vue": "3.0.0"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  }
+}
