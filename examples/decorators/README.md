@@ -12,7 +12,6 @@ yarn run build
 
 Navigate to this directory, then run:
 ```bash
-yarn install
 yarn start
 ```
 
