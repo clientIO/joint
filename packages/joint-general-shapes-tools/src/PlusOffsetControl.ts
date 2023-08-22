@@ -25,7 +25,7 @@ export class PlusOffsetControl extends elementTools.Control<PlusOffsetControlOpt
         return this.relatedView.model as Plus;
     }
 
-    protected getPosition(view: dia.ElementView) {
+    protected getPosition(_view: dia.ElementView) {
         const { offset } = this.element;
         return { x: offset, y: offset };
     }

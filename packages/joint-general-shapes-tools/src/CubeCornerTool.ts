@@ -25,12 +25,12 @@ export class CubeCornerTool extends elementTools.Control<CubeCornerToolOptions> 
         return this.relatedView.model as Cube;
     }
 
-    protected getPosition(view: dia.ElementView) {
+    protected getPosition(_view: dia.ElementView) {
         const { cornerX, cornerY } = this.element;
         return { x: cornerX, y: cornerY };
     }
 
-    protected setPosition(view: dia.ElementView, coordinates: dia.Point) {
+    protected setPosition(_view: dia.ElementView, coordinates: dia.Point) {
         const { width, height } = this.element.size();
 
         if (!this.options.lockAngle) {

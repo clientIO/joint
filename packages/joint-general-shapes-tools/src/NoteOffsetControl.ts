@@ -25,7 +25,7 @@ export class NoteOffsetControl extends elementTools.Control<NoteOffsetControlOpt
         return this.relatedView.model as Note;
     }
 
-    protected getPosition(view: dia.ElementView) {
+    protected getPosition(_view: dia.ElementView) {
         const { offset } = this.element;
         return { x: offset, y: offset };
     }

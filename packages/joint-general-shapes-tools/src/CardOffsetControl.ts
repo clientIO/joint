@@ -22,7 +22,7 @@ export class CardOffsetControl extends elementTools.Control<CardOffsetControlOpt
         return this.relatedView.model as Card;
     }
 
-    protected getPosition(view: dia.ElementView) {
+    protected getPosition(_view: dia.ElementView) {
         const { offset } = this.element;
         const { width, height } = this.element.size();
         return {
@@ -31,7 +31,7 @@ export class CardOffsetControl extends elementTools.Control<CardOffsetControlOpt
         };
     }
 
-    protected setPosition(view: dia.ElementView, coordinates: dia.Point) {
+    protected setPosition(_view: dia.ElementView, coordinates: dia.Point) {
         const { width } = this.element.size();
 
         this.element.offset = Math.max(0, Math.min(width / 2, width - coordinates.x));

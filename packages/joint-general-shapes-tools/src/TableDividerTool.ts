@@ -23,12 +23,12 @@ export class TableDividerTool extends elementTools.Control<TableDividerToolOptio
         return this.relatedView.model as Table;
     }
 
-    protected getPosition(view: dia.ElementView) {
+    protected getPosition(_view: dia.ElementView) {
         const { dividerX, dividerY } = this.element;
         return { x: dividerX, y: dividerY };
     }
 
-    protected setPosition(view: dia.ElementView, coordinates: dia.Point) {
+    protected setPosition(_view: dia.ElementView, coordinates: dia.Point) {
         const { width, height } = this.element.size();
 
         this.element.dividerX = Math.max(0, Math.min(coordinates.x, width));
