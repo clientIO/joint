@@ -1,0 +1,18 @@
+<g title="Table">
+    <path @selector="body"
+        :d="{{data([dividerX,dividerY])}}"
+        fill="#FFF"
+        stroke="#333"
+        stroke-width="2"
+    />
+    <text @selector="label"
+        text-anchor="middle"
+        text-vertical-anchor="top"
+        font-family="sans-serif"
+        font-size="13"
+        fill="#333"
+        y="calc(h+10)"
+        x="calc(0.5*w)"
+        text="Table"
+    />
+</g>
