@@ -1,9 +1,10 @@
-build/
 node_modules/
-coverage/
-*.log
-demo/**/dist/**
-/test/ts/*.js
-/test/ts/*.js.map
 .tscache/
 .DS_Store
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

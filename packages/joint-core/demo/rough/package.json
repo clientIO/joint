@@ -1,0 +1,19 @@
+{
+  "name": "@joint/demo-rough",
+  "version": "1.0.0",
+  "description": "JointJS - RoughJS Demo",
+  "main": "index.html",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "license": "MPL-2.0",
+  "private": true,
+  "dependencies": {
+    "roughjs": "^3.1.0"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  }
+}
