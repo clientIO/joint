@@ -1,0 +1,30 @@
+<g title="Actor">
+    <rect @selector="background"
+        width="calc(w)"
+        height="calc(h)"
+        fill="transparent"
+    />
+    <path @selector="body"
+        :d="M 0 calc(0.5*h) h calc(w) M 0 calc(h) calc(0.5*w) calc({{legsY}}*h) calc(w) calc(h) M calc(0.5*w) calc({{legsY}}*h) V calc({{bodyY}}*h)"
+        fill="none"
+        stroke="#333"
+        stroke-width="2"
+    />
+    <circle @selector="head"
+        cx="calc(0.5*w)"
+        :cy="calc({{headY}}*h)"
+        :r="calc({{headY}}*h)"
+        stroke="#333333"
+        stroke-width=2
+        fill="#ffffff"
+    />
+    <text @selector="label"
+        text-anchor="middle"
+        text-vertical-anchor="top"
+        font-size="13"
+        font-family="sans-serif"
+        fill="#333"
+        y="calc(h+10)"
+        x="calc(0.5*w)"
+    >Actor</text>
+</g>
