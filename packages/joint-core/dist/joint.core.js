@@ -11031,7 +11031,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var othValue = other[key];
 
 	        if (!( (objValue === othValue || equalFunc(objValue, othValue, stack))
-
+	            
 	        )) {
 	            result = false;
 	            break;
@@ -24026,7 +24026,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                if (overlapIndex > -1 && thisLine.containsPoint(linkLinesToTest[overlapIndex].end)) {
 	                    // Remove the next segment because there will never be a jump
 	                    linkLinesToTest.splice(overlapIndex + 1, 1);
-	                }
+	                } 
 	                var lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
 	                res.push.apply(res, lineIntersections);
 	            }
