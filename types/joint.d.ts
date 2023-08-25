@@ -1195,7 +1195,7 @@ export namespace dia {
 
         enum Layers {
             CELLS = 'cells',
-            LABEL = 'labels',
+            LABELS = 'labels',
             BACK = 'back',
             FRONT = 'front',
             TOOLS = 'tools',
