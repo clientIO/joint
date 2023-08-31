@@ -1,0 +1,21 @@
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+.joint-tool[data-tool-name="button"] circle {
+    fill: #f6f740;
+    stroke: none;
+}
+
+.joint-tool[data-tool-name="button"] path {
+    stroke: #131e29;
+}
+
+.joint-tool[data-tool-name="source-anchor"] circle,
+.joint-tool[data-tool-name="vertices"] circle {
+    stroke: #131e29;
+    stroke-width: 2;
+    stroke: none;
+    fill: #f7a1a8;
+}
