@@ -8109,6 +8109,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"list@workspace:examples/tree-of-life":
+  version: 0.0.0-use.local
+  resolution: "list@workspace:examples/tree-of-life"
+  dependencies:
+    css-loader: ^6.8.1
+    jointjs: "workspace:^"
+    perfect-freehand: ^1.2.0
+    style-loader: ^3.3.3
+    ts-loader: ^9.2.5
+    typescript: ^4.4.3
+    webpack: ^5.53.0
+    webpack-cli: ^4.8.0
+    webpack-dev-server: ^4.2.1
+  languageName: unknown
+  linkType: soft
+
 "livereload-js@npm:^2.3.0":
   version: 2.4.0
   resolution: "livereload-js@npm:2.4.0"
@@ -10034,6 +10050,13 @@ __metadata:
   version: 1.2.0
   resolution: "pend@npm:1.2.0"
   checksum: 6c72f5243303d9c60bd98e6446ba7d30ae29e3d56fdb6fae8767e8ba6386f33ee284c97efe3230a0d0217e2b1723b8ab490b1bbf34fcbb2180dbc8a9de47850d
+  languageName: node
+  linkType: hard
+
+"perfect-freehand@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "perfect-freehand@npm:1.2.0"
+  checksum: 03900c103170c68a495e5b4f0609d8375dd26d61a797ffb190c7436274c6a2f4011c21de2bdf420ab324350945dddbdf9c201312388a6e875dfbb88b328d91ae
   languageName: node
   linkType: hard
 
