@@ -387,11 +387,14 @@ labelLayerEl.parentElement.appendChild(labelLayerEl);
 // Events
 
 function onPaperLinkMouseEnter(linkView: dia.LinkView) {
+    // Scale the tools based on the width of the link.
+    const branchWidth = linkView.model.attr('line/organicStrokeSize') || 5;
+    const scale = Math.max(1, Math.min(2, branchWidth / 5));
     const toolsView = new dia.ToolsView({
         tools: [
             new linkTools.Vertices(),
-            new linkTools.SourceAnchor({ restrictArea: false, scale: 1.3 }),
-            new linkTools.Remove({ scale: 2 }),
+            new linkTools.SourceAnchor({ restrictArea: false, scale }),
+            new linkTools.Remove({ scale }),
         ],
     });
     linkView.addTools(toolsView);
