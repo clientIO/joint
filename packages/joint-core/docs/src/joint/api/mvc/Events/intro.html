@@ -1,0 +1,11 @@
+<p>
+    A module that can be mixed in to any object in order to provide it with a custom event channel. You may bind a callback to an event with
+    <code>on</code> or remove with <code>off</code>; <code>trigger</code>-ing an event fires all callbacks in succession. Events do not have to be 
+    declared before they are bound, and may take passed arguments.
+</p>
+
+<pre><code>const object = {};
+joint.util.assign(object, joint.mvc.Events);
+object.on('expand', function(msg){ alert('expanded' + msg); });
+object.trigger('expand', 'the example');
+</code></pre>

@@ -1,13 +1,14 @@
-import Backbone from 'backbone';
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
+import { Model } from '../mvc/Model.mjs';
+import { Collection } from '../mvc/Collection.mjs';
 import { Link } from './Link.mjs';
 import { Element } from './Element.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
 
-const GraphCells = Backbone.Collection.extend({
+const GraphCells = Collection.extend({
 
     initialize: function(models, opt) {
 
@@ -52,7 +53,7 @@ const GraphCells = Backbone.Collection.extend({
 });
 
 
-export const Graph = Backbone.Model.extend({
+export const Graph = Model.extend({
 
     initialize: function(attrs, opt) {
 
@@ -66,13 +67,13 @@ export const Graph = Backbone.Model.extend({
             cellNamespace: opt.cellNamespace,
             graph: this
         });
-        Backbone.Model.prototype.set.call(this, 'cells', cells);
+        Model.prototype.set.call(this, 'cells', cells);
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
         cells.on('all', this.trigger, this);
 
-        // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
+        // JointJS automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
         this.on('change:z', this._sortOnChangeZ, this);
 
@@ -147,7 +148,7 @@ export const Graph = Backbone.Model.extend({
 
     _restructureOnReset: function(cells) {
 
-        // Normalize into an array of cells. The original `cells` is GraphCells Backbone collection.
+        // Normalize into an array of cells. The original `cells` is GraphCells mvc collection.
         cells = cells.models;
 
         this._out = {};
@@ -198,9 +199,9 @@ export const Graph = Backbone.Model.extend({
 
     toJSON: function() {
 
-        // Backbone does not recursively call `toJSON()` on attributes that are themselves models/collections.
+        // JointJS does not recursively call `toJSON()` on attributes that are themselves models/collections.
         // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitly.
-        var json = Backbone.Model.prototype.toJSON.apply(this, arguments);
+        var json = Model.prototype.toJSON.apply(this, arguments);
         json.cells = this.get('cells').toJSON();
         return json;
     },
@@ -234,7 +235,7 @@ export const Graph = Backbone.Model.extend({
         }
 
         // The rest of the attributes are applied via original set method.
-        return Backbone.Model.prototype.set.call(this, attrs, opt);
+        return Model.prototype.set.call(this, attrs, opt);
     },
 
     clear: function(opt) {
@@ -270,7 +271,7 @@ export const Graph = Backbone.Model.extend({
     _prepareCell: function(cell, opt) {
 
         var attrs;
-        if (cell instanceof Backbone.Model) {
+        if (cell instanceof Model) {
             attrs = cell.attributes;
             if (!cell.graph && (!opt || !opt.dry)) {
                 // An element can not be member of more than one graph.
@@ -310,7 +311,7 @@ export const Graph = Backbone.Model.extend({
             return this.addCells(cell, opt);
         }
 
-        if (cell instanceof Backbone.Model) {
+        if (cell instanceof Model) {
 
             if (!cell.has('z')) {
                 cell.set('z', this.maxZIndex() + 1);
@@ -410,12 +411,12 @@ export const Graph = Backbone.Model.extend({
 
     getElements: function() {
 
-        return this.get('cells').filter(cell => cell.isElement());
+        return Array.from(this.get('cells')).filter(cell => cell.isElement());
     },
 
     getLinks: function() {
 
-        return this.get('cells').filter(cell => cell.isLink());
+        return Array.from(this.get('cells')).filter(cell => cell.isLink());
     },
 
     getFirstCell: function() {
