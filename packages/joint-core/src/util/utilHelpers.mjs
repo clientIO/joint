@@ -1617,6 +1617,10 @@ function createCaseFirst(methodName) {
     };
 }
 
+export function matches(source) {
+    return baseMatches(baseClone(source, true));
+}
+
 // -- helper classes
 class Stack {
     constructor(entries) {

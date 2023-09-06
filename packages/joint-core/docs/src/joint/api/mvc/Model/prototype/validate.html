@@ -1,0 +1,14 @@
+<pre class="docs-method-signature"><code>model.validate(attributes, options)</code></pre>
+
+<p>
+    This method is left undefined and you're encouraged to override it with any custom validation logic you have that can be performed in 
+    JavaScript. If the <code>attributes</code> are valid, don't return anything from <code>validate</code>; if they are invalid return an error 
+    of your choosing. It can be as simple as a string error message to be displayed, or a complete error object that describes the error 
+    programmatically. 
+</p>
+
+<p>
+    It's possible to tell <code>set()</code> to validate the new attributes by passing <code>{ validate: true }</code> as an option. The validate 
+    method receives the model attributes as well as any options passed to <code>set()</code>. <code>"invalid"</code> events are useful for 
+    providing coarse-grained error messages at the model or collection level. 
+</p>

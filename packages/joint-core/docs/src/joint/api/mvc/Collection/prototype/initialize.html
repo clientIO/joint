@@ -1,0 +1,16 @@
+<p>
+    When creating a Collection, you may choose to pass in the initial array of models. The collection's 
+    <a href="#mvc.Collection.prototype.comparator"><code>comparator</code></a> may be included as an option. Passing <code>false</code> as the 
+    <code>comparator</code> option will prevent sorting. If you define an initialize function, it will be invoked when the collection is created.
+    Initialize is an empty function by default. Override it with your own initialization logic.
+</p>
+
+<p>
+    There are a couple of options that, if provided, are attached to the collection directly: <code>model</code> and <code>comparator</code>. 
+    Pass <code>null</code> for models to create an empty Collection with <code>options</code>. 
+</p>
+
+<pre><code>const shapes = new mvc.Collection(null, {
+    model: Shape
+});
+</code></pre>

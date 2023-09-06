@@ -40,11 +40,6 @@ module.exports = function(grunt) {
                 },
                 {
                     nonull: true,
-                    src: 'node_modules/backbone/backbone-min.js',
-                    dest: 'build/docs/js/lib/backbone.min.js'
-                },
-                {
-                    nonull: true,
                     src: 'node_modules/dagre/dist/dagre.min.js',
                     dest: 'build/docs/js/lib/dagre.min.js'
                 },
@@ -78,6 +73,19 @@ module.exports = function(grunt) {
                     src: 'node_modules/prism-themes/themes/prism-one-light.css',
                     dest: 'build/docs/css/prism.css'
                 }
+            ]
+        },
+        types: {
+            files: [
+                {
+                    expand: true,
+                    nonull: true,
+                    cwd: 'types/',
+                    src: [
+                        '**/*'
+                    ],
+                    dest: 'build/'
+                },
             ]
         },
         appsLibs: {

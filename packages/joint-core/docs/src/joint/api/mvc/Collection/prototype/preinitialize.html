@@ -1,0 +1,13 @@
+<p>
+    For use with collections as ES classes. If you define a <code>preinitialize</code> method, it will be invoked when the Collection is first 
+    created and before any instantiation logic is run for the Collection.  
+</p>
+
+<pre><code>class Shapes extends mvc.Collection {
+    preinitialize() {
+      this.on('add', function() {
+        console.log('Add model event got fired!');
+      });
+    }
+} 
+</code></pre>

@@ -1,0 +1,26 @@
+<pre class="docs-method-signature"><code>collection.set(models, [options])</code></pre>
+
+<p>
+    The set method performs a "smart" update of the collection with the passed list of models. If a model in the list isn't yet in the collection 
+    it will be added; if the model is already in the collection its attributes will be merged; and if the collection contains any models that aren't 
+    present in the list, they'll be removed. All of the appropriate <code>"add"</code>, <code>"remove"</code>, and <code>"change"</code> events are 
+    fired as this happens, with a single <code>"update"</code> event at the end. Returns the touched models in the collection. If you'd like to 
+    customize this behavior, you can change it with options: <code>{ add: false }</code>, <code>{ remove: false }</code>, or 
+    <code>{ merge: false }</code>. 
+</p>
+
+<p>
+    If a <a href="#mvc.Collection.prototype.model"><code>model</code></a> property is defined, you may also pass raw attributes objects and options,
+    and have them be vivified as instances of the model using the provided options. If you set a 
+    <a href="#mvc.Collection.prototype.comparator"><code>comparator</code></a>, the collection will automatically sort itself and trigger a 
+    <code>"sort"</code> event, unless you pass <code>{ sort: false }</code> or use the <code>{ at: index }</code> option. Pass 
+    <code>{ at: index }</code> to splice the model(s) into the collection at the specified <code>index</code>. 
+</p>
+
+<pre><code>const players = new mvc.Collection([ carlsen, nakamura, caruana, liren ]);
+
+players.set([ carlsen, nakamura, caruana, firouzja ]);
+
+// Fires a "remove" event for "liren", and an "add" event for "firouzja".
+// Updates any of "caruana", "nakamura", and carlsen's attributes that may have changed.
+</code></pre>

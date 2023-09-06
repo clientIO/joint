@@ -1,0 +1,9 @@
+<pre class="docs-method-signature"><code>object.listenTo(other, event, callback)</code></pre>
+
+<p>
+    Tell an object to listen to a particular event on an 'other' object. <code>listenTo</code> allows the object to keep track of the events, and 
+    they can be removed all at once later on. The callback will always be called with object as context. 
+</p>
+
+<pre><code>view.listenTo(model, 'change', view.render);
+</code></pre>

@@ -1,0 +1,12 @@
+<pre class="docs-method-signature"><code>collection.reset([models], [options])</code></pre>
+
+<p>
+    Use reset to replace a collection with a new list of models (or attribute hashes), triggering a single <code>"reset"</code> event on completion, 
+    and without triggering any <code>"add"</code> or <code>"remove"</code> events on any models. Returns the newly-set models. For convenience, 
+    within a <code>"reset"</code> event, the list of any previous models is available as <code>options.previousModels</code>.
+    Pass <code>null</code> for <code>models</code> to empty your Collection with <code>options</code>. 
+</p>
+
+<p>
+    Calling <code>collection.reset()</code> without passing any models as arguments will empty the entire collection. 
+</p>

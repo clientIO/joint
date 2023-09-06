@@ -1,0 +1,26 @@
+<pre class="docs-method-signature"><code>delegateEvents([events])</code></pre>
+
+<p>
+    Provide declarative callbacks for DOM events within a view. If an events hash is not passed directly, uses <code>this.events</code> as the 
+    source. Events are written in the format <code>{ "event selector": "callback" }</code>. The callback may be either the name of a method on the 
+    view, or a direct function body. Omitting the selector causes the event to be bound to the view's root element (<code>this.el</code>). 
+    By default, <code>delegateEvents</code> is called within the View's constructor for you, so if you have a simple events hash, 
+    all of your DOM events will always already be connected, and you will never have to call this function yourself. 
+</p>
+
+<p>
+    The <code>events</code> property may also be defined as a function that returns an events hash, to make it easier to programmatically define 
+    your events, as well as inherit them from parent views. 
+</p>
+
+<p>
+    Using <code>delegateEvents</code> provides a number of advantages. All attached callbacks are bound to the view before being handed off, so 
+    when the callbacks are invoked, <code>this</code> continues to refer to the view object. When <code>delegateEvents</code> is run again, 
+    perhaps with a different <code>events</code> hash, all callbacks are removed and delegated afresh — useful for views which need to behave 
+    differently when in different modes. 
+</p>
+
+<p>
+    A single-event version of <code>delegateEvents</code> is available as <code>delegate</code>. In fact, <code>delegateEvents</code> is simply a 
+    multi-event wrapper around <code>delegate</code>. A counterpart to <code>undelegateEvents</code> is available as <code>undelegate</code>. 
+</p>

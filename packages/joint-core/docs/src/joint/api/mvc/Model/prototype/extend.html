@@ -1,0 +1,33 @@
+<pre class="docs-method-signature"><code>mvc.Model.extend(properties, [classProperties])</code></pre>
+
+<p>
+    To create a <code>Model</code> class of your own, you can extend <code>mvc.Model</code>. Provide instance properties, and optional 
+    classProperties to be attached directly to the constructor function.
+</p>
+
+<p>
+    <code>extend</code> correctly sets up the prototype chain, so subclasses created with <code>extend</code> can be further extended and
+    subclassed.
+</p>
+
+
+<pre><code>const BaseShape = mvc.Model.extend({
+    initialize: function() {...}
+});
+
+const Shape = BaseShape.extend({...});
+</code></pre>
+
+<p>
+    Brief aside on <code>super</code>: JavaScript does not provide a simple way to call super — the function of the same name defined higher on 
+    the prototype chain. If you override a core function like <code>set</code>, and you want to invoke the parent object's implementation, 
+    you'll have to explicitly call it, along these lines: 
+</p>
+
+<pre><code>const Shape = mvc.Model.extend({
+    set: function(attributes, options) {
+        mvc.Model.prototype.set.apply(this, arguments);
+        ...
+    }
+});
+</code></pre>
