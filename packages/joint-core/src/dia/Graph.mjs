@@ -411,12 +411,12 @@ export const Graph = Model.extend({
 
     getElements: function() {
 
-        return Array.from(this.get('cells')).filter(cell => cell.isElement());
+        return this.get('cells').toArray().filter(cell => cell.isElement());
     },
 
     getLinks: function() {
 
-        return Array.from(this.get('cells')).filter(cell => cell.isLink());
+        return this.get('cells').toArray().filter(cell => cell.isLink());
     },
 
     getFirstCell: function() {
