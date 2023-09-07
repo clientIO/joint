@@ -439,6 +439,29 @@ QUnit.module('cell', function(hooks) {
                 assert.equal(el.prop('name/second'), 'doe');
             });
 
+            QUnit.test('path and value as object is set effectively', function(assert) {
+
+                // This test is here to make sure that the `set` method is called only once
+                // when setting multiple attributes at once and only the changed attributes
+                // are passed to the `set` method.
+
+                el.set('otherAttribute', 'otherValue');
+
+                const setSpy = sinon.spy(el, 'set');
+                let attributes;
+
+                el.prop({ age: 20, name: { first: 'john' }});
+                assert.ok(setSpy.calledOnce);
+                [attributes] = setSpy.lastCall.args;
+                assert.deepEqual(attributes, { age: 20, name: { first: 'john' }});
+
+                el.prop({ name: { second: 'doe' }});
+                assert.ok(setSpy.calledTwice);
+                [attributes] = setSpy.lastCall.args;
+                assert.deepEqual(attributes, { name: { first: 'john', second: 'doe' }});
+
+                setSpy.restore();
+            });
 
             QUnit.test('path as top-level attribute name and value as object', function(assert) {
 

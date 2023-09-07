@@ -615,7 +615,15 @@ export const Cell = Backbone.Model.extend({
             options.rewrite = false;
         }
 
-        return this.set(merge({}, this.attributes, props), options);
+        // Create a new object containing only the changed attributes.
+        const changedAttributes = {};
+        for (const key in props) {
+            // Merging the values of changed attributes with the current ones.
+            const { changedValue } = merge({}, { changedValue: this.attributes[key] }, { changedValue: props[key] });
+            changedAttributes[key] = changedValue;
+        }
+
+        return this.set(changedAttributes, options);
     },
 
     // A convenient way to unset nested properties
