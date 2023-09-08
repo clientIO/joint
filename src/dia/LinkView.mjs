@@ -1117,11 +1117,11 @@ export const LinkView = CellView.extend({
 
                 toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
                 this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
-                this._tool2Cache.attr('visibility', 'visible');
+                this._tool2Cache.attr('display', 'inline');
 
             } else if (this.options.doubleLinkTools) {
 
-                this._tool2Cache.attr('visibility', 'hidden');
+                this._tool2Cache.attr('display', 'none');
             }
         }
 
