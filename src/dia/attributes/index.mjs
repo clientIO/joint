@@ -311,41 +311,54 @@ const attributesNS = {
             return !attrs.textWrap || !isPlainObject(attrs.textWrap);
         },
         set: function(text, refBBox, node, attrs) {
-            var $node = $(node);
-            var cacheName = 'joint-text';
-            var cache = $node.data(cacheName);
-            var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol', 'displayEmpty');
+            const $node = $(node);
+            const cacheName = 'joint-text';
+            const cache = $node.data(cacheName);
+            const {
+                lineHeight,
+                annotations,
+                textVerticalAnchor,
+                eol,
+                displayEmpty
+            } = attrs;
+            let textPath = attrs.textPath;
             // eval `x` if using calc()
-            const { x } = textAttrs;
+            let x = attrs.x;
             if (isCalcAttribute(x)) {
-                textAttrs.x = evalCalcAttribute(x, refBBox);
+                x = evalCalcAttribute(x, refBBox);
             }
-
-            let fontSizeAttr = attrs['font-size'] || attrs['fontSize'];
-            if (isCalcAttribute(fontSizeAttr)) {
-                fontSizeAttr = evalCalcAttribute(fontSizeAttr, refBBox);
+            // eval `font-size` if using calc()
+            let fontSize = attrs['font-size'] || attrs['fontSize'];
+            if (isCalcAttribute(fontSize)) {
+                fontSize = evalCalcAttribute(fontSize, refBBox);
             }
-            var fontSize = textAttrs.fontSize = fontSizeAttr;
-            var textHash = JSON.stringify([text, textAttrs]);
             // Update the text only if there was a change in the string
             // or any of its attributes.
+            const textHash = JSON.stringify([text, lineHeight, annotations, textVerticalAnchor, eol, displayEmpty, textPath, x, fontSize]);
             if (cache === undefined || cache !== textHash) {
                 // Chrome bug:
-                // Tspans positions defined as `em` are not updated
+                // <tspan> positions defined as `em` are not updated
                 // when container `font-size` change.
                 if (fontSize) node.setAttribute('font-size', fontSize);
                 // Text Along Path Selector
-                var textPath = textAttrs.textPath;
                 if (isObject(textPath)) {
                     var pathSelector = textPath.selector;
                     if (typeof pathSelector === 'string') {
-                        var pathNode = this.findBySelector(pathSelector)[0];
+                        const [pathNode] = this.findBySelector(pathSelector);
                         if (pathNode instanceof SVGPathElement) {
-                            textAttrs.textPath = assign({ 'xlink:href': '#' + pathNode.id }, textPath);
+                            textPath = assign({ 'xlink:href': '#' + pathNode.id }, textPath);
                         }
                     }
                 }
-                V(node).text('' + text, textAttrs);
+                V(node).text('' + text, {
+                    lineHeight,
+                    annotations,
+                    textPath,
+                    x,
+                    textVerticalAnchor,
+                    eol,
+                    displayEmpty
+                });
                 $node.data(cacheName, textHash);
             }
         }
