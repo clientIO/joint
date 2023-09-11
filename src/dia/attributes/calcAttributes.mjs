@@ -1,7 +1,34 @@
 import { isCalcAttribute, evalCalcAttribute } from './calc.mjs';
 
-const calcAttributesList = ['transform', 'x', 'y', 'cx', 'cy', 'x1', 'y1', 'x2', 'y2', 'points', 'd', 'r', 'rx', 'ry', 'width', 'height', 'stroke-width', 'font-size'];
-const positiveValueList = ['r', 'rx', 'ry', 'width', 'height', 'stroke-width', 'font-size'];
+const calcAttributesList = [
+    'transform',
+    'x',
+    'y',
+    'cx',
+    'cy',
+    'x1',
+    'y1',
+    'x2',
+    'y2',
+    'points',
+    'd',
+    'r',
+    'rx',
+    'ry',
+    'width',
+    'height',
+    'stroke-width',
+    'font-size',
+];
+const positiveValueList = [
+    'r',
+    'rx',
+    'ry',
+    'width',
+    'height',
+    'stroke-width',
+    'font-size',
+];
 
 const calcAttributes = calcAttributesList.reduce((acc, attrName) => {
     acc[attrName] = true;
