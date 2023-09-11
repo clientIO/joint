@@ -321,6 +321,11 @@ export const Segments = ToolView.extend({
                 this.resetAnchor('target', data.targetAnchorDef);
             }
         }
+        if (vertices.some(v => !v)) {
+            // This can happen when the link is using a smart routing and the number of
+            // vertices is not the same as the number of route points.
+            throw new Error('Segments: incompatible router in use');
+        }
         link.vertices(vertices, { ui: true, tool: this.cid });
         this.updateHandle(handle, vertex, nextVertex, offset);
         if (!options.stopPropagation) relatedView.notifyPointermove(normalizedEvent, coords.x, coords.y);
