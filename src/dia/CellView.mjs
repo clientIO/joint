@@ -21,6 +21,9 @@ import { Point, Rect } from '../g/index.mjs';
 import V from '../V/index.mjs';
 import $ from 'jquery';
 import { HighlighterView } from './HighlighterView.mjs';
+import { evalCalcAttribute, isCalcAttribute } from './attributes/calc.mjs';
+import { kebabCase } from 'lodash';
+import { aliases, calcAttributes } from './attributes/index.mjs';
 
 const HighlightingTypes = {
     DEFAULT: 'default',
@@ -542,12 +545,15 @@ export const CellView = View.extend({
         var attrName, attrVal, def, i, n;
         var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
         var relatives = [];
+        const rawAttrs = {};
         // divide the attributes between normal and special
         for (attrName in attrs) {
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
+            attrName = this.translateAttributeName(attrName);
+            rawAttrs[attrName] = attrVal;
             def = this.getAttributeDefinition(attrName);
-            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs, this))) {
+            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, rawAttrs, this))) {
                 if (isString(def.set)) {
                     normalAttrs || (normalAttrs = {});
                     normalAttrs[def.set] = attrVal;
@@ -557,7 +563,7 @@ export const CellView = View.extend({
                 }
             } else {
                 normalAttrs || (normalAttrs = {});
-                normalAttrs[toKebabCase(attrName)] = attrVal;
+                normalAttrs[attrName] = attrVal;
             }
         }
 
@@ -582,7 +588,7 @@ export const CellView = View.extend({
         }
 
         return {
-            raw: attrs,
+            raw: rawAttrs,
             normal: normalAttrs,
             set: setAttrs,
             position: positionAttrs,
@@ -590,24 +596,47 @@ export const CellView = View.extend({
         };
     },
 
+    translateAttributeName: function(attrName) {
+        return aliases[attrName] || toKebabCase(attrName);
+    },
+
+    evalCalcAttributes: function(attrs, refBBox) {
+        for (let attrName in attrs) {
+            if (!attrs.hasOwnProperty(attrName)) continue;
+            let value = attrs[attrName];
+            const calcType = calcAttributes[attrName];
+            if (calcType > 0 && isCalcAttribute(value)) {
+                value = evalCalcAttribute(value, refBBox);
+                if (calcType === 2) {
+                    value = Math.max(0, value);
+                }
+                attrs[attrName] = value;
+            }
+        }
+        return attrs;
+    },
+
     updateRelativeAttributes: function(node, attrs, refBBox, opt) {
 
         opt || (opt = {});
 
         var attrName, attrVal, def;
-        var rawAttrs = attrs.raw || {};
+        var evalAttrs = this.evalCalcAttributes(attrs.raw || {}, refBBox);
         var nodeAttrs = attrs.normal || {};
+        for (const nodeAttrName in nodeAttrs) {
+            nodeAttrs[nodeAttrName] = evalAttrs[nodeAttrName];
+        }
         var setAttrs = attrs.set;
         var positionAttrs = attrs.position;
         var offsetAttrs = attrs.offset;
 
         for (attrName in setAttrs) {
-            attrVal = setAttrs[attrName];
+            attrVal = evalAttrs[attrName];
             def = this.getAttributeDefinition(attrName);
             // SET - set function should return attributes to be set on the node,
             // which will affect the node dimensions based on the reference bounding
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
-            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
+            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, evalAttrs, this);
             if (isObject(setResult)) {
                 assign(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
@@ -643,13 +672,13 @@ export const CellView = View.extend({
 
         var positioned = false;
         for (attrName in positionAttrs) {
-            attrVal = positionAttrs[attrName];
+            attrVal = evalAttrs[attrName];
             def = this.getAttributeDefinition(attrName);
             // POSITION - position function should return a point from the
             // reference bounding box. The default position of the node is x:0, y:0 of
             // the reference bounding box or could be further specify by some
             // SVG attributes e.g. `x`, `y`
-            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
+            translation = def.position.call(this, attrVal, refBBox.clone(), node, evalAttrs, this);
             if (translation) {
                 nodePosition.offset(Point(translation).scale(sx, sy));
                 positioned || (positioned = true);
@@ -667,12 +696,12 @@ export const CellView = View.extend({
             if (nodeBoundingRect.width > 0 && nodeBoundingRect.height > 0) {
                 var nodeBBox = V.transformRect(nodeBoundingRect, nodeMatrix).scale(1 / sx, 1 / sy);
                 for (attrName in offsetAttrs) {
-                    attrVal = offsetAttrs[attrName];
+                    attrVal = evalAttrs[attrName];
                     def = this.getAttributeDefinition(attrName);
                     // OFFSET - offset function should return a point from the element
                     // bounding box. The default offset point is x:0, y:0 (origin) or could be further
                     // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
-                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs, this);
+                    translation = def.offset.call(this, attrVal, nodeBBox, node, evalAttrs, this);
                     if (translation) {
                         nodePosition.offset(Point(translation).scale(sx, sy));
                         offseted || (offseted = true);
@@ -872,9 +901,9 @@ export const CellView = View.extend({
             node = nodeData.node;
             processedAttrs = this.processNodeAttributes(node, nodeAttrs);
 
-            if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
+            if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset && !processedAttrs.raw.ref) {
                 // Set all the normal attributes right on the SVG/HTML element.
-                this.setNodeAttributes(node, processedAttrs.normal);
+                this.setNodeAttributes(node, this.evalCalcAttributes(processedAttrs.normal, opt.rootBBox));
 
             } else {
 

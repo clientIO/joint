@@ -172,7 +172,7 @@ function isLinkView() {
 function contextMarker(context) {
     var marker = {};
     // Stroke
-    // The context 'fill' is disregared here. The usual case is to use the marker with a connection
+    // The context 'fill' is disregarded here. The usual case is to use the marker with a connection
     // (for which 'fill' attribute is set to 'none').
     var stroke = context.stroke;
     if (typeof stroke === 'string') {
@@ -181,8 +181,7 @@ function contextMarker(context) {
     }
     // Opacity
     // Again the context 'fill-opacity' is ignored.
-    var strokeOpacity = context.strokeOpacity;
-    if (strokeOpacity === undefined) strokeOpacity = context['stroke-opacity'];
+    var strokeOpacity = context['stroke-opacity'];
     if (strokeOpacity === undefined) strokeOpacity = context.opacity;
     if (strokeOpacity !== undefined) {
         marker['stroke-opacity'] = strokeOpacity;
@@ -201,67 +200,11 @@ function setPaintURL(def) {
 
 const attributesNS = {
 
-    xlinkShow: {
-        set: 'xlink:show'
-    },
-
-    xlinkRole: {
-        set: 'xlink:role'
-    },
-
-    xlinkType: {
-        set: 'xlink:type'
-    },
-
-    xlinkArcrole: {
-        set: 'xlink:arcrole'
-    },
-
-    xlinkTitle: {
-        set: 'xlink:title'
-    },
-
-    xlinkActuate: {
-        set: 'xlink:actuate'
-    },
-
-    xmlSpace: {
-        set: 'xml:space'
-    },
-
-    xmlBase: {
-        set: 'xml:base'
-    },
-
-    xmlLang: {
-        set: 'xml:lang'
-    },
-
-    preserveAspectRatio: {
-        set: 'preserveAspectRatio'
-    },
-
-    requiredExtension: {
-        set: 'requiredExtension'
-    },
-
-    requiredFeatures: {
-        set: 'requiredFeatures'
-    },
-
-    systemLanguage: {
-        set: 'systemLanguage'
-    },
-
-    externalResourcesRequired: {
-        set: 'externalResourceRequired'
-    },
-
     href: {
         set: setIfChangedWrapper('href')
     },
 
-    xlinkHref: {
+    'xlink:href': {
         set: setIfChangedWrapper('xlink:href')
     },
 
@@ -282,7 +225,7 @@ const attributesNS = {
         set: setPaintURL
     },
 
-    sourceMarker: {
+    'source-marker': {
         qualify: isPlainObject,
         set: function(marker, refBBox, node, attrs) {
             marker = assign(contextMarker(attrs), marker);
@@ -290,7 +233,7 @@ const attributesNS = {
         }
     },
 
-    targetMarker: {
+    'target-marker': {
         qualify: isPlainObject,
         set: function(marker, refBBox, node, attrs) {
             marker = assign(contextMarker(attrs), { 'transform': 'rotate(180)' }, marker);
@@ -298,7 +241,7 @@ const attributesNS = {
         }
     },
 
-    vertexMarker: {
+    'vertex-marker': {
         qualify: isPlainObject,
         set: function(marker, refBBox, node, attrs) {
             marker = assign(contextMarker(attrs), marker);
@@ -308,30 +251,21 @@ const attributesNS = {
 
     text: {
         qualify: function(_text, _node, attrs) {
-            return !attrs.textWrap || !isPlainObject(attrs.textWrap);
+            const textWrap = attrs['text-wrap'];
+            return !textWrap || !isPlainObject(textWrap);
         },
         set: function(text, refBBox, node, attrs) {
             const $node = $(node);
             const cacheName = 'joint-text';
             const cache = $node.data(cacheName);
-            const {
-                lineHeight,
-                annotations,
-                textVerticalAnchor,
-                eol,
-                displayEmpty
-            } = attrs;
-            let textPath = attrs.textPath;
-            // eval `x` if using calc()
-            let x = attrs.x;
-            if (isCalcAttribute(x)) {
-                x = evalCalcAttribute(x, refBBox);
-            }
-            // eval `font-size` if using calc()
-            let fontSize = attrs['font-size'] || attrs['fontSize'];
-            if (isCalcAttribute(fontSize)) {
-                fontSize = evalCalcAttribute(fontSize, refBBox);
-            }
+            const lineHeight = attrs['line-height'];
+            const textVerticalAnchor = attrs['text-vertical-anchor'];
+            const displayEmpty = attrs['display-empty'];
+            const fontSize = attrs['font-size'];
+            const annotations = attrs.annotations;
+            const eol = attrs.eol;
+            const x = attrs.x;
+            let textPath = attrs['text-path'];
             // Update the text only if there was a change in the string
             // or any of its attributes.
             const textHash = JSON.stringify([text, lineHeight, annotations, textVerticalAnchor, eol, displayEmpty, textPath, x, fontSize]);
@@ -364,7 +298,7 @@ const attributesNS = {
         }
     },
 
-    textWrap: {
+    'text-wrap': {
         qualify: isPlainObject,
         set: function(value, refBBox, node, attrs) {
             var size = {};
@@ -406,13 +340,12 @@ const attributesNS = {
             if (text === undefined) text = attrs.text;
             if (text !== undefined) {
                 const breakTextFn = value.breakText || breakText;
-                const fontSizeAttr = attrs['font-size'] || attrs.fontSize;
                 wrappedText = breakTextFn('' + text, size, {
-                    'font-weight': attrs['font-weight'] || attrs.fontWeight,
-                    'font-size': isCalcAttribute(fontSizeAttr) ? evalCalcAttribute(fontSizeAttr, refBBox) : fontSizeAttr,
-                    'font-family': attrs['font-family'] || attrs.fontFamily,
-                    'lineHeight': attrs.lineHeight,
-                    'letter-spacing': 'letter-spacing' in attrs ? attrs['letter-spacing'] : attrs.letterSpacing
+                    'font-weight': attrs['font-weight'],
+                    'font-size': attrs['font-size'],
+                    'font-family': attrs['font-family'],
+                    'lineHeight': attrs['line-height'],
+                    'letter-spacing': attrs['letter-spacing']
                 }, {
                     // Provide an existing SVG Document here
                     // instead of creating a temporary one over again.
@@ -460,15 +393,15 @@ const attributesNS = {
         }
     },
 
-    lineHeight: {
+    'line-height': {
         qualify: isTextInUse
     },
 
-    textVerticalAnchor: {
+    'text-vertical-anchor': {
         qualify: isTextInUse
     },
 
-    textPath: {
+    'text-path': {
         qualify: isTextInUse
     },
 
@@ -480,7 +413,7 @@ const attributesNS = {
         qualify: isTextInUse
     },
 
-    displayEmpty: {
+    'display-empty': {
         qualify: isTextInUse
     },
 
@@ -517,22 +450,22 @@ const attributesNS = {
     // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
     // otherwise, `refX` is the left coordinate of the bounding box
 
-    refX: {
+    'ref-x': {
         position: positionWrapper('x', 'width', 'origin')
     },
 
-    refY: {
+    'ref-y': {
         position: positionWrapper('y', 'height', 'origin')
     },
 
     // `ref-dx` and `ref-dy` define the offset of the subelement relative to the right and/or bottom
     // coordinate of the reference element.
 
-    refDx: {
+    'ref-dx': {
         position: positionWrapper('x', 'width', 'corner')
     },
 
-    refDy: {
+    'ref-dy': {
         position: positionWrapper('y', 'height', 'corner')
     },
 
@@ -541,23 +474,23 @@ const attributesNS = {
     // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
     // val < 0 || val > 1  ref-height = -20 sets the height to the ref. el. height shorter by 20
 
-    refWidth: {
+    'ref-width': {
         set: setWrapper('width', 'width')
     },
 
-    refHeight: {
+    'ref-height': {
         set: setWrapper('height', 'height')
     },
 
-    refRx: {
+    'ref-rx': {
         set: setWrapper('rx', 'width')
     },
 
-    refRy: {
+    'ref-ry': {
         set: setWrapper('ry', 'height')
     },
 
-    refRInscribed: {
+    'ref-r-inscribed': {
         set: (function(attrName) {
             var widthFn = setWrapper(attrName, 'width');
             var heightFn = setWrapper(attrName, 'height');
@@ -568,7 +501,7 @@ const attributesNS = {
         })('r')
     },
 
-    refRCircumscribed: {
+    'ref-r-circumscribed': {
         set: function(value, refBBox) {
             var isValuePercentage = isPercentage(value);
             value = parseFloat(value);
@@ -588,29 +521,29 @@ const attributesNS = {
         }
     },
 
-    refCx: {
+    'ref-cx': {
         set: setWrapper('cx', 'width')
     },
 
-    refCy: {
+    'ref-cy': {
         set: setWrapper('cy', 'height')
     },
 
     // `x-alignment` when set to `middle` causes centering of the subelement around its new x coordinate.
     // `x-alignment` when set to `right` uses the x coordinate as referenced to the right of the bbox.
 
-    xAlignment: {
+    'x-alignment': {
         offset: offsetWrapper('x', 'width', 'right')
     },
 
     // `y-alignment` when set to `middle` causes centering of the subelement around its new y coordinate.
     // `y-alignment` when set to `bottom` uses the y coordinate as referenced to the bottom of the bbox.
 
-    yAlignment: {
+    'y-alignment': {
         offset: offsetWrapper('y', 'height', 'bottom')
     },
 
-    resetOffset: {
+    'reset-offset': {
         offset: function(val, nodeBBox) {
             return (val)
                 ? { x: -nodeBBox.x, y: -nodeBBox.y }
@@ -619,19 +552,19 @@ const attributesNS = {
 
     },
 
-    refDResetOffset: {
+    'ref-d-reset-offset': {
         set: dWrapper({ resetOffset: true })
     },
 
-    refDKeepOffset: {
+    'ref-d-keep-offset': {
         set: dWrapper({ resetOffset: false })
     },
 
-    refPointsResetOffset: {
+    'ref-points-reset-offset': {
         set: pointsWrapper({ resetOffset: true })
     },
 
-    refPointsKeepOffset: {
+    'ref-points-keep-offset': {
         set: pointsWrapper({ resetOffset: false })
     },
 
@@ -661,88 +594,81 @@ const attributesNS = {
         }
     },
 
-    atConnectionLengthKeepGradient: {
+    'at-connection-length-keep-gradient': {
         qualify: isLinkView,
         set: atConnectionWrapper('getTangentAtLength', { rotate: true })
     },
 
-    atConnectionLengthIgnoreGradient: {
+    'at-connection-length-ignore-gradient': {
         qualify: isLinkView,
         set: atConnectionWrapper('getTangentAtLength', { rotate: false })
     },
 
-    atConnectionRatioKeepGradient: {
+    'at-connection-ratio-keep-gradient': {
         qualify: isLinkView,
         set: atConnectionWrapper('getTangentAtRatio', { rotate: true })
     },
 
-    atConnectionRatioIgnoreGradient: {
+    'at-connection-ratio-ignore-gradient': {
         qualify: isLinkView,
         set: atConnectionWrapper('getTangentAtRatio', { rotate: false })
     }
 };
 
-attributesNS['xlink:href'] = attributesNS.xlinkHref;
-
-// Support `calc()` with the following SVG attributes
-[
-    'transform', // g
-    'd', // path
-    'points', // polyline / polygon
-    'cx', 'cy', // circle / ellipse
-    'x1', 'x2', 'y1', 'y2', // line
-    'x', 'y', // rect / text / image
-    'dx', 'dy' // text
-].forEach(attribute => {
-    attributesNS[attribute] = {
-        qualify: isCalcAttribute,
-        set: function setCalcAttribute(value, refBBox) {
-            return { [attribute]: evalCalcAttribute(value, refBBox) };
-        }
-    };
-});
-
-// Prevent "A negative value is not valid" error.
-[
-    'width', 'height', // rect / image
-    'r', // circle
-    'rx', 'ry', // rect / ellipse
-    'font-size', // text
-    'stroke-width' // elements
-].forEach(attribute => {
-    attributesNS[attribute] = {
-        qualify: isCalcAttribute,
-        set: function setCalcAttribute(value, refBBox) {
-            return { [attribute]: Math.max(0, evalCalcAttribute(value, refBBox)) };
-        }
-    };
-});
-
 // Aliases
-attributesNS.refR = attributesNS.refRInscribed;
-attributesNS.refD = attributesNS.refDResetOffset;
-attributesNS.refPoints = attributesNS.refPointsResetOffset;
-attributesNS.atConnectionLength = attributesNS.atConnectionLengthKeepGradient;
-attributesNS.atConnectionRatio = attributesNS.atConnectionRatioKeepGradient;
-attributesNS.fontSize = attributesNS['font-size'];
-attributesNS.strokeWidth = attributesNS['stroke-width'];
+attributesNS['ref-r'] = attributesNS['ref-r-inscribed'];
+attributesNS['ref-d'] = attributesNS['ref-d-reset-offset'];
+attributesNS['ref-points'] = attributesNS['ref-points-reset-offset'];
+attributesNS['at-connection-length'] = attributesNS['at-connection-length-keep-gradient'];
+attributesNS['at-connection-ratio'] = attributesNS['at-connection-ratio-keep-gradient'];
 
 // This allows to combine both absolute and relative positioning
 // refX: 50%, refX2: 20
-attributesNS.refX2 = attributesNS.refX;
-attributesNS.refY2 = attributesNS.refY;
-attributesNS.refWidth2 = attributesNS.refWidth;
-attributesNS.refHeight2 = attributesNS.refHeight;
-
-// Aliases for backwards compatibility
-attributesNS['ref-x'] = attributesNS.refX;
-attributesNS['ref-y'] = attributesNS.refY;
-attributesNS['ref-dy'] = attributesNS.refDy;
-attributesNS['ref-dx'] = attributesNS.refDx;
-attributesNS['ref-width'] = attributesNS.refWidth;
-attributesNS['ref-height'] = attributesNS.refHeight;
-attributesNS['x-alignment'] = attributesNS.xAlignment;
-attributesNS['y-alignment'] = attributesNS.yAlignment;
+attributesNS['ref-x2'] = attributesNS['ref-x'];
+attributesNS['ref-y2'] = attributesNS['ref-y'];
+attributesNS['ref-width2'] = attributesNS['ref-width'];
+attributesNS['ref-height2'] = attributesNS['ref-height'];
 
 export const attributes = attributesNS;
 
+export const aliases = {
+    xlinkHref: 'xlink:href',
+    xlinkShow: 'xlink:show',
+    xlinkRole: 'xlink:role',
+    xlinkType: 'xlink:type',
+    xlinkArcrole: 'xlink:arcrole',
+    xlinkTitle: 'xlink:title',
+    xlinkActuate: 'xlink:actuate',
+    xmlSpace: 'xml:space',
+    xmlLang: 'xml:lang',
+    xmlBase: 'xml:base',
+    preserveAspectRatio: 'preserveAspectRatio',
+    requiredExtensions: 'requiredExtensions',
+    requiredFeatures: 'requiredFeatures',
+    systemLanguage: 'systemLanguage',
+    externalResourcesRequired: 'externalResourcesRequired',
+};
+
+// TODO:
+// - move the code to cellView or move the cellView calcAttributes to this file
+// - replace the values with named constants
+export const calcAttributes = {
+    'transform': 1,
+    'x': 1,
+    'y': 1,
+    'cx': 1,
+    'cy': 1,
+    'x1': 1,
+    'y1': 1,
+    'x2': 1,
+    'y2': 1,
+    'points': 1,
+    'd': 1,
+    'r': 2,
+    'rx': 2,
+    'ry': 2,
+    'width': 2,
+    'height': 2,
+    'stroke-width': 2,
+    'font-size': 2,
+};
