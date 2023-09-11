@@ -595,8 +595,14 @@ export const CellView = View.extend({
         };
     },
 
-    translateAttributeName: function(attrName) {
-        return aliases[attrName] || toKebabCase(attrName);
+    translateAttributeName: function(name) {
+        if (name in aliases) {
+            return aliases[name];
+        }
+        if (config.supportCamelCaseAttributes) {
+            return toKebabCase(name);
+        }
+        return name;
     },
 
     updateRelativeAttributes: function(node, attrs, refBBox, opt) {

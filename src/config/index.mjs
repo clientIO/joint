@@ -11,5 +11,8 @@ export const config = {
     defaultTheme: 'default',
     // The maximum delay required for two consecutive touchend events to be interpreted
     // as a double-tap.
-    doubleTapInterval: 300
+    doubleTapInterval: 300,
+    // Should be the camel case attributes converted to dash case attributes.
+    // e.g. `strokeWidth` -> `stroke-width`
+    supportCamelCaseAttributes: true,
 };
