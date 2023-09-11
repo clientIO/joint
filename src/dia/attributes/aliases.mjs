@@ -1,0 +1,17 @@
+export const aliases = {
+    xlinkHref: 'xlink:href',
+    xlinkShow: 'xlink:show',
+    xlinkRole: 'xlink:role',
+    xlinkType: 'xlink:type',
+    xlinkArcrole: 'xlink:arcrole',
+    xlinkTitle: 'xlink:title',
+    xlinkActuate: 'xlink:actuate',
+    xmlSpace: 'xml:space',
+    xmlLang: 'xml:lang',
+    xmlBase: 'xml:base',
+    preserveAspectRatio: 'preserveAspectRatio',
+    requiredExtensions: 'requiredExtensions',
+    requiredFeatures: 'requiredFeatures',
+    systemLanguage: 'systemLanguage',
+    externalResourcesRequired: 'externalResourcesRequired',
+};

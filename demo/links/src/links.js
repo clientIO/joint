@@ -370,7 +370,8 @@ var el1 = new joint.shapes.standard.Path({
     attrs: {
         body: {
             fill: '#31d0c6',
-            d: 'M 0 calc(0.45 * h) calc(0.25 * w) calc(0.45 * h) calc(0.25 * w) calc(0.75 * h) calc(0.75 * w) calc(0.75 * h) calc(0.75 * w) 0 calc(w) 0 calc(w) calc(h) 0 calc(h) z'
+            d: 'M 0 calc(0.45 * h) calc(0.25 * w) calc(0.45 * h) calc(0.25 * w) calc(0.75 * h) calc(0.75 * w) calc(0.75 * h) calc(0.75 * w) 0 calc(w) 0 calc(w) calc(h) 0 calc(h) z',
+            refD: null
         }
     }
 });

@@ -21,9 +21,8 @@ import { Point, Rect } from '../g/index.mjs';
 import V from '../V/index.mjs';
 import $ from 'jquery';
 import { HighlighterView } from './HighlighterView.mjs';
-import { evalCalcAttribute, isCalcAttribute } from './attributes/calc.mjs';
-import { kebabCase } from 'lodash';
-import { aliases, calcAttributes } from './attributes/index.mjs';
+import { aliases } from './attributes/aliases.mjs';
+import { evalCalcAttributes } from './attributes/calcAttributes.mjs';
 
 const HighlightingTypes = {
     DEFAULT: 'default',
@@ -600,28 +599,12 @@ export const CellView = View.extend({
         return aliases[attrName] || toKebabCase(attrName);
     },
 
-    evalCalcAttributes: function(attrs, refBBox) {
-        for (let attrName in attrs) {
-            if (!attrs.hasOwnProperty(attrName)) continue;
-            let value = attrs[attrName];
-            const calcType = calcAttributes[attrName];
-            if (calcType > 0 && isCalcAttribute(value)) {
-                value = evalCalcAttribute(value, refBBox);
-                if (calcType === 2) {
-                    value = Math.max(0, value);
-                }
-                attrs[attrName] = value;
-            }
-        }
-        return attrs;
-    },
-
     updateRelativeAttributes: function(node, attrs, refBBox, opt) {
 
         opt || (opt = {});
 
         var attrName, attrVal, def;
-        var evalAttrs = this.evalCalcAttributes(attrs.raw || {}, refBBox);
+        var evalAttrs = evalCalcAttributes(attrs.raw || {}, refBBox);
         var nodeAttrs = attrs.normal || {};
         for (const nodeAttrName in nodeAttrs) {
             nodeAttrs[nodeAttrName] = evalAttrs[nodeAttrName];
@@ -903,7 +886,7 @@ export const CellView = View.extend({
 
             if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset && !processedAttrs.raw.ref) {
                 // Set all the normal attributes right on the SVG/HTML element.
-                this.setNodeAttributes(node, this.evalCalcAttributes(processedAttrs.normal, opt.rootBBox));
+                this.setNodeAttributes(node, evalCalcAttributes(processedAttrs.normal, opt.rootBBox));
 
             } else {
 
