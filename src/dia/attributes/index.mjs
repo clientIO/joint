@@ -342,7 +342,7 @@ const attributesNS = {
                 if (fontSize) node.setAttribute('font-size', fontSize);
                 // Text Along Path Selector
                 if (isObject(textPath)) {
-                    var pathSelector = textPath.selector;
+                    const pathSelector = textPath.selector;
                     if (typeof pathSelector === 'string') {
                         const [pathNode] = this.findBySelector(pathSelector);
                         if (pathNode instanceof SVGPathElement) {
