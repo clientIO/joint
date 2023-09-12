@@ -410,7 +410,7 @@ function getTargetTangentDirection(linkView, route, direction, options) {
             case TangentDirections.LEFT:
                 return new Point(-1, 0);
             case TangentDirections.RIGHT:
-                return new Point(0, 1);
+                return new Point(1, 0);
             case TangentDirections.AUTO:
                 return getAutoTargetDirection(linkView, route, options);
             case TangentDirections.CLOSEST_POINT:
