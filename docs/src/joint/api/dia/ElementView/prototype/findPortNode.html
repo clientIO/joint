@@ -1,0 +1,9 @@
+<pre class="docs-method-signature"><code>elementView.findPortNode(portId)</code></pre>
+<p>Return the port element of this ElementView that is identified by <code>portId</code> (i.e. an SVGElement within <code>this.el</code> which has <code>'port': portId</code>, an SVGElement referenced by <code>portRoot</code> selector).</p>
+
+<p>If the ElementView does not have a port identified by <code>portId</code>, return <code>null</code>.</p>
+
+<pre class="docs-method-signature"><code>elementView.findPortNode(portId, selector)</code></pre>
+<p>If <code>selector</code> is also specified, return the subelement of the port element that is identified by <code>selector</code>, according to the rules of the <code>elementView.findBySelector()</code> <a href="#dia.ElementView.prototype.findBySelector">function</a>.</p>
+
+<p>If the port element does not have a subelement that matches <code>selector</code>, return <code>null</code>.</p>
