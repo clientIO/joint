@@ -20,11 +20,13 @@ const OPPOSITE_DIRECTIONS = {
     [Directions.BOTTOM]: Directions.TOP
 };
 
-const AREA_CROSSING_DIRECTIONS = {
-    90: Directions.TOP,
-    180: Directions.RIGHT,
-    270: Directions.BOTTOM,
-    0: Directions.LEFT
+const VERTICAL_DIRECTIONS = [Directions.TOP, Directions.BOTTOM];
+
+const ANGLE_DIRECTION_MAP = {
+    0: Directions.RIGHT,
+    180: Directions.LEFT,
+    270: Directions.TOP,
+    90: Directions.BOTTOM
 };
 
 function resolveSides(source, target) {
@@ -62,6 +64,145 @@ function resolveSides(source, target) {
     }
 
     return [sourceSide, targetSide];
+}
+
+function resolveForTopSourceSide(source, target, nextInLine) {
+    const { x0: sx0, y0: sy0, width, height, point: anchor } = source;
+    const sx1 = sx0 + width;
+    const sy1 = sy0 + height;
+
+    const { x: ax, y: ay } = anchor;
+    const { x0: tx, y0: ty } = target;
+
+    if (tx === ax && ty < ay) return Directions.BOTTOM;
+    if (tx < ax && ty < ay) return Directions.RIGHT;
+    if (tx > ax && ty < ay) return Directions.LEFT;
+    if (tx < sx0 && ty >= sy0) return Directions.TOP;
+    if (tx > sx1 && ty >= sy0) return Directions.TOP;
+    if (tx >= sx0 && tx <= ax && ty > sy1) {
+        if (nextInLine.point.x < tx) {
+            return Directions.RIGHT;
+        }
+
+        return Directions.LEFT;
+    }
+    if (tx <= sx1 && tx >= ax && ty > sy1) {
+        if (nextInLine.point.x < tx) {
+            return Directions.RIGHT;
+        }
+
+        return Directions.LEFT;
+    }
+
+    return Directions.TOP;
+}
+
+function resolveForBottomSourceSide(source, target, nextInLine) {
+    const { x0: sx0, y0: sy0, width, point: anchor } = source;
+    const sx1 = sx0 + width;
+
+    const { x: ax, y: ay } = anchor;
+    const { x0: tx, y0: ty } = target;
+    
+    if (tx === ax && ty > ay) return Directions.TOP;
+    if (tx < ax && ty > ay) return Directions.RIGHT;
+    if (tx > ax && ty > ay) return Directions.LEFT;
+    if (tx < sx0 && ty <= sy0) return Directions.BOTTOM;
+    if (tx > sx1 && ty <= sy0) return Directions.BOTTOM;
+    if (tx >= sx0 && tx <= ax && ty < sy0) {
+        if (nextInLine.point.x < tx) {
+            return Directions.RIGHT;
+        }
+
+        return Directions.LEFT;
+    }
+    if (tx <= sx1 && tx >= ax && ty < sy0) {
+        if (nextInLine.point.x < tx) {
+            return Directions.RIGHT;
+        }
+
+        return Directions.LEFT;
+    }
+
+    return Directions.BOTTOM;
+}
+
+function resolveForLeftSourceSide(source, target, nextInLine) {
+    const { y0: sy0, x0: sx0, width, height, point: anchor } = source;
+    const sx1 = sx0 + width;
+    const sy1 = sy0 + height;
+
+    const { x: ax, y: ay } = anchor;
+    const { x0: tx, y0: ty } = target;
+
+    if (tx < ax && ty === ay) return Directions.RIGHT;
+    if (tx < ax && ty < ay) return Directions.BOTTOM;
+    if (tx < ax && ty > ay) return Directions.TOP;
+    if (tx >= sx0 && ty <= sy0 && ty >= ay) return Directions.LEFT;
+    if (tx >= sx0 && ty >= sy1 && ty <= ay) return Directions.LEFT;
+    if (tx > sx1 && ty >= sy0 && ty <= ay) {
+        if (nextInLine.point.y < ty) {
+            return Directions.BOTTOM;
+        }
+
+        return Directions.TOP;
+    }
+    if (tx > sx1 && ty <= sy1 && ty >= ay) {
+        if (nextInLine.point.y < ty) {
+            return Directions.BOTTOM;
+        }
+
+        return Directions.TOP;
+    }
+
+    return Directions.LEFT;
+}
+
+function resolveForRightSourceSide(source, target, nextInLine) {
+    const { y0: sy0, x0: sx0, width, height, point: anchor } = source;
+    const sx1 = sx0 + width;
+    const sy1 = sy0 + height;
+
+    const { x: ax, y: ay } = anchor;
+    const { x0: tx, y0: ty } = target;
+
+    if (tx > ax && ty === ay) return Directions.LEFT;
+    if (tx > ax && ty < ay) return Directions.BOTTOM;
+    if (tx > ax && ty > ay) return Directions.TOP;
+    if (tx <= sx0 && ty <= sy0 && ty >= ay) return Directions.RIGHT;
+    if (tx <= sx0 && ty >= sy1 && ty <= ay) return Directions.RIGHT;
+    if (tx < sx1 && ty >= sy0 && ty <= ay) {
+        if (nextInLine.point.y < ty) {
+            return Directions.BOTTOM;
+        }
+
+        return Directions.TOP;
+    }
+    if (tx < sx1 && ty <= sy1 && ty >= ay) {
+        if (nextInLine.point.y < ty) {
+            return Directions.BOTTOM;
+        }
+
+        return Directions.TOP;
+    }
+
+    return Directions.RIGHT;
+}
+
+function resolveInitialDirection(source, target, nextInLine) {
+    const [sourceSide] = resolveSides(source, target);
+
+
+    switch (sourceSide) {
+        case Directions.TOP:
+            return resolveForTopSourceSide(source, target, nextInLine);
+        case Directions.RIGHT:
+            return resolveForRightSourceSide(source, target, nextInLine);
+        case Directions.BOTTOM:
+            return resolveForBottomSourceSide(source, target, nextInLine);
+        case Directions.LEFT:
+            return resolveForLeftSourceSide(source, target, nextInLine);
+    }
 }
 
 function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
@@ -120,6 +261,29 @@ function pointDataFromVertex({ x, y }) {
     };
 }
 
+function getOutsidePoint(side, pointData, margin) {
+    const outsidePoint = pointData.point.clone();
+
+    const { x0, y0, width, height } = pointData;
+
+    switch (side) {
+        case 'left':
+            outsidePoint.x = x0 - margin;
+            break;
+        case 'right':
+            outsidePoint.x = x0 + width + margin;
+            break;
+        case 'top':
+            outsidePoint.y = y0 - margin;
+            break;
+        case 'bottom':
+            outsidePoint.y = y0 + height + margin;
+            break;
+    }
+
+    return outsidePoint;
+}
+
 function routeBetweenPoints(source, target, margin) {
     const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, width: sourceWidth, height: sourceHeight } = source;
     const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, width: targetWidth, height: targetHeight } = target;
@@ -131,54 +295,23 @@ function routeBetweenPoints(source, target, margin) {
 
     // Key coordinates including the margin
     const isSourceEl = sourceView && sourceView.model.isElement();
-    const sourceMargin = (isSourceEl ? margin : 0);
+    const sourceMargin = isSourceEl ? margin : 0;
     const smx0 = sx0 - sourceMargin;
     const smx1 = sx1 + sourceMargin;
     const smy0 = sy0 - sourceMargin;
     const smy1 = sy1 + sourceMargin;
 
     const isTargetEl = targetView && targetView.model.isElement();
-    const targetMargin = (isTargetEl ? margin : 0);
+    const targetMargin = isTargetEl ? margin : 0;
     const tmx0 = tx0 - targetMargin;
     const tmx1 = tx1 + targetMargin;
     const tmy0 = ty0 - targetMargin;
     const tmy1 = ty1 + targetMargin;
 
-    const sourceOutsidePoint = sourcePoint.clone();
-
     const [sourceSide, targetSide] = resolveSides(source, target);
 
-    switch (sourceSide) {
-        case 'left':
-            sourceOutsidePoint.x = smx0;
-            break;
-        case 'right':
-            sourceOutsidePoint.x = smx1;
-            break;
-        case 'top':
-            sourceOutsidePoint.y = smy0;
-            break;
-        case 'bottom':
-            sourceOutsidePoint.y = smy1;
-            break;
-    }
-
-    const targetOutsidePoint = targetPoint.clone();
-
-    switch (targetSide) {
-        case 'left':
-            targetOutsidePoint.x = tmx0;
-            break;
-        case 'right':
-            targetOutsidePoint.x = tmx1;
-            break;
-        case 'top':
-            targetOutsidePoint.y = tmy0;
-            break;
-        case 'bottom':
-            targetOutsidePoint.y = tmy1;
-            break;
-    }
+    const sourceOutsidePoint = getOutsidePoint(sourceSide, { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight }, sourceMargin);
+    const targetOutsidePoint = getOutsidePoint(targetSide, { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight }, targetMargin);
 
     const { x: sox, y: soy } = sourceOutsidePoint;
     const { x: tox, y: toy } = targetOutsidePoint;
@@ -188,33 +321,6 @@ function routeBetweenPoints(source, target, margin) {
     const scy = (sy0 + sy1) / 2;
     const middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
     const middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
-
-    if (!(isSourceEl && isTargetEl) && (sox === tox || soy === toy)) {
-        const line = new g.Line(sourcePoint, targetPoint);
-        const angle = line.angle();
-
-        if (isSourceEl && AREA_CROSSING_DIRECTIONS[angle] !== sourceSide) {
-            const result = [{ x: sox, y: soy }];
-
-            // there can be a rare case where the source and target are the same point
-            // and that can cause trouble
-            if (sox !== tox || soy !== toy) {
-                result.push({ x: tox, y: toy });
-            }
-
-            return result;
-        } else if (isTargetEl && OPPOSITE_DIRECTIONS[AREA_CROSSING_DIRECTIONS[angle]] !== targetSide) {
-            const result = [{ x: tox, y: toy }];
-
-            // there can be a rare case where the source and target are the same point
-            // and that can cause trouble
-            if (sox !== tox || soy !== toy) {
-                result.unshift({ x: sox, y: soy });
-            }
-
-            return result;
-        }
-    }
 
     if (sourceSide === 'left' && targetSide === 'right') {
         if (smx0 <= tmx1) {
@@ -765,14 +871,6 @@ function routeBetweenPoints(source, target, margin) {
     }
 }
 
-function routeOverlap(p1, p2, p3, p4) {
-
-    const angle1 = new g.Line(p1, p2).angle();
-    const angle2 = new g.Line(p3, p4).angle();
-
-    return Math.abs(angle1 - angle2) === 180;
-}
-
 function rightAngleRouter(vertices, opt, linkView) {
     const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
     const margin = opt.margin || 20;
@@ -790,70 +888,89 @@ function rightAngleRouter(vertices, opt, linkView) {
         return routeBetweenPoints(sourcePoint, targetPoint, margin);
     }
 
-    const verticesPoints = [sourcePoint, ...vertices.map((v) => pointDataFromVertex(v)), targetPoint];
-    verticesPoints[1].direction = verticesPoints[1].bbox.sideNearestToPoint(sourcePoint.point);
+    // The first point responsible for the initial direction of the route
+    vertices = vertices.map((v) => pointDataFromVertex(v));
+    const next = vertices[1] || targetPoint;
+    const direction = resolveInitialDirection(sourcePoint, vertices[0], next);
+    vertices[0].direction = direction;
 
-    for (let i = 0; i < verticesPoints.length - 1; i++) {
-        const from = verticesPoints[i];
-        const to = verticesPoints[i + 1];
+    resultVertices.push(...routeBetweenPoints(sourcePoint, vertices[0], margin), vertices[0].point);
 
-        const route = util.uniq(routeBetweenPoints(from, to, margin), (p) => new g.Point(p.x, p.y).serialize());
+    for (let i = 0; i < vertices.length - 1; i++) {
+        const from = vertices[i];
+        const to = vertices[i + 1];
 
-        if (new g.Point(resultVertices[resultVertices.length - 1]).equals(route[0])) {
-            route.shift();
+        const segment = new g.Line(from.point, to.point);
+        if (segment.angle() % 90 === 0) {
+            resultVertices.push(from.point, to.point);
+            const accessDirection = OPPOSITE_DIRECTIONS[ANGLE_DIRECTION_MAP[segment.angle()]];
+            to.direction = accessDirection;
+            continue;
         }
+    
+        const accessDirection = from.direction;
+        const isDirectionVertical = VERTICAL_DIRECTIONS.includes(accessDirection);
 
-        if (i > 0) {
-            
-            let skip = false;
+        if (isDirectionVertical) {
+            const isToAbove = from.point.y > to.point.y;
+            const dx = to.point.x - from.point.x;
 
-            // prevent infinite correction
-            if (from.originalDirection) {
-                from.direction = from.originalDirection;
-                skip = true;
-            }
-            
-            const middlePoint = verticesPoints[i].point;
-            const lastPointOfPrevSegment = middlePoint.equals(resultVertices[resultVertices.length - 1]) ? resultVertices[resultVertices.length - 2] : resultVertices[resultVertices.length - 1];
-            const nextPoint = route[0];
-            const existingOverlap = routeOverlap(lastPointOfPrevSegment, middlePoint, middlePoint.clone(), nextPoint);
+            if (accessDirection === Directions.BOTTOM) {
+                // If isToAbove === false and we need figure out if to go left or right
+                from.direction = isToAbove ? OPPOSITE_DIRECTIONS[accessDirection] : dx >= 0 ? Directions.RIGHT : Directions.LEFT;
 
-            // possible correction for lines that might share the same segment
-            if (existingOverlap && !skip) {
-
-                const isHorizontal = lastPointOfPrevSegment.y === middlePoint.y;
-
-                from.originalDirection = from.direction;
-
-                if (isHorizontal) {
-                    const isTargetBelow = to.point.y > middlePoint.y;
-                    const direction = isTargetBelow ? Directions.BOTTOM : Directions.TOP;
-                    from.direction = direction;
-                } else {
-                    const isTargetRight = to.point.x > middlePoint.x;
-                    const direction = isTargetRight ? Directions.RIGHT : Directions.LEFT;
-                    from.direction = direction;
+                if (dx === 0) {
+                    to.direction = from.direction;
+                } else if (dx > 0) {
+                    to.direction = isToAbove ? Directions.LEFT : Directions.TOP;
+                } else if (dx < 0) {
+                    to.direction = isToAbove ? Directions.RIGHT : Directions.TOP;
                 }
+            } else {
+                // If isToAbove === true and we need figure out if to go left or right
+                from.direction = isToAbove ? dx >= 0 ? Directions.RIGHT : Directions.LEFT : OPPOSITE_DIRECTIONS[accessDirection];
 
-                i--;
-                continue;
+                if (dx === 0) {
+                    to.direction = from.direction;
+                } else if (dx > 0) {
+                    to.direction = isToAbove ? Directions.BOTTOM : Directions.LEFT;
+                } else if (dx < 0) {
+                    to.direction = isToAbove ? Directions.BOTTOM : Directions.RIGHT;
+                }
+            }
+        } else {
+            const isToLeft = from.point.x > to.point.x;
+            const dy = to.point.y - from.point.y;
+
+            if (accessDirection === Directions.RIGHT) {
+                from.direction = isToLeft ? OPPOSITE_DIRECTIONS[accessDirection] : dy >= 0 ? Directions.BOTTOM : Directions.TOP;
+
+                if (dy === 0) {
+                    to.direction = from.direction;
+                } else if (dy > 0) {
+                    to.direction = isToLeft ? Directions.TOP : Directions.LEFT;
+                } else if (dy < 0) {
+                    to.direction = isToLeft ? Directions.BOTTOM : Directions.LEFT;
+                }
+            } else {
+                from.direction = isToLeft ? dy >= 0 ? Directions.BOTTOM : Directions.TOP : OPPOSITE_DIRECTIONS[accessDirection];
+
+                if (dy === 0) {
+                    to.direction = from.direction;
+                } else if (dy > 0) {
+                    to.direction = isToLeft ? Directions.RIGHT : Directions.TOP;
+                } else if (dy < 0) {
+                    to.direction = isToLeft ? Directions.RIGHT : Directions.BOTTOM;
+                }
             }
         }
 
-        if (!to.point.equals(route[route.length - 1]) && i < verticesPoints.length - 2) {
-            route.push(to.point);
-        }
-
+        const route = util.uniq([...routeBetweenPoints(from, to, margin), to.point], (p) => new g.Point(p.x, p.y).serialize());
         resultVertices.push(...route);
-
-        // since the `verticesPoints` includes the source and target points, we don't want to change the direction of the last point
-        if (i < verticesPoints.length - 3) {
-            // modify the direction of the target for the upcoming segment
-            verticesPoints[i + 2].direction = to.direction;
-        }
-
-        to.direction = OPPOSITE_DIRECTIONS[to.direction];
     }
+
+    vertices[vertices.length - 1].direction = OPPOSITE_DIRECTIONS[vertices[vertices.length - 1].direction];
+    resultVertices.push(...routeBetweenPoints(vertices[vertices.length - 1], targetPoint, margin));
 
     return resultVertices;
 }
