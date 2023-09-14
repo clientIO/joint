@@ -970,8 +970,14 @@ function rightAngleRouter(vertices, opt, linkView) {
     }
 
     vertices[vertices.length - 1].direction = OPPOSITE_DIRECTIONS[vertices[vertices.length - 1].direction];
-    resultVertices.push(...routeBetweenPoints(vertices[vertices.length - 1], targetPoint, margin));
 
+    const route = routeBetweenPoints(vertices[vertices.length - 1], targetPoint, margin);
+    // remove first point of route if it matches the last point of resultVertices
+    if (new g.Point(route[0].x, route[0].y).equals(resultVertices[resultVertices.length - 1])) {
+        route.shift();
+    }
+
+    resultVertices.push(...route);
     return resultVertices;
 }
 
