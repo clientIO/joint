@@ -932,6 +932,11 @@ QUnit.module('vectorizer', function(hooks) {
                 V.supportCamelCaseAttributes = false;
             });
 
+            QUnit.test('constructor', function(assert) {
+                const vel = V('rect', { strokeWidth: 5 });
+                assert.equal(vel.node.getAttribute('stroke-width'), 5);
+            });
+
             QUnit.test('attr()', function(assert) {
                 const vel = V('rect');
                 vel.attr('strokeWidth', 5);
@@ -951,9 +956,8 @@ QUnit.module('vectorizer', function(hooks) {
             QUnit.test('removeAttr()', function(assert) {
                 const vel = V('rect');
                 vel.attr('strokeWidth', 5);
+                assert.equal(vel.node.getAttribute('stroke-width'), 5);
                 vel.removeAttr('strokeWidth');
-                assert.equal(vel.attr('strokeWidth'), null);
-                assert.equal(vel.attr('stroke-width'), null);
                 assert.equal(vel.node.getAttribute('stroke-width'), null);
             });
         });
