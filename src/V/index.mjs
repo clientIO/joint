@@ -663,15 +663,17 @@ const V = (function() {
      */
     VPrototype.removeAttr = function(name) {
 
-        var qualifiedName = V.qualifyAttr(name);
-        var el = this.node;
+        const trueName = attributeNames[name];
 
-        if (qualifiedName.ns) {
-            if (el.hasAttributeNS(qualifiedName.ns, qualifiedName.local)) {
-                el.removeAttributeNS(qualifiedName.ns, qualifiedName.local);
+        const { ns, local } = V.qualifyAttr(trueName);
+        const el = this.node;
+
+        if (ns) {
+            if (el.hasAttributeNS(ns, local)) {
+                el.removeAttributeNS(ns, local);
             }
-        } else if (el.hasAttribute(name)) {
-            el.removeAttribute(name);
+        } else if (el.hasAttribute(trueName)) {
+            el.removeAttribute(trueName);
         }
         return this;
     };
@@ -692,7 +694,7 @@ const V = (function() {
         }
 
         if (V.isString(name) && V.isUndefined(value)) {
-            return this.node.getAttribute(name);
+            return this.node.getAttribute(attributeNames[name]);
         }
 
         if (typeof name === 'object') {
@@ -1257,23 +1259,24 @@ const V = (function() {
      */
     VPrototype.setAttribute = function(name, value) {
 
-        var el = this.node;
+        const el = this.node;
 
         if (value === null) {
             this.removeAttr(name);
             return this;
         }
 
-        var qualifiedName = V.qualifyAttr(name);
+        const trueName = attributeNames[name];
 
-        if (qualifiedName.ns) {
+        const { ns } = V.qualifyAttr(trueName);
+        if (ns) {
             // Attribute names can be namespaced. E.g. `image` elements
             // have a `xlink:href` attribute to set the source of the image.
-            el.setAttributeNS(qualifiedName.ns, name, value);
-        } else if (name === 'id') {
+            el.setAttributeNS(ns, trueName, value);
+        } else if (trueName === 'id') {
             el.id = value;
         } else {
-            el.setAttribute(name, value);
+            el.setAttribute(trueName, value);
         }
 
         return this;
@@ -1377,6 +1380,83 @@ const V = (function() {
 
         return xml;
     };
+
+    const _attributeNames = Object.create(null);
+
+    // List of attributes for which not to split camel case words.
+    [
+        'baseFrequency',
+        'baseProfile',
+        'clipPathUnits',
+        'contentScriptType',
+        'contentStyleType',
+        'diffuseConstant',
+        'edgeMode',
+        'externalResourcesRequired',
+        'filterRes', // deprecated
+        'filterUnits',
+        'gradientTransform',
+        'gradientUnits',
+        'kernelMatrix',
+        'kernelUnitLength',
+        'keyPoints',
+        'lengthAdjust',
+        'limitingConeAngle',
+        'markerHeight',
+        'markerUnits',
+        'markerWidth',
+        'maskContentUnits',
+        'maskUnits',
+        'numOctaves',
+        'pathLength',
+        'patternContentUnits',
+        'patternTransform',
+        'patternUnits',
+        'pointsAtX',
+        'pointsAtY',
+        'pointsAtZ',
+        'preserveAlpha',
+        'preserveAspectRatio',
+        'primitiveUnits',
+        'refX',
+        'refY',
+        'requiredExtensions',
+        'requiredFeatures',
+        'specularConstant',
+        'specularExponent',
+        'spreadMethod',
+        'startOffset',
+        'stdDeviation',
+        'stitchTiles',
+        'surfaceScale',
+        'systemLanguage',
+        'tableValues',
+        'targetX',
+        'targetY',
+        'textLength',
+        'viewBox',
+        'viewTarget', // deprecated
+        'xChannelSelector',
+        'yChannelSelector',
+        'zoomAndPan' // deprecated
+    ].forEach((name) => _attributeNames[name] = name);
+
+    const attributeNames = new Proxy(_attributeNames, {
+        get(cache, name) {
+            if (!V.supportCamelCaseAttributes) return name;
+            if (name in cache) {
+                return cache[name];
+            }
+            // Convert camel case to dash-separated words.
+            return (cache[name] = name.replace(/[A-Z]/g, '-$&').toLowerCase());
+        }
+    });
+
+    // Dictionary of attribute names
+    V.attributeNames = attributeNames;
+
+    // Should camel case attributes be supported?
+    V.supportCamelCaseAttributes = false;
 
     /**
      * @param {string} name
