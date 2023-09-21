@@ -598,9 +598,10 @@ export const Link = LinkBase.define('standard.Link', {
             stroke: '#333333',
             strokeWidth: 2,
             strokeLinejoin: 'round',
+            'xlink:fref': 'http://www.w3.org/1999/xlink',
             targetMarker: {
                 'type': 'path',
-                'd': 'M 10 -5 0 0 10 5 z'
+                'd': 'M 10 -5 0 0 10 5 z',
             }
         },
         wrapper: {
@@ -654,13 +655,15 @@ export const DoubleLink = LinkBase.define('standard.DoubleLink', {
         tagName: 'path',
         selector: 'outline',
         attributes: {
-            'fill': 'none'
+            'fill': 'none',
+            'cursor': 'pointer',
         }
     }, {
         tagName: 'path',
         selector: 'line',
         attributes: {
-            'fill': 'none'
+            'fill': 'none',
+            'pointer-events': 'none'
         }
     }]
 });
@@ -708,13 +711,15 @@ export const ShadowLink = LinkBase.define('standard.ShadowLink', {
         tagName: 'path',
         selector: 'shadow',
         attributes: {
-            'fill': 'none'
+            'fill': 'none',
+            'pointer-events': 'none'
         }
     }, {
         tagName: 'path',
         selector: 'line',
         attributes: {
-            'fill': 'none'
+            'fill': 'none',
+            'cursor': 'pointer'
         }
     }]
 });
