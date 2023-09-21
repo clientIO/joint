@@ -51,6 +51,11 @@
         <td><i>(point) => boolean</i></td>
         <td>A function that determines whether a given point is an obstacle or not. If used, the <i>padding</i>, <i>excludeEnds</i> and <i>excludeTypes</i> options are ignored.</td>
     </tr>
+    <tr>
+        <th>fallbackRouter</th>
+        <td><i>(vertices, options, linkView) => Array&lt;g.Point&gt;</i></td>
+        <td>A function that is called when the routing fails. Use this in situations where you need to retry routing with more relaxed options e.g. no start/endDirections constraints. The default fallbackRouter is an orthogonal router.</td>
+    </tr>    
 </table>
 
 <p>Example:</p>

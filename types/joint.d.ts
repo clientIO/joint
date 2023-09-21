@@ -3463,6 +3463,7 @@ export namespace routers {
         startDirections?: dia.OrthogonalDirection[];
         endDirections?: dia.OrthogonalDirection[];
         isPointObstacle?: (point: dia.Point) => boolean;
+        fallbackRouter: (vertices: dia.Point[], opts?: ManhattanRouterArguments, linkView?: dia.LinkView) => dia.Point[];
     }
 
     interface OrthogonalRouterArguments {
