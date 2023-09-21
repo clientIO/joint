@@ -600,7 +600,7 @@ export const Link = LinkBase.define('standard.Link', {
             strokeLinejoin: 'round',
             targetMarker: {
                 'type': 'path',
-                'd': 'M 10 -5 0 0 10 5 z',
+                'd': 'M 10 -5 0 0 10 5 z'
             }
         },
         wrapper: {
@@ -655,7 +655,7 @@ export const DoubleLink = LinkBase.define('standard.DoubleLink', {
         selector: 'outline',
         attributes: {
             'fill': 'none',
-            'cursor': 'pointer',
+            'cursor': 'pointer'
         }
     }, {
         tagName: 'path',
