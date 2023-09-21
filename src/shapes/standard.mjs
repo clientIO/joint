@@ -598,7 +598,6 @@ export const Link = LinkBase.define('standard.Link', {
             stroke: '#333333',
             strokeWidth: 2,
             strokeLinejoin: 'round',
-            'xlink:fref': 'http://www.w3.org/1999/xlink',
             targetMarker: {
                 'type': 'path',
                 'd': 'M 10 -5 0 0 10 5 z',
