@@ -1,0 +1,9 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#paper {
+    position: absolute;
+    inset: 0 0 0 0;
+}
