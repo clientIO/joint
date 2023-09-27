@@ -1,4 +1,19 @@
-const { dia, shapes, linkTools } = joint;
+const { dia, shapes, linkTools, elementTools } = joint;
+class ResizeTool extends elementTools.Control {
+    getPosition(view) {
+        const model = view.model;
+        const { width, height } = model.size();
+        return { x: width, y: height };
+    }
+
+    setPosition(view, coordinates) {
+        const model = view.model;
+        model.resize(
+            Math.max(coordinates.x, 1),
+            Math.max(coordinates.y, 1)
+        );
+    }
+}
 
 const graph = new dia.Graph();
 
@@ -60,6 +75,26 @@ link2.vertices([
 ]);
 
 graph.addCells([rect, rect2, link, link2]);
+
+rect.findView(paper).addTools(
+    new dia.ToolsView({
+        tools: [
+            new ResizeTool({
+                selector: 'body'
+            })
+        ]
+    })
+);
+
+rect2.findView(paper).addTools(
+    new dia.ToolsView({
+        tools: [
+            new ResizeTool({
+                selector: 'body'
+            })
+        ]
+    })
+);
 
 const linkToolsView = new dia.ToolsView({
     tools: [
