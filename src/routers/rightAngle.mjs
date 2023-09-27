@@ -192,7 +192,6 @@ function resolveForRightSourceSide(source, target, nextInLine) {
 function resolveInitialDirection(source, target, nextInLine) {
     const [sourceSide] = resolveSides(source, target);
 
-
     switch (sourceSide) {
         case Directions.TOP:
             return resolveForTopSourceSide(source, target, nextInLine);
@@ -511,27 +510,12 @@ function routeBetweenPoints(source, target, margin) {
             }
         }
 
-        const result = [
+        return [
+            { x: x2, y: soy },
             { x: x2, y },
             { x: x1, y },
+            { x: x1, y: toy }
         ];
-
-        // x1 and x2 are equal - redundant point
-        if (x1 === x2) {
-            result.pop();
-        }
-
-        // There are cases where 2 points are enough to draw the route and
-        // additional points would cause problems
-        if (soy !== y) {
-            result.unshift({ x: x2, y: soy });
-        }
-
-        if (toy !== y) {
-            result.push({ x: x1, y: toy });
-        }
-
-        return result;
     } else if (sourceSide === 'right' && targetSide === 'right') {
         let y;
         let x1 = Math.max((sx0 + tx1) / 2, tox);
@@ -551,27 +535,12 @@ function routeBetweenPoints(source, target, margin) {
             }
         }
 
-        const result = [];
-
-        // Add points to the result array based on the conditions
-        if (x1 !== x2) {
-            result.push({ x: x2, y });
-            result.push({ x: x1, y });
-        } else {
-            result.push({ x: x1, y });
-        }
-
-        // There are cases where 2 points are enough to draw the route and
-        // additional points would cause problems
-        if (soy !== y) {
-            result.unshift({ x: x2, y: soy });
-        }
-
-        if (toy !== y) {
-            result.push({ x: x1, y: toy });
-        }
-
-        return result;
+        return [
+            { x: x2, y: soy },
+            { x: x2, y },
+            { x: x1, y },
+            { x: x1, y: toy }
+        ];
     } else if (sourceSide === 'top' && targetSide === 'right') {
         if (soy > toy) {
             if (sox < tox) {
@@ -786,16 +755,11 @@ function routeBetweenPoints(source, target, margin) {
         const x = toy < soy ? Math.min(smx0, tmx0) : smx0;
         const y = Math.min(smy0, tmy0);
 
-        const result = [
+        return [
+            { x, y: soy },
             { x, y },
             { x: tox, y }
         ];
-
-        if (y !== soy) {
-            result.unshift({ x, y: soy });
-        }
-
-        return result;
 
     } else if (sourceSide === 'right' && targetSide === 'top') {
         if (sox <= tox && soy < tmy0) {
@@ -825,16 +789,11 @@ function routeBetweenPoints(source, target, margin) {
         const x = Math.max(smx1, tmx1);
         const y = Math.min(smy0, tmy0);
 
-        const result = [
+        return [
+            { x, y: soy },
             { x, y },
             { x: tox, y }
         ];
-
-        if (y !== soy) {
-            result.unshift({ x, y: soy });
-        }
-
-        return result;
     } else if (sourceSide === 'right' && targetSide === 'bottom') {
         if (sox < tox && soy >= tmy1) {
             return [{ x: tox, y: soy }];
@@ -907,71 +866,21 @@ function rightAngleRouter(vertices, opt, linkView) {
             to.direction = accessDirection;
             continue;
         }
-    
-        const accessDirection = from.direction;
-        const isDirectionVertical = VERTICAL_DIRECTIONS.includes(accessDirection);
 
-        if (isDirectionVertical) {
-            const isToAbove = from.point.y > to.point.y;
-            const dx = to.point.x - from.point.x;
+        const [fromDirection, toDirection] = resolveDirection(from, to);
 
-            if (accessDirection === Directions.BOTTOM) {
-                // If isToAbove === false and we need figure out if to go left or right
-                from.direction = isToAbove ? OPPOSITE_DIRECTIONS[accessDirection] : dx >= 0 ? Directions.RIGHT : Directions.LEFT;
-
-                if (dx === 0) {
-                    to.direction = from.direction;
-                } else if (dx > 0) {
-                    to.direction = isToAbove ? Directions.LEFT : Directions.TOP;
-                } else if (dx < 0) {
-                    to.direction = isToAbove ? Directions.RIGHT : Directions.TOP;
-                }
-            } else {
-                // If isToAbove === true and we need figure out if to go left or right
-                from.direction = isToAbove ? dx >= 0 ? Directions.RIGHT : Directions.LEFT : OPPOSITE_DIRECTIONS[accessDirection];
-
-                if (dx === 0) {
-                    to.direction = from.direction;
-                } else if (dx > 0) {
-                    to.direction = isToAbove ? Directions.BOTTOM : Directions.LEFT;
-                } else if (dx < 0) {
-                    to.direction = isToAbove ? Directions.BOTTOM : Directions.RIGHT;
-                }
-            }
-        } else {
-            const isToLeft = from.point.x > to.point.x;
-            const dy = to.point.y - from.point.y;
-
-            if (accessDirection === Directions.RIGHT) {
-                from.direction = isToLeft ? OPPOSITE_DIRECTIONS[accessDirection] : dy >= 0 ? Directions.BOTTOM : Directions.TOP;
-
-                if (dy === 0) {
-                    to.direction = from.direction;
-                } else if (dy > 0) {
-                    to.direction = isToLeft ? Directions.TOP : Directions.LEFT;
-                } else if (dy < 0) {
-                    to.direction = isToLeft ? Directions.BOTTOM : Directions.LEFT;
-                }
-            } else {
-                from.direction = isToLeft ? dy >= 0 ? Directions.BOTTOM : Directions.TOP : OPPOSITE_DIRECTIONS[accessDirection];
-
-                if (dy === 0) {
-                    to.direction = from.direction;
-                } else if (dy > 0) {
-                    to.direction = isToLeft ? Directions.RIGHT : Directions.TOP;
-                } else if (dy < 0) {
-                    to.direction = isToLeft ? Directions.RIGHT : Directions.BOTTOM;
-                }
-            }
-        }
+        from.direction = fromDirection;
+        to.direction = toDirection;
 
         const route = util.uniq([...routeBetweenPoints(from, to, margin), to.point], (p) => new g.Point(p.x, p.y).serialize());
         resultVertices.push(...route);
     }
 
-    vertices[vertices.length - 1].direction = OPPOSITE_DIRECTIONS[vertices[vertices.length - 1].direction];
+    const lastVertex = vertices[vertices.length - 1];
+    const [vertexDirection] = resolveDirection(lastVertex, targetPoint);
+    lastVertex.direction = vertexDirection;
 
-    const route = routeBetweenPoints(vertices[vertices.length - 1], targetPoint, margin);
+    const route = routeBetweenPoints(lastVertex, targetPoint, margin);
     // remove first point of route if it matches the last point of resultVertices
     if (new g.Point(route[0].x, route[0].y).equals(resultVertices[resultVertices.length - 1])) {
         route.shift();
@@ -979,6 +888,62 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     resultVertices.push(...route);
     return resultVertices;
+}
+
+function resolveDirection(from, to) {
+    const accessDirection = from.direction;
+    const isDirectionVertical = VERTICAL_DIRECTIONS.includes(accessDirection);
+
+    let sourceDirection = from.direction;
+    let targetDirection = to.direction;
+
+    if (isDirectionVertical) {
+        const isToAbove = from.point.y > to.point.y;
+        const dx = to.point.x - from.point.x;
+
+        if (accessDirection === Directions.BOTTOM) {
+            // If isToAbove === false and we need figure out if to go left or right
+            sourceDirection = isToAbove ? OPPOSITE_DIRECTIONS[accessDirection] : dx >= 0 ? Directions.RIGHT : Directions.LEFT;
+
+            if (dx > 0) {
+                targetDirection = isToAbove ? Directions.LEFT : Directions.TOP;
+            } else if (dx < 0) {
+                targetDirection = isToAbove ? Directions.RIGHT : Directions.TOP;
+            }
+        } else {
+            // If isToAbove === true and we need figure out if to go left or right
+            sourceDirection = isToAbove ? dx >= 0 ? Directions.RIGHT : Directions.LEFT : OPPOSITE_DIRECTIONS[accessDirection];
+
+            if (dx > 0) {
+                targetDirection = isToAbove ? Directions.BOTTOM : Directions.LEFT;
+            } else if (dx < 0) {
+                targetDirection = isToAbove ? Directions.BOTTOM : Directions.RIGHT;
+            }
+        }
+    } else {
+        const isToLeft = from.point.x > to.point.x;
+        const dy = to.point.y - from.point.y;
+
+        if (accessDirection === Directions.RIGHT) {
+            sourceDirection = isToLeft ? OPPOSITE_DIRECTIONS[accessDirection] : dy >= 0 ? Directions.BOTTOM : Directions.TOP;
+
+            if (dy > 0) {
+                targetDirection = isToLeft ? Directions.TOP : Directions.LEFT;
+            } else if (dy < 0) {
+                targetDirection = isToLeft ? Directions.BOTTOM : Directions.LEFT;
+            }
+        } else {
+            sourceDirection = isToLeft ? dy >= 0 ? Directions.BOTTOM : Directions.TOP : OPPOSITE_DIRECTIONS[accessDirection];
+
+            if (dy > 0) {
+                targetDirection = isToLeft ? Directions.RIGHT : Directions.TOP;
+            } else if (dy < 0) {
+                targetDirection = isToLeft ? Directions.RIGHT : Directions.BOTTOM;
+            }
+        }
+    }
+
+    return [sourceDirection, targetDirection];
 }
 
 rightAngleRouter.Directions = Directions;
