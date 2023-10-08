@@ -3953,6 +3953,7 @@ export namespace attributes {
         width?: string | number | null;
         height?: string | number | null;
         ellipsis?: boolean | string;
+        separator?: string;
         hyphen?: string;
         maxLineCount?: number;
         preserveSpaces?: boolean;
