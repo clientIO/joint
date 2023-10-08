@@ -1381,6 +1381,9 @@ const V = (function() {
         return xml;
     };
 
+    // Create an empty object which does not inherit any properties from `Object.prototype`.
+    // This is useful when we want to use an object as a dictionary without having to
+    // worry about inherited properties such as `toString`, `valueOf` etc.
     const _attributeNames = Object.create(null);
 
     // List of attributes for which not to split camel case words.
@@ -1452,11 +1455,20 @@ const V = (function() {
         }
     });
 
+    // Note: The `attributeNames` and `supportCamelCaseAttributes` properties are not enumerable
+    // in this version to avoid breaking changes. They will be made enumerable in the next major version.
+
     // Dictionary of attribute names
-    V.attributeNames = attributeNames;
+    Object.defineProperty(V, 'attributeNames', {
+        value: attributeNames,
+        writable: false,
+    });
 
     // Should camel case attributes be supported?
-    V.supportCamelCaseAttributes = false;
+    Object.defineProperty(V, 'supportCamelCaseAttributes', {
+        value: false,
+        writable: true,
+    });
 
     /**
      * @param {string} name
