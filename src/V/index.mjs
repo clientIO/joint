@@ -1387,6 +1387,7 @@ const V = (function() {
     const _attributeNames = Object.create(null);
 
     // List of attributes for which not to split camel case words.
+    // It contains known SVG attribute names and may be extended with user-defined attribute names.
     [
         'baseFrequency',
         'baseProfile',
@@ -1446,6 +1447,10 @@ const V = (function() {
 
     const attributeNames = new Proxy(_attributeNames, {
         get(cache, name) {
+            // The cache is a dictionary of attribute names. See `_attributeNames` above.
+            // If the attribute name is not in the cache, it means that it is not
+            // a camel-case attribute name. In that case, we need to convert
+            // the attribute name to dash-separated words.
             if (!V.supportCamelCaseAttributes) return name;
             if (name in cache) {
                 return cache[name];
