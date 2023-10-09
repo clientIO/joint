@@ -922,6 +922,46 @@ QUnit.module('vectorizer', function(hooks) {
             });
         });
 
+        QUnit.module('camel case support', function(hooks) {
+
+            hooks.before(function() {
+                V.supportCamelCaseAttributes = true;
+            });
+
+            hooks.after(function() {
+                V.supportCamelCaseAttributes = false;
+            });
+
+            QUnit.test('constructor', function(assert) {
+                const vel = V('rect', { strokeWidth: 5 });
+                assert.equal(vel.node.getAttribute('stroke-width'), 5);
+            });
+
+            QUnit.test('attr()', function(assert) {
+                const vel = V('rect');
+                vel.attr('strokeWidth', 5);
+                assert.equal(vel.attr('strokeWidth'), 5);
+                assert.equal(vel.attr('stroke-width'), 5);
+                assert.equal(vel.node.getAttribute('stroke-width'), 5);
+                vel.attr('stroke-width', 10);
+                assert.equal(vel.attr('strokeWidth'), 10);
+                assert.equal(vel.attr('stroke-width'), 10);
+                assert.equal(vel.node.getAttribute('stroke-width'), 10);
+                vel.attr('strokeWidth', null);
+                assert.equal(vel.attr('strokeWidth'), null);
+                assert.equal(vel.attr('stroke-width'), null);
+                assert.equal(vel.node.getAttribute('stroke-width'), null);
+            });
+
+            QUnit.test('removeAttr()', function(assert) {
+                const vel = V('rect');
+                vel.attr('strokeWidth', 5);
+                assert.equal(vel.node.getAttribute('stroke-width'), 5);
+                vel.removeAttr('strokeWidth');
+                assert.equal(vel.node.getAttribute('stroke-width'), null);
+            });
+        });
+
         QUnit.test('remove simple', function(assert) {
 
             var a = V('a').attr('href', 'www.seznam.cz');
