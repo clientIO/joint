@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import V from '../V/index.mjs';
 import { config } from '../config/index.mjs';
-import { 
+import {
     isBoolean,
     isObject,
     isNumber,
@@ -627,7 +627,9 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
     const preserveSpaces = opt.preserveSpaces;
     const space = ' ';
-    var separator = opt.separator || space;
+    const separator = (opt.separator || opt.separator === '') ? opt.separator : space;
+    // If separator is a RegExp, we use the space character to join words together again (not ideal)
+    const separatorChar = (typeof separator === 'string') ? separator : space;
     var eol = opt.eol || '\n';
     var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d]/;
     var maxLineCount = opt.maxLineCount;
@@ -677,9 +679,9 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
             let data;
             if (preserveSpaces) {
-                data = lines[l] !== undefined ? lines[l] + space + word : word;
+                data = lines[l] !== undefined ? lines[l] + separatorChar + word : word;
             } else {
-                data = lines[l] ? lines[l] + space + word : word;
+                data = lines[l] ? lines[l] + separatorChar + word : word;
             }
 
             textNode.data = data;
@@ -690,7 +692,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
                 lines[l] = data;
 
                 if (p || h) {
-                // We were partitioning. Put rest of the word onto next line
+                    // We were partitioning. Put rest of the word onto next line
                     full[l++] = true;
 
                     // cancel partitioning and splitting by hyphens
@@ -819,12 +821,11 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
             var lastLine = lines[lastL];
             if (!lastLine && !isEol) break;
             var k = lastLine.length;
-            var lastLineWithOmission, lastChar, separatorChar;
+            var lastLineWithOmission, lastChar;
             do {
                 lastChar = lastLine[k];
                 lastLineWithOmission = lastLine.substring(0, k);
                 if (!lastChar) {
-                    separatorChar = (typeof separator === 'string') ? separator : ' ';
                     lastLineWithOmission += separatorChar;
                 } else if (lastChar.match(separator)) {
                     lastLineWithOmission += lastChar;
@@ -1766,7 +1767,7 @@ export const toggleFullScreen = function(el) {
     }
 };
 
-export { 
+export {
     isBoolean,
     isObject,
     isNumber,
@@ -1792,7 +1793,7 @@ export {
     debounce,
     groupBy,
     sortBy,
-    flattenDeep, 
+    flattenDeep,
     without,
     difference,
     intersection,

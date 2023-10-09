@@ -142,6 +142,31 @@ QUnit.module('util', function(hooks) {
             assert.equal(r.split('\n').length, 2);
         });
 
+        QUnit.test('separator', function(assert) {
+
+            const WIDTH = 30;
+            let t, r;
+
+            t = 'ab';
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { separator: '' });
+            assert.equal(r, 'ab');
+
+            t = 'a b';
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { separator: '' });
+            assert.equal(r, 'a b');
+
+            t = 'abcdefgh';
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { separator: '' });
+            assert.equal(r, 'abcd\nefgh');
+
+            t = 'a*b';
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { separator: '*' });
+            assert.equal(r, 'a*b');
+
+            t = 'ab*cde*fgh';
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { separator: '*' });
+            assert.equal(r, 'ab\ncde\nfgh');
+        });
 
         QUnit.test('ellipsis', function(assert) {
 

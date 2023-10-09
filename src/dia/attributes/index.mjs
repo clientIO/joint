@@ -419,6 +419,7 @@ const attributesNS = {
                     svgDocument: this.paper.svg,
                     ellipsis: value.ellipsis,
                     hyphen: value.hyphen,
+                    separator: value.separator,
                     maxLineCount: value.maxLineCount,
                     preserveSpaces: value.preserveSpaces
                 });
