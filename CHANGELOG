@@ -1,15 +1,15 @@
 09-10-2023 (v3.7.6)
 
   * dia.Cell - make prop()'s internal set() call more efficient
-  * dia.LinkView - prevent hidden doubleLinkTools to affect link bounding box
-  * dia.attributes - textWrap reads all breakText options
+  * dia.LinkView - fix to prevent hidden doubleLinkTools to affect link bounding box
+  * dia.attributes - fix to read all breakText options in textWrap attribute
   * dia.attributes - fix ambiguous order of cache keys in text attribute
-  * connectors.Curve - wrong enum mapping fix
+  * connectors.Curve - fix wrong target tangent right direction
   * linkTools.Segments - throw explicit error when incompatible router in use
   * shapes.standard - fix cursor style on DoubleLink and ShadowLink
-  * util.breakText - use the specified separator to join words
-  * util.breakText - allow empty string to be separator
-  * Geometry - prevent unnecessary object instantiation in containsPoint() of Rect
+  * util.breakText - fix to use the defined separator to join words
+  * util.breakText - fix to allow empty string to be separator
+  * Geometry - prevent unnecessary object instantiation in Rect.prototype.containsPoint()
 
 02-08-2023 (v3.7.5)
 
