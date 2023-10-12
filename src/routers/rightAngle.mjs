@@ -1,5 +1,4 @@
 import * as g from '../g/index.mjs';
-import * as util from '../util/index.mjs';
 
 const Directions = {
     AUTO: 'auto',
@@ -208,14 +207,18 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     const tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
     const roundedAngle = Math.round(tangent.angle() / 90) * 90;
 
+    if (roundedAngle % 180 === 0 && linkOrigin.y === connectionPoint.y) {
+        return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
+    } else if (linkOrigin.x === connectionPoint.x) {
+        return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
+    }
+
     switch (roundedAngle) {
         case 0:
+        case 180:
         case 360:
             return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
         case 90:
-            return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
-        case 180:
-            return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
         case 270:
             return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
     }
@@ -546,7 +549,7 @@ function routeBetweenPoints(source, target, margin) {
             if (sox < tox) {
                 let y = middleOfHorizontalSides;
 
-                if (y > tcy && y < tmy1 && sox < tmx0) {
+                if ((y > tcy || !isSourceEl) && y < tmy1 && sox < tx0) {
                     y = tmy0;
                 }
                 return [
@@ -589,7 +592,7 @@ function routeBetweenPoints(source, target, margin) {
             if (sox > tox) {
                 let y = middleOfHorizontalSides;
 
-                if (y > tcy && y < tmy1 && sox > tmx1) {
+                if ((y > tcy || !isSourceEl) && y < tmy1 && sox > tx1) {
                     y = tmy0;
                 }
                 return [
@@ -629,7 +632,7 @@ function routeBetweenPoints(source, target, margin) {
             if (sox < tox) {
                 let y = middleOfHorizontalSides;
 
-                if (y < tcy && y > tmy0 && sox < tmx0) {
+                if ((y < tcy || !isSourceEl) && y > tmy0 && sox < tx0) {
                     y = tmy1;
                 }
                 return [
@@ -663,7 +666,7 @@ function routeBetweenPoints(source, target, margin) {
             if (sox > tox) {
                 let y = middleOfHorizontalSides;
 
-                if (y < tcy && y > tmy0 && sox > tmx1) {
+                if ((y < tcy || !isSourceEl) && y > tmy0 && sox > tmx1) {
                     y = tmy1;
                 }
                 return [
@@ -861,6 +864,7 @@ function rightAngleRouter(vertices, opt, linkView) {
 
         const segment = new g.Line(from.point, to.point);
         if (segment.angle() % 90 === 0) {
+            // Since the segment is horizontal or vertical, we can skip the routing and just connect them with a straight line
             resultVertices.push(from.point, to.point);
             const accessDirection = OPPOSITE_DIRECTIONS[ANGLE_DIRECTION_MAP[segment.angle()]];
             to.direction = accessDirection;
@@ -872,22 +876,25 @@ function rightAngleRouter(vertices, opt, linkView) {
         from.direction = fromDirection;
         to.direction = toDirection;
 
-        const route = util.uniq([...routeBetweenPoints(from, to, margin), to.point], (p) => new g.Point(p.x, p.y).serialize());
-        resultVertices.push(...route);
+        resultVertices.push(...routeBetweenPoints(from, to, margin), to.point);
     }
 
     const lastVertex = vertices[vertices.length - 1];
-    const [vertexDirection] = resolveDirection(lastVertex, targetPoint);
-    lastVertex.direction = vertexDirection;
 
-    const route = routeBetweenPoints(lastVertex, targetPoint, margin);
-    // remove first point of route if it matches the last point of resultVertices
-    if (new g.Point(route[0].x, route[0].y).equals(resultVertices[resultVertices.length - 1])) {
-        route.shift();
+    if (targetPoint.view && targetPoint.view.model.isElement()) {
+        // the last point of `resultVertices` is the last defined vertex
+        // grab the penultimate point and construct a line segment from it to the last vertex
+        // this will ensure that the last segment continues in a straight line
+        const segment = new g.Line(resultVertices[resultVertices.length - 2], lastVertex.point);
+        lastVertex.direction = ANGLE_DIRECTION_MAP[segment.angle()];
+    } else {
+        // since the target is only a point we can apply the same logic as if we connected two vertices
+        const [vertexDirection] = resolveDirection(lastVertex, targetPoint);
+        lastVertex.direction = vertexDirection;
     }
 
-    resultVertices.push(...route);
-    return resultVertices;
+    resultVertices.push(...routeBetweenPoints(lastVertex, targetPoint, margin));
+    return new g.Polyline(resultVertices).simplify().points;
 }
 
 function resolveDirection(from, to) {
