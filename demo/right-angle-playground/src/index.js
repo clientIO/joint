@@ -29,6 +29,12 @@ const paper = new dia.Paper({
     defaultConnector: { name: 'rounded' },
     background: {
         color: '#151D29'
+    },
+    defaultLinkAnchor: { 
+        name: 'connectionRatio',
+        args: {
+            ratio: 0.25
+        }
     }
 });
 
@@ -74,7 +80,13 @@ link2.vertices([
     { x: 800, y: 500 },
 ]);
 
-graph.addCells([rect, rect2, link, link2]);
+const link3 = link.clone();
+link3.attr('line/stroke', '#DF423D');
+link3.source({ x: 1000, y: 600 });
+link3.target({ id: link2.id });
+link3.vertices([{ x: 900, y: 400 }]);
+
+graph.addCells([rect, rect2, link, link2, link3]);
 
 rect.findView(paper).addTools(
     new dia.ToolsView({
@@ -127,5 +139,30 @@ const link2ToolsView = new dia.ToolsView({
 });
 
 link2.findView(paper).addTools(link2ToolsView);
+
+const link3ToolsView = new dia.ToolsView({
+    tools: [
+        new linkTools.Vertices({
+            focusOpacity: 0.5
+        })
+    ]
+});
+
+link3.findView(paper).addTools(link3ToolsView);
+
+function scaleToFit() {
+    const graphBBox = graph.getBBox();
+    paper.scaleContentToFit({
+        contentArea: graphBBox.clone().inflate(0, 100)
+    });
+    const { sy } = paper.scale();
+    const area = paper.getArea();
+    const yTop = area.height / 2 - graphBBox.y - graphBBox.height / 2;
+    const xLeft = area.width / 2 - graphBBox.x - graphBBox.width / 2;
+    paper.translate(xLeft * sy, yTop * sy);
+}
+
+window.addEventListener('resize', () => scaleToFit());
+scaleToFit();
 
 paper.unfreeze();
