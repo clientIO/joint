@@ -846,7 +846,7 @@ function rightAngleRouter(vertices, opt, linkView) {
     let resultVertices = [];
 
     if (!useVertices || vertices.length === 0) {
-        return routeBetweenPoints(sourcePoint, targetPoint, margin);
+        return new g.Polyline(routeBetweenPoints(sourcePoint, targetPoint, margin)).simplify().points;
     }
 
     const verticesData = vertices.map((v) => pointDataFromVertex(v));
