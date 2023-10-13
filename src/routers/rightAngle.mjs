@@ -224,17 +224,19 @@ function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     }
 }
 
-function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAnchor) {
+function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAnchor, margin) {
     if (direction === Directions.AUTO) {
         direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
     }
+
+    const isElement = view && view.model.isElement();
 
     const {
         x: x0,
         y: y0,
         width = 0,
         height = 0
-    } = view && view.model.isElement() ? g.Rect.fromRectUnion(bbox, view.model.getBBox()) : fallBackAnchor;
+    } = isElement ? g.Rect.fromRectUnion(bbox, view.model.getBBox()) : fallBackAnchor;
 
     return {
         point,
@@ -244,7 +246,8 @@ function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAncho
         bbox,
         width,
         height,
-        direction
+        direction,
+        margin: isElement ? margin : 0
     };
 }
 
@@ -259,7 +262,8 @@ function pointDataFromVertex({ x, y }) {
         bbox: new g.Rect(x, y, 0, 0),
         width: 0,
         height: 0,
-        direction: null
+        direction: null,
+        margin: 0
     };
 }
 
@@ -287,24 +291,22 @@ function getOutsidePoint(side, pointData, margin) {
 }
 
 function routeBetweenPoints(source, target, margin) {
-    const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, width: sourceWidth, height: sourceHeight } = source;
-    const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, width: targetWidth, height: targetHeight } = target;
+    const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
+    const { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight, margin: targetMargin } = target;
 
     const tx1 = tx0 + targetWidth;
     const ty1 = ty0 + targetHeight;
     const sx1 = sx0 + sourceWidth;
     const sy1 = sy0 + sourceHeight;
 
-    // Key coordinates including the margin
     const isSourceEl = sourceView && sourceView.model.isElement();
-    const sourceMargin = isSourceEl ? margin : 0;
+    
+    // Key coordinates including the margin
     const smx0 = sx0 - sourceMargin;
     const smx1 = sx1 + sourceMargin;
     const smy0 = sy0 - sourceMargin;
     const smy1 = sy1 + sourceMargin;
 
-    const isTargetEl = targetView && targetView.model.isElement();
-    const targetMargin = isTargetEl ? margin : 0;
     const tmx0 = tx0 - targetMargin;
     const tmx1 = tx1 + targetMargin;
     const tmy0 = ty0 - targetMargin;
@@ -457,34 +459,31 @@ function routeBetweenPoints(source, target, margin) {
             { x: tox, y: y1 }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
-        if ((tx0 >= sox + sourceMargin || tx1 <= sox - sourceMargin) && (isTargetEl || isSourceEl)) {
-            return [
-                { x: sox, y: Math.max(soy, toy) },
-                { x: tox, y: Math.max(soy, toy) }
-            ];
-        }
-
         let x;
-        let y1;
-        let y2;
+        let y1 = Math.max((sy1 + ty0) / 2, toy);
+        let y2 = Math.max((sy0 + ty1) / 2, soy);
 
         if (toy > soy) {
-            y1 = Math.max((sy1 + ty0) / 2, toy);
-            y2 = Math.max((sy1 + ty0) / 2, soy);
-
-            if (tox > sox) {
+            if (sox >= tmx1 || sox <= tmx0) {
+                return [
+                    { x: sox, y: Math.max(soy, toy) },
+                    { x: tox, y: Math.max(soy, toy) }
+                ];
+            } else if (tox > sox) {
                 x = Math.min(sox, tmx0);
             } else {
                 x = Math.max(sox, tmx1);
             }
         } else {
-            y1 = Math.max((sy0 + ty1) / 2, toy);
-            y2 = Math.max((sy0 + ty1) / 2, soy);
-
-            if (tox > sox) {
-                x = Math.min(tox, smx0);
-            } else {
+            if (tox >= smx1 || tox <= smx0) {
+                return [
+                    { x: sox, y: Math.max(soy, toy) },
+                    { x: tox, y: Math.max(soy, toy) }
+                ];
+            } else if (tox >= sox) {
                 x = Math.max(tox, smx1);
+            } else {
+                x = Math.min(tox, smx0);
             }
         }
 
@@ -839,28 +838,42 @@ function rightAngleRouter(vertices, opt, linkView) {
     const useVertices = opt.useVertices || false;
 
     const isSourcePort = !!linkView.model.source().port;
-    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor);
+    const sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor, margin);
 
     const isTargetPort = !!linkView.model.target().port;
-    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor);
+    const targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor, margin);
 
     let resultVertices = [];
 
-    if (!useVertices || !vertices.length) {
+    if (!useVertices || vertices.length === 0) {
         return routeBetweenPoints(sourcePoint, targetPoint, margin);
     }
 
-    // The first point responsible for the initial direction of the route
-    vertices = vertices.map((v) => pointDataFromVertex(v));
-    const next = vertices[1] || targetPoint;
-    const direction = resolveInitialDirection(sourcePoint, vertices[0], next);
-    vertices[0].direction = direction;
+    const verticesData = vertices.map((v) => pointDataFromVertex(v));
+    const [firstVertex] = verticesData;
 
-    resultVertices.push(...routeBetweenPoints(sourcePoint, vertices[0], margin), vertices[0].point);
+    if (sourcePoint.view && sourcePoint.view.model.isElement() && sourcePoint.view.model.getBBox().inflate(margin).containsPoint(firstVertex.point)) {
+        const [fromDirection] = resolveSides(sourcePoint, firstVertex);
+        const toDirection = fromDirection;
+        const dummySource = pointDataFromVertex(sourcePoint.point);
+        // we are creating a point that has a margin
+        dummySource.margin = margin;
+        dummySource.direction = fromDirection;
+        firstVertex.direction = toDirection;
 
-    for (let i = 0; i < vertices.length - 1; i++) {
-        const from = vertices[i];
-        const to = vertices[i + 1];
+        resultVertices.push(...routeBetweenPoints(dummySource, firstVertex, margin), firstVertex.point);
+    } else {
+        // The first point responsible for the initial direction of the route
+        const next = verticesData[1] || targetPoint;
+        const direction = resolveInitialDirection(sourcePoint, firstVertex, next);
+        firstVertex.direction = direction;
+
+        resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, margin), firstVertex.point);
+    }
+
+    for (let i = 0; i < verticesData.length - 1; i++) {
+        const from = verticesData[i];
+        const to = verticesData[i + 1];
 
         const segment = new g.Line(from.point, to.point);
         if (segment.angle() % 90 === 0) {
@@ -879,21 +892,36 @@ function rightAngleRouter(vertices, opt, linkView) {
         resultVertices.push(...routeBetweenPoints(from, to, margin), to.point);
     }
 
-    const lastVertex = vertices[vertices.length - 1];
+    const lastVertex = verticesData[verticesData.length - 1];
 
     if (targetPoint.view && targetPoint.view.model.isElement()) {
-        // the last point of `resultVertices` is the last defined vertex
-        // grab the penultimate point and construct a line segment from it to the last vertex
-        // this will ensure that the last segment continues in a straight line
-        const segment = new g.Line(resultVertices[resultVertices.length - 2], lastVertex.point);
-        lastVertex.direction = ANGLE_DIRECTION_MAP[segment.angle()];
+        if (targetPoint.view.model.getBBox().inflate(margin).containsPoint(lastVertex.point)) {
+            const [fromDirection] = resolveDirection(lastVertex, targetPoint);
+            const dummyTarget = pointDataFromVertex(targetPoint.point);
+            const [, toDirection] = resolveSides(lastVertex, targetPoint);
+            // we are creating a point that has a margin
+            dummyTarget.margin = margin;
+            dummyTarget.direction = toDirection;
+            lastVertex.direction = fromDirection;
+
+            resultVertices.push(...routeBetweenPoints(lastVertex, dummyTarget, margin));
+        } else {
+            // the last point of `resultVertices` is the last defined vertex
+            // grab the penultimate point and construct a line segment from it to the last vertex
+            // this will ensure that the last segment continues in a straight line
+            const segment = new g.Line(resultVertices[resultVertices.length - 2], lastVertex.point);
+            lastVertex.direction = ANGLE_DIRECTION_MAP[segment.angle()];
+
+            resultVertices.push(...routeBetweenPoints(lastVertex, targetPoint, margin));
+        }
     } else {
-        // since the target is only a point we can apply the same logic as if we connected two vertices
+        // since the target is only a point we can apply the same logic as if we connected two verticesData
         const [vertexDirection] = resolveDirection(lastVertex, targetPoint);
         lastVertex.direction = vertexDirection;
+
+        resultVertices.push(...routeBetweenPoints(lastVertex, targetPoint, margin));
     }
 
-    resultVertices.push(...routeBetweenPoints(lastVertex, targetPoint, margin));
     return new g.Polyline(resultVertices).simplify().points;
 }
 
