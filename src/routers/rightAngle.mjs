@@ -290,7 +290,7 @@ function getOutsidePoint(side, pointData, margin) {
     return outsidePoint;
 }
 
-function routeBetweenPoints(source, target, margin) {
+function routeBetweenPoints(source, target) {
     const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
     const { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight, margin: targetMargin } = target;
 
