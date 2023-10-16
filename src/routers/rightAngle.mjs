@@ -695,7 +695,7 @@ function routeBetweenPoints(source, target) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'left' && targetSide === 'bottom') {
-        if (sox > tox && soy >= tmy1) {
+        if (sox >= tox && soy >= tmy1) {
             return [{ x: tox, y: soy }];
         }
 
@@ -797,7 +797,7 @@ function routeBetweenPoints(source, target) {
             { x: tox, y }
         ];
     } else if (sourceSide === 'right' && targetSide === 'bottom') {
-        if (sox < tox && soy >= tmy1) {
+        if (sox <= tox && soy >= tmy1) {
             return [{ x: tox, y: soy }];
         }
 
