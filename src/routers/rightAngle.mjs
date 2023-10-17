@@ -71,13 +71,14 @@ function resolveForTopSourceSide(source, target, nextInLine) {
     const sy1 = sy0 + height;
     const smx0 = sx0 - margin;
     const smx1 = sx1 + margin;
+    const smy0 = sy0 - margin;
 
-    const { x: ax, y: ay } = anchor;
+    const { x: ax } = anchor;
     const { x0: tx, y0: ty } = target;
 
-    if (tx === ax && ty < ay) return Directions.BOTTOM;
-    if (tx < ax && ty < ay) return Directions.RIGHT;
-    if (tx > ax && ty < ay) return Directions.LEFT;
+    if (tx === ax && ty < sy0) return Directions.BOTTOM;
+    if (tx < ax && ty < smy0) return Directions.RIGHT;
+    if (tx > ax && ty < smy0) return Directions.LEFT;
     if (tx < smx0 && ty >= sy0) return Directions.TOP;
     if (tx > smx1 && ty >= sy0) return Directions.TOP;
     if (tx >= smx0 && tx <= ax && ty > sy1) {
@@ -104,17 +105,16 @@ function resolveForBottomSourceSide(source, target, nextInLine) {
     const sy1 = sy0 + height;
     const smx0 = sx0 - margin;
     const smx1 = sx1 + margin;
-    const smy0 = sy0 - margin;
     const smy1 = sy1 + margin;
 
-    const { x: ax, y: ay } = anchor;
+    const { x: ax } = anchor;
     const { x0: tx, y0: ty } = target;
 
-    if (tx === ax && ty > ay) return Directions.TOP;
-    if (tx < ax && ty > smy0) return Directions.RIGHT;
+    if (tx === ax && ty > sy1) return Directions.TOP;
+    if (tx < ax && ty > smy1) return Directions.RIGHT;
     if (tx > ax && ty > smy1) return Directions.LEFT;
-    if (tx < smx0 && ty <= sy0) return Directions.BOTTOM;
-    if (tx > smx1 && ty <= sy0) return Directions.BOTTOM;
+    if (tx < smx0 && ty <= sy1) return Directions.BOTTOM;
+    if (tx > smx1 && ty <= sy1) return Directions.BOTTOM;
     if (tx >= smx0 && tx <= ax && ty < sy0) {
         if (nextInLine.point.x < tx) {
             return Directions.RIGHT;
