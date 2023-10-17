@@ -1603,7 +1603,7 @@ QUnit.module('routers', function(hooks) {
 
         d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 100 L 122 100 L 122 25 L 150 25', 'Source on the left of target with vertex');
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 100 L 125 100 L 125 25 L 150 25', 'Source on the left of target with vertex');
 
         position1 = r1.position();
         position2 = r2.position();
@@ -1748,7 +1748,7 @@ QUnit.module('routers', function(hooks) {
 
         d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 50 25 L 100 25 L 100 100 L 122 100 L 122 25 L 150 25', 'Source on the left of target with vertex');
+        assert.checkDataPath(d, 'M 50 25 L 100 25 L 100 100 L 125 100 L 125 25 L 150 25', 'Source on the left of target with vertex');
 
         position1 = r1.position();
         position2 = r2.position();
