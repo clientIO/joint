@@ -681,7 +681,6 @@ function routeBetweenPoints(source, target) {
                 if ((y < tcy || !isSourceEl) && y > tmy0 && sox > tx1) {
                     y = tmy1;
                 }
-
                 return [
                     { x: sox, y },
                     { x: tox, y },
@@ -689,28 +688,19 @@ function routeBetweenPoints(source, target) {
                 ];
             }
             return [{ x: sox, y: toy }];
+        } else {
+            if (sx1 > tox) {
+                const y = Math.max(smy1, tmy1);
+                const x = Math.min(smx0, tmx0);
+                return [
+                    { x: sox, y },
+                    { x, y },
+                    { x, y: toy }
+                ];
+            }
         }
 
-        const x = Math.min(tmx0, middleOfVerticalSides);
-
-        if (sox < tox && sy0 <= toy) {
-            return [
-                { x: sox, y: soy },
-                { x, y: soy },
-                { x, y: toy }
-            ];
-        }
-
-        if (x < smx1 && soy > ty0) {
-            const y = Math.max(smy1, tmy1);
-            const x = Math.min(smx0, tmx0);
-
-            return [
-                { x: sox, y },
-                { x, y },
-                { x, y: toy }
-            ];
-        }
+        const x = middleOfVerticalSides;
 
         return [
             { x: sox, y: soy },
