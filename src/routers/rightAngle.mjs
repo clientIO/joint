@@ -958,10 +958,11 @@ function rightAngleRouter(vertices, opt, linkView) {
             lastVertex.direction = definedDirection;
 
             let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
-            const [p1, p2] = new g.Polyline(lastSegmentRoute).simplify().points;
+            const [p1, p2] = new g.Polyline([...lastSegmentRoute, targetPoint.point]).simplify({ threshold: 1 }).points;
 
             const lastSegment = new g.Line(p1, p2);
-            const lastSegmentDirection = ANGLE_DIRECTION_MAP[lastSegment.angle()];
+            const roundedLastSegmentAngle = Math.round(lastSegment.angle());
+            const lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
 
             if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
                 lastVertex.margin = margin;
