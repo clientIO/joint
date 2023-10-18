@@ -473,8 +473,8 @@ function routeBetweenPoints(source, target) {
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
         let x;
-        let y1 = Math.max((sy1 + ty0) / 2, toy);
-        let y2 = Math.max((sy0 + ty1) / 2, soy);
+        let y1 = Math.max((sy0 + ty1) / 2, toy);
+        let y2 = Math.max((sy1 + ty0) / 2, soy);
 
         if (toy > soy) {
             if (sox >= tmx1 || sox <= tmx0) {
