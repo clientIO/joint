@@ -143,7 +143,7 @@
     "grunt-newer": "1.3.0",
     "grunt-shell": "3.0.1",
     "grunt-ts": "6.0.0-beta.22",
-    "grunt-webpack": "3.1.3",
+    "grunt-webpack": "6.0.0",
     "handlebars": "4.7.7",
     "jit-grunt": "0.10.0",
     "karma": "3.1.4",
@@ -172,11 +172,11 @@
     "time-grunt": "2.0.0",
     "typescript": "4.8.3",
     "webdriverio": "4.13.2",
-    "webpack": "4.28.3",
-    "webpack-dev-server": "3.1.14"
+    "webpack": "5.89.0",
+    "webpack-dev-server": "4.15.1"
   },
   "volta": {
-    "node": "16.18.1",
-    "npm": "8.19.2"
+    "node": "18.18.2",
+    "npm": "9.8.1"
   }
 }
