@@ -1041,6 +1041,8 @@ QUnit.module('polyline', function() {
                 assert.equal((new g.Polyline(['10 0'])).simplify().serialize(), '10,0');
                 assert.equal((new g.Polyline('10,0')).simplify().serialize(), '10,0');
 
+                assert.equal((new g.Polyline(['210 740', '250 740', '570 740'])).simplify().serialize(), '210,740 570,740');
+
                 assert.equal((new g.Polyline()).simplify().serialize(), '');
             });
 
