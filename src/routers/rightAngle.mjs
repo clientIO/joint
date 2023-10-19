@@ -28,6 +28,17 @@ const ANGLE_DIRECTION_MAP = {
     90: Directions.BOTTOM
 };
 
+function getSegmentAngle(line) {
+    // TODO optimize this
+    return line.angle();
+}
+
+function simplifyPoints(points) {
+    // TODO optimize this
+    // threshold used for cases where the vertices were off by 0.2px
+    return new g.Polyline(points).simplify({ threshold: 1 }).points;
+}
+
 function resolveSides(source, target) {
     const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, bbox: sourceBBox, direction: sourceDirection } = source;
     const { point: targetPoint, x0: tx0, y0: ty0, view: targetView, bbox: targetBBox, direction: targetDirection } = target;
@@ -218,7 +229,7 @@ function resolveInitialDirection(source, target, nextInLine) {
 
 function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
     const tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
-    const roundedAngle = Math.round(tangent.angle() / 90) * 90;
+    const roundedAngle = Math.round(getSegmentAngle(tangent) / 90) * 90;
 
     if (roundedAngle % 180 === 0 && linkOrigin.y === connectionPoint.y) {
         return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
@@ -860,7 +871,7 @@ function rightAngleRouter(vertices, opt, linkView) {
     let resultVertices = [];
 
     if (!useVertices || vertices.length === 0) {
-        return new g.Polyline(routeBetweenPoints(sourcePoint, targetPoint)).simplify().points;
+        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint));
     }
 
     const verticesData = vertices.map((v) => pointDataFromVertex(v));
@@ -890,16 +901,17 @@ function rightAngleRouter(vertices, opt, linkView) {
         const to = verticesData[i + 1];
 
         const segment = new g.Line(from.point, to.point);
-        if (segment.angle() % 90 === 0) {
+        const segmentAngle = getSegmentAngle(segment);
+        if (segmentAngle % 90 === 0) {
             // Since the segment is horizontal or vertical, we can skip the routing and just connect them with a straight line
-            const toDirection = ANGLE_DIRECTION_MAP[segment.angle()];
+            const toDirection = ANGLE_DIRECTION_MAP[segmentAngle];
             const accessDirection = OPPOSITE_DIRECTIONS[toDirection];
 
             if (toDirection !== from.direction) {
                 resultVertices.push(from.point, to.point);
                 to.direction = accessDirection;
             } else {
-                const angle = g.normalizeAngle(segment.angle() - 90);
+                const angle = g.normalizeAngle(segmentAngle - 90);
 
                 let dx = 0;
                 let dy = 0;
@@ -918,7 +930,7 @@ function rightAngleRouter(vertices, opt, linkView) {
                 const p2 = { x: to.point.x + dx, y: to.point.y + dy };
 
                 const segment2 = new g.Line(to.point, p2);
-                to.direction = ANGLE_DIRECTION_MAP[segment2.angle()];
+                to.direction = ANGLE_DIRECTION_MAP[getSegmentAngle(segment2)];
 
                 // Constructing a loop
                 resultVertices.push(from.point, p1, p2, to.point);
@@ -952,16 +964,17 @@ function rightAngleRouter(vertices, opt, linkView) {
             // the last point of `simplified` array is the last defined vertex
             // grab the penultimate point and construct a line segment from it to the last vertex
             // this will ensure that the last segment continues in a straight line
-            const simplified = new g.Polyline(resultVertices).simplify().points;
+
+            const simplified = simplifyPoints(resultVertices);
             const segment = new g.Line(simplified[simplified.length - 2], lastVertex.point);
-            const definedDirection = ANGLE_DIRECTION_MAP[segment.angle()];
+            const definedDirection = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(segment))];
             lastVertex.direction = definedDirection;
 
             let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
-            const [p1, p2] = new g.Polyline([...lastSegmentRoute, targetPoint.point]).simplify({ threshold: 1 }).points;
+            const [p1, p2] = simplifyPoints([...lastSegmentRoute, targetPoint.point]);
 
             const lastSegment = new g.Line(p1, p2);
-            const roundedLastSegmentAngle = Math.round(lastSegment.angle());
+            const roundedLastSegmentAngle = Math.round(getSegmentAngle(lastSegment));
             const lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
 
             if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
@@ -979,7 +992,7 @@ function rightAngleRouter(vertices, opt, linkView) {
         resultVertices.push(...routeBetweenPoints(lastVertex, targetPoint));
     }
 
-    return new g.Polyline(resultVertices).simplify().points;
+    return simplifyPoints(resultVertices);
 }
 
 function resolveDirection(from, to) {
