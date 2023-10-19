@@ -9,8 +9,8 @@ class ResizeTool extends elementTools.Control {
     setPosition(view, coordinates) {
         const model = view.model;
         model.resize(
-            Math.max(coordinates.x, 1),
-            Math.max(coordinates.y, 1)
+            Math.max(Math.round(coordinates.x / 2) * 2, 10),
+            Math.max(Math.round(coordinates.y / 2) * 2, 10)
         );
     }
 }
@@ -110,14 +110,16 @@ rect2.findView(paper).addTools(
 
 const linkToolsView = new dia.ToolsView({
     tools: [
+        new linkTools.Vertices({
+            focusOpacity: 0.5,
+        }),
         new linkTools.TargetAnchor({
-            focusOpacity: 0.5
+            focusOpacity: 0.5,
+            scale: 1.2
         }),
         new linkTools.SourceAnchor({
-            focusOpacity: 0.5
-        }),
-        new linkTools.Vertices({
-            focusOpacity: 0.5
+            focusOpacity: 0.5,
+            scale: 1.2
         }),
     ]
 });
