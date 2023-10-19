@@ -351,7 +351,10 @@ Polyline.prototype = {
         if (points.length < 3) return this; // we need at least 3 points
 
         // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
-        const threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
+
+        // Due to the nature of the algorithm, we do not use 0 as the default value for `threshold`
+        // because of the rounding errors that can occur when comparing distances.
+        const threshold = opt.threshold || 1e-10; // = max distance of middle point from chord to be simplified
 
         // start at the beginning of the polyline and go forward
         let currentIndex = 0;
