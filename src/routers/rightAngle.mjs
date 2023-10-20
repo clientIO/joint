@@ -29,13 +29,13 @@ const ANGLE_DIRECTION_MAP = {
 };
 
 function getSegmentAngle(line) {
-    // TODO optimize this
+    // TODO: the angle() method is general and therefore unnecessarily heavy for orthogonal links
     return line.angle();
 }
 
 function simplifyPoints(points) {
-    // TODO optimize this
-    // threshold used for cases where the vertices were off by 0.2px
+    // TODO: use own more efficient implementation (filter points that do not change direction).
+    // To simplify segments that are almost aligned (start and end points differ by e.g. 0.5px), use a threshold of 1.
     return new g.Polyline(points).simplify({ threshold: 1 }).points;
 }
 
@@ -881,7 +881,7 @@ function rightAngleRouter(vertices, opt, linkView) {
         const [fromDirection] = resolveSides(sourcePoint, firstVertex);
         const toDirection = fromDirection;
         const dummySource = pointDataFromVertex(sourcePoint.point);
-        // we are creating a point that has a margin
+        // Points do not usually have margin. Here we create a point with a margin.
         dummySource.margin = margin;
         dummySource.direction = fromDirection;
         firstVertex.direction = toDirection;
