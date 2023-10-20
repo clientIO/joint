@@ -1,4 +1,4 @@
-/*! JointJS v3.7.5 (2023-08-02) - JavaScript diagramming library
+/*! JointJS v3.7.6 (2023-10-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -2992,7 +2992,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    // @return {bool} true if point p is inside me.
 	    containsPoint: function(p) {
-	        p = new Point(p);
+	        
+	        if (!(p instanceof Point)) {
+	            p = new Point(p);
+	        }
 	        return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
 	    },
 
@@ -4003,7 +4006,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (points.length < 3) { return this; } // we need at least 3 points
 
 	        // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
-	        var threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
+
+	        // Due to the nature of the algorithm, we do not use 0 as the default value for `threshold`
+	        // because of the rounding errors that can occur when comparing distances.
+	        var threshold = opt.threshold || 1e-10; // = max distance of middle point from chord to be simplified
 
 	        // start at the beginning of the polyline and go forward
 	        var currentIndex = 0;
@@ -8912,15 +8918,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	     */
 	    VPrototype.removeAttr = function(name) {
 
-	        var qualifiedName = V.qualifyAttr(name);
+	        var trueName = attributeNames[name];
+
+	        var ref = V.qualifyAttr(trueName);
+	        var ns = ref.ns;
+	        var local = ref.local;
 	        var el = this.node;
 
-	        if (qualifiedName.ns) {
-	            if (el.hasAttributeNS(qualifiedName.ns, qualifiedName.local)) {
-	                el.removeAttributeNS(qualifiedName.ns, qualifiedName.local);
+	        if (ns) {
+	            if (el.hasAttributeNS(ns, local)) {
+	                el.removeAttributeNS(ns, local);
 	            }
-	        } else if (el.hasAttribute(name)) {
-	            el.removeAttribute(name);
+	        } else if (el.hasAttribute(trueName)) {
+	            el.removeAttribute(trueName);
 	        }
 	        return this;
 	    };
@@ -8941,7 +8951,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (V.isString(name) && V.isUndefined(value)) {
-	            return this.node.getAttribute(name);
+	            return this.node.getAttribute(attributeNames[name]);
 	        }
 
 	        if (typeof name === 'object') {
@@ -9517,16 +9527,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return this;
 	        }
 
-	        var qualifiedName = V.qualifyAttr(name);
+	        var trueName = attributeNames[name];
 
-	        if (qualifiedName.ns) {
+	        var ref = V.qualifyAttr(trueName);
+	        var ns = ref.ns;
+	        if (ns) {
 	            // Attribute names can be namespaced. E.g. `image` elements
 	            // have a `xlink:href` attribute to set the source of the image.
-	            el.setAttributeNS(qualifiedName.ns, name, value);
-	        } else if (name === 'id') {
+	            el.setAttributeNS(ns, trueName, value);
+	        } else if (trueName === 'id') {
 	            el.id = value;
 	        } else {
-	            el.setAttribute(name, value);
+	            el.setAttribute(trueName, value);
 	        }
 
 	        return this;
@@ -9634,6 +9646,100 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        return xml;
 	    };
+
+	    // Create an empty object which does not inherit any properties from `Object.prototype`.
+	    // This is useful when we want to use an object as a dictionary without having to
+	    // worry about inherited properties such as `toString`, `valueOf` etc.
+	    var _attributeNames = Object.create(null);
+
+	    // List of attributes for which not to split camel case words.
+	    // It contains known SVG attribute names and may be extended with user-defined attribute names.
+	    [
+	        'baseFrequency',
+	        'baseProfile',
+	        'clipPathUnits',
+	        'contentScriptType',
+	        'contentStyleType',
+	        'diffuseConstant',
+	        'edgeMode',
+	        'externalResourcesRequired',
+	        'filterRes', // deprecated
+	        'filterUnits',
+	        'gradientTransform',
+	        'gradientUnits',
+	        'kernelMatrix',
+	        'kernelUnitLength',
+	        'keyPoints',
+	        'lengthAdjust',
+	        'limitingConeAngle',
+	        'markerHeight',
+	        'markerUnits',
+	        'markerWidth',
+	        'maskContentUnits',
+	        'maskUnits',
+	        'numOctaves',
+	        'pathLength',
+	        'patternContentUnits',
+	        'patternTransform',
+	        'patternUnits',
+	        'pointsAtX',
+	        'pointsAtY',
+	        'pointsAtZ',
+	        'preserveAlpha',
+	        'preserveAspectRatio',
+	        'primitiveUnits',
+	        'refX',
+	        'refY',
+	        'requiredExtensions',
+	        'requiredFeatures',
+	        'specularConstant',
+	        'specularExponent',
+	        'spreadMethod',
+	        'startOffset',
+	        'stdDeviation',
+	        'stitchTiles',
+	        'surfaceScale',
+	        'systemLanguage',
+	        'tableValues',
+	        'targetX',
+	        'targetY',
+	        'textLength',
+	        'viewBox',
+	        'viewTarget', // deprecated
+	        'xChannelSelector',
+	        'yChannelSelector',
+	        'zoomAndPan' // deprecated
+	    ].forEach(function (name) { return _attributeNames[name] = name; });
+
+	    var attributeNames = new Proxy(_attributeNames, {
+	        get: function get(cache, name) {
+	            // The cache is a dictionary of attribute names. See `_attributeNames` above.
+	            // If the attribute name is not in the cache, it means that it is not
+	            // a camel-case attribute name. In that case, we need to convert
+	            // the attribute name to dash-separated words.
+	            if (!V.supportCamelCaseAttributes) { return name; }
+	            if (name in cache) {
+	                return cache[name];
+	            }
+	            // Convert camel case to dash-separated words.
+	            return (cache[name] = name.replace(/[A-Z]/g, '-$&').toLowerCase());
+	        }
+	    });
+
+	    // Note: The `attributeNames` and `supportCamelCaseAttributes` properties are not enumerable
+	    // in this version to avoid breaking changes. They will be made enumerable in the next major version.
+
+	    // Dictionary of attribute names
+	    Object.defineProperty(V, 'attributeNames', {
+	        value: attributeNames,
+	        writable: false,
+	    });
+
+	    // Should camel case attributes be supported?
+	    Object.defineProperty(V, 'supportCamelCaseAttributes', {
+	        value: false,
+	        writable: true,
+	    });
 
 	    /**
 	     * @param {string} name
@@ -13851,7 +13957,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    var preserveSpaces = opt.preserveSpaces;
 	    var space = ' ';
-	    var separator = opt.separator || space;
+	    var separator = (opt.separator || opt.separator === '') ? opt.separator : space;
+	    // If separator is a RegExp, we use the space character to join words together again (not ideal)
+	    var separatorChar = (typeof separator === 'string') ? separator : space;
 	    var eol = opt.eol || '\n';
 	    var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d]/;
 	    var maxLineCount = opt.maxLineCount;
@@ -13901,9 +14009,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	            var data = (void 0);
 	            if (preserveSpaces) {
-	                data = lines[l] !== undefined ? lines[l] + space + word : word;
+	                data = lines[l] !== undefined ? lines[l] + separatorChar + word : word;
 	            } else {
-	                data = lines[l] ? lines[l] + space + word : word;
+	                data = lines[l] ? lines[l] + separatorChar + word : word;
 	            }
 
 	            textNode.data = data;
@@ -13914,7 +14022,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                lines[l] = data;
 
 	                if (p || h) {
-	                // We were partitioning. Put rest of the word onto next line
+	                    // We were partitioning. Put rest of the word onto next line
 	                    full[l++] = true;
 
 	                    // cancel partitioning and splitting by hyphens
@@ -14043,12 +14151,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            var lastLine = lines[lastL];
 	            if (!lastLine && !isEol) { break; }
 	            var k = lastLine.length;
-	            var lastLineWithOmission, lastChar, separatorChar;
+	            var lastLineWithOmission, lastChar;
 	            do {
 	                lastChar = lastLine[k];
 	                lastLineWithOmission = lastLine.substring(0, k);
 	                if (!lastChar) {
-	                    separatorChar = (typeof separator === 'string') ? separator : ' ';
 	                    lastLineWithOmission += separatorChar;
 	                } else if (lastChar.match(separator)) {
 	                    lastLineWithOmission += lastChar;
@@ -15395,38 +15502,50 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            var $node = $(node);
 	            var cacheName = 'joint-text';
 	            var cache = $node.data(cacheName);
-	            var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol', 'displayEmpty');
+	            var lineHeight = attrs.lineHeight;
+	            var annotations = attrs.annotations;
+	            var textVerticalAnchor = attrs.textVerticalAnchor;
+	            var eol = attrs.eol;
+	            var displayEmpty = attrs.displayEmpty;
+	            var textPath = attrs.textPath;
 	            // eval `x` if using calc()
-	            var x = textAttrs.x;
+	            var x = attrs.x;
 	            if (isCalcAttribute(x)) {
-	                textAttrs.x = evalCalcAttribute(x, refBBox);
+	                x = evalCalcAttribute(x, refBBox);
 	            }
-
-	            var fontSizeAttr = attrs['font-size'] || attrs['fontSize'];
-	            if (isCalcAttribute(fontSizeAttr)) {
-	                fontSizeAttr = evalCalcAttribute(fontSizeAttr, refBBox);
+	            // eval `font-size` if using calc()
+	            var fontSize = attrs['font-size'] || attrs['fontSize'];
+	            if (isCalcAttribute(fontSize)) {
+	                fontSize = evalCalcAttribute(fontSize, refBBox);
 	            }
-	            var fontSize = textAttrs.fontSize = fontSizeAttr;
-	            var textHash = JSON.stringify([text, textAttrs]);
 	            // Update the text only if there was a change in the string
 	            // or any of its attributes.
+	            var textHash = JSON.stringify([text, lineHeight, annotations, textVerticalAnchor, eol, displayEmpty, textPath, x, fontSize]);
 	            if (cache === undefined || cache !== textHash) {
 	                // Chrome bug:
-	                // Tspans positions defined as `em` are not updated
+	                // <tspan> positions defined as `em` are not updated
 	                // when container `font-size` change.
 	                if (fontSize) { node.setAttribute('font-size', fontSize); }
 	                // Text Along Path Selector
-	                var textPath = textAttrs.textPath;
 	                if (isObject$1(textPath)) {
 	                    var pathSelector = textPath.selector;
 	                    if (typeof pathSelector === 'string') {
-	                        var pathNode = this.findBySelector(pathSelector)[0];
+	                        var ref = this.findBySelector(pathSelector);
+	                        var pathNode = ref[0];
 	                        if (pathNode instanceof SVGPathElement) {
-	                            textAttrs.textPath = assign({ 'xlink:href': '#' + pathNode.id }, textPath);
+	                            textPath = assign({ 'xlink:href': '#' + pathNode.id }, textPath);
 	                        }
 	                    }
 	                }
-	                V(node).text('' + text, textAttrs);
+	                V(node).text('' + text, {
+	                    lineHeight: lineHeight,
+	                    annotations: annotations,
+	                    textPath: textPath,
+	                    x: x,
+	                    textVerticalAnchor: textVerticalAnchor,
+	                    eol: eol,
+	                    displayEmpty: displayEmpty
+	                });
 	                $node.data(cacheName, textHash);
 	            }
 	        }
@@ -15487,6 +15606,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                    svgDocument: this.paper.svg,
 	                    ellipsis: value.ellipsis,
 	                    hyphen: value.hyphen,
+	                    separator: value.separator,
 	                    maxLineCount: value.maxLineCount,
 	                    preserveSpaces: value.preserveSpaces
 	                });
@@ -16412,7 +16532,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            options.rewrite = false;
 	        }
 
-	        return this.set(merge({}, this.attributes, props), options);
+	        // Create a new object containing only the changed attributes.
+	        var changedAttributes = {};
+	        for (var key in props) {
+	            // Merging the values of changed attributes with the current ones.
+	            var ref = merge({}, { changedValue: this.attributes[key] }, { changedValue: props[key] });
+	            var changedValue = ref.changedValue;
+	            changedAttributes[key] = changedValue;
+	        }
+
+	        return this.set(changedAttributes, options);
 	    },
 
 	    // A convenient way to unset nested properties
@@ -25023,74 +25152,45 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var DEFINED_DIRECTIONS = [Directions.LEFT, Directions.RIGHT, Directions.TOP, Directions.BOTTOM];
 
-	function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
-	    var tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
-	    var roundedAngle = Math.round(tangent.angle() / 90) * 90;
+	var OPPOSITE_DIRECTIONS = {};
+	OPPOSITE_DIRECTIONS[Directions.LEFT] = Directions.RIGHT;
+	OPPOSITE_DIRECTIONS[Directions.RIGHT] = Directions.LEFT;
+	OPPOSITE_DIRECTIONS[Directions.TOP] = Directions.BOTTOM;
+	OPPOSITE_DIRECTIONS[Directions.BOTTOM] = Directions.TOP;
 
-	    switch (roundedAngle) {
-	        case 0:
-	        case 360:
-	            return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
-	        case 90:
-	            return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
-	        case 180:
-	            return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
-	        case 270:
-	            return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
-	    }
+	var VERTICAL_DIRECTIONS = [Directions.TOP, Directions.BOTTOM];
+
+	var ANGLE_DIRECTION_MAP = {
+	    0: Directions.RIGHT,
+	    180: Directions.LEFT,
+	    270: Directions.TOP,
+	    90: Directions.BOTTOM
+	};
+
+	function getSegmentAngle(line) {
+	    // TODO: the angle() method is general and therefore unnecessarily heavy for orthogonal links
+	    return line.angle();
 	}
 
-	function rightAngleRouter(_vertices, opt, linkView) {
-	    var margin = opt.margin || 20;
-	    var sourceDirection = opt.sourceDirection; if ( sourceDirection === void 0 ) sourceDirection = Directions.AUTO;
-	    var targetDirection = opt.targetDirection; if ( targetDirection === void 0 ) targetDirection = Directions.AUTO;
+	function simplifyPoints(points) {
+	    // TODO: use own more efficient implementation (filter points that do not change direction).
+	    // To simplify segments that are almost aligned (start and end points differ by e.g. 0.5px), use a threshold of 1.
+	    return new Polyline(points).simplify({ threshold: 1 }).points;
+	}
 
-	    var sourceView = linkView.sourceView;
-	    var targetView = linkView.targetView;
-
-	    var isSourcePort = !!linkView.model.source().port;
-	    var isTargetPort = !!linkView.model.target().port;
-
-	    if (sourceDirection === Directions.AUTO) {
-	        sourceDirection = isSourcePort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
-	    }
-
-	    if (targetDirection === Directions.AUTO) {
-	        targetDirection = isTargetPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
-	    }
-
-	    var sourceBBox = linkView.sourceBBox;
-	    var targetBBox = linkView.targetBBox;
-	    var sourcePoint = linkView.sourceAnchor;
-	    var targetPoint = linkView.targetAnchor;
-	    var ref = sourceView && sourceView.model.isElement() ? Rect.fromRectUnion(sourceBBox, sourceView.model.getBBox()) : linkView.sourceAnchor;
-	    var sx0 = ref.x;
-	    var sy0 = ref.y;
-	    var sourceWidth = ref.width; if ( sourceWidth === void 0 ) sourceWidth = 0;
-	    var sourceHeight = ref.height; if ( sourceHeight === void 0 ) sourceHeight = 0;
-
-	    var ref$1 = targetView && targetView.model.isElement() ? Rect.fromRectUnion(targetBBox, targetView.model.getBBox()) : linkView.targetAnchor;
-	    var tx0 = ref$1.x;
-	    var ty0 = ref$1.y;
-	    var targetWidth = ref$1.width; if ( targetWidth === void 0 ) targetWidth = 0;
-	    var targetHeight = ref$1.height; if ( targetHeight === void 0 ) targetHeight = 0;
-
-	    var tx1 = tx0 + targetWidth;
-	    var ty1 = ty0 + targetHeight;
-	    var sx1 = sx0 + sourceWidth;
-	    var sy1 = sy0 + sourceHeight;
-
-	    // Key coordinates including the margin
-	    var smx0 = sx0 - margin;
-	    var smx1 = sx1 + margin;
-	    var smy0 = sy0 - margin;
-	    var smy1 = sy1 + margin;
-	    var tmx0 = tx0 - margin;
-	    var tmx1 = tx1 + margin;
-	    var tmy0 = ty0 - margin;
-	    var tmy1 = ty1 + margin;
-
-	    var sourceOutsidePoint = sourcePoint.clone();
+	function resolveSides(source, target) {
+	    var sourcePoint = source.point;
+	    var sx0 = source.x0;
+	    var sy0 = source.y0;
+	    var sourceView = source.view;
+	    var sourceBBox = source.bbox;
+	    var sourceDirection = source.direction;
+	    var targetPoint = target.point;
+	    var tx0 = target.x0;
+	    var ty0 = target.y0;
+	    var targetView = target.view;
+	    var targetBBox = target.bbox;
+	    var targetDirection = target.direction;
 
 	    var sourceSide;
 
@@ -25107,25 +25207,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        sourceSide = sourceDirection;
 	    }
 
-	    switch (sourceSide) {
-	        case 'left':
-	            sourceOutsidePoint.x = smx0;
-	            break;
-	        case 'right':
-	            sourceOutsidePoint.x = smx1;
-	            break;
-	        case 'top':
-	            sourceOutsidePoint.y = smy0;
-	            break;
-	        case 'bottom':
-	            sourceOutsidePoint.y = smy1;
-	            break;
-	    }
-	    var targetOutsidePoint = targetPoint.clone();
-
-
 	    var targetSide;
-
 
 	    if (!targetView) {
 	        var targetLinkAnchorBBox = new Rect(tx0, ty0, 0, 0);
@@ -25140,20 +25222,318 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        targetSide = targetDirection;
 	    }
 
-	    switch (targetSide) {
+	    return [sourceSide, targetSide];
+	}
+
+	function resolveForTopSourceSide(source, target, nextInLine) {
+	    var sx0 = source.x0;
+	    var sy0 = source.y0;
+	    var width = source.width;
+	    var height = source.height;
+	    var anchor = source.point;
+	    var margin = source.margin;
+	    var sx1 = sx0 + width;
+	    var sy1 = sy0 + height;
+	    var smx0 = sx0 - margin;
+	    var smx1 = sx1 + margin;
+	    var smy0 = sy0 - margin;
+
+	    var ax = anchor.x;
+	    var tx = target.x0;
+	    var ty = target.y0;
+
+	    if (tx === ax && ty < sy0) { return Directions.BOTTOM; }
+	    if (tx < ax && ty < smy0) { return Directions.RIGHT; }
+	    if (tx > ax && ty < smy0) { return Directions.LEFT; }
+	    if (tx < smx0 && ty >= sy0) { return Directions.TOP; }
+	    if (tx > smx1 && ty >= sy0) { return Directions.TOP; }
+	    if (tx >= smx0 && tx <= ax && ty > sy1) {
+	        if (nextInLine.point.x < tx) {
+	            return Directions.RIGHT;
+	        }
+
+	        return Directions.LEFT;
+	    }
+	    if (tx <= smx1 && tx >= ax && ty > sy1) {
+	        if (nextInLine.point.x < tx) {
+	            return Directions.RIGHT;
+	        }
+
+	        return Directions.LEFT;
+	    }
+
+	    return Directions.TOP;
+	}
+
+	function resolveForBottomSourceSide(source, target, nextInLine) {
+	    var sx0 = source.x0;
+	    var sy0 = source.y0;
+	    var width = source.width;
+	    var height = source.height;
+	    var anchor = source.point;
+	    var margin = source.margin;
+	    var sx1 = sx0 + width;
+	    var sy1 = sy0 + height;
+	    var smx0 = sx0 - margin;
+	    var smx1 = sx1 + margin;
+	    var smy1 = sy1 + margin;
+
+	    var ax = anchor.x;
+	    var tx = target.x0;
+	    var ty = target.y0;
+
+	    if (tx === ax && ty > sy1) { return Directions.TOP; }
+	    if (tx < ax && ty > smy1) { return Directions.RIGHT; }
+	    if (tx > ax && ty > smy1) { return Directions.LEFT; }
+	    if (tx < smx0 && ty <= sy1) { return Directions.BOTTOM; }
+	    if (tx > smx1 && ty <= sy1) { return Directions.BOTTOM; }
+	    if (tx >= smx0 && tx <= ax && ty < sy0) {
+	        if (nextInLine.point.x < tx) {
+	            return Directions.RIGHT;
+	        }
+
+	        return Directions.LEFT;
+	    }
+	    if (tx <= smx1 && tx >= ax && ty < sy0) {
+	        if (nextInLine.point.x < tx) {
+	            return Directions.RIGHT;
+	        }
+
+	        return Directions.LEFT;
+	    }
+
+	    return Directions.BOTTOM;
+	}
+
+	function resolveForLeftSourceSide(source, target, nextInLine) {
+	    var sy0 = source.y0;
+	    var sx0 = source.x0;
+	    var width = source.width;
+	    var height = source.height;
+	    var anchor = source.point;
+	    var margin = source.margin;
+	    var sx1 = sx0 + width;
+	    var sy1 = sy0 + height;
+	    var smx0 = sx0 - margin;
+	    var smy0 = sy0 - margin;
+	    var smy1 = sy1 + margin;
+
+	    var ax = anchor.x;
+	    var ay = anchor.y;
+	    var tx = target.x0;
+	    var ty = target.y0;
+
+	    if (tx < ax && ty === ay) { return Directions.RIGHT; }
+	    if (tx <= smx0 && ty < ay) { return Directions.BOTTOM; }
+	    if (tx <= smx0 && ty > ay) { return Directions.TOP; }
+	    if (tx >= sx0 && ty <= smy0) { return Directions.LEFT; }
+	    if (tx >= sx0 && ty >= smy1) { return Directions.LEFT; }
+	    if (tx > sx1 && ty >= smy0 && ty <= ay) {
+	        if (nextInLine.point.y < ty) {
+	            return Directions.BOTTOM;
+	        }
+
+	        return Directions.TOP;
+	    }
+	    if (tx > sx1 && ty <= smy1 && ty >= ay) {
+	        if (nextInLine.point.y < ty) {
+	            return Directions.BOTTOM;
+	        }
+
+	        return Directions.TOP;
+	    }
+
+	    return Directions.LEFT;
+	}
+
+	function resolveForRightSourceSide(source, target, nextInLine) {
+	    var sy0 = source.y0;
+	    var sx0 = source.x0;
+	    var width = source.width;
+	    var height = source.height;
+	    var anchor = source.point;
+	    var margin = source.margin;
+	    var sx1 = sx0 + width;
+	    var sy1 = sy0 + height;
+	    var smx1 = sx1 + margin;
+	    var smy0 = sy0 - margin;
+	    var smy1 = sy1 + margin;
+
+	    var ax = anchor.x;
+	    var ay = anchor.y;
+	    var tx = target.x0;
+	    var ty = target.y0;
+
+	    if (tx > ax && ty === ay) { return Directions.LEFT; }
+	    if (tx >= smx1 && ty < ay) { return Directions.BOTTOM; }
+	    if (tx >= smx1 && ty > ay) { return Directions.TOP; }
+	    if (tx <= sx1 && ty <= smy0) { return Directions.RIGHT; }
+	    if (tx <= sx1 && ty >= smy1) { return Directions.RIGHT; }
+	    if (tx < sx0 && ty >= smy0 && ty <= ay) {
+	        if (nextInLine.point.y < ty) {
+	            return Directions.BOTTOM;
+	        }
+
+	        return Directions.TOP;
+	    }
+	    if (tx < sx0 && ty <= smy1 && ty >= ay) {
+	        if (nextInLine.point.y < ty) {
+	            return Directions.BOTTOM;
+	        }
+
+	        return Directions.TOP;
+	    }
+
+	    return Directions.RIGHT;
+	}
+
+	function resolveInitialDirection(source, target, nextInLine) {
+	    var ref = resolveSides(source, target);
+	    var sourceSide = ref[0];
+
+	    switch (sourceSide) {
+	        case Directions.TOP:
+	            return resolveForTopSourceSide(source, target, nextInLine);
+	        case Directions.RIGHT:
+	            return resolveForRightSourceSide(source, target, nextInLine);
+	        case Directions.BOTTOM:
+	            return resolveForBottomSourceSide(source, target, nextInLine);
+	        case Directions.LEFT:
+	            return resolveForLeftSourceSide(source, target, nextInLine);
+	    }
+	}
+
+	function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
+	    var tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
+	    var roundedAngle = Math.round(getSegmentAngle(tangent) / 90) * 90;
+
+	    if (roundedAngle % 180 === 0 && linkOrigin.y === connectionPoint.y) {
+	        return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
+	    } else if (linkOrigin.x === connectionPoint.x) {
+	        return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
+	    }
+
+	    switch (roundedAngle) {
+	        case 0:
+	        case 180:
+	        case 360:
+	            return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
+	        case 90:
+	        case 270:
+	            return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
+	    }
+	}
+
+	function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAnchor, margin) {
+	    if (direction === Directions.AUTO) {
+	        direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
+	    }
+
+	    var isElement = view && view.model.isElement();
+
+	    var ref = isElement ? Rect.fromRectUnion(bbox, view.model.getBBox()) : fallBackAnchor;
+	    var x0 = ref.x;
+	    var y0 = ref.y;
+	    var width = ref.width; if ( width === void 0 ) width = 0;
+	    var height = ref.height; if ( height === void 0 ) height = 0;
+
+	    return {
+	        point: point,
+	        x0: x0,
+	        y0: y0,
+	        view: view,
+	        bbox: bbox,
+	        width: width,
+	        height: height,
+	        direction: direction,
+	        margin: isElement ? margin : 0
+	    };
+	}
+
+	function pointDataFromVertex(ref) {
+	    var x = ref.x;
+	    var y = ref.y;
+
+	    var point = new Point(x, y);
+
+	    return {
+	        point: point,
+	        x0: point.x,
+	        y0: point.y,
+	        view: null,
+	        bbox: new Rect(x, y, 0, 0),
+	        width: 0,
+	        height: 0,
+	        direction: null,
+	        margin: 0
+	    };
+	}
+
+	function getOutsidePoint(side, pointData, margin) {
+	    var outsidePoint = pointData.point.clone();
+
+	    var x0 = pointData.x0;
+	    var y0 = pointData.y0;
+	    var width = pointData.width;
+	    var height = pointData.height;
+
+	    switch (side) {
 	        case 'left':
-	            targetOutsidePoint.x = tmx0;
+	            outsidePoint.x = x0 - margin;
 	            break;
 	        case 'right':
-	            targetOutsidePoint.x = tmx1;
+	            outsidePoint.x = x0 + width + margin;
 	            break;
 	        case 'top':
-	            targetOutsidePoint.y = tmy0;
+	            outsidePoint.y = y0 - margin;
 	            break;
 	        case 'bottom':
-	            targetOutsidePoint.y = tmy1;
+	            outsidePoint.y = y0 + height + margin;
 	            break;
 	    }
+
+	    return outsidePoint;
+	}
+
+	function routeBetweenPoints(source, target) {
+	    var sourcePoint = source.point;
+	    var sx0 = source.x0;
+	    var sy0 = source.y0;
+	    var sourceView = source.view;
+	    var sourceWidth = source.width;
+	    var sourceHeight = source.height;
+	    var sourceMargin = source.margin;
+	    var targetPoint = target.point;
+	    var tx0 = target.x0;
+	    var ty0 = target.y0;
+	    var targetWidth = target.width;
+	    var targetHeight = target.height;
+	    var targetMargin = target.margin;
+
+	    var tx1 = tx0 + targetWidth;
+	    var ty1 = ty0 + targetHeight;
+	    var sx1 = sx0 + sourceWidth;
+	    var sy1 = sy0 + sourceHeight;
+
+	    var isSourceEl = sourceView && sourceView.model.isElement();
+
+	    // Key coordinates including the margin
+	    var smx0 = sx0 - sourceMargin;
+	    var smx1 = sx1 + sourceMargin;
+	    var smy0 = sy0 - sourceMargin;
+	    var smy1 = sy1 + sourceMargin;
+
+	    var tmx0 = tx0 - targetMargin;
+	    var tmx1 = tx1 + targetMargin;
+	    var tmy0 = ty0 - targetMargin;
+	    var tmy1 = ty1 + targetMargin;
+
+	    var ref = resolveSides(source, target);
+	    var sourceSide = ref[0];
+	    var targetSide = ref[1];
+
+	    var sourceOutsidePoint = getOutsidePoint(sourceSide, { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight }, sourceMargin);
+	    var targetOutsidePoint = getOutsidePoint(targetSide, { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight }, targetMargin);
 
 	    var sox = sourceOutsidePoint.x;
 	    var soy = sourceOutsidePoint.y;
@@ -25167,7 +25547,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    var middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
 
 	    if (sourceSide === 'left' && targetSide === 'right') {
-	        if (smx0 <= tx1) {
+	        if (smx0 <= tmx1) {
 	            var y = middleOfHorizontalSides;
 	            if (sx1 <= tx0) {
 	                if (ty1 >= smy0 && toy < soy) {
@@ -25190,7 +25570,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            { x: x, y: toy }
 	        ];
 	    } else if (sourceSide === 'right' && targetSide === 'left') {
-	        if (smx1 >= tx0) {
+	        if (smx1 >= tmx0) {
 	            var y$1 = middleOfHorizontalSides;
 	            if (sox > tx1) {
 	                if (ty1 >= smy0 && toy < soy) {
@@ -25239,7 +25619,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            { x: tox, y: y$3 }
 	        ];
 	    } else if (sourceSide === 'bottom' && targetSide === 'top') {
-	        if (soy - margin > toy) {
+	        if (soy - sourceMargin > toy) {
 	            var x$3 = middleOfVerticalSides;
 	            var y$4 = soy;
 
@@ -25271,8 +25651,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (toy < soy) {
 	            if (sox >= tmx1 || sox <= tmx0) {
 	                return [
-	                    { x: sox, y: Math.min(soy,toy) },
-	                    { x: tox, y: Math.min(soy,toy) }
+	                    { x: sox, y: Math.min(soy, toy) },
+	                    { x: tox, y: Math.min(soy, toy) }
 	                ];
 	            } else if (tox > sox) {
 	                x$4 = Math.min(sox, tmx0);
@@ -25282,8 +25662,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        } else {
 	            if (tox >= smx1 || tox <= smx0) {
 	                return [
-	                    { x: sox, y: Math.min(soy,toy) },
-	                    { x: tox, y: Math.min(soy,toy) }
+	                    { x: sox, y: Math.min(soy, toy) },
+	                    { x: tox, y: Math.min(soy, toy) }
 	                ];
 	            } else if (tox >= sox) {
 	                x$4 = Math.max(tox, smx1);
@@ -25299,34 +25679,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            { x: tox, y: y1 }
 	        ];
 	    } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
-	        if (tx0 >= sox + margin || tx1 <= sox - margin) {
-	            return [
-	                { x: sox, y: Math.max(soy, toy) },
-	                { x: tox, y: Math.max(soy, toy) }
-	            ];
-	        }
-
 	        var x$5;
-	        var y1$1;
-	        var y2$1;
+	        var y1$1 = Math.max((sy0 + ty1) / 2, toy);
+	        var y2$1 = Math.max((sy1 + ty0) / 2, soy);
 
 	        if (toy > soy) {
-	            y1$1 = Math.max((sy1 + ty0) / 2, toy);
-	            y2$1 = Math.max((sy1 + ty0) / 2, soy);
-
-	            if (tox > sox) {
+	            if (sox >= tmx1 || sox <= tmx0) {
+	                return [
+	                    { x: sox, y: Math.max(soy, toy) },
+	                    { x: tox, y: Math.max(soy, toy) }
+	                ];
+	            } else if (tox > sox) {
 	                x$5 = Math.min(sox, tmx0);
 	            } else {
 	                x$5 = Math.max(sox, tmx1);
 	            }
 	        } else {
-	            y1$1 = Math.max((sy0 + ty1) / 2, toy);
-	            y2$1 = Math.max((sy0 + ty1) / 2, soy);
-
-	            if (tox > sox) {
-	                x$5 = Math.min(tox, smx0);
-	            } else {
+	            if (tox >= smx1 || tox <= smx0) {
+	                return [
+	                    { x: sox, y: Math.max(soy, toy) },
+	                    { x: tox, y: Math.max(soy, toy) }
+	                ];
+	            } else if (tox >= sox) {
 	                x$5 = Math.max(tox, smx1);
+	            } else {
+	                x$5 = Math.min(tox, smx0);
 	            }
 	        }
 
@@ -25389,8 +25766,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    } else if (sourceSide === 'top' && targetSide === 'right') {
 	        if (soy > toy) {
 	            if (sox < tox) {
-	                var y$8 = (sy0 + ty1) / 2;
-	                if (y$8 > tcy && y$8 < tmy1 && sox < tmx0) {
+	                var y$8 = middleOfHorizontalSides;
+
+	                if ((y$8 > tcy || !isSourceEl) && y$8 < tmy1 && sox < tx0) {
 	                    y$8 = tmy0;
 	                }
 	                return [
@@ -25399,37 +25777,41 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                    { x: tox, y: toy }
 	                ];
 	            }
+
 	            return [{ x: sox, y: toy }];
 	        }
 
-	        var x$6 = (sx0 + tx1) / 2;
+	        var x$6 = Math.max(middleOfVerticalSides, tmx1);
 
-	        if (sox > tox && sy1 >= toy) {
+	        if (tox < sox && toy > sy0 && toy < sy1) {
 	            return [
 	                { x: sox, y: soy },
 	                { x: x$6, y: soy },
-	                { x: x$6, y: toy }];
+	                { x: x$6, y: toy }
+	            ];
 	        }
 
-	        if (x$6 > smx0 && soy < ty1) {
-	            var y$9 = Math.min(sy0, ty0) - margin;
-	            var x$7 = Math.max(sx1, tx1) + margin;
+	        if ((x$6 > smx0 && toy > sy0) || tx0 > sx1) {
+	            var y$9 = Math.min(sy0 - sourceMargin, ty0 - targetMargin);
+	            var x$7 = Math.max(sx1 + sourceMargin, tx1 + targetMargin);
 	            return [
 	                { x: sox, y: y$9 },
 	                { x: x$7, y: y$9 },
 	                { x: x$7, y: toy }
 	            ];
 	        }
+
 	        return [
 	            { x: sox, y: soy },
-	            { x: x$6, y: soy },
-	            { x: x$6, y: toy }
+	            { x: Math.max(x$6, tox), y: soy },
+	            { x: Math.max(x$6, tox), y: toy }
 	        ];
 	    } else if (sourceSide === 'top' && targetSide === 'left') {
 	        if (soy > toy) {
 	            if (sox > tox) {
-	                var y$10 = (sy0 + ty1) / 2;
-	                if (y$10 > tcy && y$10 < tmy1 && sox > tmx1) {
+	                var y$10 = middleOfHorizontalSides;
+
+	                if ((y$10 > tcy || !isSourceEl) && y$10 < tmy1 && sox > tx1) {
 	                    y$10 = tmy0;
 	                }
 	                return [
@@ -25441,7 +25823,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return [{ x: sox, y: toy }];
 	        }
 
-	        var x$8 = (sx1 + tx0) / 2;
+	        var x$8 = Math.min(tmx0, middleOfVerticalSides);
 
 	        if (sox < tox && sy1 >= toy) {
 	            return [
@@ -25451,8 +25833,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (x$8 < smx1 && soy < ty1) {
-	            var y$11 = Math.min(sy0, ty0) - margin;
-	            var x$9 = Math.min(sx0, tx0) - margin;
+	            var y$11 = Math.min(smy0, tmy0);
+	            var x$9 = Math.min(smx0, tmx0);
 	            return [
 	                { x: sox, y: y$11 },
 	                { x: x$9, y: y$11 },
@@ -25467,8 +25849,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    } else if (sourceSide === 'bottom' && targetSide === 'right') {
 	        if (soy < toy) {
 	            if (sox < tox) {
-	                var y$12 = (sy1 + ty0) / 2;
-	                if (y$12 < tcy && y$12 > tmy0 && sox < tmx0) {
+	                var y$12 = middleOfHorizontalSides;
+
+	                if ((y$12 < tcy || !isSourceEl) && y$12 > tmy0 && sox < tx0) {
 	                    y$12 = tmy1;
 	                }
 	                return [
@@ -25480,8 +25863,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return [{ x: sox, y: toy }];
 	        } else {
 	            if (sx0 < tox) {
-	                var y$13 = Math.max(sy1, ty1) + margin;
-	                var x$10 = Math.max(sx1, tx1) + margin;
+	                var y$13 = Math.max(smy1, tmy1);
+	                var x$10 = Math.max(smx1, tmx1);
 	                return [
 	                    { x: sox, y: y$13 },
 	                    { x: x$10, y: y$13 },
@@ -25500,8 +25883,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    } else if (sourceSide === 'bottom' && targetSide === 'left') {
 	        if (soy < toy) {
 	            if (sox > tox) {
-	                var y$14 = (sy1 + ty0) / 2;
-	                if (y$14 < tcy && y$14 > tmy0 && sox > tmx1) {
+	                var y$14 = middleOfHorizontalSides;
+
+	                if ((y$14 < tcy || !isSourceEl) && y$14 > tmy0 && sox > tx1) {
 	                    y$14 = tmy1;
 	                }
 	                return [
@@ -25513,8 +25897,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return [{ x: sox, y: toy }];
 	        } else {
 	            if (sx1 > tox) {
-	                var y$15 = Math.max(sy1, ty1) + margin;
-	                var x$12 = Math.min(sx0, tx0) - margin;
+	                var y$15 = Math.max(smy1, tmy1);
+	                var x$12 = Math.min(smx0, tmx0);
 	                return [
 	                    { x: sox, y: y$15 },
 	                    { x: x$12, y: y$15 },
@@ -25530,13 +25914,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            { x: x$13, y: soy },
 	            { x: x$13, y: toy }
 	        ];
-	    } else if (sourceSide === 'left' && targetSide === 'bottom') {
-	        if (sox > tox && soy >= tmy1) {
+	    }
+	    else if (sourceSide === 'left' && targetSide === 'bottom') {
+	        if (sox >= tox && soy >= tmy1) {
 	            return [{ x: tox, y: soy }];
 	        }
 
 	        if (sox >= tx1 && soy < toy) {
-	            var x$14 = (sx1 + tx0) / 2;
+	            var x$14 = middleOfVerticalSides;
+
 	            return [
 	                { x: x$14, y: soy },
 	                { x: x$14, y: toy },
@@ -25545,7 +25931,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (tox < sx1 && ty1 <= sy0) {
-	            var y$16 = (sy0 + ty1) / 2;
+	            var y$16 = middleOfHorizontalSides;
 
 	            return [
 	                { x: sox, y: soy },
@@ -25555,7 +25941,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        var x$15 = Math.min(tmx0, sox);
-	        var y$17 = Math.max(sy1, ty1) + margin;
+	        var y$17 = Math.max(smy1, tmy1);
 
 	        return [
 	            { x: x$15, y: soy },
@@ -25569,7 +25955,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        if (sox >= tx1) {
 	            if (soy > toy) {
-	                var x$16 = (sx0 + tx1) / 2;
+	                var x$16 = middleOfVerticalSides;
+
 	                return [
 	                    { x: x$16, y: soy },
 	                    { x: x$16, y: toy },
@@ -25579,7 +25966,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (tox <= sx1 && toy > soy) {
-	            var y$18 = (ty0 + sy1) / 2;
+	            var y$18 = middleOfHorizontalSides;
 
 	            return [
 	                { x: sox, y: soy },
@@ -25587,8 +25974,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                { x: tox, y: y$18 } ];
 	        }
 
-	        var x$17 = toy < soy ? Math.min(sx0, tx0) - margin : smx0;
-	        var y$19 = Math.min(sy0, ty0) - margin;
+	        var x$17 = toy < soy ? Math.min(smx0, tmx0) : smx0;
+	        var y$19 = Math.min(smy0, tmy0);
 
 	        return [
 	            { x: x$17, y: soy },
@@ -25597,12 +25984,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        ];
 
 	    } else if (sourceSide === 'right' && targetSide === 'top') {
-	        if (sox < tox && soy < tmy0) {
+	        if (sox <= tox && soy < tmy0) {
 	            return [{ x: tox, y: soy }];
 	        }
 
 	        if (sx1 < tx0 && soy > toy) {
-	            var x$18 = (sx1 + tx0) / 2;
+	            var x$18 = middleOfVerticalSides;
+
 	            return [
 	                { x: x$18, y: soy },
 	                { x: x$18, y: toy },
@@ -25611,7 +25999,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (tox < sox && ty0 > sy1) {
-	            var y$20 = (sy1 + ty0) / 2;
+	            var y$20 = middleOfHorizontalSides;
 
 	            return [
 	                { x: sox, y: soy },
@@ -25620,20 +26008,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            ];
 	        }
 
-	        var x$19 = Math.max(sx1, tx1) + margin;
-	        var y$21 = Math.min(sy0, ty0) - margin;
+	        var x$19 = Math.max(smx1, tmx1);
+	        var y$21 = Math.min(smy0, tmy0);
+
 	        return [
 	            { x: x$19, y: soy },
 	            { x: x$19, y: y$21 },
 	            { x: tox, y: y$21 }
 	        ];
 	    } else if (sourceSide === 'right' && targetSide === 'bottom') {
-	        if (sox < tox && soy >= tmy1) {
+	        if (sox <= tox && soy >= tmy1) {
 	            return [{ x: tox, y: soy }];
 	        }
 
-	        if (sox <= tx0 && soy < toy) {
-	            var x$20 = (sx1 + tx0) / 2;
+	        if (sox <= tmx0 && soy < toy) {
+	            var x$20 = middleOfVerticalSides;
+
 	            return [
 	                { x: x$20, y: soy },
 	                { x: x$20, y: toy },
@@ -25642,7 +26032,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (tox > sx0 && ty1 < sy0) {
-	            var y$22 = (sy0 + ty1) / 2;
+	            var y$22 = middleOfHorizontalSides;
 
 	            return [
 	                { x: sox, y: soy },
@@ -25652,7 +26042,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        var x$21 = Math.max(tmx1, sox);
-	        var y$23 = Math.max(sy1, ty1) + margin;
+	        var y$23 = Math.max(smy1, tmy1);
 
 	        return [
 	            { x: x$21, y: soy },
@@ -25660,6 +26050,209 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            { x: tox, y: y$23 }
 	        ];
 	    }
+	}
+
+	function rightAngleRouter(vertices, opt, linkView) {
+	    var sourceDirection = opt.sourceDirection; if ( sourceDirection === void 0 ) sourceDirection = Directions.AUTO;
+	    var targetDirection = opt.targetDirection; if ( targetDirection === void 0 ) targetDirection = Directions.AUTO;
+	    var margin = opt.margin || 20;
+	    var useVertices = opt.useVertices || false;
+
+	    var isSourcePort = !!linkView.model.source().port;
+	    var sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor, margin);
+
+	    var isTargetPort = !!linkView.model.target().port;
+	    var targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor, margin);
+
+	    var resultVertices = [];
+
+	    if (!useVertices || vertices.length === 0) {
+	        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint));
+	    }
+
+	    var verticesData = vertices.map(function (v) { return pointDataFromVertex(v); });
+	    var firstVertex = verticesData[0];
+
+	    if (sourcePoint.view && sourcePoint.view.model.isElement() && sourcePoint.view.model.getBBox().inflate(margin).containsPoint(firstVertex.point)) {
+	        var ref = resolveSides(sourcePoint, firstVertex);
+	        var fromDirection = ref[0];
+	        var toDirection = fromDirection;
+	        var dummySource = pointDataFromVertex(sourcePoint.point);
+	        // Points do not usually have margin. Here we create a point with a margin.
+	        dummySource.margin = margin;
+	        dummySource.direction = fromDirection;
+	        firstVertex.direction = toDirection;
+
+	        resultVertices.push.apply(resultVertices, routeBetweenPoints(dummySource, firstVertex).concat( [firstVertex.point] ));
+	    } else {
+	        // The first point responsible for the initial direction of the route
+	        var next = verticesData[1] || targetPoint;
+	        var direction = resolveInitialDirection(sourcePoint, firstVertex, next);
+	        firstVertex.direction = direction;
+
+	        resultVertices.push.apply(resultVertices, routeBetweenPoints(sourcePoint, firstVertex).concat( [firstVertex.point] ));
+	    }
+
+	    for (var i = 0; i < verticesData.length - 1; i++) {
+	        var from = verticesData[i];
+	        var to = verticesData[i + 1];
+
+	        var segment = new Line(from.point, to.point);
+	        var segmentAngle = getSegmentAngle(segment);
+	        if (segmentAngle % 90 === 0) {
+	            // Since the segment is horizontal or vertical, we can skip the routing and just connect them with a straight line
+	            var toDirection$1 = ANGLE_DIRECTION_MAP[segmentAngle];
+	            var accessDirection = OPPOSITE_DIRECTIONS[toDirection$1];
+
+	            if (toDirection$1 !== from.direction) {
+	                resultVertices.push(from.point, to.point);
+	                to.direction = accessDirection;
+	            } else {
+	                var angle = normalizeAngle(segmentAngle - 90);
+
+	                var dx = 0;
+	                var dy = 0;
+
+	                if (angle === 90) {
+	                    dy = -margin;
+	                } else if (angle === 180) {
+	                    dx = -margin;
+	                } else if (angle === 270) {
+	                    dy = margin;
+	                } else if (angle === 0) {
+	                    dx = margin;
+	                }
+
+	                var p1 = { x: from.point.x + dx, y: from.point.y + dy };
+	                var p2 = { x: to.point.x + dx, y: to.point.y + dy };
+
+	                var segment2 = new Line(to.point, p2);
+	                to.direction = ANGLE_DIRECTION_MAP[getSegmentAngle(segment2)];
+
+	                // Constructing a loop
+	                resultVertices.push(from.point, p1, p2, to.point);
+	            }
+
+	            continue;
+	        }
+
+	        var ref$1 = resolveDirection(from, to);
+	        var fromDirection$1 = ref$1[0];
+	        var toDirection$2 = ref$1[1];
+
+	        from.direction = fromDirection$1;
+	        to.direction = toDirection$2;
+
+	        resultVertices.push.apply(resultVertices, routeBetweenPoints(from, to).concat( [to.point] ));
+	    }
+
+	    var lastVertex = verticesData[verticesData.length - 1];
+
+	    if (targetPoint.view && targetPoint.view.model.isElement()) {
+	        if (targetPoint.view.model.getBBox().inflate(margin).containsPoint(lastVertex.point)) {
+	            var ref$2 = resolveDirection(lastVertex, targetPoint);
+	            var fromDirection$2 = ref$2[0];
+	            var dummyTarget = pointDataFromVertex(targetPoint.point);
+	            var ref$3 = resolveSides(lastVertex, targetPoint);
+	            var toDirection$3 = ref$3[1];
+	            // we are creating a point that has a margin
+	            dummyTarget.margin = margin;
+	            dummyTarget.direction = toDirection$3;
+	            lastVertex.direction = fromDirection$2;
+
+	            resultVertices.push.apply(resultVertices, routeBetweenPoints(lastVertex, dummyTarget));
+	        } else {
+	            // the last point of `simplified` array is the last defined vertex
+	            // grab the penultimate point and construct a line segment from it to the last vertex
+	            // this will ensure that the last segment continues in a straight line
+
+	            var simplified = simplifyPoints(resultVertices);
+	            var segment$1 = new Line(simplified[simplified.length - 2], lastVertex.point);
+	            var definedDirection = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(segment$1))];
+	            lastVertex.direction = definedDirection;
+
+	            var lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
+	            var ref$4 = simplifyPoints(lastSegmentRoute.concat( [targetPoint.point]));
+	            var p1$1 = ref$4[0];
+	            var p2$1 = ref$4[1];
+
+	            var lastSegment = new Line(p1$1, p2$1);
+	            var roundedLastSegmentAngle = Math.round(getSegmentAngle(lastSegment));
+	            var lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
+
+	            if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
+	                lastVertex.margin = margin;
+	                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
+	            }
+
+	            resultVertices.push.apply(resultVertices, lastSegmentRoute);
+	        }
+	    } else {
+	        // since the target is only a point we can apply the same logic as if we connected two verticesData
+	        var ref$5 = resolveDirection(lastVertex, targetPoint);
+	        var vertexDirection = ref$5[0];
+	        lastVertex.direction = vertexDirection;
+
+	        resultVertices.push.apply(resultVertices, routeBetweenPoints(lastVertex, targetPoint));
+	    }
+
+	    return simplifyPoints(resultVertices);
+	}
+
+	function resolveDirection(from, to) {
+	    var accessDirection = from.direction;
+	    var isDirectionVertical = VERTICAL_DIRECTIONS.includes(accessDirection);
+
+	    var sourceDirection = from.direction;
+	    var targetDirection = to.direction;
+
+	    if (isDirectionVertical) {
+	        var isToAbove = from.point.y > to.point.y;
+	        var dx = to.point.x - from.point.x;
+
+	        if (accessDirection === Directions.BOTTOM) {
+	            // If isToAbove === false and we need figure out if to go left or right
+	            sourceDirection = isToAbove ? OPPOSITE_DIRECTIONS[accessDirection] : dx >= 0 ? Directions.RIGHT : Directions.LEFT;
+
+	            if (dx > 0) {
+	                targetDirection = isToAbove ? Directions.LEFT : Directions.TOP;
+	            } else if (dx < 0) {
+	                targetDirection = isToAbove ? Directions.RIGHT : Directions.TOP;
+	            }
+	        } else {
+	            // If isToAbove === true and we need figure out if to go left or right
+	            sourceDirection = isToAbove ? dx >= 0 ? Directions.RIGHT : Directions.LEFT : OPPOSITE_DIRECTIONS[accessDirection];
+
+	            if (dx > 0) {
+	                targetDirection = isToAbove ? Directions.BOTTOM : Directions.LEFT;
+	            } else if (dx < 0) {
+	                targetDirection = isToAbove ? Directions.BOTTOM : Directions.RIGHT;
+	            }
+	        }
+	    } else {
+	        var isToLeft = from.point.x > to.point.x;
+	        var dy = to.point.y - from.point.y;
+
+	        if (accessDirection === Directions.RIGHT) {
+	            sourceDirection = isToLeft ? OPPOSITE_DIRECTIONS[accessDirection] : dy >= 0 ? Directions.BOTTOM : Directions.TOP;
+
+	            if (dy > 0) {
+	                targetDirection = isToLeft ? Directions.TOP : Directions.LEFT;
+	            } else if (dy < 0) {
+	                targetDirection = isToLeft ? Directions.BOTTOM : Directions.LEFT;
+	            }
+	        } else {
+	            sourceDirection = isToLeft ? dy >= 0 ? Directions.BOTTOM : Directions.TOP : OPPOSITE_DIRECTIONS[accessDirection];
+
+	            if (dy > 0) {
+	                targetDirection = isToLeft ? Directions.RIGHT : Directions.TOP;
+	            } else if (dy < 0) {
+	                targetDirection = isToLeft ? Directions.RIGHT : Directions.BOTTOM;
+	            }
+	        }
+	    }
+
+	    return [sourceDirection, targetDirection];
 	}
 
 	rightAngleRouter.Directions = Directions;
@@ -26742,7 +27335,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            case TangentDirections.LEFT:
 	                return new Point(-1, 0);
 	            case TangentDirections.RIGHT:
-	                return new Point(0, 1);
+	                return new Point(1, 0);
 	            case TangentDirections.AUTO:
 	                return getAutoTargetDirection(linkView, route, options);
 	            case TangentDirections.CLOSEST_POINT:
@@ -28035,11 +28628,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	                toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
 	                this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
-	                this._tool2Cache.attr('visibility', 'visible');
+	                this._tool2Cache.attr('display', 'inline');
 
 	            } else if (this.options.doubleLinkTools) {
 
-	                this._tool2Cache.attr('visibility', 'hidden');
+	                this._tool2Cache.attr('display', 'none');
 	            }
 	        }
 
@@ -35361,13 +35954,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        tagName: 'path',
 	        selector: 'outline',
 	        attributes: {
-	            'fill': 'none'
+	            'fill': 'none',
+	            'cursor': 'pointer'
 	        }
 	    }, {
 	        tagName: 'path',
 	        selector: 'line',
 	        attributes: {
-	            'fill': 'none'
+	            'fill': 'none',
+	            'pointer-events': 'none'
 	        }
 	    }]
 	});
@@ -35415,13 +36010,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        tagName: 'path',
 	        selector: 'shadow',
 	        attributes: {
-	            'fill': 'none'
+	            'fill': 'none',
+	            'pointer-events': 'none'
 	        }
 	    }, {
 	        tagName: 'path',
 	        selector: 'line',
 	        attributes: {
-	            'fill': 'none'
+	            'fill': 'none',
+	            'cursor': 'pointer'
 	        }
 	    }]
 	});
@@ -37267,6 +37864,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                this.resetAnchor('target', data.targetAnchorDef);
 	            }
 	        }
+	        if (vertices.some(function (v) { return !v; })) {
+	            // This can happen when the link is using a smart routing and the number of
+	            // vertices is not the same as the number of route points.
+	            throw new Error('Segments: incompatible router in use');
+	        }
 	        link.vertices(vertices, { ui: true, tool: this.cid });
 	        this.updateHandle(handle, vertex, nextVertex, offset);
 	        if (!options.stopPropagation) { relatedView.notifyPointermove(normalizedEvent, coords.x, coords.y); }
@@ -38350,7 +38952,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.7.5";
+	var version = "3.7.6";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

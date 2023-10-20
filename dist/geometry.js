@@ -1,4 +1,4 @@
-/*! JointJS v3.7.5 (2023-08-02) - JavaScript diagramming library
+/*! JointJS v3.7.6 (2023-10-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1219,7 +1219,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         // @return {bool} true if point p is inside me.
         containsPoint: function(p) {
-            p = new Point(p);
+            
+            if (!(p instanceof Point)) {
+                p = new Point(p);
+            }
             return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
         },
 
@@ -2230,7 +2233,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             if (points.length < 3) { return this; } // we need at least 3 points
 
             // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
-            var threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
+
+            // Due to the nature of the algorithm, we do not use 0 as the default value for `threshold`
+            // because of the rounding errors that can occur when comparing distances.
+            var threshold = opt.threshold || 1e-10; // = max distance of middle point from chord to be simplified
 
             // start at the beginning of the polyline and go forward
             var currentIndex = 0;
