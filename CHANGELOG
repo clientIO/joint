@@ -1,4 +1,4 @@
-09-10-2023 (v3.7.6)
+20-10-2023 (v3.7.6)
 
   * dia.Cell - make prop()'s internal set() call more efficient
   * dia.LinkView - fix to prevent hidden doubleLinkTools to affect link bounding box
@@ -10,6 +10,7 @@
   * util.breakText - fix to use the defined separator to join words
   * util.breakText - fix to allow empty string to be separator
   * Geometry - prevent unnecessary object instantiation in Rect.prototype.containsPoint()
+  * Geometry - prevent rounding errors in simplify() of Polyline
 
 02-08-2023 (v3.7.5)
 

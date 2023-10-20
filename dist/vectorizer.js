@@ -1,4 +1,4 @@
-/*! JointJS v3.7.5 (2023-08-02) - JavaScript diagramming library
+/*! JointJS v3.7.6 (2023-10-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1219,7 +1219,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         // @return {bool} true if point p is inside me.
         containsPoint: function(p) {
-            p = new Point(p);
+            
+            if (!(p instanceof Point)) {
+                p = new Point(p);
+            }
             return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
         },
 
@@ -2230,7 +2233,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             if (points.length < 3) { return this; } // we need at least 3 points
 
             // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
-            var threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
+
+            // Due to the nature of the algorithm, we do not use 0 as the default value for `threshold`
+            // because of the rounding errors that can occur when comparing distances.
+            var threshold = opt.threshold || 1e-10; // = max distance of middle point from chord to be simplified
 
             // start at the beginning of the polyline and go forward
             var currentIndex = 0;
@@ -7136,15 +7142,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
          */
         VPrototype.removeAttr = function(name) {
 
-            var qualifiedName = V.qualifyAttr(name);
+            var trueName = attributeNames[name];
+
+            var ref = V.qualifyAttr(trueName);
+            var ns = ref.ns;
+            var local = ref.local;
             var el = this.node;
 
-            if (qualifiedName.ns) {
-                if (el.hasAttributeNS(qualifiedName.ns, qualifiedName.local)) {
-                    el.removeAttributeNS(qualifiedName.ns, qualifiedName.local);
+            if (ns) {
+                if (el.hasAttributeNS(ns, local)) {
+                    el.removeAttributeNS(ns, local);
                 }
-            } else if (el.hasAttribute(name)) {
-                el.removeAttribute(name);
+            } else if (el.hasAttribute(trueName)) {
+                el.removeAttribute(trueName);
             }
             return this;
         };
@@ -7165,7 +7175,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }
 
             if (V.isString(name) && V.isUndefined(value)) {
-                return this.node.getAttribute(name);
+                return this.node.getAttribute(attributeNames[name]);
             }
 
             if (typeof name === 'object') {
@@ -7741,16 +7751,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 return this;
             }
 
-            var qualifiedName = V.qualifyAttr(name);
+            var trueName = attributeNames[name];
 
-            if (qualifiedName.ns) {
+            var ref = V.qualifyAttr(trueName);
+            var ns = ref.ns;
+            if (ns) {
                 // Attribute names can be namespaced. E.g. `image` elements
                 // have a `xlink:href` attribute to set the source of the image.
-                el.setAttributeNS(qualifiedName.ns, name, value);
-            } else if (name === 'id') {
+                el.setAttributeNS(ns, trueName, value);
+            } else if (trueName === 'id') {
                 el.id = value;
             } else {
-                el.setAttribute(name, value);
+                el.setAttribute(trueName, value);
             }
 
             return this;
@@ -7858,6 +7870,100 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             return xml;
         };
+
+        // Create an empty object which does not inherit any properties from `Object.prototype`.
+        // This is useful when we want to use an object as a dictionary without having to
+        // worry about inherited properties such as `toString`, `valueOf` etc.
+        var _attributeNames = Object.create(null);
+
+        // List of attributes for which not to split camel case words.
+        // It contains known SVG attribute names and may be extended with user-defined attribute names.
+        [
+            'baseFrequency',
+            'baseProfile',
+            'clipPathUnits',
+            'contentScriptType',
+            'contentStyleType',
+            'diffuseConstant',
+            'edgeMode',
+            'externalResourcesRequired',
+            'filterRes', // deprecated
+            'filterUnits',
+            'gradientTransform',
+            'gradientUnits',
+            'kernelMatrix',
+            'kernelUnitLength',
+            'keyPoints',
+            'lengthAdjust',
+            'limitingConeAngle',
+            'markerHeight',
+            'markerUnits',
+            'markerWidth',
+            'maskContentUnits',
+            'maskUnits',
+            'numOctaves',
+            'pathLength',
+            'patternContentUnits',
+            'patternTransform',
+            'patternUnits',
+            'pointsAtX',
+            'pointsAtY',
+            'pointsAtZ',
+            'preserveAlpha',
+            'preserveAspectRatio',
+            'primitiveUnits',
+            'refX',
+            'refY',
+            'requiredExtensions',
+            'requiredFeatures',
+            'specularConstant',
+            'specularExponent',
+            'spreadMethod',
+            'startOffset',
+            'stdDeviation',
+            'stitchTiles',
+            'surfaceScale',
+            'systemLanguage',
+            'tableValues',
+            'targetX',
+            'targetY',
+            'textLength',
+            'viewBox',
+            'viewTarget', // deprecated
+            'xChannelSelector',
+            'yChannelSelector',
+            'zoomAndPan' // deprecated
+        ].forEach(function (name) { return _attributeNames[name] = name; });
+
+        var attributeNames = new Proxy(_attributeNames, {
+            get: function get(cache, name) {
+                // The cache is a dictionary of attribute names. See `_attributeNames` above.
+                // If the attribute name is not in the cache, it means that it is not
+                // a camel-case attribute name. In that case, we need to convert
+                // the attribute name to dash-separated words.
+                if (!V.supportCamelCaseAttributes) { return name; }
+                if (name in cache) {
+                    return cache[name];
+                }
+                // Convert camel case to dash-separated words.
+                return (cache[name] = name.replace(/[A-Z]/g, '-$&').toLowerCase());
+            }
+        });
+
+        // Note: The `attributeNames` and `supportCamelCaseAttributes` properties are not enumerable
+        // in this version to avoid breaking changes. They will be made enumerable in the next major version.
+
+        // Dictionary of attribute names
+        Object.defineProperty(V, 'attributeNames', {
+            value: attributeNames,
+            writable: false,
+        });
+
+        // Should camel case attributes be supported?
+        Object.defineProperty(V, 'supportCamelCaseAttributes', {
+            value: false,
+            writable: true,
+        });
 
         /**
          * @param {string} name

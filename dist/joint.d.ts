@@ -1,4 +1,4 @@
-/*! JointJS v3.7.5 (2023-08-02) - JavaScript diagramming library
+/*! JointJS v3.7.6 (2023-10-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -2357,7 +2357,7 @@ export namespace dia {
 
         enum Layers {
             CELLS = 'cells',
-            LABEL = 'labels',
+            LABELS = 'labels',
             BACK = 'back',
             FRONT = 'front',
             TOOLS = 'tools',
@@ -4625,6 +4625,7 @@ export namespace routers {
         startDirections?: dia.OrthogonalDirection[];
         endDirections?: dia.OrthogonalDirection[];
         isPointObstacle?: (point: dia.Point) => boolean;
+        fallbackRouter: (vertices: dia.Point[], opts?: ManhattanRouterArguments, linkView?: dia.LinkView) => dia.Point[];
     }
 
     interface OrthogonalRouterArguments {
@@ -4696,6 +4697,8 @@ export namespace routers {
 
     interface RightAngleRouterArguments {
         margin?: number;
+        /** @experimental before version 4.0 */
+        useVertices?: boolean;
         sourceDirection?: RightAngleDirections;
         targetDirection?: RightAngleDirections;
     }
@@ -5114,6 +5117,7 @@ export namespace attributes {
         width?: string | number | null;
         height?: string | number | null;
         ellipsis?: boolean | string;
+        separator?: string;
         hyphen?: string;
         maxLineCount?: number;
         preserveSpaces?: boolean;
