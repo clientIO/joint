@@ -1,4 +1,4 @@
-const dependecies = require('../resources/dependencies');
+const dependencies = require('../resources/dependencies');
 const modules = require('../resources/esm');
 
 module.exports = function(grunt) {
@@ -49,7 +49,7 @@ module.exports = function(grunt) {
                 ChromeHeadless_custom: {
                     base: 'ChromeHeadless',
                     flags: [
-                        '--no-sandbox', 
+                        '--no-sandbox',
                         '--headless',
                         '--disable-gpu',
                         '--disable-dev-shm-usage'
@@ -89,7 +89,7 @@ module.exports = function(grunt) {
         joint: {
             options: {
                 files: [
-                    dependecies,
+                    dependencies,
                     modules.geometry.umd,
                     modules.vectorizer.umd,
                     modules.joint.noDependencies,
