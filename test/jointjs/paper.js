@@ -2940,4 +2940,54 @@ QUnit.module('paper', function(hooks) {
             });
         });
     });
+
+    QUnit.test('custom event with label link', function(assert) {
+
+        const event = 'link:label:pointerdown';
+
+        const link = new joint.shapes.standard.Link({
+            source: { x: 50, y: 50 },
+            target: { x: 300, y: 70 },
+            labels: [{
+                markup: [
+                    {
+                        tagName: 'rect',
+                        selector: 'labelBody'
+                    }, {
+                        tagName: 'text',
+                        selector: 'labelText'
+                    }
+                ],
+                attrs: {
+                    labelText: {
+                        text: 'Label',
+                        pointerEvents: 'none',
+                    },
+                    labelBody: {
+                        ref: 'text',
+                        width: 'calc(w)',
+                        height: 'calc(h)',
+                        fill: '#ffffff',
+                        stroke: 'black',
+                        event,
+                    }
+                },
+            }]
+        });
+
+        const { paper, graph } = this;
+
+        graph.addCell(link);
+
+        const spy = sinon.spy();
+        paper.on(event, spy);
+
+        const linkView = link.findView(paper);
+        const labelBody = linkView.el.querySelector('rect');
+
+        simulate.mousedown({ el: labelBody });
+
+        assert.equal(spy.callCount, 1);
+        assert.equal(spy.firstCall.args[0], linkView);
+    });
 });
