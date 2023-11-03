@@ -2204,19 +2204,11 @@ export const Paper = View.extend({
             const rootViewEl = view.el;
 
             // Custom event
-            const eventNode = target.closest('[event]');
-            if (eventNode && rootViewEl !== eventNode && view.el.contains(eventNode)) {
-                const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
-                    data: evt.data,
-                    // Originally the event listener was attached to the event element.
-                    currentTarget: eventNode
-                }));
-                this.onevent(eventEvt);
-                if (eventEvt.isDefaultPrevented()) {
-                    evt.preventDefault();
-                }
-                // `onevent` can stop propagation
+            const eventEvt = this.customEventTrigger(evt, rootViewEl);
+            if (eventEvt) {
+            // `onevent` could have stopped propagation
                 if (eventEvt.isPropagationStopped()) return;
+
                 evt.data = eventEvt.data;
             }
 
@@ -2548,7 +2540,6 @@ export const Paper = View.extend({
     onlabel: function(evt) {
 
         var labelNode = evt.currentTarget;
-        const eventNode = evt.target.closest('[event]');
 
         var view = this.findView(labelNode);
         if (!view) return;
@@ -2556,18 +2547,12 @@ export const Paper = View.extend({
         evt = normalizeEvent(evt);
         if (this.guard(evt, view)) return;
 
-        if (eventNode && labelNode !== eventNode && view.el.contains(eventNode)) {
-            const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
-                data: evt.data,
-                // Originally the event listener was attached to the event element.
-                currentTarget: eventNode
-            }));
-            this.onevent(eventEvt);
-            if (eventEvt.isDefaultPrevented()) {
-                evt.preventDefault();
-            }
-            // `onevent` can stop propagation
+        // Custom event
+        const eventEvt = this.customEventTrigger(evt, labelNode);
+        if (eventEvt) {
+            // `onevent` could have stopped propagation
             if (eventEvt.isPropagationStopped()) return;
+
             evt.data = eventEvt.data;
         }
 
@@ -3098,6 +3083,28 @@ export const Paper = View.extend({
         markerContentVEl.appendTo(markerVEl);
         markerVEl.appendTo(defs);
         return id;
+    },
+
+    customEventTrigger: function(evt, rootNode) {
+
+        const eventNode = evt.target.closest('[event]');
+        const view = this.findView(rootNode);
+
+        if (eventNode && rootNode !== eventNode && view.el.contains(eventNode)) {
+            const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+                data: evt.data,
+                // Originally the event listener was attached to the event element.
+                currentTarget: eventNode
+            }));
+
+            this.onevent(eventEvt);
+
+            if (eventEvt.isDefaultPrevented()) {
+                evt.preventDefault();
+            }
+
+            return eventEvt;
+        }
     }
 
 }, {
