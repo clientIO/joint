@@ -2980,14 +2980,21 @@ QUnit.module('paper', function(hooks) {
         graph.addCell(link);
 
         const spy = sinon.spy();
-        paper.on(event, spy);
+        paper.on('all', spy);
 
         const linkView = link.findView(paper);
         const labelBody = linkView.el.querySelector('rect');
 
-        simulate.mousedown({ el: labelBody });
+        simulate.mousedown({ el: labelBody, clientX: 10, clientY: 10 });
 
-        assert.equal(spy.callCount, 1);
-        assert.equal(spy.firstCall.args[0], linkView);
+        var localPoint = paper.snapToGrid(10, 10);
+        assert.ok(spy.calledThrice);
+        assert.ok(spy.calledWithExactly(
+            event,
+            linkView,
+            sinon.match.instanceOf($.Event),
+            localPoint.x,
+            localPoint.y
+        ));
     });
 });
