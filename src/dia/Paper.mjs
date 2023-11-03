@@ -2548,15 +2548,31 @@ export const Paper = View.extend({
     onlabel: function(evt) {
 
         var labelNode = evt.currentTarget;
+        const eventNode = evt.target.closest('[event]');
+
         var view = this.findView(labelNode);
-        if (view) {
+        if (!view) return;
 
-            evt = normalizeEvent(evt);
-            if (this.guard(evt, view)) return;
+        evt = normalizeEvent(evt);
+        if (this.guard(evt, view)) return;
 
-            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-            view.onlabel(evt, localPoint.x, localPoint.y);
+        if (eventNode && labelNode !== eventNode && view.el.contains(eventNode)) {
+            const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+                data: evt.data,
+                // Originally the event listener was attached to the event element.
+                currentTarget: eventNode
+            }));
+            this.onevent(eventEvt);
+            if (eventEvt.isDefaultPrevented()) {
+                evt.preventDefault();
+            }
+            // `onevent` can stop propagation
+            if (eventEvt.isPropagationStopped()) return;
+            evt.data = eventEvt.data;
         }
+
+        var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
+        view.onlabel(evt, localPoint.x, localPoint.y);
     },
 
     getPointerArgs(evt) {
