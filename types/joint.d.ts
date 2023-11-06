@@ -1757,6 +1757,8 @@ export namespace dia {
         protected insertView(cellView: CellView, isInitialInsert: boolean): void;
 
         protected detachView(cellView: CellView): void;
+
+        protected customEventTrigger(event: dia.Event, view: CellView, rootNode?: SVGElement): dia.Event | null;
     }
 
     namespace PaperLayer {
