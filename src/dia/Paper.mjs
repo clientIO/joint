@@ -2201,22 +2201,12 @@ export const Paper = View.extend({
                 view.preventDefaultInteraction(evt);
             }
 
-            const rootViewEl = view.el;
-
             // Custom event
-            const eventNode = target.closest('[event]');
-            if (eventNode && rootViewEl !== eventNode && view.el.contains(eventNode)) {
-                const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
-                    data: evt.data,
-                    // Originally the event listener was attached to the event element.
-                    currentTarget: eventNode
-                }));
-                this.onevent(eventEvt);
-                if (eventEvt.isDefaultPrevented()) {
-                    evt.preventDefault();
-                }
-                // `onevent` can stop propagation
+            const eventEvt = this.customEventTrigger(evt, view);
+            if (eventEvt) {
+            // `onevent` could have stopped propagation
                 if (eventEvt.isPropagationStopped()) return;
+
                 evt.data = eventEvt.data;
             }
 
@@ -2548,15 +2538,24 @@ export const Paper = View.extend({
     onlabel: function(evt) {
 
         var labelNode = evt.currentTarget;
+
         var view = this.findView(labelNode);
-        if (view) {
+        if (!view) return;
 
-            evt = normalizeEvent(evt);
-            if (this.guard(evt, view)) return;
+        evt = normalizeEvent(evt);
+        if (this.guard(evt, view)) return;
 
-            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-            view.onlabel(evt, localPoint.x, localPoint.y);
+        // Custom event
+        const eventEvt = this.customEventTrigger(evt, view, labelNode);
+        if (eventEvt) {
+            // `onevent` could have stopped propagation
+            if (eventEvt.isPropagationStopped()) return;
+
+            evt.data = eventEvt.data;
         }
+
+        var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
+        view.onlabel(evt, localPoint.x, localPoint.y);
     },
 
     getPointerArgs(evt) {
@@ -3082,6 +3081,29 @@ export const Paper = View.extend({
         markerContentVEl.appendTo(markerVEl);
         markerVEl.appendTo(defs);
         return id;
+    },
+
+    customEventTrigger: function(evt, view, rootNode = view.el) {
+
+        const eventNode = evt.target.closest('[event]');
+
+        if (eventNode && rootNode !== eventNode && view.el.contains(eventNode)) {
+            const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+                data: evt.data,
+                // Originally the event listener was attached to the event element.
+                currentTarget: eventNode
+            }));
+
+            this.onevent(eventEvt);
+
+            if (eventEvt.isDefaultPrevented()) {
+                evt.preventDefault();
+            }
+
+            return eventEvt;
+        }
+
+        return null;
     }
 
 }, {
