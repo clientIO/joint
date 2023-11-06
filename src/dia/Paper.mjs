@@ -2201,10 +2201,8 @@ export const Paper = View.extend({
                 view.preventDefaultInteraction(evt);
             }
 
-            const rootViewEl = view.el;
-
             // Custom event
-            const eventEvt = this.customEventTrigger(evt, rootViewEl);
+            const eventEvt = this.customEventTrigger(evt, view);
             if (eventEvt) {
             // `onevent` could have stopped propagation
                 if (eventEvt.isPropagationStopped()) return;
@@ -2548,7 +2546,7 @@ export const Paper = View.extend({
         if (this.guard(evt, view)) return;
 
         // Custom event
-        const eventEvt = this.customEventTrigger(evt, labelNode);
+        const eventEvt = this.customEventTrigger(evt, view, labelNode);
         if (eventEvt) {
             // `onevent` could have stopped propagation
             if (eventEvt.isPropagationStopped()) return;
@@ -3085,10 +3083,9 @@ export const Paper = View.extend({
         return id;
     },
 
-    customEventTrigger: function(evt, rootNode) {
+    customEventTrigger: function(evt, view, rootNode = view.el) {
 
         const eventNode = evt.target.closest('[event]');
-        const view = this.findView(rootNode);
 
         if (eventNode && rootNode !== eventNode && view.el.contains(eventNode)) {
             const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
@@ -3105,6 +3102,8 @@ export const Paper = View.extend({
 
             return eventEvt;
         }
+
+        return null;
     }
 
 }, {
