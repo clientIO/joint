@@ -631,7 +631,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
     // If separator is a RegExp, we use the space character to join words together again (not ideal)
     const separatorChar = (typeof separator === 'string') ? separator : space;
     var eol = opt.eol || '\n';
-    var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d]/;
+    var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d\u00C0-\u1FFF\u2800-\uFFFD]/;
     var maxLineCount = opt.maxLineCount;
     if (!isNumber(maxLineCount)) maxLineCount = Infinity;
 
