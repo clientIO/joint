@@ -1,4 +1,4 @@
-/*! JointJS v3.7.6 (2023-10-20) - JavaScript diagramming library
+/*! JointJS v3.7.7 (2023-11-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -33286,22 +33286,12 @@ var joint = (function (exports, Backbone, $) {
 	                view.preventDefaultInteraction(evt);
 	            }
 
-	            var rootViewEl = view.el;
-
 	            // Custom event
-	            var eventNode = target.closest('[event]');
-	            if (eventNode && rootViewEl !== eventNode && view.el.contains(eventNode)) {
-	                var eventEvt = normalizeEvent($.Event(evt.originalEvent, {
-	                    data: evt.data,
-	                    // Originally the event listener was attached to the event element.
-	                    currentTarget: eventNode
-	                }));
-	                this.onevent(eventEvt);
-	                if (eventEvt.isDefaultPrevented()) {
-	                    evt.preventDefault();
-	                }
-	                // `onevent` can stop propagation
+	            var eventEvt = this.customEventTrigger(evt, view);
+	            if (eventEvt) {
+	            // `onevent` could have stopped propagation
 	                if (eventEvt.isPropagationStopped()) { return; }
+
 	                evt.data = eventEvt.data;
 	            }
 
@@ -33635,15 +33625,24 @@ var joint = (function (exports, Backbone, $) {
 	    onlabel: function(evt) {
 
 	        var labelNode = evt.currentTarget;
+
 	        var view = this.findView(labelNode);
-	        if (view) {
+	        if (!view) { return; }
 
-	            evt = normalizeEvent(evt);
-	            if (this.guard(evt, view)) { return; }
+	        evt = normalizeEvent(evt);
+	        if (this.guard(evt, view)) { return; }
 
-	            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-	            view.onlabel(evt, localPoint.x, localPoint.y);
+	        // Custom event
+	        var eventEvt = this.customEventTrigger(evt, view, labelNode);
+	        if (eventEvt) {
+	            // `onevent` could have stopped propagation
+	            if (eventEvt.isPropagationStopped()) { return; }
+
+	            evt.data = eventEvt.data;
 	        }
+
+	        var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
+	        view.onlabel(evt, localPoint.x, localPoint.y);
 	    },
 
 	    getPointerArgs: function getPointerArgs(evt) {
@@ -34166,6 +34165,31 @@ var joint = (function (exports, Backbone, $) {
 	        markerContentVEl.appendTo(markerVEl);
 	        markerVEl.appendTo(defs);
 	        return id;
+	    },
+
+	    customEventTrigger: function(evt, view, rootNode) {
+	        if ( rootNode === void 0 ) rootNode = view.el;
+
+
+	        var eventNode = evt.target.closest('[event]');
+
+	        if (eventNode && rootNode !== eventNode && view.el.contains(eventNode)) {
+	            var eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+	                data: evt.data,
+	                // Originally the event listener was attached to the event element.
+	                currentTarget: eventNode
+	            }));
+
+	            this.onevent(eventEvt);
+
+	            if (eventEvt.isDefaultPrevented()) {
+	                evt.preventDefault();
+	            }
+
+	            return eventEvt;
+	        }
+
+	        return null;
 	    }
 
 	}, {
@@ -38949,7 +38973,7 @@ var joint = (function (exports, Backbone, $) {
 		Control: Control
 	});
 
-	var version = "3.7.6";
+	var version = "3.7.7";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

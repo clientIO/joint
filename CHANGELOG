@@ -1,3 +1,7 @@
+06-11-2023 (v3.7.7)
+
+  * dia.Paper - fix custom events on link label
+
 20-10-2023 (v3.7.6)
 
   * dia.Cell - make prop()'s internal set() call more efficient
