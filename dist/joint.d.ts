@@ -1,4 +1,4 @@
-/*! JointJS v3.7.6 (2023-10-20) - JavaScript diagramming library
+/*! JointJS v3.7.7 (2023-11-07) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -2919,6 +2919,8 @@ export namespace dia {
         protected insertView(cellView: CellView, isInitialInsert: boolean): void;
 
         protected detachView(cellView: CellView): void;
+
+        protected customEventTrigger(event: dia.Event, view: CellView, rootNode?: SVGElement): dia.Event | null;
     }
 
     namespace PaperLayer {
