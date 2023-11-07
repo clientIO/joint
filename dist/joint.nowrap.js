@@ -1,4 +1,4 @@
-/*! JointJS v3.7.7 (2023-11-06) - JavaScript diagramming library
+/*! JointJS v3.7.7 (2023-11-07) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -13958,7 +13958,7 @@ var joint = (function (exports, Backbone, $) {
 	    // If separator is a RegExp, we use the space character to join words together again (not ideal)
 	    var separatorChar = (typeof separator === 'string') ? separator : space;
 	    var eol = opt.eol || '\n';
-	    var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d]/;
+	    var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d\u00C0-\u1FFF\u2800-\uFFFD]/;
 	    var maxLineCount = opt.maxLineCount;
 	    if (!isNumber(maxLineCount)) { maxLineCount = Infinity; }
 
