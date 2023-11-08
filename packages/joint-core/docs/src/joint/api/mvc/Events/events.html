@@ -1,0 +1,24 @@
+<p>
+    Here's the complete list of built-in JointJS events, with arguments. You're also free to trigger your own events on Models, Collections and 
+    Views as you see fit.
+</p>
+
+<ul>
+    <li><code>"add" (model, collection, options)</code> - when a model is added to a collection.</li>
+    <li><code>"remove" (model, collection, options)</code> - when a model is removed from a collection.</li>
+    <li><code>"update" (collection, options)</code> - single event triggered after any number of models have been added, removed or changed in a collection.</li>
+    <li><code>"reset" (collection, options)</code> - when the collection's entire contents have been reset.</li>
+    <li><code>"sort" (collection, options)</code> - when the collection has been re-sorted.</li>
+    <li><code>"change" (model, options)</code> - when a model's attributes have changed.</li>
+    <li><code>"changeId" (model, previousId, options)</code> - when the model's id has been updated.</li>
+    <li><code>"change:[attribute]" (model, value, options)</code> - when a specific attribute has been updated.</li>
+    <li><code>"invalid" (model, error, options)</code> - when a model's validation fails.</li>
+    <li><code>"all"</code> - this special event fires for any triggered event, passing the event name as the first argument followed by all trigger arguments.</li>
+</ul>
+
+<p>
+    Generally speaking, when calling a function that emits an event (<code>model.set</code>, <code>collection.add</code>, and so on...), if you'd 
+    like to prevent the event from being triggered, you may pass <code>{silent: true}</code> as an option. Note that this is rarely, perhaps even 
+    never, a good idea. Passing through a specific flag in the options for your event callback to look at, and choose to ignore, 
+    will usually work out better. 
+</p>

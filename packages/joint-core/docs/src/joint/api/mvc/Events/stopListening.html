@@ -1,0 +1,12 @@
+<pre class="docs-method-signature"><code>object.stopListening([other], [event], [callback])</code></pre>
+
+<p>
+    Tell an object to stop listening to events. Either call <code>stopListening</code> with no arguments to have the object remove all of its 
+    <a href="#mvc.Events.listenTo">registered</a> callbacks ... or be more precise by telling it to remove just the events it's listening to on a 
+    specific object, or a specific event, or just a specific callback. 
+</p>
+
+<pre><code>view.stopListening();
+
+view.stopListening(model);
+</code></pre>

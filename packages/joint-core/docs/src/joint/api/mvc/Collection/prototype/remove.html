@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>collection.remove(models, [options])</code></pre>
+
+<p>
+    Remove a model (or an array of models) from the collection, and return them. Each model can be a Model instance, an <code>id</code> string or a 
+    JS object, any value acceptable as the <code>id</code> argument of <a href="#mvc.Collection.prototype.get"><code>collection.get</code></a>. 
+    Fires a <code>"remove"</code> event for each model, and a single <code>"update"</code> event afterwards, unless <code>{ silent: true }</code> 
+    is passed. The model's index before removal is available to listeners as <code>options.index</code>. 
+</p>

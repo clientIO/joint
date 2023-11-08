@@ -1,0 +1,7 @@
+<pre class="docs-method-signature"><code>collection.sort([options])</code></pre>
+
+<p>
+    Force a collection to re-sort itself. Note that a collection with a <a href="#mvc.Collection.prototype.comparator"><code>comparator</code></a> 
+    will sort itself automatically whenever a model is added. To disable sorting when adding a model, pass <code>{ sort: false }</code> to 
+    <code>add()</code>. Calling sort triggers a <code>"sort"</code> event on the collection. 
+</p>

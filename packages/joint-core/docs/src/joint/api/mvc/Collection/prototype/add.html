@@ -1,0 +1,27 @@
+<pre class="docs-method-signature"><code>collection.add(models, [options])</code></pre>
+
+<p>
+    Add a model (or an array of models) to the collection, firing an <code>"add"</code> event for each model, and an <code>"update"</code> event 
+    afterwards. This is a variant of <a href="#mvc.Collection.prototype.set"><code>set()</code></a> with the same options and return value, but it 
+    always adds and never removes. If you're adding models to the collection that are already in the collection, they'll be ignored, unless you 
+    pass <code>{ merge: true }</code>, in which case their attributes will be merged into the corresponding models, firing any appropriate 
+    <code>"change"</code> events. 
+</p>
+
+<pre><code>const shapes = new mvc.Collection;
+
+shapes.on('add', function(shape) {
+  console.log(shape.get('name'));
+  // A
+  // B
+});
+
+shapes.add([
+  { name: 'A' },
+  { name: 'B' }
+]);
+</code></pre>
+
+<p>
+  Note that adding the same model (a model with the same <code>id</code>) to a collection more than once is a no-op. 
+</p>

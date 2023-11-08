@@ -8,7 +8,6 @@ const JOINT = [
 const LIBS_ESM = [
     modules.jquery,
     modules.lodash,
-    modules.backbone,
     modules.dagre
 ];
 

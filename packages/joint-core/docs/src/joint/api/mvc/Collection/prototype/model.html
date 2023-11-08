@@ -1,0 +1,29 @@
+<pre class="docs-method-signature"><code>collection.model([attrs], [options])</code></pre>
+
+<p>
+    Override this property to specify the model class that the collection contains. If defined, you can pass raw attributes objects (and arrays) 
+    and options to <a href="#mvc.Collection.prototype.add"><code>add()</code></a>, and 
+    <a href="#mvc.Collection.prototype.reset"><code>reset()</code></a>, and the attributes will be converted into a model of the proper type using 
+    the provided options, if any. 
+</p>
+
+<pre><code>const Shapes = mvc.Collection.extend({
+    model: Shape
+});
+</code></pre>
+
+<p>
+    A collection can also contain polymorphic models by overriding this property with a constructor that returns a model.
+</p>
+
+<pre><code>const Shapes = mvc.Collection.extend({
+
+    model: function(attrs, options) {
+      if (condition) {
+        return new ShapeA(attrs, options);
+      } else {
+        return new ShapeB(attrs, options);
+      }
+    }
+});
+</code></pre>
