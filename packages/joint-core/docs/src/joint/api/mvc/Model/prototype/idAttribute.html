@@ -1,0 +1,15 @@
+<pre class="docs-method-signature"><code>model.idAttribute</code></pre>
+
+<p>
+    A model's unique identifier is stored under the <code>id</code> attribute. If you're directly communicating with a backend (MongoDB) that 
+    uses a different unique key, you may set a Model's <code>idAttribute</code> to transparently map from that key to <code>id</code>. 
+    If you set <code>idAttribute</code>, you may also want to override <a href="#mvc.Model.prototype.cidPrefix"><code>cidPrefix</code></a>. 
+</p>
+
+<pre><code>const Shape = mvc.Model.extend({
+    idAttribute: "_id"
+});
+
+const shape = new Shape({ _id: 1, name: "Rectangle" });
+console.log("Shape id: " + shape.id); // Shape id: 1
+</code></pre>

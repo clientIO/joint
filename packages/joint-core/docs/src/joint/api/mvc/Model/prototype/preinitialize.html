@@ -1,0 +1,13 @@
+<p>
+    For use with models as ES classes. If you define a <code>preinitialize</code> method, it will be invoked when the Model is first created, 
+    before any instantiation logic is run for the <code>Model</code>. 
+</p>
+
+<pre><code>class BaseShape extends mvc.Model {
+    preinitialize({ type }) {
+        this.type = type;
+    }
+
+    initialize() {...}
+}   
+</code></pre>

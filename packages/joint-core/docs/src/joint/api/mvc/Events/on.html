@@ -1,0 +1,40 @@
+<pre class="docs-method-signature"><code>object.on(event, callback, [context])</code></pre>
+
+<p>
+    Bind a callback function to an object. The callback will be invoked whenever the event is fired. If you have a large number of different events 
+    on a page, the convention is to use colons to namespace them: <code>"poll:start"</code>, or <code>"change:selection"</code>.
+</p>
+
+<pre><code>model.on('change', ...);
+
+// Space-delimited list for more than one event
+film.on('change:title change:director', ...);
+
+// Supply a context value for "this" when the callback is invoked by passing the optional last argument
+model.on('change', this.render, this);
+</code></pre>
+
+<p>
+    Callbacks bound to the special <code>"all"</code> event will be triggered when any event occurs, and are passed the name of the event as 
+    the first argument. For example, to proxy all events from one object to another: 
+</p>
+
+<pre><code>proxy.on("all", function(eventName) {
+    object.trigger(eventName);
+});
+</code></pre>
+
+<p>
+    All JointJS event methods also support an event map syntax, as an alternative to positional arguments: 
+</p>
+
+<pre><code>book.on({
+    "change:author": authorPane.update,
+    "change:title change:subtitle": titleView.update
+});  
+</code></pre>
+
+<p>
+    To supply a context value for <code>this</code> when the callback is invoked, pass the optional last argument: 
+    <code>model.on('change', this.render, this)</code> or <code>model.on({change: this.render}, this)</code>. 
+</p>

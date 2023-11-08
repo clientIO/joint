@@ -1,0 +1,17 @@
+<pre class="docs-method-signature"><code>model.hasChanged([attribute])</code></pre>
+
+<p>
+    Has the model changed since its last <a href="#mvc.Model.prototype.set"><code>set()</code></a>? If an attribute is passed, returns 
+    <code>true</code> if that specific attribute has changed. 
+</p>
+
+<p>
+    Note that this method is only useful during the course of a <code>"change"</code> event. 
+</p>
+
+<pre><code>shape.on("change", function() {
+    if (shape.hasChanged("title")) {
+        ...
+    }
+});
+</code></pre>

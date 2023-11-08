@@ -1,0 +1,17 @@
+<p>
+    For use with views as ES classes. If you define a <code>preinitialize</code> method, it will be invoked when the view is first created, before 
+    any instantiation logic is run. <code>preinitialize</code> is an empty function by default. You can override it with a function or object.
+</p>
+
+<pre><code>class View extends mvc.ViewBase {
+    preinitialize({ autoRender }) {
+        this.autoRender = autoRender;
+    }
+
+    initialize() {
+        if (this.autoRender) {
+            this.listenTo(this.model, 'change', this.render);
+        }
+    }
+}   
+</code></pre>

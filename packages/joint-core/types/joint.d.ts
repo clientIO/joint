@@ -74,13 +74,13 @@ export namespace dia {
 
     type Path = string | Array<string | number>;
 
-    interface ModelSetOptions extends Backbone.ModelSetOptions {
+    interface ModelSetOptions extends mvc.ModelSetOptions {
         dry?: boolean;
         isolate?: boolean;
         [key: string]: any;
     }
 
-    interface CollectionAddOptions extends Backbone.AddOptions {
+    interface CollectionAddOptions extends mvc.AddOptions {
         dry?: boolean;
         [key: string]: any;
     }
@@ -148,7 +148,7 @@ export namespace dia {
             breadthFirst?: boolean;
         }
 
-        class Cells extends Backbone.Collection<Cell> {
+        class Cells extends mvc.Collection<Cell> {
             graph: Graph;
             cellNamespace: any;
         }
@@ -159,7 +159,7 @@ export namespace dia {
         }
     }
 
-    class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
         constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
@@ -287,7 +287,7 @@ export namespace dia {
             type: string;
         };
 
-        interface Constructor<T extends Backbone.Model> {
+        interface Constructor<T extends mvc.Model> {
             new(opt?: { id?: ID, [key: string]: any }): T;
             define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell.Constructor<T>;
         }
@@ -321,7 +321,7 @@ export namespace dia {
         }
     }
 
-    class Cell<A extends ObjectHash = Cell.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
         constructor(attributes?: A, opt?: Graph.Options);
 
@@ -494,7 +494,7 @@ export namespace dia {
         }
     }
 
-    class Element<A extends ObjectHash = Element.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
+    class Element<A extends ObjectHash = Element.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -616,7 +616,7 @@ export namespace dia {
         }
     }
 
-    class Link<A extends ObjectHash = Link.Attributes, S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
+    class Link<A extends ObjectHash = Link.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
 
         toolMarkup: string;
         doubleToolMarkup?: string;
@@ -1419,7 +1419,7 @@ export namespace dia {
             // render
             'render:done': (stats: UpdateStats, opt: any) => void;
             // custom
-            [eventName: string]: Backbone.EventHandler;
+            [eventName: string]: mvc.EventHandler;
         }
     }
 
@@ -1727,14 +1727,14 @@ export namespace dia {
 
         protected cloneOptions(): Paper.Options;
 
-        protected onCellAdded(cell: Cell, collection: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
+        protected onCellAdded(cell: Cell, collection: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected onCellRemoved(cell: Cell, collection: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
+        protected onCellRemoved(cell: Cell, collection: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
         protected onCellChanged(cell: Cell, opt: dia.Cell.Options): void;
-        protected onCellChanged(cell: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
+        protected onCellChanged(cell: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected onGraphReset(cells: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
+        protected onGraphReset(cells: mvc.Collection<Cell>, opt: dia.Graph.Options): void;
 
         protected onGraphSort(): void;
 
@@ -2245,7 +2245,7 @@ export namespace shapes {
 
         type CylinderAttributes = dia.Element.GenericAttributes<CylinderSelectors>;
 
-        class Cylinder<S extends Backbone.ModelSetOptions = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
+        class Cylinder<S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
             topRy(): string | number;
             topRy(t: string | number, opt?: S): this;
         }
@@ -3348,7 +3348,382 @@ export namespace layout {
 
 export namespace mvc {
 
-    interface ViewOptions<T extends (Backbone.Model | undefined), E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
+    type List<T> = ArrayLike<T>;
+    type ListIterator<T, TResult> = (value: T, index: number, collection: List<T>) => TResult;
+
+    type _Result<T> = T | (() => T);
+    type _StringKey<T> = keyof T & string;
+
+    interface AddOptions extends Silenceable {
+        at?: number | undefined;
+        merge?: boolean | undefined;
+        sort?: boolean | undefined;
+    }
+
+    interface CollectionSetOptions extends Parseable, Silenceable {
+        add?: boolean | undefined;
+        remove?: boolean | undefined;
+        merge?: boolean | undefined;
+        at?: number | undefined;
+        sort?: boolean | undefined;
+    }
+
+    interface Silenceable {
+        silent?: boolean | undefined;
+    }
+
+    interface Validable {
+        validate?: boolean | undefined;
+    }
+
+    interface Parseable {
+        parse?: boolean | undefined;
+    }
+
+    interface ModelConstructorOptions<TModel extends Model = Model> extends ModelSetOptions, Parseable {
+        collection?: Collection<TModel> | undefined;
+    }
+
+    type CombinedModelConstructorOptions<E, M extends Model<any, any, E> = Model> = ModelConstructorOptions<M> & E;
+
+    interface ModelSetOptions extends Silenceable, Validable {}
+
+    type ObjectHash = Record<string, any>;
+
+    /**
+     * DOM events (used in the events property of a View)
+     */
+    interface EventsHash {
+        [selector: string]: string | { (eventObject: JQuery.TriggeredEvent): void };
+    }
+
+    /**
+     * JavaScript events (used in the methods of the Events interface)
+     */
+    interface EventHandler {
+        (...args: any[]): void;
+    }
+    interface EventMap {
+        [event: string]: EventHandler;
+    }
+
+    const Events: Events;
+    interface Events extends EventsMixin {}
+
+    /**
+     * Helper shorthands for classes that implement the Events interface.
+     * Define your class like this:
+     *
+     *
+     * class YourClass implements Events {
+     *     on: Events_On<YourClass>;
+     *     off: Events_Off<YourClass>;
+     *     trigger: Events_Trigger<YourClass>;
+     *     bind: Events_On<YourClass>;
+     *     unbind: Events_Off<YourClass>;
+     *
+     *     once: Events_On<YourClass>;
+     *     listenTo: Events_Listen<YourClass>;
+     *     listenToOnce: Events_Listen<YourClass>;
+     *     stopListening: Events_Stop<YourClass>;
+     *
+     *     // ... (other methods)
+     * }
+     *
+     * Object.assign(YourClass.prototype, Events);  // can also use _.extend
+     *
+     * If you are just writing a class type declaration that doesn't already
+     * extend some other base class, you can use the EventsMixin instead;
+     * see below.
+     */
+    interface Events_On<BaseT> {
+        <T extends BaseT>(this: T, eventName: string, callback: EventHandler, context?: any): T;
+        <T extends BaseT>(this: T, eventMap: EventMap, context?: any): T;
+    }
+    interface Events_Off<BaseT> {
+        <T extends BaseT>(this: T, eventName?: string | null, callback?: EventHandler | null, context?: any): T;
+    }
+    interface Events_Trigger<BaseT> {
+        <T extends BaseT>(this: T, eventName: string, ...args: any[]): T;
+    }
+    interface Events_Listen<BaseT> {
+        <T extends BaseT>(this: T, object: any, events: string, callback: EventHandler): T;
+        <T extends BaseT>(this: T, object: any, eventMap: EventMap): T;
+    }
+    interface Events_Stop<BaseT> {
+        <T extends BaseT>(this: T, object?: any, events?: string, callback?: EventHandler): T;
+    }
+
+    /**
+     * Helper to avoid code repetition in type declarations.
+     * Events cannot be extended, hence a separate abstract
+     * class with a different name. Both classes and interfaces can
+     * extend from this helper class to reuse the signatures.
+     *
+     * For class type declarations that already extend another base
+     * class, and for actual class definitions, please see the
+     * Events_* interfaces above.
+     */
+    abstract class EventsMixin implements Events {
+        on(eventName: string, callback: EventHandler, context?: any): this;
+        on(eventMap: EventMap, context?: any): this;
+        off(eventName?: string | null, callback?: EventHandler | null, context?: any): this;
+        trigger(eventName: string, ...args: any[]): this;
+        bind(eventName: string, callback: EventHandler, context?: any): this;
+        bind(eventMap: EventMap, context?: any): this;
+        unbind(eventName?: string, callback?: EventHandler, context?: any): this;
+
+        once(events: string, callback: EventHandler, context?: any): this;
+        once(eventMap: EventMap, context?: any): this;
+        listenTo(object: any, events: string, callback: EventHandler): this;
+        listenTo(object: any, eventMap: EventMap): this;
+        listenToOnce(object: any, events: string, callback: EventHandler): this;
+        listenToOnce(object: any, eventMap: EventMap): this;
+        stopListening(object?: any, events?: string, callback?: EventHandler): this;
+    }
+
+    class ModelBase extends EventsMixin {
+        toJSON(options?: any): any;
+    }
+
+    /**
+     * E - Extensions to the model constructor options. You can accept additional constructor options
+     * by listing them in the E parameter.
+     */
+    class Model<T extends ObjectHash = any, S = ModelSetOptions, E = any> extends ModelBase implements Events {
+        /**
+         * Do not use, prefer TypeScript's extend functionality.
+         */
+        static extend(properties: any, classProperties?: any): any;
+
+        attributes: Partial<T>;
+        changed: Partial<T>;
+        cidPrefix: string;
+        cid: string;
+        collection: Collection<this>;
+
+        private _changing: boolean;
+        private _previousAttributes: Partial<T>;
+        private _pending: boolean;
+
+        /**
+         * Default attributes for the model. It can be an object hash or a method returning an object hash.
+         * For assigning an object hash, do it like this: this.defaults = <any>{ attribute: value, ... };
+         * That works only if you set it in the constructor or the initialize method.
+         */
+        defaults(): Partial<T>;
+        id: string | number;
+        idAttribute: string;
+        validationError: any;
+
+        /**
+         * For use with models as ES classes. If you define a preinitialize
+         * method, it will be invoked when the Model is first created, before
+         * any instantiation logic is run for the Model.
+         */
+        preinitialize(attributes?: T, options?: CombinedModelConstructorOptions<E, this>): void;
+
+        constructor(attributes?: T, options?: CombinedModelConstructorOptions<E>);
+        initialize(attributes?: T, options?: CombinedModelConstructorOptions<E, this>): void;
+
+
+        /**
+         * For strongly-typed access to attributes, use the `get` method only privately in public getter properties.
+         * @example
+         * get name(): string {
+         *    return super.get("name");
+         * }
+         */
+        get<A extends _StringKey<T>>(attributeName: A): T[A] | undefined;
+
+        /**
+         * For strongly-typed assignment of attributes, use the `set` method only privately in public setter properties.
+         * @example
+         * set name(value: string) {
+         *    super.set("name", value);
+         * }
+         */
+        set<A extends _StringKey<T>>(attributeName: A, value?: T[A], options?: S): this;
+        set(attributeName: Partial<T>, options?: S): this;
+        set<A extends _StringKey<T>>(attributeName: A | Partial<T>, value?: T[A] | S, options?: S): this;
+
+        /**
+         * Return an object containing all the attributes that have changed, or
+         * false if there are no changed attributes. Useful for determining what
+         * parts of a view need to be updated and/or what attributes need to be
+         * persisted to the server. Unset attributes will be set to undefined.
+         * You can also pass an attributes object to diff against the model,
+         * determining if there *would be* a change.
+         */
+        changedAttributes(attributes?: Partial<T>): Partial<T> | false;
+        clear(options?: Silenceable): this;
+        clone(): Model;
+        escape(attribute: _StringKey<T>): string;
+        has(attribute: _StringKey<T>): boolean;
+        hasChanged(attribute?: _StringKey<T>): boolean;
+        isValid(options?: any): boolean;
+        previous<A extends _StringKey<T>>(attribute: A): T[A] | null | undefined;
+        previousAttributes(): Partial<T>;
+        unset(attribute: _StringKey<T>, options?: Silenceable): this;
+        validate(attributes: Partial<T>, options?: any): any;
+        private _validate(attributes: Partial<T>, options: any): boolean;
+
+    }
+
+    class Collection<TModel extends Model = Model> extends ModelBase implements Events {
+        /**
+         * Do not use, prefer TypeScript's extend functionality.
+         */
+        static extend(properties: any, classProperties?: any): any;
+
+        model: new (...args: any[]) => TModel;
+        models: TModel[];
+        length: number;
+
+        /**
+         * For use with collections as ES classes. If you define a preinitialize
+         * method, it will be invoked when the Collection is first created and
+         * before any instantiation logic is run for the Collection.
+         */
+        preinitialize(models?: TModel[] | Array<Record<string, any>>, options?: any): void;
+
+        constructor(models?: TModel[] | Array<Record<string, any>>, options?: any);
+        initialize(models?: TModel[] | Array<Record<string, any>>, options?: any): void;
+
+
+        /**
+         * Specify a model attribute name (string) or function that will be used to sort the collection.
+         */
+        comparator:
+            | string
+            | { bivarianceHack(element: TModel): number | string }['bivarianceHack']
+            | { bivarianceHack(compare: TModel, to?: TModel): number }['bivarianceHack'];
+
+        add(model: {} | TModel, options?: AddOptions): TModel;
+        add(models: Array<{} | TModel>, options?: AddOptions): TModel[];
+        at(index: number): TModel;
+        /**
+         * Get a model from a collection, specified by an id, a cid, or by passing in a model.
+         */
+        get(id: number | string | Model): TModel;
+        has(key: number | string | Model): boolean;
+        clone(): this;
+        pluck(attribute: string): any[];
+        push(model: TModel, options?: AddOptions): TModel;
+        pop(options?: Silenceable): TModel;
+        remove(model: {} | TModel, options?: Silenceable): TModel;
+        remove(models: Array<{} | TModel>, options?: Silenceable): TModel[];
+        reset(models?: Array<{} | TModel>, options?: Silenceable): TModel[];
+
+        /**
+         *
+         * The set method performs a "smart" update of the collection with the passed list of models.
+         * If a model in the list isn't yet in the collection it will be added; if the model is already in the
+         * collection its attributes will be merged; and if the collection contains any models that aren't present
+         * in the list, they'll be removed. All of the appropriate "add", "remove", and "change" events are fired as
+         * this happens. Returns the touched models in the collection. If you'd like to customize the behavior, you can
+         * disable it with options: {add: false}, {remove: false}, or {merge: false}.
+         * @param models
+         * @param options
+         */
+        set(models?: Array<{} | TModel>, options?: CollectionSetOptions): TModel[];
+        shift(options?: Silenceable): TModel;
+        sort(options?: Silenceable): this;
+        unshift(model: TModel, options?: AddOptions): TModel;
+        modelId(attrs: any): any;
+
+        values(): Iterator<TModel>;
+        keys(): Iterator<any>;
+        entries(): Iterator<[any, TModel]>;
+        [Symbol.iterator](): Iterator<TModel>;
+
+        private _prepareModel(attributes?: any, options?: any): any;
+        private _removeReference(model: TModel): void;
+        private _onModelEvent(event: string, model: TModel, collection: Collection<TModel>, options: any): void;
+        private _isModel(obj: any): obj is Model;
+
+        /**
+         * Return a shallow copy of this collection's models, using the same options as native Array#slice.
+         */
+        slice(min?: number, max?: number): TModel[];
+
+        // mixins
+
+        first(): TModel;
+        first(n: number): TModel[];
+        last(): TModel;
+        last(n: number): TModel[];
+        sortBy(iterator?: ListIterator<TModel, any>, context?: any): TModel[];
+        sortBy(iterator: string, context?: any): TModel[];
+        toArray(): TModel[];
+
+    }
+
+    interface ViewBaseOptions<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> {
+        model?: TModel | undefined;
+        // TODO: quickfix, this can't be fixed easy. The collection does not need to have the same model as the parent view.
+        collection?: Collection<any> | undefined; // was: Collection<TModel>;
+        el?: TElement | JQuery | string | undefined;
+        id?: string | undefined;
+        attributes?: Record<string, any> | undefined;
+        className?: string | undefined;
+        tagName?: string | undefined;
+        events?: _Result<EventsHash> | undefined;
+    }
+
+    type ViewBaseEventListener = (event: JQuery.Event) => void;
+
+    class ViewBase<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> extends EventsMixin implements Events {
+        /**
+         * Do not use, prefer TypeScript's extend functionality.
+         */
+        static extend(properties: any, classProperties?: any): any;
+
+        /**
+         * For use with views as ES classes. If you define a preinitialize
+         * method, it will be invoked when the view is first created, before any
+         * instantiation logic is run.
+         */
+        preinitialize(options?: ViewBaseOptions<TModel, TElement>): void;
+
+        constructor(options?: ViewBaseOptions<TModel, TElement>);
+        initialize(options?: ViewBaseOptions<TModel, TElement>): void;
+
+        /**
+         * Events hash or a method returning the events hash that maps events/selectors to methods on your View.
+         * For assigning events as object hash, do it like this: this.events = <any>{ "event:selector": callback, ... };
+         * That works only if you set it in the constructor or the initialize method.
+         */
+        events(): EventsHash;
+
+        // A conditional type used here to prevent `TS2532: Object is possibly 'undefined'`
+        model: TModel extends Model ? TModel : undefined;
+        collection: Collection<any>;
+        setElement(element: TElement | JQuery): this;
+        id?: string | undefined;
+        cid: string;
+        className?: string | undefined;
+        tagName: string;
+
+        el: TElement;
+        $el: JQuery;
+        attributes: Record<string, any>;
+        $(selector: string): JQuery;
+        render(): this;
+        remove(): this;
+        delegateEvents(events?: _Result<EventsHash>): this;
+        delegate(eventName: string, selector: string, listener: ViewBaseEventListener): this;
+        undelegateEvents(): this;
+        undelegate(eventName: string, selector?: string, listener?: ViewBaseEventListener): this;
+
+        protected _removeElement(): void;
+        protected _setElement(el: TElement | JQuery): void;
+        protected _createElement(tagName: string): void;
+        protected _ensureElement(): void;
+        protected _setAttributes(attributes: Record<string, any>): void;
+    }
+
+    interface ViewOptions<T extends (mvc.Model | undefined), E extends Element = HTMLElement> extends mvc.ViewBaseOptions<T, E> {
         theme?: string;
         [key: string]: any;
     }
@@ -3357,7 +3732,7 @@ export namespace mvc {
         [key: string]: any;
     }
 
-    class View<T extends (Backbone.Model | undefined), E extends Element = HTMLElement> extends Backbone.View<T, E> {
+    class View<T extends (mvc.Model | undefined), E extends Element = HTMLElement> extends mvc.ViewBase<T, E> {
 
         constructor(opt?: ViewOptions<T, E>);
 
@@ -3381,7 +3756,7 @@ export namespace mvc {
 
         requireSetThemeOverride: boolean;
 
-        documentEvents?: Backbone.EventsHash;
+        documentEvents?: mvc.EventsHash;
 
         children?: dia.MarkupJSON;
 
@@ -3393,11 +3768,11 @@ export namespace mvc {
 
         getEventNamespace(): string;
 
-        delegateDocumentEvents(events?: Backbone.EventsHash, data?: viewEventData): this;
+        delegateDocumentEvents(events?: mvc.EventsHash, data?: viewEventData): this;
 
         undelegateDocumentEvents(): this;
 
-        delegateElementEvents(element: Element, events?: Backbone.EventsHash, data?: viewEventData): this;
+        delegateElementEvents(element: Element, events?: mvc.EventsHash, data?: viewEventData): this;
 
         undelegateElementEvents(element: Element): this;
 
