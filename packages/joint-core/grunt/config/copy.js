@@ -75,19 +75,6 @@ module.exports = function(grunt) {
                 }
             ]
         },
-        types: {
-            files: [
-                {
-                    expand: true,
-                    nonull: true,
-                    cwd: 'types/',
-                    src: [
-                        '**/*'
-                    ],
-                    dest: 'build/'
-                },
-            ]
-        },
         appsLibs: {
             files: [
                 { nonull: true, src: 'build/joint.d.ts', dest: 'demo/ts-demo/vendor/joint.d.ts' },
