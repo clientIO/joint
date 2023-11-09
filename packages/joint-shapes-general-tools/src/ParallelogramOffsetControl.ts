@@ -1,9 +1,9 @@
 import { dia, elementTools, g } from 'jointjs';
-import { Hexagon } from '@joint/general-shapes';
+import { Parallelogram } from '@joint/shapes-general';
 
-export interface HexagonOffsetControlOptions extends elementTools.Control.Options {
+export interface ParallelogramOffsetControlOptions extends elementTools.Control.Options {
 
-    /** The value of the hexagon offset after reset.
+    /** The value of the parallelogram offset after reset.
      *
      * `Boolean` - When set to `false` the reset feature is disabled.
      *
@@ -13,31 +13,35 @@ export interface HexagonOffsetControlOptions extends elementTools.Control.Option
     defaultOffset?: boolean | number;
 }
 
-export class HexagonOffsetControl extends elementTools.Control<HexagonOffsetControlOptions> {    
+/**
+ * @category Shape-Specific
+ */
+export class ParallelogramOffsetControl extends elementTools.Control<ParallelogramOffsetControlOptions> {
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
     }
 
-    get element(): Hexagon {
-        return this.relatedView.model as Hexagon;
+    get element(): Parallelogram {
+        return this.relatedView.model as Parallelogram;
     }
 
     protected getPosition(view: dia.ElementView) {
         const { model } = view;
         const { width, height } = model.size();
-        const controlLevel = height * 0.5;
-
-        const offsetSide = new g.Line(new g.Point(this.element.offset, 0), new g.Point(this.element.offset, height));
+        const controlLevel = height * (1 / 3);
+        const offsetSide = new g.Line(new g.Point(this.element.offset, 0), new g.Point(0, height));
         const levelLine = new g.Line(new g.Point(0, controlLevel), new g.Point(width, controlLevel));
         const controlPoint = offsetSide.intersect(levelLine);
-        return controlPoint ?? { x: 0, y: controlLevel };
+        if (controlPoint) return controlPoint;
+        return { x: 0, y: controlLevel };
     }
 
     protected setPosition(view: dia.ElementView, coordinates: dia.Point) {
         const { model } = view;
         const { width } = model.size();
-        const offset = Math.max(0, Math.min(coordinates.x, width / 2));
+        let offset = coordinates.x * (3 / 2) ;
+        offset = Math.max(0, Math.min(offset, width));
         this.element.offset = offset;
     }
 

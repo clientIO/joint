@@ -1,7 +1,7 @@
 /**
- * [[include:joint-general-shapes-tools.html]]
+ * [[include:joint-shapes-general-tools.html]]
  *
- * @module general-shapes-tools
+ * @module shapes-general-tools
  * @category joint
  */
 

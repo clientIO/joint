@@ -1,8 +1,8 @@
 import { dia, elementTools } from 'jointjs';
-import { Note } from '@joint/general-shapes';
+import { Plus } from '@joint/shapes-general';
 
-export interface NoteOffsetControlOptions extends elementTools.Control.Options {
-    /** The value of the Note offset after reset.
+export interface PlusOffsetControlOptions extends elementTools.Control.Options {
+    /** The value of the Plus offset after reset.
      *
      * `Boolean` - When set to `false` the reset feature is disabled.
      *
@@ -15,14 +15,14 @@ export interface NoteOffsetControlOptions extends elementTools.Control.Options {
 /**
  * @category Shape-Specific
  */
-export class NoteOffsetControl extends elementTools.Control<NoteOffsetControlOptions> {
+export class PlusOffsetControl extends elementTools.Control<PlusOffsetControlOptions> {
     /** @ignore */
     preinitialize() {
-        this.options.selector = 'sheet';
+        this.options.selector = 'body';
     }
 
-    get element(): Note {
-        return this.relatedView.model as Note;
+    get element(): Plus {
+        return this.relatedView.model as Plus;
     }
 
     protected getPosition(_view: dia.ElementView) {
@@ -34,7 +34,7 @@ export class NoteOffsetControl extends elementTools.Control<NoteOffsetControlOpt
         const { model } = view;
         const { width } = model.size();
         let offset = Math.max(coordinates.x, coordinates.y);
-        offset = Math.max(0, Math.min(width, offset));
+        offset = Math.max(0, Math.min(offset, width / 2));
         this.element.offset = offset;
     }
 

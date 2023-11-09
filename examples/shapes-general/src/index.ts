@@ -16,7 +16,7 @@ import {
     Table,
     Cube,
     Card,
-} from '@joint/general-shapes';
+} from '@joint/shapes-general';
 import {
     ParallelogramOffsetControl,
     HexagonOffsetControl,
@@ -29,7 +29,7 @@ import {
     TableDividerTool,
     CubeCornerTool,
     CardOffsetControl,
-} from '@joint/general-shapes-tools';
+} from '@joint/shapes-general-tools';
 
 const namespace = {
     LinkedProcess,

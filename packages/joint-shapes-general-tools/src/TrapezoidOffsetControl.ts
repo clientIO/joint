@@ -1,9 +1,9 @@
 import { dia, elementTools, g } from 'jointjs';
-import { Parallelogram } from '@joint/general-shapes';
+import { Trapezoid } from '@joint/shapes-general';
 
-export interface ParallelogramOffsetControlOptions extends elementTools.Control.Options {
+export interface TrapezoidOffsetControlOptions extends elementTools.Control.Options {
 
-    /** The value of the parallelogram offset after reset.
+    /** The value of the trapezoid offset after reset.
      *
      * `Boolean` - When set to `false` the reset feature is disabled.
      *
@@ -16,32 +16,31 @@ export interface ParallelogramOffsetControlOptions extends elementTools.Control.
 /**
  * @category Shape-Specific
  */
-export class ParallelogramOffsetControl extends elementTools.Control<ParallelogramOffsetControlOptions> {
+export class TrapezoidOffsetControl extends elementTools.Control<TrapezoidOffsetControlOptions> {
     /** @ignore */
     preinitialize() {
         this.options.selector = 'body';
     }
 
-    get element(): Parallelogram {
-        return this.relatedView.model as Parallelogram;
+    get element(): Trapezoid {
+        return this.relatedView.model as Trapezoid;
     }
 
     protected getPosition(view: dia.ElementView) {
         const { model } = view;
         const { width, height } = model.size();
-        const controlLevel = height * (1 / 3);
+        const controlLevel = height * 1 / 4;
         const offsetSide = new g.Line(new g.Point(this.element.offset, 0), new g.Point(0, height));
         const levelLine = new g.Line(new g.Point(0, controlLevel), new g.Point(width, controlLevel));
         const controlPoint = offsetSide.intersect(levelLine);
-        if (controlPoint) return controlPoint;
-        return { x: 0, y: controlLevel };
+        return controlPoint ?? { x: 0, y: controlLevel };
     }
 
     protected setPosition(view: dia.ElementView, coordinates: dia.Point) {
         const { model } = view;
         const { width } = model.size();
         let offset = coordinates.x * (3 / 2) ;
-        offset = Math.max(0, Math.min(offset, width));
+        offset = Math.max(0, Math.min(offset, width / 2));
         this.element.offset = offset;
     }
 

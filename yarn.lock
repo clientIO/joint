@@ -139,24 +139,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/demo-general-shapes@workspace:examples/general-shapes":
-  version: 0.0.0-use.local
-  resolution: "@joint/demo-general-shapes@workspace:examples/general-shapes"
-  dependencies:
-    "@joint/general-shapes": "workspace:^"
-    "@joint/general-shapes-tools": "workspace:^"
-    css-loader: ^6.8.1
-    jointjs: "workspace:^"
-    raw-loader: ^4.0.2
-    style-loader: ^3.3.3
-    ts-loader: ^9.2.5
-    typescript: ^4.4.3
-    webpack: ^5.61.0
-    webpack-cli: ^4.8.0
-    webpack-dev-server: ^4.2.1
-  languageName: unknown
-  linkType: soft
-
 "@joint/demo-isometric@workspace:examples/isometric":
   version: 0.0.0-use.local
   resolution: "@joint/demo-isometric@workspace:examples/isometric"
@@ -187,6 +169,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-shapes-general@workspace:examples/shapes-general":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-shapes-general@workspace:examples/shapes-general"
+  dependencies:
+    "@joint/shapes-general": "workspace:^"
+    "@joint/shapes-general-tools": "workspace:^"
+    css-loader: ^6.8.1
+    jointjs: "workspace:^"
+    raw-loader: ^4.0.2
+    style-loader: ^3.3.3
+    ts-loader: ^9.2.5
+    typescript: ^4.4.3
+    webpack: ^5.61.0
+    webpack-cli: ^4.8.0
+    webpack-dev-server: ^4.2.1
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-tree-of-life@workspace:examples/tree-of-life":
   version: 0.0.0-use.local
   resolution: "@joint/demo-tree-of-life@workspace:examples/tree-of-life"
@@ -203,20 +203,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/general-shapes-tools@workspace:^, @joint/general-shapes-tools@workspace:packages/joint-general-shapes-tools":
+"@joint/shapes-general-tools@workspace:^, @joint/shapes-general-tools@workspace:packages/joint-shapes-general-tools":
   version: 0.0.0-use.local
-  resolution: "@joint/general-shapes-tools@workspace:packages/joint-general-shapes-tools"
+  resolution: "@joint/shapes-general-tools@workspace:packages/joint-shapes-general-tools"
   dependencies:
     "@joint/decorators": "workspace:^"
-    "@joint/general-shapes": "workspace:^"
+    "@joint/shapes-general": "workspace:^"
     jointjs: "workspace:^"
     typescript: 4.8.3
   languageName: unknown
   linkType: soft
 
-"@joint/general-shapes@workspace:^, @joint/general-shapes@workspace:packages/joint-general-shapes":
+"@joint/shapes-general@workspace:^, @joint/shapes-general@workspace:packages/joint-shapes-general":
   version: 0.0.0-use.local
-  resolution: "@joint/general-shapes@workspace:packages/joint-general-shapes"
+  resolution: "@joint/shapes-general@workspace:packages/joint-shapes-general"
   dependencies:
     "@joint/decorators": "workspace:^"
     jointjs: "workspace:^"
