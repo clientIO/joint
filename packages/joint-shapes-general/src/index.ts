@@ -1,5 +1,5 @@
 /**
- * @module general-shapes
+ * @module shapes-general
  * @category joint
  */
 

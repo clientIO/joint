@@ -1,9 +1,10 @@
 {
-  "name": "@joint/general-shapes",
-  "title": "JointJS General Shapes",
+  "name": "@joint/shapes-general-tools",
+  "title": "JointJS General Shapes Tools",
   "version": "0.0.1",
-  "description": "General Shapes module for JointJS",
-  "main": "src/index.ts",
+  "description": "General Shapes Tools module for JointJS",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "homepage": "https://jointjs.com",
   "author": {
     "name": "client IO",
@@ -12,7 +13,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/clientIO/joint.git",
-    "directory": "packages/joint-general-shapes"
+    "directory": "packages/joint-shapes-general-tools"
   },
   "bugs": {
     "url": "https://github.com/clientIO/joint/issues"
@@ -35,6 +36,7 @@
   ],
   "dependencies": {
     "@joint/decorators": "workspace:^",
+    "@joint/shapes-general": "workspace:^",
     "jointjs": "workspace:^"
   },
   "devDependencies": {
@@ -49,6 +51,7 @@
     "jointjs",
     "general",
     "shapes",
+    "tools",
     "decorators"
   ]
 }

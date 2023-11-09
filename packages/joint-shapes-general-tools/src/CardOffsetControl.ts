@@ -1,5 +1,5 @@
 import { dia, elementTools } from 'jointjs';
-import { Card } from "@joint/general-shapes";
+import { Card } from "@joint/shapes-general";
 
 
 export interface CardOffsetControlOptions extends elementTools.Control.Options {
