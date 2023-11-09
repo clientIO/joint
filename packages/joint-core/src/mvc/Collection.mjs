@@ -1,7 +1,7 @@
-import { Events } from './Events';
+import { Events } from './Events.mjs';
 import { Model } from './Model.mjs';
 import { extend, addMethodsUtil } from './mvcUtils.mjs';
-import { 
+import {
     assign,
     clone,
     isFunction,
