@@ -1,5 +1,5 @@
 {
-  "name": "@joint/demo-general-shapes",
+  "name": "@joint/demo-shapes-general",
   "version": "1.0.0",
   "main": "src/index.ts",
   "homepage": "https://jointjs.com",
@@ -17,8 +17,8 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "@joint/general-shapes": "workspace:^",
-    "@joint/general-shapes-tools": "workspace:^",
+    "@joint/shapes-general": "workspace:^",
+    "@joint/shapes-general-tools": "workspace:^",
     "jointjs": "workspace:^"
   },
   "devDependencies": {
