@@ -1,4 +1,4 @@
-import { Events } from './Events';
+import { Events } from './Events.mjs';
 import { extend } from './mvcUtils.mjs';
 import {
     assign,
@@ -8,7 +8,7 @@ import {
     isEqual,
     isEmpty,
     result,
-    uniqueId 
+    uniqueId
 } from '../util/util.mjs';
 
 // Model

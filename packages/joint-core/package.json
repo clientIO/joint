@@ -31,6 +31,9 @@
     "url": "https://github.com/clientIO/joint/issues"
   },
   "license": "MPL-2.0",
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
   "publishConfig": {
     "access": "public"
   },
