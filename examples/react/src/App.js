@@ -81,8 +81,6 @@ addGraphContent(graph);
 // window.graph = graph;
 // graph.on('change', (cell) => console.log(cell.changed));
 
-console.log(darkTheme);
-
 const paperOptions = {
     height: 500,
     clickThreshold: 10,
