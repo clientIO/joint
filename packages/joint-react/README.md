@@ -3,7 +3,7 @@
 React core components for working with JointJS.
 
 >  [!NOTE]
-> The goal of this project is to define a minimal basis for the various React components for JointJS. Please help us shape the package by reporting issues or suggesting API changes.
+> The goal of this project is to define a minimal basis for the various React components for JointJS. Please help us shape the package by reporting issues or proposing API changes.
 
 >  [!IMPORTANT]
 > This is an early stage product. The package may contain bugs and security issues. The API is subject to change.
@@ -171,6 +171,65 @@ export default function MyDeleteAllButton() {
 }
 ```
 
+## What's next
+
+The possible tasks ahead of us.
+
+### JointJS+
+
+Define React Components for JointJS+.
+
+```jsx
+// NOTE: This is fictional code
+// It is just an example of possible API.
+import { dia, mvc } from '@joint/core';
+import { CommandManager } from '@joint/command-manager';
+import { Paper } from '@joint/react';
+import DiagramProvider from '@joint/diagram-provider';
+import Toolbar from '@joint/toolbar-react';
+import Stencil from '@joint/stencil-react';
+import Scroller from '@joint/scroller-react';
+import Inspector from '@joint/inspector-react';
+import Selection from '@joint/selection-react';
+import Snaplines from '@joint/snaplines-react';
+import Grid from 'some-ui-lib';
+
+export default function Diagram() {
+    const graph = new dia.Graph();
+    const cmd = new CommandManager({ graph });
+    const selection = new mvc.Collection();
+    return (
+        <DiagramProvider graph={graph} commandManager={cmd} selection={selection}/>
+            <Toolbar />
+            <Grid>
+                <Stencil />
+                <Scroller />
+                    <Paper >
+                        <Selection />
+                        <Snaplines />
+                    </Paper>
+                <Scroller>
+                <Navigator />
+            </Grid>
+            <Navigator />
+        <DiagramProvider />
+    )
+}
+```
+
+### Higher-level Components
+
+Define user-friendly higher-level components.
+
+```jsx
+// Paper, Scroller, Toolbar, CommandManager as a single component
+<Diagram preset="kitchen-sink" width={400} height={400} fitView={true} virtualRendering={true}></Diagram>
+```
+
+```jsx
+// Domain-specific diagram components
+<OrgChartDiagram data={adjacencyList}></OrgChartDiagram>
+```
 
 ## License
 
