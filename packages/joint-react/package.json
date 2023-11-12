@@ -1,7 +1,7 @@
 {
   "name": "@joint/react",
   "title": "JointJS React",
-  "version": "0.1.0",
+  "version": "0.1.1-alpha.0",
   "description": "React module for JointJS",
   "main": "build/index.js",
   "homepage": "https://jointjs.com",
@@ -21,16 +21,20 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": [],
+  "files": [
+    "build/",
+    "src/",
+    "README.md"
+  ],
   "dependencies": {
     "jointjs": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "scripts": {
-    "build": "babel *.jsx -d build",
+    "build": "babel src/*.jsx -d build",
     "dist": "yarn build",
-    "prepublishOnly": "yarn build"
+    "prepublish": "yarn build"
   },
   "volta": {
     "node": "16.18.1",
