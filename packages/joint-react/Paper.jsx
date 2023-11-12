@@ -6,6 +6,13 @@ import { PaperContext } from './PaperContext';
 
 export const PORTAL_READY_EVENT = 'portal:ready';
 
+export const ElementView = dia.ElementView.extend({
+    onRender() {
+        const [portalEl] = this.findBySelector('portal');
+        portalEl && this.notify(PORTAL_READY_EVENT, portalEl);
+    }
+});
+
 export function Paper({
     children,
     options,
@@ -37,6 +44,55 @@ export function Paper({
         });
     };
 
+    const resizePaperWrapper = (paper) => {
+        paperWrapperElRef.current.style.width = paper.el.style.width;
+        paperWrapperElRef.current.style.height = paper.el.style.height;
+    };
+
+    const createElementPortal = ({ id, containerEl }) => {
+        if (!containerEl) return null;
+        const element = graph.getCell(id);
+        if (!element) return null;
+        return createPortal(renderElement(element), containerEl);
+    };
+
+    let elementPortals = null;
+    if (renderElement) {
+        elementPortals = Object.values(elements).map(createElementPortal);
+    }
+
+    const bindEvents = (paper) => {
+
+        // An object to keep track of the listeners. It's not exposed, so the users
+        // can't undesirably remove the listeners.
+        const controller = new mvc.Listener();
+
+        // Update the elements state when the graph data changes
+        const attributeChangeEvents = dataAttributes
+            .map((attribute) => `change:${attribute}`)
+            .join(' ');
+
+        controller.listenTo(graph, attributeChangeEvents, (cell) =>
+            setElement(cell)
+        );
+        // Update the portal node reference when the element view is rendered
+        controller.listenTo(
+            paper,
+            PORTAL_READY_EVENT,
+            (elementView, portalEl) => setElement(elementView.model, portalEl)
+        );
+
+        controller.listenTo(paper, 'resize', () => resizeWrapper(paper));
+
+        if (onEvent) {
+            controller.listenTo(paper, 'all', (...args) =>
+                onEvent(paper, ...args)
+            );
+        }
+
+        return () => controller.stopListening();
+    }
+
     useEffect(() => {
         const paper = new dia.Paper({
             width: '100%',
@@ -44,74 +100,36 @@ export function Paper({
             async: true,
             sorting: dia.Paper.sorting.APPROX,
             preventDefaultBlankAction: false,
+            // TODO: It is possible to override it. We need to instruct
+            // the users to trigger the PORTAL_READY_EVENT event manually
+            // or find a better way to do it (e.g. trigger the event in JointJS)
+            elementView: ElementView,
             ...options,
             frozen: true,
             model: graph,
-            elementView: dia.ElementView.extend({
-                onRender() {
-                    const [portalEl] = this.findBySelector('portal');
-                    portalEl && this.notify(PORTAL_READY_EVENT, portalEl);
-                },
-            }),
         });
 
         paper.el.style.boxSizing = 'border-box';
         paperWrapperElRef.current.appendChild(paper.el);
-
-        // Update the elements state when the graph data changes
-        const graphListener = new mvc.View();
-        const attributeChangeEvents = dataAttributes
-            .map((attribute) => `change:${attribute}`)
-            .join(' ');
-        graphListener.listenTo(graph, attributeChangeEvents, (cell) =>
-            setElement(cell)
-        );
-
-        paper.on(PORTAL_READY_EVENT, (elementView, portalEl) =>
-            setElement(elementView.model, portalEl)
-        );
-
-        if (onReady) {
-            onReady(paper);
-        }
-
-        if (onEvent) {
-            paper.on('all', (...args) => onEvent(paper, ...args));
-        }
-
-        const resizeWrapper = () => {
-            paperWrapperElRef.current.style.width = paper.el.style.width;
-            paperWrapperElRef.current.style.height = paper.el.style.height;
-        };
-
-        paper.on('resize', () => resizeWrapper());
-        resizeWrapper();
-
+        resizePaperWrapper(paper);
         paper.unfreeze();
 
         paperRef.current = paper;
         setPaperContext && setPaperContext(paper);
 
+        const unbindEvents = bindEvents(paper);
+        if (onReady) {
+            onReady(paper);
+        }
+
         return () => {
             paper.remove();
-            graphListener.stopListening();
+            unbindEvents();
             setPaperContext && setPaperContext(null);
         };
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [graph, setPaperContext]); // options, onReady, onEvent, style
-
-    let elementPortals = null;
-    if (renderElement) {
-        elementPortals = Object.values(elements).map(
-            ({ id, containerEl, data = {} }) => {
-                if (!containerEl) return null;
-                const element = graph.getCell(id);
-                if (!element) return null;
-                return createPortal(renderElement(element), containerEl);
-            }
-        );
-    }
 
     return (
         <div ref={paperWrapperElRef} style={style}>
