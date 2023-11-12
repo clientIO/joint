@@ -1,9 +1,8 @@
-import { useContext } from 'react';
-import { PaperContext } from '@joint/react';
+import { usePaper } from '@joint/react';
 import Button from '@mui/material/Button';
 
 export default function ZoomToFitButton() {
-    const [paper] = useContext(PaperContext);
+    const paper = usePaper();
     const highlightElement = () => {
         if (!paper);
         paper.transformToFitContent({ verticalAlign: 'middle', horizontalAlign: 'middle', padding: 20 });

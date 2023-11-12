@@ -6,13 +6,6 @@ import { PaperContext } from './PaperContext';
 
 export const PORTAL_READY_EVENT = 'portal:ready';
 
-export const ElementView = dia.ElementView.extend({
-    onRender() {
-        const [portalEl] = this.findBySelector('portal');
-        portalEl && this.notify(PORTAL_READY_EVENT, portalEl);
-    }
-});
-
 export function Paper({
     children,
     options,
@@ -23,6 +16,7 @@ export function Paper({
     dataAttributes = ['data'],
     portalSelector = 'portal',
 }) {
+
     const paperWrapperElRef = useRef(null);
     const paperRef = useRef(null);
 
@@ -55,6 +49,19 @@ export function Paper({
         if (!element) return null;
         return createPortal(renderElement(element), containerEl);
     };
+
+    const ElementView = dia.ElementView.extend({
+        onRender() {
+            let portalEl =
+                typeof portalSelector === 'function'
+                    ? portalSelector(this)
+                    : portalSelector;
+            if (typeof portalEl === 'string') {
+                [portalEl] = this.findBySelector(portalEl);
+            }
+            portalEl && this.notify(PORTAL_READY_EVENT, portalEl);
+        },
+    });
 
     let elementPortals = null;
     if (renderElement) {

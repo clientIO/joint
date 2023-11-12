@@ -1,9 +1,8 @@
-import { useContext } from 'react';
-import { GraphContext } from '@joint/react';
+import { useGraph } from '@joint/react';
 import Button from '@mui/material/Button';
 
 export default function CloneButton({ children, cells, offset = 20, onClone, ...buttonProps }) {
-    const [graph] = useContext(GraphContext);
+    const graph = useGraph();
     const deleteElement = () => {
         if (!graph) return;
         const clones = Object.values(graph.cloneCells(cells));

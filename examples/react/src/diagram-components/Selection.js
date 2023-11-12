@@ -1,12 +1,12 @@
-import { useContext, useEffect } from 'react';
-import { PaperContext } from '@joint/react';
+import { useEffect } from 'react';
+import { usePaper } from '@joint/react';
 import { highlighters } from 'jointjs';
 
 export const HGL_SELECTION_ID = 'selection-frame';
 
 export default function Selection({ cells = [], color = 'orange' }) {
 
-    const [paper] = useContext(PaperContext);
+    const paper = usePaper();
 
     useEffect(() => {
 

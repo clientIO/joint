@@ -90,9 +90,16 @@ const paperOptions = {
     linkPinning: false,
     background: { color: "#212831" },
     defaultLink: () => new LinkModel(),
-    validateConnection: (cellViewS, magnetS, cellViewT, magnetT, end, linkView) => {
+    validateConnection: (
+        cellViewS,
+        magnetS,
+        cellViewT,
+        magnetT,
+        end,
+        linkView
+    ) => {
         return cellViewS !== cellViewT;
-    }
+    },
 };
 
 const minimapOptions = {
@@ -127,10 +134,11 @@ function App() {
 
     const onMinimapEvent = (paper, eventName, ...eventArgs) => {
         if (eventName === "render:done") {
+            const { model: graph } = paper;
             paper.transformToFitContent({
-                contentArea: paper.model.getCellsBBox(
-                    paper.model.getElements()
-                ),
+                // Do not take the links into account
+                // when calculating the content area
+                contentArea: graph.getCellsBBox(graph.getElements()),
                 verticalAlign: "middle",
                 horizontalAlign: "middle",
                 padding: 20,
