@@ -2618,7 +2618,7 @@ __metadata:
     "@babel/cli": ^7.23.0
     "@babel/core": ^7.23.3
     "@babel/preset-react": ^7.23.3
-    jointjs: ^3.7.7
+    jointjs: "workspace:^"
     react: ^18.2.0
     react-dom: ^18.2.0
   languageName: unknown
@@ -13323,7 +13323,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"jointjs@^3.7.7, jointjs@workspace:^, jointjs@workspace:packages/joint-core":
+"jointjs@workspace:^, jointjs@workspace:packages/joint-core":
   version: 0.0.0-use.local
   resolution: "jointjs@workspace:packages/joint-core"
   dependencies:
