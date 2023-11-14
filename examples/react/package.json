@@ -23,9 +23,6 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
-  "installConfig": {
-    "hoistingLimits": "workspaces"
-  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -54,6 +51,8 @@
     "extends": "../../package.json"
   },
   "devDependencies": {
-    "@babel/plugin-syntax-jsx": "^7.23.3"
+    "@babel/core": "^7.23.3",
+    "@babel/plugin-syntax-jsx": "^7.23.3",
+    "@testing-library/dom": "^9.3.3"
   }
 }
