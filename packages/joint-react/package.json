@@ -1,7 +1,7 @@
 {
   "name": "@joint/react",
   "title": "JointJS React",
-  "version": "0.1.1-alpha.1",
+  "version": "0.1.1",
   "description": "React module for JointJS",
   "main": "build/index.js",
   "homepage": "https://jointjs.com",
@@ -45,8 +45,7 @@
   },
   "keywords": [
     "jointjs",
-    "shapes",
-    "decorators"
+    "react"
   ],
   "devDependencies": {
     "@babel/cli": "^7.23.0",
