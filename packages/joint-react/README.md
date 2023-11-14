@@ -20,7 +20,7 @@ yarn install jointjs @joint/react
 
 #### \<Paper /\>
 
-The main component that allows you to draw nodes and edges on the canvas. In *JointJS* terminology,  you draw `cells` (`elements` and `links`) on `paper`. The component requires the `<GraphProvider />` to be its ancestor.
+The main component that allows you to draw nodes and edges on the canvas. In *JointJS* terminology, you draw `cells` (`elements` and `links`) on `paper`. The component requires the `<GraphProvider />` to be its ancestor.
 
 ##### Props
 

@@ -2619,6 +2619,7 @@ __metadata:
     "@babel/core": ^7.23.3
     "@babel/preset-react": ^7.23.3
     jointjs: "workspace:^"
+  peerDependencies:
     react: ^18.2.0
     react-dom: ^18.2.0
   languageName: unknown
