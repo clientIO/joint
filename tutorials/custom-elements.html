@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        
+
         <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
         <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
 
@@ -33,8 +33,8 @@
             <h1>Custom Elements</h1>
 
             <p><i>
-                This is the fourth article of the intermediate section of the JointJS tutorial. Return to 
-                <a href="serialization.html">serialization</a>. See <a href="intermediate.html">index</a> 
+                This is the fourth article of the intermediate section of the JointJS tutorial. Return to
+                <a href="serialization.html">serialization</a>. See <a href="intermediate.html">index</a>
                 of basic and intermediate articles.
             </i></p>
 
@@ -52,7 +52,23 @@
                 What is important for us is to realize that combining the basic SVG shapes, we can define any 2D shape
                 we need.</p>
 
-            <p>For that, we use a built-in JointJS function:</p>
+            <p>
+                If you like video, the following youtube content will show you how to create custom JointJS elements using SVG.
+                This tutorial will still provide you with a comprehensive guide to defining custom shapes, even if you
+                decide to watch the video or not.
+            </p>
+
+            <iframe
+                width="560"
+                height="315"
+                src="https://www.youtube.com/embed/aEEWPVCQ5rE?si=P6XSBtz6BLuBzJjM"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+            </iframe>
+
+            <p>To define any custom element, we can use a built-in JointJS function:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.Cell.define" target="_blank"><code>Element.define(type [, defaultInstanceProperties, prototypeProperties, staticProperties])</code></a>
@@ -147,13 +163,13 @@ joint.dia.Element.define('standard.Rectangle', {
 </code></pre>
 
             <p>
-                By default, JointJS reads cell definitions from the <code>joint.shapes</code> namespace. If for some reason you would like to change this behaviour, 
-                it is possible to do so. We can achieve this by combining the <code>cellNamespace</code> and <code>cellViewNamespace</code> options which can be found 
+                By default, JointJS reads cell definitions from the <code>joint.shapes</code> namespace. If for some reason you would like to change this behaviour,
+                it is possible to do so. We can achieve this by combining the <code>cellNamespace</code> and <code>cellViewNamespace</code> options which can be found
                 on graph and paper respectively. Let's see how that might look.
             </p>
 
 <pre><code>var customNamespace = {};
-    
+
 var graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
 
 new joint.dia.Paper({
@@ -180,9 +196,9 @@ Object.assign(customNamespace, {
     }
 });
 
-graph.fromJSON({ 
+graph.fromJSON({
     cells: [
-        { 
+        {
             "type": "shapeGroup.Shape",
             "size": { "width": 500, "height": 50 },
             "position": { "x": 50, "y": 25 },
@@ -193,13 +209,13 @@ graph.fromJSON({
             }
         }
     ]
-}); 
+});
 </code></pre>
 
             <p>
-                As you can see, <code>type</code> is very important, especially if you want to import a graph from JSON. 
+                As you can see, <code>type</code> is very important, especially if you want to import a graph from JSON.
                 In the example above, <code>graph</code> looks at the <code>customNamespace.shapeGroup.Shape</code> path to find the correct constructor.
-                If we were to use the incorrect type in <code>graph.fromJSON()</code>, that would mean graph is unable to find the correct constructor, 
+                If we were to use the incorrect type in <code>graph.fromJSON()</code>, that would mean graph is unable to find the correct constructor,
                 and we wouldn't see our custom element.
             </p>
 
@@ -269,7 +285,7 @@ graph.fromJSON({
                 In <code>joint.shapes.standard.Rectangle</code>, we can see that the subelement referenced by
                 <code>body</code> (i.e. the SVGRectElement component of the shape) has its default width and height set
                 in terms of the shape model size (using the <code>calc()</code> function). Read more about <code>calc()</code>
-                in our <a target="_blank" href="/docs/jointjs#dia.attributes">attributes</a> 
+                in our <a target="_blank" href="/docs/jointjs#dia.attributes">attributes</a>
                 documentation. Alongside sizing, you can see the fill and stroke styling.
                 The <code>label</code> subelement (the SVGTextElement component of the shape) has its text anchor set to
                 the center of the text bbox; that point is then positioned into the center of the model bbox by <code>x</code>
@@ -323,8 +339,8 @@ graph.fromJSON({
             <p>
                 We can see that the anchor of the <code>label</code> of <code>joint.shapes.standard.Rectangle</code>
                 in our example is placed centrally. We use <code>calc()</code> to place the label relative to our
-                shape model. If the model size was kept at (100, 100), that would mean that the anchor of the label 
-                will be offset from the reference origin by (50, 50) when using <code>x: 'calc(0.5*w)'</code> and 
+                shape model. If the model size was kept at (100, 100), that would mean that the anchor of the label
+                will be offset from the reference origin by (50, 50) when using <code>x: 'calc(0.5*w)'</code> and
                 <code>y: 'calc(0.5*h)'</code>.
             </p>
 
@@ -416,7 +432,7 @@ graph.fromJSON({
             <p>
                 We add our shapes to the graph in the same manner described in our basic <a href="graph-and-paper.html">Graph & Paper</a>
                 tutorial. In the code below, we add a <code>joint.shapes.standard.Rectangle</code> with rounded corners and
-                a Multiline label. The Multiline label respects the <code>x</code> and <code>y</code> values that we 
+                a Multiline label. The Multiline label respects the <code>x</code> and <code>y</code> values that we
                 calculated with the <code>calc()</code> function earlier.
             </p>
 
@@ -434,10 +450,10 @@ rect2.attr({
     }
 });
 rect2.addTo(graph);
-            </code></pre>
+</code></pre>
 
             <p>The following example shows the default look of <code>joint.shapes.standard.Rectangle</code> (i.e. with
-                no instance attributes set), and the Multiline label example above. Alongside those, you can see the default 
+                no instance attributes set), and the Multiline label example above. Alongside those, you can see the default
                 look of our custom element, and the randomized results of the <code>createRandom()</code> constructor function.
                 Try <a onClick="window.location.reload()" style="cursor: pointer">refreshing the page</a> to see
                 <code>createRandom()</code> in action.</p>
