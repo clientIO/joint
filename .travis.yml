@@ -2,6 +2,24 @@ language: node_js
 dist: focal
 node_js:
   - 18
+addons:
+  apt:
+    packages:
+      # Japanese
+      - language-pack-ja
+      - japan*
+      # Chinese
+      - language-pack-zh*
+      - chinese*
+      # Korean
+      - language-pack-ko
+      - korean*
+      # Fonts
+      - fonts-arphic-ukai
+      - fonts-arphic-uming
+      - fonts-ipafont-mincho
+      - fonts-ipafont-gothic
+      - fonts-unfonts-core
 
 before_install:
   - npm install -g grunt-cli
