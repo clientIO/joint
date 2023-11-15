@@ -7,6 +7,32 @@ addons:
     packages:
       # Armenian
       - language-pack-hy
+      # Thai
+      - language-pack-th
+      # Hindi
+      - language-pack-hi
+      # Amharic
+      - language-pack-am
+      # Arabic
+      - language-pack-ar
+      # Hausa
+      - language-pack-ha
+      # Lithuanian
+      - language-pack-lt
+      # Azerbaijani
+      - language-pack-az
+      # Māori
+      - language-pack-mi
+      # Slovenian
+      - language-pack-sl
+      # Icelandic
+      - language-pack-is
+      # Vietnamese
+      - language-pack-vi
+      # Turkish
+      - language-pack-tr
+      # Romanian
+      - language-pack-ro
       # Japanese
       - language-pack-ja
       - japan*
