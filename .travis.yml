@@ -5,6 +5,8 @@ node_js:
 addons:
   apt:
     packages:
+      # Armenian
+      - language-pack-hy
       # Japanese
       - language-pack-ja
       - japan*
