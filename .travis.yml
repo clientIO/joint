@@ -7,7 +7,7 @@ addons:
     packages:
       # noto font core / extra
       - fonts-noto-core
-      - fonts-noto-extra
+      - fonts-sil-abyssinicasil
       # Japanese
       - language-pack-ja
       - japan*
