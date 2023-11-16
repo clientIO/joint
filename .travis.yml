@@ -5,7 +5,7 @@ node_js:
 addons:
   apt:
     packages:
-      # Fonts
+      # Fonts - util.breakText - international characters
       - fonts-arphic-ukai
       - fonts-arphic-uming
       - fonts-ipafont-mincho
