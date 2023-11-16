@@ -5,24 +5,13 @@ node_js:
 addons:
   apt:
     packages:
-      # noto font core / extra
-      - fonts-noto-core
-      # Japanese
-      - language-pack-ja
-      - japan*
-      # Chinese
-      - language-pack-zh*
-      - chinese*
-      # Korean
-      - language-pack-ko
-      - korean*
       # Fonts
       - fonts-arphic-ukai
       - fonts-arphic-uming
       - fonts-ipafont-mincho
       - fonts-ipafont-gothic
       - fonts-unfonts-core
-      - fonts-unfonts-extra
+      - fonts-noto-core
 
 before_install:
   - npm install -g grunt-cli
