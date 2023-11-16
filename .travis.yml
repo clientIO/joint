@@ -2,6 +2,16 @@ language: node_js
 dist: focal
 node_js:
   - 18
+addons:
+  apt:
+    packages:
+      # Fonts - util.breakText - international characters
+      - fonts-arphic-ukai
+      - fonts-arphic-uming
+      - fonts-ipafont-mincho
+      - fonts-ipafont-gothic
+      - fonts-unfonts-core
+      - fonts-noto-core
 
 before_install:
   - npm install -g grunt-cli
