@@ -5,8 +5,9 @@ node_js:
 addons:
   apt:
     packages:
-      # noto font core
+      # noto font core / extra
       - fonts-noto-core
+      - fonts-noto-extra
       # Japanese
       - language-pack-ja
       - japan*
