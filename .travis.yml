@@ -5,26 +5,8 @@ node_js:
 addons:
   apt:
     packages:
-      # Thai
-      - language-pack-th
-      # Amharic
-      - language-pack-am
-      # Arabic
-      - language-pack-ar
-      # Lithuanian
-      - language-pack-lt
-      # Azerbaijani
-      - language-pack-az
-      # Slovenian
-      - language-pack-sl
-      # Icelandic
-      - language-pack-is
-      # Vietnamese
-      - language-pack-vi
-      # Turkish
-      - language-pack-tr
-      # Romanian
-      - language-pack-ro
+      # noto font core
+      - fonts-noto-core
       # Japanese
       - language-pack-ja
       - japan*
