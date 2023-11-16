@@ -9,20 +9,14 @@ addons:
       - language-pack-hy
       # Thai
       - language-pack-th
-      # Hindi
-      - language-pack-hi
       # Amharic
       - language-pack-am
       # Arabic
       - language-pack-ar
-      # Hausa
-      - language-pack-ha
       # Lithuanian
       - language-pack-lt
       # Azerbaijani
       - language-pack-az
-      # Māori
-      - language-pack-mi
       # Slovenian
       - language-pack-sl
       # Icelandic
