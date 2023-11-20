@@ -69,8 +69,7 @@
     "backbone": "~1.4.1",
     "dagre": "~0.8.5",
     "graphlib": "~2.1.8",
-    "jquery": "~3.7.1",
-    "lodash": "~4.17.21"
+    "jquery": "~3.7.1"
   },
   "devDependencies": {
     "@types/backbone": "~1.4.16",
@@ -113,6 +112,7 @@
     "karma-qunit": "2.1.0",
     "karma-sinon": "1.0.5",
     "load-grunt-config": "0.19.2",
+    "lodash": "~4.17.21",
     "mocha": "5.2.0",
     "open-sans-fontface": "https://github.com/clientIO/open-sans/archive/1.4.2.tar.gz",
     "prism-themes": "1.9.0",
