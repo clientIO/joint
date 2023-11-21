@@ -38,7 +38,7 @@
     "access": "public"
   },
   "scripts": {
-    "prepublish": "grunt dist",
+    "prepack": "yarn run dist",
     "build": "grunt install",
     "test": "grunt test",
     "test-server": "grunt test:server",
@@ -52,7 +52,7 @@
     "test-e2e-all": "grunt test:e2e:all",
     "lint": "eslint types/**/*.d.ts src --ext .mjs,.js",
     "lint-fix": "yarn run lint --fix",
-    "dist": "yarn run prepublish",
+    "dist": "grunt dist",
     "build-docs": "grunt build:docs"
   },
   "files": [
