@@ -107,7 +107,10 @@ export const View = ViewBase.extend({
     },
 
     _setStyle: function(style) {
-        this.$el.css(style);
+        if (!style) return;
+        for (var name in style) {
+            this.el.style[name] = style[name];
+        }
     },
 
     _createElement: function(tagName) {
@@ -407,6 +410,15 @@ $.fn.append = function(...nodes) {
     return this;
 };
 
+$.fn.html = function(html) {
+    if (!this[0]) return '';
+    if (html === undefined) {
+        return this[0].innerHTML;
+    }
+    this[0].innerHTML = html;
+    return this;
+};
+
 $.fn.appendTo = function(parent) {
     if (!this[0]) return this;
     $(parent).append(this);
@@ -437,16 +449,6 @@ $.fn.remove = function() {
     }
     this[0].remove();
     return this;
-};
-
-$.fn.children = function(selector) {
-    if (!this[0]) return $();
-    const el = this[0];
-    const children = Array.from(el.children);
-    if (selector) {
-        return $(children.filter(child => child.matches(selector)));
-    }
-    return $(children);
 };
 
 $.fn.data = function() { return this; };
@@ -549,4 +551,26 @@ $.fn.width = function() {
 $.fn.height = function() {
     if (!this[0]) return 0;
     return this[0].getBoundingClientRect().height;
+};
+
+// JJ+ is using it as a setter
+$.fn.offset = function() {
+    if (!this[0]) return { top: 0, left: 0 };
+    const box = this[0].getBoundingClientRect();
+    return {
+        top: box.top + window.pageYOffset - document.documentElement.clientTop,
+        left: box.left + window.pageXOffset - document.documentElement.clientLeft
+    };
+};
+
+
+// For test only (verified)
+
+$.fn.children = function(selector) {
+    const [el] = this;
+    if (!el) return $();
+    if (selector) {
+        return $(Array.from(el.children).filter(child => child.matches(selector)));
+    }
+    return $(el.children);
 };
