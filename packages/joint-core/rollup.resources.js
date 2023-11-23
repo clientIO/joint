@@ -71,30 +71,18 @@ export const vectorizer = {
 
 export const joint = {
     input: modules.joint.src,
-    external: [
-        'jquery',
-        'lodash'
-    ],
     output: [{
         file: modules.joint.umd,
         format: 'umd',
         name: 'joint',
         freeze: false,
         footer: JOINT_FOOTER,
-        globals: {
-            'jquery': '$',
-            'lodash': '_'
-        }
     }, {
         file: modules.joint.iife,
         format: 'iife',
         name: 'joint',
         freeze: false,
         footer: JOINT_FOOTER,
-        globals: {
-            'jquery': '$',
-            'lodash': '_'
-        }
     }],
     plugins: plugins,
     treeshake: false
@@ -102,40 +90,26 @@ export const joint = {
 
 export const jointNoDependencies = {
     input: modules.joint.src,
-    external: [
-        'jquery',
-        'lodash'
-    ].concat(Object.keys(G_REF)).concat(Object.keys(V_REF)),
+    external: [].concat(Object.keys(G_REF)).concat(Object.keys(V_REF)),
     output: [{
         file: modules.joint.noDependencies,
         format: 'iife',
         name: 'joint',
         footer: JOINT_FOOTER,
         freeze: false,
-        globals: Object.assign({
-            'jquery': '$',
-            'lodash': '_'
-        }, G_REF, V_REF)
+        globals: Object.assign({}, G_REF, V_REF)
     }],
     plugins: plugins
 };
 
 export const jointCore = {
     input: modules.jointCore.src,
-    external: [
-        'jquery',
-        'lodash'
-    ],
     output: [{
         file: modules.jointCore.umd,
         format: 'umd',
         name: 'joint',
         freeze: false,
         footer: JOINT_FOOTER,
-        globals: {
-            'jquery': '$',
-            'lodash': '_'
-        }
     }],
     plugins: plugins
 };
@@ -158,19 +132,13 @@ export const jointPlugins = Object.keys(modules.plugins).reduce((res, namespace)
 
         res.push({
             input: item.src,
-            external: [
-                'jquery',
-                'lodash',
-            ].concat(Object.keys(LOCAL_EXTERNALS)),
+            external: [].concat(Object.keys(LOCAL_EXTERNALS)),
             output: [{
                 file: `build/${namespace}.js`,
                 format: 'iife',
                 extend: true,
                 name: namespace,
-                globals: Object.assign({
-                    'jquery': '$',
-                    'lodash': '_',
-                }, LOCAL_EXTERNALS)
+                globals: Object.assign({}, LOCAL_EXTERNALS)
             }],
             plugins: plugins
         });
@@ -194,31 +162,5 @@ export const dagre = {
     plugins: [
         resolve(),
         commonjs()
-    ]
-};
-
-export const jquery = {
-    input: 'node_modules/jquery/dist/jquery.js',
-    output: [{
-        file: 'build/esm/jquery.mjs',
-        format: 'esm',
-        freeze: false
-    }],
-    plugins: [
-        commonjs(),
-        resolve()
-    ]
-};
-
-export const lodash = {
-    input: 'node_modules/lodash/index.js',
-    output: [{
-        file: 'build/esm/lodash.mjs',
-        format: 'esm',
-        freeze: false
-    }],
-    plugins: [
-        commonjs(),
-        resolve()
     ]
 };
