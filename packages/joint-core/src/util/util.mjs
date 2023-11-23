@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import $ from '../mvc/Dom.mjs';
 import V from '../V/index.mjs';
 import { config } from '../config/index.mjs';
 import {

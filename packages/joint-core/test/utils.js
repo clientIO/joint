@@ -88,13 +88,17 @@
 
     function normalizeCssAttr(name, value) {
 
-        var $tmpEl = $('<div/>').appendTo($('body'));
+        var $tmpEl = joint.mvc.$('<div/>').appendTo($('body'));
         var normalizedValue = $tmpEl.css(name, value).css(name);
         $tmpEl.remove();
         return normalizedValue;
     }
 
 })(QUnit.assert);
+
+// Dom manipulation helpers.
+
+window.$ = joint.mvc.$;
 
 // Simulate user events.
 // ---------------------

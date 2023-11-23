@@ -2,7 +2,7 @@ import { Point, Path, Polyline } from '../../g/index.mjs';
 import { assign, isPlainObject, isObject, isPercentage, breakText } from '../../util/util.mjs';
 import { isCalcAttribute, evalCalcAttribute } from './calc.mjs';
 import props from './props.mjs';
-import $ from 'jquery';
+import $ from '../../mvc/Dom.mjs';
 import V from '../../V/index.mjs';
 
 function setWrapper(attrName, dimension) {

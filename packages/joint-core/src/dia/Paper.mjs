@@ -46,7 +46,7 @@ import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
-import $ from 'jquery';
+import $ from '../mvc/Dom.mjs';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -1283,8 +1283,8 @@ export const Paper = View.extend({
         const { options } = this;
         let w = options.width;
         let h = options.height;
-        if (isNumber(w)) w = Math.round(w);
-        if (isNumber(h)) h = Math.round(h);
+        if (isNumber(w)) w = `${Math.round(w)}px`;
+        if (isNumber(h)) h = `${Math.round(h)}px`;
         this.$el.css({
             width: (w === null) ? '' : w,
             height: (h === null) ? '' : h
@@ -1670,6 +1670,8 @@ export const Paper = View.extend({
     },
 
     sortViewsExact: function() {
+
+        // TODO: remove
 
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.

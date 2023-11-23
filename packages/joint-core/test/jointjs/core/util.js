@@ -1102,10 +1102,10 @@ QUnit.module('util', function(hooks) {
             hooks.beforeEach(function() {
                 $htmlElement = $('<div/>').css({
                     position: 'absolute',
-                    top: 10,
-                    left: 20,
-                    width: 50,
-                    height: 60
+                    top: '10px',
+                    left: '20px',
+                    width: '50px',
+                    height: '60px'
                 });
 
                 $htmlElement.appendTo(document.body);
