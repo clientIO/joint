@@ -1087,9 +1087,8 @@ export const getElementBBox = function(el) {
 export const sortElements = function(elements, comparator) {
 
     var $elements = $(elements);
-    var placements = $elements.map(function() {
+    var placements = $elements.toArray().map(function(sortElement) {
 
-        var sortElement = this;
         var parentNode = sortElement.parentNode;
         // Since the element itself will change position, we have
         // to have some way of storing it's original position in

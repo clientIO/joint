@@ -301,7 +301,7 @@ const copyObject = (source, props, object) => {
     return object;
 };
 
-const isArrayLike = (value) => {
+export const isArrayLike = (value) => {
     return value != null && typeof value !== 'function' && typeof value.length === 'number' &&
         value.length > -1 && value.length % 1 === 0;
 };
