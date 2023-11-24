@@ -6,3 +6,5 @@ export * from './Model.mjs';
 export * from './ViewBase.mjs';
 export * from './mvcUtils.mjs';
 export { default as $ } from './Dom.mjs';
+
+import './dom/methods.js';
