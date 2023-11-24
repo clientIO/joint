@@ -123,7 +123,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/demo-dwdm@workspace:examples/dwdm"
   dependencies:
-    "@types/backbone": ~1.4.15
     "@types/dagre": ~0.7.47
     "@types/graphlib": ~2.1.8
     "@types/jquery": ~3.5.13
@@ -381,26 +380,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/backbone@npm:~1.4.15":
-  version: 1.4.15
-  resolution: "@types/backbone@npm:1.4.15"
-  dependencies:
-    "@types/jquery": "*"
-    "@types/underscore": "*"
-  checksum: 8c8a251b05df0e9bb62e1ee62179f3feca4c4f704a0e8d65093e23e2efc81fbf1ec4cdf804497f94ea9b333a3a8cd44d9b949fc5ed6c92bc525c9c31a93f93d9
-  languageName: node
-  linkType: hard
-
-"@types/backbone@npm:~1.4.16":
-  version: 1.4.18
-  resolution: "@types/backbone@npm:1.4.18"
-  dependencies:
-    "@types/jquery": "*"
-    "@types/underscore": "*"
-  checksum: 2a24a86861627acdfbab5a6622a6b2c7b4cc0b15eb7249cbe2c44b3dc705b1a16212482b45bff57b3be3dc27cc7b99f8fc589eebc31d1ef7bdb54ff2a80a9b05
-  languageName: node
-  linkType: hard
-
 "@types/body-parser@npm:*":
   version: 1.19.2
   resolution: "@types/body-parser@npm:1.19.2"
@@ -548,7 +527,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jquery@npm:*, @types/jquery@npm:~3.5.13":
+"@types/jquery@npm:~3.5.13":
   version: 3.5.16
   resolution: "@types/jquery@npm:3.5.16"
   dependencies:
@@ -693,13 +672,6 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: b9bbb2b5c5ead2fb884bb019f61a014e37410bddd295de28184e1b2e71ee6b04120c5ba7b9954617f0bdf962c13d06249ce65004490889c747c80d3f628ea842
-  languageName: node
-  linkType: hard
-
-"@types/underscore@npm:*":
-  version: 1.11.4
-  resolution: "@types/underscore@npm:1.11.4"
-  checksum: db9f8486bc851b732259e51f42d62aad1ae2158be5724612dc125ece5f5d61c51447f9dea28284c2a0f79cb95e788d01cb5ce97709880019213e69fab0dd1696
   languageName: node
   linkType: hard
 
@@ -6953,7 +6925,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "jointjs@workspace:packages/joint-core"
   dependencies:
-    "@types/backbone": ~1.4.16
     "@types/dagre": ~0.7.50
     "@types/graphlib": ~2.1.9
     "@types/jquery": ~3.5.22

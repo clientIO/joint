@@ -84,27 +84,18 @@
             <h3>RequireJS config, the main.js file</h3>
 
             <p>Now we can start with the more interesting part, our <code>main.js</code> file, containing the configuration
-                of our modules needed by RequireJS. <em>JointJS</em> is dependent on <em>jQuery</em>, <em>Backbone</em>
-                (which further depends on <em>Underscore</em>*).
+                of our modules needed by RequireJS. <em>JointJS</em> is dependent on <em>jQuery</em>.
             </p>
 
-            <p>The only thing we have to do is to define our module names and tell RequireJS where to find them (the <code>paths</code>
+            <p>
+                The only thing we have to do is to define our module names and tell RequireJS where to find them (the <code>paths</code>
                 object).
-                Next, we have to trick Backbone to use Lodash instead of Underscore (this is because JointJS requires
-                Lodash, not just Underscore).
-                All the files can be downloaded from <a href="https://www.jointjs.com/opensource#Download-JointJS" target="_blank">Download page</a>.</p>
+            </p>
 
             <pre><code class="language-javascript">require.config({
     paths: {
         jquery: './jquery',
-        lodash: './lodash',
-        backbone: './backbone'
-    },
-    map: {
-        '*': {
-            // Backbone requires underscore. This forces requireJS to load lodash instead:
-            'underscore': 'lodash'
-        }
+        lodash: './lodash'
     }
 });
 
@@ -123,13 +114,6 @@ require(['joint'], function(joint) {
     });
     graph.addCell(rect);
 });</code></pre>
-
-            <p>
-                * Note we previously mentioned that <em>Backbone</em> is dependent on <em>Underscore</em> but we actually
-                use the <em>Lodash</em> library instead.
-                This is becausae Lodash library is a drop-in replacement for <em>Underscore</em> extending it with more
-                features that <em>JointJS</em> uses.
-            </p>
 
         </div>
 

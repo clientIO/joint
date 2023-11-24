@@ -10,7 +10,6 @@ module.exports = {
         'g': true,
         'V': true,
         '$': true,
-        'Backbone': true,
         'Vue': true,
         'd3': true
     },

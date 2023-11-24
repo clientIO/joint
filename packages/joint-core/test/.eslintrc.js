@@ -14,7 +14,6 @@ module.exports = {
         'V': true,
         'g': true,
         '$': true,
-        'Backbone': true,
         '_': true,
         'QUnit': true,
         'sinon': true,
