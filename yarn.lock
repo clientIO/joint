@@ -1720,15 +1720,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"backbone@npm:~1.4.1":
-  version: 1.4.1
-  resolution: "backbone@npm:1.4.1"
-  dependencies:
-    underscore: ">=1.8.3"
-  checksum: 709bd7dde1bbd93eee9375ae9bcd33efa9f253a56f5bf22d67197d8e3c57574f93ab230dcbb750d224a0d9bc58a66ade1d4c6082b998b6c89e939c2e66b65832
-  languageName: node
-  linkType: hard
-
 "backo2@npm:1.0.2":
   version: 1.0.2
   resolution: "backo2@npm:1.0.2"
@@ -6970,7 +6961,6 @@ __metadata:
     "@typescript-eslint/eslint-plugin": 5.48.1
     "@typescript-eslint/parser": 5.48.1
     async: 2.6.1
-    backbone: ~1.4.1
     chai: 4.2.0
     cheerio: 0.22.0
     core-js: ~3.8.3
@@ -12010,13 +12000,6 @@ __metadata:
     sprintf-js: ^1.1.1
     util-deprecate: ^1.0.2
   checksum: b7719c30e5d1fdda4ee9379e8d80dca2b0668942420ba365ae3410120e08225fe36707a7981ce0f921812dee6a2290b713cdce1e75e770b98e67a45d8a378d35
-  languageName: node
-  linkType: hard
-
-"underscore@npm:>=1.8.3":
-  version: 1.13.6
-  resolution: "underscore@npm:1.13.6"
-  checksum: d5cedd14a9d0d91dd38c1ce6169e4455bb931f0aaf354108e47bd46d3f2da7464d49b2171a5cf786d61963204a42d01ea1332a903b7342ad428deaafaf70ec36
   languageName: node
   linkType: hard
 

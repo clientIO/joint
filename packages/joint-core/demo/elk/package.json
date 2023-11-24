@@ -16,7 +16,6 @@
     "start": "webpack serve --config webpack.config.js"
   },
   "dependencies": {
-    "backbone": "~1.4.0",
     "jquery": "~3.5.1",
     "lodash": "~4.17.20"
   },
