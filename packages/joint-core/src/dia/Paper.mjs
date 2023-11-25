@@ -1671,15 +1671,13 @@ export const Paper = View.extend({
 
     sortViewsExact: function() {
 
-        // TODO: remove
-
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.
 
-        var $cells = $(this.cells).children('[model-id]');
+        var cellNodes = Array.from(this.cells.childNodes).filter(node => node.getAttribute('model-id'));
         var cells = this.model.get('cells');
 
-        sortElements($cells, function(a, b) {
+        sortElements(cellNodes, function(a, b) {
             var cellA = cells.get(a.getAttribute('model-id'));
             var cellB = cells.get(b.getAttribute('model-id'));
             var zA = cellA.attributes.z || 0;

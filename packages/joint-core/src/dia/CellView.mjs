@@ -147,9 +147,6 @@ export const CellView = View.extend({
 
         this.cleanNodesCache();
 
-        // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
-        this.$el.data('view', this);
-
         this.startListening();
     },
 
@@ -532,7 +529,7 @@ export const CellView = View.extend({
             if (node instanceof SVGElement) {
                 V(node).attr(attrs);
             } else {
-                $(node).attr(attrs);
+                Object.keys(attrs).forEach(key => node.setAttribute(key, attrs[key]));
             }
         }
     },

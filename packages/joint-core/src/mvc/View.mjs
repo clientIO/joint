@@ -102,7 +102,7 @@ export const View = ViewBase.extend({
         if (this.svgElement) {
             this.vel.attr(attrs);
         } else {
-            this.$el.attr(attrs);
+            Object.keys(attrs).forEach(key => this.el.setAttribute(key, attrs[key]));
         }
     },
 
@@ -137,6 +137,8 @@ export const View = ViewBase.extend({
         if (this.svgElement) {
             this.vel.removeClass(className).addClass(prefixedClassName);
         } else {
+            // V.prototype.removeClass.call({ node: this.el }, className);
+            // V.prototype.addClass.call({ node: this.el }, prefixedClassName);
             this.$el.removeClass(className).addClass(prefixedClassName);
         }
     },
@@ -324,27 +326,3 @@ export const View = ViewBase.extend({
         return ViewBase.extend.call(this, protoProps, staticProps);
     }
 });
-
-const DoubleTapEventName = 'dbltap';
-if ($.event && !(DoubleTapEventName in $.event.special)) {
-    const maxDelay = config.doubleTapInterval;
-    const minDelay = 30;
-    $.event.special[DoubleTapEventName] = {
-        bindType: 'touchend',
-        delegateType: 'touchend',
-        handle: function(event, ...args) {
-            const { handleObj, target } = event;
-            const targetData  = $.data(target);
-            const now = new Date().getTime();
-            const delta = 'lastTouch' in targetData ? now - targetData.lastTouch : 0;
-            if (delta < maxDelay && delta > minDelay) {
-                targetData.lastTouch = null;
-                event.type = handleObj.origType;
-                // let jQuery handle the triggering of "dbltap" event handlers
-                handleObj.handler.call(this, event, ...args);
-            } else {
-                targetData.lastTouch = now;
-            }
-        }
-    };
-}

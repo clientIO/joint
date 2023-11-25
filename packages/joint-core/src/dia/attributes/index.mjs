@@ -75,8 +75,7 @@ function shapeWrapper(shapeConstructor, opt) {
     var cacheName = 'joint-shape';
     var resetOffset = opt && opt.resetOffset;
     return function(value, refBBox, node) {
-        var $node = $(node);
-        var cache = $node.data(cacheName);
+        var cache = $.data.read(node, cacheName);
         if (!cache || cache.value !== value) {
             // only recalculate if value has changed
             var cachedShape = shapeConstructor(value);
@@ -85,7 +84,7 @@ function shapeWrapper(shapeConstructor, opt) {
                 shape: cachedShape,
                 shapeBBox: cachedShape.bbox()
             };
-            $node.data(cacheName, cache);
+            $.data.set(node, cacheName, cache);
         }
 
         var shape = cache.shape.clone();
@@ -311,9 +310,8 @@ const attributesNS = {
             return !attrs.textWrap || !isPlainObject(attrs.textWrap);
         },
         set: function(text, refBBox, node, attrs) {
-            const $node = $(node);
             const cacheName = 'joint-text';
-            const cache = $node.data(cacheName);
+            const cache = $.data.read(node, cacheName);
             const {
                 lineHeight,
                 annotations,
@@ -359,7 +357,7 @@ const attributesNS = {
                     eol,
                     displayEmpty
                 });
-                $node.data(cacheName, textHash);
+                $.data.set(node, cacheName, textHash);
             }
         }
     },
@@ -436,11 +434,10 @@ const attributesNS = {
             return node instanceof SVGElement;
         },
         set: function(title, refBBox, node) {
-            var $node = $(node);
             var cacheName = 'joint-title';
-            var cache = $node.data(cacheName);
+            var cache = $.data.read(node, cacheName);
             if (cache === undefined || cache !== title) {
-                $node.data(cacheName, title);
+                $.data.set(node, cacheName, title);
                 if (node.tagName === 'title') {
                     // The target node is a <title> element.
                     node.textContent = title;
@@ -502,7 +499,7 @@ const attributesNS = {
 
     html: {
         set: function(html, refBBox, node) {
-            $(node).html(html + '');
+            node.innerHTML = html + '';
         }
     },
 

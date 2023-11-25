@@ -129,7 +129,7 @@ export const parseDOMJSON = function(json, namespace) {
                 const nodeSelector = nodeDef.selector;
                 if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
                 selectors[nodeSelector] = node;
-                wrapper(node).attr('joint-selector', nodeSelector);
+                node.setAttribute('joint-selector', nodeSelector);
             }
             // Groups
             if (nodeDef.hasOwnProperty('groupSelector')) {
@@ -863,14 +863,9 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 export const sanitizeHTML = function(html) {
 
     // Ignores tags that are invalid inside a <div> tag (e.g. <body>, <head>)
+    var $output = $($.parseHTML('<div>' + html + '</div>'));
 
-    // If documentContext (second parameter) is not specified or given as `null` or `undefined`, a new document is used.
-    // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
-
-    // If keepScripts (last parameter) is `false`, scripts are not executed.
-    var output = $($.parseHTML('<div>' + html + '</div>', null, false));
-
-    output.find('*').each(function() { // for all nodes
+    $output.find('*').each(function() { // for all nodes
         var currentNode = this;
 
         $.each(currentNode.attributes, function() { // for all attributes in each node
@@ -887,7 +882,7 @@ export const sanitizeHTML = function(html) {
         });
     });
 
-    return output.html();
+    return $output[0].innerHTML;
 };
 
 // Download `blob` as file with `fileName`.
