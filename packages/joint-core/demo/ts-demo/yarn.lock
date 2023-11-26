@@ -16,12 +16,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/demo-ts@workspace:."
   dependencies:
-    "@types/backbone": ~1.4.15
     "@types/dagre": ~0.7.47
     "@types/graphlib": ~2.1.8
     "@types/jquery": ~3.5.13
     "@types/lodash": ~4.14.178
-    backbone: ~1.4.1
     dagre: ~0.8.5
     graphlib: ~2.1.8
     http-server: 0.12.3
@@ -86,16 +84,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/backbone@npm:~1.4.15":
-  version: 1.4.18
-  resolution: "@types/backbone@npm:1.4.18"
-  dependencies:
-    "@types/jquery": "*"
-    "@types/underscore": "*"
-  checksum: 2a24a86861627acdfbab5a6622a6b2c7b4cc0b15eb7249cbe2c44b3dc705b1a16212482b45bff57b3be3dc27cc7b99f8fc589eebc31d1ef7bdb54ff2a80a9b05
-  languageName: node
-  linkType: hard
-
 "@types/dagre@npm:~0.7.47":
   version: 0.7.52
   resolution: "@types/dagre@npm:0.7.52"
@@ -144,7 +132,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jquery@npm:*, @types/jquery@npm:~3.5.13":
+"@types/jquery@npm:~3.5.13":
   version: 3.5.27
   resolution: "@types/jquery@npm:3.5.27"
   dependencies:
@@ -180,13 +168,6 @@ __metadata:
   version: 2.3.6
   resolution: "@types/sizzle@npm:2.3.6"
   checksum: 1573d6c86fdf0d7d3d2759b0db65e374b99d773b57781443a6400ce3d0a3bf6a3be393fb9aee5076eff8399c14b7b4d3f51391d1d5cb6a3dcbdccee06a5f6e3e
-  languageName: node
-  linkType: hard
-
-"@types/underscore@npm:*":
-  version: 1.11.13
-  resolution: "@types/underscore@npm:1.11.13"
-  checksum: f0b8700edd25c06213d5cfc87c921b731c8958fe62456e0c3ac789d26abde36a1e14a25b5430b8a0f4c00a9a26ae07c9d5624d5cc3662ba6628b0710416c1cab
   languageName: node
   linkType: hard
 
@@ -442,15 +423,6 @@ __metadata:
   dependencies:
     lodash: ^4.17.14
   checksum: a52083fb32e1ebe1d63e5c5624038bb30be68ff07a6c8d7dfe35e47c93fc144bd8652cbec869e0ac07d57dde387aa5f1386be3559cdee799cb1f789678d88e19
-  languageName: node
-  linkType: hard
-
-"backbone@npm:~1.4.1":
-  version: 1.4.1
-  resolution: "backbone@npm:1.4.1"
-  dependencies:
-    underscore: ">=1.8.3"
-  checksum: 709bd7dde1bbd93eee9375ae9bcd33efa9f253a56f5bf22d67197d8e3c57574f93ab230dcbb750d224a0d9bc58a66ade1d4c6082b998b6c89e939c2e66b65832
   languageName: node
   linkType: hard
 
@@ -1528,13 +1500,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
-  languageName: node
-  linkType: hard
-
-"underscore@npm:>=1.8.3":
-  version: 1.13.6
-  resolution: "underscore@npm:1.13.6"
-  checksum: d5cedd14a9d0d91dd38c1ce6169e4455bb931f0aaf354108e47bd46d3f2da7464d49b2171a5cf786d61963204a42d01ea1332a903b7342ad428deaafaf70ec36
   languageName: node
   linkType: hard
 

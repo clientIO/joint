@@ -123,7 +123,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/demo-dwdm@workspace:examples/dwdm"
   dependencies:
-    "@types/backbone": ~1.4.15
     "@types/dagre": ~0.7.47
     "@types/graphlib": ~2.1.8
     "@types/jquery": ~3.5.13
@@ -381,26 +380,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/backbone@npm:~1.4.15":
-  version: 1.4.15
-  resolution: "@types/backbone@npm:1.4.15"
-  dependencies:
-    "@types/jquery": "*"
-    "@types/underscore": "*"
-  checksum: 8c8a251b05df0e9bb62e1ee62179f3feca4c4f704a0e8d65093e23e2efc81fbf1ec4cdf804497f94ea9b333a3a8cd44d9b949fc5ed6c92bc525c9c31a93f93d9
-  languageName: node
-  linkType: hard
-
-"@types/backbone@npm:~1.4.16":
-  version: 1.4.18
-  resolution: "@types/backbone@npm:1.4.18"
-  dependencies:
-    "@types/jquery": "*"
-    "@types/underscore": "*"
-  checksum: 2a24a86861627acdfbab5a6622a6b2c7b4cc0b15eb7249cbe2c44b3dc705b1a16212482b45bff57b3be3dc27cc7b99f8fc589eebc31d1ef7bdb54ff2a80a9b05
-  languageName: node
-  linkType: hard
-
 "@types/body-parser@npm:*":
   version: 1.19.2
   resolution: "@types/body-parser@npm:1.19.2"
@@ -548,7 +527,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jquery@npm:*, @types/jquery@npm:~3.5.13":
+"@types/jquery@npm:~3.5.13":
   version: 3.5.16
   resolution: "@types/jquery@npm:3.5.16"
   dependencies:
@@ -693,13 +672,6 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: b9bbb2b5c5ead2fb884bb019f61a014e37410bddd295de28184e1b2e71ee6b04120c5ba7b9954617f0bdf962c13d06249ce65004490889c747c80d3f628ea842
-  languageName: node
-  linkType: hard
-
-"@types/underscore@npm:*":
-  version: 1.11.4
-  resolution: "@types/underscore@npm:1.11.4"
-  checksum: db9f8486bc851b732259e51f42d62aad1ae2158be5724612dc125ece5f5d61c51447f9dea28284c2a0f79cb95e788d01cb5ce97709880019213e69fab0dd1696
   languageName: node
   linkType: hard
 
@@ -1717,15 +1689,6 @@ __metadata:
     core-js: ^2.4.0
     regenerator-runtime: ^0.11.0
   checksum: 8aeade94665e67a73c1ccc10f6fd42ba0c689b980032b70929de7a6d9a12eb87ef51902733f8fefede35afea7a5c3ef7e916a64d503446c1eedc9e3284bd3d50
-  languageName: node
-  linkType: hard
-
-"backbone@npm:~1.4.1":
-  version: 1.4.1
-  resolution: "backbone@npm:1.4.1"
-  dependencies:
-    underscore: ">=1.8.3"
-  checksum: 709bd7dde1bbd93eee9375ae9bcd33efa9f253a56f5bf22d67197d8e3c57574f93ab230dcbb750d224a0d9bc58a66ade1d4c6082b998b6c89e939c2e66b65832
   languageName: node
   linkType: hard
 
@@ -6962,7 +6925,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "jointjs@workspace:packages/joint-core"
   dependencies:
-    "@types/backbone": ~1.4.16
     "@types/dagre": ~0.7.50
     "@types/graphlib": ~2.1.9
     "@types/jquery": ~3.5.22
@@ -6970,7 +6932,6 @@ __metadata:
     "@typescript-eslint/eslint-plugin": 5.48.1
     "@typescript-eslint/parser": 5.48.1
     async: 2.6.1
-    backbone: ~1.4.1
     chai: 4.2.0
     cheerio: 0.22.0
     core-js: ~3.8.3
@@ -12010,13 +11971,6 @@ __metadata:
     sprintf-js: ^1.1.1
     util-deprecate: ^1.0.2
   checksum: b7719c30e5d1fdda4ee9379e8d80dca2b0668942420ba365ae3410120e08225fe36707a7981ce0f921812dee6a2290b713cdce1e75e770b98e67a45d8a378d35
-  languageName: node
-  linkType: hard
-
-"underscore@npm:>=1.8.3":
-  version: 1.13.6
-  resolution: "underscore@npm:1.13.6"
-  checksum: d5cedd14a9d0d91dd38c1ce6169e4455bb931f0aaf354108e47bd46d3f2da7464d49b2171a5cf786d61963204a42d01ea1332a903b7342ad428deaafaf70ec36
   languageName: node
   linkType: hard
 

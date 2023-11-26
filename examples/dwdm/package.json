@@ -20,7 +20,6 @@
     "jointjs": "workspace:^"
   },
   "devDependencies": {
-    "@types/backbone": "~1.4.15",
     "@types/dagre": "~0.7.47",
     "@types/graphlib": "~2.1.8",
     "@types/jquery": "~3.5.13",

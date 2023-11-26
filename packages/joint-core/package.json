@@ -66,13 +66,11 @@
     "./README.md"
   ],
   "dependencies": {
-    "backbone": "~1.4.1",
     "dagre": "~0.8.5",
     "graphlib": "~2.1.8",
     "jquery": "~3.7.1"
   },
   "devDependencies": {
-    "@types/backbone": "~1.4.16",
     "@types/dagre": "~0.7.50",
     "@types/graphlib": "~2.1.9",
     "@types/jquery": "~3.5.22",

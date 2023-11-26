@@ -1106,7 +1106,6 @@ __metadata:
     "@babel/core": 7.10.4
     "@babel/preset-env": 7.10.4
     babel-loader: 8.1.0
-    backbone: ~1.4.0
     copy-webpack-plugin: 5.1.1
     core-js: 3.6.1
     css-loader: 3.5.3
@@ -1906,15 +1905,6 @@ __metadata:
     "@babel/core": ^7.0.0
     webpack: ">=2"
   checksum: fdbcae91cc43366206320a1cbe40d358a64ba2dfaa561fbd690efe0db6256c9d27ab7600f7c84041fbc4c2a6f0279175b1f8d1fa5ed17ec30bbd734da84a1bc0
-  languageName: node
-  linkType: hard
-
-"backbone@npm:~1.4.0":
-  version: 1.4.1
-  resolution: "backbone@npm:1.4.1"
-  dependencies:
-    underscore: ">=1.8.3"
-  checksum: 709bd7dde1bbd93eee9375ae9bcd33efa9f253a56f5bf22d67197d8e3c57574f93ab230dcbb750d224a0d9bc58a66ade1d4c6082b998b6c89e939c2e66b65832
   languageName: node
   linkType: hard
 
@@ -5548,13 +5538,6 @@ __metadata:
   version: 0.0.6
   resolution: "typedarray@npm:0.0.6"
   checksum: 33b39f3d0e8463985eeaeeacc3cb2e28bc3dfaf2a5ed219628c0b629d5d7b810b0eb2165f9f607c34871d5daa92ba1dc69f49051cf7d578b4cbd26c340b9d1b1
-  languageName: node
-  linkType: hard
-
-"underscore@npm:>=1.8.3":
-  version: 1.13.6
-  resolution: "underscore@npm:1.13.6"
-  checksum: d5cedd14a9d0d91dd38c1ce6169e4455bb931f0aaf354108e47bd46d3f2da7464d49b2171a5cf786d61963204a42d01ea1332a903b7342ad428deaafaf70ec36
   languageName: node
   linkType: hard
 
