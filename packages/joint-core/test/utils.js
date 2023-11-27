@@ -101,6 +101,10 @@
 
 const $ = window.$ = joint.mvc.$;
 
+$.contains = function(parent, node) {
+    return parent !== node && parent.contains(node);
+};
+
 function matchFilter(elem, filter) {
     if (typeof filter === 'string') {
         if (!elem.matches(filter)) return false;
@@ -194,6 +198,21 @@ $.fn.trigger = function(name, data) {
 
 $.fn.click = function() {
     return this.trigger('click');
+};
+
+$.fn.eq = function(i) {
+    const len = this.length;
+    const j = +i + (i < 0 ? len : 0);
+    return this.pushStack(j >= 0 && j < len ? [this[j]] : []);
+};
+
+$.fn.is = function(selector) {
+    const [el] = this;
+    if (!el) return false;
+    if (typeof selector === 'string') {
+        return el.matches(selector);
+    }
+    return el === selector;
 };
 
 // Simulate user events.

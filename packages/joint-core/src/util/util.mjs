@@ -1104,9 +1104,11 @@ export const sortElements = function(elements, comparator) {
         };
     });
 
-    return Array.prototype.sort.call($elements, comparator).each(function(i) {
-        placements[i].call(this);
-    });
+    Array.prototype.sort.call($elements, comparator);
+    for (var i = 0; i < placements.length; i++) {
+        placements[i].call($elements[i]);
+    }
+    return $elements;
 };
 
 // Sets attributes on the given element and its descendants based on the selector.

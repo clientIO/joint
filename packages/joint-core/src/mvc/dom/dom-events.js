@@ -73,9 +73,12 @@ function on(elem, types, selector, data, fn, one) {
         // Use same guid so caller can remove using origFn
         fn.guid = origFn.guid || (origFn.guid = $.guid++);
     }
-    return elem.each(function() {
-        $.event.add(this, types, fn, data, selector);
-    });
+    // return elem.each(function() {
+    //     $.event.add(this, types, fn, data, selector);
+    // });
+    for (let i = 0; i < elem.length; i++) {
+        $.event.add(elem[i], types, fn, data, selector);
+    }
 }
 
 /**
@@ -179,9 +182,6 @@ $.event = {
                     handler: handler,
                     guid: handler.guid,
                     selector: selector,
-                    needsContext:
-                        selector &&
-                        $.expr.match.needsContext.test(selector),
                     namespace: namespaces.join('.'),
                 },
                 handleObjIn
@@ -426,14 +426,10 @@ $.event = {
                     matchedSelectors = {};
                     for (i = 0; i < delegateCount; i++) {
                         handleObj = handlers[i];
-
                         // Don't conflict with Object.prototype properties (trac-13203)
                         sel = handleObj.selector + ' ';
-
                         if (matchedSelectors[sel] === undefined) {
-                            matchedSelectors[sel] = handleObj.needsContext
-                                ? $(sel, this).index(cur) > -1
-                                : $.find(sel, this, null, [cur]).length;
+                            matchedSelectors[sel] = cur.matches(sel);
                         }
                         if (matchedSelectors[sel]) {
                             matchedHandlers.push(handleObj);
@@ -491,9 +487,7 @@ $.event = {
     },
 
     fix: function(originalEvent) {
-        return originalEvent[$.expando]
-            ? originalEvent
-            : new $.Event(originalEvent);
+        return originalEvent.wrapped ? originalEvent : new $.Event(originalEvent);
     },
 };
 
@@ -681,7 +675,7 @@ $.Event = function(src, props) {
     this.timeStamp = (src && src.timeStamp) || Date.now();
 
     // Mark it as fixed
-    this[$.expando] = true;
+    this.wrapped = true;
 };
 
 // $.Event is based on DOM3 Events as specified by the ECMAScript Language Binding
@@ -779,10 +773,7 @@ $.Event.prototype = {
 
             // For mouseenter/leave call the handler if related is outside the target.
             // NB: No relatedTarget if the mouse left/entered the browser window
-            if (
-                !related ||
-                (related !== target && !$.contains(target, related))
-            ) {
+            if (!related || !target.contains(related)) {
                 event.type = handleObj.origType;
                 ret = handleObj.handler.apply(this, arguments);
                 event.type = fix;
@@ -829,7 +820,7 @@ $.fn.off = function(types, selector, fn) {
     if (fn === false) {
         fn = returnFalse;
     }
-    return this.each(function() {
-        $.event.remove(this, types, fn, selector);
-    });
+    for (let i = 0; i < this.length; i++) {
+        $.event.remove(this[i], types, fn, selector);
+    }
 };
