@@ -100,20 +100,27 @@ $.fn.html = function(html) {
     return this;
 };
 
-// TODO: cleanup
-
-$.fn.css = function(styles) {
-    if (!this[0]) return this;
-    if (typeof styles === 'string' && arguments.length === 1) {
-        return this[0].style[styles];
+$.fn.css = function(name, value) {
+    let styles;
+    if (typeof name === 'string') {
+        if (value === undefined) {
+            const [el] = this;
+            if (!el) return null;
+            return el.style[name];
+        } else {
+            styles = { [name]: value };
+        }
+    } else if (!name) {
+        throw new Error('no styles provided');
+    } else {
+        styles = name;
     }
-    if (typeof styles === 'string' && arguments.length === 2) {
-        this[0].style[styles] = arguments[1];
-        return this;
+    for (let style in styles) {
+        if (styles.hasOwnProperty(style)) {
+            for (let i = 0; i < this.length; i++) {
+                this[i].style[style] = styles[style];
+            }
+        }
     }
-
-    Object.keys(styles).forEach((key) => {
-        this[0].style[key] = styles[key];
-    });
     return this;
 };
