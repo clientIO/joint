@@ -2,8 +2,6 @@ import $ from '../Dom.mjs';
 import V from '../../V/index.mjs';
 import { dataUser, dataPriv, cleanNodesData } from './dom-data';
 
-window.dataPriv = dataPriv;
-
 $.data = dataUser;
 
 $.parseHTML = function(string) {
@@ -69,19 +67,6 @@ $.fn.appendTo = function(parent) {
     return this;
 };
 
-
-// $.fn.html = function(string) {
-//     const [el] = this;
-//     if (typeof string !== string) {
-//         return this.append(string);
-//     }
-//     // TODO: clean data??
-//     el.innerHTML = string;
-//     return this;
-// };
-
-// TODO: ?
-
 $.fn.removeClass = function() {
     const [node] = this;
     V.prototype.removeClass.apply({ node }, arguments);
@@ -99,8 +84,23 @@ $.fn.hasClass = function() {
     return V.prototype.hasClass.apply({ node }, arguments);
 };
 
-// TODO: cleanup
+$.fn.addBack = function() {
+    this.add(this.prevObject);
+};
 
+$.fn.html = function(html) {
+    const [el] = this;
+    cleanNodesData(dataPriv, el.getElementsByTagName('*'));
+    if (typeof string === 'string') {
+        el.innerHTML = html;
+    } else {
+        el.innerHTML = '';
+        return this.append(html);
+    }
+    return this;
+};
+
+// TODO: cleanup
 
 $.fn.css = function(styles) {
     if (!this[0]) return this;

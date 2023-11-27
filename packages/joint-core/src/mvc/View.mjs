@@ -137,8 +137,6 @@ export const View = ViewBase.extend({
         if (this.svgElement) {
             this.vel.removeClass(className).addClass(prefixedClassName);
         } else {
-            // V.prototype.removeClass.call({ node: this.el }, className);
-            // V.prototype.addClass.call({ node: this.el }, prefixedClassName);
             this.$el.removeClass(className).addClass(prefixedClassName);
         }
     },

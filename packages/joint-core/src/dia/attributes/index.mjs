@@ -499,7 +499,7 @@ const attributesNS = {
 
     html: {
         set: function(html, refBBox, node) {
-            node.innerHTML = html + '';
+            $(node).html(html + '');
         }
     },
 

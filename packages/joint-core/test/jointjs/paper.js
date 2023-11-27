@@ -73,8 +73,8 @@ QUnit.module('paper', function(hooks) {
             assert.equal(paper.options.width, null);
             assert.equal(paper.options.height, null);
             var size = paper.getComputedSize();
-            assert.equal(size.width, paper.$el.width());
-            assert.equal(size.height, paper.$el.height());
+            assert.equal(size.width, paper.el.clientWidth);
+            assert.equal(size.height, paper.el.clientHeight);
         });
 
         QUnit.test('events', function(assert) {

@@ -97,8 +97,116 @@
 })(QUnit.assert);
 
 // Dom manipulation helpers.
+// -------------------------
 
-window.$ = joint.mvc.$;
+const $ = window.$ = joint.mvc.$;
+
+function matchFilter(elem, filter) {
+    if (typeof filter === 'string') {
+        if (!elem.matches(filter)) return false;
+    } else if (typeof filter === 'function') {
+        if (!filter(elem)) return false;
+    } else if (filter === 'object') {
+        if (elem !== filter) return false;
+    }
+    return true;
+}
+
+function dir(elem, dir, filter) {
+    var sibs = [];
+    while ((elem = elem[dir])) {
+        if (!matchFilter(elem, filter)) continue;
+        sibs.push(elem);
+    }
+    return sibs;
+}
+
+function sibling(elem, dir, filter) {
+    const prevEl = elem[dir];
+    if (!matchFilter(elem, filter)) return $();
+    return $(prevEl);
+}
+
+$.fn.prevAll = function(filter) {
+    const [el] = this;
+    return $(dir(el, 'previousElementSibling', filter));
+};
+
+$.fn.nextAll = function(filter) {
+    const [el] = this;
+    return $(dir(el, 'nextElementSibling', filter));
+};
+
+$.fn.prev = function(filter) {
+    const [el] = this;
+    return $(sibling(el, 'previousElementSibling', filter));
+};
+
+$.fn.index = function() {
+    const [el] = this;
+    return Array.prototype.indexOf.call(el.parentNode.children, el);
+};
+
+$.fn.offset = function() {
+    const [el] = this;
+    const box = el.getBoundingClientRect();
+    return {
+        top: box.top + window.pageYOffset - document.documentElement.clientTop,
+        left: box.left + window.pageXOffset - document.documentElement.clientLeft
+    };
+};
+
+$.fn.children = function(selector) {
+    const [el] = this;
+    if (selector) {
+        return $(Array.from(el.children).filter(child => child.matches(selector)));
+    }
+    return $(el.children);
+};
+
+$.fn.parent = function(i) {
+    const [el] = this;
+    return $(el.parentNode);
+};
+
+$.fn.has = function(e) {
+    return this.find(e).length > 0;
+};
+
+$.fn.trigger = function(name, data) {
+    const [el] = this;
+    if (name === 'click') {
+        el.click();
+    } else if (name === 'contextmenu') {
+        el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    } else {
+        let event;
+        if (window.CustomEvent) {
+            event = new CustomEvent(name, { detail: data });
+        } else {
+            event = document.createEvent('CustomEvent');
+            event.initCustomEvent(name, true, true, data);
+        }
+        el.dispatchEvent(event);
+    }
+    return this;
+};
+
+$.fn.click = function() {
+    return this.trigger('click');
+};
+
+$.fn.attr = function(props) {
+    const [el] = this;
+    // getter is not present in the original code
+    if (typeof props === 'string') {
+        return el.getAttribute(props);
+    }
+    Object.keys(props).forEach(key => {
+        el.setAttribute(key, props[key]);
+    });
+    return this;
+};
 
 // Simulate user events.
 // ---------------------

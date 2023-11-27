@@ -327,7 +327,7 @@ QUnit.module('element ports', function() {
             assert.equal(rect.length, 1);
             assert.equal(text.length, 1);
             assert.equal(text.attr('fill'), 'blue');
-            assert.equal(text.text(), 'aaa');
+            assert.equal(text[0].textContent, 'aaa');
 
             var snd = shapeView.$el.find('.joint-port').eq(1);
             var sndPortShape = snd.children().eq(0);
@@ -352,10 +352,10 @@ QUnit.module('element ports', function() {
             assert.equal(shapeView.$el.find('.joint-port').length, 2, 'port wraps');
 
             assert.equal(shapeView.$el.find('.custom-port-markup').length, 1);
-            assert.equal(shapeView.$el.find('.custom-port-markup').prop('tagName'), 'circle');
+            assert.equal(shapeView.$el.find('.custom-port-markup')[0].tagName, 'circle');
 
             assert.equal(shapeView.$el.find('.custom-rect').length, 1);
-            assert.equal(shapeView.$el.find('.custom-rect').prop('tagName'), 'rect');
+            assert.equal(shapeView.$el.find('.custom-rect')[0].tagName, 'rect');
         });
 
         QUnit.test('port update/render count', function(assert) {
