@@ -1,4 +1,4 @@
-import { isPlainObject, isArrayLike } from '../util/utilHelpers.mjs';
+import { isArrayLike } from '../util/utilHelpers.mjs';
 /*!
  * jQuery JavaScript Library v4.0.0-pre+c98597ea.dirty
  * https://jquery.com/
@@ -25,10 +25,10 @@ var document = window.document;
 const version = '4.0.0-pre+c98597ea.dirty';
 
 // Define a local copy of $
-const $ = function(selector, context) {
+const $ = function(selector) {
     // The $ object is actually just the init constructor 'enhanced'
     // Need init if $ is called (just allow error to be thrown if not included)
-    return new $.fn.init(selector, context);
+    return new $.fn.init(selector);
 };
 
 $.fn = $.prototype = {
@@ -187,11 +187,6 @@ if (typeof Symbol === 'function') {
 }
 
 var isIE = document.documentMode;
-
-// rsingleTag matches a string consisting of a single HTML element with no attributes
-// and captures the element's name
-const rsingleTag =
-    /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 
 function isObviousHtml(input) {
     return (
@@ -547,100 +542,13 @@ $.escapeSelector = function(sel) {
     return (sel + '').replace(rcssescape, fcssescape);
 };
 
-var sort = arr.sort;
-
-var splice = arr.splice;
-
-var hasDuplicate;
-
 // Document order sorting
-function sortOrder(a, b) {
-    // Flag for duplicate removal
-    if (a === b) {
-        hasDuplicate = true;
-        return 0;
-    }
-
-    // Sort on method existence if only one input has compareDocumentPosition
-    var compare = !a.compareDocumentPosition - !b.compareDocumentPosition;
-    if (compare) {
-        return compare;
-    }
-
-    // Calculate position if both inputs belong to the same document
-    // Support: IE 11+
-    // IE sometimes throws a "Permission denied" error when strict-comparing
-    // two documents; shallow comparisons work.
-    // eslint-disable-next-line eqeqeq
-    compare =
-        (a.ownerDocument || a) == (b.ownerDocument || b)
-            ? a.compareDocumentPosition(b)
-            : // Otherwise we know they are disconnected
-            1;
-
-    // Disconnected nodes
-    if (compare & 1) {
-        // Choose the first element that is related to the document
-        // Support: IE 11+
-        // IE sometimes throws a "Permission denied" error when strict-comparing
-        // two documents; shallow comparisons work.
-        // eslint-disable-next-line eqeqeq
-        if (
-            a == document ||
-            (a.ownerDocument == document && $.contains(document, a))
-        ) {
-            return -1;
-        }
-
-        // Support: IE 11+
-        // IE sometimes throws a "Permission denied" error when strict-comparing
-        // two documents; shallow comparisons work.
-        // eslint-disable-next-line eqeqeq
-        if (
-            b == document ||
-            (b.ownerDocument == document && $.contains(document, b))
-        ) {
-            return 1;
-        }
-
-        // Maintain original order
-        return 0;
-    }
-
-    return compare & 4 ? -1 : 1;
-}
 
 /**
  * Document sorting and removing duplicates
  * @param {ArrayLike} results
  */
-$.uniqueSort = function(results) {
-    var elem,
-        duplicates = [],
-        j = 0,
-        i = 0;
 
-    hasDuplicate = false;
-
-    sort.call(results, sortOrder);
-
-    if (hasDuplicate) {
-        while ((elem = results[i++])) {
-            if (elem === results[i]) {
-                j = duplicates.push(i);
-            }
-        }
-        while (j--) {
-            splice.call(results, duplicates[j], 1);
-        }
-    }
-
-    return results;
-};
-
-$.fn.uniqueSort = function() {
-    return this.pushStack($.uniqueSort(Array.from(this)));
-};
 
 /*
  * Optional limited selector module for custom builds.
@@ -828,12 +736,10 @@ $.fn.find = function(selector) {
     }
 
     ret = this.pushStack([]);
-
-    for (i = 0; i < len; i++) {
-        $.find(selector, self[i], ret);
+    if (len > 0) {
+        $.find(selector, this[0], ret);
     }
-
-    return len > 1 ? $.uniqueSort(ret) : ret;
+    return ret;
 };
 
 $.fn.filter = function(selector) {
@@ -864,7 +770,7 @@ let root$;
 // Shortcut simple #id case for speed
 const rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]+))$/;
 
-const init = ($.fn.init = function(selector, context) {
+const init = ($.fn.init = function(selector) {
     var match, elem;
 
     // HANDLE: $(""), $(null), $(undefined), $(false)
@@ -881,10 +787,7 @@ const init = ($.fn.init = function(selector, context) {
         // HANDLE: $(function)
         // Shortcut for document ready
     } else if (typeof selector === 'function') {
-        return root$.ready !== undefined
-            ? root$.ready(selector)
-            : // Execute immediately if ready is not present
-            selector($);
+        throw new Error('Not supported');
     } else {
         // Handle obvious HTML strings
         match = selector + '';
@@ -903,10 +806,9 @@ const init = ($.fn.init = function(selector, context) {
 
         // Match html or make sure no context is specified for #id
         // Note: match[1] may be a string or a TrustedHTML wrapper
-        if (match && (match[1] || !context)) {
+        if (match && (match[1])) {
             // HANDLE: $(html) -> $(array)
             if (match[1]) {
-                context = context instanceof $ ? context[0] : context;
 
                 // Option to run scripts is true for back-compat
                 // Intentionally let the error be thrown if parseHTML is not present
@@ -914,33 +816,16 @@ const init = ($.fn.init = function(selector, context) {
                     this,
                     $.parseHTML(
                         match[1],
-                        context && context.nodeType
-                            ? context.ownerDocument || context
-                            : document,
+                        document,
                         true
                     )
                 );
-
-                // HANDLE: $(html, props)
-                if (rsingleTag.test(match[1]) && isPlainObject(context)) {
-                    for (match in context) {
-                        // Properties of context are called as methods if possible
-                        if (typeof this[match] === 'function') {
-                            this[match](context[match]);
-
-                            // ...and otherwise set as attributes
-                        } else {
-                            this.attr(match, context[match]);
-                        }
-                    }
-                }
 
                 return this;
 
                 // HANDLE: $(#id)
             } else {
                 elem = document.getElementById(match[2]);
-
                 if (elem) {
                     // Inject the element directly into the $ object
                     this[0] = elem;
@@ -950,13 +835,8 @@ const init = ($.fn.init = function(selector, context) {
             }
 
             // HANDLE: $(expr) & $(expr, $(...))
-        } else if (!context || context.jquery) {
-            return (context || root$).find(selector);
-
-            // HANDLE: $(expr, context)
-            // (which is just equivalent to: $(context).find(expr)
         } else {
-            return this.constructor(context).find(selector);
+            return (root$).find(selector);
         }
     }
 });
