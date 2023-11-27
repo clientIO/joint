@@ -9,14 +9,10 @@
  *
  * Date: 2023-11-24T14:04Z
  */
-
-import { isArrayLike } from '../util/utilHelpers.mjs';
-
 if (!window.document) {
     throw new Error('$ requires a window with a document');
 }
 
-const arr = [];
 const document = window.document;
 
 // Define a local copy of $
@@ -32,95 +28,57 @@ $.fn = $.prototype = {
 
     // The default length of a $ object is 0
     length: 0,
-
-    toArray: function() {
-        return Array.from(this);
-    },
-
-    // Get the Nth element in the matched element set OR
-    // Get the whole matched element set as a clean array
-    get: function(num) {
-        // Return all the elements in a clean array
-        if (num == null) {
-            return Array.from(this);
-        }
-
-        // Return just the one element from the set
-        return num < 0 ? this[num + this.length] : this[num];
-    },
-
-    // Take an array of elements and push it onto the stack
-    // (returning the new matched element set)
-    pushStack: function(elements) {
-        // Build a new $ matched element set
-        const ret = $.merge(this.constructor(), elements);
-        // Add the old object onto the stack (as a reference)
-        ret.prevObject = this;
-        // Return the newly-formed element set
-        return ret;
-    },
 };
 
-Object.assign($, {
+// A global GUID counter for objects
+$.guid = 1;
 
-    // results is for internal usage only
-    makeArray: function(arr, results) {
-        const ret = results || [];
-        if (arr != null) {
-            if (isArrayLike(Object(arr))) {
-                $.merge(ret, typeof arr === 'string' ? [arr] : arr);
-            } else {
-                Array.prototype.push.call(ret, arr);
-            }
-        }
-        return ret;
-    },
+$.merge = function(first, second) {
+    let len = +second.length;
+    let i = first.length;
+    for (let j = 0; j < len; j++) {
+        first[i++] = second[j];
+    }
+    first.length = i;
+    return first;
+};
 
-    merge: function(first, second) {
-        var len = +second.length,
-            j = 0,
-            i = first.length;
+$.parseHTML = function(string) {
+    // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
+    const context = document.implementation.createHTMLDocument();
+    // Set the base href for the created document so any parsed elements with URLs
+    // are based on the document's URL
+    const base = context.createElement('base');
+    base.href = document.location.href;
+    context.head.appendChild(base);
 
-        for (; j < len; j++) {
-            first[i++] = second[j];
-        }
-
-        first.length = i;
-
-        return first;
-    },
-
-    // A global GUID counter for objects
-    guid: 1,
-});
+    context.body.innerHTML = string;
+    // remove scripts
+    const scripts = context.getElementsByTagName('script');
+    for (let i = 0; i < scripts.length; i++) {
+        scripts[i].remove();
+    }
+    return Array.from(context.body.children);
+};
 
 if (typeof Symbol === 'function') {
-    $.fn[Symbol.iterator] = arr[Symbol.iterator];
+    $.fn[Symbol.iterator] = Array.prototype[Symbol.iterator];
 }
 
+$.fn.toArray = function() {
+    return Array.from(this);
+};
 
-/*
- * Optional limited selector module for custom builds.
- *
- * Note that this DOES NOT SUPPORT many documented jQuery
- * features in exchange for its smaller size:
- *
- * * Attribute not equal selector (!=)
- * * Positional selectors (:first; :eq(n); :odd; etc.)
- * * Type selectors (:input; :checkbox; :button; etc.)
- * * State-based selectors (:animated; :visible; :hidden; etc.)
- * * :has(selector) in browsers without native support
- * * :not(complex selector) in IE
- * * custom selectors via jQuery extensions
- * * Reliable functionality on XML fragments
- * * Matching against non-elements
- * * Reliable sorting of disconnected nodes
- * * querySelectorAll bug fixes (e.g., unreliable :focus on WebKit)
- *
- * If any of these are unacceptable tradeoffs, either use the full
- * selector engine or  customize this stub for the project's specific
- * needs.
- */
+// Take an array of elements and push it onto the stack
+// (returning the new matched element set)
+$.fn.pushStack = function(elements) {
+    // Build a new $ matched element set
+    const ret = $.merge(this.constructor(), elements);
+    // Add the old object onto the stack (as a reference)
+    ret.prevObject = this;
+    // Return the newly-formed element set
+    return ret;
+};
 
 $.fn.find = function(selector) {
     const [el] = this;
@@ -141,16 +99,11 @@ $.fn.find = function(selector) {
     return ret;
 };
 
-// Initialize a $ object
-
-// A central reference to the root $(document)
-let root$;
-
 // A simple way to check for HTML strings
 // Prioritize #id over <tag> to avoid XSS via location.hash (trac-9521)
 // Strict HTML recognition (trac-11290: must start with <)
 // Shortcut simple #id case for speed
-const rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]+))$/;
+const rQuickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]+))$/;
 
 function isObviousHtml(input) {
     return (
@@ -159,80 +112,71 @@ function isObviousHtml(input) {
 }
 
 const init = ($.fn.init = function(selector) {
-    var match, elem;
 
-    // HANDLE: $(""), $(null), $(undefined), $(false)
     if (!selector) {
+        // HANDLE: $(""), $(null), $(undefined), $(false)
         return this;
     }
 
-    // HANDLE: $(DOMElement)
+    if (typeof selector === 'function') {
+        // HANDLE: $(function)
+        // Shortcut for document ready
+        throw new Error('function not supported');
+    }
+
+    if (arguments.length > 1) {
+        throw new Error('selector with context not supported');
+    }
+
     if (selector.nodeType) {
+        // HANDLE: $(DOMElement)
         this[0] = selector;
         this.length = 1;
         return this;
-
-        // HANDLE: $(function)
-        // Shortcut for document ready
-    } else if (typeof selector === 'function') {
-        throw new Error('Not supported');
-    } else {
-        // Handle obvious HTML strings
-        match = selector + '';
-        if (isObviousHtml(match)) {
-            // Assume that strings that start and end with <> are HTML and skip
-            // the regex check. This also handles browser-supported HTML wrappers
-            // like TrustedHTML.
-            match = [null, selector, null];
-
-            // Handle HTML strings or selectors
-        } else if (typeof selector === 'string') {
-            match = rquickExpr.exec(selector);
-        } else {
-            return $.makeArray(selector, this);
-        }
-
-        // Match html or make sure no context is specified for #id
-        // Note: match[1] may be a string or a TrustedHTML wrapper
-        if (match && (match[1])) {
-            // HANDLE: $(html) -> $(array)
-            if (match[1]) {
-
-                // Option to run scripts is true for back-compat
-                // Intentionally let the error be thrown if parseHTML is not present
-                $.merge(
-                    this,
-                    $.parseHTML(
-                        match[1],
-                        document,
-                        true
-                    )
-                );
-
-                return this;
-
-                // HANDLE: $(#id)
-            } else {
-                elem = document.getElementById(match[2]);
-                if (elem) {
-                    // Inject the element directly into the $ object
-                    this[0] = elem;
-                    this.length = 1;
-                }
-                return this;
-            }
-
-            // HANDLE: $(expr) & $(expr, $(...))
-        } else {
-            return (root$).find(selector);
-        }
     }
+
+    let match;
+    if (isObviousHtml(selector + '')) {
+        // Handle obvious HTML strings
+        // Assume that strings that start and end with <> are HTML and skip
+        // the regex check. This also handles browser-supported HTML wrappers
+        // like TrustedHTML.
+        match = [null, selector, null];
+    } else if (typeof selector === 'string') {
+        // Handle HTML strings or selectors
+        match = rQuickExpr.exec(selector);
+    } else {
+        // Array-like
+        return $.merge(this, selector);
+    }
+
+    if (!match || !match[1]) {
+        // HANDLE: $(expr)
+        return $root.find(selector);
+    }
+
+    // Match html or make sure no context is specified for #id
+    // Note: match[1] may be a string or a TrustedHTML wrapper
+    if (match[1]) {
+        // HANDLE: $(html) -> $(array)
+        $.merge(this, $.parseHTML(match[1]));
+        return this;
+    }
+
+    // HANDLE: $(#id)
+    const el = document.getElementById(match[2]);
+    if (el) {
+        // Inject the element directly into the $ object
+        this[0] = el;
+        this.length = 1;
+    }
+    return this;
 });
 
 // Give the init function the $ prototype for later instantiation
 init.prototype = $.fn;
 
-// Initialize central reference
-root$ = $(document);
+// A central reference to the root $(document)
+const $root = $(document);
 
 export { $ as default };

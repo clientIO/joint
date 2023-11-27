@@ -4,23 +4,6 @@ import { dataUser, dataPriv, cleanNodesData } from './dom-data';
 
 $.data = dataUser;
 
-$.parseHTML = function(string) {
-    // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
-    const context = document.implementation.createHTMLDocument();
-    // Set the base href for the created document so any parsed elements with URLs
-    // are based on the document's URL
-    const base = context.createElement('base');
-    base.href = document.location.href;
-    context.head.appendChild(base);
-
-    context.body.innerHTML = string;
-    // remove scripts
-    const scripts = context.getElementsByTagName('script');
-    for (let i = 0; i < scripts.length; i++) {
-        scripts[i].remove();
-    }
-    return Array.from(context.body.children);
-};
 
 $.fn.empty = function() {
     for (let i = 0; i < this.length; i++) {

@@ -272,7 +272,7 @@ QUnit.module('joint.mvc.ViewBase', function(hooks) {
         View = joint.mvc.ViewBase.extend({
             el: '#testElement > h1'
         });
-        assert.strictEqual(new View().el, $('#testElement > h1').get(0));
+        assert.strictEqual(new View().el, $('#testElement > h1')[0]);
 
         View = joint.mvc.ViewBase.extend({
             el: '#nonexistent'
