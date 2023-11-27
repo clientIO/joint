@@ -102,7 +102,7 @@ export const View = ViewBase.extend({
         if (this.svgElement) {
             this.vel.attr(attrs);
         } else {
-            Object.keys(attrs).forEach(key => this.el.setAttribute(key, attrs[key]));
+            this.$el.attr(attrs);
         }
     },
 

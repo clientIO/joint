@@ -105,9 +105,10 @@ export const parseDOMJSON = function(json, namespace) {
             const svg = (ns === svgNamespace);
 
             const wrapper = (svg) ? V : $;
+            const wrapperNode = wrapper(node);
             // Attributes
             const attributes = nodeDef.attributes;
-            if (attributes) wrapper(node).attr(attributes);
+            if (attributes) wrapperNode.attr(attributes);
             // Style
             const style = nodeDef.style;
             if (style) $(node).css(style);
@@ -129,7 +130,7 @@ export const parseDOMJSON = function(json, namespace) {
                 const nodeSelector = nodeDef.selector;
                 if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
                 selectors[nodeSelector] = node;
-                node.setAttribute('joint-selector', nodeSelector);
+                wrapperNode.attr('joint-selector', nodeSelector);
             }
             // Groups
             if (nodeDef.hasOwnProperty('groupSelector')) {

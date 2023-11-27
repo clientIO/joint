@@ -196,18 +196,6 @@ $.fn.click = function() {
     return this.trigger('click');
 };
 
-$.fn.attr = function(props) {
-    const [el] = this;
-    // getter is not present in the original code
-    if (typeof props === 'string') {
-        return el.getAttribute(props);
-    }
-    Object.keys(props).forEach(key => {
-        el.setAttribute(key, props[key]);
-    });
-    return this;
-};
-
 // Simulate user events.
 // ---------------------
 

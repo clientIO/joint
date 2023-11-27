@@ -124,3 +124,28 @@ $.fn.css = function(name, value) {
     }
     return this;
 };
+
+$.fn.attr = function(name, value) {
+    let attributes;
+    if (typeof name === 'string') {
+        if (value === undefined) {
+            const [el] = this;
+            if (!el) return null;
+            return el.getAttribute(name);
+        } else {
+            attributes = { [name]: value };
+        }
+    } else if (!name) {
+        throw new Error('no styles provided');
+    } else {
+        attributes = name;
+    }
+    for (let attr in attributes) {
+        if (attributes.hasOwnProperty(attr)) {
+            for (let i = 0; i < this.length; i++) {
+                this[i].setAttribute(attr, attributes[attr]);
+            }
+        }
+    }
+    return this;
+};

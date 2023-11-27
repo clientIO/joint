@@ -173,7 +173,7 @@ assign(ViewBase.prototype, Events, {
     // Set attributes from a hash on this view's element.  Exposed for
     // subclasses using an alternative DOM manipulation API.
     _setAttributes: function(attributes) {
-        Object.keys(attributes).forEach(key => this.el.setAttribute(key, attributes[key]));
+        this.$el.attr(attributes);
     }
 
 });
