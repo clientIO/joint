@@ -1,6 +1,6 @@
 import { Connect } from '../linkTools/Connect.mjs';
 import V from '../V/index.mjs';
-import $ from '../mvc/Dom.mjs';
+import $ from '../mvc/Dom/index.mjs';
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 

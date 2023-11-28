@@ -19,7 +19,7 @@ import {
 } from '../util/index.mjs';
 import { Point, Rect } from '../g/index.mjs';
 import V from '../V/index.mjs';
-import $ from '../mvc/Dom.mjs';
+import $ from '../mvc/Dom/index.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 
 const HighlightingTypes = {

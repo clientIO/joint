@@ -5,7 +5,7 @@ import { addClassNamePrefix, removeClassNamePrefix, merge, template, assign, toA
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
-import $ from '../mvc/Dom.mjs';
+import $ from '../mvc/Dom/index.mjs';
 
 
 const Flags = {

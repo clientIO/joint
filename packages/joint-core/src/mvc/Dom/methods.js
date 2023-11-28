@@ -1,6 +1,6 @@
-import $ from '../Dom.mjs';
+import $ from './Dom.mjs';
 import V from '../../V/index.mjs';
-import { dataPriv, cleanNodesData } from './dom-data';
+import { dataPriv, cleanNodesData } from './vars.mjs';
 
 // Manipulation
 

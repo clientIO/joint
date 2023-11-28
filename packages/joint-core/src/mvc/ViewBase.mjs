@@ -1,4 +1,4 @@
-import $ from './Dom.mjs';
+import $ from './Dom/index.mjs';
 
 import { Events } from './Events.mjs';
 import { extend } from './mvcUtils.mjs';

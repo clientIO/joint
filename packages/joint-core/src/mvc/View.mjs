@@ -1,4 +1,4 @@
-import $ from './Dom.mjs';
+import $ from './Dom/index.mjs';
 
 import * as util from '../util/index.mjs';
 import V from '../V/index.mjs';

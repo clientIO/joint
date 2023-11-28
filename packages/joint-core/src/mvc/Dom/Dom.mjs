@@ -10,7 +10,7 @@
  * Date: 2023-11-24T14:04Z
  */
 
-import { dataUser } from './dom/dom-data';
+import { uniq } from '../../util/utilHelpers.mjs';
 
 if (!window.document) {
     throw new Error('$ requires a window with a document');
@@ -33,9 +33,6 @@ $.fn = $.prototype = {
 
 // A global GUID counter for objects
 $.guid = 1;
-
-// User data storage
-$.data = dataUser;
 
 $.merge = function(first, second) {
     let len = +second.length;
@@ -103,6 +100,18 @@ $.fn.find = function(selector) {
     return ret;
 };
 
+$.fn.add = function(selector, context) {
+    const newElements = $(selector, context).toArray();
+    const prevElements = this.toArray();
+    const ret = this.pushStack([]);
+    $.merge(ret, uniq(prevElements.concat(newElements)));
+    return ret;
+};
+
+$.fn.addBack = function() {
+    return this.add(this.prevObject);
+};
+
 // A simple way to check for HTML strings
 // Prioritize #id over <tag> to avoid XSS via location.hash (trac-9521)
 // Strict HTML recognition (trac-11290: must start with <)
@@ -116,29 +125,24 @@ function isObviousHtml(input) {
 }
 
 const Dom = function(selector) {
-
     if (!selector) {
         // HANDLE: $(""), $(null), $(undefined), $(false)
         return this;
     }
-
     if (typeof selector === 'function') {
         // HANDLE: $(function)
         // Shortcut for document ready
         throw new Error('function not supported');
     }
-
     if (arguments.length > 1) {
         throw new Error('selector with context not supported');
     }
-
     if (selector.nodeType) {
         // HANDLE: $(DOMElement)
         this[0] = selector;
         this.length = 1;
         return this;
     }
-
     let match;
     if (isObviousHtml(selector + '')) {
         // Handle obvious HTML strings
@@ -153,12 +157,10 @@ const Dom = function(selector) {
         // Array-like
         return $.merge(this, selector);
     }
-
     if (!match || !match[1]) {
         // HANDLE: $(expr)
         return $root.find(selector);
     }
-
     // Match html or make sure no context is specified for #id
     // Note: match[1] may be a string or a TrustedHTML wrapper
     if (match[1]) {
@@ -166,7 +168,6 @@ const Dom = function(selector) {
         $.merge(this, $.parseHTML(match[1]));
         return this;
     }
-
     // HANDLE: $(#id)
     const el = document.getElementById(match[2]);
     if (el) {
@@ -184,10 +185,5 @@ Dom.prototype = $.fn;
 
 // A central reference to the root $(document)
 const $root = $(document);
-
-
-// $.fn.addBack = function() {
-//     this.add(this.prevObject);
-// };
 
 export { $ as default };

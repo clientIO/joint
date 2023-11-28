@@ -1,5 +1,6 @@
+// TODO: should not read config outside the mvc package
 import { config } from '../../config/index.mjs';
-import $ from '../Dom.mjs';
+import $ from './Dom.mjs';
 
 const DoubleTapEventName = 'dbltap';
 if ($.event && !(DoubleTapEventName in $.event.special)) {

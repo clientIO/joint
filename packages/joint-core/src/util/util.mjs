@@ -1,4 +1,4 @@
-import $ from '../mvc/Dom.mjs';
+import $ from '../mvc/Dom/index.mjs';
 import V from '../V/index.mjs';
 import { config } from '../config/index.mjs';
 import {

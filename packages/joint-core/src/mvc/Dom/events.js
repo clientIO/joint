@@ -1,6 +1,6 @@
 import { isEmpty } from '../../util/utilHelpers.mjs';
-import $ from '../Dom.mjs';
-import { dataPriv } from './dom-data.js';
+import $ from './Dom.mjs';
+import { dataPriv } from './vars.mjs';
 
 const rtypenamespace = /^([^.]*)(?:\.(.+)|)/;
 const rcheckableType = /^(?:checkbox|radio)$/i;

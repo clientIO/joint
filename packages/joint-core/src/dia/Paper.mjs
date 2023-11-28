@@ -46,7 +46,7 @@ import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
-import $ from '../mvc/Dom.mjs';
+import $ from '../mvc/Dom/index.mjs';
 
 const sortingTypes = {
     NONE: 'sorting-none',
