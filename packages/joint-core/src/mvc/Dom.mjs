@@ -9,6 +9,9 @@
  *
  * Date: 2023-11-24T14:04Z
  */
+
+import { dataUser } from './dom/dom-data';
+
 if (!window.document) {
     throw new Error('$ requires a window with a document');
 }
@@ -19,19 +22,20 @@ const document = window.document;
 const $ = function(selector) {
     // The $ object is actually just the init constructor 'enhanced'
     // Need init if $ is called (just allow error to be thrown if not included)
-    return new $.fn.init(selector);
+    return new $.Dom(selector);
 };
 
 $.fn = $.prototype = {
-
     constructor: $,
-
     // The default length of a $ object is 0
     length: 0,
 };
 
 // A global GUID counter for objects
 $.guid = 1;
+
+// User data storage
+$.data = dataUser;
 
 $.merge = function(first, second) {
     let len = +second.length;
@@ -111,7 +115,7 @@ function isObviousHtml(input) {
     );
 }
 
-const init = ($.fn.init = function(selector) {
+const Dom = function(selector) {
 
     if (!selector) {
         // HANDLE: $(""), $(null), $(undefined), $(false)
@@ -171,12 +175,19 @@ const init = ($.fn.init = function(selector) {
         this.length = 1;
     }
     return this;
-});
+};
+
+$.Dom = Dom;
 
 // Give the init function the $ prototype for later instantiation
-init.prototype = $.fn;
+Dom.prototype = $.fn;
 
 // A central reference to the root $(document)
 const $root = $(document);
+
+
+// $.fn.addBack = function() {
+//     this.add(this.prevObject);
+// };
 
 export { $ as default };

@@ -1,9 +1,18 @@
 import $ from '../Dom.mjs';
 import V from '../../V/index.mjs';
-import { dataUser, dataPriv, cleanNodesData } from './dom-data';
+import { dataPriv, cleanNodesData } from './dom-data';
 
-$.data = dataUser;
+// Manipulation
 
+$.fn.remove = function() {
+    for (let i = 0; i < this.length; i++) {
+        const node = this[i];
+        dataPriv.remove(node);
+        if (node.parentNode) {
+            node.parentNode.removeChild(node);
+        }
+    }
+};
 
 $.fn.empty = function() {
     for (let i = 0; i < this.length; i++) {
@@ -17,14 +26,16 @@ $.fn.empty = function() {
     return this;
 };
 
-$.fn.remove = function() {
-    for (let i = 0; i < this.length; i++) {
-        const node = this[i];
-        dataPriv.remove(node);
-        if (node.parentNode) {
-            node.parentNode.removeChild(node);
-        }
+$.fn.html = function(html) {
+    const [el] = this;
+    cleanNodesData(dataPriv, el.getElementsByTagName('*'));
+    if (typeof string === 'string') {
+        el.innerHTML = html;
+    } else {
+        el.innerHTML = '';
+        return this.append(html);
     }
+    return this;
 };
 
 $.fn.append = function(...nodes) {
@@ -50,38 +61,7 @@ $.fn.appendTo = function(parent) {
     return this;
 };
 
-$.fn.removeClass = function() {
-    const [node] = this;
-    V.prototype.removeClass.apply({ node }, arguments);
-    return this;
-};
-
-$.fn.addClass = function() {
-    const [node] = this;
-    V.prototype.addClass.apply({ node }, arguments);
-    return this;
-};
-
-$.fn.hasClass = function() {
-    const [node] = this;
-    return V.prototype.hasClass.apply({ node }, arguments);
-};
-
-$.fn.addBack = function() {
-    this.add(this.prevObject);
-};
-
-$.fn.html = function(html) {
-    const [el] = this;
-    cleanNodesData(dataPriv, el.getElementsByTagName('*'));
-    if (typeof string === 'string') {
-        el.innerHTML = html;
-    } else {
-        el.innerHTML = '';
-        return this.append(html);
-    }
-    return this;
-};
+// Styles and attributes
 
 $.fn.css = function(name, value) {
     let styles;
@@ -131,4 +111,28 @@ $.fn.attr = function(name, value) {
         }
     }
     return this;
+};
+
+// Classes
+
+$.fn.removeClass = function() {
+    for (let i = 0; i < this.length; i++) {
+        const node = this[i];
+        V.prototype.removeClass.apply({ node }, arguments);
+    }
+    return this;
+};
+
+$.fn.addClass = function() {
+    for (let i = 0; i < this.length; i++) {
+        const node = this[i];
+        V.prototype.addClass.apply({ node }, arguments);
+    }
+    return this;
+};
+
+$.fn.hasClass = function() {
+    const [node] = this;
+    if (!node) return false;
+    return V.prototype.hasClass.apply({ node }, arguments);
 };
