@@ -1,0 +1,7 @@
+{
+  "name": "appmixer.airtable",
+  "version": "0.0.1",
+  "dependencies": {
+    "airtable": "0.12.2"
+  }
+}
