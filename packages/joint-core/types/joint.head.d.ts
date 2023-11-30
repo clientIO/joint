@@ -9,6 +9,4 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // typings: https://github.com/CaselIT/typings-jointjs
 
-/// <reference types="jquery" />
-
 export as namespace joint;

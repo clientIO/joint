@@ -8,9 +8,12 @@ export namespace config {
     var doubleTapInterval: number;
 }
 
+type NativeEvent = Event;
+type JQuery = any;
+
 export namespace dia {
 
-    type Event = JQuery.TriggeredEvent;
+    type Event = mvc.TriggeredEvent;
 
     type ObjectHash = { [key: string]: any };
 
@@ -3348,6 +3351,74 @@ export namespace layout {
 
 export namespace mvc {
 
+    interface Event {
+        // Event
+        bubbles: boolean | undefined;
+        cancelable: boolean | undefined;
+        eventPhase: number | undefined;
+        // UIEvent
+        detail: number | undefined;
+        view: Window | undefined;
+        // MouseEvent
+        button: number | undefined;
+        buttons: number | undefined;
+        clientX: number | undefined;
+        clientY: number | undefined;
+        offsetX: number | undefined;
+        offsetY: number | undefined;
+        pageX: number | undefined;
+        pageY: number | undefined;
+        screenX: number | undefined;
+        screenY: number | undefined;
+        /** @deprecated */
+        toElement: Element | undefined;
+        // PointerEvent
+        pointerId: number | undefined;
+        pointerType: string | undefined;
+        // KeyboardEvent
+        /** @deprecated */
+        char: string | undefined;
+        /** @deprecated */
+        charCode: number | undefined;
+        key: string | undefined;
+        /** @deprecated */
+        keyCode: number | undefined;
+        // TouchEvent
+        changedTouches: TouchList | undefined;
+        targetTouches: TouchList | undefined;
+        touches: TouchList | undefined;
+        // MouseEvent, KeyboardEvent
+        which: number | undefined;
+        // MouseEvent, KeyboardEvent, TouchEvent
+        altKey: boolean | undefined;
+        ctrlKey: boolean | undefined;
+        metaKey: boolean | undefined;
+        shiftKey: boolean | undefined;
+        timeStamp: number;
+        type: string;
+        isDefaultPrevented(): boolean;
+        isImmediatePropagationStopped(): boolean;
+        isPropagationStopped(): boolean;
+        preventDefault(): void;
+        stopImmediatePropagation(): void;
+        stopPropagation(): void;
+    }
+
+    interface TriggeredEvent<
+        TDelegateTarget = any,
+        TData = any,
+        TCurrentTarget = any,
+        TTarget = any
+    > extends Event {
+        currentTarget: TCurrentTarget;
+        delegateTarget: TDelegateTarget;
+        target: TTarget;
+        data: TData;
+        namespace?: string | undefined;
+        originalEvent?: NativeEvent | undefined;
+        result?: any;
+    }
+
     type List<T> = ArrayLike<T>;
     type ListIterator<T, TResult> = (value: T, index: number, collection: List<T>) => TResult;
 
@@ -3394,7 +3465,7 @@ export namespace mvc {
      * DOM events (used in the events property of a View)
      */
     interface EventsHash {
-        [selector: string]: string | { (eventObject: JQuery.TriggeredEvent): void };
+        [selector: string]: string | { (eventObject: mvc.TriggeredEvent): void };
     }
 
     /**
@@ -3671,7 +3742,7 @@ export namespace mvc {
         events?: _Result<EventsHash> | undefined;
     }
 
-    type ViewBaseEventListener = (event: JQuery.Event) => void;
+    type ViewBaseEventListener = (event: mvc.Event) => void;
 
     class ViewBase<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> extends EventsMixin implements Events {
         /**
