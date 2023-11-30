@@ -75,7 +75,7 @@ function shapeWrapper(shapeConstructor, opt) {
     var cacheName = 'joint-shape';
     var resetOffset = opt && opt.resetOffset;
     return function(value, refBBox, node) {
-        var cache = $.data.read(node, cacheName);
+        var cache = $.data.get(node, cacheName);
         if (!cache || cache.value !== value) {
             // only recalculate if value has changed
             var cachedShape = shapeConstructor(value);
@@ -311,7 +311,7 @@ const attributesNS = {
         },
         set: function(text, refBBox, node, attrs) {
             const cacheName = 'joint-text';
-            const cache = $.data.read(node, cacheName);
+            const cache = $.data.get(node, cacheName);
             const {
                 lineHeight,
                 annotations,
@@ -435,7 +435,7 @@ const attributesNS = {
         },
         set: function(title, refBBox, node) {
             var cacheName = 'joint-title';
-            var cache = $.data.read(node, cacheName);
+            var cache = $.data.get(node, cacheName);
             if (cache === undefined || cache !== title) {
                 $.data.set(node, cacheName, title);
                 if (node.tagName === 'title') {

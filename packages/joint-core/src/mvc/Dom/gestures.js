@@ -11,7 +11,7 @@ if ($.event && !(DoubleTapEventName in $.event.special)) {
         delegateType: 'touchend',
         handle: function(event, ...args) {
             const { handleObj, target } = event;
-            const targetData  = $.data.get(target);
+            const targetData = $.data.create(target);
             const now = new Date().getTime();
             const delta = 'lastTouch' in targetData ? now - targetData.lastTouch : 0;
             if (delta < maxDelay && delta > minDelay) {

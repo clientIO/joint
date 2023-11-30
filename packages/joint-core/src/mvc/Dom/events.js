@@ -82,7 +82,7 @@ $.event = {
             return;
         }
 
-        const elemData = dataPriv.get(elem);
+        const elemData = dataPriv.create(elem);
 
         // Caller can pass in an object of custom data in lieu of the handler
         let handleObjIn;
@@ -186,7 +186,7 @@ $.event = {
     // Detach an event or set of events from an element
     remove: function(elem, types, handler, selector, mappedTypes) {
 
-        const elemData = dataPriv.read(elem);
+        const elemData = dataPriv.get(elem);
         if (!elemData || !elemData.events) return;
         const events = elemData.events;
 
@@ -276,7 +276,7 @@ $.event = {
         const args = Array.from(arguments);
         args[0] = event;
 
-        const eventsData = dataPriv.read(elem, 'events');
+        const eventsData = dataPriv.get(elem, 'events');
         const handlers = (eventsData && eventsData[event.type]) || [];
         const special = $.event.special[event.type];
 
