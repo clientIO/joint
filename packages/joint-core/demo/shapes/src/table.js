@@ -1,7 +1,7 @@
 var graph = new joint.dia.Graph;
 
 new joint.dia.Paper({
-    el: $('<div>').prependTo(document.body).css({ border: '1px solid gray' }),
+    el: joint.mvc.$('<div>').prependTo(document.body).css({ border: '1px solid gray' }),
     width: 1200,
     height: 550,
     gridSize: 40,

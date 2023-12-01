@@ -7,9 +7,6 @@ import * as graphlib from 'graphlib';
 
 // @ts-ignore
 const $ = mvc.$;
-$.fn.text = function(text: string) {
-    this[0].textContent = text; return this;
-};
 
 const $body = $('body');
 

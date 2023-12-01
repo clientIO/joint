@@ -1,7 +1,7 @@
 var graph = new joint.dia.Graph;
 
 new joint.dia.Paper({
-    el: $('#paper'),
+    el: document.getElementById('paper'),
     width: 1000,
     height: 600,
     gridSize: 10,

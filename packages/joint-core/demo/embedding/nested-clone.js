@@ -1,8 +1,12 @@
-var $info = $('<pre>').css({ position: 'fixed', top: 50, right: 100 }).appendTo(document.body);
+var infoEl = document.createElement('pre');
+infoEl.style.position = 'fixed';
+infoEl.style.top = '50px';
+infoEl.style.right = '100px';
+document.body.appendChild(infoEl);
 resetInfo();
 
 function resetInfo() {
-    $info.text('Hover over cells to see\nhow cloning and graph search works\non nested graphs.');
+    infoEl.innerHTML = 'Hover over cells to see\nhow cloning and graph search works\non nested graphs.';
 }
 
 function me(id, x, y, w, h, fill) {
@@ -86,7 +90,7 @@ paper.on('cell:mouseenter', function(cellView) {
     i[keyGetConnectedLinks] = joint.util.toArray(graph.getConnectedLinks(cell, { deep: true })).map(function(c) {
         return c.get('name');
     }).join(',');
-    $info.text(JSON.stringify(i, '\t', 4));
+    infoEl.innerHTML = JSON.stringify(i, '\t', 4);
     console.log(i);
 });
 

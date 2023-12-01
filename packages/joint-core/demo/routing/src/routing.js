@@ -1,3 +1,5 @@
+var $ = joint.mvc.$;
+
 var graph = new joint.dia.Graph();
 
 var paper = new joint.dia.Paper({

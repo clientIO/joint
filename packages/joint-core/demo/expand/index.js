@@ -287,6 +287,7 @@ paper.on('element:magnet:pointerclick', function(elementView, evt, magnet) {
     }
 });
 
+var $ = joint.mvc.$;
 $('<button/>').text('Show All').on('click', function() {
     graph.getCells().forEach(function(cell) {
         if (!cell.isVisible()) {

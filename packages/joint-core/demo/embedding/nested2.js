@@ -36,16 +36,18 @@ parent.embed(child);
 parent.embed(child2);
 graph.addCells([parent, child, child2, link, link2]);
 
-$('#button').click(function() {
-    switch ($('#button').text().split(' ')[0]) {
+const buttonEl = document.getElementById('button');
+buttonEl.addEventListener('click', function(event) {
+    switch (buttonEl.textContent.split(' ')[0]) {
         case 'embed':
             parent.embed(link);
             parent.embed(link2);
-            $('#button').text('unembed links');
+            buttonEl.textContent = 'unembed links';
             break;
         case 'unembed':
             parent.unembed(link);
             parent.unembed(link2);
-            $('#button').text('embed links');
+            buttonEl.textContent = 'embed links';
     }
+
 });
