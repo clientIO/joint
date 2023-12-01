@@ -63,7 +63,7 @@ graph.addCell(rh);
 var tbl = new joint.shapes.basic.TextBlock({
     position: { x: 400, y: 150 },
     size: { width: 180, height: 100 },
-    content: 'Lorem ipsum dolor <b onclick="alert(\'ahoj\')">test</b> sit amet,\n consectetur adipiscing elit. Nulla vel porttitor est.'
+    content: 'Lorem ipsum dolor sit amet,\n consectetur adipiscing elit. Nulla vel porttitor est.'
 });
 graph.addCell(tbl);
 
