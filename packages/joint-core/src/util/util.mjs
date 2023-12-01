@@ -104,8 +104,7 @@ export const parseDOMJSON = function(json, namespace) {
             node = document.createElementNS(ns, tagName);
             const svg = (ns === svgNamespace);
 
-            const wrapper = (svg) ? V : $;
-            const wrapperNode = wrapper(node);
+            const wrapperNode = (svg) ? V(node) : $(node);
             // Attributes
             const attributes = nodeDef.attributes;
             if (attributes) wrapperNode.attr(attributes);
@@ -864,26 +863,21 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 export const sanitizeHTML = function(html) {
 
     // Ignores tags that are invalid inside a <div> tag (e.g. <body>, <head>)
-    var $output = $($.parseHTML('<div>' + html + '</div>'));
+    const [outputEl] = $.parseHTML('<div>' + html + '</div>');
 
-    $output.find('*').each(function() { // for all nodes
-        var currentNode = this;
-
-        $.each(currentNode.attributes, function() { // for all attributes in each node
-            var currentAttribute = this;
-
-            var attrName = currentAttribute.name;
-            var attrValue = currentAttribute.value;
-
+    Array.from(outputEl.getElementsByTagName('*')).forEach(function(node) { // for all nodes
+        const names = node.getAttributeNames();
+        names.forEach(function(name) {
+            const value = node.getAttribute(name);
             // Remove attribute names that start with "on" (e.g. onload, onerror...).
             // Remove attribute values that start with "javascript:" pseudo protocol (e.g. `href="javascript:alert(1)"`).
-            if (attrName.startsWith('on') || attrValue.startsWith('javascript:') || attrValue.startsWith('data:') || attrValue.startsWith('vbscript:')) {
-                $(currentNode).removeAttr(attrName);
+            if (name.startsWith('on') || value.startsWith('javascript:' || value.startsWith('data:') || value.startsWith('vbscript:'))) {
+                node.removeAttribute(name);
             }
         });
     });
 
-    return $output[0].innerHTML;
+    return outputEl.innerHTML;
 };
 
 // Download `blob` as file with `fileName`.

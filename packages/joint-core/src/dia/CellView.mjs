@@ -529,7 +529,7 @@ export const CellView = View.extend({
             if (node instanceof SVGElement) {
                 V(node).attr(attrs);
             } else {
-                Object.keys(attrs).forEach(key => node.setAttribute(key, attrs[key]));
+                $(node).attr(attrs);
             }
         }
     },

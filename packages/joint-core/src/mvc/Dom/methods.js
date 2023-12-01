@@ -28,6 +28,8 @@ $.fn.empty = function() {
 
 $.fn.html = function(html) {
     const [el] = this;
+    if (!el) return null;
+    if (!html) return el.innerHTML;
     cleanNodesData(dataPriv, el.getElementsByTagName('*'));
     if (typeof string === 'string') {
         el.innerHTML = html;

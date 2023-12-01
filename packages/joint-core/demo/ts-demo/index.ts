@@ -1,10 +1,15 @@
 import * as joint from './vendor/joint';
 import './custom';
-import { V, g } from './vendor/joint';
-import * as $ from 'jquery';
+import { V, g, mvc } from './vendor/joint';
 import { MyShape } from './shape';
 import * as dagre from 'dagre';
 import * as graphlib from 'graphlib';
+
+// @ts-ignore
+const $ = mvc.$;
+$.fn.text = function(text: string) {
+    this[0].textContent = text; return this;
+};
 
 const $body = $('body');
 

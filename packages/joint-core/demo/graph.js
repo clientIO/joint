@@ -1,6 +1,6 @@
 // Helpers.
 // --------
-
+var $ = joint.mvc.$;
 var $info = $('<pre>').css({
     position: 'fixed',
     top: 50,

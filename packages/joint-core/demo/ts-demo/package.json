@@ -17,9 +17,7 @@
   },
   "dependencies": {
     "dagre": "~0.8.5",
-    "graphlib": "~2.1.8",
-    "jquery": "~3.6.4",
-    "lodash": "~4.17.21"
+    "graphlib": "~2.1.8"
   },
   "devDependencies": {
     "@types/dagre": "~0.7.47",

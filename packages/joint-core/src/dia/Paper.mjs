@@ -2598,7 +2598,7 @@ export const Paper = View.extend({
             return false;
         }
 
-        if (this.svg === target || this.el === target || $.contains(this.svg, target)) {
+        if (this.el === target || this.svg.contains(target)) {
             return false;
         }
 

@@ -1133,9 +1133,6 @@ export const LinkView = CellView.extend({
 
         if (!this._V.markerArrowheads) return this;
 
-        // getting bbox of an element with `display="none"` in IE9 ends up with access violation
-        // if ($.css(this._V.markerArrowheads.node, 'display') === 'none') return this;
-
         var sx = this.getConnectionLength() < this.options.shortLinkLength ? .5 : 1;
         this._V.sourceArrowhead.scale(sx);
         this._V.targetArrowhead.scale(sx);

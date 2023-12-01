@@ -107,10 +107,7 @@ export const View = ViewBase.extend({
     },
 
     _setStyle: function(style) {
-        if (!style) return;
-        for (var name in style) {
-            this.el.style[name] = style[name];
-        }
+        this.$el.css(style);
     },
 
     _createElement: function(tagName) {

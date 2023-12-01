@@ -59,7 +59,7 @@ $.parseHTML = function(string) {
     for (let i = 0; i < scripts.length; i++) {
         scripts[i].remove();
     }
-    return Array.from(context.body.children);
+    return Array.from(context.body.childNodes);
 };
 
 if (typeof Symbol === 'function') {
