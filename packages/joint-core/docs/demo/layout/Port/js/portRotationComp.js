@@ -40,7 +40,11 @@ var g6 = new joint.shapes.basic.Circle({
     }
 });
 
-_.times(36, function(index) {
+function times(n, cb) {
+    Array.from({ length: n }).forEach((_, i) => cb(i));
+}
+
+times(36, function(index) {
     g6.addPort({ group: 'a', id: index + '', attrs: { text: { text: index }}});
 });
 
@@ -55,6 +59,8 @@ paper6.on('cell:pointerclick', function(cellView, e) {
     cellView.model.prop('attrs/text/text', 'compensateRotation: ' + !current);
     cellView.model.prop('ports/groups/a/position/args/compensateRotation', !current);
 });
+
+var $ = joint.mvc.$;
 
 $('<b/>').text('Click on Element to toggle port rotation compensation').appendTo('body');
 $('<br/>').appendTo('body');

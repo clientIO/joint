@@ -38,8 +38,11 @@ var g3 = new joint.shapes.basic.Circle({
     }
 });
 
+function times(n, cb) {
+    Array.from({ length: n }).forEach((_, i) => cb(i));
+}
 
-_.times(10, function(index) {
+times(10, function(index) {
     g3.addPort({ attrs: { text: { text: 'L ' + index }}, group: 'a' });
 });
 
@@ -84,7 +87,7 @@ var g33 = new joint.shapes.basic.Rect({
     }
 });
 
-_.times(3, function(index) {
+times(3, function(index) {
     g33.addPort({ attrs: { text: { text: 'L' + index }, circle: { magnet: true }}, group: 'a' });
 });
 
@@ -118,8 +121,9 @@ g33.addPort({
 paper3.model.addCell(g3);
 paper3.model.addCell(g33);
 
-$('<b/>').text('Click on Ellipse or Rectangle to toggle label position alignment').appendTo('body');
-$('<div/>').html('&nbsp;').appendTo('body');
+var b = document.createElement('b');
+b.textContent = 'Click on Rectangle or Ellipse to toggle port positions alignment';
+document.body.appendChild(b);
 
 var labelPos = {
     'basic.Rect': 0,
