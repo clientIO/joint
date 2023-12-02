@@ -1,11 +1,9 @@
 import { default as $ } from './Dom.mjs';
-import { dataUser } from './vars.mjs';
+import * as methods from './methods.mjs';
+import { special } from './events.mjs';
 
-import './methods.js';
-import './events.js';
-import './gestures.js';
-
-$.data = dataUser;
+Object.assign($.fn, methods);
+Object.assign($.event.special, special);
 
 export default $;
 

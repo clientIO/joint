@@ -131,7 +131,7 @@ export const HoverConnect = Connect.extend({
     canShowButton() {
         // Has been the paper events undelegated? If so, we can't show the button.
         // TODO: add a method to the paper to check if the events are delegated.
-        return $._data(this.paper.el, 'events');
+        return $.event.has(this.paper.el);
     },
 
     showButton() {

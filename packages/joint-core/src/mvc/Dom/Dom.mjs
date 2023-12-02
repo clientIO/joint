@@ -10,13 +10,21 @@
  * Date: 2023-11-24T14:04Z
  */
 
-import { uniq } from '../../util/utilHelpers.mjs';
+import { uniq, isEmpty } from '../../util/utilHelpers.mjs';
+import { dataPriv, dataUser } from './vars.mjs';
+import { Event } from './Event.mjs';
 
 if (!window.document) {
     throw new Error('$ requires a window with a document');
 }
 
 const document = window.document;
+const rTypeNamespace = /^([^.]*)(?:\.(.+)|)/;
+const documentElement = document.documentElement;
+// Only count HTML whitespace
+// Other whitespace should count in values
+// https://infra.spec.whatwg.org/#ascii-whitespace
+const rNotHtmlWhite = /[^\x20\t\r\n\f]+/g;
 
 // Define a local copy of $
 const $ = function(selector) {
@@ -33,6 +41,9 @@ $.fn = $.prototype = {
 
 // A global GUID counter for objects
 $.guid = 1;
+
+// User data storage
+$.data = dataUser;
 
 $.merge = function(first, second) {
     let len = +second.length;
@@ -182,6 +193,382 @@ $.Dom = Dom;
 
 // Give the init function the $ prototype for later instantiation
 Dom.prototype = $.fn;
+
+// Events
+
+$.Event = Event;
+
+$.event = {
+    special: Object.create(null),
+};
+
+$.event.has = function(elem) {
+    return dataPriv.has(elem, 'events');
+};
+
+$.event.on = function(elem, types, selector, data, fn, one) {
+
+    // Types can be a map of types/handlers
+    if (typeof types === 'object') {
+        // ( types-Object, selector, data )
+        if (typeof selector !== 'string') {
+            // ( types-Object, data )
+            data = data || selector;
+            selector = undefined;
+        }
+        for (let type in types) {
+            $.event.on(elem, type, selector, data, types[type], one);
+        }
+        return elem;
+    }
+
+    if (data == null && fn == null) {
+        // ( types, fn )
+        fn = selector;
+        data = selector = undefined;
+    } else if (fn == null) {
+        if (typeof selector === 'string') {
+            // ( types, selector, fn )
+            fn = data;
+            data = undefined;
+        } else {
+            // ( types, data, fn )
+            fn = data;
+            data = selector;
+            selector = undefined;
+        }
+    }
+    if (!fn) {
+        return elem;
+    }
+    if (one === 1) {
+        const origFn = fn;
+        fn = function(event) {
+            // Can use an empty set, since event contains the info
+            $().off(event);
+            return origFn.apply(this, arguments);
+        };
+
+        // Use same guid so caller can remove using origFn
+        fn.guid = origFn.guid || (origFn.guid = $.guid++);
+    }
+    for (let i = 0; i < elem.length; i++) {
+        $.event.add(elem[i], types, fn, data, selector);
+    }
+};
+
+$.event.add = function(elem, types, handler, data, selector) {
+    // Only attach events to objects for which we can store data
+    if (typeof elem != 'object') {
+        return;
+    }
+
+    const elemData = dataPriv.create(elem);
+
+    // Caller can pass in an object of custom data in lieu of the handler
+    let handleObjIn;
+    if (handler.handler) {
+        handleObjIn = handler;
+        handler = handleObjIn.handler;
+        selector = handleObjIn.selector;
+    }
+
+    // Ensure that invalid selectors throw exceptions at attach time
+    // Evaluate against documentElement in case elem is a non-element node (e.g., document)
+    if (selector) {
+        documentElement.matches(selector);
+    }
+
+    // Make sure that the handler has a unique ID, used to find/remove it later
+    if (!handler.guid) {
+        handler.guid = $.guid++;
+    }
+
+    // Init the element's event structure and main handler, if this is the first
+    let events;
+    if (!(events = elemData.events)) {
+        events = elemData.events = Object.create(null);
+    }
+    let eventHandle;
+    if (!(eventHandle = elemData.handle)) {
+        eventHandle = elemData.handle = function(e) {
+            // Discard the second event of a $.event.trigger() and
+            // when an event is called after a page has unloaded
+            return (typeof $ !== 'undefined')
+                ? $.event.dispatch.apply(elem, arguments)
+                : undefined;
+        };
+    }
+
+    // Handle multiple events separated by a space
+    const typesArr = (types || '').match(rNotHtmlWhite) || [''];
+    let i = typesArr.length;
+    while (i--) {
+        const [, origType, ns = ''] = rTypeNamespace.exec(typesArr[i]);
+        // There *must* be a type, no attaching namespace-only handlers
+        if (!origType) {
+            continue;
+        }
+
+        const namespaces = ns.split('.').sort();
+        // If event changes its type, use the special event handlers for the changed type
+        let special = $.event.special[origType];
+        // If selector defined, determine special event api type, otherwise given type
+        const type = (special && (selector ? special.delegateType : special.bindType)) || origType;
+        // Update special based on newly reset type
+        special = $.event.special[type];
+        // handleObj is passed to all event handlers
+        const handleObj = Object.assign(
+            {
+                type: type,
+                origType: origType,
+                data: data,
+                handler: handler,
+                guid: handler.guid,
+                selector: selector,
+                namespace: namespaces.join('.'),
+            },
+            handleObjIn
+        );
+
+        let handlers;
+        // Init the event handler queue if we're the first
+        if (!(handlers = events[type])) {
+            handlers = events[type] = [];
+            handlers.delegateCount = 0;
+
+            // Only use addEventListener if the special events handler returns false
+            if (
+                !special || !special.setup ||
+                    special.setup.call(elem, data, namespaces, eventHandle) === false
+            ) {
+                if (elem.addEventListener) {
+                    elem.addEventListener(type, eventHandle);
+                }
+            }
+        }
+
+        if (special && special.add) {
+            special.add.call(elem, handleObj);
+            if (!handleObj.handler.guid) {
+                handleObj.handler.guid = handler.guid;
+            }
+        }
+
+        // Add to the element's handler list, delegates in front
+        if (selector) {
+            handlers.splice(handlers.delegateCount++, 0, handleObj);
+        } else {
+            handlers.push(handleObj);
+        }
+    }
+};
+
+// Detach an event or set of events from an element
+$.event.remove = function(elem, types, handler, selector, mappedTypes) {
+
+    const elemData = dataPriv.get(elem);
+    if (!elemData || !elemData.events) return;
+    const events = elemData.events;
+
+    // Once for each type.namespace in types; type may be omitted
+    const typesArr = (types || '').match(rNotHtmlWhite) || [''];
+    let i = typesArr.length;
+    while (i--) {
+        const [, origType, ns = ''] = rTypeNamespace.exec(typesArr[i]);
+        // Unbind all events (on this namespace, if provided) for the element
+        if (!origType) {
+            for (const type in events) {
+                $.event.remove(
+                    elem,
+                    type + typesArr[i],
+                    handler,
+                    selector,
+                    true
+                );
+            }
+            continue;
+        }
+
+        const special = $.event.special[origType];
+        const type = (special && (selector ? special.delegateType : special.bindType)) || origType;
+        const handlers = events[type];
+        if (!handlers || handlers.length === 0) continue;
+
+        const namespaces = ns.split('.').sort();
+        const rNamespace = ns
+            ? new RegExp('(^|\\.)' + namespaces.join('\\.(?:.*\\.|)') + '(\\.|$)')
+            : null;
+
+        // Remove matching events
+        const origCount = handlers.length;
+        let j = origCount;
+        while (j--) {
+            const handleObj = handlers[j];
+
+            if (
+                (mappedTypes || origType === handleObj.origType) &&
+                    (!handler || handler.guid === handleObj.guid) &&
+                    (!rNamespace || rNamespace.test(handleObj.namespace)) &&
+                    (!selector ||
+                        selector === handleObj.selector ||
+                        (selector === '**' && handleObj.selector))
+            ) {
+                handlers.splice(j, 1);
+                if (handleObj.selector) {
+                    handlers.delegateCount--;
+                }
+                if (special && special.remove) {
+                    special.remove.call(elem, handleObj);
+                }
+            }
+        }
+
+        // Remove generic event handler if we removed something and no more handlers exist
+        // (avoids potential for endless recursion during removal of special event handlers)
+        if (origCount && handlers.length === 0) {
+            if (
+                !special || !special.teardown ||
+                    special.teardown.call(elem, namespaces, elemData.handle) === false
+            ) {
+                // This "if" is needed for plain objects
+                if (elem.removeEventListener) {
+                    elem.removeEventListener(type, elemData.handle);
+                }
+            }
+            delete events[type];
+        }
+    }
+
+    // Remove data if it's no longer used
+    if (isEmpty(events)) {
+        dataPriv.remove(elem, 'handle');
+        dataPriv.remove(elem, 'events');
+    }
+};
+
+$.event.dispatch = function(nativeEvent) {
+
+    const elem = this;
+    // Make a writable $.Event from the native event object
+    const event = $.event.fix(nativeEvent);
+    event.delegateTarget = elem;
+    // Use the fix-ed $.Event rather than the (read-only) native event
+    const args = Array.from(arguments);
+    args[0] = event;
+
+    const eventsData = dataPriv.get(elem, 'events');
+    const handlers = (eventsData && eventsData[event.type]) || [];
+    const special = $.event.special[event.type];
+
+    // Call the preDispatch hook for the mapped type, and let it bail if desired
+    if (special && special.preDispatch) {
+        if (special.preDispatch.call(elem, event) === false) return;
+    }
+
+    // Determine handlers
+    const handlerQueue = $.event.handlers.call(elem, event, handlers);
+
+    // Run delegates first; they may want to stop propagation beneath us
+    let i = 0;
+    let matched;
+    while ((matched = handlerQueue[i++]) && !event.isPropagationStopped()) {
+        event.currentTarget = matched.elem;
+        let j = 0;
+        let handleObj;
+        while (
+            (handleObj = matched.handlers[j++]) &&
+                !event.isImmediatePropagationStopped()
+        ) {
+
+            event.handleObj = handleObj;
+            event.data = handleObj.data;
+
+            const origSpecial = $.event.special[handleObj.origType];
+            let handler;
+            if (origSpecial && origSpecial.handle) {
+                handler = origSpecial.handle;
+            } else {
+                handler = handleObj.handler;
+            }
+
+            const ret = handler.apply(matched.elem, args);
+            if (ret !== undefined) {
+                if ((event.result = ret) === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            }
+        }
+    }
+
+    // Call the postDispatch hook for the mapped type
+    if (special && special.postDispatch) {
+        special.postDispatch.call(elem, event);
+    }
+
+    return event.result;
+},
+
+$.event.handlers = function(event, handlers) {
+
+    const delegateCount = handlers.delegateCount;
+    const handlerQueue = [];
+
+    // Find delegate handlers
+    if (
+        delegateCount &&
+            // Support: Firefox <=42 - 66+
+            // Suppress spec-violating clicks indicating a non-primary pointer button (trac-3861)
+            // https://www.w3.org/TR/DOM-Level-3-Events/#event-type-click
+            // Support: IE 11+
+            // ...but not arrow key "clicks" of radio inputs, which can have `button` -1 (gh-2343)
+            !(event.type === 'click' && event.button >= 1)
+    ) {
+        for (let cur = event.target; cur !== this; cur = cur.parentNode || this) {
+            // Don't check non-elements (trac-13208)
+            // Don't process clicks on disabled elements (trac-6911, trac-8165, trac-11382, trac-11764)
+            if (
+                cur.nodeType === 1 &&
+                    !(event.type === 'click' && cur.disabled === true)
+            ) {
+                const matchedHandlers = [];
+                const matchedSelectors = {};
+                for (let i = 0; i < delegateCount; i++) {
+                    const handleObj = handlers[i];
+                    // Don't conflict with Object.prototype properties (trac-13203)
+                    const sel = handleObj.selector + ' ';
+                    if (matchedSelectors[sel] === undefined) {
+                        matchedSelectors[sel] = cur.matches(sel);
+                    }
+                    if (matchedSelectors[sel]) {
+                        matchedHandlers.push(handleObj);
+                    }
+                }
+                if (matchedHandlers.length) {
+                    handlerQueue.push({
+                        elem: cur,
+                        handlers: matchedHandlers,
+                    });
+                }
+            }
+        }
+    }
+
+    // Add the remaining (directly-bound) handlers
+    if (delegateCount < handlers.length) {
+        handlerQueue.push({
+            elem: this,
+            handlers: handlers.slice(delegateCount),
+        });
+    }
+
+    return handlerQueue;
+};
+
+$.event.fix = function(originalEvent) {
+    return originalEvent.envelope ? originalEvent : new Event(originalEvent);
+};
 
 // A central reference to the root $(document)
 const $root = $(document);
