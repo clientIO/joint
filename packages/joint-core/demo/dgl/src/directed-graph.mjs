@@ -1,6 +1,15 @@
 import * as dagre from 'dagre';
 import * as joint from '../../../joint.mjs';
 
+joint.mvc.$.fn.val = function(val) {
+    const [el] = this;
+    if (!el) return null;
+    if (val === undefined) {
+        return el.value;
+    }
+    return el.value = val;
+};
+
 var Shape = joint.dia.Element.define('demo.Shape', {
     z: 2,
     size: {

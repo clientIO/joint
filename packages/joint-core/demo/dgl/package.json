@@ -15,10 +15,6 @@
     "build": "webpack --config webpack.config.js",
     "start": "webpack serve --config webpack.config.js"
   },
-  "dependencies": {
-    "jquery": "~3.5.1",
-    "lodash": "~4.17.20"
-  },
   "devDependencies": {
     "@babel/core": "7.10.4",
     "@babel/preset-env": "7.10.4",
@@ -26,7 +22,6 @@
     "copy-webpack-plugin": "5.1.1",
     "core-js": "3.6.1",
     "css-loader": "3.5.3",
-    "elkjs": "0.6.2",
     "file-loader": "6.0.0",
     "regenerator-runtime": "0.13.5",
     "sass": "1.26.8",
