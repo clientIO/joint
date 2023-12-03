@@ -1426,6 +1426,14 @@ QUnit.module('util', function(hooks) {
         });
     });
 
+    QUnit.test('sanitizeHTML', function(assert) {
+
+        assert.equal(joint.util.sanitizeHTML('<html><body><p>Hello</p></body></html>'), '<p>Hello</p>');
+        assert.equal(joint.util.sanitizeHTML('<p>Hello</p><script>alert("Hacked");</script>'), '<p>Hello</p>');
+        assert.equal(joint.util.sanitizeHTML('<p>Hello</p><img onload="alert(&quot;Hacked&quot;);">'), '<p>Hello</p><img>');
+        assert.equal(joint.util.sanitizeHTML('<p>Hello</p><img src="javascript:alert(&quot;Hacked&quot;);">'), '<p>Hello</p><img>');
+    });
+
     QUnit.test('getRectPoint', function(assert) {
 
         var x = 7;

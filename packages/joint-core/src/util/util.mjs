@@ -1076,8 +1076,8 @@ export const getElementBBox = function(el) {
 // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
 export const sortElements = function(elements, comparator) {
 
-    var $elements = $(elements);
-    var placements = $elements.toArray().map(function(sortElement) {
+    elements = $(elements).toArray();
+    var placements = elements.map(function(sortElement) {
 
         var parentNode = sortElement.parentNode;
         // Since the element itself will change position, we have
@@ -1098,11 +1098,11 @@ export const sortElements = function(elements, comparator) {
         };
     });
 
-    Array.prototype.sort.call($elements, comparator);
+    elements.sort(comparator);
     for (var i = 0; i < placements.length; i++) {
-        placements[i].call($elements[i]);
+        placements[i].call(elements[i]);
     }
-    return $elements;
+    return elements;
 };
 
 // Sets attributes on the given element and its descendants based on the selector.

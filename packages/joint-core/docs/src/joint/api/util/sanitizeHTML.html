@@ -3,7 +3,7 @@
 
 <ul>
     <li>Wrap the provided HTML inside a <code>&lt;div&gt;</code> tag. This will remove tags that are invalid in that context (e.g. <code>&lt;body&gt;</code> and <code>&lt;head&gt;</code>).</li>
-    <li>Parse the provided HTML in a new document context (using <code>jQuery.parseHTML()</code>). This prevents inline events from firing and also prevents image GET requests from being sent.</li>
+    <li>Parse the provided HTML in a new document context. This prevents inline events from firing and also prevents image GET requests from being sent.</li>
     <li>Discard all <code>&lt;script&gt;</code> tags.</li>
     <li>Iterate through all DOM nodes and remove all <code>on...</code> attributes (e.g. <code>onload</code>, <code>onerror</code>).</li>
     <li>Iterate through all attributes of the nodes and remove all that use the <code>javascript:</code> pseudo-protocol as value.</li>
