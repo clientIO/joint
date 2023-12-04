@@ -88,9 +88,11 @@
 
     function normalizeCssAttr(name, value) {
 
-        var $tmpEl = joint.mvc.$('<div/>').appendTo($('body'));
-        var normalizedValue = $tmpEl.css(name, value).css(name);
-        $tmpEl.remove();
+        var tmpEl = document.createElement('div');
+        document.body.appendChild(tmpEl);
+        tmpEl.style[name] = value;
+        var normalizedValue = tmpEl.style[name];
+        document.body.removeChild(tmpEl);
         return normalizedValue;
     }
 
