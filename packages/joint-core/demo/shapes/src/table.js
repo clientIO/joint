@@ -1,7 +1,11 @@
 var graph = new joint.dia.Graph;
 
+var div = document.createElement('div');
+div.style.border = '1px solid black';
+document.body.appendChild(div);
+
 new joint.dia.Paper({
-    el: joint.mvc.$('<div>').prependTo(document.body).css({ border: '1px solid gray' }),
+    el: div,
     width: 1200,
     height: 550,
     gridSize: 40,

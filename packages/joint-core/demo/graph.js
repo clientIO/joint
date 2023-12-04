@@ -1,19 +1,18 @@
 // Helpers.
 // --------
-var $ = joint.mvc.$;
-var $info = $('<pre>').css({
-    position: 'fixed',
-    top: 50,
-    right: 100
-});
-$(document.body).append($info);
+
+const infoEl = document.createElement('pre');
+infoEl.style.position = 'fixed';
+infoEl.style.top = '50px';
+infoEl.style.right = '100px';
+document.body.appendChild(infoEl);
 
 function pluck(array, attribute) {
     return array.map(function(item) { return item[attribute]; });
 }
 
 function clear() {
-    $info.text('');
+    infoEl.innerHTML = '';
 }
 
 function info(view) {
@@ -52,7 +51,7 @@ function info(view) {
             bfsDistance: bfsDistance
         };
 
-        $info.text(JSON.stringify(i, '\t', 4));
+        infoEl.innerHTML = JSON.stringify(i, '\t', 4);
     }
 }
 
