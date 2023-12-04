@@ -536,15 +536,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jquery@npm:~3.5.22":
-  version: 3.5.27
-  resolution: "@types/jquery@npm:3.5.27"
-  dependencies:
-    "@types/sizzle": "*"
-  checksum: a217d3dbf134134e1b1e10bb0a197523eb362d8e2aa2ae2ad909ae8db0d625f5784203a0794a498b7a09e495ae7822512b3112440cc96b8374eda4afc33b0d6e
-  languageName: node
-  linkType: hard
-
 "@types/json-schema@npm:*, @types/json-schema@npm:^7.0.5, @types/json-schema@npm:^7.0.8":
   version: 7.0.12
   resolution: "@types/json-schema@npm:7.0.12"
@@ -563,13 +554,6 @@ __metadata:
   version: 4.14.191
   resolution: "@types/lodash@npm:4.14.191"
   checksum: ba0d5434e10690869f32d5ea49095250157cae502f10d57de0a723fd72229ce6c6a4979576f0f13e0aa9fbe3ce2457bfb9fa7d4ec3d6daba56730a51906d1491
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:~4.14.199":
-  version: 4.14.201
-  resolution: "@types/lodash@npm:4.14.201"
-  checksum: 484be655298e9b2dc2d218ea934071b2ea31e4a531c561dd220dbda65237e8d08c20dc2d457ac24f29be7fe167415bf7bb9360ea0d80bdb8b0f0ec8d8db92fae
   languageName: node
   linkType: hard
 
@@ -6927,8 +6911,6 @@ __metadata:
   dependencies:
     "@types/dagre": ~0.7.50
     "@types/graphlib": ~2.1.9
-    "@types/jquery": ~3.5.22
-    "@types/lodash": ~4.14.199
     "@typescript-eslint/eslint-plugin": 5.48.1
     "@typescript-eslint/parser": 5.48.1
     async: 2.6.1

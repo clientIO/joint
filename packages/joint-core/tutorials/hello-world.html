@@ -9,10 +9,6 @@
         <link rel="stylesheet" href="../node_modules/prism-themes/themes/prism-one-light.css">
         <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css">
 
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
-
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
@@ -21,11 +17,6 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
         <div class="tutorial">
 
             <h1>Hello world!</h1>
@@ -40,16 +31,14 @@
             <pre class="line-numbers"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
-    &lt;link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.5.5/joint.css" /&gt;
+    &lt;link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/4.0.0/joint.css" /&gt;
 &lt;/head&gt;
 &lt;body&gt;
     &lt;!-- content --&gt;
     &lt;div id="myholder"&gt;&lt;/div&gt;
 
     &lt;!-- dependencies --&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.5.5/joint.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jointjs/4.0.0/joint.js"&gt;&lt;/script&gt;
 
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;

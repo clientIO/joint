@@ -8,11 +8,6 @@
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prism-themes/themes/prism-one-light.css">
 
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
-
-
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
@@ -21,18 +16,12 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
-
         <div id="custom-elements" class="tutorial">
 
             <h1>Custom Links</h1>
 
             <p><i>
-                This is the fifth article of the intermediate section of the JointJS tutorial. Return to 
+                This is the fifth article of the intermediate section of the JointJS tutorial. Return to
                 <a href="custom-elements.html">custom elements</a>. See <a href="intermediate.html">index</a>
                 of basic and intermediate articles.
             </i></p>
@@ -146,17 +135,17 @@ joint.dia.Link.define('standard.Link', {
         // Markup
     }]
 });</code></pre>
-    
+
             <p>
-                By default, JointJS reads cell definitions from the <code>joint.shapes</code> namespace. If for some reason you would like to change this behaviour, 
-                it is possible to do so. We can achieve this by combining the <code>cellNamespace</code> and <code>cellViewNamespace</code> options which can be found 
+                By default, JointJS reads cell definitions from the <code>joint.shapes</code> namespace. If for some reason you would like to change this behaviour,
+                it is possible to do so. We can achieve this by combining the <code>cellNamespace</code> and <code>cellViewNamespace</code> options which can be found
                 on graph and paper respectively. Let's see how that might look.
             </p>
 
 <pre><code>var customNamespace = {};
 
 var graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
-    
+
 new joint.dia.Paper({
     el: document.getElementById('paper-custom-links-namespace'),
     model: graph,
@@ -181,9 +170,9 @@ Object.assign(customNamespace, {
     }
 });
 
-graph.fromJSON({ 
+graph.fromJSON({
     cells: [
-        { 
+        {
             "type": "shapeGroup.Link",
             "source": { "x": 100, "y": 50 },
             "target": { "x": 500, "y": 50 }
@@ -200,9 +189,9 @@ graph.getLinks()[0].appendLabel({
 });</code></pre>
 
             <p>
-                As you can see, <code>type</code> is very important, especially if you want to import a graph from JSON. 
+                As you can see, <code>type</code> is very important, especially if you want to import a graph from JSON.
                 In the example above, <code>graph</code> looks at the <code>customNamespace.shapeGroup.Link</code> path to find the correct constructor.
-                If we were to use the incorrect type in <code>graph.fromJSON()</code>, that would mean graph is unable to find the correct constructor, 
+                If we were to use the incorrect type in <code>graph.fromJSON()</code>, that would mean graph is unable to find the correct constructor,
                 and we wouldn't see our custom link.
             </p>
 

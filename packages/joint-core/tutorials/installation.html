@@ -10,10 +10,6 @@
         <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css">
         <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.css">
 
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
-
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
@@ -22,11 +18,6 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
         <div class="tutorial">
 
             <h1>Installation</h1>
@@ -39,30 +30,28 @@
             <p>In this section, we will learn how to install JointJS and include it on our page.</p>
 
             <p>
-                For your JointJS application to run, the JointJS library and its dependencies have to be included in the
+                For your JointJS application to run, the JointJS library have to be included in the
                 source HTML of your page.
-                Our initial example used a CDN to link to the required source files for JointJS, jQuery, and Lodash:
+                Our initial example used a CDN to link to the required source files for JointJS:
             </p>
 
-            <pre class="line-numbers" data-line="4,11-14"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="4,11"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
-    &lt;link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.4.4/joint.css" /&gt;
+    &lt;link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/4.0.0/joint.css" /&gt;
 &lt;/head&gt;
 &lt;body&gt;
     &lt;!-- content --&gt;
     &lt;div id="myholder"&gt;&lt;/div&gt;
 
     &lt;!-- dependencies --&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.4.4/joint.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jointjs/4.0.0/joint.js"&gt;&lt;/script&gt;
 
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;
-                
+
         var namespace = joint.shapes;
-                
+
         var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
@@ -112,7 +101,7 @@
                 <code>node_modules</code> folder.
                 The code segment would then look like the following (this is the form used in JointJS demos):</p>
 
-            <pre class="line-numbers" data-line="4,11-14"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="4,11"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -122,8 +111,6 @@
     &lt;div id="myholder"&gt;&lt;/div&gt;
 
     &lt;!-- dependencies --&gt;
-    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
-    &lt;script src="node_modules/lodash/lodash.js"&gt;&lt;/script&gt;
     &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
 
     &lt;!-- code --&gt;

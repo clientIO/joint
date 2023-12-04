@@ -8,10 +8,6 @@
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prism-themes/themes/prism-one-light.css">
 
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
-
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
@@ -19,12 +15,6 @@
 
     </head>
     <body class="language-javascript tutorial-page">
-
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
 
         <h1>Tutorials</h1>
 
@@ -37,8 +27,6 @@
                 makes it easy to plug JointJS into your backend application.
                 JointJS is not trying to reinvent the wheel for technologies that are commonly used by web
                 developers; things that you learn with JointJS will be useful to you elsewhere.
-                JointJS is an MVC library and makes use of <a href="https://jquery.com" target="_blank">jQuery</a> and
-                <a href="https://lodash.com" target="_blank">Lodash</a>.</p>
 
             <p>A diagram in JointJS is represented by a Graph model (<code>joint.dia.Graph</code>) to which you add
                 models of cells - either Elements (subtypes of <code>joint.dia.Element</code>) or Links (subtypes of
@@ -61,7 +49,7 @@
                 additional shapes (BPMN diagrams).</p>
 
             <p>
-                Let's learn how create great diagrams with JointJS. We will start by examining a simple 
+                Let's learn how create great diagrams with JointJS. We will start by examining a simple
                 <a href="hello-world.html">Hello, World!</a> application together.
             </p>
 

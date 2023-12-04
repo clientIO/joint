@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-    
+
         <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
         <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
 
@@ -10,10 +10,6 @@
         <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css">
         <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.css">
 
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
-
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
@@ -21,12 +17,6 @@
 
     </head>
     <body class="language-javascript tutorial-page">
-
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
 
         <div class="tutorial">
 
@@ -47,7 +37,7 @@
                 <a href="custom-elements.html">more advanced topics are covered later in the tutorial series</a>.
                 We will continue with the code we modified in the previous section:</p>
 
-            <pre class="line-numbers" data-line="36-48,50-53"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="33-45,47-50"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -57,8 +47,6 @@
     &lt;div id="myholder"&gt;&lt;/div&gt;
 
     &lt;!-- dependencies --&gt;
-    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
-    &lt;script src="node_modules/lodash/lodash.js"&gt;&lt;/script&gt;
     &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
 
     &lt;!-- code --&gt;
@@ -234,7 +222,7 @@
 
             <div class="paper" id="paper-elements"></div>
 
-            <pre class="line-numbers" data-line="36-48,50-68,75-92,94-108,115-129,131-150" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="32-45,47-65,72-89,91-105,112-126,128-147" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -244,8 +232,6 @@
     &lt;div id="myholder"&gt;&lt;/div&gt;
 
     &lt;!-- dependencies --&gt;
-    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
-    &lt;script src="node_modules/lodash/lodash.js"&gt;&lt;/script&gt;
     &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
 
     &lt;!-- code --&gt;
