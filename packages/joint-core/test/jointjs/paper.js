@@ -1375,7 +1375,7 @@ QUnit.module('paper', function(hooks) {
     QUnit.module('draw grid options', function(hooks) {
 
         var getGridVel = function(paper) {
-            var image = paper.$grid.css('backgroundImage').replace(/url\("*|"*\)/g, '').replace('data:image/svg+xml;base64,', '');
+            var image = paper.childNodes.grid.style.backgroundImage.replace(/url\("*|"*\)/g, '').replace('data:image/svg+xml;base64,', '');
             return image !== 'none' ?  V(atob(image)) : undefined;
         };
 
@@ -1899,7 +1899,7 @@ QUnit.module('paper', function(hooks) {
             _.delay(
                 _.bind(function() {
                     assert.equal(
-                        getUrlFromAttribute(this.paper.$background.css('backgroundImage')),
+                        getUrlFromAttribute(this.paper.childNodes.background.style.backgroundImage),
                         bgImageDataURL
                     );
                     done();
@@ -1920,7 +1920,7 @@ QUnit.module('paper', function(hooks) {
             setTimeout(
                 function() {
                     assert.equal(
-                        getUrlFromAttribute(paper.$background.css('backgroundImage')),
+                        getUrlFromAttribute(paper.childNodes.background.style.backgroundImage),
                         null
                     );
                     done();
@@ -1939,7 +1939,7 @@ QUnit.module('paper', function(hooks) {
 
             _.delay(
                 _.bind(function() {
-                    assert.checkCssAttr('opacity', this.paper.$background, 0.5);
+                    assert.checkCssAttr('opacity', this.paper.childNodes.background, 0.5);
                     done();
                 }, this)
             );
@@ -2056,7 +2056,7 @@ QUnit.module('paper', function(hooks) {
 
                 var done = assert.async();
 
-                assert.notEqual(this.paper.$background.css('background-repeat'), 'round');
+                assert.notEqual(this.paper.childNodes.background.style.backgroundRepeat, 'round');
 
                 this.paper.drawBackground({
                     image: bgImageDataURL,
@@ -2066,7 +2066,7 @@ QUnit.module('paper', function(hooks) {
                 _.delay(
                     _.bind(function() {
                         assert.equal(
-                            this.paper.$background.css('background-repeat'),
+                            this.paper.childNodes.background.style.backgroundRepeat,
                             'round'
                         );
                         done();
@@ -2091,9 +2091,9 @@ QUnit.module('paper', function(hooks) {
                 });
 
                 _.delay(function() {
-                    assert.equal(paper.$background.css('backgroundSize'), '100px 100px');
+                    assert.equal(paper.childNodes.background.style.backgroundSize, '100px 100px');
                     paper.scale(2, 3);
-                    assert.equal(paper.$background.css('backgroundSize'), '200px 300px');
+                    assert.equal(paper.childNodes.background.style.backgroundSize, '200px 300px');
                     done();
                 });
             });
@@ -2111,9 +2111,9 @@ QUnit.module('paper', function(hooks) {
                 });
 
                 _.delay(function() {
-                    assert.equal(paper.$background.css('backgroundSize'), '100px 100px');
+                    assert.equal(paper.childNodes.background.style.backgroundSize, '100px 100px');
                     paper.scale(2, 3);
-                    assert.equal(paper.$background.css('backgroundSize'), '100px 100px');
+                    assert.equal(paper.childNodes.background.style.backgroundSize, '100px 100px');
                     done();
                 });
             });
@@ -2135,9 +2135,9 @@ QUnit.module('paper', function(hooks) {
                 });
 
                 _.delay(function() {
-                    assert.equal(paper.$background.css('backgroundPosition'), '100px 100px');
+                    assert.equal(paper.childNodes.background.style.backgroundPosition, '100px 100px');
                     paper.scale(2, 3);
-                    assert.equal(paper.$background.css('backgroundPosition'), '200px 300px');
+                    assert.equal(paper.childNodes.background.style.backgroundPosition, '200px 300px');
                     done();
                 });
             });
@@ -2155,9 +2155,9 @@ QUnit.module('paper', function(hooks) {
                 });
 
                 _.delay(function() {
-                    assert.equal(paper.$background.css('backgroundPosition'), '100px 100px');
+                    assert.equal(paper.childNodes.background.style.backgroundPosition, '100px 100px');
                     paper.scale(2, 3);
-                    assert.equal(paper.$background.css('backgroundPosition'), '100px 100px');
+                    assert.equal(paper.childNodes.background.style.backgroundPosition, '100px 100px');
                     done();
                 });
             });
@@ -2182,7 +2182,7 @@ QUnit.module('paper', function(hooks) {
             _.delay(
                 _.bind(function() {
                     var img2 = document.createElement('img');
-                    img2.src = getUrlFromAttribute(this.paper.$background.css('backgroundImage'));
+                    img2.src = getUrlFromAttribute(this.paper.childNodes.background.style.backgroundImage);
                     img2.onload = function() {
                         assert.equal(img2.width, img1.width);
                         assert.equal(img2.height, img1.height / 2);

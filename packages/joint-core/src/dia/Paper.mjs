@@ -335,10 +335,7 @@ export const Paper = View.extend({
     viewport: null,
     defs: null,
     tools: null,
-    $background: null,
     layers: null,
-    $grid: null,
-    $document: null,
 
     // For storing the current transformation matrix (CTM) of the paper's viewport.
     _viewportMatrix: null,
@@ -397,8 +394,6 @@ export const Paper = View.extend({
             deltas: [],
         };
 
-        // Reference to the paper owner document
-        this.$document = $(el.ownerDocument);
         // Render existing cells in the graph
         this.resetViews(model.attributes.cells.models);
         // Start the Rendering Loop
@@ -586,15 +581,13 @@ export const Paper = View.extend({
 
         this.renderChildren();
         const { childNodes, options } = this;
-        const { svg, defs, layers, background, grid } = childNodes;
+        const { svg, defs, layers } = childNodes;
 
         svg.style.overflow = options.overflow ? 'visible' : 'hidden';
 
         this.svg = svg;
         this.defs = defs;
         this.layers = layers;
-        this.$background = $(background);
-        this.$grid = $(grid);
 
         this.renderLayers();
 
@@ -2620,8 +2613,9 @@ export const Paper = View.extend({
 
     clearGrid: function() {
 
-        if (this.$grid) {
-            this.$grid.css('backgroundImage', 'none');
+        const { childNodes } = this;
+        if (childNodes && childNodes.grid) {
+            childNodes.grid.style.backgroundImage = '';
         }
         return this;
     },
@@ -2752,7 +2746,7 @@ export const Paper = View.extend({
         var patternUri = new XMLSerializer().serializeToString(refs.root.node);
         patternUri = 'url(data:image/svg+xml;base64,' + btoa(patternUri) + ')';
 
-        this.$grid.css('backgroundImage', patternUri);
+        this.childNodes.grid.style.backgroundImage = patternUri;
 
         return this;
     },
@@ -2780,17 +2774,16 @@ export const Paper = View.extend({
             backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
 
-        this.$background.css({
-            backgroundSize: backgroundSize,
-            backgroundPosition: backgroundPosition
-        });
+        const { background } = this.childNodes;
+        background.style.backgroundSize = backgroundSize;
+        background.style.backgroundPosition = backgroundPosition;
     },
 
     drawBackgroundImage: function(img, opt) {
 
         // Clear the background image if no image provided
         if (!(img instanceof HTMLImageElement)) {
-            this.$background.css('backgroundImage', '');
+            this.childNodes.background.style.backgroundImage = '';
             return;
         }
 
@@ -2843,11 +2836,9 @@ export const Paper = View.extend({
             }
         }
 
-        this.$background.css({
-            opacity: backgroundOpacity,
-            backgroundRepeat: backgroundRepeat,
-            backgroundImage: 'url(' + backgroundImage + ')'
-        });
+        this.childNodes.background.style.opacity = backgroundOpacity;
+        this.childNodes.background.style.backgroundRepeat = backgroundRepeat;
+        this.childNodes.background.style.backgroundImage = `url(${backgroundImage})`;
 
         this.updateBackgroundImage(opt);
     },

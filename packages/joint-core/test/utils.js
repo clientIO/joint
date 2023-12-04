@@ -50,7 +50,7 @@
     };
 
     asserts.checkCssAttr = function(name, $el, expectedValue, message) {
-        return this.equal($el.css(name), normalizeCssAttr(name, expectedValue), message);
+        return this.equal($($el).css(name), normalizeCssAttr(name, expectedValue), message);
     };
 
     function normalizeDataPath(d) {

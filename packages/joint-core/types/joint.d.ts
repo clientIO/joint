@@ -9,7 +9,9 @@ export namespace config {
 }
 
 type NativeEvent = Event;
-type JQuery = any;
+
+/* A JQuery-like object */
+type Dom = any;
 
 export namespace dia {
 
@@ -755,15 +757,15 @@ export namespace dia {
 
         presentationAttributes(): CellView.PresentationAttributes;
 
-        highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
+        highlight(el?: SVGElement | Dom | string, opt?: { [key: string]: any }): this;
 
-        unhighlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
+        unhighlight(el?: SVGElement | Dom | string, opt?: { [key: string]: any }): this;
 
         can(feature: string): boolean;
 
-        findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
+        findMagnet(el: SVGElement | Dom | string): SVGElement | undefined;
 
-        findBySelector(selector: string, root?: SVGElement | JQuery | string): SVGElement[];
+        findBySelector(selector: string, root?: SVGElement | Dom | string): SVGElement[];
 
         findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
@@ -1439,10 +1441,6 @@ export namespace dia {
         layers: SVGGElement;
         viewport: SVGGElement;
 
-        $document: JQuery;
-        $grid: JQuery;
-        $background: JQuery;
-
         GUARDED_TAG_NAMES: string[];
         FORM_CONTROLS_TAG_NAMES: string[];
 
@@ -1515,7 +1513,7 @@ export namespace dia {
 
         getContentBBox(opt?: { useModelGeometry: boolean }): g.Rect;
 
-        findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
+        findView<T extends ElementView | LinkView>(element: string | Dom | SVGElement): T;
 
         findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
 
@@ -2957,7 +2955,7 @@ export namespace util {
     export function getElementBBox(el: Element): dia.BBox;
 
     export function sortElements(
-        elements: Element[] | string | JQuery,
+        elements: Element[] | string | Dom,
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
@@ -3734,7 +3732,7 @@ export namespace mvc {
         model?: TModel | undefined;
         // TODO: quickfix, this can't be fixed easy. The collection does not need to have the same model as the parent view.
         collection?: Collection<any> | undefined; // was: Collection<TModel>;
-        el?: TElement | JQuery | string | undefined;
+        el?: TElement | Dom | string | undefined;
         id?: string | undefined;
         attributes?: Record<string, any> | undefined;
         className?: string | undefined;
@@ -3770,16 +3768,18 @@ export namespace mvc {
         // A conditional type used here to prevent `TS2532: Object is possibly 'undefined'`
         model: TModel extends Model ? TModel : undefined;
         collection: Collection<any>;
-        setElement(element: TElement | JQuery): this;
+        setElement(element: TElement | Dom): this;
         id?: string | undefined;
         cid: string;
         className?: string | undefined;
         tagName: string;
 
         el: TElement;
-        $el: JQuery;
         attributes: Record<string, any>;
-        $(selector: string): JQuery;
+        /* @deprecated use `el` instead */
+        $el: Dom;
+        /* @deprecated use `el.querySelector()` instead */
+        $(selector: string): Dom;
         render(): this;
         remove(): this;
         delegateEvents(events?: _Result<EventsHash>): this;
@@ -3788,7 +3788,7 @@ export namespace mvc {
         undelegate(eventName: string, selector?: string, listener?: ViewBaseEventListener): this;
 
         protected _removeElement(): void;
-        protected _setElement(el: TElement | JQuery): void;
+        protected _setElement(el: TElement | Dom): void;
         protected _createElement(tagName: string): void;
         protected _ensureElement(): void;
         protected _setAttributes(attributes: Record<string, any>): void;
