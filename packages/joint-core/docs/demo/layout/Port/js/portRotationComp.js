@@ -60,30 +60,59 @@ paper6.on('cell:pointerclick', function(cellView, e) {
     cellView.model.prop('ports/groups/a/position/args/compensateRotation', !current);
 });
 
-var $ = joint.mvc.$;
+var b1 = document.createElement('b');
+b1.textContent = 'Click on Element to toggle port rotation compensation';
+document.body.appendChild(b1);
 
-$('<b/>').text('Click on Element to toggle port rotation compensation').appendTo('body');
-$('<br/>').appendTo('body');
+var br1 = document.createElement('br');
+document.body.appendChild(br1);
 
-$('<button/>').text('-').appendTo('body').on('click', function() {
+var button1 = document.createElement('button');
+button1.textContent = '-';
+button1.onclick = function() {
     var size = g6.get('size');
     g6.resize(Math.max(50, size.width - 50), size.height);
-});
-$('<button/>').text('+').appendTo('body').on('click', function() {
+};
+document.body.appendChild(button1);
+
+var button2 = document.createElement('button');
+button2.textContent = '+';
+button2.onclick = function() {
     var size = g6.get('size');
     g6.resize(size.width + 50, size.height);
-});
-$('<b/>').text(' adjust width ').appendTo('body');
-$('<br/>').appendTo('body');
+};
+document.body.appendChild(button2);
 
-$('<button/>').text('-').appendTo('body').on('click', function() {
+var b2 = document.createElement('b');
+b2.textContent = ' adjust width ';
+document.body.appendChild(b2);
+
+var br2 = document.createElement('br');
+document.body.appendChild(br2);
+
+var button3 = document.createElement('button');
+button3.textContent = '-';
+button3.onclick = function() {
     var size = g6.get('size');
     g6.resize(size.width, Math.max(50, size.height - 50));
-});
-$('<button/>').text('+').appendTo('body').on('click', function() {
+};
+document.body.appendChild(button3);
+
+var button4 = document.createElement('button');
+button4.textContent = '+';
+button4.onclick = function() {
     var size = g6.get('size');
     g6.resize(size.width, size.height + 50);
-});
-$('<b/>').text(' adjust height ').appendTo('body');
-$('<div/>').html('&nbsp;').appendTo('body');
+};
+document.body.appendChild(button4);
+
+var b3 = document.createElement('b');
+b3.textContent = ' adjust height ';
+document.body.appendChild(b3);
+
+var div = document.createElement('div');
+div.innerHTML = '&nbsp;';
+
+
+
 

@@ -3,7 +3,9 @@ paper4.options.validateMagnet = function() {
     return false;
 };
 
-$('<b/>').text('Left click on any port to increment, right click to decrement \'z\'').appendTo('body');
+var b1 = document.createElement('b');
+b1.textContent = 'Left click on any port to increment, right click to decrement \'z\'';
+document.body.appendChild(b1);
 
 var g4 = new joint.shapes.basic.Rect({
     markup: '<g class="rotatable"><g class="scalable"><rect class="main"/></g><rect class="inner"/></g>',
