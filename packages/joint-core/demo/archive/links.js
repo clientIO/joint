@@ -42,9 +42,8 @@ paper.on('link:connect', function(linkView, evt, connectedToView, magnetElement,
     console.log('link:connect', type, connectedToView, magnetElement);
 });
 
-var $ = joint.mvc.$;
-$('#perpendicularLinks').on('change', function() {
-    paper.options.perpendicularLinks = $(this).is(':checked') ? true : false;
+document.getElementById('perpendicularLinks').addEventListener('change', function(evt) {
+    paper.options.perpendicularLinks = evt.target.checked ? true : false;
 });
 
 // custom link definition
