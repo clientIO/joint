@@ -14,13 +14,11 @@ import { uniq, isEmpty } from '../../util/utilHelpers.mjs';
 import { dataPriv, dataUser } from './vars.mjs';
 import { Event } from './Event.mjs';
 
-if (!window.document) {
-    throw new Error('$ requires a window with a document');
-}
+const document = (typeof window !== 'undefined') ? window.document : null;
+const documentElement = document && document.documentElement;
 
-const document = window.document;
 const rTypeNamespace = /^([^.]*)(?:\.(.+)|)/;
-const documentElement = document.documentElement;
+
 // Only count HTML whitespace
 // Other whitespace should count in values
 // https://infra.spec.whatwg.org/#ascii-whitespace
