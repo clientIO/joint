@@ -367,7 +367,7 @@ export const Paper = View.extend({
 
     init: function() {
 
-        const { options, el } = this;
+        const { options } = this;
         if (!options.cellViewNamespace) {
             /* eslint-disable no-undef */
             options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
