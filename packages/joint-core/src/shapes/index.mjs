@@ -10,3 +10,4 @@ import * as pn from './pn.mjs';
 import * as uml from './uml.mjs';
 
 export { basic, standard, devs, logic, chess, erd, fsa, org, pn, uml };
+

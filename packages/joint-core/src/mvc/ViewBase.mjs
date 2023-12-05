@@ -43,7 +43,7 @@ assign(ViewBase.prototype, Events, {
     // The default `tagName` of a View's element is `"div"`.
     tagName: 'div',
 
-    // jQuery delegate for element lookup, scoped to DOM elements within the
+    // mvc.$ delegate for element lookup, scoped to DOM elements within the
     // current view. This should be preferred to global lookups where possible.
     $: function(selector) {
         return this.$el.find(selector);
@@ -89,7 +89,7 @@ assign(ViewBase.prototype, Events, {
     },
 
     // Creates the `this.el` and `this.$el` references for this view using the
-    // given `el`. `el` can be a CSS selector or an HTML string, a jQuery
+    // given `el`. `el` can be a CSS selector or an HTML string, a mvc.$
     // context or an element. Subclasses can override this to utilize an
     // alternative DOM manipulation API and are only required to set the
     // `this.el` property.

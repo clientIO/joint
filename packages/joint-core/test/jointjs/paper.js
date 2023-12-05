@@ -57,7 +57,6 @@ QUnit.module('paper', function(hooks) {
             var WIDTH = '100%';
             var HEIGHT = '50%';
             var paper = this.paper;
-            // TODO
             $container.css({ width: '100px', height: '200px' });
             paper.setDimensions(WIDTH, HEIGHT);
             assert.equal(paper.options.width, WIDTH);
