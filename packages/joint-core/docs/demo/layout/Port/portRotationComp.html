@@ -26,14 +26,14 @@
     /**
      * HELPERS
      */
-     function createPaper() {
+    function createPaper() {
         var graph = new joint.dia.Graph;
         var div = document.createElement('div');
         document.body.appendChild(div);
         return new joint.dia.Paper({
             el: div,
             width: 800,
-            height: 400,
+            height: 450,
             gridSize: 1,
             perpendicularLinks: false,
             model: graph

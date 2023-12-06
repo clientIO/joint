@@ -69,18 +69,18 @@ document.body.appendChild(br1);
 
 var button1 = document.createElement('button');
 button1.textContent = '-';
-button1.onclick = function() {
+button1.addEventListener('click', function() {
     var size = g6.get('size');
     g6.resize(Math.max(50, size.width - 50), size.height);
-};
+}, false);
 document.body.appendChild(button1);
 
 var button2 = document.createElement('button');
 button2.textContent = '+';
-button2.onclick = function() {
+button2.addEventListener('click', function() {
     var size = g6.get('size');
     g6.resize(size.width + 50, size.height);
-};
+}, false);
 document.body.appendChild(button2);
 
 var b2 = document.createElement('b');
@@ -92,18 +92,18 @@ document.body.appendChild(br2);
 
 var button3 = document.createElement('button');
 button3.textContent = '-';
-button3.onclick = function() {
+button3.addEventListener('click', function() {
     var size = g6.get('size');
     g6.resize(size.width, Math.max(50, size.height - 50));
-};
+}, false);
 document.body.appendChild(button3);
 
 var button4 = document.createElement('button');
 button4.textContent = '+';
-button4.onclick = function() {
+button4.addEventListener('click', function() {
     var size = g6.get('size');
     g6.resize(size.width, size.height + 50);
-};
+}, false);
 document.body.appendChild(button4);
 
 var b3 = document.createElement('b');
@@ -112,7 +112,4 @@ document.body.appendChild(b3);
 
 var div = document.createElement('div');
 div.innerHTML = '&nbsp;';
-
-
-
-
+document.body.appendChild(div);
