@@ -6,7 +6,7 @@ document.body.appendChild(infoEl);
 resetInfo();
 
 function resetInfo() {
-    infoEl.innerHTML = 'Hover over cells to see\nhow cloning and graph search works\non nested graphs.';
+    infoEl.textContent = 'Hover over cells to see\nhow cloning and graph search works\non nested graphs.';
 }
 
 function me(id, x, y, w, h, fill) {
@@ -90,7 +90,7 @@ paper.on('cell:mouseenter', function(cellView) {
     i[keyGetConnectedLinks] = joint.util.toArray(graph.getConnectedLinks(cell, { deep: true })).map(function(c) {
         return c.get('name');
     }).join(',');
-    infoEl.innerHTML = JSON.stringify(i, '\t', 4);
+    infoEl.textContent = JSON.stringify(i, '\t', 4);
     console.log(i);
 });
 

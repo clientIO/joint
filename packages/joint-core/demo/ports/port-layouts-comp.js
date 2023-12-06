@@ -119,5 +119,5 @@ document.body.appendChild(b3);
 
 var div = document.createElement('div');
 div.innerHTML = '&nbsp;';
-
+document.body.appendChild(div);
 

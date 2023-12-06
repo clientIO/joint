@@ -1,6 +1,6 @@
 import * as joint from './vendor/joint';
 import './custom';
-import { V, g, mvc } from './vendor/joint';
+import { V, g } from './vendor/joint';
 import { MyShape } from './shape';
 import * as dagre from 'dagre';
 import * as graphlib from 'graphlib';

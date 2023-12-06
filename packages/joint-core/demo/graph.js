@@ -12,7 +12,7 @@ function pluck(array, attribute) {
 }
 
 function clear() {
-    infoEl.innerHTML = '';
+    infoEl.textContent = '';
 }
 
 function info(view) {
@@ -51,7 +51,7 @@ function info(view) {
             bfsDistance: bfsDistance
         };
 
-        infoEl.innerHTML = JSON.stringify(i, '\t', 4);
+        infoEl.textContent = JSON.stringify(i, '\t', 4);
     }
 }
 
