@@ -2206,7 +2206,7 @@ export const Paper = View.extend({
             // Element magnet
             const magnetNode = target.closest('[magnet]');
             if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
-                const magnetEvt = normalizeEvent($.Event(evt.originalEvent, {
+                const magnetEvt = normalizeEvent(new $.Event(evt.originalEvent, {
                     data: evt.data,
                     // Originally the event listener was attached to the magnet element.
                     currentTarget: magnetNode
@@ -2228,7 +2228,7 @@ export const Paper = View.extend({
 
         if (isContextMenu) {
             this.contextMenuFired = true;
-            const contextmenuEvt = $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
+            const contextmenuEvt = new $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
             this.contextMenuTrigger(contextmenuEvt);
         } else {
             const localPoint = this.snapToGrid(evt.clientX, evt.clientY);
@@ -2293,7 +2293,7 @@ export const Paper = View.extend({
         }
 
         if (!normalizedEvt.isPropagationStopped()) {
-            this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
+            this.pointerclick(new $.Event(evt.originalEvent, { type: 'click', data: evt.data }));
         }
 
         this.delegateEvents();
@@ -2488,7 +2488,7 @@ export const Paper = View.extend({
         if (evt.button === 2) {
             this.contextMenuFired = true;
             this.magnetContextMenuFired = true;
-            const contextmenuEvt = $.Event(evt.originalEvent, {
+            const contextmenuEvt = new $.Event(evt.originalEvent, {
                 type: 'contextmenu',
                 data: evt.data,
                 currentTarget: evt.currentTarget,
@@ -3079,7 +3079,7 @@ export const Paper = View.extend({
         const eventNode = evt.target.closest('[event]');
 
         if (eventNode && rootNode !== eventNode && view.el.contains(eventNode)) {
-            const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+            const eventEvt = normalizeEvent(new $.Event(evt.originalEvent, {
                 data: evt.data,
                 // Originally the event listener was attached to the event element.
                 currentTarget: eventNode
