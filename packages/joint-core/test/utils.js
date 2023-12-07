@@ -157,8 +157,8 @@ $.fn.offset = function() {
     const [el] = this;
     const box = el.getBoundingClientRect();
     return {
-        top: box.top + window.pageYOffset - document.documentElement.clientTop,
-        left: box.left + window.pageXOffset - document.documentElement.clientLeft
+        top: box.top + window.scrollY - document.documentElement.clientTop,
+        left: box.left + window.scrollX - document.documentElement.clientLeft
     };
 };
 
@@ -170,7 +170,7 @@ $.fn.children = function(selector) {
     return $(el.children);
 };
 
-$.fn.parent = function(i) {
+$.fn.parent = function() {
     const [el] = this;
     return $(el.parentNode);
 };

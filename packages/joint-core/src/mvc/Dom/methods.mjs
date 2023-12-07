@@ -132,7 +132,7 @@ export function attr(name, value) {
             attributes = { [name]: value };
         }
     } else if (!name) {
-        throw new Error('no styles provided');
+        throw new Error('no attributes provided');
     } else {
         attributes = name;
     }

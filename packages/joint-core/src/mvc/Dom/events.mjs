@@ -58,7 +58,7 @@ special.dbltap = {
         if (delta < maxDelay && delta > minDelay) {
             targetData.lastTouch = null;
             event.type = handleObj.origType;
-            // let jQuery handle the triggering of "dbltap" event handlers
+            // let $ handle the triggering of "dbltap" event handlers
             handleObj.handler.call(this, event, ...args);
         } else {
             targetData.lastTouch = now;
