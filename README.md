@@ -108,17 +108,17 @@ yarn run test
 
 To run only the server-side tests:
 ```bash
-yarn run test:server
+yarn run test-server
 ```
 
 To run only the client-side tests:
 ```bash
-yarn run test:client
+yarn run test-client
 ```
 
 To run only TypeScript tests:
 ```bash
-yarn run test:ts
+yarn run test-ts
 ```
 
 ### Lint
@@ -130,19 +130,19 @@ yarn run lint
 
 To auto fix errors, run eslint for `src` and `types` directories:
 ```bash
-yarn run lint:fix
+yarn run lint-fix
 ```
 
 ### Code Coverage Reports
 
 To output a code coverage report in HTML:
 ```bash
-yarn run test:coverage
+yarn run test-coverage
 ```
 
 To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php):
 ```bash
-yarn run test:coverage:lcov
+yarn run test-coverage-lcov
 ```
 
 The output for all unit tests will be saved in the `packages/joint-core/coverage` directory.
@@ -158,7 +158,7 @@ yarn run dist
 
 The source files for the *JointJS* documentation (plus *Geometry* and *Vectorizer* libraries) are included in this repository; see the `packages/joint-core/docs` directory. The documentation can be built into stand-alone HTML documents like this:
 ```bash
-yarn run build:docs
+yarn run build-docs
 ```
 The output of the above command can be found at `packages/joint-core/build/docs`.
 

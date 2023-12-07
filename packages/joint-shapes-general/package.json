@@ -22,9 +22,9 @@
     "access": "public"
   },
   "scripts": {
-    "prepublish": "tsc",
-    "build": "yarn run prepublish",
-    "dist": "yarn run prepublish"
+    "prepack": "yarn run dist",
+    "build": "tsc",
+    "dist": "tsc"
   },
   "files": [
     "build/",
