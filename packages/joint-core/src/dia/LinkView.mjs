@@ -1363,7 +1363,7 @@ export const LinkView = CellView.extend({
         var connection;
         if (typeof selector === 'string') {
             // Use custom connection path.
-            connection = this.findBySelector(selector, this.el, this.selectors)[0];
+            connection = this.findNode(selector)[0];
         } else {
             // Select connection path automatically.
             var cache = this._V;

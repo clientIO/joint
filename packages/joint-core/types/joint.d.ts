@@ -765,7 +765,7 @@ export namespace dia {
 
         findMagnet(el: SVGElement | Dom | string): SVGElement | undefined;
 
-        findBySelector(selector: string, root?: SVGElement | Dom | string): SVGElement[];
+        findNode(selector: string): Element[];
 
         findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
@@ -820,6 +820,8 @@ export namespace dia {
         preventDefaultInteraction(evt: dia.Event): void;
 
         isDefaultInteractionPrevented(evt: dia.Event): boolean;
+
+        protected findBySelector(selector: string, root?: SVGElement | Dom | string): SVGElement[];
 
         protected removeHighlighters(): void;
 

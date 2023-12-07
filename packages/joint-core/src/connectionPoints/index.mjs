@@ -131,7 +131,7 @@ function boundaryIntersection(line, view, magnet, opt) {
     var anchor = line.end;
 
     if (typeof selector === 'string') {
-        node = view.findBySelector(selector)[0];
+        node = view.findNode(selector)[0];
     } else if (selector === false) {
         node = magnet;
     } else if (Array.isArray(selector)) {
