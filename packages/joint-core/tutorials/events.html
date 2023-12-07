@@ -52,25 +52,25 @@
             <div class="paper" id="paper-events-paper-events"></div>
 
             <pre><code>paper.on('blank:pointerdblclick', function() {
-    resetAll(paper);
+    resetAll(this);
 
     info.attr('body/visibility', 'hidden');
     info.attr('label/visibility', 'hidden');
 
-    paper.drawBackground({
+    this.drawBackground({
         color: 'orange'
     });
 });
 
 paper.on('element:pointerdblclick', function(elementView) {
-    resetAll(paper);
+    resetAll(this);
 
     var currentElement = elementView.model;
     currentElement.attr('body/stroke', 'orange');
 });
 
 paper.on('link:pointerdblclick', function(linkView) {
-    resetAll(paper);
+    resetAll(this);
 
     var currentLink = linkView.model;
     currentLink.attr('line/stroke', 'orange');
