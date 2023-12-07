@@ -200,7 +200,7 @@ QUnit.module('linkTools', function(hooks) {
             });
             // magnet defined as a function
             var magnetSpy = sinon.spy(function(view) {
-                return view.findBySelector('line')[0];
+                return view.findNode('line')[0];
             });
             paper.options.defaultLink = defaultLinkSpy;
             var connect = new joint.linkTools.Connect({ magnet: magnetSpy });
@@ -216,7 +216,7 @@ QUnit.module('linkTools', function(hooks) {
             assert.deepEqual(newLink.source(), { id: link.id, magnet: 'line' });
             assert.ok(magnetSpy.calledOn(connect));
             // magnet defined as an SVGElement
-            connect.options.magnet = linkView.findBySelector('wrapper')[0];
+            connect.options.magnet = linkView.findNode('wrapper')[0];
             evt = {};
             connect.dragstart(evt);
             connect.drag(evt);

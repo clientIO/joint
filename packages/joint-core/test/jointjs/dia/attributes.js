@@ -134,7 +134,7 @@ QUnit.module('Attributes', function() {
                 var el = new TestElement();
                 el.addTo(graph);
                 var view = el.findView(paper);
-                var text = view.findBySelector('text')[0];
+                var text = view.findNode('text')[0];
                 var tspans = text.childNodes;
                 assert.equal(text.getAttribute('x'), '51');
                 assert.equal(tspans[0].getAttribute('x'), null);
@@ -170,7 +170,7 @@ QUnit.module('Attributes', function() {
 
                 paper.options.embeddingMode = true;
                 cell.attr(['root', 'containerSelector'], 'body');
-                var body = cellView.findBySelector('body')[0];
+                var body = cellView.findNode('body')[0];
 
                 var highlightSpy = sinon.spy();
                 var unhighlightSpy = sinon.spy();
@@ -201,7 +201,7 @@ QUnit.module('Attributes', function() {
             QUnit.test('highlighting, magnet, validation', function(assert) {
 
                 cell.attr(['root', 'magnetSelector'], 'body');
-                var body = cellView.findBySelector('body')[0];
+                var body = cellView.findNode('body')[0];
 
                 var highlightSpy = sinon.spy();
                 var unhighlightSpy = sinon.spy();
@@ -242,7 +242,7 @@ QUnit.module('Attributes', function() {
             QUnit.test('highlighting, magnet, validation', function(assert) {
 
                 cell.attr(['root', 'highlighterSelector'], 'body');
-                var body = cellView.findBySelector('body')[0];
+                var body = cellView.findNode('body')[0];
 
                 var highlightSpy = sinon.spy();
                 var unhighlightSpy = sinon.spy();
@@ -528,7 +528,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('marker-start');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -561,7 +561,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('marker-start');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -588,7 +588,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('marker-end');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -615,7 +615,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('marker-end');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -657,7 +657,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('marker-end');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -700,7 +700,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('marker-end');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -743,7 +743,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('marker-end');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -788,7 +788,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('marker-end');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -823,7 +823,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('marker-mid');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -851,7 +851,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('fill');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
@@ -880,7 +880,7 @@ QUnit.module('Attributes', function() {
                     }
                 });
 
-                var bodyNode = cellView.findBySelector('body')[0];
+                var bodyNode = cellView.findNode('body')[0];
                 var markerAttribute = bodyNode.getAttribute('stroke');
                 var match = idRegex.exec(markerAttribute);
                 assert.ok(match);
