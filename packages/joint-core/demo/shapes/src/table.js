@@ -235,7 +235,7 @@ joint.shapes.basic.TableView = joint.dia.ElementView.extend({
         this._elements = [];
         var info = this.model.prop('table/metadata');
         var tableEl = this.findNode(info.element);
-        this.tableVel = tableEl ? V(tableEl[0]) : this.vel;
+        this.tableVel = tableEl ? V(tableEl) : this.vel;
 
         this._renderFills();
         this._renderBorders();

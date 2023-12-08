@@ -4,4 +4,6 @@
 
 <pre class="docs-method-signature"><code>linkView.findLabelNode(index, selector)</code></pre>
 
-<p>Return an <i>SVGElement</i> referenced by <b>selector</b> of the label at given <b>index</b>. If there is no label at <b>index</b> or no <i>SVGElement</i> was found by the <b>selector</b>, <code>null</code> is returned.</p>
+<p>Return an <i>SVGElement|HTMLElement</i> referenced by <b>selector</b> of the label at given <b>index</b>. If there is no label at <b>index</b> or no DOM node was found by the <b>selector</b>, <code>null</code> is returned.</p>
+
+<p>The available <code>selectors</code> are defined by the <code>markup</code> <a href="#dia.Link.labels">attribute of the label</a> from which the label was built.</p>

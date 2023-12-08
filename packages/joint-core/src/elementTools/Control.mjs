@@ -95,7 +95,7 @@ export const Control = ToolView.extend({
             this.toggleExtras(false);
             return;
         }
-        const [magnet] = relatedView.findNode(selector);
+        const magnet = relatedView.findNode(selector);
         if (!magnet) throw new Error('Control: invalid selector.');
         let padding = options.padding;
         if (!isFinite(padding)) padding = 0;

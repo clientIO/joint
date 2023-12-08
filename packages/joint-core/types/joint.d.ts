@@ -765,7 +765,9 @@ export namespace dia {
 
         findMagnet(el: SVGElement | Dom | string): SVGElement | undefined;
 
-        findNode(selector: string): Element[];
+        findNode(selector: string): Element | null;
+
+        findNodes(groupSelector: string): Element[];
 
         findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
@@ -920,7 +922,10 @@ export namespace dia {
 
         getDelegatedView(): ElementView | null;
 
-        findPortNode(portId: string | number, selector?: string): SVGElement | null;
+        findPortNode(portId: string | number): SVGElement | null;
+        findPortNode(portId: string | number, selector: string): Element | null;
+
+        findPortNodes(portId: string | number, groupSelector: string): Element[];
 
         protected renderMarkup(): void;
 
@@ -1084,7 +1089,10 @@ export namespace dia {
 
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
-        findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
+        findLabelNode(labelIndex: string | number): SVGElement | null;
+        findLabelNode(labelIndex: string | number, selector: string): Element | null;
+
+        findLabelNodes(labelIndex: string | number, groupSelector: string): Element[];
 
         removeRedundantLinearVertices(opt?: dia.ModelSetOptions): number;
 

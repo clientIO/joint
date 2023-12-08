@@ -440,14 +440,17 @@ export const LinkView = CellView.extend({
         }
     },
 
-    findLabelNode: function(labelIndex, selector) {
+    findLabelNodes: function(labelIndex, selector) {
         const labelRoot = this._labelCache[labelIndex];
-        if (!labelRoot) return null;
+        if (!labelRoot) return [];
         const labelSelectors = this._labelSelectors[labelIndex];
-        const [node = null] = this.findBySelector(selector, labelRoot, labelSelectors);
-        return node;
+        return this.findBySelector(selector, labelRoot, labelSelectors);
     },
 
+    findLabelNode: function(labelIndex, selector) {
+        const [node = null] = this.findLabelNodes(labelIndex, selector);
+        return node;
+    },
 
     // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
     // keep `undefined` or `null` because `{}` means something else
@@ -1363,7 +1366,7 @@ export const LinkView = CellView.extend({
         var connection;
         if (typeof selector === 'string') {
             // Use custom connection path.
-            connection = this.findNode(selector)[0];
+            connection = this.findNode(selector);
         } else {
             // Select connection path automatically.
             var cache = this._V;

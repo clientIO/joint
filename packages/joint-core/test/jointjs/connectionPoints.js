@@ -282,11 +282,11 @@ QUnit.module('connectionPoints', function(hooks) {
                 }]);
                 // lookup off
                 line = new g.Line(tp.clone(), sp.clone());
-                cp = connectionPointFn.call(lv1, line, rv1, rv1.findNode('wrapper')[0], { selector: false });
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.findNode('wrapper'), { selector: false });
                 assert.ok(cp.round().equals(r1.getBBox().rightMiddle()));
                 // lookup on
                 line = new g.Line(tp.clone(), sp.clone());
-                cp = connectionPointFn.call(lv1, line, rv1, rv1.findNode('wrapper')[0], { selector: undefined });
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.findNode('wrapper'), { selector: undefined });
                 assert.ok(cp.round().equals(r1.getBBox().center().offset(25, 0)));
             });
 

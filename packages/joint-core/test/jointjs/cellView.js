@@ -155,7 +155,7 @@ QUnit.module('cellView', function(hooks) {
                     `
                 }].forEach(attributes => {
                     cell.set(attributes);
-                    const [a] = cellView.findNode('a');
+                    const a = cellView.findNode('a');
                     const bbox = V(a).getBBox({ target: cellView.el });
                     assert.equal(bbox.x, ax + gx);
                     assert.equal(bbox.y, ay + gy);

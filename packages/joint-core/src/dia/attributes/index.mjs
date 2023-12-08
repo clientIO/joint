@@ -342,7 +342,7 @@ const attributesNS = {
                 if (isObject(textPath)) {
                     const pathSelector = textPath.selector;
                     if (typeof pathSelector === 'string') {
-                        const [pathNode] = this.findNode(pathSelector);
+                        const pathNode = this.findNode(pathSelector);
                         if (pathNode instanceof SVGPathElement) {
                             textPath = assign({ 'xlink:href': '#' + pathNode.id }, textPath);
                         }

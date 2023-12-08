@@ -220,8 +220,13 @@ export const CellView = View.extend({
         return [];
     },
 
-    findNode: function(selector) {
+    findNodes: function(selector) {
         return this.findBySelector(selector, this.el, this.selectors);
+    },
+
+    findNode: function(selector) {
+        const [node = null] = this.findNodes(selector);
+        return node;
     },
 
     notify: function(eventName) {
@@ -303,7 +308,7 @@ export const CellView = View.extend({
         const { el: rootNode } = this;
         let node;
         if (typeof el === 'string') {
-            [node = rootNode] = this.findNode(el);
+            node = this.findNode(el) || rootNode;
         } else {
             [node = rootNode] = this.$(el);
         }
@@ -376,7 +381,7 @@ export const CellView = View.extend({
         el || (el = this.el);
         const nodeSelector = el.getAttribute(`${type}-selector`);
         if (nodeSelector) {
-            const [proxyNode] = this.findNode(nodeSelector);
+            const proxyNode = this.findNode(nodeSelector);
             if (proxyNode) return proxyNode;
         }
         return el;
@@ -474,7 +479,7 @@ export const CellView = View.extend({
                 // a port created via the `port` attribute (not API).
                 selector = '[port="' + port + '"]';
             }
-            magnet = this.findNode(selector)[0];
+            magnet = this.findNode(selector);
         }
 
         return this.findProxyNode(magnet, 'magnet');
