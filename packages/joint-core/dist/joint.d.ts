@@ -3602,57 +3602,6 @@ export namespace shapes {
         }
     }
 
-    namespace chess {
-
-        class KingWhite extends basic.Generic {
-
-        }
-
-        class KingBlack extends basic.Generic {
-
-        }
-
-        class QueenWhite extends basic.Generic {
-
-        }
-
-        class QueenBlack extends basic.Generic {
-
-        }
-
-        class RookWhite extends basic.Generic {
-
-        }
-
-        class RookBlack extends basic.Generic {
-
-        }
-
-        class BishopWhite extends basic.Generic {
-
-        }
-
-        class BishopBlack extends basic.Generic {
-
-        }
-
-        class KnightWhite extends basic.Generic {
-
-        }
-
-        class KnightBlack extends basic.Generic {
-
-        }
-
-        class PawnWhite extends basic.Generic {
-
-        }
-
-        class PawnBlack extends basic.Generic {
-
-        }
-    }
-
     namespace devs {
 
         interface ModelSelectors extends dia.Cell.Selectors {

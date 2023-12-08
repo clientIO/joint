@@ -23,7 +23,6 @@ module.exports = {
         'joint.shapes.erd': { src: 'src/shapes/erd.mjs', export: true },
         'joint.shapes.fsa': { src: 'src/shapes/fsa.mjs', export: true },
         'joint.shapes.org': { src: 'src/shapes/org.mjs', export: true },
-        'joint.shapes.chess': { src: 'src/shapes/chess.mjs', export: true },
         'joint.shapes.pn': { src: 'src/shapes/pn.mjs', export: true },
         'joint.shapes.devs': { src: 'src/shapes/devs.mjs', export: true },
         'joint.shapes.uml': { src: 'src/shapes/uml.mjs', export: true },
