@@ -249,7 +249,7 @@ QUnit.module('elementView', function(hooks) {
 
             elementView.model.resize(100, 100).translate(100, 100).rotate(90);
 
-            var rectInside = elementView.findBySelector('rectInside')[0];
+            var rectInside = elementView.findNode('rectInside');
             assert.checkBboxApproximately(1, elementView.getNodeBBox(rectInside), {
                 x: 177,
                 y: 121,
@@ -259,7 +259,7 @@ QUnit.module('elementView', function(hooks) {
 
             assert.equal(V.matrixToTransformString(elementView.getNodeMatrix(rectInside)), 'matrix(1,0,0,1,0,0)');
 
-            var rectOutside = elementView.findBySelector('rectOutside')[0];
+            var rectOutside = elementView.findNode('rectOutside');
             assert.checkBboxApproximately(1, elementView.getNodeBBox(rectOutside), {
                 x: 121,
                 y: 113,
@@ -269,7 +269,7 @@ QUnit.module('elementView', function(hooks) {
 
             assert.equal(V.matrixToTransformString(elementView.getNodeMatrix(rectOutside)), 'matrix(1,0,0,1,0,0)');
 
-            var circle = elementView.findBySelector('circle')[0];
+            var circle = elementView.findNode('circle');
             assert.checkBboxApproximately(1, elementView.getNodeBBox(circle), {
                 x: 182,
                 y: 106,

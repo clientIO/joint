@@ -112,7 +112,7 @@ connect(c1, 'out 2', a3, 'b');
 
 /* rounded corners */
 
-_.each([c1, a1, a2, a3], function(element) {
+[c1, a1, a2, a3].forEach(function(element) {
 
     element.attr({
         '.body': {

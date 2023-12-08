@@ -18,13 +18,9 @@ __metadata:
   dependencies:
     "@types/dagre": ~0.7.47
     "@types/graphlib": ~2.1.8
-    "@types/jquery": ~3.5.13
-    "@types/lodash": ~4.14.178
     dagre: ~0.8.5
     graphlib: ~2.1.8
     http-server: 0.12.3
-    jquery: ~3.6.4
-    lodash: ~4.17.21
     ts-loader: 9.4.2
     typescript: 4.9.5
     webpack: 5.61.0
@@ -102,12 +98,12 @@ __metadata:
   linkType: hard
 
 "@types/eslint@npm:*":
-  version: 8.44.7
-  resolution: "@types/eslint@npm:8.44.7"
+  version: 8.44.8
+  resolution: "@types/eslint@npm:8.44.8"
   dependencies:
     "@types/estree": "*"
     "@types/json-schema": "*"
-  checksum: 72a52f74477fbe7cc95ad290b491f51f0bc547cb7ea3672c68da3ffd3fb21ba86145bc36823a37d0a186caedeaee15b2d2a6b4c02c6c55819ff746053bd28310
+  checksum: c3bc70166075e6e9f7fb43978882b9ac0b22596b519900b08dc8a1d761bbbddec4c48a60cc4eb674601266223c6f11db30f3fb6ceaae96c23c54b35ad88022bc
   languageName: node
   linkType: hard
 
@@ -126,18 +122,9 @@ __metadata:
   linkType: hard
 
 "@types/graphlib@npm:~2.1.8":
-  version: 2.1.11
-  resolution: "@types/graphlib@npm:2.1.11"
-  checksum: 909b5db5066a0532210c22922a2c3c619208f614c9a472b631f312a0e6a3fc016e026be5cc8802d71bd72869b3e905d2c0aa955a07400127877fb1f3de98998a
-  languageName: node
-  linkType: hard
-
-"@types/jquery@npm:~3.5.13":
-  version: 3.5.27
-  resolution: "@types/jquery@npm:3.5.27"
-  dependencies:
-    "@types/sizzle": "*"
-  checksum: a217d3dbf134134e1b1e10bb0a197523eb362d8e2aa2ae2ad909ae8db0d625f5784203a0794a498b7a09e495ae7822512b3112440cc96b8374eda4afc33b0d6e
+  version: 2.1.12
+  resolution: "@types/graphlib@npm:2.1.12"
+  checksum: 009195aaf7d7c33068c93ece23e8fe11449663ba0ae6494f8028ffabebd7090a8a2daa86db73c65816a2e97d32d66db4a922c5003c2824ae4d4b4a169d77587d
   languageName: node
   linkType: hard
 
@@ -148,26 +135,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:~4.14.178":
-  version: 4.14.201
-  resolution: "@types/lodash@npm:4.14.201"
-  checksum: 484be655298e9b2dc2d218ea934071b2ea31e4a531c561dd220dbda65237e8d08c20dc2d457ac24f29be7fe167415bf7bb9360ea0d80bdb8b0f0ec8d8db92fae
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:*":
-  version: 20.9.0
-  resolution: "@types/node@npm:20.9.0"
+  version: 20.10.2
+  resolution: "@types/node@npm:20.10.2"
   dependencies:
     undici-types: ~5.26.4
-  checksum: bfd927da6bff8a32051fa44bb47ca32a56d2c8bc8ba0170770f181cc1fa3c0b05863c9b930f0ba8604a48d5eb0d319166601709ca53bf2deae0025d8b6c6b8a3
-  languageName: node
-  linkType: hard
-
-"@types/sizzle@npm:*":
-  version: 2.3.6
-  resolution: "@types/sizzle@npm:2.3.6"
-  checksum: 1573d6c86fdf0d7d3d2759b0db65e374b99d773b57781443a6400ce3d0a3bf6a3be393fb9aee5076eff8399c14b7b4d3f51391d1d5cb6a3dcbdccee06a5f6e3e
+  checksum: c0c84e8270cdf7a47a18c0230c0321537cc59506adb0e3cba51949b6f1ad4879f2e2ec3a29161f2f5321ebb6415460712d9f0a25ac5c02be0f5435464fe77c23
   languageName: node
   linkType: hard
 
@@ -475,9 +448,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001541":
-  version: 1.0.30001561
-  resolution: "caniuse-lite@npm:1.0.30001561"
-  checksum: 949829fe037e23346595614e01d362130245920503a12677f2506ce68e1240360113d6383febed41e8aa38cd0f5fd9c69c21b0af65a71c0246d560db489f1373
+  version: 1.0.30001565
+  resolution: "caniuse-lite@npm:1.0.30001565"
+  checksum: 7621f358d0e1158557430a111ca5506008ae0b2c796039ef53aeebf4e2ba15e5241cb89def21ea3a633b6a609273085835b44a522165d871fa44067cdf29cccd
   languageName: node
   linkType: hard
 
@@ -616,9 +589,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.535":
-  version: 1.4.578
-  resolution: "electron-to-chromium@npm:1.4.578"
-  checksum: 9c5e6843e6975adfedb7505b817f07bc91f4f4d3744616406983ed9327b722f045b72d98aa2146b279ba0eecec60ca065b316771b2de7ac6b7a42edcb3e9bb21
+  version: 1.4.601
+  resolution: "electron-to-chromium@npm:1.4.601"
+  checksum: 6c6d090afaab83f49fe413c2558a3294e7dfce6a9d8afda3496a80ba59377901279ea7903122558399d5f5dbbdcca8562e3e826b7b78e7ec0b561fcc02c45f73
   languageName: node
   linkType: hard
 
@@ -961,13 +934,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery@npm:~3.6.4":
-  version: 3.6.4
-  resolution: "jquery@npm:3.6.4"
-  checksum: 8354f7bd0a0424aa714ee1b6b1ef74b410f834eb5c8501682289b358bc151f11677f11188b544f3bb49309d6ec4d15d1a5de175661250c206b06185a252f706f
-  languageName: node
-  linkType: hard
-
 "json-parse-better-errors@npm:^1.0.2":
   version: 1.0.2
   resolution: "json-parse-better-errors@npm:1.0.2"
@@ -1005,7 +971,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:~4.17.21":
+"lodash@npm:^4.17.14, lodash@npm:^4.17.15":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
@@ -1096,9 +1062,9 @@ __metadata:
   linkType: hard
 
 "node-releases@npm:^2.0.13":
-  version: 2.0.13
-  resolution: "node-releases@npm:2.0.13"
-  checksum: 17ec8f315dba62710cae71a8dad3cd0288ba943d2ece43504b3b1aa8625bf138637798ab470b1d9035b0545996f63000a8a926e0f6d35d0996424f8b6d36dda3
+  version: 2.0.14
+  resolution: "node-releases@npm:2.0.14"
+  checksum: 59443a2f77acac854c42d321bf1b43dea0aef55cd544c6a686e9816a697300458d4e82239e2d794ea05f7bbbc8a94500332e2d3ac3f11f52e4b16cbe638b3c41
   languageName: node
   linkType: hard
 

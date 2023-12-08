@@ -19,7 +19,7 @@ import {
 } from '../util/index.mjs';
 import { Point, Rect } from '../g/index.mjs';
 import V from '../V/index.mjs';
-import $ from 'jquery';
+import $ from '../mvc/Dom/index.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 
 const HighlightingTypes = {
@@ -147,9 +147,6 @@ export const CellView = View.extend({
 
         this.cleanNodesCache();
 
-        // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
-        this.$el.data('view', this);
-
         this.startListening();
     },
 
@@ -205,9 +202,6 @@ export const CellView = View.extend({
 
     findBySelector: function(selector, root, selectors) {
 
-        root || (root = this.el);
-        selectors || (selectors = this.selectors);
-
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
         if (!selector || selector === '.') return [root];
@@ -224,6 +218,15 @@ export const CellView = View.extend({
         if (config.useCSSSelectors) return $(root).find(selector).toArray();
 
         return [];
+    },
+
+    findNodes: function(selector) {
+        return this.findBySelector(selector, this.el, this.selectors);
+    },
+
+    findNode: function(selector) {
+        const [node = null] = this.findNodes(selector);
+        return node;
     },
 
     notify: function(eventName) {
@@ -305,7 +308,7 @@ export const CellView = View.extend({
         const { el: rootNode } = this;
         let node;
         if (typeof el === 'string') {
-            [node = rootNode] = this.findBySelector(el);
+            node = this.findNode(el) || rootNode;
         } else {
             [node = rootNode] = this.$(el);
         }
@@ -378,7 +381,7 @@ export const CellView = View.extend({
         el || (el = this.el);
         const nodeSelector = el.getAttribute(`${type}-selector`);
         if (nodeSelector) {
-            const [proxyNode] = this.findBySelector(nodeSelector);
+            const proxyNode = this.findNode(nodeSelector);
             if (proxyNode) return proxyNode;
         }
         return el;
@@ -392,7 +395,7 @@ export const CellView = View.extend({
         var selector;
 
         if (el === this.el) {
-            if (typeof prevSelector === 'string') selector = '> ' + prevSelector;
+            if (typeof prevSelector === 'string') selector = ':scope > ' + prevSelector;
             return selector;
         }
 
@@ -463,13 +466,12 @@ export const CellView = View.extend({
 
     getMagnetFromLinkEnd: function(end) {
 
-        var root = this.el;
         var port = end.port;
         var selector = end.magnet;
         var model = this.model;
         var magnet;
         if (port != null && model.isElement() && model.hasPort(port)) {
-            magnet = this.findPortNode(port, selector) || root;
+            magnet = this.findPortNode(port, selector) || this.el;
         } else {
             if (!selector) selector = end.selector;
             if (!selector && port != null) {
@@ -477,7 +479,7 @@ export const CellView = View.extend({
                 // a port created via the `port` attribute (not API).
                 selector = '[port="' + port + '"]';
             }
-            magnet = this.findBySelector(selector, root, this.selectors)[0];
+            magnet = this.findNode(selector);
         }
 
         return this.findProxyNode(magnet, 'magnet');

@@ -46,7 +46,7 @@ import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
-import $ from 'jquery';
+import $ from '../mvc/Dom/index.mjs';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -335,10 +335,7 @@ export const Paper = View.extend({
     viewport: null,
     defs: null,
     tools: null,
-    $background: null,
     layers: null,
-    $grid: null,
-    $document: null,
 
     // For storing the current transformation matrix (CTM) of the paper's viewport.
     _viewportMatrix: null,
@@ -370,7 +367,7 @@ export const Paper = View.extend({
 
     init: function() {
 
-        const { options, el } = this;
+        const { options } = this;
         if (!options.cellViewNamespace) {
             /* eslint-disable no-undef */
             options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
@@ -397,8 +394,6 @@ export const Paper = View.extend({
             deltas: [],
         };
 
-        // Reference to the paper owner document
-        this.$document = $(el.ownerDocument);
         // Render existing cells in the graph
         this.resetViews(model.attributes.cells.models);
         // Start the Rendering Loop
@@ -586,15 +581,13 @@ export const Paper = View.extend({
 
         this.renderChildren();
         const { childNodes, options } = this;
-        const { svg, defs, layers, background, grid } = childNodes;
+        const { svg, defs, layers } = childNodes;
 
         svg.style.overflow = options.overflow ? 'visible' : 'hidden';
 
         this.svg = svg;
         this.defs = defs;
         this.layers = layers;
-        this.$background = $(background);
-        this.$grid = $(grid);
 
         this.renderLayers();
 
@@ -1283,8 +1276,8 @@ export const Paper = View.extend({
         const { options } = this;
         let w = options.width;
         let h = options.height;
-        if (isNumber(w)) w = Math.round(w);
-        if (isNumber(h)) h = Math.round(h);
+        if (isNumber(w)) w = `${Math.round(w)}px`;
+        if (isNumber(h)) h = `${Math.round(h)}px`;
         this.$el.css({
             width: (w === null) ? '' : w,
             height: (h === null) ? '' : h
@@ -1674,10 +1667,10 @@ export const Paper = View.extend({
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.
 
-        var $cells = $(this.cells).children('[model-id]');
+        var cellNodes = Array.from(this.cells.childNodes).filter(node => node.getAttribute('model-id'));
         var cells = this.model.get('cells');
 
-        sortElements($cells, function(a, b) {
+        sortElements(cellNodes, function(a, b) {
             var cellA = cells.get(a.getAttribute('model-id'));
             var cellB = cells.get(b.getAttribute('model-id'));
             var zA = cellA.attributes.z || 0;
@@ -2213,7 +2206,7 @@ export const Paper = View.extend({
             // Element magnet
             const magnetNode = target.closest('[magnet]');
             if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
-                const magnetEvt = normalizeEvent($.Event(evt.originalEvent, {
+                const magnetEvt = normalizeEvent(new $.Event(evt.originalEvent, {
                     data: evt.data,
                     // Originally the event listener was attached to the magnet element.
                     currentTarget: magnetNode
@@ -2235,7 +2228,7 @@ export const Paper = View.extend({
 
         if (isContextMenu) {
             this.contextMenuFired = true;
-            const contextmenuEvt = $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
+            const contextmenuEvt = new $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
             this.contextMenuTrigger(contextmenuEvt);
         } else {
             const localPoint = this.snapToGrid(evt.clientX, evt.clientY);
@@ -2300,7 +2293,7 @@ export const Paper = View.extend({
         }
 
         if (!normalizedEvt.isPropagationStopped()) {
-            this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
+            this.pointerclick(new $.Event(evt.originalEvent, { type: 'click', data: evt.data }));
         }
 
         this.delegateEvents();
@@ -2495,7 +2488,7 @@ export const Paper = View.extend({
         if (evt.button === 2) {
             this.contextMenuFired = true;
             this.magnetContextMenuFired = true;
-            const contextmenuEvt = $.Event(evt.originalEvent, {
+            const contextmenuEvt = new $.Event(evt.originalEvent, {
                 type: 'contextmenu',
                 data: evt.data,
                 currentTarget: evt.currentTarget,
@@ -2598,7 +2591,7 @@ export const Paper = View.extend({
             return false;
         }
 
-        if (this.svg === target || this.el === target || $.contains(this.svg, target)) {
+        if (this.el === target || this.svg.contains(target)) {
             return false;
         }
 
@@ -2620,8 +2613,9 @@ export const Paper = View.extend({
 
     clearGrid: function() {
 
-        if (this.$grid) {
-            this.$grid.css('backgroundImage', 'none');
+        const { childNodes } = this;
+        if (childNodes && childNodes.grid) {
+            childNodes.grid.style.backgroundImage = '';
         }
         return this;
     },
@@ -2752,7 +2746,7 @@ export const Paper = View.extend({
         var patternUri = new XMLSerializer().serializeToString(refs.root.node);
         patternUri = 'url(data:image/svg+xml;base64,' + btoa(patternUri) + ')';
 
-        this.$grid.css('backgroundImage', patternUri);
+        this.childNodes.grid.style.backgroundImage = patternUri;
 
         return this;
     },
@@ -2780,17 +2774,16 @@ export const Paper = View.extend({
             backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
 
-        this.$background.css({
-            backgroundSize: backgroundSize,
-            backgroundPosition: backgroundPosition
-        });
+        const { background } = this.childNodes;
+        background.style.backgroundSize = backgroundSize;
+        background.style.backgroundPosition = backgroundPosition;
     },
 
     drawBackgroundImage: function(img, opt) {
 
         // Clear the background image if no image provided
         if (!(img instanceof HTMLImageElement)) {
-            this.$background.css('backgroundImage', '');
+            this.childNodes.background.style.backgroundImage = '';
             return;
         }
 
@@ -2843,11 +2836,9 @@ export const Paper = View.extend({
             }
         }
 
-        this.$background.css({
-            opacity: backgroundOpacity,
-            backgroundRepeat: backgroundRepeat,
-            backgroundImage: 'url(' + backgroundImage + ')'
-        });
+        this.childNodes.background.style.opacity = backgroundOpacity;
+        this.childNodes.background.style.backgroundRepeat = backgroundRepeat;
+        this.childNodes.background.style.backgroundImage = `url(${backgroundImage})`;
 
         this.updateBackgroundImage(opt);
     },
@@ -3088,7 +3079,7 @@ export const Paper = View.extend({
         const eventNode = evt.target.closest('[event]');
 
         if (eventNode && rootNode !== eventNode && view.el.contains(eventNode)) {
-            const eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+            const eventEvt = normalizeEvent(new $.Event(evt.originalEvent, {
                 data: evt.data,
                 // Originally the event listener was attached to the event element.
                 currentTarget: eventNode

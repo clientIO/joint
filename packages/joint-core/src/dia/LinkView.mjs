@@ -1,11 +1,12 @@
 import { CellView } from './CellView.mjs';
 import { Link } from './Link.mjs';
 import V from '../V/index.mjs';
-import { addClassNamePrefix, removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage, result, isEqual } from '../util/index.mjs';
+import { addClassNamePrefix, removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage, result, isEqual, camelCase } from '../util/index.mjs';
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
-import $ from 'jquery';
+import $ from '../mvc/Dom/index.mjs';
+
 
 const Flags = {
     TOOLS: CellView.Flags.TOOLS,
@@ -285,7 +286,7 @@ export const LinkView = CellView.extend({
             if (className) {
                 // Strip the joint class name prefix, if there is one.
                 className = removeClassNamePrefix(className);
-                cache[$.camelCase(className)] = child;
+                cache[camelCase(className)] = child;
             }
         }
         // partial rendering
@@ -439,14 +440,17 @@ export const LinkView = CellView.extend({
         }
     },
 
-    findLabelNode: function(labelIndex, selector) {
+    findLabelNodes: function(labelIndex, selector) {
         const labelRoot = this._labelCache[labelIndex];
-        if (!labelRoot) return null;
+        if (!labelRoot) return [];
         const labelSelectors = this._labelSelectors[labelIndex];
-        const [node = null] = this.findBySelector(selector, labelRoot, labelSelectors);
-        return node;
+        return this.findBySelector(selector, labelRoot, labelSelectors);
     },
 
+    findLabelNode: function(labelIndex, selector) {
+        const [node = null] = this.findLabelNodes(labelIndex, selector);
+        return node;
+    },
 
     // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
     // keep `undefined` or `null` because `{}` means something else
@@ -1132,9 +1136,6 @@ export const LinkView = CellView.extend({
 
         if (!this._V.markerArrowheads) return this;
 
-        // getting bbox of an element with `display="none"` in IE9 ends up with access violation
-        if ($.css(this._V.markerArrowheads.node, 'display') === 'none') return this;
-
         var sx = this.getConnectionLength() < this.options.shortLinkLength ? .5 : 1;
         this._V.sourceArrowhead.scale(sx);
         this._V.targetArrowhead.scale(sx);
@@ -1365,7 +1366,7 @@ export const LinkView = CellView.extend({
         var connection;
         if (typeof selector === 'string') {
             // Use custom connection path.
-            connection = this.findBySelector(selector, this.el, this.selectors)[0];
+            connection = this.findNode(selector);
         } else {
             // Select connection path automatically.
             var cache = this._V;

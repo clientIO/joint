@@ -167,8 +167,13 @@ Array.from({ length: 8 }).forEach(function() {
 paper2.model.addCell(g2Circle);
 paper2.model.addCell(g2Rect);
 
-$('<b/>').text('Click on Rectangle or Ellipse to toggle port positions alignment').appendTo('body');
-$('<div/>').html('&nbsp;').appendTo('body');
+var b1 = document.createElement('b');
+b1.textContent = 'Click on Rectangle or Ellipse to toggle port positions alignment';
+document.body.appendChild(b1);
+
+var d1 = document.createElement('div');
+d1.innerHTML = '&nbsp;';
+document.body.appendChild(d1);
 
 var portPosition = {
     'standard.Rectangle': 1,

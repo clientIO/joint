@@ -45,7 +45,7 @@ export const Connect = Button.extend({
                 break;
             }
             case 'string': {
-                [magnetNode] = relatedView.findBySelector(magnet);
+                magnetNode = relatedView.findNode(magnet);
                 break;
             }
             default: {

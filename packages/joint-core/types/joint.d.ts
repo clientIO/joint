@@ -8,9 +8,14 @@ export namespace config {
     var doubleTapInterval: number;
 }
 
+type NativeEvent = Event;
+
+/* A JQuery-like object */
+type Dom = any;
+
 export namespace dia {
 
-    type Event = JQuery.TriggeredEvent;
+    type Event = mvc.TriggeredEvent;
 
     type ObjectHash = { [key: string]: any };
 
@@ -752,15 +757,17 @@ export namespace dia {
 
         presentationAttributes(): CellView.PresentationAttributes;
 
-        highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
+        highlight(el?: SVGElement | Dom | string, opt?: { [key: string]: any }): this;
 
-        unhighlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
+        unhighlight(el?: SVGElement | Dom | string, opt?: { [key: string]: any }): this;
 
         can(feature: string): boolean;
 
-        findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
+        findMagnet(el: SVGElement | Dom | string): SVGElement | undefined;
 
-        findBySelector(selector: string, root?: SVGElement | JQuery | string): SVGElement[];
+        findNode(selector: string): Element | null;
+
+        findNodes(groupSelector: string): Element[];
 
         findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
@@ -815,6 +822,8 @@ export namespace dia {
         preventDefaultInteraction(evt: dia.Event): void;
 
         isDefaultInteractionPrevented(evt: dia.Event): boolean;
+
+        protected findBySelector(selector: string, root?: SVGElement | Dom | string): SVGElement[];
 
         protected removeHighlighters(): void;
 
@@ -913,7 +922,10 @@ export namespace dia {
 
         getDelegatedView(): ElementView | null;
 
-        findPortNode(portId: string | number, selector?: string): SVGElement | null;
+        findPortNode(portId: string | number): SVGElement | null;
+        findPortNode(portId: string | number, selector: string): Element | null;
+
+        findPortNodes(portId: string | number, groupSelector: string): Element[];
 
         protected renderMarkup(): void;
 
@@ -1077,7 +1089,10 @@ export namespace dia {
 
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
-        findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
+        findLabelNode(labelIndex: string | number): SVGElement | null;
+        findLabelNode(labelIndex: string | number, selector: string): Element | null;
+
+        findLabelNodes(labelIndex: string | number, groupSelector: string): Element[];
 
         removeRedundantLinearVertices(opt?: dia.ModelSetOptions): number;
 
@@ -1436,10 +1451,6 @@ export namespace dia {
         layers: SVGGElement;
         viewport: SVGGElement;
 
-        $document: JQuery;
-        $grid: JQuery;
-        $background: JQuery;
-
         GUARDED_TAG_NAMES: string[];
         FORM_CONTROLS_TAG_NAMES: string[];
 
@@ -1512,7 +1523,7 @@ export namespace dia {
 
         getContentBBox(opt?: { useModelGeometry: boolean }): g.Rect;
 
-        findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
+        findView<T extends ElementView | LinkView>(element: string | Dom | SVGElement): T;
 
         findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
 
@@ -2954,7 +2965,7 @@ export namespace util {
     export function getElementBBox(el: Element): dia.BBox;
 
     export function sortElements(
-        elements: Element[] | string | JQuery,
+        elements: Element[] | string | Dom,
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
@@ -3348,6 +3359,74 @@ export namespace layout {
 
 export namespace mvc {
 
+    interface Event {
+        // Event
+        bubbles: boolean | undefined;
+        cancelable: boolean | undefined;
+        eventPhase: number | undefined;
+        // UIEvent
+        detail: number | undefined;
+        view: Window | undefined;
+        // MouseEvent
+        button: number | undefined;
+        buttons: number | undefined;
+        clientX: number | undefined;
+        clientY: number | undefined;
+        offsetX: number | undefined;
+        offsetY: number | undefined;
+        pageX: number | undefined;
+        pageY: number | undefined;
+        screenX: number | undefined;
+        screenY: number | undefined;
+        /** @deprecated */
+        toElement: Element | undefined;
+        // PointerEvent
+        pointerId: number | undefined;
+        pointerType: string | undefined;
+        // KeyboardEvent
+        /** @deprecated */
+        char: string | undefined;
+        /** @deprecated */
+        charCode: number | undefined;
+        key: string | undefined;
+        /** @deprecated */
+        keyCode: number | undefined;
+        // TouchEvent
+        changedTouches: TouchList | undefined;
+        targetTouches: TouchList | undefined;
+        touches: TouchList | undefined;
+        // MouseEvent, KeyboardEvent
+        which: number | undefined;
+        // MouseEvent, KeyboardEvent, TouchEvent
+        altKey: boolean | undefined;
+        ctrlKey: boolean | undefined;
+        metaKey: boolean | undefined;
+        shiftKey: boolean | undefined;
+        timeStamp: number;
+        type: string;
+        isDefaultPrevented(): boolean;
+        isImmediatePropagationStopped(): boolean;
+        isPropagationStopped(): boolean;
+        preventDefault(): void;
+        stopImmediatePropagation(): void;
+        stopPropagation(): void;
+    }
+
+    interface TriggeredEvent<
+        TDelegateTarget = any,
+        TData = any,
+        TCurrentTarget = any,
+        TTarget = any
+    > extends Event {
+        currentTarget: TCurrentTarget;
+        delegateTarget: TDelegateTarget;
+        target: TTarget;
+        data: TData;
+        namespace?: string | undefined;
+        originalEvent?: NativeEvent | undefined;
+        result?: any;
+    }
+
     type List<T> = ArrayLike<T>;
     type ListIterator<T, TResult> = (value: T, index: number, collection: List<T>) => TResult;
 
@@ -3394,7 +3473,7 @@ export namespace mvc {
      * DOM events (used in the events property of a View)
      */
     interface EventsHash {
-        [selector: string]: string | { (eventObject: JQuery.TriggeredEvent): void };
+        [selector: string]: string | { (eventObject: mvc.TriggeredEvent): void };
     }
 
     /**
@@ -3663,7 +3742,7 @@ export namespace mvc {
         model?: TModel | undefined;
         // TODO: quickfix, this can't be fixed easy. The collection does not need to have the same model as the parent view.
         collection?: Collection<any> | undefined; // was: Collection<TModel>;
-        el?: TElement | JQuery | string | undefined;
+        el?: TElement | Dom | string | undefined;
         id?: string | undefined;
         attributes?: Record<string, any> | undefined;
         className?: string | undefined;
@@ -3671,7 +3750,7 @@ export namespace mvc {
         events?: _Result<EventsHash> | undefined;
     }
 
-    type ViewBaseEventListener = (event: JQuery.Event) => void;
+    type ViewBaseEventListener = (event: mvc.Event) => void;
 
     class ViewBase<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> extends EventsMixin implements Events {
         /**
@@ -3699,16 +3778,18 @@ export namespace mvc {
         // A conditional type used here to prevent `TS2532: Object is possibly 'undefined'`
         model: TModel extends Model ? TModel : undefined;
         collection: Collection<any>;
-        setElement(element: TElement | JQuery): this;
+        setElement(element: TElement | Dom): this;
         id?: string | undefined;
         cid: string;
         className?: string | undefined;
         tagName: string;
 
         el: TElement;
-        $el: JQuery;
         attributes: Record<string, any>;
-        $(selector: string): JQuery;
+        /* @deprecated use `el` instead */
+        $el: Dom;
+        /* @deprecated use `el.querySelector()` instead */
+        $(selector: string): Dom;
         render(): this;
         remove(): this;
         delegateEvents(events?: _Result<EventsHash>): this;
@@ -3717,7 +3798,7 @@ export namespace mvc {
         undelegate(eventName: string, selector?: string, listener?: ViewBaseEventListener): this;
 
         protected _removeElement(): void;
-        protected _setElement(el: TElement | JQuery): void;
+        protected _setElement(el: TElement | Dom): void;
         protected _createElement(tagName: string): void;
         protected _ensureElement(): void;
         protected _setAttributes(attributes: Record<string, any>): void;

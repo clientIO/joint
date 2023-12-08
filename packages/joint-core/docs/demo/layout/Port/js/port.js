@@ -16,12 +16,12 @@ var g2Rect = new joint.shapes.basic.Rect({
             },
             'reds': {
                 position: function(ports, elBBox, opt) {
-                    return _.map(ports, function(port, index) {
+                    return ports.map(function(port, index) {
                         var step = -Math.PI / 8;
 
                         var y = Math.sin(index * step) * 50;
 
-                        return g.point({ x: index * 12, y: y + elBBox.height });
+                        return new g.Point({ x: index * 12, y: y + elBBox.height });
                     });
                 },
                 label: { position: { name: 'manual', args: { attrs: { '.': { y: 40, 'text-anchor': 'middle' }}}}},
@@ -77,10 +77,14 @@ var g2Circle = new joint.shapes.basic.Circle({
     }
 });
 
-_.times(4, function() {
+function times(n, cb) {
+    Array.from({ length: n }).forEach((_, i) => cb(i));
+}
+
+times(4, function() {
     g2Rect.addPort({ group: 'blacks' });
 });
-_.times(24, function() {
+times(24, function() {
     g2Rect.addPort({ group: 'reds' });
 });
 g2Rect.addPort({ group: 'reds', attrs: { text: { text: 'fn: sin(x)' }}});
@@ -95,15 +99,16 @@ g2Rect.addPort({
     }
 });
 
-_.times(8, function() {
+times(8, function() {
     g2Circle.addPort({ group: 'blacks' });
 });
 
 paper2.model.addCell(g2Circle);
 paper2.model.addCell(g2Rect);
 
-$('<b/>').text('Click on Rectangle or Ellipse to toggle port positions alignment').appendTo('body');
-$('<div/>').html('&nbsp;').appendTo('body');
+var b = document.createElement('b');
+b.textContent = 'Click on Rectangle or Ellipse to toggle port positions alignment';
+document.body.appendChild(b);
 
 var portPosition = {
     'basic.Rect': 1,

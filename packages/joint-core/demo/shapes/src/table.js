@@ -1,7 +1,11 @@
 var graph = new joint.dia.Graph;
 
+var div = document.createElement('div');
+div.style.border = '1px solid black';
+document.body.appendChild(div);
+
 new joint.dia.Paper({
-    el: $('<div>').prependTo(document.body).css({ border: '1px solid gray' }),
+    el: div,
     width: 1200,
     height: 550,
     gridSize: 40,
@@ -230,8 +234,8 @@ joint.shapes.basic.TableView = joint.dia.ElementView.extend({
 
         this._elements = [];
         var info = this.model.prop('table/metadata');
-        var tableEl = this.findBySelector(info.element, this.el);
-        this.tableVel = tableEl ? V(tableEl[0]) : this.vel;
+        var tableEl = this.findNode(info.element);
+        this.tableVel = tableEl ? V(tableEl) : this.vel;
 
         this._renderFills();
         this._renderBorders();

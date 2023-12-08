@@ -182,8 +182,13 @@ g33.addPort({
 paper3.model.addCell(g3);
 paper3.model.addCell(g33);
 
-$('<b/>').text('Click on Ellipse or Rectangle to toggle label position alignment').appendTo('body');
-$('<div/>').html('&nbsp;').appendTo('body');
+var b1 = document.createElement('b');
+b1.textContent = 'Click on Ellipse or Rectangle to toggle label position alignment';
+document.body.appendChild(b1);
+
+var d1 = document.createElement('div');
+d1.innerHTML = '&nbsp;';
+document.body.appendChild(d1);
 
 var labelPos = {
     'standard.Rectangle': 0,

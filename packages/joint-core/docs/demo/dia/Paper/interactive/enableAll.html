@@ -21,18 +21,14 @@
 </head>
 <body>
 
-
-<!-- Dependencies: -->
-<script src="../../../../js/lib/jquery.min.js"></script>
-<script src="../../../../js/lib/lodash.min.js"></script>
-
 <script src="../../../../js/lib/joint.min.js"></script>
 
 <script>
     var graph = new joint.dia.Graph;
-
+    var div = document.createElement('div');
+    document.body.appendChild(div);
     var paper = new joint.dia.Paper({
-        el: $('<div/>').appendTo(document.body),
+        el: div,
         width: 380,
         height: 90,
         gridSize: 1,

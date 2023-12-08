@@ -8,10 +8,6 @@
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prism-themes/themes/prism-one-light.css">
 
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
-
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
@@ -20,11 +16,6 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
         <div class="tutorial">
 
             <h1>Advanced Tutorial</h1>
@@ -37,14 +28,6 @@
                 Expect this section to grow in the future; we add advanced new features to JointJS regularly, and most
                 of them will be introduced in this section.
                 The current list of advanced topics can be found in the sidebar of this page.</p>
-
-            <p>We also provide an <a href="archive.html">archive</a> of additional advanced tutorials created for past
-                versions of JointJS.
-                They provide a wealth of information as well - with the disclaimer that they may no longer
-                showcase the best/most&nbsp;optimized/easiest/cleanest way of doing things in the current version of
-                JointJS.
-                For guidance on current best practices, refer to the appropriate sections of the
-                <a href="hello-world.html">basic</a> and <a href="intermediate.html">intermediate</a> tutorial.</p>
 
         </div><!--end tutorial-->
 

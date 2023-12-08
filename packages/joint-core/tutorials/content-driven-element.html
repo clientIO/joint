@@ -8,10 +8,6 @@
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prism-themes/themes/prism-one-light.css">
 
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
-
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
@@ -20,34 +16,29 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
         <div class="tutorial">
 
             <h1>Content Driven Elements</h1>
 
             <p>
                 JointJS provides its users with a lot of flexibility when it comes to creating custom shapes. You may have already taken
-                advantage of this flexibility by using traditional JointJS mechanisms such as <code>markup</code> and <code>attrs</code>. 
+                advantage of this flexibility by using traditional JointJS mechanisms such as <code>markup</code> and <code>attrs</code>.
                 This is a well-established method for creating custom elements, but it's not the only approach that you could utilize.
             </p>
 
             <p>
-                Another approach to creating custom elements is to allow the content to drive the size of the element. That means we don't 
+                Another approach to creating custom elements is to allow the content to drive the size of the element. That means we don't
                 set the element sizing explicitly, but allow the element dimensions to be derived from the content itself.
             </p>
 
             <p>
-                Depending on your use case, a content driven element may not be essential for your workflow, so your next question might be, 
+                Depending on your use case, a content driven element may not be essential for your workflow, so your next question might be,
                 why would I need to use one?
             </p>
 
             <p>
-                Imagine working with a lot of data points, what if each one has a label of different length, and you want to make sure the 
-                label doesn't extend beyond its element bounds? In this instance, it might not be desirable to set the element's size in 
+                Imagine working with a lot of data points, what if each one has a label of different length, and you want to make sure the
+                label doesn't extend beyond its element bounds? In this instance, it might not be desirable to set the element's size in
                 retrospect. It's possible a more efficient workflow might be to allow the label content to drive element sizing instead.
             </p>
 
@@ -64,13 +55,13 @@
 
             <p>
                 The first step towards content driven elements is to define our shape. We start by creating a <code>Shape</code>
-                class which inherits from <code>joint.dia.Element</code>. Since we aren't using traditional <code>markup</code> 
+                class which inherits from <code>joint.dia.Element</code>. Since we aren't using traditional <code>markup</code>
                 or <code>attrs</code>, we just provide a few default properties we want to work with in our shape.
             </p>
 
             <p>
                 <code>type</code> is a unique path identifier where JointJS looks for our shape. As <code>joint.shapes</code> is implied,
-                the full path is <code>joint.shapes.custom.Shape</code>. The remaining default attributes on our model are related to 
+                the full path is <code>joint.shapes.custom.Shape</code>. The remaining default attributes on our model are related to
                 the visual aspects of our shape. As we update these attributes on our model, we would like the view to update itself
                 too.
             </p>
@@ -116,19 +107,19 @@
 
             <p>
                 When we <code>initialize()</code> our shape instance, we accomplish a number of things. We add an event
-                listener to detect any attribute changes in our model, and we also set the size of our element based on 
+                listener to detect any attribute changes in our model, and we also set the size of our element based on
                 the values returned from our layout calculation.
             </p>
 
             <p>
                 The <code>onAttributeChange()</code> method checks if attributes that affect the size of our element have
-                changed. If there is no label present in the changes, that means we don't need to recalculate the label 
+                changed. If there is no label present in the changes, that means we don't need to recalculate the label
                 size, and can use the dimensions stored in the <code>cache</code>.
             </p>
 
             <p>
                 If either the image or label are present in the changes, we then need to recalculate the size of our element.
-                We achieve this in the <code>setSizeFromContent()</code> method which derives the <code>width</code> and 
+                We achieve this in the <code>setSizeFromContent()</code> method which derives the <code>width</code> and
                 <code>height</code> from our layout.
             </p>
 
@@ -164,13 +155,13 @@ setSizeFromContent() {
 </code></pre>
 
             <p>
-                As we mentioned earlier, most of the action relating to the dimensions of our content driven element happens 
+                As we mentioned earlier, most of the action relating to the dimensions of our content driven element happens
                 in the layout. In the following code, you will see how we utilize properties introduced in the <code>preinitialize()</code>
                 method to create a flexible layout.
             </p>
 
             <p>
-                The <code>layout()</code> method first determines if there are any layout metrics already present in the <code>cache</code>, 
+                The <code>layout()</code> method first determines if there are any layout metrics already present in the <code>cache</code>,
                 and if not, calls the <code>calcLayout()</code> method to create them.
             </p>
 
@@ -189,7 +180,7 @@ setSizeFromContent() {
         return layout;
     }
 }
-    
+
 calcLayout() {
     const {
         attributes,
@@ -269,7 +260,7 @@ calcLayout() {
         </p>
 
 <pre><code>const svg = paper.svg;
-      
+
 function measureText(svgDocument, text, attrs) {
     const vText = V('text').attr(attrs).text(text);
     vText.appendTo(svgDocument);
@@ -283,7 +274,7 @@ function measureText(svgDocument, text, attrs) {
 
         <p>
             The other important aspect of our content driven element is a custom element view. The view is responsible for rendering
-            our shape, and working with our element visually. Our custom view also listens to underlying model changes, and updates 
+            our shape, and working with our element visually. Our custom view also listens to underlying model changes, and updates
             itself.
         </p>
 
@@ -300,7 +291,7 @@ function measureText(svgDocument, text, attrs) {
         </p>
 
         <p>
-            <code>confirmUpdate()</code> receives all scheduled flags, and based on them updates the view. In our example, 
+            <code>confirmUpdate()</code> receives all scheduled flags, and based on them updates the view. In our example,
             it isn't necessary to perform updates for resizing DOM elements if the received flag is <code>'@color'</code>.
         </p>
 
@@ -331,7 +322,7 @@ const ShapeView = ElementView.extend({
 
     // Other Methods
 });
-    
+
 joint.shapes.custom = {
     Shape,
     ShapeView
@@ -339,7 +330,7 @@ joint.shapes.custom = {
 </code></pre>
 
         <p>
-            The <code>render()</code> function runs once during initialization. It is responsible for creating the DOM elements, 
+            The <code>render()</code> function runs once during initialization. It is responsible for creating the DOM elements,
             and updates during the initial render.
         </p>
 
@@ -463,8 +454,8 @@ customShape4
 
         <p>
             Thanks for reading. I hope you consider content driven elements if it's suitable for your application.
-            If you would like to explore any of the features mentioned here in more detail, you can find extra information in our 
-            <a href="/docs/jointjs" target="_blank">JointJS documentation</a>. 
+            If you would like to explore any of the features mentioned here in more detail, you can find extra information in our
+            <a href="/docs/jointjs" target="_blank">JointJS documentation</a>.
         </p>
 
         </div><!--end tutorial-->

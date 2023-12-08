@@ -5,3 +5,6 @@ export * from './Collection.mjs';
 export * from './Model.mjs';
 export * from './ViewBase.mjs';
 export * from './mvcUtils.mjs';
+export { default as Data } from './Data.mjs';
+export { default as $ } from './Dom/index.mjs';
+export * from './Dom/Event.mjs';

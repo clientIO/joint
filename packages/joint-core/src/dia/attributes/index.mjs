@@ -2,7 +2,7 @@ import { Point, Path, Polyline } from '../../g/index.mjs';
 import { assign, isPlainObject, isObject, isPercentage, breakText } from '../../util/util.mjs';
 import { isCalcAttribute, evalCalcAttribute } from './calc.mjs';
 import props from './props.mjs';
-import $ from 'jquery';
+import $ from '../../mvc/Dom/index.mjs';
 import V from '../../V/index.mjs';
 
 function setWrapper(attrName, dimension) {
@@ -75,8 +75,7 @@ function shapeWrapper(shapeConstructor, opt) {
     var cacheName = 'joint-shape';
     var resetOffset = opt && opt.resetOffset;
     return function(value, refBBox, node) {
-        var $node = $(node);
-        var cache = $node.data(cacheName);
+        var cache = $.data.get(node, cacheName);
         if (!cache || cache.value !== value) {
             // only recalculate if value has changed
             var cachedShape = shapeConstructor(value);
@@ -85,7 +84,7 @@ function shapeWrapper(shapeConstructor, opt) {
                 shape: cachedShape,
                 shapeBBox: cachedShape.bbox()
             };
-            $node.data(cacheName, cache);
+            $.data.set(node, cacheName, cache);
         }
 
         var shape = cache.shape.clone();
@@ -311,9 +310,8 @@ const attributesNS = {
             return !attrs.textWrap || !isPlainObject(attrs.textWrap);
         },
         set: function(text, refBBox, node, attrs) {
-            const $node = $(node);
             const cacheName = 'joint-text';
-            const cache = $node.data(cacheName);
+            const cache = $.data.get(node, cacheName);
             const {
                 lineHeight,
                 annotations,
@@ -344,7 +342,7 @@ const attributesNS = {
                 if (isObject(textPath)) {
                     const pathSelector = textPath.selector;
                     if (typeof pathSelector === 'string') {
-                        const [pathNode] = this.findBySelector(pathSelector);
+                        const pathNode = this.findNode(pathSelector);
                         if (pathNode instanceof SVGPathElement) {
                             textPath = assign({ 'xlink:href': '#' + pathNode.id }, textPath);
                         }
@@ -359,7 +357,7 @@ const attributesNS = {
                     eol,
                     displayEmpty
                 });
-                $node.data(cacheName, textHash);
+                $.data.set(node, cacheName, textHash);
             }
         }
     },
@@ -436,11 +434,10 @@ const attributesNS = {
             return node instanceof SVGElement;
         },
         set: function(title, refBBox, node) {
-            var $node = $(node);
             var cacheName = 'joint-title';
-            var cache = $node.data(cacheName);
+            var cache = $.data.get(node, cacheName);
             if (cache === undefined || cache !== title) {
-                $node.data(cacheName, title);
+                $.data.set(node, cacheName, title);
                 if (node.tagName === 'title') {
                     // The target node is a <title> element.
                     node.textContent = title;

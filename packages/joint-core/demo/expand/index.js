@@ -287,12 +287,13 @@ paper.on('element:magnet:pointerclick', function(elementView, evt, magnet) {
     }
 });
 
-$('<button/>').text('Show All').on('click', function() {
+var button = document.createElement('button');
+button.textContent = 'Show All';
+document.body.appendChild(button);
+button.addEventListener('click', function() {
     graph.getCells().forEach(function(cell) {
         if (!cell.isVisible()) {
             cell.show();
         }
     });
-
-}).appendTo('body');
-
+});

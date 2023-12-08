@@ -1,6 +1,6 @@
 import { Connect } from '../linkTools/Connect.mjs';
 import V from '../V/index.mjs';
-import $ from 'jquery';
+import $ from '../mvc/Dom/index.mjs';
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
@@ -131,7 +131,7 @@ export const HoverConnect = Connect.extend({
     canShowButton() {
         // Has been the paper events undelegated? If so, we can't show the button.
         // TODO: add a method to the paper to check if the events are delegated.
-        return $._data(this.paper.el, 'events');
+        return $.event.has(this.paper.el);
     },
 
     showButton() {

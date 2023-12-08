@@ -1,23 +1,27 @@
 import * as joint from './vendor/joint';
 import './custom';
 import { V, g } from './vendor/joint';
-import * as $ from 'jquery';
 import { MyShape } from './shape';
 import * as dagre from 'dagre';
 import * as graphlib from 'graphlib';
 
-const $body = $('body');
+const { body } = document;
 
 // Paper:
-$body.append($('<h3 />').text('Example Paper'));
-let $paper = $('<div id="paper" style="border: 1px dashed #ddd" />');
-$body.append($paper);
+const h1El = document.createElement('h3');
+h1El.textContent = 'Example Paper';
+body.appendChild(h1El);
+
+const paperEl = document.createElement('div');
+paperEl.id = 'paper';
+paperEl.style.border = '1px dashed #ddd';
+body.append(paperEl);
 
 // Define cellNamespace so graph.fromJSON() can find the custom shape constructor
 const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 const paper = new joint.dia.Paper({
-    el: $paper,
+    el: paperEl,
     width: 500,
     height: 200,
     gridSize: 20,
@@ -99,14 +103,16 @@ paper.unfreeze();
 
 // VECTORIZER DEMO:
 // Display all SVG shapes and convert them to paths.
-$body.append($('<h3 />').text('Example SVG created by Vectorizer'));
+const h2El = document.createElement('h3');
+h2El.textContent = 'Example SVG created by Vectorizer';
+body.appendChild(h2El);
 
 const svg = joint.V('svg');
 svg.attr('width', 500);
 svg.attr('height', 550);
 svg.attr('style', 'border: 1px dashed #ddd');
 
-$body.append(svg.node);
+body.append(svg.node);
 
 // Line:
 let vLine = V('line', { x1: 25, y1: 25, x2: 75, y2: 55, stroke: 'blue', 'stroke-width': 2 });

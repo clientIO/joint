@@ -1,6 +1,15 @@
 import * as dagre from 'dagre';
 import * as joint from '../../../joint.mjs';
 
+function val(view, selector, val) {
+    var el = view.el.querySelector(selector);
+    if (!el) return null;
+    if (val === undefined) {
+        return el.value;
+    }
+    el.value = val;
+}
+
 var Shape = joint.dia.Element.define('demo.Shape', {
     z: 2,
     size: {
@@ -180,12 +189,12 @@ var LayoutControls = joint.mvc.View.extend({
             graphlib: dagre.graphlib,
             setVertices: true,
             setLabels: true,
-            ranker: this.$('#ranker').val(),
-            rankDir: this.$('#rankdir').val(),
-            align: this.$('#align').val(),
-            rankSep: parseInt(this.$('#ranksep').val(), 10),
-            edgeSep: parseInt(this.$('#edgesep').val(), 10),
-            nodeSep: parseInt(this.$('#nodesep').val(), 10)
+            ranker: val(this, '#ranker'),
+            rankDir: val(this, '#rankdir'),
+            align: val(this, '#align'),
+            rankSep: parseInt(val(this, '#ranksep'), 10),
+            edgeSep: parseInt(val(this, '#edgesep'), 10),
+            nodeSep: parseInt(val(this, '#nodesep'), 10)
         };
     },
 
@@ -254,18 +263,18 @@ var LinkControls = joint.mvc.View.extend({
 
         var link = this.options.cellView.model;
 
-        this.$('#labelpos').val(link.get('labelPosition'));
-        this.$('#labeloffset').val(link.get('labelOffset'));
-        this.$('#minlen').val(link.get('minLen'));
-        this.$('#weight').val(link.get('weight'));
+        val(this, '#labelpos', link.get('labelPosition'));
+        val(this, '#labeloffset', link.get('labelOffset'));
+        val(this, '#minlen', link.get('minLen'));
+        val(this, '#weight', link.get('weight'));
     },
 
     getModelAttributes: function() {
         return {
-            minLen: parseInt(this.$('#minlen').val(), 10),
-            weight: parseInt(this.$('#weight').val(), 10),
-            labelPosition: this.$('#labelpos').val(),
-            labelOffset: parseInt(this.$('#labeloffset').val(), 10)
+            minLen: parseInt(val(this, '#minlen'), 10),
+            weight: parseInt(val(this, '#weight'), 10),
+            labelPosition: val(this, '#labelpos'),
+            labelOffset: parseInt(val(this, '#labeloffset'), 10)
         };
     },
 
@@ -289,7 +298,7 @@ var LinkControls = joint.mvc.View.extend({
             el: this.template.cloneNode(true),
             cellView: linkView
         });
-        this.instance.$el.insertAfter('#layout-controls');
+        document.getElementById('layout-controls').after(this.instance.el);
     },
 
     remove: function() {

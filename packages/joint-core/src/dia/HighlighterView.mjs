@@ -55,7 +55,7 @@ export const HighlighterView = mvc.View.extend({
     findNode(cellView, nodeSelector = null) {
         let el;
         if (typeof nodeSelector === 'string') {
-            [el] = cellView.findBySelector(nodeSelector);
+            el = cellView.findNode(nodeSelector);
         } else if (isPlainObject(nodeSelector)) {
             const isLink = cellView.model.isLink();
             const { label = null, port, selector } = nodeSelector;
@@ -67,7 +67,7 @@ export const HighlighterView = mvc.View.extend({
                 el = cellView.findPortNode(port, selector);
             } else {
                 // Cell Selector
-                [el] = cellView.findBySelector(selector);
+                el = cellView.findNode(selector);
             }
         } else if (nodeSelector) {
             el = V.toNode(nodeSelector);

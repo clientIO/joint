@@ -1,20 +1,16 @@
 require.config({
     baseUrl: '../../',
-    paths: {
-        // Dependencies for Joint:
-        'jquery': 'node_modules/jquery/dist/jquery',
-        'lodash': 'node_modules/lodash/lodash'
-    }
 });
 
-require(['jquery', 'build/joint'], function($, joint) {
+require(['build/joint'], function(joint) {
 
-    var $paper = $('<div/>').appendTo($('#app'));
+    var div = document.createElement('div');
+    document.body.appendChild(div);
 
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { namespace: joint.shapes });
 
     new joint.dia.Paper({
-        el: $paper,
+        el: div,
         width: 600,
         height: 400,
         model: graph

@@ -1,16 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
- 
+
         <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
         <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
 
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prism-themes/themes/prism-one-light.css">
-
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
 
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
@@ -19,12 +15,6 @@
 
     </head>
     <body class="language-javascript tutorial-page">
-
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
 
         <div class="tutorial">
 
@@ -66,9 +56,9 @@
 
             <p>
                 One of the most common requests when working with SVG is to set the dimensions of SVGElements relatively.
-                JointJS provides a <code>calc()</code> function which lets you perform calculations when specifying SVG 
-                attributes values. This allows you to size subelements relative to the size of the shape's model. You can 
-                view the documentation for <code>calc()</code> in our attributes section 
+                JointJS provides a <code>calc()</code> function which lets you perform calculations when specifying SVG
+                attributes values. This allows you to size subelements relative to the size of the shape's model. You can
+                view the documentation for <code>calc()</code> in our attributes section
                 <a href="/docs/jointjs#dia.attributes" target="_blank">here</a>.
                 Moreover, since all the calculations are programmatic and do not rely on the browser's bbox measurements, using
                 this function does not impact performance of your app.
@@ -77,15 +67,15 @@
             </p>
 
             <p>
-                As <code>calc()</code> works with normal SVG attributes, you can perform relative sizing easily using the 
-                SVG attributes you are familiar with. For example, <code>'calc(w)'</code> and <code>'calc(h)'</code> performs 
-                calculations using the shape model width and height respectively. If we wanted to set the <code>x</code> 
-                coordinate of the top-left corner of a subelement relative to the top-left corner of the shape model bbox, 
+                As <code>calc()</code> works with normal SVG attributes, you can perform relative sizing easily using the
+                SVG attributes you are familiar with. For example, <code>'calc(w)'</code> and <code>'calc(h)'</code> performs
+                calculations using the shape model width and height respectively. If we wanted to set the <code>x</code>
+                coordinate of the top-left corner of a subelement relative to the top-left corner of the shape model bbox,
                 we could use <code>x: 'calc(w)'</code> on the subelement.
             </p>
 
             <p><em>
-                JointJS also contains a suite of <code>ref</code> attributes to work with relative dimensions. However, we now 
+                JointJS also contains a suite of <code>ref</code> attributes to work with relative dimensions. However, we now
                 recommend using <code>calc()</code> for relative sizing.
             </em></p>
 

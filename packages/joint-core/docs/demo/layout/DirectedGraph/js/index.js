@@ -10,12 +10,13 @@
         model: graph
     });
 
-    $('#btn-layout').on('click', layout);
+    document.getElementById('btn-layout').addEventListener('click', layout, false);
 
     function layout() {
 
         try {
-            var adjacencyList = JSON.parse($('#adjacency-list').val());
+            var adjacencyListEl = document.getElementById('adjacency-list');
+            var adjacencyList = JSON.parse(adjacencyListEl.value);
         } catch (error) {
             console.log(error);
         }
@@ -39,10 +40,10 @@
         var elements = [];
         var links = [];
 
-        _.each(adjacencyList, function(edges, parentElementLabel) {
+        Object.keys(adjacencyList).forEach(function(parentElementLabel) {
             elements.push(makeElement(parentElementLabel));
-
-            _.each(edges, function(childElementLabel) {
+            var edges = adjacencyList[parentElementLabel] || [];
+            edges.forEach(function(childElementLabel) {
                 links.push(makeLink(parentElementLabel, childElementLabel));
             });
         });
@@ -73,9 +74,9 @@
 
     function makeElement(label) {
 
-        var maxLineLength = _.max(label.split('\n'), function(l) {
-            return l.length;
-        }).length;
+        var maxLineLength = label.split('\n').reduce(function(max, l) {
+            return Math.max(l.length, max);
+        }, 0);
 
         // Compute width/height of the rectangle based on the number
         // of lines in the label and the letter size. 0.6 * letterSize is

@@ -93,10 +93,10 @@ paper.on('link:mouseleave', function(linkView) {
     linkView.removeTools();
 });
 
-$('.router-switch').on('click', function(evt) {
-
-    var router = $(evt.target).data('router');
-    var connector = $(evt.target).data('connector');
+document.getElementById('router-switches').addEventListener('click', function(evt) {
+    if (!evt.target.matches('button')) return;
+    var router = evt.target.dataset.router;
+    var connector = evt.target.dataset.connector;
 
     if (router) {
         link.set('router', { name: router });
@@ -105,4 +105,4 @@ $('.router-switch').on('click', function(evt) {
     }
 
     link.set('connector', { name: connector });
-});
+}, false);

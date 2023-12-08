@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import $ from '../mvc/Dom/index.mjs';
 import V from '../V/index.mjs';
 import { config } from '../config/index.mjs';
 import {
@@ -104,10 +104,10 @@ export const parseDOMJSON = function(json, namespace) {
             node = document.createElementNS(ns, tagName);
             const svg = (ns === svgNamespace);
 
-            const wrapper = (svg) ? V : $;
+            const wrapperNode = (svg) ? V(node) : $(node);
             // Attributes
             const attributes = nodeDef.attributes;
-            if (attributes) wrapper(node).attr(attributes);
+            if (attributes) wrapperNode.attr(attributes);
             // Style
             const style = nodeDef.style;
             if (style) $(node).css(style);
@@ -129,7 +129,7 @@ export const parseDOMJSON = function(json, namespace) {
                 const nodeSelector = nodeDef.selector;
                 if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
                 selectors[nodeSelector] = node;
-                wrapper(node).attr('joint-selector', nodeSelector);
+                wrapperNode.attr('joint-selector', nodeSelector);
             }
             // Groups
             if (nodeDef.hasOwnProperty('groupSelector')) {
@@ -863,31 +863,21 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 export const sanitizeHTML = function(html) {
 
     // Ignores tags that are invalid inside a <div> tag (e.g. <body>, <head>)
+    const [outputEl] = $.parseHTML('<div>' + html + '</div>');
 
-    // If documentContext (second parameter) is not specified or given as `null` or `undefined`, a new document is used.
-    // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
-
-    // If keepScripts (last parameter) is `false`, scripts are not executed.
-    var output = $($.parseHTML('<div>' + html + '</div>', null, false));
-
-    output.find('*').each(function() { // for all nodes
-        var currentNode = this;
-
-        $.each(currentNode.attributes, function() { // for all attributes in each node
-            var currentAttribute = this;
-
-            var attrName = currentAttribute.name;
-            var attrValue = currentAttribute.value;
-
+    Array.from(outputEl.getElementsByTagName('*')).forEach(function(node) { // for all nodes
+        const names = node.getAttributeNames();
+        names.forEach(function(name) {
+            const value = node.getAttribute(name);
             // Remove attribute names that start with "on" (e.g. onload, onerror...).
             // Remove attribute values that start with "javascript:" pseudo protocol (e.g. `href="javascript:alert(1)"`).
-            if (attrName.startsWith('on') || attrValue.startsWith('javascript:') || attrValue.startsWith('data:') || attrValue.startsWith('vbscript:')) {
-                $(currentNode).removeAttr(attrName);
+            if (name.startsWith('on') || value.startsWith('javascript:' || value.startsWith('data:') || value.startsWith('vbscript:'))) {
+                node.removeAttribute(name);
             }
         });
     });
 
-    return output.html();
+    return outputEl.innerHTML;
 };
 
 // Download `blob` as file with `fileName`.
@@ -1086,10 +1076,9 @@ export const getElementBBox = function(el) {
 // See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
 export const sortElements = function(elements, comparator) {
 
-    var $elements = $(elements);
-    var placements = $elements.map(function() {
+    elements = $(elements).toArray();
+    var placements = elements.map(function(sortElement) {
 
-        var sortElement = this;
         var parentNode = sortElement.parentNode;
         // Since the element itself will change position, we have
         // to have some way of storing it's original position in
@@ -1109,9 +1098,11 @@ export const sortElements = function(elements, comparator) {
         };
     });
 
-    return Array.prototype.sort.call($elements, comparator).each(function(i) {
-        placements[i].call(this);
-    });
+    elements.sort(comparator);
+    for (var i = 0; i < placements.length; i++) {
+        placements[i].call(elements[i]);
+    }
+    return elements;
 };
 
 // Sets attributes on the given element and its descendants based on the selector.

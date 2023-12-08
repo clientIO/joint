@@ -658,13 +658,17 @@ export const elementViewPortPrototype = {
         return this._createPortElement(port);
     },
 
-    findPortNode: function(portId, selector) {
+    findPortNodes: function(portId, selector) {
         const portCache = this._portElementsCache[portId];
-        if (!portCache) return null;
-        if (!selector) return portCache.portContentElement.node;
+        if (!portCache) return [];
+        if (!selector) return [portCache.portContentElement.node];
         const portRoot = portCache.portElement.node;
         const portSelectors = portCache.portSelectors;
-        const [node = null] = this.findBySelector(selector, portRoot, portSelectors);
+        return this.findBySelector(selector, portRoot, portSelectors);
+    },
+
+    findPortNode: function(portId, selector) {
+        const [node = null] = this.findPortNodes(portId, selector);
         return node;
     },
 

@@ -67,14 +67,11 @@
   ],
   "dependencies": {
     "dagre": "~0.8.5",
-    "graphlib": "~2.1.8",
-    "jquery": "~3.7.1"
+    "graphlib": "~2.1.8"
   },
   "devDependencies": {
     "@types/dagre": "~0.7.50",
     "@types/graphlib": "~2.1.9",
-    "@types/jquery": "~3.5.22",
-    "@types/lodash": "~4.14.199",
     "@typescript-eslint/eslint-plugin": "5.48.1",
     "@typescript-eslint/parser": "5.48.1",
     "async": "2.6.1",
@@ -104,6 +101,7 @@
     "grunt-webpack": "6.0.0",
     "handlebars": "4.7.7",
     "jit-grunt": "0.10.0",
+    "jquery": "~3.7.1",
     "karma": "3.1.4",
     "karma-chrome-launcher": "2.2.0",
     "karma-coverage": "1.1.2",

@@ -8,11 +8,6 @@
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prism-themes/themes/prism-one-light.css">
 
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
-
-
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <link rel="stylesheet" href="css/foreign-object.css">
         <script type="text/javascript" src="../build/joint.min.js"></script>
@@ -27,8 +22,8 @@
             <h1>Foreign Object</h1>
 
             <p>
-                In the wonderful world of SVG elements, 
-                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject" target="_blank"><code>foreignObject</code></a> 
+                In the wonderful world of SVG elements,
+                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject" target="_blank"><code>foreignObject</code></a>
                 stands out from the rest as it provides some unique behaviour that other SVG elements do not. SVG, like other XML dialects, is
                 namespaced. That means if you want to include elements from a different XML namespace right in your SVG, you need some
                 mechanism to enable this functionality. That's where <code>foreignObject</code> comes into play.
@@ -40,20 +35,20 @@
             <p>
                 Historically, recommending <code>foreignObject</code> to users of JointJS was a little bit tricky, the main reason for this was the
                 inherent lack of support for <code>foreignObject</code> in Internet Explorer. Due to the necessity of supporting all our users,
-                including those who were still using IE, there was a hesitancy about integrating support into the library fully. Luckily for us, 
+                including those who were still using IE, there was a hesitancy about integrating support into the library fully. Luckily for us,
                 the days in which we had to support IE are now at an end, and all other major browsers have full support, as illustrated by this
                 <a href="https://caniuse.com/?search=foreignObject" target="_blank">caniuse</a> reference table.
             </p>
 
             <p>
-                Now, that we can more confidently recommend the use of <code>foreignObject</code> with JointJS, embedding HTML text in SVG, 
-                creating basic interactive elements like buttons, or working with HTML inputs should be a more straightforward process. 
-                With this addition, combining the power of JointJS with <code>foreignObject</code> opens up a world of possibilities for 
+                Now, that we can more confidently recommend the use of <code>foreignObject</code> with JointJS, embedding HTML text in SVG,
+                creating basic interactive elements like buttons, or working with HTML inputs should be a more straightforward process.
+                With this addition, combining the power of JointJS with <code>foreignObject</code> opens up a world of possibilities for
                 interactivity within your JointJS diagrams.
             </p>
 
             <p>
-                In order to get a general idea of how <code>foreignObject</code> can be utilized in SVG, let's start with a simple 
+                In order to get a general idea of how <code>foreignObject</code> can be utilized in SVG, let's start with a simple
                 example without using JointJS.
             </p>
 
@@ -118,7 +113,7 @@
                 rect.card { fill: url(#gradient); }
                 .stop1 { stop-color: #ff5c69; }
                 .stop2 { stop-color: #ff4252; }
-                .stop3 { stop-color: #ed2637; }                
+                .stop3 { stop-color: #ed2637; }
             </style>
             <defs>
                 <linearGradient id="gradient">
@@ -136,8 +131,8 @@
         </svg>
 
         <p>
-            Now that we have a better understanding of what <code>foreignObject</code> is all about, how would we create 
-            an equivalent example with JointJS? Using <code>foreignObject</code> with JointJS is much the same as creating any 
+            Now that we have a better understanding of what <code>foreignObject</code> is all about, how would we create
+            an equivalent example with JointJS? Using <code>foreignObject</code> with JointJS is much the same as creating any
             <a href="/tutorial/custom-elements" target="_blank"><code>custom element</code></a> which you can see in the following
             code example.
         </p>
@@ -218,14 +213,14 @@ card.addTo(graph);
         <p>
             In order for our JointJS example to have the equivalent functionality as the first example, we need to make selecting text possible.
             To do that, we use the <code>paper</code>
-            <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultViewAction" target="_blank"><code>preventDefaultViewAction</code></a> 
+            <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultViewAction" target="_blank"><code>preventDefaultViewAction</code></a>
             option which prevents the default action when a Cell is clicked.
         </p>
 
         <p>
-            While <code>preventDefaultViewAction</code> handles clicking, we also need to allow the user to select text via CSS. As the default CSS 
+            While <code>preventDefaultViewAction</code> handles clicking, we also need to allow the user to select text via CSS. As the default CSS
             in JointJS sets the <code>user-select</code> property to <code>'none'</code>, we need to override this on our element.
-            The <code>preventDefaultViewAction</code> option combined with the following CSS override enables users to select text in the same manner 
+            The <code>preventDefaultViewAction</code> option combined with the following CSS override enables users to select text in the same manner
             as the vanilla SVG example from earlier. We can also adjust the <code>cursor</code> value in order to see the text cursor.
         </p>
 
@@ -253,9 +248,9 @@ g[data-type="example.ForeignObject"] p {
 </code></pre>
 
         <p>
-            Since our <code>foreignObject</code> contains quite a lot of HTML, we can take advantage of the 
-            <a href="/docs/jointjs#util.svg" target="_blank"><code>util.svg</code></a> method to make our 
-            <a href="/docs/jointjs#dia.Cell.markup" target="_blank""><code>markup</code></a> object more concise. 
+            Since our <code>foreignObject</code> contains quite a lot of HTML, we can take advantage of the
+            <a href="/docs/jointjs#util.svg" target="_blank"><code>util.svg</code></a> method to make our
+            <a href="/docs/jointjs#dia.Cell.markup" target="_blank""><code>markup</code></a> object more concise.
             The resulting custom element definition will be more compact, and might prove easier to read for some developers.
         </p>
 
@@ -303,15 +298,15 @@ g[data-type="example.ForeignObject"] p {
 
         <p>
             One alternative method which diagram libraries utilize to allow users work with HTML is to render HTML on top of an underlying element.
-            While this approach can be successful, it comes with a lot of additional complexity such as the need to keep dimensions and position 
+            While this approach can be successful, it comes with a lot of additional complexity such as the need to keep dimensions and position
             of the HTML in sync with the element itself. To this day,
             this approach is used by many competing diagram libraries - especially those that use HTML
             <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas" target="_blank">Canvas</a> rendering.
         </p>
 
         <p>
-            It's possible to use the HTML overlay approach in JointJS, however since JointJS primarily works with SVG - and SVG was designed to work 
-            well with other web standards such as HTML - taking advantage of <code>foreignObject</code> can allow users of JointJS create HTML-rich 
+            It's possible to use the HTML overlay approach in JointJS, however since JointJS primarily works with SVG - and SVG was designed to work
+            well with other web standards such as HTML - taking advantage of <code>foreignObject</code> can allow users of JointJS create HTML-rich
             elements while avoiding some of the difficulties of other approaches.
         </p>
 
@@ -324,7 +319,7 @@ g[data-type="example.ForeignObject"] p {
 
         <p>
             In our previous example, we created an SVG <code>rect</code> element alongside our <code>foreignObject</code>. If your shape requires
-            other SVG elements, it's possible to add them in the same manner, but it's also not a requirement. You may find that 
+            other SVG elements, it's possible to add them in the same manner, but it's also not a requirement. You may find that
             <code>foreignObject</code> is sufficient, and it's the only SVG element you wish to define explicitly. In our <code>form</code>
             example, that's exactly the route we will take, and you can see it demonstrated in the following code example.
         </p>
@@ -358,10 +353,10 @@ g[data-type="example.ForeignObject"] p {
 </code></pre>
 
         <p>
-            As the default styles for our <code>form</code> are a little boring, we will also add the following CSS just to make our elements a 
-            little more presentable. It's also possible to add CSS via an SVG 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/style" target="_blank"><code>style</code></a> element, or inline 
-            styles via the <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/style" target="_blank">style</a> attribute 
+            As the default styles for our <code>form</code> are a little boring, we will also add the following CSS just to make our elements a
+            little more presentable. It's also possible to add CSS via an SVG
+            <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/style" target="_blank"><code>style</code></a> element, or inline
+            styles via the <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/style" target="_blank">style</a> attribute
             if you prefer, but as we are adding a substantial amount of CSS, we will use a separate stylesheet.
         </p>
 
@@ -394,7 +389,7 @@ input {
     color: white;
     cursor: text;
     font-size: 1rem;
-    height: 56px; 
+    height: 56px;
     outline-color: hsl(355, 100%, 63%);
     outline-width: thin;
     padding: 0 32px;
@@ -427,7 +422,7 @@ button:focus-visible {
 button span {
     background: linear-gradient(92.05deg, hsl(355, 100%, 68%) 12.09%, hsl(355, 100%, 63%) 42.58%, hsl(355, 85%, 54%) 84.96%);
     -webkit-background-clip: text;
-    background-clip: text; 
+    background-clip: text;
     -webkit-text-fill-color: hsl(0deg 0% 0% / 0%);
     font-size: 1.2rem;
 }
@@ -437,8 +432,8 @@ button span {
         <p>JointJS source code: <a href="js/foreign-object.js" target="_blank">foreign-object.js</a></p>
 
         <p>
-            When working with JointJS, you will have to make decisions about how some HTML elements lose focus. Notably, the default behavior of an 
-            HTML <code>form</code> is that when a user clicks on a blank area, the active input field loses focus. In order to mimic 
+            When working with JointJS, you will have to make decisions about how some HTML elements lose focus. Notably, the default behavior of an
+            HTML <code>form</code> is that when a user clicks on a blank area, the active input field loses focus. In order to mimic
             this behaviour in JointJS, we can create an event to remove focus when the user clicks on a blank <code>paper</code> area, or even on
             any JointJS element.
         </p>
@@ -449,10 +444,10 @@ button span {
 </code></pre>
 
         <p>
-            Alternatively, setting the 
+            Alternatively, setting the
             <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultViewAction" target="_blank"><code>preventDefaultViewAction</code></a>
-            and 
-            <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultBlankAction" target="_blank"><code>preventDefaultBlankAction</code></a> 
+            and
+            <a href="/docs/jointjs#dia.Paper.prototype.options.preventDefaultBlankAction" target="_blank"><code>preventDefaultBlankAction</code></a>
             <code>paper</code> options to <code>false</code> would have the same effect on focus.
         </p>
 
@@ -465,7 +460,7 @@ button span {
 
         <p>
             The simple explanation is that JointJS prevents its own default interactions when working with HTML form controls. That means for example,
-            if you try to drag an <code>input</code>, the element doesn't move as a whole, but it selects the text inside the input. The elements 
+            if you try to drag an <code>input</code>, the element doesn't move as a whole, but it selects the text inside the input. The elements
             where JointJS prevents its default interaction are as follows:
         </p>
 
@@ -478,15 +473,15 @@ button span {
         </ul>
 
         <p>
-            In the example above, we created a <code>paper</code> event with the aim of managing focus. One detail you may not have noticed is that the 
-            <code>button</code> text is actually contained within a <code>span</code> element. If we had not applied the <code>paper</code> event, 
-            and the <code>input</code> was in focus, clicking on the <code>span</code> element won't actually cause the <code>input</code> to lose focus. 
-            However, clicking on the <code>button</code> itself will make the <code>input</code> lose focus, as <code>button</code> is one of the 
+            In the example above, we created a <code>paper</code> event with the aim of managing focus. One detail you may not have noticed is that the
+            <code>button</code> text is actually contained within a <code>span</code> element. If we had not applied the <code>paper</code> event,
+            and the <code>input</code> was in focus, clicking on the <code>span</code> element won't actually cause the <code>input</code> to lose focus.
+            However, clicking on the <code>button</code> itself will make the <code>input</code> lose focus, as <code>button</code> is one of the
             elements where JointJS prevents its default interaction.
         </p>
 
         <p>
-            If we wanted the <code>input</code> to lose focus when a user clicks on the <code>span</code> element, utilizing the 
+            If we wanted the <code>input</code> to lose focus when a user clicks on the <code>span</code> element, utilizing the
             <code>preventDefaultViewAction</code> option would accomplish this. A stronger measure would be to use the <code>paper</code>
             <a href="/docs/jointjs#dia.Paper.prototype.options.guard" target="_blank"><code>guard</code></a> option as follows
             <code>guard: (evt) => ['SPAN'].includes(evt.target.tagName)</code>. When using this option, it's important to note that
@@ -496,16 +491,16 @@ button span {
         </p>
 
         <p>
-            One of the final items you may wish to take care of when using a <code>form</code> in JointJS is to prevent the default browser behaviour 
-            when submitting user data. In order to achieve this, we will create a custom 
-            <a href="/docs/jointjs#dia.CellView.custom" target="_blank"><code>CellView</code></a> for our element. It will contain an events hash 
-            which specifies a DOM event that will be bound to a method on the view. The <i>key</i> is made up of the event name plus a CSS selector, 
+            One of the final items you may wish to take care of when using a <code>form</code> in JointJS is to prevent the default browser behaviour
+            when submitting user data. In order to achieve this, we will create a custom
+            <a href="/docs/jointjs#dia.CellView.custom" target="_blank"><code>CellView</code></a> for our element. It will contain an events hash
+            which specifies a DOM event that will be bound to a method on the view. The <i>key</i> is made up of the event name plus a CSS selector,
             and the <i>value</i> is a method on our custom view.
         </p>
 
         <p>
-            In the following example, we specify the event name <code>'submit'</code>, plus our CSS element selector <code>'form'</code>, and lastly 
-            the name of our method <code>'onSubmit'</code>. We can prevent that browser refresh by using <code>evt.preventDefault()</code>, and clear 
+            In the following example, we specify the event name <code>'submit'</code>, plus our CSS element selector <code>'form'</code>, and lastly
+            the name of our method <code>'onSubmit'</code>. We can prevent that browser refresh by using <code>evt.preventDefault()</code>, and clear
             the value of the HTML input value afterwards if we wish to do so.
         </p>
 
@@ -531,15 +526,15 @@ button span {
         <h3 id="props">Props, a special attribute</h3>
 
         <p>
-            The last point which we would like to cover when discussing HTML form controls is the special 
+            The last point which we would like to cover when discussing HTML form controls is the special
             <a href="/docs/jointjs#dia.attributes.props" target="_blank"><code>props</code></a> attribute. When creating HTML elements, it's
-            possible to define various attributes to initialize certain DOM properties. In some cases (such as <code>'id'</code>), 
+            possible to define various attributes to initialize certain DOM properties. In some cases (such as <code>'id'</code>),
             this is a one-to-one relationship, but in others (such as <code>'value'</code>), the attribute doesn't reflect the property, and it
             serves more like an initial and current state.
-            When working with JointJS, it wouldn't make sense that users can only set an initial <code>'value'</code> attribute for an 
-            <code>input</code>, and then have to access DOM elements themselves to update the <code>'value'</code> property. If using 
-            <code>foreignObject</code>, users should be able to set the current <code>'value'</code> of an <code>input</code> through the model at 
-            any time they want. It's for this exact reason that we created the special <code>props</code> attribute, and it can be utilized as 
+            When working with JointJS, it wouldn't make sense that users can only set an initial <code>'value'</code> attribute for an
+            <code>input</code>, and then have to access DOM elements themselves to update the <code>'value'</code> property. If using
+            <code>foreignObject</code>, users should be able to set the current <code>'value'</code> of an <code>input</code> through the model at
+            any time they want. It's for this exact reason that we created the special <code>props</code> attribute, and it can be utilized as
             follows:
         </p>
 
@@ -595,16 +590,16 @@ console.log(input.getAttribute('value')); // initial
 
         <p>
             Boolean attributes are those data types where the presence or absence of the attribute represents its <i>truthy</i> or <i>falsy</i>
-            value respectively. Some common examples are 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/required" target="_blank"> 
-            <code>required</code></a>, 
-            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/disabled" target="_blank"><code>disabled</code></a>, 
+            value respectively. Some common examples are
+            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/required" target="_blank">
+            <code>required</code></a>,
+            <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/disabled" target="_blank"><code>disabled</code></a>,
             and <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/readonly" target="_blank"><code>readonly</code></a>.
         </p>
 
         <p>
             Usually, boolean attributes can be utilized in 3 different ways: you can omit the value, use an empty string, or set the value as a
-            case-insensitive match for the attribute's name. In our case, we cannot omit the value, so we must use the 2nd or 3rd option. This is 
+            case-insensitive match for the attribute's name. In our case, we cannot omit the value, so we must use the 2nd or 3rd option. This is
             demonstrated in the following example which uses the <code>required</code> attribute.
         </p>
 
@@ -621,17 +616,17 @@ console.log(input.getAttribute('value')); // initial
         <h5 id="closing-tags" style="font-weight: normal; font-size: 1rem;">Closing Tags</h5>
 
         <p>
-            In the past, developers traditionally used start and end tags for HTML elements. If we wanted some text on the page, we might 
-            create the following paragraph element <code>&lt;p&gt;Lorem ipsum dolor sit amet consectetur.&lt;/p&gt;</code>. With the advent 
-            of HTML5, it's not strictly necessary to close certain elements which are considered 
-            <a href="https://developer.mozilla.org/en-US/docs/Glossary/Void_element" target="_blank">void</a>, i.e., elements which can't have 
+            In the past, developers traditionally used start and end tags for HTML elements. If we wanted some text on the page, we might
+            create the following paragraph element <code>&lt;p&gt;Lorem ipsum dolor sit amet consectetur.&lt;/p&gt;</code>. With the advent
+            of HTML5, it's not strictly necessary to close certain elements which are considered
+            <a href="https://developer.mozilla.org/en-US/docs/Glossary/Void_element" target="_blank">void</a>, i.e., elements which can't have
             child nodes.
         </p>
 
         <p>
             In HTML, it's possible to write a line-break element as <code>&lt;br&gt;</code> or <code>&lt;br /&gt;</code>. The trailing slash
-            in the tag has no meaning, and browsers simply ignore it. However, in XML, XHTML, and SVG, self closing tags are required in void elements, 
-            so a trailing slash is necessary. When working with tagged templates in JointJS, you must use a trailing slash. This can be 
+            in the tag has no meaning, and browsers simply ignore it. However, in XML, XHTML, and SVG, self closing tags are required in void elements,
+            so a trailing slash is necessary. When working with tagged templates in JointJS, you must use a trailing slash. This can be
             observed in the following example:
         </p>
 
@@ -658,7 +653,7 @@ console.log(input.getAttribute('value')); // initial
             HTML Entities are used in place of some characters that are reserved depending on the language. For example,
             the greater than (>) or less than (<) sign cannot be used in HTML as it would cause a conflict with tags.
             This is also one area to be careful with when using tagged templates. You must use the entity number rather than
-            the entity name. Entity numbers are the ones which use the # symbol. That means using <code>&amp;#169;</code> 
+            the entity name. Entity numbers are the ones which use the # symbol. That means using <code>&amp;#169;</code>
             is preferable over <code>&amp;copy;</code>.
         </p>
 
@@ -677,27 +672,27 @@ console.log(input.getAttribute('value')); // initial
         <h5 id="ids" style="font-weight: normal; font-size: 1rem;">IDs</h5>
 
         <p>
-            Since having more than one ID of the same value in the DOM is considered invalid according to the 
+            Since having more than one ID of the same value in the DOM is considered invalid according to the
             <a href="https://html.spec.whatwg.org/multipage/dom.html#the-id-attribute" target="_blank" rel="noopener noreferrer">HTML</a>
-            specification, we recommend not including an ID attribute in your HTML Elements. The first scenario where this may be relevant is when 
+            specification, we recommend not including an ID attribute in your HTML Elements. The first scenario where this may be relevant is when
             choosing CSS selectors. Using a class attribute in your <code>markup</code> rather than an ID is advised.
         </p>
 
         <p>
-            The second situation where this proves important is programmatically associating a <code>label</code> with an 
+            The second situation where this proves important is programmatically associating a <code>label</code> with an
             <code>input</code> element. One method of making this association is by providing an <code>'id'</code> attribute to an <code>input</code>,
             and a <code>'for'</code> attribute to its <code>label</code>. Each of which would have the same value. This has
-            a number of advantages such as screen readers reading the label when the associated input is focused, and also that the focus is 
+            a number of advantages such as screen readers reading the label when the associated input is focused, and also that the focus is
             passed to the input when the associated label is clicked.
         </p>
 
         <p>
-            As we don't want to use an ID, we should use an alternative method to make this association such as nesting an <code>input</code> in its 
+            As we don't want to use an ID, we should use an alternative method to make this association such as nesting an <code>input</code> in its
             respective <code>label</code> which will have the same effect.
         </p>
 
         <pre><code>// Do not use ID attributes in HTML markup ❌
-&lt;p id="paragraph"&gt; 
+&lt;p id="paragraph"&gt;
     Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 &lt;/p&gt;
 
@@ -717,7 +712,7 @@ console.log(input.getAttribute('value')); // initial
     &lt;input @selector="firstname" type="text"/&gt;
 &lt;/label&gt;
 </code></pre>
-        
+
         <h4 id="browser-related-quirks">Browser related quirks</h4>
 
         <p>
@@ -726,9 +721,9 @@ console.log(input.getAttribute('value')); // initial
         </p>
 
         <p>
-            Our experience with both Chrome and Firefox has been very positive, but we have ran into some quirks when using Safari. 
-            In this section, we will cover some issues we discovered, and some related 
-            <a href="https://bugs.webkit.org/query.cgi" target="_blank">webkit</a> bugs, but this also isn't an exhaustive list, so you 
+            Our experience with both Chrome and Firefox has been very positive, but we have ran into some quirks when using Safari.
+            In this section, we will cover some issues we discovered, and some related
+            <a href="https://bugs.webkit.org/query.cgi" target="_blank">webkit</a> bugs, but this also isn't an exhaustive list, so you
             might run into an issue with Safari that isn't mentioned here.
         </p>
 
@@ -748,18 +743,18 @@ console.log(input.getAttribute('value')); // initial
             Naturally, we also searched the same bug report for any potential solutions, and found suggestions that adding a style of
             <code>'position: fixed'</code> to the outermost <code>div</code> element fixed some of the issues that people had. Once again,
             the information proved to be helpful, and the elements seemed to be positioned correctly again. We did notice when transforming the
-            JointJS <code>paper</code> with a method such as 
-            <a href="/docs/jointjs#dia.Paper.prototype.transformToFitContent" target="_blank"><code>transformToFitContent</code></a>, 
-            <code>'position:fixed'</code> again caused issues with element position. Therefore, if you are using <code>paper</code> transforms, 
+            JointJS <code>paper</code> with a method such as
+            <a href="/docs/jointjs#dia.Paper.prototype.transformToFitContent" target="_blank"><code>transformToFitContent</code></a>,
+            <code>'position:fixed'</code> again caused issues with element position. Therefore, if you are using <code>paper</code> transforms,
             the default <code>'position:static'</code> might be preferable
             for some use cases.
         </p>
 
         <p>
             On further inspection, we realized that we still had one major issue with the video. After dragging our JointJS shape, the video
-            was still rendered in the incorrect position which was disappointing. The silver lining was that the <code>opacity</code> and 
-            <code>transform</code> applied to our <code>label</code> and <code>input</code> respectively were working correctly, and those 
-            elements seemed to maintain the correct position. The following is some example <code>markup</code> we had issues with in Safari. 
+            was still rendered in the incorrect position which was disappointing. The silver lining was that the <code>opacity</code> and
+            <code>transform</code> applied to our <code>label</code> and <code>input</code> respectively were working correctly, and those
+            elements seemed to maintain the correct position. The following is some example <code>markup</code> we had issues with in Safari.
             Your mileage may vary.
         </p>
 
@@ -782,8 +777,8 @@ console.log(input.getAttribute('value')); // initial
 
         <p>
             The situation described above, and the resulting issues were discovered mostly through trial and error. That's all well and good, but
-            can we learn anything from the webkit bug reports? It seems that when HTML inside a <code>foreignObject</code> gets a 
-            RenderLayer, the hierarchial position of the RenderLayer is inaccurate which results in the HTML being positioned incorrectly. 
+            can we learn anything from the webkit bug reports? It seems that when HTML inside a <code>foreignObject</code> gets a
+            RenderLayer, the hierarchial position of the RenderLayer is inaccurate which results in the HTML being positioned incorrectly.
             Let's try to reduce this information to some more actionable points.
         </p>
 
@@ -802,10 +797,10 @@ console.log(input.getAttribute('value')); // initial
         </p>
 
         <p>
-            If you've never tested which events are triggered when a user clicks on a <code>select</code> element, don't worry, we've done it, so 
-            you don't have to. It turns out, the events that get triggered are quite inconsistent across all major browsers when interacting with 
+            If you've never tested which events are triggered when a user clicks on a <code>select</code> element, don't worry, we've done it, so
+            you don't have to. It turns out, the events that get triggered are quite inconsistent across all major browsers when interacting with
             <code>select</code>. Safari, for example, only triggers <code>'pointerdown'</code> when you open <code>select</code>. As a result of these
-            inconsistencies, JointJS includes <code>select</code> in the <code>paper</code> <code>guard</code> option by default. Therefore, if you 
+            inconsistencies, JointJS includes <code>select</code> in the <code>paper</code> <code>guard</code> option by default. Therefore, if you
             interact with a <code>select</code> element, JointJS will not trigger its <code>paper</code> events. You as a user are not obliged to do
             something about this, but it's something you should be aware of.
         </p>
@@ -821,17 +816,17 @@ console.log(input.getAttribute('value')); // initial
             <li><code>video</code></li>
             <li><code>select</code></li>
         </ul>
-        
+
         <p>
             As stated already, this isn't an exhaustive list of issues, so it's possible you may run into some other inconsistencies with Safari.
-            It's unfortunate that Safari still lags behind other modern browsers in relation to <code>foreignObject</code>, but there are also 
-            reasons to be positive. One reason to have a brighter outlook is that some of the major issues we experienced here are currently being 
-            worked on according to this <a href="https://bugs.webkit.org/show_bug.cgi?id=90738" target="_blank">bug</a> report, so hopefully in the 
+            It's unfortunate that Safari still lags behind other modern browsers in relation to <code>foreignObject</code>, but there are also
+            reasons to be positive. One reason to have a brighter outlook is that some of the major issues we experienced here are currently being
+            worked on according to this <a href="https://bugs.webkit.org/show_bug.cgi?id=90738" target="_blank">bug</a> report, so hopefully in the
             not too distant future, the majority of these issues will cease to exist.
         </p>
 
         <p>
-            This is a section we would like to keep updated as much as possible, so if you encounter any other interesting behaviour, you can let us 
+            This is a section we would like to keep updated as much as possible, so if you encounter any other interesting behaviour, you can let us
             know.
         </p>
 
@@ -839,14 +834,14 @@ console.log(input.getAttribute('value')); // initial
 
         <p>
             We are very happy that we can now confidently recommend the use of <code>foreignObject</code> to users of JointJS, and that it's
-            well-supported in all major browsers. We consider it a big step forward for creating diagrams with JointJS, and believe it will 
+            well-supported in all major browsers. We consider it a big step forward for creating diagrams with JointJS, and believe it will
             allow the creation of even more innovative and interactive diagramming solutions. If you want to start using HTML with JointJS, there
             is no better time to do so, and we can't wait to see what you create.
         </p>
 
         <p>
-            That's all we will cover in this tutorial. Thanks for staying with us if you got this far. If you would like 
-            to explore any of the features mentioned here in more detail, you can find extra information in our 
+            That's all we will cover in this tutorial. Thanks for staying with us if you got this far. If you would like
+            to explore any of the features mentioned here in more detail, you can find extra information in our
             <a href="/docs/jointjs" target="_blank">JointJS documentation</a>.
         </p>
 

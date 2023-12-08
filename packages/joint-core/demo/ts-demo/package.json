@@ -17,15 +17,11 @@
   },
   "dependencies": {
     "dagre": "~0.8.5",
-    "graphlib": "~2.1.8",
-    "jquery": "~3.6.4",
-    "lodash": "~4.17.21"
+    "graphlib": "~2.1.8"
   },
   "devDependencies": {
     "@types/dagre": "~0.7.47",
     "@types/graphlib": "~2.1.8",
-    "@types/jquery": "~3.5.13",
-    "@types/lodash": "~4.14.178",
     "http-server": "0.12.3",
     "ts-loader": "9.4.2",
     "typescript": "4.9.5",

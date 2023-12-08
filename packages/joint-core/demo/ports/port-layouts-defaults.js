@@ -1,12 +1,24 @@
 // I.
-$('<h2/>').text('Default settings').appendTo('body');
 var graph1 = createPaper().model;
-$('<button/>').text('add port').appendTo('body').on('click', function() {
+
+var h2 = document.createElement('h2');
+h2.textContent = 'Default settings';
+document.body.appendChild(h2);
+
+var button1 = document.createElement('button');
+button1.textContent = 'add port';
+document.body.appendChild(button1);
+button1.addEventListener('click', function() {
     g1.addPort({ attrs: { circle: { magnet: true, stroke: '#31d0c6', 'stroke-width': 2, fill: '#ffffff' }}});
 });
-$('<button/>').text('remove port').appendTo('body').on('click', function() {
+
+var button2 = document.createElement('button');
+button2.textContent = 'remove port';
+document.body.appendChild(button2);
+button2.addEventListener('click', function() {
     g1.removePort(g1.getPorts()[0]);
 });
+
 var g1 = new joint.shapes.basic.Rect({
     position: { x: 130, y: 30 },
     size: { width: 100, height: 150 },

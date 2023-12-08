@@ -1102,10 +1102,10 @@ QUnit.module('util', function(hooks) {
             hooks.beforeEach(function() {
                 $htmlElement = $('<div/>').css({
                     position: 'absolute',
-                    top: 10,
-                    left: 20,
-                    width: 50,
-                    height: 60
+                    top: '10px',
+                    left: '20px',
+                    width: '50px',
+                    height: '60px'
                 });
 
                 $htmlElement.appendTo(document.body);
@@ -1424,6 +1424,14 @@ QUnit.module('util', function(hooks) {
                 assert.ok(div.lastChild instanceof HTMLImageElement);
             });
         });
+    });
+
+    QUnit.test('sanitizeHTML', function(assert) {
+
+        assert.equal(joint.util.sanitizeHTML('<html><body><p>Hello</p></body></html>'), '<p>Hello</p>');
+        assert.equal(joint.util.sanitizeHTML('<p>Hello</p><script>alert("Hacked");</script>'), '<p>Hello</p>');
+        assert.equal(joint.util.sanitizeHTML('<p>Hello</p><img onload="alert(&quot;Hacked&quot;);">'), '<p>Hello</p><img>');
+        assert.equal(joint.util.sanitizeHTML('<p>Hello</p><img src="javascript:alert(&quot;Hacked&quot;);">'), '<p>Hello</p><img>');
     });
 
     QUnit.test('getRectPoint', function(assert) {

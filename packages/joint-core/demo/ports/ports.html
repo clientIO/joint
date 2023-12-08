@@ -17,11 +17,6 @@
 </head>
 <body>
 
-
-<!-- Dependencies: -->
-<script src="../../node_modules/jquery/dist/jquery.js"></script>
-<script src="../../node_modules/lodash/lodash.js"></script>
-
 <script src="../../build/joint.js"></script>
 
 <script>
@@ -30,21 +25,15 @@
      */
     function createPaper() {
         var graph = new joint.dia.Graph;
-
+        var div = document.createElement('div');
+        document.body.appendChild(div);
         return new joint.dia.Paper({
-            el: $('<div/>').appendTo(document.body),
+            el: div,
             width: 800,
             height: 400,
             gridSize: 1,
             perpendicularLinks: false,
             model: graph,
-            linkView: joint.dia.LinkView.extend({
-                options: joint.util.assign({}, joint.dia.LinkView.prototype.options, {
-                    doubleLinkTools: true,
-                    linkToolsOffset: 40,
-                    doubleLinkToolsOffset: 60
-                })
-            })
         });
     }
 </script>

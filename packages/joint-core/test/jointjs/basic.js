@@ -1672,7 +1672,7 @@ QUnit.module('basic', function(hooks) {
         var elView = this.paper.findViewByModel(el);
 
         var defs = this.paper.svg.querySelector('defs');
-        var defsChildrenCount = $(defs).children().length;
+        var defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
 
         el.attr('rect/fill', {
@@ -1685,10 +1685,10 @@ QUnit.module('basic', function(hooks) {
 
         // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
         // Therefore, we use the following trick to check whether the element is in DOM.
-        defsChildrenCount = $(defs).children().length;
+        defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 1, 'one element got created in <defs>.');
 
-        var linearGradient = $(defs).children()[0];
+        var linearGradient = defs.firstElementChild;
 
         assert.equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'one <linearGradient> element got created in <defs>.');
         assert.equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('fill'), 'fill attribute pointing to the newly created gradient with url()');
@@ -1701,11 +1701,11 @@ QUnit.module('basic', function(hooks) {
             ]
         });
 
-        defsChildrenCount = $(defs).children().length;
+        defsChildrenCount = defs.children.length;
 
         assert.equal(defsChildrenCount, 1, 'one element is in <defs>.');
 
-        linearGradient = $(defs).children()[0];
+        linearGradient = defs.firstElementChild;
 
         assert.equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'still only one <linearGradient> element is in <defs>.');
         assert.equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('stroke'), 'stroke attribute pointing to the correct gradient with url()');
@@ -1723,7 +1723,7 @@ QUnit.module('basic', function(hooks) {
 
         var defs = this.paper.svg.querySelector('defs');
 
-        var defsChildrenCount = $(defs).children().length;
+        var defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
 
         el.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 }});
@@ -1731,30 +1731,30 @@ QUnit.module('basic', function(hooks) {
         // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
         // Therefore, we use the following trick to check whether the element is in DOM.
 
-        defsChildrenCount = $(defs).children().length;
+        defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 1, 'one element got created in <defs>.');
 
-        var filter = $(defs).children()[0];
+        var filter = defs.firstElementChild;
 
         assert.equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
         assert.checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
 
         el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 }});
 
-        defsChildrenCount = $(defs).children().length;
+        defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 1, 'one element still in <defs>.');
 
-        filter = $(defs).children()[0];
+        filter = defs.firstElementChild;
 
         assert.equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
         assert.checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
 
         el.attr('rect/filter', { name: 'blur', args: { x: 5 }});
 
-        defsChildrenCount = $(defs).children().length;
+        defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 2, 'now two elements are in <defs>.');
-        var filter0 = $(defs).children()[0];
-        var filter1 = $(defs).children()[1];
+        var filter0 = defs.children[0];
+        var filter1 = defs.children[1];
         assert.deepEqual([filter0.tagName.toLowerCase(), filter1.tagName.toLowerCase()], ['filter', 'filter'], 'both elements in <defs> are <filter> elements.');
         assert.notEqual(filter0.id, filter1.id, 'both <filter> elements have different IDs');
 

@@ -10,10 +10,6 @@
         <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css">
         <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.css">
 
-        <!-- Dependencies: -->
-        <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/lodash.js"></script>
-
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
@@ -22,11 +18,6 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
         <div class="tutorial">
 
             <h1>Graph &amp; Paper</h1>
@@ -43,7 +34,7 @@
                 and linking them to our HTML.
                 We will be looking at these portions of the original <i>Hello, World!</i> application:</p>
 
-            <pre class="line-numbers" data-line="8,21,23-30"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="8,18,20-27"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -53,15 +44,13 @@
     &lt;div id="myholder"&gt;&lt;/div&gt;
 
     &lt;!-- dependencies --&gt;
-    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
-    &lt;script src="node_modules/lodash/lodash.js"&gt;&lt;/script&gt;
     &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
 
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;
-        
+
         var namespace = joint.shapes;
-                
+
         var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
@@ -174,7 +163,7 @@
             <p>The code is presented below.
                 The changes we made are highlighted:</p>
 
-            <pre class="line-numbers" data-line="28-32"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="25-29"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -184,8 +173,6 @@
     &lt;div id="myholder"&gt;&lt;/div&gt;
 
     &lt;!-- dependencies --&gt;
-    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
-    &lt;script src="node_modules/lodash/lodash.js"&gt;&lt;/script&gt;
     &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
 
     &lt;!-- code --&gt;
