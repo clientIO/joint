@@ -27,7 +27,6 @@ module.exports = {
         'joint.shapes.pn': { src: 'src/shapes/pn.mjs', export: true },
         'joint.shapes.devs': { src: 'src/shapes/devs.mjs', export: true },
         'joint.shapes.uml': { src: 'src/shapes/uml.mjs', export: true },
-        'joint.shapes.logic': { src: 'src/shapes/logic.mjs', export: true },
         'joint.layout.DirectedGraph': { src: 'src/layout/DirectedGraph/DirectedGraph.mjs', export: true }
     }
 };
