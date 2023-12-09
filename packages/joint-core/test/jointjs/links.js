@@ -53,7 +53,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('construction', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300);
 
         this.graph.addCell([r1, r2]);
@@ -101,8 +101,8 @@ QUnit.module('links', function(hooks) {
         // It should be possible to create empty links and set source/target later.
         var lEmpty = new joint.dia.Link;
         assert.ok(true, 'creating a link with no source/target does not throw an exception');
-        var rEmpty = new joint.shapes.basic.Rect;
-        var r2Empty = new joint.shapes.basic.Rect;
+        var rEmpty = new joint.shapes.standard.Rectangle;
+        var r2Empty = new joint.shapes.standard.Rectangle;
 
         this.graph.addCells([lEmpty, rEmpty, r2Empty]);
 
@@ -195,7 +195,7 @@ QUnit.module('links', function(hooks) {
         assert.expect(6);
 
         var event;
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300);
         var r3 = r2.clone().translate(300);
 
@@ -296,7 +296,7 @@ QUnit.module('links', function(hooks) {
             isMyLink: true
         });
 
-        var model = new joint.shapes.basic.Rect({
+        var model = new joint.shapes.standard.Rectangle({
             position: { x: 100, y: 100 },
             size: { width: 100, height: 100 },
             attrs: { rect: { magnet: true, port: 'myPort' }}
@@ -360,7 +360,7 @@ QUnit.module('links', function(hooks) {
 
         assert.deepEqual(source, { x: 40, y: 40 }, 'source is a correct point');
 
-        var element = new joint.shapes.basic.Rect({
+        var element = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 20 },
             size: { width: 60, height: 60 }
         });
@@ -392,7 +392,7 @@ QUnit.module('links', function(hooks) {
 
         assert.deepEqual(target, { x: 100, y: 100 }, 'target is a correct point');
 
-        var element = new joint.shapes.basic.Rect({
+        var element = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 20 },
             size: { width: 60, height: 60 }
         });
@@ -409,7 +409,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('disconnect(), connect()', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
             attrs: { text: { text: 'my rectangle' }}
@@ -472,7 +472,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('getLinks(), clone()', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect;
+        var myrect = new joint.shapes.standard.Rectangle;
         var myrect2 = myrect.clone();
 
         this.graph.addCell(myrect);
@@ -500,21 +500,21 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('hasLoop()', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect;
+        var myrect = new joint.shapes.standard.Rectangle;
         this.graph.addCell(myrect);
         var link = new joint.dia.Link({ source: { id: myrect.id }, target: { id: myrect.id }});
         this.graph.addCell(link);
         assert.equal(link.hasLoop(), true, 'link has a loop');
 
-        var myrect2 = new joint.shapes.basic.Rect;
+        var myrect2 = new joint.shapes.standard.Rectangle;
         this.graph.addCell(myrect2);
         var link2 = new joint.dia.Link({ source: { id: myrect2.id }, target: { x: 20, y: 20 }});
         this.graph.addCell(link2);
         assert.equal(link2.hasLoop(), false, 'link pinned to the paper does not have a loop');
         assert.equal(link2.hasLoop({ deep: true }), false, 'link pinned to the paper does not have a loop with deep = true');
 
-        var myrect3 = new joint.shapes.basic.Rect;
-        var myrect3a = new joint.shapes.basic.Rect;
+        var myrect3 = new joint.shapes.standard.Rectangle;
+        var myrect3a = new joint.shapes.standard.Rectangle;
         myrect3.embed(myrect3a);
         this.graph.addCells([myrect3, myrect3a]);
         var link3 = new joint.dia.Link({ source: { id: myrect3.id }, target: { id: myrect3a.id }});
@@ -525,7 +525,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('markers', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
             attrs: { text: { text: 'my rectangle' }}
@@ -576,7 +576,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('vertices', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
             attrs: { text: { text: 'my rectangle' }}
@@ -670,7 +670,7 @@ QUnit.module('links', function(hooks) {
 
         this.paper.options.perpendicularLinks = true;
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
             attrs: { text: { text: 'my rectangle' }}
@@ -725,7 +725,7 @@ QUnit.module('links', function(hooks) {
 
         QUnit.test('labels', function(assert) {
 
-            var myrect = new joint.shapes.basic.Rect;
+            var myrect = new joint.shapes.standard.Rectangle;
             var myrect2 = myrect.clone();
             myrect2.translate(300);
 
@@ -776,7 +776,7 @@ QUnit.module('links', function(hooks) {
 
                 assert.expect(22);
 
-                var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+                var r1 = new joint.shapes.standard.Rectangle({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
                 var r2 = r1.clone().translate(300);
                 var r3 = r2.clone().translate(300);
 
@@ -960,7 +960,7 @@ QUnit.module('links', function(hooks) {
 
                 assert.expect(22);
 
-                var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
+                var r1 = new joint.shapes.standard.Rectangle({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
                 var r2 = r1.clone().translate(300);
                 var r3 = r2.clone().translate(300);
 
@@ -1153,7 +1153,7 @@ QUnit.module('links', function(hooks) {
 
             assert.expect(4);
 
-            var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 }});
+            var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 }});
             var r2 = r1.clone().translate(250);
 
             this.graph.addCell([r1, r2]);
@@ -1191,7 +1191,7 @@ QUnit.module('links', function(hooks) {
 
             var v1 = this.paper.findViewByModel(l1);
             v1.options.interactive = { labelMove: true };
-            var event = { currentTarget: v1.$('.label')[0], type: 'mousedown' };
+            event = { currentTarget: v1.$('.label')[0], type: 'mousedown' };
             v1.dragLabelStart(event, 202, 77); // mousedown off-center = midpoint + (2, 2)
             v1.pointermove(event, 152, 27); // same movement as above = same resulting `position` as above
             assert.equal(l1.get('labels')[0].position.offset, -50, 'offset was set during the label drag (off-center pointerdown)');
@@ -1203,7 +1203,7 @@ QUnit.module('links', function(hooks) {
 
             assert.expect(2);
 
-            var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 }});
+            var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 }});
             var r2 = r1.clone().translate(250);
 
             this.graph.addCell([r1, r2]);
@@ -1370,7 +1370,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('magnets & ports', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect;
+        var myrect = new joint.shapes.standard.Rectangle;
         var myrect2 = myrect.clone();
         myrect2.translate(300);
 
@@ -1406,7 +1406,7 @@ QUnit.module('links', function(hooks) {
             target: { x: 0, y: 0 }
         });
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 100, y: 100 }
         });
 
@@ -1482,11 +1482,11 @@ QUnit.module('links', function(hooks) {
             target: { x: 0, y: 0 }
         });
 
-        var myrect1 = new joint.shapes.basic.Rect({
+        var myrect1 = new joint.shapes.standard.Rectangle({
             position: { x: 100, y: 100 }
         });
 
-        var myrect2 = new joint.shapes.basic.Rect({
+        var myrect2 = new joint.shapes.standard.Rectangle({
             position: { x: 200, y: 200 },
             attrs: {
                 '.': { magnet: false },
@@ -1589,7 +1589,7 @@ QUnit.module('links', function(hooks) {
 
         assert.equal(source, null, 'without source element');
 
-        var element = new joint.shapes.basic.Rect({
+        var element = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 20 },
             size: { width: 60, height: 60 }
         });
@@ -1657,7 +1657,7 @@ QUnit.module('links', function(hooks) {
 
         assert.equal(target, null, 'without target element');
 
-        var element = new joint.shapes.basic.Rect({
+        var element = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 20 },
             size: { width: 60, height: 60 }
         });
@@ -1711,9 +1711,9 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('getRelationshipAncestor()', function(assert) {
 
-        var a = new joint.shapes.basic.Rect({ id: 'a' });
-        var b = new joint.shapes.basic.Rect({ id: 'b' });
-        var c = new joint.shapes.basic.Rect({ id: 'c' });
+        var a = new joint.shapes.standard.Rectangle({ id: 'a' });
+        var b = new joint.shapes.standard.Rectangle({ id: 'b' });
+        var c = new joint.shapes.standard.Rectangle({ id: 'c' });
         var l = new joint.dia.Link({ id: 'l' });
 
         this.graph.addCells([a, b, c, l]);
@@ -1738,9 +1738,9 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('isRelationshipEmbeddedIn()', function(assert) {
 
-        var a = new joint.shapes.basic.Rect({ id: 'a' });
-        var b = new joint.shapes.basic.Rect({ id: 'b' });
-        var c = new joint.shapes.basic.Rect({ id: 'c' });
+        var a = new joint.shapes.standard.Rectangle({ id: 'a' });
+        var b = new joint.shapes.standard.Rectangle({ id: 'b' });
+        var c = new joint.shapes.standard.Rectangle({ id: 'c' });
         var l = new joint.dia.Link({ id: 'l' });
 
         this.graph.addCells([a, b, c, l]);
@@ -1762,9 +1762,9 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('update count', function(assert) {
 
-        var a = new joint.shapes.basic.Rect({ id: 'a' });
-        var b = new joint.shapes.basic.Rect({ id: 'b' });
-        var c = new joint.shapes.basic.Rect({ id: 'c' });
+        var a = new joint.shapes.standard.Rectangle({ id: 'a' });
+        var b = new joint.shapes.standard.Rectangle({ id: 'b' });
+        var c = new joint.shapes.standard.Rectangle({ id: 'c' });
         var l = new joint.dia.Link({ id: 'l' });
         var l2 = new joint.dia.Link({ id: 'l2' });
 

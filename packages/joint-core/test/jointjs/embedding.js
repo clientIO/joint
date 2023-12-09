@@ -24,8 +24,8 @@ QUnit.module('embedding', function(hooks) {
 
     QUnit.test('sanity', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 500, y: 500 }, size: { width: 100, height: 100 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 500, y: 500 }, size: { width: 100, height: 100 }});
 
         this.graph.addCells([r1, r2]);
 
@@ -159,9 +159,9 @@ QUnit.module('embedding', function(hooks) {
 
     QUnit.test('passing UI flag', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 500, y: 500 }, size: { width: 100, height: 100 }});
-        var r3 = new joint.shapes.basic.Rect({ position: { x: 600, y: 600 }, size: { width: 100, height: 100 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 500, y: 500 }, size: { width: 100, height: 100 }});
+        var r3 = new joint.shapes.standard.Rectangle({ position: { x: 600, y: 600 }, size: { width: 100, height: 100 }});
         var l23 = new joint.dia.Link({ source: { id: r2.id }, target: { id: r3.id }});
         var l22 = new joint.dia.Link({ source: { id: r2.id }, target: { id: r2.id }});
         this.graph.addCells([r1, r2, r3, l23, l22]);
@@ -195,8 +195,8 @@ QUnit.module('embedding', function(hooks) {
     QUnit.test('findParentBy option', function(assert) {
 
         var data;
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 }});
 
         this.graph.addCells([r1, r2]);
 
@@ -282,8 +282,8 @@ QUnit.module('embedding', function(hooks) {
 
         assert.expect(4);
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 1000, height: 1000 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 1000, height: 1000 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 }});
 
         this.graph.addCells([r1, r2]);
 
@@ -309,9 +309,9 @@ QUnit.module('embedding', function(hooks) {
     QUnit.test('frontParentOnly option', function(assert) {
 
         var data;
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 200, height: 200 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 }});
-        var r3 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 200, height: 200 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 }});
+        var r3 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 }});
 
         this.graph.addCells([r1, r2, r3]);
 

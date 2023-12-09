@@ -103,7 +103,7 @@ QUnit.module('elements', function(hooks) {
 
         QUnit.test('sanity', function(assert) {
 
-            const r = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
+            const r = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
             // not added to graph
 
             assert.throws(function() {
@@ -259,7 +259,7 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Deep: Terminator (id) not of type Element has same result as not providing terminator.');
 
             // - terminator element is not in a graph
-            const r = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
+            const r = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
             // not added to graph
 
             this.a.fitParent({ deep: true, terminator: r });
@@ -306,7 +306,7 @@ QUnit.module('elements', function(hooks) {
         });
     });
 
-    // older tests for `dia.Element.fitEmbeds()` using `joint.shapes.basic.Rect` can be found in `/test/jointjs/basic.js`
+    // older tests for `dia.Element.fitEmbeds()` can be found in `/test/jointjs/basic.js`
     QUnit.module('fitToChildren()', function(hooks) {
 
         hooks.beforeEach(function() {
@@ -332,7 +332,7 @@ QUnit.module('elements', function(hooks) {
 
         QUnit.test('sanity', function(assert) {
 
-            const r = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
+            const r = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
             // not added to graph
 
             assert.throws(function() {

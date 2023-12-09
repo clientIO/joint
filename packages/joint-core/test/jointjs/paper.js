@@ -101,9 +101,9 @@ QUnit.module('paper', function(hooks) {
 
         var spy = sinon.spy(this.paper, 'sortViews');
 
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = new joint.shapes.basic.Rect;
-        var r3 = new joint.shapes.basic.Rect;
+        var r1 = new joint.shapes.standard.Rectangle;
+        var r2 = new joint.shapes.standard.Rectangle;
+        var r3 = new joint.shapes.standard.Rectangle;
 
         this.graph.addCell(r1);
 
@@ -123,10 +123,10 @@ QUnit.module('paper', function(hooks) {
 
         var spy = sinon.spy(this.paper, 'sortViews');
 
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = new joint.shapes.basic.Rect;
-        var r3 = new joint.shapes.basic.Rect;
-        var r4 = new joint.shapes.basic.Rect;
+        var r1 = new joint.shapes.standard.Rectangle;
+        var r2 = new joint.shapes.standard.Rectangle;
+        var r3 = new joint.shapes.standard.Rectangle;
+        var r4 = new joint.shapes.standard.Rectangle;
 
         this.graph.addCells([r1, r2]);
 
@@ -146,9 +146,9 @@ QUnit.module('paper', function(hooks) {
         assert.expect(2);
         var done = assert.async();
 
-        var a = new joint.shapes.basic.Rect;
-        var b = new joint.shapes.basic.Rect;
-        var c = new joint.shapes.basic.Rect;
+        var a = new joint.shapes.standard.Rectangle;
+        var b = new joint.shapes.standard.Rectangle;
+        var c = new joint.shapes.standard.Rectangle;
 
         this.paper.on('render:done', function() {
             assert.equal(this.graph.getCells().length, 3);
@@ -161,9 +161,9 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('paper.resetViews()', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = new joint.shapes.basic.Rect;
-        var r3 = new joint.shapes.basic.Rect;
+        var r1 = new joint.shapes.standard.Rectangle;
+        var r2 = new joint.shapes.standard.Rectangle;
+        var r3 = new joint.shapes.standard.Rectangle;
 
         var viewport = V(this.paper.cells);
 
@@ -183,7 +183,7 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('graph.fromJSON(), graph.toJSON()', function(assert) {
 
-        var json = JSON.parse('{"cells":[{"type":"basic.Circle","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"basic.Rect","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
+        var json = JSON.parse('{"cells":[{"type":"standard.Ellipse","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"standard.Rectangle","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
 
         this.graph.fromJSON(json);
 
@@ -213,7 +213,7 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('contextmenu', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
         this.graph.resetCells([r1]);
 
         var cellContextmenuCallback = sinon.spy();
@@ -314,7 +314,7 @@ QUnit.module('paper', function(hooks) {
 
         var customElementView = joint.dia.ElementView.extend({ custom: true });
         var customLinkView = joint.dia.LinkView.extend({ custom: true });
-        var element = new joint.shapes.basic.Rect();
+        var element = new joint.shapes.standard.Rectangle();
         var link = new joint.dia.Link();
 
         // Custom View via class
@@ -382,7 +382,7 @@ QUnit.module('paper', function(hooks) {
 
         var customElementView = joint.dia.ElementView.extend({ custom: true });
         var customLinkView = joint.dia.LinkView.extend({ custom: true });
-        var element = new joint.shapes.basic.Rect({ type: 'elements.Element' });
+        var element = new joint.shapes.standard.Rectangle({ type: 'elements.Element' });
         var link = new joint.dia.Link({ type: 'links.Link' });
 
         this.paper.options.cellViewNamespace = {
@@ -409,17 +409,17 @@ QUnit.module('paper', function(hooks) {
         var graphCells = [];
 
         hooks.beforeEach(function() {
-            var source = new joint.shapes.basic.Rect({
+            var source = new joint.shapes.standard.Rectangle({
                 id: 'source',
                 position: { x: 100, y: 100 },
                 size: { width: 100, height: 100 }
             });
-            var target = new joint.shapes.basic.Rect({
+            var target = new joint.shapes.standard.Rectangle({
                 id: 'target',
                 position: { x: 400, y: 100 },
                 size: { width: 100, height: 100 }
             });
-            var solo = new joint.shapes.basic.Rect({
+            var solo = new joint.shapes.standard.Rectangle({
                 id: 'solo',
                 position: { x: 400, y: 400 },
                 size: { width: 100, height: 100 }
@@ -769,7 +769,7 @@ QUnit.module('paper', function(hooks) {
 
         var graph = this.graph;
         var paper = this.paper;
-        var el = (new joint.shapes.basic.Rect()).size(100, 100).position(0, 0).addTo(graph);
+        var el = (new joint.shapes.standard.Rectangle()).size(100, 100).position(0, 0).addTo(graph);
         var elView = el.findView(paper);
         var elRect = elView.el.querySelector('rect');
         var spy = sinon.spy();
@@ -790,7 +790,7 @@ QUnit.module('paper', function(hooks) {
 
         var graph = this.graph;
         var paper = this.paper;
-        var el = (new joint.shapes.basic.Rect()).size(100, 100).position(0, 0).addTo(graph);
+        var el = (new joint.shapes.standard.Rectangle()).size(100, 100).position(0, 0).addTo(graph);
         var elView = el.findView(paper);
         var elRect = elView.el.querySelector('rect');
         var spy = sinon.spy();
@@ -926,12 +926,12 @@ QUnit.module('paper', function(hooks) {
         assert.expect(5);
 
         var data;
-        var source = new joint.shapes.basic.Rect({
+        var source = new joint.shapes.standard.Rectangle({
             id: 'source',
             position: { x: 100, y: 100 },
             size: { width: 100, height: 100 }
         });
-        var target = new joint.shapes.basic.Rect({
+        var target = new joint.shapes.standard.Rectangle({
             id: 'target',
             position: { x: 400, y: 100 },
             size: { width: 100, height: 100 }
@@ -1003,7 +1003,7 @@ QUnit.module('paper', function(hooks) {
 
         assert.expect(4);
 
-        var element = new joint.shapes.basic.Rect({
+        var element = new joint.shapes.standard.Rectangle({
             position: { x: 100, y: 100 },
             size: { width: 100, height: 100 }
         });
@@ -1099,7 +1099,7 @@ QUnit.module('paper', function(hooks) {
             height: 0
         }, 'empty graph, content area should be correct');
 
-        var rect1 = new joint.shapes.basic.Rect({
+        var rect1 = new joint.shapes.standard.Rectangle({
             position: {
                 x: 20,
                 y: 20
@@ -1119,7 +1119,7 @@ QUnit.module('paper', function(hooks) {
             height: 40
         }, 'one rectangle, content area should be correct');
 
-        var rect2 = new joint.shapes.basic.Rect({
+        var rect2 = new joint.shapes.standard.Rectangle({
             position: {
                 x: 5,
                 y: 8
@@ -1139,7 +1139,7 @@ QUnit.module('paper', function(hooks) {
             height: 52
         }, 'two rectangles, content area should be correct');
 
-        var circle1 = new joint.shapes.basic.Circle({
+        var circle1 = new joint.shapes.standard.Ellipse({
             position: {
                 x: 75,
                 y: 5
@@ -1178,7 +1178,7 @@ QUnit.module('paper', function(hooks) {
             height: 0
         }, 'empty graph, content bbox should be correct');
 
-        var rect1 = new joint.shapes.basic.Rect({
+        var rect1 = new joint.shapes.standard.Rectangle({
             position: {
                 x: 20,
                 y: 20
@@ -1198,7 +1198,7 @@ QUnit.module('paper', function(hooks) {
             height: 40
         }, 'one rectangle, content bbox should be correct');
 
-        var rect2 = new joint.shapes.basic.Rect({
+        var rect2 = new joint.shapes.standard.Rectangle({
             position: {
                 x: 5,
                 y: 8
@@ -1218,7 +1218,7 @@ QUnit.module('paper', function(hooks) {
             height: 52
         }, 'two rectangles, content bbox should be correct');
 
-        var circle1 = new joint.shapes.basic.Circle({
+        var circle1 = new joint.shapes.standard.Ellipse({
             position: {
                 x: 75,
                 y: 5
@@ -1251,15 +1251,15 @@ QUnit.module('paper', function(hooks) {
     QUnit.test('findViewsInArea(rect[, opt])', function(assert) {
 
         var cells = [
-            new joint.shapes.basic.Rect({
+            new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 20, height: 20 }
             }),
-            new joint.shapes.basic.Rect({
+            new joint.shapes.standard.Rectangle({
                 position: { x: 80, y: 80 },
                 size: { width: 40, height: 60 }
             }),
-            new joint.shapes.basic.Rect({
+            new joint.shapes.standard.Rectangle({
                 position: { x: 120, y: 180 },
                 size: { width: 40, height: 40 }
             })
@@ -1298,12 +1298,12 @@ QUnit.module('paper', function(hooks) {
 
         }, new Error('Must provide a linkView.'), 'should throw error when linkview is missing');
 
-        var rect1 = new joint.shapes.basic.Rect({
+        var rect1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 40, height: 40 }
         });
 
-        var rect2 = new joint.shapes.basic.Rect({
+        var rect2 = new joint.shapes.standard.Rectangle({
             position: { x: 80, y: 30 },
             size: { width: 40, height: 40 }
         });
@@ -1737,8 +1737,8 @@ QUnit.module('paper', function(hooks) {
 
             this.paper.options.interactive = false;
 
-            var r1 = new joint.shapes.basic.Rect;
-            var r2 = new joint.shapes.basic.Rect;
+            var r1 = new joint.shapes.standard.Rectangle;
+            var r2 = new joint.shapes.standard.Rectangle;
 
             this.graph.addCell(r1);
             this.graph.addCell(r2);

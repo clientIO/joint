@@ -14,7 +14,8 @@ QUnit.module('elementView', function(hooks) {
             height: 300
         });
 
-        var element = new joint.shapes.basic.Generic({
+        var element = new joint.dia.Element({
+            type: 'test-element',
             markup: '<toBeOverriden/>'
         });
 
@@ -120,7 +121,10 @@ QUnit.module('elementView', function(hooks) {
 
         QUnit.test('getBBox should not fail for custom view', function(assert) {
 
-            var element = new joint.shapes.basic.Generic({ markup: '<toBeOverriden/>' });
+            var element = new joint.dia.Element({
+                type: 'test1',
+                markup: '<toBeOverriden/>'
+            });
             var CustomView = joint.dia.ElementView.extend({
                 initialize: function() {
                     // noop

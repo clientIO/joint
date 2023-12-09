@@ -45,19 +45,19 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
         QUnit.test('should correctly layout the graph', function(assert) {
 
             var elements = [
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 0, y: 0 },
                     size: { width: 60, height: 100 }
                 }),
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 200, y: 0 },
                     size: { width: 40, height: 80 }
                 }),
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 300, y: 20 },
                     size: { width: 20, height: 30 }
                 }),
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 400, y: 50 },
                     size: { width: 30, height: 20 }
                 })
@@ -83,19 +83,19 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
         QUnit.test('an array of some of the cells instead of the full graph', function(assert) {
 
             var elements = [
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 0, y: 0 },
                     size: { width: 60, height: 100 }
                 }),
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 200, y: 0 },
                     size: { width: 40, height: 80 }
                 }),
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 300, y: 20 },
                     size: { width: 20, height: 30 }
                 }),
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 400, y: 50 },
                     size: { width: 30, height: 20 }
                 })
@@ -125,19 +125,19 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
         QUnit.test('an array of embedded cells without the parent', function(assert) {
 
             var elements = [
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 0, y: 0 },
                     size: { width: 60, height: 100 }
                 }),
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 200, y: 0 },
                     size: { width: 40, height: 80 }
                 }),
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 300, y: 20 },
                     size: { width: 20, height: 30 }
                 }),
-                new joint.shapes.basic.Rect({
+                new joint.shapes.standard.Rectangle({
                     position: { x: 400, y: 50 },
                     size: { width: 30, height: 20 }
                 })
@@ -176,10 +176,10 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
             var bbox;
 
             var elements = [
-                new joint.shapes.basic.Rect({ size: { width: 60, height: 100 }}),
-                new joint.shapes.basic.Rect({ size: { width: 40, height: 80 }}),
-                new joint.shapes.basic.Rect({ size: { width: 20, height: 30 }}),
-                new joint.shapes.basic.Rect({ size: { width: 30, height: 20 }})
+                new joint.shapes.standard.Rectangle({ size: { width: 60, height: 100 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 40, height: 80 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 20, height: 30 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 30, height: 20 }})
             ];
 
             var links = [

@@ -89,7 +89,7 @@ export const Model = Element.define('devs.Model', {
 
     initialize: function() {
 
-        Generic.prototype.initialize.apply(this, arguments);
+        Element.prototype.initialize.apply(this, arguments);
 
         this.on('change:inPorts change:outPorts', this.updatePortItems, this);
         this.updatePortItems();

@@ -1,10 +1,10 @@
 var paper3 = createPaper();
-var g3 = new joint.shapes.basic.Circle({
+var g3 = new joint.shapes.standard.Ellipse({
     position: { x: 80, y: 210 },
     size: { width: 200, height: 100 },
     attrs: {
-        text: { text: 'outsideOriented', fill: '#6a6c8a' },
-        circle: { stroke: '#31d0c6', 'stroke-width': 2 }
+        label: { text: 'outsideOriented', fill: '#6a6c8a' },
+        body: { stroke: '#31d0c6', strokeWidth: 2 }
     },
     ports: {
         groups: {
@@ -30,7 +30,7 @@ var g3 = new joint.shapes.basic.Circle({
                     }
                 },
                 attrs: {
-                    circle: { fill: '#ffffff', stroke: '#31d0c6', 'stroke-width': 2, r: 10, magnet: true },
+                    circle: { fill: '#ffffff', stroke: '#31d0c6', strokeWidth: 2, r: 10, magnet: true },
                     text: { fill: '#6a6c8a' }
                 }
             }
@@ -49,7 +49,7 @@ times(10, function(index) {
 g3.addPort({
     group: 'a',
     attrs: {
-        circle: { stroke: '#fe854f', 'stroke-width': 2, magnet: true },
+        circle: { stroke: '#fe854f', strokeWidth: 2, magnet: true },
         '.label-rect': { stroke: '#fe854f', fill: '#fe854f', width: 100, height: 20 },
         '.label-text': { x: '0.5em', y: '0.9em' },
         'text': { x: '0.5em', text: 'custom label', y: '0.9em', 'text-anchor': 'start', fill: '#ffffff' }
@@ -63,12 +63,12 @@ g3.addPort({
     }
 });
 
-var g33 = new joint.shapes.basic.Rect({
+var g33 = new joint.shapes.standard.Rectangle({
     position: { x: 425, y: 60 },
     size: { width: 200, height: 100 },
     attrs: {
-        text: { text: 'left', fill: '#6a6c8a' },
-        rect: { stroke: '#31d0c6', 'stroke-width': 2 }
+        label: { text: 'left', fill: '#6a6c8a' },
+        body: { stroke: '#31d0c6', strokeWidth: 2 }
     },
     ports: {
         groups: {
@@ -79,7 +79,7 @@ var g33 = new joint.shapes.basic.Rect({
                 },
                 label: { position: { name: 'left', args: { offset: 12 }}},
                 attrs: {
-                    circle: { fill: '#ffffff', stroke: '#31d0c6', 'stroke-width': 2, r: 10 },
+                    circle: { fill: '#ffffff', stroke: '#31d0c6', strokeWidth: 2, r: 10 },
                     text: { fill: '#6a6c8a' }
                 }
             }
@@ -94,7 +94,7 @@ times(3, function(index) {
 g33.addPort({
     group: 'a',
     attrs: {
-        circle: { stroke: '#fe854f', 'stroke-width': 2, magnet: true },
+        circle: { stroke: '#fe854f', strokeWidth: 2, magnet: true },
         '.label-rect': { stroke: '#fe854f', fill: '#fe854f', width: 150, height: 20 },
         '.label-text': { x: '0.5em', y: '0.9em' },
         'text': { x: '0.5em', text: 'custom label - manual', y: '0.9em', 'text-anchor': 'start', fill: '#ffffff' }
@@ -126,8 +126,8 @@ b.textContent = 'Click on Rectangle or Ellipse to toggle port positions alignmen
 document.body.appendChild(b);
 
 var labelPos = {
-    'basic.Rect': 0,
-    'basic.Circle': 0
+    'standard.Rectangle': 0,
+    'standard.Ellipse': 0
 };
 
 paper3.on('cell:pointerclick', function(cellView, e) {
@@ -139,18 +139,18 @@ paper3.on('cell:pointerclick', function(cellView, e) {
     var positions;
     var type = cellView.model.get('type');
 
-    if (type === 'basic.Rect') {
+    if (type === 'standard.Rectangle') {
         positions = ['left', 'right', 'top', 'bottom', 'outsideOriented', 'outside', 'insideOriented', 'inside'];
     }
 
-    if (type === 'basic.Circle') {
+    if (type === 'standard.Ellipse') {
         positions = ['outsideOriented', 'outside', 'radial', 'radialOriented'];
 
     }
 
     var pos = positions[(labelPos[type]) % positions.length];
 
-    cellView.model.prop('attrs/text/text', pos);
+    cellView.model.prop('attrs/label/text', pos);
 
     cellView.model.prop('ports/groups/a/label/position/name', pos);
     labelPos[type]++;

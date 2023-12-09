@@ -5,7 +5,7 @@ QUnit.module('element ports', function() {
         markup: '<g class="rotatable"><g class="scalable"><rect class="rectangle"/></g><text/></g>',
         portMarkup: '<circle class="circle-port" />',
         defaults: _.defaultsDeep({
-            type: 'basic.Model'
+            type: 'test-model'
 
         }, joint.dia.Element.prototype.defaults)
     });
