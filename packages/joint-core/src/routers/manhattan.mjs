@@ -26,7 +26,7 @@ var config = {
     excludeEnds: [], // 'source', 'target'
 
     // should certain types of elements not be considered as obstacles?
-    excludeTypes: ['basic.Text'],
+    excludeTypes: [],
 
     // possible starting directions from an element
     startDirections: ['top', 'right', 'bottom', 'left'],

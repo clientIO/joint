@@ -1544,7 +1544,7 @@ export const Paper = View.extend({
         var defaultViewClass;
 
         // A special class defined for this model in the corresponding namespace.
-        // e.g. joint.shapes.basic.Rect searches for joint.shapes.basic.RectView
+        // e.g. joint.shapes.standard.Rectangle searches for joint.shapes.standard.RectangleView
         var namespace = options.cellViewNamespace;
         var type = cell.get('type') + 'View';
         var namespaceViewClass = getByPath(namespace, type, '.');

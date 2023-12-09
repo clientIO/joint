@@ -472,10 +472,10 @@ export const shapePerimeterConnectionPoint = function(linkView, view, magnet, re
         // For example, we want the function to work on basic.Path elements
         // without any special treatment of such elements.
         // The code below guesses the wrapping element based on
-        // one simple assumption. The wrapping elemnet is the
+        // one simple assumption. The wrapping element is the
         // first child of the scalable group if such a group exists
         // or the first child of the rotatable group if not.
-        // This makese sense because usually the wrapping element
+        // This makes sense because usually the wrapping element
         // is below any other sub element in the shapes.
         var scalable = view.$('.scalable')[0];
         var rotatable = view.$('.rotatable')[0];

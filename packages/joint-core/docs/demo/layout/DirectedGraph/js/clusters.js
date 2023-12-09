@@ -23,26 +23,35 @@
     }
 
     function makeElement(attrs) {
-        var el = new joint.shapes.basic.Rect({
+        var el = new joint.shapes.standard.Rectangle({
             size: { width: 30, height: 30 },
-            attrs: { rect: { rx: 2, ry: 2, fill: '#31D0C6', stroke: '#4B4A67', 'stroke-width': 2 }, text: { text: 'rect', fill: 'white' }}
+            attrs: {
+                body: {
+                    rx: 2,
+                    ry: 2,
+                    fill: '#31D0C6',
+                    stroke: '#4B4A67',
+                    strokeWidth: 2,
+                },
+                label: { text: 'rect', fill: 'white' },
+            },
         });
         el.attr(attrs);
         return el;
     }
 
-    var topGroup = makeElement({ text: { text: 'TopGroup', 'ref-y': 15 }});
-    var bottomGroup = makeElement({ text: { text: 'Bottom Group', 'ref-y': 15 }});
-    var group = makeElement({ text: { text: 'Group', 'ref-y': 15 }});
+    var topGroup = makeElement({ label: { text: 'TopGroup', 'ref-y': 15 }});
+    var bottomGroup = makeElement({ label: { text: 'Bottom Group', 'ref-y': 15 }});
+    var group = makeElement({ label: { text: 'Group', 'ref-y': 15 }});
 
-    var ea = makeElement({ text: { text: 'a' }, rect: { fill: '#FE854F' }});
-    var eb = makeElement({ text: { text: 'b' }, rect: { fill: '#FE854F' }});
-    var ec = makeElement({ text: { text: 'c' }, rect: { fill: '#FE854F' }});
-    var ed = makeElement({ text: { text: 'd' }, rect: { fill: '#FE854F' }});
-    var ee = makeElement({ text: { text: 'e' }, rect: { fill: '#FE854F' }});
-    var ef = makeElement({ text: { text: 'f' }, rect: { fill: '#FE854F' }});
-    var eg = makeElement({ text: { text: 'g' }, rect: { fill: '#FE854F' }});
-    var eh = makeElement({ text: { text: 'h' }, rect: { fill: '#FE854F' }});
+    var ea = makeElement({ label: { text: 'a' }, body: { fill: '#FE854F' }});
+    var eb = makeElement({ label: { text: 'b' }, body: { fill: '#FE854F' }});
+    var ec = makeElement({ label: { text: 'c' }, body: { fill: '#FE854F' }});
+    var ed = makeElement({ label: { text: 'd' }, body: { fill: '#FE854F' }});
+    var ee = makeElement({ label: { text: 'e' }, body: { fill: '#FE854F' }});
+    var ef = makeElement({ label: { text: 'f' }, body: { fill: '#FE854F' }});
+    var eg = makeElement({ label: { text: 'g' }, body: { fill: '#FE854F' }});
+    var eh = makeElement({ label: { text: 'h' }, body: { fill: '#FE854F' }});
 
     var lab = makeLink(ea, eb);
     var lbc = makeLink(eb, ec);
