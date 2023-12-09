@@ -7,13 +7,14 @@ var b1 = document.createElement('b');
 b1.textContent = 'Left click on any port to increment, right click to decrement \'z\'';
 document.body.appendChild(b1);
 
-var g4 = new joint.shapes.basic.Rect({
+var g4 = new joint.dia.Element({
+    type: 'example1',
     markup: '<g class="rotatable"><g class="scalable"><rect class="main"/></g><rect class="inner"/></g>',
-
     position: { x: 130, y: 30 },
     size: { width: 80, height: 150 },
     attrs: {
         '.main': {
+            fill: 'white',
             width: 80, height: 150,
             stroke: '#31d0c6', 'stroke-width': 2
         },

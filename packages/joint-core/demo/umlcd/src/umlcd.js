@@ -1,11 +1,164 @@
-var graph = new joint.dia.Graph();
+const Class = joint.dia.Element.define('uml.Class', {
+    attrs: {
+        rect: { 'width': 200 },
+
+        '.uml-class-name-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
+        '.uml-class-attrs-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+        '.uml-class-methods-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+
+        '.uml-class-name-text': {
+            'ref': '.uml-class-name-rect',
+            'ref-y': .5,
+            'ref-x': .5,
+            'text-anchor': 'middle',
+            'y-alignment': 'middle',
+            'font-weight': 'bold',
+            'fill': 'black',
+            'font-size': 12,
+            'font-family': 'Times New Roman'
+        },
+        '.uml-class-attrs-text': {
+            'ref': '.uml-class-attrs-rect', 'ref-y': 5, 'ref-x': 5,
+            'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+        },
+        '.uml-class-methods-text': {
+            'ref': '.uml-class-methods-rect', 'ref-y': 5, 'ref-x': 5,
+            'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+        }
+    },
+
+    name: [],
+    attributes: [],
+    methods: []
+}, {
+    markup: [
+        '<g class="rotatable">',
+        '<g class="scalable">',
+        '<rect class="uml-class-name-rect"/><rect class="uml-class-attrs-rect"/><rect class="uml-class-methods-rect"/>',
+        '</g>',
+        '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
+        '</g>'
+    ].join(''),
+
+    initialize: function() {
+
+        this.on('change:name change:attributes change:methods', function() {
+            this.updateRectangles();
+            this.trigger('uml-update');
+        }, this);
+
+        this.updateRectangles();
+
+        joint.dia.Element.prototype.initialize.apply(this, arguments);
+    },
+
+    getClassName: function() {
+        return this.get('name');
+    },
+
+    updateRectangles: function() {
+
+        var attrs = this.get('attrs');
+
+        var rects = [
+            { type: 'name', text: this.getClassName() },
+            { type: 'attrs', text: this.get('attributes') },
+            { type: 'methods', text: this.get('methods') }
+        ];
+
+        var offsetY = 0;
+
+        rects.forEach(function(rect) {
+
+            var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
+            var rectHeight = lines.length * 20 + 20;
+
+            attrs['.uml-class-' + rect.type + '-text'].text = lines.join('\n');
+            attrs['.uml-class-' + rect.type + '-rect'].height = rectHeight;
+            attrs['.uml-class-' + rect.type + '-rect'].transform = 'translate(0,' + offsetY + ')';
+
+            offsetY += rectHeight;
+        });
+    }
+
+});
+
+const ClassView = joint.dia.ElementView.extend({
+
+    initialize: function() {
+
+        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+
+        this.listenTo(this.model, 'uml-update', function() {
+            this.update();
+            this.resize();
+        });
+    }
+});
+
+const Abstract = Class.define('uml.Abstract', {
+    attrs: {
+        '.uml-class-name-rect': { fill: '#e74c3c' },
+        '.uml-class-attrs-rect': { fill: '#c0392b' },
+        '.uml-class-methods-rect': { fill: '#c0392b' }
+    }
+}, {
+
+    getClassName: function() {
+        return ['<<Abstract>>', this.get('name')];
+    }
+
+});
+const AbstractView = ClassView;
+
+const Interface = Class.define('uml.Interface', {
+    attrs: {
+        '.uml-class-name-rect': { fill: '#f1c40f' },
+        '.uml-class-attrs-rect': { fill: '#f39c12' },
+        '.uml-class-methods-rect': { fill: '#f39c12' }
+    }
+}, {
+    getClassName: function() {
+        return ['<<Interface>>', this.get('name')];
+    }
+});
+const InterfaceView = ClassView;
+
+const Generalization = joint.dia.Link.define('uml.Generalization', {
+    attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' }}
+});
+
+const Implementation = joint.dia.Link.define('uml.Implementation', {
+    attrs: {
+        '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' },
+        '.connection': { 'stroke-dasharray': '3,3' }
+    }
+});
+
+const Aggregation = joint.dia.Link.define('uml.Aggregation', {
+    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' }}
+});
+
+const Composition = joint.dia.Link.define('uml.Composition', {
+    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' }}
+});
+
+const Association = joint.dia.Link.define('uml.Association');
+
+const shapes = {
+    ...joint.shapes,
+    uml: { Class, ClassView, Abstract, AbstractView, Interface, InterfaceView, Generalization, Implementation, Aggregation, Composition, Association }
+};
+
+var graph = new joint.dia.Graph({}, { cellNamespace: shapes });
 
 new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 800,
     height: 600,
     gridSize: 1,
-    model: graph
+    model: graph,
+    cellViewNamespace: shapes,
 });
 
 var uml = joint.shapes.uml;

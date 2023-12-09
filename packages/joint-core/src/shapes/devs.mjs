@@ -1,11 +1,11 @@
-import { Generic } from './basic.mjs';
 import { Link as LinkBase } from '../dia/Link.mjs';
+import { Element } from '../dia/Element.mjs';
 import { uniq, difference, assign, toArray, without, isObject } from '../util/index.mjs';
 
 /**
  * @deprecated use the port api instead
  */
-export const Model = Generic.define('devs.Model', {
+export const Model = Element.define('devs.Model', {
     inPorts: [],
     outPorts: [],
     size: {

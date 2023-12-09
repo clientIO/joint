@@ -13,7 +13,7 @@ new joint.dia.Paper({
     model: graph
 });
 
-var Table = joint.dia.Element.define('basic.Table', {
+var Table = joint.dia.Element.define('Table', {
 
     table: {
         metadata: {
@@ -221,7 +221,7 @@ var Table = joint.dia.Element.define('basic.Table', {
     }
 });
 
-joint.shapes.basic.TableView = joint.dia.ElementView.extend({
+joint.shapes.TableView = joint.dia.ElementView.extend({
 
     initialize: function() {
         joint.dia.ElementView.prototype.initialize.apply(this, arguments);

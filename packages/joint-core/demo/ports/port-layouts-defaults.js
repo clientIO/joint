@@ -18,26 +18,26 @@ document.body.appendChild(button2);
 button2.addEventListener('click', function() {
     g1.removePort(g1.getPorts()[0]);
 });
-
-var g1 = new joint.shapes.basic.Rect({
+var g1 = new joint.shapes.standard.Rectangle({
     position: { x: 130, y: 30 },
     size: { width: 100, height: 150 },
     attrs: {
-        rect: { stroke: '#31d0c6', 'stroke-width': 2 }
+        body: { stroke: '#31d0c6', strokeWidth: 2 }
     }
 });
 graph1.addCell(g1);
 g1.addPort({ attrs: { circle: { magnet: true, stroke: '#31d0c6', 'stroke-width': 2, fill: '#ffffff' }}});
 g1.addPort({ attrs: { circle: { magnet: true, stroke: '#31d0c6', 'stroke-width': 2, fill: '#ffffff' }}});
 g1.addPort({ attrs: { circle: { magnet: true, stroke: '#31d0c6', 'stroke-width': 2, fill: '#ffffff' }}});
-new joint.shapes.basic.Circle({
+var g2 = new joint.shapes.standard.Circle({
+    size: { width: 40, height: 40 },
     position: { x: 20, y: 150 },
     id: 'target',
     attrs: {
-        circle: { cx: 8, cy: 8, r: 8 },
         text: { text: 'test' }
     }
-}).addTo(graph1);
+});
+graph1.addCell(g2);
 
 new joint.dia.Link({ source: { id: 'target' }, target: { id: g1.id, port: g1.getPorts()[0].id }}).addTo(graph1);
 new joint.dia.Link({ source: { id: 'target' }, target: { id: g1.id, port: g1.getPorts()[1].id }}).addTo(graph1);

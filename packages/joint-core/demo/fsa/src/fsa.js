@@ -1,10 +1,82 @@
-var graph = new joint.dia.Graph;
+const State = joint.dia.Element.define('fsa.State', {
+    size: { width: 60, height: 60 },
+    attrs: {
+        'circle': {
+            fill: '#ffffff',
+            stroke: '#000000',
+            'stroke-width': 3,
+            r: 30,
+            cx: 30,
+            cy: 30
+        },
+        'text': {
+            'font-size': 14,
+            text: '',
+            'text-anchor': 'middle',
+            'ref-x': .5,
+            'ref-y': .5,
+            'y-alignment': 'middle',
+            fill: '#000000',
+            'font-weight': '800',
+            'font-family': 'Arial, helvetica, sans-serif'
+        }
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
+});
+
+const StartState = joint.dia.Element.define('fsa.StartState', {
+    size: { width: 20, height: 20 },
+    attrs: {
+        circle: {
+            transform: 'translate(10, 10)',
+            r: 10,
+            fill: '#000000'
+        }
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><circle/></g></g>',
+});
+
+const EndState = joint.dia.Element.define('fsa.EndState', {
+    size: { width: 20, height: 20 },
+    attrs: {
+        '.outer': {
+            transform: 'translate(10, 10)',
+            r: 10,
+            fill: '#ffffff',
+            stroke: '#000000'
+        },
+
+        '.inner': {
+            transform: 'translate(10, 10)',
+            r: 6,
+            fill: '#000000'
+        }
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
+});
+
+const Arrow = joint.dia.Link.define('fsa.Arrow', {
+    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
+    smooth: true
+});
+
+const shapes = {
+    ...joint.shapes,
+    fsa: { State, StartState, EndState, Arrow }
+};
+
+
+var graph = new joint.dia.Graph({}, { cellNamespace: shapes });
 
 var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 800,
     height: 600,
     model: graph,
+    cellViewNamespace: shapes,
     defaultConnectionPoint: { name: 'boundary' },
     defaultConnector: { name: 'smooth' },
     interactive: { linkMove: false },
