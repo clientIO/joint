@@ -2354,7 +2354,7 @@ export namespace shapes {
             outPorts?: string[];
         }
 
-        class Model extends basic.Generic {
+        class Model extends dia.Element {
 
             constructor(attributes?: ModelAttributes, opt?: { [key: string]: any });
 
