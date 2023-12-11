@@ -11,8 +11,8 @@ import { env } from '../env/index.mjs';
 export const Rectangle = Element.define('standard.Rectangle', {
     attrs: {
         body: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             strokeWidth: 2,
             stroke: '#000000',
             fill: '#FFFFFF'
@@ -20,8 +20,8 @@ export const Rectangle = Element.define('standard.Rectangle', {
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(w/2)',
+            y: 'calc(h/2)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -39,9 +39,9 @@ export const Rectangle = Element.define('standard.Rectangle', {
 export const Circle = Element.define('standard.Circle', {
     attrs: {
         body: {
-            refCx: '50%',
-            refCy: '50%',
-            refR: '50%',
+            cx: 'calc(s/2)',
+            cy: 'calc(s/2)',
+            r: 'calc(s/2)',
             strokeWidth: 2,
             stroke: '#333333',
             fill: '#FFFFFF'
@@ -49,8 +49,8 @@ export const Circle = Element.define('standard.Circle', {
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(w/2)',
+            y: 'calc(h/2)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -68,10 +68,10 @@ export const Circle = Element.define('standard.Circle', {
 export const Ellipse = Element.define('standard.Ellipse', {
     attrs: {
         body: {
-            refCx: '50%',
-            refCy: '50%',
-            refRx: '50%',
-            refRy: '50%',
+            cx: 'calc(w/2)',
+            cy: 'calc(h/2)',
+            rx: 'calc(w/2)',
+            ry: 'calc(h/2)',
             strokeWidth: 2,
             stroke: '#333333',
             fill: '#FFFFFF'
@@ -79,8 +79,8 @@ export const Ellipse = Element.define('standard.Ellipse', {
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(w/2)',
+            y: 'calc(h/2)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -98,7 +98,7 @@ export const Ellipse = Element.define('standard.Ellipse', {
 export const Path = Element.define('standard.Path', {
     attrs: {
         body: {
-            refD: 'M 0 0 L 10 0 10 10 0 10 Z',
+            d: 'M 0 0 H calc(w) V calc(h) H 0 Z',
             strokeWidth: 2,
             stroke: '#333333',
             fill: '#FFFFFF'
@@ -106,8 +106,8 @@ export const Path = Element.define('standard.Path', {
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(w/2)',
+            y: 'calc(h/2)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -125,7 +125,7 @@ export const Path = Element.define('standard.Path', {
 export const Polygon = Element.define('standard.Polygon', {
     attrs: {
         body: {
-            refPoints: '0 0 10 0 10 10 0 10',
+            points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
             strokeWidth: 2,
             stroke: '#333333',
             fill: '#FFFFFF'
@@ -133,8 +133,8 @@ export const Polygon = Element.define('standard.Polygon', {
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(w/2)',
+            y: 'calc(h/2)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -152,7 +152,7 @@ export const Polygon = Element.define('standard.Polygon', {
 export const Polyline = Element.define('standard.Polyline', {
     attrs: {
         body: {
-            refPoints: '0 0 10 0 10 10 0 10 0 0',
+            points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
             strokeWidth: 2,
             stroke: '#333333',
             fill: '#FFFFFF'
@@ -160,8 +160,8 @@ export const Polyline = Element.define('standard.Polyline', {
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(w/2)',
+            y: 'calc(h/2)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -179,16 +179,15 @@ export const Polyline = Element.define('standard.Polyline', {
 export const Image = Element.define('standard.Image', {
     attrs: {
         image: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             // xlinkHref: '[URL]'
         },
         label: {
             textVerticalAnchor: 'top',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '100%',
-            refY2: 10,
+            x: 'calc(w/2)',
+            y: 'calc(h+10)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -206,31 +205,30 @@ export const Image = Element.define('standard.Image', {
 export const BorderedImage = Element.define('standard.BorderedImage', {
     attrs: {
         border: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             stroke: '#333333',
             strokeWidth: 2
         },
         background: {
-            refWidth: -1,
-            refHeight: -1,
+            width: 'calc(w-1)',
+            height: 'calc(h-1)',
             x: 0.5,
             y: 0.5,
             fill: '#FFFFFF'
         },
         image: {
             // xlinkHref: '[URL]'
-            refWidth: -1,
-            refHeight: -1,
+            width: 'calc(w-1)',
+            height: 'calc(h-1)',
             x: 0.5,
             y: 0.5
         },
         label: {
             textVerticalAnchor: 'top',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '100%',
-            refY2: 10,
+            x: 'calc(w/2)',
+            y: 'calc(h+10)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -260,16 +258,16 @@ export const BorderedImage = Element.define('standard.BorderedImage', {
 export const EmbeddedImage = Element.define('standard.EmbeddedImage', {
     attrs: {
         body: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             stroke: '#333333',
             fill: '#FFFFFF',
             strokeWidth: 2
         },
         image: {
             // xlinkHref: '[URL]'
-            refWidth: '30%',
-            refHeight: -20,
+            width: 'calc(0.3*w)',
+            height: 'calc(h-20)',
             x: 10,
             y: 10,
             preserveAspectRatio: 'xMidYMin'
@@ -277,9 +275,8 @@ export const EmbeddedImage = Element.define('standard.EmbeddedImage', {
         label: {
             textVerticalAnchor: 'top',
             textAnchor: 'left',
-            refX: '30%',
-            refX2: 20, // 10 + 10
-            refY: 10,
+            x: 'calc(0.3*w+20)', // 10 + 10
+            y: 10,
             fontSize: 14,
             fill: '#333333'
         }
@@ -300,36 +297,35 @@ export const EmbeddedImage = Element.define('standard.EmbeddedImage', {
 export const InscribedImage = Element.define('standard.InscribedImage', {
     attrs: {
         border: {
-            refRx: '50%',
-            refRy: '50%',
-            refCx: '50%',
-            refCy: '50%',
+            rx: 'calc(w/2)',
+            ry: 'calc(h/2)',
+            cx: 'calc(w/2)',
+            cy: 'calc(h/2)',
             stroke: '#333333',
             strokeWidth: 2
         },
         background: {
-            refRx: '50%',
-            refRy: '50%',
-            refCx: '50%',
-            refCy: '50%',
+            rx: 'calc(w/2)',
+            ry: 'calc(h/2)',
+            cx: 'calc(w/2)',
+            cy: 'calc(h/2)',
             fill: '#FFFFFF'
         },
         image: {
             // The image corners touch the border when its size is Math.sqrt(2) / 2 = 0.707.. ~= 70%
-            refWidth: '68%',
-            refHeight: '68%',
+            width: 'calc(0.68*w)',
+            height: 'calc(0.68*h)',
             // The image offset is calculated as (100% - 68%) / 2
-            refX: '16%',
-            refY: '16%',
+            x: 'calc(0.16*w)',
+            y: 'calc(0.16*h)',
             preserveAspectRatio: 'xMidYMid'
             // xlinkHref: '[URL]'
         },
         label: {
             textVerticalAnchor: 'top',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '100%',
-            refY2: 10,
+            x: 'calc(w/2)',
+            y: 'calc(h+10)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -356,14 +352,14 @@ export const InscribedImage = Element.define('standard.InscribedImage', {
 export const HeaderedRectangle = Element.define('standard.HeaderedRectangle', {
     attrs: {
         body: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             strokeWidth: 2,
             stroke: '#000000',
             fill: '#FFFFFF'
         },
         header: {
-            refWidth: '100%',
+            width: 'calc(w)',
             height: 30,
             strokeWidth: 2,
             stroke: '#000000',
@@ -372,17 +368,16 @@ export const HeaderedRectangle = Element.define('standard.HeaderedRectangle', {
         headerText: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: 15,
+            x: 'calc(w/2)',
+            y: 15,
             fontSize: 16,
             fill: '#333333'
         },
         bodyText: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
-            refY2: 15,
+            x: 'calc(w/2)',
+            y: 'calc(h/2+15)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -414,9 +409,9 @@ export const Cylinder = Element.define('standard.Cylinder', {
             strokeWidth: 2
         },
         top: {
-            refCx: '50%',
+            cx: 'calc(w/2)',
             cy: CYLINDER_TILT,
-            refRx: '50%',
+            rx: 'calc(w/2)',
             ry: CYLINDER_TILT,
             fill: '#FFFFFF',
             stroke: '#333333',
@@ -425,9 +420,8 @@ export const Cylinder = Element.define('standard.Cylinder', {
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '100%',
-            refY2: 15,
+            x: 'calc(w/2)',
+            y: 'calc(h+15)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -449,12 +443,11 @@ export const Cylinder = Element.define('standard.Cylinder', {
         if (t === undefined) return this.attr('body/lateralArea');
 
         // setter
-        var isPercentageSetter = isPercentage(t);
-
         var bodyAttrs = { lateralArea: t };
-        var topAttrs = isPercentageSetter
-            ? { refCy: t, refRy: t, cy: null, ry: null }
-            : { refCy: null, refRy: null, cy: t, ry: t };
+
+        var isPercentageSetter = isPercentage(t);
+        var ty = (isPercentageSetter) ? `calc(${parseFloat(t) / 100}*h)` : t;
+        var topAttrs = { cy: ty, ry: ty };
 
         return this.attr({ body: bodyAttrs, top: topAttrs }, opt);
     }
@@ -545,15 +538,15 @@ var labelMarkup = (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarku
 export const TextBlock = Element.define('standard.TextBlock', {
     attrs: {
         body: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             stroke: '#333333',
             fill: '#ffffff',
             strokeWidth: 2
         },
         foreignObject: {
-            refWidth: '100%',
-            refHeight: '100%'
+            width: 'calc(w)',
+            height: 'calc(h)',
         },
         label: {
             style: {
@@ -687,8 +680,7 @@ export const ShadowLink = LinkBase.define('standard.ShadowLink', {
         },
         shadow: {
             connection: true,
-            refX: 3,
-            refY: 6,
+            transform: 'translate(3,6)',
             stroke: '#000000',
             strokeOpacity: 0.2,
             strokeWidth: 20,
