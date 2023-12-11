@@ -4,10 +4,6 @@ const { uniq, difference, assign, toArray, without, isObject } = util;
 const Model = dia.Element.define('devs.Model', {
     inPorts: [],
     outPorts: [],
-    size: {
-        width: 80,
-        height: 80
-    },
     attrs: {
         root: {
             magnet: false
@@ -190,8 +186,8 @@ const Model = dia.Element.define('devs.Model', {
 
 const Coupled = Model.define('devs.Coupled', {
     size: {
-        width: 80,
-        height: 80
+        width: 300,
+        height: 300
     },
     attrs: {
         label: {
@@ -246,6 +242,7 @@ const paper = new dia.Paper({
     clickThreshold: 5,
     cellViewNamespace: shapes,
     defaultConnectionPoint: { name: 'boundary' },
+    overflow: true,
     highlighting: {
         'default': {
             name: 'stroke',
@@ -290,10 +287,6 @@ const c1 = new Coupled({
     position: {
         x: 230,
         y: 50
-    },
-    size: {
-        width: 300,
-        height: 300
     }
 });
 

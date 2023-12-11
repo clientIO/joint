@@ -1371,7 +1371,24 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('getSelector()', function(assert) {
 
-        var model = new joint.shapes.devs.Model({ inPorts: ['1', '2'], outPorts: ['3', '4'] });
+        var model = new joint.shapes.standard.Rectangle({
+            ports: {
+                groups: {
+                    'in': {
+                        position: 'top'
+                    },
+                    'out': {
+                        position: 'bottom'
+                    }
+                },
+                items: [
+                    { id: '1', group: 'in' },
+                    { id: '2', group: 'in' },
+                    { id: '3', group: 'out' },
+                    { id: '4', group: 'out' }
+                ]
+            }
+        });
 
         // See issue #130 (https://github.com/DavidDurman/joint/issues/130)
         this.graph.addCell([model.clone(), model.clone(), model.clone(), model]);
@@ -1402,7 +1419,7 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('ports', function(assert) {
 
-        var model = new joint.shapes.devs.Model({
+        var model = new joint.shapes.standard.Rectangle({
             position: {
                 x: 40,
                 y: 40
@@ -1411,14 +1428,27 @@ QUnit.module('basic', function(hooks) {
                 width: 80,
                 height: 60
             },
-            inPorts: ['1', '2'],
-            outPorts: ['3', '4']
+            ports: {
+                groups: {
+                    'in': {
+                        position: 'top'
+                    },
+                    'out': {
+                        position: 'bottom'
+                    }
+                },
+                items: [
+                    { id: '1', group: 'in' },
+                    { id: '2', group: 'in' },
+                    { id: '3', group: 'out' },
+                    { id: '4', group: 'out' }
+                ]
+            }
         });
-
         this.graph.addCell(model);
 
         var view = this.paper.findViewByModel(model);
-        var allPorts = model.get('inPorts').concat(model.get('outPorts'));
+        var allPorts = model.getPorts().map(port => port.id);
 
         _.each(allPorts, function(port) {
             var $portEl = view.$el.find('[port="' + port + '"]');
@@ -1426,8 +1456,8 @@ QUnit.module('basic', function(hooks) {
             assert.equal(foundEl, true, 'port DOM element should exist ("' + port + '")');
         });
 
-        model.set('inPorts', ['1']);
-        model.set('outPorts', ['4']);
+        model.removePort('2');
+        model.removePort('3');
 
         var removedPorts = ['2', '3'];
 

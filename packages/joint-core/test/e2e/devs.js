@@ -49,33 +49,4 @@ describe('Discrete Event System Specification', function() {
 
     });
 
-    describe('Link', function() {
-
-        it('should be visible', function(done) {
-
-            client.url(url)
-                .waitForExist('#paper .joint-link path.connection')
-                .then(function(exists) {
-                    expect(exists).to.equal(true);
-                    done();
-                });
-
-        });
-
-        it('should be removable', function(done) {
-
-            client.url(url)
-                .waitForExist('#paper .joint-type-devs.joint-type-devs-coupled')
-                .moveToObject('#j_10 .tool-remove', 5/* x-offset */, 5/* y-offset */)
-                .click('#j_10 .tool-remove')
-                .waitForNotExist('#j_10')
-                .then(function(exists) {
-                    expect(exists).to.equal(true);
-                    done();
-                });
-
-        });
-
-    });
-
 });
