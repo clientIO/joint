@@ -116,11 +116,11 @@ QUnit.module('cell', function(hooks) {
 
         QUnit.test('parent', function(assert) {
 
-            var cell = new joint.shapes.basic.Rect({
+            var cell = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 60, height: 60 }
             });
-            var cell2 = new joint.shapes.basic.Rect({
+            var cell2 = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 60, height: 60 }
             });
@@ -154,11 +154,11 @@ QUnit.module('cell', function(hooks) {
 
         QUnit.test('getParentCell', function(assert) {
 
-            var cell = new joint.shapes.basic.Rect({
+            var cell = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 60, height: 60 }
             });
-            var cell2 = new joint.shapes.basic.Rect({
+            var cell2 = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 60, height: 60 }
             });
@@ -192,11 +192,11 @@ QUnit.module('cell', function(hooks) {
 
         QUnit.test('recursive embed exception', function(assert) {
 
-            var cell = new joint.shapes.basic.Rect({
+            var cell = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 60, height: 60 }
             });
-            var cell2 = new joint.shapes.basic.Rect({
+            var cell2 = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 60, height: 60 }
             });
@@ -210,15 +210,15 @@ QUnit.module('cell', function(hooks) {
 
         QUnit.test('embedding of an embedded cell exception', function(assert) {
 
-            var cell = new joint.shapes.basic.Rect({
+            var cell = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 60, height: 60 }
             });
-            var cell2 = new joint.shapes.basic.Rect({
+            var cell2 = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 60, height: 60 }
             });
-            var cell3 = new joint.shapes.basic.Rect({
+            var cell3 = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 20 },
                 size: { width: 60, height: 60 }
             });
@@ -355,7 +355,7 @@ QUnit.module('cell', function(hooks) {
 
         hooks.beforeEach(function() {
 
-            el = new joint.shapes.basic.Rect();
+            el = new joint.shapes.standard.Rectangle();
             attrs = el.attributes;
         });
 

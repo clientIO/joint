@@ -1,11 +1,11 @@
 var paper6 = createPaper();
 
-var g6 = new joint.shapes.basic.Circle({
+var g6 = new joint.shapes.standard.Ellipse({
     position: { x: 50, y: 50 },
     size: { width: 500, height: 300 },
     attrs: {
-        text: { text: 'compensateRotation: true', fill: '#6a6c8a' },
-        circle: { stroke: '#31d0c6', 'stroke-width': 2 }
+        label: { text: 'compensateRotation: true', fill: '#6a6c8a' },
+        body: { stroke: '#31d0c6', strokeWidth: 2 }
     },
     ports: {
         groups: {
@@ -15,18 +15,22 @@ var g6 = new joint.shapes.basic.Circle({
                     args: { startAngle: 0, dr: 0, compensateRotation: true }
                 },
                 label: {
-                    position: 'radial'
+                    position: 'radial',
+                    markup: joint.util.svg/*xml*/`
+                        <text @selector="text"/>
+                    `,
                 },
                 attrs: {
                     rect: {
+                        fill: 'white',
                         stroke: '#31d0c6',
-                        'stroke-width': 2,
+                        strokeWidth: 2,
                         width: 20,
                         height: 20,
                         x: -10,
                         y: -10
                     },
-                    '.dot': {
+                    circle: {
                         fill: '#fe854f',
                         r: 2
                     },
@@ -34,7 +38,10 @@ var g6 = new joint.shapes.basic.Circle({
                         fill: '#6a6c8a'
                     }
                 },
-                markup: '<g><rect/><circle class="dot"/></g>'
+                markup: joint.util.svg/*xml*/`
+                    <rect @selector="rect"/>
+                    <circle @selector="circle"/>
+                `
             }
         }
     }
@@ -56,7 +63,7 @@ paper6.on('cell:pointerclick', function(cellView, e) {
     }
 
     var current = cellView.model.prop('ports/groups/a/position/args/compensateRotation');
-    cellView.model.prop('attrs/text/text', 'compensateRotation: ' + !current);
+    cellView.model.prop('attrs/label/text', 'compensateRotation: ' + !current);
     cellView.model.prop('ports/groups/a/position/args/compensateRotation', !current);
 });
 

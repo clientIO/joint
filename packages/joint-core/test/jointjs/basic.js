@@ -24,7 +24,7 @@ QUnit.module('basic', function(hooks) {
 
         // make element
         function me(id) {
-            return new joint.shapes.basic.Circle({ id: id, name: id }).addTo(graph);
+            return new joint.shapes.standard.Ellipse({ id: id, name: id }).addTo(graph);
         }
 
         // make link
@@ -51,15 +51,15 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('construction', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
 
-        assert.strictEqual(myrect.constructor, joint.shapes.basic.Rect, 'myrect.constructor === joint.shapes.basic.Rect');
+        assert.strictEqual(myrect.constructor, joint.shapes.standard.Rectangle, 'myrect.constructor === joint.shapes.standard.Rectangle');
 
         var textEls = this.paper.svg.getElementsByTagName('text');
         var rectEls = this.paper.svg.getElementsByTagName('rect');
@@ -74,10 +74,10 @@ QUnit.module('basic', function(hooks) {
 
         var done = assert.async();
 
-        var r1 = new joint.shapes.basic.Rect({
+        var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle' }}
         });
         var r2 = r1.clone();
         var r3 = r1.clone();
@@ -105,10 +105,10 @@ QUnit.module('basic', function(hooks) {
         this.paper.unfreeze();
 
         var done = assert.async();
-        var r1 = new joint.shapes.basic.Rect({
+        var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle' }}
         });
         var r2 = r1.clone();
         var r3 = r1.clone();
@@ -136,10 +136,10 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('getBBox()', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
@@ -152,7 +152,7 @@ QUnit.module('basic', function(hooks) {
         assert.equal(bbox.width, 120, 'bbox.width is correct');
         assert.equal(bbox.height, 80, 'bbox.height is correct');
 
-        myrect.attr('text', { ref: 'rect', 'ref-y': 100 });
+        myrect.attr('label', { ref: 'rect', 'ref-y': 100 });
 
         bbox = view.getBBox({ useModelGeometry: false });
 
@@ -172,9 +172,9 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('z index', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = new joint.shapes.basic.Rect;
-        var r3 = new joint.shapes.basic.Rect;
+        var r1 = new joint.shapes.standard.Rectangle;
+        var r2 = new joint.shapes.standard.Rectangle;
+        var r3 = new joint.shapes.standard.Rectangle;
 
         this.graph.addCell(r1);
         this.graph.addCell(r2);
@@ -185,7 +185,7 @@ QUnit.module('basic', function(hooks) {
 
         // Test removing/adding new cells to cover https://github.com/clientIO/JointJS_plus/issues/21.
         r1.remove();
-        var r4 = new joint.shapes.basic.Rect;
+        var r4 = new joint.shapes.standard.Rectangle;
         this.graph.addCell(r4);
         assert.ok(r2.get('z') < r3.get('z'), 'z index of the second added cell is lower than that of the third one');
         assert.ok(r3.get('z') < r4.get('z'), 'z index of the third added cell is lower than that of the fourth, newly added, one');
@@ -193,12 +193,12 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('position()', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({
+        var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 100, y: 100 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle' }}
         });
-        var r2 = new joint.shapes.basic.Rect({
+        var r2 = new joint.shapes.standard.Rectangle({
             position: { x: 10, y: 10 },
             size: { width: 30, height: 30 }
         });
@@ -308,10 +308,10 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('translate()', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
@@ -331,12 +331,12 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('translate() with restrictedArea option', function(assert) {
 
-        var rect = new joint.shapes.basic.Rect({
+        var rect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 }
         });
 
-        var embed = new joint.shapes.basic.Rect({
+        var embed = new joint.shapes.standard.Rectangle({
             position: { x: 100, y: 70 },
             size: { width: 120, height: 80 }
         });
@@ -378,7 +378,7 @@ QUnit.module('basic', function(hooks) {
 
         assert.expect(9);
 
-        var el = new joint.shapes.basic.Rect({
+        var el = new joint.shapes.standard.Rectangle({
             size: { width: 1, height: 2 }
         });
 
@@ -404,10 +404,10 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('resize()', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: '' }}
+            attrs: { label: { text: '' }}
         });
 
         this.graph.addCell(myrect);
@@ -503,10 +503,10 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('rotate()', function(assert) {
 
-        var myrect = new joint.shapes.basic.Rect({
+        var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
@@ -527,9 +527,9 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('object reconstruction after several transformations', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({
+        var r1 = new joint.shapes.standard.Rectangle({
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle' }}
         });
         this.graph.addCell(r1);
 
@@ -559,7 +559,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('attr()', function(assert) {
 
-        var el = new joint.shapes.basic.Generic({
+        var el = new joint.dia.Element({
+            type: 'test-element',
             position: { x: 20, y: 30 },
             markup: '<rect class="big"/><rect class="small"/>',
             attrs: {
@@ -583,7 +584,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('removeAttr()', function(assert) {
 
-        var el = new joint.shapes.basic.Generic({
+        var el = new joint.dia.Element({
+            type: 'test-element',
             position: { x: 20, y: 30 },
             markup: '<rect class="big"/><rect class="small"/>',
             attrs: {
@@ -624,7 +626,7 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('prop()', function(assert) {
 
-        var el = new joint.shapes.basic.Rect({
+        var el = new joint.shapes.standard.Rectangle({
             flat: 5,
             object: { nested: { value: 'foo' }, nested2: { value: 'bar' }},
             array: [[5], [{ value: ['bar'] }]],
@@ -730,8 +732,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('toBack(), toFront()', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = new joint.shapes.basic.Rect;
+        var r1 = new joint.shapes.standard.Rectangle;
+        var r2 = new joint.shapes.standard.Rectangle;
 
         this.graph.addCell(r1);
         this.graph.addCell(r2);
@@ -772,8 +774,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('toBack(), toFront() ignorable', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = new joint.shapes.basic.Rect;
+        var r1 = new joint.shapes.standard.Rectangle;
+        var r2 = new joint.shapes.standard.Rectangle;
 
         this.graph.addCell(r1);
         this.graph.addCell(r2);
@@ -794,8 +796,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('toBack(), toFront() with active batch', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = new joint.shapes.basic.Rect;
+        var r1 = new joint.shapes.standard.Rectangle;
+        var r2 = new joint.shapes.standard.Rectangle;
 
         this.graph.addCell(r1);
         this.graph.addCell(r2);
@@ -833,15 +835,15 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('toBack(), toFront() with { deep: true } option', function(assert) {
 
-        var a1 = new joint.shapes.basic.Rect;
-        var a2 = new joint.shapes.basic.Rect;
-        var a3 = new joint.shapes.basic.Rect;
-        var a4 = new joint.shapes.basic.Rect;
+        var a1 = new joint.shapes.standard.Rectangle;
+        var a2 = new joint.shapes.standard.Rectangle;
+        var a3 = new joint.shapes.standard.Rectangle;
+        var a4 = new joint.shapes.standard.Rectangle;
 
         a1.embed(a2).embed(a3.embed(a4));
 
-        var b1 = new joint.shapes.basic.Rect;
-        var b2 = new joint.shapes.basic.Rect;
+        var b1 = new joint.shapes.standard.Rectangle;
+        var b2 = new joint.shapes.standard.Rectangle;
 
         this.graph.addCells([b1, a1, a2, a3, a4, b2]);
 
@@ -852,34 +854,34 @@ QUnit.module('basic', function(hooks) {
         var b1View = this.paper.findViewByModel(b1);
         var b2View = this.paper.findViewByModel(b2);
 
-        assert.equal(b2View.$el.nextAll('[data-type="basic.Rect"]').length, 0, 'element b2 after a1 element in the DOM');
-        assert.equal(b1View.$el.prevAll('[data-type="basic.Rect"]').length, 0, 'element b1 before a1 element in the DOM');
+        assert.equal(b2View.$el.nextAll('[data-type="standard.Rectangle"]').length, 0, 'element b2 after a1 element in the DOM');
+        assert.equal(b1View.$el.prevAll('[data-type="standard.Rectangle"]').length, 0, 'element b1 before a1 element in the DOM');
 
         a1.toFront({ deep: true });
 
-        assert.equal(_.uniq(a1View.$el.prevAll('[data-type="basic.Rect"]').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
-        assert.ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
-        assert.ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
+        assert.equal(_.uniq(a1View.$el.prevAll('[data-type="standard.Rectangle"]').toArray().concat([b1View.el, b2View.el])).length, 2, 'a1 element moved after b1, b2 element in the DOM after toFront()');
+        assert.ok(a4View.$el.prev('[data-type="standard.Rectangle"]')[0] == a3View.el || a4View.$el.prev('[data-type="standard.Rectangle"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+        assert.ok(a2View.$el.prev('[data-type="standard.Rectangle"]')[0] == a1View.el || a3View.$el.prev('[data-type="standard.Rectangle"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
         a1.toBack({ deep: true });
 
-        assert.equal(a1View.$el.prevAll('[data-type="basic.Rect"]').length, 0, 'a1 element moved back before a2, a3, a4, b1, b2 elements in the DOM after toBack()');
-        assert.ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
-        assert.ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
+        assert.equal(a1View.$el.prevAll('[data-type="standard.Rectangle"]').length, 0, 'a1 element moved back before a2, a3, a4, b1, b2 elements in the DOM after toBack()');
+        assert.ok(a4View.$el.prev('[data-type="standard.Rectangle"]')[0] == a3View.el || a4View.$el.prev('[data-type="standard.Rectangle"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
+        assert.ok(a2View.$el.prev('[data-type="standard.Rectangle"]')[0] == a1View.el || a3View.$el.prev('[data-type="standard.Rectangle"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
 
     });
 
     QUnit.test('toBack(), toFront() ignore with { deep: true } option', function(assert) {
 
-        var a1 = new joint.shapes.basic.Rect;
-        var a2 = new joint.shapes.basic.Rect;
-        var a3 = new joint.shapes.basic.Rect;
-        var a4 = new joint.shapes.basic.Rect;
+        var a1 = new joint.shapes.standard.Rectangle;
+        var a2 = new joint.shapes.standard.Rectangle;
+        var a3 = new joint.shapes.standard.Rectangle;
+        var a4 = new joint.shapes.standard.Rectangle;
 
         a1.embed(a2).embed(a3.embed(a4));
 
-        var b1 = new joint.shapes.basic.Rect;
-        var b2 = new joint.shapes.basic.Rect;
+        var b1 = new joint.shapes.standard.Rectangle;
+        var b2 = new joint.shapes.standard.Rectangle;
 
         this.graph.addCells([b1, b2, a1, a2, a3, a4]);
 
@@ -1099,12 +1101,12 @@ QUnit.module('basic', function(hooks) {
         // - `group2` has the following children:
         //   - `c`
 
-        var mainGroup = new joint.shapes.basic.Rect;
-        var group1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
-        var group2 = new joint.shapes.basic.Rect({ position: { x: 1000, y: 1000 }, size: { width: 10, height: 10 }});
-        var a = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 20, height: 20 }});
-        var b = new joint.shapes.basic.Rect({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 }});
-        var c = new joint.shapes.basic.Rect({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 }});
+        var mainGroup = new joint.shapes.standard.Rectangle;
+        var group1 = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
+        var group2 = new joint.shapes.standard.Rectangle({ position: { x: 1000, y: 1000 }, size: { width: 10, height: 10 }});
+        var a = new joint.shapes.standard.Rectangle({ position: { x: 100, y: 100 }, size: { width: 20, height: 20 }});
+        var b = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 }});
+        var c = new joint.shapes.standard.Rectangle({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 }});
 
         // embed
         mainGroup.embed(group2.embed(c)).embed(group1.embed(a).embed(b));
@@ -1156,10 +1158,10 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('clone()', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({
+        var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(r1);
@@ -1223,10 +1225,10 @@ QUnit.module('basic', function(hooks) {
 
         QUnit.test('single cell', function(assert) {
 
-            var r1 = new joint.shapes.basic.Rect({
+            var r1 = new joint.shapes.standard.Rectangle({
                 position: { x: 20, y: 30 },
                 size: { width: 120, height: 80 },
-                attrs: { text: { text: 'my rectangle' }}
+                attrs: { label: { text: 'my rectangle' }}
             });
 
             this.graph.addCell(r1);
@@ -1321,7 +1323,7 @@ QUnit.module('basic', function(hooks) {
 
         QUnit.test('isEmbeddedIn()', function(assert) {
 
-            var r1 = new joint.shapes.basic.Rect;
+            var r1 = new joint.shapes.standard.Rectangle;
             var r2 = r1.clone();
             var r3 = r1.clone();
 
@@ -1341,8 +1343,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('findMagnet()', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({
-            attrs: { text: { text: 'my\nrectangle' }}
+        var r1 = new joint.shapes.standard.Rectangle({
+            attrs: { label: { text: 'my\nrectangle' }}
         });
 
         this.graph.addCell(r1);
@@ -1352,14 +1354,14 @@ QUnit.module('basic', function(hooks) {
         var magnet = r1View.findMagnet('tspan');
         assert.equal(magnet, r1View.el, 'should return the root element of the view if there is no subelement with magnet attribute set to true');
 
-        r1.attr({ text: { magnet: true }});
+        r1.attr({ label: { magnet: true }});
         magnet = r1View.findMagnet('tspan');
         assert.equal(magnet, r1View.$('text')[0], 'should return the text element that has the magnet attribute set to true even though we passed the child <tspan> in the selector');
 
 
         r1.attr({
-            text: { magnet: false },
-            '.': { magnet: false }
+            label: { magnet: false },
+            root: { magnet: false }
         });
 
         magnet = r1View.findMagnet('tspan');
@@ -1443,7 +1445,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('ref-x, ref-y, ref', function(assert) {
 
-        var el = new joint.shapes.basic.Generic({
+        var el = new joint.dia.Element({
+            type: 'test-element',
             markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
             size: { width: 100, height: 50 },
             attrs: {
@@ -1523,7 +1526,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('ref-dx, ref-dy, ref', function(assert) {
 
-        var el = new joint.shapes.basic.Generic({
+        var el = new joint.dia.Element({
+            type: 'test-element',
             markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
             size: { width: 100, height: 50 },
             attrs: {
@@ -1566,7 +1570,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('ref-width, ref-height', function(assert) {
 
-        var el = new joint.shapes.basic.Generic({
+        var el = new joint.dia.Element({
+            type: 'test-element',
             markup: '<rect class="big"/><rect class="small"/><rect class="smaller"/>',
             size: { width: 100, height: 50 },
             attrs: {
@@ -1634,7 +1639,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('x-alignment, y-alignment', function(assert) {
 
-        var el = new joint.shapes.basic.Generic({
+        var el = new joint.dia.Element({
+            type: 'test-element',
             markup: '<rect class="big"/><rect class="small"/>',
             size: { width: 100, height: 50 },
             attrs: {
@@ -1666,7 +1672,7 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('gradient', function(assert) {
 
-        var el = new joint.shapes.basic.Rect;
+        var el = new joint.shapes.standard.Rectangle;
         this.graph.addCell(el);
 
         var elView = this.paper.findViewByModel(el);
@@ -1675,7 +1681,7 @@ QUnit.module('basic', function(hooks) {
         var defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
 
-        el.attr('rect/fill', {
+        el.attr('body/fill', {
             type: 'linearGradient',
             stops: [
                 { offset: '0%', color: 'red' },
@@ -1693,7 +1699,7 @@ QUnit.module('basic', function(hooks) {
         assert.equal(linearGradient.tagName.toLowerCase(), 'lineargradient', 'one <linearGradient> element got created in <defs>.');
         assert.equal('url(#' + linearGradient.id + ')', elView.$('rect').attr('fill'), 'fill attribute pointing to the newly created gradient with url()');
 
-        el.attr('rect/stroke', {
+        el.attr('body/stroke', {
             type: 'linearGradient',
             stops: [
                 { offset: '0%', color: 'red' },
@@ -1713,8 +1719,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('filter', function(assert) {
 
-        var el = new joint.shapes.basic.Rect;
-        var el2 = new joint.shapes.basic.Rect;
+        var el = new joint.shapes.standard.Rectangle;
+        var el2 = new joint.shapes.standard.Rectangle;
 
         this.graph.addCells([el, el2]);
 
@@ -1770,7 +1776,7 @@ QUnit.module('basic', function(hooks) {
         var p1 = true;
         var p2 = true;
 
-        var el = new joint.shapes.basic.Rect({
+        var el = new joint.shapes.standard.Rectangle({
             property: 1
         });
 
@@ -1932,7 +1938,7 @@ QUnit.module('basic', function(hooks) {
 
         var done = assert.async();
 
-        var el = new joint.shapes.basic.Rect({
+        var el = new joint.shapes.standard.Rectangle({
             timer: -1
         });
 
@@ -1972,7 +1978,7 @@ QUnit.module('basic', function(hooks) {
     QUnit.test('transition: nested value', function(assert) {
 
         var done = assert.async();
-        var el = new joint.shapes.basic.Rect({
+        var el = new joint.shapes.standard.Rectangle({
             nested: {
                 timer: -1,
                 other: 'nochange'
@@ -2037,12 +2043,12 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('cell.getAncestors()', function(assert) {
 
-        var r0 = new joint.shapes.basic.Rect;
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = new joint.shapes.basic.Rect;
-        var r3 = new joint.shapes.basic.Rect;
-        var r4 = new joint.shapes.basic.Rect;
-        var r5 = new joint.shapes.basic.Rect;
+        var r0 = new joint.shapes.standard.Rectangle;
+        var r1 = new joint.shapes.standard.Rectangle;
+        var r2 = new joint.shapes.standard.Rectangle;
+        var r3 = new joint.shapes.standard.Rectangle;
+        var r4 = new joint.shapes.standard.Rectangle;
+        var r5 = new joint.shapes.standard.Rectangle;
 
         r1.embed(r2.embed(r4).embed(r5));
 
@@ -2056,7 +2062,7 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('cellView: element reference wrapped in Vectorizer', function(assert) {
 
-        var element = new joint.shapes.basic.Rect;
+        var element = new joint.shapes.standard.Rectangle;
         var view = element.addTo(this.graph).findView(this.paper);
 
         assert.ok(V.isVElement(view.vel), 'A cellView has attribute "vel" and its value is wrapped in Vectorizer.');
@@ -2066,9 +2072,9 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('cell.isEmbedded()', function(assert) {
 
-        var rect = new joint.shapes.basic.Rect;
+        var rect = new joint.shapes.standard.Rectangle;
         var link = new joint.dia.Link;
-        var embeddedRect = new joint.shapes.basic.Rect;
+        var embeddedRect = new joint.shapes.standard.Rectangle;
         var embeddedLink = new joint.dia.Link;
 
         rect.embed(embeddedRect);

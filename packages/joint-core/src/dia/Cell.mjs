@@ -811,7 +811,7 @@ export const Cell = Model.extend({
     },
 
     // A shorcut making it easy to create constructs like the following:
-    // `var el = (new joint.shapes.basic.Rect).addTo(graph)`.
+    // `var el = (new joint.shapes.standard.Rectangle()).addTo(graph)`.
     addTo: function(graph, opt) {
 
         graph.addCell(this, opt);
