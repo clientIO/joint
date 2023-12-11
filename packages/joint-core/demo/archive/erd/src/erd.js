@@ -135,17 +135,19 @@ const Line = joint.dia.Link.define('erd.Line', {}, {
 
 const shapes = {
     ...joint.shapes,
-    Entity,
-    WeakEntity,
-    Relationship,
-    IdentifyingRelationship,
-    Attribute,
-    Multivalued,
-    Derived,
-    Key,
-    Normal,
-    ISA,
-    Line
+    erd: {
+        Entity,
+        WeakEntity,
+        Relationship,
+        IdentifyingRelationship,
+        Attribute,
+        Multivalued,
+        Derived,
+        Key,
+        Normal,
+        ISA,
+        Line
+    }
 };
 
 var erd = joint.shapes.erd;

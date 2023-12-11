@@ -37,7 +37,7 @@ const Arrow = joint.dia.Link.define('org.Arrow', {
     z: -1
 });
 
-const shapes = { ...joint.shapes, Member, Arrow };
+const shapes = { ...joint.shapes, org: { Member, Arrow }};
 
 var graph = new joint.dia.Graph({}, { cellNamespace: shapes });
 
