@@ -8,6 +8,7 @@ export const stroke = HighlighterView.extend({
     className: 'highlight-stroke',
     attributes: {
         'pointer-events': 'none',
+        'vector-effect': 'non-scaling-stroke',
         'fill': 'none'
     },
 
