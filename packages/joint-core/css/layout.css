@@ -86,12 +86,6 @@ very thin.
 }
 /* Paper */
 
-/*  Highlighting  */
-.joint-highlight-opacity {
-    opacity: 0.3;
-}
-/*  Highlighting  */
-
 /*
 
 Vertex markers are `<circle>` elements that appear at connection vertex positions.

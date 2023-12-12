@@ -811,22 +811,23 @@ QUnit.module('HighlighterView', function(hooks) {
 
             var HighlighterView = joint.highlighters.opacity;
             var id = 'highlighter-id';
-            var el = elementView.vel.findOne('[joint-selector="body"]');
-            var className = 'joint-highlight-opacity';
+            var el = elementView.el.querySelector('[joint-selector="body"]');
+
+            assert.equal(getComputedStyle(el).opacity, 1);
 
             // Highlight
-            var highlighter = HighlighterView.add(elementView, 'body', id);
+            var highlighter = HighlighterView.add(elementView, 'body', id, { alphaValue: 0.67 });
             assert.ok(highlighter instanceof HighlighterView);
-            assert.ok(el.hasClass(className));
+            assert.equal(getComputedStyle(el).opacity, 0.67);
 
             // Render (Default will unhighlight and highlight)
             element.attr(['body', 'fill'], 'red', { dirty: true });
-            var el2 = elementView.vel.findOne('[joint-selector="body"]');
-            assert.ok(el2.hasClass(className));
+            var el2 = elementView.el.querySelector('[joint-selector="body"]');
+            assert.equal(getComputedStyle(el2).opacity, 0.67);
 
             // Unhighlight
             joint.dia.HighlighterView.remove(elementView, id);
-            assert.notOk(el.hasClass(className));
+            assert.equal(getComputedStyle(el2).opacity, 1);
         });
 
     });

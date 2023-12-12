@@ -1972,7 +1972,7 @@ export namespace highlighters {
     }
 
     interface OpacityHighlighterArguments extends HighlighterView.Options {
-
+        alphaValue?: number;
     }
 
     interface StrokeHighlighterArguments extends HighlighterView.Options {
