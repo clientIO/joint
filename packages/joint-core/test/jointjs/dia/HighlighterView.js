@@ -809,21 +809,22 @@ QUnit.module('HighlighterView', function(hooks) {
 
         QUnit.test('Highlight element by a selector', function(assert) {
 
-            var HighlighterView = joint.highlighters.opacity;
-            var id = 'highlighter-id';
-            var el = elementView.el.querySelector('[joint-selector="body"]');
+            const HighlighterView = joint.highlighters.opacity;
+            const id = 'highlighter-id';
+            const el = elementView.el.querySelector('[joint-selector="body"]');
+            const alphaValue = 0.67;
 
             assert.equal(getComputedStyle(el).opacity, 1);
 
             // Highlight
-            var highlighter = HighlighterView.add(elementView, 'body', id, { alphaValue: 0.67 });
+            const highlighter = HighlighterView.add(elementView, 'body', id, { alphaValue });
             assert.ok(highlighter instanceof HighlighterView);
-            assert.equal(getComputedStyle(el).opacity, 0.67);
+            assert.equal(getComputedStyle(el).opacity, alphaValue);
 
             // Render (Default will unhighlight and highlight)
             element.attr(['body', 'fill'], 'red', { dirty: true });
-            var el2 = elementView.el.querySelector('[joint-selector="body"]');
-            assert.equal(getComputedStyle(el2).opacity, 0.67);
+            const el2 = elementView.el.querySelector('[joint-selector="body"]');
+            assert.equal(getComputedStyle(el2).opacity, alphaValue);
 
             // Unhighlight
             joint.dia.HighlighterView.remove(elementView, id);
