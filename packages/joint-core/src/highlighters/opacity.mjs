@@ -1,5 +1,3 @@
-import * as util from '../util/index.mjs';
-import V from '../V/index.mjs';
 import { HighlighterView } from '../dia/HighlighterView.mjs';
 
 export const opacity = HighlighterView.extend({
@@ -7,14 +5,13 @@ export const opacity = HighlighterView.extend({
     UPDATABLE: false,
     MOUNTABLE: false,
 
-    opacityClassName: util.addClassNamePrefix('highlight-opacity'),
-
     highlight: function(_cellView, node) {
-        V(node).addClass(this.opacityClassName);
+        const { alphaValue = 0.3 } = this.options;
+        node.style.opacity = alphaValue;
     },
 
     unhighlight: function(_cellView, node) {
-        V(node).removeClass(this.opacityClassName);
+        node.style.opacity = '';
     }
 
 });

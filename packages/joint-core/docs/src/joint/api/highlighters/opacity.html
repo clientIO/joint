@@ -1,8 +1,11 @@
 <p>Changes the opacity of an arbitrary cell view's SVG node.</p>
 
-<p>When a cell is highlighted with the opacity highlighter, the node determined by the selector is given the <code data-lang="css">.joint-highlight-opacity</code> class. To customize the look of this highlighted state, you can add custom CSS rules that affect this class name.</p>
-
-<p>This highlighter does not currently have any options.</p>
+<p>Available options:</p>
+<ul>
+    <li><b>alphaValue</b> - a value that represents the degree to which content behind an element is hidden. It's a number in the range 0.0 to 1.0, inclusive. The default is <code>0.3</code>.</li>
+</ul>
 
 <p>Example usage:</p>
-<pre><code>joint.highlighters.opacity.add(cellView, 'body', 'my-highlighter-id');</code></pre>
+<pre><code>joint.highlighters.opacity.add(cellView, 'body', 'my-highlighter-id', {
+  alphaValue: 0.4
+});</code></pre>
