@@ -351,7 +351,6 @@ const paper = new dia.Paper({
     frozen: true,
     async: true,
     overflow: true,
-    sorting: dia.Paper.sorting.APPROX,
     cellViewNamespace: shapeNamespace,
     clickThreshold: 5,
     interactive: {

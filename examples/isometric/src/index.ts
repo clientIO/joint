@@ -41,7 +41,6 @@ const paper = new dia.Paper({
     gridSize: GRID_SIZE,
     async: true,
     autoFreeze: true,
-    sorting: dia.Paper.sorting.APPROX,
     defaultConnectionPoint: {
         name: 'boundary',
         args: {
