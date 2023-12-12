@@ -152,19 +152,3 @@ Example of custom changes (in pure CSS only!):
 Do not show marker vertices at all:  .marker-vertices { display: none; }
 Do not allow adding new vertices: .connection-wrap { pointer-events: none; }
 */
-
-/* foreignObject inside the elements (i.e joint.shapes.basic.TextBlock) */
-.joint-element .fobj {
-    overflow: hidden;
-}
-.joint-element .fobj body {
-    background-color: transparent;
-    margin: 0px;
-    position: static;
-}
-.joint-element .fobj div {
-    text-align: center;
-    vertical-align: middle;
-    display: table-cell;
-    padding: 0px 5px 0px 5px;
-}
