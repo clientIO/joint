@@ -254,7 +254,7 @@ export const Paper = View.extend({
 
         // Rendering Options
 
-        sorting: sortingTypes.EXACT,
+        sorting: sortingTypes.APPROX,
 
         frozen: false,
 
