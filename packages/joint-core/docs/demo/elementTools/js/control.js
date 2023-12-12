@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
         width: 400,
         height: 300,
         model: graph,
-        sorting: joint.dia.Paper.sorting.APPROX,
         interactive: false,
         background: {
             color: '#F3F7F6'

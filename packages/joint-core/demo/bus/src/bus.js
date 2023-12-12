@@ -9,7 +9,6 @@ var paper = new joint.dia.Paper({
     model: graph,
     async: true,
     frozen: true,
-    sorting: joint.dia.Paper.sorting.APPROX,
     restrictTranslate: true,
     defaultConnectionPoint: {
         name: 'boundary',

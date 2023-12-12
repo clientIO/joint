@@ -92,7 +92,6 @@ var Jigsaw = {
             model: graph,
             clickThreshold: 5,
             async: true,
-            sorting: joint.dia.Paper.sorting.APPROX
         }).on({
             'cell:pointerdown': function(pieceView) {
                 pieceView.model.toFront();

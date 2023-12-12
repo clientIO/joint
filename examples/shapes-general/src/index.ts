@@ -117,7 +117,6 @@ const paper = new dia.Paper({
     model: graph,
     frozen: true,
     async: true,
-    sorting: dia.Paper.sorting.APPROX,
     interactive: false,
     guard: (evt) =>
         paper.getLayerNode(dia.Paper.Layers.TOOLS).contains(evt.target)

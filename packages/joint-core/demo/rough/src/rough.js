@@ -13,8 +13,7 @@
         model: graph,
         clickThreshold: 5,
         async: true,
-        sorting: joint.dia.Paper.sorting.APPROX,
-        connectionStrategy: joint.connectionStrategies.pinAbsolute,
+w        connectionStrategy: joint.connectionStrategies.pinAbsolute,
         defaultConnectionPoint: { name: 'boundary', args: { selector: 'border' }},
         defaultLink: function() {
             return new RoughLink();

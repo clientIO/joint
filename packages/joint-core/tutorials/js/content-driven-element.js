@@ -11,12 +11,11 @@
         gridSize: 20,
         model: graph,
         async: true,
-        sorting: joint.dia.Paper.sorting.APPROX,
         cellViewNamespace: joint.shapes
     });
-      
+
     const svg = paper.svg;
-      
+
     function measureText(svgDocument, text, attrs) {
         const vText = V('text').attr(attrs).text(text);
         vText.appendTo(svgDocument);
@@ -24,9 +23,9 @@
         vText.remove();
         return bbox;
     }
-      
+
     class Shape extends joint.dia.Element {
-    
+
         defaults() {
             return {
                 ...super.defaults,
@@ -37,7 +36,7 @@
                 image: ''
             };
         }
-        
+
         preinitialize() {
             this.spacing = 10;
             this.labelAttributes = {
@@ -51,13 +50,13 @@
             };
             this.cache = {};
         }
-        
+
         initialize() {
             super.initialize();
             this.on('change', this.onAttributeChange);
             this.setSizeFromContent();
         }
-        
+
         /* Attributes that affects the size of the model. */
         onAttributeChange() {
             const {
@@ -72,7 +71,7 @@
                 this.setSizeFromContent();
             }
         }
-        
+
         setSizeFromContent() {
             delete this.cache.layout;
             const {
@@ -81,7 +80,7 @@
             } = this.layout();
             this.resize(width, height);
         }
-        
+
         layout() {
             const {
                 cache
@@ -97,7 +96,7 @@
                 return layout;
             }
         }
-        
+
         calcLayout() {
             const {
                 attributes,
@@ -171,11 +170,11 @@
             };
         }
     }
-      
+
     const ElementView = joint.dia.ElementView;
-    
+
     const ShapeView = ElementView.extend({
-    
+
         presentationAttributes: ElementView.addPresentationAttributes({
             // attributes that changes the position and size of the DOM elements
             label: [ElementView.Flags.UPDATE],
@@ -184,7 +183,7 @@
             outlineColor: ['@color'],
             fillColor: ['@color'],
         }),
-        
+
         confirmUpdate: function(...args) {
             let flags = ElementView.prototype.confirmUpdate.call(this, ...args);
             if (this.hasFlag(flags, '@color')) {
@@ -195,7 +194,7 @@
             // must return 0
             return flags;
         },
-        
+
         /* Runs only once while initializing */
         render: function() {
             const {
@@ -213,14 +212,14 @@
             this.updateColors();
             this.translate(); // default element translate method
         },
-        
+
         update: function() {
             const layout = this.model.layout();
             this.updateBody();
             this.updateImage(layout.$image);
             this.updateLabel(layout.$label);
         },
-        
+
         updateColors: function() {
             const {
                 model,
@@ -231,7 +230,7 @@
                 stroke: model.get('outlineColor')
             });
         },
-        
+
         updateBody: function() {
             const {
                 model,
@@ -247,9 +246,9 @@
             };
             vBody.attr(bodyAttributes);
         },
-        
+
         updateImage: function($image) {
-        
+
             const {
                 model,
                 vImage,
@@ -265,14 +264,14 @@
                     x: $image.x,
                     y: $image.y
                 });
-        
+
             } else {
                 vImage.remove();
             }
         },
-        
+
         updateLabel: function($label) {
-        
+
             const {
                 model,
                 vLabel
@@ -287,14 +286,14 @@
             });
         }
     });
-    
+
     joint.shapes.custom = {
         Shape,
         ShapeView
     };
-    
+
     // Example
-    
+
     const customShape1 = new Shape({
         label: 'A Shape'
     });
@@ -309,15 +308,15 @@
         .position(200, 200)
         .prop('fillColor', 'lightgreen')
         .addTo(graph);
-    
-    
+
+
     const customShape3 = new Shape();
     customShape3
         .set('image', 'https://via.placeholder.com/50/0000FF/FFFFFF')
         .position(50, 50)
         .prop('fillColor', 'lightblue')
         .addTo(graph);
-    
+
     const customShape4 = new Shape();
     customShape4
         .set('image', 'https://via.placeholder.com/150/FF0000/FFFFFF')

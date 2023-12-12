@@ -374,7 +374,6 @@ const paper = new dia.Paper({
     async: true,
     width: 'calc(100% - 20px)',
     height: 'calc(100% - 70px)',
-    sorting: dia.Paper.sorting.APPROX,
     interactive: { linkMove: false, vertexMove: true },
     background: {
         color: BG_COLOR

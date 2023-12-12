@@ -107,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function() {
         clickThreshold: 5,
         highlighting: false,
         async: true,
-        sorting: joint.dia.Paper.sorting.APPROX,
         background: {
             color: '#F3F7F6'
         }

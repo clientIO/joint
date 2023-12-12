@@ -11,7 +11,6 @@ const paper = new joint.dia.Paper({
     gridSize: 20,
     drawGrid: { name: 'mesh' },
     async: true,
-    sorting: joint.dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' }
 });
 

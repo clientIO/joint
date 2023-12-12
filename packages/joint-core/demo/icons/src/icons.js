@@ -52,7 +52,6 @@ const paper = new dia.Paper({
     height: '100%',
     gridSize: 20,
     async: true,
-    sorting: dia.Paper.sorting.APPROX,
     background: { color: '#F3F7F6' },
 });
 

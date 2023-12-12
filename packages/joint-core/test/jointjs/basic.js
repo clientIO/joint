@@ -732,6 +732,8 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('toBack(), toFront()', function(assert) {
 
+        this.paper.options.sorting = joint.dia.Paper.sorting.EXACT;
+
         var r1 = new joint.shapes.standard.Rectangle;
         var r2 = new joint.shapes.standard.Rectangle;
 
@@ -795,6 +797,8 @@ QUnit.module('basic', function(hooks) {
     });
 
     QUnit.test('toBack(), toFront() with active batch', function(assert) {
+
+        this.paper.options.sorting = joint.dia.Paper.sorting.EXACT;
 
         var r1 = new joint.shapes.standard.Rectangle;
         var r2 = new joint.shapes.standard.Rectangle;

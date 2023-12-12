@@ -12,7 +12,6 @@ const paper = new dia.Paper({
     height: 300,
     model: graph,
     async: true,
-    sorting: dia.Paper.sorting.APPROX,
     background: { color:  '#F3F7F6' },
     defaultConnectionPoint: {
         name: 'boundary',

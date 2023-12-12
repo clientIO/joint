@@ -75,7 +75,6 @@ const paper = new dia.Paper({
     model: graph,
     async: true,
     cellViewNamespace: shapes,
-    sorting: dia.Paper.sorting.APPROX,
     defaultConnector: {
         name: 'curve'
     },

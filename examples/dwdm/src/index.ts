@@ -18,7 +18,6 @@ const paper = new dia.Paper({
     el: document.getElementById('paper'),
     model: graph,
     async: true,
-    sorting: dia.Paper.sorting.APPROX,
     interactive: false,
     cellViewNamespace: cellNamespace,
     background: { color: 'transparent' },

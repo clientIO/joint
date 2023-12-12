@@ -310,7 +310,6 @@ const paper = new dia.Paper({
     frozen: true,
     async: true,
     defaultLink: () => new ListLink(),
-    sorting: dia.Paper.sorting.APPROX,
     magnetThreshold: 'onleave',
     linkPinning: false,
     snapLinks: true,
