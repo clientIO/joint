@@ -428,7 +428,6 @@ const paper = new dia.Paper({
     async: true,
     interactive: false,
     frozen: true,
-    sorting: dia.Paper.sorting.APPROX,
     cellViewNamespace: shapes,
     background: { color: '#131e29' },
     viewport: function(view) {

@@ -53,7 +53,6 @@ var paper = new Paper({
     model: graph,
     async: true,
     frozen: true,
-    sorting: Paper.sorting.APPROX,
     defaultAnchor: { name: 'modelCenter' },
     defaultConnectionPoint: { name: 'boundary' },
     viewport: function(view, isInViewport) {

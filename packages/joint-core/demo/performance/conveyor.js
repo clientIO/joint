@@ -161,7 +161,6 @@ var paper = new joint.dia.Paper({
     height: canvasHeight,
     model: graph,
     async: true,
-    sorting: joint.dia.Paper.sorting.APPROX,
     background: {
         color: '#000000'
     }

@@ -12,7 +12,6 @@
         model: graph,
         frozen: true,
         async: true,
-        sorting: dia.Paper.sorting.APPROX,
         defaultConnectionPoint: { name: 'rectangle' },
         background: { color:  '#F3F7F6' },
         moveThreshold: 5,

@@ -14,7 +14,6 @@
         defaultConnectionPoint: {
             name: 'boundary'
         },
-        sorting: joint.dia.Paper.sorting.APPROX,
         viewport: function(view) {
             var element = view.model;
             // Hide any element or link which is embedded inside a collapsed parent (or parent of the parent).

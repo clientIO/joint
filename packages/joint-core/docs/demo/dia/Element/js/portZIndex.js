@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
         height: 250,
         gridSize: 1,
         model: graph,
-        sorting: joint.dia.Paper.sorting.APPROX,
         interactive: false,
         cellViewNamespace: joint.shapes
     });
@@ -18,19 +17,19 @@ document.addEventListener('DOMContentLoaded', function() {
         size: { width: 80, height: 150 },
         attrs: {
             bodyMain: {
-                width: 80, 
+                width: 80,
                 height: 150,
-                stroke: '#000000', 
-                strokeWidth: 2, 
+                stroke: '#000000',
+                strokeWidth: 2,
                 fill: '#FFFFFF'
             },
             bodyInner: {
-                width: 60, 
-                height: 130, 
-                x: 10, 
+                width: 60,
+                height: 130,
+                x: 10,
                 y: 10,
-                stroke: '#000000', 
-                strokeWidth: 2, 
+                stroke: '#000000',
+                strokeWidth: 2,
                 fill: '#8ECAE6'
             },
             label: {
@@ -43,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tagName: 'rect',
             selector: 'bodyMain',
             className: 'bodyMain'
-                
+
         }, {
             tagName: 'rect',
             selector: 'bodyInner',
@@ -60,16 +59,16 @@ document.addEventListener('DOMContentLoaded', function() {
         size: { width: 80, height: 150 },
         attrs: {
             bodyMain: {
-                width: 80, 
+                width: 80,
                 height: 150,
-                stroke: '#000000', 
-                strokeWidth: 2, 
+                stroke: '#000000',
+                strokeWidth: 2,
                 fill: '#FFFFFF'
             },
             bodyInner: {
-                width: 60, 
-                height: 130, 
-                x: 10, 
+                width: 60,
+                height: 130,
+                x: 10,
                 y: 10,
                 stroke: '#000000',
                 strokeWidth: 2,

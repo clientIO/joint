@@ -325,7 +325,6 @@ var controls = new LayoutControls({
     el: document.getElementById('layout-controls'),
     paper: new joint.dia.Paper({
         el: document.getElementById('paper'),
-        sorting: joint.dia.Paper.sorting.APPROX,
         interactive: function(cellView) {
             return cellView.model.isElement();
         }

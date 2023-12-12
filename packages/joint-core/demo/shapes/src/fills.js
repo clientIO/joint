@@ -11,7 +11,6 @@ const paper = new dia.Paper({
     },
     gridSize: 1,
     async: true,
-    sorting: dia.Paper.sorting.APPROX,
     frozen: true,
     model: graph,
     defaultConnector: (sourcePoint, targetPoint, vertices) => {

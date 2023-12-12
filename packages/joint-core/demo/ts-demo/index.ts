@@ -31,7 +31,6 @@ const paper = new joint.dia.Paper({
     async: true,
     defaultLink: new joint.shapes.app.Link(),
     connectionStrategy: joint.connectionStrategies.pinAbsolute,
-    sorting: joint.dia.Paper.sorting.APPROX,
     cellViewNamespace: joint.shapes
 });
 

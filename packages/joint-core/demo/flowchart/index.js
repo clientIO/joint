@@ -27,7 +27,6 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     async: true,
-    sorting: dia.Paper.sorting.APPROX,
     background: { color: 'transparent' },
     snapLabels: true,
     clickThreshold: 10,
