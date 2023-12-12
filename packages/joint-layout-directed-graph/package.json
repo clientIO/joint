@@ -1,0 +1,65 @@
+{
+  "name": "@joint/layout-directed-graph",
+  "title": "JointJS LayoutDirectedGraph",
+  "version": "3.7.3",
+  "description": "LayoutDirectedGraph module for JointJS",
+  "module": "./DirectedGraph.mjs",
+  "types": "./DirectedGraph.d.ts",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "contributors": [
+    "David Durman <david@client.io> (https://github.com/DavidDurman)",
+    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
+    "Vladimir Talas <lades@client.io> (https://github.com/vtalas)",
+    "James Williams <james@jointjs.com> (https://github.com/jamesgeorgewilliams)",
+    "Zbynek Stara <zbynek@jointjs.com> (https://github.com/zbynekstara)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-layout-directed"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MPL-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "yarn run dist",
+    "build": "tsc",
+    "dist": "tsc"
+  },
+  "files": [
+    "./DirectedGraph.d.ts",
+    "./DirectedGraph.mjs",
+    "./LICENSE",
+    "./README.md",
+    "./SECURITY.md"
+  ],
+  "dependencies": {
+    "dagre": "~0.8.5",
+    "graphlib": "~2.1.8",
+    "jointjs": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/dagre": "~0.7.50",
+    "@types/graphlib": "~2.1.9",
+    "typescript": "4.8.3"
+  },
+  "volta": {
+    "node": "16.18.1",
+    "npm": "8.19.2",
+    "yarn": "3.4.1"
+  },
+  "keywords": [
+    "jointjs",
+    "general",
+    "shapes",
+    "decorators"
+  ]
+}

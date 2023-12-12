@@ -65,10 +65,6 @@
     "./LICENSE",
     "./README.md"
   ],
-  "dependencies": {
-    "dagre": "~0.8.5",
-    "graphlib": "~2.1.8"
-  },
   "devDependencies": {
     "@types/dagre": "~0.7.50",
     "@types/graphlib": "~2.1.9",

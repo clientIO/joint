@@ -1,6 +1,5 @@
-import * as util from '../../util/index.mjs';
-import { Graph } from '../../dia/index.mjs';
-import * as g from '../../g/index.mjs';
+import { util, g, dia } from 'jointjs';
+const { Graph } = dia;
 
 export const DirectedGraph = {
 
