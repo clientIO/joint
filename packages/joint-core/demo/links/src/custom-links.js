@@ -58,11 +58,11 @@ var link1 = new joint.dia.Link({
             pointerEvents: 'none',
             strokeLinejoin: 'round',
             targetMarker: {
-                'type': 'path',
-                'fill': '#fe854f',
-                'stroke': 'black',
-                'stroke-width': 1,
-                'd': 'M 10 -3 10 -10 -2 0 10 10 10 3'
+                type: 'path',
+                fill: '#fe854f',
+                stroke: 'black',
+                strokeWidth: 1,
+                d: 'M 10 -3 10 -10 -2 0 10 10 10 3'
             }
         },
         p3: {
@@ -71,10 +71,10 @@ var link1 = new joint.dia.Link({
             fill: 'none',
             stroke: 'black',
             targetMarker: {
-                'type': 'path',
-                'fill': 'black',
-                'stroke': 'black',
-                'd': 'M 10 10 -2 0 10 -10'
+                type: 'path',
+                fill: 'black',
+                stroke: 'black',
+                d: 'M 10 10 -2 0 10 -10'
             }
         },
         sign: {

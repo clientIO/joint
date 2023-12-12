@@ -1,0 +1,19 @@
+
+<pre class="docs-method-signature"><code>V.attributeNames</code></pre>
+<p>A map of attribute names. It maps JavaScript attribute names to the SVG attributes names.</p>
+
+<pre><code>// SVG dash-case attributes
+V.attributeNames['stroke-width'] // `stroke-width'
+V.attributeNames['strokeWidth'] // `stroke-width'
+
+// SVG came-case attributes
+V.attributeNames['pathLength'] // `pathLength` as defined in SVG
+
+// Custom attributes are always dash-case
+V.attributeNames['myAttribute'] // `my-attribute`
+V('g').attr('myAttribute', 'myValue') // &lt;g my-attribute="myValue"&gt;&lt;/g&gt;</code></pre>
+
+<p>It is possible to add custom attribute names to the map. For example:</p>
+
+<pre><code>V.attributeNames['myAttribute'] = 'myAttribute';
+V('g').attr('myAttribute', 'myValue') // &lt;g myAttribute="myValue"&gt;&lt;/g&gt;</code></pre>

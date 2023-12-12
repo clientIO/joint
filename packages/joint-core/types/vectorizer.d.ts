@@ -318,4 +318,8 @@ interface VStatic {
     toNode(el: SVGElement | VElement | SVGElement[]): SVGElement;
 
     prototype: VElement;
+
+    attributeNames: { [key: string]: string };
+
+    supportCamelCaseAttributes: boolean;
 }

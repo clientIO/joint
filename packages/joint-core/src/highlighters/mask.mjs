@@ -147,8 +147,8 @@ export const mask = HighlighterView.extend({
 
         const { VISIBLE, INVISIBLE, options } = this;
         const { padding, attrs } = options;
-
-        const strokeWidth = ('stroke-width' in attrs) ? attrs['stroke-width'] : 1;
+        // support both `strokeWidth` and `stroke-width` attribute names
+        const strokeWidth = parseFloat(V('g').attr(attrs).attr('stroke-width'));
         const hasNodeFill = vNode.attr('fill') !== 'none';
         let magnetStrokeWidth = parseFloat(vNode.attr('stroke-width'));
         if (isNaN(magnetStrokeWidth)) magnetStrokeWidth = 1;
