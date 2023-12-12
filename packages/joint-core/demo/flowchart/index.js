@@ -277,8 +277,8 @@ paper.on('cell:mouseenter', (cellView, evt) => {
         padding,
         layer: dia.Paper.Layers.FRONT,
         attrs: {
-            'stroke-width': 1.5,
-            'stroke-linejoin': 'round',
+            strokeWidth: 1.5,
+            strokeLinejoin: 'round',
         }
     });
     frame.el.classList.add('jj-frame');

@@ -143,6 +143,30 @@ QUnit.module('vectorizer', function(hooks) {
         assert.notOk(V.isSVGGraphicsElement(svgLinearGradient));
     });
 
+    QUnit.test('V.attributeNames', function(assert) {
+        // kebab-case
+        assert.equal(V.attributeNames['stroke-width'], 'stroke-width');
+        assert.equal(V.attributeNames['strokeWidth'], 'stroke-width');
+        assert.equal(V.attributeNames['stroke'], 'stroke');
+        // camel-case
+        assert.equal(V.attributeNames['pathLength'], 'pathLength');
+        // custom
+        assert.equal(V.attributeNames['custom-attribute'], 'custom-attribute');
+        assert.equal(V.attributeNames['customAttribute'], 'custom-attribute');
+        const g1 = V('g').attr('customAttribute', 'value');
+        assert.equal(g1.attr('customAttribute'), 'value');
+        assert.equal(g1.node.getAttribute('custom-attribute'), 'value');
+        assert.equal(g1.node.getAttribute('customAttribute'), null);
+        // custom override
+        V.attributeNames['customAttribute'] = 'customAttribute';
+        assert.equal(V.attributeNames['custom-attribute'], 'custom-attribute');
+        assert.equal(V.attributeNames['customAttribute'], 'customAttribute');
+        const g2 = V('g').attr('customAttribute', 'value');
+        assert.equal(g2.attr('customAttribute'), 'value');
+        assert.equal(g2.node.getAttribute('customAttribute'), 'value');
+        assert.equal(g2.node.getAttribute('custom-attribute'), null);
+    });
+
     QUnit.test('index()', function(assert) {
 
         // svg container

@@ -1460,18 +1460,17 @@ const V = (function() {
         }
     });
 
-    // Note: The `attributeNames` and `supportCamelCaseAttributes` properties are not enumerable
-    // in this version to avoid breaking changes. They will be made enumerable in the next major version.
-
     // Dictionary of attribute names
     Object.defineProperty(V, 'attributeNames', {
+        enumerable: true,
         value: attributeNames,
         writable: false,
     });
 
     // Should camel case attributes be supported?
     Object.defineProperty(V, 'supportCamelCaseAttributes', {
-        value: false,
+        enumerable: true,
+        value: true,
         writable: true,
     });
 
