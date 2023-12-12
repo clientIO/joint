@@ -19,7 +19,6 @@ module.exports = {
     },
     plugins: {
         'joint.shapes.standard': { src: 'src/shapes/standard.mjs' }, // don't export this namespace to a separate file
-        'joint.shapes.devs': { src: 'src/shapes/devs.mjs', export: true },
         'joint.layout.DirectedGraph': { src: 'src/layout/DirectedGraph/DirectedGraph.mjs', export: true }
     }
 };

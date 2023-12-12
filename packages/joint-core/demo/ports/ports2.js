@@ -62,7 +62,7 @@ var l1 = new joint.dia.Link({
 
 graph.addCell(l1);
 
-joint.shapes.devs.MyImageModel = joint.dia.Element.extend({
+joint.shapes.MyImageModel = joint.dia.Element.extend({
 
     markup: [{
         tagName: 'rect',
@@ -77,7 +77,7 @@ joint.shapes.devs.MyImageModel = joint.dia.Element.extend({
 
     defaults: joint.util.defaultsDeep({
 
-        type: 'devs.MyImageModel',
+        type: 'MyImageModel',
         size: { width: 80, height: 80 },
         attrs: {
             body: {
@@ -110,7 +110,7 @@ joint.shapes.devs.MyImageModel = joint.dia.Element.extend({
 
 // Usage:
 
-var imageModel = new joint.shapes.devs.MyImageModel({
+var imageModel = new joint.shapes.MyImageModel({
     position: { x: 450, y: 250 },
     size: { width: 90, height: 81 },
     ports: {

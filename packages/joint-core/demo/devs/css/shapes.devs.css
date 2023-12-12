@@ -52,27 +52,6 @@ body {
     fill: #feb663;
 }
 
-/* links */
-
-.joint-link .connection {
-    stroke: #4B4F6A;
-    stroke-width: 4px;
-}
-
-.joint-link .marker-arrowheads .marker-arrowhead,
-.joint-link .marker-vertex-group .marker-vertex,
-.joint-link .marker-vertex-group .marker-vertex:hover {
-    fill: #31D0C6;
-}
-
-.joint-link .marker-arrowheads .marker-arrowhead:hover {
-    fill: #F39C12;
-}
-
-.joint-link .link-tools .link-tool .tool-remove circle {
-    fill: #fe854f;
-}
-
 /* highlighting */
 
 .highlighted-parent .body {

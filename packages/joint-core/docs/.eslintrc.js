@@ -17,7 +17,6 @@ module.exports = {
             'demo/layout/Port/js/port.js',
             'demo/layout/Port/js/portRotationComp.js',
             'demo/layout/PortLabel/js/portLabel.js',
-            'demo/shapes/shapes.devs.js'
         ],
         // Globals contained in HTML script, etc
         'globals': {

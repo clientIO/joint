@@ -50,16 +50,3 @@ describe('Graph', function() {
         });
     });
 });
-
-describe('shapes', function() {
-
-    describe('devs', function() {
-        it('should contain all the shapes', function() {
-
-            ['Model', 'Atomic', 'Coupled', 'Link'].forEach(function(type) {
-                (new joint.shapes.devs[type]()).should.not.be.empty;
-            });
-        });
-    });
-
-});

@@ -647,10 +647,25 @@ QUnit.module('paper', function(hooks) {
 
         hooks.beforeEach(function() {
             link = new joint.dia.Link();
-            element = new joint.shapes.devs.Model({
+            element = new joint.shapes.standard.Rectangle({
                 position: { x: 500, y: 250 },
                 size: { width: 100, height: 100 },
-                inPorts: ['in1', 'in2']
+                ports: {
+                    groups: {
+                        'in': {
+                            position: 'left',
+                            attrs: {
+                                circle: {
+                                    magnet: true
+                                }
+                            }
+                        }
+                    },
+                    items: [
+                        { id: 'in1', group: 'in' },
+                        { id: 'in2', group: 'in' },
+                    ]
+                }
             });
             this.graph.addCells([element, link]);
             disconnectSpy = sinon.spy();
@@ -670,8 +685,8 @@ QUnit.module('paper', function(hooks) {
                 var arrowhead = linkView.el.querySelector('.marker-arrowhead[end=' + end + ']');
                 var ports = element.getPortsPositions('in');
                 var position = element.position();
-                var in1PortEl = elementView.el.querySelector('.port-body[port="in1"]');
-                var in2PortEl = elementView.el.querySelector('.port-body[port="in2"]');
+                var in1PortEl = elementView.el.querySelector('[port="in1"]');
+                var in2PortEl = elementView.el.querySelector('[port="in2"]');
 
                 var x, y, evt;
                 var data = {};
@@ -715,11 +730,34 @@ QUnit.module('paper', function(hooks) {
         var connectSpy;
 
         hooks.beforeEach(function() {
-            this.modelWithPorts = new joint.shapes.devs.Model({
+            this.modelWithPorts = new joint.shapes.standard.Rectangle({
                 position: { x: 500, y: 250 },
                 size: { width: 100, height: 100 },
-                inPorts: ['in1', 'in2'],
-                outPorts: ['out']
+                ports: {
+                    groups: {
+                        'in': {
+                            position: 'top',
+                            attrs: {
+                                circle: {
+                                    magnet: true
+                                }
+                            }
+                        },
+                        'out': {
+                            position: 'bottom',
+                            attrs: {
+                                circle: {
+                                    magnet: true
+                                }
+                            }
+                        }
+                    },
+                    items: [
+                        { id: 'in1', group: 'in' },
+                        { id: 'in2', group: 'in' },
+                        { id: 'out', group: 'out' },
+                    ]
+                }
             });
 
             disconnectSpy = sinon.spy();
@@ -735,7 +773,7 @@ QUnit.module('paper', function(hooks) {
             this.graph.addCells([this.modelWithPorts, link]);
             var linkView = link.findView(this.paper);
             var arrowhead = linkView.el.querySelector('.marker-arrowhead[end=source]');
-            var port = this.paper.findViewByModel(this.modelWithPorts).el.querySelector('.port-body[port="in1"]');
+            var port = this.paper.findViewByModel(this.modelWithPorts).el.querySelector('[port="in1"]');
 
             var data = {};
             linkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
@@ -753,7 +791,7 @@ QUnit.module('paper', function(hooks) {
             this.graph.addCells([this.modelWithPorts, link]);
             var linkView = link.findView(this.paper);
             var arrowhead = linkView.el.querySelector('.marker-arrowhead[end=source]');
-            var portElement = this.paper.findViewByModel(this.modelWithPorts).el.querySelector('.port-body[port="in2"]');
+            var portElement = this.paper.findViewByModel(this.modelWithPorts).el.querySelector('[port="in2"]');
 
             var data = {};
             linkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
