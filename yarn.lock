@@ -134,6 +134,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-fta-js@workspace:examples/fta-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-fta-js@workspace:examples/fta-js"
+  dependencies:
+    css-loader: 3.5.3
+    jointjs: "workspace:^"
+    style-loader: 1.2.1
+    webpack: ^5.61.0
+    webpack-cli: ^4.8.0
+    webpack-dev-server: ^4.2.1
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-isometric@workspace:examples/isometric":
   version: 0.0.0-use.local
   resolution: "@joint/demo-isometric@workspace:examples/isometric"
