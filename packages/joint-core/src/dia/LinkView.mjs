@@ -80,8 +80,6 @@ export const LinkView = CellView.extend({
         attrs: [Flags.UPDATE],
         router: [Flags.UPDATE],
         connector: [Flags.CONNECTOR],
-        smooth: [Flags.UPDATE],
-        manhattan: [Flags.UPDATE],
         toolMarkup: [Flags.LEGACY_TOOLS],
         labels: [Flags.LABELS],
         labelMarkup: [Flags.LABELS],

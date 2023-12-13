@@ -582,9 +582,7 @@ export namespace dia {
             target?: EndJSON;
             labels?: Label[];
             vertices?: Point[];
-            manhattan?: boolean;
             router?: routers.Router | routers.RouterJSON;
-            smooth?: boolean;
             connector?: connectors.Connector | connectors.ConnectorJSON;
         }
 
