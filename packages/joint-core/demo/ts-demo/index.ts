@@ -2,8 +2,6 @@ import * as joint from './vendor/joint';
 import './custom';
 import { V, g } from './vendor/joint';
 import { MyShape } from './shape';
-import * as dagre from 'dagre';
-import * as graphlib from 'graphlib';
 
 const { body } = document;
 
@@ -248,14 +246,3 @@ console.log(m1 === m2);
 
 mask.add(circle.findView(paper), 'root', 'my-id3');
 joint.highlighters.mask.remove(circle.findView(paper), 'my-id3');
-
-const gl: graphlib.Graph = graph.toGraphLib({ graphlib });
-console.log('Is graph acyclic?', graphlib.alg.isAcyclic(gl));
-
-joint.layout.DirectedGraph.layout(graph.getSubgraph([rect, customRect]), {
-    dagre,
-    graphlib,
-    marginX: 20,
-    marginY: 20,
-    rankSep: 5
-});

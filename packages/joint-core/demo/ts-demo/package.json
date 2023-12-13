@@ -15,13 +15,7 @@
     "live-server": "http-server ./ --cors",
     "start": "npm run build && npm run live-server"
   },
-  "dependencies": {
-    "dagre": "~0.8.5",
-    "graphlib": "~2.1.8"
-  },
   "devDependencies": {
-    "@types/dagre": "~0.7.47",
-    "@types/graphlib": "~2.1.8",
     "http-server": "0.12.3",
     "ts-loader": "9.4.2",
     "typescript": "4.9.5",
