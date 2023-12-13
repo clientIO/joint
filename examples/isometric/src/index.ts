@@ -174,4 +174,3 @@ paper.on('blank:pointermove', (evt) => {
 paper.on('blank:pointerup', () => {
     paper.el.style.cursor = 'grab';
 });
-
