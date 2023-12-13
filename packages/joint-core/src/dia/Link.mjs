@@ -95,8 +95,8 @@ export const Link = Cell.extend({
                     ry: 3,
                     x: 'calc(x)',
                     y: 'calc(y)',
-                    width: 'calc(width)',
-                    height: 'calc(height)'
+                    width: 'calc(w)',
+                    height: 'calc(h)'
                 }
             },
             // builtin default position:
