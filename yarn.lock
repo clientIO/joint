@@ -200,6 +200,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph":
+  version: 0.0.0-use.local
+  resolution: "@joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph"
+  dependencies:
+    "@types/dagre": ~0.7.50
+    "@types/graphlib": ~2.1.9
+    dagre: ~0.8.5
+    graphlib: ~2.1.8
+    jointjs: "workspace:^"
+    typescript: 4.8.3
+  languageName: unknown
+  linkType: soft
+
 "@joint/shapes-general-tools@workspace:^, @joint/shapes-general-tools@workspace:packages/joint-shapes-general-tools":
   version: 0.0.0-use.local
   resolution: "@joint/shapes-general-tools@workspace:packages/joint-shapes-general-tools"
@@ -4333,7 +4346,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"estree-walker@npm:^0.6.0, estree-walker@npm:^0.6.1":
+"estree-walker@npm:^0.6.1":
   version: 0.6.1
   resolution: "estree-walker@npm:0.6.1"
   checksum: 9d6f82a4921f11eec18f8089fb3cce6e53bcf45a8e545c42a2674d02d055fb30f25f90495f8be60803df6c39680c80dcee7f944526867eb7aa1fc9254883b23d
@@ -6708,15 +6721,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-reference@npm:^1.1.2":
-  version: 1.2.1
-  resolution: "is-reference@npm:1.2.1"
-  dependencies:
-    "@types/estree": "*"
-  checksum: e7b48149f8abda2c10849ea51965904d6a714193d68942ad74e30522231045acf06cbfae5a4be2702fede5d232e61bf50b3183acdc056e6e3afe07fcf4f4b2bc
-  languageName: node
-  linkType: hard
-
 "is-relative@npm:^1.0.0":
   version: 1.0.0
   resolution: "is-relative@npm:1.0.0"
@@ -6944,7 +6948,6 @@ __metadata:
     rollup: 1.20.3
     rollup-plugin-buble: 0.19.6
     rollup-plugin-commonjs: 9.2.0
-    rollup-plugin-external-globals: 0.3.0
     rollup-plugin-json: 4.0.0
     rollup-plugin-node-resolve: 4.0.0
     selenium-standalone: 6.15.3
@@ -7594,7 +7597,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"magic-string@npm:^0.25.1, magic-string@npm:^0.25.2, magic-string@npm:^0.25.3":
+"magic-string@npm:^0.25.1, magic-string@npm:^0.25.3":
   version: 0.25.9
   resolution: "magic-string@npm:0.25.9"
   dependencies:
@@ -10106,20 +10109,6 @@ __metadata:
   peerDependencies:
     rollup: ">=0.56.0"
   checksum: daf54dc67996103388a2947e112f4b88086420d4a8a5f04d9130bd38d4b4648fe1d57772652aeba2b64f5ca8abc7fa5e38cb33a0f97739b399425540282646db
-  languageName: node
-  linkType: hard
-
-"rollup-plugin-external-globals@npm:0.3.0":
-  version: 0.3.0
-  resolution: "rollup-plugin-external-globals@npm:0.3.0"
-  dependencies:
-    estree-walker: ^0.6.0
-    is-reference: ^1.1.2
-    magic-string: ^0.25.2
-    rollup-pluginutils: ^2.5.0
-  peerDependencies:
-    rollup: ">=0.60"
-  checksum: e20863a7f27fca8d62a69b324e419ef6ae54ba81e0a596078b70229a06df43a4f28e0c7ff9ea10b4a3efd93b38b6fa270e0a0a117da8659253b028722af36758
   languageName: node
   linkType: hard
 

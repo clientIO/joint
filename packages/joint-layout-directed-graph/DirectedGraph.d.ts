@@ -17,8 +17,6 @@ export namespace DirectedGraph {
     }
 
     interface LayoutOptions {
-        dagre?: any;
-        graphlib?: any;
         align?: 'UR' | 'UL' | 'DR' | 'DL';
         rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
         ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
@@ -40,7 +38,6 @@ export namespace DirectedGraph {
     }
 
     interface toGraphLibOptions {
-        graphlib?: any;
         [key: string]: any;
     }
 

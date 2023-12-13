@@ -1,5 +1,6 @@
+import * as dagreUtil from 'dagre';
+import * as graphlibUtil from 'graphlib';
 import { util, g, dia } from 'jointjs';
-const { Graph } = dia;
 
 export const DirectedGraph = {
 
@@ -97,12 +98,12 @@ export const DirectedGraph = {
 
         var graph;
 
-        if (graphOrCells instanceof Graph) {
+        if (graphOrCells instanceof dia.Graph) {
             graph = graphOrCells;
         } else {
             // Reset cells in dry mode so the graph reference is not stored on the cells.
             // `sort: false` to prevent elements to change their order based on the z-index
-            graph = (new Graph()).resetCells(graphOrCells, { dry: true, sort: false });
+            graph = (new dia.Graph()).resetCells(graphOrCells, { dry: true, sort: false });
         }
 
         // This is not needed anymore.
@@ -115,16 +116,9 @@ export const DirectedGraph = {
             exportLink: this.exportLink
         });
 
-        /* eslint-disable no-undef */
-        const dagreUtil = opt.dagre || (typeof dagre !== 'undefined' ? dagre : undefined);
-        /* eslint-enable no-undef */
-
-        if (dagreUtil === undefined) throw new Error('The the "dagre" utility is a mandatory dependency.');
-
         // create a graphlib.Graph that represents the joint.dia.Graph
         // var glGraph = graph.toGraphLib({
         var glGraph = DirectedGraph.toGraphLib(graph, {
-            graphlib: opt.graphlib,
             directed: true,
             // We are about to use edge naming feature.
             multigraph: true,
@@ -218,7 +212,7 @@ export const DirectedGraph = {
 
         var importNode = opt.importNode || util.noop;
         var importEdge = opt.importEdge || util.noop;
-        var graph = (this instanceof Graph) ? this : new Graph;
+        var graph = (this instanceof dia.Graph) ? this : new dia.Graph();
 
         // Import all nodes.
         glGraph.nodes().forEach(function(node) {
@@ -237,12 +231,6 @@ export const DirectedGraph = {
     toGraphLib: function(graph, opt) {
 
         opt = opt || {};
-
-        /* eslint-disable no-undef */
-        const graphlibUtil = opt.graphlib || (typeof graphlib !== 'undefined' ? graphlib : undefined);
-        /* eslint-enable no-undef */
-
-        if (graphlibUtil === undefined) throw new Error('The the "graphlib" utility is a mandatory dependency.');
 
         var glGraphType = util.pick(opt, 'directed', 'compound', 'multigraph');
         var glGraph = new graphlibUtil.Graph(glGraphType);
@@ -284,14 +272,4 @@ export const DirectedGraph = {
 
         return glGraph;
     }
-};
-
-Graph.prototype.toGraphLib = function(opt) {
-
-    return DirectedGraph.toGraphLib(this, opt);
-};
-
-Graph.prototype.fromGraphLib = function(glGraph, opt) {
-
-    return DirectedGraph.fromGraphLib.call(this, glGraph, opt);
 };

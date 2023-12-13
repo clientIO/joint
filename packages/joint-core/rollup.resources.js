@@ -4,16 +4,11 @@ import path from 'path';
 import json from 'rollup-plugin-json';
 import fs from 'fs';
 import resolve from 'rollup-plugin-node-resolve';
-import externalGlobals from 'rollup-plugin-external-globals';
 const modules = require('./grunt/resources/esm');
 
 let plugins = [
     resolve(),
     commonjs(),
-    // prevent injecting 'dagre' into ES5 bundle
-    externalGlobals({
-        'dagre': 'dagre'
-    }),
     buble()
 ];
 
@@ -146,21 +141,3 @@ export const jointPlugins = Object.keys(modules.plugins).reduce((res, namespace)
 
     return res;
 }, []);
-
-
-// dependencies
-// -----------------------------------------------------------------------------------
-
-export const dagre = {
-    input: 'node_modules/dagre/index.js',
-    external: ['lodash'],
-    output: [{
-        file: 'build/esm/dagre.mjs',
-        format: 'esm',
-        freeze: false
-    }],
-    plugins: [
-        resolve(),
-        commonjs()
-    ]
-};

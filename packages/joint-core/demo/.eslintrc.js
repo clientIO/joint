@@ -13,7 +13,7 @@ module.exports = {
         'Vue': true,
         'd3': true
     },
-    'ignorePatterns': ['/ts-demo/vendor/**'],
+    'ignorePatterns': [],
     'overrides': [{
         'files': [
             'rough/src/rough.js',
@@ -45,4 +45,3 @@ module.exports = {
         }
     }]
 };
-
