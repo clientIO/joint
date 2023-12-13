@@ -25,11 +25,12 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.css$/i,
+                test: /\.css$/,
+                sideEffects: true,
                 use: ['style-loader', 'css-loader'],
             },
             {
-                test: /\.s[ac]ss$/i,
+                test: /\.s[ac]ss$/,
                 use: [
                     {
                         loader: 'file-loader',
