@@ -324,7 +324,7 @@ var link = new CustomLink({
             fill: '#000000',
             fontSize: 14,
             textAnchor: 'middle',
-            yAlignment: 'middle',
+            textVerticalAnchor: 'middle',
             pointerEvents: 'none'
         },
         rect: {
@@ -332,10 +332,10 @@ var link = new CustomLink({
             fill: '#ffffff',
             rx: 3,
             ry: 3,
-            refWidth: 1,
-            refHeight: 1,
-            refX: 0,
-            refY: 0
+            x: 'calc(x)',
+            y: 'calc(y)',
+            width: 'calc(width)',
+            height: 'calc(height)'
         }
     },
     // built-in default position:
