@@ -455,56 +455,6 @@ export const cancelFrame = (function() {
 
 })();
 
-/**
- * @deprecated
- */
-export const shapePerimeterConnectionPoint = function(linkView, view, magnet, reference) {
-
-    var bbox;
-    var spot;
-
-    if (!magnet) {
-
-        // There is no magnet, try to make the best guess what is the
-        // wrapping SVG element. This is because we want this "smart"
-        // connection points to work out of the box without the
-        // programmer to put magnet marks to any of the subelements.
-        // For example, we want the function to work on basic.Path elements
-        // without any special treatment of such elements.
-        // The code below guesses the wrapping element based on
-        // one simple assumption. The wrapping element is the
-        // first child of the scalable group if such a group exists
-        // or the first child of the rotatable group if not.
-        // This makes sense because usually the wrapping element
-        // is below any other sub element in the shapes.
-        var scalable = view.$('.scalable')[0];
-        var rotatable = view.$('.rotatable')[0];
-
-        if (scalable && scalable.firstChild) {
-
-            magnet = scalable.firstChild;
-
-        } else if (rotatable && rotatable.firstChild) {
-
-            magnet = rotatable.firstChild;
-        }
-    }
-
-    if (magnet) {
-
-        spot = V(magnet).findIntersection(reference, linkView.paper.cells);
-        if (!spot) {
-            bbox = V(magnet).getBBox({ target: linkView.paper.cells });
-        }
-
-    } else {
-
-        bbox = view.model.getBBox();
-        spot = bbox.intersectionWithLineFromCenterToPoint(reference);
-    }
-    return spot || bbox.center();
-};
-
 export const isPercentage = function(val) {
 
     return isString(val) && val.slice(-1) === '%';
