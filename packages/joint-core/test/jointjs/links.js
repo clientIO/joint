@@ -666,9 +666,9 @@ QUnit.module('links', function(hooks) {
         );
     });
 
-    QUnit.test('perpendicularLinks', function(assert) {
+    QUnit.test('perpendicular links', function(assert) {
 
-        this.paper.options.perpendicularLinks = true;
+        this.paper.options.defaultAnchor = { name: 'perpendicular' };
 
         var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },

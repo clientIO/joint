@@ -48,7 +48,7 @@ var paper = new joint.dia.Paper({
     gridSize: 1,
     model: graph,
     cellViewNamespace: shapes,
-    perpendicularLinks: true,
+    defaultAnchor: { name: 'perpendicular' },
     restrictTranslate: true
 });
 

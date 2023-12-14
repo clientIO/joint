@@ -137,7 +137,7 @@ window.paper = new joint.dia.Paper({
     height: 800,
     gridSize: 1,
     model: graph,
-    perpendicularLinks: true,
+    defaultAnchor: { name: 'perpendicular' },
     linkView: PatternLinkView.extend({
 
         drawPattern: function(ctx, from, to, width, gradient) {

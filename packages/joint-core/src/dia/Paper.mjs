@@ -115,7 +115,6 @@ export const Paper = View.extend({
         // e.g. background: { color: 'lightblue', image: '/paper-background.png', repeat: 'flip-xy' }
         background: false,
 
-        perpendicularLinks: false,
         elementView: ElementView,
         linkView: LinkView,
         snapLabels: false, // false, true

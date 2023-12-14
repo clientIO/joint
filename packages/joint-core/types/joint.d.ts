@@ -1246,7 +1246,6 @@ export namespace dia {
             width?: Dimension;
             height?: Dimension;
             origin?: Point;
-            perpendicularLinks?: boolean;
             drawGrid?: boolean | GridOptions | GridOptions[];
             drawGridSize?: number | null;
             background?: BackgroundOptions;
