@@ -934,11 +934,9 @@ export const LinkView = CellView.extend({
             if (isConnection) {
                 anchorDef = paperOptions.defaultLinkAnchor;
             } else {
-                if (paperOptions.perpendicularLinks || this.options.perpendicular) {
+                if (this.options.perpendicular) {
                     // Backwards compatibility
-                    // If `perpendicularLinks` flag is set on the paper and there are vertices
-                    // on the link, then try to find a connection point that makes the link perpendicular
-                    // even though the link won't point to the center of the targeted object.
+                    // See `manhattan` router for more details
                     anchorDef = { name: 'perpendicular' };
                 } else {
                     anchorDef = paperOptions.defaultAnchor;
