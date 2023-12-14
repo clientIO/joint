@@ -85,7 +85,7 @@ export const Link = Cell.extend({
                     fill: '#000000',
                     fontSize: 14,
                     textAnchor: 'middle',
-                    yAlignment: 'middle',
+                    textVerticalAnchor: 'middle',
                     pointerEvents: 'none'
                 },
                 rect: {
@@ -93,10 +93,10 @@ export const Link = Cell.extend({
                     fill: '#ffffff',
                     rx: 3,
                     ry: 3,
-                    refWidth: 1,
-                    refHeight: 1,
-                    refX: 0,
-                    refY: 0
+                    x: 'calc(x)',
+                    y: 'calc(y)',
+                    width: 'calc(w)',
+                    height: 'calc(h)'
                 }
             },
             // builtin default position:
