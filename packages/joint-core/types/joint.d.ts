@@ -993,16 +993,6 @@ export namespace dia {
             useLinkTools?: boolean;
         }
 
-        interface GetConnectionPoint {
-            (
-                linkView: LinkView,
-                view: ElementView,
-                magnet: SVGElement,
-                reference: Point,
-                end: LinkEnd
-            ): Point;
-        }
-
         interface LabelOptions extends Cell.Options {
             absoluteDistance?: boolean;
             reverseDistance?: boolean;
@@ -1257,7 +1247,6 @@ export namespace dia {
             height?: Dimension;
             origin?: Point;
             perpendicularLinks?: boolean;
-            linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             drawGridSize?: number | null;
             background?: BackgroundOptions;
@@ -2416,8 +2405,6 @@ export namespace util {
     export function nextFrame(callback: () => void, context?: { [key: string]: any }, ...args: any[]): number;
 
     export function cancelFrame(requestId: number): void;
-
-    export var shapePerimeterConnectionPoint: dia.LinkView.GetConnectionPoint;
 
     export function isPercentage(val: any): boolean;
 

@@ -976,13 +976,6 @@ export const LinkView = CellView.extend({
         var anchor = line.end;
         var paperOptions = this.paper.options;
 
-        // Backwards compatibility
-        if (typeof paperOptions.linkConnectionPoint === 'function') {
-            var linkConnectionMagnet = (magnet === view.el) ? undefined : magnet;
-            connectionPoint = paperOptions.linkConnectionPoint(this, view, linkConnectionMagnet, line.start, endType);
-            if (connectionPoint) return connectionPoint;
-        }
-
         if (!connectionPointDef) return anchor;
         var connectionPointFn;
         if (typeof connectionPointDef === 'function') {
