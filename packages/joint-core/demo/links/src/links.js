@@ -123,7 +123,7 @@ var link5 = new joint.shapes.standard.Link({
     source: { x: 440, y: 100 },
     target: { x: 740, y: 100 },
     vertices: [{ x: 400, y: 140 }, { x: 550, y: 100 }, { x: 600, y: 140 }],
-    smooth: true,
+    connector: { name: 'smooth' },
     attrs: {
         line: {
             stroke: '#7c68fc',
@@ -242,7 +242,7 @@ var link8 = new joint.shapes.standard.ShadowLink({
     source: { x: 10, y: 280 },
     target: { x: 440, y: 280 },
     vertices: [{ x: 150, y: 350 }, { x: 300, y: 280 }],
-    smooth: true,
+    connector: { name: 'smooth' },
     markup: [{
         tagName: 'path',
         selector: 'shadow',

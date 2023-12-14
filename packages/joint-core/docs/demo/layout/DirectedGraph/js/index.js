@@ -61,7 +61,7 @@
         return new joint.shapes.standard.Link({
             source: { id: parentElementLabel },
             target: { id: childElementLabel },
-            smooth: true,
+            connector: { name: 'smooth' },
             attrs: {
                 line: {
                     targetMarker: {

@@ -215,7 +215,6 @@ export const Link = Cell.extend({
         if (name === undefined) {
             var router = this.get('router');
             if (!router) {
-                if (this.get('manhattan')) return { name: 'orthogonal' }; // backwards compatibility
                 return null;
             }
             if (typeof router === 'object') return clone(router);
@@ -236,7 +235,6 @@ export const Link = Cell.extend({
         if (name === undefined) {
             var connector = this.get('connector');
             if (!connector) {
-                if (this.get('smooth')) return { name: 'smooth' }; // backwards compatibility
                 return null;
             }
             if (typeof connector === 'object') return clone(connector);

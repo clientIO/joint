@@ -428,7 +428,7 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt) { // esli
                 if (overlapIndex > -1 && thisLine.containsPoint(linkLinesToTest[overlapIndex].end)) {
                     // Remove the next segment because there will never be a jump
                     linkLinesToTest.splice(overlapIndex + 1, 1);
-                } 
+                }
                 const lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
                 res.push.apply(res, lineIntersections);
             }

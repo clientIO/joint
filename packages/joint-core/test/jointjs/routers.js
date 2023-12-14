@@ -87,7 +87,7 @@ QUnit.module('routers', function(hooks) {
         var l1 = new joint.dia.Link({
             source: { id: r1.id },
             target: { id: r2.id },
-            manhattan: true,
+            router: { name: 'orthogonal' },
             vertices: [{ x: 150, y: 200 }]
         });
 
@@ -106,7 +106,7 @@ QUnit.module('routers', function(hooks) {
         var l2 = new joint.dia.Link({
             source: { id: r3.id },
             target: { id: r4.id },
-            manhattan: true
+            router: { name: 'orthogonal' },
         });
 
         this.graph.addCells([r3, r4, l2]);
@@ -124,7 +124,7 @@ QUnit.module('routers', function(hooks) {
         var l3 = new joint.dia.Link({
             source: { id: r5.id },
             target: { id: r6.id },
-            manhattan: true,
+            router: { name: 'orthogonal' },
             vertices: [{ x: 150, y: 200 }]
         });
 
