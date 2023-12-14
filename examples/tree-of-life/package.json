@@ -29,6 +29,8 @@
     "webpack-dev-server": "^4.2.1"
   },
   "volta": {
-    "extends": "../../package.json"
+    "node": "16.18.1",
+    "npm": "8.19.2",
+    "yarn": "3.4.1"
   }
 }

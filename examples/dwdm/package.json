@@ -20,10 +20,6 @@
     "jointjs": "workspace:^"
   },
   "devDependencies": {
-    "@types/dagre": "~0.7.47",
-    "@types/graphlib": "~2.1.8",
-    "@types/jquery": "~3.5.13",
-    "@types/lodash": "~4.14.178",
     "css-loader": "^3.6.0",
     "style-loader": "^1.3.0",
     "ts-loader": "^9.2.5",
@@ -33,6 +29,8 @@
     "webpack-dev-server": "^4.2.1"
   },
   "volta": {
-    "extends": "../../package.json"
+    "node": "16.18.1",
+    "npm": "8.19.2",
+    "yarn": "3.4.1"
   }
 }
