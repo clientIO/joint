@@ -73,12 +73,12 @@ export default class IsometricShape extends dia.Element<IsometricElementAttribut
     toggleView(view: View) {
         const isIsometric = view === View.Isometric;
         // There are 3 group selectors in the markup:
-        // '2d' - the 2D view
+        // 'td' - the 2D view
         // 'iso' - the isometric view
         // 'common' - the common elements, displayed in both views
-        // Here we only switch the visibility of the '2d' and 'iso' groups.
+        // Here we only switch the visibility of the 'td' and 'iso' groups.
         this.attr({
-            '2d': {
+            'td': {
                 display: isIsometric ? 'none' : 'block'
             },
             'iso': {

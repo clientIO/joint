@@ -23,13 +23,13 @@
         :d="M calc(w) calc(h) L calc(w) 0 L calc(w - {{isometricHeight}}) calc(h - {{isometricHeight}}) Z"
     />
 
-    <path @selector="rightDiagonal" @group-selector="2d"
+    <path @selector="rightDiagonal" @group-selector="td"
         stroke="#333"
         stroke-width="1"
         d="M calc(w) 0 L 0 calc(h)"
     />
 
-    <path @selector="leftDiagonal" @group-selector="2d"
+    <path @selector="leftDiagonal" @group-selector="td"
         stroke="#333"
         stroke-width="1"
         d="M 0 0 L calc(w) calc(h)"

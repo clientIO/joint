@@ -38,7 +38,7 @@
         :y="{{topImageYPosition([size, isometricHeight])}}"
     />
 
-    <image @selector="2DImage" @group-selector="2d"
+    <image @selector="Image2D" @group-selector="td"
         xlink-href="assets/router-icon.svg"
         x="2"
         y="2"
