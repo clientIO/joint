@@ -1,20 +1,17 @@
 import { CellView } from './CellView.mjs';
 import { Link } from './Link.mjs';
 import V from '../V/index.mjs';
-import { addClassNamePrefix, removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage, result, isEqual, camelCase } from '../util/index.mjs';
+import { addClassNamePrefix, merge, assign, isObject, isFunction, clone, isPercentage, result, isEqual } from '../util/index.mjs';
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
-import $ from '../mvc/Dom/index.mjs';
 
 
 const Flags = {
     TOOLS: CellView.Flags.TOOLS,
     RENDER: 'RENDER',
     UPDATE: 'UPDATE',
-    LEGACY_TOOLS: 'LEGACY_TOOLS',
     LABELS: 'LABELS',
-    VERTICES: 'VERTICES',
     SOURCE: 'SOURCE',
     TARGET: 'TARGET',
     CONNECTOR: 'CONNECTOR'
@@ -46,7 +43,6 @@ export const LinkView = CellView.extend({
 
     _labelCache: null,
     _labelSelectors: null,
-    _markerCache: null,
     _V: null,
     _dragData: null, // deprecated
 
@@ -65,9 +61,6 @@ export const LinkView = CellView.extend({
         // a cache of label selectors
         this._labelSelectors = {};
 
-        // keeps markers bboxes and positions again for quicker access
-        this._markerCache = {};
-
         // cache of default markup nodes
         this._V = {};
 
@@ -80,11 +73,9 @@ export const LinkView = CellView.extend({
         attrs: [Flags.UPDATE],
         router: [Flags.UPDATE],
         connector: [Flags.CONNECTOR],
-        toolMarkup: [Flags.LEGACY_TOOLS],
         labels: [Flags.LABELS],
         labelMarkup: [Flags.LABELS],
-        vertices: [Flags.VERTICES, Flags.UPDATE],
-        vertexMarkup: [Flags.VERTICES],
+        vertices: [Flags.UPDATE],
         source: [Flags.SOURCE, Flags.UPDATE],
         target: [Flags.TARGET, Flags.UPDATE]
     },
@@ -117,31 +108,20 @@ export const LinkView = CellView.extend({
             this.render();
             this.updateHighlighters(true);
             this.updateTools(opt);
-            flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.VERTICES, Flags.LABELS, Flags.TOOLS, Flags.LEGACY_TOOLS, Flags.CONNECTOR]);
+            flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.LABELS, Flags.TOOLS, Flags.LEGACY_TOOLS, Flags.CONNECTOR]);
             return flags;
         }
 
         let updateHighlighters = false;
 
-        if (this.hasFlag(flags, Flags.VERTICES)) {
-            this.renderVertexMarkers();
-            flags = this.removeFlag(flags, Flags.VERTICES);
-        }
-
         const { model } = this;
         const { attributes } = model;
         let updateLabels = this.hasFlag(flags, Flags.LABELS);
-        let updateLegacyTools = this.hasFlag(flags, Flags.LEGACY_TOOLS);
 
         if (updateLabels) {
             this.onLabelsChange(model, attributes.labels, opt);
             flags = this.removeFlag(flags, Flags.LABELS);
             updateHighlighters = true;
-        }
-
-        if (updateLegacyTools) {
-            this.renderTools();
-            flags = this.removeFlag(flags, Flags.LEGACY_TOOLS);
         }
 
         const updateAll = this.hasFlag(flags, Flags.UPDATE);
@@ -162,16 +142,11 @@ export const LinkView = CellView.extend({
             this.updateTools(opt);
             flags = this.removeFlag(flags, [Flags.UPDATE, Flags.TOOLS, Flags.CONNECTOR]);
             updateLabels = false;
-            updateLegacyTools = false;
             updateHighlighters = true;
         }
 
         if (updateLabels) {
             this.updateLabelPositions();
-        }
-
-        if (updateLegacyTools) {
-            this.updateToolsPosition();
         }
 
         if (updateHighlighters) {
@@ -276,21 +251,7 @@ export const LinkView = CellView.extend({
         var children = V(markup);
         // custom markup may contain only one children
         if (!Array.isArray(children)) children = [children];
-        // Cache all children elements for quicker access.
-        var cache = this._V; // vectorized markup;
-        for (var i = 0, n = children.length; i < n; i++) {
-            var child = children[i];
-            var className = child.attr('class');
-            if (className) {
-                // Strip the joint class name prefix, if there is one.
-                className = removeClassNamePrefix(className);
-                cache[camelCase(className)] = child;
-            }
-        }
-        // partial rendering
-        this.renderTools();
-        this.renderVertexMarkers();
-        this.renderArrowheadMarkers();
+
         this.vel.append(children);
     },
 
@@ -537,83 +498,6 @@ export const LinkView = CellView.extend({
         return this;
     },
 
-    renderTools: function() {
-
-        if (!this._V.linkTools) return this;
-
-        // Tools are a group of clickable elements that manipulate the whole link.
-        // A good example of this is the remove tool that removes the whole link.
-        // Tools appear after hovering the link close to the `source` element/point of the link
-        // but are offset a bit so that they don't cover the `marker-arrowhead`.
-
-        var $tools = $(this._V.linkTools.node).empty();
-        var toolTemplate = template(this.model.get('toolMarkup') || this.model.toolMarkup);
-        var tool = V(toolTemplate());
-
-        $tools.append(tool.node);
-
-        // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
-        this._toolCache = tool;
-
-        // If `doubleLinkTools` is enabled, we render copy of the tools on the other side of the
-        // link as well but only if the link is longer than `longLinkLength`.
-        if (this.options.doubleLinkTools) {
-
-            var tool2;
-            if (this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup) {
-                toolTemplate = template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
-                tool2 = V(toolTemplate());
-            } else {
-                tool2 = tool.clone();
-            }
-
-            $tools.append(tool2.node);
-            this._tool2Cache = tool2;
-        }
-
-        return this;
-    },
-
-    renderVertexMarkers: function() {
-
-        if (!this._V.markerVertices) return this;
-
-        var $markerVertices = $(this._V.markerVertices.node).empty();
-
-        // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
-        // if default styling (elements) are not desired. This makes it possible to use any
-        // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-        var markupTemplate = template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
-
-        this.model.vertices().forEach(function(vertex, idx) {
-            $markerVertices.append(V(markupTemplate(assign({ idx: idx }, vertex))).node);
-        });
-
-        return this;
-    },
-
-    renderArrowheadMarkers: function() {
-
-        // Custom markups might not have arrowhead markers. Therefore, jump of this function immediately if that's the case.
-        if (!this._V.markerArrowheads) return this;
-
-        var $markerArrowheads = $(this._V.markerArrowheads.node);
-
-        $markerArrowheads.empty();
-
-        // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
-        // if default styling (elements) are not desired. This makes it possible to use any
-        // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-        var markupTemplate = template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
-
-        this._V.sourceArrowhead = V(markupTemplate({ end: 'source' }));
-        this._V.targetArrowhead = V(markupTemplate({ end: 'target' }));
-
-        $markerArrowheads.append(this._V.sourceArrowhead.node, this._V.targetArrowhead.node);
-
-        return this;
-    },
-
     // remove vertices that lie on (or nearly on) straight lines within the link
     // return the number of removed points
     removeRedundantLinearVertices: function(opt) {
@@ -638,23 +522,6 @@ export const LinkView = CellView.extend({
         // remove first and last polyline points again (= source/target anchors)
         link.vertices(polylinePoints.slice(1, numPolylinePoints - 1), opt);
         return (numRoutePoints - numPolylinePoints);
-    },
-
-    updateDefaultConnectionPath: function() {
-
-        var cache = this._V;
-
-        if (cache.connection) {
-            cache.connection.attr('d', this.getSerializedConnection());
-        }
-
-        if (cache.connectionWrap) {
-            cache.connectionWrap.attr('d', this.getSerializedConnection());
-        }
-
-        if (cache.markerSource && cache.markerTarget) {
-            this._translateAndAutoOrientArrows(cache.markerSource, cache.markerTarget);
-        }
     },
 
     getEndView: function(type) {
@@ -724,8 +591,11 @@ export const LinkView = CellView.extend({
         const polyline = new Polyline(route);
         polyline.translate(tx, ty);
         this.route = polyline.points;
-        // translate source and target connection and marker points.
-        this._translateConnectionPoints(tx, ty);
+        // translate source and target connection and anchor points.
+        this.sourcePoint.offset(tx, ty);
+        this.targetPoint.offset(tx, ty);
+        this.sourceAnchor.offset(tx, ty);
+        this.targetAnchor.offset(tx, ty);
         // translate the geometry path
         path.translate(tx, ty);
         this.updateDOM();
@@ -736,12 +606,8 @@ export const LinkView = CellView.extend({
         this.cleanNodesCache();
         // update SVG attributes defined by 'attrs/'.
         this.updateDOMSubtreeAttributes(el, model.attr(), { selectors });
-        // legacy link path update
-        this.updateDefaultConnectionPath();
         // update the label position etc.
         this.updateLabelPositions();
-        this.updateToolsPosition();
-        this.updateArrowheadMarkers();
         // *Deprecated*
         // Local perpendicular flag (as opposed to one defined on paper).
         // Could be enabled inside a connector/router. It's valid only
@@ -767,53 +633,9 @@ export const LinkView = CellView.extend({
 
     updatePath: function() {
         const { route, sourcePoint, targetPoint } = this;
-        // 3b. Find Marker Connection Point - Backwards Compatibility
-        const markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
         // 4. Find Connection
-        const path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
+        const path = this.findPath(route, sourcePoint.clone(), targetPoint.clone());
         this.path = path;
-    },
-
-    findMarkerPoints: function(route, sourcePoint, targetPoint) {
-
-        var firstWaypoint = route[0];
-        var lastWaypoint = route[route.length - 1];
-
-        // Move the source point by the width of the marker taking into account
-        // its scale around x-axis. Note that scale is the only transform that
-        // makes sense to be set in `.marker-source` attributes object
-        // as all other transforms (translate/rotate) will be replaced
-        // by the `translateAndAutoOrient()` function.
-        var cache = this._markerCache;
-        // cache source and target points
-        var sourceMarkerPoint, targetMarkerPoint;
-
-        if (this._V.markerSource) {
-
-            cache.sourceBBox = cache.sourceBBox || this._V.markerSource.getBBox();
-            sourceMarkerPoint = Point(sourcePoint).move(
-                firstWaypoint || targetPoint,
-                cache.sourceBBox.width * this._V.markerSource.scale().sx * -1
-            ).round();
-        }
-
-        if (this._V.markerTarget) {
-
-            cache.targetBBox = cache.targetBBox || this._V.markerTarget.getBBox();
-            targetMarkerPoint = Point(targetPoint).move(
-                lastWaypoint || sourcePoint,
-                cache.targetBBox.width * this._V.markerTarget.scale().sx * -1
-            ).round();
-        }
-
-        // if there was no markup for the marker, use the connection point.
-        cache.sourcePoint = sourceMarkerPoint || sourcePoint.clone();
-        cache.targetPoint = targetMarkerPoint || targetPoint.clone();
-
-        return {
-            source: sourceMarkerPoint,
-            target: targetMarkerPoint
-        };
     },
 
     findAnchorsOrdered: function(firstEndType, firstRef, secondEndType, secondRef) {
@@ -986,18 +808,6 @@ export const LinkView = CellView.extend({
         return connectionPoint.round(this.decimalsRounding);
     },
 
-    _translateConnectionPoints: function(tx, ty) {
-
-        var cache = this._markerCache;
-
-        cache.sourcePoint.offset(tx, ty);
-        cache.targetPoint.offset(tx, ty);
-        this.sourcePoint.offset(tx, ty);
-        this.targetPoint.offset(tx, ty);
-        this.sourceAnchor.offset(tx, ty);
-        this.targetAnchor.offset(tx, ty);
-    },
-
     // combine default label position with built-in default label position
     _getDefaultLabelPositionProperty: function() {
 
@@ -1077,63 +887,6 @@ export const LinkView = CellView.extend({
         }
     },
 
-    updateToolsPosition: function() {
-
-        if (!this._V.linkTools) return this;
-
-        // Move the tools a bit to the target position but don't cover the `sourceArrowhead` marker.
-        // Note that the offset is hardcoded here. The offset should be always
-        // more than the `this.$('.marker-arrowhead[end="source"]')[0].bbox().width` but looking
-        // this up all the time would be slow.
-
-        var scale = '';
-        var offset = this.options.linkToolsOffset;
-        var connectionLength = this.getConnectionLength();
-
-        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
-        // In that case we won't update tools position at all.
-        if (!Number.isNaN(connectionLength)) {
-
-            // If the link is too short, make the tools half the size and the offset twice as low.
-            if (connectionLength < this.options.shortLinkLength) {
-                scale = 'scale(.5)';
-                offset /= 2;
-            }
-
-            var toolPosition = this.getPointAtLength(offset);
-
-            this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
-
-            if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
-
-                var doubleLinkToolsOffset = this.options.doubleLinkToolsOffset || offset;
-
-                toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
-                this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
-                this._tool2Cache.attr('display', 'inline');
-
-            } else if (this.options.doubleLinkTools) {
-
-                this._tool2Cache.attr('display', 'none');
-            }
-        }
-
-        return this;
-    },
-
-    updateArrowheadMarkers: function() {
-
-        if (!this._V.markerArrowheads) return this;
-
-        var sx = this.getConnectionLength() < this.options.shortLinkLength ? .5 : 1;
-        this._V.sourceArrowhead.scale(sx);
-        this._V.targetArrowhead.scale(sx);
-
-        this._translateAndAutoOrientArrows(this._V.sourceArrowhead, this._V.targetArrowhead);
-
-        return this;
-    },
-
     updateEndProperties: function(endType) {
 
         const { model, paper } = this;
@@ -1172,28 +925,6 @@ export const LinkView = CellView.extend({
             this[endMagnetProperty] = connectedMagnet;
         } else {
             this[endMagnetProperty] = null;
-        }
-    },
-
-    _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
-
-        // Make the markers "point" to their sticky points being auto-oriented towards
-        // `targetPosition`/`sourcePosition`. And do so only if there is a markup for them.
-        var route = toArray(this.route);
-        if (sourceArrow) {
-            sourceArrow.translateAndAutoOrient(
-                this.sourcePoint,
-                route[0] || this.targetPoint,
-                this.paper.cells
-            );
-        }
-
-        if (targetArrow) {
-            targetArrow.translateAndAutoOrient(
-                this.targetPoint,
-                route[route.length - 1] || this.sourcePoint,
-                this.paper.cells
-            );
         }
     },
 
@@ -1311,7 +1042,7 @@ export const LinkView = CellView.extend({
     // Send a token (an SVG element, usually a circle) along the connection path.
     // Example: `link.findView(paper).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
     // `opt.duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
-    // `opt.directon` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
+    // `opt.direction` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
     // `opt.connection` is an optional selector to the connection path.
     // `callback` is optional and is a function to be called once the token reaches the target.
     sendToken: function(token, opt, callback) {
@@ -1744,28 +1475,12 @@ export const LinkView = CellView.extend({
         // Backwards compatibility for the default markup
         var className = evt.target.getAttribute('class');
         switch (className) {
-
-            case 'marker-vertex':
-                this.dragVertexStart(evt, x, y);
-                return;
-
-            case 'marker-vertex-remove':
-            case 'marker-vertex-remove-area':
-                this.dragVertexRemoveStart(evt, x, y);
-                return;
-
-            case 'marker-arrowhead':
-                this.dragArrowheadStart(evt, x, y);
-                return;
-
+            // TODO! TODO! TODO!
             case 'connection':
             case 'connection-wrap':
                 this.dragConnectionStart(evt, x, y);
                 return;
 
-            case 'marker-source':
-            case 'marker-target':
-                return;
         }
 
         this.dragStart(evt, x, y);
@@ -1865,36 +1580,6 @@ export const LinkView = CellView.extend({
         this.notify('link:mousewheel', evt, x, y, delta);
     },
 
-    onevent: function(evt, eventName, x, y) {
-
-        // Backwards compatibility
-        var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
-        if (linkTool) {
-            // No further action to be executed
-            evt.stopPropagation();
-
-            // Allow `interactive.useLinkTools=false`
-            if (this.can('useLinkTools')) {
-                if (eventName === 'remove') {
-                    // Built-in remove event
-                    this.model.remove({ ui: true });
-                    // Do not trigger link pointerdown
-                    return;
-
-                } else {
-                    // link:options and other custom events inside the link tools
-                    this.notify(eventName, evt, x, y);
-                }
-            }
-
-            this.notifyPointerdown(evt, x, y);
-            this.paper.delegateDragEvents(this, evt.data);
-
-        } else {
-            CellView.prototype.onevent.apply(this, arguments);
-        }
-    },
-
     onlabel: function(evt, x, y) {
 
         this.notifyPointerdown(evt, x, y);
@@ -1972,15 +1657,6 @@ export const LinkView = CellView.extend({
             action: 'vertex-move',
             vertexIdx: vertexIdx
         });
-    },
-
-    dragVertexRemoveStart: function(evt, x, y) {
-
-        if (!this.can('vertexRemove')) return;
-
-        var removeNode = evt.target;
-        var vertexIdx = parseInt(removeNode.getAttribute('idx'), 10);
-        this.model.removeVertex(vertexIdx);
     },
 
     dragArrowheadStart: function(evt, x, y) {

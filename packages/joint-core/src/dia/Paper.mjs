@@ -37,7 +37,6 @@ import { View, views } from '../mvc/index.mjs';
 import { CellView } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
-import { Link } from './Link.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
 import { LayersNames, PaperLayer } from './PaperLayer.mjs';
@@ -168,8 +167,14 @@ export const Paper = View.extend({
 
         // Defines what link model is added to the graph after an user clicks on an active magnet.
         // Value could be the mvc.model or a function returning the mvc.model
-        // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
-        defaultLink: new Link,
+        // defaultLink: (elementView, magnet) => {
+        //   return condition ? new customLink1() : new customLink2()
+        // }
+        defaultLink: function() {
+            const ns = this.model.get('cells').cellNamespace.standard;
+            if (!ns || !ns.Link) throw new Error('dia.Paper: no default link model found.');
+            return new ns.Link();
+        },
 
         // A connector that is used by links with no connector defined on the model.
         // e.g. { name: 'rounded', args: { radius: 5 }} or a function

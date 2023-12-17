@@ -31,7 +31,7 @@ QUnit.module('basic', function(hooks) {
         function ml(id, a, b) {
             var source = a.x ? a : { id: a.id };
             var target = b.x ? b : { id: b.id };
-            return new joint.dia.Link({ id: id, source: source, target: target, name: id }).addTo(graph);
+            return new joint.shapes.standard.Link({ id: id, source: source, target: target, name: id }).addTo(graph);
         }
 
         var a = me('a');
@@ -604,11 +604,11 @@ QUnit.module('basic', function(hooks) {
 
         assert.equal(elView.$('.big').attr('stroke'), undefined, 'The stroke was correctly unset from the element by removeAttr()');
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { x: 100, y: 100 },
             target: { x: 200, y: 200 },
             attrs: {
-                '.connection': { width: 100, height: 50, fill: 'gray', 'stroke-width': 2 }
+                line: { fill: 'gray', strokeWidth: 2 }
             }
         });
 
@@ -616,11 +616,11 @@ QUnit.module('basic', function(hooks) {
 
         var linkView = this.paper.findViewByModel(link);
 
-        assert.equal(linkView.$('.connection').attr('stroke-width'), '2', 'A stroke is set on the link');
+        assert.equal(linkView.findNode('line').getAttribute('stroke-width'), '2', 'A stroke is set on the link');
 
-        link.removeAttr('.connection/stroke-width');
+        link.removeAttr('line/strokeWidth');
 
-        assert.equal(linkView.$('.connection').attr('stroke-width'), undefined, 'The stroke was correctly unset from the link by removeAttr()');
+        assert.equal(linkView.findNode('line').getAttribute('stroke-width'), undefined, 'The stroke was correctly unset from the link by removeAttr()');
 
     });
 
@@ -1209,7 +1209,7 @@ QUnit.module('basic', function(hooks) {
 
         // Deep clone.
 
-        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
+        var l = new joint.shapes.standard.Link({ source: { id: r1.id }, target: { id: r2.id }});
         this.graph.addCell(l);
         var clones = r1.clone({ deep: true });
 
@@ -2107,9 +2107,9 @@ QUnit.module('basic', function(hooks) {
     QUnit.test('cell.isEmbedded()', function(assert) {
 
         var rect = new joint.shapes.standard.Rectangle;
-        var link = new joint.dia.Link;
+        var link = new joint.shapes.standard.Link;
         var embeddedRect = new joint.shapes.standard.Rectangle;
-        var embeddedLink = new joint.dia.Link;
+        var embeddedLink = new joint.shapes.standard.Link;
 
         rect.embed(embeddedRect);
         rect.embed(embeddedLink);
@@ -2129,7 +2129,7 @@ QUnit.module('basic', function(hooks) {
         };
 
         hooks.beforeEach(function() {
-            this.link = new joint.dia.Link({
+            this.link = new joint.shapes.standard.Link({
                 source: { x: 100, y: 100 },
                 target: { x: 200, y: 200 },
                 vertices: []
@@ -2192,7 +2192,7 @@ QUnit.module('basic', function(hooks) {
     QUnit.module('Link.scale()', function(hooks) {
 
         hooks.beforeEach(function() {
-            this.link = new joint.dia.Link({
+            this.link = new joint.shapes.standard.Link({
                 source: { x: 100, y: 100 },
                 target: { x: 200, y: 200 },
                 vertices: [{ x: 100, y: 200 }]
