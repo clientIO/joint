@@ -897,6 +897,28 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.notEqual(elementView.el, highlighter.el.parentNode);
         });
 
+        QUnit.module('options', function() {
+
+            QUnit.test('nonScalingStroke', function(assert) {
+
+                const HighlighterView = joint.highlighters.stroke;
+                const id = 'highlighter-id';
+
+                let highlighter;
+
+                // use default nonScalingStroke
+                highlighter = HighlighterView.add(elementView, 'body', id);
+                assert.equal(getComputedStyle(highlighter.el).vectorEffect, 'none');
+
+                // explicit nonScalingStroke = false
+                highlighter = HighlighterView.add(elementView, 'body', id, { nonScalingStroke: false });
+                assert.equal(getComputedStyle(highlighter.el).vectorEffect, 'none');
+
+                // explicit nonScalingStroke = true
+                highlighter = HighlighterView.add(elementView, 'body', id, { nonScalingStroke: true });
+                assert.equal(getComputedStyle(highlighter.el).vectorEffect, 'non-scaling-stroke');
+            });
+        });
 
         QUnit.module('Rendering', function() {
 

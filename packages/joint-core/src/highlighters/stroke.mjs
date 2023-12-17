@@ -8,7 +8,6 @@ export const stroke = HighlighterView.extend({
     className: 'highlight-stroke',
     attributes: {
         'pointer-events': 'none',
-        'vector-effect': 'non-scaling-stroke',
         'fill': 'none'
     },
 
@@ -88,6 +87,9 @@ export const stroke = HighlighterView.extend({
     highlight(cellView, node) {
         const { vel, options } = this;
         vel.attr(options.attrs);
+        if (options.nonScalingStroke) {
+            vel.attr('vector-effect', 'non-scaling-stroke');
+        }
         if (cellView.isNodeConnection(node)) {
             this.highlightConnection(cellView);
         } else {
