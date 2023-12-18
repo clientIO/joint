@@ -46,20 +46,17 @@
     "./SECURITY.md"
   ],
   "dependencies": {
-    "dagre": "~0.8.5",
-    "graphlib": "~2.1.8",
+    "@dagrejs/dagre": "~1.0.4",
+    "@dagrejs/graphlib": "~2.1.13",
     "jointjs": "workspace:^"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@types/dagre": "~0.7.50",
-    "@types/graphlib": "~2.1.9",
     "karma": "^6.4.2",
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",
     "karma-qunit": "^4.1.2",
     "karma-sinon": "^1.0.5",
-    "lodash": "^4.17.21",
     "puppeteer": "10.2.0",
     "qunit": "^2.20.0",
     "rollup": "^4.4.0",

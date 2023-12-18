@@ -5,9 +5,8 @@ module.exports = function(config) {
     config.set({
         basePath: '.',
         files: [
-            './node_modules/lodash/lodash.js',
-            './node_modules/graphlib/dist/graphlib.core.js',
-            './node_modules/dagre/dist/dagre.core.js',
+            './node_modules/@dagrejs/graphlib/dist/graphlib.js',
+            './node_modules/@dagrejs/dagre/dist/dagre.js',
 
             './node_modules/jointjs/build/geometry.js',
             './node_modules/jointjs/build/vectorizer.js',

@@ -1164,6 +1164,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dagrejs/dagre@npm:~1.0.4":
+  version: 1.0.4
+  resolution: "@dagrejs/dagre@npm:1.0.4"
+  dependencies:
+    "@dagrejs/graphlib": 2.1.13
+  checksum: 49fefa4128604ad2231a9a572b93912398edde53a069e63e4fee4bc42145d0fbe153d9763edd47b91f0732895f3428577f518f355b97da515a426144eab9d3dc
+  languageName: node
+  linkType: hard
+
+"@dagrejs/graphlib@npm:2.1.13, @dagrejs/graphlib@npm:~2.1.13":
+  version: 2.1.13
+  resolution: "@dagrejs/graphlib@npm:2.1.13"
+  checksum: 7d0732f78675ea1c25e54ad1fb2dcd3b8784705faba328bd44def6f372140197ccdf546d75c33db05555da9b288a00d67f34317215f64233b89e9e59bd79596a
+  languageName: node
+  linkType: hard
+
 "@discoveryjs/json-ext@npm:^0.5.0":
   version: 0.5.7
   resolution: "@discoveryjs/json-ext@npm:0.5.7"
@@ -1370,18 +1386,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph"
   dependencies:
+    "@dagrejs/dagre": ~1.0.4
+    "@dagrejs/graphlib": ~2.1.13
     "@rollup/plugin-node-resolve": ^15.2.3
-    "@types/dagre": ~0.7.50
-    "@types/graphlib": ~2.1.9
-    dagre: ~0.8.5
-    graphlib: ~2.1.8
     jointjs: "workspace:^"
     karma: ^6.4.2
     karma-chrome-launcher: ^3.2.0
     karma-coverage: ^2.2.1
     karma-qunit: ^4.1.2
     karma-sinon: ^1.0.5
-    lodash: ^4.17.21
     puppeteer: 10.2.0
     qunit: ^2.20.0
     rollup: ^4.4.0
@@ -1809,13 +1822,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dagre@npm:~0.7.50":
-  version: 0.7.52
-  resolution: "@types/dagre@npm:0.7.52"
-  checksum: 89e046e73f9f83855fcecc0f79838e0e3e0e42d88b6cc42bb573249364a606909ff7ded5b6a0377246eb0648047b330b5003c8dd975358de3135635ddae0f589
-  languageName: node
-  linkType: hard
-
 "@types/eslint-scope@npm:^3.7.0":
   version: 3.7.7
   resolution: "@types/eslint-scope@npm:3.7.7"
@@ -1895,13 +1901,6 @@ __metadata:
     "@types/qs": "*"
     "@types/serve-static": "*"
   checksum: 0196dacc275ac3ce89d7364885cb08e7fb61f53ca101f65886dbf1daf9b7eb05c0943e2e4bbd01b0cc5e50f37e0eea7e4cbe97d0304094411ac73e1b7998f4da
-  languageName: node
-  linkType: hard
-
-"@types/graphlib@npm:~2.1.9":
-  version: 2.1.11
-  resolution: "@types/graphlib@npm:2.1.11"
-  checksum: 909b5db5066a0532210c22922a2c3c619208f614c9a472b631f312a0e6a3fc016e026be5cc8802d71bd72869b3e905d2c0aa955a07400127877fb1f3de98998a
   languageName: node
   linkType: hard
 
@@ -5075,16 +5074,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dagre@npm:~0.8.5":
-  version: 0.8.5
-  resolution: "dagre@npm:0.8.5"
-  dependencies:
-    graphlib: ^2.1.8
-    lodash: ^4.17.15
-  checksum: b9fabd425466d7b662381c2e457b1adda996bc4169aa60121d4de50250d83a6bb4b77d559e2f887c9c564caea781c2a377fd4de2a76c15f8f04ec3d086ca95f9
-  languageName: node
-  linkType: hard
-
 "dash-ast@npm:^1.0.0":
   version: 1.0.0
   resolution: "dash-ast@npm:1.0.0"
@@ -7521,15 +7510,6 @@ __metadata:
   version: 1.0.4
   resolution: "grapheme-splitter@npm:1.0.4"
   checksum: 0c22ec54dee1b05cd480f78cf14f732cb5b108edc073572c4ec205df4cd63f30f8db8025afc5debc8835a8ddeacf648a1c7992fe3dcd6ad38f9a476d84906620
-  languageName: node
-  linkType: hard
-
-"graphlib@npm:^2.1.8, graphlib@npm:~2.1.8":
-  version: 2.1.8
-  resolution: "graphlib@npm:2.1.8"
-  dependencies:
-    lodash: ^4.17.15
-  checksum: 1e0db4dea1c8187d59103d5582ecf32008845ebe2103959a51d22cb6dae495e81fb9263e22c922bca3aaecb56064a45cd53424e15a4626cfb5a0c52d0aff61a8
   languageName: node
   linkType: hard
 

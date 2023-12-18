@@ -6,8 +6,8 @@ export default [
     {
         input,
         external: [
-            'dagre',
-            'graphlib',
+            '@dagrejs/dagre',
+            '@dagrejs/graphlib',
             'jointjs'
         ],
         output: {
@@ -19,8 +19,8 @@ export default [
             name: 'window',
             extend: true,
             globals: {
-                'dagre': 'dagre',
-                'graphlib': 'graphlib',
+                '@dagrejs/dagre': 'dagre',
+                '@dagrejs/graphlib': 'graphlib',
                 'jointjs': 'joint'
             }
         },

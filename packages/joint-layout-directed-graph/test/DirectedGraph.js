@@ -74,10 +74,15 @@ QUnit.module('DirectedGraph', function(hooks) {
 
             DirectedGraph.layout(graph);
 
-            assert.deepEqual(_.pick(elements[0].position(), 'x', 'y'), { x: 0, y: 0 });
-            assert.deepEqual(_.pick(elements[1].position(), 'x', 'y'), { x: 10, y: 150 });
-            assert.deepEqual(_.pick(elements[2].position(), 'x', 'y'), { x: 110, y: 35 });
-            assert.deepEqual(_.pick(elements[3].position(), 'x', 'y'), { x: 15, y: 280 });
+            let x, y;
+            ({ x, y } = elements[0].position());
+            assert.deepEqual({ x, y }, { x: 0, y: 0 });
+            ({ x, y } = elements[1].position());
+            assert.deepEqual({ x, y }, { x: 10, y: 150 });
+            ({ x, y } = elements[2].position());
+            assert.deepEqual({ x, y }, { x: 110, y: 35 });
+            ({ x, y } = elements[3].position());
+            assert.deepEqual({ x, y }, { x: 15, y: 280 });
         });
 
         QUnit.test('an array of some of the cells instead of the full graph', function(assert) {
@@ -116,10 +121,15 @@ QUnit.module('DirectedGraph', function(hooks) {
                 links[0]
             ]);
 
-            assert.deepEqual(_.pick(elements[0].position(), 'x', 'y'), { x: 0, y: 0 });
-            assert.deepEqual(_.pick(elements[1].position(), 'x', 'y'), { x: 10, y: 150 });
-            assert.deepEqual(_.pick(elements[2].position(), 'x', 'y'), { x: 300, y: 20 });
-            assert.deepEqual(_.pick(elements[3].position(), 'x', 'y'), { x: 400, y: 50 });
+            let x, y;
+            ({ x, y } = elements[0].position());
+            assert.deepEqual({ x, y }, { x: 0, y: 0 });
+            ({ x, y } = elements[1].position());
+            assert.deepEqual({ x, y }, { x: 10, y: 150 });
+            ({ x, y } = elements[2].position());
+            assert.deepEqual({ x, y }, { x: 300, y: 20 });
+            ({ x, y } = elements[3].position());
+            assert.deepEqual({ x, y }, { x: 400, y: 50 });
         });
 
         QUnit.test('an array of embedded cells without the parent', function(assert) {
@@ -164,10 +174,15 @@ QUnit.module('DirectedGraph', function(hooks) {
                 links[1]
             ]);
 
-            assert.deepEqual(_.pick(elements[0].position(), 'x', 'y'), { x: 0, y: 0 });
-            assert.deepEqual(_.pick(elements[1].position(), 'x', 'y'), { x: 0, y: 0 });
-            assert.deepEqual(_.pick(elements[2].position(), 'x', 'y'), { x: 10, y: 130 });
-            assert.deepEqual(_.pick(elements[3].position(), 'x', 'y'), { x: 5, y: 210 });
+            let x, y;
+            ({ x, y } = elements[0].position());
+            assert.deepEqual({ x, y }, { x: 0, y: 0 });
+            ({ x, y } = elements[1].position());
+            assert.deepEqual({ x, y }, { x: 0, y: 0 });
+            ({ x, y } = elements[2].position());
+            assert.deepEqual({ x, y }, { x: 10, y: 130 });
+            ({ x, y } = elements[3].position());
+            assert.deepEqual({ x, y }, { x: 5, y: 210 });
         });
 
 

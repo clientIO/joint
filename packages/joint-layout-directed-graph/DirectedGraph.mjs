@@ -1,5 +1,5 @@
-import * as dagreUtil from 'dagre';
-import * as graphlibUtil from 'graphlib';
+import * as dagreUtil from '@dagrejs/dagre';
+import * as graphlibUtil from '@dagrejs/graphlib';
 import { util, g, dia } from 'jointjs';
 
 export const DirectedGraph = {
