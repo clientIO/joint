@@ -44,7 +44,7 @@
         :y="{{topYPosition([isometricHeight])}}"
     />
 
-    <image @selector="Image2D" @group-selector="td"
+    <image @selector="2DImage" @group-selector="2d"
         xlink-href="assets/switch-icon.svg"
         x="2"
         y="2"

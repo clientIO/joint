@@ -35,14 +35,14 @@
         :d="{{headFrontData([isometricHeight, size])}}"
     />
 
-    <path @selector="body2D" @group-selector="td"
+    <path @selector="body2D" @group-selector="2d"
         fill="#ECB998"
         stroke="#333"
         stroke-linejoin="round"
         d="M 0 calc(h) L calc(w) calc(h) C calc(w) 5 0 5 0 calc(h)"
     />
 
-    <circle @selector="head2D" @group-selector="td"
+    <circle @selector="head2D" @group-selector="2d"
         cx="calc(0.5 * w)"
         cy="calc(0.25 * h)"
         r="calc(0.25 * h)"
