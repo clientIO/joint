@@ -17,14 +17,14 @@ QUnit.module('linkView', function(hooks) {
             height: 300
         });
 
-        link = new joint.dia.Link({
+        link = new joint.shapes.standard.Link({
             source: { x: 100, y: 100 },
             target: { x: 200, y: 100 }
         });
         link.addTo(paper.model);
         linkView = link.findView(paper);
 
-        link2 = new joint.dia.Link({
+        link2 = new joint.shapes.standard.Link({
             source: { x: 100, y: 100 },
             target: { x: 100, y: 100 }
         });
@@ -750,12 +750,12 @@ QUnit.module('linkView', function(hooks) {
             var sourceMagnetAnchorSpy = joint.anchors.test1 = sinon.spy(function() {
                 return sourceAnchor;
             });
-            linkView.model.prop('source/magnet', '.connection');
+            linkView.model.prop('source/magnet', 'line');
             assert.ok(sourceAnchorSpy.notCalled);
             assert.ok(sourceMagnetAnchorSpy.calledWithExactly(
                 linkView2,
                 // eslint-disable-next-line no-undef
-                linkView2.el.querySelector('.connection'),
+                linkView2.findNode('line'),
                 sinon.match(function(value) {
                     return value instanceof SVGElement;
                 }), // requires resolving
@@ -770,12 +770,12 @@ QUnit.module('linkView', function(hooks) {
             var targetMagnetAnchorSpy = joint.anchors.test2 = sinon.spy(function() {
                 return targetAnchor;
             });
-            linkView.model.prop('target/magnet', '.connection');
+            linkView.model.prop('target/magnet', 'line');
             assert.ok(targetAnchorSpy.notCalled);
 
             assert.ok(targetMagnetAnchorSpy.calledWithExactly(
                 linkView2,
-                linkView2.el.querySelector('.connection'),
+                linkView2.findNode('line'),
                 sinon.match.instanceOf(g.Point),
                 sinon.match({ testArg2: true }),
                 'target',
@@ -1096,28 +1096,12 @@ QUnit.module('linkView', function(hooks) {
 
         QUnit.test('sanity', function(assert) {
 
-            var data;
             var strategySpy = paper.options.connectionStrategy = sinon.spy(function(end) {
                 end.test = true;
             });
 
             // Source
-            data = {};
-            linkView.pointerdown({
-                target: linkView.el.querySelector('.marker-arrowhead[end=source]'),
-                type: 'mousedown',
-                data: data
-            }, 0, 0);
-            linkView.pointermove({
-                target: rv1.el,
-                type: 'mousemove',
-                data: data
-            }, 50, 50);
-            linkView.pointerup({
-                target: rv1.el,
-                type: 'mouseup',
-                data: data
-            }, 50, 50);
+            simulate.dragLinkView(linkView, 'source', { targetEl: rv1.el, x: 50, y: 50 });
 
             assert.ok(strategySpy.calledOnce);
             assert.ok(strategySpy.calledWithExactly(
@@ -1133,22 +1117,7 @@ QUnit.module('linkView', function(hooks) {
             assert.equal(linkView.model.attributes.source.test, true);
 
             // Target
-            data = {};
-            linkView.pointerdown({
-                target: linkView.el.querySelector('.marker-arrowhead[end=target]'),
-                type: 'mousedown',
-                data: data
-            }, 0, 0);
-            linkView.pointermove({
-                target: rv1.el,
-                type: 'mousemove',
-                data: data
-            }, 40, 40);
-            linkView.pointerup({
-                target: rv1.el,
-                type: 'mouseup',
-                data: data
-            }, 40, 40);
+            simulate.dragLinkView(linkView, 'target', { targetEl: rv1.el, x: 40, y: 40 });
 
             assert.ok(strategySpy.calledTwice);
             assert.ok(strategySpy.calledWithExactly(
@@ -1207,11 +1176,7 @@ QUnit.module('linkView', function(hooks) {
             r1.translate(10,0);
             // Source
             data = {};
-            linkView.pointerdown({
-                target: linkView.el.querySelector('.marker-arrowhead[end=source]'),
-                type: 'mousedown',
-                data: data
-            }, 0, 0);
+            simulate.dragLinkView(linkView, 'source', { data });
             // the first move
             linkView.pointermove({
                 target: rv1.el,
@@ -1234,6 +1199,8 @@ QUnit.module('linkView', function(hooks) {
                 'source',
                 paper
             ));
+
+
             // change coordinates
             strategySpy.resetHistory();
             linkView.pointermove({
@@ -1292,11 +1259,7 @@ QUnit.module('linkView', function(hooks) {
             paper.options.snapLinksSelf = { radius: 40 };
             // Source
             data = {};
-            linkView.pointerdown({
-                target: linkView.el.querySelector('.marker-arrowhead[end=source]'),
-                type: 'mousedown',
-                data: data
-            }, 0, 0);
+            simulate.dragLinkView(linkView, 'source', { data });
             // the move
             linkView.pointermove({
                 target: paper,

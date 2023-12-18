@@ -268,11 +268,9 @@ QUnit.module('links', function(hooks) {
             }
         });
 
-        // Dummy target determines the arrowhead to move.
-        t = V('<circle/>', { r: 10, end: 'target' }).node;
-        event = { target: t };
-        v0.pointerdown(event);
-        v0.dragArrowheadStart(event);
+        var data = {};
+        event = { data };
+        simulate.dragLinkView(v0, 'target', { data });
         event.target = vr3.el;
         event.type = 'mousemove';
         v0.pointermove(event, 630, 40);
@@ -1302,19 +1300,11 @@ QUnit.module('links', function(hooks) {
         this.graph.addCells([myrect, link]);
 
         var v = this.paper.findViewByModel(link);
-        // Dummy target determines the arrowhead to move.
-        var t = V('<circle/>', { r: 10, end: 'target' }).node;
 
         // link target was out of the radius and therefore was not snapped to the element
 
         this.paper.options.snapLinks = { radius: 5 };
-
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
-        v.dragArrowheadStart(event, 0, 0);
-        event.target = this.paper.el;
-        v.pointermove(event, 90, 90);
-        v.pointerup(event, 90, 90);
+        simulate.dragLinkView(v, 'target', { targetEl: this.paper.el, x: 90, y: 90  });
 
         assert.deepEqual(link.get('target'), {
             x: 90, y: 90
@@ -1323,13 +1313,7 @@ QUnit.module('links', function(hooks) {
         // link target was snapped to the element
 
         this.paper.options.snapLinks = { radius: 50 };
-
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
-        v.dragArrowheadStart(event, 0, 0);
-        event.target = this.paper.el;
-        v.pointermove(event, 90, 90);
-        v.pointerup(event, 90, 90);
+        simulate.dragLinkView(v, 'target', { targetEl: this.paper.el, x: 90, y: 90  });
 
         assert.ok(link.get('target').id === myrect.id, 'link target was snapped to the element');
 
@@ -1342,26 +1326,14 @@ QUnit.module('links', function(hooks) {
         myrect.attr('label', { magnet: true, port: 'port' });
 
         this.paper.options.validateConnection = function() { return true; };
-
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
-        v.dragArrowheadStart(event, 0, 0);
-        event.target = this.paper.el;
-        v.pointermove(event, 90, 90);
-        v.pointerup(event, 90, 90);
+        simulate.dragLinkView(v, 'target', { targetEl: this.paper.el, x: 90, y: 90  });
 
         assert.ok(link.get('target').port === 'port', 'link target was snapped to the port');
 
         // the validation is taken into account when snapping to port
 
         this.paper.options.validateConnection = function() { return false; };
-
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
-        v.dragArrowheadStart(event, 0, 0);
-        event.target = this.paper.el;
-        v.pointermove(event, 90, 90);
-        v.pointerup(event, 90, 90);
+        simulate.dragLinkView(v, 'target', { targetEl: this.paper.el, x: 90, y: 90  });
 
         assert.deepEqual(link.get('target'), {
             x: 90, y: 90
@@ -1392,14 +1364,12 @@ QUnit.module('links', function(hooks) {
         this.graph.addCells([myrect1, myrect2, link]);
 
         var v = this.paper.findViewByModel(link);
-        // Dummy target determines the arrowhead to move.
-        var t = V('<circle/>', { r: 10, end: 'target' }).node;
 
         this.paper.options.markAvailable = true;
 
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
-        v.dragArrowheadStart(event, 0, 0);
+        var data = {};
+        event = { data };
+        simulate.dragLinkView(v, 'target', { data });
 
         var availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
         var availableCells = this.paper.el.querySelectorAll('.available-cell');

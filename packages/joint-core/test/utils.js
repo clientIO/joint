@@ -300,7 +300,37 @@ window.simulate = {
 
     touchend: function(touchInit) {
         return this.touchevent({ ...touchInit, type: 'touchend' });
+    },
+
+    dragLinkView: function(linkView, endType, options = {}) {
+        const  {
+            targetEl,
+            x = 0 ,
+            y = 0,
+            data: userData
+        } = options;
+        const data = userData || {};
+        const mousedownEvent = {
+            // Dummy event target determines the arrowhead to move.
+            target: V('circle', { r: 10, end: endType }).node,
+            type: 'mousedown',
+            data: data
+        };
+        linkView.pointerdown(mousedownEvent, 0, 0);
+        linkView.dragArrowheadStart(mousedownEvent);
+        if (!targetEl) return;
+        linkView.pointermove({
+            target: targetEl,
+            type: 'mousemove',
+            data: data
+        }, x, y);
+        linkView.pointerup({
+            target: targetEl,
+            type: 'mouseup',
+            data: data
+        }, x, y);
     }
+
 };
 
 window.fixtures = {
