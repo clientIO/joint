@@ -1,5 +1,7 @@
 'use strict';
 
+const DirectedGraph = joint.layout.DirectedGraph;
+
 QUnit.module('DirectedGraph', function(hooks) {
 
     QUnit.test('should be an object', function(assert) {

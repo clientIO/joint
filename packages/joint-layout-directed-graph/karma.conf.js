@@ -12,7 +12,7 @@ module.exports = function(config) {
             './node_modules/jointjs/build/vectorizer.js',
             './node_modules/jointjs/build/joint.js',
 
-            './build/DirectedGraph.js',
+            './build/DirectedGraph.umd.js',
 
             './test/**/*.js'
         ],
@@ -41,7 +41,7 @@ module.exports = function(config) {
         },
         exclude: [],
         preprocessors: {
-            './build/DirectedGraph.js': ['coverage']
+            './build/DirectedGraph.umd.js': ['coverage']
         },
         coverageReporter: {
             // specify a common output directory

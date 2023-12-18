@@ -2,18 +2,18 @@
 
 <h3 id="layout.DirectedGraph.installation">Installation</h3>
 
-<p>Add the <code>@joint/layout-directed-graph</code> package as a dependency of your project:</p>
+<p>Add the <code>@joint/layout-directed-graph</code> package as a dependency of your project (for example via <code>yarn</code>):</p>
 
 <pre><code>yarn add @joint/layout-directed-graph
 yarn install</code></pre>
 
-<p>Import the package into your code:</p>
+<p>You can then import the package into your code:</p>
 
 <pre><code>import { DirectedGraph } from '@joint/layout-directed-graph';</code></pre>
 
 <h3 id="layout.DirectedGraph.usage">Usage</h3>
 
-<p>The <code>DirectedGraph</code> package exposes the <code>DirectedGraph.layout(graphOrCells, opt)</code> function. The first parameter <code>graphOrCells</code> is a <code>joint.dia.Graph</code> or an array of <code>joint.dia.Cells</code> we want to layout. The second parameter <code>opt</code> is an object that contains various options for configuring the layout.</p>
+<p>The <code>DirectedGraph</code> package exposes the <code>layout(graphOrCells, opt)</code> function. The first parameter <code>graphOrCells</code> is a <code>joint.dia.Graph</code> or an array of <code>joint.dia.Cells</code> that we want to lay out. The second parameter <code>opt</code> is an object that contains various options for configuring the layout.</p>
 
 <pre><code>import { DirectedGraph } from '@joint/layout-directed-graph';
 var graphBBox = DirectedGraph.layout(graph, {
@@ -24,24 +24,46 @@ var graphBBox = DirectedGraph.layout(graph, {
 console.log('x:', graphBBox.x, 'y:', graphBBox.y)
 console.log('width:', graphBBox.width, 'height:', graphBBox.height);</code></pre>
 
-<p>A full blog post explaining this example in more detail can be found <a href="http://www.daviddurman.com/automatic-graph-layout-with-jointjs-and-dagre.html">here</a>.</p>
+<p>A blog post explaining the usage of the <code>layout(graphOrCells, opt)</code> function in more detail can be found <a href="http://www.daviddurman.com/automatic-graph-layout-with-jointjs-and-dagre.html">here</a>.</p>
 
 <h3 id="layout.DirectedGraph.configuration">Configuration</h3>
 
-<p>The following table lists options that you can pass to the <code>DirectedGraph.layout(graphOrCells, opt)</code> function:</p>
+<p>The following table lists options that you can pass to the <code>layout(graphOrCells, opt)</code> function:</p>
 
 <table>
-    <tr><th>nodeSep</th><td>a number of pixels representing the separation between adjacent nodes in the same rank</td></tr>
-    <tr><th>edgeSep</th><td>a number of pixels representing the separation between adjacent edges in the same rank</td></tr>
-    <tr><th>rankSep</th><td>a number of pixels representing the separation between ranks</td></tr>
-    <tr><th>rankDir</th><td>direction of the layout (one of <code>"TB"</code> (top-to-bottom) / <code>"BT"</code> (bottom-to-top) / <code>"LR"</code> (left-to-right) / <code>"RL"</code> (right-to-left))</td></tr>
-    <tr><th>marginX</th><td>number of pixels to use as a margin around the left and right of the graph.</td></tr>
-    <tr><th>marginY</th><td>number of pixels to use as a margin around the top and bottom of the graph.</td></tr>
-    <tr><th>ranker</th><td>Type of algorithm to assign a rank to each node in the input graph. Possible values: <code>'network-simplex'</code> (default), <code>'tight-tree'</code> or <code>'longest-path'</code>.</td></tr>
-    <tr><th>resizeClusters</th><td>set to <code>false</code> if you don't want parent elements to stretch in order to fit all their embedded children. Default is <code>true</code>.</td></tr>
-    <tr><th>clusterPadding</th><td>A gap between the parent element and the boundary of its embedded children. It could be a number or an object e.g. <code>{ left: 10, right: 10, top: 30, bottom: 10 }</code>. It defaults to <code>10</code>.</td></tr>
-    <tr><th>setPosition(element, position)</th><td>a function that will be used to set the position of elements at the end of the layout. This is useful
-    if you don't want to use the default <code>element.set('position', position)</code> but want to set the position in an animated fashion via <a href="#dia.Element.prototype.transition">transitions</a>.</td></tr>
+    <tr><th>nodeSep</th>
+        <td>a number of pixels representing the separation between adjacent nodes in the same rank</td>
+    </tr>
+    <tr><th>edgeSep</th>
+        <td>a number of pixels representing the separation between adjacent edges in the same rank</td>
+    </tr>
+    <tr><th>rankSep</th>
+        <td>a number of pixels representing the separation between ranks</td>
+    </tr>
+    <tr><th>rankDir</th>
+        <td>direction of the layout (one of <code>"TB"</code> (top-to-bottom) / <code>"BT"</code> (bottom-to-top) / <code>"LR"</code> (left-to-right) / <code>"RL"</code> (right-to-left))</td>
+    </tr>
+    <tr><th>marginX</th>
+        <td>number of pixels to use as a margin around the left and right of the graph.</td>
+    </tr>
+    <tr><th>marginY</th>
+        <td>number of pixels to use as a margin around the top and bottom of the graph.</td>
+    </tr>
+    <tr><th>ranker</th>
+        <td>Type of algorithm to assign a rank to each node in the input graph. Possible values: <code>'network-simplex'</code> (default), <code>'tight-tree'</code> or <code>'longest-path'</code>.</td>
+    </tr>
+    <tr><th>resizeClusters</th>
+        <td>set to <code>false</code> if you don't want parent elements to stretch in order to fit all their embedded children. Default is <code>true</code>.</td>
+    </tr>
+    <tr><th>clusterPadding</th>
+        <td>A gap between the parent element and the boundary of its embedded children. It could be a number or an object e.g. <code>{ left: 10, right: 10, top: 30, bottom: 10 }</code>. It defaults to <code>10</code>.</td>
+    </tr>
+    <tr><th>setPosition(element, position)</th>
+        <td>
+            a function that will be used to set the position of elements at the end of the layout. This is useful
+            if you don't want to use the default <code>element.set('position', position)</code> but want to set the position in an animated fashion via <a href="#dia.Element.prototype.transition">transitions</a>.
+        </td>
+    </tr>
     <tr><th>setVertices(link, vertices)</th>
         <td>
             If set to <code>true</code> the layout will adjust the links by setting their vertices. It defaults to <code>false</code>. If the option is defined as a function it will be used to set the vertices of links at the end of the layout. This is useful
@@ -105,26 +127,26 @@ console.log('width:', graphBBox.width, 'height:', graphBBox.height);</code></pre
     </tr>
 </table>
 
-<p>The <code>DirectedGraph.layout(graphOrCells, opt)</code> function returns a bounding box (<code>g.Rect</code>) of the resulting graph.</p>
+<p>The <code>layout(graphOrCells, opt)</code> function returns a bounding box (<code>g.Rect</code>) of the resulting graph.</p>
 
 <h3 id="layout.DirectedGraph.api">API</h3>
 
 <p>The <code>DirectedGraph</code> package also provides two functions that make it easy to convert graphs to and from the <a href="https://github.com/dagrejs/graphlib">Graphlib</a> graph format. This allows you to use the wealth of <a href="https://github.com/dagrejs/graphlib/wiki/API-Reference">graph algorithms</a> provided by the Graphlib library.</p>
 
-<p>In order to use Graphlib, you need to add the package as an additional dependency of your project:</p>
+<p>In order to use Graphlib, you need to add the package as an additional dependency of your project (for example via <code>yarn</code>):</p>
 
-<pre><code>yarn add graphlib
+<pre><code>yarn add @dagrejs/graphlib
 yarn install</code></pre>
 
-<p>Then, you can refer to the package from within your code like this:</p>
+<p>You can then import the package into your code:</p>
 
-<pre><code>import * as graphlib from 'graphlib';</code></pre>
+<pre><code>import * as graphlib from '@dagrejs/graphlib';</code></pre>
 
 <table>
     <tr><th>toGraphLib(graph, opt)</th>
         <td>Convert the provided JointJS <code>joint.dia.Graph</code> object to a Graphlib graph object.
             <pre><code>import { DirectedGraph } from '@joint/layout-directed-graph';
-import * as graphlib from 'graphlib';
+import * as graphlib from '@dagrejs/graphlib';
 
 var graph = new joint.dia.Graph;
 // ... populate the graph with elements connected with links
