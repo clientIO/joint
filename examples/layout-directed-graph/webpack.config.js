@@ -10,10 +10,7 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['.js', '.mjs'],
-        alias: {
-            'underscore': 'lodash'
-        }
+        extensions: ['.js', '.mjs']
     },
     devtool: 'source-map',
     devServer: {
