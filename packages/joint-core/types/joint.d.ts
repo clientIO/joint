@@ -260,10 +260,6 @@ export namespace dia {
         startBatch(name: string, data?: { [key: string]: any }): this;
 
         stopBatch(name: string, data?: { [key: string]: any }): this;
-
-        toGraphLib(opt?: { [key: string]: any }): any;
-
-        fromGraphLib(glGraph: any, opt?: { [key: string]: any }): this;
     }
 
     // dia.Cell
@@ -2704,57 +2700,6 @@ export namespace env {
 // layout
 
 export namespace layout {
-
-    export namespace DirectedGraph {
-
-        interface Edge {
-            minLen?: number;
-            weight?: number;
-            labelpos?: 'l' | 'c' | 'r';
-            labeloffset?: number;
-            width?: number;
-            height?: number;
-        }
-
-        interface Node {
-            width?: number;
-            height?: number;
-        }
-
-        interface LayoutOptions {
-            dagre?: any;
-            graphlib?: any;
-            align?: 'UR' | 'UL' | 'DR' | 'DL';
-            rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
-            ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
-            nodeSep?: number;
-            edgeSep?: number;
-            rankSep?: number;
-            marginX?: number;
-            marginY?: number;
-            resizeClusters?: boolean;
-            clusterPadding?: dia.Padding;
-            setPosition?: (element: dia.Element, position: dia.BBox) => void;
-            setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
-            setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
-            debugTiming?: boolean;
-            exportElement?: (element: dia.Element) => Node;
-            exportLink?: (link: dia.Link) => Edge;
-            // deprecated
-            setLinkVertices?: boolean;
-        }
-
-        interface toGraphLibOptions {
-            graphlib?: any;
-            [key: string]: any;
-        }
-
-        export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
-
-        export function toGraphLib(graph: dia.Graph, opt?: toGraphLibOptions): any;
-
-        export function fromGraphLib(glGraph: any, opt?: { [key: string]: any }): dia.Graph;
-    }
 
     export namespace Port {
 

@@ -1,17 +1,19 @@
 'use strict';
 
-QUnit.module('layout.DirectedGraph', function(hooks) {
+const DirectedGraph = joint.layout.DirectedGraph;
+
+QUnit.module('DirectedGraph', function(hooks) {
 
     QUnit.test('should be an object', function(assert) {
 
-        assert.equal(typeof joint.layout.DirectedGraph, 'object');
+        assert.equal(typeof DirectedGraph, 'object');
     });
 
     QUnit.module('fromGraphLib(graphLib[, opt])', function(hooks) {
 
         QUnit.test('should be a function', function(assert) {
 
-            assert.equal(typeof joint.layout.DirectedGraph.fromGraphLib, 'function');
+            assert.equal(typeof DirectedGraph.fromGraphLib, 'function');
         });
     });
 
@@ -19,7 +21,7 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
         QUnit.test('should be a function', function(assert) {
 
-            assert.equal(typeof joint.layout.DirectedGraph.toGraphLib, 'function');
+            assert.equal(typeof DirectedGraph.toGraphLib, 'function');
         });
     });
 
@@ -39,7 +41,7 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
         QUnit.test('should be a function', function(assert) {
 
-            assert.equal(typeof joint.layout.DirectedGraph.layout, 'function');
+            assert.equal(typeof DirectedGraph.layout, 'function');
         });
 
         QUnit.test('should correctly layout the graph', function(assert) {
@@ -72,12 +74,17 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
             graph.resetCells(cells);
 
-            joint.layout.DirectedGraph.layout(graph);
+            DirectedGraph.layout(graph);
 
-            assert.deepEqual(_.pick(elements[0].position(), 'x', 'y'), { x: 0, y: 0 });
-            assert.deepEqual(_.pick(elements[1].position(), 'x', 'y'), { x: 10, y: 150 });
-            assert.deepEqual(_.pick(elements[2].position(), 'x', 'y'), { x: 110, y: 35 });
-            assert.deepEqual(_.pick(elements[3].position(), 'x', 'y'), { x: 15, y: 280 });
+            let x, y;
+            ({ x, y } = elements[0].position());
+            assert.deepEqual({ x, y }, { x: 0, y: 0 });
+            ({ x, y } = elements[1].position());
+            assert.deepEqual({ x, y }, { x: 10, y: 150 });
+            ({ x, y } = elements[2].position());
+            assert.deepEqual({ x, y }, { x: 110, y: 35 });
+            ({ x, y } = elements[3].position());
+            assert.deepEqual({ x, y }, { x: 15, y: 280 });
         });
 
         QUnit.test('an array of some of the cells instead of the full graph', function(assert) {
@@ -110,16 +117,21 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
             graph.resetCells(cells);
 
-            joint.layout.DirectedGraph.layout([
+            DirectedGraph.layout([
                 elements[0],
                 elements[1],
                 links[0]
             ]);
 
-            assert.deepEqual(_.pick(elements[0].position(), 'x', 'y'), { x: 0, y: 0 });
-            assert.deepEqual(_.pick(elements[1].position(), 'x', 'y'), { x: 10, y: 150 });
-            assert.deepEqual(_.pick(elements[2].position(), 'x', 'y'), { x: 300, y: 20 });
-            assert.deepEqual(_.pick(elements[3].position(), 'x', 'y'), { x: 400, y: 50 });
+            let x, y;
+            ({ x, y } = elements[0].position());
+            assert.deepEqual({ x, y }, { x: 0, y: 0 });
+            ({ x, y } = elements[1].position());
+            assert.deepEqual({ x, y }, { x: 10, y: 150 });
+            ({ x, y } = elements[2].position());
+            assert.deepEqual({ x, y }, { x: 300, y: 20 });
+            ({ x, y } = elements[3].position());
+            assert.deepEqual({ x, y }, { x: 400, y: 50 });
         });
 
         QUnit.test('an array of embedded cells without the parent', function(assert) {
@@ -156,7 +168,7 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
             graph.resetCells(cells);
 
-            joint.layout.DirectedGraph.layout([
+            DirectedGraph.layout([
                 elements[1],
                 elements[2],
                 elements[3],
@@ -164,10 +176,15 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
                 links[1]
             ]);
 
-            assert.deepEqual(_.pick(elements[0].position(), 'x', 'y'), { x: 0, y: 0 });
-            assert.deepEqual(_.pick(elements[1].position(), 'x', 'y'), { x: 0, y: 0 });
-            assert.deepEqual(_.pick(elements[2].position(), 'x', 'y'), { x: 10, y: 130 });
-            assert.deepEqual(_.pick(elements[3].position(), 'x', 'y'), { x: 5, y: 210 });
+            let x, y;
+            ({ x, y } = elements[0].position());
+            assert.deepEqual({ x, y }, { x: 0, y: 0 });
+            ({ x, y } = elements[1].position());
+            assert.deepEqual({ x, y }, { x: 0, y: 0 });
+            ({ x, y } = elements[2].position());
+            assert.deepEqual({ x, y }, { x: 10, y: 130 });
+            ({ x, y } = elements[3].position());
+            assert.deepEqual({ x, y }, { x: 5, y: 210 });
         });
 
 
@@ -189,24 +206,24 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
             graph.resetCells(elements.concat(links));
 
-            bbox = joint.layout.DirectedGraph.layout(graph);
+            bbox = DirectedGraph.layout(graph);
 
             assert.ok(bbox instanceof g.Rect);
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
 
-            bbox = joint.layout.DirectedGraph.layout(graph, {
+            bbox = DirectedGraph.layout(graph, {
                 marginX: 50,
                 marginY: 100
             });
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
 
-            bbox = joint.layout.DirectedGraph.layout(graph, {
+            bbox = DirectedGraph.layout(graph, {
                 marginX: -50,
                 marginY: -100
             });
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
 
-            bbox = joint.layout.DirectedGraph.layout(graph, {
+            bbox = DirectedGraph.layout(graph, {
                 marginX: -500,
                 marginY: -1000
             });

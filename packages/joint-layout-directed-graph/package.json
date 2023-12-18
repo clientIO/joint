@@ -1,0 +1,75 @@
+{
+  "name": "@joint/layout-directed-graph",
+  "title": "JointJS LayoutDirectedGraph",
+  "version": "3.7.7",
+  "description": "LayoutDirectedGraph module for JointJS",
+  "module": "./DirectedGraph.mjs",
+  "types": "./DirectedGraph.d.ts",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "contributors": [
+    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
+    "James Williams <james@jointjs.com> (https://github.com/jamesgeorgewilliams)",
+    "Zbynek Stara <zbynek@jointjs.com> (https://github.com/zbynekstara)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-layout-directed"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MPL-2.0",
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "yarn run dist",
+    "dist": "tsc",
+    "build": "rollup --config",
+    "test": "./node_modules/karma/bin/karma start karma.conf.js"
+  },
+  "files": [
+    "./DirectedGraph.d.ts",
+    "./DirectedGraph.mjs",
+    "./LICENSE",
+    "./README.md",
+    "./SECURITY.md"
+  ],
+  "dependencies": {
+    "@dagrejs/dagre": "~1.0.4",
+    "@dagrejs/graphlib": "~2.1.13",
+    "jointjs": "workspace:^"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "karma": "^6.4.2",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.1",
+    "karma-qunit": "^4.1.2",
+    "karma-sinon": "^1.0.5",
+    "puppeteer": "10.2.0",
+    "qunit": "^2.20.0",
+    "rollup": "^4.4.0",
+    "sinon": "^17.0.1",
+    "typescript": "4.8.3"
+  },
+  "volta": {
+    "node": "16.18.1",
+    "npm": "8.19.2",
+    "yarn": "3.4.1"
+  },
+  "keywords": [
+    "jointjs",
+    "layout",
+    "directed",
+    "graph"
+  ]
+}

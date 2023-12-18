@@ -40,16 +40,6 @@ module.exports = function(grunt) {
                 },
                 {
                     nonull: true,
-                    src: 'node_modules/dagre/dist/dagre.min.js',
-                    dest: 'build/docs/js/lib/dagre.min.js'
-                },
-                {
-                    nonull: true,
-                    src: 'node_modules/graphlib/dist/graphlib.min.js',
-                    dest: 'build/docs/js/lib/graphlib.min.js'
-                },
-                {
-                    nonull: true,
                     src: 'node_modules/jquery/dist/jquery.min.js',
                     dest: 'build/docs/js/lib/jquery.min.js'
                 },

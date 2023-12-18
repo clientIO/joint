@@ -10,10 +10,7 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['.js', '.mjs'],
-        alias: {
-            'underscore': 'lodash'
-        }
+        extensions: ['.js', '.mjs']
     },
     devtool: 'source-map',
     devServer: {
@@ -25,11 +22,12 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.css$/i,
+                test: /\.css$/,
+                sideEffects: true,
                 use: ['style-loader', 'css-loader'],
             },
             {
-                test: /\.s[ac]ss$/i,
+                test: /\.s[ac]ss$/,
                 use: [
                     {
                         loader: 'file-loader',

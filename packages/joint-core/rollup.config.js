@@ -6,7 +6,6 @@ const JOINT = [
 ];
 
 const LIBS_ESM = [
-    modules.dagre
 ];
 
 const DIST = [

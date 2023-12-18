@@ -65,13 +65,7 @@
     "./LICENSE",
     "./README.md"
   ],
-  "dependencies": {
-    "dagre": "~0.8.5",
-    "graphlib": "~2.1.8"
-  },
   "devDependencies": {
-    "@types/dagre": "~0.7.50",
-    "@types/graphlib": "~2.1.9",
     "@typescript-eslint/eslint-plugin": "5.48.1",
     "@typescript-eslint/parser": "5.48.1",
     "async": "2.6.1",
@@ -119,7 +113,6 @@
     "rollup": "1.20.3",
     "rollup-plugin-buble": "0.19.6",
     "rollup-plugin-commonjs": "9.2.0",
-    "rollup-plugin-external-globals": "0.3.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "4.0.0",
     "selenium-standalone": "6.15.3",

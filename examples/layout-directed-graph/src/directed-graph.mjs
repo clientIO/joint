@@ -1,5 +1,5 @@
-import * as dagre from 'dagre';
-import * as joint from '../../../joint.mjs';
+import * as joint from 'jointjs';
+import { DirectedGraph } from '@joint/layout-directed-graph';
 
 function val(view, selector, val) {
     var el = view.el.querySelector(selector);
@@ -166,7 +166,7 @@ var LayoutControls = joint.mvc.View.extend({
 
         paper.freeze();
 
-        joint.layout.DirectedGraph.layout(cells, this.getLayoutOptions());
+        DirectedGraph.layout(cells, this.getLayoutOptions());
 
         if (graph.getCells().length === 0) {
             // The graph could be empty at the beginning to avoid cells rendering
@@ -185,8 +185,6 @@ var LayoutControls = joint.mvc.View.extend({
 
     getLayoutOptions: function() {
         return {
-            dagre: dagre,
-            graphlib: dagre.graphlib,
             setVertices: true,
             setLabels: true,
             ranker: val(this, '#ranker'),
@@ -348,4 +346,3 @@ var controls = new LayoutControls({
 }, LinkControls);
 
 controls.layout();
-
