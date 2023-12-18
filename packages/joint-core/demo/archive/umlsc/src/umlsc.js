@@ -133,6 +133,7 @@ new joint.dia.Paper({
     gridSize: 1,
     model: graph,
     cellViewNamespace: shapes,
+    linkView: joint.dia.LegacyLinkView,
 });
 
 var uml = joint.shapes.uml;
