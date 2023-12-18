@@ -1966,6 +1966,7 @@ export namespace highlighters {
         rx?: number;
         ry?: number;
         useFirstSubpath?: boolean;
+        nonScalingStroke?: boolean;
         attrs?: attributes.NativeSVGAttributes;
     }
 
