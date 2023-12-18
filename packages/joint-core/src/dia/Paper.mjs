@@ -171,9 +171,10 @@ export const Paper = View.extend({
         //   return condition ? new customLink1() : new customLink2()
         // }
         defaultLink: function() {
-            const ns = this.model.get('cells').cellNamespace.standard;
-            if (!ns || !ns.Link) throw new Error('dia.Paper: no default link model found.');
-            return new ns.Link();
+            const { cellNamespace } = this.model.get('cells');
+            const ctor = getByPath(cellNamespace, ['standard', 'Link']);
+            if (!ctor) throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
+            return new ctor();
         },
 
         // A connector that is used by links with no connector defined on the model.
