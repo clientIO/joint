@@ -1,8 +1,20 @@
-# JointJS General Shapes
+# JointJS Directed Graph Layout
 
-A collection of general ECMAScript / TypeScript shapes for *[JointJS](https://www.jointjs.com/)*.
+A module for automatic layout of directed graphs for *[JointJS](https://www.jointjs.com/)*.
 
-This library fully depends on [JointJS](https://github.com/clientio/joint) (*>=3.5*), so please read its `README.md` before using this library.
+This library fully depends on [JointJS](https://github.com/clientio/joint) (*>=4.0*), so please read its `README.md` before using this library.
+
+### Tests
+
+Generate build files from the source code:
+```bash
+yarn run build
+```
+
+To run all tests:
+```bash
+yarn run test
+```
 
 ## License
 

@@ -1,17 +1,17 @@
 'use strict';
 
-QUnit.module('layout.DirectedGraph', function(hooks) {
+QUnit.module('DirectedGraph', function(hooks) {
 
     QUnit.test('should be an object', function(assert) {
 
-        assert.equal(typeof joint.layout.DirectedGraph, 'object');
+        assert.equal(typeof DirectedGraph, 'object');
     });
 
     QUnit.module('fromGraphLib(graphLib[, opt])', function(hooks) {
 
         QUnit.test('should be a function', function(assert) {
 
-            assert.equal(typeof joint.layout.DirectedGraph.fromGraphLib, 'function');
+            assert.equal(typeof DirectedGraph.fromGraphLib, 'function');
         });
     });
 
@@ -19,7 +19,7 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
         QUnit.test('should be a function', function(assert) {
 
-            assert.equal(typeof joint.layout.DirectedGraph.toGraphLib, 'function');
+            assert.equal(typeof DirectedGraph.toGraphLib, 'function');
         });
     });
 
@@ -39,7 +39,7 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
         QUnit.test('should be a function', function(assert) {
 
-            assert.equal(typeof joint.layout.DirectedGraph.layout, 'function');
+            assert.equal(typeof DirectedGraph.layout, 'function');
         });
 
         QUnit.test('should correctly layout the graph', function(assert) {
@@ -72,7 +72,7 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
             graph.resetCells(cells);
 
-            joint.layout.DirectedGraph.layout(graph);
+            DirectedGraph.layout(graph);
 
             assert.deepEqual(_.pick(elements[0].position(), 'x', 'y'), { x: 0, y: 0 });
             assert.deepEqual(_.pick(elements[1].position(), 'x', 'y'), { x: 10, y: 150 });
@@ -110,7 +110,7 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
             graph.resetCells(cells);
 
-            joint.layout.DirectedGraph.layout([
+            DirectedGraph.layout([
                 elements[0],
                 elements[1],
                 links[0]
@@ -156,7 +156,7 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
             graph.resetCells(cells);
 
-            joint.layout.DirectedGraph.layout([
+            DirectedGraph.layout([
                 elements[1],
                 elements[2],
                 elements[3],
@@ -189,24 +189,24 @@ QUnit.module('layout.DirectedGraph', function(hooks) {
 
             graph.resetCells(elements.concat(links));
 
-            bbox = joint.layout.DirectedGraph.layout(graph);
+            bbox = DirectedGraph.layout(graph);
 
             assert.ok(bbox instanceof g.Rect);
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
 
-            bbox = joint.layout.DirectedGraph.layout(graph, {
+            bbox = DirectedGraph.layout(graph, {
                 marginX: 50,
                 marginY: 100
             });
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
 
-            bbox = joint.layout.DirectedGraph.layout(graph, {
+            bbox = DirectedGraph.layout(graph, {
                 marginX: -50,
                 marginY: -100
             });
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
 
-            bbox = joint.layout.DirectedGraph.layout(graph, {
+            bbox = DirectedGraph.layout(graph, {
                 marginX: -500,
                 marginY: -1000
             });

@@ -17,6 +17,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
+    "@joint/layout-directed-graph": "workspace:^",
     "jointjs": "workspace:^"
   },
   "devDependencies": {

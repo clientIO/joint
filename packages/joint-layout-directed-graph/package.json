@@ -26,13 +26,17 @@
     "url": "https://github.com/clientIO/joint/issues"
   },
   "license": "MPL-2.0",
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "prepack": "yarn run dist",
-    "build": "tsc",
-    "dist": "tsc"
+    "dist": "tsc",
+    "build": "rollup --config",
+    "test": "./node_modules/karma/bin/karma start karma.conf.js"
   },
   "files": [
     "./DirectedGraph.d.ts",
@@ -47,8 +51,19 @@
     "jointjs": "workspace:^"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/dagre": "~0.7.50",
     "@types/graphlib": "~2.1.9",
+    "karma": "^6.4.2",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.1",
+    "karma-qunit": "^4.1.2",
+    "karma-sinon": "^1.0.5",
+    "lodash": "^4.17.21",
+    "puppeteer": "10.2.0",
+    "qunit": "^2.20.0",
+    "rollup": "^4.4.0",
+    "sinon": "^17.0.1",
     "typescript": "4.8.3"
   },
   "volta": {
@@ -58,8 +73,8 @@
   },
   "keywords": [
     "jointjs",
-    "general",
-    "shapes",
-    "decorators"
+    "layout",
+    "directed",
+    "graph"
   ]
 }
