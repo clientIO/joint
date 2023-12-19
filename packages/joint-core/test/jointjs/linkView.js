@@ -1199,8 +1199,6 @@ QUnit.module('linkView', function(hooks) {
                 'source',
                 paper
             ));
-
-
             // change coordinates
             strategySpy.resetHistory();
             linkView.pointermove({
