@@ -91,6 +91,7 @@ export const Button = ToolView.extend({
 });
 
 export const Remove = Button.extend({
+    name: 'remove',
     children: [{
         tagName: 'circle',
         selector: 'button',
