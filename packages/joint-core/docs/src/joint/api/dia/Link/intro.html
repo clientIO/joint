@@ -6,8 +6,7 @@
 
 <p>Links have two crucial properties: <code>source</code> and <code>target</code>. They define the starting point and the end point of the link. They can be defined with a Cell id (optionally, with additional subelement/magnet/port reference) or with a Point:</p>
 
-<pre><code data-lang="javascript">
-// `shapes.standard.Link` inherits from `dia.Link` (`dia.Link` is an abstract class that has no SVG  markup defined)
+<pre><code data-lang="javascript">// `shapes.standard.Link` inherits from `dia.Link` (`dia.Link` is an abstract class that has no SVG  markup defined)
 var link1 = new joint.shapes.standard.Link({
     source: { id: sourceId },
     target: { id: targetId, port: portId }
