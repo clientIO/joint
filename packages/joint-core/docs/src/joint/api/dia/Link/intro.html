@@ -176,7 +176,7 @@ var paper = new joint.dia.Paper({
     interactive: function(cellView) {
         if (cellView.model.get('customLinkInteractions')) {
             // only links with `customLinkInteractions: true`
-            return { labelMove: false };
+            return true;
         }
         return true; // otherwise
     }
