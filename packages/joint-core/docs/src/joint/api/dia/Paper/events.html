@@ -505,14 +505,14 @@ element1.removePorts();</code></pre>
 <pre><code>// Create a new link by dragging
 paper.on({
   'blank:pointerdown': function(evt, x, y) {
-    var link = new joint.dia.Link();
-    link.set('source', { x: x, y: y });
-    link.set('target', { x: x, y: y });
+    const link = new joint.shapes.standard.Link();
+    link.set('source', { x, y });
+    link.set('target', { x, y });
     link.addTo(this.model);
-    evt.data = { link: link, x: x, y: y };
+    evt.data = { link, x, y };
   },
   'blank:pointermove': function(evt, x, y) {
-    evt.data.link.set('target', { x: x, y: y });
+    evt.data.link.set('target', { x, y });
   },
   'blank:pointerup': function(evt) {
     var target = evt.data.link.get('target');

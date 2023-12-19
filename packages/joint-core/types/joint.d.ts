@@ -1098,31 +1098,19 @@ export namespace dia {
 
         protected onlabel(evt: dia.Event, x: number, y: number): void;
 
-        protected dragConnectionStart(evt: dia.Event, x: number, y: number): void;
-
         protected dragLabelStart(evt: dia.Event, x: number, y: number): void;
-
-        protected dragVertexStart(evt: dia.Event, x: number, y: number): void;
 
         protected dragArrowheadStart(evt: dia.Event, x: number, y: number): void;
 
         protected dragStart(evt: dia.Event, x: number, y: number): void;
 
-        protected dragConnection(evt: dia.Event, x: number, y: number): void;
-
         protected dragLabel(evt: dia.Event, x: number, y: number): void;
-
-        protected dragVertex(evt: dia.Event, x: number, y: number): void;
 
         protected dragArrowhead(evt: dia.Event, x: number, y: number): void;
 
         protected drag(evt: dia.Event, x: number, y: number): void;
 
-        protected dragConnectionEnd(evt: dia.Event, x: number, y: number): void;
-
         protected dragLabelEnd(evt: dia.Event, x: number, y: number): void;
-
-        protected dragVertexEnd(evt: dia.Event, x: number, y: number): void;
 
         protected dragArrowheadEnd(evt: dia.Event, x: number, y: number): void;
 
@@ -4186,6 +4174,8 @@ export namespace linkTools {
             snapRadius?: number;
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
+            vertexRemoving?: boolean;
+            vertexMoving?: boolean;
             stopPropagation?: boolean;
             scale?: number;
         }

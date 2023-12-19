@@ -22,7 +22,7 @@
     selector: 'label'
 }]</code></pre>
 
-<p>As we can see, the <code>joint.shapes.standard.Rect</code> shape consists of two <q>subelements</q>: one SVGRectElement named <code>'body'</code> and one SVGTextElement named <code>'label'</code>. The <a href="#dia.Element.intro.styling"><code>attrs</code></a> object refers to the subelements' names (<q>selectors</q>) to provide SVG attributes to these constituent SVGElements.</p>
+<p>As we can see, the <code>joint.shapes.standard.Rectangle</code> shape consists of two <q>subelements</q>: one SVGRectElement named <code>'body'</code> and one SVGTextElement named <code>'label'</code>. The <a href="#dia.Element.intro.styling"><code>attrs</code></a> object refers to the subelements' names (<q>selectors</q>) to provide SVG attributes to these constituent SVGElements.</p>
 
 <h4 id="dia.Element.intro.styling">Styling</h4>
 
@@ -64,9 +64,9 @@
 <h4 id="dia.Element.intro.attributes">Attributes</h4>
 
 <p>
-    Attributes defined in <a href="#dia.Cell.markup.attributes"><code>markup</code></a> are evaluated once at CellView creation, 
-    while attributes defined in <code>attrs</code> are evaluated on every model change. As JointJS special attributes usually depend on the 
-    current state of the model, we should define them in <code>attrs</code>, along with any other SVG attributes that will be modified 
+    Attributes defined in <a href="#dia.Cell.markup.attributes"><code>markup</code></a> are evaluated once at CellView creation,
+    while attributes defined in <code>attrs</code> are evaluated on every model change. As JointJS special attributes usually depend on the
+    current state of the model, we should define them in <code>attrs</code>, along with any other SVG attributes that will be modified
     in the runtime of your application.
 </p>
 

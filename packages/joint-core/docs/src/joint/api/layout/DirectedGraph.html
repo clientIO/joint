@@ -182,7 +182,7 @@ var graph = DirectedGraph.fromGraphLib(glGraph, {
         });
     },
     importEdge: function(edge) {
-        return new joint.dia.Link({
+        return new joint.shapes.standard.Link({
             source: { id: edge.v },
             target: { id: edge.w }
         });

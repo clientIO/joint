@@ -210,7 +210,7 @@ QUnit.module('Attributes', function() {
                 paper.on('cell:unhighlight', unhighlightSpy);
                 paper.options.validateConnection = validateSpy;
 
-                var link = new joint.dia.Link({ width: 100, height: 100 });
+                var link = new joint.shapes.standard.Link();
                 link.addTo(graph);
                 var linkView = link.findView(paper);
                 assert.equal(linkView.sourceMagnet, null);
@@ -252,7 +252,7 @@ QUnit.module('Attributes', function() {
                 paper.on('cell:unhighlight', unhighlightSpy);
                 paper.options.validateConnection = validateSpy;
 
-                var link = new joint.dia.Link({ width: 100, height: 100 });
+                var link = new joint.shapes.standard.Link();
                 link.addTo(graph);
                 var linkView = link.findView(paper);
                 assert.equal(linkView.sourceMagnet, null);
@@ -321,7 +321,7 @@ QUnit.module('Attributes', function() {
                 paper.on('cell:unhighlight', unhighlightSpy);
                 paper.options.validateConnection = validateSpy;
 
-                var link = new joint.dia.Link({ width: 100, height: 100 });
+                var link = new joint.shapes.standard.Link();
                 link.addTo(graph);
                 var linkView = link.findView(paper);
                 assert.equal(linkView.sourceMagnet, null);

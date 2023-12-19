@@ -6,12 +6,13 @@
 
 <p>Links have two crucial properties: <code>source</code> and <code>target</code>. They define the starting point and the end point of the link. They can be defined with a Cell id (optionally, with additional subelement/magnet/port reference) or with a Point:</p>
 
-<pre><code data-lang="javascript">var link1 = new joint.dia.Link({
+<pre><code data-lang="javascript">// `shapes.standard.Link` inherits from `dia.Link` (`dia.Link` is an abstract class that has no SVG  markup defined)
+var link1 = new joint.shapes.standard.Link({
     source: { id: sourceId },
     target: { id: targetId, port: portId }
 });
 
-var link2 = new joint.dia.Link({
+var link2 = new joint.shapes.standard.Link({
     source: { id: sourceId },
     target: { x: 100, y: 100 }
 });</code></pre>
@@ -22,7 +23,8 @@ var link2 = new joint.dia.Link({
 
 <h4 id="dia.Link.intro.presentation">Presentation</h4>
 
-<p>Each <code>joint.dia.Link</code> defines its own SVG <code>markup</code> which is then used by <a href="#dia.LinkView"><code>joint.dia.LinkView</code></a> to render the link to the <a href="#dia.Paper">paper</a>. For instance, the <a href="#shapes.standard.Link"><code>joint.shapes.standard.Link</code></a> (which inherits from <code>joint.dia.Link</code>) defines its markup using the <a href="#dia.Cell.markup.json">JSON array notation</a> as follows:</p>
+<p>Each <code>joint.dia.Link</code> defines its own SVG <code>markup</code> which is then used by <a href="#dia.LinkView"><code>joint.dia.LinkView</code></a> to render the link to the <a href="#dia.Paper">paper</a>.
+    For instance, the <a href="#shapes.standard.Link"><code>joint.shapes.standard.Link</code></a> (which inherits from <code>joint.dia.Link</code>) defines its markup using the <a href="#dia.Cell.markup.json">JSON array notation</a> as follows:</p>
 
 <pre><code>markup: [{
     tagName: 'path',
@@ -43,44 +45,6 @@ var link2 = new joint.dia.Link({
 }]</code></pre>
 
 <p>As we can see, the <code>joint.shapes.standard.Link</code> shape consists of two <q>subelements</q>: one SVGPathElement named <code>'wrapper'</code> and one SVGPathElement named <code>'line'</code>. The <a href="#dia.Link.intro.styling"><code>attrs</code></a> object refers to the subelements' names (<q>selectors</q>) to provide SVG attributes to these constituent SVGElements.</p>
-
-<p class="docs-important-note">Direct use of <code>joint.dia.Link</code> is deprecated. Use links from the <a href="#shapes.standard"><code>standard</code></a> namespace.</p>
-
-<p>The <code>joint.dia.Link</code> markup looks like the following:</p>
-
-<pre><code data-lang="svg">&lt;path class=&quot;connection&quot;/&gt;
-&lt;path class=&quot;marker-source&quot;/&gt;
-&lt;path class=&quot;marker-target&quot;/&gt;
-&lt;path class=&quot;connection-wrap&quot;/&gt;
-&lt;g class=&quot;labels&quot; /&gt;
-&lt;g class=&quot;marker-vertices&quot;/&gt;
-&lt;g class=&quot;marker-arrowheads&quot;/&gt;
-&lt;g class=&quot;link-tools&quot; /&gt;</code></pre>
-
-<p>As you can see, the link consists of a couple of SVG path elements and a couple of SVG group elements:</p>
-
-<ul>
-    <li><code>.connection</code> is the actual line of the link.</li>
-    <li><code>.connection-wrap</code> is an SVG path element that covers the <code>.connection</code> element and is usually thicker so that the link is able to handle pointer events (mousedown, mousemove, mouseup) that didn't target the thin <code>.connection</code> path exactly. This makes it easy to <q>grab</q> the link even though the mouse cursor didn't point exactly at the (usually thin) <code>.connection</code> path element.</li>
-    <li><code>.marker-source</code> and <code>.marker-target</code> are the arrowheads of the link.</li>
-</ul>
-
-<p>The subelements of the link can be optionally styled through link attributes. For example:</p>
-
-<pre><code data-lang="javascript">link.attr({
-    '.connection': { stroke: 'blue' },
-    '.marker-source': { fill: 'red', d: 'M 10 0 L 0 5 L 10 10 z' },
-    '.marker-target': { fill: 'yellow', d: 'M 10 0 L 0 5 L 10 10 z' }
-});</code></pre>
-
-<p class="docs-important-note">The <code>markup</code> attribute is not the only presentation attribute that may be specified for a <code>joint.dia.Link</code>. However, the following four Link properties are deprecated and included only for backwards compatibility. Use <a href="#linkTools">link tools</a> instead.</p>
-
-<ul>
-    <li><code>vertexMarkup</code> - provide default vertex markup for all vertices created on an instance of this Link type (on hover).</li>
-    <li><code>toolMarkup</code> - provide custom tool markup for all instances of this Link type (on hover).</li>
-    <li><code>doubleToolMarkup</code> - provide custom markup for second set of tools for all instances of this Link type (on hover, if <code>linkView.doubleLinkTools</code> is <code>true</code>).</li>
-    <li><code>arrowheadMarkup</code> - provide custom arrowhead markup for all instances of this Link type (on hover).</li>
-</ul>
 
 <h4 id="dia.Link.intro.styling">Styling</h4>
 
@@ -212,18 +176,18 @@ var paper = new joint.dia.Paper({
     interactive: function(cellView) {
         if (cellView.model.get('customLinkInteractions')) {
             // only links with `customLinkInteractions: true`
-            return { vertexAdd: false };
+            return true;
         }
-        return true; // otherwise
+        return { labelMove: false }; // otherwise
     }
 });
 
-var link1 = new joint.dia.Link({
+var link1 = new joint.shapes.standard.Link({
     //...
     customLinkInteractions: true // right-click adds a label
 });
 
-var link2 = new joint.dia.Link({
+var link2 = new joint.shapes.standard.Link({
     //...
     customLinkInteractions: false // or omit completely
 });</code></pre>

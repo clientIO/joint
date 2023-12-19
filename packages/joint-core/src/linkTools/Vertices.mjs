@@ -150,13 +150,13 @@ export const Vertices = ToolView.extend({
         if (connection) connection.setAttribute('d', this.relatedView.getSerializedConnection());
     },
     startHandleListening: function(handle) {
-        var relatedView = this.relatedView;
-        if (relatedView.can('vertexMove')) {
+        const { vertexRemoving = true, vertexMoving = true } = this.options;
+        if (vertexMoving) {
             this.listenTo(handle, 'will-change', this.onHandleWillChange);
             this.listenTo(handle, 'changing', this.onHandleChanging);
             this.listenTo(handle, 'changed', this.onHandleChanged);
         }
-        if (relatedView.can('vertexRemove')) {
+        if (vertexRemoving) {
             this.listenTo(handle, 'remove', this.onHandleRemove);
         }
     },

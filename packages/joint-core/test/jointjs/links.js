@@ -30,7 +30,7 @@ QUnit.module('links', function(hooks) {
 
         QUnit.test('should return FALSE', function(assert) {
 
-            var link = new joint.dia.Link;
+            var link = new joint.shapes.standard.Link;
 
             assert.notOk(link.isElement());
         });
@@ -45,7 +45,7 @@ QUnit.module('links', function(hooks) {
 
         QUnit.test('should return TRUE', function(assert) {
 
-            var link = new joint.dia.Link;
+            var link = new joint.shapes.standard.Link;
 
             assert.ok(link.isLink());
         });
@@ -58,24 +58,27 @@ QUnit.module('links', function(hooks) {
 
         this.graph.addCell([r1, r2]);
 
-        var l0 = new joint.dia.Link({
+        var l0 = new joint.shapes.standard.Link({
             source: { id: r1.id },
             target: { id: r2.id },
-            attrs: { '.connection': { stroke: 'black' }}
+            attrs: { line: { stroke: 'black' }}
         });
 
         this.graph.addCell(l0);
 
-        assert.strictEqual(l0.constructor, joint.dia.Link, 'link.constructor === joint.dia.Link');
+        assert.strictEqual(l0.constructor, joint.shapes.standard.Link, 'link.constructor === joint.shapes.standard.Link');
 
         var v0 = this.paper.findViewByModel(l0);
 
-        assert.checkDataPath(v0.$('.connection').attr('d'), 'M 140 70 L 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
+        assert.checkDataPath(v0.findNode('line').getAttribute('d'), 'M 140 70 L 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
 
         var l1 = new joint.dia.Link({
+            type: 'test-link',
             source: { id: r1.id },
             target: { id: r2.id },
-            markup: '<path class="connection"/>'
+            markup: joint.util.svg/*xml*/`
+                <path @selector="line" class="connection"/>
+            `
         });
 
         assert.ok(_.isUndefined(l1.get('source').x) && _.isUndefined(l1.get('source').y),
@@ -89,9 +92,13 @@ QUnit.module('links', function(hooks) {
         assert.ok(v1, 'link with custom markup (1 child) is rendered.');
 
         var l2 = new joint.dia.Link({
+            type: 'test-link',
             source: { id: r1.id },
             target: { id: r2.id },
-            markup: '<path class="connection"/><path class="connection-wrap"/>'
+            markup: joint.util.svg/*xml*/`
+                <path @selector="line" class="connection"/>
+                <path @selector="wrapper" class="connection-wrap"/>
+            `
         });
         this.graph.addCell(l2);
         var v2 = this.paper.findViewByModel(l2);
@@ -99,7 +106,7 @@ QUnit.module('links', function(hooks) {
         assert.ok(v2, 'link with custom markup (2 children) is rendered.');
 
         // It should be possible to create empty links and set source/target later.
-        var lEmpty = new joint.dia.Link;
+        var lEmpty = new joint.shapes.standard.Link;
         assert.ok(true, 'creating a link with no source/target does not throw an exception');
         var rEmpty = new joint.shapes.standard.Rectangle;
         var r2Empty = new joint.shapes.standard.Rectangle;
@@ -192,7 +199,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('interaction', function(assert) {
 
-        assert.expect(6);
+        assert.expect(4);
 
         var event;
         var r1 = new joint.shapes.standard.Rectangle({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
@@ -204,10 +211,15 @@ QUnit.module('links', function(hooks) {
         var vr1 = this.paper.findViewByModel(r1);
         var vr3 = this.paper.findViewByModel(r3);
 
-        var l0 = new joint.dia.Link({
+        var l0 = new joint.shapes.standard.Link({
             source: { id: r1.id },
             target: { id: r2.id },
-            attrs: { '.connection': { stroke: 'black' }},
+            attrs: {
+                line: {
+                    stroke: 'black',
+                }
+            },
+            vertices: [{ x: 300, y: 100 }],
             labels: [
                 { position: .5, attrs: { text: { text: 'test label' }}}
             ]
@@ -216,29 +228,10 @@ QUnit.module('links', function(hooks) {
         this.graph.addCell(l0);
 
         var v0 = this.paper.findViewByModel(l0);
-
         this.paper.options.validateConnection = function(vs, ms, vt, mt, v) {
             assert.ok(vs === vr1 && vt === vr3, 'connection validation executed');
             return vt instanceof joint.dia.ElementView;
         };
-
-        // adding vertices
-        event = { target: v0.el.querySelector('.connection') };
-        v0.pointerdown(event, 200, 70);
-        v0.pointerup(event);
-        assert.deepEqual(l0.get('vertices'), [{ x: 200, y: 70 }], 'vertex added after click the connection.');
-
-        var firstVertexRemoveArea = v0.el.querySelector('.marker-vertex-remove-area');
-
-        event = { target: v0.el.querySelector('.connection') };
-        v0.pointerdown(event, 300, 70);
-        v0.pointermove(event, 300, 100);
-        v0.pointerup(event);
-        assert.deepEqual(l0.get('vertices'), [{ x: 200, y: 70 }, { x: 300, y: 100 }], 'vertex added and translated after click the connection wrapper and mousemove.');
-
-        event = { target: firstVertexRemoveArea };
-        v0.pointerdown(event);
-        v0.pointerup(event);
 
         // arrowheadmove
 
@@ -258,8 +251,9 @@ QUnit.module('links', function(hooks) {
             }
         });
 
-        event = { target: v0.el.querySelector('.marker-arrowhead[end="target"]') };
-        v0.pointerdown(event);
+        var data = {};
+        event = { data };
+        simulate.dragLinkView(v0, 'target', { data });
         event.target = vr3.el;
         event.type = 'mousemove';
         v0.pointermove(event, 630, 40);
@@ -270,29 +264,29 @@ QUnit.module('links', function(hooks) {
         assert.notOk(highlighted, 'after moving the pointer to coordinates 400, 400 the rectangle is not highlighted anymore');
 
         v0.pointerup(event);
-        assert.checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 L 300 100 L 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
+        assert.checkDataPath(v0.getConnection().round().serialize(), 'M 140 78 L 300 100 L 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
     });
 
     QUnit.test('defaultLink', function(assert) {
 
         assert.expect(10);
 
-        this.paper.options.defaultLink = new joint.dia.Link();
+        this.paper.options.defaultLink = new joint.shapes.standard.DoubleLink();
 
         var link = this.paper.getDefaultLink();
 
-        assert.ok(link instanceof joint.dia.Link, 'sanity: defaultLink is cloned');
+        assert.ok(link instanceof joint.shapes.standard.DoubleLink, 'sanity: defaultLink is cloned');
 
         this.paper.options.defaultLink = function(v, m) {
 
-            return new joint.dia.Link();
+            return new joint.shapes.standard.DoubleLink();
         };
 
         link = this.paper.getDefaultLink();
 
-        assert.ok(link instanceof joint.dia.Link, 'sanity: defaultLink is a function');
+        assert.ok(link instanceof joint.shapes.standard.DoubleLink, 'sanity: defaultLink is a function');
 
-        var MyLink = joint.dia.Link.extend({
+        var MyLink = joint.shapes.standard.Link.extend({
             isMyLink: true
         });
 
@@ -305,7 +299,7 @@ QUnit.module('links', function(hooks) {
         this.graph.addCell(model);
 
         var view = this.paper.findViewByModel(model);
-        var rect = view.$('rect')[0];
+        var rect = view.findNode('body');
 
         this.graph.on('add', function(cell) {
 
@@ -345,7 +339,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('source', function(assert) {
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { x: 40, y: 40 },
             target: { x: 100, y: 100 }
         });
@@ -377,7 +371,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('target', function(assert) {
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { x: 40, y: 40 },
             target: { x: 100, y: 100 }
         });
@@ -421,11 +415,11 @@ QUnit.module('links', function(hooks) {
         myrect2.translate(300);
         this.graph.addCell(myrect2);
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
 
             source: { id: myrect.id },
             target: { id: myrect2.id },
-            attrs: { '.connection': { stroke: 'black' }}
+            attrs: { link: { stroke: 'black' }}
         });
 
         this.graph.addCell(link);
@@ -438,20 +432,20 @@ QUnit.module('links', function(hooks) {
         assert.notOk(link.get('source').id, 'source of the link became a point');
         assert.ok(link.get('target').id, 'target of the link is still not a point');
 
-        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 L 320 70', 'link path data stayed the same after disconnection');
-        assert.checkDataPath(linkView.$('.connection-wrap').attr('d'), 'M 140 70 L 320 70', 'link connection-wrap path data is the same as the .connection path data');
+        assert.checkDataPath(linkView.findNode('line').getAttribute('d'), 'M 140 70 L 320 70', 'link path data stayed the same after disconnection');
+        assert.checkDataPath(linkView.findNode('wrapper').getAttribute('d'), 'M 140 70 L 320 70', 'link connection-wrap path data is the same as the .connection path data');
 
         myrect.translate(-10);
 
-        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 L 320 70', 'link path data stayed the same after the disconnected source moved');
+        assert.checkDataPath(linkView.findNode('line').getAttribute('d'), 'M 140 70 L 320 70', 'link path data stayed the same after the disconnected source moved');
 
         link.set('source', { id: myrect.id });
 
-        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 130 70 L 320 70', 'link path data updated after the disconnected source became re-connected again');
+        assert.checkDataPath(linkView.findNode('line').getAttribute('d'), 'M 130 70 L 320 70', 'link path data updated after the disconnected source became re-connected again');
 
         myrect.translate(10);
 
-        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 L 320 70', 'link path data updated after the just connected source moved');
+        assert.checkDataPath(linkView.findNode('line').getAttribute('d'), 'M 140 70 L 320 70', 'link path data updated after the just connected source moved');
 
         // disconnect:
         link.set('target', linkView.targetPoint.toJSON());
@@ -478,7 +472,7 @@ QUnit.module('links', function(hooks) {
         this.graph.addCell(myrect);
         this.graph.addCell(myrect2);
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { id: myrect.id },
             target: { id: myrect2.id }
         });
@@ -502,13 +496,13 @@ QUnit.module('links', function(hooks) {
 
         var myrect = new joint.shapes.standard.Rectangle;
         this.graph.addCell(myrect);
-        var link = new joint.dia.Link({ source: { id: myrect.id }, target: { id: myrect.id }});
+        var link = new joint.shapes.standard.Link({ source: { id: myrect.id }, target: { id: myrect.id }});
         this.graph.addCell(link);
         assert.equal(link.hasLoop(), true, 'link has a loop');
 
         var myrect2 = new joint.shapes.standard.Rectangle;
         this.graph.addCell(myrect2);
-        var link2 = new joint.dia.Link({ source: { id: myrect2.id }, target: { x: 20, y: 20 }});
+        var link2 = new joint.shapes.standard.Link({ source: { id: myrect2.id }, target: { x: 20, y: 20 }});
         this.graph.addCell(link2);
         assert.equal(link2.hasLoop(), false, 'link pinned to the paper does not have a loop');
         assert.equal(link2.hasLoop({ deep: true }), false, 'link pinned to the paper does not have a loop with deep = true');
@@ -517,7 +511,7 @@ QUnit.module('links', function(hooks) {
         var myrect3a = new joint.shapes.standard.Rectangle;
         myrect3.embed(myrect3a);
         this.graph.addCells([myrect3, myrect3a]);
-        var link3 = new joint.dia.Link({ source: { id: myrect3.id }, target: { id: myrect3a.id }});
+        var link3 = new joint.shapes.standard.Link({ source: { id: myrect3.id }, target: { id: myrect3a.id }});
         this.graph.addCell(link3);
         assert.equal(link3.hasLoop(), false, 'link targetting an embedded element does not have a loop with deep = false');
         assert.equal(link3.hasLoop({ deep: true }), true, 'link targetting an embedded element does have a loop with deep = true');
@@ -525,200 +519,76 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('markers', function(assert) {
 
-        var myrect = new joint.shapes.standard.Rectangle({
+        const myrect1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
             attrs: { text: { text: 'my rectangle' }}
         });
-        var myrect2 = myrect.clone();
+
+        const myrect2 = myrect1.clone();
         myrect2.translate(300);
 
-        this.graph.addCell(myrect);
-        this.graph.addCell(myrect2);
-
-        var link = new joint.dia.Link({
-
-            source: { id: myrect.id },
+        const link = new joint.shapes.standard.Link({
+            source: { id: myrect1.id },
             target: { id: myrect2.id },
             attrs: {
-                '.connection': {
-                    stroke: 'black'
-                },
-                '.marker-source': {
-                    d: 'M 10 0 L 0 5 L 10 10 z'
-                },
-                '.marker-target': {
-                    d: 'M 10 0 L 0 5 L 10 10 z'
+                line: {
+                    sourceMarker: {
+                        d: 'M 10 0 L 0 5 L 10 10 z',
+                        testSourceMarker: true
+                    },
+                    targetMarker: {
+                        d: 'M 10 0 L 0 5 L 10 10 z',
+                        testTargetMarker: true
+                    },
+                    vertexMarker: {
+                        d: 'M 10 0 L 0 5 L 10 10 z',
+                        testMidMarker: true
+                    }
                 }
             }
         });
 
-        this.graph.addCell(link);
-
-        var linkView = this.paper.findViewByModel(link);
-
-        var markerSourceBbox = V(linkView.$('.marker-source')[0]).bbox();
-
-        assert.deepEqual(
-            { x: markerSourceBbox.x, y: markerSourceBbox.y, width: markerSourceBbox.width, height: markerSourceBbox.height },
-            { x: 140, y: 65, width: 10, height: 10 },
-            '.marker-source should point to the left edge of the rectangle'
-        );
-
-        var markerTargetBbox = V(linkView.$('.marker-target')[0]).bbox();
-
-        assert.deepEqual(
-            { x: markerTargetBbox.x, y: markerTargetBbox.y, width: markerTargetBbox.width, height: markerTargetBbox.height, rotation: V(linkView.$('.marker-target')[0]).rotate().angle },
-            { x: 310, y: 65, width: 10, height: 10, rotation: -180 },
-            '.marker-target should point to the right edge of the rectangle 2 and should be rotated by -180 degrees'
-        );
-    });
-
-    QUnit.test('vertices', function(assert) {
-
-        var myrect = new joint.shapes.standard.Rectangle({
-            position: { x: 20, y: 30 },
-            size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
-        });
-        var myrect2 = myrect.clone();
-        myrect2.translate(300);
-
-        this.graph.addCell(myrect);
+        this.graph.addCell(myrect1);
         this.graph.addCell(myrect2);
-
-        var link = new joint.dia.Link({
-
-            source: { id: myrect.id },
-            target: { id: myrect2.id },
-            vertices: [{ x: 80, y: 150 }, { x: 380, y: 150 }],
-            attrs: {
-                '.connection': {
-                    stroke: 'black'
-                },
-                '.marker-source': {
-                    d: 'M 10 0 L 0 5 L 10 10 z'
-                },
-                '.marker-target': {
-                    d: 'M 10 0 L 0 5 L 10 10 z'
-                }
-            }
-        });
-
         this.graph.addCell(link);
 
-        var linkView = this.paper.findViewByModel(link);
+        const linkView = this.paper.findViewByModel(link);
 
-        var markerSourceBbox = V(linkView.$('.marker-source')[0]).bbox();
+        assert.ok(linkView.findNode('line').getAttribute('marker-start'));
+        assert.ok(linkView.findNode('line').getAttribute('marker-end'));
+        assert.ok(linkView.findNode('line').getAttribute('marker-mid'));
 
-        assert.deepEqual(
-            {
-                x: markerSourceBbox.x,
-                y: markerSourceBbox.y,
-                width: markerSourceBbox.width,
-                height: markerSourceBbox.height,
-                rotation: g.normalizeAngle(V(linkView.$('.marker-source')[0]).rotate().angle)
-            },
-            {
-                x: 75,
-                y: 110,
-                width: 10,
-                height: 10,
-                rotation: g.normalizeAngle(-270)
-            },
-            '.marker-source should point to the bottom edge of the rectangle and should be rotated by -270 degrees'
-        );
-
-        var markerTargetBbox = V(linkView.$('.marker-target')[0]).bbox();
-
-        assert.deepEqual(
-            {
-                x: markerTargetBbox.x,
-                y: markerTargetBbox.y,
-                width: markerTargetBbox.width,
-                height: markerTargetBbox.height,
-                rotation: g.normalizeAngle(V(linkView.$('.marker-target')[0]).rotate().angle)
-            },
-            {
-                x: 375,
-                y: 110,
-                width: 10,
-                height: 10,
-                rotation: g.normalizeAngle(-270)
-            },
-            '.marker-target should point to the bottom edge of the rectangle 2 and should be rotated by -270 degrees'
-        );
-
-        assert.equal($('.marker-vertex').length, 2, 'there is exactly 2 vertex markers on the page');
-
-        var firstVertextPosition = g.rect(V($('.marker-vertex')[0]).bbox()).center();
-        assert.deepEqual(
-            { x: firstVertextPosition.x, y: firstVertextPosition.y },
-            link.get('vertices')[0],
-            'first vertex is in the same position as defined in the vertices array'
-        );
-
-        var secondVertextPosition = g.rect(V($('.marker-vertex')[1]).bbox()).center();
-        assert.deepEqual(
-            { x: secondVertextPosition.x, y: secondVertextPosition.y },
-            link.get('vertices')[1],
-            'second vertex is in the same position as defined in the vertices array'
-        );
+        assert.ok(this.paper.defs.contains(this.paper.el.querySelector('[test-source-marker]')));
+        assert.ok(this.paper.defs.contains(this.paper.el.querySelector('[test-target-marker]')));
+        assert.ok(this.paper.defs.contains(this.paper.el.querySelector('[test-mid-marker]')));
     });
 
     QUnit.test('perpendicular links', function(assert) {
 
         this.paper.options.defaultAnchor = { name: 'perpendicular' };
 
-        var myrect = new joint.shapes.standard.Rectangle({
+        const myrect1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
             attrs: { text: { text: 'my rectangle' }}
         });
-        var myrect2 = myrect.clone();
+        const myrect2 = myrect1.clone();
         myrect2.translate(300);
 
-        this.graph.addCell(myrect);
-        this.graph.addCell(myrect2);
-
-        var link = new joint.dia.Link({
-
-            source: { id: myrect.id },
+        const link = new joint.shapes.standard.Link({
+            source: { id: myrect1.id },
             target: { id: myrect2.id },
             vertices: [{ x: 138, y: 150 }, { x: 180, y: 108 }],
-            attrs: {
-                '.connection': {
-                    stroke: 'black'
-                },
-                '.marker-source': {
-                    d: 'M 0 0 L 0 0 z'
-                },
-                '.marker-target': {
-                    d: 'M 0 0 L 0 0 z'
-                }
-            }
         });
 
+        this.graph.addCell(myrect1);
+        this.graph.addCell(myrect2);
         this.graph.addCell(link);
 
-        var linkView = this.paper.findViewByModel(link);
-
-        var markerSourceBbox = V(linkView.$('.marker-source')[0]).bbox();
-
-        assert.deepEqual(
-            { x: markerSourceBbox.x, y: markerSourceBbox.y },
-            { x: 138, y: 110 },
-            '.marker-source should point vertically to the edge of the source rectangle making the part of the link before the first vertex perpendicular to the source rectangle'
-        );
-
-        var markerTargetBbox = V(linkView.$('.marker-target')[0]).bbox();
-
-        assert.deepEqual(
-            { x: markerTargetBbox.x, y: markerTargetBbox.y },
-            { x: myrect2.get('position').x, y: 108 },
-            '.marker-target should point horizontally to the edge of the target rectangle making the part of the link after the last vertex perpendicular to the target rectangle'
-        );
-
+        const linkView = this.paper.findViewByModel(link);
+        assert.equal(linkView.sourcePoint.toString(), '138@110');
+        assert.equal(linkView.targetPoint.toString(), '320@108');
     });
 
     QUnit.module('Labels', function(assert) {
@@ -732,7 +602,7 @@ QUnit.module('links', function(hooks) {
             this.graph.addCell(myrect);
             this.graph.addCell(myrect2);
 
-            var link = new joint.dia.Link({
+            var link = new joint.shapes.standard.Link({
 
                 source: { id: myrect.id },
                 target: { id: myrect2.id },
@@ -1262,7 +1132,7 @@ QUnit.module('links', function(hooks) {
 
         QUnit.test('change:labels', function(assert) {
 
-            var l = new joint.dia.Link({
+            var l = new joint.shapes.standard.Link({
                 source: { x: 0, y: 0 },
                 target: { x: 100, y: 100 }
             }).addTo(this.graph);
@@ -1347,7 +1217,7 @@ QUnit.module('links', function(hooks) {
         QUnit.test('change:labels + change:source', function(assert) {
             var graph = this.graph;
             var paper = this.paper;
-            var l = new joint.dia.Link({
+            var l = new joint.shapes.standard.Link({
                 source: { x: 0, y: 0 },
                 target: { x: 100, y: 100 }
             }).addTo(graph);
@@ -1401,7 +1271,7 @@ QUnit.module('links', function(hooks) {
     QUnit.test('snap links', function(assert) {
 
         var event;
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { x: 0, y: 0 },
             target: { x: 0, y: 0 }
         });
@@ -1413,17 +1283,11 @@ QUnit.module('links', function(hooks) {
         this.graph.addCells([myrect, link]);
 
         var v = this.paper.findViewByModel(link);
-        var t = v.el.querySelector('.marker-arrowhead[end=target]');
 
         // link target was out of the radius and therefore was not snapped to the element
 
         this.paper.options.snapLinks = { radius: 5 };
-
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
-        event.target = this.paper.el;
-        v.pointermove(event, 90, 90);
-        v.pointerup(event, 90, 90);
+        simulate.dragLinkView(v, 'target', { targetEl: this.paper.el, x: 90, y: 90  });
 
         assert.deepEqual(link.get('target'), {
             x: 90, y: 90
@@ -1432,12 +1296,7 @@ QUnit.module('links', function(hooks) {
         // link target was snapped to the element
 
         this.paper.options.snapLinks = { radius: 50 };
-
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
-        event.target = this.paper.el;
-        v.pointermove(event, 90, 90);
-        v.pointerup(event, 90, 90);
+        simulate.dragLinkView(v, 'target', { targetEl: this.paper.el, x: 90, y: 90  });
 
         assert.ok(link.get('target').id === myrect.id, 'link target was snapped to the element');
 
@@ -1446,28 +1305,18 @@ QUnit.module('links', function(hooks) {
         // getBoundingClientRect returns negative values for top and left when paper not visible
         this.paper.options.snapLinks = { radius: Number.MAX_VALUE };
 
-        myrect.attr('.', { magnet: false });
-        myrect.attr('text', { magnet: true, port: 'port' });
+        myrect.attr('root', { magnet: false });
+        myrect.attr('label', { magnet: true, port: 'port' });
 
         this.paper.options.validateConnection = function() { return true; };
-
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
-        event.target = this.paper.el;
-        v.pointermove(event, 90, 90);
-        v.pointerup(event, 90, 90);
+        simulate.dragLinkView(v, 'target', { targetEl: this.paper.el, x: 90, y: 90  });
 
         assert.ok(link.get('target').port === 'port', 'link target was snapped to the port');
 
         // the validation is taken into account when snapping to port
 
         this.paper.options.validateConnection = function() { return false; };
-
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
-        event.target = this.paper.el;
-        v.pointermove(event, 90, 90);
-        v.pointerup(event, 90, 90);
+        simulate.dragLinkView(v, 'target', { targetEl: this.paper.el, x: 90, y: 90  });
 
         assert.deepEqual(link.get('target'), {
             x: 90, y: 90
@@ -1477,7 +1326,7 @@ QUnit.module('links', function(hooks) {
     QUnit.test('mark available', function(assert) {
 
         var event;
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { x: 0, y: 0 },
             target: { x: 0, y: 0 }
         });
@@ -1498,12 +1347,12 @@ QUnit.module('links', function(hooks) {
         this.graph.addCells([myrect1, myrect2, link]);
 
         var v = this.paper.findViewByModel(link);
-        var t = v.el.querySelector('.marker-arrowhead[end=target]');
 
         this.paper.options.markAvailable = true;
 
-        event = { target: t };
-        v.pointerdown(event, 0, 0);
+        var data = {};
+        event = { data };
+        simulate.dragLinkView(v, 'target', { data });
 
         var availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
         var availableCells = this.paper.el.querySelectorAll('.available-cell');
@@ -1531,13 +1380,13 @@ QUnit.module('links', function(hooks) {
             assert.ok(vertices.length > 0, 'Default router was used for the model with no router defined.');
         };
 
-        var linkDefaultRouter = new joint.dia.Link({
+        var linkDefaultRouter = new joint.shapes.standard.Link({
             source: { x: 0, y: 0 },
             target: { x: 0, y: 0 },
             vertices: [{ x: 50, y: 50 }]
         });
 
-        var linkOwnRouter = new joint.dia.Link({
+        var linkOwnRouter = new joint.shapes.standard.Link({
             source: { x: 0, y: 0 },
             target: { x: 0, y: 0 },
             router: { name: 'orthogonal' },
@@ -1556,13 +1405,13 @@ QUnit.module('links', function(hooks) {
             return 'M 0 0';
         };
 
-        var linkDefaultConnector = new joint.dia.Link({
+        var linkDefaultConnector = new joint.shapes.standard.Link({
             source: { x: 0, y: 0 },
             target: { x: 0, y: 0 },
             vertices: [{ x: 50, y: 50 }]
         });
 
-        var linkOwnConnector = new joint.dia.Link({
+        var linkOwnConnector = new joint.shapes.standard.Link({
             source: { x: 0, y: 0 },
             target: { x: 0, y: 0 },
             connector: { name: 'normal' },
@@ -1574,7 +1423,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('getSourceCell', function(assert) {
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { x: 40, y: 40 },
             target: { x: 100, y: 100 }
         });
@@ -1602,7 +1451,7 @@ QUnit.module('links', function(hooks) {
 
         assert.ok(source && source instanceof joint.dia.Element && source.id === element.id, 'with source element');
 
-        var linkNotInGraph = new joint.dia.Link({
+        var linkNotInGraph = new joint.shapes.standard.Link({
             source: { id: element.get('id') },
             target: { id: element.get('id') }
         });
@@ -1642,7 +1491,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('getTargetCell', function(assert) {
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { x: 40, y: 40 },
             target: { x: 100, y: 100 }
         });
@@ -1670,7 +1519,7 @@ QUnit.module('links', function(hooks) {
 
         assert.ok(target && target instanceof joint.dia.Element && target.id === element.id, 'with target element');
 
-        var linkNotInGraph = new joint.dia.Link({
+        var linkNotInGraph = new joint.shapes.standard.Link({
             source: { id: element.get('id') },
             target: { id: element.get('id') }
         });
@@ -1714,7 +1563,7 @@ QUnit.module('links', function(hooks) {
         var a = new joint.shapes.standard.Rectangle({ id: 'a' });
         var b = new joint.shapes.standard.Rectangle({ id: 'b' });
         var c = new joint.shapes.standard.Rectangle({ id: 'c' });
-        var l = new joint.dia.Link({ id: 'l' });
+        var l = new joint.shapes.standard.Link({ id: 'l' });
 
         this.graph.addCells([a, b, c, l]);
 
@@ -1741,7 +1590,7 @@ QUnit.module('links', function(hooks) {
         var a = new joint.shapes.standard.Rectangle({ id: 'a' });
         var b = new joint.shapes.standard.Rectangle({ id: 'b' });
         var c = new joint.shapes.standard.Rectangle({ id: 'c' });
-        var l = new joint.dia.Link({ id: 'l' });
+        var l = new joint.shapes.standard.Link({ id: 'l' });
 
         this.graph.addCells([a, b, c, l]);
 
@@ -1765,8 +1614,8 @@ QUnit.module('links', function(hooks) {
         var a = new joint.shapes.standard.Rectangle({ id: 'a' });
         var b = new joint.shapes.standard.Rectangle({ id: 'b' });
         var c = new joint.shapes.standard.Rectangle({ id: 'c' });
-        var l = new joint.dia.Link({ id: 'l' });
-        var l2 = new joint.dia.Link({ id: 'l2' });
+        var l = new joint.shapes.standard.Link({ id: 'l' });
+        var l2 = new joint.shapes.standard.Link({ id: 'l2' });
 
         this.graph.addCells([a, b, c, l, l2]);
         var lv = l.findView(this.paper);
@@ -2050,14 +1899,14 @@ QUnit.module('links', function(hooks) {
         QUnit.module('label', function() {
 
             QUnit.test('getter', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
                 assert.deepEqual(link.label(0), { position: { distance: 10, offset: 10 }});
                 assert.deepEqual(link.label(1), { position: { distance: 20, offset: 20 }});
                 assert.deepEqual(link.label(2), undefined);
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
                 link.label(0, { position: { distance: 100, offset: 100 }});
                 link.label(1, { position: { distance: 200 }});
                 link.label(2, { position: { distance: 30, offset: 30 }});
@@ -2068,7 +1917,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('labels', function() {
 
             QUnit.test('getter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 assert.deepEqual(link.labels(), []);
                 link.set('labels', [{ position: { distance: 10, offset: 10 }}]);
                 assert.notEqual(link.labels(), link.get('labels'), 'Copy');
@@ -2076,7 +1925,7 @@ QUnit.module('links', function(hooks) {
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
                 link.labels([{ position: { distance: 30, offset: 30 }}]);
                 assert.deepEqual(link.get('labels'), [{ position: { distance: 30, offset: 30 }}]);
             });
@@ -2085,7 +1934,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('insertLabel', function() {
 
             QUnit.test('sanity', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
 
                 var error;
                 try {
@@ -2105,7 +1954,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('appendLabel', function() {
 
             QUnit.test('sanity', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
 
                 var error;
                 try {
@@ -2123,7 +1972,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('removeLabel', function() {
 
             QUnit.test('sanity', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}] });
+                var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}] });
                 link.removeLabel(100);
                 assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}]);
                 link.removeLabel(-1);
@@ -2139,13 +1988,13 @@ QUnit.module('links', function(hooks) {
         QUnit.module('vertex', function() {
 
             QUnit.test('getter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 link.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 assert.deepEqual(link.vertex(0), { x: 0, y: 0 });
                 assert.deepEqual(link.vertex(1), { x: 1, y: 1 });
                 assert.deepEqual(link.vertex(2), undefined);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([new g.Point(0, 0), new g.Point(1, 1)]);
                 assert.deepEqual(link2.vertex(0), { x: 0, y: 0 });
                 assert.deepEqual(link2.vertex(1), { x: 1, y: 1 });
@@ -2153,7 +2002,7 @@ QUnit.module('links', function(hooks) {
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 link.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 link.vertex(0, { x: 10, y: 10 });
                 link.vertex(1, { x: 20 });
@@ -2161,7 +2010,7 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.get('vertices'), [{ x: 10, y: 10 }, { x: 20, y: 1 }, { x: 3, y: 3 }]);
                 assert.deepEqual(link.vertices(), [{ x: 10, y: 10 }, { x: 20, y: 1 }, { x: 3, y: 3 }]);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([new g.Point(0, 0), new g.Point(1, 1)]);
                 link2.vertex(0, { x: 10, y: 10 });
                 link2.vertex(1, { x: 20 });
@@ -2174,18 +2023,18 @@ QUnit.module('links', function(hooks) {
         QUnit.module('vertices', function() {
 
             QUnit.test('getter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 assert.deepEqual(link.get('vertices'), undefined);
                 assert.deepEqual(link.vertices(), []);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([{ x: 0, y: 0 }]);
                 assert.deepEqual(link2.get('vertices'), [{ x: 0, y: 0 }]);
                 assert.deepEqual(link2.vertices(), [{ x: 0, y: 0 }]);
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 link.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 assert.deepEqual(link.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
@@ -2193,7 +2042,7 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.get('vertices'), [{ x: 3, y: 3 }]);
                 assert.deepEqual(link.vertices(), [{ x: 3, y: 3 }]);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([new g.Point(0, 0), new g.Point(1, 1)]);
                 assert.deepEqual(link2.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 assert.deepEqual(link2.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
@@ -2208,7 +2057,7 @@ QUnit.module('links', function(hooks) {
             QUnit.test('sanity', function(assert) {
                 var error;
 
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 error = null;
                 try {
                     link.insertVertex(0);
@@ -2223,7 +2072,7 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }]);
                 assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }]);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 error = null;
                 try {
                     link2.insertVertex(0);
@@ -2243,7 +2092,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('removeVertex', function() {
 
             QUnit.test('sanity', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 link.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
                 link.removeVertex(100);
                 assert.deepEqual(link.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
@@ -2255,7 +2104,7 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.get('vertices'), [{ x: 1, y: 1 }, { x: 2, y: 2 }]);
                 assert.deepEqual(link.vertices(), [{ x: 1, y: 1 }, { x: 2, y: 2 }]);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
                 link2.removeVertex(100);
                 assert.deepEqual(link2.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);

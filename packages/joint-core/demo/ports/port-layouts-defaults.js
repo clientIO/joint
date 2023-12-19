@@ -39,6 +39,6 @@ var g2 = new joint.shapes.standard.Circle({
 });
 graph1.addCell(g2);
 
-new joint.dia.Link({ source: { id: 'target' }, target: { id: g1.id, port: g1.getPorts()[0].id }}).addTo(graph1);
-new joint.dia.Link({ source: { id: 'target' }, target: { id: g1.id, port: g1.getPorts()[1].id }}).addTo(graph1);
-new joint.dia.Link({ source: { id: 'target' }, target: { id: g1.id, port: g1.getPorts()[2].id }}).addTo(graph1);
+new joint.shapes.standard.Link({ source: { id: 'target' }, target: { id: g1.id, port: g1.getPorts()[0].id }}).addTo(graph1);
+new joint.shapes.standard.Link({ source: { id: 'target' }, target: { id: g1.id, port: g1.getPorts()[1].id }}).addTo(graph1);
+new joint.shapes.standard.Link({ source: { id: 'target' }, target: { id: g1.id, port: g1.getPorts()[2].id }}).addTo(graph1);

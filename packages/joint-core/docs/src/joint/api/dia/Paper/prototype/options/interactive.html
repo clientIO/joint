@@ -18,10 +18,10 @@ var paper = new joint.dia.Paper({
 
 <p>Using an object, specific interactions may be disabled by assigning <code>false</code> to their corresponding property name. It is not necessary to pass <code>true</code> values; all omitted properties are assigned <code>true</code> by default. (Note that the passed object is not merged with the default; unless <code>labelMove</code> is explicitly excluded, it becomes enabled.) A full list of recognized interaction keys is provided below.</p>
 
-<pre><code>// disable arrowheadMove
+<pre><code>// disable labelMove
 var paper = new joint.dia.Paper({
     // ...
-    interactive: { arrowheadMove: false }
+    interactive: { labelMove: false }
 });
 
 // disable all element interactions
@@ -40,11 +40,6 @@ var paper = new joint.dia.Paper({
             return {
                 linkMove: false,
                 labelMove: false,
-                arrowheadMove: false,
-                vertexMove: false,
-                vertexAdd: false,
-                vertexRemove: false,
-                useLinkTools: false,
             };
         }
 
@@ -76,46 +71,6 @@ var paper = new joint.dia.Paper({
             <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/labelMove.html" style="height: 94px; width: 250px;"></iframe>
             <p>Use the <code>paper.options.snapLabels</code> <a href="#dia.Paper.prototype.options.snapLabels">paper option</a> to only allow the label to be dragged along the length of the link.</p>
             <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/labelMoveSnapLabels.html" style="height: 94px; width: 250px;"></iframe>
-        </td>
-    </tr>
-    <tr>
-        <th valign="top">arrowheadMove</th>
-        <td>
-            <p>Deprecated. Use a <a href="#linkTools">link tool</a> instead.</p>
-            <p>(Is the user allowed to move the arrowheads?)</p>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/arrowheadMove.html" style="height: 94px; width: 250px;"></iframe>
-        </td>
-    </tr>
-    <tr>
-        <th valign="top">vertexMove</th>
-        <td>
-            <p>Deprecated. Use a <a href="#linkTools">link tool</a> instead.</p>
-            <p>(Is the user allowed to move the vertices?)</p>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexMove.html" style="height: 94px; width: 250px;"></iframe>
-        </td>
-    </tr>
-    <tr>
-        <th valign="top">vertexAdd</th>
-        <td>
-            <p>Deprecated. Use a <a href="#linkTools">link tool</a> instead.</p>
-            <p>(Is the user allowed to add vertices by clicking along the link path?)</p>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexAdd.html" style="height: 94px; width: 250px;"></iframe>
-        </td>
-    </tr>
-    <tr>
-        <th valign="top">vertexRemove</th>
-        <td>
-            <p>Deprecated. Use a <a href="#linkTools">link tool</a> instead.</p>
-            <p>(Is the user allowed to remove vertices?)</p>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexRemove.html" style="height: 94px; width: 250px;"></iframe>
-        </td>
-    </tr>
-    <tr>
-        <th valign="top">useLinkTools</th>
-        <td>
-            <p>Deprecated.</p>
-            <p>(Is the user allowed to use the default link buttons?)</p>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/useLinkTools.html" style="height: 94px; width: 250px;"></iframe>
         </td>
     </tr>
 </table>

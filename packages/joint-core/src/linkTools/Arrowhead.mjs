@@ -49,11 +49,9 @@ const Arrowhead = ToolView.extend({
         evt.preventDefault();
         var relatedView = this.relatedView;
         relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
-        if (relatedView.can('arrowheadMove')) {
-            relatedView.startArrowheadMove(this.arrowheadType);
-            this.delegateDocumentEvents();
-            relatedView.paper.undelegateEvents();
-        }
+        relatedView.startArrowheadMove(this.arrowheadType);
+        this.delegateDocumentEvents();
+        relatedView.paper.undelegateEvents();
         this.focus();
         this.el.style.pointerEvents = 'none';
     },

@@ -2,10 +2,11 @@ import * as joint from '../../../joint.mjs';
 import * as g from '../../../src/g/index.mjs';
 import V from '../../../src/V/index.mjs';
 
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
+    cellViewNamespace: joint.shapes,
     width: 650,
     height: 400,
     gridSize: 10,

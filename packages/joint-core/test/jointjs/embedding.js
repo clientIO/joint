@@ -162,8 +162,8 @@ QUnit.module('embedding', function(hooks) {
         var r1 = new joint.shapes.standard.Rectangle({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 }});
         var r2 = new joint.shapes.standard.Rectangle({ position: { x: 500, y: 500 }, size: { width: 100, height: 100 }});
         var r3 = new joint.shapes.standard.Rectangle({ position: { x: 600, y: 600 }, size: { width: 100, height: 100 }});
-        var l23 = new joint.dia.Link({ source: { id: r2.id }, target: { id: r3.id }});
-        var l22 = new joint.dia.Link({ source: { id: r2.id }, target: { id: r2.id }});
+        var l23 = new joint.shapes.standard.Link({ source: { id: r2.id }, target: { id: r3.id }});
+        var l22 = new joint.shapes.standard.Link({ source: { id: r2.id }, target: { id: r2.id }});
         this.graph.addCells([r1, r2, r3, l23, l22]);
 
         var v2 = r2.findView(this.paper);

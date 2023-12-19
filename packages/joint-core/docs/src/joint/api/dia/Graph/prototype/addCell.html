@@ -2,7 +2,7 @@
 
 <p>
     Add a new cell to the graph. If <code>cell</code> is an array, all the cells in the array will be added to the graph.
-    Any additional option or custom property provided in the options object will be accessible in the callback function of 
+    Any additional option or custom property provided in the options object will be accessible in the callback function of
     the graph add event.
 </p>
 
@@ -18,12 +18,12 @@
     If <code>opt.sort</code> is set to <code>false</code>, the <code>cell</code> will be added at the end of the collection.
 </p>
 
-<pre><code>const rect = new joint.shapes.standard.Rectangle({ 
+<pre><code>const rect = new joint.shapes.standard.Rectangle({
     position: { x: 100, y: 100 },
     size: { width: 90, height: 30 },
     attrs: { label: { text: 'my rectangle' } }
 });
 const rect2 = rect.clone();
-const link = new joint.dia.Link({ source: { id: rect.id }, target: { id: rect2.id } });
+const link = new joint.shapes.standard.Link({ source: { id: rect.id }, target: { id: rect2.id } });
 const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 graph.addCell(rect).addCell(rect2).addCell(link);</code></pre>

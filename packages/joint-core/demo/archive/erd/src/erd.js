@@ -162,6 +162,7 @@ var paper = new joint.dia.Paper({
     cellViewNamespace: shapes,
     linkPinning: false,
     highlighting: false,
+    linkView: joint.dia.LegacyLinkView,
     defaultConnectionPoint: function(line, view) {
         var element = view.model;
         return element.getConnectionPoint(line.start) || element.getBBox().center();

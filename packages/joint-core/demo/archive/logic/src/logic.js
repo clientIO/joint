@@ -188,6 +188,7 @@ var paper = new joint.dia.Paper({
     snapLinks: true,
     linkPinning: false,
     cellViewNamespace: shapes,
+    linkView: joint.dia.LegacyLinkView,
     defaultLink: new shapes.logic.Wire,
 
     validateConnection: function(vs, ms, vt, mt, e, vl) {

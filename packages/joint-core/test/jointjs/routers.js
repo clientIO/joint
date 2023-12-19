@@ -27,7 +27,7 @@ QUnit.module('routers', function(hooks) {
 
         this.graph.addCell([r1, r2]);
 
-        var l0 = new joint.dia.Link({
+        var l0 = new joint.shapes.standard.Link({
             source: { id: r1.id },
             target: { id: r2.id },
             router: { name: 'non-existing' }
@@ -62,7 +62,7 @@ QUnit.module('routers', function(hooks) {
         var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 }});
         var r2 = new joint.shapes.standard.Rectangle({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 }});
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
             target: { id: r2.id },
             router: { name: 'normal' },
@@ -72,7 +72,7 @@ QUnit.module('routers', function(hooks) {
         this.graph.addCells([r1, r2, link]);
 
         var linkView = this.paper.findViewByModel(link);
-        var pathData = linkView.$('.connection').attr('d');
+        var pathData = linkView.findNode('line').getAttribute('d');
 
         assert.checkDataPath(pathData, 'M 216 90 L 150 200 L 150 90', 'link was correctly routed');
     });
@@ -84,7 +84,7 @@ QUnit.module('routers', function(hooks) {
         var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 }});
         var r2 = new joint.shapes.standard.Rectangle({ position: { x: 125, y: 60 }, size: { width: 50, height: 30 }});
 
-        var l1 = new joint.dia.Link({
+        var l1 = new joint.shapes.standard.Link({
             source: { id: r1.id },
             target: { id: r2.id },
             router: { name: 'orthogonal' },
@@ -94,7 +94,7 @@ QUnit.module('routers', function(hooks) {
         this.graph.addCells([r1, r2, l1]);
 
         var l1View = this.paper.findViewByModel(l1);
-        var l1PathData = l1View.$('.connection').attr('d');
+        var l1PathData = l1View.findNode('line').getAttribute('d');
 
         assert.checkDataPath(l1PathData, 'M 225 90 L 225 200 L 150 200 L 150 90', 'link with one vertex was correctly routed');
 
@@ -103,7 +103,7 @@ QUnit.module('routers', function(hooks) {
         var r3 = new joint.shapes.standard.Rectangle({ position: { x: 40, y: 40 }, size: { width: 50, height: 30 }});
         var r4 = new joint.shapes.standard.Rectangle({ position: { x: 220, y: 120 }, size: { width: 50, height: 30 }});
 
-        var l2 = new joint.dia.Link({
+        var l2 = new joint.shapes.standard.Link({
             source: { id: r3.id },
             target: { id: r4.id },
             router: { name: 'orthogonal' },
@@ -112,7 +112,7 @@ QUnit.module('routers', function(hooks) {
         this.graph.addCells([r3, r4, l2]);
 
         var l2View = this.paper.findViewByModel(l2);
-        var l2PathData = l2View.$('.connection').attr('d');
+        var l2PathData = l2View.findNode('line').getAttribute('d');
 
         assert.checkDataPath(l2PathData, 'M 90 55 L 245 55 L 245 120', 'link with no vertex was correctly routed');
 
@@ -121,7 +121,7 @@ QUnit.module('routers', function(hooks) {
         var r5 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 60 }, size: { width: 50, height: 30 }});
         var r6 = new joint.shapes.standard.Rectangle({ position: { x: 350, y: 40 }, size: { width: 50, height: 30 }});
 
-        var l3 = new joint.dia.Link({
+        var l3 = new joint.shapes.standard.Link({
             source: { id: r5.id },
             target: { id: r6.id },
             router: { name: 'orthogonal' },
@@ -131,7 +131,7 @@ QUnit.module('routers', function(hooks) {
         this.graph.addCells([r5, r6, l3]);
 
         var l3View = this.paper.findViewByModel(l3);
-        var l3PathData = l3View.$('.connection').attr('d');
+        var l3PathData = l3View.findNode('line').getAttribute('d');
 
         assert.checkDataPath(l3PathData, 'M 225 90 L 225 200 L 150 200 L 150 55 L 350 55', 'no spike (a return path segment) was created');
     });
@@ -143,7 +143,7 @@ QUnit.module('routers', function(hooks) {
 
         var r3 = r2.clone().translate(300);
 
-        var l0 = new joint.dia.Link({
+        var l0 = new joint.shapes.standard.Link({
             source: { id: r1.id },
             target: { id: r3.id },
             router: {
@@ -158,20 +158,20 @@ QUnit.module('routers', function(hooks) {
 
         var v0 = this.paper.findViewByModel(l0);
 
-        var d = v0.$('.connection').attr('d');
+        var d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 140 70 L 300 70 L 300 10 L 600 10 L 600 70 L 620 70', 'Route avoids an obstacle.');
 
         r1.translate(0, 50);
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 140 120 L 600 120 L 600 70 L 620 70',
             'Source has been moved. Route recalculated starting from target.');
 
         r3.translate(0, -50);
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 140 120 L 600 120 L 600 20 L 620 20',
             'Target has been moved. Route recalculated starting from source.');
@@ -187,7 +187,7 @@ QUnit.module('routers', function(hooks) {
             }
         });
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 140 120 L 280 120 L 280 0 L 580 0 L 580 20 L 620 20',
             'The option paddingBox was passed. The source and target element and obstacles are avoided taken this padding in account.');
@@ -214,7 +214,7 @@ QUnit.module('routers', function(hooks) {
             }
         });
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 140 120 L 680 120 L 680 60',
             'The default fallback router made an orthogonal link.');
@@ -230,7 +230,7 @@ QUnit.module('routers', function(hooks) {
             }
         });
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 80 80 L 80 20 L 20 20 L 20 0 L 600 0 L 600 20 L 620 20',
             'A vertex was added. Route correctly recalculated.');
@@ -239,7 +239,7 @@ QUnit.module('routers', function(hooks) {
             vertices: [{ x: 21, y: 21 }]
         });
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 80 80 L 80 21 L 21 21 L 21 20 L 620 20',
             'A vertex was moved (not snapped to the grid now). Route correctly recalculated.');
@@ -274,7 +274,7 @@ QUnit.module('routers', function(hooks) {
         r1.translate(0, -50);
         r3.translate(0, 50);
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 140 70 L 620 70',
             'Set excludeTypes parameter to "standard.Rectangle" makes routing ignore those shapes.');
@@ -293,7 +293,7 @@ QUnit.module('routers', function(hooks) {
             }
         });
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 140 70 L 800 70 L 800 80 L 760 80 L 760 70 L 740 70',
             'Set excludeEnds parameter to "target" makes routing ignore target element.');
@@ -311,7 +311,7 @@ QUnit.module('routers', function(hooks) {
             }
         });
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 20 70 L 0 70 L 0 10 L 760 10 L 760 70 L 740 70',
             'Set startDirections & endDirections parameters makes routing starts and ends from/to the given direction.');
@@ -329,7 +329,7 @@ QUnit.module('routers', function(hooks) {
             }
         });
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.ok(spyIsPointObstacle.called);
         assert.ok(spyIsPointObstacle.alwaysCalledWithExactly(sinon.match.instanceOf(g.Point)));
@@ -344,7 +344,7 @@ QUnit.module('routers', function(hooks) {
 
         var r3 = r2.clone().translate(300, 300);
 
-        var l0 = new joint.dia.Link({
+        var l0 = new joint.shapes.standard.Link({
             source: { id: r1.id },
             target: { id: r3.id },
             router: {
@@ -360,7 +360,7 @@ QUnit.module('routers', function(hooks) {
 
         var v0 = this.paper.findViewByModel(l0);
 
-        var d = v0.$('.connection').attr('d');
+        var d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 140 70 L 160 70 L 400 310 L 440 310 L 680 550 L 680 630',
             'Route avoids an obstacle.');
@@ -372,7 +372,7 @@ QUnit.module('routers', function(hooks) {
             }
         });
 
-        d = v0.$('.connection').attr('d');
+        d = v0.findNode('line').getAttribute('d');
 
         assert.checkDataPath(d, 'M 80 70 L 81 70 L 680 670 L 680 670',
             'The default fallback router made a metro link.');
@@ -383,7 +383,7 @@ QUnit.module('routers', function(hooks) {
 
         var r1 = new joint.shapes.standard.Rectangle({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300, 300);
-        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
+        var l = new joint.shapes.standard.Link({ source: { id: r1.id }, target: { id: r2.id }});
 
         this.graph.addCell([r1, r2, l]);
 
@@ -391,27 +391,27 @@ QUnit.module('routers', function(hooks) {
 
         // Left side
         l.set('router', { name: 'oneSide', args: { padding: 20, side: 'left' }});
-        var d = v.$('.connection').attr('d');
+        var d = v.findNode('line').getAttribute('d');
         assert.checkDataPath(d, 'M 20 70 L 0 70 L 0 370 L 320 370', 'Route goes only on the left side.');
 
         // Padding option
         l.set('router', { name: 'oneSide', args: { padding: 40, side: 'left' }});
-        d = v.$('.connection').attr('d');
+        d = v.findNode('line').getAttribute('d');
         assert.checkDataPath(d, 'M 20 70 L -20 70 L -20 370 L 320 370', 'Route respects the padding.');
 
         // Right side
         l.set('router', { name: 'oneSide', args: { padding: 40, side: 'right' }});
-        d = v.$('.connection').attr('d');
+        d = v.findNode('line').getAttribute('d');
         assert.checkDataPath(d, 'M 140 70 L 480 70 L 480 370 L 440 370', 'Route goes only on the right side.');
 
         // Top side
         l.set('router', { name: 'oneSide', args: { padding: 40, side: 'top' }});
-        d = v.$('.connection').attr('d');
+        d = v.findNode('line').getAttribute('d');
         assert.checkDataPath(d, 'M 80 30 L 80 -10 L 380 -10 L 380 330', 'Route goes only on the top.');
 
         // Bottom side
         l.set('router', { name: 'oneSide', args: { padding: 40, side: 'bottom' }});
-        d = v.$('.connection').attr('d');
+        d = v.findNode('line').getAttribute('d');
         assert.checkDataPath(d, 'M 80 110 L 80 450 L 380 450 L 380 410', 'Route goes only on the bottom');
 
         // Wrong side specified
@@ -424,7 +424,7 @@ QUnit.module('routers', function(hooks) {
 
         var r1 = new joint.shapes.standard.Rectangle({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300, 300);
-        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
+        var l = new joint.shapes.standard.Link({ source: { id: r1.id }, target: { id: r2.id }});
 
         this.graph.addCell([r1, r2, l]);
 
