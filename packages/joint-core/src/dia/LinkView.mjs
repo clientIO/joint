@@ -108,7 +108,7 @@ export const LinkView = CellView.extend({
             this.render();
             this.updateHighlighters(true);
             this.updateTools(opt);
-            flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.LABELS, Flags.TOOLS, Flags.LEGACY_TOOLS, Flags.CONNECTOR]);
+            flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.LABELS, Flags.TOOLS, Flags.CONNECTOR]);
             return flags;
         }
 
