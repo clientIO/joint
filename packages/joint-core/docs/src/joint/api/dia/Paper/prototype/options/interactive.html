@@ -18,10 +18,10 @@ var paper = new joint.dia.Paper({
 
 <p>Using an object, specific interactions may be disabled by assigning <code>false</code> to their corresponding property name. It is not necessary to pass <code>true</code> values; all omitted properties are assigned <code>true</code> by default. (Note that the passed object is not merged with the default; unless <code>labelMove</code> is explicitly excluded, it becomes enabled.) A full list of recognized interaction keys is provided below.</p>
 
-<pre><code>// disable arrowheadMove
+<pre><code>// disable labelMove
 var paper = new joint.dia.Paper({
     // ...
-    interactive: { arrowheadMove: false }
+    interactive: { labelMove: false }
 });
 
 // disable all element interactions
@@ -40,11 +40,6 @@ var paper = new joint.dia.Paper({
             return {
                 linkMove: false,
                 labelMove: false,
-                arrowheadMove: false,
-                vertexMove: false,
-                vertexAdd: false,
-                vertexRemove: false,
-                useLinkTools: false,
             };
         }
 
