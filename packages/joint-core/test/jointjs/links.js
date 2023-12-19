@@ -30,7 +30,7 @@ QUnit.module('links', function(hooks) {
 
         QUnit.test('should return FALSE', function(assert) {
 
-            var link = new joint.dia.Link;
+            var link = new joint.shapes.standard.Link;
 
             assert.notOk(link.isElement());
         });
@@ -45,7 +45,7 @@ QUnit.module('links', function(hooks) {
 
         QUnit.test('should return TRUE', function(assert) {
 
-            var link = new joint.dia.Link;
+            var link = new joint.shapes.standard.Link;
 
             assert.ok(link.isLink());
         });
@@ -199,7 +199,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('interaction', function(assert) {
 
-        assert.expect(6);
+        assert.expect(4);
 
         var event;
         var r1 = new joint.shapes.standard.Rectangle({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
@@ -217,10 +217,9 @@ QUnit.module('links', function(hooks) {
             attrs: {
                 line: {
                     stroke: 'black',
-                    // TODO!
-                    class: 'connection'
                 }
             },
+            vertices: [{ x: 300, y: 100 }],
             labels: [
                 { position: .5, attrs: { text: { text: 'test label' }}}
             ]
@@ -229,26 +228,10 @@ QUnit.module('links', function(hooks) {
         this.graph.addCell(l0);
 
         var v0 = this.paper.findViewByModel(l0);
-        var t = v0.findNode('line');
         this.paper.options.validateConnection = function(vs, ms, vt, mt, v) {
             assert.ok(vs === vr1 && vt === vr3, 'connection validation executed');
             return vt instanceof joint.dia.ElementView;
         };
-
-        // adding vertices
-        event = { target: t };
-        v0.pointerdown(event, 200, 70);
-        v0.pointerup(event);
-        assert.deepEqual(l0.get('vertices'), [{ x: 200, y: 70 }], 'vertex added after click the connection.');
-
-        event = { target: t };
-        v0.pointerdown(event, 300, 70);
-        v0.pointermove(event, 300, 100);
-        v0.pointerup(event);
-        assert.deepEqual(l0.get('vertices'), [{ x: 200, y: 70 }, { x: 300, y: 100 }], 'vertex added and translated after click the connection wrapper and mousemove.');
-
-        // removing vertices
-        l0.removeVertex(0);
 
         // arrowheadmove
 
@@ -1468,7 +1451,7 @@ QUnit.module('links', function(hooks) {
 
         assert.ok(source && source instanceof joint.dia.Element && source.id === element.id, 'with source element');
 
-        var linkNotInGraph = new joint.dia.Link({
+        var linkNotInGraph = new joint.shapes.standard.Link({
             source: { id: element.get('id') },
             target: { id: element.get('id') }
         });
@@ -1916,14 +1899,14 @@ QUnit.module('links', function(hooks) {
         QUnit.module('label', function() {
 
             QUnit.test('getter', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
                 assert.deepEqual(link.label(0), { position: { distance: 10, offset: 10 }});
                 assert.deepEqual(link.label(1), { position: { distance: 20, offset: 20 }});
                 assert.deepEqual(link.label(2), undefined);
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
                 link.label(0, { position: { distance: 100, offset: 100 }});
                 link.label(1, { position: { distance: 200 }});
                 link.label(2, { position: { distance: 30, offset: 30 }});
@@ -1934,7 +1917,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('labels', function() {
 
             QUnit.test('getter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 assert.deepEqual(link.labels(), []);
                 link.set('labels', [{ position: { distance: 10, offset: 10 }}]);
                 assert.notEqual(link.labels(), link.get('labels'), 'Copy');
@@ -1942,7 +1925,7 @@ QUnit.module('links', function(hooks) {
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
                 link.labels([{ position: { distance: 30, offset: 30 }}]);
                 assert.deepEqual(link.get('labels'), [{ position: { distance: 30, offset: 30 }}]);
             });
@@ -1951,7 +1934,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('insertLabel', function() {
 
             QUnit.test('sanity', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
 
                 var error;
                 try {
@@ -1971,7 +1954,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('appendLabel', function() {
 
             QUnit.test('sanity', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
 
                 var error;
                 try {
@@ -1989,7 +1972,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('removeLabel', function() {
 
             QUnit.test('sanity', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}] });
+                var link = new joint.shapes.standard.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}] });
                 link.removeLabel(100);
                 assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}]);
                 link.removeLabel(-1);
@@ -2005,13 +1988,13 @@ QUnit.module('links', function(hooks) {
         QUnit.module('vertex', function() {
 
             QUnit.test('getter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 link.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 assert.deepEqual(link.vertex(0), { x: 0, y: 0 });
                 assert.deepEqual(link.vertex(1), { x: 1, y: 1 });
                 assert.deepEqual(link.vertex(2), undefined);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([new g.Point(0, 0), new g.Point(1, 1)]);
                 assert.deepEqual(link2.vertex(0), { x: 0, y: 0 });
                 assert.deepEqual(link2.vertex(1), { x: 1, y: 1 });
@@ -2019,7 +2002,7 @@ QUnit.module('links', function(hooks) {
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 link.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 link.vertex(0, { x: 10, y: 10 });
                 link.vertex(1, { x: 20 });
@@ -2027,7 +2010,7 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.get('vertices'), [{ x: 10, y: 10 }, { x: 20, y: 1 }, { x: 3, y: 3 }]);
                 assert.deepEqual(link.vertices(), [{ x: 10, y: 10 }, { x: 20, y: 1 }, { x: 3, y: 3 }]);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([new g.Point(0, 0), new g.Point(1, 1)]);
                 link2.vertex(0, { x: 10, y: 10 });
                 link2.vertex(1, { x: 20 });
@@ -2040,18 +2023,18 @@ QUnit.module('links', function(hooks) {
         QUnit.module('vertices', function() {
 
             QUnit.test('getter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 assert.deepEqual(link.get('vertices'), undefined);
                 assert.deepEqual(link.vertices(), []);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([{ x: 0, y: 0 }]);
                 assert.deepEqual(link2.get('vertices'), [{ x: 0, y: 0 }]);
                 assert.deepEqual(link2.vertices(), [{ x: 0, y: 0 }]);
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 link.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 assert.deepEqual(link.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
@@ -2059,7 +2042,7 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.get('vertices'), [{ x: 3, y: 3 }]);
                 assert.deepEqual(link.vertices(), [{ x: 3, y: 3 }]);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([new g.Point(0, 0), new g.Point(1, 1)]);
                 assert.deepEqual(link2.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
                 assert.deepEqual(link2.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }]);
@@ -2074,7 +2057,7 @@ QUnit.module('links', function(hooks) {
             QUnit.test('sanity', function(assert) {
                 var error;
 
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 error = null;
                 try {
                     link.insertVertex(0);
@@ -2089,7 +2072,7 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }]);
                 assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }]);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 error = null;
                 try {
                     link2.insertVertex(0);
@@ -2109,7 +2092,7 @@ QUnit.module('links', function(hooks) {
         QUnit.module('removeVertex', function() {
 
             QUnit.test('sanity', function(assert) {
-                var link = new joint.dia.Link();
+                var link = new joint.shapes.standard.Link();
                 link.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
                 link.removeVertex(100);
                 assert.deepEqual(link.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
@@ -2121,7 +2104,7 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.get('vertices'), [{ x: 1, y: 1 }, { x: 2, y: 2 }]);
                 assert.deepEqual(link.vertices(), [{ x: 1, y: 1 }, { x: 2, y: 2 }]);
 
-                var link2 = new joint.dia.Link();
+                var link2 = new joint.shapes.standard.Link();
                 link2.vertices([{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
                 link2.removeVertex(100);
                 assert.deepEqual(link2.get('vertices'), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
