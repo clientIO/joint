@@ -36,15 +36,7 @@
         interactive: true
     });
 
-    var link = new joint.dia.Link({
-        attrs: {
-            '.marker-source': {
-                d: 'M 10 0 L 0 5 L 10 10 z'
-            },
-            '.marker-target': {
-                d: 'M 10 0 L 0 5 L 10 10 z'
-            }
-        },
+    var link = new joint.shapes.standard.Link({
         labels: [
             {
                 position: { distance: .5, offset: { x: 30, y: 20 } },
@@ -60,33 +52,33 @@
         vertices: [{ x: 86, y: 71 }, { x: 87, y: 36 }]
     });
 
-    var Circle = joint.dia.Element.define('i.Circle', {
-        markup: '<g><circle/><text/></g>>',
+    var circle = new joint.shapes.standard.Ellipse({
+        size: { width: 40, height: 40 },
         attrs: {
-            circle: {
-                magnet: 'passive',
-                r: 20
+            root: {
+                magnetSelector: 'body',
+                highlighterSelector: 'body'
             },
-            text: {
+            label: {
                 fill: 'white',
                 fontSize: 8,
-                xAlignment: 'middle',
-                yAlignment: 'middle'
+                textAnchor: 'middle',
+                textVerticalAnchor: 'middle'
             }
         }
     });
 
-    graph.addCell(new Circle()
-        .position(226, 34)
-        .attr('circle/fill', '#333333')
+    graph.addCell(circle.clone()
+        .position(206, 14)
+        .attr('body/fill', '#333333')
     );
 
-    graph.addCell(new Circle()
-        .position(337, 50)
-        .attr('circle/fill', '#a6a6a6')
-        .attr('circle/r', 30)
-        .attr('circle/magnet', true)
-        .attr('text/text', 'MAGNET')
+    graph.addCell(circle.clone()
+        .position(307, 20)
+        .resize(60, 60)
+        .attr('body/fill', '#a6a6a6')
+        .attr('body/magnet', true)
+        .attr('label/text', 'MAGNET')
     );
 
     graph.addCell(link);

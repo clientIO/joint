@@ -14,7 +14,7 @@ joint.connectors.normal = function(sourcePoint, targetPoint, vertices) {
     return d.join(' ');
 };
 
-var PatternLinkView = joint.dia.LinkView.extend({
+var PatternLinkView = joint.dia.LegacyLinkView.extend({
 
     patternMarkup: [
         '<pattern id="pattern-<%= id %>" patternUnits="userSpaceOnUse">',
@@ -32,7 +32,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
             V(this.paper.svg).defs().append(this.pattern);
         }
 
-        joint.dia.LinkView.prototype.render.apply(this, arguments);
+        joint.dia.LegacyLinkView.prototype.render.apply(this, arguments);
 
         this._V.connection.attr({ 'stroke': 'url(#pattern-' + this.id + ')' });
 

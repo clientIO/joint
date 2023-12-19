@@ -1471,18 +1471,6 @@ export const LinkView = CellView.extend({
     pointerdown: function(evt, x, y) {
 
         this.notifyPointerdown(evt, x, y);
-
-        // Backwards compatibility for the default markup
-        var className = evt.target.getAttribute('class');
-        switch (className) {
-            // TODO! TODO! TODO!
-            case 'connection':
-            case 'connection-wrap':
-                this.dragConnectionStart(evt, x, y);
-                return;
-
-        }
-
         this.dragStart(evt, x, y);
     },
 
@@ -1494,10 +1482,6 @@ export const LinkView = CellView.extend({
 
         var data = this.eventData(evt);
         switch (data.action) {
-
-            case 'vertex-move':
-                this.dragVertex(evt, x, y);
-                break;
 
             case 'label-move':
                 this.dragLabel(evt, x, y);
@@ -1529,10 +1513,6 @@ export const LinkView = CellView.extend({
 
         var data = this.eventData(evt);
         switch (data.action) {
-
-            case 'vertex-move':
-                this.dragVertexEnd(evt, x, y);
-                break;
 
             case 'label-move':
                 this.dragLabelEnd(evt, x, y);
@@ -1592,19 +1572,6 @@ export const LinkView = CellView.extend({
 
     // Drag Start Handlers
 
-    dragConnectionStart: function(evt, x, y) {
-
-        if (!this.can('vertexAdd')) return;
-
-        // Store the index at which the new vertex has just been placed.
-        // We'll be update the very same vertex position in `pointermove()`.
-        var vertexIdx = this.addVertex({ x: x, y: y }, { ui: true });
-        this.eventData(evt, {
-            action: 'vertex-move',
-            vertexIdx: vertexIdx
-        });
-    },
-
     dragLabelStart: function(evt, x, y) {
 
         if (this.can('labelMove')) {
@@ -1645,18 +1612,6 @@ export const LinkView = CellView.extend({
         }
 
         this.paper.delegateDragEvents(this, evt.data);
-    },
-
-    dragVertexStart: function(evt, x, y) {
-
-        if (!this.can('vertexMove')) return;
-
-        var vertexNode = evt.target;
-        var vertexIdx = parseInt(vertexNode.getAttribute('idx'), 10);
-        this.eventData(evt, {
-            action: 'vertex-move',
-            vertexIdx: vertexIdx
-        });
     },
 
     dragArrowheadStart: function(evt, x, y) {
@@ -1702,12 +1657,6 @@ export const LinkView = CellView.extend({
         this.model.label(data.labelIdx, label, setOptions);
     },
 
-    dragVertex: function(evt, x, y) {
-
-        var data = this.eventData(evt);
-        this.model.vertex(data.vertexIdx, { x: x, y: y }, { ui: true });
-    },
-
     dragArrowhead: function(evt, x, y) {
         if (this.paper.options.snapLinks) {
             const isSnapped = this._snapArrowhead(evt, x, y);
@@ -1736,10 +1685,6 @@ export const LinkView = CellView.extend({
     // Drag End Handlers
 
     dragLabelEnd: function() {
-        // noop
-    },
-
-    dragVertexEnd: function() {
         // noop
     },
 

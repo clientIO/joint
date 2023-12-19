@@ -55,7 +55,7 @@ graph.addCell(m2);
 
 // Manually create a link connecting ports.
 
-var l1 = new joint.dia.Link({
+var l1 = new joint.shapes.standard.Link({
     source: { id: m1.id, port: 'out' },
     target: { id: m2.id, port: 'in1' }
 });

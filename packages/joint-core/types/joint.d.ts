@@ -4186,6 +4186,8 @@ export namespace linkTools {
             snapRadius?: number;
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
+            vertexRemoving?: boolean;
+            vertexMoving?: boolean;
             stopPropagation?: boolean;
             scale?: number;
         }

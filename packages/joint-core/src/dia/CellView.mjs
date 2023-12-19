@@ -189,7 +189,7 @@ export const CellView = View.extend({
     },
 
     // Return `true` if cell link is allowed to perform a certain UI `feature`.
-    // Example: `can('vertexMove')`, `can('labelMove')`.
+    // Example: `can('labelMove')`.
     can: function(feature) {
 
         var interactive = isFunction(this.options.interactive)
