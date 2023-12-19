@@ -178,7 +178,7 @@ var paper = new joint.dia.Paper({
             // only links with `customLinkInteractions: true`
             return true;
         }
-        return true; // otherwise
+        return { labelMove: false }; // otherwise
     }
 });
 
