@@ -1,4 +1,4 @@
-/*! JointJS v3.7.7 (2023-11-24) - JavaScript diagramming library
+/*! JointJS v3.7.7 (2023-12-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -6,12 +6,10 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('jquery')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'jquery'], factory) :
-	(global = global || self, factory(global.joint = {}, global.$));
-}(this, function (exports, $) { 'use strict';
-
-	$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(global = global || self, factory(global.joint = {}));
+}(this, function (exports) { 'use strict';
 
 	var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -216,9 +214,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var inspectSource = sharedStore.inspectSource;
 
-	var WeakMap = global_1.WeakMap;
+	var WeakMap$1 = global_1.WeakMap;
 
-	var nativeWeakMap = typeof WeakMap === 'function' && /native code/.test(inspectSource(WeakMap));
+	var nativeWeakMap = typeof WeakMap$1 === 'function' && /native code/.test(inspectSource(WeakMap$1));
 
 	var shared = createCommonjsModule(function (module) {
 	(module.exports = function (key, value) {
@@ -245,7 +243,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var hiddenKeys = {};
 
-	var WeakMap$1 = global_1.WeakMap;
+	var WeakMap$2 = global_1.WeakMap;
 	var set, get, has$1;
 
 	var enforce = function (it) {
@@ -262,7 +260,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	if (nativeWeakMap) {
-	  var store$1 = sharedStore.state || (sharedStore.state = new WeakMap$1());
+	  var store$1 = sharedStore.state || (sharedStore.state = new WeakMap$2());
 	  var wmget = store$1.get;
 	  var wmhas = store$1.has;
 	  var wmset = store$1.set;
@@ -9449,18 +9447,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    });
 
-	    // Note: The `attributeNames` and `supportCamelCaseAttributes` properties are not enumerable
-	    // in this version to avoid breaking changes. They will be made enumerable in the next major version.
-
 	    // Dictionary of attribute names
 	    Object.defineProperty(V, 'attributeNames', {
+	        enumerable: true,
 	        value: attributeNames,
 	        writable: false,
 	    });
 
 	    // Should camel case attributes be supported?
 	    Object.defineProperty(V, 'supportCamelCaseAttributes', {
-	        value: false,
+	        enumerable: true,
+	        value: true,
 	        writable: true,
 	    });
 
@@ -10211,7 +10208,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // Take a path data string
 	    // Return a normalized path data string
 	    // If data cannot be parsed, return 'M 0 0'
-	    // Adapted from Rappid normalizePath polyfill
 	    // Highly inspired by Raphael Library (www.raphael.com)
 	    V.normalizePathData = (function() {
 
@@ -10619,22 +10615,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return V;
 
 	})();
-
-	var config = {
-	    // When set to `true` the cell selectors could be defined as CSS selectors.
-	    // If not, only JSON Markup selectors are taken into account.
-	    // export let useCSSSelectors = true;
-	    useCSSSelectors: true,
-	    // The class name prefix config is for advanced use only.
-	    // Be aware that if you change the prefix, the JointJS CSS will no longer function properly.
-	    // export let classNamePrefix = 'joint-';
-	    // export let defaultTheme = 'default';
-	    classNamePrefix: 'joint-',
-	    defaultTheme: 'default',
-	    // The maximum delay required for two consecutive touchend events to be interpreted
-	    // as a double-tap.
-	    doubleTapInterval: 300
-	};
 
 	// code is inspired by https://github.com/lodash/lodash
 
@@ -13081,6 +13061,1088 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    baseMerge(object, source, srcIndex, customizer);
 	}, true);
 
+	var Data = function Data() {
+	    this.map = new WeakMap();
+	};
+
+	Data.prototype.has = function has (obj, key) {
+	    if (key === undefined) { return this.map.has(obj); }
+	    return key in this.map.get(obj);
+	};
+
+	Data.prototype.create = function create (obj) {
+	    if (!this.has(obj)) { this.map.set(obj, Object.create(null)); }
+	    return this.get(obj);
+	};
+
+	Data.prototype.get = function get (obj, key) {
+	    if (!this.has(obj)) { return undefined; }
+	    var data = this.map.get(obj);
+	    if (key === undefined) { return data; }
+	    return data[key];
+	};
+
+	Data.prototype.set = function set (obj, key, value) {
+	    if (key === undefined) { return; }
+	    var data = this.create(obj);
+	    if (typeof key === 'string') {
+	        data[key] = value;
+	    } else {
+	        Object.assign(data, key);
+	    }
+	};
+
+	Data.prototype.remove = function remove (obj, key) {
+	    if (!this.has(obj)) { return; }
+	    if (key === undefined) {
+	        this.map.delete(obj);
+	    } else {
+	        var data = this.map.get(obj);
+	        delete data[key];
+	    }
+	};
+
+	var dataPriv = new Data();
+
+	var dataUser = new Data();
+
+	function cleanNodesData(data, nodes) {
+	    var i = nodes.length;
+	    while (i--) {
+	        data.remove(nodes[i]);
+	    }
+	}
+
+	var Event = function(src, props) {
+	    // Allow instantiation without the 'new' keyword
+	    if (!(this instanceof Event)) {
+	        return new Event(src, props);
+	    }
+
+	    // Event object
+	    if (src && src.type) {
+	        this.originalEvent = src;
+	        this.type = src.type;
+
+	        // Events bubbling up the document may have been marked as prevented
+	        // by a handler lower down the tree; reflect the correct value.
+	        this.isDefaultPrevented = src.defaultPrevented
+	            ? returnTrue
+	            : returnFalse;
+
+	        // Create target properties
+	        this.target = src.target;
+	        this.currentTarget = src.currentTarget;
+	        this.relatedTarget = src.relatedTarget;
+
+	        // Event type
+	    } else {
+	        this.type = src;
+	    }
+
+	    // Put explicitly provided properties onto the event object
+	    if (props) {
+	        Object.assign(this, props);
+	    }
+
+	    // Create a timestamp if incoming event doesn't have one
+	    this.timeStamp = (src && src.timeStamp) || Date.now();
+
+	    // Mark it as fixed
+	    this.envelope = true;
+	};
+
+	// $.Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+	// https://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+	Event.prototype = {
+	    constructor: Event,
+	    isDefaultPrevented: returnFalse,
+	    isPropagationStopped: returnFalse,
+	    isImmediatePropagationStopped: returnFalse,
+	    preventDefault: function() {
+	        var evt = this.originalEvent;
+	        this.isDefaultPrevented = returnTrue;
+	        if (evt) {
+	            evt.preventDefault();
+	        }
+	    },
+	    stopPropagation: function() {
+	        var evt = this.originalEvent;
+	        this.isPropagationStopped = returnTrue;
+	        if (evt) {
+	            evt.stopPropagation();
+	        }
+	    },
+	    stopImmediatePropagation: function() {
+	        var evt = this.originalEvent;
+	        this.isImmediatePropagationStopped = returnTrue;
+	        if (evt) {
+	            evt.stopImmediatePropagation();
+	        }
+	        this.stopPropagation();
+	    },
+	};
+
+	// Includes all common event props including KeyEvent and MouseEvent specific props
+	[
+	    'altKey',
+	    'bubbles',
+	    'cancelable',
+	    'changedTouches',
+	    'ctrlKey',
+	    'detail',
+	    'eventPhase',
+	    'metaKey',
+	    'pageX',
+	    'pageY',
+	    'shiftKey',
+	    'view',
+	    'char',
+	    'code',
+	    'charCode',
+	    'key',
+	    'keyCode',
+	    'button',
+	    'buttons',
+	    'clientX',
+	    'clientY',
+	    'offsetX',
+	    'offsetY',
+	    'pointerId',
+	    'pointerType',
+	    'screenX',
+	    'screenY',
+	    'targetTouches',
+	    'toElement',
+	    'touches',
+	    'which' ].forEach(function (name) { return addProp(name); });
+
+	function addProp(name) {
+	    Object.defineProperty(Event.prototype, name, {
+	        enumerable: true,
+	        configurable: true,
+	        get: function() {
+	            return this.originalEvent ? this.originalEvent[name] : undefined;
+	        },
+	        set: function(value) {
+	            Object.defineProperty(this, name, {
+	                enumerable: true,
+	                configurable: true,
+	                writable: true,
+	                value: value,
+	            });
+	        },
+	    });
+	}
+
+	function returnTrue() {
+	    return true;
+	}
+
+	function returnFalse() {
+	    return false;
+	}
+
+	var document$2 = (typeof window !== 'undefined') ? window.document : null;
+	var documentElement = document$2 && document$2.documentElement;
+
+	var rTypeNamespace = /^([^.]*)(?:\.(.+)|)/;
+
+	// Only count HTML whitespace
+	// Other whitespace should count in values
+	// https://infra.spec.whatwg.org/#ascii-whitespace
+	var rNotHtmlWhite = /[^\x20\t\r\n\f]+/g;
+
+	// Define a local copy of $
+	var $ = function(selector) {
+	    // The $ object is actually just the init constructor 'enhanced'
+	    // Need init if $ is called (just allow error to be thrown if not included)
+	    return new $.Dom(selector);
+	};
+
+	$.fn = $.prototype = {
+	    constructor: $,
+	    // The default length of a $ object is 0
+	    length: 0,
+	};
+
+	// A global GUID counter for objects
+	$.guid = 1;
+
+	// User data storage
+	$.data = dataUser;
+
+	$.merge = function(first, second) {
+	    var len = +second.length;
+	    var i = first.length;
+	    for (var j = 0; j < len; j++) {
+	        first[i++] = second[j];
+	    }
+	    first.length = i;
+	    return first;
+	};
+
+	$.parseHTML = function(string) {
+	    // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
+	    var context = document$2.implementation.createHTMLDocument();
+	    // Set the base href for the created document so any parsed elements with URLs
+	    // are based on the document's URL
+	    var base = context.createElement('base');
+	    base.href = document$2.location.href;
+	    context.head.appendChild(base);
+
+	    context.body.innerHTML = string;
+	    // remove scripts
+	    var scripts = context.getElementsByTagName('script');
+	    for (var i = 0; i < scripts.length; i++) {
+	        scripts[i].remove();
+	    }
+	    return Array.from(context.body.childNodes);
+	};
+
+	if (typeof Symbol === 'function') {
+	    $.fn[Symbol.iterator] = Array.prototype[Symbol.iterator];
+	}
+
+	$.fn.toArray = function() {
+	    return Array.from(this);
+	};
+
+	// Take an array of elements and push it onto the stack
+	// (returning the new matched element set)
+	$.fn.pushStack = function(elements) {
+	    // Build a new $ matched element set
+	    var ret = $.merge(this.constructor(), elements);
+	    // Add the old object onto the stack (as a reference)
+	    ret.prevObject = this;
+	    // Return the newly-formed element set
+	    return ret;
+	};
+
+	$.fn.find = function(selector) {
+	    var ref = this;
+	    var el = ref[0];
+	    var ret = this.pushStack([]);
+	    if (!el) { return ret; }
+	    // Early return if context is not an element, document or document fragment
+	    var nodeType = el.nodeType;
+	    if (nodeType !== 1 && nodeType !== 9 && nodeType !== 11) {
+	        return ret;
+	    }
+	    if (typeof selector !== 'string') {
+	        if (el !== selector && el.contains(selector)) {
+	            $.merge(ret, [selector]);
+	        }
+	    } else {
+	        $.merge(ret, el.querySelectorAll(selector));
+	    }
+	    return ret;
+	};
+
+	$.fn.add = function(selector, context) {
+	    var newElements = $(selector).toArray();
+	    var prevElements = this.toArray();
+	    var ret = this.pushStack([]);
+	    $.merge(ret, uniq(prevElements.concat(newElements)));
+	    return ret;
+	};
+
+	$.fn.addBack = function() {
+	    return this.add(this.prevObject);
+	};
+
+	// A simple way to check for HTML strings
+	// Prioritize #id over <tag> to avoid XSS via location.hash (trac-9521)
+	// Strict HTML recognition (trac-11290: must start with <)
+	// Shortcut simple #id case for speed
+	var rQuickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]+))$/;
+
+	function isObviousHtml(input) {
+	    return (
+	        input[0] === '<' && input[input.length - 1] === '>' && input.length >= 3
+	    );
+	}
+
+	var Dom = function(selector) {
+	    if (!selector) {
+	        // HANDLE: $(""), $(null), $(undefined), $(false)
+	        return this;
+	    }
+	    if (typeof selector === 'function') {
+	        // HANDLE: $(function)
+	        // Shortcut for document ready
+	        throw new Error('function not supported');
+	    }
+	    if (arguments.length > 1) {
+	        throw new Error('selector with context not supported');
+	    }
+	    if (selector.nodeType) {
+	        // HANDLE: $(DOMElement)
+	        this[0] = selector;
+	        this.length = 1;
+	        return this;
+	    }
+	    var match;
+	    if (isObviousHtml(selector + '')) {
+	        // Handle obvious HTML strings
+	        // Assume that strings that start and end with <> are HTML and skip
+	        // the regex check. This also handles browser-supported HTML wrappers
+	        // like TrustedHTML.
+	        match = [null, selector, null];
+	    } else if (typeof selector === 'string') {
+	        // Handle HTML strings or selectors
+	        match = rQuickExpr.exec(selector);
+	    } else {
+	        // Array-like
+	        return $.merge(this, selector);
+	    }
+	    if (!match || !match[1]) {
+	        // HANDLE: $(expr)
+	        return $root.find(selector);
+	    }
+	    // Match html or make sure no context is specified for #id
+	    // Note: match[1] may be a string or a TrustedHTML wrapper
+	    if (match[1]) {
+	        // HANDLE: $(html) -> $(array)
+	        $.merge(this, $.parseHTML(match[1]));
+	        return this;
+	    }
+	    // HANDLE: $(#id)
+	    var el = document$2.getElementById(match[2]);
+	    if (el) {
+	        // Inject the element directly into the $ object
+	        this[0] = el;
+	        this.length = 1;
+	    }
+	    return this;
+	};
+
+	$.Dom = Dom;
+
+	// Give the init function the $ prototype for later instantiation
+	Dom.prototype = $.fn;
+
+	// Events
+
+	$.Event = Event;
+
+	$.event = {
+	    special: Object.create(null),
+	};
+
+	$.event.has = function(elem) {
+	    return dataPriv.has(elem, 'events');
+	};
+
+	$.event.on = function(elem, types, selector, data, fn, one) {
+
+	    // Types can be a map of types/handlers
+	    if (typeof types === 'object') {
+	        // ( types-Object, selector, data )
+	        if (typeof selector !== 'string') {
+	            // ( types-Object, data )
+	            data = data || selector;
+	            selector = undefined;
+	        }
+	        for (var type in types) {
+	            $.event.on(elem, type, selector, data, types[type], one);
+	        }
+	        return elem;
+	    }
+
+	    if (data == null && fn == null) {
+	        // ( types, fn )
+	        fn = selector;
+	        data = selector = undefined;
+	    } else if (fn == null) {
+	        if (typeof selector === 'string') {
+	            // ( types, selector, fn )
+	            fn = data;
+	            data = undefined;
+	        } else {
+	            // ( types, data, fn )
+	            fn = data;
+	            data = selector;
+	            selector = undefined;
+	        }
+	    }
+	    if (!fn) {
+	        return elem;
+	    }
+	    if (one === 1) {
+	        var origFn = fn;
+	        fn = function(event) {
+	            // Can use an empty set, since event contains the info
+	            $().off(event);
+	            return origFn.apply(this, arguments);
+	        };
+
+	        // Use same guid so caller can remove using origFn
+	        fn.guid = origFn.guid || (origFn.guid = $.guid++);
+	    }
+	    for (var i = 0; i < elem.length; i++) {
+	        $.event.add(elem[i], types, fn, data, selector);
+	    }
+	};
+
+	$.event.add = function(elem, types, handler, data, selector) {
+	    // Only attach events to objects for which we can store data
+	    if (typeof elem != 'object') {
+	        return;
+	    }
+
+	    var elemData = dataPriv.create(elem);
+
+	    // Caller can pass in an object of custom data in lieu of the handler
+	    var handleObjIn;
+	    if (handler.handler) {
+	        handleObjIn = handler;
+	        handler = handleObjIn.handler;
+	        selector = handleObjIn.selector;
+	    }
+
+	    // Ensure that invalid selectors throw exceptions at attach time
+	    // Evaluate against documentElement in case elem is a non-element node (e.g., document)
+	    if (selector) {
+	        documentElement.matches(selector);
+	    }
+
+	    // Make sure that the handler has a unique ID, used to find/remove it later
+	    if (!handler.guid) {
+	        handler.guid = $.guid++;
+	    }
+
+	    // Init the element's event structure and main handler, if this is the first
+	    var events;
+	    if (!(events = elemData.events)) {
+	        events = elemData.events = Object.create(null);
+	    }
+	    var eventHandle;
+	    if (!(eventHandle = elemData.handle)) {
+	        eventHandle = elemData.handle = function(e) {
+	            // Discard the second event of a $.event.trigger() and
+	            // when an event is called after a page has unloaded
+	            return (typeof $ !== 'undefined')
+	                ? $.event.dispatch.apply(elem, arguments)
+	                : undefined;
+	        };
+	    }
+
+	    // Handle multiple events separated by a space
+	    var typesArr = (types || '').match(rNotHtmlWhite) || [''];
+	    var i = typesArr.length;
+	    while (i--) {
+	        var ref = rTypeNamespace.exec(typesArr[i]);
+	        var origType = ref[1];
+	        var ns = ref[2]; if ( ns === void 0 ) ns = '';
+	        // There *must* be a type, no attaching namespace-only handlers
+	        if (!origType) {
+	            continue;
+	        }
+
+	        var namespaces = ns.split('.').sort();
+	        // If event changes its type, use the special event handlers for the changed type
+	        var special = $.event.special[origType];
+	        // If selector defined, determine special event api type, otherwise given type
+	        var type = (special && (selector ? special.delegateType : special.bindType)) || origType;
+	        // Update special based on newly reset type
+	        special = $.event.special[type];
+	        // handleObj is passed to all event handlers
+	        var handleObj = Object.assign(
+	            {
+	                type: type,
+	                origType: origType,
+	                data: data,
+	                handler: handler,
+	                guid: handler.guid,
+	                selector: selector,
+	                namespace: namespaces.join('.'),
+	            },
+	            handleObjIn
+	        );
+
+	        var handlers = (void 0);
+	        // Init the event handler queue if we're the first
+	        if (!(handlers = events[type])) {
+	            handlers = events[type] = [];
+	            handlers.delegateCount = 0;
+
+	            // Only use addEventListener if the special events handler returns false
+	            if (
+	                !special || !special.setup ||
+	                    special.setup.call(elem, data, namespaces, eventHandle) === false
+	            ) {
+	                if (elem.addEventListener) {
+	                    elem.addEventListener(type, eventHandle);
+	                }
+	            }
+	        }
+
+	        if (special && special.add) {
+	            special.add.call(elem, handleObj);
+	            if (!handleObj.handler.guid) {
+	                handleObj.handler.guid = handler.guid;
+	            }
+	        }
+
+	        // Add to the element's handler list, delegates in front
+	        if (selector) {
+	            handlers.splice(handlers.delegateCount++, 0, handleObj);
+	        } else {
+	            handlers.push(handleObj);
+	        }
+	    }
+	};
+
+	// Detach an event or set of events from an element
+	$.event.remove = function(elem, types, handler, selector, mappedTypes) {
+
+	    var elemData = dataPriv.get(elem);
+	    if (!elemData || !elemData.events) { return; }
+	    var events = elemData.events;
+
+	    // Once for each type.namespace in types; type may be omitted
+	    var typesArr = (types || '').match(rNotHtmlWhite) || [''];
+	    var i = typesArr.length;
+	    while (i--) {
+	        var ref = rTypeNamespace.exec(typesArr[i]);
+	        var origType = ref[1];
+	        var ns = ref[2]; if ( ns === void 0 ) ns = '';
+	        // Unbind all events (on this namespace, if provided) for the element
+	        if (!origType) {
+	            for (var type in events) {
+	                $.event.remove(
+	                    elem,
+	                    type + typesArr[i],
+	                    handler,
+	                    selector,
+	                    true
+	                );
+	            }
+	            continue;
+	        }
+
+	        var special = $.event.special[origType];
+	        var type$1 = (special && (selector ? special.delegateType : special.bindType)) || origType;
+	        var handlers = events[type$1];
+	        if (!handlers || handlers.length === 0) { continue; }
+
+	        var namespaces = ns.split('.').sort();
+	        var rNamespace = ns
+	            ? new RegExp('(^|\\.)' + namespaces.join('\\.(?:.*\\.|)') + '(\\.|$)')
+	            : null;
+
+	        // Remove matching events
+	        var origCount = handlers.length;
+	        var j = origCount;
+	        while (j--) {
+	            var handleObj = handlers[j];
+
+	            if (
+	                (mappedTypes || origType === handleObj.origType) &&
+	                    (!handler || handler.guid === handleObj.guid) &&
+	                    (!rNamespace || rNamespace.test(handleObj.namespace)) &&
+	                    (!selector ||
+	                        selector === handleObj.selector ||
+	                        (selector === '**' && handleObj.selector))
+	            ) {
+	                handlers.splice(j, 1);
+	                if (handleObj.selector) {
+	                    handlers.delegateCount--;
+	                }
+	                if (special && special.remove) {
+	                    special.remove.call(elem, handleObj);
+	                }
+	            }
+	        }
+
+	        // Remove generic event handler if we removed something and no more handlers exist
+	        // (avoids potential for endless recursion during removal of special event handlers)
+	        if (origCount && handlers.length === 0) {
+	            if (
+	                !special || !special.teardown ||
+	                    special.teardown.call(elem, namespaces, elemData.handle) === false
+	            ) {
+	                // This "if" is needed for plain objects
+	                if (elem.removeEventListener) {
+	                    elem.removeEventListener(type$1, elemData.handle);
+	                }
+	            }
+	            delete events[type$1];
+	        }
+	    }
+
+	    // Remove data if it's no longer used
+	    if (isEmpty(events)) {
+	        dataPriv.remove(elem, 'handle');
+	        dataPriv.remove(elem, 'events');
+	    }
+	};
+
+	$.event.dispatch = function(nativeEvent) {
+
+	    var elem = this;
+	    // Make a writable $.Event from the native event object
+	    var event = $.event.fix(nativeEvent);
+	    event.delegateTarget = elem;
+	    // Use the fix-ed $.Event rather than the (read-only) native event
+	    var args = Array.from(arguments);
+	    args[0] = event;
+
+	    var eventsData = dataPriv.get(elem, 'events');
+	    var handlers = (eventsData && eventsData[event.type]) || [];
+	    var special = $.event.special[event.type];
+
+	    // Call the preDispatch hook for the mapped type, and let it bail if desired
+	    if (special && special.preDispatch) {
+	        if (special.preDispatch.call(elem, event) === false) { return; }
+	    }
+
+	    // Determine handlers
+	    var handlerQueue = $.event.handlers.call(elem, event, handlers);
+
+	    // Run delegates first; they may want to stop propagation beneath us
+	    var i = 0;
+	    var matched;
+	    while ((matched = handlerQueue[i++]) && !event.isPropagationStopped()) {
+	        event.currentTarget = matched.elem;
+	        var j = 0;
+	        var handleObj = (void 0);
+	        while (
+	            (handleObj = matched.handlers[j++]) &&
+	                !event.isImmediatePropagationStopped()
+	        ) {
+
+	            event.handleObj = handleObj;
+	            event.data = handleObj.data;
+
+	            var origSpecial = $.event.special[handleObj.origType];
+	            var handler = (void 0);
+	            if (origSpecial && origSpecial.handle) {
+	                handler = origSpecial.handle;
+	            } else {
+	                handler = handleObj.handler;
+	            }
+
+	            var ret = handler.apply(matched.elem, args);
+	            if (ret !== undefined) {
+	                if ((event.result = ret) === false) {
+	                    event.preventDefault();
+	                    event.stopPropagation();
+	                }
+	            }
+	        }
+	    }
+
+	    // Call the postDispatch hook for the mapped type
+	    if (special && special.postDispatch) {
+	        special.postDispatch.call(elem, event);
+	    }
+
+	    return event.result;
+	},
+
+	$.event.handlers = function(event, handlers) {
+
+	    var delegateCount = handlers.delegateCount;
+	    var handlerQueue = [];
+
+	    // Find delegate handlers
+	    if (
+	        delegateCount &&
+	            // Support: Firefox <=42 - 66+
+	            // Suppress spec-violating clicks indicating a non-primary pointer button (trac-3861)
+	            // https://www.w3.org/TR/DOM-Level-3-Events/#event-type-click
+	            // Support: IE 11+
+	            // ...but not arrow key "clicks" of radio inputs, which can have `button` -1 (gh-2343)
+	            !(event.type === 'click' && event.button >= 1)
+	    ) {
+	        for (var cur = event.target; cur !== this; cur = cur.parentNode || this) {
+	            // Don't check non-elements (trac-13208)
+	            // Don't process clicks on disabled elements (trac-6911, trac-8165, trac-11382, trac-11764)
+	            if (
+	                cur.nodeType === 1 &&
+	                    !(event.type === 'click' && cur.disabled === true)
+	            ) {
+	                var matchedHandlers = [];
+	                var matchedSelectors = {};
+	                for (var i = 0; i < delegateCount; i++) {
+	                    var handleObj = handlers[i];
+	                    // Don't conflict with Object.prototype properties (trac-13203)
+	                    var sel = handleObj.selector + ' ';
+	                    if (matchedSelectors[sel] === undefined) {
+	                        matchedSelectors[sel] = cur.matches(sel);
+	                    }
+	                    if (matchedSelectors[sel]) {
+	                        matchedHandlers.push(handleObj);
+	                    }
+	                }
+	                if (matchedHandlers.length) {
+	                    handlerQueue.push({
+	                        elem: cur,
+	                        handlers: matchedHandlers,
+	                    });
+	                }
+	            }
+	        }
+	    }
+
+	    // Add the remaining (directly-bound) handlers
+	    if (delegateCount < handlers.length) {
+	        handlerQueue.push({
+	            elem: this,
+	            handlers: handlers.slice(delegateCount),
+	        });
+	    }
+
+	    return handlerQueue;
+	};
+
+	$.event.fix = function(originalEvent) {
+	    return originalEvent.envelope ? originalEvent : new Event(originalEvent);
+	};
+
+	// A central reference to the root $(document)
+	var $root = $(document$2);
+
+	// Manipulation
+
+	function remove() {
+	    for (var i = 0; i < this.length; i++) {
+	        var node = this[i];
+	        dataPriv.remove(node);
+	        if (node.parentNode) {
+	            node.parentNode.removeChild(node);
+	        }
+	    }
+	}
+
+	function empty() {
+	    for (var i = 0; i < this.length; i++) {
+	        var node = this[i];
+	        if (node.nodeType === 1) {
+	            cleanNodesData(dataPriv, node.getElementsByTagName('*'));
+	            // Remove any remaining nodes
+	            node.textContent = '';
+	        }
+	    }
+	    return this;
+	}
+
+	function html$1(html) {
+	    var ref = this;
+	    var el = ref[0];
+	    if (!el) { return null; }
+	    if (!html) { return el.innerHTML; }
+	    cleanNodesData(dataPriv, el.getElementsByTagName('*'));
+	    if (typeof string === 'string') {
+	        el.innerHTML = html;
+	    } else {
+	        el.innerHTML = '';
+	        return this.append(html);
+	    }
+	    return this;
+	}
+
+	function text(text) {
+	    var ref = this;
+	    var el = ref[0];
+	    if (!el) { return null; }
+	    if (!text) { return el.textContent; }
+	    el.textContent = text;
+	    return this;
+	}
+
+	function append() {
+	    var nodes = [], len = arguments.length;
+	    while ( len-- ) nodes[ len ] = arguments[ len ];
+
+	    var ref = this;
+	    var parent = ref[0];
+	    if (!parent) { return this; }
+	    nodes.forEach(function (node) {
+	        if (!node) { return; }
+	        if (typeof node === 'string') {
+	            parent.append.apply(parent, $.parseHTML(node));
+	        } else if (node.toString() === '[object Object]') {
+	            // $ object
+	            parent.append.apply(parent, node.toArray());
+	        } else {
+	            // DOM node
+	            parent.appendChild(node);
+	        }
+	    });
+	    return this;
+	}
+
+	function prepend() {
+	    var nodes = [], len = arguments.length;
+	    while ( len-- ) nodes[ len ] = arguments[ len ];
+
+	    var ref = this;
+	    var parent = ref[0];
+	    if (!parent) { return this; }
+	    nodes.forEach(function (node) {
+	        if (!node) { return; }
+	        if (typeof node === 'string') {
+	            parent.prepend.apply(parent, $.parseHTML(node));
+	        } else if (node.toString() === '[object Object]') {
+	            // $ object
+	            parent.prepend.apply(parent, node.toArray());
+	        } else {
+	            // DOM node
+	            parent.insertBefore(node, parent.firstChild);
+	        }
+	    });
+	    return this;
+	}
+
+	function appendTo(parent) {
+	    $(parent).append(this);
+	    return this;
+	}
+
+	function prependTo(parent) {
+	    $(parent).prepend(this);
+	    return this;
+	}
+
+	// Styles and attributes
+
+	function css(name, value) {
+	    var styles;
+	    if (typeof name === 'string') {
+	        if (value === undefined) {
+	            var ref = this;
+	            var el = ref[0];
+	            if (!el) { return null; }
+	            return el.style[name];
+	        } else {
+	            styles = {};
+	            styles[name] = value;
+	        }
+	    } else if (!name) {
+	        throw new Error('no styles provided');
+	    } else {
+	        styles = name;
+	    }
+	    for (var style in styles) {
+	        if (styles.hasOwnProperty(style)) {
+	            for (var i = 0; i < this.length; i++) {
+	                this[i].style[style] = styles[style];
+	            }
+	        }
+	    }
+	    return this;
+	}
+
+	function attr(name, value) {
+	    var attributes;
+	    if (typeof name === 'string') {
+	        if (value === undefined) {
+	            var ref = this;
+	            var el = ref[0];
+	            if (!el) { return null; }
+	            return el.getAttribute(name);
+	        } else {
+	            attributes = {};
+	            attributes[name] = value;
+	        }
+	    } else if (!name) {
+	        throw new Error('no attributes provided');
+	    } else {
+	        attributes = name;
+	    }
+	    for (var attr in attributes) {
+	        if (attributes.hasOwnProperty(attr)) {
+	            for (var i = 0; i < this.length; i++) {
+	                this[i].setAttribute(attr, attributes[attr]);
+	            }
+	        }
+	    }
+	    return this;
+	}
+
+	// Classes
+
+	function removeClass() {
+	    var arguments$1 = arguments;
+
+	    for (var i = 0; i < this.length; i++) {
+	        var node = this[i];
+	        V.prototype.removeClass.apply({ node: node }, arguments$1);
+	    }
+	    return this;
+	}
+
+	function addClass() {
+	    var arguments$1 = arguments;
+
+	    for (var i = 0; i < this.length; i++) {
+	        var node = this[i];
+	        V.prototype.addClass.apply({ node: node }, arguments$1);
+	    }
+	    return this;
+	}
+
+	function hasClass() {
+	    var ref = this;
+	    var node = ref[0];
+	    if (!node) { return false; }
+	    return V.prototype.hasClass.apply({ node: node }, arguments);
+	}
+
+	// Events
+
+	function on(types, selector, data, fn) {
+	    return $.event.on(this, types, selector, data, fn);
+	}
+
+	function one(types, selector, data, fn) {
+	    return $.event.on(this, types, selector, data, fn, 1);
+	}
+
+	function off(types, selector, fn) {
+	    if (types && types.preventDefault && types.handleObj) {
+	        // ( event )  dispatched $.Event
+	        var handleObj = types.handleObj;
+	        $(types.delegateTarget).off(
+	            handleObj.namespace
+	                ? handleObj.origType + '.' + handleObj.namespace
+	                : handleObj.origType,
+	            handleObj.selector,
+	            handleObj.handler
+	        );
+	        return this;
+	    }
+	    if (typeof types === 'object') {
+	        // ( types-object [, selector] )
+	        for (var type in types) {
+	            this.off(type, selector, types[type]);
+	        }
+	        return this;
+	    }
+	    if (selector === false || typeof selector === 'function') {
+	        // ( types [, fn] )
+	        fn = selector;
+	        selector = undefined;
+	    }
+	    for (var i = 0; i < this.length; i++) {
+	        $.event.remove(this[i], types, fn, selector);
+	    }
+	}
+
+	var methods = ({
+		remove: remove,
+		empty: empty,
+		html: html$1,
+		text: text,
+		append: append,
+		prepend: prepend,
+		appendTo: appendTo,
+		prependTo: prependTo,
+		css: css,
+		attr: attr,
+		removeClass: removeClass,
+		addClass: addClass,
+		hasClass: hasClass,
+		on: on,
+		one: one,
+		off: off
+	});
+
+	var config = {
+	    // When set to `true` the cell selectors could be defined as CSS selectors.
+	    // If not, only JSON Markup selectors are taken into account.
+	    // export let useCSSSelectors = true;
+	    useCSSSelectors: true,
+	    // The class name prefix config is for advanced use only.
+	    // Be aware that if you change the prefix, the JointJS CSS will no longer function properly.
+	    // export let classNamePrefix = 'joint-';
+	    // export let defaultTheme = 'default';
+	    classNamePrefix: 'joint-',
+	    defaultTheme: 'default',
+	    // The maximum delay required for two consecutive touchend events to be interpreted
+	    // as a double-tap.
+	    doubleTapInterval: 300
+	};
+
+	// TODO: should not read config outside the mvc package
+
+
+	// Special events
+
+	var special = Object.create(null);
+
+	special.load = {
+	    // Prevent triggered image.load events from bubbling to window.load
+	    noBubble: true,
+	};
+
+	// Create mouseenter/leave events using mouseover/out and event-time checks
+	// so that event delegation works in $.
+	// Do the same for pointerenter/pointerleave and pointerover/pointerout
+	[
+	    ['mouseenter', 'mouseover'],
+	    ['mouseleave', 'mouseout'],
+	    ['pointerenter', 'pointerover'],
+	    ['pointerleave', 'pointerout'] ].forEach(function (ref) {
+	    var orig = ref[0];
+	    var fix = ref[1];
+
+	    special[orig] = {
+	        delegateType: fix,
+	        bindType: fix,
+	        handle: function(event) {
+	            var target = this;
+	            var related = event.relatedTarget;
+	            var handleObj = event.handleObj;
+	            var ret;
+	            // For mouseenter/leave call the handler if related is outside the target.
+	            // NB: No relatedTarget if the mouse left/entered the browser window
+	            if (!related || !target.contains(related)) {
+	                event.type = handleObj.origType;
+	                ret = handleObj.handler.apply(target, arguments);
+	                event.type = fix;
+	            }
+	            return ret;
+	        },
+	    };
+	});
+
+
+	// Gestures
+
+	var maxDelay = config.doubleTapInterval;
+	var minDelay = 30;
+
+	special.dbltap = {
+	    bindType: 'touchend',
+	    delegateType: 'touchend',
+	    handle: function(event) {
+	        var ref;
+
+	        var args = [], len = arguments.length - 1;
+	        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+	        var handleObj = event.handleObj;
+	        var target = event.target;
+	        var targetData = $.data.create(target);
+	        var now = new Date().getTime();
+	        var delta = 'lastTouch' in targetData ? now - targetData.lastTouch : 0;
+	        if (delta < maxDelay && delta > minDelay) {
+	            targetData.lastTouch = null;
+	            event.type = handleObj.origType;
+	            // let $ handle the triggering of "dbltap" event handlers
+	            (ref = handleObj.handler).call.apply(ref, [ this, event ].concat( args ));
+	        } else {
+	            targetData.lastTouch = now;
+	        }
+	    }
+	};
+
+	Object.assign($.fn, methods);
+	Object.assign($.event.special, special);
+
 	var addClassNamePrefix = function(className) {
 
 	    if (!className) { return className; }
@@ -13142,10 +14204,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            node = document.createElementNS(ns, tagName);
 	            var svg = (ns === svgNamespace);
 
-	            var wrapper = (svg) ? V : $;
+	            var wrapperNode = (svg) ? V(node) : $(node);
 	            // Attributes
 	            var attributes = nodeDef.attributes;
-	            if (attributes) { wrapper(node).attr(attributes); }
+	            if (attributes) { wrapperNode.attr(attributes); }
 	            // Style
 	            var style = nodeDef.style;
 	            if (style) { $(node).css(style); }
@@ -13167,7 +14229,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                var nodeSelector = nodeDef.selector;
 	                if (selectors[nodeSelector]) { throw new Error('json-dom-parser: selector must be unique'); }
 	                selectors[nodeSelector] = node;
-	                wrapper(node).attr('joint-selector', nodeSelector);
+	                wrapperNode.attr('joint-selector', nodeSelector);
 	            }
 	            // Groups
 	            if (nodeDef.hasOwnProperty('groupSelector')) {
@@ -13496,56 +14558,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return client ? caf.bind(window) : caf;
 
 	})();
-
-	/**
-	 * @deprecated
-	 */
-	var shapePerimeterConnectionPoint = function(linkView, view, magnet, reference) {
-
-	    var bbox;
-	    var spot;
-
-	    if (!magnet) {
-
-	        // There is no magnet, try to make the best guess what is the
-	        // wrapping SVG element. This is because we want this "smart"
-	        // connection points to work out of the box without the
-	        // programmer to put magnet marks to any of the subelements.
-	        // For example, we want the function to work on basic.Path elements
-	        // without any special treatment of such elements.
-	        // The code below guesses the wrapping element based on
-	        // one simple assumption. The wrapping elemnet is the
-	        // first child of the scalable group if such a group exists
-	        // or the first child of the rotatable group if not.
-	        // This makese sense because usually the wrapping element
-	        // is below any other sub element in the shapes.
-	        var scalable = view.$('.scalable')[0];
-	        var rotatable = view.$('.rotatable')[0];
-
-	        if (scalable && scalable.firstChild) {
-
-	            magnet = scalable.firstChild;
-
-	        } else if (rotatable && rotatable.firstChild) {
-
-	            magnet = rotatable.firstChild;
-	        }
-	    }
-
-	    if (magnet) {
-
-	        spot = V(magnet).findIntersection(reference, linkView.paper.cells);
-	        if (!spot) {
-	            bbox = V(magnet).getBBox({ target: linkView.paper.cells });
-	        }
-
-	    } else {
-
-	        bbox = view.model.getBBox();
-	        spot = bbox.intersectionWithLineFromCenterToPoint(reference);
-	    }
-	    return spot || bbox.center();
-	};
 
 	var isPercentage = function(val) {
 
@@ -13908,31 +14920,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var sanitizeHTML = function(html) {
 
 	    // Ignores tags that are invalid inside a <div> tag (e.g. <body>, <head>)
+	    var ref = $.parseHTML('<div>' + html + '</div>');
+	    var outputEl = ref[0];
 
-	    // If documentContext (second parameter) is not specified or given as `null` or `undefined`, a new document is used.
-	    // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
-
-	    // If keepScripts (last parameter) is `false`, scripts are not executed.
-	    var output = $($.parseHTML('<div>' + html + '</div>', null, false));
-
-	    output.find('*').each(function() { // for all nodes
-	        var currentNode = this;
-
-	        $.each(currentNode.attributes, function() { // for all attributes in each node
-	            var currentAttribute = this;
-
-	            var attrName = currentAttribute.name;
-	            var attrValue = currentAttribute.value;
-
+	    Array.from(outputEl.getElementsByTagName('*')).forEach(function(node) { // for all nodes
+	        var names = node.getAttributeNames();
+	        names.forEach(function(name) {
+	            var value = node.getAttribute(name);
 	            // Remove attribute names that start with "on" (e.g. onload, onerror...).
 	            // Remove attribute values that start with "javascript:" pseudo protocol (e.g. `href="javascript:alert(1)"`).
-	            if (attrName.startsWith('on') || attrValue.startsWith('javascript:') || attrValue.startsWith('data:') || attrValue.startsWith('vbscript:')) {
-	                $(currentNode).removeAttr(attrName);
+	            if (name.startsWith('on') || value.startsWith('javascript:' || value.startsWith('data:') || value.startsWith('vbscript:'))) {
+	                node.removeAttribute(name);
 	            }
 	        });
 	    });
 
-	    return output.html();
+	    return outputEl.innerHTML;
 	};
 
 	// Download `blob` as file with `fileName`.
@@ -14131,10 +15134,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	// See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
 	var sortElements = function(elements, comparator) {
 
-	    var $elements = $(elements);
-	    var placements = $elements.map(function() {
+	    elements = $(elements).toArray();
+	    var placements = elements.map(function(sortElement) {
 
-	        var sortElement = this;
 	        var parentNode = sortElement.parentNode;
 	        // Since the element itself will change position, we have
 	        // to have some way of storing it's original position in
@@ -14154,9 +15156,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        };
 	    });
 
-	    return Array.prototype.sort.call($elements, comparator).each(function(i) {
-	        placements[i].call(this);
-	    });
+	    elements.sort(comparator);
+	    for (var i = 0; i < placements.length; i++) {
+	        placements[i].call(elements[i]);
+	    }
+	    return elements;
 	};
 
 	// Sets attributes on the given element and its descendants based on the selector.
@@ -15755,8 +16759,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    var cacheName = 'joint-shape';
 	    var resetOffset = opt && opt.resetOffset;
 	    return function(value, refBBox, node) {
-	        var $node = $(node);
-	        var cache = $node.data(cacheName);
+	        var cache = $.data.get(node, cacheName);
 	        if (!cache || cache.value !== value) {
 	            // only recalculate if value has changed
 	            var cachedShape = shapeConstructor(value);
@@ -15765,7 +16768,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                shape: cachedShape,
 	                shapeBBox: cachedShape.bbox()
 	            };
-	            $node.data(cacheName, cache);
+	            $.data.set(node, cacheName, cache);
 	        }
 
 	        var shape = cache.shape.clone();
@@ -15992,9 +16995,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return !attrs.textWrap || !isPlainObject(attrs.textWrap);
 	        },
 	        set: function(text, refBBox, node, attrs) {
-	            var $node = $(node);
 	            var cacheName = 'joint-text';
-	            var cache = $node.data(cacheName);
+	            var cache = $.data.get(node, cacheName);
 	            var lineHeight = attrs.lineHeight;
 	            var annotations = attrs.annotations;
 	            var textVerticalAnchor = attrs.textVerticalAnchor;
@@ -16023,8 +17025,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                if (isObject$1(textPath)) {
 	                    var pathSelector = textPath.selector;
 	                    if (typeof pathSelector === 'string') {
-	                        var ref = this.findBySelector(pathSelector);
-	                        var pathNode = ref[0];
+	                        var pathNode = this.findNode(pathSelector);
 	                        if (pathNode instanceof SVGPathElement) {
 	                            textPath = assign({ 'xlink:href': '#' + pathNode.id }, textPath);
 	                        }
@@ -16039,7 +17040,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                    eol: eol,
 	                    displayEmpty: displayEmpty
 	                });
-	                $node.data(cacheName, textHash);
+	                $.data.set(node, cacheName, textHash);
 	            }
 	        }
 	    },
@@ -16113,11 +17114,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return node instanceof SVGElement;
 	        },
 	        set: function(title, refBBox, node) {
-	            var $node = $(node);
 	            var cacheName = 'joint-title';
-	            var cache = $node.data(cacheName);
+	            var cache = $.data.get(node, cacheName);
 	            if (cache === undefined || cache !== title) {
-	                $node.data(cacheName, title);
+	                $.data.set(node, cacheName, title);
 	                if (node.tagName === 'title') {
 	                    // The target node is a <title> element.
 	                    node.textContent = title;
@@ -17231,7 +18231,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    // A shorcut making it easy to create constructs like the following:
-	    // `var el = (new joint.shapes.basic.Rect).addTo(graph)`.
+	    // `var el = (new joint.shapes.standard.Rectangle()).addTo(graph)`.
 	    addTo: function(graph, opt) {
 
 	        graph.addCell(this, opt);
@@ -17612,7 +18612,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		cap: cap,
 		nextFrame: nextFrame,
 		cancelFrame: cancelFrame,
-		shapePerimeterConnectionPoint: shapePerimeterConnectionPoint,
 		isPercentage: isPercentage,
 		parseCssNumeric: parseCssNumeric,
 		breakText: breakText,
@@ -18773,13 +19772,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return this._createPortElement(port);
 	    },
 
-	    findPortNode: function(portId, selector) {
+	    findPortNodes: function(portId, selector) {
 	        var portCache = this._portElementsCache[portId];
-	        if (!portCache) { return null; }
-	        if (!selector) { return portCache.portContentElement.node; }
+	        if (!portCache) { return []; }
+	        if (!selector) { return [portCache.portContentElement.node]; }
 	        var portRoot = portCache.portElement.node;
 	        var portSelectors = portCache.portSelectors;
-	        var ref = this.findBySelector(selector, portRoot, portSelectors);
+	        return this.findBySelector(selector, portRoot, portSelectors);
+	    },
+
+	    findPortNode: function(portId, selector) {
+	        var ref = this.findPortNodes(portId, selector);
 	        var node = ref[0]; if ( node === void 0 ) node = null;
 	        return node;
 	    },
@@ -19531,4118 +20534,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	assign(Element$1.prototype, elementPortPrototype);
 
-	// ViewBase
-	// -------------
-
-	// ViewBases are almost more convention than they are actual code. A View
-	// is simply a JavaScript object that represents a logical chunk of UI in the
-	// DOM. This might be a single item, an entire list, a sidebar or panel, or
-	// even the surrounding frame which wraps your whole app. Defining a chunk of
-	// UI as a **View** allows you to define your DOM events declaratively, without
-	// having to worry about render order ... and makes it easy for the view to
-	// react to specific changes in the state of your models.
-
-	// Creating a ViewBase creates its initial element outside of the DOM,
-	// if an existing element is not provided...
-	var ViewBase = function(options) {
-	    this.cid = uniqueId('view');
-	    this.preinitialize.apply(this, arguments);
-	    assign(this, pick(options, viewOptions));
-	    this._ensureElement();
-	    this.initialize.apply(this, arguments);
-	};
-
-	// Cached regex to split keys for `delegate`.
-	var delegateEventSplitter = /^(\S+)\s*(.*)$/;
-
-	// List of view options to be set as properties.
-	var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
-
-	// Set up all inheritable **ViewBase** properties and methods.
-	assign(ViewBase.prototype, Events, {
-
-	    // The default `tagName` of a View's element is `"div"`.
-	    tagName: 'div',
-
-	    // jQuery delegate for element lookup, scoped to DOM elements within the
-	    // current view. This should be preferred to global lookups where possible.
-	    $: function(selector) {
-	        return this.$el.find(selector);
-	    },
-
-	    // preinitialize is an empty function by default. You can override it with a function
-	    // or object.  preinitialize will run before any instantiation logic is run in the View
-	    preinitialize: function(){},
-
-	    // Initialize is an empty function by default. Override it with your own
-	    // initialization logic.
-	    initialize: function(){},
-
-	    // **render** is the core function that your view should override, in order
-	    // to populate its element (`this.el`), with the appropriate HTML. The
-	    // convention is for **render** to always return `this`.
-	    render: function() {
-	        return this;
-	    },
-
-	    // Remove this view by taking the element out of the DOM, and removing any
-	    // applicable Events listeners.
-	    remove: function() {
-	        this._removeElement();
-	        this.stopListening();
-	        return this;
-	    },
-
-	    // Remove this view's element from the document and all event listeners
-	    // attached to it. Exposed for subclasses using an alternative DOM
-	    // manipulation API.
-	    _removeElement: function() {
-	        this.$el.remove();
-	    },
-
-	    // Change the view's element (`this.el` property) and re-delegate the
-	    // view's events on the new element.
-	    setElement: function(element) {
-	        this.undelegateEvents();
-	        this._setElement(element);
-	        this.delegateEvents();
-	        return this;
-	    },
-
-	    // Creates the `this.el` and `this.$el` references for this view using the
-	    // given `el`. `el` can be a CSS selector or an HTML string, a jQuery
-	    // context or an element. Subclasses can override this to utilize an
-	    // alternative DOM manipulation API and are only required to set the
-	    // `this.el` property.
-	    _setElement: function(el) {
-	        this.$el = el instanceof $ ? el : $(el);
-	        this.el = this.$el[0];
-	    },
-
-	    // Set callbacks, where `this.events` is a hash of
-	    //
-	    // *{"event selector": "callback"}*
-	    //
-	    //     {
-	    //       'mousedown .title':  'edit',
-	    //       'click .button':     'save',
-	    //       'click .open':       function(e) { ... }
-	    //     }
-	    //
-	    // pairs. Callbacks will be bound to the view, with `this` set properly.
-	    // Uses event delegation for efficiency.
-	    // Omitting the selector binds the event to `this.el`.
-	    delegateEvents: function(events) {
-	        events || (events = result(this, 'events'));
-	        if (!events) { return this; }
-	        this.undelegateEvents();
-	        for (var key in events) {
-	            var method = events[key];
-	            if (!isFunction(method)) { method = this[method]; }
-	            if (!method) { continue; }
-	            var match = key.match(delegateEventSplitter);
-	            this.delegate(match[1], match[2], method.bind(this));
-	        }
-	        return this;
-	    },
-
-	    // Add a single event listener to the view's element (or a child element
-	    // using `selector`). This only works for delegate-able events: not `focus`,
-	    // `blur`, and not `change`, `submit`, and `reset` in Internet Explorer.
-	    delegate: function(eventName, selector, listener) {
-	        this.$el.on(eventName + '.delegateEvents' + this.cid, selector, listener);
-	        return this;
-	    },
-
-	    // Clears all callbacks previously bound to the view by `delegateEvents`.
-	    // You usually don't need to use this, but may wish to if you have multiple
-	    // viewbases attached to the same DOM element.
-	    undelegateEvents: function() {
-	        if (this.$el) { this.$el.off('.delegateEvents' + this.cid); }
-	        return this;
-	    },
-
-	    // A finer-grained `undelegateEvents` for removing a single delegated event.
-	    // `selector` and `listener` are both optional.
-	    undelegate: function(eventName, selector, listener) {
-	        this.$el.off(eventName + '.delegateEvents' + this.cid, selector, listener);
-	        return this;
-	    },
-
-	    // Produces a DOM element to be assigned to your view. Exposed for
-	    // subclasses using an alternative DOM manipulation API.
-	    _createElement: function(tagName) {
-	        return document.createElement(tagName);
-	    },
-
-	    // Ensure that the View has a DOM element to render into.
-	    // If `this.el` is a string, pass it through `$()`, take the first
-	    // matching element, and re-assign it to `el`. Otherwise, create
-	    // an element from the `id`, `className` and `tagName` properties.
-	    _ensureElement: function() {
-	        if (!this.el) {
-	            var attrs = assign({}, result(this, 'attributes'));
-	            if (this.id) { attrs.id = result(this, 'id'); }
-	            if (this.className) { attrs['class'] = result(this, 'className'); }
-	            this.setElement(this._createElement(result(this, 'tagName')));
-	            this._setAttributes(attrs);
-	        } else {
-	            this.setElement(result(this, 'el'));
-	        }
-	    },
-
-	    // Set attributes from a hash on this view's element.  Exposed for
-	    // subclasses using an alternative DOM manipulation API.
-	    _setAttributes: function(attributes) {
-	        this.$el.attr(attributes);
-	    }
-
-	});
-
-	// Set up inheritance for the view.
-	ViewBase.extend = extend$1;
-
-	var views = {};
-
-	var View = ViewBase.extend({
-
-	    options: {},
-	    theme: null,
-	    themeClassNamePrefix: addClassNamePrefix('theme-'),
-	    requireSetThemeOverride: false,
-	    defaultTheme: config.defaultTheme,
-	    children: null,
-	    childNodes: null,
-
-	    DETACHABLE: true,
-	    UPDATE_PRIORITY: 2,
-	    FLAG_INSERT: 1<<30,
-	    FLAG_REMOVE: 1<<29,
-	    FLAG_INIT: 1<<28,
-
-	    constructor: function(options) {
-
-	        this.requireSetThemeOverride = options && !!options.theme;
-	        this.options = assign({}, this.options, options);
-
-	        ViewBase.call(this, options);
-	    },
-
-	    initialize: function() {
-
-	        views[this.cid] = this;
-
-	        this.setTheme(this.options.theme || this.defaultTheme);
-	        this.init();
-	    },
-
-	    unmount: function() {
-	        if (this.svgElement) {
-	            this.vel.remove();
-	        } else {
-	            this.$el.remove();
-	        }
-	    },
-
-	    isMounted: function() {
-	        return this.el.parentNode !== null;
-	    },
-
-	    renderChildren: function(children) {
-	        children || (children = result(this, 'children'));
-	        if (children) {
-	            var isSVG = this.svgElement;
-	            var namespace = V.namespace[isSVG ? 'svg' : 'xhtml'];
-	            var doc = parseDOMJSON(children, namespace);
-	            (isSVG ? this.vel : this.$el).empty().append(doc.fragment);
-	            this.childNodes = doc.selectors;
-	        }
-	        return this;
-	    },
-
-	    findAttribute: function(attributeName, node) {
-
-	        var currentNode = node;
-
-	        while (currentNode && currentNode.nodeType === 1) {
-	            var attributeValue = currentNode.getAttribute(attributeName);
-	            // attribute found
-	            if (attributeValue) { return attributeValue; }
-	            // do not climb up the DOM
-	            if (currentNode === this.el) { return null; }
-	            // try parent node
-	            currentNode = currentNode.parentNode;
-	        }
-
-	        return null;
-	    },
-
-	    // Override the mvc ViewBase `_ensureElement()` method in order to create an
-	    // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
-	    // Expose class name setter as a separate method.
-	    _ensureElement: function() {
-	        if (!this.el) {
-	            var tagName = result(this, 'tagName');
-	            var attrs = assign({}, result(this, 'attributes'));
-	            var style = assign({}, result(this, 'style'));
-	            if (this.id) { attrs.id = result(this, 'id'); }
-	            this.setElement(this._createElement(tagName));
-	            this._setAttributes(attrs);
-	            this._setStyle(style);
-	        } else {
-	            this.setElement(result(this, 'el'));
-	        }
-	        this._ensureElClassName();
-	    },
-
-	    _setAttributes: function(attrs) {
-	        if (this.svgElement) {
-	            this.vel.attr(attrs);
-	        } else {
-	            this.$el.attr(attrs);
-	        }
-	    },
-
-	    _setStyle: function(style) {
-	        this.$el.css(style);
-	    },
-
-	    _createElement: function(tagName) {
-	        if (this.svgElement) {
-	            return document.createElementNS(V.namespace.svg, tagName);
-	        } else {
-	            return document.createElement(tagName);
-	        }
-	    },
-
-	    // Utilize an alternative DOM manipulation API by
-	    // adding an element reference wrapped in Vectorizer.
-	    _setElement: function(el) {
-	        this.$el = el instanceof $ ? el : $(el);
-	        this.el = this.$el[0];
-	        if (this.svgElement) { this.vel = V(this.el); }
-	    },
-
-	    _ensureElClassName: function() {
-	        var className = result(this, 'className');
-	        if (!className) { return; }
-	        var prefixedClassName = addClassNamePrefix(className);
-	        // Note: className removal here kept for backwards compatibility only
-	        if (this.svgElement) {
-	            this.vel.removeClass(className).addClass(prefixedClassName);
-	        } else {
-	            this.$el.removeClass(className).addClass(prefixedClassName);
-	        }
-	    },
-
-	    init: function() {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	    },
-
-	    onRender: function() {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	    },
-
-	    confirmUpdate: function() {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	        return 0;
-	    },
-
-	    setTheme: function(theme, opt) {
-
-	        opt = opt || {};
-
-	        // Theme is already set, override is required, and override has not been set.
-	        // Don't set the theme.
-	        if (this.theme && this.requireSetThemeOverride && !opt.override) {
-	            return this;
-	        }
-
-	        this.removeThemeClassName();
-	        this.addThemeClassName(theme);
-	        this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
-	        this.theme = theme;
-
-	        return this;
-	    },
-
-	    addThemeClassName: function(theme) {
-
-	        theme = theme || this.theme;
-	        if (!theme) { return this; }
-
-	        var className = this.themeClassNamePrefix + theme;
-
-	        if (this.svgElement) {
-	            this.vel.addClass(className);
-	        } else {
-	            this.$el.addClass(className);
-	        }
-
-	        return this;
-	    },
-
-	    removeThemeClassName: function(theme) {
-
-	        theme = theme || this.theme;
-
-	        var className = this.themeClassNamePrefix + theme;
-
-	        if (this.svgElement) {
-	            this.vel.removeClass(className);
-	        } else {
-	            this.$el.removeClass(className);
-	        }
-
-	        return this;
-	    },
-
-	    onSetTheme: function(oldTheme, newTheme) {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	    },
-
-	    remove: function() {
-
-	        this.onRemove();
-	        this.undelegateDocumentEvents();
-
-	        views[this.cid] = null;
-
-	        ViewBase.prototype.remove.apply(this, arguments);
-
-	        return this;
-	    },
-
-	    onRemove: function() {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	    },
-
-	    getEventNamespace: function() {
-	        // Returns a per-session unique namespace
-	        return '.joint-event-ns-' + this.cid;
-	    },
-
-	    delegateElementEvents: function(element, events, data) {
-	        if (!events) { return this; }
-	        data || (data = {});
-	        var eventNS = this.getEventNamespace();
-	        for (var eventName in events) {
-	            var method = events[eventName];
-	            if (typeof method !== 'function') { method = this[method]; }
-	            if (!method) { continue; }
-	            $(element).on(eventName + eventNS, data, method.bind(this));
-	        }
-	        return this;
-	    },
-
-	    undelegateElementEvents: function(element) {
-	        $(element).off(this.getEventNamespace());
-	        return this;
-	    },
-
-	    delegateDocumentEvents: function(events, data) {
-	        events || (events = result(this, 'documentEvents'));
-	        return this.delegateElementEvents(document, events, data);
-	    },
-
-	    undelegateDocumentEvents: function() {
-	        return this.undelegateElementEvents(document);
-	    },
-
-	    eventData: function(evt, data) {
-	        if (!evt) { throw new Error('eventData(): event object required.'); }
-	        var currentData = evt.data;
-	        var key = '__' + this.cid + '__';
-	        if (data === undefined) {
-	            if (!currentData) { return {}; }
-	            return currentData[key] || {};
-	        }
-	        currentData || (currentData = evt.data = {});
-	        currentData[key] || (currentData[key] = {});
-	        assign(currentData[key], data);
-	        return this;
-	    },
-
-	    stopPropagation: function(evt) {
-	        this.eventData(evt, { propagationStopped: true });
-	        return this;
-	    },
-
-	    isPropagationStopped: function(evt) {
-	        return !!this.eventData(evt).propagationStopped;
-	    }
-
-	}, {
-
-	    extend: function() {
-
-	        var args = Array.from(arguments);
-
-	        // Deep clone the prototype and static properties objects.
-	        // This prevents unexpected behavior where some properties are overwritten outside of this function.
-	        var protoProps = args[0] && assign({}, args[0]) || {};
-	        var staticProps = args[1] && assign({}, args[1]) || {};
-
-	        // Need the real render method so that we can wrap it and call it later.
-	        var renderFn = protoProps.render || (this.prototype && this.prototype.render) || null;
-
-	        /*
-	            Wrap the real render method so that:
-	                .. `onRender` is always called.
-	                .. `this` is always returned.
-	        */
-	        protoProps.render = function() {
-
-	            if (typeof renderFn === 'function') {
-	                // Call the original render method.
-	                renderFn.apply(this, arguments);
-	            }
-
-	            if (this.render.__render__ === renderFn) {
-	                // Should always call onRender() method.
-	                // Should call it only once when renderFn is actual prototype method i.e. not the wrapper
-	                this.onRender();
-	            }
-
-	            // Should always return itself.
-	            return this;
-	        };
-
-	        protoProps.render.__render__ = renderFn;
-
-	        return ViewBase.extend.call(this, protoProps, staticProps);
-	    }
-	});
-
-	var DoubleTapEventName = 'dbltap';
-	if ($.event && !(DoubleTapEventName in $.event.special)) {
-	    var maxDelay = config.doubleTapInterval;
-	    var minDelay = 30;
-	    $.event.special[DoubleTapEventName] = {
-	        bindType: 'touchend',
-	        delegateType: 'touchend',
-	        handle: function(event) {
-	            var ref;
-
-	            var args = [], len = arguments.length - 1;
-	            while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
-	            var handleObj = event.handleObj;
-	            var target = event.target;
-	            var targetData  = $.data(target);
-	            var now = new Date().getTime();
-	            var delta = 'lastTouch' in targetData ? now - targetData.lastTouch : 0;
-	            if (delta < maxDelay && delta > minDelay) {
-	                targetData.lastTouch = null;
-	                event.type = handleObj.origType;
-	                // let jQuery handle the triggering of "dbltap" event handlers
-	                (ref = handleObj.handler).call.apply(ref, [ this, event ].concat( args ));
-	            } else {
-	                targetData.lastTouch = now;
-	            }
-	        }
-	    };
-	}
-
-	var Listener = function Listener() {
-	    var callbackArguments = [], len = arguments.length;
-	    while ( len-- ) callbackArguments[ len ] = arguments[ len ];
-
-	    this.callbackArguments = callbackArguments;
-	};
-
-	Listener.prototype.listenTo = function listenTo (object, evt) {
-	        var this$1 = this;
-	        var args = [], len = arguments.length - 2;
-	        while ( len-- > 0 ) args[ len ] = arguments[ len + 2 ];
-
-	    var ref = this;
-	        var callbackArguments = ref.callbackArguments;
-	    // signature 1 - (object, eventHashMap, context)
-	    if (V.isObject(evt)) {
-	        var context = args[0]; if ( context === void 0 ) context = null;
-	        Object.entries(evt).forEach(function (ref) {
-	                var eventName = ref[0];
-	                var cb = ref[1];
-
-	            if (typeof cb !== 'function') { return; }
-	            // Invoke the callback with callbackArguments passed first
-	            if (context || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context ].concat( callbackArguments )); }
-	            Events.listenTo.call(this$1, object, eventName, cb);
-	        });
-	    }
-	    // signature 2 - (object, event, callback, context)
-	    else if (typeof evt === 'string' && typeof args[0] === 'function') {
-	        var cb = args[0];
-	            var context$1 = args[1]; if ( context$1 === void 0 ) context$1 = null;
-	        // Invoke the callback with callbackArguments passed first
-	        if (context$1 || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context$1 ].concat( callbackArguments )); }
-	        Events.listenTo.call(this, object, evt, cb);
-	    }
-	};
-
-	Listener.prototype.stopListening = function stopListening () {
-	    Events.stopListening.call(this);
-	};
-
-	// Collection
-	// -------------------
-
-	// If models tend to represent a single row of data, a Collection is
-	// more analogous to a table full of data ... or a small slice or page of that
-	// table, or a collection of rows that belong together for a particular reason
-	// -- all of the messages in this particular folder, all of the documents
-	// belonging to this particular author, and so on. Collections maintain
-	// indexes of their models, both in order, and for lookup by `id`.
-
-	// Create a new **Collection**, perhaps to contain a specific type of `model`.
-	// If a `comparator` is specified, the Collection will maintain
-	// its models in sort order, as they're added and removed.
-	var Collection = function(models, options) {
-	    options || (options = {});
-	    this.preinitialize.apply(this, arguments);
-	    if (options.model) { this.model = options.model; }
-	    if (options.comparator !== void 0) { this.comparator = options.comparator; }
-	    this._reset();
-	    this.initialize.apply(this, arguments);
-	    if (models) { this.reset(models, assign({ silent: true }, options)); }
-	};
-
-	// Default options for `Collection#set`.
-	var setOptions = { add: true, remove: true, merge: true };
-	var addOptions = { add: true, remove: false };
-
-	// Splices `insert` into `array` at index `at`.
-	var splice = function(array, insert, at) {
-	    at = Math.min(Math.max(at, 0), array.length);
-	    var tail = Array(array.length - at);
-	    var length = insert.length;
-	    var i;
-	    for (i = 0; i < tail.length; i++) { tail[i] = array[i + at]; }
-	    for (i = 0; i < length; i++) { array[i + at] = insert[i]; }
-	    for (i = 0; i < tail.length; i++) { array[i + length + at] = tail[i]; }
-	};
-
-	// Define the Collection's inheritable methods.
-	assign(Collection.prototype, Events, {
-
-	    // The default model for a collection is just a **Model**.
-	    // This should be overridden in most cases.
-	    model: Model,
-
-
-	    // preinitialize is an empty function by default. You can override it with a function
-	    // or object.  preinitialize will run before any instantiation logic is run in the Collection.
-	    preinitialize: function(){},
-
-	    // Initialize is an empty function by default. Override it with your own
-	    // initialization logic.
-	    initialize: function(){},
-
-	    // The JSON representation of a Collection is an array of the
-	    // models' attributes.
-	    toJSON: function(options) {
-	        return Array.from(this).map(function(model) { return model.toJSON(options); });
-	    },
-
-	    // Add a model, or list of models to the set. `models` may be
-	    // Models or raw JavaScript objects to be converted to Models, or any
-	    // combination of the two.
-	    add: function(models, options) {
-	        return this.set(models, assign({ merge: false }, options, addOptions));
-	    },
-
-	    // Remove a model, or a list of models from the set.
-	    remove: function(models, options) {
-	        options = assign({}, options);
-	        var singular = !Array.isArray(models);
-	        models = singular ? [models] : models.slice();
-	        var removed = this._removeModels(models, options);
-	        if (!options.silent && removed.length) {
-	            options.changes = { added: [], merged: [], removed: removed };
-	            this.trigger('update', this, options);
-	        }
-	        return singular ? removed[0] : removed;
-	    },
-
-	    // Update a collection by `set`-ing a new list of models, adding new ones,
-	    // removing models that are no longer present, and merging models that
-	    // already exist in the collection, as necessary. Similar to **Model#set**,
-	    // the core operation for updating the data contained by the collection.
-	    set: function(models, options) {
-	        if (models == null) { return; }
-
-	        options = assign({}, setOptions, options);
-
-	        var singular = !Array.isArray(models);
-	        models = singular ? [models] : models.slice();
-
-	        var at = options.at;
-	        if (at != null) { at = +at; }
-	        if (at > this.length) { at = this.length; }
-	        if (at < 0) { at += this.length + 1; }
-
-	        var set = [];
-	        var toAdd = [];
-	        var toMerge = [];
-	        var toRemove = [];
-	        var modelMap = {};
-
-	        var add = options.add;
-	        var merge = options.merge;
-	        var remove = options.remove;
-
-	        var sort = false;
-	        var sortable = this.comparator && at == null && options.sort !== false;
-	        var sortAttr = isString(this.comparator) ? this.comparator : null;
-
-	        // Turn bare objects into model references, and prevent invalid models
-	        // from being added.
-	        var model, i;
-	        for (i = 0; i < models.length; i++) {
-	            model = models[i];
-
-	            // If a duplicate is found, prevent it from being added and
-	            // optionally merge it into the existing model.
-	            var existing = this.get(model);
-	            if (existing) {
-	                if (merge && model !== existing) {
-	                    var attrs = this._isModel(model) ? model.attributes : model;
-	                    existing.set(attrs, options);
-	                    toMerge.push(existing);
-	                    if (sortable && !sort) { sort = existing.hasChanged(sortAttr); }
-	                }
-	                if (!modelMap[existing.cid]) {
-	                    modelMap[existing.cid] = true;
-	                    set.push(existing);
-	                }
-	                models[i] = existing;
-
-	                // If this is a new, valid model, push it to the `toAdd` list.
-	            } else if (add) {
-	                model = models[i] = this._prepareModel(model, options);
-	                if (model) {
-	                    toAdd.push(model);
-	                    this._addReference(model, options);
-	                    modelMap[model.cid] = true;
-	                    set.push(model);
-	                }
-	            }
-	        }
-
-	        // Remove stale models.
-	        if (remove) {
-	            for (i = 0; i < this.length; i++) {
-	                model = this.models[i];
-	                if (!modelMap[model.cid]) { toRemove.push(model); }
-	            }
-	            if (toRemove.length) { this._removeModels(toRemove, options); }
-	        }
-
-	        // See if sorting is needed, update `length` and splice in new models.
-	        var orderChanged = false;
-	        var replace = !sortable && add && remove;
-	        if (set.length && replace) {
-	            orderChanged = this.length !== set.length || this.models.some(function(m, index) {
-	                return m !== set[index];
-	            });
-	            this.models.length = 0;
-	            splice(this.models, set, 0);
-	            this.length = this.models.length;
-	        } else if (toAdd.length) {
-	            if (sortable) { sort = true; }
-	            splice(this.models, toAdd, at == null ? this.length : at);
-	            this.length = this.models.length;
-	        }
-
-	        // Silently sort the collection if appropriate.
-	        if (sort) { this.sort({ silent: true }); }
-
-	        // Unless silenced, it's time to fire all appropriate add/sort/update events.
-	        if (!options.silent) {
-	            for (i = 0; i < toAdd.length; i++) {
-	                if (at != null) { options.index = at + i; }
-	                model = toAdd[i];
-	                model.trigger('add', model, this, options);
-	            }
-	            if (sort || orderChanged) { this.trigger('sort', this, options); }
-	            if (toAdd.length || toRemove.length || toMerge.length) {
-	                options.changes = {
-	                    added: toAdd,
-	                    removed: toRemove,
-	                    merged: toMerge
-	                };
-	                this.trigger('update', this, options);
-	            }
-	        }
-
-	        // Return the added (or merged) model (or models).
-	        return singular ? models[0] : models;
-	    },
-
-	    // When you have more items than you want to add or remove individually,
-	    // you can reset the entire set with a new list of models, without firing
-	    // any granular `add` or `remove` events. Fires `reset` when finished.
-	    // Useful for bulk operations and optimizations.
-	    reset: function(models, options) {
-	        options = options ? clone(options) : {};
-	        for (var i = 0; i < this.models.length; i++) {
-	            this._removeReference(this.models[i], options);
-	        }
-	        options.previousModels = this.models;
-	        this._reset();
-	        models = this.add(models, assign({ silent: true }, options));
-	        if (!options.silent) { this.trigger('reset', this, options); }
-	        return models;
-	    },
-
-	    // Add a model to the end of the collection.
-	    push: function(model, options) {
-	        return this.add(model, assign({ at: this.length }, options));
-	    },
-
-	    // Remove a model from the end of the collection.
-	    pop: function(options) {
-	        var model = this.at(this.length - 1);
-	        return this.remove(model, options);
-	    },
-
-	    // Add a model to the beginning of the collection.
-	    unshift: function(model, options) {
-	        return this.add(model, assign({ at: 0 }, options));
-	    },
-
-	    // Remove a model from the beginning of the collection.
-	    shift: function(options) {
-	        var model = this.at(0);
-	        return this.remove(model, options);
-	    },
-
-	    // Slice out a sub-array of models from the collection.
-	    slice: function() {
-	        return Array.prototype.slice.apply(this.models, arguments);
-	    },
-
-	    // Get a model from the set by id, cid, model object with id or cid
-	    // properties, or an attributes object that is transformed through modelId.
-	    get: function(obj) {
-	        if (obj == null) { return void 0; }
-	        return this._byId[obj] ||
-	        this._byId[this.modelId(this._isModel(obj) ? obj.attributes : obj, obj.idAttribute)] ||
-	        obj.cid && this._byId[obj.cid];
-	    },
-
-	    // Returns `true` if the model is in the collection.
-	    has: function(obj) {
-	        return this.get(obj) != null;
-	    },
-
-	    // Get the model at the given index.
-	    at: function(index) {
-	        if (index < 0) { index += this.length; }
-	        return this.models[index];
-	    },
-
-	    // Force the collection to re-sort itself. You don't need to call this under
-	    // normal circumstances, as the set will maintain sort order as each item
-	    // is added.
-	    sort: function(options) {
-	        var comparator = this.comparator;
-	        if (!comparator) { throw new Error('Cannot sort a set without a comparator'); }
-	        options || (options = {});
-
-	        var length = comparator.length;
-	        if (isFunction(comparator)) { comparator = comparator.bind(this); }
-
-	        // Run sort based on type of `comparator`.
-	        if (length === 1 || isString(comparator)) {
-	            this.models = this.sortBy(comparator);
-	        } else {
-	            this.models.sort(comparator);
-	        }
-	        if (!options.silent) { this.trigger('sort', this, options); }
-	        return this;
-	    },
-
-	    // Pluck an attribute from each model in the collection.
-	    pluck: function(attr) {
-	        return Array.from(this).map(function (model) { return model.get(attr + ''); });
-	    },
-
-	    // Create a new collection with an identical list of models as this one.
-	    clone: function() {
-	        return new this.constructor(this.models, {
-	            model: this.model,
-	            comparator: this.comparator
-	        });
-	    },
-
-	    // Define how to uniquely identify models in the collection.
-	    modelId: function(attrs, idAttribute) {
-	        return attrs[idAttribute || this.model.prototype.idAttribute || 'id'];
-	    },
-
-	    // Get an iterator of all models in this collection.
-	    values: function() {
-	        return new CollectionIterator(this, ITERATOR_VALUES);
-	    },
-
-	    // Get an iterator of all model IDs in this collection.
-	    keys: function() {
-	        return new CollectionIterator(this, ITERATOR_KEYS);
-	    },
-
-	    // Get an iterator of all [ID, model] tuples in this collection.
-	    entries: function() {
-	        return new CollectionIterator(this, ITERATOR_KEYSVALUES);
-	    },
-
-	    // Private method to reset all internal state. Called when the collection
-	    // is first initialized or reset.
-	    _reset: function() {
-	        this.length = 0;
-	        this.models = [];
-	        this._byId  = {};
-	    },
-
-	    // Prepare a hash of attributes (or other model) to be added to this
-	    // collection.
-	    _prepareModel: function(attrs, options) {
-	        if (this._isModel(attrs)) {
-	            if (!attrs.collection) { attrs.collection = this; }
-	            return attrs;
-	        }
-	        options = options ? clone(options) : {};
-	        options.collection = this;
-
-	        var model;
-	        if (this.model.prototype) {
-	            model = new this.model(attrs, options);
-	        } else {
-	        // ES class methods didn't have prototype
-	            model = this.model(attrs, options);
-	        }
-
-	        if (!model.validationError) { return model; }
-	        this.trigger('invalid', this, model.validationError, options);
-	        return false;
-	    },
-
-	    // Internal method called by both remove and set.
-	    _removeModels: function(models, options) {
-	        var removed = [];
-	        for (var i = 0; i < models.length; i++) {
-	            var model = this.get(models[i]);
-	            if (!model) { continue; }
-
-	            var index = Array.from(this).indexOf(model);
-	            this.models.splice(index, 1);
-	            this.length--;
-
-	            // Remove references before triggering 'remove' event to prevent an
-	            // infinite loop. #3693
-	            delete this._byId[model.cid];
-	            var id = this.modelId(model.attributes, model.idAttribute);
-	            if (id != null) { delete this._byId[id]; }
-
-	            if (!options.silent) {
-	                options.index = index;
-	                model.trigger('remove', model, this, options);
-	            }
-
-	            removed.push(model);
-	            this._removeReference(model, options);
-	        }
-	        if (models.length > 0 && !options.silent) { delete options.index; }
-	        return removed;
-	    },
-
-	    // Method for checking whether an object should be considered a model for
-	    // the purposes of adding to the collection.
-	    _isModel: function(model) {
-	        return model instanceof Model;
-	    },
-
-	    // Internal method to create a model's ties to a collection.
-	    _addReference: function(model, options) {
-	        this._byId[model.cid] = model;
-	        var id = this.modelId(model.attributes, model.idAttribute);
-	        if (id != null) { this._byId[id] = model; }
-	        model.on('all', this._onModelEvent, this);
-	    },
-
-	    // Internal method to sever a model's ties to a collection.
-	    _removeReference: function(model, options) {
-	        delete this._byId[model.cid];
-	        var id = this.modelId(model.attributes, model.idAttribute);
-	        if (id != null) { delete this._byId[id]; }
-	        if (this === model.collection) { delete model.collection; }
-	        model.off('all', this._onModelEvent, this);
-	    },
-
-	    // Internal method called every time a model in the set fires an event.
-	    // Sets need to update their indexes when models change ids. All other
-	    // events simply proxy through. "add" and "remove" events that originate
-	    // in other collections are ignored.
-	    _onModelEvent: function(event, model, collection, options) {
-	        if (model) {
-	            if ((event === 'add' || event === 'remove') && collection !== this) { return; }
-	            if (event === 'changeId') {
-	                var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
-	                var id = this.modelId(model.attributes, model.idAttribute);
-	                if (prevId != null) { delete this._byId[prevId]; }
-	                if (id != null) { this._byId[id] = model; }
-	            }
-	        }
-	        this.trigger.apply(this, arguments);
-	    }
-
-	});
-
-	// Defining an @@iterator method implements JavaScript's Iterable protocol.
-	// In modern ES2015 browsers, this value is found at Symbol.iterator.
-	var $$iterator = typeof Symbol === 'function' && Symbol.iterator;
-	if ($$iterator) {
-	    Collection.prototype[$$iterator] = Collection.prototype.values;
-	}
-
-	// CollectionIterator
-	// ------------------
-
-	// A CollectionIterator implements JavaScript's Iterator protocol, allowing the
-	// use of `for of` loops in modern browsers and interoperation between
-	// Collection and other JavaScript functions and third-party libraries
-	// which can operate on Iterables.
-	var CollectionIterator = function(collection, kind) {
-	    this._collection = collection;
-	    this._kind = kind;
-	    this._index = 0;
-	};
-
-	// This "enum" defines the three possible kinds of values which can be emitted
-	// by a CollectionIterator that correspond to the values(), keys() and entries()
-	// methods on Collection, respectively.
-	var ITERATOR_VALUES = 1;
-	var ITERATOR_KEYS = 2;
-	var ITERATOR_KEYSVALUES = 3;
-
-	// All Iterators should themselves be Iterable.
-	if ($$iterator) {
-	    CollectionIterator.prototype[$$iterator] = function() {
-	        return this;
-	    };
-	}
-
-	CollectionIterator.prototype.next = function() {
-	    if (this._collection) {
-
-	        // Only continue iterating if the iterated collection is long enough.
-	        if (this._index < this._collection.length) {
-	            var model = this._collection.at(this._index);
-	            this._index++;
-
-	            // Construct a value depending on what kind of values should be iterated.
-	            var value;
-	            if (this._kind === ITERATOR_VALUES) {
-	                value = model;
-	            } else {
-	                var id = this._collection.modelId(model.attributes, model.idAttribute);
-	                if (this._kind === ITERATOR_KEYS) {
-	                    value = id;
-	                } else { // ITERATOR_KEYSVALUES
-	                    value = [id, model];
-	                }
-	            }
-	            return { value: value, done: false };
-	        }
-
-	        // Once exhausted, remove the reference to the collection so future
-	        // calls to the next method always return done.
-	        this._collection = void 0;
-	    }
-
-	    return { value: void 0, done: true };
-	};
-
-	//  Methods that we want to implement on the Collection.
-	var collectionMethods = { toArray: 1, first: 3, last: 3, sortBy: 3 };
-
-
-	// Mix in each method as a proxy to `Collection#models`.
-
-	var config$1 = [ Collection, collectionMethods, 'models' ];
-
-	function addMethods(config) {
-	    var Base = config[0],
-	        methods = config[1],
-	        attribute = config[2];
-
-	    function first(array) {
-	        return (array && array.length) ? array[0] : undefined;
-	    }
-
-	    function last(array) {
-	        var length = array == null ? 0 : array.length;
-	        return length ? array[length - 1] : undefined;
-	    }
-
-	    var methodsToAdd = {
-	        sortBy: sortBy,
-	        first: first,
-	        last: last,
-	        toArray: toArray
-	    };
-
-	    addMethodsUtil(Base, methodsToAdd, methods, attribute);
-	}
-
-	addMethods(config$1);
-
-	// Set up inheritance for the collection.
-	Collection.extend = extend$1;
-
-
-
-	var index$1 = ({
-		views: views,
-		View: View,
-		Listener: Listener,
-		Events: Events,
-		Collection: Collection,
-		Model: Model,
-		ViewBase: ViewBase,
-		extend: extend$1,
-		addMethodsUtil: addMethodsUtil
-	});
-
-	function toArray$1(obj) {
-	    if (!obj) { return []; }
-	    if (Array.isArray(obj)) { return obj; }
-	    return [obj];
-	}
-
-	var HighlighterView = View.extend({
-
-	    tagName: 'g',
-	    svgElement: true,
-	    className: 'highlight',
-
-	    HIGHLIGHT_FLAG: 1,
-	    UPDATE_PRIORITY: 3,
-	    DETACHABLE: false,
-	    UPDATABLE: true,
-	    MOUNTABLE: true,
-
-	    cellView: null,
-	    nodeSelector: null,
-	    node: null,
-	    updateRequested: false,
-	    postponedUpdate: false,
-	    transformGroup: null,
-	    detachedTransformGroup: null,
-
-	    requestUpdate: function requestUpdate(cellView, nodeSelector) {
-	        var paper = cellView.paper;
-	        this.cellView = cellView;
-	        this.nodeSelector = nodeSelector;
-	        if (paper) {
-	            this.updateRequested = true;
-	            paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
-	        }
-	    },
-
-	    confirmUpdate: function confirmUpdate() {
-	        // The cellView is now rendered/updated since it has a higher update priority.
-	        this.updateRequested = false;
-	        var ref = this;
-	        var cellView = ref.cellView;
-	        var nodeSelector = ref.nodeSelector;
-	        if (!cellView.isMounted()) {
-	            this.postponedUpdate = true;
-	            return 0;
-	        }
-	        this.update(cellView, nodeSelector);
-	        this.mount();
-	        this.transform();
-	        return 0;
-	    },
-
-	    findNode: function findNode(cellView, nodeSelector) {
-	        var assign, assign$1;
-
-	        if ( nodeSelector === void 0 ) nodeSelector = null;
-	        var el;
-	        if (typeof nodeSelector === 'string') {
-	            (assign = cellView.findBySelector(nodeSelector), el = assign[0]);
-	        } else if (isPlainObject(nodeSelector)) {
-	            var isLink = cellView.model.isLink();
-	            var label = nodeSelector.label; if ( label === void 0 ) label = null;
-	            var port = nodeSelector.port;
-	            var selector = nodeSelector.selector;
-	            if (isLink && label !== null) {
-	                // Link Label Selector
-	                el = cellView.findLabelNode(label, selector);
-	            } else if (!isLink && port) {
-	                // Element Port Selector
-	                el = cellView.findPortNode(port, selector);
-	            } else {
-	                // Cell Selector
-	                (assign$1 = cellView.findBySelector(selector), el = assign$1[0]);
-	            }
-	        } else if (nodeSelector) {
-	            el = V.toNode(nodeSelector);
-	            if (!(el instanceof SVGElement)) { el = null; }
-	        }
-	        return el ? el : null;
-	    },
-
-	    getNodeMatrix: function getNodeMatrix(cellView, node) {
-	        var ref = this;
-	        var options = ref.options;
-	        var layer = options.layer;
-	        var rotatableNode = cellView.rotatableNode;
-	        var nodeMatrix = cellView.getNodeMatrix(node);
-	        if (rotatableNode) {
-	            if (layer) {
-	                if (rotatableNode.contains(node)) {
-	                    return nodeMatrix;
-	                }
-	                // The node is outside of the rotatable group.
-	                // Compensate the rotation set by transformGroup.
-	                return cellView.getRootRotateMatrix().inverse().multiply(nodeMatrix);
-	            } else {
-	                return cellView.getNodeRotateMatrix(node).multiply(nodeMatrix);
-	            }
-	        }
-	        return nodeMatrix;
-	    },
-
-	    mount: function mount() {
-	        var ref = this;
-	        var MOUNTABLE = ref.MOUNTABLE;
-	        var cellView = ref.cellView;
-	        var el = ref.el;
-	        var options = ref.options;
-	        var transformGroup = ref.transformGroup;
-	        var detachedTransformGroup = ref.detachedTransformGroup;
-	        var postponedUpdate = ref.postponedUpdate;
-	        var nodeSelector = ref.nodeSelector;
-	        if (!MOUNTABLE || transformGroup) { return; }
-	        if (postponedUpdate) {
-	            // The cellView was not mounted when the update was requested.
-	            // The update was postponed until the cellView is mounted.
-	            this.update(cellView, nodeSelector);
-	            this.transform();
-	            return;
-	        }
-	        var cellViewRoot = cellView.vel;
-	        var paper = cellView.paper;
-	        var layerName = options.layer;
-	        if (layerName) {
-	            var vGroup;
-	            if (detachedTransformGroup) {
-	                vGroup = detachedTransformGroup;
-	                this.detachedTransformGroup = null;
-	            } else {
-	                vGroup = V('g').addClass('highlight-transform').append(el);
-	            }
-	            this.transformGroup = vGroup;
-	            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
-	        } else {
-	            // TODO: prepend vs append
-	            if (!el.parentNode || el.nextSibling) {
-	                // Not appended yet or not the last child
-	                cellViewRoot.append(el);
-	            }
-	        }
-	    },
-
-	    unmount: function unmount() {
-	        var ref = this;
-	        var MOUNTABLE = ref.MOUNTABLE;
-	        var transformGroup = ref.transformGroup;
-	        var vel = ref.vel;
-	        if (!MOUNTABLE) { return; }
-	        if (transformGroup) {
-	            this.transformGroup = null;
-	            this.detachedTransformGroup = transformGroup;
-	            transformGroup.remove();
-	        } else {
-	            vel.remove();
-	        }
-	    },
-
-	    transform: function transform() {
-	        var ref = this;
-	        var transformGroup = ref.transformGroup;
-	        var cellView = ref.cellView;
-	        var updateRequested = ref.updateRequested;
-	        if (!transformGroup || cellView.model.isLink() || updateRequested) { return; }
-	        var translateMatrix = cellView.getRootTranslateMatrix();
-	        var rotateMatrix = cellView.getRootRotateMatrix();
-	        var transformMatrix = translateMatrix.multiply(rotateMatrix);
-	        transformGroup.attr('transform', V.matrixToTransformString(transformMatrix));
-	    },
-
-	    update: function update() {
-	        var ref = this;
-	        var prevNode = ref.node;
-	        var cellView = ref.cellView;
-	        var nodeSelector = ref.nodeSelector;
-	        var updateRequested = ref.updateRequested;
-	        var id = ref.id;
-	        if (updateRequested) { return; }
-	        this.postponedUpdate = false;
-	        var node = this.node = this.findNode(cellView, nodeSelector);
-	        if (prevNode) {
-	            this.unhighlight(cellView, prevNode);
-	        }
-	        if (node) {
-	            this.highlight(cellView, node);
-	            this.mount();
-	        } else {
-	            this.unmount();
-	            cellView.notify('cell:highlight:invalid', id, this);
-	        }
-	    },
-
-	    onRemove: function onRemove() {
-	        var ref = this;
-	        var node = ref.node;
-	        var cellView = ref.cellView;
-	        var id = ref.id;
-	        var constructor = ref.constructor;
-	        if (node) {
-	            this.unhighlight(cellView, node);
-	        }
-	        this.unmount();
-	        constructor._removeRef(cellView, id);
-	    },
-
-	    highlight: function highlight(_cellView, _node) {
-	        // to be overridden
-	    },
-
-	    unhighlight: function unhighlight(_cellView, _node) {
-	        // to be overridden
-	    },
-
-	    // Update Attributes
-
-	    listenToUpdateAttributes: function listenToUpdateAttributes(cellView) {
-	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
-	        if (!Array.isArray(attributes) || attributes.length === 0) { return; }
-	        this.listenTo(cellView.model, 'change', this.onCellAttributeChange);
-	    },
-
-	    onCellAttributeChange: function onCellAttributeChange() {
-	        var ref = this;
-	        var cellView = ref.cellView;
-	        if (!cellView) { return; }
-	        var model = cellView.model;
-	        var paper = cellView.paper;
-	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
-	        if (!attributes.some(function (attribute) { return model.hasChanged(attribute); })) { return; }
-	        paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
-	    }
-
-	}, {
-
-	    _views: {},
-
-	    // Used internally by CellView highlight()
-	    highlight: function(cellView, node, opt) {
-	        var id = this.uniqueId(node, opt);
-	        this.add(cellView, node, id, opt);
-	    },
-
-	    // Used internally by CellView unhighlight()
-	    unhighlight: function(cellView, node, opt) {
-	        var id = this.uniqueId(node, opt);
-	        this.remove(cellView, id);
-	    },
-
-	    get: function get(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        var cid = cellView.cid;
-	        var ref$2 = this;
-	        var _views = ref$2._views;
-	        var refs = _views[cid];
-	        if (id === null) {
-	            // all highlighters
-	            var views = [];
-	            if (!refs) { return views; }
-	            for (var hid in refs) {
-	                var ref = refs[hid];
-	                if (ref instanceof this) {
-	                    views.push(ref);
-	                }
-	            }
-	            return views;
-	        } else {
-	            // single highlighter
-	            if (!refs) { return null; }
-	            if (id in refs) {
-	                var ref$1 = refs[id];
-	                if (ref$1 instanceof this) { return ref$1; }
-	            }
-	            return null;
-	        }
-	    },
-
-	    add: function add(cellView, nodeSelector, id, opt) {
-	        if ( opt === void 0 ) opt = {};
-
-	        if (!id) { throw new Error('dia.HighlighterView: An ID required.'); }
-	        // Search the existing view amongst all the highlighters
-	        var previousView = HighlighterView.get(cellView, id);
-	        if (previousView) { previousView.remove(); }
-	        var view = new this(opt);
-	        view.id = id;
-	        this._addRef(cellView, id, view);
-	        view.requestUpdate(cellView, nodeSelector);
-	        view.listenToUpdateAttributes(cellView);
-	        return view;
-	    },
-
-	    _addRef: function _addRef(cellView, id, view) {
-	        var cid = cellView.cid;
-	        var ref = this;
-	        var _views = ref._views;
-	        var refs = _views[cid];
-	        if (!refs) { refs = _views[cid] = {}; }
-	        refs[id] = view;
-	    },
-
-	    _removeRef: function _removeRef(cellView, id) {
-	        var cid = cellView.cid;
-	        var ref = this;
-	        var _views = ref._views;
-	        var refs = _views[cid];
-	        if (!refs) { return; }
-	        if (id) { delete refs[id]; }
-	        for (var _ in refs) { return; }
-	        delete _views[cid];
-	    },
-
-	    remove: function remove(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) {
-	            view.remove();
-	        });
-	    },
-
-	    removeAll: function removeAll(paper, id) {
-	        if ( id === void 0 ) id = null;
-
-	        var ref = this;
-	        var _views = ref._views;
-
-	        for (var cid in _views) {
-	            for (var hid in _views[cid]) {
-	                var view = _views[cid][hid];
-
-	                if (view.cellView.paper === paper && view instanceof this && (id === null || hid === id)) {
-	                    view.remove();
-	                }
-	            }
-	        }
-	    },
-
-	    update: function update(cellView, id, dirty) {
-	        if ( id === void 0 ) id = null;
-	        if ( dirty === void 0 ) dirty = false;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) {
-	            if (dirty || view.UPDATABLE) { view.update(); }
-	        });
-	    },
-
-	    transform: function transform(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) {
-	            if (view.UPDATABLE) { view.transform(); }
-	        });
-	    },
-
-	    unmount: function unmount(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.unmount(); });
-	    },
-
-	    mount: function mount(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.mount(); });
-	    },
-
-	    uniqueId: function uniqueId(node, opt) {
-	        if ( opt === void 0 ) opt = '';
-
-	        return V.ensureId(node) + JSON.stringify(opt);
-	    }
-
-	});
-
-	var HighlightingTypes = {
-	    DEFAULT: 'default',
-	    EMBEDDING: 'embedding',
-	    CONNECTING: 'connecting',
-	    MAGNET_AVAILABILITY: 'magnetAvailability',
-	    ELEMENT_AVAILABILITY: 'elementAvailability'
-	};
-
-	var Flags = {
-	    TOOLS: 'TOOLS',
-	};
-
-	// CellView base view and controller.
-	// --------------------------------------------
-
-	// This is the base view and controller for `ElementView` and `LinkView`.
-	var CellView = View.extend({
-
-	    tagName: 'g',
-
-	    svgElement: true,
-
-	    selector: 'root',
-
-	    metrics: null,
-
-	    className: function() {
-
-	        var classNames = ['cell'];
-	        var type = this.model.get('type');
-
-	        if (type) {
-
-	            type.toLowerCase().split('.').forEach(function(value, index, list) {
-	                classNames.push('type-' + list.slice(0, index + 1).join('-'));
-	            });
-	        }
-
-	        return classNames.join(' ');
-	    },
-
-	    _presentationAttributes: null,
-	    _flags: null,
-
-	    setFlags: function() {
-	        var flags = {};
-	        var attributes = {};
-	        var shift = 0;
-	        var i, n, label;
-	        var presentationAttributes = result(this, 'presentationAttributes');
-	        for (var attribute in presentationAttributes) {
-	            if (!presentationAttributes.hasOwnProperty(attribute)) { continue; }
-	            var labels = presentationAttributes[attribute];
-	            if (!Array.isArray(labels)) { labels = [labels]; }
-	            for (i = 0, n = labels.length; i < n; i++) {
-	                label = labels[i];
-	                var flag = flags[label];
-	                if (!flag) {
-	                    flag = flags[label] = 1<<(shift++);
-	                }
-	                attributes[attribute] |= flag;
-	            }
-	        }
-	        var initFlag = result(this, 'initFlag');
-	        if (!Array.isArray(initFlag)) { initFlag = [initFlag]; }
-	        for (i = 0, n = initFlag.length; i < n; i++) {
-	            label = initFlag[i];
-	            if (!flags[label]) { flags[label] = 1<<(shift++); }
-	        }
-
-	        // 26 - 30 are reserved for paper flags
-	        // 31+ overflows maximal number
-	        if (shift > 25) { throw new Error('dia.CellView: Maximum number of flags exceeded.'); }
-
-	        this._flags = flags;
-	        this._presentationAttributes = attributes;
-	    },
-
-	    hasFlag: function(flag, label) {
-	        return flag & this.getFlag(label);
-	    },
-
-	    removeFlag: function(flag, label) {
-	        return flag ^ (flag & this.getFlag(label));
-	    },
-
-	    getFlag: function(label) {
-	        var flags = this._flags;
-	        if (!flags) { return 0; }
-	        var flag = 0;
-	        if (Array.isArray(label)) {
-	            for (var i = 0, n = label.length; i < n; i++) { flag |= flags[label[i]]; }
-	        } else {
-	            flag |= flags[label];
-	        }
-	        return flag;
-	    },
-
-	    attributes: function() {
-	        var cell = this.model;
-	        return {
-	            'model-id': cell.id,
-	            'data-type': cell.attributes.type
-	        };
-	    },
-
-	    constructor: function(options) {
-
-	        // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
-	        // The global unique id makes sure that the same view can be rendered on e.g. different machines and
-	        // still be associated to the same object among all those clients. This is necessary for real-time
-	        // collaboration mechanism.
-	        options.id = options.id || guid(this);
-
-	        View.call(this, options);
-	    },
-
-	    initialize: function() {
-
-	        this.setFlags();
-
-	        View.prototype.initialize.apply(this, arguments);
-
-	        this.cleanNodesCache();
-
-	        // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
-	        this.$el.data('view', this);
-
-	        this.startListening();
-	    },
-
-	    startListening: function() {
-	        this.listenTo(this.model, 'change', this.onAttributesChange);
-	    },
-
-	    onAttributesChange: function(model, opt) {
-	        var flag = model.getChangeFlag(this._presentationAttributes);
-	        if (opt.updateHandled || !flag) { return; }
-	        if (opt.dirty && this.hasFlag(flag, 'UPDATE')) { flag |= this.getFlag('RENDER'); }
-	        // TODO: tool changes does not need to be sync
-	        // Fix Segments tools
-	        if (opt.tool) { opt.async = false; }
-	        this.requestUpdate(flag, opt);
-	    },
-
-	    requestUpdate: function(flags, opt) {
-	        var ref = this;
-	        var paper = ref.paper;
-	        if (paper && flags > 0) {
-	            paper.requestViewUpdate(this, flags, this.UPDATE_PRIORITY, opt);
-	        }
-	    },
-
-	    parseDOMJSON: function(markup, root) {
-
-	        var doc = parseDOMJSON(markup);
-	        var selectors = doc.selectors;
-	        var groups = doc.groupSelectors;
-	        for (var group in groups) {
-	            if (selectors[group]) { throw new Error('dia.CellView: ambiguous group selector'); }
-	            selectors[group] = groups[group];
-	        }
-	        if (root) {
-	            var rootSelector = this.selector;
-	            if (selectors[rootSelector]) { throw new Error('dia.CellView: ambiguous root selector.'); }
-	            selectors[rootSelector] = root;
-	        }
-	        return { fragment: doc.fragment, selectors: selectors };
-	    },
-
-	    // Return `true` if cell link is allowed to perform a certain UI `feature`.
-	    // Example: `can('vertexMove')`, `can('labelMove')`.
-	    can: function(feature) {
-
-	        var interactive = isFunction(this.options.interactive)
-	            ? this.options.interactive(this)
-	            : this.options.interactive;
-
-	        return (isObject$1(interactive) && interactive[feature] !== false) ||
-	            (isBoolean(interactive) && interactive !== false);
-	    },
-
-	    findBySelector: function(selector, root, selectors) {
-
-	        root || (root = this.el);
-	        selectors || (selectors = this.selectors);
-
-	        // These are either descendants of `this.$el` of `this.$el` itself.
-	        // `.` is a special selector used to select the wrapping `<g>` element.
-	        if (!selector || selector === '.') { return [root]; }
-	        if (selectors) {
-	            var nodes = selectors[selector];
-	            if (nodes) {
-	                if (Array.isArray(nodes)) { return nodes; }
-	                return [nodes];
-	            }
-	        }
-
-	        // Maintaining backwards compatibility
-	        // e.g. `circle:first` would fail with querySelector() call
-	        if (config.useCSSSelectors) { return $(root).find(selector).toArray(); }
-
-	        return [];
-	    },
-
-	    notify: function(eventName) {
-
-	        if (this.paper) {
-
-	            var args = Array.prototype.slice.call(arguments, 1);
-
-	            // Trigger the event on both the element itself and also on the paper.
-	            this.trigger.apply(this, [eventName].concat(args));
-
-	            // Paper event handlers receive the view object as the first argument.
-	            this.paper.trigger.apply(this.paper, [eventName, this].concat(args));
-	        }
-	    },
-
-	    getBBox: function(opt) {
-
-	        var bbox;
-	        if (opt && opt.useModelGeometry) {
-	            var model = this.model;
-	            bbox = model.getBBox().bbox(model.angle());
-	        } else {
-	            bbox = this.getNodeBBox(this.el);
-	        }
-
-	        return this.paper.localToPaperRect(bbox);
-	    },
-
-	    getNodeBBox: function(magnet) {
-
-	        var rect = this.getNodeBoundingRect(magnet);
-	        var transformMatrix = this.getRootTranslateMatrix().multiply(this.getNodeRotateMatrix(magnet));
-	        var magnetMatrix = this.getNodeMatrix(magnet);
-	        return V.transformRect(rect, transformMatrix.multiply(magnetMatrix));
-	    },
-
-	    getNodeRotateMatrix: function getNodeRotateMatrix(node) {
-	        if (!this.rotatableNode || this.rotatableNode.contains(node)) {
-	            // Rotate transformation is applied to all nodes when no rotatableGroup
-	            // is present or to nodes inside the rotatableGroup only.
-	            return this.getRootRotateMatrix();
-	        }
-	        // Nodes outside the rotatable group
-	        return V.createSVGMatrix();
-	    },
-
-	    getNodeUnrotatedBBox: function(magnet) {
-
-	        var rect = this.getNodeBoundingRect(magnet);
-	        var magnetMatrix = this.getNodeMatrix(magnet);
-	        var translateMatrix = this.getRootTranslateMatrix();
-	        return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
-	    },
-
-	    getRootTranslateMatrix: function() {
-
-	        var model = this.model;
-	        var position = model.position();
-	        var mt = V.createSVGMatrix().translate(position.x, position.y);
-	        return mt;
-	    },
-
-	    getRootRotateMatrix: function() {
-
-	        var mr = V.createSVGMatrix();
-	        var model = this.model;
-	        var angle = model.angle();
-	        if (angle) {
-	            var bbox = model.getBBox();
-	            var cx = bbox.width / 2;
-	            var cy = bbox.height / 2;
-	            mr = mr.translate(cx, cy).rotate(angle).translate(-cx, -cy);
-	        }
-	        return mr;
-	    },
-
-	    _notifyHighlight: function(eventName, el, opt) {
-	        var assign, assign$1;
-
-	        if ( opt === void 0 ) opt = {};
-	        var ref = this;
-	        var rootNode = ref.el;
-	        var node;
-	        if (typeof el === 'string') {
-	            (assign = this.findBySelector(el), node = assign[0], node = node === void 0 ? rootNode : node);
-	        } else {
-	            (assign$1 = this.$(el), node = assign$1[0], node = node === void 0 ? rootNode : node);
-	        }
-	        // set partial flag if the highlighted element is not the entire view.
-	        opt.partial = (node !== rootNode);
-	        // translate type flag into a type string
-	        if (opt.type === undefined) {
-	            var type;
-	            switch (true) {
-	                case opt.embedding:
-	                    type = HighlightingTypes.EMBEDDING;
-	                    break;
-	                case opt.connecting:
-	                    type = HighlightingTypes.CONNECTING;
-	                    break;
-	                case opt.magnetAvailability:
-	                    type = HighlightingTypes.MAGNET_AVAILABILITY;
-	                    break;
-	                case opt.elementAvailability:
-	                    type = HighlightingTypes.ELEMENT_AVAILABILITY;
-	                    break;
-	                default:
-	                    type = HighlightingTypes.DEFAULT;
-	                    break;
-	            }
-	            opt.type = type;
-	        }
-	        this.notify(eventName, node, opt);
-	        return this;
-	    },
-
-	    highlight: function(el, opt) {
-	        return this._notifyHighlight('cell:highlight', el, opt);
-	    },
-
-	    unhighlight: function(el, opt) {
-	        if ( opt === void 0 ) opt = {};
-
-	        return this._notifyHighlight('cell:unhighlight', el, opt);
-	    },
-
-	    // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
-	    // an element found, return the root element of the cell view.
-	    findMagnet: function(el) {
-
-	        var root = this.el;
-	        var magnet = this.$(el)[0];
-	        if (!magnet) {
-	            magnet = root;
-	        }
-
-	        do {
-	            var magnetAttribute = magnet.getAttribute('magnet');
-	            var isMagnetRoot = (magnet === root);
-	            if ((magnetAttribute || isMagnetRoot) && magnetAttribute !== 'false') {
-	                return magnet;
-	            }
-	            if (isMagnetRoot) {
-	                // If the overall cell has set `magnet === false`, then return `undefined` to
-	                // announce there is no magnet found for this cell.
-	                // This is especially useful to set on cells that have 'ports'. In this case,
-	                // only the ports have set `magnet === true` and the overall element has `magnet === false`.
-	                return undefined;
-	            }
-	            magnet = magnet.parentNode;
-	        } while (magnet);
-
-	        return undefined;
-	    },
-
-	    findProxyNode: function(el, type) {
-	        el || (el = this.el);
-	        var nodeSelector = el.getAttribute((type + "-selector"));
-	        if (nodeSelector) {
-	            var ref = this.findBySelector(nodeSelector);
-	            var proxyNode = ref[0];
-	            if (proxyNode) { return proxyNode; }
-	        }
-	        return el;
-	    },
-
-	    // Construct a unique selector for the `el` element within this view.
-	    // `prevSelector` is being collected through the recursive call.
-	    // No value for `prevSelector` is expected when using this method.
-	    getSelector: function(el, prevSelector) {
-
-	        var selector;
-
-	        if (el === this.el) {
-	            if (typeof prevSelector === 'string') { selector = '> ' + prevSelector; }
-	            return selector;
-	        }
-
-	        if (el) {
-
-	            var nthChild = V(el).index() + 1;
-	            selector = el.tagName + ':nth-child(' + nthChild + ')';
-
-	            if (prevSelector) {
-	                selector += ' > ' + prevSelector;
-	            }
-
-	            selector = this.getSelector(el.parentNode, selector);
-	        }
-
-	        return selector;
-	    },
-
-	    addLinkFromMagnet: function(magnet, x, y) {
-
-	        var paper = this.paper;
-	        var graph = paper.model;
-
-	        var link = paper.getDefaultLink(this, magnet);
-	        link.set({
-	            source: this.getLinkEnd(magnet, x, y, link, 'source'),
-	            target: { x: x, y: y }
-	        }).addTo(graph, {
-	            async: false,
-	            ui: true
-	        });
-
-	        return link.findView(paper);
-	    },
-
-	    getLinkEnd: function(magnet) {
-	        var ref;
-
-	        var args = [], len = arguments.length - 1;
-	        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
-
-	        var model = this.model;
-	        var id = model.id;
-	        var port = this.findAttribute('port', magnet);
-	        // Find a unique `selector` of the element under pointer that is a magnet.
-	        var selector = magnet.getAttribute('joint-selector');
-
-	        var end = { id: id };
-	        if (selector != null) { end.magnet = selector; }
-	        if (port != null) {
-	            end.port = port;
-	            if (!model.hasPort(port) && !selector) {
-	                // port created via the `port` attribute (not API)
-	                end.selector = this.getSelector(magnet);
-	            }
-	        } else if (selector == null && this.el !== magnet) {
-	            end.selector = this.getSelector(magnet);
-	        }
-
-	        return (ref = this).customizeLinkEnd.apply(ref, [ end, magnet ].concat( args ));
-	    },
-
-	    customizeLinkEnd: function(end, magnet, x, y, link, endType) {
-	        var ref = this;
-	        var paper = ref.paper;
-	        var ref$1 = paper.options;
-	        var connectionStrategy = ref$1.connectionStrategy;
-	        if (typeof connectionStrategy === 'function') {
-	            var strategy = connectionStrategy.call(paper, end, this, magnet, new Point(x, y), link, endType, paper);
-	            if (strategy) { return strategy; }
-	        }
-	        return end;
-	    },
-
-	    getMagnetFromLinkEnd: function(end) {
-
-	        var root = this.el;
-	        var port = end.port;
-	        var selector = end.magnet;
-	        var model = this.model;
-	        var magnet;
-	        if (port != null && model.isElement() && model.hasPort(port)) {
-	            magnet = this.findPortNode(port, selector) || root;
-	        } else {
-	            if (!selector) { selector = end.selector; }
-	            if (!selector && port != null) {
-	                // link end has only `id` and `port` property referencing
-	                // a port created via the `port` attribute (not API).
-	                selector = '[port="' + port + '"]';
-	            }
-	            magnet = this.findBySelector(selector, root, this.selectors)[0];
-	        }
-
-	        return this.findProxyNode(magnet, 'magnet');
-	    },
-
-	    dragLinkStart: function(evt, magnet, x, y) {
-	        this.model.startBatch('add-link');
-	        var linkView = this.addLinkFromMagnet(magnet, x, y);
-	        // backwards compatibility events
-	        linkView.notifyPointerdown(evt, x, y);
-	        linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
-	        this.eventData(evt, { linkView: linkView });
-	    },
-
-	    dragLink: function(evt, x, y) {
-	        var data = this.eventData(evt);
-	        var linkView = data.linkView;
-	        if (linkView) {
-	            linkView.pointermove(evt, x, y);
-	        } else {
-	            var paper = this.paper;
-	            var magnetThreshold = paper.options.magnetThreshold;
-	            var currentTarget = this.getEventTarget(evt);
-	            var targetMagnet = data.targetMagnet;
-	            if (magnetThreshold === 'onleave') {
-	                // magnetThreshold when the pointer leaves the magnet
-	                if (targetMagnet === currentTarget || V(targetMagnet).contains(currentTarget)) { return; }
-	            } else {
-	                // magnetThreshold defined as a number of movements
-	                if (paper.eventData(evt).mousemoved <= magnetThreshold) { return; }
-	            }
-	            this.dragLinkStart(evt, targetMagnet, x, y);
-	        }
-	    },
-
-	    dragLinkEnd: function(evt, x, y) {
-	        var data = this.eventData(evt);
-	        var linkView = data.linkView;
-	        if (!linkView) { return; }
-	        linkView.pointerup(evt, x, y);
-	        this.model.stopBatch('add-link');
-	    },
-
-	    getAttributeDefinition: function(attrName) {
-
-	        return this.model.constructor.getAttributeDefinition(attrName);
-	    },
-
-	    setNodeAttributes: function(node, attrs) {
-
-	        if (!isEmpty(attrs)) {
-	            if (node instanceof SVGElement) {
-	                V(node).attr(attrs);
-	            } else {
-	                $(node).attr(attrs);
-	            }
-	        }
-	    },
-
-	    processNodeAttributes: function(node, attrs) {
-
-	        var attrName, attrVal, def, i, n;
-	        var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
-	        var relatives = [];
-	        // divide the attributes between normal and special
-	        for (attrName in attrs) {
-	            if (!attrs.hasOwnProperty(attrName)) { continue; }
-	            attrVal = attrs[attrName];
-	            def = this.getAttributeDefinition(attrName);
-	            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs, this))) {
-	                if (isString(def.set)) {
-	                    normalAttrs || (normalAttrs = {});
-	                    normalAttrs[def.set] = attrVal;
-	                }
-	                if (attrVal !== null) {
-	                    relatives.push(attrName, def);
-	                }
-	            } else {
-	                normalAttrs || (normalAttrs = {});
-	                normalAttrs[toKebabCase(attrName)] = attrVal;
-	            }
-	        }
-
-	        // handle the rest of attributes via related method
-	        // from the special attributes namespace.
-	        for (i = 0, n = relatives.length; i < n; i+=2) {
-	            attrName = relatives[i];
-	            def = relatives[i+1];
-	            attrVal = attrs[attrName];
-	            if (isFunction(def.set)) {
-	                setAttrs || (setAttrs = {});
-	                setAttrs[attrName] = attrVal;
-	            }
-	            if (isFunction(def.position)) {
-	                positionAttrs || (positionAttrs = {});
-	                positionAttrs[attrName] = attrVal;
-	            }
-	            if (isFunction(def.offset)) {
-	                offsetAttrs || (offsetAttrs = {});
-	                offsetAttrs[attrName] = attrVal;
-	            }
-	        }
-
-	        return {
-	            raw: attrs,
-	            normal: normalAttrs,
-	            set: setAttrs,
-	            position: positionAttrs,
-	            offset: offsetAttrs
-	        };
-	    },
-
-	    updateRelativeAttributes: function(node, attrs, refBBox, opt) {
-
-	        opt || (opt = {});
-
-	        var attrName, attrVal, def;
-	        var rawAttrs = attrs.raw || {};
-	        var nodeAttrs = attrs.normal || {};
-	        var setAttrs = attrs.set;
-	        var positionAttrs = attrs.position;
-	        var offsetAttrs = attrs.offset;
-
-	        for (attrName in setAttrs) {
-	            attrVal = setAttrs[attrName];
-	            def = this.getAttributeDefinition(attrName);
-	            // SET - set function should return attributes to be set on the node,
-	            // which will affect the node dimensions based on the reference bounding
-	            // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
-	            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
-	            if (isObject$1(setResult)) {
-	                assign(nodeAttrs, setResult);
-	            } else if (setResult !== undefined) {
-	                nodeAttrs[attrName] = setResult;
-	            }
-	        }
-
-	        if (node instanceof HTMLElement) {
-	            // TODO: setting the `transform` attribute on HTMLElements
-	            // via `node.style.transform = 'matrix(...)';` would introduce
-	            // a breaking change (e.g. basic.TextBlock).
-	            this.setNodeAttributes(node, nodeAttrs);
-	            return;
-	        }
-
-	        // The final translation of the subelement.
-	        var nodeTransform = nodeAttrs.transform;
-	        var nodeMatrix = V.transformStringToMatrix(nodeTransform);
-	        var nodePosition = Point(nodeMatrix.e, nodeMatrix.f);
-	        if (nodeTransform) {
-	            nodeAttrs = omit(nodeAttrs, 'transform');
-	            nodeMatrix.e = nodeMatrix.f = 0;
-	        }
-
-	        // Calculate node scale determined by the scalable group
-	        // only if later needed.
-	        var sx, sy, translation;
-	        if (positionAttrs || offsetAttrs) {
-	            var nodeScale = this.getNodeScale(node, opt.scalableNode);
-	            sx = nodeScale.sx;
-	            sy = nodeScale.sy;
-	        }
-
-	        var positioned = false;
-	        for (attrName in positionAttrs) {
-	            attrVal = positionAttrs[attrName];
-	            def = this.getAttributeDefinition(attrName);
-	            // POSITION - position function should return a point from the
-	            // reference bounding box. The default position of the node is x:0, y:0 of
-	            // the reference bounding box or could be further specify by some
-	            // SVG attributes e.g. `x`, `y`
-	            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
-	            if (translation) {
-	                nodePosition.offset(Point(translation).scale(sx, sy));
-	                positioned || (positioned = true);
-	            }
-	        }
-
-	        // The node bounding box could depend on the `size` set from the previous loop.
-	        // Here we know, that all the size attributes have been already set.
-	        this.setNodeAttributes(node, nodeAttrs);
-
-	        var offseted = false;
-	        if (offsetAttrs) {
-	            // Check if the node is visible
-	            var nodeBoundingRect = this.getNodeBoundingRect(node);
-	            if (nodeBoundingRect.width > 0 && nodeBoundingRect.height > 0) {
-	                var nodeBBox = V.transformRect(nodeBoundingRect, nodeMatrix).scale(1 / sx, 1 / sy);
-	                for (attrName in offsetAttrs) {
-	                    attrVal = offsetAttrs[attrName];
-	                    def = this.getAttributeDefinition(attrName);
-	                    // OFFSET - offset function should return a point from the element
-	                    // bounding box. The default offset point is x:0, y:0 (origin) or could be further
-	                    // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
-	                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs, this);
-	                    if (translation) {
-	                        nodePosition.offset(Point(translation).scale(sx, sy));
-	                        offseted || (offseted = true);
-	                    }
-	                }
-	            }
-	        }
-
-	        // Do not touch node's transform attribute if there is no transformation applied.
-	        if (nodeTransform !== undefined || positioned || offseted) {
-	            // Round the coordinates to 1 decimal point.
-	            nodePosition.round(1);
-	            nodeMatrix.e = nodePosition.x;
-	            nodeMatrix.f = nodePosition.y;
-	            node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
-	            // TODO: store nodeMatrix metrics?
-	        }
-	    },
-
-	    getNodeScale: function(node, scalableNode) {
-
-	        // Check if the node is a descendant of the scalable group.
-	        var sx, sy;
-	        if (scalableNode && scalableNode.contains(node)) {
-	            var scale = scalableNode.scale();
-	            sx = 1 / scale.sx;
-	            sy = 1 / scale.sy;
-	        } else {
-	            sx = 1;
-	            sy = 1;
-	        }
-
-	        return { sx: sx, sy: sy };
-	    },
-
-	    cleanNodesCache: function() {
-	        this.metrics = {};
-	    },
-
-	    nodeCache: function(magnet) {
-
-	        var metrics = this.metrics;
-	        // Don't use cache? It most likely a custom view with overridden update.
-	        if (!metrics) { return {}; }
-	        var id = V.ensureId(magnet);
-	        var value = metrics[id];
-	        if (!value) { value = metrics[id] = {}; }
-	        return value;
-	    },
-
-	    getNodeData: function(magnet) {
-
-	        var metrics = this.nodeCache(magnet);
-	        if (!metrics.data) { metrics.data = {}; }
-	        return metrics.data;
-	    },
-
-	    getNodeBoundingRect: function(magnet) {
-
-	        var metrics = this.nodeCache(magnet);
-	        if (metrics.boundingRect === undefined) { metrics.boundingRect = V(magnet).getBBox(); }
-	        return new Rect(metrics.boundingRect);
-	    },
-
-	    getNodeMatrix: function(magnet) {
-
-	        var metrics = this.nodeCache(magnet);
-	        if (metrics.magnetMatrix === undefined) {
-	            var ref = this;
-	            var rotatableNode = ref.rotatableNode;
-	            var el = ref.el;
-	            var target;
-	            if (rotatableNode && rotatableNode.contains(magnet)) {
-	                target = rotatableNode;
-	            } else {
-	                target = el;
-	            }
-	            metrics.magnetMatrix = V(magnet).getTransformToElement(target);
-	        }
-	        return V.createSVGMatrix(metrics.magnetMatrix);
-	    },
-
-	    getNodeShape: function(magnet) {
-
-	        var metrics = this.nodeCache(magnet);
-	        if (metrics.geometryShape === undefined) { metrics.geometryShape = V(magnet).toGeometryShape(); }
-	        return metrics.geometryShape.clone();
-	    },
-
-	    isNodeConnection: function(node) {
-	        return this.model.isLink() && (!node || node === this.el);
-	    },
-
-	    findNodesAttributes: function(attrs, root, selectorCache, selectors) {
-
-	        var i, n, nodeAttrs, nodeId;
-	        var nodesAttrs = {};
-	        var mergeIds = [];
-	        for (var selector in attrs) {
-	            if (!attrs.hasOwnProperty(selector)) { continue; }
-	            nodeAttrs = attrs[selector];
-	            if (!isPlainObject(nodeAttrs)) { continue; } // Not a valid selector-attributes pair
-	            var selected = selectorCache[selector] = this.findBySelector(selector, root, selectors);
-	            for (i = 0, n = selected.length; i < n; i++) {
-	                var node = selected[i];
-	                nodeId = V.ensureId(node);
-	                // "unique" selectors are selectors that referencing a single node (defined by `selector`)
-	                // groupSelector referencing a single node is not "unique"
-	                var unique = (selectors && selectors[selector] === node);
-	                var prevNodeAttrs = nodesAttrs[nodeId];
-	                if (prevNodeAttrs) {
-	                    // Note, that nodes referenced by deprecated `CSS selectors` are not taken into account.
-	                    // e.g. css:`.circle` and selector:`circle` can be applied in a random order
-	                    if (!prevNodeAttrs.array) {
-	                        mergeIds.push(nodeId);
-	                        prevNodeAttrs.array = true;
-	                        prevNodeAttrs.attributes = [prevNodeAttrs.attributes];
-	                        prevNodeAttrs.selectedLength = [prevNodeAttrs.selectedLength];
-	                    }
-	                    var attributes = prevNodeAttrs.attributes;
-	                    var selectedLength = prevNodeAttrs.selectedLength;
-	                    if (unique) {
-	                        // node referenced by `selector`
-	                        attributes.unshift(nodeAttrs);
-	                        selectedLength.unshift(-1);
-	                    } else {
-	                        // node referenced by `groupSelector`
-	                        var sortIndex = sortedIndex(selectedLength, n);
-	                        attributes.splice(sortIndex, 0, nodeAttrs);
-	                        selectedLength.splice(sortIndex, 0, n);
-	                    }
-	                } else {
-	                    nodesAttrs[nodeId] = {
-	                        attributes: nodeAttrs,
-	                        selectedLength: unique ? -1 : n,
-	                        node: node,
-	                        array: false
-	                    };
-	                }
-	            }
-	        }
-
-	        for (i = 0, n = mergeIds.length; i < n; i++) {
-	            nodeId = mergeIds[i];
-	            nodeAttrs = nodesAttrs[nodeId];
-	            nodeAttrs.attributes = merge.apply(void 0, [ {} ].concat( nodeAttrs.attributes.reverse() ));
-	        }
-
-	        return nodesAttrs;
-	    },
-
-	    getEventTarget: function(evt, opt) {
-	        if ( opt === void 0 ) opt = {};
-
-	        var target = evt.target;
-	        var type = evt.type;
-	        var clientX = evt.clientX; if ( clientX === void 0 ) clientX = 0;
-	        var clientY = evt.clientY; if ( clientY === void 0 ) clientY = 0;
-	        if (
-	            // Explicitly defined `fromPoint` option
-	            opt.fromPoint ||
-	            // Touchmove/Touchend event's target is not reflecting the element under the coordinates as mousemove does.
-	            // It holds the element when a touchstart triggered.
-	            type === 'touchmove' || type === 'touchend' ||
-	            // Pointermove/Pointerup event with the pointer captured
-	            ('pointerId' in evt && target.hasPointerCapture(evt.pointerId))
-	        ) {
-	            return document.elementFromPoint(clientX, clientY);
-	        }
-
-	        return target;
-	    },
-
-	    // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
-	    // unless `attrs` parameter was passed.
-	    updateDOMSubtreeAttributes: function(rootNode, attrs, opt) {
-
-	        opt || (opt = {});
-	        opt.rootBBox || (opt.rootBBox = Rect());
-	        opt.selectors || (opt.selectors = this.selectors); // selector collection to use
-
-	        // Cache table for query results and bounding box calculation.
-	        // Note that `selectorCache` needs to be invalidated for all
-	        // `updateAttributes` calls, as the selectors might pointing
-	        // to nodes designated by an attribute or elements dynamically
-	        // created.
-	        var selectorCache = {};
-	        var bboxCache = {};
-	        var relativeItems = [];
-	        var relativeRefItems = [];
-	        var item, node, nodeAttrs, nodeData, processedAttrs;
-
-	        var roAttrs = opt.roAttributes;
-	        var nodesAttrs = this.findNodesAttributes(roAttrs || attrs, rootNode, selectorCache, opt.selectors);
-	        // `nodesAttrs` are different from all attributes, when
-	        // rendering only  attributes sent to this method.
-	        var nodesAllAttrs = (roAttrs)
-	            ? this.findNodesAttributes(attrs, rootNode, selectorCache, opt.selectors)
-	            : nodesAttrs;
-
-	        for (var nodeId in nodesAttrs) {
-	            nodeData = nodesAttrs[nodeId];
-	            nodeAttrs = nodeData.attributes;
-	            node = nodeData.node;
-	            processedAttrs = this.processNodeAttributes(node, nodeAttrs);
-
-	            if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
-	                // Set all the normal attributes right on the SVG/HTML element.
-	                this.setNodeAttributes(node, processedAttrs.normal);
-
-	            } else {
-
-	                var nodeAllAttrs = nodesAllAttrs[nodeId] && nodesAllAttrs[nodeId].attributes;
-	                var refSelector = (nodeAllAttrs && (nodeAttrs.ref === undefined))
-	                    ? nodeAllAttrs.ref
-	                    : nodeAttrs.ref;
-
-	                var refNode;
-	                if (refSelector) {
-	                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode, opt.selectors))[0];
-	                    if (!refNode) {
-	                        throw new Error('dia.CellView: "' + refSelector + '" reference does not exist.');
-	                    }
-	                } else {
-	                    refNode = null;
-	                }
-
-	                item = {
-	                    node: node,
-	                    refNode: refNode,
-	                    processedAttributes: processedAttrs,
-	                    allAttributes: nodeAllAttrs
-	                };
-
-	                if (refNode) {
-	                    // If an element in the list is positioned relative to this one, then
-	                    // we want to insert this one before it in the list.
-	                    var itemIndex = relativeRefItems.findIndex(function(item) {
-	                        return item.refNode === node;
-	                    });
-
-	                    if (itemIndex > -1) {
-	                        relativeRefItems.splice(itemIndex, 0, item);
-	                    } else {
-	                        relativeRefItems.push(item);
-	                    }
-	                } else {
-	                    // A node with no ref attribute. To be updated before the nodes referencing other nodes.
-	                    // The order of no-ref-items is not specified/important.
-	                    relativeItems.push(item);
-	                }
-	            }
-	        }
-
-	        relativeItems.push.apply(relativeItems, relativeRefItems);
-
-	        for (var i = 0, n = relativeItems.length; i < n; i++) {
-	            item = relativeItems[i];
-	            node = item.node;
-	            refNode = item.refNode;
-
-	            // Find the reference element bounding box. If no reference was provided, we
-	            // use the optional bounding box.
-	            var refNodeId = refNode ? V.ensureId(refNode) : '';
-	            var refBBox = bboxCache[refNodeId];
-	            if (!refBBox) {
-	                // Get the bounding box of the reference element using to the common ancestor
-	                // transformation space.
-	                //
-	                // @example 1
-	                // <g transform="translate(11, 13)">
-	                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
-	                //     <rect @selector="a"/>
-	                // </g>
-	                //
-	                // In this case, the reference bounding box can not be affected
-	                // by the `transform` attribute of the `<g>` element,
-	                // because the exact transformation will be applied to the `a` element
-	                // as well as to the `b` element.
-	                //
-	                // @example 2
-	                // <g transform="translate(11, 13)">
-	                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
-	                // </g>
-	                // <rect @selector="a"/>
-	                //
-	                // In this case, the reference bounding box have to be affected by the
-	                // `transform` attribute of the `<g>` element, because the `a` element
-	                // is not descendant of the `<g>` element and will not be affected
-	                // by the transformation.
-	                refBBox = bboxCache[refNodeId] = (refNode)
-	                    ? V(refNode).getBBox({ target: getCommonAncestorNode(node, refNode) })
-	                    : opt.rootBBox;
-	            }
-
-	            if (roAttrs) {
-	                // if there was a special attribute affecting the position amongst passed-in attributes
-	                // we have to merge it with the rest of the element's attributes as they are necessary
-	                // to update the position relatively (i.e `ref-x` && 'ref-dx')
-	                processedAttrs = this.processNodeAttributes(node, item.allAttributes);
-	                this.mergeProcessedAttributes(processedAttrs, item.processedAttributes);
-
-	            } else {
-	                processedAttrs = item.processedAttributes;
-	            }
-
-	            this.updateRelativeAttributes(node, processedAttrs, refBBox, opt);
-	        }
-	    },
-
-	    mergeProcessedAttributes: function(processedAttrs, roProcessedAttrs) {
-
-	        processedAttrs.set || (processedAttrs.set = {});
-	        processedAttrs.position || (processedAttrs.position = {});
-	        processedAttrs.offset || (processedAttrs.offset = {});
-
-	        assign(processedAttrs.set, roProcessedAttrs.set);
-	        assign(processedAttrs.position, roProcessedAttrs.position);
-	        assign(processedAttrs.offset, roProcessedAttrs.offset);
-
-	        // Handle also the special transform property.
-	        var transform = processedAttrs.normal && processedAttrs.normal.transform;
-	        if (transform !== undefined && roProcessedAttrs.normal) {
-	            roProcessedAttrs.normal.transform = transform;
-	        }
-	        processedAttrs.normal = roProcessedAttrs.normal;
-	    },
-
-	    // Lifecycle methods
-
-	    // Called when the view is attached to the DOM,
-	    // as result of `cell.addTo(graph)` being called (isInitialMount === true)
-	    // or `paper.options.viewport` returning `true` (isInitialMount === false).
-	    onMount: function onMount(isInitialMount) {
-	        if (isInitialMount) { return; }
-	        this.mountTools();
-	        HighlighterView.mount(this);
-	    },
-
-	    // Called when the view is detached from the DOM,
-	    // as result of `paper.options.viewport` returning `false`.
-	    onDetach: function onDetach() {
-	        this.unmountTools();
-	        HighlighterView.unmount(this);
-	    },
-
-	    // Called when the view is removed from the DOM
-	    // as result of `cell.remove()`.
-	    onRemove: function() {
-	        this.removeTools();
-	        this.removeHighlighters();
-	    },
-
-	    _toolsView: null,
-
-	    hasTools: function(name) {
-	        var toolsView = this._toolsView;
-	        if (!toolsView) { return false; }
-	        if (!name) { return true; }
-	        return (toolsView.getName() === name);
-	    },
-
-	    addTools: function(toolsView) {
-
-	        this.removeTools();
-
-	        if (toolsView) {
-	            this._toolsView = toolsView;
-	            toolsView.configure({ relatedView: this });
-	            toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
-	        }
-	        return this;
-	    },
-
-	    unmountTools: function unmountTools() {
-	        var toolsView = this._toolsView;
-	        if (toolsView) { toolsView.unmount(); }
-	        return this;
-	    },
-
-	    mountTools: function mountTools() {
-	        var toolsView = this._toolsView;
-	        // Prevent unnecessary re-appending of the tools.
-	        if (toolsView && !toolsView.isMounted()) { toolsView.mount(); }
-	        return this;
-	    },
-
-	    updateTools: function(opt) {
-
-	        var toolsView = this._toolsView;
-	        if (toolsView) { toolsView.update(opt); }
-	        return this;
-	    },
-
-	    removeTools: function() {
-
-	        var toolsView = this._toolsView;
-	        if (toolsView) {
-	            toolsView.remove();
-	            this._toolsView = null;
-	        }
-	        return this;
-	    },
-
-	    hideTools: function() {
-
-	        var toolsView = this._toolsView;
-	        if (toolsView) { toolsView.hide(); }
-	        return this;
-	    },
-
-	    showTools: function() {
-
-	        var toolsView = this._toolsView;
-	        if (toolsView) { toolsView.show(); }
-	        return this;
-	    },
-
-	    onToolEvent: function(event) {
-	        switch (event) {
-	            case 'remove':
-	                this.removeTools();
-	                break;
-	            case 'hide':
-	                this.hideTools();
-	                break;
-	            case 'show':
-	                this.showTools();
-	                break;
-	        }
-	    },
-
-	    removeHighlighters: function() {
-	        HighlighterView.remove(this);
-	    },
-
-	    updateHighlighters: function(dirty) {
-	        if ( dirty === void 0 ) dirty = false;
-
-	        HighlighterView.update(this, null, dirty);
-	    },
-
-	    transformHighlighters: function() {
-	        HighlighterView.transform(this);
-	    },
-
-	    // Interaction. The controller part.
-	    // ---------------------------------
-
-	    preventDefaultInteraction: function preventDefaultInteraction(evt) {
-	        this.eventData(evt, { defaultInteractionPrevented: true  });
-	    },
-
-	    isDefaultInteractionPrevented: function isDefaultInteractionPrevented(evt) {
-	        var ref = this.eventData(evt);
-	        var defaultInteractionPrevented = ref.defaultInteractionPrevented; if ( defaultInteractionPrevented === void 0 ) defaultInteractionPrevented = false;
-	        return defaultInteractionPrevented;
-	    },
-
-	    // Interaction is handled by the paper and delegated to the view in interest.
-	    // `x` & `y` parameters passed to these functions represent the coordinates already snapped to the paper grid.
-	    // If necessary, real coordinates can be obtained from the `evt` event object.
-
-	    // These functions are supposed to be overridden by the views that inherit from `joint.dia.Cell`,
-	    // i.e. `joint.dia.Element` and `joint.dia.Link`.
-
-	    pointerdblclick: function(evt, x, y) {
-
-	        this.notify('cell:pointerdblclick', evt, x, y);
-	    },
-
-	    pointerclick: function(evt, x, y) {
-
-	        this.notify('cell:pointerclick', evt, x, y);
-	    },
-
-	    contextmenu: function(evt, x, y) {
-
-	        this.notify('cell:contextmenu', evt, x, y);
-	    },
-
-	    pointerdown: function(evt, x, y) {
-
-	        var ref = this;
-	        var model = ref.model;
-	        var graph = model.graph;
-	        if (graph) {
-	            model.startBatch('pointer');
-	            this.eventData(evt, { graph: graph });
-	        }
-
-	        this.notify('cell:pointerdown', evt, x, y);
-	    },
-
-	    pointermove: function(evt, x, y) {
-
-	        this.notify('cell:pointermove', evt, x, y);
-	    },
-
-	    pointerup: function(evt, x, y) {
-
-	        var ref = this.eventData(evt);
-	        var graph = ref.graph;
-
-	        this.notify('cell:pointerup', evt, x, y);
-
-	        if (graph) {
-	            // we don't want to trigger event on model as model doesn't
-	            // need to be member of collection anymore (remove)
-	            graph.stopBatch('pointer', { cell: this.model });
-	        }
-	    },
-
-	    mouseover: function(evt) {
-
-	        this.notify('cell:mouseover', evt);
-	    },
-
-	    mouseout: function(evt) {
-
-	        this.notify('cell:mouseout', evt);
-	    },
-
-	    mouseenter: function(evt) {
-
-	        this.notify('cell:mouseenter', evt);
-	    },
-
-	    mouseleave: function(evt) {
-
-	        this.notify('cell:mouseleave', evt);
-	    },
-
-	    mousewheel: function(evt, x, y, delta) {
-
-	        this.notify('cell:mousewheel', evt, x, y, delta);
-	    },
-
-	    onevent: function(evt, eventName, x, y) {
-
-	        this.notify(eventName, evt, x, y);
-	    },
-
-	    onmagnet: function() {
-
-	        // noop
-	    },
-
-	    magnetpointerdblclick: function() {
-
-	        // noop
-	    },
-
-	    magnetcontextmenu: function() {
-
-	        // noop
-	    },
-
-	    checkMouseleave: function checkMouseleave(evt) {
-	        var ref = this;
-	        var paper = ref.paper;
-	        var model = ref.model;
-	        if (paper.isAsync()) {
-	            // Make sure the source/target views are updated before this view.
-	            // It's not 100% bulletproof (see below) but it's a good enough solution for now.
-	            // The connected cells could be links as well. In that case, we would
-	            // need to recursively go through all the connected links and update
-	            // their source/target views as well.
-	            if (model.isLink()) {
-	                // The `this.sourceView` and `this.targetView` might not be updated yet.
-	                // We need to find the view by the model.
-	                var sourceElement = model.getSourceElement();
-	                if (sourceElement) {
-	                    var sourceView = paper.findViewByModel(sourceElement);
-	                    if (sourceView) {
-	                        paper.dumpView(sourceView);
-	                        paper.checkViewVisibility(sourceView);
-	                    }
-	                }
-	                var targetElement = model.getTargetElement();
-	                if (targetElement) {
-	                    var targetView = paper.findViewByModel(targetElement);
-	                    if (targetView) {
-	                        paper.dumpView(targetView);
-	                        paper.checkViewVisibility(targetView);
-	                    }
-	                }
-	            }
-	            // Do the updates of the current view synchronously now
-	            paper.dumpView(this);
-	            paper.checkViewVisibility(this);
-	        }
-	        var target = this.getEventTarget(evt, { fromPoint: true });
-	        var view = paper.findView(target);
-	        if (view === this) { return; }
-	        // Leaving the current view
-	        this.mouseleave(evt);
-	        if (!view) { return; }
-	        // Entering another view
-	        view.mouseenter(evt);
-	    },
-
-	    setInteractivity: function(value) {
-
-	        this.options.interactive = value;
-	    }
-	}, {
-
-	    Flags: Flags,
-
-	    Highlighting: HighlightingTypes,
-
-	    addPresentationAttributes: function(presentationAttributes) {
-	        return merge({}, result(this.prototype, 'presentationAttributes'), presentationAttributes, function(a, b) {
-	            if (!a || !b) { return; }
-	            if (typeof a === 'string') { a = [a]; }
-	            if (typeof b === 'string') { b = [b]; }
-	            if (Array.isArray(a) && Array.isArray(b)) { return uniq(a.concat(b)); }
-	        });
-	    }
-	});
-
-	// TODO: Move to Vectorizer library.
-	function getCommonAncestorNode(node1, node2) {
-	    var parent = node1;
-	    do {
-	        if (parent.contains(node2)) { return parent; }
-	        parent = parent.parentNode;
-	    } while (parent);
-	    return null;
-	}
-
-	var Flags$1 = {
-	    TOOLS: CellView.Flags.TOOLS,
-	    UPDATE: 'UPDATE',
-	    TRANSLATE: 'TRANSLATE',
-	    RESIZE: 'RESIZE',
-	    PORTS: 'PORTS',
-	    ROTATE: 'ROTATE',
-	    RENDER: 'RENDER'
-	};
-
-	var DragActions = {
-	    MOVE: 'move',
-	    MAGNET: 'magnet',
-	};
-	// Element base view and controller.
-	// -------------------------------------------
-
-	var ElementView = CellView.extend({
-
-	    /**
-	     * @abstract
-	     */
-	    _removePorts: function() {
-	        // implemented in ports.js
-	    },
-
-	    /**
-	     *
-	     * @abstract
-	     */
-	    _renderPorts: function() {
-	        // implemented in ports.js
-	    },
-
-	    className: function() {
-
-	        var classNames = CellView.prototype.className.apply(this).split(' ');
-
-	        classNames.push('element');
-
-	        return classNames.join(' ');
-	    },
-
-	    initialize: function() {
-
-	        CellView.prototype.initialize.apply(this, arguments);
-
-	        this._initializePorts();
-	    },
-
-	    presentationAttributes: {
-	        'attrs': [Flags$1.UPDATE],
-	        'position': [Flags$1.TRANSLATE, Flags$1.TOOLS],
-	        'size': [Flags$1.RESIZE, Flags$1.PORTS, Flags$1.TOOLS],
-	        'angle': [Flags$1.ROTATE, Flags$1.TOOLS],
-	        'markup': [Flags$1.RENDER],
-	        'ports': [Flags$1.PORTS],
-	    },
-
-	    initFlag: [Flags$1.RENDER],
-
-	    UPDATE_PRIORITY: 0,
-
-	    confirmUpdate: function(flag, opt) {
-
-	        var useCSSSelectors = config.useCSSSelectors;
-	        if (this.hasFlag(flag, Flags$1.PORTS)) {
-	            this._removePorts();
-	            this._cleanPortsCache();
-	        }
-	        var transformHighlighters = false;
-	        if (this.hasFlag(flag, Flags$1.RENDER)) {
-	            this.render();
-	            this.updateTools(opt);
-	            this.updateHighlighters(true);
-	            transformHighlighters = true;
-	            flag = this.removeFlag(flag, [Flags$1.RENDER, Flags$1.UPDATE, Flags$1.RESIZE, Flags$1.TRANSLATE, Flags$1.ROTATE, Flags$1.PORTS, Flags$1.TOOLS]);
-	        } else {
-	            var updateHighlighters = false;
-
-	            // Skip this branch if render is required
-	            if (this.hasFlag(flag, Flags$1.RESIZE)) {
-	                this.resize(opt);
-	                updateHighlighters = true;
-	                // Resize method is calling `update()` internally
-	                flag = this.removeFlag(flag, [Flags$1.RESIZE, Flags$1.UPDATE]);
-	                if (useCSSSelectors) {
-	                    // `resize()` rendered the ports when useCSSSelectors are enabled
-	                    flag = this.removeFlag(flag, Flags$1.PORTS);
-	                }
-	            }
-	            if (this.hasFlag(flag, Flags$1.UPDATE)) {
-	                this.update(this.model, null, opt);
-	                flag = this.removeFlag(flag, Flags$1.UPDATE);
-	                updateHighlighters = true;
-	                if (useCSSSelectors) {
-	                    // `update()` will render ports when useCSSSelectors are enabled
-	                    flag = this.removeFlag(flag, Flags$1.PORTS);
-	                }
-	            }
-	            if (this.hasFlag(flag, Flags$1.TRANSLATE)) {
-	                this.translate();
-	                flag = this.removeFlag(flag, Flags$1.TRANSLATE);
-	                transformHighlighters = true;
-	            }
-	            if (this.hasFlag(flag, Flags$1.ROTATE)) {
-	                this.rotate();
-	                flag = this.removeFlag(flag, Flags$1.ROTATE);
-	                transformHighlighters = true;
-	            }
-	            if (this.hasFlag(flag, Flags$1.PORTS)) {
-	                this._renderPorts();
-	                updateHighlighters = true;
-	                flag = this.removeFlag(flag, Flags$1.PORTS);
-	            }
-
-	            if (updateHighlighters) {
-	                this.updateHighlighters(false);
-	            }
-	        }
-
-	        if (transformHighlighters) {
-	            this.transformHighlighters();
-	        }
-
-	        if (this.hasFlag(flag, Flags$1.TOOLS)) {
-	            this.updateTools(opt);
-	            flag = this.removeFlag(flag, Flags$1.TOOLS);
-	        }
-
-	        return flag;
-	    },
-
-	    /**
-	     * @abstract
-	     */
-	    _initializePorts: function() {
-
-	    },
-
-	    update: function(_, renderingOnlyAttrs) {
-
-	        this.cleanNodesCache();
-
-	        // When CSS selector strings are used, make sure no rule matches port nodes.
-	        var useCSSSelectors = config.useCSSSelectors;
-	        if (useCSSSelectors) { this._removePorts(); }
-
-	        var model = this.model;
-	        var modelAttrs = model.attr();
-	        this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
-	            rootBBox: new Rect(model.size()),
-	            selectors: this.selectors,
-	            scalableNode: this.scalableNode,
-	            rotatableNode: this.rotatableNode,
-	            // Use rendering only attributes if they differs from the model attributes
-	            roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
-	        });
-
-	        if (useCSSSelectors) {
-	            this._renderPorts();
-	        }
-	    },
-
-	    rotatableSelector: 'rotatable',
-	    scalableSelector: 'scalable',
-	    scalableNode: null,
-	    rotatableNode: null,
-
-	    // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
-	    // default markup is not desirable.
-	    renderMarkup: function() {
-
-	        var element = this.model;
-	        var markup = element.get('markup') || element.markup;
-	        if (!markup) { throw new Error('dia.ElementView: markup required'); }
-	        if (Array.isArray(markup)) { return this.renderJSONMarkup(markup); }
-	        if (typeof markup === 'string') { return this.renderStringMarkup(markup); }
-	        throw new Error('dia.ElementView: invalid markup');
-	    },
-
-	    renderJSONMarkup: function(markup) {
-
-	        var doc = this.parseDOMJSON(markup, this.el);
-	        var selectors = this.selectors = doc.selectors;
-	        this.rotatableNode = V(selectors[this.rotatableSelector]) || null;
-	        this.scalableNode = V(selectors[this.scalableSelector]) || null;
-	        // Fragment
-	        this.vel.append(doc.fragment);
-	    },
-
-	    renderStringMarkup: function(markup) {
-
-	        var vel = this.vel;
-	        vel.append(V(markup));
-	        // Cache transformation groups
-	        this.rotatableNode = vel.findOne('.rotatable');
-	        this.scalableNode = vel.findOne('.scalable');
-
-	        var selectors = this.selectors = {};
-	        selectors[this.selector] = this.el;
-	    },
-
-	    render: function() {
-
-	        this.vel.empty();
-	        this.renderMarkup();
-	        if (this.scalableNode) {
-	            // Double update is necessary for elements with the scalable group only
-	            // Note the resize() triggers the other `update`.
-	            this.update();
-	        }
-	        this.resize();
-	        if (this.rotatableNode) {
-	            // Translate transformation is applied on `this.el` while the rotation transformation
-	            // on `this.rotatableNode`
-	            this.rotate();
-	            this.translate();
-	        } else {
-	            this.updateTransformation();
-	        }
-	        if (!config.useCSSSelectors) { this._renderPorts(); }
-	        return this;
-	    },
-
-	    resize: function(opt) {
-
-	        if (this.scalableNode) { return this.sgResize(opt); }
-	        if (this.model.attributes.angle) { this.rotate(); }
-	        this.update();
-	    },
-
-	    translate: function() {
-
-	        if (this.rotatableNode) { return this.rgTranslate(); }
-	        this.updateTransformation();
-	    },
-
-	    rotate: function() {
-
-	        if (this.rotatableNode) {
-	            this.rgRotate();
-	            // It's necessary to call the update for the nodes outside
-	            // the rotatable group referencing nodes inside the group
-	            this.update();
-	            return;
-	        }
-	        this.updateTransformation();
-	    },
-
-	    updateTransformation: function() {
-
-	        var transformation = this.getTranslateString();
-	        var rotateString = this.getRotateString();
-	        if (rotateString) { transformation += ' ' + rotateString; }
-	        this.vel.attr('transform', transformation);
-	    },
-
-	    getTranslateString: function() {
-
-	        var position = this.model.attributes.position;
-	        return 'translate(' + position.x + ',' + position.y + ')';
-	    },
-
-	    getRotateString: function() {
-	        var attributes = this.model.attributes;
-	        var angle = attributes.angle;
-	        if (!angle) { return null; }
-	        var size = attributes.size;
-	        return 'rotate(' + angle + ',' + (size.width / 2) + ',' + (size.height / 2) + ')';
-	    },
-
-	    // Rotatable & Scalable Group
-	    // always slower, kept mainly for backwards compatibility
-
-	    rgRotate: function() {
-
-	        this.rotatableNode.attr('transform', this.getRotateString());
-	    },
-
-	    rgTranslate: function() {
-
-	        this.vel.attr('transform', this.getTranslateString());
-	    },
-
-	    sgResize: function(opt) {
-
-	        var model = this.model;
-	        var angle = model.angle();
-	        var size = model.size();
-	        var scalable = this.scalableNode;
-
-	        // Getting scalable group's bbox.
-	        // Due to a bug in webkit's native SVG .getBBox implementation, the bbox of groups with path children includes the paths' control points.
-	        // To work around the issue, we need to check whether there are any path elements inside the scalable group.
-	        var recursive = false;
-	        if (scalable.node.getElementsByTagName('path').length > 0) {
-	            // If scalable has at least one descendant that is a path, we need to switch to recursive bbox calculation.
-	            // If there are no path descendants, group bbox calculation works and so we can use the (faster) native function directly.
-	            recursive = true;
-	        }
-	        var scalableBBox = scalable.getBBox({ recursive: recursive });
-
-	        // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
-	        // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
-	        var sx = (size.width / (scalableBBox.width || 1));
-	        var sy = (size.height / (scalableBBox.height || 1));
-	        scalable.attr('transform', 'scale(' + sx + ',' + sy + ')');
-
-	        // Now the interesting part. The goal is to be able to store the object geometry via just `x`, `y`, `angle`, `width` and `height`
-	        // Order of transformations is significant but we want to reconstruct the object always in the order:
-	        // resize(), rotate(), translate() no matter of how the object was transformed. For that to work,
-	        // we must adjust the `x` and `y` coordinates of the object whenever we resize it (because the origin of the
-	        // rotation changes). The new `x` and `y` coordinates are computed by canceling the previous rotation
-	        // around the center of the resized object (which is a different origin then the origin of the previous rotation)
-	        // and getting the top-left corner of the resulting object. Then we clean up the rotation back to what it originally was.
-
-	        // Cancel the rotation but now around a different origin, which is the center of the scaled object.
-	        var rotatable = this.rotatableNode;
-	        var rotation = rotatable && rotatable.attr('transform');
-	        if (rotation) {
-
-	            rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
-	            var rotatableBBox = scalable.getBBox({ target: this.paper.cells });
-
-	            // Store new x, y and perform rotate() again against the new rotation origin.
-	            model.set('position', { x: rotatableBBox.x, y: rotatableBBox.y }, assign({ updateHandled: true }, opt));
-	            this.translate();
-	            this.rotate();
-	        }
-
-	        // Update must always be called on non-rotated element. Otherwise, relative positioning
-	        // would work with wrong (rotated) bounding boxes.
-	        this.update();
-	    },
-
-	    // Embedding mode methods.
-	    // -----------------------
-
-	    prepareEmbedding: function(data) {
-	        if ( data === void 0 ) data = {};
-
-
-	        var element = data.model || this.model;
-	        var paper = data.paper || this.paper;
-	        var graph = paper.model;
-
-	        var initialZIndices = data.initialZIndices = {};
-	        var embeddedCells = element.getEmbeddedCells({ deep: true });
-	        var connectedLinks = graph.getConnectedLinks(element, { deep: true, includeEnclosed: true });
-
-	        // Note: an embedded cell can be a connect link, but it's fine
-	        // to iterate over the cell twice.
-	        [
-	            element ].concat( embeddedCells,
-	            connectedLinks
-	        ).forEach(function (cell) { return initialZIndices[cell.id] = cell.attributes.z; });
-
-	        element.startBatch('to-front');
-
-	        // Bring the model to the front with all his embeds.
-	        element.toFront({ deep: true, ui: true });
-
-	        // Note that at this point cells in the collection are not sorted by z index (it's running in the batch, see
-	        // the dia.Graph._sortOnChangeZ), so we can't assume that the last cell in the collection has the highest z.
-	        var maxZ = graph.getElements().reduce(function (max, cell) { return Math.max(max, cell.attributes.z || 0); }, 0);
-
-	        // Move to front also all the inbound and outbound links that are connected
-	        // to any of the element descendant. If we bring to front only embedded elements,
-	        // links connected to them would stay in the background.
-	        connectedLinks.forEach(function (link) {
-	            if (link.attributes.z <= maxZ) {
-	                link.set('z', maxZ + 1, { ui: true });
-	            }
-	        });
-
-	        element.stopBatch('to-front');
-
-	        // Before we start looking for suitable parent we remove the current one.
-	        var parentId = element.parent();
-	        if (parentId) {
-	            var parent = graph.getCell(parentId);
-	            parent.unembed(element, { ui: true });
-	            data.initialParentId = parentId;
-	        } else {
-	            data.initialParentId = null;
-	        }
-	    },
-
-	    processEmbedding: function(data, evt, x, y) {
-	        if ( data === void 0 ) data = {};
-
-
-	        var model = data.model || this.model;
-	        var paper = data.paper || this.paper;
-	        var graph = paper.model;
-	        var ref = paper.options;
-	        var findParentBy = ref.findParentBy;
-	        var frontParentOnly = ref.frontParentOnly;
-	        var validateEmbedding = ref.validateEmbedding;
-
-	        var candidates;
-	        if (isFunction(findParentBy)) {
-	            candidates = toArray(findParentBy.call(graph, this, evt, x, y));
-	        } else if (findParentBy === 'pointer') {
-	            candidates = toArray(graph.findModelsFromPoint({ x: x, y: y }));
-	        } else {
-	            candidates = graph.findModelsUnderElement(model, { searchBy: findParentBy });
-	        }
-
-	        candidates = candidates.filter(function (el) {
-	            return (el instanceof Cell) && (model.id !== el.id) && !el.isEmbeddedIn(model);
-	        });
-
-	        if (frontParentOnly) {
-	            // pick the element with the highest `z` index
-	            candidates = candidates.slice(-1);
-	        }
-
-	        var newCandidateView = null;
-	        var prevCandidateView = data.candidateEmbedView;
-
-	        // iterate over all candidates starting from the last one (has the highest z-index).
-	        for (var i = candidates.length - 1; i >= 0; i--) {
-	            var candidate = candidates[i];
-	            if (prevCandidateView && prevCandidateView.model.id == candidate.id) {
-	                // candidate remains the same
-	                newCandidateView = prevCandidateView;
-	                break;
-	            } else {
-	                var view = candidate.findView(paper);
-	                if (!isFunction(validateEmbedding) || validateEmbedding.call(paper, this, view)) {
-	                    // flip to the new candidate
-	                    newCandidateView = view;
-	                    break;
-	                }
-	            }
-	        }
-
-	        if (newCandidateView && newCandidateView != prevCandidateView) {
-	            // A new candidate view found. Highlight the new one.
-	            this.clearEmbedding(data);
-	            data.candidateEmbedView = newCandidateView.highlight(
-	                newCandidateView.findProxyNode(null, 'container'),
-	                { embedding: true }
-	            );
-	        }
-
-	        if (!newCandidateView && prevCandidateView) {
-	            // No candidate view found. Unhighlight the previous candidate.
-	            this.clearEmbedding(data);
-	        }
-	    },
-
-	    clearEmbedding: function(data) {
-
-	        data || (data = {});
-
-	        var candidateView = data.candidateEmbedView;
-	        if (candidateView) {
-	            // No candidate view found. Unhighlight the previous candidate.
-	            candidateView.unhighlight(
-	                candidateView.findProxyNode(null, 'container'),
-	                { embedding: true }
-	            );
-	            data.candidateEmbedView = null;
-	        }
-	    },
-
-	    finalizeEmbedding: function(data) {
-	        if ( data === void 0 ) data = {};
-
-
-	        var candidateView = data.candidateEmbedView;
-	        var element = data.model || this.model;
-	        var paper = data.paper || this.paper;
-
-	        if (candidateView) {
-
-	            // We finished embedding. Candidate view is chosen to become the parent of the model.
-	            candidateView.model.embed(element, { ui: true });
-	            candidateView.unhighlight(candidateView.findProxyNode(null, 'container'), { embedding: true });
-
-	            data.candidateEmbedView = null;
-
-	        } else {
-
-	            var ref = paper.options;
-	            var validateUnembedding = ref.validateUnembedding;
-	            var initialParentId = data.initialParentId;
-	            // The element was originally embedded into another element.
-	            // The interaction would unembed the element. Let's validate
-	            // if the element can be unembedded.
-	            if (
-	                initialParentId &&
-	                typeof validateUnembedding === 'function' &&
-	                !validateUnembedding.call(paper, this)
-	            ) {
-	                this._disallowUnembed(data);
-	                return;
-	            }
-	        }
-
-	        paper.model.getConnectedLinks(element, { deep: true }).forEach(function (link) {
-	            link.reparent({ ui: true });
-	        });
-	    },
-
-	    _disallowUnembed: function(data) {
-	        var model = data.model;
-	        var whenNotAllowed = data.whenNotAllowed; if ( whenNotAllowed === void 0 ) whenNotAllowed = 'revert';
-	        var element = model || this.model;
-	        var paper = data.paper || this.paper;
-	        var graph = paper.model;
-	        switch (whenNotAllowed) {
-	            case 'remove': {
-	                element.remove({ ui: true });
-	                break;
-	            }
-	            case 'revert': {
-	                var initialParentId = data.initialParentId;
-	                var initialPosition = data.initialPosition;
-	                var initialZIndices = data.initialZIndices;
-	                // Revert the element's position (and the position of its embedded cells if any)
-	                if (initialPosition) {
-	                    var x = initialPosition.x;
-	                    var y = initialPosition.y;
-	                    element.position(x, y, { deep: true, ui: true });
-	                }
-	                // Revert all the z-indices changed during the embedding
-	                if (initialZIndices) {
-	                    Object.keys(initialZIndices).forEach(function (id) {
-	                        var cell = graph.getCell(id);
-	                        if (cell) {
-	                            cell.set('z', initialZIndices[id], { ui: true });
-	                        }
-	                    });
-	                }
-	                // Revert the original parent
-	                var parent = graph.getCell(initialParentId);
-	                if (parent) {
-	                    parent.embed(element, { ui: true });
-	                }
-	                break;
-	            }
-	        }
-	    },
-
-	    getDelegatedView: function() {
-
-	        var view = this;
-	        var model = view.model;
-	        var paper = view.paper;
-
-	        while (view) {
-	            if (model.isLink()) { break; }
-	            if (!model.isEmbedded() || view.can('stopDelegation')) { return view; }
-	            model = model.getParentCell();
-	            view = paper.findViewByModel(model);
-	        }
-
-	        return null;
-	    },
-
-	    findProxyNode: function(el, type) {
-	        el || (el = this.el);
-	        var nodeSelector = el.getAttribute((type + "-selector"));
-	        if (nodeSelector) {
-	            var port = this.findAttribute('port', el);
-	            if (port) {
-	                var proxyPortNode = this.findPortNode(port, nodeSelector);
-	                if (proxyPortNode) { return proxyPortNode; }
-	            } else {
-	                var ref = this.findBySelector(nodeSelector);
-	                var proxyNode = ref[0];
-	                if (proxyNode) { return proxyNode; }
-	            }
-	        }
-	        return el;
-	    },
-
-	    // Interaction. The controller part.
-	    // ---------------------------------
-
-	    notifyPointerdown: function notifyPointerdown(evt, x, y) {
-	        CellView.prototype.pointerdown.call(this, evt, x, y);
-	        this.notify('element:pointerdown', evt, x, y);
-	    },
-
-	    notifyPointermove: function notifyPointermove(evt, x, y) {
-	        CellView.prototype.pointermove.call(this, evt, x, y);
-	        this.notify('element:pointermove', evt, x, y);
-	    },
-
-	    notifyPointerup: function notifyPointerup(evt, x, y) {
-	        this.notify('element:pointerup', evt, x, y);
-	        CellView.prototype.pointerup.call(this, evt, x, y);
-	    },
-
-	    pointerdblclick: function(evt, x, y) {
-
-	        CellView.prototype.pointerdblclick.apply(this, arguments);
-	        this.notify('element:pointerdblclick', evt, x, y);
-	    },
-
-	    pointerclick: function(evt, x, y) {
-
-	        CellView.prototype.pointerclick.apply(this, arguments);
-	        this.notify('element:pointerclick', evt, x, y);
-	    },
-
-	    contextmenu: function(evt, x, y) {
-
-	        CellView.prototype.contextmenu.apply(this, arguments);
-	        this.notify('element:contextmenu', evt, x, y);
-	    },
-
-	    pointerdown: function(evt, x, y) {
-
-	        this.notifyPointerdown(evt, x, y);
-	        this.dragStart(evt, x, y);
-	    },
-
-	    pointermove: function(evt, x, y) {
-
-	        var data = this.eventData(evt);
-	        var targetMagnet = data.targetMagnet;
-	        var action = data.action;
-	        var delegatedView = data.delegatedView;
-
-	        if (targetMagnet) {
-	            this.magnetpointermove(evt, targetMagnet, x, y);
-	        }
-
-	        switch (action) {
-	            case DragActions.MAGNET:
-	                this.dragMagnet(evt, x, y);
-	                break;
-	            case DragActions.MOVE:
-	                (delegatedView || this).drag(evt, x, y);
-	            // eslint: no-fallthrough=false
-	            default:
-	                if (data.preventPointerEvents) { break; }
-	                this.notifyPointermove(evt, x, y);
-	                break;
-	        }
-
-	        // Make sure the element view data is passed along.
-	        // It could have been wiped out in the handlers above.
-	        this.eventData(evt, data);
-	    },
-
-	    pointerup: function(evt, x, y) {
-
-	        var data = this.eventData(evt);
-	        var targetMagnet = data.targetMagnet;
-	        var action = data.action;
-	        var delegatedView = data.delegatedView;
-
-	        if (targetMagnet) {
-	            this.magnetpointerup(evt, targetMagnet, x, y);
-	        }
-
-	        switch (action) {
-	            case DragActions.MAGNET:
-	                this.dragMagnetEnd(evt, x, y);
-	                break;
-	            case DragActions.MOVE:
-	                (delegatedView || this).dragEnd(evt, x, y);
-	            // eslint: no-fallthrough=false
-	            default:
-	                if (data.preventPointerEvents) { break; }
-	                this.notifyPointerup(evt, x, y);
-	        }
-
-	        if (targetMagnet) {
-	            this.magnetpointerclick(evt, targetMagnet, x, y);
-	        }
-
-	        this.checkMouseleave(evt);
-	    },
-
-	    mouseover: function(evt) {
-
-	        CellView.prototype.mouseover.apply(this, arguments);
-	        this.notify('element:mouseover', evt);
-	    },
-
-	    mouseout: function(evt) {
-
-	        CellView.prototype.mouseout.apply(this, arguments);
-	        this.notify('element:mouseout', evt);
-	    },
-
-	    mouseenter: function(evt) {
-
-	        CellView.prototype.mouseenter.apply(this, arguments);
-	        this.notify('element:mouseenter', evt);
-	    },
-
-	    mouseleave: function(evt) {
-
-	        CellView.prototype.mouseleave.apply(this, arguments);
-	        this.notify('element:mouseleave', evt);
-	    },
-
-	    mousewheel: function(evt, x, y, delta) {
-
-	        CellView.prototype.mousewheel.apply(this, arguments);
-	        this.notify('element:mousewheel', evt, x, y, delta);
-	    },
-
-	    onmagnet: function(evt, x, y) {
-
-	        var targetMagnet = evt.currentTarget;
-	        this.magnetpointerdown(evt, targetMagnet, x, y);
-	        this.eventData(evt, { targetMagnet: targetMagnet });
-	        this.dragMagnetStart(evt, x, y);
-	    },
-
-	    magnetpointerdown: function(evt, magnet, x, y) {
-
-	        this.notify('element:magnet:pointerdown', evt, magnet, x, y);
-	    },
-
-	    magnetpointermove: function(evt, magnet, x, y) {
-
-	        this.notify('element:magnet:pointermove', evt, magnet, x, y);
-	    },
-
-	    magnetpointerup: function(evt, magnet, x, y) {
-
-	        this.notify('element:magnet:pointerup', evt, magnet, x, y);
-	    },
-
-	    magnetpointerdblclick: function(evt, magnet, x, y) {
-
-	        this.notify('element:magnet:pointerdblclick', evt, magnet, x, y);
-	    },
-
-	    magnetcontextmenu: function(evt, magnet, x, y) {
-
-	        this.notify('element:magnet:contextmenu', evt, magnet, x, y);
-	    },
-
-	    // Drag Start Handlers
-
-	    dragStart: function(evt, x, y) {
-
-	        if (this.isDefaultInteractionPrevented(evt)) { return; }
-
-	        var view = this.getDelegatedView();
-	        if (!view || !view.can('elementMove')) { return; }
-
-	        this.eventData(evt, {
-	            action: DragActions.MOVE,
-	            delegatedView: view
-	        });
-
-	        var position = view.model.position();
-	        view.eventData(evt, {
-	            initialPosition: position,
-	            pointerOffset: position.difference(x, y),
-	            restrictedArea: this.paper.getRestrictedArea(view, x, y)
-	        });
-	    },
-
-	    dragMagnetStart: function(evt, x, y) {
-
-	        var ref = this;
-	        var paper = ref.paper;
-	        var isPropagationAlreadyStopped = evt.isPropagationStopped();
-	        if (isPropagationAlreadyStopped) {
-	            // Special case when the propagation was already stopped
-	            // on the `element:magnet:pointerdown` event.
-	            // Do not trigger any `element:pointer*` events
-	            // but still start the magnet dragging.
-	            this.eventData(evt, { preventPointerEvents: true });
-	        }
-
-	        if (this.isDefaultInteractionPrevented(evt) || !this.can('addLinkFromMagnet')) {
-	            // Stop the default action, which is to start dragging a link.
-	            return;
-	        }
-
-	        var ref$1 = this.eventData(evt);
-	        var targetMagnet = ref$1.targetMagnet; if ( targetMagnet === void 0 ) targetMagnet = evt.currentTarget;
-	        evt.stopPropagation();
-
-	        // Invalid (Passive) magnet. Start dragging the element.
-	        if (!paper.options.validateMagnet.call(paper, this, targetMagnet, evt)) {
-	            if (isPropagationAlreadyStopped) {
-	                // Do not trigger `element:pointerdown` and start element dragging
-	                // if the propagation was stopped.
-	                this.dragStart(evt, x, y);
-	                // The `element:pointerdown` event is not triggered because
-	                // of `preventPointerEvents` flag.
-	            } else {
-	                // We need to reset the action
-	                // to `MOVE` so that the element is dragged.
-	                this.pointerdown(evt, x, y);
-	            }
-	            return;
-	        }
-
-	        // Valid magnet. Start dragging a link.
-	        if (paper.options.magnetThreshold <= 0) {
-	            this.dragLinkStart(evt, targetMagnet, x, y);
-	        }
-	        this.eventData(evt, { action: DragActions.MAGNET });
-	    },
-
-	    // Drag Handlers
-
-	    drag: function(evt, x, y) {
-
-	        var paper = this.paper;
-	        var grid = paper.options.gridSize;
-	        var element = this.model;
-	        var data = this.eventData(evt);
-	        var pointerOffset = data.pointerOffset;
-	        var restrictedArea = data.restrictedArea;
-	        var embedding = data.embedding;
-
-	        // Make sure the new element's position always snaps to the current grid
-	        var elX = snapToGrid(x + pointerOffset.x, grid);
-	        var elY = snapToGrid(y + pointerOffset.y, grid);
-
-	        element.position(elX, elY, { restrictedArea: restrictedArea, deep: true, ui: true });
-
-	        if (paper.options.embeddingMode) {
-	            if (!embedding) {
-	                // Prepare the element for embedding only if the pointer moves.
-	                // We don't want to do unnecessary action with the element
-	                // if an user only clicks/dblclicks on it.
-	                this.prepareEmbedding(data);
-	                embedding = true;
-	            }
-	            this.processEmbedding(data, evt, x, y);
-	        }
-
-	        this.eventData(evt, {
-	            embedding: embedding
-	        });
-	    },
-
-	    dragMagnet: function(evt, x, y) {
-	        this.dragLink(evt, x, y);
-	    },
-
-	    // Drag End Handlers
-
-	    dragEnd: function(evt, x, y) {
-
-	        var data = this.eventData(evt);
-	        if (data.embedding) { this.finalizeEmbedding(data); }
-	    },
-
-	    dragMagnetEnd: function(evt, x, y) {
-	        this.dragLinkEnd(evt, x, y);
-	    },
-
-	    magnetpointerclick: function(evt, magnet, x, y) {
-	        var paper = this.paper;
-	        if (paper.eventData(evt).mousemoved > paper.options.clickThreshold) { return; }
-	        this.notify('element:magnet:pointerclick', evt, magnet, x, y);
-	    }
-
-	}, {
-
-	    Flags: Flags$1,
-	});
-
-	assign(ElementView.prototype, elementViewPortPrototype);
-
-	var env = {
-
-	    _results: {},
-
-	    _tests: {
-
-	        svgforeignobject: function() {
-	            return !!document.createElementNS &&
-	                /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
-	        }
-	    },
-
-	    addTest: function(name, fn) {
-
-	        return this._tests[name] = fn;
-	    },
-
-	    test: function(name) {
-
-	        var fn = this._tests[name];
-
-	        if (!fn) {
-	            throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
-	        }
-
-	        var result = this._results[name];
-
-	        if (typeof result !== 'undefined') {
-	            return result;
-	        }
-
-	        try {
-	            result = fn();
-	        } catch (error) {
-	            result = false;
-	        }
-
-	        // Cache the test result.
-	        this._results[name] = result;
-
-	        return result;
-	    }
-	};
-
-	var Generic = Element$1.define('basic.Generic', {
-	    attrs: {
-	        '.': { fill: '#ffffff', stroke: 'none' }
-	    }
-	});
-
-	var Rect$1 = Generic.define('basic.Rect', {
-	    attrs: {
-	        'rect': {
-	            fill: '#ffffff',
-	            stroke: '#000000',
-	            width: 100,
-	            height: 60
-	        },
-	        'text': {
-	            fill: '#000000',
-	            text: '',
-	            'font-size': 14,
-	            'ref-x': .5,
-	            'ref-y': .5,
-	            'text-anchor': 'middle',
-	            'y-alignment': 'middle',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><rect/></g><text/></g>'
-	});
-
-	var TextView = ElementView.extend({
-
-	    presentationAttributes: ElementView.addPresentationAttributes({
-	        // The element view is not automatically re-scaled to fit the model size
-	        // when the attribute 'attrs' is changed.
-	        attrs: ['SCALE']
-	    }),
-
-	    confirmUpdate: function() {
-	        var flags = ElementView.prototype.confirmUpdate.apply(this, arguments);
-	        if (this.hasFlag(flags, 'SCALE')) {
-	            this.resize();
-	            flags = this.removeFlag(flags, 'SCALE');
-	        }
-	        return flags;
-	    }
-	});
-
-	var Text = Generic.define('basic.Text', {
-	    attrs: {
-	        'text': {
-	            'font-size': 18,
-	            fill: '#000000'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><text/></g></g>',
-	});
-
-	var Circle = Generic.define('basic.Circle', {
-	    size: { width: 60, height: 60 },
-	    attrs: {
-	        'circle': {
-	            fill: '#ffffff',
-	            stroke: '#000000',
-	            r: 30,
-	            cx: 30,
-	            cy: 30
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-y': .5,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
-	});
-
-	var Ellipse$1 = Generic.define('basic.Ellipse', {
-	    size: { width: 60, height: 40 },
-	    attrs: {
-	        'ellipse': {
-	            fill: '#ffffff',
-	            stroke: '#000000',
-	            rx: 30,
-	            ry: 20,
-	            cx: 30,
-	            cy: 20
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-y': .5,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><ellipse/></g><text/></g>',
-	});
-
-	var Polygon$1 = Generic.define('basic.Polygon', {
-	    size: { width: 60, height: 40 },
-	    attrs: {
-	        'polygon': {
-	            fill: '#ffffff',
-	            stroke: '#000000'
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-dy': 20,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
-	});
-
-	var Polyline$1 = Generic.define('basic.Polyline', {
-	    size: { width: 60, height: 40 },
-	    attrs: {
-	        'polyline': {
-	            fill: '#ffffff',
-	            stroke: '#000000'
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-dy': 20,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><polyline/></g><text/></g>',
-	});
-
-	var Image = Generic.define('basic.Image', {
-	    attrs: {
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-dy': 20,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><image/></g><text/></g>',
-	});
-
-	var Path$1 = Generic.define('basic.Path', {
-	    size: { width: 60, height: 60 },
-	    attrs: {
-	        'path': {
-	            fill: '#ffffff',
-	            stroke: '#000000'
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref': 'path',
-	            'ref-x': .5,
-	            'ref-dy': 10,
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
-	});
-
-	var Rhombus = Path$1.define('basic.Rhombus', {
-	    attrs: {
-	        'path': {
-	            d: 'M 30 0 L 60 30 30 60 0 30 z'
-	        },
-	        'text': {
-	            'ref-y': .5,
-	            'ref-dy': null,
-	            'y-alignment': 'middle'
-	        }
-	    }
-	});
-
-	var svgForeignObjectSupported = env.test('svgforeignobject');
-
-	var TextBlock = Generic.define('basic.TextBlock', {
-	    // see joint.css for more element styles
-	    attrs: {
-	        rect: {
-	            fill: '#ffffff',
-	            stroke: '#000000',
-	            width: 80,
-	            height: 100
-	        },
-	        text: {
-	            fill: '#000000',
-	            'font-size': 14,
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        },
-	        '.content': {
-	            text: '',
-	            'ref-x': .5,
-	            'ref-y': .5,
-	            'y-alignment': 'middle',
-	            'x-alignment': 'middle'
-	        }
-	    },
-
-	    content: ''
-	}, {
-	    markup: [
-	        '<g class="rotatable">',
-	        '<g class="scalable"><rect/></g>',
-	        svgForeignObjectSupported
-	            ? '<foreignObject class="fobj"><body xmlns="http://www.w3.org/1999/xhtml"><div class="content"/></body></foreignObject>'
-	            : '<text class="content"/>',
-	        '</g>'
-	    ].join(''),
-
-	    initialize: function() {
-
-	        this.listenTo(this, 'change:size', this.updateSize);
-	        this.listenTo(this, 'change:content', this.updateContent);
-	        this.updateSize(this, this.get('size'));
-	        this.updateContent(this, this.get('content'));
-	        Generic.prototype.initialize.apply(this, arguments);
-	    },
-
-	    updateSize: function(cell, size) {
-
-	        // Selector `foreignObject' doesn't work across all browsers, we're using class selector instead.
-	        // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
-	        this.attr({
-	            '.fobj': assign({}, size),
-	            div: {
-	                style: assign({}, size)
-	            }
-	        });
-	    },
-
-	    updateContent: function(cell, content) {
-
-	        if (svgForeignObjectSupported) {
-
-	            // Content element is a <div> element.
-	            this.attr({
-	                '.content': {
-	                    html: sanitizeHTML(content)
-	                }
-	            });
-
-	        } else {
-
-	            // Content element is a <text> element.
-	            // SVG elements don't have innerHTML attribute.
-	            this.attr({
-	                '.content': {
-	                    text: content
-	                }
-	            });
-	        }
-	    },
-
-	    // Here for backwards compatibility:
-	    setForeignObjectSize: function() {
-
-	        this.updateSize.apply(this, arguments);
-	    },
-
-	    // Here for backwards compatibility:
-	    setDivContent: function() {
-
-	        this.updateContent.apply(this, arguments);
-	    }
-	});
-
-	// TextBlockView implements the fallback for IE when no foreignObject exists and
-	// the text needs to be manually broken.
-	var TextBlockView = ElementView.extend({
-
-	    presentationAttributes: svgForeignObjectSupported
-	        ? ElementView.prototype.presentationAttributes
-	        : ElementView.addPresentationAttributes({
-	            content: ['CONTENT'],
-	            size: ['CONTENT']
-	        }),
-
-	    initFlag: ['RENDER', 'CONTENT'],
-
-	    confirmUpdate: function() {
-	        var flags = ElementView.prototype.confirmUpdate.apply(this, arguments);
-	        if (this.hasFlag(flags, 'CONTENT')) {
-	            this.updateContent(this.model);
-	            flags = this.removeFlag(flags, 'CONTENT');
-	        }
-	        return flags;
-	    },
-
-	    update: function(_, renderingOnlyAttrs) {
-
-	        var model = this.model;
-
-	        if (!svgForeignObjectSupported) {
-
-	            // Update everything but the content first.
-	            var noTextAttrs = omit(renderingOnlyAttrs || model.get('attrs'), '.content');
-	            ElementView.prototype.update.call(this, model, noTextAttrs);
-
-	            if (!renderingOnlyAttrs || has$2(renderingOnlyAttrs, '.content')) {
-	                // Update the content itself.
-	                this.updateContent(model, renderingOnlyAttrs);
-	            }
-
-	        } else {
-
-	            ElementView.prototype.update.call(this, model, renderingOnlyAttrs);
-	        }
-	    },
-
-	    updateContent: function(cell, renderingOnlyAttrs) {
-
-	        // Create copy of the text attributes
-	        var textAttrs = merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
-
-	        textAttrs = omit(textAttrs, 'text');
-
-	        // Break the content to fit the element size taking into account the attributes
-	        // set on the model.
-	        var text = breakText(cell.get('content'), cell.get('size'), textAttrs, {
-	            // measuring sandbox svg document
-	            svgDocument: this.paper.svg
-	        });
-
-	        // Create a new attrs with same structure as the model attrs { text: { *textAttributes* }}
-	        var attrs = setByPath({}, '.content', textAttrs, '/');
-
-	        // Replace text attribute with the one we just processed.
-	        attrs['.content'].text = text;
-
-	        // Update the view using renderingOnlyAttributes parameter.
-	        ElementView.prototype.update.call(this, cell, attrs);
-	    }
-	});
-
-	var basic = ({
-		Generic: Generic,
-		Rect: Rect$1,
-		TextView: TextView,
-		Text: Text,
-		Circle: Circle,
-		Ellipse: Ellipse$1,
-		Polygon: Polygon$1,
-		Polyline: Polyline$1,
-		Image: Image,
-		Path: Path$1,
-		Rhombus: Rhombus,
-		TextBlock: TextBlock,
-		TextBlockView: TextBlockView
-	});
-
 	// Link base model.
 	// --------------------------
 
 	var Link = Cell.extend({
-
-	    // The default markup for links.
-	    markup: [
-	        '<path class="connection" stroke="black" d="M 0 0 0 0"/>',
-	        '<path class="marker-source" fill="black" stroke="black" d="M 0 0 0 0"/>',
-	        '<path class="marker-target" fill="black" stroke="black" d="M 0 0 0 0"/>',
-	        '<path class="connection-wrap" d="M 0 0 0 0"/>',
-	        '<g class="labels"/>',
-	        '<g class="marker-vertices"/>',
-	        '<g class="marker-arrowheads"/>',
-	        '<g class="link-tools"/>'
-	    ].join(''),
-
-	    toolMarkup: [
-	        '<g class="link-tool">',
-	        '<g class="tool-remove" event="remove">',
-	        '<circle r="11" />',
-	        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z" />',
-	        '<title>Remove link.</title>',
-	        '</g>',
-	        '<g class="tool-options" event="link:options">',
-	        '<circle r="11" transform="translate(25)"/>',
-	        '<path fill="white" transform="scale(.55) translate(29, -16)" d="M31.229,17.736c0.064-0.571,0.104-1.148,0.104-1.736s-0.04-1.166-0.104-1.737l-4.377-1.557c-0.218-0.716-0.504-1.401-0.851-2.05l1.993-4.192c-0.725-0.91-1.549-1.734-2.458-2.459l-4.193,1.994c-0.647-0.347-1.334-0.632-2.049-0.849l-1.558-4.378C17.165,0.708,16.588,0.667,16,0.667s-1.166,0.041-1.737,0.105L12.707,5.15c-0.716,0.217-1.401,0.502-2.05,0.849L6.464,4.005C5.554,4.73,4.73,5.554,4.005,6.464l1.994,4.192c-0.347,0.648-0.632,1.334-0.849,2.05l-4.378,1.557C0.708,14.834,0.667,15.412,0.667,16s0.041,1.165,0.105,1.736l4.378,1.558c0.217,0.715,0.502,1.401,0.849,2.049l-1.994,4.193c0.725,0.909,1.549,1.733,2.459,2.458l4.192-1.993c0.648,0.347,1.334,0.633,2.05,0.851l1.557,4.377c0.571,0.064,1.148,0.104,1.737,0.104c0.588,0,1.165-0.04,1.736-0.104l1.558-4.377c0.715-0.218,1.399-0.504,2.049-0.851l4.193,1.993c0.909-0.725,1.733-1.549,2.458-2.458l-1.993-4.193c0.347-0.647,0.633-1.334,0.851-2.049L31.229,17.736zM16,20.871c-2.69,0-4.872-2.182-4.872-4.871c0-2.69,2.182-4.872,4.872-4.872c2.689,0,4.871,2.182,4.871,4.872C20.871,18.689,18.689,20.871,16,20.871z"/>',
-	        '<title>Link options.</title>',
-	        '</g>',
-	        '</g>'
-	    ].join(''),
-
-	    doubleToolMarkup: undefined,
-
-	    // The default markup for showing/removing vertices. These elements are the children of the .marker-vertices element (see `this.markup`).
-	    // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
-	    // dragging vertices (changing their position). The latter is used for removing vertices.
-	    vertexMarkup: [
-	        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-	        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
-	        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
-	        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
-	        '<title>Remove vertex.</title>',
-	        '</path>',
-	        '</g>'
-	    ].join(''),
-
-	    arrowheadMarkup: [
-	        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
-	        '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
-	        '</g>'
-	    ].join(''),
 
 	    // may be overwritten by user to change default label (its markup, size, attrs, position)
 	    defaultLabel: undefined,
@@ -23674,7 +20569,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                    fill: '#000000',
 	                    fontSize: 14,
 	                    textAnchor: 'middle',
-	                    yAlignment: 'middle',
+	                    textVerticalAnchor: 'middle',
 	                    pointerEvents: 'none'
 	                },
 	                rect: {
@@ -23682,10 +20577,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                    fill: '#ffffff',
 	                    rx: 3,
 	                    ry: 3,
-	                    refWidth: 1,
-	                    refHeight: 1,
-	                    refX: 0,
-	                    refY: 0
+	                    x: 'calc(x)',
+	                    y: 'calc(y)',
+	                    width: 'calc(w)',
+	                    height: 'calc(h)'
 	                }
 	            },
 	            // builtin default position:
@@ -23804,7 +20699,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (name === undefined) {
 	            var router = this.get('router');
 	            if (!router) {
-	                if (this.get('manhattan')) { return { name: 'orthogonal' }; } // backwards compatibility
 	                return null;
 	            }
 	            if (typeof router === 'object') { return clone(router); }
@@ -23825,7 +20719,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (name === undefined) {
 	            var connector = this.get('connector');
 	            if (!connector) {
-	                if (this.get('smooth')) { return { name: 'smooth' }; } // backwards compatibility
 	                return null;
 	            }
 	            if (typeof connector === 'object') { return clone(connector); }
@@ -24211,13 +21104,57 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	});
 
+	var env = {
+
+	    _results: {},
+
+	    _tests: {
+
+	        svgforeignobject: function() {
+	            return !!document.createElementNS &&
+	                /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
+	        }
+	    },
+
+	    addTest: function(name, fn) {
+
+	        return this._tests[name] = fn;
+	    },
+
+	    test: function(name) {
+
+	        var fn = this._tests[name];
+
+	        if (!fn) {
+	            throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
+	        }
+
+	        var result = this._results[name];
+
+	        if (typeof result !== 'undefined') {
+	            return result;
+	        }
+
+	        try {
+	            result = fn();
+	        } catch (error) {
+	            result = false;
+	        }
+
+	        // Cache the test result.
+	        this._results[name] = result;
+
+	        return result;
+	    }
+	};
+
 	// ELEMENTS
 
 	var Rectangle = Element$1.define('standard.Rectangle', {
 	    attrs: {
 	        body: {
-	            refWidth: '100%',
-	            refHeight: '100%',
+	            width: 'calc(w)',
+	            height: 'calc(h)',
 	            strokeWidth: 2,
 	            stroke: '#000000',
 	            fill: '#FFFFFF'
@@ -24225,8 +21162,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        label: {
 	            textVerticalAnchor: 'middle',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24241,12 +21178,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }]
 	});
 
-	var Circle$1 = Element$1.define('standard.Circle', {
+	var Circle = Element$1.define('standard.Circle', {
 	    attrs: {
 	        body: {
-	            refCx: '50%',
-	            refCy: '50%',
-	            refR: '50%',
+	            cx: 'calc(s/2)',
+	            cy: 'calc(s/2)',
+	            r: 'calc(s/2)',
 	            strokeWidth: 2,
 	            stroke: '#333333',
 	            fill: '#FFFFFF'
@@ -24254,8 +21191,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        label: {
 	            textVerticalAnchor: 'middle',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24270,13 +21207,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }]
 	});
 
-	var Ellipse$2 = Element$1.define('standard.Ellipse', {
+	var Ellipse$1 = Element$1.define('standard.Ellipse', {
 	    attrs: {
 	        body: {
-	            refCx: '50%',
-	            refCy: '50%',
-	            refRx: '50%',
-	            refRy: '50%',
+	            cx: 'calc(w/2)',
+	            cy: 'calc(h/2)',
+	            rx: 'calc(w/2)',
+	            ry: 'calc(h/2)',
 	            strokeWidth: 2,
 	            stroke: '#333333',
 	            fill: '#FFFFFF'
@@ -24284,8 +21221,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        label: {
 	            textVerticalAnchor: 'middle',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24300,10 +21237,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }]
 	});
 
-	var Path$2 = Element$1.define('standard.Path', {
+	var Path$1 = Element$1.define('standard.Path', {
 	    attrs: {
 	        body: {
-	            refD: 'M 0 0 L 10 0 10 10 0 10 Z',
+	            d: 'M 0 0 H calc(w) V calc(h) H 0 Z',
 	            strokeWidth: 2,
 	            stroke: '#333333',
 	            fill: '#FFFFFF'
@@ -24311,8 +21248,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        label: {
 	            textVerticalAnchor: 'middle',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24327,10 +21264,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }]
 	});
 
-	var Polygon$2 = Element$1.define('standard.Polygon', {
+	var Polygon$1 = Element$1.define('standard.Polygon', {
 	    attrs: {
 	        body: {
-	            refPoints: '0 0 10 0 10 10 0 10',
+	            points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
 	            strokeWidth: 2,
 	            stroke: '#333333',
 	            fill: '#FFFFFF'
@@ -24338,8 +21275,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        label: {
 	            textVerticalAnchor: 'middle',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24354,10 +21291,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }]
 	});
 
-	var Polyline$2 = Element$1.define('standard.Polyline', {
+	var Polyline$1 = Element$1.define('standard.Polyline', {
 	    attrs: {
 	        body: {
-	            refPoints: '0 0 10 0 10 10 0 10 0 0',
+	            points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
 	            strokeWidth: 2,
 	            stroke: '#333333',
 	            fill: '#FFFFFF'
@@ -24365,8 +21302,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        label: {
 	            textVerticalAnchor: 'middle',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24381,19 +21318,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }]
 	});
 
-	var Image$1 = Element$1.define('standard.Image', {
+	var Image = Element$1.define('standard.Image', {
 	    attrs: {
 	        image: {
-	            refWidth: '100%',
-	            refHeight: '100%',
+	            width: 'calc(w)',
+	            height: 'calc(h)',
 	            // xlinkHref: '[URL]'
 	        },
 	        label: {
 	            textVerticalAnchor: 'top',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '100%',
-	            refY2: 10,
+	            x: 'calc(w/2)',
+	            y: 'calc(h+10)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24411,31 +21347,30 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var BorderedImage = Element$1.define('standard.BorderedImage', {
 	    attrs: {
 	        border: {
-	            refWidth: '100%',
-	            refHeight: '100%',
+	            width: 'calc(w)',
+	            height: 'calc(h)',
 	            stroke: '#333333',
 	            strokeWidth: 2
 	        },
 	        background: {
-	            refWidth: -1,
-	            refHeight: -1,
+	            width: 'calc(w-1)',
+	            height: 'calc(h-1)',
 	            x: 0.5,
 	            y: 0.5,
 	            fill: '#FFFFFF'
 	        },
 	        image: {
 	            // xlinkHref: '[URL]'
-	            refWidth: -1,
-	            refHeight: -1,
+	            width: 'calc(w-1)',
+	            height: 'calc(h-1)',
 	            x: 0.5,
 	            y: 0.5
 	        },
 	        label: {
 	            textVerticalAnchor: 'top',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '100%',
-	            refY2: 10,
+	            x: 'calc(w/2)',
+	            y: 'calc(h+10)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24465,16 +21400,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var EmbeddedImage = Element$1.define('standard.EmbeddedImage', {
 	    attrs: {
 	        body: {
-	            refWidth: '100%',
-	            refHeight: '100%',
+	            width: 'calc(w)',
+	            height: 'calc(h)',
 	            stroke: '#333333',
 	            fill: '#FFFFFF',
 	            strokeWidth: 2
 	        },
 	        image: {
 	            // xlinkHref: '[URL]'
-	            refWidth: '30%',
-	            refHeight: -20,
+	            width: 'calc(0.3*w)',
+	            height: 'calc(h-20)',
 	            x: 10,
 	            y: 10,
 	            preserveAspectRatio: 'xMidYMin'
@@ -24482,9 +21417,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        label: {
 	            textVerticalAnchor: 'top',
 	            textAnchor: 'left',
-	            refX: '30%',
-	            refX2: 20, // 10 + 10
-	            refY: 10,
+	            x: 'calc(0.3*w+20)', // 10 + 10
+	            y: 10,
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24505,36 +21439,35 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var InscribedImage = Element$1.define('standard.InscribedImage', {
 	    attrs: {
 	        border: {
-	            refRx: '50%',
-	            refRy: '50%',
-	            refCx: '50%',
-	            refCy: '50%',
+	            rx: 'calc(w/2)',
+	            ry: 'calc(h/2)',
+	            cx: 'calc(w/2)',
+	            cy: 'calc(h/2)',
 	            stroke: '#333333',
 	            strokeWidth: 2
 	        },
 	        background: {
-	            refRx: '50%',
-	            refRy: '50%',
-	            refCx: '50%',
-	            refCy: '50%',
+	            rx: 'calc(w/2)',
+	            ry: 'calc(h/2)',
+	            cx: 'calc(w/2)',
+	            cy: 'calc(h/2)',
 	            fill: '#FFFFFF'
 	        },
 	        image: {
 	            // The image corners touch the border when its size is Math.sqrt(2) / 2 = 0.707.. ~= 70%
-	            refWidth: '68%',
-	            refHeight: '68%',
+	            width: 'calc(0.68*w)',
+	            height: 'calc(0.68*h)',
 	            // The image offset is calculated as (100% - 68%) / 2
-	            refX: '16%',
-	            refY: '16%',
+	            x: 'calc(0.16*w)',
+	            y: 'calc(0.16*h)',
 	            preserveAspectRatio: 'xMidYMid'
 	            // xlinkHref: '[URL]'
 	        },
 	        label: {
 	            textVerticalAnchor: 'top',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '100%',
-	            refY2: 10,
+	            x: 'calc(w/2)',
+	            y: 'calc(h+10)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24561,14 +21494,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var HeaderedRectangle = Element$1.define('standard.HeaderedRectangle', {
 	    attrs: {
 	        body: {
-	            refWidth: '100%',
-	            refHeight: '100%',
+	            width: 'calc(w)',
+	            height: 'calc(h)',
 	            strokeWidth: 2,
 	            stroke: '#000000',
 	            fill: '#FFFFFF'
 	        },
 	        header: {
-	            refWidth: '100%',
+	            width: 'calc(w)',
 	            height: 30,
 	            strokeWidth: 2,
 	            stroke: '#000000',
@@ -24577,17 +21510,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        headerText: {
 	            textVerticalAnchor: 'middle',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: 15,
+	            x: 'calc(w/2)',
+	            y: 15,
 	            fontSize: 16,
 	            fill: '#333333'
 	        },
 	        bodyText: {
 	            textVerticalAnchor: 'middle',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
-	            refY2: 15,
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2+15)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24619,9 +21551,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            strokeWidth: 2
 	        },
 	        top: {
-	            refCx: '50%',
+	            cx: 'calc(w/2)',
 	            cy: CYLINDER_TILT,
-	            refRx: '50%',
+	            rx: 'calc(w/2)',
 	            ry: CYLINDER_TILT,
 	            fill: '#FFFFFF',
 	            stroke: '#333333',
@@ -24630,9 +21562,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        label: {
 	            textVerticalAnchor: 'middle',
 	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '100%',
-	            refY2: 15,
+	            x: 'calc(w/2)',
+	            y: 'calc(h+15)',
 	            fontSize: 14,
 	            fill: '#333333'
 	        }
@@ -24654,12 +21585,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (t === undefined) { return this.attr('body/lateralArea'); }
 
 	        // setter
-	        var isPercentageSetter = isPercentage(t);
-
 	        var bodyAttrs = { lateralArea: t };
-	        var topAttrs = isPercentageSetter
-	            ? { refCy: t, refRy: t, cy: null, ry: null }
-	            : { refCy: null, refRy: null, cy: t, ry: t };
+
+	        var isPercentageSetter = isPercentage(t);
+	        var ty = (isPercentageSetter) ? ("calc(" + (parseFloat(t) / 100) + "*h)") : t;
+	        var topAttrs = { cy: ty, ry: ty };
 
 	        return this.attr({ body: bodyAttrs, top: topAttrs }, opt);
 	    }
@@ -24747,18 +21677,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var labelMarkup = (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup;
 
-	var TextBlock$1 = Element$1.define('standard.TextBlock', {
+	var TextBlock = Element$1.define('standard.TextBlock', {
 	    attrs: {
 	        body: {
-	            refWidth: '100%',
-	            refHeight: '100%',
+	            width: 'calc(w)',
+	            height: 'calc(h)',
 	            stroke: '#333333',
 	            fill: '#ffffff',
 	            strokeWidth: 2
 	        },
 	        foreignObject: {
-	            refWidth: '100%',
-	            refHeight: '100%'
+	            width: 'calc(w)',
+	            height: 'calc(h)',
 	        },
 	        label: {
 	            style: {
@@ -24892,8 +21822,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        },
 	        shadow: {
 	            connection: true,
-	            refX: 3,
-	            refY: 6,
+	            transform: 'translate(3,6)',
 	            stroke: '#000000',
 	            strokeOpacity: 0.2,
 	            strokeWidth: 20,
@@ -24930,18 +21859,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var standard = ({
 		Rectangle: Rectangle,
-		Circle: Circle$1,
-		Ellipse: Ellipse$2,
-		Path: Path$2,
-		Polygon: Polygon$2,
-		Polyline: Polyline$2,
-		Image: Image$1,
+		Circle: Circle,
+		Ellipse: Ellipse$1,
+		Path: Path$1,
+		Polygon: Polygon$1,
+		Polyline: Polyline$1,
+		Image: Image,
 		BorderedImage: BorderedImage,
 		EmbeddedImage: EmbeddedImage,
 		InscribedImage: InscribedImage,
 		HeaderedRectangle: HeaderedRectangle,
 		Cylinder: Cylinder,
-		TextBlock: TextBlock$1,
+		TextBlock: TextBlock,
 		Link: Link$1,
 		DoubleLink: DoubleLink,
 		ShadowLink: ShadowLink
@@ -25498,7 +22427,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                if (overlapIndex > -1 && thisLine.containsPoint(linkLinesToTest[overlapIndex].end)) {
 	                    // Remove the next segment because there will never be a jump
 	                    linkLinesToTest.splice(overlapIndex + 1, 1);
-	                } 
+	                }
 	                var lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
 	                res.push.apply(res, lineIntersections);
 	            }
@@ -26166,13 +23095,1446 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		curve: curve
 	});
 
+	// ViewBase
+	// -------------
+
+	// ViewBases are almost more convention than they are actual code. A View
+	// is simply a JavaScript object that represents a logical chunk of UI in the
+	// DOM. This might be a single item, an entire list, a sidebar or panel, or
+	// even the surrounding frame which wraps your whole app. Defining a chunk of
+	// UI as a **View** allows you to define your DOM events declaratively, without
+	// having to worry about render order ... and makes it easy for the view to
+	// react to specific changes in the state of your models.
+
+	// Creating a ViewBase creates its initial element outside of the DOM,
+	// if an existing element is not provided...
+	var ViewBase = function(options) {
+	    this.cid = uniqueId('view');
+	    this.preinitialize.apply(this, arguments);
+	    assign(this, pick(options, viewOptions));
+	    this._ensureElement();
+	    this.initialize.apply(this, arguments);
+	};
+
+	// Cached regex to split keys for `delegate`.
+	var delegateEventSplitter = /^(\S+)\s*(.*)$/;
+
+	// List of view options to be set as properties.
+	var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
+
+	// Set up all inheritable **ViewBase** properties and methods.
+	assign(ViewBase.prototype, Events, {
+
+	    // The default `tagName` of a View's element is `"div"`.
+	    tagName: 'div',
+
+	    // mvc.$ delegate for element lookup, scoped to DOM elements within the
+	    // current view. This should be preferred to global lookups where possible.
+	    $: function(selector) {
+	        return this.$el.find(selector);
+	    },
+
+	    // preinitialize is an empty function by default. You can override it with a function
+	    // or object.  preinitialize will run before any instantiation logic is run in the View
+	    preinitialize: function(){},
+
+	    // Initialize is an empty function by default. Override it with your own
+	    // initialization logic.
+	    initialize: function(){},
+
+	    // **render** is the core function that your view should override, in order
+	    // to populate its element (`this.el`), with the appropriate HTML. The
+	    // convention is for **render** to always return `this`.
+	    render: function() {
+	        return this;
+	    },
+
+	    // Remove this view by taking the element out of the DOM, and removing any
+	    // applicable Events listeners.
+	    remove: function() {
+	        this._removeElement();
+	        this.stopListening();
+	        return this;
+	    },
+
+	    // Remove this view's element from the document and all event listeners
+	    // attached to it. Exposed for subclasses using an alternative DOM
+	    // manipulation API.
+	    _removeElement: function() {
+	        this.$el.remove();
+	    },
+
+	    // Change the view's element (`this.el` property) and re-delegate the
+	    // view's events on the new element.
+	    setElement: function(element) {
+	        this.undelegateEvents();
+	        this._setElement(element);
+	        this.delegateEvents();
+	        return this;
+	    },
+
+	    // Creates the `this.el` and `this.$el` references for this view using the
+	    // given `el`. `el` can be a CSS selector or an HTML string, a mvc.$
+	    // context or an element. Subclasses can override this to utilize an
+	    // alternative DOM manipulation API and are only required to set the
+	    // `this.el` property.
+	    _setElement: function(el) {
+	        this.$el = el instanceof $ ? el : $(el);
+	        this.el = this.$el[0];
+	    },
+
+	    // Set callbacks, where `this.events` is a hash of
+	    //
+	    // *{"event selector": "callback"}*
+	    //
+	    //     {
+	    //       'mousedown .title':  'edit',
+	    //       'click .button':     'save',
+	    //       'click .open':       function(e) { ... }
+	    //     }
+	    //
+	    // pairs. Callbacks will be bound to the view, with `this` set properly.
+	    // Uses event delegation for efficiency.
+	    // Omitting the selector binds the event to `this.el`.
+	    delegateEvents: function(events) {
+	        events || (events = result(this, 'events'));
+	        if (!events) { return this; }
+	        this.undelegateEvents();
+	        for (var key in events) {
+	            var method = events[key];
+	            if (!isFunction(method)) { method = this[method]; }
+	            if (!method) { continue; }
+	            var match = key.match(delegateEventSplitter);
+	            this.delegate(match[1], match[2], method.bind(this));
+	        }
+	        return this;
+	    },
+
+	    // Add a single event listener to the view's element (or a child element
+	    // using `selector`). This only works for delegate-able events: not `focus`,
+	    // `blur`, and not `change`, `submit`, and `reset` in Internet Explorer.
+	    delegate: function(eventName, selector, listener) {
+	        this.$el.on(eventName + '.delegateEvents' + this.cid, selector, listener);
+	        return this;
+	    },
+
+	    // Clears all callbacks previously bound to the view by `delegateEvents`.
+	    // You usually don't need to use this, but may wish to if you have multiple
+	    // viewbases attached to the same DOM element.
+	    undelegateEvents: function() {
+	        if (this.$el) { this.$el.off('.delegateEvents' + this.cid); }
+	        return this;
+	    },
+
+	    // A finer-grained `undelegateEvents` for removing a single delegated event.
+	    // `selector` and `listener` are both optional.
+	    undelegate: function(eventName, selector, listener) {
+	        this.$el.off(eventName + '.delegateEvents' + this.cid, selector, listener);
+	        return this;
+	    },
+
+	    // Produces a DOM element to be assigned to your view. Exposed for
+	    // subclasses using an alternative DOM manipulation API.
+	    _createElement: function(tagName) {
+	        return document.createElement(tagName);
+	    },
+
+	    // Ensure that the View has a DOM element to render into.
+	    // If `this.el` is a string, pass it through `$()`, take the first
+	    // matching element, and re-assign it to `el`. Otherwise, create
+	    // an element from the `id`, `className` and `tagName` properties.
+	    _ensureElement: function() {
+	        if (!this.el) {
+	            var attrs = assign({}, result(this, 'attributes'));
+	            if (this.id) { attrs.id = result(this, 'id'); }
+	            if (this.className) { attrs['class'] = result(this, 'className'); }
+	            this.setElement(this._createElement(result(this, 'tagName')));
+	            this._setAttributes(attrs);
+	        } else {
+	            this.setElement(result(this, 'el'));
+	        }
+	    },
+
+	    // Set attributes from a hash on this view's element.  Exposed for
+	    // subclasses using an alternative DOM manipulation API.
+	    _setAttributes: function(attributes) {
+	        this.$el.attr(attributes);
+	    }
+
+	});
+
+	// Set up inheritance for the view.
+	ViewBase.extend = extend$1;
+
+	var views = {};
+
+	var View = ViewBase.extend({
+
+	    options: {},
+	    theme: null,
+	    themeClassNamePrefix: addClassNamePrefix('theme-'),
+	    requireSetThemeOverride: false,
+	    defaultTheme: config.defaultTheme,
+	    children: null,
+	    childNodes: null,
+
+	    DETACHABLE: true,
+	    UPDATE_PRIORITY: 2,
+	    FLAG_INSERT: 1<<30,
+	    FLAG_REMOVE: 1<<29,
+	    FLAG_INIT: 1<<28,
+
+	    constructor: function(options) {
+
+	        this.requireSetThemeOverride = options && !!options.theme;
+	        this.options = assign({}, this.options, options);
+
+	        ViewBase.call(this, options);
+	    },
+
+	    initialize: function() {
+
+	        views[this.cid] = this;
+
+	        this.setTheme(this.options.theme || this.defaultTheme);
+	        this.init();
+	    },
+
+	    unmount: function() {
+	        if (this.svgElement) {
+	            this.vel.remove();
+	        } else {
+	            this.$el.remove();
+	        }
+	    },
+
+	    isMounted: function() {
+	        return this.el.parentNode !== null;
+	    },
+
+	    renderChildren: function(children) {
+	        children || (children = result(this, 'children'));
+	        if (children) {
+	            var isSVG = this.svgElement;
+	            var namespace = V.namespace[isSVG ? 'svg' : 'xhtml'];
+	            var doc = parseDOMJSON(children, namespace);
+	            (isSVG ? this.vel : this.$el).empty().append(doc.fragment);
+	            this.childNodes = doc.selectors;
+	        }
+	        return this;
+	    },
+
+	    findAttribute: function(attributeName, node) {
+
+	        var currentNode = node;
+
+	        while (currentNode && currentNode.nodeType === 1) {
+	            var attributeValue = currentNode.getAttribute(attributeName);
+	            // attribute found
+	            if (attributeValue) { return attributeValue; }
+	            // do not climb up the DOM
+	            if (currentNode === this.el) { return null; }
+	            // try parent node
+	            currentNode = currentNode.parentNode;
+	        }
+
+	        return null;
+	    },
+
+	    // Override the mvc ViewBase `_ensureElement()` method in order to create an
+	    // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
+	    // Expose class name setter as a separate method.
+	    _ensureElement: function() {
+	        if (!this.el) {
+	            var tagName = result(this, 'tagName');
+	            var attrs = assign({}, result(this, 'attributes'));
+	            var style = assign({}, result(this, 'style'));
+	            if (this.id) { attrs.id = result(this, 'id'); }
+	            this.setElement(this._createElement(tagName));
+	            this._setAttributes(attrs);
+	            this._setStyle(style);
+	        } else {
+	            this.setElement(result(this, 'el'));
+	        }
+	        this._ensureElClassName();
+	    },
+
+	    _setAttributes: function(attrs) {
+	        if (this.svgElement) {
+	            this.vel.attr(attrs);
+	        } else {
+	            this.$el.attr(attrs);
+	        }
+	    },
+
+	    _setStyle: function(style) {
+	        this.$el.css(style);
+	    },
+
+	    _createElement: function(tagName) {
+	        if (this.svgElement) {
+	            return document.createElementNS(V.namespace.svg, tagName);
+	        } else {
+	            return document.createElement(tagName);
+	        }
+	    },
+
+	    // Utilize an alternative DOM manipulation API by
+	    // adding an element reference wrapped in Vectorizer.
+	    _setElement: function(el) {
+	        this.$el = el instanceof $ ? el : $(el);
+	        this.el = this.$el[0];
+	        if (this.svgElement) { this.vel = V(this.el); }
+	    },
+
+	    _ensureElClassName: function() {
+	        var className = result(this, 'className');
+	        if (!className) { return; }
+	        var prefixedClassName = addClassNamePrefix(className);
+	        // Note: className removal here kept for backwards compatibility only
+	        if (this.svgElement) {
+	            this.vel.removeClass(className).addClass(prefixedClassName);
+	        } else {
+	            this.$el.removeClass(className).addClass(prefixedClassName);
+	        }
+	    },
+
+	    init: function() {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	    },
+
+	    onRender: function() {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	    },
+
+	    confirmUpdate: function() {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	        return 0;
+	    },
+
+	    setTheme: function(theme, opt) {
+
+	        opt = opt || {};
+
+	        // Theme is already set, override is required, and override has not been set.
+	        // Don't set the theme.
+	        if (this.theme && this.requireSetThemeOverride && !opt.override) {
+	            return this;
+	        }
+
+	        this.removeThemeClassName();
+	        this.addThemeClassName(theme);
+	        this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
+	        this.theme = theme;
+
+	        return this;
+	    },
+
+	    addThemeClassName: function(theme) {
+
+	        theme = theme || this.theme;
+	        if (!theme) { return this; }
+
+	        var className = this.themeClassNamePrefix + theme;
+
+	        if (this.svgElement) {
+	            this.vel.addClass(className);
+	        } else {
+	            this.$el.addClass(className);
+	        }
+
+	        return this;
+	    },
+
+	    removeThemeClassName: function(theme) {
+
+	        theme = theme || this.theme;
+
+	        var className = this.themeClassNamePrefix + theme;
+
+	        if (this.svgElement) {
+	            this.vel.removeClass(className);
+	        } else {
+	            this.$el.removeClass(className);
+	        }
+
+	        return this;
+	    },
+
+	    onSetTheme: function(oldTheme, newTheme) {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	    },
+
+	    remove: function() {
+
+	        this.onRemove();
+	        this.undelegateDocumentEvents();
+
+	        views[this.cid] = null;
+
+	        ViewBase.prototype.remove.apply(this, arguments);
+
+	        return this;
+	    },
+
+	    onRemove: function() {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	    },
+
+	    getEventNamespace: function() {
+	        // Returns a per-session unique namespace
+	        return '.joint-event-ns-' + this.cid;
+	    },
+
+	    delegateElementEvents: function(element, events, data) {
+	        if (!events) { return this; }
+	        data || (data = {});
+	        var eventNS = this.getEventNamespace();
+	        for (var eventName in events) {
+	            var method = events[eventName];
+	            if (typeof method !== 'function') { method = this[method]; }
+	            if (!method) { continue; }
+	            $(element).on(eventName + eventNS, data, method.bind(this));
+	        }
+	        return this;
+	    },
+
+	    undelegateElementEvents: function(element) {
+	        $(element).off(this.getEventNamespace());
+	        return this;
+	    },
+
+	    delegateDocumentEvents: function(events, data) {
+	        events || (events = result(this, 'documentEvents'));
+	        return this.delegateElementEvents(document, events, data);
+	    },
+
+	    undelegateDocumentEvents: function() {
+	        return this.undelegateElementEvents(document);
+	    },
+
+	    eventData: function(evt, data) {
+	        if (!evt) { throw new Error('eventData(): event object required.'); }
+	        var currentData = evt.data;
+	        var key = '__' + this.cid + '__';
+	        if (data === undefined) {
+	            if (!currentData) { return {}; }
+	            return currentData[key] || {};
+	        }
+	        currentData || (currentData = evt.data = {});
+	        currentData[key] || (currentData[key] = {});
+	        assign(currentData[key], data);
+	        return this;
+	    },
+
+	    stopPropagation: function(evt) {
+	        this.eventData(evt, { propagationStopped: true });
+	        return this;
+	    },
+
+	    isPropagationStopped: function(evt) {
+	        return !!this.eventData(evt).propagationStopped;
+	    }
+
+	}, {
+
+	    extend: function() {
+
+	        var args = Array.from(arguments);
+
+	        // Deep clone the prototype and static properties objects.
+	        // This prevents unexpected behavior where some properties are overwritten outside of this function.
+	        var protoProps = args[0] && assign({}, args[0]) || {};
+	        var staticProps = args[1] && assign({}, args[1]) || {};
+
+	        // Need the real render method so that we can wrap it and call it later.
+	        var renderFn = protoProps.render || (this.prototype && this.prototype.render) || null;
+
+	        /*
+	            Wrap the real render method so that:
+	                .. `onRender` is always called.
+	                .. `this` is always returned.
+	        */
+	        protoProps.render = function() {
+
+	            if (typeof renderFn === 'function') {
+	                // Call the original render method.
+	                renderFn.apply(this, arguments);
+	            }
+
+	            if (this.render.__render__ === renderFn) {
+	                // Should always call onRender() method.
+	                // Should call it only once when renderFn is actual prototype method i.e. not the wrapper
+	                this.onRender();
+	            }
+
+	            // Should always return itself.
+	            return this;
+	        };
+
+	        protoProps.render.__render__ = renderFn;
+
+	        return ViewBase.extend.call(this, protoProps, staticProps);
+	    }
+	});
+
+	var Listener = function Listener() {
+	    var callbackArguments = [], len = arguments.length;
+	    while ( len-- ) callbackArguments[ len ] = arguments[ len ];
+
+	    this.callbackArguments = callbackArguments;
+	};
+
+	Listener.prototype.listenTo = function listenTo (object, evt) {
+	        var this$1 = this;
+	        var args = [], len = arguments.length - 2;
+	        while ( len-- > 0 ) args[ len ] = arguments[ len + 2 ];
+
+	    var ref = this;
+	        var callbackArguments = ref.callbackArguments;
+	    // signature 1 - (object, eventHashMap, context)
+	    if (V.isObject(evt)) {
+	        var context = args[0]; if ( context === void 0 ) context = null;
+	        Object.entries(evt).forEach(function (ref) {
+	                var eventName = ref[0];
+	                var cb = ref[1];
+
+	            if (typeof cb !== 'function') { return; }
+	            // Invoke the callback with callbackArguments passed first
+	            if (context || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context ].concat( callbackArguments )); }
+	            Events.listenTo.call(this$1, object, eventName, cb);
+	        });
+	    }
+	    // signature 2 - (object, event, callback, context)
+	    else if (typeof evt === 'string' && typeof args[0] === 'function') {
+	        var cb = args[0];
+	            var context$1 = args[1]; if ( context$1 === void 0 ) context$1 = null;
+	        // Invoke the callback with callbackArguments passed first
+	        if (context$1 || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context$1 ].concat( callbackArguments )); }
+	        Events.listenTo.call(this, object, evt, cb);
+	    }
+	};
+
+	Listener.prototype.stopListening = function stopListening () {
+	    Events.stopListening.call(this);
+	};
+
+	// Collection
+	// -------------------
+
+	// If models tend to represent a single row of data, a Collection is
+	// more analogous to a table full of data ... or a small slice or page of that
+	// table, or a collection of rows that belong together for a particular reason
+	// -- all of the messages in this particular folder, all of the documents
+	// belonging to this particular author, and so on. Collections maintain
+	// indexes of their models, both in order, and for lookup by `id`.
+
+	// Create a new **Collection**, perhaps to contain a specific type of `model`.
+	// If a `comparator` is specified, the Collection will maintain
+	// its models in sort order, as they're added and removed.
+	var Collection = function(models, options) {
+	    options || (options = {});
+	    this.preinitialize.apply(this, arguments);
+	    if (options.model) { this.model = options.model; }
+	    if (options.comparator !== void 0) { this.comparator = options.comparator; }
+	    this._reset();
+	    this.initialize.apply(this, arguments);
+	    if (models) { this.reset(models, assign({ silent: true }, options)); }
+	};
+
+	// Default options for `Collection#set`.
+	var setOptions = { add: true, remove: true, merge: true };
+	var addOptions = { add: true, remove: false };
+
+	// Splices `insert` into `array` at index `at`.
+	var splice = function(array, insert, at) {
+	    at = Math.min(Math.max(at, 0), array.length);
+	    var tail = Array(array.length - at);
+	    var length = insert.length;
+	    var i;
+	    for (i = 0; i < tail.length; i++) { tail[i] = array[i + at]; }
+	    for (i = 0; i < length; i++) { array[i + at] = insert[i]; }
+	    for (i = 0; i < tail.length; i++) { array[i + length + at] = tail[i]; }
+	};
+
+	// Define the Collection's inheritable methods.
+	assign(Collection.prototype, Events, {
+
+	    // The default model for a collection is just a **Model**.
+	    // This should be overridden in most cases.
+	    model: Model,
+
+
+	    // preinitialize is an empty function by default. You can override it with a function
+	    // or object.  preinitialize will run before any instantiation logic is run in the Collection.
+	    preinitialize: function(){},
+
+	    // Initialize is an empty function by default. Override it with your own
+	    // initialization logic.
+	    initialize: function(){},
+
+	    // The JSON representation of a Collection is an array of the
+	    // models' attributes.
+	    toJSON: function(options) {
+	        return Array.from(this).map(function(model) { return model.toJSON(options); });
+	    },
+
+	    // Add a model, or list of models to the set. `models` may be
+	    // Models or raw JavaScript objects to be converted to Models, or any
+	    // combination of the two.
+	    add: function(models, options) {
+	        return this.set(models, assign({ merge: false }, options, addOptions));
+	    },
+
+	    // Remove a model, or a list of models from the set.
+	    remove: function(models, options) {
+	        options = assign({}, options);
+	        var singular = !Array.isArray(models);
+	        models = singular ? [models] : models.slice();
+	        var removed = this._removeModels(models, options);
+	        if (!options.silent && removed.length) {
+	            options.changes = { added: [], merged: [], removed: removed };
+	            this.trigger('update', this, options);
+	        }
+	        return singular ? removed[0] : removed;
+	    },
+
+	    // Update a collection by `set`-ing a new list of models, adding new ones,
+	    // removing models that are no longer present, and merging models that
+	    // already exist in the collection, as necessary. Similar to **Model#set**,
+	    // the core operation for updating the data contained by the collection.
+	    set: function(models, options) {
+	        if (models == null) { return; }
+
+	        options = assign({}, setOptions, options);
+
+	        var singular = !Array.isArray(models);
+	        models = singular ? [models] : models.slice();
+
+	        var at = options.at;
+	        if (at != null) { at = +at; }
+	        if (at > this.length) { at = this.length; }
+	        if (at < 0) { at += this.length + 1; }
+
+	        var set = [];
+	        var toAdd = [];
+	        var toMerge = [];
+	        var toRemove = [];
+	        var modelMap = {};
+
+	        var add = options.add;
+	        var merge = options.merge;
+	        var remove = options.remove;
+
+	        var sort = false;
+	        var sortable = this.comparator && at == null && options.sort !== false;
+	        var sortAttr = isString(this.comparator) ? this.comparator : null;
+
+	        // Turn bare objects into model references, and prevent invalid models
+	        // from being added.
+	        var model, i;
+	        for (i = 0; i < models.length; i++) {
+	            model = models[i];
+
+	            // If a duplicate is found, prevent it from being added and
+	            // optionally merge it into the existing model.
+	            var existing = this.get(model);
+	            if (existing) {
+	                if (merge && model !== existing) {
+	                    var attrs = this._isModel(model) ? model.attributes : model;
+	                    existing.set(attrs, options);
+	                    toMerge.push(existing);
+	                    if (sortable && !sort) { sort = existing.hasChanged(sortAttr); }
+	                }
+	                if (!modelMap[existing.cid]) {
+	                    modelMap[existing.cid] = true;
+	                    set.push(existing);
+	                }
+	                models[i] = existing;
+
+	                // If this is a new, valid model, push it to the `toAdd` list.
+	            } else if (add) {
+	                model = models[i] = this._prepareModel(model, options);
+	                if (model) {
+	                    toAdd.push(model);
+	                    this._addReference(model, options);
+	                    modelMap[model.cid] = true;
+	                    set.push(model);
+	                }
+	            }
+	        }
+
+	        // Remove stale models.
+	        if (remove) {
+	            for (i = 0; i < this.length; i++) {
+	                model = this.models[i];
+	                if (!modelMap[model.cid]) { toRemove.push(model); }
+	            }
+	            if (toRemove.length) { this._removeModels(toRemove, options); }
+	        }
+
+	        // See if sorting is needed, update `length` and splice in new models.
+	        var orderChanged = false;
+	        var replace = !sortable && add && remove;
+	        if (set.length && replace) {
+	            orderChanged = this.length !== set.length || this.models.some(function(m, index) {
+	                return m !== set[index];
+	            });
+	            this.models.length = 0;
+	            splice(this.models, set, 0);
+	            this.length = this.models.length;
+	        } else if (toAdd.length) {
+	            if (sortable) { sort = true; }
+	            splice(this.models, toAdd, at == null ? this.length : at);
+	            this.length = this.models.length;
+	        }
+
+	        // Silently sort the collection if appropriate.
+	        if (sort) { this.sort({ silent: true }); }
+
+	        // Unless silenced, it's time to fire all appropriate add/sort/update events.
+	        if (!options.silent) {
+	            for (i = 0; i < toAdd.length; i++) {
+	                if (at != null) { options.index = at + i; }
+	                model = toAdd[i];
+	                model.trigger('add', model, this, options);
+	            }
+	            if (sort || orderChanged) { this.trigger('sort', this, options); }
+	            if (toAdd.length || toRemove.length || toMerge.length) {
+	                options.changes = {
+	                    added: toAdd,
+	                    removed: toRemove,
+	                    merged: toMerge
+	                };
+	                this.trigger('update', this, options);
+	            }
+	        }
+
+	        // Return the added (or merged) model (or models).
+	        return singular ? models[0] : models;
+	    },
+
+	    // When you have more items than you want to add or remove individually,
+	    // you can reset the entire set with a new list of models, without firing
+	    // any granular `add` or `remove` events. Fires `reset` when finished.
+	    // Useful for bulk operations and optimizations.
+	    reset: function(models, options) {
+	        options = options ? clone(options) : {};
+	        for (var i = 0; i < this.models.length; i++) {
+	            this._removeReference(this.models[i], options);
+	        }
+	        options.previousModels = this.models;
+	        this._reset();
+	        models = this.add(models, assign({ silent: true }, options));
+	        if (!options.silent) { this.trigger('reset', this, options); }
+	        return models;
+	    },
+
+	    // Add a model to the end of the collection.
+	    push: function(model, options) {
+	        return this.add(model, assign({ at: this.length }, options));
+	    },
+
+	    // Remove a model from the end of the collection.
+	    pop: function(options) {
+	        var model = this.at(this.length - 1);
+	        return this.remove(model, options);
+	    },
+
+	    // Add a model to the beginning of the collection.
+	    unshift: function(model, options) {
+	        return this.add(model, assign({ at: 0 }, options));
+	    },
+
+	    // Remove a model from the beginning of the collection.
+	    shift: function(options) {
+	        var model = this.at(0);
+	        return this.remove(model, options);
+	    },
+
+	    // Slice out a sub-array of models from the collection.
+	    slice: function() {
+	        return Array.prototype.slice.apply(this.models, arguments);
+	    },
+
+	    // Get a model from the set by id, cid, model object with id or cid
+	    // properties, or an attributes object that is transformed through modelId.
+	    get: function(obj) {
+	        if (obj == null) { return void 0; }
+	        return this._byId[obj] ||
+	        this._byId[this.modelId(this._isModel(obj) ? obj.attributes : obj, obj.idAttribute)] ||
+	        obj.cid && this._byId[obj.cid];
+	    },
+
+	    // Returns `true` if the model is in the collection.
+	    has: function(obj) {
+	        return this.get(obj) != null;
+	    },
+
+	    // Get the model at the given index.
+	    at: function(index) {
+	        if (index < 0) { index += this.length; }
+	        return this.models[index];
+	    },
+
+	    // Force the collection to re-sort itself. You don't need to call this under
+	    // normal circumstances, as the set will maintain sort order as each item
+	    // is added.
+	    sort: function(options) {
+	        var comparator = this.comparator;
+	        if (!comparator) { throw new Error('Cannot sort a set without a comparator'); }
+	        options || (options = {});
+
+	        var length = comparator.length;
+	        if (isFunction(comparator)) { comparator = comparator.bind(this); }
+
+	        // Run sort based on type of `comparator`.
+	        if (length === 1 || isString(comparator)) {
+	            this.models = this.sortBy(comparator);
+	        } else {
+	            this.models.sort(comparator);
+	        }
+	        if (!options.silent) { this.trigger('sort', this, options); }
+	        return this;
+	    },
+
+	    // Pluck an attribute from each model in the collection.
+	    pluck: function(attr) {
+	        return Array.from(this).map(function (model) { return model.get(attr + ''); });
+	    },
+
+	    // Create a new collection with an identical list of models as this one.
+	    clone: function() {
+	        return new this.constructor(this.models, {
+	            model: this.model,
+	            comparator: this.comparator
+	        });
+	    },
+
+	    // Define how to uniquely identify models in the collection.
+	    modelId: function(attrs, idAttribute) {
+	        return attrs[idAttribute || this.model.prototype.idAttribute || 'id'];
+	    },
+
+	    // Get an iterator of all models in this collection.
+	    values: function() {
+	        return new CollectionIterator(this, ITERATOR_VALUES);
+	    },
+
+	    // Get an iterator of all model IDs in this collection.
+	    keys: function() {
+	        return new CollectionIterator(this, ITERATOR_KEYS);
+	    },
+
+	    // Get an iterator of all [ID, model] tuples in this collection.
+	    entries: function() {
+	        return new CollectionIterator(this, ITERATOR_KEYSVALUES);
+	    },
+
+	    // Private method to reset all internal state. Called when the collection
+	    // is first initialized or reset.
+	    _reset: function() {
+	        this.length = 0;
+	        this.models = [];
+	        this._byId  = {};
+	    },
+
+	    // Prepare a hash of attributes (or other model) to be added to this
+	    // collection.
+	    _prepareModel: function(attrs, options) {
+	        if (this._isModel(attrs)) {
+	            if (!attrs.collection) { attrs.collection = this; }
+	            return attrs;
+	        }
+	        options = options ? clone(options) : {};
+	        options.collection = this;
+
+	        var model;
+	        if (this.model.prototype) {
+	            model = new this.model(attrs, options);
+	        } else {
+	        // ES class methods didn't have prototype
+	            model = this.model(attrs, options);
+	        }
+
+	        if (!model.validationError) { return model; }
+	        this.trigger('invalid', this, model.validationError, options);
+	        return false;
+	    },
+
+	    // Internal method called by both remove and set.
+	    _removeModels: function(models, options) {
+	        var removed = [];
+	        for (var i = 0; i < models.length; i++) {
+	            var model = this.get(models[i]);
+	            if (!model) { continue; }
+
+	            var index = Array.from(this).indexOf(model);
+	            this.models.splice(index, 1);
+	            this.length--;
+
+	            // Remove references before triggering 'remove' event to prevent an
+	            // infinite loop. #3693
+	            delete this._byId[model.cid];
+	            var id = this.modelId(model.attributes, model.idAttribute);
+	            if (id != null) { delete this._byId[id]; }
+
+	            if (!options.silent) {
+	                options.index = index;
+	                model.trigger('remove', model, this, options);
+	            }
+
+	            removed.push(model);
+	            this._removeReference(model, options);
+	        }
+	        if (models.length > 0 && !options.silent) { delete options.index; }
+	        return removed;
+	    },
+
+	    // Method for checking whether an object should be considered a model for
+	    // the purposes of adding to the collection.
+	    _isModel: function(model) {
+	        return model instanceof Model;
+	    },
+
+	    // Internal method to create a model's ties to a collection.
+	    _addReference: function(model, options) {
+	        this._byId[model.cid] = model;
+	        var id = this.modelId(model.attributes, model.idAttribute);
+	        if (id != null) { this._byId[id] = model; }
+	        model.on('all', this._onModelEvent, this);
+	    },
+
+	    // Internal method to sever a model's ties to a collection.
+	    _removeReference: function(model, options) {
+	        delete this._byId[model.cid];
+	        var id = this.modelId(model.attributes, model.idAttribute);
+	        if (id != null) { delete this._byId[id]; }
+	        if (this === model.collection) { delete model.collection; }
+	        model.off('all', this._onModelEvent, this);
+	    },
+
+	    // Internal method called every time a model in the set fires an event.
+	    // Sets need to update their indexes when models change ids. All other
+	    // events simply proxy through. "add" and "remove" events that originate
+	    // in other collections are ignored.
+	    _onModelEvent: function(event, model, collection, options) {
+	        if (model) {
+	            if ((event === 'add' || event === 'remove') && collection !== this) { return; }
+	            if (event === 'changeId') {
+	                var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
+	                var id = this.modelId(model.attributes, model.idAttribute);
+	                if (prevId != null) { delete this._byId[prevId]; }
+	                if (id != null) { this._byId[id] = model; }
+	            }
+	        }
+	        this.trigger.apply(this, arguments);
+	    }
+
+	});
+
+	// Defining an @@iterator method implements JavaScript's Iterable protocol.
+	// In modern ES2015 browsers, this value is found at Symbol.iterator.
+	var $$iterator = typeof Symbol === 'function' && Symbol.iterator;
+	if ($$iterator) {
+	    Collection.prototype[$$iterator] = Collection.prototype.values;
+	}
+
+	// CollectionIterator
+	// ------------------
+
+	// A CollectionIterator implements JavaScript's Iterator protocol, allowing the
+	// use of `for of` loops in modern browsers and interoperation between
+	// Collection and other JavaScript functions and third-party libraries
+	// which can operate on Iterables.
+	var CollectionIterator = function(collection, kind) {
+	    this._collection = collection;
+	    this._kind = kind;
+	    this._index = 0;
+	};
+
+	// This "enum" defines the three possible kinds of values which can be emitted
+	// by a CollectionIterator that correspond to the values(), keys() and entries()
+	// methods on Collection, respectively.
+	var ITERATOR_VALUES = 1;
+	var ITERATOR_KEYS = 2;
+	var ITERATOR_KEYSVALUES = 3;
+
+	// All Iterators should themselves be Iterable.
+	if ($$iterator) {
+	    CollectionIterator.prototype[$$iterator] = function() {
+	        return this;
+	    };
+	}
+
+	CollectionIterator.prototype.next = function() {
+	    if (this._collection) {
+
+	        // Only continue iterating if the iterated collection is long enough.
+	        if (this._index < this._collection.length) {
+	            var model = this._collection.at(this._index);
+	            this._index++;
+
+	            // Construct a value depending on what kind of values should be iterated.
+	            var value;
+	            if (this._kind === ITERATOR_VALUES) {
+	                value = model;
+	            } else {
+	                var id = this._collection.modelId(model.attributes, model.idAttribute);
+	                if (this._kind === ITERATOR_KEYS) {
+	                    value = id;
+	                } else { // ITERATOR_KEYSVALUES
+	                    value = [id, model];
+	                }
+	            }
+	            return { value: value, done: false };
+	        }
+
+	        // Once exhausted, remove the reference to the collection so future
+	        // calls to the next method always return done.
+	        this._collection = void 0;
+	    }
+
+	    return { value: void 0, done: true };
+	};
+
+	//  Methods that we want to implement on the Collection.
+	var collectionMethods = { toArray: 1, first: 3, last: 3, sortBy: 3 };
+
+
+	// Mix in each method as a proxy to `Collection#models`.
+
+	var config$1 = [ Collection, collectionMethods, 'models' ];
+
+	function addMethods(config) {
+	    var Base = config[0],
+	        methods = config[1],
+	        attribute = config[2];
+
+	    function first(array) {
+	        return (array && array.length) ? array[0] : undefined;
+	    }
+
+	    function last(array) {
+	        var length = array == null ? 0 : array.length;
+	        return length ? array[length - 1] : undefined;
+	    }
+
+	    var methodsToAdd = {
+	        sortBy: sortBy,
+	        first: first,
+	        last: last,
+	        toArray: toArray
+	    };
+
+	    addMethodsUtil(Base, methodsToAdd, methods, attribute);
+	}
+
+	addMethods(config$1);
+
+	// Set up inheritance for the collection.
+	Collection.extend = extend$1;
+
+
+
+	var index$1 = ({
+		Data: Data,
+		$: $,
+		views: views,
+		View: View,
+		Listener: Listener,
+		Events: Events,
+		Collection: Collection,
+		Model: Model,
+		ViewBase: ViewBase,
+		extend: extend$1,
+		addMethodsUtil: addMethodsUtil,
+		Event: Event
+	});
+
+	function toArray$1(obj) {
+	    if (!obj) { return []; }
+	    if (Array.isArray(obj)) { return obj; }
+	    return [obj];
+	}
+
+	var HighlighterView = View.extend({
+
+	    tagName: 'g',
+	    svgElement: true,
+	    className: 'highlight',
+
+	    HIGHLIGHT_FLAG: 1,
+	    UPDATE_PRIORITY: 3,
+	    DETACHABLE: false,
+	    UPDATABLE: true,
+	    MOUNTABLE: true,
+
+	    cellView: null,
+	    nodeSelector: null,
+	    node: null,
+	    updateRequested: false,
+	    postponedUpdate: false,
+	    transformGroup: null,
+	    detachedTransformGroup: null,
+
+	    requestUpdate: function requestUpdate(cellView, nodeSelector) {
+	        var paper = cellView.paper;
+	        this.cellView = cellView;
+	        this.nodeSelector = nodeSelector;
+	        if (paper) {
+	            this.updateRequested = true;
+	            paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
+	        }
+	    },
+
+	    confirmUpdate: function confirmUpdate() {
+	        // The cellView is now rendered/updated since it has a higher update priority.
+	        this.updateRequested = false;
+	        var ref = this;
+	        var cellView = ref.cellView;
+	        var nodeSelector = ref.nodeSelector;
+	        if (!cellView.isMounted()) {
+	            this.postponedUpdate = true;
+	            return 0;
+	        }
+	        this.update(cellView, nodeSelector);
+	        this.mount();
+	        this.transform();
+	        return 0;
+	    },
+
+	    findNode: function findNode(cellView, nodeSelector) {
+	        if ( nodeSelector === void 0 ) nodeSelector = null;
+
+	        var el;
+	        if (typeof nodeSelector === 'string') {
+	            el = cellView.findNode(nodeSelector);
+	        } else if (isPlainObject(nodeSelector)) {
+	            var isLink = cellView.model.isLink();
+	            var label = nodeSelector.label; if ( label === void 0 ) label = null;
+	            var port = nodeSelector.port;
+	            var selector = nodeSelector.selector;
+	            if (isLink && label !== null) {
+	                // Link Label Selector
+	                el = cellView.findLabelNode(label, selector);
+	            } else if (!isLink && port) {
+	                // Element Port Selector
+	                el = cellView.findPortNode(port, selector);
+	            } else {
+	                // Cell Selector
+	                el = cellView.findNode(selector);
+	            }
+	        } else if (nodeSelector) {
+	            el = V.toNode(nodeSelector);
+	            if (!(el instanceof SVGElement)) { el = null; }
+	        }
+	        return el ? el : null;
+	    },
+
+	    getNodeMatrix: function getNodeMatrix(cellView, node) {
+	        var ref = this;
+	        var options = ref.options;
+	        var layer = options.layer;
+	        var rotatableNode = cellView.rotatableNode;
+	        var nodeMatrix = cellView.getNodeMatrix(node);
+	        if (rotatableNode) {
+	            if (layer) {
+	                if (rotatableNode.contains(node)) {
+	                    return nodeMatrix;
+	                }
+	                // The node is outside of the rotatable group.
+	                // Compensate the rotation set by transformGroup.
+	                return cellView.getRootRotateMatrix().inverse().multiply(nodeMatrix);
+	            } else {
+	                return cellView.getNodeRotateMatrix(node).multiply(nodeMatrix);
+	            }
+	        }
+	        return nodeMatrix;
+	    },
+
+	    mount: function mount() {
+	        var ref = this;
+	        var MOUNTABLE = ref.MOUNTABLE;
+	        var cellView = ref.cellView;
+	        var el = ref.el;
+	        var options = ref.options;
+	        var transformGroup = ref.transformGroup;
+	        var detachedTransformGroup = ref.detachedTransformGroup;
+	        var postponedUpdate = ref.postponedUpdate;
+	        var nodeSelector = ref.nodeSelector;
+	        if (!MOUNTABLE || transformGroup) { return; }
+	        if (postponedUpdate) {
+	            // The cellView was not mounted when the update was requested.
+	            // The update was postponed until the cellView is mounted.
+	            this.update(cellView, nodeSelector);
+	            this.transform();
+	            return;
+	        }
+	        var cellViewRoot = cellView.vel;
+	        var paper = cellView.paper;
+	        var layerName = options.layer;
+	        if (layerName) {
+	            var vGroup;
+	            if (detachedTransformGroup) {
+	                vGroup = detachedTransformGroup;
+	                this.detachedTransformGroup = null;
+	            } else {
+	                vGroup = V('g').addClass('highlight-transform').append(el);
+	            }
+	            this.transformGroup = vGroup;
+	            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
+	        } else {
+	            // TODO: prepend vs append
+	            if (!el.parentNode || el.nextSibling) {
+	                // Not appended yet or not the last child
+	                cellViewRoot.append(el);
+	            }
+	        }
+	    },
+
+	    unmount: function unmount() {
+	        var ref = this;
+	        var MOUNTABLE = ref.MOUNTABLE;
+	        var transformGroup = ref.transformGroup;
+	        var vel = ref.vel;
+	        if (!MOUNTABLE) { return; }
+	        if (transformGroup) {
+	            this.transformGroup = null;
+	            this.detachedTransformGroup = transformGroup;
+	            transformGroup.remove();
+	        } else {
+	            vel.remove();
+	        }
+	    },
+
+	    transform: function transform() {
+	        var ref = this;
+	        var transformGroup = ref.transformGroup;
+	        var cellView = ref.cellView;
+	        var updateRequested = ref.updateRequested;
+	        if (!transformGroup || cellView.model.isLink() || updateRequested) { return; }
+	        var translateMatrix = cellView.getRootTranslateMatrix();
+	        var rotateMatrix = cellView.getRootRotateMatrix();
+	        var transformMatrix = translateMatrix.multiply(rotateMatrix);
+	        transformGroup.attr('transform', V.matrixToTransformString(transformMatrix));
+	    },
+
+	    update: function update() {
+	        var ref = this;
+	        var prevNode = ref.node;
+	        var cellView = ref.cellView;
+	        var nodeSelector = ref.nodeSelector;
+	        var updateRequested = ref.updateRequested;
+	        var id = ref.id;
+	        if (updateRequested) { return; }
+	        this.postponedUpdate = false;
+	        var node = this.node = this.findNode(cellView, nodeSelector);
+	        if (prevNode) {
+	            this.unhighlight(cellView, prevNode);
+	        }
+	        if (node) {
+	            this.highlight(cellView, node);
+	            this.mount();
+	        } else {
+	            this.unmount();
+	            cellView.notify('cell:highlight:invalid', id, this);
+	        }
+	    },
+
+	    onRemove: function onRemove() {
+	        var ref = this;
+	        var node = ref.node;
+	        var cellView = ref.cellView;
+	        var id = ref.id;
+	        var constructor = ref.constructor;
+	        if (node) {
+	            this.unhighlight(cellView, node);
+	        }
+	        this.unmount();
+	        constructor._removeRef(cellView, id);
+	    },
+
+	    highlight: function highlight(_cellView, _node) {
+	        // to be overridden
+	    },
+
+	    unhighlight: function unhighlight(_cellView, _node) {
+	        // to be overridden
+	    },
+
+	    // Update Attributes
+
+	    listenToUpdateAttributes: function listenToUpdateAttributes(cellView) {
+	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
+	        if (!Array.isArray(attributes) || attributes.length === 0) { return; }
+	        this.listenTo(cellView.model, 'change', this.onCellAttributeChange);
+	    },
+
+	    onCellAttributeChange: function onCellAttributeChange() {
+	        var ref = this;
+	        var cellView = ref.cellView;
+	        if (!cellView) { return; }
+	        var model = cellView.model;
+	        var paper = cellView.paper;
+	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
+	        if (!attributes.some(function (attribute) { return model.hasChanged(attribute); })) { return; }
+	        paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
+	    }
+
+	}, {
+
+	    _views: {},
+
+	    // Used internally by CellView highlight()
+	    highlight: function(cellView, node, opt) {
+	        var id = this.uniqueId(node, opt);
+	        this.add(cellView, node, id, opt);
+	    },
+
+	    // Used internally by CellView unhighlight()
+	    unhighlight: function(cellView, node, opt) {
+	        var id = this.uniqueId(node, opt);
+	        this.remove(cellView, id);
+	    },
+
+	    get: function get(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        var cid = cellView.cid;
+	        var ref$2 = this;
+	        var _views = ref$2._views;
+	        var refs = _views[cid];
+	        if (id === null) {
+	            // all highlighters
+	            var views = [];
+	            if (!refs) { return views; }
+	            for (var hid in refs) {
+	                var ref = refs[hid];
+	                if (ref instanceof this) {
+	                    views.push(ref);
+	                }
+	            }
+	            return views;
+	        } else {
+	            // single highlighter
+	            if (!refs) { return null; }
+	            if (id in refs) {
+	                var ref$1 = refs[id];
+	                if (ref$1 instanceof this) { return ref$1; }
+	            }
+	            return null;
+	        }
+	    },
+
+	    add: function add(cellView, nodeSelector, id, opt) {
+	        if ( opt === void 0 ) opt = {};
+
+	        if (!id) { throw new Error('dia.HighlighterView: An ID required.'); }
+	        // Search the existing view amongst all the highlighters
+	        var previousView = HighlighterView.get(cellView, id);
+	        if (previousView) { previousView.remove(); }
+	        var view = new this(opt);
+	        view.id = id;
+	        this._addRef(cellView, id, view);
+	        view.requestUpdate(cellView, nodeSelector);
+	        view.listenToUpdateAttributes(cellView);
+	        return view;
+	    },
+
+	    _addRef: function _addRef(cellView, id, view) {
+	        var cid = cellView.cid;
+	        var ref = this;
+	        var _views = ref._views;
+	        var refs = _views[cid];
+	        if (!refs) { refs = _views[cid] = {}; }
+	        refs[id] = view;
+	    },
+
+	    _removeRef: function _removeRef(cellView, id) {
+	        var cid = cellView.cid;
+	        var ref = this;
+	        var _views = ref._views;
+	        var refs = _views[cid];
+	        if (!refs) { return; }
+	        if (id) { delete refs[id]; }
+	        for (var _ in refs) { return; }
+	        delete _views[cid];
+	    },
+
+	    remove: function remove(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) {
+	            view.remove();
+	        });
+	    },
+
+	    removeAll: function removeAll(paper, id) {
+	        if ( id === void 0 ) id = null;
+
+	        var ref = this;
+	        var _views = ref._views;
+
+	        for (var cid in _views) {
+	            for (var hid in _views[cid]) {
+	                var view = _views[cid][hid];
+
+	                if (view.cellView.paper === paper && view instanceof this && (id === null || hid === id)) {
+	                    view.remove();
+	                }
+	            }
+	        }
+	    },
+
+	    update: function update(cellView, id, dirty) {
+	        if ( id === void 0 ) id = null;
+	        if ( dirty === void 0 ) dirty = false;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) {
+	            if (dirty || view.UPDATABLE) { view.update(); }
+	        });
+	    },
+
+	    transform: function transform(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) {
+	            if (view.UPDATABLE) { view.transform(); }
+	        });
+	    },
+
+	    unmount: function unmount(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.unmount(); });
+	    },
+
+	    mount: function mount(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.mount(); });
+	    },
+
+	    uniqueId: function uniqueId(node, opt) {
+	        if ( opt === void 0 ) opt = '';
+
+	        return V.ensureId(node) + JSON.stringify(opt);
+	    }
+
+	});
+
 	var stroke = HighlighterView.extend({
 
 	    tagName: 'path',
 	    className: 'highlight-stroke',
 	    attributes: {
 	        'pointer-events': 'none',
-	        'vector-effect': 'non-scaling-stroke',
 	        'fill': 'none'
 	    },
 
@@ -26258,6 +24620,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var vel = ref.vel;
 	        var options = ref.options;
 	        vel.attr(options.attrs);
+	        if (options.nonScalingStroke) {
+	            vel.attr('vector-effect', 'non-scaling-stroke');
+	        }
 	        if (cellView.isNodeConnection(node)) {
 	            this.highlightConnection(cellView);
 	        } else {
@@ -26424,8 +24789,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var options = ref.options;
 	        var padding = options.padding;
 	        var attrs = options.attrs;
-
-	        var strokeWidth = ('stroke-width' in attrs) ? attrs['stroke-width'] : 1;
+	        // support both `strokeWidth` and `stroke-width` attribute names
+	        var strokeWidth = parseFloat(V('g').attr(attrs).attr('stroke-width'));
 	        var hasNodeFill = vNode.attr('fill') !== 'none';
 	        var magnetStrokeWidth = parseFloat(vNode.attr('stroke-width'));
 	        if (isNaN(magnetStrokeWidth)) { magnetStrokeWidth = 1; }
@@ -26506,21 +24871,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    UPDATABLE: false,
 	    MOUNTABLE: false,
 
-	    opacityClassName: addClassNamePrefix('highlight-opacity'),
-
 	    highlight: function(_cellView, node) {
-	        V(node).addClass(this.opacityClassName);
+	        var ref = this.options;
+	        var alphaValue = ref.alphaValue; if ( alphaValue === void 0 ) alphaValue = 0.3;
+	        node.style.opacity = alphaValue;
 	    },
 
 	    unhighlight: function(_cellView, node) {
-	        V(node).removeClass(this.opacityClassName);
+	        node.style.opacity = '';
 	    }
 
 	});
 
 	var className = addClassNamePrefix('highlighted');
 
-	var addClass = HighlighterView.extend({
+	var addClass$1 = HighlighterView.extend({
 
 	    UPDATABLE: false,
 	    MOUNTABLE: false,
@@ -26666,7 +25031,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		stroke: stroke,
 		mask: mask,
 		opacity: opacity,
-		addClass: addClass,
+		addClass: addClass$1,
 		list: list
 	});
 
@@ -26807,7 +25172,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    var anchor = line.end;
 
 	    if (typeof selector === 'string') {
-	        node = view.findBySelector(selector)[0];
+	        node = view.findNode(selector);
 	    } else if (selector === false) {
 	        node = magnet;
 	    } else if (Array.isArray(selector)) {
@@ -27372,7 +25737,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    excludeEnds: [], // 'source', 'target'
 
 	    // should certain types of elements not be considered as obstacles?
-	    excludeTypes: ['basic.Text'],
+	    excludeTypes: [],
 
 	    // possible starting directions from an element
 	    startDirections: ['top', 'right', 'bottom', 'left'],
@@ -30843,13 +29208,2184 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	});
 
+	var HighlightingTypes = {
+	    DEFAULT: 'default',
+	    EMBEDDING: 'embedding',
+	    CONNECTING: 'connecting',
+	    MAGNET_AVAILABILITY: 'magnetAvailability',
+	    ELEMENT_AVAILABILITY: 'elementAvailability'
+	};
+
+	var Flags = {
+	    TOOLS: 'TOOLS',
+	};
+
+	// CellView base view and controller.
+	// --------------------------------------------
+
+	// This is the base view and controller for `ElementView` and `LinkView`.
+	var CellView = View.extend({
+
+	    tagName: 'g',
+
+	    svgElement: true,
+
+	    selector: 'root',
+
+	    metrics: null,
+
+	    className: function() {
+
+	        var classNames = ['cell'];
+	        var type = this.model.get('type');
+
+	        if (type) {
+
+	            type.toLowerCase().split('.').forEach(function(value, index, list) {
+	                classNames.push('type-' + list.slice(0, index + 1).join('-'));
+	            });
+	        }
+
+	        return classNames.join(' ');
+	    },
+
+	    _presentationAttributes: null,
+	    _flags: null,
+
+	    setFlags: function() {
+	        var flags = {};
+	        var attributes = {};
+	        var shift = 0;
+	        var i, n, label;
+	        var presentationAttributes = result(this, 'presentationAttributes');
+	        for (var attribute in presentationAttributes) {
+	            if (!presentationAttributes.hasOwnProperty(attribute)) { continue; }
+	            var labels = presentationAttributes[attribute];
+	            if (!Array.isArray(labels)) { labels = [labels]; }
+	            for (i = 0, n = labels.length; i < n; i++) {
+	                label = labels[i];
+	                var flag = flags[label];
+	                if (!flag) {
+	                    flag = flags[label] = 1<<(shift++);
+	                }
+	                attributes[attribute] |= flag;
+	            }
+	        }
+	        var initFlag = result(this, 'initFlag');
+	        if (!Array.isArray(initFlag)) { initFlag = [initFlag]; }
+	        for (i = 0, n = initFlag.length; i < n; i++) {
+	            label = initFlag[i];
+	            if (!flags[label]) { flags[label] = 1<<(shift++); }
+	        }
+
+	        // 26 - 30 are reserved for paper flags
+	        // 31+ overflows maximal number
+	        if (shift > 25) { throw new Error('dia.CellView: Maximum number of flags exceeded.'); }
+
+	        this._flags = flags;
+	        this._presentationAttributes = attributes;
+	    },
+
+	    hasFlag: function(flag, label) {
+	        return flag & this.getFlag(label);
+	    },
+
+	    removeFlag: function(flag, label) {
+	        return flag ^ (flag & this.getFlag(label));
+	    },
+
+	    getFlag: function(label) {
+	        var flags = this._flags;
+	        if (!flags) { return 0; }
+	        var flag = 0;
+	        if (Array.isArray(label)) {
+	            for (var i = 0, n = label.length; i < n; i++) { flag |= flags[label[i]]; }
+	        } else {
+	            flag |= flags[label];
+	        }
+	        return flag;
+	    },
+
+	    attributes: function() {
+	        var cell = this.model;
+	        return {
+	            'model-id': cell.id,
+	            'data-type': cell.attributes.type
+	        };
+	    },
+
+	    constructor: function(options) {
+
+	        // Make sure a global unique id is assigned to this view. Store this id also to the properties object.
+	        // The global unique id makes sure that the same view can be rendered on e.g. different machines and
+	        // still be associated to the same object among all those clients. This is necessary for real-time
+	        // collaboration mechanism.
+	        options.id = options.id || guid(this);
+
+	        View.call(this, options);
+	    },
+
+	    initialize: function() {
+
+	        this.setFlags();
+
+	        View.prototype.initialize.apply(this, arguments);
+
+	        this.cleanNodesCache();
+
+	        this.startListening();
+	    },
+
+	    startListening: function() {
+	        this.listenTo(this.model, 'change', this.onAttributesChange);
+	    },
+
+	    onAttributesChange: function(model, opt) {
+	        var flag = model.getChangeFlag(this._presentationAttributes);
+	        if (opt.updateHandled || !flag) { return; }
+	        if (opt.dirty && this.hasFlag(flag, 'UPDATE')) { flag |= this.getFlag('RENDER'); }
+	        // TODO: tool changes does not need to be sync
+	        // Fix Segments tools
+	        if (opt.tool) { opt.async = false; }
+	        this.requestUpdate(flag, opt);
+	    },
+
+	    requestUpdate: function(flags, opt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        if (paper && flags > 0) {
+	            paper.requestViewUpdate(this, flags, this.UPDATE_PRIORITY, opt);
+	        }
+	    },
+
+	    parseDOMJSON: function(markup, root) {
+
+	        var doc = parseDOMJSON(markup);
+	        var selectors = doc.selectors;
+	        var groups = doc.groupSelectors;
+	        for (var group in groups) {
+	            if (selectors[group]) { throw new Error('dia.CellView: ambiguous group selector'); }
+	            selectors[group] = groups[group];
+	        }
+	        if (root) {
+	            var rootSelector = this.selector;
+	            if (selectors[rootSelector]) { throw new Error('dia.CellView: ambiguous root selector.'); }
+	            selectors[rootSelector] = root;
+	        }
+	        return { fragment: doc.fragment, selectors: selectors };
+	    },
+
+	    // Return `true` if cell link is allowed to perform a certain UI `feature`.
+	    // Example: `can('labelMove')`.
+	    can: function(feature) {
+
+	        var interactive = isFunction(this.options.interactive)
+	            ? this.options.interactive(this)
+	            : this.options.interactive;
+
+	        return (isObject$1(interactive) && interactive[feature] !== false) ||
+	            (isBoolean(interactive) && interactive !== false);
+	    },
+
+	    findBySelector: function(selector, root, selectors) {
+
+	        // These are either descendants of `this.$el` of `this.$el` itself.
+	        // `.` is a special selector used to select the wrapping `<g>` element.
+	        if (!selector || selector === '.') { return [root]; }
+	        if (selectors) {
+	            var nodes = selectors[selector];
+	            if (nodes) {
+	                if (Array.isArray(nodes)) { return nodes; }
+	                return [nodes];
+	            }
+	        }
+
+	        // Maintaining backwards compatibility
+	        // e.g. `circle:first` would fail with querySelector() call
+	        if (config.useCSSSelectors) { return $(root).find(selector).toArray(); }
+
+	        return [];
+	    },
+
+	    findNodes: function(selector) {
+	        return this.findBySelector(selector, this.el, this.selectors);
+	    },
+
+	    findNode: function(selector) {
+	        var ref = this.findNodes(selector);
+	        var node = ref[0]; if ( node === void 0 ) node = null;
+	        return node;
+	    },
+
+	    notify: function(eventName) {
+
+	        if (this.paper) {
+
+	            var args = Array.prototype.slice.call(arguments, 1);
+
+	            // Trigger the event on both the element itself and also on the paper.
+	            this.trigger.apply(this, [eventName].concat(args));
+
+	            // Paper event handlers receive the view object as the first argument.
+	            this.paper.trigger.apply(this.paper, [eventName, this].concat(args));
+	        }
+	    },
+
+	    getBBox: function(opt) {
+
+	        var bbox;
+	        if (opt && opt.useModelGeometry) {
+	            var model = this.model;
+	            bbox = model.getBBox().bbox(model.angle());
+	        } else {
+	            bbox = this.getNodeBBox(this.el);
+	        }
+
+	        return this.paper.localToPaperRect(bbox);
+	    },
+
+	    getNodeBBox: function(magnet) {
+
+	        var rect = this.getNodeBoundingRect(magnet);
+	        var transformMatrix = this.getRootTranslateMatrix().multiply(this.getNodeRotateMatrix(magnet));
+	        var magnetMatrix = this.getNodeMatrix(magnet);
+	        return V.transformRect(rect, transformMatrix.multiply(magnetMatrix));
+	    },
+
+	    getNodeRotateMatrix: function getNodeRotateMatrix(node) {
+	        if (!this.rotatableNode || this.rotatableNode.contains(node)) {
+	            // Rotate transformation is applied to all nodes when no rotatableGroup
+	            // is present or to nodes inside the rotatableGroup only.
+	            return this.getRootRotateMatrix();
+	        }
+	        // Nodes outside the rotatable group
+	        return V.createSVGMatrix();
+	    },
+
+	    getNodeUnrotatedBBox: function(magnet) {
+
+	        var rect = this.getNodeBoundingRect(magnet);
+	        var magnetMatrix = this.getNodeMatrix(magnet);
+	        var translateMatrix = this.getRootTranslateMatrix();
+	        return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
+	    },
+
+	    getRootTranslateMatrix: function() {
+
+	        var model = this.model;
+	        var position = model.position();
+	        var mt = V.createSVGMatrix().translate(position.x, position.y);
+	        return mt;
+	    },
+
+	    getRootRotateMatrix: function() {
+
+	        var mr = V.createSVGMatrix();
+	        var model = this.model;
+	        var angle = model.angle();
+	        if (angle) {
+	            var bbox = model.getBBox();
+	            var cx = bbox.width / 2;
+	            var cy = bbox.height / 2;
+	            mr = mr.translate(cx, cy).rotate(angle).translate(-cx, -cy);
+	        }
+	        return mr;
+	    },
+
+	    _notifyHighlight: function(eventName, el, opt) {
+	        var assign;
+
+	        if ( opt === void 0 ) opt = {};
+	        var ref = this;
+	        var rootNode = ref.el;
+	        var node;
+	        if (typeof el === 'string') {
+	            node = this.findNode(el) || rootNode;
+	        } else {
+	            (assign = this.$(el), node = assign[0], node = node === void 0 ? rootNode : node);
+	        }
+	        // set partial flag if the highlighted element is not the entire view.
+	        opt.partial = (node !== rootNode);
+	        // translate type flag into a type string
+	        if (opt.type === undefined) {
+	            var type;
+	            switch (true) {
+	                case opt.embedding:
+	                    type = HighlightingTypes.EMBEDDING;
+	                    break;
+	                case opt.connecting:
+	                    type = HighlightingTypes.CONNECTING;
+	                    break;
+	                case opt.magnetAvailability:
+	                    type = HighlightingTypes.MAGNET_AVAILABILITY;
+	                    break;
+	                case opt.elementAvailability:
+	                    type = HighlightingTypes.ELEMENT_AVAILABILITY;
+	                    break;
+	                default:
+	                    type = HighlightingTypes.DEFAULT;
+	                    break;
+	            }
+	            opt.type = type;
+	        }
+	        this.notify(eventName, node, opt);
+	        return this;
+	    },
+
+	    highlight: function(el, opt) {
+	        return this._notifyHighlight('cell:highlight', el, opt);
+	    },
+
+	    unhighlight: function(el, opt) {
+	        if ( opt === void 0 ) opt = {};
+
+	        return this._notifyHighlight('cell:unhighlight', el, opt);
+	    },
+
+	    // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
+	    // an element found, return the root element of the cell view.
+	    findMagnet: function(el) {
+
+	        var root = this.el;
+	        var magnet = this.$(el)[0];
+	        if (!magnet) {
+	            magnet = root;
+	        }
+
+	        do {
+	            var magnetAttribute = magnet.getAttribute('magnet');
+	            var isMagnetRoot = (magnet === root);
+	            if ((magnetAttribute || isMagnetRoot) && magnetAttribute !== 'false') {
+	                return magnet;
+	            }
+	            if (isMagnetRoot) {
+	                // If the overall cell has set `magnet === false`, then return `undefined` to
+	                // announce there is no magnet found for this cell.
+	                // This is especially useful to set on cells that have 'ports'. In this case,
+	                // only the ports have set `magnet === true` and the overall element has `magnet === false`.
+	                return undefined;
+	            }
+	            magnet = magnet.parentNode;
+	        } while (magnet);
+
+	        return undefined;
+	    },
+
+	    findProxyNode: function(el, type) {
+	        el || (el = this.el);
+	        var nodeSelector = el.getAttribute((type + "-selector"));
+	        if (nodeSelector) {
+	            var proxyNode = this.findNode(nodeSelector);
+	            if (proxyNode) { return proxyNode; }
+	        }
+	        return el;
+	    },
+
+	    // Construct a unique selector for the `el` element within this view.
+	    // `prevSelector` is being collected through the recursive call.
+	    // No value for `prevSelector` is expected when using this method.
+	    getSelector: function(el, prevSelector) {
+
+	        var selector;
+
+	        if (el === this.el) {
+	            if (typeof prevSelector === 'string') { selector = ':scope > ' + prevSelector; }
+	            return selector;
+	        }
+
+	        if (el) {
+
+	            var nthChild = V(el).index() + 1;
+	            selector = el.tagName + ':nth-child(' + nthChild + ')';
+
+	            if (prevSelector) {
+	                selector += ' > ' + prevSelector;
+	            }
+
+	            selector = this.getSelector(el.parentNode, selector);
+	        }
+
+	        return selector;
+	    },
+
+	    addLinkFromMagnet: function(magnet, x, y) {
+
+	        var paper = this.paper;
+	        var graph = paper.model;
+
+	        var link = paper.getDefaultLink(this, magnet);
+	        link.set({
+	            source: this.getLinkEnd(magnet, x, y, link, 'source'),
+	            target: { x: x, y: y }
+	        }).addTo(graph, {
+	            async: false,
+	            ui: true
+	        });
+
+	        return link.findView(paper);
+	    },
+
+	    getLinkEnd: function(magnet) {
+	        var ref;
+
+	        var args = [], len = arguments.length - 1;
+	        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+
+	        var model = this.model;
+	        var id = model.id;
+	        var port = this.findAttribute('port', magnet);
+	        // Find a unique `selector` of the element under pointer that is a magnet.
+	        var selector = magnet.getAttribute('joint-selector');
+
+	        var end = { id: id };
+	        if (selector != null) { end.magnet = selector; }
+	        if (port != null) {
+	            end.port = port;
+	            if (!model.hasPort(port) && !selector) {
+	                // port created via the `port` attribute (not API)
+	                end.selector = this.getSelector(magnet);
+	            }
+	        } else if (selector == null && this.el !== magnet) {
+	            end.selector = this.getSelector(magnet);
+	        }
+
+	        return (ref = this).customizeLinkEnd.apply(ref, [ end, magnet ].concat( args ));
+	    },
+
+	    customizeLinkEnd: function(end, magnet, x, y, link, endType) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var ref$1 = paper.options;
+	        var connectionStrategy = ref$1.connectionStrategy;
+	        if (typeof connectionStrategy === 'function') {
+	            var strategy = connectionStrategy.call(paper, end, this, magnet, new Point(x, y), link, endType, paper);
+	            if (strategy) { return strategy; }
+	        }
+	        return end;
+	    },
+
+	    getMagnetFromLinkEnd: function(end) {
+
+	        var port = end.port;
+	        var selector = end.magnet;
+	        var model = this.model;
+	        var magnet;
+	        if (port != null && model.isElement() && model.hasPort(port)) {
+	            magnet = this.findPortNode(port, selector) || this.el;
+	        } else {
+	            if (!selector) { selector = end.selector; }
+	            if (!selector && port != null) {
+	                // link end has only `id` and `port` property referencing
+	                // a port created via the `port` attribute (not API).
+	                selector = '[port="' + port + '"]';
+	            }
+	            magnet = this.findNode(selector);
+	        }
+
+	        return this.findProxyNode(magnet, 'magnet');
+	    },
+
+	    dragLinkStart: function(evt, magnet, x, y) {
+	        this.model.startBatch('add-link');
+	        var linkView = this.addLinkFromMagnet(magnet, x, y);
+	        // backwards compatibility events
+	        linkView.notifyPointerdown(evt, x, y);
+	        linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
+	        this.eventData(evt, { linkView: linkView });
+	    },
+
+	    dragLink: function(evt, x, y) {
+	        var data = this.eventData(evt);
+	        var linkView = data.linkView;
+	        if (linkView) {
+	            linkView.pointermove(evt, x, y);
+	        } else {
+	            var paper = this.paper;
+	            var magnetThreshold = paper.options.magnetThreshold;
+	            var currentTarget = this.getEventTarget(evt);
+	            var targetMagnet = data.targetMagnet;
+	            if (magnetThreshold === 'onleave') {
+	                // magnetThreshold when the pointer leaves the magnet
+	                if (targetMagnet === currentTarget || V(targetMagnet).contains(currentTarget)) { return; }
+	            } else {
+	                // magnetThreshold defined as a number of movements
+	                if (paper.eventData(evt).mousemoved <= magnetThreshold) { return; }
+	            }
+	            this.dragLinkStart(evt, targetMagnet, x, y);
+	        }
+	    },
+
+	    dragLinkEnd: function(evt, x, y) {
+	        var data = this.eventData(evt);
+	        var linkView = data.linkView;
+	        if (!linkView) { return; }
+	        linkView.pointerup(evt, x, y);
+	        this.model.stopBatch('add-link');
+	    },
+
+	    getAttributeDefinition: function(attrName) {
+
+	        return this.model.constructor.getAttributeDefinition(attrName);
+	    },
+
+	    setNodeAttributes: function(node, attrs) {
+
+	        if (!isEmpty(attrs)) {
+	            if (node instanceof SVGElement) {
+	                V(node).attr(attrs);
+	            } else {
+	                $(node).attr(attrs);
+	            }
+	        }
+	    },
+
+	    processNodeAttributes: function(node, attrs) {
+
+	        var attrName, attrVal, def, i, n;
+	        var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
+	        var relatives = [];
+	        // divide the attributes between normal and special
+	        for (attrName in attrs) {
+	            if (!attrs.hasOwnProperty(attrName)) { continue; }
+	            attrVal = attrs[attrName];
+	            def = this.getAttributeDefinition(attrName);
+	            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs, this))) {
+	                if (isString(def.set)) {
+	                    normalAttrs || (normalAttrs = {});
+	                    normalAttrs[def.set] = attrVal;
+	                }
+	                if (attrVal !== null) {
+	                    relatives.push(attrName, def);
+	                }
+	            } else {
+	                normalAttrs || (normalAttrs = {});
+	                normalAttrs[toKebabCase(attrName)] = attrVal;
+	            }
+	        }
+
+	        // handle the rest of attributes via related method
+	        // from the special attributes namespace.
+	        for (i = 0, n = relatives.length; i < n; i+=2) {
+	            attrName = relatives[i];
+	            def = relatives[i+1];
+	            attrVal = attrs[attrName];
+	            if (isFunction(def.set)) {
+	                setAttrs || (setAttrs = {});
+	                setAttrs[attrName] = attrVal;
+	            }
+	            if (isFunction(def.position)) {
+	                positionAttrs || (positionAttrs = {});
+	                positionAttrs[attrName] = attrVal;
+	            }
+	            if (isFunction(def.offset)) {
+	                offsetAttrs || (offsetAttrs = {});
+	                offsetAttrs[attrName] = attrVal;
+	            }
+	        }
+
+	        return {
+	            raw: attrs,
+	            normal: normalAttrs,
+	            set: setAttrs,
+	            position: positionAttrs,
+	            offset: offsetAttrs
+	        };
+	    },
+
+	    updateRelativeAttributes: function(node, attrs, refBBox, opt) {
+
+	        opt || (opt = {});
+
+	        var attrName, attrVal, def;
+	        var rawAttrs = attrs.raw || {};
+	        var nodeAttrs = attrs.normal || {};
+	        var setAttrs = attrs.set;
+	        var positionAttrs = attrs.position;
+	        var offsetAttrs = attrs.offset;
+
+	        for (attrName in setAttrs) {
+	            attrVal = setAttrs[attrName];
+	            def = this.getAttributeDefinition(attrName);
+	            // SET - set function should return attributes to be set on the node,
+	            // which will affect the node dimensions based on the reference bounding
+	            // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
+	            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
+	            if (isObject$1(setResult)) {
+	                assign(nodeAttrs, setResult);
+	            } else if (setResult !== undefined) {
+	                nodeAttrs[attrName] = setResult;
+	            }
+	        }
+
+	        if (node instanceof HTMLElement) {
+	            // TODO: setting the `transform` attribute on HTMLElements
+	            // via `node.style.transform = 'matrix(...)';` would introduce
+	            // a breaking change (e.g. basic.TextBlock).
+	            this.setNodeAttributes(node, nodeAttrs);
+	            return;
+	        }
+
+	        // The final translation of the subelement.
+	        var nodeTransform = nodeAttrs.transform;
+	        var nodeMatrix = V.transformStringToMatrix(nodeTransform);
+	        var nodePosition = Point(nodeMatrix.e, nodeMatrix.f);
+	        if (nodeTransform) {
+	            nodeAttrs = omit(nodeAttrs, 'transform');
+	            nodeMatrix.e = nodeMatrix.f = 0;
+	        }
+
+	        // Calculate node scale determined by the scalable group
+	        // only if later needed.
+	        var sx, sy, translation;
+	        if (positionAttrs || offsetAttrs) {
+	            var nodeScale = this.getNodeScale(node, opt.scalableNode);
+	            sx = nodeScale.sx;
+	            sy = nodeScale.sy;
+	        }
+
+	        var positioned = false;
+	        for (attrName in positionAttrs) {
+	            attrVal = positionAttrs[attrName];
+	            def = this.getAttributeDefinition(attrName);
+	            // POSITION - position function should return a point from the
+	            // reference bounding box. The default position of the node is x:0, y:0 of
+	            // the reference bounding box or could be further specify by some
+	            // SVG attributes e.g. `x`, `y`
+	            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
+	            if (translation) {
+	                nodePosition.offset(Point(translation).scale(sx, sy));
+	                positioned || (positioned = true);
+	            }
+	        }
+
+	        // The node bounding box could depend on the `size` set from the previous loop.
+	        // Here we know, that all the size attributes have been already set.
+	        this.setNodeAttributes(node, nodeAttrs);
+
+	        var offseted = false;
+	        if (offsetAttrs) {
+	            // Check if the node is visible
+	            var nodeBoundingRect = this.getNodeBoundingRect(node);
+	            if (nodeBoundingRect.width > 0 && nodeBoundingRect.height > 0) {
+	                var nodeBBox = V.transformRect(nodeBoundingRect, nodeMatrix).scale(1 / sx, 1 / sy);
+	                for (attrName in offsetAttrs) {
+	                    attrVal = offsetAttrs[attrName];
+	                    def = this.getAttributeDefinition(attrName);
+	                    // OFFSET - offset function should return a point from the element
+	                    // bounding box. The default offset point is x:0, y:0 (origin) or could be further
+	                    // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
+	                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs, this);
+	                    if (translation) {
+	                        nodePosition.offset(Point(translation).scale(sx, sy));
+	                        offseted || (offseted = true);
+	                    }
+	                }
+	            }
+	        }
+
+	        // Do not touch node's transform attribute if there is no transformation applied.
+	        if (nodeTransform !== undefined || positioned || offseted) {
+	            // Round the coordinates to 1 decimal point.
+	            nodePosition.round(1);
+	            nodeMatrix.e = nodePosition.x;
+	            nodeMatrix.f = nodePosition.y;
+	            node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+	            // TODO: store nodeMatrix metrics?
+	        }
+	    },
+
+	    getNodeScale: function(node, scalableNode) {
+
+	        // Check if the node is a descendant of the scalable group.
+	        var sx, sy;
+	        if (scalableNode && scalableNode.contains(node)) {
+	            var scale = scalableNode.scale();
+	            sx = 1 / scale.sx;
+	            sy = 1 / scale.sy;
+	        } else {
+	            sx = 1;
+	            sy = 1;
+	        }
+
+	        return { sx: sx, sy: sy };
+	    },
+
+	    cleanNodesCache: function() {
+	        this.metrics = {};
+	    },
+
+	    nodeCache: function(magnet) {
+
+	        var metrics = this.metrics;
+	        // Don't use cache? It most likely a custom view with overridden update.
+	        if (!metrics) { return {}; }
+	        var id = V.ensureId(magnet);
+	        var value = metrics[id];
+	        if (!value) { value = metrics[id] = {}; }
+	        return value;
+	    },
+
+	    getNodeData: function(magnet) {
+
+	        var metrics = this.nodeCache(magnet);
+	        if (!metrics.data) { metrics.data = {}; }
+	        return metrics.data;
+	    },
+
+	    getNodeBoundingRect: function(magnet) {
+
+	        var metrics = this.nodeCache(magnet);
+	        if (metrics.boundingRect === undefined) { metrics.boundingRect = V(magnet).getBBox(); }
+	        return new Rect(metrics.boundingRect);
+	    },
+
+	    getNodeMatrix: function(magnet) {
+
+	        var metrics = this.nodeCache(magnet);
+	        if (metrics.magnetMatrix === undefined) {
+	            var ref = this;
+	            var rotatableNode = ref.rotatableNode;
+	            var el = ref.el;
+	            var target;
+	            if (rotatableNode && rotatableNode.contains(magnet)) {
+	                target = rotatableNode;
+	            } else {
+	                target = el;
+	            }
+	            metrics.magnetMatrix = V(magnet).getTransformToElement(target);
+	        }
+	        return V.createSVGMatrix(metrics.magnetMatrix);
+	    },
+
+	    getNodeShape: function(magnet) {
+
+	        var metrics = this.nodeCache(magnet);
+	        if (metrics.geometryShape === undefined) { metrics.geometryShape = V(magnet).toGeometryShape(); }
+	        return metrics.geometryShape.clone();
+	    },
+
+	    isNodeConnection: function(node) {
+	        return this.model.isLink() && (!node || node === this.el);
+	    },
+
+	    findNodesAttributes: function(attrs, root, selectorCache, selectors) {
+
+	        var i, n, nodeAttrs, nodeId;
+	        var nodesAttrs = {};
+	        var mergeIds = [];
+	        for (var selector in attrs) {
+	            if (!attrs.hasOwnProperty(selector)) { continue; }
+	            nodeAttrs = attrs[selector];
+	            if (!isPlainObject(nodeAttrs)) { continue; } // Not a valid selector-attributes pair
+	            var selected = selectorCache[selector] = this.findBySelector(selector, root, selectors);
+	            for (i = 0, n = selected.length; i < n; i++) {
+	                var node = selected[i];
+	                nodeId = V.ensureId(node);
+	                // "unique" selectors are selectors that referencing a single node (defined by `selector`)
+	                // groupSelector referencing a single node is not "unique"
+	                var unique = (selectors && selectors[selector] === node);
+	                var prevNodeAttrs = nodesAttrs[nodeId];
+	                if (prevNodeAttrs) {
+	                    // Note, that nodes referenced by deprecated `CSS selectors` are not taken into account.
+	                    // e.g. css:`.circle` and selector:`circle` can be applied in a random order
+	                    if (!prevNodeAttrs.array) {
+	                        mergeIds.push(nodeId);
+	                        prevNodeAttrs.array = true;
+	                        prevNodeAttrs.attributes = [prevNodeAttrs.attributes];
+	                        prevNodeAttrs.selectedLength = [prevNodeAttrs.selectedLength];
+	                    }
+	                    var attributes = prevNodeAttrs.attributes;
+	                    var selectedLength = prevNodeAttrs.selectedLength;
+	                    if (unique) {
+	                        // node referenced by `selector`
+	                        attributes.unshift(nodeAttrs);
+	                        selectedLength.unshift(-1);
+	                    } else {
+	                        // node referenced by `groupSelector`
+	                        var sortIndex = sortedIndex(selectedLength, n);
+	                        attributes.splice(sortIndex, 0, nodeAttrs);
+	                        selectedLength.splice(sortIndex, 0, n);
+	                    }
+	                } else {
+	                    nodesAttrs[nodeId] = {
+	                        attributes: nodeAttrs,
+	                        selectedLength: unique ? -1 : n,
+	                        node: node,
+	                        array: false
+	                    };
+	                }
+	            }
+	        }
+
+	        for (i = 0, n = mergeIds.length; i < n; i++) {
+	            nodeId = mergeIds[i];
+	            nodeAttrs = nodesAttrs[nodeId];
+	            nodeAttrs.attributes = merge.apply(void 0, [ {} ].concat( nodeAttrs.attributes.reverse() ));
+	        }
+
+	        return nodesAttrs;
+	    },
+
+	    getEventTarget: function(evt, opt) {
+	        if ( opt === void 0 ) opt = {};
+
+	        var target = evt.target;
+	        var type = evt.type;
+	        var clientX = evt.clientX; if ( clientX === void 0 ) clientX = 0;
+	        var clientY = evt.clientY; if ( clientY === void 0 ) clientY = 0;
+	        if (
+	            // Explicitly defined `fromPoint` option
+	            opt.fromPoint ||
+	            // Touchmove/Touchend event's target is not reflecting the element under the coordinates as mousemove does.
+	            // It holds the element when a touchstart triggered.
+	            type === 'touchmove' || type === 'touchend' ||
+	            // Pointermove/Pointerup event with the pointer captured
+	            ('pointerId' in evt && target.hasPointerCapture(evt.pointerId))
+	        ) {
+	            return document.elementFromPoint(clientX, clientY);
+	        }
+
+	        return target;
+	    },
+
+	    // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
+	    // unless `attrs` parameter was passed.
+	    updateDOMSubtreeAttributes: function(rootNode, attrs, opt) {
+
+	        opt || (opt = {});
+	        opt.rootBBox || (opt.rootBBox = Rect());
+	        opt.selectors || (opt.selectors = this.selectors); // selector collection to use
+
+	        // Cache table for query results and bounding box calculation.
+	        // Note that `selectorCache` needs to be invalidated for all
+	        // `updateAttributes` calls, as the selectors might pointing
+	        // to nodes designated by an attribute or elements dynamically
+	        // created.
+	        var selectorCache = {};
+	        var bboxCache = {};
+	        var relativeItems = [];
+	        var relativeRefItems = [];
+	        var item, node, nodeAttrs, nodeData, processedAttrs;
+
+	        var roAttrs = opt.roAttributes;
+	        var nodesAttrs = this.findNodesAttributes(roAttrs || attrs, rootNode, selectorCache, opt.selectors);
+	        // `nodesAttrs` are different from all attributes, when
+	        // rendering only  attributes sent to this method.
+	        var nodesAllAttrs = (roAttrs)
+	            ? this.findNodesAttributes(attrs, rootNode, selectorCache, opt.selectors)
+	            : nodesAttrs;
+
+	        for (var nodeId in nodesAttrs) {
+	            nodeData = nodesAttrs[nodeId];
+	            nodeAttrs = nodeData.attributes;
+	            node = nodeData.node;
+	            processedAttrs = this.processNodeAttributes(node, nodeAttrs);
+
+	            if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
+	                // Set all the normal attributes right on the SVG/HTML element.
+	                this.setNodeAttributes(node, processedAttrs.normal);
+
+	            } else {
+
+	                var nodeAllAttrs = nodesAllAttrs[nodeId] && nodesAllAttrs[nodeId].attributes;
+	                var refSelector = (nodeAllAttrs && (nodeAttrs.ref === undefined))
+	                    ? nodeAllAttrs.ref
+	                    : nodeAttrs.ref;
+
+	                var refNode;
+	                if (refSelector) {
+	                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode, opt.selectors))[0];
+	                    if (!refNode) {
+	                        throw new Error('dia.CellView: "' + refSelector + '" reference does not exist.');
+	                    }
+	                } else {
+	                    refNode = null;
+	                }
+
+	                item = {
+	                    node: node,
+	                    refNode: refNode,
+	                    processedAttributes: processedAttrs,
+	                    allAttributes: nodeAllAttrs
+	                };
+
+	                if (refNode) {
+	                    // If an element in the list is positioned relative to this one, then
+	                    // we want to insert this one before it in the list.
+	                    var itemIndex = relativeRefItems.findIndex(function(item) {
+	                        return item.refNode === node;
+	                    });
+
+	                    if (itemIndex > -1) {
+	                        relativeRefItems.splice(itemIndex, 0, item);
+	                    } else {
+	                        relativeRefItems.push(item);
+	                    }
+	                } else {
+	                    // A node with no ref attribute. To be updated before the nodes referencing other nodes.
+	                    // The order of no-ref-items is not specified/important.
+	                    relativeItems.push(item);
+	                }
+	            }
+	        }
+
+	        relativeItems.push.apply(relativeItems, relativeRefItems);
+
+	        for (var i = 0, n = relativeItems.length; i < n; i++) {
+	            item = relativeItems[i];
+	            node = item.node;
+	            refNode = item.refNode;
+
+	            // Find the reference element bounding box. If no reference was provided, we
+	            // use the optional bounding box.
+	            var refNodeId = refNode ? V.ensureId(refNode) : '';
+	            var refBBox = bboxCache[refNodeId];
+	            if (!refBBox) {
+	                // Get the bounding box of the reference element using to the common ancestor
+	                // transformation space.
+	                //
+	                // @example 1
+	                // <g transform="translate(11, 13)">
+	                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
+	                //     <rect @selector="a"/>
+	                // </g>
+	                //
+	                // In this case, the reference bounding box can not be affected
+	                // by the `transform` attribute of the `<g>` element,
+	                // because the exact transformation will be applied to the `a` element
+	                // as well as to the `b` element.
+	                //
+	                // @example 2
+	                // <g transform="translate(11, 13)">
+	                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
+	                // </g>
+	                // <rect @selector="a"/>
+	                //
+	                // In this case, the reference bounding box have to be affected by the
+	                // `transform` attribute of the `<g>` element, because the `a` element
+	                // is not descendant of the `<g>` element and will not be affected
+	                // by the transformation.
+	                refBBox = bboxCache[refNodeId] = (refNode)
+	                    ? V(refNode).getBBox({ target: getCommonAncestorNode(node, refNode) })
+	                    : opt.rootBBox;
+	            }
+
+	            if (roAttrs) {
+	                // if there was a special attribute affecting the position amongst passed-in attributes
+	                // we have to merge it with the rest of the element's attributes as they are necessary
+	                // to update the position relatively (i.e `ref-x` && 'ref-dx')
+	                processedAttrs = this.processNodeAttributes(node, item.allAttributes);
+	                this.mergeProcessedAttributes(processedAttrs, item.processedAttributes);
+
+	            } else {
+	                processedAttrs = item.processedAttributes;
+	            }
+
+	            this.updateRelativeAttributes(node, processedAttrs, refBBox, opt);
+	        }
+	    },
+
+	    mergeProcessedAttributes: function(processedAttrs, roProcessedAttrs) {
+
+	        processedAttrs.set || (processedAttrs.set = {});
+	        processedAttrs.position || (processedAttrs.position = {});
+	        processedAttrs.offset || (processedAttrs.offset = {});
+
+	        assign(processedAttrs.set, roProcessedAttrs.set);
+	        assign(processedAttrs.position, roProcessedAttrs.position);
+	        assign(processedAttrs.offset, roProcessedAttrs.offset);
+
+	        // Handle also the special transform property.
+	        var transform = processedAttrs.normal && processedAttrs.normal.transform;
+	        if (transform !== undefined && roProcessedAttrs.normal) {
+	            roProcessedAttrs.normal.transform = transform;
+	        }
+	        processedAttrs.normal = roProcessedAttrs.normal;
+	    },
+
+	    // Lifecycle methods
+
+	    // Called when the view is attached to the DOM,
+	    // as result of `cell.addTo(graph)` being called (isInitialMount === true)
+	    // or `paper.options.viewport` returning `true` (isInitialMount === false).
+	    onMount: function onMount(isInitialMount) {
+	        if (isInitialMount) { return; }
+	        this.mountTools();
+	        HighlighterView.mount(this);
+	    },
+
+	    // Called when the view is detached from the DOM,
+	    // as result of `paper.options.viewport` returning `false`.
+	    onDetach: function onDetach() {
+	        this.unmountTools();
+	        HighlighterView.unmount(this);
+	    },
+
+	    // Called when the view is removed from the DOM
+	    // as result of `cell.remove()`.
+	    onRemove: function() {
+	        this.removeTools();
+	        this.removeHighlighters();
+	    },
+
+	    _toolsView: null,
+
+	    hasTools: function(name) {
+	        var toolsView = this._toolsView;
+	        if (!toolsView) { return false; }
+	        if (!name) { return true; }
+	        return (toolsView.getName() === name);
+	    },
+
+	    addTools: function(toolsView) {
+
+	        this.removeTools();
+
+	        if (toolsView) {
+	            this._toolsView = toolsView;
+	            toolsView.configure({ relatedView: this });
+	            toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
+	        }
+	        return this;
+	    },
+
+	    unmountTools: function unmountTools() {
+	        var toolsView = this._toolsView;
+	        if (toolsView) { toolsView.unmount(); }
+	        return this;
+	    },
+
+	    mountTools: function mountTools() {
+	        var toolsView = this._toolsView;
+	        // Prevent unnecessary re-appending of the tools.
+	        if (toolsView && !toolsView.isMounted()) { toolsView.mount(); }
+	        return this;
+	    },
+
+	    updateTools: function(opt) {
+
+	        var toolsView = this._toolsView;
+	        if (toolsView) { toolsView.update(opt); }
+	        return this;
+	    },
+
+	    removeTools: function() {
+
+	        var toolsView = this._toolsView;
+	        if (toolsView) {
+	            toolsView.remove();
+	            this._toolsView = null;
+	        }
+	        return this;
+	    },
+
+	    hideTools: function() {
+
+	        var toolsView = this._toolsView;
+	        if (toolsView) { toolsView.hide(); }
+	        return this;
+	    },
+
+	    showTools: function() {
+
+	        var toolsView = this._toolsView;
+	        if (toolsView) { toolsView.show(); }
+	        return this;
+	    },
+
+	    onToolEvent: function(event) {
+	        switch (event) {
+	            case 'remove':
+	                this.removeTools();
+	                break;
+	            case 'hide':
+	                this.hideTools();
+	                break;
+	            case 'show':
+	                this.showTools();
+	                break;
+	        }
+	    },
+
+	    removeHighlighters: function() {
+	        HighlighterView.remove(this);
+	    },
+
+	    updateHighlighters: function(dirty) {
+	        if ( dirty === void 0 ) dirty = false;
+
+	        HighlighterView.update(this, null, dirty);
+	    },
+
+	    transformHighlighters: function() {
+	        HighlighterView.transform(this);
+	    },
+
+	    // Interaction. The controller part.
+	    // ---------------------------------
+
+	    preventDefaultInteraction: function preventDefaultInteraction(evt) {
+	        this.eventData(evt, { defaultInteractionPrevented: true  });
+	    },
+
+	    isDefaultInteractionPrevented: function isDefaultInteractionPrevented(evt) {
+	        var ref = this.eventData(evt);
+	        var defaultInteractionPrevented = ref.defaultInteractionPrevented; if ( defaultInteractionPrevented === void 0 ) defaultInteractionPrevented = false;
+	        return defaultInteractionPrevented;
+	    },
+
+	    // Interaction is handled by the paper and delegated to the view in interest.
+	    // `x` & `y` parameters passed to these functions represent the coordinates already snapped to the paper grid.
+	    // If necessary, real coordinates can be obtained from the `evt` event object.
+
+	    // These functions are supposed to be overridden by the views that inherit from `joint.dia.Cell`,
+	    // i.e. `joint.dia.Element` and `joint.dia.Link`.
+
+	    pointerdblclick: function(evt, x, y) {
+
+	        this.notify('cell:pointerdblclick', evt, x, y);
+	    },
+
+	    pointerclick: function(evt, x, y) {
+
+	        this.notify('cell:pointerclick', evt, x, y);
+	    },
+
+	    contextmenu: function(evt, x, y) {
+
+	        this.notify('cell:contextmenu', evt, x, y);
+	    },
+
+	    pointerdown: function(evt, x, y) {
+
+	        var ref = this;
+	        var model = ref.model;
+	        var graph = model.graph;
+	        if (graph) {
+	            model.startBatch('pointer');
+	            this.eventData(evt, { graph: graph });
+	        }
+
+	        this.notify('cell:pointerdown', evt, x, y);
+	    },
+
+	    pointermove: function(evt, x, y) {
+
+	        this.notify('cell:pointermove', evt, x, y);
+	    },
+
+	    pointerup: function(evt, x, y) {
+
+	        var ref = this.eventData(evt);
+	        var graph = ref.graph;
+
+	        this.notify('cell:pointerup', evt, x, y);
+
+	        if (graph) {
+	            // we don't want to trigger event on model as model doesn't
+	            // need to be member of collection anymore (remove)
+	            graph.stopBatch('pointer', { cell: this.model });
+	        }
+	    },
+
+	    mouseover: function(evt) {
+
+	        this.notify('cell:mouseover', evt);
+	    },
+
+	    mouseout: function(evt) {
+
+	        this.notify('cell:mouseout', evt);
+	    },
+
+	    mouseenter: function(evt) {
+
+	        this.notify('cell:mouseenter', evt);
+	    },
+
+	    mouseleave: function(evt) {
+
+	        this.notify('cell:mouseleave', evt);
+	    },
+
+	    mousewheel: function(evt, x, y, delta) {
+
+	        this.notify('cell:mousewheel', evt, x, y, delta);
+	    },
+
+	    onevent: function(evt, eventName, x, y) {
+
+	        this.notify(eventName, evt, x, y);
+	    },
+
+	    onmagnet: function() {
+
+	        // noop
+	    },
+
+	    magnetpointerdblclick: function() {
+
+	        // noop
+	    },
+
+	    magnetcontextmenu: function() {
+
+	        // noop
+	    },
+
+	    checkMouseleave: function checkMouseleave(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var model = ref.model;
+	        if (paper.isAsync()) {
+	            // Make sure the source/target views are updated before this view.
+	            // It's not 100% bulletproof (see below) but it's a good enough solution for now.
+	            // The connected cells could be links as well. In that case, we would
+	            // need to recursively go through all the connected links and update
+	            // their source/target views as well.
+	            if (model.isLink()) {
+	                // The `this.sourceView` and `this.targetView` might not be updated yet.
+	                // We need to find the view by the model.
+	                var sourceElement = model.getSourceElement();
+	                if (sourceElement) {
+	                    var sourceView = paper.findViewByModel(sourceElement);
+	                    if (sourceView) {
+	                        paper.dumpView(sourceView);
+	                        paper.checkViewVisibility(sourceView);
+	                    }
+	                }
+	                var targetElement = model.getTargetElement();
+	                if (targetElement) {
+	                    var targetView = paper.findViewByModel(targetElement);
+	                    if (targetView) {
+	                        paper.dumpView(targetView);
+	                        paper.checkViewVisibility(targetView);
+	                    }
+	                }
+	            }
+	            // Do the updates of the current view synchronously now
+	            paper.dumpView(this);
+	            paper.checkViewVisibility(this);
+	        }
+	        var target = this.getEventTarget(evt, { fromPoint: true });
+	        var view = paper.findView(target);
+	        if (view === this) { return; }
+	        // Leaving the current view
+	        this.mouseleave(evt);
+	        if (!view) { return; }
+	        // Entering another view
+	        view.mouseenter(evt);
+	    },
+
+	    setInteractivity: function(value) {
+
+	        this.options.interactive = value;
+	    }
+	}, {
+
+	    Flags: Flags,
+
+	    Highlighting: HighlightingTypes,
+
+	    addPresentationAttributes: function(presentationAttributes) {
+	        return merge({}, result(this.prototype, 'presentationAttributes'), presentationAttributes, function(a, b) {
+	            if (!a || !b) { return; }
+	            if (typeof a === 'string') { a = [a]; }
+	            if (typeof b === 'string') { b = [b]; }
+	            if (Array.isArray(a) && Array.isArray(b)) { return uniq(a.concat(b)); }
+	        });
+	    }
+	});
+
+	// TODO: Move to Vectorizer library.
+	function getCommonAncestorNode(node1, node2) {
+	    var parent = node1;
+	    do {
+	        if (parent.contains(node2)) { return parent; }
+	        parent = parent.parentNode;
+	    } while (parent);
+	    return null;
+	}
+
+	var Flags$1 = {
+	    TOOLS: CellView.Flags.TOOLS,
+	    UPDATE: 'UPDATE',
+	    TRANSLATE: 'TRANSLATE',
+	    RESIZE: 'RESIZE',
+	    PORTS: 'PORTS',
+	    ROTATE: 'ROTATE',
+	    RENDER: 'RENDER'
+	};
+
+	var DragActions = {
+	    MOVE: 'move',
+	    MAGNET: 'magnet',
+	};
+	// Element base view and controller.
+	// -------------------------------------------
+
+	var ElementView = CellView.extend({
+
+	    /**
+	     * @abstract
+	     */
+	    _removePorts: function() {
+	        // implemented in ports.js
+	    },
+
+	    /**
+	     *
+	     * @abstract
+	     */
+	    _renderPorts: function() {
+	        // implemented in ports.js
+	    },
+
+	    className: function() {
+
+	        var classNames = CellView.prototype.className.apply(this).split(' ');
+
+	        classNames.push('element');
+
+	        return classNames.join(' ');
+	    },
+
+	    initialize: function() {
+
+	        CellView.prototype.initialize.apply(this, arguments);
+
+	        this._initializePorts();
+	    },
+
+	    presentationAttributes: {
+	        'attrs': [Flags$1.UPDATE],
+	        'position': [Flags$1.TRANSLATE, Flags$1.TOOLS],
+	        'size': [Flags$1.RESIZE, Flags$1.PORTS, Flags$1.TOOLS],
+	        'angle': [Flags$1.ROTATE, Flags$1.TOOLS],
+	        'markup': [Flags$1.RENDER],
+	        'ports': [Flags$1.PORTS],
+	    },
+
+	    initFlag: [Flags$1.RENDER],
+
+	    UPDATE_PRIORITY: 0,
+
+	    confirmUpdate: function(flag, opt) {
+
+	        var useCSSSelectors = config.useCSSSelectors;
+	        if (this.hasFlag(flag, Flags$1.PORTS)) {
+	            this._removePorts();
+	            this._cleanPortsCache();
+	        }
+	        var transformHighlighters = false;
+	        if (this.hasFlag(flag, Flags$1.RENDER)) {
+	            this.render();
+	            this.updateTools(opt);
+	            this.updateHighlighters(true);
+	            transformHighlighters = true;
+	            flag = this.removeFlag(flag, [Flags$1.RENDER, Flags$1.UPDATE, Flags$1.RESIZE, Flags$1.TRANSLATE, Flags$1.ROTATE, Flags$1.PORTS, Flags$1.TOOLS]);
+	        } else {
+	            var updateHighlighters = false;
+
+	            // Skip this branch if render is required
+	            if (this.hasFlag(flag, Flags$1.RESIZE)) {
+	                this.resize(opt);
+	                updateHighlighters = true;
+	                // Resize method is calling `update()` internally
+	                flag = this.removeFlag(flag, [Flags$1.RESIZE, Flags$1.UPDATE]);
+	                if (useCSSSelectors) {
+	                    // `resize()` rendered the ports when useCSSSelectors are enabled
+	                    flag = this.removeFlag(flag, Flags$1.PORTS);
+	                }
+	            }
+	            if (this.hasFlag(flag, Flags$1.UPDATE)) {
+	                this.update(this.model, null, opt);
+	                flag = this.removeFlag(flag, Flags$1.UPDATE);
+	                updateHighlighters = true;
+	                if (useCSSSelectors) {
+	                    // `update()` will render ports when useCSSSelectors are enabled
+	                    flag = this.removeFlag(flag, Flags$1.PORTS);
+	                }
+	            }
+	            if (this.hasFlag(flag, Flags$1.TRANSLATE)) {
+	                this.translate();
+	                flag = this.removeFlag(flag, Flags$1.TRANSLATE);
+	                transformHighlighters = true;
+	            }
+	            if (this.hasFlag(flag, Flags$1.ROTATE)) {
+	                this.rotate();
+	                flag = this.removeFlag(flag, Flags$1.ROTATE);
+	                transformHighlighters = true;
+	            }
+	            if (this.hasFlag(flag, Flags$1.PORTS)) {
+	                this._renderPorts();
+	                updateHighlighters = true;
+	                flag = this.removeFlag(flag, Flags$1.PORTS);
+	            }
+
+	            if (updateHighlighters) {
+	                this.updateHighlighters(false);
+	            }
+	        }
+
+	        if (transformHighlighters) {
+	            this.transformHighlighters();
+	        }
+
+	        if (this.hasFlag(flag, Flags$1.TOOLS)) {
+	            this.updateTools(opt);
+	            flag = this.removeFlag(flag, Flags$1.TOOLS);
+	        }
+
+	        return flag;
+	    },
+
+	    /**
+	     * @abstract
+	     */
+	    _initializePorts: function() {
+
+	    },
+
+	    update: function(_, renderingOnlyAttrs) {
+
+	        this.cleanNodesCache();
+
+	        // When CSS selector strings are used, make sure no rule matches port nodes.
+	        var useCSSSelectors = config.useCSSSelectors;
+	        if (useCSSSelectors) { this._removePorts(); }
+
+	        var model = this.model;
+	        var modelAttrs = model.attr();
+	        this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
+	            rootBBox: new Rect(model.size()),
+	            selectors: this.selectors,
+	            scalableNode: this.scalableNode,
+	            rotatableNode: this.rotatableNode,
+	            // Use rendering only attributes if they differs from the model attributes
+	            roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
+	        });
+
+	        if (useCSSSelectors) {
+	            this._renderPorts();
+	        }
+	    },
+
+	    rotatableSelector: 'rotatable',
+	    scalableSelector: 'scalable',
+	    scalableNode: null,
+	    rotatableNode: null,
+
+	    // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
+	    // default markup is not desirable.
+	    renderMarkup: function() {
+
+	        var element = this.model;
+	        var markup = element.get('markup') || element.markup;
+	        if (!markup) { throw new Error('dia.ElementView: markup required'); }
+	        if (Array.isArray(markup)) { return this.renderJSONMarkup(markup); }
+	        if (typeof markup === 'string') { return this.renderStringMarkup(markup); }
+	        throw new Error('dia.ElementView: invalid markup');
+	    },
+
+	    renderJSONMarkup: function(markup) {
+
+	        var doc = this.parseDOMJSON(markup, this.el);
+	        var selectors = this.selectors = doc.selectors;
+	        this.rotatableNode = V(selectors[this.rotatableSelector]) || null;
+	        this.scalableNode = V(selectors[this.scalableSelector]) || null;
+	        // Fragment
+	        this.vel.append(doc.fragment);
+	    },
+
+	    renderStringMarkup: function(markup) {
+
+	        var vel = this.vel;
+	        vel.append(V(markup));
+	        // Cache transformation groups
+	        this.rotatableNode = vel.findOne('.rotatable');
+	        this.scalableNode = vel.findOne('.scalable');
+
+	        var selectors = this.selectors = {};
+	        selectors[this.selector] = this.el;
+	    },
+
+	    render: function() {
+
+	        this.vel.empty();
+	        this.renderMarkup();
+	        if (this.scalableNode) {
+	            // Double update is necessary for elements with the scalable group only
+	            // Note the resize() triggers the other `update`.
+	            this.update();
+	        }
+	        this.resize();
+	        if (this.rotatableNode) {
+	            // Translate transformation is applied on `this.el` while the rotation transformation
+	            // on `this.rotatableNode`
+	            this.rotate();
+	            this.translate();
+	        } else {
+	            this.updateTransformation();
+	        }
+	        if (!config.useCSSSelectors) { this._renderPorts(); }
+	        return this;
+	    },
+
+	    resize: function(opt) {
+
+	        if (this.scalableNode) { return this.sgResize(opt); }
+	        if (this.model.attributes.angle) { this.rotate(); }
+	        this.update();
+	    },
+
+	    translate: function() {
+
+	        if (this.rotatableNode) { return this.rgTranslate(); }
+	        this.updateTransformation();
+	    },
+
+	    rotate: function() {
+
+	        if (this.rotatableNode) {
+	            this.rgRotate();
+	            // It's necessary to call the update for the nodes outside
+	            // the rotatable group referencing nodes inside the group
+	            this.update();
+	            return;
+	        }
+	        this.updateTransformation();
+	    },
+
+	    updateTransformation: function() {
+
+	        var transformation = this.getTranslateString();
+	        var rotateString = this.getRotateString();
+	        if (rotateString) { transformation += ' ' + rotateString; }
+	        this.vel.attr('transform', transformation);
+	    },
+
+	    getTranslateString: function() {
+
+	        var position = this.model.attributes.position;
+	        return 'translate(' + position.x + ',' + position.y + ')';
+	    },
+
+	    getRotateString: function() {
+	        var attributes = this.model.attributes;
+	        var angle = attributes.angle;
+	        if (!angle) { return null; }
+	        var size = attributes.size;
+	        return 'rotate(' + angle + ',' + (size.width / 2) + ',' + (size.height / 2) + ')';
+	    },
+
+	    // Rotatable & Scalable Group
+	    // always slower, kept mainly for backwards compatibility
+
+	    rgRotate: function() {
+
+	        this.rotatableNode.attr('transform', this.getRotateString());
+	    },
+
+	    rgTranslate: function() {
+
+	        this.vel.attr('transform', this.getTranslateString());
+	    },
+
+	    sgResize: function(opt) {
+
+	        var model = this.model;
+	        var angle = model.angle();
+	        var size = model.size();
+	        var scalable = this.scalableNode;
+
+	        // Getting scalable group's bbox.
+	        // Due to a bug in webkit's native SVG .getBBox implementation, the bbox of groups with path children includes the paths' control points.
+	        // To work around the issue, we need to check whether there are any path elements inside the scalable group.
+	        var recursive = false;
+	        if (scalable.node.getElementsByTagName('path').length > 0) {
+	            // If scalable has at least one descendant that is a path, we need to switch to recursive bbox calculation.
+	            // If there are no path descendants, group bbox calculation works and so we can use the (faster) native function directly.
+	            recursive = true;
+	        }
+	        var scalableBBox = scalable.getBBox({ recursive: recursive });
+
+	        // Make sure `scalableBbox.width` and `scalableBbox.height` are not zero which can happen if the element does not have any content. By making
+	        // the width/height 1, we prevent HTML errors of the type `scale(Infinity, Infinity)`.
+	        var sx = (size.width / (scalableBBox.width || 1));
+	        var sy = (size.height / (scalableBBox.height || 1));
+	        scalable.attr('transform', 'scale(' + sx + ',' + sy + ')');
+
+	        // Now the interesting part. The goal is to be able to store the object geometry via just `x`, `y`, `angle`, `width` and `height`
+	        // Order of transformations is significant but we want to reconstruct the object always in the order:
+	        // resize(), rotate(), translate() no matter of how the object was transformed. For that to work,
+	        // we must adjust the `x` and `y` coordinates of the object whenever we resize it (because the origin of the
+	        // rotation changes). The new `x` and `y` coordinates are computed by canceling the previous rotation
+	        // around the center of the resized object (which is a different origin then the origin of the previous rotation)
+	        // and getting the top-left corner of the resulting object. Then we clean up the rotation back to what it originally was.
+
+	        // Cancel the rotation but now around a different origin, which is the center of the scaled object.
+	        var rotatable = this.rotatableNode;
+	        var rotation = rotatable && rotatable.attr('transform');
+	        if (rotation) {
+
+	            rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
+	            var rotatableBBox = scalable.getBBox({ target: this.paper.cells });
+
+	            // Store new x, y and perform rotate() again against the new rotation origin.
+	            model.set('position', { x: rotatableBBox.x, y: rotatableBBox.y }, assign({ updateHandled: true }, opt));
+	            this.translate();
+	            this.rotate();
+	        }
+
+	        // Update must always be called on non-rotated element. Otherwise, relative positioning
+	        // would work with wrong (rotated) bounding boxes.
+	        this.update();
+	    },
+
+	    // Embedding mode methods.
+	    // -----------------------
+
+	    prepareEmbedding: function(data) {
+	        if ( data === void 0 ) data = {};
+
+
+	        var element = data.model || this.model;
+	        var paper = data.paper || this.paper;
+	        var graph = paper.model;
+
+	        var initialZIndices = data.initialZIndices = {};
+	        var embeddedCells = element.getEmbeddedCells({ deep: true });
+	        var connectedLinks = graph.getConnectedLinks(element, { deep: true, includeEnclosed: true });
+
+	        // Note: an embedded cell can be a connect link, but it's fine
+	        // to iterate over the cell twice.
+	        [
+	            element ].concat( embeddedCells,
+	            connectedLinks
+	        ).forEach(function (cell) { return initialZIndices[cell.id] = cell.attributes.z; });
+
+	        element.startBatch('to-front');
+
+	        // Bring the model to the front with all his embeds.
+	        element.toFront({ deep: true, ui: true });
+
+	        // Note that at this point cells in the collection are not sorted by z index (it's running in the batch, see
+	        // the dia.Graph._sortOnChangeZ), so we can't assume that the last cell in the collection has the highest z.
+	        var maxZ = graph.getElements().reduce(function (max, cell) { return Math.max(max, cell.attributes.z || 0); }, 0);
+
+	        // Move to front also all the inbound and outbound links that are connected
+	        // to any of the element descendant. If we bring to front only embedded elements,
+	        // links connected to them would stay in the background.
+	        connectedLinks.forEach(function (link) {
+	            if (link.attributes.z <= maxZ) {
+	                link.set('z', maxZ + 1, { ui: true });
+	            }
+	        });
+
+	        element.stopBatch('to-front');
+
+	        // Before we start looking for suitable parent we remove the current one.
+	        var parentId = element.parent();
+	        if (parentId) {
+	            var parent = graph.getCell(parentId);
+	            parent.unembed(element, { ui: true });
+	            data.initialParentId = parentId;
+	        } else {
+	            data.initialParentId = null;
+	        }
+	    },
+
+	    processEmbedding: function(data, evt, x, y) {
+	        if ( data === void 0 ) data = {};
+
+
+	        var model = data.model || this.model;
+	        var paper = data.paper || this.paper;
+	        var graph = paper.model;
+	        var ref = paper.options;
+	        var findParentBy = ref.findParentBy;
+	        var frontParentOnly = ref.frontParentOnly;
+	        var validateEmbedding = ref.validateEmbedding;
+
+	        var candidates;
+	        if (isFunction(findParentBy)) {
+	            candidates = toArray(findParentBy.call(graph, this, evt, x, y));
+	        } else if (findParentBy === 'pointer') {
+	            candidates = toArray(graph.findModelsFromPoint({ x: x, y: y }));
+	        } else {
+	            candidates = graph.findModelsUnderElement(model, { searchBy: findParentBy });
+	        }
+
+	        candidates = candidates.filter(function (el) {
+	            return (el instanceof Cell) && (model.id !== el.id) && !el.isEmbeddedIn(model);
+	        });
+
+	        if (frontParentOnly) {
+	            // pick the element with the highest `z` index
+	            candidates = candidates.slice(-1);
+	        }
+
+	        var newCandidateView = null;
+	        var prevCandidateView = data.candidateEmbedView;
+
+	        // iterate over all candidates starting from the last one (has the highest z-index).
+	        for (var i = candidates.length - 1; i >= 0; i--) {
+	            var candidate = candidates[i];
+	            if (prevCandidateView && prevCandidateView.model.id == candidate.id) {
+	                // candidate remains the same
+	                newCandidateView = prevCandidateView;
+	                break;
+	            } else {
+	                var view = candidate.findView(paper);
+	                if (!isFunction(validateEmbedding) || validateEmbedding.call(paper, this, view)) {
+	                    // flip to the new candidate
+	                    newCandidateView = view;
+	                    break;
+	                }
+	            }
+	        }
+
+	        if (newCandidateView && newCandidateView != prevCandidateView) {
+	            // A new candidate view found. Highlight the new one.
+	            this.clearEmbedding(data);
+	            data.candidateEmbedView = newCandidateView.highlight(
+	                newCandidateView.findProxyNode(null, 'container'),
+	                { embedding: true }
+	            );
+	        }
+
+	        if (!newCandidateView && prevCandidateView) {
+	            // No candidate view found. Unhighlight the previous candidate.
+	            this.clearEmbedding(data);
+	        }
+	    },
+
+	    clearEmbedding: function(data) {
+
+	        data || (data = {});
+
+	        var candidateView = data.candidateEmbedView;
+	        if (candidateView) {
+	            // No candidate view found. Unhighlight the previous candidate.
+	            candidateView.unhighlight(
+	                candidateView.findProxyNode(null, 'container'),
+	                { embedding: true }
+	            );
+	            data.candidateEmbedView = null;
+	        }
+	    },
+
+	    finalizeEmbedding: function(data) {
+	        if ( data === void 0 ) data = {};
+
+
+	        var candidateView = data.candidateEmbedView;
+	        var element = data.model || this.model;
+	        var paper = data.paper || this.paper;
+
+	        if (candidateView) {
+
+	            // We finished embedding. Candidate view is chosen to become the parent of the model.
+	            candidateView.model.embed(element, { ui: true });
+	            candidateView.unhighlight(candidateView.findProxyNode(null, 'container'), { embedding: true });
+
+	            data.candidateEmbedView = null;
+
+	        } else {
+
+	            var ref = paper.options;
+	            var validateUnembedding = ref.validateUnembedding;
+	            var initialParentId = data.initialParentId;
+	            // The element was originally embedded into another element.
+	            // The interaction would unembed the element. Let's validate
+	            // if the element can be unembedded.
+	            if (
+	                initialParentId &&
+	                typeof validateUnembedding === 'function' &&
+	                !validateUnembedding.call(paper, this)
+	            ) {
+	                this._disallowUnembed(data);
+	                return;
+	            }
+	        }
+
+	        paper.model.getConnectedLinks(element, { deep: true }).forEach(function (link) {
+	            link.reparent({ ui: true });
+	        });
+	    },
+
+	    _disallowUnembed: function(data) {
+	        var model = data.model;
+	        var whenNotAllowed = data.whenNotAllowed; if ( whenNotAllowed === void 0 ) whenNotAllowed = 'revert';
+	        var element = model || this.model;
+	        var paper = data.paper || this.paper;
+	        var graph = paper.model;
+	        switch (whenNotAllowed) {
+	            case 'remove': {
+	                element.remove({ ui: true });
+	                break;
+	            }
+	            case 'revert': {
+	                var initialParentId = data.initialParentId;
+	                var initialPosition = data.initialPosition;
+	                var initialZIndices = data.initialZIndices;
+	                // Revert the element's position (and the position of its embedded cells if any)
+	                if (initialPosition) {
+	                    var x = initialPosition.x;
+	                    var y = initialPosition.y;
+	                    element.position(x, y, { deep: true, ui: true });
+	                }
+	                // Revert all the z-indices changed during the embedding
+	                if (initialZIndices) {
+	                    Object.keys(initialZIndices).forEach(function (id) {
+	                        var cell = graph.getCell(id);
+	                        if (cell) {
+	                            cell.set('z', initialZIndices[id], { ui: true });
+	                        }
+	                    });
+	                }
+	                // Revert the original parent
+	                var parent = graph.getCell(initialParentId);
+	                if (parent) {
+	                    parent.embed(element, { ui: true });
+	                }
+	                break;
+	            }
+	        }
+	    },
+
+	    getDelegatedView: function() {
+
+	        var view = this;
+	        var model = view.model;
+	        var paper = view.paper;
+
+	        while (view) {
+	            if (model.isLink()) { break; }
+	            if (!model.isEmbedded() || view.can('stopDelegation')) { return view; }
+	            model = model.getParentCell();
+	            view = paper.findViewByModel(model);
+	        }
+
+	        return null;
+	    },
+
+	    findProxyNode: function(el, type) {
+	        el || (el = this.el);
+	        var nodeSelector = el.getAttribute((type + "-selector"));
+	        if (nodeSelector) {
+	            var port = this.findAttribute('port', el);
+	            if (port) {
+	                var proxyPortNode = this.findPortNode(port, nodeSelector);
+	                if (proxyPortNode) { return proxyPortNode; }
+	            } else {
+	                var proxyNode = this.findNode(nodeSelector);
+	                if (proxyNode) { return proxyNode; }
+	            }
+	        }
+	        return el;
+	    },
+
+	    // Interaction. The controller part.
+	    // ---------------------------------
+
+	    notifyPointerdown: function notifyPointerdown(evt, x, y) {
+	        CellView.prototype.pointerdown.call(this, evt, x, y);
+	        this.notify('element:pointerdown', evt, x, y);
+	    },
+
+	    notifyPointermove: function notifyPointermove(evt, x, y) {
+	        CellView.prototype.pointermove.call(this, evt, x, y);
+	        this.notify('element:pointermove', evt, x, y);
+	    },
+
+	    notifyPointerup: function notifyPointerup(evt, x, y) {
+	        this.notify('element:pointerup', evt, x, y);
+	        CellView.prototype.pointerup.call(this, evt, x, y);
+	    },
+
+	    pointerdblclick: function(evt, x, y) {
+
+	        CellView.prototype.pointerdblclick.apply(this, arguments);
+	        this.notify('element:pointerdblclick', evt, x, y);
+	    },
+
+	    pointerclick: function(evt, x, y) {
+
+	        CellView.prototype.pointerclick.apply(this, arguments);
+	        this.notify('element:pointerclick', evt, x, y);
+	    },
+
+	    contextmenu: function(evt, x, y) {
+
+	        CellView.prototype.contextmenu.apply(this, arguments);
+	        this.notify('element:contextmenu', evt, x, y);
+	    },
+
+	    pointerdown: function(evt, x, y) {
+
+	        this.notifyPointerdown(evt, x, y);
+	        this.dragStart(evt, x, y);
+	    },
+
+	    pointermove: function(evt, x, y) {
+
+	        var data = this.eventData(evt);
+	        var targetMagnet = data.targetMagnet;
+	        var action = data.action;
+	        var delegatedView = data.delegatedView;
+
+	        if (targetMagnet) {
+	            this.magnetpointermove(evt, targetMagnet, x, y);
+	        }
+
+	        switch (action) {
+	            case DragActions.MAGNET:
+	                this.dragMagnet(evt, x, y);
+	                break;
+	            case DragActions.MOVE:
+	                (delegatedView || this).drag(evt, x, y);
+	            // eslint: no-fallthrough=false
+	            default:
+	                if (data.preventPointerEvents) { break; }
+	                this.notifyPointermove(evt, x, y);
+	                break;
+	        }
+
+	        // Make sure the element view data is passed along.
+	        // It could have been wiped out in the handlers above.
+	        this.eventData(evt, data);
+	    },
+
+	    pointerup: function(evt, x, y) {
+
+	        var data = this.eventData(evt);
+	        var targetMagnet = data.targetMagnet;
+	        var action = data.action;
+	        var delegatedView = data.delegatedView;
+
+	        if (targetMagnet) {
+	            this.magnetpointerup(evt, targetMagnet, x, y);
+	        }
+
+	        switch (action) {
+	            case DragActions.MAGNET:
+	                this.dragMagnetEnd(evt, x, y);
+	                break;
+	            case DragActions.MOVE:
+	                (delegatedView || this).dragEnd(evt, x, y);
+	            // eslint: no-fallthrough=false
+	            default:
+	                if (data.preventPointerEvents) { break; }
+	                this.notifyPointerup(evt, x, y);
+	        }
+
+	        if (targetMagnet) {
+	            this.magnetpointerclick(evt, targetMagnet, x, y);
+	        }
+
+	        this.checkMouseleave(evt);
+	    },
+
+	    mouseover: function(evt) {
+
+	        CellView.prototype.mouseover.apply(this, arguments);
+	        this.notify('element:mouseover', evt);
+	    },
+
+	    mouseout: function(evt) {
+
+	        CellView.prototype.mouseout.apply(this, arguments);
+	        this.notify('element:mouseout', evt);
+	    },
+
+	    mouseenter: function(evt) {
+
+	        CellView.prototype.mouseenter.apply(this, arguments);
+	        this.notify('element:mouseenter', evt);
+	    },
+
+	    mouseleave: function(evt) {
+
+	        CellView.prototype.mouseleave.apply(this, arguments);
+	        this.notify('element:mouseleave', evt);
+	    },
+
+	    mousewheel: function(evt, x, y, delta) {
+
+	        CellView.prototype.mousewheel.apply(this, arguments);
+	        this.notify('element:mousewheel', evt, x, y, delta);
+	    },
+
+	    onmagnet: function(evt, x, y) {
+
+	        var targetMagnet = evt.currentTarget;
+	        this.magnetpointerdown(evt, targetMagnet, x, y);
+	        this.eventData(evt, { targetMagnet: targetMagnet });
+	        this.dragMagnetStart(evt, x, y);
+	    },
+
+	    magnetpointerdown: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointerdown', evt, magnet, x, y);
+	    },
+
+	    magnetpointermove: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointermove', evt, magnet, x, y);
+	    },
+
+	    magnetpointerup: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointerup', evt, magnet, x, y);
+	    },
+
+	    magnetpointerdblclick: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:pointerdblclick', evt, magnet, x, y);
+	    },
+
+	    magnetcontextmenu: function(evt, magnet, x, y) {
+
+	        this.notify('element:magnet:contextmenu', evt, magnet, x, y);
+	    },
+
+	    // Drag Start Handlers
+
+	    dragStart: function(evt, x, y) {
+
+	        if (this.isDefaultInteractionPrevented(evt)) { return; }
+
+	        var view = this.getDelegatedView();
+	        if (!view || !view.can('elementMove')) { return; }
+
+	        this.eventData(evt, {
+	            action: DragActions.MOVE,
+	            delegatedView: view
+	        });
+
+	        var position = view.model.position();
+	        view.eventData(evt, {
+	            initialPosition: position,
+	            pointerOffset: position.difference(x, y),
+	            restrictedArea: this.paper.getRestrictedArea(view, x, y)
+	        });
+	    },
+
+	    dragMagnetStart: function(evt, x, y) {
+
+	        var ref = this;
+	        var paper = ref.paper;
+	        var isPropagationAlreadyStopped = evt.isPropagationStopped();
+	        if (isPropagationAlreadyStopped) {
+	            // Special case when the propagation was already stopped
+	            // on the `element:magnet:pointerdown` event.
+	            // Do not trigger any `element:pointer*` events
+	            // but still start the magnet dragging.
+	            this.eventData(evt, { preventPointerEvents: true });
+	        }
+
+	        if (this.isDefaultInteractionPrevented(evt) || !this.can('addLinkFromMagnet')) {
+	            // Stop the default action, which is to start dragging a link.
+	            return;
+	        }
+
+	        var ref$1 = this.eventData(evt);
+	        var targetMagnet = ref$1.targetMagnet; if ( targetMagnet === void 0 ) targetMagnet = evt.currentTarget;
+	        evt.stopPropagation();
+
+	        // Invalid (Passive) magnet. Start dragging the element.
+	        if (!paper.options.validateMagnet.call(paper, this, targetMagnet, evt)) {
+	            if (isPropagationAlreadyStopped) {
+	                // Do not trigger `element:pointerdown` and start element dragging
+	                // if the propagation was stopped.
+	                this.dragStart(evt, x, y);
+	                // The `element:pointerdown` event is not triggered because
+	                // of `preventPointerEvents` flag.
+	            } else {
+	                // We need to reset the action
+	                // to `MOVE` so that the element is dragged.
+	                this.pointerdown(evt, x, y);
+	            }
+	            return;
+	        }
+
+	        // Valid magnet. Start dragging a link.
+	        if (paper.options.magnetThreshold <= 0) {
+	            this.dragLinkStart(evt, targetMagnet, x, y);
+	        }
+	        this.eventData(evt, { action: DragActions.MAGNET });
+	    },
+
+	    // Drag Handlers
+
+	    drag: function(evt, x, y) {
+
+	        var paper = this.paper;
+	        var grid = paper.options.gridSize;
+	        var element = this.model;
+	        var data = this.eventData(evt);
+	        var pointerOffset = data.pointerOffset;
+	        var restrictedArea = data.restrictedArea;
+	        var embedding = data.embedding;
+
+	        // Make sure the new element's position always snaps to the current grid
+	        var elX = snapToGrid(x + pointerOffset.x, grid);
+	        var elY = snapToGrid(y + pointerOffset.y, grid);
+
+	        element.position(elX, elY, { restrictedArea: restrictedArea, deep: true, ui: true });
+
+	        if (paper.options.embeddingMode) {
+	            if (!embedding) {
+	                // Prepare the element for embedding only if the pointer moves.
+	                // We don't want to do unnecessary action with the element
+	                // if an user only clicks/dblclicks on it.
+	                this.prepareEmbedding(data);
+	                embedding = true;
+	            }
+	            this.processEmbedding(data, evt, x, y);
+	        }
+
+	        this.eventData(evt, {
+	            embedding: embedding
+	        });
+	    },
+
+	    dragMagnet: function(evt, x, y) {
+	        this.dragLink(evt, x, y);
+	    },
+
+	    // Drag End Handlers
+
+	    dragEnd: function(evt, x, y) {
+
+	        var data = this.eventData(evt);
+	        if (data.embedding) { this.finalizeEmbedding(data); }
+	    },
+
+	    dragMagnetEnd: function(evt, x, y) {
+	        this.dragLinkEnd(evt, x, y);
+	    },
+
+	    magnetpointerclick: function(evt, magnet, x, y) {
+	        var paper = this.paper;
+	        if (paper.eventData(evt).mousemoved > paper.options.clickThreshold) { return; }
+	        this.notify('element:magnet:pointerclick', evt, magnet, x, y);
+	    }
+
+	}, {
+
+	    Flags: Flags$1,
+	});
+
+	assign(ElementView.prototype, elementViewPortPrototype);
+
 	var Flags$2 = {
 	    TOOLS: CellView.Flags.TOOLS,
 	    RENDER: 'RENDER',
 	    UPDATE: 'UPDATE',
-	    LEGACY_TOOLS: 'LEGACY_TOOLS',
 	    LABELS: 'LABELS',
-	    VERTICES: 'VERTICES',
 	    SOURCE: 'SOURCE',
 	    TARGET: 'TARGET',
 	    CONNECTOR: 'CONNECTOR'
@@ -30881,7 +31417,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    _labelCache: null,
 	    _labelSelectors: null,
-	    _markerCache: null,
 	    _V: null,
 	    _dragData: null, // deprecated
 
@@ -30900,9 +31435,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // a cache of label selectors
 	        this._labelSelectors = {};
 
-	        // keeps markers bboxes and positions again for quicker access
-	        this._markerCache = {};
-
 	        // cache of default markup nodes
 	        this._V = {};
 
@@ -30915,13 +31447,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        attrs: [Flags$2.UPDATE],
 	        router: [Flags$2.UPDATE],
 	        connector: [Flags$2.CONNECTOR],
-	        smooth: [Flags$2.UPDATE],
-	        manhattan: [Flags$2.UPDATE],
-	        toolMarkup: [Flags$2.LEGACY_TOOLS],
 	        labels: [Flags$2.LABELS],
 	        labelMarkup: [Flags$2.LABELS],
-	        vertices: [Flags$2.VERTICES, Flags$2.UPDATE],
-	        vertexMarkup: [Flags$2.VERTICES],
+	        vertices: [Flags$2.UPDATE],
 	        source: [Flags$2.SOURCE, Flags$2.UPDATE],
 	        target: [Flags$2.TARGET, Flags$2.UPDATE]
 	    },
@@ -30957,32 +31485,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.render();
 	            this.updateHighlighters(true);
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, [Flags$2.RENDER, Flags$2.UPDATE, Flags$2.VERTICES, Flags$2.LABELS, Flags$2.TOOLS, Flags$2.LEGACY_TOOLS, Flags$2.CONNECTOR]);
+	            flags = this.removeFlag(flags, [Flags$2.RENDER, Flags$2.UPDATE, Flags$2.LABELS, Flags$2.TOOLS, Flags$2.CONNECTOR]);
 	            return flags;
 	        }
 
 	        var updateHighlighters = false;
 
-	        if (this.hasFlag(flags, Flags$2.VERTICES)) {
-	            this.renderVertexMarkers();
-	            flags = this.removeFlag(flags, Flags$2.VERTICES);
-	        }
-
 	        var ref$1 = this;
 	        var model = ref$1.model;
 	        var attributes = model.attributes;
 	        var updateLabels = this.hasFlag(flags, Flags$2.LABELS);
-	        var updateLegacyTools = this.hasFlag(flags, Flags$2.LEGACY_TOOLS);
 
 	        if (updateLabels) {
 	            this.onLabelsChange(model, attributes.labels, opt);
 	            flags = this.removeFlag(flags, Flags$2.LABELS);
 	            updateHighlighters = true;
-	        }
-
-	        if (updateLegacyTools) {
-	            this.renderTools();
-	            flags = this.removeFlag(flags, Flags$2.LEGACY_TOOLS);
 	        }
 
 	        var updateAll = this.hasFlag(flags, Flags$2.UPDATE);
@@ -31003,16 +31520,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.updateTools(opt);
 	            flags = this.removeFlag(flags, [Flags$2.UPDATE, Flags$2.TOOLS, Flags$2.CONNECTOR]);
 	            updateLabels = false;
-	            updateLegacyTools = false;
 	            updateHighlighters = true;
 	        }
 
 	        if (updateLabels) {
 	            this.updateLabelPositions();
-	        }
-
-	        if (updateLegacyTools) {
-	            this.updateToolsPosition();
 	        }
 
 	        if (updateHighlighters) {
@@ -31119,21 +31631,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var children = V(markup);
 	        // custom markup may contain only one children
 	        if (!Array.isArray(children)) { children = [children]; }
-	        // Cache all children elements for quicker access.
-	        var cache = this._V; // vectorized markup;
-	        for (var i = 0, n = children.length; i < n; i++) {
-	            var child = children[i];
-	            var className = child.attr('class');
-	            if (className) {
-	                // Strip the joint class name prefix, if there is one.
-	                className = removeClassNamePrefix(className);
-	                cache[$.camelCase(className)] = child;
-	            }
-	        }
-	        // partial rendering
-	        this.renderTools();
-	        this.renderVertexMarkers();
-	        this.renderArrowheadMarkers();
+
 	        this.vel.append(children);
 	    },
 
@@ -31288,15 +31786,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    },
 
-	    findLabelNode: function(labelIndex, selector) {
+	    findLabelNodes: function(labelIndex, selector) {
 	        var labelRoot = this._labelCache[labelIndex];
-	        if (!labelRoot) { return null; }
+	        if (!labelRoot) { return []; }
 	        var labelSelectors = this._labelSelectors[labelIndex];
-	        var ref = this.findBySelector(selector, labelRoot, labelSelectors);
+	        return this.findBySelector(selector, labelRoot, labelSelectors);
+	    },
+
+	    findLabelNode: function(labelIndex, selector) {
+	        var ref = this.findLabelNodes(labelIndex, selector);
 	        var node = ref[0]; if ( node === void 0 ) node = null;
 	        return node;
 	    },
-
 
 	    // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
 	    // keep `undefined` or `null` because `{}` means something else
@@ -31385,83 +31886,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return this;
 	    },
 
-	    renderTools: function() {
-
-	        if (!this._V.linkTools) { return this; }
-
-	        // Tools are a group of clickable elements that manipulate the whole link.
-	        // A good example of this is the remove tool that removes the whole link.
-	        // Tools appear after hovering the link close to the `source` element/point of the link
-	        // but are offset a bit so that they don't cover the `marker-arrowhead`.
-
-	        var $tools = $(this._V.linkTools.node).empty();
-	        var toolTemplate = template(this.model.get('toolMarkup') || this.model.toolMarkup);
-	        var tool = V(toolTemplate());
-
-	        $tools.append(tool.node);
-
-	        // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
-	        this._toolCache = tool;
-
-	        // If `doubleLinkTools` is enabled, we render copy of the tools on the other side of the
-	        // link as well but only if the link is longer than `longLinkLength`.
-	        if (this.options.doubleLinkTools) {
-
-	            var tool2;
-	            if (this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup) {
-	                toolTemplate = template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
-	                tool2 = V(toolTemplate());
-	            } else {
-	                tool2 = tool.clone();
-	            }
-
-	            $tools.append(tool2.node);
-	            this._tool2Cache = tool2;
-	        }
-
-	        return this;
-	    },
-
-	    renderVertexMarkers: function() {
-
-	        if (!this._V.markerVertices) { return this; }
-
-	        var $markerVertices = $(this._V.markerVertices.node).empty();
-
-	        // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
-	        // if default styling (elements) are not desired. This makes it possible to use any
-	        // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-	        var markupTemplate = template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
-
-	        this.model.vertices().forEach(function(vertex, idx) {
-	            $markerVertices.append(V(markupTemplate(assign({ idx: idx }, vertex))).node);
-	        });
-
-	        return this;
-	    },
-
-	    renderArrowheadMarkers: function() {
-
-	        // Custom markups might not have arrowhead markers. Therefore, jump of this function immediately if that's the case.
-	        if (!this._V.markerArrowheads) { return this; }
-
-	        var $markerArrowheads = $(this._V.markerArrowheads.node);
-
-	        $markerArrowheads.empty();
-
-	        // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
-	        // if default styling (elements) are not desired. This makes it possible to use any
-	        // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-	        var markupTemplate = template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
-
-	        this._V.sourceArrowhead = V(markupTemplate({ end: 'source' }));
-	        this._V.targetArrowhead = V(markupTemplate({ end: 'target' }));
-
-	        $markerArrowheads.append(this._V.sourceArrowhead.node, this._V.targetArrowhead.node);
-
-	        return this;
-	    },
-
 	    // remove vertices that lie on (or nearly on) straight lines within the link
 	    // return the number of removed points
 	    removeRedundantLinearVertices: function(opt) {
@@ -31486,23 +31910,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // remove first and last polyline points again (= source/target anchors)
 	        link.vertices(polylinePoints.slice(1, numPolylinePoints - 1), opt);
 	        return (numRoutePoints - numPolylinePoints);
-	    },
-
-	    updateDefaultConnectionPath: function() {
-
-	        var cache = this._V;
-
-	        if (cache.connection) {
-	            cache.connection.attr('d', this.getSerializedConnection());
-	        }
-
-	        if (cache.connectionWrap) {
-	            cache.connectionWrap.attr('d', this.getSerializedConnection());
-	        }
-
-	        if (cache.markerSource && cache.markerTarget) {
-	            this._translateAndAutoOrientArrows(cache.markerSource, cache.markerTarget);
-	        }
 	    },
 
 	    getEndView: function(type) {
@@ -31577,8 +31984,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var polyline = new Polyline(route);
 	        polyline.translate(tx, ty);
 	        this.route = polyline.points;
-	        // translate source and target connection and marker points.
-	        this._translateConnectionPoints(tx, ty);
+	        // translate source and target connection and anchor points.
+	        this.sourcePoint.offset(tx, ty);
+	        this.targetPoint.offset(tx, ty);
+	        this.sourceAnchor.offset(tx, ty);
+	        this.targetAnchor.offset(tx, ty);
 	        // translate the geometry path
 	        path.translate(tx, ty);
 	        this.updateDOM();
@@ -31592,12 +32002,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.cleanNodesCache();
 	        // update SVG attributes defined by 'attrs/'.
 	        this.updateDOMSubtreeAttributes(el, model.attr(), { selectors: selectors });
-	        // legacy link path update
-	        this.updateDefaultConnectionPath();
 	        // update the label position etc.
 	        this.updateLabelPositions();
-	        this.updateToolsPosition();
-	        this.updateArrowheadMarkers();
 	        // *Deprecated*
 	        // Local perpendicular flag (as opposed to one defined on paper).
 	        // Could be enabled inside a connector/router. It's valid only
@@ -31627,53 +32033,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var route = ref.route;
 	        var sourcePoint = ref.sourcePoint;
 	        var targetPoint = ref.targetPoint;
-	        // 3b. Find Marker Connection Point - Backwards Compatibility
-	        var markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
 	        // 4. Find Connection
-	        var path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
+	        var path = this.findPath(route, sourcePoint.clone(), targetPoint.clone());
 	        this.path = path;
-	    },
-
-	    findMarkerPoints: function(route, sourcePoint, targetPoint) {
-
-	        var firstWaypoint = route[0];
-	        var lastWaypoint = route[route.length - 1];
-
-	        // Move the source point by the width of the marker taking into account
-	        // its scale around x-axis. Note that scale is the only transform that
-	        // makes sense to be set in `.marker-source` attributes object
-	        // as all other transforms (translate/rotate) will be replaced
-	        // by the `translateAndAutoOrient()` function.
-	        var cache = this._markerCache;
-	        // cache source and target points
-	        var sourceMarkerPoint, targetMarkerPoint;
-
-	        if (this._V.markerSource) {
-
-	            cache.sourceBBox = cache.sourceBBox || this._V.markerSource.getBBox();
-	            sourceMarkerPoint = Point(sourcePoint).move(
-	                firstWaypoint || targetPoint,
-	                cache.sourceBBox.width * this._V.markerSource.scale().sx * -1
-	            ).round();
-	        }
-
-	        if (this._V.markerTarget) {
-
-	            cache.targetBBox = cache.targetBBox || this._V.markerTarget.getBBox();
-	            targetMarkerPoint = Point(targetPoint).move(
-	                lastWaypoint || sourcePoint,
-	                cache.targetBBox.width * this._V.markerTarget.scale().sx * -1
-	            ).round();
-	        }
-
-	        // if there was no markup for the marker, use the connection point.
-	        cache.sourcePoint = sourceMarkerPoint || sourcePoint.clone();
-	        cache.targetPoint = targetMarkerPoint || targetPoint.clone();
-
-	        return {
-	            source: sourceMarkerPoint,
-	            target: targetMarkerPoint
-	        };
 	    },
 
 	    findAnchorsOrdered: function(firstEndType, firstRef, secondEndType, secondRef) {
@@ -31792,11 +32154,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            if (isConnection) {
 	                anchorDef = paperOptions.defaultLinkAnchor;
 	            } else {
-	                if (paperOptions.perpendicularLinks || this.options.perpendicular) {
+	                if (this.options.perpendicular) {
 	                    // Backwards compatibility
-	                    // If `perpendicularLinks` flag is set on the paper and there are vertices
-	                    // on the link, then try to find a connection point that makes the link perpendicular
-	                    // even though the link won't point to the center of the targeted object.
+	                    // See `manhattan` router for more details
 	                    anchorDef = { name: 'perpendicular' };
 	                } else {
 	                    anchorDef = paperOptions.defaultAnchor;
@@ -31834,13 +32194,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var anchor = line.end;
 	        var paperOptions = this.paper.options;
 
-	        // Backwards compatibility
-	        if (typeof paperOptions.linkConnectionPoint === 'function') {
-	            var linkConnectionMagnet = (magnet === view.el) ? undefined : magnet;
-	            connectionPoint = paperOptions.linkConnectionPoint(this, view, linkConnectionMagnet, line.start, endType);
-	            if (connectionPoint) { return connectionPoint; }
-	        }
-
 	        if (!connectionPointDef) { return anchor; }
 	        var connectionPointFn;
 	        if (typeof connectionPointDef === 'function') {
@@ -31853,18 +32206,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
 	        if (!connectionPoint) { return anchor; }
 	        return connectionPoint.round(this.decimalsRounding);
-	    },
-
-	    _translateConnectionPoints: function(tx, ty) {
-
-	        var cache = this._markerCache;
-
-	        cache.sourcePoint.offset(tx, ty);
-	        cache.targetPoint.offset(tx, ty);
-	        this.sourcePoint.offset(tx, ty);
-	        this.targetPoint.offset(tx, ty);
-	        this.sourceAnchor.offset(tx, ty);
-	        this.targetAnchor.offset(tx, ty);
 	    },
 
 	    // combine default label position with built-in default label position
@@ -31949,66 +32290,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    },
 
-	    updateToolsPosition: function() {
-
-	        if (!this._V.linkTools) { return this; }
-
-	        // Move the tools a bit to the target position but don't cover the `sourceArrowhead` marker.
-	        // Note that the offset is hardcoded here. The offset should be always
-	        // more than the `this.$('.marker-arrowhead[end="source"]')[0].bbox().width` but looking
-	        // this up all the time would be slow.
-
-	        var scale = '';
-	        var offset = this.options.linkToolsOffset;
-	        var connectionLength = this.getConnectionLength();
-
-	        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
-	        // In that case we won't update tools position at all.
-	        if (!Number.isNaN(connectionLength)) {
-
-	            // If the link is too short, make the tools half the size and the offset twice as low.
-	            if (connectionLength < this.options.shortLinkLength) {
-	                scale = 'scale(.5)';
-	                offset /= 2;
-	            }
-
-	            var toolPosition = this.getPointAtLength(offset);
-
-	            this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
-
-	            if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
-
-	                var doubleLinkToolsOffset = this.options.doubleLinkToolsOffset || offset;
-
-	                toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
-	                this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
-	                this._tool2Cache.attr('display', 'inline');
-
-	            } else if (this.options.doubleLinkTools) {
-
-	                this._tool2Cache.attr('display', 'none');
-	            }
-	        }
-
-	        return this;
-	    },
-
-	    updateArrowheadMarkers: function() {
-
-	        if (!this._V.markerArrowheads) { return this; }
-
-	        // getting bbox of an element with `display="none"` in IE9 ends up with access violation
-	        if ($.css(this._V.markerArrowheads.node, 'display') === 'none') { return this; }
-
-	        var sx = this.getConnectionLength() < this.options.shortLinkLength ? .5 : 1;
-	        this._V.sourceArrowhead.scale(sx);
-	        this._V.targetArrowhead.scale(sx);
-
-	        this._translateAndAutoOrientArrows(this._V.sourceArrowhead, this._V.targetArrowhead);
-
-	        return this;
-	    },
-
 	    updateEndProperties: function(endType) {
 
 	        var ref = this;
@@ -32049,28 +32330,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this[endMagnetProperty] = connectedMagnet;
 	        } else {
 	            this[endMagnetProperty] = null;
-	        }
-	    },
-
-	    _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
-
-	        // Make the markers "point" to their sticky points being auto-oriented towards
-	        // `targetPosition`/`sourcePosition`. And do so only if there is a markup for them.
-	        var route = toArray(this.route);
-	        if (sourceArrow) {
-	            sourceArrow.translateAndAutoOrient(
-	                this.sourcePoint,
-	                route[0] || this.targetPoint,
-	                this.paper.cells
-	            );
-	        }
-
-	        if (targetArrow) {
-	            targetArrow.translateAndAutoOrient(
-	                this.targetPoint,
-	                route[route.length - 1] || this.sourcePoint,
-	                this.paper.cells
-	            );
 	        }
 	    },
 
@@ -32188,7 +32447,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // Send a token (an SVG element, usually a circle) along the connection path.
 	    // Example: `link.findView(paper).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
 	    // `opt.duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
-	    // `opt.directon` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
+	    // `opt.direction` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
 	    // `opt.connection` is an optional selector to the connection path.
 	    // `callback` is optional and is a function to be called once the token reaches the target.
 	    sendToken: function(token, opt, callback) {
@@ -32232,7 +32491,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var connection;
 	        if (typeof selector === 'string') {
 	            // Use custom connection path.
-	            connection = this.findBySelector(selector, this.el, this.selectors)[0];
+	            connection = this.findNode(selector);
 	        } else {
 	            // Select connection path automatically.
 	            var cache = this._V;
@@ -32617,34 +32876,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    pointerdown: function(evt, x, y) {
 
 	        this.notifyPointerdown(evt, x, y);
-
-	        // Backwards compatibility for the default markup
-	        var className = evt.target.getAttribute('class');
-	        switch (className) {
-
-	            case 'marker-vertex':
-	                this.dragVertexStart(evt, x, y);
-	                return;
-
-	            case 'marker-vertex-remove':
-	            case 'marker-vertex-remove-area':
-	                this.dragVertexRemoveStart(evt, x, y);
-	                return;
-
-	            case 'marker-arrowhead':
-	                this.dragArrowheadStart(evt, x, y);
-	                return;
-
-	            case 'connection':
-	            case 'connection-wrap':
-	                this.dragConnectionStart(evt, x, y);
-	                return;
-
-	            case 'marker-source':
-	            case 'marker-target':
-	                return;
-	        }
-
 	        this.dragStart(evt, x, y);
 	    },
 
@@ -32656,10 +32887,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var data = this.eventData(evt);
 	        switch (data.action) {
-
-	            case 'vertex-move':
-	                this.dragVertex(evt, x, y);
-	                break;
 
 	            case 'label-move':
 	                this.dragLabel(evt, x, y);
@@ -32691,10 +32918,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var data = this.eventData(evt);
 	        switch (data.action) {
-
-	            case 'vertex-move':
-	                this.dragVertexEnd(evt, x, y);
-	                break;
 
 	            case 'label-move':
 	                this.dragLabelEnd(evt, x, y);
@@ -32742,36 +32965,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.notify('link:mousewheel', evt, x, y, delta);
 	    },
 
-	    onevent: function(evt, eventName, x, y) {
-
-	        // Backwards compatibility
-	        var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
-	        if (linkTool) {
-	            // No further action to be executed
-	            evt.stopPropagation();
-
-	            // Allow `interactive.useLinkTools=false`
-	            if (this.can('useLinkTools')) {
-	                if (eventName === 'remove') {
-	                    // Built-in remove event
-	                    this.model.remove({ ui: true });
-	                    // Do not trigger link pointerdown
-	                    return;
-
-	                } else {
-	                    // link:options and other custom events inside the link tools
-	                    this.notify(eventName, evt, x, y);
-	                }
-	            }
-
-	            this.notifyPointerdown(evt, x, y);
-	            this.paper.delegateDragEvents(this, evt.data);
-
-	        } else {
-	            CellView.prototype.onevent.apply(this, arguments);
-	        }
-	    },
-
 	    onlabel: function(evt, x, y) {
 
 	        this.notifyPointerdown(evt, x, y);
@@ -32783,19 +32976,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    // Drag Start Handlers
-
-	    dragConnectionStart: function(evt, x, y) {
-
-	        if (!this.can('vertexAdd')) { return; }
-
-	        // Store the index at which the new vertex has just been placed.
-	        // We'll be update the very same vertex position in `pointermove()`.
-	        var vertexIdx = this.addVertex({ x: x, y: y }, { ui: true });
-	        this.eventData(evt, {
-	            action: 'vertex-move',
-	            vertexIdx: vertexIdx
-	        });
-	    },
 
 	    dragLabelStart: function(evt, x, y) {
 
@@ -32837,27 +33017,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        this.paper.delegateDragEvents(this, evt.data);
-	    },
-
-	    dragVertexStart: function(evt, x, y) {
-
-	        if (!this.can('vertexMove')) { return; }
-
-	        var vertexNode = evt.target;
-	        var vertexIdx = parseInt(vertexNode.getAttribute('idx'), 10);
-	        this.eventData(evt, {
-	            action: 'vertex-move',
-	            vertexIdx: vertexIdx
-	        });
-	    },
-
-	    dragVertexRemoveStart: function(evt, x, y) {
-
-	        if (!this.can('vertexRemove')) { return; }
-
-	        var removeNode = evt.target;
-	        var vertexIdx = parseInt(removeNode.getAttribute('idx'), 10);
-	        this.model.removeVertex(vertexIdx);
 	    },
 
 	    dragArrowheadStart: function(evt, x, y) {
@@ -32903,12 +33062,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.model.label(data.labelIdx, label, setOptions);
 	    },
 
-	    dragVertex: function(evt, x, y) {
-
-	        var data = this.eventData(evt);
-	        this.model.vertex(data.vertexIdx, { x: x, y: y }, { ui: true });
-	    },
-
 	    dragArrowhead: function(evt, x, y) {
 	        if (this.paper.options.snapLinks) {
 	            var isSnapped = this._snapArrowhead(evt, x, y);
@@ -32937,10 +33090,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // Drag End Handlers
 
 	    dragLabelEnd: function() {
-	        // noop
-	    },
-
-	    dragVertexEnd: function() {
 	        // noop
 	    },
 
@@ -33554,7 +33703,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // e.g. background: { color: 'lightblue', image: '/paper-background.png', repeat: 'flip-xy' }
 	        background: false,
 
-	        perpendicularLinks: false,
 	        elementView: ElementView,
 	        linkView: LinkView,
 	        snapLabels: false, // false, true
@@ -33608,8 +33756,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // Defines what link model is added to the graph after an user clicks on an active magnet.
 	        // Value could be the mvc.model or a function returning the mvc.model
-	        // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
-	        defaultLink: new Link,
+	        // defaultLink: (elementView, magnet) => {
+	        //   return condition ? new customLink1() : new customLink2()
+	        // }
+	        defaultLink: function() {
+	            // Do not create hard dependency on the joint.shapes.standard namespace (by importing the standard.Link model directly)
+	            var ref = this.model.get('cells');
+	            var cellNamespace = ref.cellNamespace;
+	            var ctor = getByPath(cellNamespace, ['standard', 'Link']);
+	            if (!ctor) { throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.'); }
+	            return new ctor();
+	        },
 
 	        // A connector that is used by links with no connector defined on the model.
 	        // e.g. { name: 'rounded', args: { radius: 5 }} or a function
@@ -33693,7 +33850,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // Rendering Options
 
-	        sorting: sortingTypes.EXACT,
+	        sorting: sortingTypes.APPROX,
 
 	        frozen: false,
 
@@ -33774,10 +33931,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    viewport: null,
 	    defs: null,
 	    tools: null,
-	    $background: null,
 	    layers: null,
-	    $grid: null,
-	    $document: null,
 
 	    // For storing the current transformation matrix (CTM) of the paper's viewport.
 	    _viewportMatrix: null,
@@ -33810,7 +33964,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var ref = this;
 	        var options = ref.options;
-	        var el = ref.el;
 	        if (!options.cellViewNamespace) {
 	            /* eslint-disable no-undef */
 	            options.cellViewNamespace = typeof joint !== 'undefined' && has$2(joint, 'shapes') ? joint.shapes : null;
@@ -33837,8 +33990,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            deltas: [],
 	        };
 
-	        // Reference to the paper owner document
-	        this.$document = $(el.ownerDocument);
 	        // Render existing cells in the graph
 	        this.resetViews(model.attributes.cells.models);
 	        // Start the Rendering Loop
@@ -34031,16 +34182,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var svg = childNodes.svg;
 	        var defs = childNodes.defs;
 	        var layers = childNodes.layers;
-	        var background = childNodes.background;
-	        var grid = childNodes.grid;
 
 	        svg.style.overflow = options.overflow ? 'visible' : 'hidden';
 
 	        this.svg = svg;
 	        this.defs = defs;
 	        this.layers = layers;
-	        this.$background = $(background);
-	        this.$grid = $(grid);
 
 	        this.renderLayers();
 
@@ -34759,8 +34906,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var options = ref.options;
 	        var w = options.width;
 	        var h = options.height;
-	        if (isNumber(w)) { w = Math.round(w); }
-	        if (isNumber(h)) { h = Math.round(h); }
+	        if (isNumber(w)) { w = (Math.round(w)) + "px"; }
+	        if (isNumber(h)) { h = (Math.round(h)) + "px"; }
 	        this.$el.css({
 	            width: (w === null) ? '' : w,
 	            height: (h === null) ? '' : h
@@ -35042,7 +35189,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var defaultViewClass;
 
 	        // A special class defined for this model in the corresponding namespace.
-	        // e.g. joint.shapes.basic.Rect searches for joint.shapes.basic.RectView
+	        // e.g. joint.shapes.standard.Rectangle searches for joint.shapes.standard.RectangleView
 	        var namespace = options.cellViewNamespace;
 	        var type = cell.get('type') + 'View';
 	        var namespaceViewClass = getByPath(namespace, type, '.');
@@ -35168,10 +35315,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
 	        // associated model `z` attribute.
 
-	        var $cells = $(this.cells).children('[model-id]');
+	        var cellNodes = Array.from(this.cells.childNodes).filter(function (node) { return node.getAttribute('model-id'); });
 	        var cells = this.model.get('cells');
 
-	        sortElements($cells, function(a, b) {
+	        sortElements(cellNodes, function(a, b) {
 	            var cellA = cells.get(a.getAttribute('model-id'));
 	            var cellB = cells.get(b.getAttribute('model-id'));
 	            var zA = cellA.attributes.z || 0;
@@ -35724,7 +35871,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // Element magnet
 	            var magnetNode = target.closest('[magnet]');
 	            if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
-	                var magnetEvt = normalizeEvent($.Event(evt.originalEvent, {
+	                var magnetEvt = normalizeEvent(new $.Event(evt.originalEvent, {
 	                    data: evt.data,
 	                    // Originally the event listener was attached to the magnet element.
 	                    currentTarget: magnetNode
@@ -35746,7 +35893,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        if (isContextMenu) {
 	            this.contextMenuFired = true;
-	            var contextmenuEvt = $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
+	            var contextmenuEvt = new $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
 	            this.contextMenuTrigger(contextmenuEvt);
 	        } else {
 	            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
@@ -35811,7 +35958,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (!normalizedEvt.isPropagationStopped()) {
-	            this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
+	            this.pointerclick(new $.Event(evt.originalEvent, { type: 'click', data: evt.data }));
 	        }
 
 	        this.delegateEvents();
@@ -36008,7 +36155,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (evt.button === 2) {
 	            this.contextMenuFired = true;
 	            this.magnetContextMenuFired = true;
-	            var contextmenuEvt = $.Event(evt.originalEvent, {
+	            var contextmenuEvt = new $.Event(evt.originalEvent, {
 	                type: 'contextmenu',
 	                data: evt.data,
 	                currentTarget: evt.currentTarget,
@@ -36113,7 +36260,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return false;
 	        }
 
-	        if (this.svg === target || this.el === target || $.contains(this.svg, target)) {
+	        if (this.el === target || this.svg.contains(target)) {
 	            return false;
 	        }
 
@@ -36136,8 +36283,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    clearGrid: function() {
 
-	        if (this.$grid) {
-	            this.$grid.css('backgroundImage', 'none');
+	        var ref = this;
+	        var childNodes = ref.childNodes;
+	        if (childNodes && childNodes.grid) {
+	            childNodes.grid.style.backgroundImage = '';
 	        }
 	        return this;
 	    },
@@ -36268,7 +36417,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var patternUri = new XMLSerializer().serializeToString(refs.root.node);
 	        patternUri = 'url(data:image/svg+xml;base64,' + btoa(patternUri) + ')';
 
-	        this.$grid.css('backgroundImage', patternUri);
+	        this.childNodes.grid.style.backgroundImage = patternUri;
 
 	        return this;
 	    },
@@ -36296,17 +36445,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
 	        }
 
-	        this.$background.css({
-	            backgroundSize: backgroundSize,
-	            backgroundPosition: backgroundPosition
-	        });
+	        var ref = this.childNodes;
+	        var background = ref.background;
+	        background.style.backgroundSize = backgroundSize;
+	        background.style.backgroundPosition = backgroundPosition;
 	    },
 
 	    drawBackgroundImage: function(img, opt) {
 
 	        // Clear the background image if no image provided
 	        if (!(img instanceof HTMLImageElement)) {
-	            this.$background.css('backgroundImage', '');
+	            this.childNodes.background.style.backgroundImage = '';
 	            return;
 	        }
 
@@ -36359,11 +36508,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 	        }
 
-	        this.$background.css({
-	            opacity: backgroundOpacity,
-	            backgroundRepeat: backgroundRepeat,
-	            backgroundImage: 'url(' + backgroundImage + ')'
-	        });
+	        this.childNodes.background.style.opacity = backgroundOpacity;
+	        this.childNodes.background.style.backgroundRepeat = backgroundRepeat;
+	        this.childNodes.background.style.backgroundImage = "url(" + backgroundImage + ")";
 
 	        this.updateBackgroundImage(opt);
 	    },
@@ -36600,7 +36747,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var eventNode = evt.target.closest('[event]');
 
 	        if (eventNode && rootNode !== eventNode && view.el.contains(eventNode)) {
-	            var eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+	            var eventEvt = normalizeEvent(new $.Event(evt.originalEvent, {
 	                data: evt.data,
 	                // Originally the event listener was attached to the event element.
 	                currentTarget: eventNode
@@ -37180,13 +37327,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (connection) { connection.setAttribute('d', this.relatedView.getSerializedConnection()); }
 	    },
 	    startHandleListening: function(handle) {
-	        var relatedView = this.relatedView;
-	        if (relatedView.can('vertexMove')) {
+	        var ref = this.options;
+	        var vertexRemoving = ref.vertexRemoving; if ( vertexRemoving === void 0 ) vertexRemoving = true;
+	        var vertexMoving = ref.vertexMoving; if ( vertexMoving === void 0 ) vertexMoving = true;
+	        if (vertexMoving) {
 	            this.listenTo(handle, 'will-change', this.onHandleWillChange);
 	            this.listenTo(handle, 'changing', this.onHandleChanging);
 	            this.listenTo(handle, 'changed', this.onHandleChanged);
 	        }
-	        if (relatedView.can('vertexRemove')) {
+	        if (vertexRemoving) {
 	            this.listenTo(handle, 'remove', this.onHandleRemove);
 	        }
 	    },
@@ -37768,11 +37917,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        evt.preventDefault();
 	        var relatedView = this.relatedView;
 	        relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
-	        if (relatedView.can('arrowheadMove')) {
-	            relatedView.startArrowheadMove(this.arrowheadType);
-	            this.delegateDocumentEvents();
-	            relatedView.paper.undelegateEvents();
-	        }
+	        relatedView.startArrowheadMove(this.arrowheadType);
+	        this.delegateDocumentEvents();
+	        relatedView.paper.undelegateEvents();
 	        this.focus();
 	        this.el.style.pointerEvents = 'none';
 	    },
@@ -38202,6 +38349,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	});
 
 	var Remove = Button.extend({
+	    name: 'remove',
 	    children: [{
 	        tagName: 'circle',
 	        selector: 'button',
@@ -38265,8 +38413,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        action: function (evt, _view, tool) { return tool.dragstart(evt); },
 	    },
 	    getMagnetNode: function() {
-	        var assign;
-
 	        var ref = this;
 	        var options = ref.options;
 	        var relatedView = ref.relatedView;
@@ -38278,7 +38424,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                break;
 	            }
 	            case 'string': {
-	                (assign = relatedView.findBySelector(magnet), magnetNode = assign[0]);
+	                magnetNode = relatedView.findNode(magnet);
 	                break;
 	            }
 	            default: {
@@ -38468,7 +38614,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    canShowButton: function canShowButton() {
 	        // Has been the paper events undelegated? If so, we can't show the button.
 	        // TODO: add a method to the paper to check if the events are delegated.
-	        return $._data(this.paper.el, 'events');
+	        return $.event.has(this.paper.el);
 	    },
 
 	    showButton: function showButton() {
@@ -38617,8 +38763,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.toggleExtras(false);
 	            return;
 	        }
-	        var ref$2 = relatedView.findBySelector(selector);
-	        var magnet = ref$2[0];
+	        var magnet = relatedView.findNode(selector);
 	        if (!magnet) { throw new Error('Control: invalid selector.'); }
 	        var padding = options.padding;
 	        if (!isFinite(padding)) { padding = 0; }
@@ -38745,7 +38890,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    View.prototype.defaultTheme = theme;
 	};
 
-	var shapes = { basic: basic, standard: standard };
+	var shapes = { standard: standard };
 	var format$1 = {};
 	var ui = {};
 

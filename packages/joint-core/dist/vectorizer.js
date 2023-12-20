@@ -1,4 +1,4 @@
-/*! JointJS v3.7.7 (2023-11-24) - JavaScript diagramming library
+/*! JointJS v3.7.7 (2023-12-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -7950,18 +7950,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }
         });
 
-        // Note: The `attributeNames` and `supportCamelCaseAttributes` properties are not enumerable
-        // in this version to avoid breaking changes. They will be made enumerable in the next major version.
-
         // Dictionary of attribute names
         Object.defineProperty(V, 'attributeNames', {
+            enumerable: true,
             value: attributeNames,
             writable: false,
         });
 
         // Should camel case attributes be supported?
         Object.defineProperty(V, 'supportCamelCaseAttributes', {
-            value: false,
+            enumerable: true,
+            value: true,
             writable: true,
         });
 
@@ -8712,7 +8711,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // Take a path data string
         // Return a normalized path data string
         // If data cannot be parsed, return 'M 0 0'
-        // Adapted from Rappid normalizePath polyfill
         // Highly inspired by Raphael Library (www.raphael.com)
         V.normalizePathData = (function() {
 

@@ -1,14 +1,12 @@
-/*! JointJS v3.7.7 (2023-11-24) - JavaScript diagramming library
+/*! JointJS v3.7.7 (2023-12-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
-var joint = (function (exports, $) {
+var joint = (function (exports) {
 	'use strict';
-
-	$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
 
 	var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -226,9 +224,9 @@ var joint = (function (exports, $) {
 
 	var inspectSource = sharedStore.inspectSource;
 
-	var WeakMap = global_1.WeakMap;
+	var WeakMap$1 = global_1.WeakMap;
 
-	var nativeWeakMap = typeof WeakMap === 'function' && /native code/.test(inspectSource(WeakMap));
+	var nativeWeakMap = typeof WeakMap$1 === 'function' && /native code/.test(inspectSource(WeakMap$1));
 
 	var isPure = false;
 
@@ -257,7 +255,7 @@ var joint = (function (exports, $) {
 
 	var hiddenKeys = {};
 
-	var WeakMap$1 = global_1.WeakMap;
+	var WeakMap$2 = global_1.WeakMap;
 	var set, get, has$1;
 
 	var enforce = function (it) {
@@ -274,7 +272,7 @@ var joint = (function (exports, $) {
 	};
 
 	if (nativeWeakMap) {
-	  var store$1 = sharedStore.state || (sharedStore.state = new WeakMap$1());
+	  var store$1 = sharedStore.state || (sharedStore.state = new WeakMap$2());
 	  var wmget = store$1.get;
 	  var wmhas = store$1.has;
 	  var wmset = store$1.set;
@@ -8255,2660 +8253,6 @@ var joint = (function (exports, $) {
 		types: types
 	});
 
-	// Vectorizer.
-
-	var V = (function() {
-
-	    var hasSvg = typeof window === 'object' && !!window.SVGAngle;
-
-	    // SVG support is required.
-	    if (!hasSvg) {
-
-	        // Return a function that throws an error when it is used.
-	        return function() {
-	            throw new Error('SVG is required to use Vectorizer.');
-	        };
-	    }
-
-	    // XML namespaces.
-	    var ns = {
-	        svg: 'http://www.w3.org/2000/svg',
-	        xmlns: 'http://www.w3.org/2000/xmlns/',
-	        xml: 'http://www.w3.org/XML/1998/namespace',
-	        xlink: 'http://www.w3.org/1999/xlink',
-	        xhtml: 'http://www.w3.org/1999/xhtml'
-	    };
-
-	    var SVGVersion = '1.1';
-
-	    // Declare shorthands to the most used math functions.
-	    var math = Math;
-	    var PI = math.PI;
-	    var atan2 = math.atan2;
-	    var sqrt = math.sqrt;
-	    var min = math.min;
-	    var max = math.max;
-	    var cos = math.cos;
-	    var sin = math.sin;
-
-	    var V = function(el, attrs, children) {
-
-	        // This allows using V() without the new keyword.
-	        if (!(this instanceof V)) {
-	            return V.apply(Object.create(V.prototype), arguments);
-	        }
-
-	        if (!el) { return; }
-
-	        if (V.isV(el)) {
-	            el = el.node;
-	        }
-
-	        attrs = attrs || {};
-
-	        if (V.isString(el)) {
-
-	            el = el.trim();
-
-	            if (el.toLowerCase() === 'svg') {
-
-	                // Create a new SVG canvas.
-	                el = V.createSvgDocument();
-
-	            } else if (el[0] === '<') {
-
-	                // Create element from an SVG string.
-	                // Allows constructs of type: `document.appendChild(V('<rect></rect>').node)`.
-
-	                var svgDoc = V.createSvgDocument(el);
-
-	                // Note that `V()` might also return an array should the SVG string passed as
-	                // the first argument contain more than one root element.
-	                if (svgDoc.childNodes.length > 1) {
-
-	                    // Map child nodes to `V`s.
-	                    var arrayOfVels = [];
-	                    var i, len;
-
-	                    for (i = 0, len = svgDoc.childNodes.length; i < len; i++) {
-
-	                        var childNode = svgDoc.childNodes[i];
-	                        arrayOfVels.push(new V(document.importNode(childNode, true)));
-	                    }
-
-	                    return arrayOfVels;
-	                }
-
-	                el = document.importNode(svgDoc.firstChild, true);
-
-	            } else {
-
-	                el = document.createElementNS(ns.svg, el);
-	            }
-
-	            V.ensureId(el);
-	        }
-
-	        this.node = el;
-
-	        this.setAttributes(attrs);
-
-	        if (children) {
-	            this.append(children);
-	        }
-
-	        return this;
-	    };
-
-	    var VPrototype = V.prototype;
-
-	    Object.defineProperty(VPrototype, 'id', {
-	        enumerable: true,
-	        get: function() {
-	            return this.node.id;
-	        },
-	        set: function(id) {
-	            this.node.id = id;
-	        }
-	    });
-
-	    /**
-	     * @param {SVGGElement} toElem
-	     * @returns {SVGMatrix}
-	     */
-	    VPrototype.getTransformToElement = function(target) {
-	        var node = this.node;
-	        if (V.isSVGGraphicsElement(target) && V.isSVGGraphicsElement(node)) {
-	            var targetCTM = V.toNode(target).getScreenCTM();
-	            var nodeCTM = node.getScreenCTM();
-	            if (targetCTM && nodeCTM) {
-	                return targetCTM.inverse().multiply(nodeCTM);
-	            }
-	        }
-	        // Could not get actual transformation matrix
-	        return V.createSVGMatrix();
-	    };
-
-	    /**
-	     * @param {SVGMatrix} matrix
-	     * @param {Object=} opt
-	     * @returns {Vectorizer|SVGMatrix} Setter / Getter
-	     */
-	    VPrototype.transform = function(matrix, opt) {
-
-	        var node = this.node;
-	        if (V.isUndefined(matrix)) {
-	            return V.transformStringToMatrix(this.attr('transform'));
-	        }
-
-	        if (opt && opt.absolute) {
-	            return this.attr('transform', V.matrixToTransformString(matrix));
-	        }
-
-	        var svgTransform = V.createSVGTransform(matrix);
-	        node.transform.baseVal.appendItem(svgTransform);
-	        return this;
-	    };
-
-	    VPrototype.translate = function(tx, ty, opt) {
-
-	        opt = opt || {};
-	        ty = ty || 0;
-
-	        var transformAttr = this.attr('transform') || '';
-	        var transform = V.parseTransformString(transformAttr);
-	        transformAttr = transform.value;
-	        // Is it a getter?
-	        if (V.isUndefined(tx)) {
-	            return transform.translate;
-	        }
-
-	        transformAttr = transformAttr.replace(/translate\([^)]*\)/g, '').trim();
-
-	        var newTx = opt.absolute ? tx : transform.translate.tx + tx;
-	        var newTy = opt.absolute ? ty : transform.translate.ty + ty;
-	        var newTranslate = 'translate(' + newTx + ',' + newTy + ')';
-
-	        // Note that `translate()` is always the first transformation. This is
-	        // usually the desired case.
-	        this.attr('transform', (newTranslate + ' ' + transformAttr).trim());
-	        return this;
-	    };
-
-	    VPrototype.rotate = function(angle, cx, cy, opt) {
-
-	        opt = opt || {};
-
-	        var transformAttr = this.attr('transform') || '';
-	        var transform = V.parseTransformString(transformAttr);
-	        transformAttr = transform.value;
-
-	        // Is it a getter?
-	        if (V.isUndefined(angle)) {
-	            return transform.rotate;
-	        }
-
-	        transformAttr = transformAttr.replace(/rotate\([^)]*\)/g, '').trim();
-
-	        angle %= 360;
-
-	        var newAngle = opt.absolute ? angle : transform.rotate.angle + angle;
-	        var newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '';
-	        var newRotate = 'rotate(' + newAngle + newOrigin + ')';
-
-	        this.attr('transform', (transformAttr + ' ' + newRotate).trim());
-	        return this;
-	    };
-
-	    // Note that `scale` as the only transformation does not combine with previous values.
-	    VPrototype.scale = function(sx, sy) {
-
-	        sy = V.isUndefined(sy) ? sx : sy;
-
-	        var transformAttr = this.attr('transform') || '';
-	        var transform = V.parseTransformString(transformAttr);
-	        transformAttr = transform.value;
-
-	        // Is it a getter?
-	        if (V.isUndefined(sx)) {
-	            return transform.scale;
-	        }
-
-	        transformAttr = transformAttr.replace(/scale\([^)]*\)/g, '').trim();
-
-	        var newScale = 'scale(' + sx + ',' + sy + ')';
-
-	        this.attr('transform', (transformAttr + ' ' + newScale).trim());
-	        return this;
-	    };
-
-	    // Get SVGRect that contains coordinates and dimension of the real bounding box,
-	    // i.e. after transformations are applied.
-	    // If `target` is specified, bounding box will be computed relatively to `target` element.
-	    VPrototype.bbox = function(withoutTransformations, target) {
-
-	        var box;
-	        var node = this.node;
-	        var ownerSVGElement = node.ownerSVGElement;
-
-	        // If the element is not in the live DOM, it does not have a bounding box defined and
-	        // so fall back to 'zero' dimension element.
-	        if (!ownerSVGElement) {
-	            return new Rect(0, 0, 0, 0);
-	        }
-
-	        try {
-
-	            box = node.getBBox();
-
-	        } catch (e) {
-
-	            // Fallback for IE.
-	            box = {
-	                x: node.clientLeft,
-	                y: node.clientTop,
-	                width: node.clientWidth,
-	                height: node.clientHeight
-	            };
-	        }
-
-	        if (withoutTransformations) {
-	            return new Rect(box);
-	        }
-
-	        var matrix = this.getTransformToElement(target || ownerSVGElement);
-
-	        return V.transformRect(box, matrix);
-	    };
-
-	    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
-	    // i.e. after transformations are applied.
-	    // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
-	    // Takes an (Object) `opt` argument (optional) with the following attributes:
-	    // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
-	    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
-	    VPrototype.getBBox = function(opt) {
-
-	        var options = {};
-
-	        var outputBBox;
-	        var node = this.node;
-	        var ownerSVGElement = node.ownerSVGElement;
-
-	        // If the element is not in the live DOM, it does not have a bounding box defined and
-	        // so fall back to 'zero' dimension element.
-	        // If the element is not an SVGGraphicsElement, we could not measure the bounding box either
-	        if (!ownerSVGElement || !V.isSVGGraphicsElement(node)) {
-	            return new Rect(0, 0, 0, 0);
-	        }
-
-	        if (opt) {
-	            if (opt.target) { // check if target exists
-	                options.target = V.toNode(opt.target); // works for V objects, jquery objects, and node objects
-	            }
-	            if (opt.recursive) {
-	                options.recursive = opt.recursive;
-	            }
-	        }
-
-	        if (!options.recursive) {
-	            try {
-	                outputBBox = node.getBBox();
-	            } catch (e) {
-	                // Fallback for IE.
-	                outputBBox = {
-	                    x: node.clientLeft,
-	                    y: node.clientTop,
-	                    width: node.clientWidth,
-	                    height: node.clientHeight
-	                };
-	            }
-
-	            if (!options.target) {
-	                // transform like this (that is, not at all)
-	                return new Rect(outputBBox);
-	            } else {
-	                // transform like target
-	                var matrix = this.getTransformToElement(options.target);
-	                return V.transformRect(outputBBox, matrix);
-	            }
-	        } else { // if we want to calculate the bbox recursively
-	            // browsers report correct bbox around svg elements (one that envelops the path lines tightly)
-	            // but some browsers fail to report the same bbox when the elements are in a group (returning a looser bbox that also includes control points, like node.getClientRect())
-	            // this happens even if we wrap a single svg element into a group!
-	            // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
-
-	            var children = this.children();
-	            var n = children.length;
-
-	            if (n === 0) {
-	                return this.getBBox({ target: options.target, recursive: false });
-	            }
-
-	            // recursion's initial pass-through setting:
-	            // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
-	            if (!options.target) {
-	                // transform children/descendants like this (their parent/ancestor)
-	                options.target = this;
-	            } // else transform children/descendants like target
-
-	            for (var i = 0; i < n; i++) {
-	                var currentChild = children[i];
-
-	                var childBBox;
-
-	                // if currentChild is not a group element, get its bbox with a nonrecursive call
-	                if (currentChild.children().length === 0) {
-	                    childBBox = currentChild.getBBox({ target: options.target, recursive: false });
-	                } else {
-	                    // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
-	                    childBBox = currentChild.getBBox({ target: options.target, recursive: true });
-	                }
-
-	                if (!outputBBox) {
-	                    // if this is the first iteration
-	                    outputBBox = childBBox;
-	                } else {
-	                    // make a new bounding box rectangle that contains this child's bounding box and previous bounding box
-	                    outputBBox = outputBBox.union(childBBox);
-	                }
-	            }
-
-	            return outputBBox;
-	        }
-	    };
-
-	    // Text() helpers
-
-	    function createTextPathNode(attrs, vel) {
-	        attrs || (attrs = {});
-	        var textPathElement = V('textPath');
-	        var d = attrs.d;
-	        if (d && attrs['xlink:href'] === undefined) {
-	            // If `opt.attrs` is a plain string, consider it to be directly the
-	            // SVG path data for the text to go along (this is a shortcut).
-	            // Otherwise if it is an object and contains the `d` property, then this is our path.
-	            // Wrap the text in the SVG <textPath> element that points
-	            // to a path defined by `opt.attrs` inside the `<defs>` element.
-	            var linkedPath = V('path').attr('d', d).appendTo(vel.defs());
-	            textPathElement.attr('xlink:href', '#' + linkedPath.id);
-	        }
-	        if (V.isObject(attrs)) {
-	            // Set attributes on the `<textPath>`. The most important one
-	            // is the `xlink:href` that points to our newly created `<path/>` element in `<defs/>`.
-	            // Note that we also allow the following construct:
-	            // `t.text('my text', { textPath: { 'xlink:href': '#my-other-path' } })`.
-	            // In other words, one can completely skip the auto-creation of the path
-	            // and use any other arbitrary path that is in the document.
-	            textPathElement.attr(attrs);
-	        }
-	        return textPathElement.node;
-	    }
-
-	    function annotateTextLine(lineNode, lineAnnotations, opt) {
-	        opt || (opt = {});
-	        var includeAnnotationIndices = opt.includeAnnotationIndices;
-	        var eol = opt.eol;
-	        var lineHeight = opt.lineHeight;
-	        var baseSize = opt.baseSize;
-	        var maxFontSize = 0;
-	        var fontMetrics = {};
-	        var lastJ = lineAnnotations.length - 1;
-	        for (var j = 0; j <= lastJ; j++) {
-	            var annotation = lineAnnotations[j];
-	            var fontSize = null;
-	            if (V.isObject(annotation)) {
-	                var annotationAttrs = annotation.attrs;
-	                var vTSpan = V('tspan', annotationAttrs);
-	                var tspanNode = vTSpan.node;
-	                var t = annotation.t;
-	                if (eol && j === lastJ) { t += eol; }
-	                tspanNode.textContent = t;
-	                // Per annotation className
-	                var annotationClass = annotationAttrs['class'];
-	                if (annotationClass) { vTSpan.addClass(annotationClass); }
-	                // If `opt.includeAnnotationIndices` is `true`,
-	                // set the list of indices of all the applied annotations
-	                // in the `annotations` attribute. This list is a comma
-	                // separated list of indices.
-	                if (includeAnnotationIndices) { vTSpan.attr('annotations', annotation.annotations); }
-	                // Check for max font size
-	                fontSize = parseFloat(annotationAttrs['font-size']);
-	                if (!isFinite(fontSize)) { fontSize = baseSize; }
-	                if (fontSize && fontSize > maxFontSize) { maxFontSize = fontSize; }
-	            } else {
-	                if (eol && j === lastJ) { annotation += eol; }
-	                tspanNode = document.createTextNode(annotation || ' ');
-	                if (baseSize && baseSize > maxFontSize) { maxFontSize = baseSize; }
-	            }
-	            lineNode.appendChild(tspanNode);
-	        }
-
-	        if (maxFontSize) { fontMetrics.maxFontSize = maxFontSize; }
-	        if (lineHeight) {
-	            fontMetrics.lineHeight = lineHeight;
-	        } else if (maxFontSize) {
-	            fontMetrics.lineHeight = (maxFontSize * 1.2);
-	        }
-	        return fontMetrics;
-	    }
-
-	    var emRegex = /em$/;
-
-	    function convertEmToPx(em, fontSize) {
-	        var numerical = parseFloat(em);
-	        if (emRegex.test(em)) { return numerical * fontSize; }
-	        return numerical;
-	    }
-
-	    function calculateDY(alignment, linesMetrics, baseSizePx, lineHeight) {
-	        if (!Array.isArray(linesMetrics)) { return 0; }
-	        var n = linesMetrics.length;
-	        if (!n) { return 0; }
-	        var lineMetrics = linesMetrics[0];
-	        var flMaxFont = convertEmToPx(lineMetrics.maxFontSize, baseSizePx) || baseSizePx;
-	        var rLineHeights = 0;
-	        var lineHeightPx = convertEmToPx(lineHeight, baseSizePx);
-	        for (var i = 1; i < n; i++) {
-	            lineMetrics = linesMetrics[i];
-	            var iLineHeight = convertEmToPx(lineMetrics.lineHeight, baseSizePx) || lineHeightPx;
-	            rLineHeights += iLineHeight;
-	        }
-	        var llMaxFont = convertEmToPx(lineMetrics.maxFontSize, baseSizePx) || baseSizePx;
-	        var dy;
-	        switch (alignment) {
-	            case 'middle':
-	                dy = (flMaxFont / 2) - (0.15 * llMaxFont) - (rLineHeights / 2);
-	                break;
-	            case 'bottom':
-	                dy = -(0.25 * llMaxFont) - rLineHeights;
-	                break;
-	            default:
-	            case 'top':
-	                dy = (0.8 * flMaxFont);
-	                break;
-	        }
-	        return dy;
-	    }
-
-	    VPrototype.text = function(content, opt) {
-
-	        if (content && typeof content !== 'string') { throw new Error('Vectorizer: text() expects the first argument to be a string.'); }
-
-	        // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
-	        // IE would otherwise collapse all spaces into one.
-	        content = V.sanitizeText(content);
-	        opt || (opt = {});
-	        // Should we allow the text to be selected?
-	        var displayEmpty = opt.displayEmpty;
-	        // End of Line character
-	        var eol = opt.eol;
-	        // Text along path
-	        var textPath = opt.textPath;
-	        // Vertical shift
-	        var verticalAnchor = opt.textVerticalAnchor;
-	        var namedVerticalAnchor = (verticalAnchor === 'middle' || verticalAnchor === 'bottom' || verticalAnchor === 'top');
-	        // Horizontal shift applied to all the lines but the first.
-	        var x = opt.x;
-	        if (x === undefined) { x = this.attr('x') || 0; }
-	        // Annotations
-	        var iai = opt.includeAnnotationIndices;
-	        var annotations = opt.annotations;
-	        if (annotations && !V.isArray(annotations)) { annotations = [annotations]; }
-	        // Shift all the <tspan> but first by one line (`1em`)
-	        var defaultLineHeight = opt.lineHeight;
-	        var autoLineHeight = (defaultLineHeight === 'auto');
-	        var lineHeight = (autoLineHeight) ? '1.5em' : (defaultLineHeight || '1em');
-	        // Clearing the element
-	        this.empty();
-	        this.attr({
-	            // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
-	            'xml:space': 'preserve',
-	            // An empty text gets rendered into the DOM in webkit-based browsers.
-	            // In order to unify this behaviour across all browsers
-	            // we rather hide the text element when it's empty.
-	            'display': (content || displayEmpty) ? null : 'none'
-	        });
-
-	        // Set default font-size if none
-	        var fontSize = parseFloat(this.attr('font-size'));
-	        if (!fontSize) {
-	            fontSize = 16;
-	            if (namedVerticalAnchor || annotations) { this.attr('font-size', fontSize); }
-	        }
-
-	        var doc = document;
-	        var containerNode;
-	        if (textPath) {
-	            // Now all the `<tspan>`s will be inside the `<textPath>`.
-	            if (typeof textPath === 'string') { textPath = { d: textPath }; }
-	            containerNode = createTextPathNode(textPath, this);
-	        } else {
-	            containerNode = doc.createDocumentFragment();
-	        }
-	        var offset = 0;
-	        var lines = content.split('\n');
-	        var linesMetrics = [];
-	        var annotatedY;
-	        for (var i = 0, lastI = lines.length - 1; i <= lastI; i++) {
-	            var dy = lineHeight;
-	            var lineClassName = 'v-line';
-	            var lineNode = doc.createElementNS(ns.svg, 'tspan');
-	            var line = lines[i];
-	            var lineMetrics;
-	            if (line) {
-	                if (annotations) {
-	                    // Find the *compacted* annotations for this line.
-	                    var lineAnnotations = V.annotateString(line, annotations, {
-	                        offset: -offset,
-	                        includeAnnotationIndices: iai
-	                    });
-	                    lineMetrics = annotateTextLine(lineNode, lineAnnotations, {
-	                        includeAnnotationIndices: iai,
-	                        eol: (i !== lastI && eol),
-	                        lineHeight: (autoLineHeight) ? null : lineHeight,
-	                        baseSize: fontSize
-	                    });
-	                    // Get the line height based on the biggest font size in the annotations for this line.
-	                    var iLineHeight = lineMetrics.lineHeight;
-	                    if (iLineHeight && autoLineHeight && i !== 0) { dy = iLineHeight; }
-	                    if (i === 0) { annotatedY = lineMetrics.maxFontSize * 0.8; }
-	                } else {
-	                    if (eol && i !== lastI) { line += eol; }
-	                    lineNode.textContent = line;
-	                }
-	            } else {
-	                // Make sure the textContent is never empty. If it is, add a dummy
-	                // character and make it invisible, making the following lines correctly
-	                // relatively positioned. `dy=1em` won't work with empty lines otherwise.
-	                lineNode.textContent = '-';
-	                lineClassName += ' v-empty-line';
-	                // 'opacity' needs to be specified with fill, stroke. Opacity without specification
-	                // is not applied in Firefox
-	                var lineNodeStyle = lineNode.style;
-	                lineNodeStyle.fillOpacity = 0;
-	                lineNodeStyle.strokeOpacity = 0;
-	                if (annotations) {
-	                    // Empty line with annotations.
-	                    lineMetrics = {};
-	                    lineAnnotations = V.findAnnotationsAtIndex(annotations, offset);
-	                    var lineFontSize = fontSize;
-	                    // Check if any of the annotations overrides the font size.
-	                    for (var j = lineAnnotations.length; j > 0; j--) {
-	                        var attrs = lineAnnotations[j - 1].attrs;
-	                        if (!attrs || !('font-size' in attrs)) { continue; }
-	                        var fs = parseFloat(attrs['font-size']);
-	                        if (isFinite(fs)) {
-	                            lineFontSize = fs;
-	                            break;
-	                        }
-	                    }
-	                    if (autoLineHeight) {
-	                        if (i > 0) {
-	                            dy = lineFontSize * 1.2;
-	                        } else {
-	                            annotatedY = lineFontSize * 0.8;
-	                        }
-	                    }
-	                    // The font size is important for the native selection box height.
-	                    lineNode.setAttribute('font-size', lineFontSize);
-	                    lineMetrics.maxFontSize = lineFontSize;
-	                }
-	            }
-	            if (lineMetrics) { linesMetrics.push(lineMetrics); }
-	            if (i > 0) { lineNode.setAttribute('dy', dy); }
-	            // Firefox requires 'x' to be set on the first line when inside a text path
-	            if (i > 0 || textPath) { lineNode.setAttribute('x', x); }
-	            lineNode.className.baseVal = lineClassName;
-	            containerNode.appendChild(lineNode);
-	            offset += line.length + 1;      // + 1 = newline character.
-	        }
-	        // Y Alignment calculation
-	        if (namedVerticalAnchor) {
-	            if (annotations) {
-	                dy = calculateDY(verticalAnchor, linesMetrics, fontSize, lineHeight);
-	            } else if (verticalAnchor === 'top') {
-	                // A shortcut for top alignment. It does not depend on font-size nor line-height
-	                dy = '0.8em';
-	            } else {
-	                var rh; // remaining height
-	                if (lastI > 0) {
-	                    rh = parseFloat(lineHeight) || 1;
-	                    rh *= lastI;
-	                    if (!emRegex.test(lineHeight)) { rh /= fontSize; }
-	                } else {
-	                    // Single-line text
-	                    rh = 0;
-	                }
-	                switch (verticalAnchor) {
-	                    case 'middle':
-	                        dy = (0.3 - (rh / 2)) + 'em';
-	                        break;
-	                    case 'bottom':
-	                        dy = (-rh - 0.3) + 'em';
-	                        break;
-	                }
-	            }
-	        } else {
-	            if (verticalAnchor === 0) {
-	                dy = '0em';
-	            } else if (verticalAnchor) {
-	                dy = verticalAnchor;
-	            } else {
-	                // No vertical anchor is defined
-	                dy = 0;
-	                // Backwards compatibility - we change the `y` attribute instead of `dy`.
-	                if (this.attr('y') === null) { this.attr('y', annotatedY || '0.8em'); }
-	            }
-	        }
-	        containerNode.firstChild.setAttribute('dy', dy);
-	        // Appending lines to the element.
-	        this.append(containerNode);
-	        return this;
-	    };
-
-	    /**
-	     * @public
-	     * @param {string} name
-	     * @returns {Vectorizer}
-	     */
-	    VPrototype.removeAttr = function(name) {
-
-	        var trueName = attributeNames[name];
-
-	        var ref = V.qualifyAttr(trueName);
-	        var ns = ref.ns;
-	        var local = ref.local;
-	        var el = this.node;
-
-	        if (ns) {
-	            if (el.hasAttributeNS(ns, local)) {
-	                el.removeAttributeNS(ns, local);
-	            }
-	        } else if (el.hasAttribute(trueName)) {
-	            el.removeAttribute(trueName);
-	        }
-	        return this;
-	    };
-
-	    VPrototype.attr = function(name, value) {
-
-	        if (V.isUndefined(name)) {
-
-	            // Return all attributes.
-	            var attributes = this.node.attributes;
-	            var attrs = {};
-
-	            for (var i = 0; i < attributes.length; i++) {
-	                attrs[attributes[i].name] = attributes[i].value;
-	            }
-
-	            return attrs;
-	        }
-
-	        if (V.isString(name) && V.isUndefined(value)) {
-	            return this.node.getAttribute(attributeNames[name]);
-	        }
-
-	        if (typeof name === 'object') {
-
-	            for (var attrName in name) {
-	                if (name.hasOwnProperty(attrName)) {
-	                    this.setAttribute(attrName, name[attrName]);
-	                }
-	            }
-
-	        } else {
-
-	            this.setAttribute(name, value);
-	        }
-
-	        return this;
-	    };
-
-	    VPrototype.normalizePath = function() {
-
-	        var tagName = this.tagName();
-	        if (tagName === 'PATH') {
-	            this.attr('d', V.normalizePathData(this.attr('d')));
-	        }
-
-	        return this;
-	    };
-
-	    VPrototype.remove = function() {
-
-	        if (this.node.parentNode) {
-	            this.node.parentNode.removeChild(this.node);
-	        }
-
-	        return this;
-	    };
-
-	    VPrototype.empty = function() {
-
-	        while (this.node.firstChild) {
-	            this.node.removeChild(this.node.firstChild);
-	        }
-
-	        return this;
-	    };
-
-	    /**
-	     * @private
-	     * @param {object} attrs
-	     * @returns {Vectorizer}
-	     */
-	    VPrototype.setAttributes = function(attrs) {
-
-	        for (var key in attrs) {
-	            if (attrs.hasOwnProperty(key)) {
-	                this.setAttribute(key, attrs[key]);
-	            }
-	        }
-
-	        return this;
-	    };
-
-	    VPrototype.append = function(els) {
-
-	        if (!V.isArray(els)) {
-	            els = [els];
-	        }
-
-	        for (var i = 0, len = els.length; i < len; i++) {
-	            this.node.appendChild(V.toNode(els[i])); // lgtm [js/xss-through-dom]
-	        }
-
-	        return this;
-	    };
-
-	    VPrototype.prepend = function(els) {
-
-	        var child = this.node.firstChild;
-	        return child ? V(child).before(els) : this.append(els);
-	    };
-
-	    VPrototype.before = function(els) {
-
-	        var node = this.node;
-	        var parent = node.parentNode;
-
-	        if (parent) {
-
-	            if (!V.isArray(els)) {
-	                els = [els];
-	            }
-
-	            for (var i = 0, len = els.length; i < len; i++) {
-	                parent.insertBefore(V.toNode(els[i]), node);
-	            }
-	        }
-
-	        return this;
-	    };
-
-	    VPrototype.appendTo = function(node) {
-	        V.toNode(node).appendChild(this.node); // lgtm [js/xss-through-dom]
-	        return this;
-	    };
-
-	    VPrototype.svg = function() {
-
-	        return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
-	    };
-
-	    VPrototype.tagName = function() {
-
-	        return this.node.tagName.toUpperCase();
-	    };
-
-	    VPrototype.defs = function() {
-	        var context = this.svg() || this;
-	        var defsNode = context.node.getElementsByTagName('defs')[0];
-	        if (defsNode) { return V(defsNode); }
-	        return V('defs').appendTo(context);
-	    };
-
-	    VPrototype.clone = function() {
-
-	        var clone = V(this.node.cloneNode(true/* deep */));
-	        // Note that clone inherits also ID. Therefore, we need to change it here.
-	        clone.node.id = V.uniqueId();
-	        return clone;
-	    };
-
-	    VPrototype.findOne = function(selector) {
-
-	        var found = this.node.querySelector(selector);
-	        return found ? V(found) : undefined;
-	    };
-
-	    VPrototype.find = function(selector) {
-
-	        var vels = [];
-	        var nodes = this.node.querySelectorAll(selector);
-
-	        if (nodes) {
-
-	            // Map DOM elements to `V`s.
-	            for (var i = 0; i < nodes.length; i++) {
-	                vels.push(V(nodes[i]));
-	            }
-	        }
-
-	        return vels;
-	    };
-
-	    // Returns an array of V elements made from children of this.node.
-	    VPrototype.children = function() {
-
-	        var children = this.node.childNodes;
-
-	        var outputArray = [];
-	        for (var i = 0; i < children.length; i++) {
-	            var currentChild = children[i];
-	            if (currentChild.nodeType === 1) {
-	                outputArray.push(V(children[i]));
-	            }
-	        }
-	        return outputArray;
-	    };
-
-	    // Returns the V element from parentNode of this.node.
-	    VPrototype.parent = function() {
-	        return V(this.node.parentNode) || null;
-	    },
-
-	    // Find an index of an element inside its container.
-	    VPrototype.index = function() {
-
-	        var index = 0;
-	        var node = this.node.previousSibling;
-
-	        while (node) {
-	            // nodeType 1 for ELEMENT_NODE
-	            if (node.nodeType === 1) { index++; }
-	            node = node.previousSibling;
-	        }
-
-	        return index;
-	    };
-
-	    VPrototype.findParentByClass = function(className, terminator) {
-
-	        var ownerSVGElement = this.node.ownerSVGElement;
-	        var node = this.node.parentNode;
-
-	        while (node && node !== terminator && node !== ownerSVGElement) {
-
-	            var vel = V(node);
-	            if (vel.hasClass(className)) {
-	                return vel;
-	            }
-
-	            node = node.parentNode;
-	        }
-
-	        return null;
-	    };
-
-	    // https://jsperf.com/get-common-parent
-	    VPrototype.contains = function(el) {
-
-	        var a = this.node;
-	        var b = V.toNode(el);
-	        var bup = b && b.parentNode;
-
-	        return (a === bup) || !!(bup && bup.nodeType === 1 && (a.compareDocumentPosition(bup) & 16));
-	    };
-
-	    // Convert global point into the coordinate space of this element.
-	    VPrototype.toLocalPoint = function(x, y) {
-
-	        var svg = this.svg().node;
-
-	        var p = svg.createSVGPoint();
-	        p.x = x;
-	        p.y = y;
-
-	        try {
-
-	            var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
-	            var globalToLocalMatrix = this.getTransformToElement(svg).inverse();
-
-	        } catch (e) {
-	            // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
-	            // We have to make do with the original coordianates.
-	            return p;
-	        }
-
-	        return globalPoint.matrixTransform(globalToLocalMatrix);
-	    };
-
-	    VPrototype.translateCenterToPoint = function(p) {
-
-	        var bbox = this.getBBox({ target: this.svg() });
-	        var center = bbox.center();
-
-	        this.translate(p.x - center.x, p.y - center.y);
-	        return this;
-	    };
-
-	    // Efficiently auto-orient an element. This basically implements the orient=auto attribute
-	    // of markers. The easiest way of understanding on what this does is to imagine the element is an
-	    // arrowhead. Calling this method on the arrowhead makes it point to the `position` point while
-	    // being auto-oriented (properly rotated) towards the `reference` point.
-	    // `target` is the element relative to which the transformations are applied. Usually a viewport.
-	    VPrototype.translateAndAutoOrient = function(position, reference, target) {
-
-	        position = new Point(position);
-	        reference =  new Point(reference);
-	        target || (target = this.svg());
-
-	        // Clean-up previously set transformations except the scale. If we didn't clean up the
-	        // previous transformations then they'd add up with the old ones. Scale is an exception as
-	        // it doesn't add up, consider: `this.scale(2).scale(2).scale(2)`. The result is that the
-	        // element is scaled by the factor 2, not 8.
-	        var scale = this.scale();
-	        this.attr('transform', '');
-	        var bbox = this.getBBox({ target: target }).scale(scale.sx, scale.sy);
-
-	        // 1. Translate to origin.
-	        var translateToOrigin = V.createSVGTransform();
-	        translateToOrigin.setTranslate(-bbox.x - bbox.width / 2, -bbox.y - bbox.height / 2);
-
-	        // 2. Rotate around origin.
-	        var rotateAroundOrigin = V.createSVGTransform();
-	        var angle = position.angleBetween(reference, position.clone().offset(1, 0));
-	        if (angle) { rotateAroundOrigin.setRotate(angle, 0, 0); }
-
-	        // 3. Translate to the `position` + the offset (half my width) towards the `reference` point.
-	        var translateFromOrigin = V.createSVGTransform();
-	        var finalPosition = position.clone().move(reference, bbox.width / 2);
-	        translateFromOrigin.setTranslate(2 * position.x - finalPosition.x, 2 * position.y - finalPosition.y);
-
-	        // 4. Get the current transformation matrix of this node
-	        var ctm = this.getTransformToElement(target);
-
-	        // 5. Apply transformations and the scale
-	        var transform = V.createSVGTransform();
-	        transform.setMatrix(
-	            translateFromOrigin.matrix.multiply(
-	                rotateAroundOrigin.matrix.multiply(
-	                    translateToOrigin.matrix.multiply(
-	                        ctm.scale(scale.sx, scale.sy)))));
-
-	        this.attr('transform', V.matrixToTransformString(transform.matrix));
-
-	        return this;
-	    };
-
-	    VPrototype.animateAlongPath = function(attrs, path) {
-
-	        path = V.toNode(path);
-
-	        var id = V.ensureId(path);
-	        var animateMotion = V('animateMotion', attrs);
-	        var mpath = V('mpath', { 'xlink:href': '#' + id });
-
-	        animateMotion.append(mpath);
-
-	        this.append(animateMotion);
-	        try {
-	            animateMotion.node.beginElement();
-	        } catch (e) {
-	            // Fallback for IE 9.
-	            // Run the animation programmatically if FakeSmile (`http://leunen.me/fakesmile/`) present
-	            if (document.documentElement.getAttribute('smiling') === 'fake') {
-	                /* global getTargets:true, Animator:true, animators:true id2anim:true */
-	                // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
-	                var animation = animateMotion.node;
-	                animation.animators = [];
-
-	                var animationID = animation.getAttribute('id');
-	                if (animationID) { id2anim[animationID] = animation; }
-
-	                var targets = getTargets(animation);
-	                for (var i = 0, len = targets.length; i < len; i++) {
-	                    var target = targets[i];
-	                    var animator = new Animator(animation, target, i);
-	                    animators.push(animator);
-	                    animation.animators[i] = animator;
-	                    animator.register();
-	                }
-	            }
-	        }
-	        return this;
-	    };
-
-
-	    // Split a string into an array of tokens.
-	    // https://infra.spec.whatwg.org/#ascii-whitespace
-	    var noHTMLWhitespaceRegex = /[^\x20\t\r\n\f]+/g;
-	    function getTokenList(str) {
-	        if (!V.isString(str)) { return []; }
-	        return str.trim().match(noHTMLWhitespaceRegex) || [];
-	    }
-
-	    VPrototype.hasClass = function(className) {
-	        if (!V.isString(className)) { return false; }
-	        return this.node.classList.contains(className.trim());
-	    };
-
-	    VPrototype.addClass = function(className) {
-	        var ref;
-
-	        (ref = this.node.classList).add.apply(ref, getTokenList(className));
-	        return this;
-	    };
-
-	    VPrototype.removeClass = function(className) {
-	        var ref;
-
-	        (ref = this.node.classList).remove.apply(ref, getTokenList(className));
-	        return this;
-	    };
-
-	    VPrototype.toggleClass = function(className, toAdd) {
-	        var tokens = getTokenList(className);
-	        for (var i = 0; i < tokens.length; i++) {
-	            this.node.classList.toggle(tokens[i], toAdd);
-	        }
-	        return this;
-	    };
-
-	    // Interpolate path by discrete points. The precision of the sampling
-	    // is controlled by `interval`. In other words, `sample()` will generate
-	    // a point on the path starting at the beginning of the path going to the end
-	    // every `interval` pixels.
-	    // The sampler can be very useful for e.g. finding intersection between two
-	    // paths (finding the two closest points from two samples).
-	    VPrototype.sample = function(interval) {
-
-	        interval = interval || 1;
-	        var node = this.node;
-	        var length = node.getTotalLength();
-	        var samples = [];
-	        var distance = 0;
-	        var sample;
-	        while (distance < length) {
-	            sample = node.getPointAtLength(distance);
-	            samples.push({ x: sample.x, y: sample.y, distance: distance });
-	            distance += interval;
-	        }
-	        return samples;
-	    };
-
-	    VPrototype.convertToPath = function() {
-
-	        var path = V('path');
-	        path.attr(this.attr());
-	        var d = this.convertToPathData();
-	        if (d) {
-	            path.attr('d', d);
-	        }
-	        return path;
-	    };
-
-	    VPrototype.convertToPathData = function() {
-
-	        var tagName = this.tagName();
-
-	        switch (tagName) {
-	            case 'PATH':
-	                return this.attr('d');
-	            case 'LINE':
-	                return V.convertLineToPathData(this.node);
-	            case 'POLYGON':
-	                return V.convertPolygonToPathData(this.node);
-	            case 'POLYLINE':
-	                return V.convertPolylineToPathData(this.node);
-	            case 'ELLIPSE':
-	                return V.convertEllipseToPathData(this.node);
-	            case 'CIRCLE':
-	                return V.convertCircleToPathData(this.node);
-	            case 'RECT':
-	                return V.convertRectToPathData(this.node);
-	        }
-
-	        throw new Error(tagName + ' cannot be converted to PATH.');
-	    };
-
-	    V.prototype.toGeometryShape = function() {
-	        var x, y, width, height, cx, cy, r, rx, ry, points, d, x1, x2, y1, y2;
-	        switch (this.tagName()) {
-
-	            case 'RECT':
-	                x = parseFloat(this.attr('x')) || 0;
-	                y = parseFloat(this.attr('y')) || 0;
-	                width = parseFloat(this.attr('width')) || 0;
-	                height = parseFloat(this.attr('height')) || 0;
-	                return new Rect(x, y, width, height);
-
-	            case 'CIRCLE':
-	                cx = parseFloat(this.attr('cx')) || 0;
-	                cy = parseFloat(this.attr('cy')) || 0;
-	                r = parseFloat(this.attr('r')) || 0;
-	                return new Ellipse({ x: cx, y: cy }, r, r);
-
-	            case 'ELLIPSE':
-	                cx = parseFloat(this.attr('cx')) || 0;
-	                cy = parseFloat(this.attr('cy')) || 0;
-	                rx = parseFloat(this.attr('rx')) || 0;
-	                ry = parseFloat(this.attr('ry')) || 0;
-	                return new Ellipse({ x: cx, y: cy }, rx, ry);
-
-	            case 'POLYLINE':
-	                points = V.getPointsFromSvgNode(this);
-	                return new Polyline(points);
-
-	            case 'POLYGON':
-	                points = V.getPointsFromSvgNode(this);
-	                if (points.length > 1) { points.push(points[0]); }
-	                return new Polyline(points);
-
-	            case 'PATH':
-	                d = this.attr('d');
-	                if (!Path.isDataSupported(d)) { d = V.normalizePathData(d); }
-	                return new Path(d);
-
-	            case 'LINE':
-	                x1 = parseFloat(this.attr('x1')) || 0;
-	                y1 = parseFloat(this.attr('y1')) || 0;
-	                x2 = parseFloat(this.attr('x2')) || 0;
-	                y2 = parseFloat(this.attr('y2')) || 0;
-	                return new Line({ x: x1, y: y1 }, { x: x2, y: y2 });
-	        }
-
-	        // Anything else is a rectangle
-	        return this.getBBox();
-	    };
-
-	    // Find the intersection of a line starting in the center
-	    // of the SVG `node` ending in the point `ref`.
-	    // `target` is an SVG element to which `node`s transformations are relative to.
-	    // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
-	    // Returns a point in the `target` coordinate system (the same system as `ref` is in) if
-	    // an intersection is found. Returns `undefined` otherwise.
-	    VPrototype.findIntersection = function(ref, target) {
-
-	        var svg = this.svg().node;
-	        target = target || svg;
-	        var bbox = this.getBBox({ target: target });
-	        var center = bbox.center();
-
-	        if (!bbox.intersectionWithLineFromCenterToPoint(ref)) { return undefined; }
-
-	        var spot;
-	        var tagName = this.tagName();
-
-	        // Little speed up optimization for `<rect>` element. We do not do conversion
-	        // to path element and sampling but directly calculate the intersection through
-	        // a transformed geometrical rectangle.
-	        if (tagName === 'RECT') {
-
-	            var gRect = new Rect(
-	                parseFloat(this.attr('x') || 0),
-	                parseFloat(this.attr('y') || 0),
-	                parseFloat(this.attr('width')),
-	                parseFloat(this.attr('height'))
-	            );
-	            // Get the rect transformation matrix with regards to the SVG document.
-	            var rectMatrix = this.getTransformToElement(target);
-	            // Decompose the matrix to find the rotation angle.
-	            var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
-	            // Now we want to rotate the rectangle back so that we
-	            // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
-	            var resetRotation = svg.createSVGTransform();
-	            resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
-	            var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
-	            spot = (new Rect(rect)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
-
-	        } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
-
-	            var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
-	            var samples = pathNode.sample();
-	            var minDistance = Infinity;
-	            var closestSamples = [];
-
-	            var i, sample, gp, centerDistance, refDistance, distance;
-
-	            for (i = 0; i < samples.length; i++) {
-
-	                sample = samples[i];
-	                // Convert the sample point in the local coordinate system to the global coordinate system.
-	                gp = V.createSVGPoint(sample.x, sample.y);
-	                gp = gp.matrixTransform(this.getTransformToElement(target));
-	                sample = new Point(gp);
-	                centerDistance = sample.distance(center);
-	                // Penalize a higher distance to the reference point by 10%.
-	                // This gives better results. This is due to
-	                // inaccuracies introduced by rounding errors and getPointAtLength() returns.
-	                refDistance = sample.distance(ref) * 1.1;
-	                distance = centerDistance + refDistance;
-
-	                if (distance < minDistance) {
-	                    minDistance = distance;
-	                    closestSamples = [{ sample: sample, refDistance: refDistance }];
-	                } else if (distance < minDistance + 1) {
-	                    closestSamples.push({ sample: sample, refDistance: refDistance });
-	                }
-	            }
-
-	            closestSamples.sort(function(a, b) {
-	                return a.refDistance - b.refDistance;
-	            });
-
-	            if (closestSamples[0]) {
-	                spot = closestSamples[0].sample;
-	            }
-	        }
-
-	        return spot;
-	    };
-
-	    /**
-	     * @private
-	     * @param {string} name
-	     * @param {string} value
-	     * @returns {Vectorizer}
-	     */
-	    VPrototype.setAttribute = function(name, value) {
-
-	        var el = this.node;
-
-	        if (value === null) {
-	            this.removeAttr(name);
-	            return this;
-	        }
-
-	        var trueName = attributeNames[name];
-
-	        var ref = V.qualifyAttr(trueName);
-	        var ns = ref.ns;
-	        if (ns) {
-	            // Attribute names can be namespaced. E.g. `image` elements
-	            // have a `xlink:href` attribute to set the source of the image.
-	            el.setAttributeNS(ns, trueName, value);
-	        } else if (trueName === 'id') {
-	            el.id = value;
-	        } else {
-	            el.setAttribute(trueName, value);
-	        }
-
-	        return this;
-	    };
-
-	    // Create an SVG document element.
-	    // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
-	    V.createSvgDocument = function(content) {
-
-	        if (content) {
-	            var XMLString = "<svg xmlns=\"" + (ns.svg) + "\" xmlns:xlink=\"" + (ns.xlink) + "\" version=\"" + SVGVersion + "\">" + content + "</svg>";
-	            var ref = V.parseXML(XMLString, { async: false });
-	            var documentElement = ref.documentElement;
-	            return documentElement;
-	        }
-
-	        var svg = document.createElementNS(ns.svg, 'svg');
-	        svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
-	        svg.setAttribute('version', SVGVersion);
-	        return svg;
-	    };
-
-	    V.createSVGStyle = function(stylesheet) {
-	        var ref = V('style', { type: 'text/css' }, [
-	            V.createCDATASection(stylesheet)
-	        ]);
-	        var node = ref.node;
-	        return node;
-	    },
-
-	    V.createCDATASection = function(data) {
-	        if ( data === void 0 ) data = '';
-
-	        var xml = document.implementation.createDocument(null, 'xml', null);
-	        return xml.createCDATASection(data);
-	    };
-
-	    V.idCounter = 0;
-
-	    // A function returning a unique identifier for this client session with every call.
-	    V.uniqueId = function() {
-
-	        return 'v-' + (++V.idCounter);
-	    };
-
-	    V.toNode = function(el) {
-
-	        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
-	    };
-
-	    V.ensureId = function(node) {
-
-	        node = V.toNode(node);
-	        return node.id || (node.id = V.uniqueId());
-	    };
-
-	    // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
-	    // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
-	    // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
-	    // when you want to compare the actual DOM text content without having to add the unicode character in
-	    // the place of all spaces.
-	    V.sanitizeText = function(text) {
-
-	        return (text || '').replace(/ /g, '\u00A0');
-	    };
-
-	    V.isUndefined = function(value) {
-
-	        return typeof value === 'undefined';
-	    };
-
-	    V.isString = function(value) {
-
-	        return typeof value === 'string';
-	    };
-
-	    V.isObject = function(value) {
-
-	        return value && (typeof value === 'object');
-	    };
-
-	    V.isArray = Array.isArray;
-
-	    V.parseXML = function(data, opt) {
-
-	        opt = opt || {};
-
-	        var xml;
-
-	        try {
-	            var parser = new DOMParser();
-
-	            if (!V.isUndefined(opt.async)) {
-	                parser.async = opt.async;
-	            }
-
-	            xml = parser.parseFromString(data, 'text/xml');
-	        } catch (error) {
-	            xml = undefined;
-	        }
-
-	        if (!xml || xml.getElementsByTagName('parsererror').length) {
-	            throw new Error('Invalid XML: ' + data);
-	        }
-
-	        return xml;
-	    };
-
-	    // Create an empty object which does not inherit any properties from `Object.prototype`.
-	    // This is useful when we want to use an object as a dictionary without having to
-	    // worry about inherited properties such as `toString`, `valueOf` etc.
-	    var _attributeNames = Object.create(null);
-
-	    // List of attributes for which not to split camel case words.
-	    // It contains known SVG attribute names and may be extended with user-defined attribute names.
-	    [
-	        'baseFrequency',
-	        'baseProfile',
-	        'clipPathUnits',
-	        'contentScriptType',
-	        'contentStyleType',
-	        'diffuseConstant',
-	        'edgeMode',
-	        'externalResourcesRequired',
-	        'filterRes', // deprecated
-	        'filterUnits',
-	        'gradientTransform',
-	        'gradientUnits',
-	        'kernelMatrix',
-	        'kernelUnitLength',
-	        'keyPoints',
-	        'lengthAdjust',
-	        'limitingConeAngle',
-	        'markerHeight',
-	        'markerUnits',
-	        'markerWidth',
-	        'maskContentUnits',
-	        'maskUnits',
-	        'numOctaves',
-	        'pathLength',
-	        'patternContentUnits',
-	        'patternTransform',
-	        'patternUnits',
-	        'pointsAtX',
-	        'pointsAtY',
-	        'pointsAtZ',
-	        'preserveAlpha',
-	        'preserveAspectRatio',
-	        'primitiveUnits',
-	        'refX',
-	        'refY',
-	        'requiredExtensions',
-	        'requiredFeatures',
-	        'specularConstant',
-	        'specularExponent',
-	        'spreadMethod',
-	        'startOffset',
-	        'stdDeviation',
-	        'stitchTiles',
-	        'surfaceScale',
-	        'systemLanguage',
-	        'tableValues',
-	        'targetX',
-	        'targetY',
-	        'textLength',
-	        'viewBox',
-	        'viewTarget', // deprecated
-	        'xChannelSelector',
-	        'yChannelSelector',
-	        'zoomAndPan' // deprecated
-	    ].forEach(function (name) { return _attributeNames[name] = name; });
-
-	    var attributeNames = new Proxy(_attributeNames, {
-	        get: function get(cache, name) {
-	            // The cache is a dictionary of attribute names. See `_attributeNames` above.
-	            // If the attribute name is not in the cache, it means that it is not
-	            // a camel-case attribute name. In that case, we need to convert
-	            // the attribute name to dash-separated words.
-	            if (!V.supportCamelCaseAttributes) { return name; }
-	            if (name in cache) {
-	                return cache[name];
-	            }
-	            // Convert camel case to dash-separated words.
-	            return (cache[name] = name.replace(/[A-Z]/g, '-$&').toLowerCase());
-	        }
-	    });
-
-	    // Note: The `attributeNames` and `supportCamelCaseAttributes` properties are not enumerable
-	    // in this version to avoid breaking changes. They will be made enumerable in the next major version.
-
-	    // Dictionary of attribute names
-	    Object.defineProperty(V, 'attributeNames', {
-	        value: attributeNames,
-	        writable: false,
-	    });
-
-	    // Should camel case attributes be supported?
-	    Object.defineProperty(V, 'supportCamelCaseAttributes', {
-	        value: false,
-	        writable: true,
-	    });
-
-	    /**
-	     * @param {string} name
-	     * @returns {{ns: string|null, local: string}} namespace and attribute name
-	     */
-	    V.qualifyAttr = function(name) {
-
-	        if (name.indexOf(':') !== -1) {
-	            var combinedKey = name.split(':');
-	            return {
-	                ns: ns[combinedKey[0]],
-	                local: combinedKey[1]
-	            };
-	        }
-
-	        return {
-	            ns: null,
-	            local: name
-	        };
-	    };
-
-	    // Note: This regex allows multiple commas as separator which is incorrect in SVG
-	    // This regex is used by `split()`, so it doesn't need to use /g
-	    V.transformSeparatorRegex = /[ ,]+/;
-	    // Note: All following regexes are more restrictive than SVG specification
-	    // ReDoS mitigation: Use an anchor at the beginning of the match
-	    // ReDoS mitigation: Avoid backtracking (uses `[^()]+` instead of `.*?`)
-	    // ReDoS mitigation: Don't match initial `(` inside repeated part
-	    // The following regex needs to use /g (= cannot use capturing groups)
-	    V.transformRegex = /\b\w+\([^()]+\)/g;
-	    // The following regexes need to use capturing groups (= cannot use /g)
-	    V.transformFunctionRegex = /\b(\w+)\(([^()]+)\)/;
-	    V.transformTranslateRegex = /\btranslate\(([^()]+)\)/;
-	    V.transformRotateRegex = /\brotate\(([^()]+)\)/;
-	    V.transformScaleRegex = /\bscale\(([^()]+)\)/;
-
-	    V.transformStringToMatrix = function(transform) {
-
-	        // Initialize result matrix as identity matrix
-	        var transformationMatrix = V.createSVGMatrix();
-
-	        // Note: Multiple transform functions are allowed in `transform` string
-	        // `match()` returns `null` if none found
-	        var transformMatches = transform && transform.match(V.transformRegex);
-	        if (!transformMatches) {
-	            // Return identity matrix
-	            return transformationMatrix;
-	        }
-
-	        var numMatches = transformMatches.length;
-	        for (var i = 0; i < numMatches; i++) {
-
-	            var transformMatch = transformMatches[i];
-	            // Use same regex as above, but with capturing groups
-	            // `match()` returns values of capturing groups as `[1]`, `[2]`
-	            var transformFunctionMatch = transformMatch.match(V.transformFunctionRegex);
-	            if (transformFunctionMatch) {
-
-	                var sx = (void 0), sy = (void 0), tx = (void 0), ty = (void 0), angle = (void 0);
-	                var ctm = V.createSVGMatrix();
-	                var transformFunction = transformFunctionMatch[1].toLowerCase();
-	                var args = transformFunctionMatch[2].split(V.transformSeparatorRegex);
-	                switch (transformFunction) {
-
-	                    case 'scale':
-	                        sx = parseFloat(args[0]);
-	                        sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
-	                        ctm = ctm.scaleNonUniform(sx, sy);
-	                        break;
-
-	                    case 'translate':
-	                        tx = parseFloat(args[0]);
-	                        ty = parseFloat(args[1]);
-	                        ctm = ctm.translate(tx, ty);
-	                        break;
-
-	                    case 'rotate':
-	                        angle = parseFloat(args[0]);
-	                        tx = parseFloat(args[1]) || 0;
-	                        ty = parseFloat(args[2]) || 0;
-	                        if (tx !== 0 || ty !== 0) {
-	                            ctm = ctm.translate(tx, ty).rotate(angle).translate(-tx, -ty);
-	                        } else {
-	                            ctm = ctm.rotate(angle);
-	                        }
-	                        break;
-
-	                    case 'skewx':
-	                        angle = parseFloat(args[0]);
-	                        ctm = ctm.skewX(angle);
-	                        break;
-
-	                    case 'skewy':
-	                        angle = parseFloat(args[0]);
-	                        ctm = ctm.skewY(angle);
-	                        break;
-
-	                    case 'matrix':
-	                        ctm.a = parseFloat(args[0]);
-	                        ctm.b = parseFloat(args[1]);
-	                        ctm.c = parseFloat(args[2]);
-	                        ctm.d = parseFloat(args[3]);
-	                        ctm.e = parseFloat(args[4]);
-	                        ctm.f = parseFloat(args[5]);
-	                        break;
-
-	                    default:
-	                        continue;
-	                }
-
-	                // Multiply current transformation into result matrix
-	                transformationMatrix = transformationMatrix.multiply(ctm);
-	            }
-
-	        }
-	        return transformationMatrix;
-	    };
-
-	    V.matrixToTransformString = function(matrix) {
-	        matrix || (matrix = true);
-
-	        return 'matrix(' +
-	            (matrix.a !== undefined ? matrix.a : 1) + ',' +
-	            (matrix.b !== undefined ? matrix.b : 0) + ',' +
-	            (matrix.c !== undefined ? matrix.c : 0) + ',' +
-	            (matrix.d !== undefined ? matrix.d : 1) + ',' +
-	            (matrix.e !== undefined ? matrix.e : 0) + ',' +
-	            (matrix.f !== undefined ? matrix.f : 0) +
-	            ')';
-	    };
-
-	    V.parseTransformString = function(transform) {
-
-	        var translate, rotate, scale;
-
-	        if (transform) {
-
-	            var separator = V.transformSeparatorRegex;
-
-	            // Special handling for `transform` with one or more matrix functions
-	            if (transform.trim().indexOf('matrix') >= 0) {
-
-	                // Convert EVERYTHING in `transform` string to a matrix
-	                // Will combine ALL matrixes * ALL translates * ALL scales * ALL rotates
-	                // Note: In non-matrix case, we only take first one of each (if any)
-	                var matrix = V.transformStringToMatrix(transform);
-	                var decomposedMatrix = V.decomposeMatrix(matrix);
-
-	                // Extract `translate`, `scale`, `rotate` from matrix
-	                translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
-	                scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
-	                rotate = [decomposedMatrix.rotation];
-
-	                // Rewrite `transform` string in `translate scale rotate` format
-	                var transformations = [];
-	                if (translate[0] !== 0 || translate[1] !== 0) {
-	                    transformations.push('translate(' + translate + ')');
-	                }
-	                if (scale[0] !== 1 || scale[1] !== 1) {
-	                    transformations.push('scale(' + scale + ')');
-	                }
-	                if (rotate[0] !== 0) {
-	                    transformations.push('rotate(' + rotate + ')');
-	                }
-	                transform = transformations.join(' ');
-
-	            } else {
-
-	                // Extract `translate`, `rotate`, `scale` functions from `transform` string
-	                // Note: We only detect the first match of each (if any)
-	                // `match()` returns value of capturing group as `[1]`
-	                var translateMatch = transform.match(V.transformTranslateRegex);
-	                if (translateMatch) {
-	                    translate = translateMatch[1].split(separator);
-	                }
-	                var rotateMatch = transform.match(V.transformRotateRegex);
-	                if (rotateMatch) {
-	                    rotate = rotateMatch[1].split(separator);
-	                }
-	                var scaleMatch = transform.match(V.transformScaleRegex);
-	                if (scaleMatch) {
-	                    scale = scaleMatch[1].split(separator);
-	                }
-	            }
-	        }
-
-	        var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
-
-	        return {
-	            value: transform,
-	            translate: {
-	                tx: (translate && translate[0]) ? parseInt(translate[0], 10) : 0,
-	                ty: (translate && translate[1]) ? parseInt(translate[1], 10) : 0
-	            },
-	            rotate: {
-	                angle: (rotate && rotate[0]) ? parseInt(rotate[0], 10) : 0,
-	                cx: (rotate && rotate[1]) ? parseInt(rotate[1], 10) : undefined,
-	                cy: (rotate && rotate[2]) ? parseInt(rotate[2], 10) : undefined
-	            },
-	            scale: {
-	                sx: sx,
-	                sy: (scale && scale[1]) ? parseFloat(scale[1]) : sx
-	            }
-	        };
-	    };
-
-	    V.deltaTransformPoint = function(matrix, point) {
-
-	        var dx = point.x * matrix.a + point.y * matrix.c + 0;
-	        var dy = point.x * matrix.b + point.y * matrix.d + 0;
-	        return { x: dx, y: dy };
-	    };
-
-	    V.decomposeMatrix = function(matrix) {
-
-	        // @see https://gist.github.com/2052247
-
-	        // calculate delta transform point
-	        var px = V.deltaTransformPoint(matrix, { x: 0, y: 1 });
-	        var py = V.deltaTransformPoint(matrix, { x: 1, y: 0 });
-
-	        // calculate skew
-	        var skewX = ((180 / PI) * atan2(px.y, px.x) - 90);
-	        var skewY = ((180 / PI) * atan2(py.y, py.x));
-
-	        return {
-
-	            translateX: matrix.e,
-	            translateY: matrix.f,
-	            scaleX: sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
-	            scaleY: sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
-	            skewX: skewX,
-	            skewY: skewY,
-	            rotation: skewX // rotation is the same as skew x
-	        };
-	    };
-
-	    // Return the `scale` transformation from the following equation:
-	    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
-	    V.matrixToScale = function(matrix) {
-
-	        var a, b, c, d;
-	        if (matrix) {
-	            a = V.isUndefined(matrix.a) ? 1 : matrix.a;
-	            d = V.isUndefined(matrix.d) ? 1 : matrix.d;
-	            b = matrix.b;
-	            c = matrix.c;
-	        } else {
-	            a = d = 1;
-	        }
-	        return {
-	            sx: b ? sqrt(a * a + b * b) : a,
-	            sy: c ? sqrt(c * c + d * d) : d
-	        };
-	    };
-
-	    // Return the `rotate` transformation from the following equation:
-	    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
-	    V.matrixToRotate = function(matrix) {
-
-	        var p = { x: 0, y: 1 };
-	        if (matrix) {
-	            p = V.deltaTransformPoint(matrix, p);
-	        }
-
-	        return {
-	            angle: normalizeAngle(toDeg(atan2(p.y, p.x)) - 90)
-	        };
-	    };
-
-	    // Return the `translate` transformation from the following equation:
-	    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
-	    V.matrixToTranslate = function(matrix) {
-
-	        return {
-	            tx: (matrix && matrix.e) || 0,
-	            ty: (matrix && matrix.f) || 0
-	        };
-	    };
-
-	    V.isV = function(object) {
-
-	        return object instanceof V;
-	    };
-
-	    // For backwards compatibility:
-	    V.isVElement = V.isV;
-
-	    // Element implements `getBBox()`, `getCTM()` and `getScreenCTM()`
-	    // https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement
-	    V.isSVGGraphicsElement = function(node) {
-	        if (!node) { return false; }
-	        node = V.toNode(node);
-	        // IE/Edge does not implement SVGGraphicsElement interface, thus check for `getScreenCTM` below
-	        return node instanceof SVGElement && typeof node.getScreenCTM === 'function';
-	    };
-
-	    var svgDocument = V('svg').node;
-
-	    V.createSVGMatrix = function(matrix) {
-
-	        var svgMatrix = svgDocument.createSVGMatrix();
-	        for (var component in matrix) {
-	            svgMatrix[component] = matrix[component];
-	        }
-
-	        return svgMatrix;
-	    };
-
-	    V.createSVGTransform = function(matrix) {
-
-	        if (!V.isUndefined(matrix)) {
-
-	            if (!(matrix instanceof SVGMatrix)) {
-	                matrix = V.createSVGMatrix(matrix);
-	            }
-
-	            return svgDocument.createSVGTransformFromMatrix(matrix);
-	        }
-
-	        return svgDocument.createSVGTransform();
-	    };
-
-	    V.createSVGPoint = function(x, y) {
-
-	        var p = svgDocument.createSVGPoint();
-	        p.x = x;
-	        p.y = y;
-	        return p;
-	    };
-
-	    V.transformRect = function(r, matrix) {
-
-	        var p = svgDocument.createSVGPoint();
-
-	        p.x = r.x;
-	        p.y = r.y;
-	        var corner1 = p.matrixTransform(matrix);
-
-	        p.x = r.x + r.width;
-	        p.y = r.y;
-	        var corner2 = p.matrixTransform(matrix);
-
-	        p.x = r.x + r.width;
-	        p.y = r.y + r.height;
-	        var corner3 = p.matrixTransform(matrix);
-
-	        p.x = r.x;
-	        p.y = r.y + r.height;
-	        var corner4 = p.matrixTransform(matrix);
-
-	        var minX = min(corner1.x, corner2.x, corner3.x, corner4.x);
-	        var maxX = max(corner1.x, corner2.x, corner3.x, corner4.x);
-	        var minY = min(corner1.y, corner2.y, corner3.y, corner4.y);
-	        var maxY = max(corner1.y, corner2.y, corner3.y, corner4.y);
-
-	        return new Rect(minX, minY, maxX - minX, maxY - minY);
-	    };
-
-	    V.transformPoint = function(p, matrix) {
-
-	        return new Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
-	    };
-
-	    V.transformLine = function(l, matrix) {
-
-	        return new Line(
-	            V.transformPoint(l.start, matrix),
-	            V.transformPoint(l.end, matrix)
-	        );
-	    };
-
-	    V.transformPolyline = function(p, matrix) {
-
-	        var inPoints = (p instanceof Polyline) ? p.points : p;
-	        if (!V.isArray(inPoints)) { inPoints = []; }
-	        var outPoints = [];
-	        for (var i = 0, n = inPoints.length; i < n; i++) { outPoints[i] = V.transformPoint(inPoints[i], matrix); }
-	        return new Polyline(outPoints);
-	    };
-
-	    // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
-	    // an object (`{ fill: 'blue', stroke: 'red' }`).
-	    V.styleToObject = function(styleString) {
-	        var ret = {};
-	        var styles = styleString.split(';');
-	        for (var i = 0; i < styles.length; i++) {
-	            var style = styles[i];
-	            var pair = style.split('=');
-	            ret[pair[0].trim()] = pair[1].trim();
-	        }
-	        return ret;
-	    };
-
-	    // Inspired by d3.js https://github.com/mbostock/d3/blob/master/src/svg/arc.js
-	    V.createSlicePathData = function(innerRadius, outerRadius, startAngle, endAngle) {
-
-	        var svgArcMax = 2 * PI - 1e-6;
-	        var r0 = innerRadius;
-	        var r1 = outerRadius;
-	        var a0 = startAngle;
-	        var a1 = endAngle;
-	        var da = (a1 < a0 && (da = a0, a0 = a1, a1 = da), a1 - a0);
-	        var df = da < PI ? '0' : '1';
-	        var c0 = cos(a0);
-	        var s0 = sin(a0);
-	        var c1 = cos(a1);
-	        var s1 = sin(a1);
-
-	        return (da >= svgArcMax)
-	            ? (r0
-	                ? 'M0,' + r1
-	                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
-	                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
-	                + 'M0,' + r0
-	                + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + (-r0)
-	                + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + r0
-	                + 'Z'
-	                : 'M0,' + r1
-	                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
-	                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
-	                + 'Z')
-	            : (r0
-	                ? 'M' + r1 * c0 + ',' + r1 * s0
-	                + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
-	                + 'L' + r0 * c1 + ',' + r0 * s1
-	                + 'A' + r0 + ',' + r0 + ' 0 ' + df + ',0 ' + r0 * c0 + ',' + r0 * s0
-	                + 'Z'
-	                : 'M' + r1 * c0 + ',' + r1 * s0
-	                + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
-	                + 'L0,0'
-	                + 'Z');
-	    };
-
-	    // Merge attributes from object `b` with attributes in object `a`.
-	    // Note that this modifies the object `a`.
-	    // Also important to note that attributes are merged but CSS classes are concatenated.
-	    V.mergeAttrs = function(a, b) {
-
-	        for (var attr in b) {
-
-	            if (attr === 'class') {
-	                // Concatenate classes.
-	                a[attr] = a[attr] ? a[attr] + ' ' + b[attr] : b[attr];
-	            } else if (attr === 'style') {
-	                // `style` attribute can be an object.
-	                if (V.isObject(a[attr]) && V.isObject(b[attr])) {
-	                    // `style` stored in `a` is an object.
-	                    a[attr] = V.mergeAttrs(a[attr], b[attr]);
-	                } else if (V.isObject(a[attr])) {
-	                    // `style` in `a` is an object but it's a string in `b`.
-	                    // Convert the style represented as a string to an object in `b`.
-	                    a[attr] = V.mergeAttrs(a[attr], V.styleToObject(b[attr]));
-	                } else if (V.isObject(b[attr])) {
-	                    // `style` in `a` is a string, in `b` it's an object.
-	                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), b[attr]);
-	                } else {
-	                    // Both styles are strings.
-	                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), V.styleToObject(b[attr]));
-	                }
-	            } else {
-	                a[attr] = b[attr];
-	            }
-	        }
-
-	        return a;
-	    };
-
-	    V.annotateString = function(t, annotations, opt) {
-
-	        annotations = annotations || [];
-	        opt = opt || {};
-
-	        var offset = opt.offset || 0;
-	        var compacted = [];
-	        var batch;
-	        var ret = [];
-	        var item;
-	        var prev;
-
-	        for (var i = 0; i < t.length; i++) {
-
-	            item = ret[i] = t[i];
-
-	            for (var j = 0; j < annotations.length; j++) {
-
-	                var annotation = annotations[j];
-	                var start = annotation.start + offset;
-	                var end = annotation.end + offset;
-
-	                if (i >= start && i < end) {
-	                    // Annotation applies.
-	                    if (V.isObject(item)) {
-	                        // There is more than one annotation to be applied => Merge attributes.
-	                        item.attrs = V.mergeAttrs(V.mergeAttrs({}, item.attrs), annotation.attrs);
-	                    } else {
-	                        item = ret[i] = { t: t[i], attrs: annotation.attrs };
-	                    }
-	                    if (opt.includeAnnotationIndices) {
-	                        (item.annotations || (item.annotations = [])).push(j);
-	                    }
-	                }
-	            }
-
-	            prev = ret[i - 1];
-
-	            if (!prev) {
-
-	                batch = item;
-
-	            } else if (V.isObject(item) && V.isObject(prev)) {
-	                // Both previous item and the current one are annotations. If the attributes
-	                // didn't change, merge the text.
-	                if (JSON.stringify(item.attrs) === JSON.stringify(prev.attrs)) {
-	                    batch.t += item.t;
-	                } else {
-	                    compacted.push(batch);
-	                    batch = item;
-	                }
-
-	            } else if (V.isObject(item)) {
-	                // Previous item was a string, current item is an annotation.
-	                compacted.push(batch);
-	                batch = item;
-
-	            } else if (V.isObject(prev)) {
-	                // Previous item was an annotation, current item is a string.
-	                compacted.push(batch);
-	                batch = item;
-
-	            } else {
-	                // Both previous and current item are strings.
-	                batch = (batch || '') + item;
-	            }
-	        }
-
-	        if (batch) {
-	            compacted.push(batch);
-	        }
-
-	        return compacted;
-	    };
-
-	    V.findAnnotationsAtIndex = function(annotations, index) {
-
-	        var found = [];
-
-	        if (annotations) {
-
-	            annotations.forEach(function(annotation) {
-
-	                if (annotation.start < index && index <= annotation.end) {
-	                    found.push(annotation);
-	                }
-	            });
-	        }
-
-	        return found;
-	    };
-
-	    V.findAnnotationsBetweenIndexes = function(annotations, start, end) {
-
-	        var found = [];
-
-	        if (annotations) {
-
-	            annotations.forEach(function(annotation) {
-
-	                if ((start >= annotation.start && start < annotation.end) || (end > annotation.start && end <= annotation.end) || (annotation.start >= start && annotation.end < end)) {
-	                    found.push(annotation);
-	                }
-	            });
-	        }
-
-	        return found;
-	    };
-
-	    // Shift all the text annotations after character `index` by `offset` positions.
-	    V.shiftAnnotations = function(annotations, index, offset) {
-
-	        if (annotations) {
-
-	            annotations.forEach(function(annotation) {
-
-	                if (annotation.start < index && annotation.end >= index) {
-	                    annotation.end += offset;
-	                } else if (annotation.start >= index) {
-	                    annotation.start += offset;
-	                    annotation.end += offset;
-	                }
-	            });
-	        }
-
-	        return annotations;
-	    };
-
-	    V.convertLineToPathData = function(line) {
-
-	        line = V(line);
-	        var d = [
-	            'M', line.attr('x1'), line.attr('y1'),
-	            'L', line.attr('x2'), line.attr('y2')
-	        ].join(' ');
-	        return d;
-	    };
-
-	    V.convertPolygonToPathData = function(polygon) {
-
-	        var points = V.getPointsFromSvgNode(polygon);
-	        if (points.length === 0) { return null; }
-
-	        return V.svgPointsToPath(points) + ' Z';
-	    };
-
-	    V.convertPolylineToPathData = function(polyline) {
-
-	        var points = V.getPointsFromSvgNode(polyline);
-	        if (points.length === 0) { return null; }
-
-	        return V.svgPointsToPath(points);
-	    };
-
-	    V.svgPointsToPath = function(points) {
-
-	        for (var i = 0, n = points.length; i < n; i++) {
-	            points[i] = points[i].x + ' ' + points[i].y;
-	        }
-
-	        return 'M ' + points.join(' L');
-	    };
-
-	    V.getPointsFromSvgNode = function(node) {
-
-	        node = V.toNode(node);
-	        var points = [];
-	        var nodePoints = node.points;
-	        if (nodePoints) {
-	            for (var i = 0, n = nodePoints.numberOfItems; i < n; i++) {
-	                points.push(nodePoints.getItem(i));
-	            }
-	        }
-
-	        return points;
-	    };
-
-	    V.KAPPA = 0.551784;
-
-	    V.convertCircleToPathData = function(circle) {
-
-	        circle = V(circle);
-	        var cx = parseFloat(circle.attr('cx')) || 0;
-	        var cy = parseFloat(circle.attr('cy')) || 0;
-	        var r = parseFloat(circle.attr('r'));
-	        var cd = r * V.KAPPA; // Control distance.
-
-	        var d = [
-	            'M', cx, cy - r,    // Move to the first point.
-	            'C', cx + cd, cy - r, cx + r, cy - cd, cx + r, cy, // I. Quadrant.
-	            'C', cx + r, cy + cd, cx + cd, cy + r, cx, cy + r, // II. Quadrant.
-	            'C', cx - cd, cy + r, cx - r, cy + cd, cx - r, cy, // III. Quadrant.
-	            'C', cx - r, cy - cd, cx - cd, cy - r, cx, cy - r, // IV. Quadrant.
-	            'Z'
-	        ].join(' ');
-	        return d;
-	    };
-
-	    V.convertEllipseToPathData = function(ellipse) {
-
-	        ellipse = V(ellipse);
-	        var cx = parseFloat(ellipse.attr('cx')) || 0;
-	        var cy = parseFloat(ellipse.attr('cy')) || 0;
-	        var rx = parseFloat(ellipse.attr('rx'));
-	        var ry = parseFloat(ellipse.attr('ry')) || rx;
-	        var cdx = rx * V.KAPPA; // Control distance x.
-	        var cdy = ry * V.KAPPA; // Control distance y.
-
-	        var d = [
-	            'M', cx, cy - ry,    // Move to the first point.
-	            'C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy, // I. Quadrant.
-	            'C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry, // II. Quadrant.
-	            'C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy, // III. Quadrant.
-	            'C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry, // IV. Quadrant.
-	            'Z'
-	        ].join(' ');
-	        return d;
-	    };
-
-	    V.convertRectToPathData = function(rect) {
-
-	        rect = V(rect);
-
-	        return V.rectToPath({
-	            x: parseFloat(rect.attr('x')) || 0,
-	            y: parseFloat(rect.attr('y')) || 0,
-	            width: parseFloat(rect.attr('width')) || 0,
-	            height: parseFloat(rect.attr('height')) || 0,
-	            rx: parseFloat(rect.attr('rx')) || 0,
-	            ry: parseFloat(rect.attr('ry')) || 0
-	        });
-	    };
-
-	    // Convert a rectangle to SVG path commands. `r` is an object of the form:
-	    // `{ x: [number], y: [number], width: [number], height: [number], top-ry: [number], top-ry: [number], bottom-rx: [number], bottom-ry: [number] }`,
-	    // where `x, y, width, height` are the usual rectangle attributes and [top-/bottom-]rx/ry allows for
-	    // specifying radius of the rectangle for all its sides (as opposed to the built-in SVG rectangle
-	    // that has only `rx` and `ry` attributes).
-	    V.rectToPath = function(r) {
-
-	        var d;
-	        var x = r.x;
-	        var y = r.y;
-	        var width = r.width;
-	        var height = r.height;
-	        var topRx = min(r.rx || r['top-rx'] || 0, width / 2);
-	        var bottomRx = min(r.rx || r['bottom-rx'] || 0, width / 2);
-	        var topRy = min(r.ry || r['top-ry'] || 0, height / 2);
-	        var bottomRy = min(r.ry || r['bottom-ry'] || 0, height / 2);
-
-	        if (topRx || bottomRx || topRy || bottomRy) {
-	            d = [
-	                'M', x, y + topRy,
-	                'v', height - topRy - bottomRy,
-	                'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
-	                'h', width - 2 * bottomRx,
-	                'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
-	                'v', -(height - bottomRy - topRy),
-	                'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
-	                'h', -(width - 2 * topRx),
-	                'a', topRx, topRy, 0, 0, 0, -topRx, topRy,
-	                'Z'
-	            ];
-	        } else {
-	            d = [
-	                'M', x, y,
-	                'H', x + width,
-	                'V', y + height,
-	                'H', x,
-	                'V', y,
-	                'Z'
-	            ];
-	        }
-
-	        return d.join(' ');
-	    };
-
-	    // Take a path data string
-	    // Return a normalized path data string
-	    // If data cannot be parsed, return 'M 0 0'
-	    // Adapted from Rappid normalizePath polyfill
-	    // Highly inspired by Raphael Library (www.raphael.com)
-	    V.normalizePathData = (function() {
-
-	        var spaces = '\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029';
-	        var pathCommand = new RegExp('([a-z])[' + spaces + ',]*((-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?[' + spaces + ']*,?[' + spaces + ']*)+)', 'ig');
-	        var pathValues = new RegExp('(-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?)[' + spaces + ']*,?[' + spaces + ']*', 'ig');
-
-	        var math = Math;
-	        var PI = math.PI;
-	        var sin = math.sin;
-	        var cos = math.cos;
-	        var tan = math.tan;
-	        var asin = math.asin;
-	        var sqrt = math.sqrt;
-	        var abs = math.abs;
-
-	        function q2c(x1, y1, ax, ay, x2, y2) {
-
-	            var _13 = 1 / 3;
-	            var _23 = 2 / 3;
-	            return [(_13 * x1) + (_23 * ax), (_13 * y1) + (_23 * ay), (_13 * x2) + (_23 * ax), (_13 * y2) + (_23 * ay), x2, y2];
-	        }
-
-	        function rotate(x, y, rad) {
-
-	            var X = (x * cos(rad)) - (y * sin(rad));
-	            var Y = (x * sin(rad)) + (y * cos(rad));
-	            return { x: X, y: Y };
-	        }
-
-	        function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
-	            // for more information of where this math came from visit:
-	            // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-	            var _120 = (PI * 120) / 180;
-	            var rad = (PI / 180) * (+angle || 0);
-	            var res = [];
-	            var xy;
-
-	            if (!recursive) {
-	                xy = rotate(x1, y1, -rad);
-	                x1 = xy.x;
-	                y1 = xy.y;
-
-	                xy = rotate(x2, y2, -rad);
-	                x2 = xy.x;
-	                y2 = xy.y;
-
-	                var x = (x1 - x2) / 2;
-	                var y = (y1 - y2) / 2;
-	                var h = ((x * x) / (rx * rx)) + ((y * y) / (ry * ry));
-
-	                if (h > 1) {
-	                    h = sqrt(h);
-	                    rx = h * rx;
-	                    ry = h * ry;
-	                }
-
-	                var rx2 = rx * rx;
-	                var ry2 = ry * ry;
-
-	                var k = ((large_arc_flag == sweep_flag) ? -1 : 1) * sqrt(abs(((rx2 * ry2) - (rx2 * y * y) - (ry2 * x * x)) / ((rx2 * y * y) + (ry2 * x * x))));
-
-	                var cx = ((k * rx * y) / ry) + ((x1 + x2) / 2);
-	                var cy = ((k * -ry * x) / rx) + ((y1 + y2) / 2);
-
-	                var f1 = asin(((y1 - cy) / ry).toFixed(9));
-	                var f2 = asin(((y2 - cy) / ry).toFixed(9));
-
-	                f1 = ((x1 < cx) ? (PI - f1) : f1);
-	                f2 = ((x2 < cx) ? (PI - f2) : f2);
-
-	                if (f1 < 0) { f1 = (PI * 2) + f1; }
-	                if (f2 < 0) { f2 = (PI * 2) + f2; }
-
-	                if (sweep_flag && (f1 > f2)) { f1 = f1 - (PI * 2); }
-	                if (!sweep_flag && (f2 > f1)) { f2 = f2 - (PI * 2); }
-
-	            } else {
-	                f1 = recursive[0];
-	                f2 = recursive[1];
-	                cx = recursive[2];
-	                cy = recursive[3];
-	            }
-
-	            var df = f2 - f1;
-	            if (abs(df) > _120) {
-	                var f2old = f2;
-	                var x2old = x2;
-	                var y2old = y2;
-	                f2 = f1 + (_120 * ((sweep_flag && (f2 > f1)) ? 1 : -1));
-	                x2 = cx + (rx * cos(f2));
-	                y2 = cy + (ry * sin(f2));
-	                res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
-	            }
-
-	            df = f2 - f1;
-
-	            var c1 = cos(f1);
-	            var s1 = sin(f1);
-	            var c2 = cos(f2);
-	            var s2 = sin(f2);
-	            var t = tan(df / 4);
-	            var hx = (4 / 3) * (rx * t);
-	            var hy = (4 / 3) * (ry * t);
-	            var m1 = [x1, y1];
-	            var m2 = [x1 + (hx * s1), y1 - (hy * c1)];
-	            var m3 = [x2 + (hx * s2), y2 - (hy * c2)];
-	            var m4 = [x2, y2];
-
-	            m2[0] = (2 * m1[0]) - m2[0];
-	            m2[1] = (2 * m1[1]) - m2[1];
-
-	            if (recursive) {
-	                return [m2, m3, m4].concat(res);
-	            } else {
-	                res = [m2, m3, m4].concat(res).join().split(',');
-	                var newres = [];
-	                var ii = res.length;
-	                for (var i = 0; i < ii; i++) {
-	                    newres[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
-	                }
-	                return newres;
-	            }
-	        }
-
-	        function parsePathString(pathString) {
-
-	            if (!pathString) { return null; }
-
-	            var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, q: 4, s: 4, t: 2, v: 1, z: 0 };
-	            var data = [];
-
-	            String(pathString).replace(pathCommand, function(a, b, c) {
-
-	                var params = [];
-	                var name = b.toLowerCase();
-	                c.replace(pathValues, function(a, b) {
-	                    if (b) { params.push(+b); }
-	                });
-
-	                if ((name === 'm') && (params.length > 2)) {
-	                    data.push([b].concat(params.splice(0, 2)));
-	                    name = 'l';
-	                    b = ((b === 'm') ? 'l' : 'L');
-	                }
-
-	                while (params.length >= paramCounts[name]) {
-	                    data.push([b].concat(params.splice(0, paramCounts[name])));
-	                    if (!paramCounts[name]) { break; }
-	                }
-	            });
-
-	            return data;
-	        }
-
-	        function pathToAbsolute(pathArray) {
-
-	            if (!Array.isArray(pathArray) || !Array.isArray(pathArray && pathArray[0])) { // rough assumption
-	                pathArray = parsePathString(pathArray);
-	            }
-
-	            // if invalid string, return 'M 0 0'
-	            if (!pathArray || !pathArray.length) { return [['M', 0, 0]]; }
-
-	            var res = [];
-	            var x = 0;
-	            var y = 0;
-	            var mx = 0;
-	            var my = 0;
-	            var start = 0;
-	            var pa0;
-
-	            var ii = pathArray.length;
-	            for (var i = start; i < ii; i++) {
-
-	                var r = [];
-	                res.push(r);
-
-	                var pa = pathArray[i];
-	                pa0 = pa[0];
-
-	                if (pa0 != pa0.toUpperCase()) {
-	                    r[0] = pa0.toUpperCase();
-
-	                    var jj;
-	                    var j;
-	                    switch (r[0]) {
-	                        case 'A':
-	                            r[1] = pa[1];
-	                            r[2] = pa[2];
-	                            r[3] = pa[3];
-	                            r[4] = pa[4];
-	                            r[5] = pa[5];
-	                            r[6] = +pa[6] + x;
-	                            r[7] = +pa[7] + y;
-	                            break;
-
-	                        case 'V':
-	                            r[1] = +pa[1] + y;
-	                            break;
-
-	                        case 'H':
-	                            r[1] = +pa[1] + x;
-	                            break;
-
-	                        case 'M':
-	                            mx = +pa[1] + x;
-	                            my = +pa[2] + y;
-
-	                            jj = pa.length;
-	                            for (j = 1; j < jj; j++) {
-	                                r[j] = +pa[j] + ((j % 2) ? x : y);
-	                            }
-	                            break;
-
-	                        default:
-	                            jj = pa.length;
-	                            for (j = 1; j < jj; j++) {
-	                                r[j] = +pa[j] + ((j % 2) ? x : y);
-	                            }
-	                            break;
-	                    }
-	                } else {
-	                    var kk = pa.length;
-	                    for (var k = 0; k < kk; k++) {
-	                        r[k] = pa[k];
-	                    }
-	                }
-
-	                switch (r[0]) {
-	                    case 'Z':
-	                        x = +mx;
-	                        y = +my;
-	                        break;
-
-	                    case 'H':
-	                        x = r[1];
-	                        break;
-
-	                    case 'V':
-	                        y = r[1];
-	                        break;
-
-	                    case 'M':
-	                        mx = r[r.length - 2];
-	                        my = r[r.length - 1];
-	                        x = r[r.length - 2];
-	                        y = r[r.length - 1];
-	                        break;
-
-	                    default:
-	                        x = r[r.length - 2];
-	                        y = r[r.length - 1];
-	                        break;
-	                }
-	            }
-
-	            return res;
-	        }
-
-	        function normalize(path) {
-
-	            var p = pathToAbsolute(path);
-	            var attrs = { x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null };
-
-	            function processPath(path, d, pcom) {
-
-	                var nx, ny;
-
-	                if (!path) { return ['C', d.x, d.y, d.x, d.y, d.x, d.y]; }
-
-	                if (!(path[0] in { T: 1, Q: 1 })) {
-	                    d.qx = null;
-	                    d.qy = null;
-	                }
-
-	                switch (path[0]) {
-	                    case 'M':
-	                        d.X = path[1];
-	                        d.Y = path[2];
-	                        break;
-
-	                    case 'A':
-	                        if (parseFloat(path[1]) === 0 || parseFloat(path[2]) === 0) {
-	                            // https://www.w3.org/TR/SVG/paths.html#ArcOutOfRangeParameters
-	                            // "If either rx or ry is 0, then this arc is treated as a
-	                            // straight line segment (a "lineto") joining the endpoints."
-	                            path = ['L', path[6], path[7]];
-	                        } else {
-	                            path = ['C'].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
-	                        }
-	                        break;
-
-	                    case 'S':
-	                        if (pcom === 'C' || pcom === 'S') { // In 'S' case we have to take into account, if the previous command is C/S.
-	                            nx = (d.x * 2) - d.bx;          // And reflect the previous
-	                            ny = (d.y * 2) - d.by;          // command's control point relative to the current point.
-	                        } else {                            // or some else or nothing
-	                            nx = d.x;
-	                            ny = d.y;
-	                        }
-	                        path = ['C', nx, ny].concat(path.slice(1));
-	                        break;
-
-	                    case 'T':
-	                        if (pcom === 'Q' || pcom === 'T') { // In 'T' case we have to take into account, if the previous command is Q/T.
-	                            d.qx = (d.x * 2) - d.qx;        // And make a reflection similar
-	                            d.qy = (d.y * 2) - d.qy;        // to case 'S'.
-	                        } else {                            // or something else or nothing
-	                            d.qx = d.x;
-	                            d.qy = d.y;
-	                        }
-	                        path = ['C'].concat(q2c(d.x, d.y, d.qx, d.qy, path[1], path[2]));
-	                        break;
-
-	                    case 'Q':
-	                        d.qx = path[1];
-	                        d.qy = path[2];
-	                        path = ['C'].concat(q2c(d.x, d.y, path[1], path[2], path[3], path[4]));
-	                        break;
-
-	                    case 'H':
-	                        path = ['L'].concat(path[1], d.y);
-	                        break;
-
-	                    case 'V':
-	                        path = ['L'].concat(d.x, path[1]);
-	                        break;
-
-	                    case 'L':
-	                        break;
-
-	                    case 'Z':
-	                        break;
-	                }
-
-	                return path;
-	            }
-
-	            function fixArc(pp, i) {
-
-	                if (pp[i].length > 7) {
-
-	                    pp[i].shift();
-	                    var pi = pp[i];
-
-	                    while (pi.length) {
-	                        pcoms[i] = 'A'; // if created multiple 'C's, their original seg is saved
-	                        pp.splice(i++, 0, ['C'].concat(pi.splice(0, 6)));
-	                    }
-
-	                    pp.splice(i, 1);
-	                    ii = p.length;
-	                }
-	            }
-
-	            var pcoms = []; // path commands of original path p
-	            var pfirst = ''; // temporary holder for original path command
-	            var pcom = ''; // holder for previous path command of original path
-
-	            var ii = p.length;
-	            for (var i = 0; i < ii; i++) {
-	                if (p[i]) { pfirst = p[i][0]; } // save current path command
-
-	                if (pfirst !== 'C') { // C is not saved yet, because it may be result of conversion
-	                    pcoms[i] = pfirst; // Save current path command
-	                    if (i > 0) { pcom = pcoms[i - 1]; } // Get previous path command pcom
-	                }
-
-	                p[i] = processPath(p[i], attrs, pcom); // Previous path command is inputted to processPath
-
-	                if (pcoms[i] !== 'A' && pfirst === 'C') { pcoms[i] = 'C'; } // 'A' is the only command
-	                // which may produce multiple 'C's
-	                // so we have to make sure that 'C' is also 'C' in original path
-
-	                fixArc(p, i); // fixArc adds also the right amount of 'A's to pcoms
-
-	                var seg = p[i];
-	                var seglen = seg.length;
-
-	                attrs.x = seg[seglen - 2];
-	                attrs.y = seg[seglen - 1];
-
-	                attrs.bx = parseFloat(seg[seglen - 4]) || attrs.x;
-	                attrs.by = parseFloat(seg[seglen - 3]) || attrs.y;
-	            }
-
-	            // make sure normalized path data string starts with an M segment
-	            if (!p[0][0] || p[0][0] !== 'M') {
-	                p.unshift(['M', 0, 0]);
-	            }
-
-	            return p;
-	        }
-
-	        return function(pathData) {
-	            return normalize(pathData).join(',').split(',').join(' ');
-	        };
-	    })();
-
-	    V.namespace = ns;
-
-	    V.g = g;
-
-	    return V;
-
-	})();
-
-	var config = {
-	    // When set to `true` the cell selectors could be defined as CSS selectors.
-	    // If not, only JSON Markup selectors are taken into account.
-	    // export let useCSSSelectors = true;
-	    useCSSSelectors: true,
-	    // The class name prefix config is for advanced use only.
-	    // Be aware that if you change the prefix, the JointJS CSS will no longer function properly.
-	    // export let classNamePrefix = 'joint-';
-	    // export let defaultTheme = 'default';
-	    classNamePrefix: 'joint-',
-	    defaultTheme: 'default',
-	    // The maximum delay required for two consecutive touchend events to be interpreted
-	    // as a double-tap.
-	    doubleTapInterval: 300
-	};
-
 	// code is inspired by https://github.com/lodash/lodash
 
 	/* eslint-disable no-case-declarations */
@@ -13366,6 +10710,3724 @@ var joint = (function (exports, $) {
 	    baseMerge(object, source, srcIndex, customizer);
 	}, true);
 
+	var Data = function Data() {
+	    this.map = new WeakMap();
+	};
+
+	Data.prototype.has = function has (obj, key) {
+	    if (key === undefined) { return this.map.has(obj); }
+	    return key in this.map.get(obj);
+	};
+
+	Data.prototype.create = function create (obj) {
+	    if (!this.has(obj)) { this.map.set(obj, Object.create(null)); }
+	    return this.get(obj);
+	};
+
+	Data.prototype.get = function get (obj, key) {
+	    if (!this.has(obj)) { return undefined; }
+	    var data = this.map.get(obj);
+	    if (key === undefined) { return data; }
+	    return data[key];
+	};
+
+	Data.prototype.set = function set (obj, key, value) {
+	    if (key === undefined) { return; }
+	    var data = this.create(obj);
+	    if (typeof key === 'string') {
+	        data[key] = value;
+	    } else {
+	        Object.assign(data, key);
+	    }
+	};
+
+	Data.prototype.remove = function remove (obj, key) {
+	    if (!this.has(obj)) { return; }
+	    if (key === undefined) {
+	        this.map.delete(obj);
+	    } else {
+	        var data = this.map.get(obj);
+	        delete data[key];
+	    }
+	};
+
+	var dataPriv = new Data();
+
+	var dataUser = new Data();
+
+	function cleanNodesData(data, nodes) {
+	    var i = nodes.length;
+	    while (i--) {
+	        data.remove(nodes[i]);
+	    }
+	}
+
+	var Event = function(src, props) {
+	    // Allow instantiation without the 'new' keyword
+	    if (!(this instanceof Event)) {
+	        return new Event(src, props);
+	    }
+
+	    // Event object
+	    if (src && src.type) {
+	        this.originalEvent = src;
+	        this.type = src.type;
+
+	        // Events bubbling up the document may have been marked as prevented
+	        // by a handler lower down the tree; reflect the correct value.
+	        this.isDefaultPrevented = src.defaultPrevented
+	            ? returnTrue
+	            : returnFalse;
+
+	        // Create target properties
+	        this.target = src.target;
+	        this.currentTarget = src.currentTarget;
+	        this.relatedTarget = src.relatedTarget;
+
+	        // Event type
+	    } else {
+	        this.type = src;
+	    }
+
+	    // Put explicitly provided properties onto the event object
+	    if (props) {
+	        Object.assign(this, props);
+	    }
+
+	    // Create a timestamp if incoming event doesn't have one
+	    this.timeStamp = (src && src.timeStamp) || Date.now();
+
+	    // Mark it as fixed
+	    this.envelope = true;
+	};
+
+	// $.Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+	// https://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+	Event.prototype = {
+	    constructor: Event,
+	    isDefaultPrevented: returnFalse,
+	    isPropagationStopped: returnFalse,
+	    isImmediatePropagationStopped: returnFalse,
+	    preventDefault: function() {
+	        var evt = this.originalEvent;
+	        this.isDefaultPrevented = returnTrue;
+	        if (evt) {
+	            evt.preventDefault();
+	        }
+	    },
+	    stopPropagation: function() {
+	        var evt = this.originalEvent;
+	        this.isPropagationStopped = returnTrue;
+	        if (evt) {
+	            evt.stopPropagation();
+	        }
+	    },
+	    stopImmediatePropagation: function() {
+	        var evt = this.originalEvent;
+	        this.isImmediatePropagationStopped = returnTrue;
+	        if (evt) {
+	            evt.stopImmediatePropagation();
+	        }
+	        this.stopPropagation();
+	    },
+	};
+
+	// Includes all common event props including KeyEvent and MouseEvent specific props
+	[
+	    'altKey',
+	    'bubbles',
+	    'cancelable',
+	    'changedTouches',
+	    'ctrlKey',
+	    'detail',
+	    'eventPhase',
+	    'metaKey',
+	    'pageX',
+	    'pageY',
+	    'shiftKey',
+	    'view',
+	    'char',
+	    'code',
+	    'charCode',
+	    'key',
+	    'keyCode',
+	    'button',
+	    'buttons',
+	    'clientX',
+	    'clientY',
+	    'offsetX',
+	    'offsetY',
+	    'pointerId',
+	    'pointerType',
+	    'screenX',
+	    'screenY',
+	    'targetTouches',
+	    'toElement',
+	    'touches',
+	    'which' ].forEach(function (name) { return addProp(name); });
+
+	function addProp(name) {
+	    Object.defineProperty(Event.prototype, name, {
+	        enumerable: true,
+	        configurable: true,
+	        get: function() {
+	            return this.originalEvent ? this.originalEvent[name] : undefined;
+	        },
+	        set: function(value) {
+	            Object.defineProperty(this, name, {
+	                enumerable: true,
+	                configurable: true,
+	                writable: true,
+	                value: value,
+	            });
+	        },
+	    });
+	}
+
+	function returnTrue() {
+	    return true;
+	}
+
+	function returnFalse() {
+	    return false;
+	}
+
+	var document$2 = (typeof window !== 'undefined') ? window.document : null;
+	var documentElement = document$2 && document$2.documentElement;
+
+	var rTypeNamespace = /^([^.]*)(?:\.(.+)|)/;
+
+	// Only count HTML whitespace
+	// Other whitespace should count in values
+	// https://infra.spec.whatwg.org/#ascii-whitespace
+	var rNotHtmlWhite = /[^\x20\t\r\n\f]+/g;
+
+	// Define a local copy of $
+	var $ = function(selector) {
+	    // The $ object is actually just the init constructor 'enhanced'
+	    // Need init if $ is called (just allow error to be thrown if not included)
+	    return new $.Dom(selector);
+	};
+
+	$.fn = $.prototype = {
+	    constructor: $,
+	    // The default length of a $ object is 0
+	    length: 0,
+	};
+
+	// A global GUID counter for objects
+	$.guid = 1;
+
+	// User data storage
+	$.data = dataUser;
+
+	$.merge = function(first, second) {
+	    var len = +second.length;
+	    var i = first.length;
+	    for (var j = 0; j < len; j++) {
+	        first[i++] = second[j];
+	    }
+	    first.length = i;
+	    return first;
+	};
+
+	$.parseHTML = function(string) {
+	    // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
+	    var context = document$2.implementation.createHTMLDocument();
+	    // Set the base href for the created document so any parsed elements with URLs
+	    // are based on the document's URL
+	    var base = context.createElement('base');
+	    base.href = document$2.location.href;
+	    context.head.appendChild(base);
+
+	    context.body.innerHTML = string;
+	    // remove scripts
+	    var scripts = context.getElementsByTagName('script');
+	    for (var i = 0; i < scripts.length; i++) {
+	        scripts[i].remove();
+	    }
+	    return Array.from(context.body.childNodes);
+	};
+
+	if (typeof Symbol === 'function') {
+	    $.fn[Symbol.iterator] = Array.prototype[Symbol.iterator];
+	}
+
+	$.fn.toArray = function() {
+	    return Array.from(this);
+	};
+
+	// Take an array of elements and push it onto the stack
+	// (returning the new matched element set)
+	$.fn.pushStack = function(elements) {
+	    // Build a new $ matched element set
+	    var ret = $.merge(this.constructor(), elements);
+	    // Add the old object onto the stack (as a reference)
+	    ret.prevObject = this;
+	    // Return the newly-formed element set
+	    return ret;
+	};
+
+	$.fn.find = function(selector) {
+	    var ref = this;
+	    var el = ref[0];
+	    var ret = this.pushStack([]);
+	    if (!el) { return ret; }
+	    // Early return if context is not an element, document or document fragment
+	    var nodeType = el.nodeType;
+	    if (nodeType !== 1 && nodeType !== 9 && nodeType !== 11) {
+	        return ret;
+	    }
+	    if (typeof selector !== 'string') {
+	        if (el !== selector && el.contains(selector)) {
+	            $.merge(ret, [selector]);
+	        }
+	    } else {
+	        $.merge(ret, el.querySelectorAll(selector));
+	    }
+	    return ret;
+	};
+
+	$.fn.add = function(selector, context) {
+	    var newElements = $(selector, context).toArray();
+	    var prevElements = this.toArray();
+	    var ret = this.pushStack([]);
+	    $.merge(ret, uniq(prevElements.concat(newElements)));
+	    return ret;
+	};
+
+	$.fn.addBack = function() {
+	    return this.add(this.prevObject);
+	};
+
+	// A simple way to check for HTML strings
+	// Prioritize #id over <tag> to avoid XSS via location.hash (trac-9521)
+	// Strict HTML recognition (trac-11290: must start with <)
+	// Shortcut simple #id case for speed
+	var rQuickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]+))$/;
+
+	function isObviousHtml(input) {
+	    return (
+	        input[0] === '<' && input[input.length - 1] === '>' && input.length >= 3
+	    );
+	}
+
+	var Dom = function(selector) {
+	    if (!selector) {
+	        // HANDLE: $(""), $(null), $(undefined), $(false)
+	        return this;
+	    }
+	    if (typeof selector === 'function') {
+	        // HANDLE: $(function)
+	        // Shortcut for document ready
+	        throw new Error('function not supported');
+	    }
+	    if (arguments.length > 1) {
+	        throw new Error('selector with context not supported');
+	    }
+	    if (selector.nodeType) {
+	        // HANDLE: $(DOMElement)
+	        this[0] = selector;
+	        this.length = 1;
+	        return this;
+	    }
+	    var match;
+	    if (isObviousHtml(selector + '')) {
+	        // Handle obvious HTML strings
+	        // Assume that strings that start and end with <> are HTML and skip
+	        // the regex check. This also handles browser-supported HTML wrappers
+	        // like TrustedHTML.
+	        match = [null, selector, null];
+	    } else if (typeof selector === 'string') {
+	        // Handle HTML strings or selectors
+	        match = rQuickExpr.exec(selector);
+	    } else {
+	        // Array-like
+	        return $.merge(this, selector);
+	    }
+	    if (!match || !match[1]) {
+	        // HANDLE: $(expr)
+	        return $root.find(selector);
+	    }
+	    // Match html or make sure no context is specified for #id
+	    // Note: match[1] may be a string or a TrustedHTML wrapper
+	    if (match[1]) {
+	        // HANDLE: $(html) -> $(array)
+	        $.merge(this, $.parseHTML(match[1]));
+	        return this;
+	    }
+	    // HANDLE: $(#id)
+	    var el = document$2.getElementById(match[2]);
+	    if (el) {
+	        // Inject the element directly into the $ object
+	        this[0] = el;
+	        this.length = 1;
+	    }
+	    return this;
+	};
+
+	$.Dom = Dom;
+
+	// Give the init function the $ prototype for later instantiation
+	Dom.prototype = $.fn;
+
+	// Events
+
+	$.Event = Event;
+
+	$.event = {
+	    special: Object.create(null),
+	};
+
+	$.event.has = function(elem) {
+	    return dataPriv.has(elem, 'events');
+	};
+
+	$.event.on = function(elem, types, selector, data, fn, one) {
+
+	    // Types can be a map of types/handlers
+	    if (typeof types === 'object') {
+	        // ( types-Object, selector, data )
+	        if (typeof selector !== 'string') {
+	            // ( types-Object, data )
+	            data = data || selector;
+	            selector = undefined;
+	        }
+	        for (var type in types) {
+	            $.event.on(elem, type, selector, data, types[type], one);
+	        }
+	        return elem;
+	    }
+
+	    if (data == null && fn == null) {
+	        // ( types, fn )
+	        fn = selector;
+	        data = selector = undefined;
+	    } else if (fn == null) {
+	        if (typeof selector === 'string') {
+	            // ( types, selector, fn )
+	            fn = data;
+	            data = undefined;
+	        } else {
+	            // ( types, data, fn )
+	            fn = data;
+	            data = selector;
+	            selector = undefined;
+	        }
+	    }
+	    if (!fn) {
+	        return elem;
+	    }
+	    if (one === 1) {
+	        var origFn = fn;
+	        fn = function(event) {
+	            // Can use an empty set, since event contains the info
+	            $().off(event);
+	            return origFn.apply(this, arguments);
+	        };
+
+	        // Use same guid so caller can remove using origFn
+	        fn.guid = origFn.guid || (origFn.guid = $.guid++);
+	    }
+	    for (var i = 0; i < elem.length; i++) {
+	        $.event.add(elem[i], types, fn, data, selector);
+	    }
+	};
+
+	$.event.add = function(elem, types, handler, data, selector) {
+	    // Only attach events to objects for which we can store data
+	    if (typeof elem != 'object') {
+	        return;
+	    }
+
+	    var elemData = dataPriv.create(elem);
+
+	    // Caller can pass in an object of custom data in lieu of the handler
+	    var handleObjIn;
+	    if (handler.handler) {
+	        handleObjIn = handler;
+	        handler = handleObjIn.handler;
+	        selector = handleObjIn.selector;
+	    }
+
+	    // Ensure that invalid selectors throw exceptions at attach time
+	    // Evaluate against documentElement in case elem is a non-element node (e.g., document)
+	    if (selector) {
+	        documentElement.matches(selector);
+	    }
+
+	    // Make sure that the handler has a unique ID, used to find/remove it later
+	    if (!handler.guid) {
+	        handler.guid = $.guid++;
+	    }
+
+	    // Init the element's event structure and main handler, if this is the first
+	    var events;
+	    if (!(events = elemData.events)) {
+	        events = elemData.events = Object.create(null);
+	    }
+	    var eventHandle;
+	    if (!(eventHandle = elemData.handle)) {
+	        eventHandle = elemData.handle = function(e) {
+	            // Discard the second event of a $.event.trigger() and
+	            // when an event is called after a page has unloaded
+	            return (typeof $ !== 'undefined')
+	                ? $.event.dispatch.apply(elem, arguments)
+	                : undefined;
+	        };
+	    }
+
+	    // Handle multiple events separated by a space
+	    var typesArr = (types || '').match(rNotHtmlWhite) || [''];
+	    var i = typesArr.length;
+	    while (i--) {
+	        var ref = rTypeNamespace.exec(typesArr[i]);
+	        var origType = ref[1];
+	        var ns = ref[2]; if ( ns === void 0 ) ns = '';
+	        // There *must* be a type, no attaching namespace-only handlers
+	        if (!origType) {
+	            continue;
+	        }
+
+	        var namespaces = ns.split('.').sort();
+	        // If event changes its type, use the special event handlers for the changed type
+	        var special = $.event.special[origType];
+	        // If selector defined, determine special event api type, otherwise given type
+	        var type = (special && (selector ? special.delegateType : special.bindType)) || origType;
+	        // Update special based on newly reset type
+	        special = $.event.special[type];
+	        // handleObj is passed to all event handlers
+	        var handleObj = Object.assign(
+	            {
+	                type: type,
+	                origType: origType,
+	                data: data,
+	                handler: handler,
+	                guid: handler.guid,
+	                selector: selector,
+	                namespace: namespaces.join('.'),
+	            },
+	            handleObjIn
+	        );
+
+	        var handlers = (void 0);
+	        // Init the event handler queue if we're the first
+	        if (!(handlers = events[type])) {
+	            handlers = events[type] = [];
+	            handlers.delegateCount = 0;
+
+	            // Only use addEventListener if the special events handler returns false
+	            if (
+	                !special || !special.setup ||
+	                    special.setup.call(elem, data, namespaces, eventHandle) === false
+	            ) {
+	                if (elem.addEventListener) {
+	                    elem.addEventListener(type, eventHandle);
+	                }
+	            }
+	        }
+
+	        if (special && special.add) {
+	            special.add.call(elem, handleObj);
+	            if (!handleObj.handler.guid) {
+	                handleObj.handler.guid = handler.guid;
+	            }
+	        }
+
+	        // Add to the element's handler list, delegates in front
+	        if (selector) {
+	            handlers.splice(handlers.delegateCount++, 0, handleObj);
+	        } else {
+	            handlers.push(handleObj);
+	        }
+	    }
+	};
+
+	// Detach an event or set of events from an element
+	$.event.remove = function(elem, types, handler, selector, mappedTypes) {
+
+	    var elemData = dataPriv.get(elem);
+	    if (!elemData || !elemData.events) { return; }
+	    var events = elemData.events;
+
+	    // Once for each type.namespace in types; type may be omitted
+	    var typesArr = (types || '').match(rNotHtmlWhite) || [''];
+	    var i = typesArr.length;
+	    while (i--) {
+	        var ref = rTypeNamespace.exec(typesArr[i]);
+	        var origType = ref[1];
+	        var ns = ref[2]; if ( ns === void 0 ) ns = '';
+	        // Unbind all events (on this namespace, if provided) for the element
+	        if (!origType) {
+	            for (var type in events) {
+	                $.event.remove(
+	                    elem,
+	                    type + typesArr[i],
+	                    handler,
+	                    selector,
+	                    true
+	                );
+	            }
+	            continue;
+	        }
+
+	        var special = $.event.special[origType];
+	        var type$1 = (special && (selector ? special.delegateType : special.bindType)) || origType;
+	        var handlers = events[type$1];
+	        if (!handlers || handlers.length === 0) { continue; }
+
+	        var namespaces = ns.split('.').sort();
+	        var rNamespace = ns
+	            ? new RegExp('(^|\\.)' + namespaces.join('\\.(?:.*\\.|)') + '(\\.|$)')
+	            : null;
+
+	        // Remove matching events
+	        var origCount = handlers.length;
+	        var j = origCount;
+	        while (j--) {
+	            var handleObj = handlers[j];
+
+	            if (
+	                (mappedTypes || origType === handleObj.origType) &&
+	                    (!handler || handler.guid === handleObj.guid) &&
+	                    (!rNamespace || rNamespace.test(handleObj.namespace)) &&
+	                    (!selector ||
+	                        selector === handleObj.selector ||
+	                        (selector === '**' && handleObj.selector))
+	            ) {
+	                handlers.splice(j, 1);
+	                if (handleObj.selector) {
+	                    handlers.delegateCount--;
+	                }
+	                if (special && special.remove) {
+	                    special.remove.call(elem, handleObj);
+	                }
+	            }
+	        }
+
+	        // Remove generic event handler if we removed something and no more handlers exist
+	        // (avoids potential for endless recursion during removal of special event handlers)
+	        if (origCount && handlers.length === 0) {
+	            if (
+	                !special || !special.teardown ||
+	                    special.teardown.call(elem, namespaces, elemData.handle) === false
+	            ) {
+	                // This "if" is needed for plain objects
+	                if (elem.removeEventListener) {
+	                    elem.removeEventListener(type$1, elemData.handle);
+	                }
+	            }
+	            delete events[type$1];
+	        }
+	    }
+
+	    // Remove data if it's no longer used
+	    if (isEmpty(events)) {
+	        dataPriv.remove(elem, 'handle');
+	        dataPriv.remove(elem, 'events');
+	    }
+	};
+
+	$.event.dispatch = function(nativeEvent) {
+
+	    var elem = this;
+	    // Make a writable $.Event from the native event object
+	    var event = $.event.fix(nativeEvent);
+	    event.delegateTarget = elem;
+	    // Use the fix-ed $.Event rather than the (read-only) native event
+	    var args = Array.from(arguments);
+	    args[0] = event;
+
+	    var eventsData = dataPriv.get(elem, 'events');
+	    var handlers = (eventsData && eventsData[event.type]) || [];
+	    var special = $.event.special[event.type];
+
+	    // Call the preDispatch hook for the mapped type, and let it bail if desired
+	    if (special && special.preDispatch) {
+	        if (special.preDispatch.call(elem, event) === false) { return; }
+	    }
+
+	    // Determine handlers
+	    var handlerQueue = $.event.handlers.call(elem, event, handlers);
+
+	    // Run delegates first; they may want to stop propagation beneath us
+	    var i = 0;
+	    var matched;
+	    while ((matched = handlerQueue[i++]) && !event.isPropagationStopped()) {
+	        event.currentTarget = matched.elem;
+	        var j = 0;
+	        var handleObj = (void 0);
+	        while (
+	            (handleObj = matched.handlers[j++]) &&
+	                !event.isImmediatePropagationStopped()
+	        ) {
+
+	            event.handleObj = handleObj;
+	            event.data = handleObj.data;
+
+	            var origSpecial = $.event.special[handleObj.origType];
+	            var handler = (void 0);
+	            if (origSpecial && origSpecial.handle) {
+	                handler = origSpecial.handle;
+	            } else {
+	                handler = handleObj.handler;
+	            }
+
+	            var ret = handler.apply(matched.elem, args);
+	            if (ret !== undefined) {
+	                if ((event.result = ret) === false) {
+	                    event.preventDefault();
+	                    event.stopPropagation();
+	                }
+	            }
+	        }
+	    }
+
+	    // Call the postDispatch hook for the mapped type
+	    if (special && special.postDispatch) {
+	        special.postDispatch.call(elem, event);
+	    }
+
+	    return event.result;
+	},
+
+	$.event.handlers = function(event, handlers) {
+
+	    var delegateCount = handlers.delegateCount;
+	    var handlerQueue = [];
+
+	    // Find delegate handlers
+	    if (
+	        delegateCount &&
+	            // Support: Firefox <=42 - 66+
+	            // Suppress spec-violating clicks indicating a non-primary pointer button (trac-3861)
+	            // https://www.w3.org/TR/DOM-Level-3-Events/#event-type-click
+	            // Support: IE 11+
+	            // ...but not arrow key "clicks" of radio inputs, which can have `button` -1 (gh-2343)
+	            !(event.type === 'click' && event.button >= 1)
+	    ) {
+	        for (var cur = event.target; cur !== this; cur = cur.parentNode || this) {
+	            // Don't check non-elements (trac-13208)
+	            // Don't process clicks on disabled elements (trac-6911, trac-8165, trac-11382, trac-11764)
+	            if (
+	                cur.nodeType === 1 &&
+	                    !(event.type === 'click' && cur.disabled === true)
+	            ) {
+	                var matchedHandlers = [];
+	                var matchedSelectors = {};
+	                for (var i = 0; i < delegateCount; i++) {
+	                    var handleObj = handlers[i];
+	                    // Don't conflict with Object.prototype properties (trac-13203)
+	                    var sel = handleObj.selector + ' ';
+	                    if (matchedSelectors[sel] === undefined) {
+	                        matchedSelectors[sel] = cur.matches(sel);
+	                    }
+	                    if (matchedSelectors[sel]) {
+	                        matchedHandlers.push(handleObj);
+	                    }
+	                }
+	                if (matchedHandlers.length) {
+	                    handlerQueue.push({
+	                        elem: cur,
+	                        handlers: matchedHandlers,
+	                    });
+	                }
+	            }
+	        }
+	    }
+
+	    // Add the remaining (directly-bound) handlers
+	    if (delegateCount < handlers.length) {
+	        handlerQueue.push({
+	            elem: this,
+	            handlers: handlers.slice(delegateCount),
+	        });
+	    }
+
+	    return handlerQueue;
+	};
+
+	$.event.fix = function(originalEvent) {
+	    return originalEvent.envelope ? originalEvent : new Event(originalEvent);
+	};
+
+	// A central reference to the root $(document)
+	var $root = $(document$2);
+
+	// Vectorizer.
+
+	var V = (function() {
+
+	    var hasSvg = typeof window === 'object' && !!window.SVGAngle;
+
+	    // SVG support is required.
+	    if (!hasSvg) {
+
+	        // Return a function that throws an error when it is used.
+	        return function() {
+	            throw new Error('SVG is required to use Vectorizer.');
+	        };
+	    }
+
+	    // XML namespaces.
+	    var ns = {
+	        svg: 'http://www.w3.org/2000/svg',
+	        xmlns: 'http://www.w3.org/2000/xmlns/',
+	        xml: 'http://www.w3.org/XML/1998/namespace',
+	        xlink: 'http://www.w3.org/1999/xlink',
+	        xhtml: 'http://www.w3.org/1999/xhtml'
+	    };
+
+	    var SVGVersion = '1.1';
+
+	    // Declare shorthands to the most used math functions.
+	    var math = Math;
+	    var PI = math.PI;
+	    var atan2 = math.atan2;
+	    var sqrt = math.sqrt;
+	    var min = math.min;
+	    var max = math.max;
+	    var cos = math.cos;
+	    var sin = math.sin;
+
+	    var V = function(el, attrs, children) {
+
+	        // This allows using V() without the new keyword.
+	        if (!(this instanceof V)) {
+	            return V.apply(Object.create(V.prototype), arguments);
+	        }
+
+	        if (!el) { return; }
+
+	        if (V.isV(el)) {
+	            el = el.node;
+	        }
+
+	        attrs = attrs || {};
+
+	        if (V.isString(el)) {
+
+	            el = el.trim();
+
+	            if (el.toLowerCase() === 'svg') {
+
+	                // Create a new SVG canvas.
+	                el = V.createSvgDocument();
+
+	            } else if (el[0] === '<') {
+
+	                // Create element from an SVG string.
+	                // Allows constructs of type: `document.appendChild(V('<rect></rect>').node)`.
+
+	                var svgDoc = V.createSvgDocument(el);
+
+	                // Note that `V()` might also return an array should the SVG string passed as
+	                // the first argument contain more than one root element.
+	                if (svgDoc.childNodes.length > 1) {
+
+	                    // Map child nodes to `V`s.
+	                    var arrayOfVels = [];
+	                    var i, len;
+
+	                    for (i = 0, len = svgDoc.childNodes.length; i < len; i++) {
+
+	                        var childNode = svgDoc.childNodes[i];
+	                        arrayOfVels.push(new V(document.importNode(childNode, true)));
+	                    }
+
+	                    return arrayOfVels;
+	                }
+
+	                el = document.importNode(svgDoc.firstChild, true);
+
+	            } else {
+
+	                el = document.createElementNS(ns.svg, el);
+	            }
+
+	            V.ensureId(el);
+	        }
+
+	        this.node = el;
+
+	        this.setAttributes(attrs);
+
+	        if (children) {
+	            this.append(children);
+	        }
+
+	        return this;
+	    };
+
+	    var VPrototype = V.prototype;
+
+	    Object.defineProperty(VPrototype, 'id', {
+	        enumerable: true,
+	        get: function() {
+	            return this.node.id;
+	        },
+	        set: function(id) {
+	            this.node.id = id;
+	        }
+	    });
+
+	    /**
+	     * @param {SVGGElement} toElem
+	     * @returns {SVGMatrix}
+	     */
+	    VPrototype.getTransformToElement = function(target) {
+	        var node = this.node;
+	        if (V.isSVGGraphicsElement(target) && V.isSVGGraphicsElement(node)) {
+	            var targetCTM = V.toNode(target).getScreenCTM();
+	            var nodeCTM = node.getScreenCTM();
+	            if (targetCTM && nodeCTM) {
+	                return targetCTM.inverse().multiply(nodeCTM);
+	            }
+	        }
+	        // Could not get actual transformation matrix
+	        return V.createSVGMatrix();
+	    };
+
+	    /**
+	     * @param {SVGMatrix} matrix
+	     * @param {Object=} opt
+	     * @returns {Vectorizer|SVGMatrix} Setter / Getter
+	     */
+	    VPrototype.transform = function(matrix, opt) {
+
+	        var node = this.node;
+	        if (V.isUndefined(matrix)) {
+	            return V.transformStringToMatrix(this.attr('transform'));
+	        }
+
+	        if (opt && opt.absolute) {
+	            return this.attr('transform', V.matrixToTransformString(matrix));
+	        }
+
+	        var svgTransform = V.createSVGTransform(matrix);
+	        node.transform.baseVal.appendItem(svgTransform);
+	        return this;
+	    };
+
+	    VPrototype.translate = function(tx, ty, opt) {
+
+	        opt = opt || {};
+	        ty = ty || 0;
+
+	        var transformAttr = this.attr('transform') || '';
+	        var transform = V.parseTransformString(transformAttr);
+	        transformAttr = transform.value;
+	        // Is it a getter?
+	        if (V.isUndefined(tx)) {
+	            return transform.translate;
+	        }
+
+	        transformAttr = transformAttr.replace(/translate\([^)]*\)/g, '').trim();
+
+	        var newTx = opt.absolute ? tx : transform.translate.tx + tx;
+	        var newTy = opt.absolute ? ty : transform.translate.ty + ty;
+	        var newTranslate = 'translate(' + newTx + ',' + newTy + ')';
+
+	        // Note that `translate()` is always the first transformation. This is
+	        // usually the desired case.
+	        this.attr('transform', (newTranslate + ' ' + transformAttr).trim());
+	        return this;
+	    };
+
+	    VPrototype.rotate = function(angle, cx, cy, opt) {
+
+	        opt = opt || {};
+
+	        var transformAttr = this.attr('transform') || '';
+	        var transform = V.parseTransformString(transformAttr);
+	        transformAttr = transform.value;
+
+	        // Is it a getter?
+	        if (V.isUndefined(angle)) {
+	            return transform.rotate;
+	        }
+
+	        transformAttr = transformAttr.replace(/rotate\([^)]*\)/g, '').trim();
+
+	        angle %= 360;
+
+	        var newAngle = opt.absolute ? angle : transform.rotate.angle + angle;
+	        var newOrigin = (cx !== undefined && cy !== undefined) ? ',' + cx + ',' + cy : '';
+	        var newRotate = 'rotate(' + newAngle + newOrigin + ')';
+
+	        this.attr('transform', (transformAttr + ' ' + newRotate).trim());
+	        return this;
+	    };
+
+	    // Note that `scale` as the only transformation does not combine with previous values.
+	    VPrototype.scale = function(sx, sy) {
+
+	        sy = V.isUndefined(sy) ? sx : sy;
+
+	        var transformAttr = this.attr('transform') || '';
+	        var transform = V.parseTransformString(transformAttr);
+	        transformAttr = transform.value;
+
+	        // Is it a getter?
+	        if (V.isUndefined(sx)) {
+	            return transform.scale;
+	        }
+
+	        transformAttr = transformAttr.replace(/scale\([^)]*\)/g, '').trim();
+
+	        var newScale = 'scale(' + sx + ',' + sy + ')';
+
+	        this.attr('transform', (transformAttr + ' ' + newScale).trim());
+	        return this;
+	    };
+
+	    // Get SVGRect that contains coordinates and dimension of the real bounding box,
+	    // i.e. after transformations are applied.
+	    // If `target` is specified, bounding box will be computed relatively to `target` element.
+	    VPrototype.bbox = function(withoutTransformations, target) {
+
+	        var box;
+	        var node = this.node;
+	        var ownerSVGElement = node.ownerSVGElement;
+
+	        // If the element is not in the live DOM, it does not have a bounding box defined and
+	        // so fall back to 'zero' dimension element.
+	        if (!ownerSVGElement) {
+	            return new Rect(0, 0, 0, 0);
+	        }
+
+	        try {
+
+	            box = node.getBBox();
+
+	        } catch (e) {
+
+	            // Fallback for IE.
+	            box = {
+	                x: node.clientLeft,
+	                y: node.clientTop,
+	                width: node.clientWidth,
+	                height: node.clientHeight
+	            };
+	        }
+
+	        if (withoutTransformations) {
+	            return new Rect(box);
+	        }
+
+	        var matrix = this.getTransformToElement(target || ownerSVGElement);
+
+	        return V.transformRect(box, matrix);
+	    };
+
+	    // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
+	    // i.e. after transformations are applied.
+	    // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
+	    // Takes an (Object) `opt` argument (optional) with the following attributes:
+	    // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
+	    // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
+	    VPrototype.getBBox = function(opt) {
+
+	        var options = {};
+
+	        var outputBBox;
+	        var node = this.node;
+	        var ownerSVGElement = node.ownerSVGElement;
+
+	        // If the element is not in the live DOM, it does not have a bounding box defined and
+	        // so fall back to 'zero' dimension element.
+	        // If the element is not an SVGGraphicsElement, we could not measure the bounding box either
+	        if (!ownerSVGElement || !V.isSVGGraphicsElement(node)) {
+	            return new Rect(0, 0, 0, 0);
+	        }
+
+	        if (opt) {
+	            if (opt.target) { // check if target exists
+	                options.target = V.toNode(opt.target); // works for V objects, jquery objects, and node objects
+	            }
+	            if (opt.recursive) {
+	                options.recursive = opt.recursive;
+	            }
+	        }
+
+	        if (!options.recursive) {
+	            try {
+	                outputBBox = node.getBBox();
+	            } catch (e) {
+	                // Fallback for IE.
+	                outputBBox = {
+	                    x: node.clientLeft,
+	                    y: node.clientTop,
+	                    width: node.clientWidth,
+	                    height: node.clientHeight
+	                };
+	            }
+
+	            if (!options.target) {
+	                // transform like this (that is, not at all)
+	                return new Rect(outputBBox);
+	            } else {
+	                // transform like target
+	                var matrix = this.getTransformToElement(options.target);
+	                return V.transformRect(outputBBox, matrix);
+	            }
+	        } else { // if we want to calculate the bbox recursively
+	            // browsers report correct bbox around svg elements (one that envelops the path lines tightly)
+	            // but some browsers fail to report the same bbox when the elements are in a group (returning a looser bbox that also includes control points, like node.getClientRect())
+	            // this happens even if we wrap a single svg element into a group!
+	            // this option setting makes the function recursively enter all the groups from this and deeper, get bboxes of the elements inside, then return a union of those bboxes
+
+	            var children = this.children();
+	            var n = children.length;
+
+	            if (n === 0) {
+	                return this.getBBox({ target: options.target, recursive: false });
+	            }
+
+	            // recursion's initial pass-through setting:
+	            // recursive passes-through just keep the target as whatever was set up here during the initial pass-through
+	            if (!options.target) {
+	                // transform children/descendants like this (their parent/ancestor)
+	                options.target = this;
+	            } // else transform children/descendants like target
+
+	            for (var i = 0; i < n; i++) {
+	                var currentChild = children[i];
+
+	                var childBBox;
+
+	                // if currentChild is not a group element, get its bbox with a nonrecursive call
+	                if (currentChild.children().length === 0) {
+	                    childBBox = currentChild.getBBox({ target: options.target, recursive: false });
+	                } else {
+	                    // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
+	                    childBBox = currentChild.getBBox({ target: options.target, recursive: true });
+	                }
+
+	                if (!outputBBox) {
+	                    // if this is the first iteration
+	                    outputBBox = childBBox;
+	                } else {
+	                    // make a new bounding box rectangle that contains this child's bounding box and previous bounding box
+	                    outputBBox = outputBBox.union(childBBox);
+	                }
+	            }
+
+	            return outputBBox;
+	        }
+	    };
+
+	    // Text() helpers
+
+	    function createTextPathNode(attrs, vel) {
+	        attrs || (attrs = {});
+	        var textPathElement = V('textPath');
+	        var d = attrs.d;
+	        if (d && attrs['xlink:href'] === undefined) {
+	            // If `opt.attrs` is a plain string, consider it to be directly the
+	            // SVG path data for the text to go along (this is a shortcut).
+	            // Otherwise if it is an object and contains the `d` property, then this is our path.
+	            // Wrap the text in the SVG <textPath> element that points
+	            // to a path defined by `opt.attrs` inside the `<defs>` element.
+	            var linkedPath = V('path').attr('d', d).appendTo(vel.defs());
+	            textPathElement.attr('xlink:href', '#' + linkedPath.id);
+	        }
+	        if (V.isObject(attrs)) {
+	            // Set attributes on the `<textPath>`. The most important one
+	            // is the `xlink:href` that points to our newly created `<path/>` element in `<defs/>`.
+	            // Note that we also allow the following construct:
+	            // `t.text('my text', { textPath: { 'xlink:href': '#my-other-path' } })`.
+	            // In other words, one can completely skip the auto-creation of the path
+	            // and use any other arbitrary path that is in the document.
+	            textPathElement.attr(attrs);
+	        }
+	        return textPathElement.node;
+	    }
+
+	    function annotateTextLine(lineNode, lineAnnotations, opt) {
+	        opt || (opt = {});
+	        var includeAnnotationIndices = opt.includeAnnotationIndices;
+	        var eol = opt.eol;
+	        var lineHeight = opt.lineHeight;
+	        var baseSize = opt.baseSize;
+	        var maxFontSize = 0;
+	        var fontMetrics = {};
+	        var lastJ = lineAnnotations.length - 1;
+	        for (var j = 0; j <= lastJ; j++) {
+	            var annotation = lineAnnotations[j];
+	            var fontSize = null;
+	            if (V.isObject(annotation)) {
+	                var annotationAttrs = annotation.attrs;
+	                var vTSpan = V('tspan', annotationAttrs);
+	                var tspanNode = vTSpan.node;
+	                var t = annotation.t;
+	                if (eol && j === lastJ) { t += eol; }
+	                tspanNode.textContent = t;
+	                // Per annotation className
+	                var annotationClass = annotationAttrs['class'];
+	                if (annotationClass) { vTSpan.addClass(annotationClass); }
+	                // If `opt.includeAnnotationIndices` is `true`,
+	                // set the list of indices of all the applied annotations
+	                // in the `annotations` attribute. This list is a comma
+	                // separated list of indices.
+	                if (includeAnnotationIndices) { vTSpan.attr('annotations', annotation.annotations); }
+	                // Check for max font size
+	                fontSize = parseFloat(annotationAttrs['font-size']);
+	                if (!isFinite(fontSize)) { fontSize = baseSize; }
+	                if (fontSize && fontSize > maxFontSize) { maxFontSize = fontSize; }
+	            } else {
+	                if (eol && j === lastJ) { annotation += eol; }
+	                tspanNode = document.createTextNode(annotation || ' ');
+	                if (baseSize && baseSize > maxFontSize) { maxFontSize = baseSize; }
+	            }
+	            lineNode.appendChild(tspanNode);
+	        }
+
+	        if (maxFontSize) { fontMetrics.maxFontSize = maxFontSize; }
+	        if (lineHeight) {
+	            fontMetrics.lineHeight = lineHeight;
+	        } else if (maxFontSize) {
+	            fontMetrics.lineHeight = (maxFontSize * 1.2);
+	        }
+	        return fontMetrics;
+	    }
+
+	    var emRegex = /em$/;
+
+	    function convertEmToPx(em, fontSize) {
+	        var numerical = parseFloat(em);
+	        if (emRegex.test(em)) { return numerical * fontSize; }
+	        return numerical;
+	    }
+
+	    function calculateDY(alignment, linesMetrics, baseSizePx, lineHeight) {
+	        if (!Array.isArray(linesMetrics)) { return 0; }
+	        var n = linesMetrics.length;
+	        if (!n) { return 0; }
+	        var lineMetrics = linesMetrics[0];
+	        var flMaxFont = convertEmToPx(lineMetrics.maxFontSize, baseSizePx) || baseSizePx;
+	        var rLineHeights = 0;
+	        var lineHeightPx = convertEmToPx(lineHeight, baseSizePx);
+	        for (var i = 1; i < n; i++) {
+	            lineMetrics = linesMetrics[i];
+	            var iLineHeight = convertEmToPx(lineMetrics.lineHeight, baseSizePx) || lineHeightPx;
+	            rLineHeights += iLineHeight;
+	        }
+	        var llMaxFont = convertEmToPx(lineMetrics.maxFontSize, baseSizePx) || baseSizePx;
+	        var dy;
+	        switch (alignment) {
+	            case 'middle':
+	                dy = (flMaxFont / 2) - (0.15 * llMaxFont) - (rLineHeights / 2);
+	                break;
+	            case 'bottom':
+	                dy = -(0.25 * llMaxFont) - rLineHeights;
+	                break;
+	            default:
+	            case 'top':
+	                dy = (0.8 * flMaxFont);
+	                break;
+	        }
+	        return dy;
+	    }
+
+	    VPrototype.text = function(content, opt) {
+
+	        if (content && typeof content !== 'string') { throw new Error('Vectorizer: text() expects the first argument to be a string.'); }
+
+	        // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
+	        // IE would otherwise collapse all spaces into one.
+	        content = V.sanitizeText(content);
+	        opt || (opt = {});
+	        // Should we allow the text to be selected?
+	        var displayEmpty = opt.displayEmpty;
+	        // End of Line character
+	        var eol = opt.eol;
+	        // Text along path
+	        var textPath = opt.textPath;
+	        // Vertical shift
+	        var verticalAnchor = opt.textVerticalAnchor;
+	        var namedVerticalAnchor = (verticalAnchor === 'middle' || verticalAnchor === 'bottom' || verticalAnchor === 'top');
+	        // Horizontal shift applied to all the lines but the first.
+	        var x = opt.x;
+	        if (x === undefined) { x = this.attr('x') || 0; }
+	        // Annotations
+	        var iai = opt.includeAnnotationIndices;
+	        var annotations = opt.annotations;
+	        if (annotations && !V.isArray(annotations)) { annotations = [annotations]; }
+	        // Shift all the <tspan> but first by one line (`1em`)
+	        var defaultLineHeight = opt.lineHeight;
+	        var autoLineHeight = (defaultLineHeight === 'auto');
+	        var lineHeight = (autoLineHeight) ? '1.5em' : (defaultLineHeight || '1em');
+	        // Clearing the element
+	        this.empty();
+	        this.attr({
+	            // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+	            'xml:space': 'preserve',
+	            // An empty text gets rendered into the DOM in webkit-based browsers.
+	            // In order to unify this behaviour across all browsers
+	            // we rather hide the text element when it's empty.
+	            'display': (content || displayEmpty) ? null : 'none'
+	        });
+
+	        // Set default font-size if none
+	        var fontSize = parseFloat(this.attr('font-size'));
+	        if (!fontSize) {
+	            fontSize = 16;
+	            if (namedVerticalAnchor || annotations) { this.attr('font-size', fontSize); }
+	        }
+
+	        var doc = document;
+	        var containerNode;
+	        if (textPath) {
+	            // Now all the `<tspan>`s will be inside the `<textPath>`.
+	            if (typeof textPath === 'string') { textPath = { d: textPath }; }
+	            containerNode = createTextPathNode(textPath, this);
+	        } else {
+	            containerNode = doc.createDocumentFragment();
+	        }
+	        var offset = 0;
+	        var lines = content.split('\n');
+	        var linesMetrics = [];
+	        var annotatedY;
+	        for (var i = 0, lastI = lines.length - 1; i <= lastI; i++) {
+	            var dy = lineHeight;
+	            var lineClassName = 'v-line';
+	            var lineNode = doc.createElementNS(ns.svg, 'tspan');
+	            var line = lines[i];
+	            var lineMetrics;
+	            if (line) {
+	                if (annotations) {
+	                    // Find the *compacted* annotations for this line.
+	                    var lineAnnotations = V.annotateString(line, annotations, {
+	                        offset: -offset,
+	                        includeAnnotationIndices: iai
+	                    });
+	                    lineMetrics = annotateTextLine(lineNode, lineAnnotations, {
+	                        includeAnnotationIndices: iai,
+	                        eol: (i !== lastI && eol),
+	                        lineHeight: (autoLineHeight) ? null : lineHeight,
+	                        baseSize: fontSize
+	                    });
+	                    // Get the line height based on the biggest font size in the annotations for this line.
+	                    var iLineHeight = lineMetrics.lineHeight;
+	                    if (iLineHeight && autoLineHeight && i !== 0) { dy = iLineHeight; }
+	                    if (i === 0) { annotatedY = lineMetrics.maxFontSize * 0.8; }
+	                } else {
+	                    if (eol && i !== lastI) { line += eol; }
+	                    lineNode.textContent = line;
+	                }
+	            } else {
+	                // Make sure the textContent is never empty. If it is, add a dummy
+	                // character and make it invisible, making the following lines correctly
+	                // relatively positioned. `dy=1em` won't work with empty lines otherwise.
+	                lineNode.textContent = '-';
+	                lineClassName += ' v-empty-line';
+	                // 'opacity' needs to be specified with fill, stroke. Opacity without specification
+	                // is not applied in Firefox
+	                var lineNodeStyle = lineNode.style;
+	                lineNodeStyle.fillOpacity = 0;
+	                lineNodeStyle.strokeOpacity = 0;
+	                if (annotations) {
+	                    // Empty line with annotations.
+	                    lineMetrics = {};
+	                    lineAnnotations = V.findAnnotationsAtIndex(annotations, offset);
+	                    var lineFontSize = fontSize;
+	                    // Check if any of the annotations overrides the font size.
+	                    for (var j = lineAnnotations.length; j > 0; j--) {
+	                        var attrs = lineAnnotations[j - 1].attrs;
+	                        if (!attrs || !('font-size' in attrs)) { continue; }
+	                        var fs = parseFloat(attrs['font-size']);
+	                        if (isFinite(fs)) {
+	                            lineFontSize = fs;
+	                            break;
+	                        }
+	                    }
+	                    if (autoLineHeight) {
+	                        if (i > 0) {
+	                            dy = lineFontSize * 1.2;
+	                        } else {
+	                            annotatedY = lineFontSize * 0.8;
+	                        }
+	                    }
+	                    // The font size is important for the native selection box height.
+	                    lineNode.setAttribute('font-size', lineFontSize);
+	                    lineMetrics.maxFontSize = lineFontSize;
+	                }
+	            }
+	            if (lineMetrics) { linesMetrics.push(lineMetrics); }
+	            if (i > 0) { lineNode.setAttribute('dy', dy); }
+	            // Firefox requires 'x' to be set on the first line when inside a text path
+	            if (i > 0 || textPath) { lineNode.setAttribute('x', x); }
+	            lineNode.className.baseVal = lineClassName;
+	            containerNode.appendChild(lineNode);
+	            offset += line.length + 1;      // + 1 = newline character.
+	        }
+	        // Y Alignment calculation
+	        if (namedVerticalAnchor) {
+	            if (annotations) {
+	                dy = calculateDY(verticalAnchor, linesMetrics, fontSize, lineHeight);
+	            } else if (verticalAnchor === 'top') {
+	                // A shortcut for top alignment. It does not depend on font-size nor line-height
+	                dy = '0.8em';
+	            } else {
+	                var rh; // remaining height
+	                if (lastI > 0) {
+	                    rh = parseFloat(lineHeight) || 1;
+	                    rh *= lastI;
+	                    if (!emRegex.test(lineHeight)) { rh /= fontSize; }
+	                } else {
+	                    // Single-line text
+	                    rh = 0;
+	                }
+	                switch (verticalAnchor) {
+	                    case 'middle':
+	                        dy = (0.3 - (rh / 2)) + 'em';
+	                        break;
+	                    case 'bottom':
+	                        dy = (-rh - 0.3) + 'em';
+	                        break;
+	                }
+	            }
+	        } else {
+	            if (verticalAnchor === 0) {
+	                dy = '0em';
+	            } else if (verticalAnchor) {
+	                dy = verticalAnchor;
+	            } else {
+	                // No vertical anchor is defined
+	                dy = 0;
+	                // Backwards compatibility - we change the `y` attribute instead of `dy`.
+	                if (this.attr('y') === null) { this.attr('y', annotatedY || '0.8em'); }
+	            }
+	        }
+	        containerNode.firstChild.setAttribute('dy', dy);
+	        // Appending lines to the element.
+	        this.append(containerNode);
+	        return this;
+	    };
+
+	    /**
+	     * @public
+	     * @param {string} name
+	     * @returns {Vectorizer}
+	     */
+	    VPrototype.removeAttr = function(name) {
+
+	        var trueName = attributeNames[name];
+
+	        var ref = V.qualifyAttr(trueName);
+	        var ns = ref.ns;
+	        var local = ref.local;
+	        var el = this.node;
+
+	        if (ns) {
+	            if (el.hasAttributeNS(ns, local)) {
+	                el.removeAttributeNS(ns, local);
+	            }
+	        } else if (el.hasAttribute(trueName)) {
+	            el.removeAttribute(trueName);
+	        }
+	        return this;
+	    };
+
+	    VPrototype.attr = function(name, value) {
+
+	        if (V.isUndefined(name)) {
+
+	            // Return all attributes.
+	            var attributes = this.node.attributes;
+	            var attrs = {};
+
+	            for (var i = 0; i < attributes.length; i++) {
+	                attrs[attributes[i].name] = attributes[i].value;
+	            }
+
+	            return attrs;
+	        }
+
+	        if (V.isString(name) && V.isUndefined(value)) {
+	            return this.node.getAttribute(attributeNames[name]);
+	        }
+
+	        if (typeof name === 'object') {
+
+	            for (var attrName in name) {
+	                if (name.hasOwnProperty(attrName)) {
+	                    this.setAttribute(attrName, name[attrName]);
+	                }
+	            }
+
+	        } else {
+
+	            this.setAttribute(name, value);
+	        }
+
+	        return this;
+	    };
+
+	    VPrototype.normalizePath = function() {
+
+	        var tagName = this.tagName();
+	        if (tagName === 'PATH') {
+	            this.attr('d', V.normalizePathData(this.attr('d')));
+	        }
+
+	        return this;
+	    };
+
+	    VPrototype.remove = function() {
+
+	        if (this.node.parentNode) {
+	            this.node.parentNode.removeChild(this.node);
+	        }
+
+	        return this;
+	    };
+
+	    VPrototype.empty = function() {
+
+	        while (this.node.firstChild) {
+	            this.node.removeChild(this.node.firstChild);
+	        }
+
+	        return this;
+	    };
+
+	    /**
+	     * @private
+	     * @param {object} attrs
+	     * @returns {Vectorizer}
+	     */
+	    VPrototype.setAttributes = function(attrs) {
+
+	        for (var key in attrs) {
+	            if (attrs.hasOwnProperty(key)) {
+	                this.setAttribute(key, attrs[key]);
+	            }
+	        }
+
+	        return this;
+	    };
+
+	    VPrototype.append = function(els) {
+
+	        if (!V.isArray(els)) {
+	            els = [els];
+	        }
+
+	        for (var i = 0, len = els.length; i < len; i++) {
+	            this.node.appendChild(V.toNode(els[i])); // lgtm [js/xss-through-dom]
+	        }
+
+	        return this;
+	    };
+
+	    VPrototype.prepend = function(els) {
+
+	        var child = this.node.firstChild;
+	        return child ? V(child).before(els) : this.append(els);
+	    };
+
+	    VPrototype.before = function(els) {
+
+	        var node = this.node;
+	        var parent = node.parentNode;
+
+	        if (parent) {
+
+	            if (!V.isArray(els)) {
+	                els = [els];
+	            }
+
+	            for (var i = 0, len = els.length; i < len; i++) {
+	                parent.insertBefore(V.toNode(els[i]), node);
+	            }
+	        }
+
+	        return this;
+	    };
+
+	    VPrototype.appendTo = function(node) {
+	        V.toNode(node).appendChild(this.node); // lgtm [js/xss-through-dom]
+	        return this;
+	    };
+
+	    VPrototype.svg = function() {
+
+	        return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
+	    };
+
+	    VPrototype.tagName = function() {
+
+	        return this.node.tagName.toUpperCase();
+	    };
+
+	    VPrototype.defs = function() {
+	        var context = this.svg() || this;
+	        var defsNode = context.node.getElementsByTagName('defs')[0];
+	        if (defsNode) { return V(defsNode); }
+	        return V('defs').appendTo(context);
+	    };
+
+	    VPrototype.clone = function() {
+
+	        var clone = V(this.node.cloneNode(true/* deep */));
+	        // Note that clone inherits also ID. Therefore, we need to change it here.
+	        clone.node.id = V.uniqueId();
+	        return clone;
+	    };
+
+	    VPrototype.findOne = function(selector) {
+
+	        var found = this.node.querySelector(selector);
+	        return found ? V(found) : undefined;
+	    };
+
+	    VPrototype.find = function(selector) {
+
+	        var vels = [];
+	        var nodes = this.node.querySelectorAll(selector);
+
+	        if (nodes) {
+
+	            // Map DOM elements to `V`s.
+	            for (var i = 0; i < nodes.length; i++) {
+	                vels.push(V(nodes[i]));
+	            }
+	        }
+
+	        return vels;
+	    };
+
+	    // Returns an array of V elements made from children of this.node.
+	    VPrototype.children = function() {
+
+	        var children = this.node.childNodes;
+
+	        var outputArray = [];
+	        for (var i = 0; i < children.length; i++) {
+	            var currentChild = children[i];
+	            if (currentChild.nodeType === 1) {
+	                outputArray.push(V(children[i]));
+	            }
+	        }
+	        return outputArray;
+	    };
+
+	    // Returns the V element from parentNode of this.node.
+	    VPrototype.parent = function() {
+	        return V(this.node.parentNode) || null;
+	    },
+
+	    // Find an index of an element inside its container.
+	    VPrototype.index = function() {
+
+	        var index = 0;
+	        var node = this.node.previousSibling;
+
+	        while (node) {
+	            // nodeType 1 for ELEMENT_NODE
+	            if (node.nodeType === 1) { index++; }
+	            node = node.previousSibling;
+	        }
+
+	        return index;
+	    };
+
+	    VPrototype.findParentByClass = function(className, terminator) {
+
+	        var ownerSVGElement = this.node.ownerSVGElement;
+	        var node = this.node.parentNode;
+
+	        while (node && node !== terminator && node !== ownerSVGElement) {
+
+	            var vel = V(node);
+	            if (vel.hasClass(className)) {
+	                return vel;
+	            }
+
+	            node = node.parentNode;
+	        }
+
+	        return null;
+	    };
+
+	    // https://jsperf.com/get-common-parent
+	    VPrototype.contains = function(el) {
+
+	        var a = this.node;
+	        var b = V.toNode(el);
+	        var bup = b && b.parentNode;
+
+	        return (a === bup) || !!(bup && bup.nodeType === 1 && (a.compareDocumentPosition(bup) & 16));
+	    };
+
+	    // Convert global point into the coordinate space of this element.
+	    VPrototype.toLocalPoint = function(x, y) {
+
+	        var svg = this.svg().node;
+
+	        var p = svg.createSVGPoint();
+	        p.x = x;
+	        p.y = y;
+
+	        try {
+
+	            var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
+	            var globalToLocalMatrix = this.getTransformToElement(svg).inverse();
+
+	        } catch (e) {
+	            // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
+	            // We have to make do with the original coordianates.
+	            return p;
+	        }
+
+	        return globalPoint.matrixTransform(globalToLocalMatrix);
+	    };
+
+	    VPrototype.translateCenterToPoint = function(p) {
+
+	        var bbox = this.getBBox({ target: this.svg() });
+	        var center = bbox.center();
+
+	        this.translate(p.x - center.x, p.y - center.y);
+	        return this;
+	    };
+
+	    // Efficiently auto-orient an element. This basically implements the orient=auto attribute
+	    // of markers. The easiest way of understanding on what this does is to imagine the element is an
+	    // arrowhead. Calling this method on the arrowhead makes it point to the `position` point while
+	    // being auto-oriented (properly rotated) towards the `reference` point.
+	    // `target` is the element relative to which the transformations are applied. Usually a viewport.
+	    VPrototype.translateAndAutoOrient = function(position, reference, target) {
+
+	        position = new Point(position);
+	        reference =  new Point(reference);
+	        target || (target = this.svg());
+
+	        // Clean-up previously set transformations except the scale. If we didn't clean up the
+	        // previous transformations then they'd add up with the old ones. Scale is an exception as
+	        // it doesn't add up, consider: `this.scale(2).scale(2).scale(2)`. The result is that the
+	        // element is scaled by the factor 2, not 8.
+	        var scale = this.scale();
+	        this.attr('transform', '');
+	        var bbox = this.getBBox({ target: target }).scale(scale.sx, scale.sy);
+
+	        // 1. Translate to origin.
+	        var translateToOrigin = V.createSVGTransform();
+	        translateToOrigin.setTranslate(-bbox.x - bbox.width / 2, -bbox.y - bbox.height / 2);
+
+	        // 2. Rotate around origin.
+	        var rotateAroundOrigin = V.createSVGTransform();
+	        var angle = position.angleBetween(reference, position.clone().offset(1, 0));
+	        if (angle) { rotateAroundOrigin.setRotate(angle, 0, 0); }
+
+	        // 3. Translate to the `position` + the offset (half my width) towards the `reference` point.
+	        var translateFromOrigin = V.createSVGTransform();
+	        var finalPosition = position.clone().move(reference, bbox.width / 2);
+	        translateFromOrigin.setTranslate(2 * position.x - finalPosition.x, 2 * position.y - finalPosition.y);
+
+	        // 4. Get the current transformation matrix of this node
+	        var ctm = this.getTransformToElement(target);
+
+	        // 5. Apply transformations and the scale
+	        var transform = V.createSVGTransform();
+	        transform.setMatrix(
+	            translateFromOrigin.matrix.multiply(
+	                rotateAroundOrigin.matrix.multiply(
+	                    translateToOrigin.matrix.multiply(
+	                        ctm.scale(scale.sx, scale.sy)))));
+
+	        this.attr('transform', V.matrixToTransformString(transform.matrix));
+
+	        return this;
+	    };
+
+	    VPrototype.animateAlongPath = function(attrs, path) {
+
+	        path = V.toNode(path);
+
+	        var id = V.ensureId(path);
+	        var animateMotion = V('animateMotion', attrs);
+	        var mpath = V('mpath', { 'xlink:href': '#' + id });
+
+	        animateMotion.append(mpath);
+
+	        this.append(animateMotion);
+	        try {
+	            animateMotion.node.beginElement();
+	        } catch (e) {
+	            // Fallback for IE 9.
+	            // Run the animation programmatically if FakeSmile (`http://leunen.me/fakesmile/`) present
+	            if (document.documentElement.getAttribute('smiling') === 'fake') {
+	                /* global getTargets:true, Animator:true, animators:true id2anim:true */
+	                // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
+	                var animation = animateMotion.node;
+	                animation.animators = [];
+
+	                var animationID = animation.getAttribute('id');
+	                if (animationID) { id2anim[animationID] = animation; }
+
+	                var targets = getTargets(animation);
+	                for (var i = 0, len = targets.length; i < len; i++) {
+	                    var target = targets[i];
+	                    var animator = new Animator(animation, target, i);
+	                    animators.push(animator);
+	                    animation.animators[i] = animator;
+	                    animator.register();
+	                }
+	            }
+	        }
+	        return this;
+	    };
+
+
+	    // Split a string into an array of tokens.
+	    // https://infra.spec.whatwg.org/#ascii-whitespace
+	    var noHTMLWhitespaceRegex = /[^\x20\t\r\n\f]+/g;
+	    function getTokenList(str) {
+	        if (!V.isString(str)) { return []; }
+	        return str.trim().match(noHTMLWhitespaceRegex) || [];
+	    }
+
+	    VPrototype.hasClass = function(className) {
+	        if (!V.isString(className)) { return false; }
+	        return this.node.classList.contains(className.trim());
+	    };
+
+	    VPrototype.addClass = function(className) {
+	        var ref;
+
+	        (ref = this.node.classList).add.apply(ref, getTokenList(className));
+	        return this;
+	    };
+
+	    VPrototype.removeClass = function(className) {
+	        var ref;
+
+	        (ref = this.node.classList).remove.apply(ref, getTokenList(className));
+	        return this;
+	    };
+
+	    VPrototype.toggleClass = function(className, toAdd) {
+	        var tokens = getTokenList(className);
+	        for (var i = 0; i < tokens.length; i++) {
+	            this.node.classList.toggle(tokens[i], toAdd);
+	        }
+	        return this;
+	    };
+
+	    // Interpolate path by discrete points. The precision of the sampling
+	    // is controlled by `interval`. In other words, `sample()` will generate
+	    // a point on the path starting at the beginning of the path going to the end
+	    // every `interval` pixels.
+	    // The sampler can be very useful for e.g. finding intersection between two
+	    // paths (finding the two closest points from two samples).
+	    VPrototype.sample = function(interval) {
+
+	        interval = interval || 1;
+	        var node = this.node;
+	        var length = node.getTotalLength();
+	        var samples = [];
+	        var distance = 0;
+	        var sample;
+	        while (distance < length) {
+	            sample = node.getPointAtLength(distance);
+	            samples.push({ x: sample.x, y: sample.y, distance: distance });
+	            distance += interval;
+	        }
+	        return samples;
+	    };
+
+	    VPrototype.convertToPath = function() {
+
+	        var path = V('path');
+	        path.attr(this.attr());
+	        var d = this.convertToPathData();
+	        if (d) {
+	            path.attr('d', d);
+	        }
+	        return path;
+	    };
+
+	    VPrototype.convertToPathData = function() {
+
+	        var tagName = this.tagName();
+
+	        switch (tagName) {
+	            case 'PATH':
+	                return this.attr('d');
+	            case 'LINE':
+	                return V.convertLineToPathData(this.node);
+	            case 'POLYGON':
+	                return V.convertPolygonToPathData(this.node);
+	            case 'POLYLINE':
+	                return V.convertPolylineToPathData(this.node);
+	            case 'ELLIPSE':
+	                return V.convertEllipseToPathData(this.node);
+	            case 'CIRCLE':
+	                return V.convertCircleToPathData(this.node);
+	            case 'RECT':
+	                return V.convertRectToPathData(this.node);
+	        }
+
+	        throw new Error(tagName + ' cannot be converted to PATH.');
+	    };
+
+	    V.prototype.toGeometryShape = function() {
+	        var x, y, width, height, cx, cy, r, rx, ry, points, d, x1, x2, y1, y2;
+	        switch (this.tagName()) {
+
+	            case 'RECT':
+	                x = parseFloat(this.attr('x')) || 0;
+	                y = parseFloat(this.attr('y')) || 0;
+	                width = parseFloat(this.attr('width')) || 0;
+	                height = parseFloat(this.attr('height')) || 0;
+	                return new Rect(x, y, width, height);
+
+	            case 'CIRCLE':
+	                cx = parseFloat(this.attr('cx')) || 0;
+	                cy = parseFloat(this.attr('cy')) || 0;
+	                r = parseFloat(this.attr('r')) || 0;
+	                return new Ellipse({ x: cx, y: cy }, r, r);
+
+	            case 'ELLIPSE':
+	                cx = parseFloat(this.attr('cx')) || 0;
+	                cy = parseFloat(this.attr('cy')) || 0;
+	                rx = parseFloat(this.attr('rx')) || 0;
+	                ry = parseFloat(this.attr('ry')) || 0;
+	                return new Ellipse({ x: cx, y: cy }, rx, ry);
+
+	            case 'POLYLINE':
+	                points = V.getPointsFromSvgNode(this);
+	                return new Polyline(points);
+
+	            case 'POLYGON':
+	                points = V.getPointsFromSvgNode(this);
+	                if (points.length > 1) { points.push(points[0]); }
+	                return new Polyline(points);
+
+	            case 'PATH':
+	                d = this.attr('d');
+	                if (!Path.isDataSupported(d)) { d = V.normalizePathData(d); }
+	                return new Path(d);
+
+	            case 'LINE':
+	                x1 = parseFloat(this.attr('x1')) || 0;
+	                y1 = parseFloat(this.attr('y1')) || 0;
+	                x2 = parseFloat(this.attr('x2')) || 0;
+	                y2 = parseFloat(this.attr('y2')) || 0;
+	                return new Line({ x: x1, y: y1 }, { x: x2, y: y2 });
+	        }
+
+	        // Anything else is a rectangle
+	        return this.getBBox();
+	    };
+
+	    // Find the intersection of a line starting in the center
+	    // of the SVG `node` ending in the point `ref`.
+	    // `target` is an SVG element to which `node`s transformations are relative to.
+	    // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
+	    // Returns a point in the `target` coordinate system (the same system as `ref` is in) if
+	    // an intersection is found. Returns `undefined` otherwise.
+	    VPrototype.findIntersection = function(ref, target) {
+
+	        var svg = this.svg().node;
+	        target = target || svg;
+	        var bbox = this.getBBox({ target: target });
+	        var center = bbox.center();
+
+	        if (!bbox.intersectionWithLineFromCenterToPoint(ref)) { return undefined; }
+
+	        var spot;
+	        var tagName = this.tagName();
+
+	        // Little speed up optimization for `<rect>` element. We do not do conversion
+	        // to path element and sampling but directly calculate the intersection through
+	        // a transformed geometrical rectangle.
+	        if (tagName === 'RECT') {
+
+	            var gRect = new Rect(
+	                parseFloat(this.attr('x') || 0),
+	                parseFloat(this.attr('y') || 0),
+	                parseFloat(this.attr('width')),
+	                parseFloat(this.attr('height'))
+	            );
+	            // Get the rect transformation matrix with regards to the SVG document.
+	            var rectMatrix = this.getTransformToElement(target);
+	            // Decompose the matrix to find the rotation angle.
+	            var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
+	            // Now we want to rotate the rectangle back so that we
+	            // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
+	            var resetRotation = svg.createSVGTransform();
+	            resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
+	            var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
+	            spot = (new Rect(rect)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+
+	        } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
+
+	            var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
+	            var samples = pathNode.sample();
+	            var minDistance = Infinity;
+	            var closestSamples = [];
+
+	            var i, sample, gp, centerDistance, refDistance, distance;
+
+	            for (i = 0; i < samples.length; i++) {
+
+	                sample = samples[i];
+	                // Convert the sample point in the local coordinate system to the global coordinate system.
+	                gp = V.createSVGPoint(sample.x, sample.y);
+	                gp = gp.matrixTransform(this.getTransformToElement(target));
+	                sample = new Point(gp);
+	                centerDistance = sample.distance(center);
+	                // Penalize a higher distance to the reference point by 10%.
+	                // This gives better results. This is due to
+	                // inaccuracies introduced by rounding errors and getPointAtLength() returns.
+	                refDistance = sample.distance(ref) * 1.1;
+	                distance = centerDistance + refDistance;
+
+	                if (distance < minDistance) {
+	                    minDistance = distance;
+	                    closestSamples = [{ sample: sample, refDistance: refDistance }];
+	                } else if (distance < minDistance + 1) {
+	                    closestSamples.push({ sample: sample, refDistance: refDistance });
+	                }
+	            }
+
+	            closestSamples.sort(function(a, b) {
+	                return a.refDistance - b.refDistance;
+	            });
+
+	            if (closestSamples[0]) {
+	                spot = closestSamples[0].sample;
+	            }
+	        }
+
+	        return spot;
+	    };
+
+	    /**
+	     * @private
+	     * @param {string} name
+	     * @param {string} value
+	     * @returns {Vectorizer}
+	     */
+	    VPrototype.setAttribute = function(name, value) {
+
+	        var el = this.node;
+
+	        if (value === null) {
+	            this.removeAttr(name);
+	            return this;
+	        }
+
+	        var trueName = attributeNames[name];
+
+	        var ref = V.qualifyAttr(trueName);
+	        var ns = ref.ns;
+	        if (ns) {
+	            // Attribute names can be namespaced. E.g. `image` elements
+	            // have a `xlink:href` attribute to set the source of the image.
+	            el.setAttributeNS(ns, trueName, value);
+	        } else if (trueName === 'id') {
+	            el.id = value;
+	        } else {
+	            el.setAttribute(trueName, value);
+	        }
+
+	        return this;
+	    };
+
+	    // Create an SVG document element.
+	    // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
+	    V.createSvgDocument = function(content) {
+
+	        if (content) {
+	            var XMLString = "<svg xmlns=\"" + (ns.svg) + "\" xmlns:xlink=\"" + (ns.xlink) + "\" version=\"" + SVGVersion + "\">" + content + "</svg>";
+	            var ref = V.parseXML(XMLString, { async: false });
+	            var documentElement = ref.documentElement;
+	            return documentElement;
+	        }
+
+	        var svg = document.createElementNS(ns.svg, 'svg');
+	        svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
+	        svg.setAttribute('version', SVGVersion);
+	        return svg;
+	    };
+
+	    V.createSVGStyle = function(stylesheet) {
+	        var ref = V('style', { type: 'text/css' }, [
+	            V.createCDATASection(stylesheet)
+	        ]);
+	        var node = ref.node;
+	        return node;
+	    },
+
+	    V.createCDATASection = function(data) {
+	        if ( data === void 0 ) data = '';
+
+	        var xml = document.implementation.createDocument(null, 'xml', null);
+	        return xml.createCDATASection(data);
+	    };
+
+	    V.idCounter = 0;
+
+	    // A function returning a unique identifier for this client session with every call.
+	    V.uniqueId = function() {
+
+	        return 'v-' + (++V.idCounter);
+	    };
+
+	    V.toNode = function(el) {
+
+	        return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
+	    };
+
+	    V.ensureId = function(node) {
+
+	        node = V.toNode(node);
+	        return node.id || (node.id = V.uniqueId());
+	    };
+
+	    // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
+	    // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
+	    // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
+	    // when you want to compare the actual DOM text content without having to add the unicode character in
+	    // the place of all spaces.
+	    V.sanitizeText = function(text) {
+
+	        return (text || '').replace(/ /g, '\u00A0');
+	    };
+
+	    V.isUndefined = function(value) {
+
+	        return typeof value === 'undefined';
+	    };
+
+	    V.isString = function(value) {
+
+	        return typeof value === 'string';
+	    };
+
+	    V.isObject = function(value) {
+
+	        return value && (typeof value === 'object');
+	    };
+
+	    V.isArray = Array.isArray;
+
+	    V.parseXML = function(data, opt) {
+
+	        opt = opt || {};
+
+	        var xml;
+
+	        try {
+	            var parser = new DOMParser();
+
+	            if (!V.isUndefined(opt.async)) {
+	                parser.async = opt.async;
+	            }
+
+	            xml = parser.parseFromString(data, 'text/xml');
+	        } catch (error) {
+	            xml = undefined;
+	        }
+
+	        if (!xml || xml.getElementsByTagName('parsererror').length) {
+	            throw new Error('Invalid XML: ' + data);
+	        }
+
+	        return xml;
+	    };
+
+	    // Create an empty object which does not inherit any properties from `Object.prototype`.
+	    // This is useful when we want to use an object as a dictionary without having to
+	    // worry about inherited properties such as `toString`, `valueOf` etc.
+	    var _attributeNames = Object.create(null);
+
+	    // List of attributes for which not to split camel case words.
+	    // It contains known SVG attribute names and may be extended with user-defined attribute names.
+	    [
+	        'baseFrequency',
+	        'baseProfile',
+	        'clipPathUnits',
+	        'contentScriptType',
+	        'contentStyleType',
+	        'diffuseConstant',
+	        'edgeMode',
+	        'externalResourcesRequired',
+	        'filterRes', // deprecated
+	        'filterUnits',
+	        'gradientTransform',
+	        'gradientUnits',
+	        'kernelMatrix',
+	        'kernelUnitLength',
+	        'keyPoints',
+	        'lengthAdjust',
+	        'limitingConeAngle',
+	        'markerHeight',
+	        'markerUnits',
+	        'markerWidth',
+	        'maskContentUnits',
+	        'maskUnits',
+	        'numOctaves',
+	        'pathLength',
+	        'patternContentUnits',
+	        'patternTransform',
+	        'patternUnits',
+	        'pointsAtX',
+	        'pointsAtY',
+	        'pointsAtZ',
+	        'preserveAlpha',
+	        'preserveAspectRatio',
+	        'primitiveUnits',
+	        'refX',
+	        'refY',
+	        'requiredExtensions',
+	        'requiredFeatures',
+	        'specularConstant',
+	        'specularExponent',
+	        'spreadMethod',
+	        'startOffset',
+	        'stdDeviation',
+	        'stitchTiles',
+	        'surfaceScale',
+	        'systemLanguage',
+	        'tableValues',
+	        'targetX',
+	        'targetY',
+	        'textLength',
+	        'viewBox',
+	        'viewTarget', // deprecated
+	        'xChannelSelector',
+	        'yChannelSelector',
+	        'zoomAndPan' // deprecated
+	    ].forEach(function (name) { return _attributeNames[name] = name; });
+
+	    var attributeNames = new Proxy(_attributeNames, {
+	        get: function get(cache, name) {
+	            // The cache is a dictionary of attribute names. See `_attributeNames` above.
+	            // If the attribute name is not in the cache, it means that it is not
+	            // a camel-case attribute name. In that case, we need to convert
+	            // the attribute name to dash-separated words.
+	            if (!V.supportCamelCaseAttributes) { return name; }
+	            if (name in cache) {
+	                return cache[name];
+	            }
+	            // Convert camel case to dash-separated words.
+	            return (cache[name] = name.replace(/[A-Z]/g, '-$&').toLowerCase());
+	        }
+	    });
+
+	    // Dictionary of attribute names
+	    Object.defineProperty(V, 'attributeNames', {
+	        enumerable: true,
+	        value: attributeNames,
+	        writable: false,
+	    });
+
+	    // Should camel case attributes be supported?
+	    Object.defineProperty(V, 'supportCamelCaseAttributes', {
+	        enumerable: true,
+	        value: true,
+	        writable: true,
+	    });
+
+	    /**
+	     * @param {string} name
+	     * @returns {{ns: string|null, local: string}} namespace and attribute name
+	     */
+	    V.qualifyAttr = function(name) {
+
+	        if (name.indexOf(':') !== -1) {
+	            var combinedKey = name.split(':');
+	            return {
+	                ns: ns[combinedKey[0]],
+	                local: combinedKey[1]
+	            };
+	        }
+
+	        return {
+	            ns: null,
+	            local: name
+	        };
+	    };
+
+	    // Note: This regex allows multiple commas as separator which is incorrect in SVG
+	    // This regex is used by `split()`, so it doesn't need to use /g
+	    V.transformSeparatorRegex = /[ ,]+/;
+	    // Note: All following regexes are more restrictive than SVG specification
+	    // ReDoS mitigation: Use an anchor at the beginning of the match
+	    // ReDoS mitigation: Avoid backtracking (uses `[^()]+` instead of `.*?`)
+	    // ReDoS mitigation: Don't match initial `(` inside repeated part
+	    // The following regex needs to use /g (= cannot use capturing groups)
+	    V.transformRegex = /\b\w+\([^()]+\)/g;
+	    // The following regexes need to use capturing groups (= cannot use /g)
+	    V.transformFunctionRegex = /\b(\w+)\(([^()]+)\)/;
+	    V.transformTranslateRegex = /\btranslate\(([^()]+)\)/;
+	    V.transformRotateRegex = /\brotate\(([^()]+)\)/;
+	    V.transformScaleRegex = /\bscale\(([^()]+)\)/;
+
+	    V.transformStringToMatrix = function(transform) {
+
+	        // Initialize result matrix as identity matrix
+	        var transformationMatrix = V.createSVGMatrix();
+
+	        // Note: Multiple transform functions are allowed in `transform` string
+	        // `match()` returns `null` if none found
+	        var transformMatches = transform && transform.match(V.transformRegex);
+	        if (!transformMatches) {
+	            // Return identity matrix
+	            return transformationMatrix;
+	        }
+
+	        var numMatches = transformMatches.length;
+	        for (var i = 0; i < numMatches; i++) {
+
+	            var transformMatch = transformMatches[i];
+	            // Use same regex as above, but with capturing groups
+	            // `match()` returns values of capturing groups as `[1]`, `[2]`
+	            var transformFunctionMatch = transformMatch.match(V.transformFunctionRegex);
+	            if (transformFunctionMatch) {
+
+	                var sx = (void 0), sy = (void 0), tx = (void 0), ty = (void 0), angle = (void 0);
+	                var ctm = V.createSVGMatrix();
+	                var transformFunction = transformFunctionMatch[1].toLowerCase();
+	                var args = transformFunctionMatch[2].split(V.transformSeparatorRegex);
+	                switch (transformFunction) {
+
+	                    case 'scale':
+	                        sx = parseFloat(args[0]);
+	                        sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
+	                        ctm = ctm.scaleNonUniform(sx, sy);
+	                        break;
+
+	                    case 'translate':
+	                        tx = parseFloat(args[0]);
+	                        ty = parseFloat(args[1]);
+	                        ctm = ctm.translate(tx, ty);
+	                        break;
+
+	                    case 'rotate':
+	                        angle = parseFloat(args[0]);
+	                        tx = parseFloat(args[1]) || 0;
+	                        ty = parseFloat(args[2]) || 0;
+	                        if (tx !== 0 || ty !== 0) {
+	                            ctm = ctm.translate(tx, ty).rotate(angle).translate(-tx, -ty);
+	                        } else {
+	                            ctm = ctm.rotate(angle);
+	                        }
+	                        break;
+
+	                    case 'skewx':
+	                        angle = parseFloat(args[0]);
+	                        ctm = ctm.skewX(angle);
+	                        break;
+
+	                    case 'skewy':
+	                        angle = parseFloat(args[0]);
+	                        ctm = ctm.skewY(angle);
+	                        break;
+
+	                    case 'matrix':
+	                        ctm.a = parseFloat(args[0]);
+	                        ctm.b = parseFloat(args[1]);
+	                        ctm.c = parseFloat(args[2]);
+	                        ctm.d = parseFloat(args[3]);
+	                        ctm.e = parseFloat(args[4]);
+	                        ctm.f = parseFloat(args[5]);
+	                        break;
+
+	                    default:
+	                        continue;
+	                }
+
+	                // Multiply current transformation into result matrix
+	                transformationMatrix = transformationMatrix.multiply(ctm);
+	            }
+
+	        }
+	        return transformationMatrix;
+	    };
+
+	    V.matrixToTransformString = function(matrix) {
+	        matrix || (matrix = true);
+
+	        return 'matrix(' +
+	            (matrix.a !== undefined ? matrix.a : 1) + ',' +
+	            (matrix.b !== undefined ? matrix.b : 0) + ',' +
+	            (matrix.c !== undefined ? matrix.c : 0) + ',' +
+	            (matrix.d !== undefined ? matrix.d : 1) + ',' +
+	            (matrix.e !== undefined ? matrix.e : 0) + ',' +
+	            (matrix.f !== undefined ? matrix.f : 0) +
+	            ')';
+	    };
+
+	    V.parseTransformString = function(transform) {
+
+	        var translate, rotate, scale;
+
+	        if (transform) {
+
+	            var separator = V.transformSeparatorRegex;
+
+	            // Special handling for `transform` with one or more matrix functions
+	            if (transform.trim().indexOf('matrix') >= 0) {
+
+	                // Convert EVERYTHING in `transform` string to a matrix
+	                // Will combine ALL matrixes * ALL translates * ALL scales * ALL rotates
+	                // Note: In non-matrix case, we only take first one of each (if any)
+	                var matrix = V.transformStringToMatrix(transform);
+	                var decomposedMatrix = V.decomposeMatrix(matrix);
+
+	                // Extract `translate`, `scale`, `rotate` from matrix
+	                translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
+	                scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
+	                rotate = [decomposedMatrix.rotation];
+
+	                // Rewrite `transform` string in `translate scale rotate` format
+	                var transformations = [];
+	                if (translate[0] !== 0 || translate[1] !== 0) {
+	                    transformations.push('translate(' + translate + ')');
+	                }
+	                if (scale[0] !== 1 || scale[1] !== 1) {
+	                    transformations.push('scale(' + scale + ')');
+	                }
+	                if (rotate[0] !== 0) {
+	                    transformations.push('rotate(' + rotate + ')');
+	                }
+	                transform = transformations.join(' ');
+
+	            } else {
+
+	                // Extract `translate`, `rotate`, `scale` functions from `transform` string
+	                // Note: We only detect the first match of each (if any)
+	                // `match()` returns value of capturing group as `[1]`
+	                var translateMatch = transform.match(V.transformTranslateRegex);
+	                if (translateMatch) {
+	                    translate = translateMatch[1].split(separator);
+	                }
+	                var rotateMatch = transform.match(V.transformRotateRegex);
+	                if (rotateMatch) {
+	                    rotate = rotateMatch[1].split(separator);
+	                }
+	                var scaleMatch = transform.match(V.transformScaleRegex);
+	                if (scaleMatch) {
+	                    scale = scaleMatch[1].split(separator);
+	                }
+	            }
+	        }
+
+	        var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
+
+	        return {
+	            value: transform,
+	            translate: {
+	                tx: (translate && translate[0]) ? parseInt(translate[0], 10) : 0,
+	                ty: (translate && translate[1]) ? parseInt(translate[1], 10) : 0
+	            },
+	            rotate: {
+	                angle: (rotate && rotate[0]) ? parseInt(rotate[0], 10) : 0,
+	                cx: (rotate && rotate[1]) ? parseInt(rotate[1], 10) : undefined,
+	                cy: (rotate && rotate[2]) ? parseInt(rotate[2], 10) : undefined
+	            },
+	            scale: {
+	                sx: sx,
+	                sy: (scale && scale[1]) ? parseFloat(scale[1]) : sx
+	            }
+	        };
+	    };
+
+	    V.deltaTransformPoint = function(matrix, point) {
+
+	        var dx = point.x * matrix.a + point.y * matrix.c + 0;
+	        var dy = point.x * matrix.b + point.y * matrix.d + 0;
+	        return { x: dx, y: dy };
+	    };
+
+	    V.decomposeMatrix = function(matrix) {
+
+	        // @see https://gist.github.com/2052247
+
+	        // calculate delta transform point
+	        var px = V.deltaTransformPoint(matrix, { x: 0, y: 1 });
+	        var py = V.deltaTransformPoint(matrix, { x: 1, y: 0 });
+
+	        // calculate skew
+	        var skewX = ((180 / PI) * atan2(px.y, px.x) - 90);
+	        var skewY = ((180 / PI) * atan2(py.y, py.x));
+
+	        return {
+
+	            translateX: matrix.e,
+	            translateY: matrix.f,
+	            scaleX: sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
+	            scaleY: sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
+	            skewX: skewX,
+	            skewY: skewY,
+	            rotation: skewX // rotation is the same as skew x
+	        };
+	    };
+
+	    // Return the `scale` transformation from the following equation:
+	    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
+	    V.matrixToScale = function(matrix) {
+
+	        var a, b, c, d;
+	        if (matrix) {
+	            a = V.isUndefined(matrix.a) ? 1 : matrix.a;
+	            d = V.isUndefined(matrix.d) ? 1 : matrix.d;
+	            b = matrix.b;
+	            c = matrix.c;
+	        } else {
+	            a = d = 1;
+	        }
+	        return {
+	            sx: b ? sqrt(a * a + b * b) : a,
+	            sy: c ? sqrt(c * c + d * d) : d
+	        };
+	    };
+
+	    // Return the `rotate` transformation from the following equation:
+	    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
+	    V.matrixToRotate = function(matrix) {
+
+	        var p = { x: 0, y: 1 };
+	        if (matrix) {
+	            p = V.deltaTransformPoint(matrix, p);
+	        }
+
+	        return {
+	            angle: normalizeAngle(toDeg(atan2(p.y, p.x)) - 90)
+	        };
+	    };
+
+	    // Return the `translate` transformation from the following equation:
+	    // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
+	    V.matrixToTranslate = function(matrix) {
+
+	        return {
+	            tx: (matrix && matrix.e) || 0,
+	            ty: (matrix && matrix.f) || 0
+	        };
+	    };
+
+	    V.isV = function(object) {
+
+	        return object instanceof V;
+	    };
+
+	    // For backwards compatibility:
+	    V.isVElement = V.isV;
+
+	    // Element implements `getBBox()`, `getCTM()` and `getScreenCTM()`
+	    // https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement
+	    V.isSVGGraphicsElement = function(node) {
+	        if (!node) { return false; }
+	        node = V.toNode(node);
+	        // IE/Edge does not implement SVGGraphicsElement interface, thus check for `getScreenCTM` below
+	        return node instanceof SVGElement && typeof node.getScreenCTM === 'function';
+	    };
+
+	    var svgDocument = V('svg').node;
+
+	    V.createSVGMatrix = function(matrix) {
+
+	        var svgMatrix = svgDocument.createSVGMatrix();
+	        for (var component in matrix) {
+	            svgMatrix[component] = matrix[component];
+	        }
+
+	        return svgMatrix;
+	    };
+
+	    V.createSVGTransform = function(matrix) {
+
+	        if (!V.isUndefined(matrix)) {
+
+	            if (!(matrix instanceof SVGMatrix)) {
+	                matrix = V.createSVGMatrix(matrix);
+	            }
+
+	            return svgDocument.createSVGTransformFromMatrix(matrix);
+	        }
+
+	        return svgDocument.createSVGTransform();
+	    };
+
+	    V.createSVGPoint = function(x, y) {
+
+	        var p = svgDocument.createSVGPoint();
+	        p.x = x;
+	        p.y = y;
+	        return p;
+	    };
+
+	    V.transformRect = function(r, matrix) {
+
+	        var p = svgDocument.createSVGPoint();
+
+	        p.x = r.x;
+	        p.y = r.y;
+	        var corner1 = p.matrixTransform(matrix);
+
+	        p.x = r.x + r.width;
+	        p.y = r.y;
+	        var corner2 = p.matrixTransform(matrix);
+
+	        p.x = r.x + r.width;
+	        p.y = r.y + r.height;
+	        var corner3 = p.matrixTransform(matrix);
+
+	        p.x = r.x;
+	        p.y = r.y + r.height;
+	        var corner4 = p.matrixTransform(matrix);
+
+	        var minX = min(corner1.x, corner2.x, corner3.x, corner4.x);
+	        var maxX = max(corner1.x, corner2.x, corner3.x, corner4.x);
+	        var minY = min(corner1.y, corner2.y, corner3.y, corner4.y);
+	        var maxY = max(corner1.y, corner2.y, corner3.y, corner4.y);
+
+	        return new Rect(minX, minY, maxX - minX, maxY - minY);
+	    };
+
+	    V.transformPoint = function(p, matrix) {
+
+	        return new Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
+	    };
+
+	    V.transformLine = function(l, matrix) {
+
+	        return new Line(
+	            V.transformPoint(l.start, matrix),
+	            V.transformPoint(l.end, matrix)
+	        );
+	    };
+
+	    V.transformPolyline = function(p, matrix) {
+
+	        var inPoints = (p instanceof Polyline) ? p.points : p;
+	        if (!V.isArray(inPoints)) { inPoints = []; }
+	        var outPoints = [];
+	        for (var i = 0, n = inPoints.length; i < n; i++) { outPoints[i] = V.transformPoint(inPoints[i], matrix); }
+	        return new Polyline(outPoints);
+	    };
+
+	    // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
+	    // an object (`{ fill: 'blue', stroke: 'red' }`).
+	    V.styleToObject = function(styleString) {
+	        var ret = {};
+	        var styles = styleString.split(';');
+	        for (var i = 0; i < styles.length; i++) {
+	            var style = styles[i];
+	            var pair = style.split('=');
+	            ret[pair[0].trim()] = pair[1].trim();
+	        }
+	        return ret;
+	    };
+
+	    // Inspired by d3.js https://github.com/mbostock/d3/blob/master/src/svg/arc.js
+	    V.createSlicePathData = function(innerRadius, outerRadius, startAngle, endAngle) {
+
+	        var svgArcMax = 2 * PI - 1e-6;
+	        var r0 = innerRadius;
+	        var r1 = outerRadius;
+	        var a0 = startAngle;
+	        var a1 = endAngle;
+	        var da = (a1 < a0 && (da = a0, a0 = a1, a1 = da), a1 - a0);
+	        var df = da < PI ? '0' : '1';
+	        var c0 = cos(a0);
+	        var s0 = sin(a0);
+	        var c1 = cos(a1);
+	        var s1 = sin(a1);
+
+	        return (da >= svgArcMax)
+	            ? (r0
+	                ? 'M0,' + r1
+	                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+	                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+	                + 'M0,' + r0
+	                + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + (-r0)
+	                + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + r0
+	                + 'Z'
+	                : 'M0,' + r1
+	                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+	                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+	                + 'Z')
+	            : (r0
+	                ? 'M' + r1 * c0 + ',' + r1 * s0
+	                + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+	                + 'L' + r0 * c1 + ',' + r0 * s1
+	                + 'A' + r0 + ',' + r0 + ' 0 ' + df + ',0 ' + r0 * c0 + ',' + r0 * s0
+	                + 'Z'
+	                : 'M' + r1 * c0 + ',' + r1 * s0
+	                + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+	                + 'L0,0'
+	                + 'Z');
+	    };
+
+	    // Merge attributes from object `b` with attributes in object `a`.
+	    // Note that this modifies the object `a`.
+	    // Also important to note that attributes are merged but CSS classes are concatenated.
+	    V.mergeAttrs = function(a, b) {
+
+	        for (var attr in b) {
+
+	            if (attr === 'class') {
+	                // Concatenate classes.
+	                a[attr] = a[attr] ? a[attr] + ' ' + b[attr] : b[attr];
+	            } else if (attr === 'style') {
+	                // `style` attribute can be an object.
+	                if (V.isObject(a[attr]) && V.isObject(b[attr])) {
+	                    // `style` stored in `a` is an object.
+	                    a[attr] = V.mergeAttrs(a[attr], b[attr]);
+	                } else if (V.isObject(a[attr])) {
+	                    // `style` in `a` is an object but it's a string in `b`.
+	                    // Convert the style represented as a string to an object in `b`.
+	                    a[attr] = V.mergeAttrs(a[attr], V.styleToObject(b[attr]));
+	                } else if (V.isObject(b[attr])) {
+	                    // `style` in `a` is a string, in `b` it's an object.
+	                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), b[attr]);
+	                } else {
+	                    // Both styles are strings.
+	                    a[attr] = V.mergeAttrs(V.styleToObject(a[attr]), V.styleToObject(b[attr]));
+	                }
+	            } else {
+	                a[attr] = b[attr];
+	            }
+	        }
+
+	        return a;
+	    };
+
+	    V.annotateString = function(t, annotations, opt) {
+
+	        annotations = annotations || [];
+	        opt = opt || {};
+
+	        var offset = opt.offset || 0;
+	        var compacted = [];
+	        var batch;
+	        var ret = [];
+	        var item;
+	        var prev;
+
+	        for (var i = 0; i < t.length; i++) {
+
+	            item = ret[i] = t[i];
+
+	            for (var j = 0; j < annotations.length; j++) {
+
+	                var annotation = annotations[j];
+	                var start = annotation.start + offset;
+	                var end = annotation.end + offset;
+
+	                if (i >= start && i < end) {
+	                    // Annotation applies.
+	                    if (V.isObject(item)) {
+	                        // There is more than one annotation to be applied => Merge attributes.
+	                        item.attrs = V.mergeAttrs(V.mergeAttrs({}, item.attrs), annotation.attrs);
+	                    } else {
+	                        item = ret[i] = { t: t[i], attrs: annotation.attrs };
+	                    }
+	                    if (opt.includeAnnotationIndices) {
+	                        (item.annotations || (item.annotations = [])).push(j);
+	                    }
+	                }
+	            }
+
+	            prev = ret[i - 1];
+
+	            if (!prev) {
+
+	                batch = item;
+
+	            } else if (V.isObject(item) && V.isObject(prev)) {
+	                // Both previous item and the current one are annotations. If the attributes
+	                // didn't change, merge the text.
+	                if (JSON.stringify(item.attrs) === JSON.stringify(prev.attrs)) {
+	                    batch.t += item.t;
+	                } else {
+	                    compacted.push(batch);
+	                    batch = item;
+	                }
+
+	            } else if (V.isObject(item)) {
+	                // Previous item was a string, current item is an annotation.
+	                compacted.push(batch);
+	                batch = item;
+
+	            } else if (V.isObject(prev)) {
+	                // Previous item was an annotation, current item is a string.
+	                compacted.push(batch);
+	                batch = item;
+
+	            } else {
+	                // Both previous and current item are strings.
+	                batch = (batch || '') + item;
+	            }
+	        }
+
+	        if (batch) {
+	            compacted.push(batch);
+	        }
+
+	        return compacted;
+	    };
+
+	    V.findAnnotationsAtIndex = function(annotations, index) {
+
+	        var found = [];
+
+	        if (annotations) {
+
+	            annotations.forEach(function(annotation) {
+
+	                if (annotation.start < index && index <= annotation.end) {
+	                    found.push(annotation);
+	                }
+	            });
+	        }
+
+	        return found;
+	    };
+
+	    V.findAnnotationsBetweenIndexes = function(annotations, start, end) {
+
+	        var found = [];
+
+	        if (annotations) {
+
+	            annotations.forEach(function(annotation) {
+
+	                if ((start >= annotation.start && start < annotation.end) || (end > annotation.start && end <= annotation.end) || (annotation.start >= start && annotation.end < end)) {
+	                    found.push(annotation);
+	                }
+	            });
+	        }
+
+	        return found;
+	    };
+
+	    // Shift all the text annotations after character `index` by `offset` positions.
+	    V.shiftAnnotations = function(annotations, index, offset) {
+
+	        if (annotations) {
+
+	            annotations.forEach(function(annotation) {
+
+	                if (annotation.start < index && annotation.end >= index) {
+	                    annotation.end += offset;
+	                } else if (annotation.start >= index) {
+	                    annotation.start += offset;
+	                    annotation.end += offset;
+	                }
+	            });
+	        }
+
+	        return annotations;
+	    };
+
+	    V.convertLineToPathData = function(line) {
+
+	        line = V(line);
+	        var d = [
+	            'M', line.attr('x1'), line.attr('y1'),
+	            'L', line.attr('x2'), line.attr('y2')
+	        ].join(' ');
+	        return d;
+	    };
+
+	    V.convertPolygonToPathData = function(polygon) {
+
+	        var points = V.getPointsFromSvgNode(polygon);
+	        if (points.length === 0) { return null; }
+
+	        return V.svgPointsToPath(points) + ' Z';
+	    };
+
+	    V.convertPolylineToPathData = function(polyline) {
+
+	        var points = V.getPointsFromSvgNode(polyline);
+	        if (points.length === 0) { return null; }
+
+	        return V.svgPointsToPath(points);
+	    };
+
+	    V.svgPointsToPath = function(points) {
+
+	        for (var i = 0, n = points.length; i < n; i++) {
+	            points[i] = points[i].x + ' ' + points[i].y;
+	        }
+
+	        return 'M ' + points.join(' L');
+	    };
+
+	    V.getPointsFromSvgNode = function(node) {
+
+	        node = V.toNode(node);
+	        var points = [];
+	        var nodePoints = node.points;
+	        if (nodePoints) {
+	            for (var i = 0, n = nodePoints.numberOfItems; i < n; i++) {
+	                points.push(nodePoints.getItem(i));
+	            }
+	        }
+
+	        return points;
+	    };
+
+	    V.KAPPA = 0.551784;
+
+	    V.convertCircleToPathData = function(circle) {
+
+	        circle = V(circle);
+	        var cx = parseFloat(circle.attr('cx')) || 0;
+	        var cy = parseFloat(circle.attr('cy')) || 0;
+	        var r = parseFloat(circle.attr('r'));
+	        var cd = r * V.KAPPA; // Control distance.
+
+	        var d = [
+	            'M', cx, cy - r,    // Move to the first point.
+	            'C', cx + cd, cy - r, cx + r, cy - cd, cx + r, cy, // I. Quadrant.
+	            'C', cx + r, cy + cd, cx + cd, cy + r, cx, cy + r, // II. Quadrant.
+	            'C', cx - cd, cy + r, cx - r, cy + cd, cx - r, cy, // III. Quadrant.
+	            'C', cx - r, cy - cd, cx - cd, cy - r, cx, cy - r, // IV. Quadrant.
+	            'Z'
+	        ].join(' ');
+	        return d;
+	    };
+
+	    V.convertEllipseToPathData = function(ellipse) {
+
+	        ellipse = V(ellipse);
+	        var cx = parseFloat(ellipse.attr('cx')) || 0;
+	        var cy = parseFloat(ellipse.attr('cy')) || 0;
+	        var rx = parseFloat(ellipse.attr('rx'));
+	        var ry = parseFloat(ellipse.attr('ry')) || rx;
+	        var cdx = rx * V.KAPPA; // Control distance x.
+	        var cdy = ry * V.KAPPA; // Control distance y.
+
+	        var d = [
+	            'M', cx, cy - ry,    // Move to the first point.
+	            'C', cx + cdx, cy - ry, cx + rx, cy - cdy, cx + rx, cy, // I. Quadrant.
+	            'C', cx + rx, cy + cdy, cx + cdx, cy + ry, cx, cy + ry, // II. Quadrant.
+	            'C', cx - cdx, cy + ry, cx - rx, cy + cdy, cx - rx, cy, // III. Quadrant.
+	            'C', cx - rx, cy - cdy, cx - cdx, cy - ry, cx, cy - ry, // IV. Quadrant.
+	            'Z'
+	        ].join(' ');
+	        return d;
+	    };
+
+	    V.convertRectToPathData = function(rect) {
+
+	        rect = V(rect);
+
+	        return V.rectToPath({
+	            x: parseFloat(rect.attr('x')) || 0,
+	            y: parseFloat(rect.attr('y')) || 0,
+	            width: parseFloat(rect.attr('width')) || 0,
+	            height: parseFloat(rect.attr('height')) || 0,
+	            rx: parseFloat(rect.attr('rx')) || 0,
+	            ry: parseFloat(rect.attr('ry')) || 0
+	        });
+	    };
+
+	    // Convert a rectangle to SVG path commands. `r` is an object of the form:
+	    // `{ x: [number], y: [number], width: [number], height: [number], top-ry: [number], top-ry: [number], bottom-rx: [number], bottom-ry: [number] }`,
+	    // where `x, y, width, height` are the usual rectangle attributes and [top-/bottom-]rx/ry allows for
+	    // specifying radius of the rectangle for all its sides (as opposed to the built-in SVG rectangle
+	    // that has only `rx` and `ry` attributes).
+	    V.rectToPath = function(r) {
+
+	        var d;
+	        var x = r.x;
+	        var y = r.y;
+	        var width = r.width;
+	        var height = r.height;
+	        var topRx = min(r.rx || r['top-rx'] || 0, width / 2);
+	        var bottomRx = min(r.rx || r['bottom-rx'] || 0, width / 2);
+	        var topRy = min(r.ry || r['top-ry'] || 0, height / 2);
+	        var bottomRy = min(r.ry || r['bottom-ry'] || 0, height / 2);
+
+	        if (topRx || bottomRx || topRy || bottomRy) {
+	            d = [
+	                'M', x, y + topRy,
+	                'v', height - topRy - bottomRy,
+	                'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, bottomRy,
+	                'h', width - 2 * bottomRx,
+	                'a', bottomRx, bottomRy, 0, 0, 0, bottomRx, -bottomRy,
+	                'v', -(height - bottomRy - topRy),
+	                'a', topRx, topRy, 0, 0, 0, -topRx, -topRy,
+	                'h', -(width - 2 * topRx),
+	                'a', topRx, topRy, 0, 0, 0, -topRx, topRy,
+	                'Z'
+	            ];
+	        } else {
+	            d = [
+	                'M', x, y,
+	                'H', x + width,
+	                'V', y + height,
+	                'H', x,
+	                'V', y,
+	                'Z'
+	            ];
+	        }
+
+	        return d.join(' ');
+	    };
+
+	    // Take a path data string
+	    // Return a normalized path data string
+	    // If data cannot be parsed, return 'M 0 0'
+	    // Highly inspired by Raphael Library (www.raphael.com)
+	    V.normalizePathData = (function() {
+
+	        var spaces = '\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029';
+	        var pathCommand = new RegExp('([a-z])[' + spaces + ',]*((-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?[' + spaces + ']*,?[' + spaces + ']*)+)', 'ig');
+	        var pathValues = new RegExp('(-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?)[' + spaces + ']*,?[' + spaces + ']*', 'ig');
+
+	        var math = Math;
+	        var PI = math.PI;
+	        var sin = math.sin;
+	        var cos = math.cos;
+	        var tan = math.tan;
+	        var asin = math.asin;
+	        var sqrt = math.sqrt;
+	        var abs = math.abs;
+
+	        function q2c(x1, y1, ax, ay, x2, y2) {
+
+	            var _13 = 1 / 3;
+	            var _23 = 2 / 3;
+	            return [(_13 * x1) + (_23 * ax), (_13 * y1) + (_23 * ay), (_13 * x2) + (_23 * ax), (_13 * y2) + (_23 * ay), x2, y2];
+	        }
+
+	        function rotate(x, y, rad) {
+
+	            var X = (x * cos(rad)) - (y * sin(rad));
+	            var Y = (x * sin(rad)) + (y * cos(rad));
+	            return { x: X, y: Y };
+	        }
+
+	        function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
+	            // for more information of where this math came from visit:
+	            // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+	            var _120 = (PI * 120) / 180;
+	            var rad = (PI / 180) * (+angle || 0);
+	            var res = [];
+	            var xy;
+
+	            if (!recursive) {
+	                xy = rotate(x1, y1, -rad);
+	                x1 = xy.x;
+	                y1 = xy.y;
+
+	                xy = rotate(x2, y2, -rad);
+	                x2 = xy.x;
+	                y2 = xy.y;
+
+	                var x = (x1 - x2) / 2;
+	                var y = (y1 - y2) / 2;
+	                var h = ((x * x) / (rx * rx)) + ((y * y) / (ry * ry));
+
+	                if (h > 1) {
+	                    h = sqrt(h);
+	                    rx = h * rx;
+	                    ry = h * ry;
+	                }
+
+	                var rx2 = rx * rx;
+	                var ry2 = ry * ry;
+
+	                var k = ((large_arc_flag == sweep_flag) ? -1 : 1) * sqrt(abs(((rx2 * ry2) - (rx2 * y * y) - (ry2 * x * x)) / ((rx2 * y * y) + (ry2 * x * x))));
+
+	                var cx = ((k * rx * y) / ry) + ((x1 + x2) / 2);
+	                var cy = ((k * -ry * x) / rx) + ((y1 + y2) / 2);
+
+	                var f1 = asin(((y1 - cy) / ry).toFixed(9));
+	                var f2 = asin(((y2 - cy) / ry).toFixed(9));
+
+	                f1 = ((x1 < cx) ? (PI - f1) : f1);
+	                f2 = ((x2 < cx) ? (PI - f2) : f2);
+
+	                if (f1 < 0) { f1 = (PI * 2) + f1; }
+	                if (f2 < 0) { f2 = (PI * 2) + f2; }
+
+	                if (sweep_flag && (f1 > f2)) { f1 = f1 - (PI * 2); }
+	                if (!sweep_flag && (f2 > f1)) { f2 = f2 - (PI * 2); }
+
+	            } else {
+	                f1 = recursive[0];
+	                f2 = recursive[1];
+	                cx = recursive[2];
+	                cy = recursive[3];
+	            }
+
+	            var df = f2 - f1;
+	            if (abs(df) > _120) {
+	                var f2old = f2;
+	                var x2old = x2;
+	                var y2old = y2;
+	                f2 = f1 + (_120 * ((sweep_flag && (f2 > f1)) ? 1 : -1));
+	                x2 = cx + (rx * cos(f2));
+	                y2 = cy + (ry * sin(f2));
+	                res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
+	            }
+
+	            df = f2 - f1;
+
+	            var c1 = cos(f1);
+	            var s1 = sin(f1);
+	            var c2 = cos(f2);
+	            var s2 = sin(f2);
+	            var t = tan(df / 4);
+	            var hx = (4 / 3) * (rx * t);
+	            var hy = (4 / 3) * (ry * t);
+	            var m1 = [x1, y1];
+	            var m2 = [x1 + (hx * s1), y1 - (hy * c1)];
+	            var m3 = [x2 + (hx * s2), y2 - (hy * c2)];
+	            var m4 = [x2, y2];
+
+	            m2[0] = (2 * m1[0]) - m2[0];
+	            m2[1] = (2 * m1[1]) - m2[1];
+
+	            if (recursive) {
+	                return [m2, m3, m4].concat(res);
+	            } else {
+	                res = [m2, m3, m4].concat(res).join().split(',');
+	                var newres = [];
+	                var ii = res.length;
+	                for (var i = 0; i < ii; i++) {
+	                    newres[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
+	                }
+	                return newres;
+	            }
+	        }
+
+	        function parsePathString(pathString) {
+
+	            if (!pathString) { return null; }
+
+	            var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, q: 4, s: 4, t: 2, v: 1, z: 0 };
+	            var data = [];
+
+	            String(pathString).replace(pathCommand, function(a, b, c) {
+
+	                var params = [];
+	                var name = b.toLowerCase();
+	                c.replace(pathValues, function(a, b) {
+	                    if (b) { params.push(+b); }
+	                });
+
+	                if ((name === 'm') && (params.length > 2)) {
+	                    data.push([b].concat(params.splice(0, 2)));
+	                    name = 'l';
+	                    b = ((b === 'm') ? 'l' : 'L');
+	                }
+
+	                while (params.length >= paramCounts[name]) {
+	                    data.push([b].concat(params.splice(0, paramCounts[name])));
+	                    if (!paramCounts[name]) { break; }
+	                }
+	            });
+
+	            return data;
+	        }
+
+	        function pathToAbsolute(pathArray) {
+
+	            if (!Array.isArray(pathArray) || !Array.isArray(pathArray && pathArray[0])) { // rough assumption
+	                pathArray = parsePathString(pathArray);
+	            }
+
+	            // if invalid string, return 'M 0 0'
+	            if (!pathArray || !pathArray.length) { return [['M', 0, 0]]; }
+
+	            var res = [];
+	            var x = 0;
+	            var y = 0;
+	            var mx = 0;
+	            var my = 0;
+	            var start = 0;
+	            var pa0;
+
+	            var ii = pathArray.length;
+	            for (var i = start; i < ii; i++) {
+
+	                var r = [];
+	                res.push(r);
+
+	                var pa = pathArray[i];
+	                pa0 = pa[0];
+
+	                if (pa0 != pa0.toUpperCase()) {
+	                    r[0] = pa0.toUpperCase();
+
+	                    var jj;
+	                    var j;
+	                    switch (r[0]) {
+	                        case 'A':
+	                            r[1] = pa[1];
+	                            r[2] = pa[2];
+	                            r[3] = pa[3];
+	                            r[4] = pa[4];
+	                            r[5] = pa[5];
+	                            r[6] = +pa[6] + x;
+	                            r[7] = +pa[7] + y;
+	                            break;
+
+	                        case 'V':
+	                            r[1] = +pa[1] + y;
+	                            break;
+
+	                        case 'H':
+	                            r[1] = +pa[1] + x;
+	                            break;
+
+	                        case 'M':
+	                            mx = +pa[1] + x;
+	                            my = +pa[2] + y;
+
+	                            jj = pa.length;
+	                            for (j = 1; j < jj; j++) {
+	                                r[j] = +pa[j] + ((j % 2) ? x : y);
+	                            }
+	                            break;
+
+	                        default:
+	                            jj = pa.length;
+	                            for (j = 1; j < jj; j++) {
+	                                r[j] = +pa[j] + ((j % 2) ? x : y);
+	                            }
+	                            break;
+	                    }
+	                } else {
+	                    var kk = pa.length;
+	                    for (var k = 0; k < kk; k++) {
+	                        r[k] = pa[k];
+	                    }
+	                }
+
+	                switch (r[0]) {
+	                    case 'Z':
+	                        x = +mx;
+	                        y = +my;
+	                        break;
+
+	                    case 'H':
+	                        x = r[1];
+	                        break;
+
+	                    case 'V':
+	                        y = r[1];
+	                        break;
+
+	                    case 'M':
+	                        mx = r[r.length - 2];
+	                        my = r[r.length - 1];
+	                        x = r[r.length - 2];
+	                        y = r[r.length - 1];
+	                        break;
+
+	                    default:
+	                        x = r[r.length - 2];
+	                        y = r[r.length - 1];
+	                        break;
+	                }
+	            }
+
+	            return res;
+	        }
+
+	        function normalize(path) {
+
+	            var p = pathToAbsolute(path);
+	            var attrs = { x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null };
+
+	            function processPath(path, d, pcom) {
+
+	                var nx, ny;
+
+	                if (!path) { return ['C', d.x, d.y, d.x, d.y, d.x, d.y]; }
+
+	                if (!(path[0] in { T: 1, Q: 1 })) {
+	                    d.qx = null;
+	                    d.qy = null;
+	                }
+
+	                switch (path[0]) {
+	                    case 'M':
+	                        d.X = path[1];
+	                        d.Y = path[2];
+	                        break;
+
+	                    case 'A':
+	                        if (parseFloat(path[1]) === 0 || parseFloat(path[2]) === 0) {
+	                            // https://www.w3.org/TR/SVG/paths.html#ArcOutOfRangeParameters
+	                            // "If either rx or ry is 0, then this arc is treated as a
+	                            // straight line segment (a "lineto") joining the endpoints."
+	                            path = ['L', path[6], path[7]];
+	                        } else {
+	                            path = ['C'].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
+	                        }
+	                        break;
+
+	                    case 'S':
+	                        if (pcom === 'C' || pcom === 'S') { // In 'S' case we have to take into account, if the previous command is C/S.
+	                            nx = (d.x * 2) - d.bx;          // And reflect the previous
+	                            ny = (d.y * 2) - d.by;          // command's control point relative to the current point.
+	                        } else {                            // or some else or nothing
+	                            nx = d.x;
+	                            ny = d.y;
+	                        }
+	                        path = ['C', nx, ny].concat(path.slice(1));
+	                        break;
+
+	                    case 'T':
+	                        if (pcom === 'Q' || pcom === 'T') { // In 'T' case we have to take into account, if the previous command is Q/T.
+	                            d.qx = (d.x * 2) - d.qx;        // And make a reflection similar
+	                            d.qy = (d.y * 2) - d.qy;        // to case 'S'.
+	                        } else {                            // or something else or nothing
+	                            d.qx = d.x;
+	                            d.qy = d.y;
+	                        }
+	                        path = ['C'].concat(q2c(d.x, d.y, d.qx, d.qy, path[1], path[2]));
+	                        break;
+
+	                    case 'Q':
+	                        d.qx = path[1];
+	                        d.qy = path[2];
+	                        path = ['C'].concat(q2c(d.x, d.y, path[1], path[2], path[3], path[4]));
+	                        break;
+
+	                    case 'H':
+	                        path = ['L'].concat(path[1], d.y);
+	                        break;
+
+	                    case 'V':
+	                        path = ['L'].concat(d.x, path[1]);
+	                        break;
+
+	                    case 'L':
+	                        break;
+
+	                    case 'Z':
+	                        break;
+	                }
+
+	                return path;
+	            }
+
+	            function fixArc(pp, i) {
+
+	                if (pp[i].length > 7) {
+
+	                    pp[i].shift();
+	                    var pi = pp[i];
+
+	                    while (pi.length) {
+	                        pcoms[i] = 'A'; // if created multiple 'C's, their original seg is saved
+	                        pp.splice(i++, 0, ['C'].concat(pi.splice(0, 6)));
+	                    }
+
+	                    pp.splice(i, 1);
+	                    ii = p.length;
+	                }
+	            }
+
+	            var pcoms = []; // path commands of original path p
+	            var pfirst = ''; // temporary holder for original path command
+	            var pcom = ''; // holder for previous path command of original path
+
+	            var ii = p.length;
+	            for (var i = 0; i < ii; i++) {
+	                if (p[i]) { pfirst = p[i][0]; } // save current path command
+
+	                if (pfirst !== 'C') { // C is not saved yet, because it may be result of conversion
+	                    pcoms[i] = pfirst; // Save current path command
+	                    if (i > 0) { pcom = pcoms[i - 1]; } // Get previous path command pcom
+	                }
+
+	                p[i] = processPath(p[i], attrs, pcom); // Previous path command is inputted to processPath
+
+	                if (pcoms[i] !== 'A' && pfirst === 'C') { pcoms[i] = 'C'; } // 'A' is the only command
+	                // which may produce multiple 'C's
+	                // so we have to make sure that 'C' is also 'C' in original path
+
+	                fixArc(p, i); // fixArc adds also the right amount of 'A's to pcoms
+
+	                var seg = p[i];
+	                var seglen = seg.length;
+
+	                attrs.x = seg[seglen - 2];
+	                attrs.y = seg[seglen - 1];
+
+	                attrs.bx = parseFloat(seg[seglen - 4]) || attrs.x;
+	                attrs.by = parseFloat(seg[seglen - 3]) || attrs.y;
+	            }
+
+	            // make sure normalized path data string starts with an M segment
+	            if (!p[0][0] || p[0][0] !== 'M') {
+	                p.unshift(['M', 0, 0]);
+	            }
+
+	            return p;
+	        }
+
+	        return function(pathData) {
+	            return normalize(pathData).join(',').split(',').join(' ');
+	        };
+	    })();
+
+	    V.namespace = ns;
+
+	    V.g = g;
+
+	    return V;
+
+	})();
+
+	// Manipulation
+
+	function remove() {
+	    for (var i = 0; i < this.length; i++) {
+	        var node = this[i];
+	        dataPriv.remove(node);
+	        if (node.parentNode) {
+	            node.parentNode.removeChild(node);
+	        }
+	    }
+	}
+
+	function empty() {
+	    for (var i = 0; i < this.length; i++) {
+	        var node = this[i];
+	        if (node.nodeType === 1) {
+	            cleanNodesData(dataPriv, node.getElementsByTagName('*'));
+	            // Remove any remaining nodes
+	            node.textContent = '';
+	        }
+	    }
+	    return this;
+	}
+
+	function html$1(html) {
+	    var ref = this;
+	    var el = ref[0];
+	    if (!el) { return null; }
+	    if (!html) { return el.innerHTML; }
+	    cleanNodesData(dataPriv, el.getElementsByTagName('*'));
+	    if (typeof string === 'string') {
+	        el.innerHTML = html;
+	    } else {
+	        el.innerHTML = '';
+	        return this.append(html);
+	    }
+	    return this;
+	}
+
+	function text(text) {
+	    var ref = this;
+	    var el = ref[0];
+	    if (!el) { return null; }
+	    if (!text) { return el.textContent; }
+	    el.textContent = text;
+	    return this;
+	}
+
+	function append() {
+	    var nodes = [], len = arguments.length;
+	    while ( len-- ) nodes[ len ] = arguments[ len ];
+
+	    var ref = this;
+	    var parent = ref[0];
+	    if (!parent) { return this; }
+	    nodes.forEach(function (node) {
+	        if (!node) { return; }
+	        if (typeof node === 'string') {
+	            parent.append.apply(parent, $.parseHTML(node));
+	        } else if (node.toString() === '[object Object]') {
+	            // $ object
+	            parent.append.apply(parent, node.toArray());
+	        } else {
+	            // DOM node
+	            parent.appendChild(node);
+	        }
+	    });
+	    return this;
+	}
+
+	function prepend() {
+	    var nodes = [], len = arguments.length;
+	    while ( len-- ) nodes[ len ] = arguments[ len ];
+
+	    var ref = this;
+	    var parent = ref[0];
+	    if (!parent) { return this; }
+	    nodes.forEach(function (node) {
+	        if (!node) { return; }
+	        if (typeof node === 'string') {
+	            parent.prepend.apply(parent, $.parseHTML(node));
+	        } else if (node.toString() === '[object Object]') {
+	            // $ object
+	            parent.prepend.apply(parent, node.toArray());
+	        } else {
+	            // DOM node
+	            parent.insertBefore(node, parent.firstChild);
+	        }
+	    });
+	    return this;
+	}
+
+	function appendTo(parent) {
+	    $(parent).append(this);
+	    return this;
+	}
+
+	function prependTo(parent) {
+	    $(parent).prepend(this);
+	    return this;
+	}
+
+	// Styles and attributes
+
+	function css(name, value) {
+	    var styles;
+	    if (typeof name === 'string') {
+	        if (value === undefined) {
+	            var ref = this;
+	            var el = ref[0];
+	            if (!el) { return null; }
+	            return el.style[name];
+	        } else {
+	            styles = {};
+	            styles[name] = value;
+	        }
+	    } else if (!name) {
+	        throw new Error('no styles provided');
+	    } else {
+	        styles = name;
+	    }
+	    for (var style in styles) {
+	        if (styles.hasOwnProperty(style)) {
+	            for (var i = 0; i < this.length; i++) {
+	                this[i].style[style] = styles[style];
+	            }
+	        }
+	    }
+	    return this;
+	}
+
+	function attr(name, value) {
+	    var attributes;
+	    if (typeof name === 'string') {
+	        if (value === undefined) {
+	            var ref = this;
+	            var el = ref[0];
+	            if (!el) { return null; }
+	            return el.getAttribute(name);
+	        } else {
+	            attributes = {};
+	            attributes[name] = value;
+	        }
+	    } else if (!name) {
+	        throw new Error('no attributes provided');
+	    } else {
+	        attributes = name;
+	    }
+	    for (var attr in attributes) {
+	        if (attributes.hasOwnProperty(attr)) {
+	            for (var i = 0; i < this.length; i++) {
+	                this[i].setAttribute(attr, attributes[attr]);
+	            }
+	        }
+	    }
+	    return this;
+	}
+
+	// Classes
+
+	function removeClass() {
+	    var arguments$1 = arguments;
+
+	    for (var i = 0; i < this.length; i++) {
+	        var node = this[i];
+	        V.prototype.removeClass.apply({ node: node }, arguments$1);
+	    }
+	    return this;
+	}
+
+	function addClass() {
+	    var arguments$1 = arguments;
+
+	    for (var i = 0; i < this.length; i++) {
+	        var node = this[i];
+	        V.prototype.addClass.apply({ node: node }, arguments$1);
+	    }
+	    return this;
+	}
+
+	function hasClass() {
+	    var ref = this;
+	    var node = ref[0];
+	    if (!node) { return false; }
+	    return V.prototype.hasClass.apply({ node: node }, arguments);
+	}
+
+	// Events
+
+	function on(types, selector, data, fn) {
+	    return $.event.on(this, types, selector, data, fn);
+	}
+
+	function one(types, selector, data, fn) {
+	    return $.event.on(this, types, selector, data, fn, 1);
+	}
+
+	function off(types, selector, fn) {
+	    if (types && types.preventDefault && types.handleObj) {
+	        // ( event )  dispatched $.Event
+	        var handleObj = types.handleObj;
+	        $(types.delegateTarget).off(
+	            handleObj.namespace
+	                ? handleObj.origType + '.' + handleObj.namespace
+	                : handleObj.origType,
+	            handleObj.selector,
+	            handleObj.handler
+	        );
+	        return this;
+	    }
+	    if (typeof types === 'object') {
+	        // ( types-object [, selector] )
+	        for (var type in types) {
+	            this.off(type, selector, types[type]);
+	        }
+	        return this;
+	    }
+	    if (selector === false || typeof selector === 'function') {
+	        // ( types [, fn] )
+	        fn = selector;
+	        selector = undefined;
+	    }
+	    for (var i = 0; i < this.length; i++) {
+	        $.event.remove(this[i], types, fn, selector);
+	    }
+	}
+
+	var methods = ({
+		remove: remove,
+		empty: empty,
+		html: html$1,
+		text: text,
+		append: append,
+		prepend: prepend,
+		appendTo: appendTo,
+		prependTo: prependTo,
+		css: css,
+		attr: attr,
+		removeClass: removeClass,
+		addClass: addClass,
+		hasClass: hasClass,
+		on: on,
+		one: one,
+		off: off
+	});
+
+	var config = {
+	    // When set to `true` the cell selectors could be defined as CSS selectors.
+	    // If not, only JSON Markup selectors are taken into account.
+	    // export let useCSSSelectors = true;
+	    useCSSSelectors: true,
+	    // The class name prefix config is for advanced use only.
+	    // Be aware that if you change the prefix, the JointJS CSS will no longer function properly.
+	    // export let classNamePrefix = 'joint-';
+	    // export let defaultTheme = 'default';
+	    classNamePrefix: 'joint-',
+	    defaultTheme: 'default',
+	    // The maximum delay required for two consecutive touchend events to be interpreted
+	    // as a double-tap.
+	    doubleTapInterval: 300
+	};
+
+	// TODO: should not read config outside the mvc package
+
+
+	// Special events
+
+	var special = Object.create(null);
+
+	special.load = {
+	    // Prevent triggered image.load events from bubbling to window.load
+	    noBubble: true,
+	};
+
+	// Create mouseenter/leave events using mouseover/out and event-time checks
+	// so that event delegation works in $.
+	// Do the same for pointerenter/pointerleave and pointerover/pointerout
+	[
+	    ['mouseenter', 'mouseover'],
+	    ['mouseleave', 'mouseout'],
+	    ['pointerenter', 'pointerover'],
+	    ['pointerleave', 'pointerout'] ].forEach(function (ref) {
+	    var orig = ref[0];
+	    var fix = ref[1];
+
+	    special[orig] = {
+	        delegateType: fix,
+	        bindType: fix,
+	        handle: function(event) {
+	            var target = this;
+	            var related = event.relatedTarget;
+	            var handleObj = event.handleObj;
+	            var ret;
+	            // For mouseenter/leave call the handler if related is outside the target.
+	            // NB: No relatedTarget if the mouse left/entered the browser window
+	            if (!related || !target.contains(related)) {
+	                event.type = handleObj.origType;
+	                ret = handleObj.handler.apply(target, arguments);
+	                event.type = fix;
+	            }
+	            return ret;
+	        },
+	    };
+	});
+
+
+	// Gestures
+
+	var maxDelay = config.doubleTapInterval;
+	var minDelay = 30;
+
+	special.dbltap = {
+	    bindType: 'touchend',
+	    delegateType: 'touchend',
+	    handle: function(event) {
+	        var ref;
+
+	        var args = [], len = arguments.length - 1;
+	        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+	        var handleObj = event.handleObj;
+	        var target = event.target;
+	        var targetData = $.data.create(target);
+	        var now = new Date().getTime();
+	        var delta = 'lastTouch' in targetData ? now - targetData.lastTouch : 0;
+	        if (delta < maxDelay && delta > minDelay) {
+	            targetData.lastTouch = null;
+	            event.type = handleObj.origType;
+	            // let $ handle the triggering of "dbltap" event handlers
+	            (ref = handleObj.handler).call.apply(ref, [ this, event ].concat( args ));
+	        } else {
+	            targetData.lastTouch = now;
+	        }
+	    }
+	};
+
+	Object.assign($.fn, methods);
+	Object.assign($.event.special, special);
+
 	var addClassNamePrefix = function(className) {
 
 	    if (!className) { return className; }
@@ -13427,10 +14489,10 @@ var joint = (function (exports, $) {
 	            node = document.createElementNS(ns, tagName);
 	            var svg = (ns === svgNamespace);
 
-	            var wrapper = (svg) ? V : $;
+	            var wrapperNode = (svg) ? V(node) : $(node);
 	            // Attributes
 	            var attributes = nodeDef.attributes;
-	            if (attributes) { wrapper(node).attr(attributes); }
+	            if (attributes) { wrapperNode.attr(attributes); }
 	            // Style
 	            var style = nodeDef.style;
 	            if (style) { $(node).css(style); }
@@ -13452,7 +14514,7 @@ var joint = (function (exports, $) {
 	                var nodeSelector = nodeDef.selector;
 	                if (selectors[nodeSelector]) { throw new Error('json-dom-parser: selector must be unique'); }
 	                selectors[nodeSelector] = node;
-	                wrapper(node).attr('joint-selector', nodeSelector);
+	                wrapperNode.attr('joint-selector', nodeSelector);
 	            }
 	            // Groups
 	            if (nodeDef.hasOwnProperty('groupSelector')) {
@@ -13781,56 +14843,6 @@ var joint = (function (exports, $) {
 	    return client ? caf.bind(window) : caf;
 
 	})();
-
-	/**
-	 * @deprecated
-	 */
-	var shapePerimeterConnectionPoint = function(linkView, view, magnet, reference) {
-
-	    var bbox;
-	    var spot;
-
-	    if (!magnet) {
-
-	        // There is no magnet, try to make the best guess what is the
-	        // wrapping SVG element. This is because we want this "smart"
-	        // connection points to work out of the box without the
-	        // programmer to put magnet marks to any of the subelements.
-	        // For example, we want the function to work on basic.Path elements
-	        // without any special treatment of such elements.
-	        // The code below guesses the wrapping element based on
-	        // one simple assumption. The wrapping elemnet is the
-	        // first child of the scalable group if such a group exists
-	        // or the first child of the rotatable group if not.
-	        // This makese sense because usually the wrapping element
-	        // is below any other sub element in the shapes.
-	        var scalable = view.$('.scalable')[0];
-	        var rotatable = view.$('.rotatable')[0];
-
-	        if (scalable && scalable.firstChild) {
-
-	            magnet = scalable.firstChild;
-
-	        } else if (rotatable && rotatable.firstChild) {
-
-	            magnet = rotatable.firstChild;
-	        }
-	    }
-
-	    if (magnet) {
-
-	        spot = V(magnet).findIntersection(reference, linkView.paper.cells);
-	        if (!spot) {
-	            bbox = V(magnet).getBBox({ target: linkView.paper.cells });
-	        }
-
-	    } else {
-
-	        bbox = view.model.getBBox();
-	        spot = bbox.intersectionWithLineFromCenterToPoint(reference);
-	    }
-	    return spot || bbox.center();
-	};
 
 	var isPercentage = function(val) {
 
@@ -14193,31 +15205,22 @@ var joint = (function (exports, $) {
 	var sanitizeHTML = function(html) {
 
 	    // Ignores tags that are invalid inside a <div> tag (e.g. <body>, <head>)
+	    var ref = $.parseHTML('<div>' + html + '</div>');
+	    var outputEl = ref[0];
 
-	    // If documentContext (second parameter) is not specified or given as `null` or `undefined`, a new document is used.
-	    // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
-
-	    // If keepScripts (last parameter) is `false`, scripts are not executed.
-	    var output = $($.parseHTML('<div>' + html + '</div>', null, false));
-
-	    output.find('*').each(function() { // for all nodes
-	        var currentNode = this;
-
-	        $.each(currentNode.attributes, function() { // for all attributes in each node
-	            var currentAttribute = this;
-
-	            var attrName = currentAttribute.name;
-	            var attrValue = currentAttribute.value;
-
+	    Array.from(outputEl.getElementsByTagName('*')).forEach(function(node) { // for all nodes
+	        var names = node.getAttributeNames();
+	        names.forEach(function(name) {
+	            var value = node.getAttribute(name);
 	            // Remove attribute names that start with "on" (e.g. onload, onerror...).
 	            // Remove attribute values that start with "javascript:" pseudo protocol (e.g. `href="javascript:alert(1)"`).
-	            if (attrName.startsWith('on') || attrValue.startsWith('javascript:') || attrValue.startsWith('data:') || attrValue.startsWith('vbscript:')) {
-	                $(currentNode).removeAttr(attrName);
+	            if (name.startsWith('on') || value.startsWith('javascript:' || value.startsWith('data:') || value.startsWith('vbscript:'))) {
+	                node.removeAttribute(name);
 	            }
 	        });
 	    });
 
-	    return output.html();
+	    return outputEl.innerHTML;
 	};
 
 	// Download `blob` as file with `fileName`.
@@ -14416,10 +15419,9 @@ var joint = (function (exports, $) {
 	// See http://james.padolsey.com/javascript/sorting-elements-with-jquery/.
 	var sortElements = function(elements, comparator) {
 
-	    var $elements = $(elements);
-	    var placements = $elements.map(function() {
+	    elements = $(elements).toArray();
+	    var placements = elements.map(function(sortElement) {
 
-	        var sortElement = this;
 	        var parentNode = sortElement.parentNode;
 	        // Since the element itself will change position, we have
 	        // to have some way of storing it's original position in
@@ -14439,9 +15441,11 @@ var joint = (function (exports, $) {
 	        };
 	    });
 
-	    return Array.prototype.sort.call($elements, comparator).each(function(i) {
-	        placements[i].call(this);
-	    });
+	    elements.sort(comparator);
+	    for (var i = 0; i < placements.length; i++) {
+	        placements[i].call(elements[i]);
+	    }
+	    return elements;
 	};
 
 	// Sets attributes on the given element and its descendants based on the selector.
@@ -15905,8 +16909,7 @@ var joint = (function (exports, $) {
 	    var cacheName = 'joint-shape';
 	    var resetOffset = opt && opt.resetOffset;
 	    return function(value, refBBox, node) {
-	        var $node = $(node);
-	        var cache = $node.data(cacheName);
+	        var cache = $.data.get(node, cacheName);
 	        if (!cache || cache.value !== value) {
 	            // only recalculate if value has changed
 	            var cachedShape = shapeConstructor(value);
@@ -15915,7 +16918,7 @@ var joint = (function (exports, $) {
 	                shape: cachedShape,
 	                shapeBBox: cachedShape.bbox()
 	            };
-	            $node.data(cacheName, cache);
+	            $.data.set(node, cacheName, cache);
 	        }
 
 	        var shape = cache.shape.clone();
@@ -16142,9 +17145,8 @@ var joint = (function (exports, $) {
 	            return !attrs.textWrap || !isPlainObject(attrs.textWrap);
 	        },
 	        set: function(text, refBBox, node, attrs) {
-	            var $node = $(node);
 	            var cacheName = 'joint-text';
-	            var cache = $node.data(cacheName);
+	            var cache = $.data.get(node, cacheName);
 	            var lineHeight = attrs.lineHeight;
 	            var annotations = attrs.annotations;
 	            var textVerticalAnchor = attrs.textVerticalAnchor;
@@ -16173,8 +17175,7 @@ var joint = (function (exports, $) {
 	                if (isObject$1(textPath)) {
 	                    var pathSelector = textPath.selector;
 	                    if (typeof pathSelector === 'string') {
-	                        var ref = this.findBySelector(pathSelector);
-	                        var pathNode = ref[0];
+	                        var pathNode = this.findNode(pathSelector);
 	                        if (pathNode instanceof SVGPathElement) {
 	                            textPath = assign({ 'xlink:href': '#' + pathNode.id }, textPath);
 	                        }
@@ -16189,7 +17190,7 @@ var joint = (function (exports, $) {
 	                    eol: eol,
 	                    displayEmpty: displayEmpty
 	                });
-	                $node.data(cacheName, textHash);
+	                $.data.set(node, cacheName, textHash);
 	            }
 	        }
 	    },
@@ -16266,11 +17267,10 @@ var joint = (function (exports, $) {
 	            return node instanceof SVGElement;
 	        },
 	        set: function(title, refBBox, node) {
-	            var $node = $(node);
 	            var cacheName = 'joint-title';
-	            var cache = $node.data(cacheName);
+	            var cache = $.data.get(node, cacheName);
 	            if (cache === undefined || cache !== title) {
-	                $node.data(cacheName, title);
+	                $.data.set(node, cacheName, title);
 	                if (node.tagName === 'title') {
 	                    // The target node is a <title> element.
 	                    node.textContent = title;
@@ -17384,7 +18384,7 @@ var joint = (function (exports, $) {
 	    },
 
 	    // A shorcut making it easy to create constructs like the following:
-	    // `var el = (new joint.shapes.basic.Rect).addTo(graph)`.
+	    // `var el = (new joint.shapes.standard.Rectangle()).addTo(graph)`.
 	    addTo: function(graph, opt) {
 
 	        graph.addCell(this, opt);
@@ -17765,7 +18765,6 @@ var joint = (function (exports, $) {
 		cap: cap,
 		nextFrame: nextFrame,
 		cancelFrame: cancelFrame,
-		shapePerimeterConnectionPoint: shapePerimeterConnectionPoint,
 		isPercentage: isPercentage,
 		parseCssNumeric: parseCssNumeric,
 		breakText: breakText,
@@ -18270,1142 +19269,6 @@ var joint = (function (exports, $) {
 		inside: inside,
 		radial: radial,
 		radialOriented: radialOriented
-	});
-
-	// Collection
-	// -------------------
-
-	// If models tend to represent a single row of data, a Collection is
-	// more analogous to a table full of data ... or a small slice or page of that
-	// table, or a collection of rows that belong together for a particular reason
-	// -- all of the messages in this particular folder, all of the documents
-	// belonging to this particular author, and so on. Collections maintain
-	// indexes of their models, both in order, and for lookup by `id`.
-
-	// Create a new **Collection**, perhaps to contain a specific type of `model`.
-	// If a `comparator` is specified, the Collection will maintain
-	// its models in sort order, as they're added and removed.
-	var Collection = function(models, options) {
-	    options || (options = {});
-	    this.preinitialize.apply(this, arguments);
-	    if (options.model) { this.model = options.model; }
-	    if (options.comparator !== void 0) { this.comparator = options.comparator; }
-	    this._reset();
-	    this.initialize.apply(this, arguments);
-	    if (models) { this.reset(models, assign({ silent: true }, options)); }
-	};
-
-	// Default options for `Collection#set`.
-	var setOptions = { add: true, remove: true, merge: true };
-	var addOptions = { add: true, remove: false };
-
-	// Splices `insert` into `array` at index `at`.
-	var splice = function(array, insert, at) {
-	    at = Math.min(Math.max(at, 0), array.length);
-	    var tail = Array(array.length - at);
-	    var length = insert.length;
-	    var i;
-	    for (i = 0; i < tail.length; i++) { tail[i] = array[i + at]; }
-	    for (i = 0; i < length; i++) { array[i + at] = insert[i]; }
-	    for (i = 0; i < tail.length; i++) { array[i + length + at] = tail[i]; }
-	};
-
-	// Define the Collection's inheritable methods.
-	assign(Collection.prototype, Events, {
-
-	    // The default model for a collection is just a **Model**.
-	    // This should be overridden in most cases.
-	    model: Model,
-
-
-	    // preinitialize is an empty function by default. You can override it with a function
-	    // or object.  preinitialize will run before any instantiation logic is run in the Collection.
-	    preinitialize: function(){},
-
-	    // Initialize is an empty function by default. Override it with your own
-	    // initialization logic.
-	    initialize: function(){},
-
-	    // The JSON representation of a Collection is an array of the
-	    // models' attributes.
-	    toJSON: function(options) {
-	        return Array.from(this).map(function(model) { return model.toJSON(options); });
-	    },
-
-	    // Add a model, or list of models to the set. `models` may be
-	    // Models or raw JavaScript objects to be converted to Models, or any
-	    // combination of the two.
-	    add: function(models, options) {
-	        return this.set(models, assign({ merge: false }, options, addOptions));
-	    },
-
-	    // Remove a model, or a list of models from the set.
-	    remove: function(models, options) {
-	        options = assign({}, options);
-	        var singular = !Array.isArray(models);
-	        models = singular ? [models] : models.slice();
-	        var removed = this._removeModels(models, options);
-	        if (!options.silent && removed.length) {
-	            options.changes = { added: [], merged: [], removed: removed };
-	            this.trigger('update', this, options);
-	        }
-	        return singular ? removed[0] : removed;
-	    },
-
-	    // Update a collection by `set`-ing a new list of models, adding new ones,
-	    // removing models that are no longer present, and merging models that
-	    // already exist in the collection, as necessary. Similar to **Model#set**,
-	    // the core operation for updating the data contained by the collection.
-	    set: function(models, options) {
-	        if (models == null) { return; }
-
-	        options = assign({}, setOptions, options);
-
-	        var singular = !Array.isArray(models);
-	        models = singular ? [models] : models.slice();
-
-	        var at = options.at;
-	        if (at != null) { at = +at; }
-	        if (at > this.length) { at = this.length; }
-	        if (at < 0) { at += this.length + 1; }
-
-	        var set = [];
-	        var toAdd = [];
-	        var toMerge = [];
-	        var toRemove = [];
-	        var modelMap = {};
-
-	        var add = options.add;
-	        var merge = options.merge;
-	        var remove = options.remove;
-
-	        var sort = false;
-	        var sortable = this.comparator && at == null && options.sort !== false;
-	        var sortAttr = isString(this.comparator) ? this.comparator : null;
-
-	        // Turn bare objects into model references, and prevent invalid models
-	        // from being added.
-	        var model, i;
-	        for (i = 0; i < models.length; i++) {
-	            model = models[i];
-
-	            // If a duplicate is found, prevent it from being added and
-	            // optionally merge it into the existing model.
-	            var existing = this.get(model);
-	            if (existing) {
-	                if (merge && model !== existing) {
-	                    var attrs = this._isModel(model) ? model.attributes : model;
-	                    existing.set(attrs, options);
-	                    toMerge.push(existing);
-	                    if (sortable && !sort) { sort = existing.hasChanged(sortAttr); }
-	                }
-	                if (!modelMap[existing.cid]) {
-	                    modelMap[existing.cid] = true;
-	                    set.push(existing);
-	                }
-	                models[i] = existing;
-
-	                // If this is a new, valid model, push it to the `toAdd` list.
-	            } else if (add) {
-	                model = models[i] = this._prepareModel(model, options);
-	                if (model) {
-	                    toAdd.push(model);
-	                    this._addReference(model, options);
-	                    modelMap[model.cid] = true;
-	                    set.push(model);
-	                }
-	            }
-	        }
-
-	        // Remove stale models.
-	        if (remove) {
-	            for (i = 0; i < this.length; i++) {
-	                model = this.models[i];
-	                if (!modelMap[model.cid]) { toRemove.push(model); }
-	            }
-	            if (toRemove.length) { this._removeModels(toRemove, options); }
-	        }
-
-	        // See if sorting is needed, update `length` and splice in new models.
-	        var orderChanged = false;
-	        var replace = !sortable && add && remove;
-	        if (set.length && replace) {
-	            orderChanged = this.length !== set.length || this.models.some(function(m, index) {
-	                return m !== set[index];
-	            });
-	            this.models.length = 0;
-	            splice(this.models, set, 0);
-	            this.length = this.models.length;
-	        } else if (toAdd.length) {
-	            if (sortable) { sort = true; }
-	            splice(this.models, toAdd, at == null ? this.length : at);
-	            this.length = this.models.length;
-	        }
-
-	        // Silently sort the collection if appropriate.
-	        if (sort) { this.sort({ silent: true }); }
-
-	        // Unless silenced, it's time to fire all appropriate add/sort/update events.
-	        if (!options.silent) {
-	            for (i = 0; i < toAdd.length; i++) {
-	                if (at != null) { options.index = at + i; }
-	                model = toAdd[i];
-	                model.trigger('add', model, this, options);
-	            }
-	            if (sort || orderChanged) { this.trigger('sort', this, options); }
-	            if (toAdd.length || toRemove.length || toMerge.length) {
-	                options.changes = {
-	                    added: toAdd,
-	                    removed: toRemove,
-	                    merged: toMerge
-	                };
-	                this.trigger('update', this, options);
-	            }
-	        }
-
-	        // Return the added (or merged) model (or models).
-	        return singular ? models[0] : models;
-	    },
-
-	    // When you have more items than you want to add or remove individually,
-	    // you can reset the entire set with a new list of models, without firing
-	    // any granular `add` or `remove` events. Fires `reset` when finished.
-	    // Useful for bulk operations and optimizations.
-	    reset: function(models, options) {
-	        options = options ? clone(options) : {};
-	        for (var i = 0; i < this.models.length; i++) {
-	            this._removeReference(this.models[i], options);
-	        }
-	        options.previousModels = this.models;
-	        this._reset();
-	        models = this.add(models, assign({ silent: true }, options));
-	        if (!options.silent) { this.trigger('reset', this, options); }
-	        return models;
-	    },
-
-	    // Add a model to the end of the collection.
-	    push: function(model, options) {
-	        return this.add(model, assign({ at: this.length }, options));
-	    },
-
-	    // Remove a model from the end of the collection.
-	    pop: function(options) {
-	        var model = this.at(this.length - 1);
-	        return this.remove(model, options);
-	    },
-
-	    // Add a model to the beginning of the collection.
-	    unshift: function(model, options) {
-	        return this.add(model, assign({ at: 0 }, options));
-	    },
-
-	    // Remove a model from the beginning of the collection.
-	    shift: function(options) {
-	        var model = this.at(0);
-	        return this.remove(model, options);
-	    },
-
-	    // Slice out a sub-array of models from the collection.
-	    slice: function() {
-	        return Array.prototype.slice.apply(this.models, arguments);
-	    },
-
-	    // Get a model from the set by id, cid, model object with id or cid
-	    // properties, or an attributes object that is transformed through modelId.
-	    get: function(obj) {
-	        if (obj == null) { return void 0; }
-	        return this._byId[obj] ||
-	        this._byId[this.modelId(this._isModel(obj) ? obj.attributes : obj, obj.idAttribute)] ||
-	        obj.cid && this._byId[obj.cid];
-	    },
-
-	    // Returns `true` if the model is in the collection.
-	    has: function(obj) {
-	        return this.get(obj) != null;
-	    },
-
-	    // Get the model at the given index.
-	    at: function(index) {
-	        if (index < 0) { index += this.length; }
-	        return this.models[index];
-	    },
-
-	    // Force the collection to re-sort itself. You don't need to call this under
-	    // normal circumstances, as the set will maintain sort order as each item
-	    // is added.
-	    sort: function(options) {
-	        var comparator = this.comparator;
-	        if (!comparator) { throw new Error('Cannot sort a set without a comparator'); }
-	        options || (options = {});
-
-	        var length = comparator.length;
-	        if (isFunction(comparator)) { comparator = comparator.bind(this); }
-
-	        // Run sort based on type of `comparator`.
-	        if (length === 1 || isString(comparator)) {
-	            this.models = this.sortBy(comparator);
-	        } else {
-	            this.models.sort(comparator);
-	        }
-	        if (!options.silent) { this.trigger('sort', this, options); }
-	        return this;
-	    },
-
-	    // Pluck an attribute from each model in the collection.
-	    pluck: function(attr) {
-	        return Array.from(this).map(function (model) { return model.get(attr + ''); });
-	    },
-
-	    // Create a new collection with an identical list of models as this one.
-	    clone: function() {
-	        return new this.constructor(this.models, {
-	            model: this.model,
-	            comparator: this.comparator
-	        });
-	    },
-
-	    // Define how to uniquely identify models in the collection.
-	    modelId: function(attrs, idAttribute) {
-	        return attrs[idAttribute || this.model.prototype.idAttribute || 'id'];
-	    },
-
-	    // Get an iterator of all models in this collection.
-	    values: function() {
-	        return new CollectionIterator(this, ITERATOR_VALUES);
-	    },
-
-	    // Get an iterator of all model IDs in this collection.
-	    keys: function() {
-	        return new CollectionIterator(this, ITERATOR_KEYS);
-	    },
-
-	    // Get an iterator of all [ID, model] tuples in this collection.
-	    entries: function() {
-	        return new CollectionIterator(this, ITERATOR_KEYSVALUES);
-	    },
-
-	    // Private method to reset all internal state. Called when the collection
-	    // is first initialized or reset.
-	    _reset: function() {
-	        this.length = 0;
-	        this.models = [];
-	        this._byId  = {};
-	    },
-
-	    // Prepare a hash of attributes (or other model) to be added to this
-	    // collection.
-	    _prepareModel: function(attrs, options) {
-	        if (this._isModel(attrs)) {
-	            if (!attrs.collection) { attrs.collection = this; }
-	            return attrs;
-	        }
-	        options = options ? clone(options) : {};
-	        options.collection = this;
-
-	        var model;
-	        if (this.model.prototype) {
-	            model = new this.model(attrs, options);
-	        } else {
-	        // ES class methods didn't have prototype
-	            model = this.model(attrs, options);
-	        }
-
-	        if (!model.validationError) { return model; }
-	        this.trigger('invalid', this, model.validationError, options);
-	        return false;
-	    },
-
-	    // Internal method called by both remove and set.
-	    _removeModels: function(models, options) {
-	        var removed = [];
-	        for (var i = 0; i < models.length; i++) {
-	            var model = this.get(models[i]);
-	            if (!model) { continue; }
-
-	            var index = Array.from(this).indexOf(model);
-	            this.models.splice(index, 1);
-	            this.length--;
-
-	            // Remove references before triggering 'remove' event to prevent an
-	            // infinite loop. #3693
-	            delete this._byId[model.cid];
-	            var id = this.modelId(model.attributes, model.idAttribute);
-	            if (id != null) { delete this._byId[id]; }
-
-	            if (!options.silent) {
-	                options.index = index;
-	                model.trigger('remove', model, this, options);
-	            }
-
-	            removed.push(model);
-	            this._removeReference(model, options);
-	        }
-	        if (models.length > 0 && !options.silent) { delete options.index; }
-	        return removed;
-	    },
-
-	    // Method for checking whether an object should be considered a model for
-	    // the purposes of adding to the collection.
-	    _isModel: function(model) {
-	        return model instanceof Model;
-	    },
-
-	    // Internal method to create a model's ties to a collection.
-	    _addReference: function(model, options) {
-	        this._byId[model.cid] = model;
-	        var id = this.modelId(model.attributes, model.idAttribute);
-	        if (id != null) { this._byId[id] = model; }
-	        model.on('all', this._onModelEvent, this);
-	    },
-
-	    // Internal method to sever a model's ties to a collection.
-	    _removeReference: function(model, options) {
-	        delete this._byId[model.cid];
-	        var id = this.modelId(model.attributes, model.idAttribute);
-	        if (id != null) { delete this._byId[id]; }
-	        if (this === model.collection) { delete model.collection; }
-	        model.off('all', this._onModelEvent, this);
-	    },
-
-	    // Internal method called every time a model in the set fires an event.
-	    // Sets need to update their indexes when models change ids. All other
-	    // events simply proxy through. "add" and "remove" events that originate
-	    // in other collections are ignored.
-	    _onModelEvent: function(event, model, collection, options) {
-	        if (model) {
-	            if ((event === 'add' || event === 'remove') && collection !== this) { return; }
-	            if (event === 'changeId') {
-	                var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
-	                var id = this.modelId(model.attributes, model.idAttribute);
-	                if (prevId != null) { delete this._byId[prevId]; }
-	                if (id != null) { this._byId[id] = model; }
-	            }
-	        }
-	        this.trigger.apply(this, arguments);
-	    }
-
-	});
-
-	// Defining an @@iterator method implements JavaScript's Iterable protocol.
-	// In modern ES2015 browsers, this value is found at Symbol.iterator.
-	var $$iterator = typeof Symbol === 'function' && Symbol.iterator;
-	if ($$iterator) {
-	    Collection.prototype[$$iterator] = Collection.prototype.values;
-	}
-
-	// CollectionIterator
-	// ------------------
-
-	// A CollectionIterator implements JavaScript's Iterator protocol, allowing the
-	// use of `for of` loops in modern browsers and interoperation between
-	// Collection and other JavaScript functions and third-party libraries
-	// which can operate on Iterables.
-	var CollectionIterator = function(collection, kind) {
-	    this._collection = collection;
-	    this._kind = kind;
-	    this._index = 0;
-	};
-
-	// This "enum" defines the three possible kinds of values which can be emitted
-	// by a CollectionIterator that correspond to the values(), keys() and entries()
-	// methods on Collection, respectively.
-	var ITERATOR_VALUES = 1;
-	var ITERATOR_KEYS = 2;
-	var ITERATOR_KEYSVALUES = 3;
-
-	// All Iterators should themselves be Iterable.
-	if ($$iterator) {
-	    CollectionIterator.prototype[$$iterator] = function() {
-	        return this;
-	    };
-	}
-
-	CollectionIterator.prototype.next = function() {
-	    if (this._collection) {
-
-	        // Only continue iterating if the iterated collection is long enough.
-	        if (this._index < this._collection.length) {
-	            var model = this._collection.at(this._index);
-	            this._index++;
-
-	            // Construct a value depending on what kind of values should be iterated.
-	            var value;
-	            if (this._kind === ITERATOR_VALUES) {
-	                value = model;
-	            } else {
-	                var id = this._collection.modelId(model.attributes, model.idAttribute);
-	                if (this._kind === ITERATOR_KEYS) {
-	                    value = id;
-	                } else { // ITERATOR_KEYSVALUES
-	                    value = [id, model];
-	                }
-	            }
-	            return { value: value, done: false };
-	        }
-
-	        // Once exhausted, remove the reference to the collection so future
-	        // calls to the next method always return done.
-	        this._collection = void 0;
-	    }
-
-	    return { value: void 0, done: true };
-	};
-
-	//  Methods that we want to implement on the Collection.
-	var collectionMethods = { toArray: 1, first: 3, last: 3, sortBy: 3 };
-
-
-	// Mix in each method as a proxy to `Collection#models`.
-
-	var config$1 = [ Collection, collectionMethods, 'models' ];
-
-	function addMethods(config) {
-	    var Base = config[0],
-	        methods = config[1],
-	        attribute = config[2];
-
-	    function first(array) {
-	        return (array && array.length) ? array[0] : undefined;
-	    }
-
-	    function last(array) {
-	        var length = array == null ? 0 : array.length;
-	        return length ? array[length - 1] : undefined;
-	    }
-
-	    var methodsToAdd = {
-	        sortBy: sortBy,
-	        first: first,
-	        last: last,
-	        toArray: toArray
-	    };
-
-	    addMethodsUtil(Base, methodsToAdd, methods, attribute);
-	}
-
-	addMethods(config$1);
-
-	// Set up inheritance for the collection.
-	Collection.extend = extend$1;
-
-	// Link base model.
-	// --------------------------
-
-	var Link = Cell.extend({
-
-	    // The default markup for links.
-	    markup: [
-	        '<path class="connection" stroke="black" d="M 0 0 0 0"/>',
-	        '<path class="marker-source" fill="black" stroke="black" d="M 0 0 0 0"/>',
-	        '<path class="marker-target" fill="black" stroke="black" d="M 0 0 0 0"/>',
-	        '<path class="connection-wrap" d="M 0 0 0 0"/>',
-	        '<g class="labels"/>',
-	        '<g class="marker-vertices"/>',
-	        '<g class="marker-arrowheads"/>',
-	        '<g class="link-tools"/>'
-	    ].join(''),
-
-	    toolMarkup: [
-	        '<g class="link-tool">',
-	        '<g class="tool-remove" event="remove">',
-	        '<circle r="11" />',
-	        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z" />',
-	        '<title>Remove link.</title>',
-	        '</g>',
-	        '<g class="tool-options" event="link:options">',
-	        '<circle r="11" transform="translate(25)"/>',
-	        '<path fill="white" transform="scale(.55) translate(29, -16)" d="M31.229,17.736c0.064-0.571,0.104-1.148,0.104-1.736s-0.04-1.166-0.104-1.737l-4.377-1.557c-0.218-0.716-0.504-1.401-0.851-2.05l1.993-4.192c-0.725-0.91-1.549-1.734-2.458-2.459l-4.193,1.994c-0.647-0.347-1.334-0.632-2.049-0.849l-1.558-4.378C17.165,0.708,16.588,0.667,16,0.667s-1.166,0.041-1.737,0.105L12.707,5.15c-0.716,0.217-1.401,0.502-2.05,0.849L6.464,4.005C5.554,4.73,4.73,5.554,4.005,6.464l1.994,4.192c-0.347,0.648-0.632,1.334-0.849,2.05l-4.378,1.557C0.708,14.834,0.667,15.412,0.667,16s0.041,1.165,0.105,1.736l4.378,1.558c0.217,0.715,0.502,1.401,0.849,2.049l-1.994,4.193c0.725,0.909,1.549,1.733,2.459,2.458l4.192-1.993c0.648,0.347,1.334,0.633,2.05,0.851l1.557,4.377c0.571,0.064,1.148,0.104,1.737,0.104c0.588,0,1.165-0.04,1.736-0.104l1.558-4.377c0.715-0.218,1.399-0.504,2.049-0.851l4.193,1.993c0.909-0.725,1.733-1.549,2.458-2.458l-1.993-4.193c0.347-0.647,0.633-1.334,0.851-2.049L31.229,17.736zM16,20.871c-2.69,0-4.872-2.182-4.872-4.871c0-2.69,2.182-4.872,4.872-4.872c2.689,0,4.871,2.182,4.871,4.872C20.871,18.689,18.689,20.871,16,20.871z"/>',
-	        '<title>Link options.</title>',
-	        '</g>',
-	        '</g>'
-	    ].join(''),
-
-	    doubleToolMarkup: undefined,
-
-	    // The default markup for showing/removing vertices. These elements are the children of the .marker-vertices element (see `this.markup`).
-	    // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
-	    // dragging vertices (changing their position). The latter is used for removing vertices.
-	    vertexMarkup: [
-	        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-	        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
-	        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
-	        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
-	        '<title>Remove vertex.</title>',
-	        '</path>',
-	        '</g>'
-	    ].join(''),
-
-	    arrowheadMarkup: [
-	        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
-	        '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
-	        '</g>'
-	    ].join(''),
-
-	    // may be overwritten by user to change default label (its markup, size, attrs, position)
-	    defaultLabel: undefined,
-
-	    // deprecated
-	    // may be overwritten by user to change default label markup
-	    // lower priority than defaultLabel.markup
-	    labelMarkup: undefined,
-
-	    // private
-	    _builtins: {
-	        defaultLabel: {
-	            // builtin default markup:
-	            // used if neither defaultLabel.markup
-	            // nor label.markup is set
-	            markup: [
-	                {
-	                    tagName: 'rect',
-	                    selector: 'rect' // faster than tagName CSS selector
-	                }, {
-	                    tagName: 'text',
-	                    selector: 'text' // faster than tagName CSS selector
-	                }
-	            ],
-	            // builtin default attributes:
-	            // applied only if builtin default markup is used
-	            attrs: {
-	                text: {
-	                    fill: '#000000',
-	                    fontSize: 14,
-	                    textAnchor: 'middle',
-	                    yAlignment: 'middle',
-	                    pointerEvents: 'none'
-	                },
-	                rect: {
-	                    ref: 'text',
-	                    fill: '#ffffff',
-	                    rx: 3,
-	                    ry: 3,
-	                    refWidth: 1,
-	                    refHeight: 1,
-	                    refX: 0,
-	                    refY: 0
-	                }
-	            },
-	            // builtin default position:
-	            // used if neither defaultLabel.position
-	            // nor label.position is set
-	            position: {
-	                distance: 0.5
-	            }
-	        }
-	    },
-
-	    defaults: {
-	        type: 'link',
-	        source: {},
-	        target: {}
-	    },
-
-	    isLink: function() {
-
-	        return true;
-	    },
-
-	    disconnect: function(opt) {
-
-	        return this.set({
-	            source: { x: 0, y: 0 },
-	            target: { x: 0, y: 0 }
-	        }, opt);
-	    },
-
-	    source: function(source, args, opt) {
-
-	        // getter
-	        if (source === undefined) {
-	            return clone(this.get('source'));
-	        }
-
-	        // setter
-	        var setSource;
-	        var setOpt;
-
-	        // `source` is a cell
-	        // take only its `id` and combine with `args`
-	        var isCellProvided = source instanceof Cell;
-	        if (isCellProvided) { // three arguments
-	            setSource = clone(args) || {};
-	            setSource.id = source.id;
-	            setOpt = opt;
-	            return this.set('source', setSource, setOpt);
-	        }
-
-	        // `source` is a point-like object
-	        // for example, a g.Point
-	        // take only its `x` and `y` and combine with `args`
-	        var isPointProvided = !isPlainObject(source);
-	        if (isPointProvided) { // three arguments
-	            setSource = clone(args) || {};
-	            setSource.x = source.x;
-	            setSource.y = source.y;
-	            setOpt = opt;
-	            return this.set('source', setSource, setOpt);
-	        }
-
-	        // `source` is an object
-	        // no checking
-	        // two arguments
-	        setSource = source;
-	        setOpt = args;
-	        return this.set('source', setSource, setOpt);
-	    },
-
-	    target: function(target, args, opt) {
-
-	        // getter
-	        if (target === undefined) {
-	            return clone(this.get('target'));
-	        }
-
-	        // setter
-	        var setTarget;
-	        var setOpt;
-
-	        // `target` is a cell
-	        // take only its `id` argument and combine with `args`
-	        var isCellProvided = target instanceof Cell;
-	        if (isCellProvided) { // three arguments
-	            setTarget = clone(args) || {};
-	            setTarget.id = target.id;
-	            setOpt = opt;
-	            return this.set('target', setTarget, setOpt);
-	        }
-
-	        // `target` is a point-like object
-	        // for example, a g.Point
-	        // take only its `x` and `y` and combine with `args`
-	        var isPointProvided = !isPlainObject(target);
-	        if (isPointProvided) { // three arguments
-	            setTarget = clone(args) || {};
-	            setTarget.x = target.x;
-	            setTarget.y = target.y;
-	            setOpt = opt;
-	            return this.set('target', setTarget, setOpt);
-	        }
-
-	        // `target` is an object
-	        // no checking
-	        // two arguments
-	        setTarget = target;
-	        setOpt = args;
-	        return this.set('target', setTarget, setOpt);
-	    },
-
-	    router: function(name, args, opt) {
-
-	        // getter
-	        if (name === undefined) {
-	            var router = this.get('router');
-	            if (!router) {
-	                if (this.get('manhattan')) { return { name: 'orthogonal' }; } // backwards compatibility
-	                return null;
-	            }
-	            if (typeof router === 'object') { return clone(router); }
-	            return router; // e.g. a function
-	        }
-
-	        // setter
-	        var isRouterProvided = ((typeof name === 'object') || (typeof name === 'function'));
-	        var localRouter = isRouterProvided ? name : { name: name, args: args };
-	        var localOpt = isRouterProvided ? args : opt;
-
-	        return this.set('router', localRouter, localOpt);
-	    },
-
-	    connector: function(name, args, opt) {
-
-	        // getter
-	        if (name === undefined) {
-	            var connector = this.get('connector');
-	            if (!connector) {
-	                if (this.get('smooth')) { return { name: 'smooth' }; } // backwards compatibility
-	                return null;
-	            }
-	            if (typeof connector === 'object') { return clone(connector); }
-	            return connector; // e.g. a function
-	        }
-
-	        // setter
-	        var isConnectorProvided = ((typeof name === 'object' || typeof name === 'function'));
-	        var localConnector = isConnectorProvided ? name : { name: name, args: args };
-	        var localOpt = isConnectorProvided ? args : opt;
-
-	        return this.set('connector', localConnector, localOpt);
-	    },
-
-	    // Labels API
-
-	    // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
-	    label: function(idx, label, opt) {
-
-	        var labels = this.labels();
-
-	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
-	        if (idx < 0) { idx = labels.length + idx; }
-
-	        // getter
-	        if (arguments.length <= 1) { return this.prop(['labels', idx]); }
-	        // setter
-	        return this.prop(['labels', idx], label, opt);
-	    },
-
-	    labels: function(labels, opt) {
-
-	        // getter
-	        if (arguments.length === 0) {
-	            labels = this.get('labels');
-	            if (!Array.isArray(labels)) { return []; }
-	            return labels.slice();
-	        }
-	        // setter
-	        if (!Array.isArray(labels)) { labels = []; }
-	        return this.set('labels', labels, opt);
-	    },
-
-	    hasLabels: function() {
-	        var ref = this.attributes;
-	        var labels = ref.labels;
-	        return Array.isArray(labels) && labels.length > 0;
-	    },
-
-	    insertLabel: function(idx, label, opt) {
-
-	        if (!label) { throw new Error('dia.Link: no label provided'); }
-
-	        var labels = this.labels();
-	        var n = labels.length;
-	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
-	        if (idx < 0) { idx = n + idx + 1; }
-
-	        labels.splice(idx, 0, label);
-	        return this.labels(labels, opt);
-	    },
-
-	    // convenience function
-	    // add label to end of labels array
-	    appendLabel: function(label, opt) {
-
-	        return this.insertLabel(-1, label, opt);
-	    },
-
-	    removeLabel: function(idx, opt) {
-
-	        var labels = this.labels();
-	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
-
-	        labels.splice(idx, 1);
-	        return this.labels(labels, opt);
-	    },
-
-	    // Vertices API
-
-	    vertex: function(idx, vertex, opt) {
-
-	        var vertices = this.vertices();
-
-	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
-	        if (idx < 0) { idx = vertices.length + idx; }
-
-	        // getter
-	        if (arguments.length <= 1) { return this.prop(['vertices', idx]); }
-
-	        // setter
-	        var setVertex = this._normalizeVertex(vertex);
-	        return this.prop(['vertices', idx], setVertex, opt);
-	    },
-
-	    vertices: function(vertices, opt) {
-
-	        // getter
-	        if (arguments.length === 0) {
-	            vertices = this.get('vertices');
-	            if (!Array.isArray(vertices)) { return []; }
-	            return vertices.slice();
-	        }
-
-	        // setter
-	        if (!Array.isArray(vertices)) { vertices = []; }
-	        var setVertices = [];
-	        for (var i = 0; i < vertices.length; i++) {
-	            var vertex = vertices[i];
-	            var setVertex = this._normalizeVertex(vertex);
-	            setVertices.push(setVertex);
-	        }
-	        return this.set('vertices', setVertices, opt);
-	    },
-
-	    insertVertex: function(idx, vertex, opt) {
-
-	        if (!vertex) { throw new Error('dia.Link: no vertex provided'); }
-
-	        var vertices = this.vertices();
-	        var n = vertices.length;
-	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
-	        if (idx < 0) { idx = n + idx + 1; }
-
-	        var setVertex = this._normalizeVertex(vertex);
-	        vertices.splice(idx, 0, setVertex);
-	        return this.vertices(vertices, opt);
-	    },
-
-	    removeVertex: function(idx, opt) {
-
-	        var vertices = this.vertices();
-	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
-
-	        vertices.splice(idx, 1);
-	        return this.vertices(vertices, opt);
-	    },
-
-	    _normalizeVertex: function(vertex) {
-
-	        // is vertex a point-like object?
-	        // for example, a g.Point
-	        var isPointProvided = !isPlainObject(vertex);
-	        if (isPointProvided) { return { x: vertex.x, y: vertex.y }; }
-
-	        // else: return vertex unchanged
-	        return vertex;
-	    },
-
-	    // Transformations
-
-	    translate: function(tx, ty, opt) {
-
-	        // enrich the option object
-	        opt = opt || {};
-	        opt.translateBy = opt.translateBy || this.id;
-	        opt.tx = tx;
-	        opt.ty = ty;
-
-	        return this.applyToPoints(function(p) {
-	            return { x: (p.x || 0) + tx, y: (p.y || 0) + ty };
-	        }, opt);
-	    },
-
-	    scale: function(sx, sy, origin, opt) {
-
-	        return this.applyToPoints(function(p) {
-	            return Point(p).scale(sx, sy, origin).toJSON();
-	        }, opt);
-	    },
-
-	    applyToPoints: function(fn, opt) {
-
-	        if (!isFunction(fn)) {
-	            throw new TypeError('dia.Link: applyToPoints expects its first parameter to be a function.');
-	        }
-
-	        var attrs = {};
-
-	        var ref = this.attributes;
-	        var source = ref.source;
-	        var target = ref.target;
-	        if (!source.id) {
-	            attrs.source = fn(source);
-	        }
-	        if (!target.id) {
-	            attrs.target = fn(target);
-	        }
-
-	        var vertices = this.vertices();
-	        if (vertices.length > 0) {
-	            attrs.vertices = vertices.map(fn);
-	        }
-
-	        return this.set(attrs, opt);
-	    },
-
-	    getSourcePoint: function() {
-	        var sourceCell = this.getSourceCell();
-	        if (!sourceCell) { return new Point(this.source()); }
-	        return sourceCell.getPointFromConnectedLink(this, 'source');
-	    },
-
-	    getTargetPoint: function() {
-	        var targetCell = this.getTargetCell();
-	        if (!targetCell) { return new Point(this.target()); }
-	        return targetCell.getPointFromConnectedLink(this, 'target');
-	    },
-
-	    getPointFromConnectedLink: function(/* link, endType */) {
-	        return this.getPolyline().pointAt(0.5);
-	    },
-
-	    getPolyline: function() {
-	        var points = [
-	            this.getSourcePoint() ].concat( this.vertices().map(Point),
-	            [this.getTargetPoint()]
-	        );
-	        return new Polyline(points);
-	    },
-
-	    getBBox: function() {
-	        return this.getPolyline().bbox();
-	    },
-
-	    reparent: function(opt) {
-
-	        var newParent;
-
-	        if (this.graph) {
-
-	            var source = this.getSourceElement();
-	            var target = this.getTargetElement();
-	            var prevParent = this.getParentCell();
-
-	            if (source && target) {
-	                if (source === target || source.isEmbeddedIn(target)) {
-	                    newParent = target;
-	                } else if (target.isEmbeddedIn(source)) {
-	                    newParent = source;
-	                } else {
-	                    newParent = this.graph.getCommonAncestor(source, target);
-	                }
-	            }
-
-	            if (prevParent && (!newParent || newParent.id !== prevParent.id)) {
-	                // Unembed the link if source and target has no common ancestor
-	                // or common ancestor changed
-	                prevParent.unembed(this, opt);
-	            }
-
-	            if (newParent) {
-	                newParent.embed(this, opt);
-	            }
-	        }
-
-	        return newParent;
-	    },
-
-	    hasLoop: function(opt) {
-
-	        opt = opt || {};
-
-	        var ref = this.attributes;
-	        var source = ref.source;
-	        var target = ref.target;
-	        var sourceId = source.id;
-	        var targetId = target.id;
-
-	        if (!sourceId || !targetId) {
-	            // Link "pinned" to the paper does not have a loop.
-	            return false;
-	        }
-
-	        var loop = sourceId === targetId;
-
-	        // Note that there in the deep mode a link can have a loop,
-	        // even if it connects only a parent and its embed.
-	        // A loop "target equals source" is valid in both shallow and deep mode.
-	        if (!loop && opt.deep && this.graph) {
-
-	            var sourceElement = this.getSourceCell();
-	            var targetElement = this.getTargetCell();
-
-	            loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
-	        }
-
-	        return loop;
-	    },
-
-	    // unlike source(), this method returns null if source is a point
-	    getSourceCell: function() {
-
-	        var ref = this;
-	        var graph = ref.graph;
-	        var attributes = ref.attributes;
-	        var source = attributes.source;
-	        return (source && source.id && graph && graph.getCell(source.id)) || null;
-	    },
-
-	    getSourceElement: function() {
-	        var cell = this;
-	        var visited = {};
-	        do {
-	            if (visited[cell.id]) { return null; }
-	            visited[cell.id] = true;
-	            cell = cell.getSourceCell();
-	        } while (cell && cell.isLink());
-	        return cell;
-	    },
-
-	    // unlike target(), this method returns null if target is a point
-	    getTargetCell: function() {
-
-	        var ref = this;
-	        var graph = ref.graph;
-	        var attributes = ref.attributes;
-	        var target = attributes.target;
-	        return (target && target.id && graph && graph.getCell(target.id)) || null;
-	    },
-
-	    getTargetElement: function() {
-	        var cell = this;
-	        var visited = {};
-	        do {
-	            if (visited[cell.id]) { return null; }
-	            visited[cell.id] = true;
-	            cell = cell.getTargetCell();
-	        } while (cell && cell.isLink());
-	        return cell;
-	    },
-
-	    // Returns the common ancestor for the source element,
-	    // target element and the link itself.
-	    getRelationshipAncestor: function() {
-
-	        var connectionAncestor;
-
-	        if (this.graph) {
-
-	            var cells = [
-	                this,
-	                this.getSourceElement(), // null if source is a point
-	                this.getTargetElement() // null if target is a point
-	            ].filter(function(item) {
-	                return !!item;
-	            });
-
-	            connectionAncestor = this.graph.getCommonAncestor.apply(this.graph, cells);
-	        }
-
-	        return connectionAncestor || null;
-	    },
-
-	    // Is source, target and the link itself embedded in a given cell?
-	    isRelationshipEmbeddedIn: function(cell) {
-
-	        var cellId = (isString(cell) || isNumber(cell)) ? cell : cell.id;
-	        var ancestor = this.getRelationshipAncestor();
-
-	        return !!ancestor && (ancestor.id === cellId || ancestor.isEmbeddedIn(cellId));
-	    },
-
-	    // Get resolved default label.
-	    _getDefaultLabel: function() {
-
-	        var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
-
-	        var label = {};
-	        label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
-	        label.position = defaultLabel.position;
-	        label.attrs = defaultLabel.attrs;
-	        label.size = defaultLabel.size;
-
-	        return label;
-	    }
-	}, {
-
-	    endsEqual: function(a, b) {
-
-	        var portsEqual = a.port === b.port || !a.port && !b.port;
-	        return a.id === b.id && portsEqual;
-	    }
 	});
 
 	var PortData = function(data) {
@@ -20062,13 +19925,17 @@ var joint = (function (exports, $) {
 	        return this._createPortElement(port);
 	    },
 
-	    findPortNode: function(portId, selector) {
+	    findPortNodes: function(portId, selector) {
 	        var portCache = this._portElementsCache[portId];
-	        if (!portCache) { return null; }
-	        if (!selector) { return portCache.portContentElement.node; }
+	        if (!portCache) { return []; }
+	        if (!selector) { return [portCache.portContentElement.node]; }
 	        var portRoot = portCache.portElement.node;
 	        var portSelectors = portCache.portSelectors;
-	        var ref = this.findBySelector(selector, portRoot, portSelectors);
+	        return this.findBySelector(selector, portRoot, portSelectors);
+	    },
+
+	    findPortNode: function(portId, selector) {
+	        var ref = this.findPortNodes(portId, selector);
 	        var node = ref[0]; if ( node === void 0 ) node = null;
 	        return node;
 	    },
@@ -20819,6 +20686,7474 @@ var joint = (function (exports, $) {
 	});
 
 	assign(Element$1.prototype, elementPortPrototype);
+
+	// Link base model.
+	// --------------------------
+
+	var Link = Cell.extend({
+
+	    // may be overwritten by user to change default label (its markup, size, attrs, position)
+	    defaultLabel: undefined,
+
+	    // deprecated
+	    // may be overwritten by user to change default label markup
+	    // lower priority than defaultLabel.markup
+	    labelMarkup: undefined,
+
+	    // private
+	    _builtins: {
+	        defaultLabel: {
+	            // builtin default markup:
+	            // used if neither defaultLabel.markup
+	            // nor label.markup is set
+	            markup: [
+	                {
+	                    tagName: 'rect',
+	                    selector: 'rect' // faster than tagName CSS selector
+	                }, {
+	                    tagName: 'text',
+	                    selector: 'text' // faster than tagName CSS selector
+	                }
+	            ],
+	            // builtin default attributes:
+	            // applied only if builtin default markup is used
+	            attrs: {
+	                text: {
+	                    fill: '#000000',
+	                    fontSize: 14,
+	                    textAnchor: 'middle',
+	                    textVerticalAnchor: 'middle',
+	                    pointerEvents: 'none'
+	                },
+	                rect: {
+	                    ref: 'text',
+	                    fill: '#ffffff',
+	                    rx: 3,
+	                    ry: 3,
+	                    x: 'calc(x)',
+	                    y: 'calc(y)',
+	                    width: 'calc(w)',
+	                    height: 'calc(h)'
+	                }
+	            },
+	            // builtin default position:
+	            // used if neither defaultLabel.position
+	            // nor label.position is set
+	            position: {
+	                distance: 0.5
+	            }
+	        }
+	    },
+
+	    defaults: {
+	        type: 'link',
+	        source: {},
+	        target: {}
+	    },
+
+	    isLink: function() {
+
+	        return true;
+	    },
+
+	    disconnect: function(opt) {
+
+	        return this.set({
+	            source: { x: 0, y: 0 },
+	            target: { x: 0, y: 0 }
+	        }, opt);
+	    },
+
+	    source: function(source, args, opt) {
+
+	        // getter
+	        if (source === undefined) {
+	            return clone(this.get('source'));
+	        }
+
+	        // setter
+	        var setSource;
+	        var setOpt;
+
+	        // `source` is a cell
+	        // take only its `id` and combine with `args`
+	        var isCellProvided = source instanceof Cell;
+	        if (isCellProvided) { // three arguments
+	            setSource = clone(args) || {};
+	            setSource.id = source.id;
+	            setOpt = opt;
+	            return this.set('source', setSource, setOpt);
+	        }
+
+	        // `source` is a point-like object
+	        // for example, a g.Point
+	        // take only its `x` and `y` and combine with `args`
+	        var isPointProvided = !isPlainObject(source);
+	        if (isPointProvided) { // three arguments
+	            setSource = clone(args) || {};
+	            setSource.x = source.x;
+	            setSource.y = source.y;
+	            setOpt = opt;
+	            return this.set('source', setSource, setOpt);
+	        }
+
+	        // `source` is an object
+	        // no checking
+	        // two arguments
+	        setSource = source;
+	        setOpt = args;
+	        return this.set('source', setSource, setOpt);
+	    },
+
+	    target: function(target, args, opt) {
+
+	        // getter
+	        if (target === undefined) {
+	            return clone(this.get('target'));
+	        }
+
+	        // setter
+	        var setTarget;
+	        var setOpt;
+
+	        // `target` is a cell
+	        // take only its `id` argument and combine with `args`
+	        var isCellProvided = target instanceof Cell;
+	        if (isCellProvided) { // three arguments
+	            setTarget = clone(args) || {};
+	            setTarget.id = target.id;
+	            setOpt = opt;
+	            return this.set('target', setTarget, setOpt);
+	        }
+
+	        // `target` is a point-like object
+	        // for example, a g.Point
+	        // take only its `x` and `y` and combine with `args`
+	        var isPointProvided = !isPlainObject(target);
+	        if (isPointProvided) { // three arguments
+	            setTarget = clone(args) || {};
+	            setTarget.x = target.x;
+	            setTarget.y = target.y;
+	            setOpt = opt;
+	            return this.set('target', setTarget, setOpt);
+	        }
+
+	        // `target` is an object
+	        // no checking
+	        // two arguments
+	        setTarget = target;
+	        setOpt = args;
+	        return this.set('target', setTarget, setOpt);
+	    },
+
+	    router: function(name, args, opt) {
+
+	        // getter
+	        if (name === undefined) {
+	            var router = this.get('router');
+	            if (!router) {
+	                return null;
+	            }
+	            if (typeof router === 'object') { return clone(router); }
+	            return router; // e.g. a function
+	        }
+
+	        // setter
+	        var isRouterProvided = ((typeof name === 'object') || (typeof name === 'function'));
+	        var localRouter = isRouterProvided ? name : { name: name, args: args };
+	        var localOpt = isRouterProvided ? args : opt;
+
+	        return this.set('router', localRouter, localOpt);
+	    },
+
+	    connector: function(name, args, opt) {
+
+	        // getter
+	        if (name === undefined) {
+	            var connector = this.get('connector');
+	            if (!connector) {
+	                return null;
+	            }
+	            if (typeof connector === 'object') { return clone(connector); }
+	            return connector; // e.g. a function
+	        }
+
+	        // setter
+	        var isConnectorProvided = ((typeof name === 'object' || typeof name === 'function'));
+	        var localConnector = isConnectorProvided ? name : { name: name, args: args };
+	        var localOpt = isConnectorProvided ? args : opt;
+
+	        return this.set('connector', localConnector, localOpt);
+	    },
+
+	    // Labels API
+
+	    // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
+	    label: function(idx, label, opt) {
+
+	        var labels = this.labels();
+
+	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+	        if (idx < 0) { idx = labels.length + idx; }
+
+	        // getter
+	        if (arguments.length <= 1) { return this.prop(['labels', idx]); }
+	        // setter
+	        return this.prop(['labels', idx], label, opt);
+	    },
+
+	    labels: function(labels, opt) {
+
+	        // getter
+	        if (arguments.length === 0) {
+	            labels = this.get('labels');
+	            if (!Array.isArray(labels)) { return []; }
+	            return labels.slice();
+	        }
+	        // setter
+	        if (!Array.isArray(labels)) { labels = []; }
+	        return this.set('labels', labels, opt);
+	    },
+
+	    hasLabels: function() {
+	        var ref = this.attributes;
+	        var labels = ref.labels;
+	        return Array.isArray(labels) && labels.length > 0;
+	    },
+
+	    insertLabel: function(idx, label, opt) {
+
+	        if (!label) { throw new Error('dia.Link: no label provided'); }
+
+	        var labels = this.labels();
+	        var n = labels.length;
+	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
+	        if (idx < 0) { idx = n + idx + 1; }
+
+	        labels.splice(idx, 0, label);
+	        return this.labels(labels, opt);
+	    },
+
+	    // convenience function
+	    // add label to end of labels array
+	    appendLabel: function(label, opt) {
+
+	        return this.insertLabel(-1, label, opt);
+	    },
+
+	    removeLabel: function(idx, opt) {
+
+	        var labels = this.labels();
+	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+
+	        labels.splice(idx, 1);
+	        return this.labels(labels, opt);
+	    },
+
+	    // Vertices API
+
+	    vertex: function(idx, vertex, opt) {
+
+	        var vertices = this.vertices();
+
+	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+	        if (idx < 0) { idx = vertices.length + idx; }
+
+	        // getter
+	        if (arguments.length <= 1) { return this.prop(['vertices', idx]); }
+
+	        // setter
+	        var setVertex = this._normalizeVertex(vertex);
+	        return this.prop(['vertices', idx], setVertex, opt);
+	    },
+
+	    vertices: function(vertices, opt) {
+
+	        // getter
+	        if (arguments.length === 0) {
+	            vertices = this.get('vertices');
+	            if (!Array.isArray(vertices)) { return []; }
+	            return vertices.slice();
+	        }
+
+	        // setter
+	        if (!Array.isArray(vertices)) { vertices = []; }
+	        var setVertices = [];
+	        for (var i = 0; i < vertices.length; i++) {
+	            var vertex = vertices[i];
+	            var setVertex = this._normalizeVertex(vertex);
+	            setVertices.push(setVertex);
+	        }
+	        return this.set('vertices', setVertices, opt);
+	    },
+
+	    insertVertex: function(idx, vertex, opt) {
+
+	        if (!vertex) { throw new Error('dia.Link: no vertex provided'); }
+
+	        var vertices = this.vertices();
+	        var n = vertices.length;
+	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
+	        if (idx < 0) { idx = n + idx + 1; }
+
+	        var setVertex = this._normalizeVertex(vertex);
+	        vertices.splice(idx, 0, setVertex);
+	        return this.vertices(vertices, opt);
+	    },
+
+	    removeVertex: function(idx, opt) {
+
+	        var vertices = this.vertices();
+	        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+
+	        vertices.splice(idx, 1);
+	        return this.vertices(vertices, opt);
+	    },
+
+	    _normalizeVertex: function(vertex) {
+
+	        // is vertex a point-like object?
+	        // for example, a g.Point
+	        var isPointProvided = !isPlainObject(vertex);
+	        if (isPointProvided) { return { x: vertex.x, y: vertex.y }; }
+
+	        // else: return vertex unchanged
+	        return vertex;
+	    },
+
+	    // Transformations
+
+	    translate: function(tx, ty, opt) {
+
+	        // enrich the option object
+	        opt = opt || {};
+	        opt.translateBy = opt.translateBy || this.id;
+	        opt.tx = tx;
+	        opt.ty = ty;
+
+	        return this.applyToPoints(function(p) {
+	            return { x: (p.x || 0) + tx, y: (p.y || 0) + ty };
+	        }, opt);
+	    },
+
+	    scale: function(sx, sy, origin, opt) {
+
+	        return this.applyToPoints(function(p) {
+	            return Point(p).scale(sx, sy, origin).toJSON();
+	        }, opt);
+	    },
+
+	    applyToPoints: function(fn, opt) {
+
+	        if (!isFunction(fn)) {
+	            throw new TypeError('dia.Link: applyToPoints expects its first parameter to be a function.');
+	        }
+
+	        var attrs = {};
+
+	        var ref = this.attributes;
+	        var source = ref.source;
+	        var target = ref.target;
+	        if (!source.id) {
+	            attrs.source = fn(source);
+	        }
+	        if (!target.id) {
+	            attrs.target = fn(target);
+	        }
+
+	        var vertices = this.vertices();
+	        if (vertices.length > 0) {
+	            attrs.vertices = vertices.map(fn);
+	        }
+
+	        return this.set(attrs, opt);
+	    },
+
+	    getSourcePoint: function() {
+	        var sourceCell = this.getSourceCell();
+	        if (!sourceCell) { return new Point(this.source()); }
+	        return sourceCell.getPointFromConnectedLink(this, 'source');
+	    },
+
+	    getTargetPoint: function() {
+	        var targetCell = this.getTargetCell();
+	        if (!targetCell) { return new Point(this.target()); }
+	        return targetCell.getPointFromConnectedLink(this, 'target');
+	    },
+
+	    getPointFromConnectedLink: function(/* link, endType */) {
+	        return this.getPolyline().pointAt(0.5);
+	    },
+
+	    getPolyline: function() {
+	        var points = [
+	            this.getSourcePoint() ].concat( this.vertices().map(Point),
+	            [this.getTargetPoint()]
+	        );
+	        return new Polyline(points);
+	    },
+
+	    getBBox: function() {
+	        return this.getPolyline().bbox();
+	    },
+
+	    reparent: function(opt) {
+
+	        var newParent;
+
+	        if (this.graph) {
+
+	            var source = this.getSourceElement();
+	            var target = this.getTargetElement();
+	            var prevParent = this.getParentCell();
+
+	            if (source && target) {
+	                if (source === target || source.isEmbeddedIn(target)) {
+	                    newParent = target;
+	                } else if (target.isEmbeddedIn(source)) {
+	                    newParent = source;
+	                } else {
+	                    newParent = this.graph.getCommonAncestor(source, target);
+	                }
+	            }
+
+	            if (prevParent && (!newParent || newParent.id !== prevParent.id)) {
+	                // Unembed the link if source and target has no common ancestor
+	                // or common ancestor changed
+	                prevParent.unembed(this, opt);
+	            }
+
+	            if (newParent) {
+	                newParent.embed(this, opt);
+	            }
+	        }
+
+	        return newParent;
+	    },
+
+	    hasLoop: function(opt) {
+
+	        opt = opt || {};
+
+	        var ref = this.attributes;
+	        var source = ref.source;
+	        var target = ref.target;
+	        var sourceId = source.id;
+	        var targetId = target.id;
+
+	        if (!sourceId || !targetId) {
+	            // Link "pinned" to the paper does not have a loop.
+	            return false;
+	        }
+
+	        var loop = sourceId === targetId;
+
+	        // Note that there in the deep mode a link can have a loop,
+	        // even if it connects only a parent and its embed.
+	        // A loop "target equals source" is valid in both shallow and deep mode.
+	        if (!loop && opt.deep && this.graph) {
+
+	            var sourceElement = this.getSourceCell();
+	            var targetElement = this.getTargetCell();
+
+	            loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
+	        }
+
+	        return loop;
+	    },
+
+	    // unlike source(), this method returns null if source is a point
+	    getSourceCell: function() {
+
+	        var ref = this;
+	        var graph = ref.graph;
+	        var attributes = ref.attributes;
+	        var source = attributes.source;
+	        return (source && source.id && graph && graph.getCell(source.id)) || null;
+	    },
+
+	    getSourceElement: function() {
+	        var cell = this;
+	        var visited = {};
+	        do {
+	            if (visited[cell.id]) { return null; }
+	            visited[cell.id] = true;
+	            cell = cell.getSourceCell();
+	        } while (cell && cell.isLink());
+	        return cell;
+	    },
+
+	    // unlike target(), this method returns null if target is a point
+	    getTargetCell: function() {
+
+	        var ref = this;
+	        var graph = ref.graph;
+	        var attributes = ref.attributes;
+	        var target = attributes.target;
+	        return (target && target.id && graph && graph.getCell(target.id)) || null;
+	    },
+
+	    getTargetElement: function() {
+	        var cell = this;
+	        var visited = {};
+	        do {
+	            if (visited[cell.id]) { return null; }
+	            visited[cell.id] = true;
+	            cell = cell.getTargetCell();
+	        } while (cell && cell.isLink());
+	        return cell;
+	    },
+
+	    // Returns the common ancestor for the source element,
+	    // target element and the link itself.
+	    getRelationshipAncestor: function() {
+
+	        var connectionAncestor;
+
+	        if (this.graph) {
+
+	            var cells = [
+	                this,
+	                this.getSourceElement(), // null if source is a point
+	                this.getTargetElement() // null if target is a point
+	            ].filter(function(item) {
+	                return !!item;
+	            });
+
+	            connectionAncestor = this.graph.getCommonAncestor.apply(this.graph, cells);
+	        }
+
+	        return connectionAncestor || null;
+	    },
+
+	    // Is source, target and the link itself embedded in a given cell?
+	    isRelationshipEmbeddedIn: function(cell) {
+
+	        var cellId = (isString(cell) || isNumber(cell)) ? cell : cell.id;
+	        var ancestor = this.getRelationshipAncestor();
+
+	        return !!ancestor && (ancestor.id === cellId || ancestor.isEmbeddedIn(cellId));
+	    },
+
+	    // Get resolved default label.
+	    _getDefaultLabel: function() {
+
+	        var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
+
+	        var label = {};
+	        label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
+	        label.position = defaultLabel.position;
+	        label.attrs = defaultLabel.attrs;
+	        label.size = defaultLabel.size;
+
+	        return label;
+	    }
+	}, {
+
+	    endsEqual: function(a, b) {
+
+	        var portsEqual = a.port === b.port || !a.port && !b.port;
+	        return a.id === b.id && portsEqual;
+	    }
+	});
+
+	var env = {
+
+	    _results: {},
+
+	    _tests: {
+
+	        svgforeignobject: function() {
+	            return !!document.createElementNS &&
+	                /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
+	        }
+	    },
+
+	    addTest: function(name, fn) {
+
+	        return this._tests[name] = fn;
+	    },
+
+	    test: function(name) {
+
+	        var fn = this._tests[name];
+
+	        if (!fn) {
+	            throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
+	        }
+
+	        var result = this._results[name];
+
+	        if (typeof result !== 'undefined') {
+	            return result;
+	        }
+
+	        try {
+	            result = fn();
+	        } catch (error) {
+	            result = false;
+	        }
+
+	        // Cache the test result.
+	        this._results[name] = result;
+
+	        return result;
+	    }
+	};
+
+	// ELEMENTS
+
+	var Rectangle = Element$1.define('standard.Rectangle', {
+	    attrs: {
+	        body: {
+	            width: 'calc(w)',
+	            height: 'calc(h)',
+	            strokeWidth: 2,
+	            stroke: '#000000',
+	            fill: '#FFFFFF'
+	        },
+	        label: {
+	            textVerticalAnchor: 'middle',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'rect',
+	        selector: 'body',
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var Circle = Element$1.define('standard.Circle', {
+	    attrs: {
+	        body: {
+	            cx: 'calc(s/2)',
+	            cy: 'calc(s/2)',
+	            r: 'calc(s/2)',
+	            strokeWidth: 2,
+	            stroke: '#333333',
+	            fill: '#FFFFFF'
+	        },
+	        label: {
+	            textVerticalAnchor: 'middle',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'circle',
+	        selector: 'body'
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var Ellipse$1 = Element$1.define('standard.Ellipse', {
+	    attrs: {
+	        body: {
+	            cx: 'calc(w/2)',
+	            cy: 'calc(h/2)',
+	            rx: 'calc(w/2)',
+	            ry: 'calc(h/2)',
+	            strokeWidth: 2,
+	            stroke: '#333333',
+	            fill: '#FFFFFF'
+	        },
+	        label: {
+	            textVerticalAnchor: 'middle',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'ellipse',
+	        selector: 'body'
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var Path$1 = Element$1.define('standard.Path', {
+	    attrs: {
+	        body: {
+	            d: 'M 0 0 H calc(w) V calc(h) H 0 Z',
+	            strokeWidth: 2,
+	            stroke: '#333333',
+	            fill: '#FFFFFF'
+	        },
+	        label: {
+	            textVerticalAnchor: 'middle',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'path',
+	        selector: 'body'
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var Polygon$1 = Element$1.define('standard.Polygon', {
+	    attrs: {
+	        body: {
+	            points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
+	            strokeWidth: 2,
+	            stroke: '#333333',
+	            fill: '#FFFFFF'
+	        },
+	        label: {
+	            textVerticalAnchor: 'middle',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'polygon',
+	        selector: 'body'
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var Polyline$1 = Element$1.define('standard.Polyline', {
+	    attrs: {
+	        body: {
+	            points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
+	            strokeWidth: 2,
+	            stroke: '#333333',
+	            fill: '#FFFFFF'
+	        },
+	        label: {
+	            textVerticalAnchor: 'middle',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'polyline',
+	        selector: 'body'
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var Image = Element$1.define('standard.Image', {
+	    attrs: {
+	        image: {
+	            width: 'calc(w)',
+	            height: 'calc(h)',
+	            // xlinkHref: '[URL]'
+	        },
+	        label: {
+	            textVerticalAnchor: 'top',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h+10)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'image',
+	        selector: 'image'
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var BorderedImage = Element$1.define('standard.BorderedImage', {
+	    attrs: {
+	        border: {
+	            width: 'calc(w)',
+	            height: 'calc(h)',
+	            stroke: '#333333',
+	            strokeWidth: 2
+	        },
+	        background: {
+	            width: 'calc(w-1)',
+	            height: 'calc(h-1)',
+	            x: 0.5,
+	            y: 0.5,
+	            fill: '#FFFFFF'
+	        },
+	        image: {
+	            // xlinkHref: '[URL]'
+	            width: 'calc(w-1)',
+	            height: 'calc(h-1)',
+	            x: 0.5,
+	            y: 0.5
+	        },
+	        label: {
+	            textVerticalAnchor: 'top',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h+10)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'rect',
+	        selector: 'background',
+	        attributes: {
+	            'stroke': 'none'
+	        }
+	    }, {
+	        tagName: 'image',
+	        selector: 'image'
+	    }, {
+	        tagName: 'rect',
+	        selector: 'border',
+	        attributes: {
+	            'fill': 'none'
+	        }
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var EmbeddedImage = Element$1.define('standard.EmbeddedImage', {
+	    attrs: {
+	        body: {
+	            width: 'calc(w)',
+	            height: 'calc(h)',
+	            stroke: '#333333',
+	            fill: '#FFFFFF',
+	            strokeWidth: 2
+	        },
+	        image: {
+	            // xlinkHref: '[URL]'
+	            width: 'calc(0.3*w)',
+	            height: 'calc(h-20)',
+	            x: 10,
+	            y: 10,
+	            preserveAspectRatio: 'xMidYMin'
+	        },
+	        label: {
+	            textVerticalAnchor: 'top',
+	            textAnchor: 'left',
+	            x: 'calc(0.3*w+20)', // 10 + 10
+	            y: 10,
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'rect',
+	        selector: 'body'
+	    }, {
+	        tagName: 'image',
+	        selector: 'image'
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var InscribedImage = Element$1.define('standard.InscribedImage', {
+	    attrs: {
+	        border: {
+	            rx: 'calc(w/2)',
+	            ry: 'calc(h/2)',
+	            cx: 'calc(w/2)',
+	            cy: 'calc(h/2)',
+	            stroke: '#333333',
+	            strokeWidth: 2
+	        },
+	        background: {
+	            rx: 'calc(w/2)',
+	            ry: 'calc(h/2)',
+	            cx: 'calc(w/2)',
+	            cy: 'calc(h/2)',
+	            fill: '#FFFFFF'
+	        },
+	        image: {
+	            // The image corners touch the border when its size is Math.sqrt(2) / 2 = 0.707.. ~= 70%
+	            width: 'calc(0.68*w)',
+	            height: 'calc(0.68*h)',
+	            // The image offset is calculated as (100% - 68%) / 2
+	            x: 'calc(0.16*w)',
+	            y: 'calc(0.16*h)',
+	            preserveAspectRatio: 'xMidYMid'
+	            // xlinkHref: '[URL]'
+	        },
+	        label: {
+	            textVerticalAnchor: 'top',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h+10)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'ellipse',
+	        selector: 'background'
+	    }, {
+	        tagName: 'image',
+	        selector: 'image'
+	    }, {
+	        tagName: 'ellipse',
+	        selector: 'border',
+	        attributes: {
+	            'fill': 'none'
+	        }
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }]
+	});
+
+	var HeaderedRectangle = Element$1.define('standard.HeaderedRectangle', {
+	    attrs: {
+	        body: {
+	            width: 'calc(w)',
+	            height: 'calc(h)',
+	            strokeWidth: 2,
+	            stroke: '#000000',
+	            fill: '#FFFFFF'
+	        },
+	        header: {
+	            width: 'calc(w)',
+	            height: 30,
+	            strokeWidth: 2,
+	            stroke: '#000000',
+	            fill: '#FFFFFF'
+	        },
+	        headerText: {
+	            textVerticalAnchor: 'middle',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 15,
+	            fontSize: 16,
+	            fill: '#333333'
+	        },
+	        bodyText: {
+	            textVerticalAnchor: 'middle',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h/2+15)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'rect',
+	        selector: 'body'
+	    }, {
+	        tagName: 'rect',
+	        selector: 'header'
+	    }, {
+	        tagName: 'text',
+	        selector: 'headerText'
+	    }, {
+	        tagName: 'text',
+	        selector: 'bodyText'
+	    }]
+	});
+
+	var CYLINDER_TILT = 10;
+
+	var Cylinder = Element$1.define('standard.Cylinder', {
+	    attrs: {
+	        body: {
+	            lateralArea: CYLINDER_TILT,
+	            fill: '#FFFFFF',
+	            stroke: '#333333',
+	            strokeWidth: 2
+	        },
+	        top: {
+	            cx: 'calc(w/2)',
+	            cy: CYLINDER_TILT,
+	            rx: 'calc(w/2)',
+	            ry: CYLINDER_TILT,
+	            fill: '#FFFFFF',
+	            stroke: '#333333',
+	            strokeWidth: 2
+	        },
+	        label: {
+	            textVerticalAnchor: 'middle',
+	            textAnchor: 'middle',
+	            x: 'calc(w/2)',
+	            y: 'calc(h+15)',
+	            fontSize: 14,
+	            fill: '#333333'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'path',
+	        selector: 'body'
+	    }, {
+	        tagName: 'ellipse',
+	        selector: 'top'
+	    }, {
+	        tagName: 'text',
+	        selector: 'label'
+	    }],
+
+	    topRy: function(t, opt) {
+	        // getter
+	        if (t === undefined) { return this.attr('body/lateralArea'); }
+
+	        // setter
+	        var bodyAttrs = { lateralArea: t };
+
+	        var isPercentageSetter = isPercentage(t);
+	        var ty = (isPercentageSetter) ? ("calc(" + (parseFloat(t) / 100) + "*h)") : t;
+	        var topAttrs = { cy: ty, ry: ty };
+
+	        return this.attr({ body: bodyAttrs, top: topAttrs }, opt);
+	    }
+
+	}, {
+	    attributes: {
+	        lateralArea: {
+	            set: function(t, refBBox) {
+	                var isPercentageSetter = isPercentage(t);
+	                if (isPercentageSetter) { t = parseFloat(t) / 100; }
+
+	                var x = refBBox.x;
+	                var y = refBBox.y;
+	                var w = refBBox.width;
+	                var h = refBBox.height;
+
+	                // curve control point variables
+	                var rx = w / 2;
+	                var ry = isPercentageSetter ? (h * t) : t;
+
+	                var kappa = V.KAPPA;
+	                var cx = kappa * rx;
+	                var cy = kappa * (isPercentageSetter ? (h * t) : t);
+
+	                // shape variables
+	                var xLeft = x;
+	                var xCenter = x + (w / 2);
+	                var xRight = x + w;
+
+	                var ySideTop = y + ry;
+	                var yCurveTop = ySideTop - ry;
+	                var ySideBottom = y + h - ry;
+	                var yCurveBottom = y + h;
+
+	                // return calculated shape
+	                var data = [
+	                    'M', xLeft, ySideTop,
+	                    'L', xLeft, ySideBottom,
+	                    'C', x, (ySideBottom + cy), (xCenter - cx), yCurveBottom, xCenter, yCurveBottom,
+	                    'C', (xCenter + cx), yCurveBottom, xRight, (ySideBottom + cy), xRight, ySideBottom,
+	                    'L', xRight, ySideTop,
+	                    'C', xRight, (ySideTop - cy), (xCenter + cx), yCurveTop, xCenter, yCurveTop,
+	                    'C', (xCenter - cx), yCurveTop, xLeft, (ySideTop - cy), xLeft, ySideTop,
+	                    'Z'
+	                ];
+	                return { d: data.join(' ') };
+	            }
+	        }
+	    }
+	});
+
+	var foLabelMarkup = {
+	    tagName: 'foreignObject',
+	    selector: 'foreignObject',
+	    attributes: {
+	        'overflow': 'hidden'
+	    },
+	    children: [{
+	        tagName: 'div',
+	        namespaceURI: 'http://www.w3.org/1999/xhtml',
+	        selector: 'label',
+	        style: {
+	            width: '100%',
+	            height: '100%',
+	            position: 'static',
+	            backgroundColor: 'transparent',
+	            textAlign: 'center',
+	            margin: 0,
+	            padding: '0px 5px',
+	            boxSizing: 'border-box',
+	            display: 'flex',
+	            alignItems: 'center',
+	            justifyContent: 'center'
+	        }
+	    }]
+	};
+
+	var svgLabelMarkup = {
+	    tagName: 'text',
+	    selector: 'label',
+	    attributes: {
+	        'text-anchor': 'middle'
+	    }
+	};
+
+	var labelMarkup = (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup;
+
+	var TextBlock = Element$1.define('standard.TextBlock', {
+	    attrs: {
+	        body: {
+	            width: 'calc(w)',
+	            height: 'calc(h)',
+	            stroke: '#333333',
+	            fill: '#ffffff',
+	            strokeWidth: 2
+	        },
+	        foreignObject: {
+	            width: 'calc(w)',
+	            height: 'calc(h)',
+	        },
+	        label: {
+	            style: {
+	                fontSize: 14
+	            }
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'rect',
+	        selector: 'body'
+	    }, labelMarkup]
+	}, {
+	    attributes: {
+	        text: {
+	            set: function(text, refBBox, node, attrs) {
+	                if (node instanceof HTMLElement) {
+	                    node.textContent = text;
+	                } else {
+	                    // No foreign object
+	                    var style = attrs.style || {};
+	                    var wrapValue = { text: text, width: -5, height: '100%' };
+	                    var wrapAttrs = assign({ textVerticalAnchor: 'middle' }, style);
+	                    attributes.textWrap.set.call(this, wrapValue, refBBox, node, wrapAttrs);
+	                    return { fill: style.color || null };
+	                }
+	            },
+	            position: function(text, refBBox, node) {
+	                // No foreign object
+	                if (node instanceof SVGElement) { return refBBox.center(); }
+	            }
+	        }
+	    }
+	});
+
+	// LINKS
+
+	var Link$1 = Link.define('standard.Link', {
+	    attrs: {
+	        line: {
+	            connection: true,
+	            stroke: '#333333',
+	            strokeWidth: 2,
+	            strokeLinejoin: 'round',
+	            targetMarker: {
+	                'type': 'path',
+	                'd': 'M 10 -5 0 0 10 5 z'
+	            }
+	        },
+	        wrapper: {
+	            connection: true,
+	            strokeWidth: 10,
+	            strokeLinejoin: 'round'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'path',
+	        selector: 'wrapper',
+	        attributes: {
+	            'fill': 'none',
+	            'cursor': 'pointer',
+	            'stroke': 'transparent',
+	            'stroke-linecap': 'round'
+	        }
+	    }, {
+	        tagName: 'path',
+	        selector: 'line',
+	        attributes: {
+	            'fill': 'none',
+	            'pointer-events': 'none'
+	        }
+	    }]
+	});
+
+	var DoubleLink = Link.define('standard.DoubleLink', {
+	    attrs: {
+	        line: {
+	            connection: true,
+	            stroke: '#DDDDDD',
+	            strokeWidth: 4,
+	            strokeLinejoin: 'round',
+	            targetMarker: {
+	                type: 'path',
+	                stroke: '#000000',
+	                d: 'M 10 -3 10 -10 -2 0 10 10 10 3'
+	            }
+	        },
+	        outline: {
+	            connection: true,
+	            stroke: '#000000',
+	            strokeWidth: 6,
+	            strokeLinejoin: 'round'
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'path',
+	        selector: 'outline',
+	        attributes: {
+	            'fill': 'none',
+	            'cursor': 'pointer'
+	        }
+	    }, {
+	        tagName: 'path',
+	        selector: 'line',
+	        attributes: {
+	            'fill': 'none',
+	            'pointer-events': 'none'
+	        }
+	    }]
+	});
+
+	var ShadowLink = Link.define('standard.ShadowLink', {
+	    attrs: {
+	        line: {
+	            connection: true,
+	            stroke: '#FF0000',
+	            strokeWidth: 20,
+	            strokeLinejoin: 'round',
+	            targetMarker: {
+	                'type': 'path',
+	                'stroke': 'none',
+	                'd': 'M 0 -10 -10 0 0 10 z'
+	            },
+	            sourceMarker: {
+	                'type': 'path',
+	                'stroke': 'none',
+	                'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+	            }
+	        },
+	        shadow: {
+	            connection: true,
+	            transform: 'translate(3,6)',
+	            stroke: '#000000',
+	            strokeOpacity: 0.2,
+	            strokeWidth: 20,
+	            strokeLinejoin: 'round',
+	            targetMarker: {
+	                'type': 'path',
+	                'd': 'M 0 -10 -10 0 0 10 z',
+	                'stroke': 'none'
+	            },
+	            sourceMarker: {
+	                'type': 'path',
+	                'stroke': 'none',
+	                'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+	            }
+	        }
+	    }
+	}, {
+	    markup: [{
+	        tagName: 'path',
+	        selector: 'shadow',
+	        attributes: {
+	            'fill': 'none',
+	            'pointer-events': 'none'
+	        }
+	    }, {
+	        tagName: 'path',
+	        selector: 'line',
+	        attributes: {
+	            'fill': 'none',
+	            'cursor': 'pointer'
+	        }
+	    }]
+	});
+
+	var standard = ({
+		Rectangle: Rectangle,
+		Circle: Circle,
+		Ellipse: Ellipse$1,
+		Path: Path$1,
+		Polygon: Polygon$1,
+		Polyline: Polyline$1,
+		Image: Image,
+		BorderedImage: BorderedImage,
+		EmbeddedImage: EmbeddedImage,
+		InscribedImage: InscribedImage,
+		HeaderedRectangle: HeaderedRectangle,
+		Cylinder: Cylinder,
+		TextBlock: TextBlock,
+		Link: Link$1,
+		DoubleLink: DoubleLink,
+		ShadowLink: ShadowLink
+	});
+
+
+
+	var index$1 = ({
+		standard: standard
+	});
+
+	var CornerTypes = {
+	    POINT: 'point',
+	    CUBIC: 'cubic',
+	    LINE: 'line',
+	    GAP: 'gap'
+	};
+
+	var DEFINED_CORNER_TYPES = Object.values(CornerTypes);
+
+	var CORNER_RADIUS = 10;
+	var PRECISION = 1;
+
+	var straight = function(sourcePoint, targetPoint, routePoints, opt) {
+	    if ( routePoints === void 0 ) routePoints = [];
+	    if ( opt === void 0 ) opt = {};
+
+
+	    var cornerType = opt.cornerType; if ( cornerType === void 0 ) cornerType = CornerTypes.POINT;
+	    var cornerRadius = opt.cornerRadius; if ( cornerRadius === void 0 ) cornerRadius = CORNER_RADIUS;
+	    var cornerPreserveAspectRatio = opt.cornerPreserveAspectRatio; if ( cornerPreserveAspectRatio === void 0 ) cornerPreserveAspectRatio = false;
+	    var precision = opt.precision; if ( precision === void 0 ) precision = PRECISION;
+	    var raw = opt.raw; if ( raw === void 0 ) raw = false;
+
+	    if (DEFINED_CORNER_TYPES.indexOf(cornerType) === -1) {
+	        // unknown `cornerType` provided => error
+	        throw new Error('Invalid `cornerType` provided to `straight` connector.');
+	    }
+
+	    var path;
+
+	    if ((cornerType === CornerTypes.POINT) || !cornerRadius) {
+	        // default option => normal connector
+	        // simply connect all points with straight lines
+	        var points = [sourcePoint].concat(routePoints).concat([targetPoint]);
+	        var polyline = new Polyline(points);
+	        path = new Path(polyline);
+
+	    } else {
+	        // `cornerType` is not unknown and not 'point' (default) => must be one of other valid types
+	        path = new Path();
+
+	        // add initial gap segment = to source point
+	        path.appendSegment(Path.createSegment('M', sourcePoint));
+
+	        var nextDistance;
+	        var routePointsLength = routePoints.length;
+	        for (var i = 0; i < routePointsLength; i++) {
+
+	            var curr = new Point(routePoints[i]);
+	            var prev = (routePoints[i - 1] || sourcePoint);
+	            var next = (routePoints[i + 1] || targetPoint);
+	            var prevDistance = (nextDistance || (curr.distance(prev) / 2)); // try to re-use previously-computed `nextDistance`
+	            nextDistance = (curr.distance(next) / 2);
+
+	            var startMove = (void 0), endMove = (void 0);
+	            if (!cornerPreserveAspectRatio) {
+	                // `startMove` and `endMove` may be different
+	                // (this happens when next or previous path point is closer than `2 * cornerRadius`)
+	                startMove = -Math.min(cornerRadius, prevDistance);
+	                endMove = -Math.min(cornerRadius, nextDistance);
+	            } else {
+	                // force `startMove` and `endMove` to be the same
+	                startMove = endMove = -Math.min(cornerRadius, prevDistance, nextDistance);
+	            }
+
+	            // to find `cornerStart` and `cornerEnd`, the logic is as follows (using `cornerStart` as example):
+	            // - find a point lying on the line `prev - startMove` such that...
+	            // - ...the point lies `abs(startMove)` distance away from `curr`...
+	            // - ...and its coordinates are rounded to whole numbers
+	            var cornerStart = curr.clone().move(prev, startMove).round(precision);
+	            var cornerEnd = curr.clone().move(next, endMove).round(precision);
+
+	            // add in-between straight segment = from previous route point to corner start point
+	            // (may have zero length)
+	            path.appendSegment(Path.createSegment('L', cornerStart));
+
+	            // add corner segment = from corner start point to corner end point
+	            switch (cornerType) {
+	                case CornerTypes.CUBIC: {
+	                    // corner is rounded
+	                    var _13 = (1 / 3);
+	                    var _23 = (2 / 3);
+	                    var control1 = new Point((_13 * cornerStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * cornerStart.y));
+	                    var control2 = new Point((_13 * cornerEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * cornerEnd.y));
+	                    path.appendSegment(Path.createSegment('C', control1, control2, cornerEnd));
+	                    break;
+	                }
+	                case CornerTypes.LINE: {
+	                    // corner has bevel
+	                    path.appendSegment(Path.createSegment('L', cornerEnd));
+	                    break;
+	                }
+	                case CornerTypes.GAP: {
+	                    // corner has empty space
+	                    path.appendSegment(Path.createSegment('M', cornerEnd));
+	                    break;
+	                }
+	                // default: no segment is created
+	            }
+	        }
+
+	        // add final straight segment = from last corner end point to target point
+	        // (= or from start point to end point, if there are no route points)
+	        // (may have zero length)
+	        path.appendSegment(Path.createSegment('L', targetPoint));
+	    }
+
+	    return ((raw) ? path : path.serialize());
+	};
+
+	// default size of jump if not specified in options
+	var JUMP_SIZE = 5;
+
+	// available jump types
+	// first one taken as default
+	var JUMP_TYPES = ['arc', 'gap', 'cubic'];
+
+	// default radius
+	var RADIUS = 0;
+
+	// takes care of math. error for case when jump is too close to end of line
+	var CLOSE_PROXIMITY_PADDING = 1;
+
+	// list of connector types not to jump over.
+	var IGNORED_CONNECTORS = ['smooth'];
+
+	// internal constants for round segment
+	var _13 = 1 / 3;
+	var _23 = 2 / 3;
+
+	function sortPointsAscending(p1, p2) {
+
+	    var x1 = p1.x;
+	    var y1 = p1.y;
+	    var x2 = p2.x;
+	    var y2 = p2.y;
+
+	    if (x1 > x2) {
+
+	        var swap = x1;
+	        x1 = x2;
+	        x2 = swap;
+
+	        swap = y1;
+	        y1 = y2;
+	        y2 = swap;
+	    }
+
+	    if (y1 > y2) {
+	        var swap$1 = x1;
+	        x1 = x2;
+	        x2 = swap$1;
+
+	        swap$1 = y1;
+	        y1 = y2;
+	        y2 = swap$1;
+	    }
+
+	    return [new Point(x1, y1), new Point(x2, y2)];
+	}
+
+	function overlapExists(line1, line2) {
+
+	    var ref = sortPointsAscending(line1.start, line1.end);
+	    var ref_0 = ref[0];
+	    var x1 = ref_0.x;
+	    var y1 = ref_0.y;
+	    var ref_1 = ref[1];
+	    var x2 = ref_1.x;
+	    var y2 = ref_1.y;
+	    var ref$1 = sortPointsAscending(line2.start, line2.end);
+	    var ref$1_0 = ref$1[0];
+	    var x3 = ref$1_0.x;
+	    var y3 = ref$1_0.y;
+	    var ref$1_1 = ref$1[1];
+	    var x4 = ref$1_1.x;
+	    var y4 = ref$1_1.y;
+
+	    var xMatch = x1 <= x4 && x3 <= x2;
+	    var yMatch = y1 <= y4 && y3 <= y2;
+
+	    return xMatch && yMatch;
+	}
+
+	/**
+	 * Transform start/end and route into series of lines
+	 * @param {g.point} sourcePoint start point
+	 * @param {g.point} targetPoint end point
+	 * @param {g.point[]} route optional list of route
+	 * @return {g.line[]} [description]
+	 */
+	function createLines(sourcePoint, targetPoint, route) {
+	    // make a flattened array of all points
+	    var points = [].concat(sourcePoint, route, targetPoint);
+	    return points.reduce(function(resultLines, point, idx) {
+	        // if there is a next point, make a line with it
+	        var nextPoint = points[idx + 1];
+	        if (nextPoint != null) {
+	            resultLines[idx] = line(point, nextPoint);
+	        }
+	        return resultLines;
+	    }, []);
+	}
+
+	function setupUpdating(jumpOverLinkView) {
+	    var paper = jumpOverLinkView.paper;
+	    var updateList = paper._jumpOverUpdateList;
+
+	    // first time setup for this paper
+	    if (updateList == null) {
+	        updateList = paper._jumpOverUpdateList = [];
+	        var graph = paper.model;
+	        graph.on('batch:stop', function() {
+	            if (this.hasActiveBatch()) { return; }
+	            updateJumpOver(paper);
+	        });
+	        graph.on('reset', function() {
+	            updateList = paper._jumpOverUpdateList = [];
+	        });
+	    }
+
+	    // add this link to a list so it can be updated when some other link is updated
+	    if (updateList.indexOf(jumpOverLinkView) < 0) {
+	        updateList.push(jumpOverLinkView);
+
+	        // watch for change of connector type or removal of link itself
+	        // to remove the link from a list of jump over connectors
+	        jumpOverLinkView.listenToOnce(jumpOverLinkView.model, 'change:connector remove', function() {
+	            updateList.splice(updateList.indexOf(jumpOverLinkView), 1);
+	        });
+	    }
+	}
+
+	/**
+	 * Handler for a batch:stop event to force
+	 * update of all registered links with jump over connector
+	 * @param {object} batchEvent optional object with info about batch
+	 */
+	function updateJumpOver(paper) {
+	    var updateList = paper._jumpOverUpdateList;
+	    for (var i = 0; i < updateList.length; i++) {
+	        var linkView = updateList[i];
+	        var updateFlag = linkView.getFlag(linkView.constructor.Flags.CONNECTOR);
+	        linkView.requestUpdate(updateFlag);
+	    }
+	}
+
+	/**
+	 * Utility function to collect all intersection points of a single
+	 * line against group of other lines.
+	 * @param {g.line} line where to find points
+	 * @param {g.line[]} crossCheckLines lines to cross
+	 * @return {g.point[]} list of intersection points
+	 */
+	function findLineIntersections(line, crossCheckLines) {
+	    return toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
+	        var intersection = line.intersection(crossCheckLine);
+	        if (intersection) {
+	            res.push(intersection);
+	        }
+	        return res;
+	    }, []);
+	}
+
+	/**
+	 * Sorting function for list of points by their distance.
+	 * @param {g.point} p1 first point
+	 * @param {g.point} p2 second point
+	 * @return {number} squared distance between points
+	 */
+	function sortPoints(p1, p2) {
+	    return line(p1, p2).squaredLength();
+	}
+
+	/**
+	 * Split input line into multiple based on intersection points.
+	 * @param {g.line} line input line to split
+	 * @param {g.point[]} intersections points where to split the line
+	 * @param {number} jumpSize the size of jump arc (length empty spot on a line)
+	 * @return {g.line[]} list of lines being split
+	 */
+	function createJumps(line$1, intersections, jumpSize) {
+	    return intersections.reduce(function(resultLines, point$1, idx) {
+	        // skipping points that were merged with the previous line
+	        // to make bigger arc over multiple lines that are close to each other
+	        if (point$1.skip === true) {
+	            return resultLines;
+	        }
+
+	        // always grab the last line from buffer and modify it
+	        var lastLine = resultLines.pop() || line$1;
+
+	        // calculate start and end of jump by moving by a given size of jump
+	        var jumpStart = point(point$1).move(lastLine.start, -(jumpSize));
+	        var jumpEnd = point(point$1).move(lastLine.start, +(jumpSize));
+
+	        // now try to look at the next intersection point
+	        var nextPoint = intersections[idx + 1];
+	        if (nextPoint != null) {
+	            var distance = jumpEnd.distance(nextPoint);
+	            if (distance <= jumpSize) {
+	                // next point is close enough, move the jump end by this
+	                // difference and mark the next point to be skipped
+	                jumpEnd = nextPoint.move(lastLine.start, distance);
+	                nextPoint.skip = true;
+	            }
+	        } else {
+	            // this block is inside of `else` as an optimization so the distance is
+	            // not calculated when we know there are no other intersection points
+	            var endDistance = jumpStart.distance(lastLine.end);
+	            // if the end is too close to possible jump, draw remaining line instead of a jump
+	            if (endDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
+	                resultLines.push(lastLine);
+	                return resultLines;
+	            }
+	        }
+
+	        var startDistance = jumpEnd.distance(lastLine.start);
+	        if (startDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
+	            // if the start of line is too close to jump, draw that line instead of a jump
+	            resultLines.push(lastLine);
+	            return resultLines;
+	        }
+
+	        // finally create a jump line
+	        var jumpLine = line(jumpStart, jumpEnd);
+	        // it's just simple line but with a `isJump` property
+	        jumpLine.isJump = true;
+
+	        resultLines.push(
+	            line(lastLine.start, jumpStart),
+	            jumpLine,
+	            line(jumpEnd, lastLine.end)
+	        );
+	        return resultLines;
+	    }, []);
+	}
+
+	/**
+	 * Assemble `D` attribute of a SVG path by iterating given lines.
+	 * @param {g.line[]} lines source lines to use
+	 * @param {number} jumpSize the size of jump arc (length empty spot on a line)
+	 * @param {number} radius the radius
+	 * @return {string}
+	 */
+	function buildPath(lines, jumpSize, jumpType, radius) {
+
+	    var path = new Path();
+	    var segment;
+
+	    // first move to the start of a first line
+	    segment = Path.createSegment('M', lines[0].start);
+	    path.appendSegment(segment);
+
+	    // make a paths from lines
+	    toArray(lines).forEach(function(line, index) {
+
+	        if (line.isJump) {
+	            var angle, diff;
+
+	            var control1, control2;
+
+	            if (jumpType === 'arc') { // approximates semicircle with 2 curves
+	                angle = -90;
+	                // determine rotation of arc based on difference between points
+	                diff = line.start.difference(line.end);
+	                // make sure the arc always points up (or right)
+	                var xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
+	                if (xAxisRotate) { angle += 180; }
+
+	                var midpoint = line.midpoint();
+	                var centerLine = new Line(midpoint, line.end).rotate(midpoint, angle);
+
+	                var halfLine;
+
+	                // first half
+	                halfLine = new Line(line.start, midpoint);
+
+	                control1 = halfLine.pointAt(2 / 3).rotate(line.start, angle);
+	                control2 = centerLine.pointAt(1 / 3).rotate(centerLine.end, -angle);
+
+	                segment = Path.createSegment('C', control1, control2, centerLine.end);
+	                path.appendSegment(segment);
+
+	                // second half
+	                halfLine = new Line(midpoint, line.end);
+
+	                control1 = centerLine.pointAt(1 / 3).rotate(centerLine.end, angle);
+	                control2 = halfLine.pointAt(1 / 3).rotate(line.end, -angle);
+
+	                segment = Path.createSegment('C', control1, control2, line.end);
+	                path.appendSegment(segment);
+
+	            } else if (jumpType === 'gap') {
+	                segment = Path.createSegment('M', line.end);
+	                path.appendSegment(segment);
+
+	            } else if (jumpType === 'cubic') { // approximates semicircle with 1 curve
+	                angle = line.start.theta(line.end);
+
+	                var xOffset = jumpSize * 0.6;
+	                var yOffset = jumpSize * 1.35;
+
+	                // determine rotation of arc based on difference between points
+	                diff = line.start.difference(line.end);
+	                // make sure the arc always points up (or right)
+	                xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
+	                if (xAxisRotate) { yOffset *= -1; }
+
+	                control1 = Point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
+	                control2 = Point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
+
+	                segment = Path.createSegment('C', control1, control2, line.end);
+	                path.appendSegment(segment);
+	            }
+
+	        } else {
+	            var nextLine = lines[index + 1];
+	            if (radius == 0 || !nextLine || nextLine.isJump) {
+	                segment = Path.createSegment('L', line.end);
+	                path.appendSegment(segment);
+	            } else {
+	                buildRoundedSegment(radius, path, line.end, line.start, nextLine.end);
+	            }
+	        }
+	    });
+
+	    return path;
+	}
+
+	function buildRoundedSegment(offset, path, curr, prev, next) {
+	    var prevDistance = curr.distance(prev) / 2;
+	    var nextDistance = curr.distance(next) / 2;
+
+	    var startMove = -Math.min(offset, prevDistance);
+	    var endMove = -Math.min(offset, nextDistance);
+
+	    var roundedStart = curr.clone().move(prev, startMove).round();
+	    var roundedEnd = curr.clone().move(next, endMove).round();
+
+	    var control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
+	    var control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
+
+	    var segment;
+	    segment = Path.createSegment('L', roundedStart);
+	    path.appendSegment(segment);
+
+	    segment = Path.createSegment('C', control1, control2, roundedEnd);
+	    path.appendSegment(segment);
+	}
+
+	/**
+	 * Actual connector function that will be run on every update.
+	 * @param {g.point} sourcePoint start point of this link
+	 * @param {g.point} targetPoint end point of this link
+	 * @param {g.point[]} route of this link
+	 * @param {object} opt options
+	 * @property {number} size optional size of a jump arc
+	 * @return {string} created `D` attribute of SVG path
+	 */
+	var jumpover = function(sourcePoint, targetPoint, route, opt) { // eslint-disable-line max-params
+
+	    setupUpdating(this);
+
+	    var raw = opt.raw;
+	    var jumpSize = opt.size || JUMP_SIZE;
+	    var jumpType = opt.jump && ('' + opt.jump).toLowerCase();
+	    var radius = opt.radius || RADIUS;
+	    var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
+
+	    // grab the first jump type as a default if specified one is invalid
+	    if (JUMP_TYPES.indexOf(jumpType) === -1) {
+	        jumpType = JUMP_TYPES[0];
+	    }
+
+	    var paper = this.paper;
+	    var graph = paper.model;
+	    var allLinks = graph.getLinks();
+
+	    // there is just one link, draw it directly
+	    if (allLinks.length === 1) {
+	        return buildPath(
+	            createLines(sourcePoint, targetPoint, route),
+	            jumpSize, jumpType, radius
+	        );
+	    }
+
+	    var thisModel = this.model;
+	    var thisIndex = allLinks.indexOf(thisModel);
+	    var defaultConnector = paper.options.defaultConnector || {};
+
+	    // not all links are meant to be jumped over.
+	    var links = allLinks.filter(function(link, idx) {
+
+	        var connector = link.get('connector') || defaultConnector;
+
+	        // avoid jumping over links with connector type listed in `ignored connectors`.
+	        if (toArray(ignoreConnectors).includes(connector.name)) {
+	            return false;
+	        }
+	        // filter out links that are above this one and  have the same connector type
+	        // otherwise there would double hoops for each intersection
+	        if (idx > thisIndex) {
+	            return connector.name !== 'jumpover';
+	        }
+	        return true;
+	    });
+
+	    // find views for all links
+	    var linkViews = links.map(function(link) {
+	        return paper.findViewByModel(link);
+	    });
+
+	    // create lines for this link
+	    var thisLines = createLines(
+	        sourcePoint,
+	        targetPoint,
+	        route
+	    );
+
+	    // create lines for all other links
+	    var linkLines = linkViews.map(function(linkView) {
+	        if (linkView == null) {
+	            return [];
+	        }
+	        if (linkView === this) {
+	            return thisLines;
+	        }
+	        return createLines(
+	            linkView.sourcePoint,
+	            linkView.targetPoint,
+	            linkView.route
+	        );
+	    }, this);
+
+	    // transform lines for this link by splitting with jump lines at
+	    // points of intersection with other links
+	    var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
+	        // iterate all links and grab the intersections with this line
+	        // these are then sorted by distance so the line can be split more easily
+	        var intersections = links.reduce(function(res, link, i) {
+	            // don't intersection with itself
+	            if (link !== thisModel) {
+
+	                var linkLinesToTest = linkLines[i].slice();
+	                var overlapIndex = linkLinesToTest.findIndex(function (line) { return overlapExists(thisLine, line); });
+
+	                // Overlap occurs and the end point of one segment lies on thisLine
+	                if (overlapIndex > -1 && thisLine.containsPoint(linkLinesToTest[overlapIndex].end)) {
+	                    // Remove the next segment because there will never be a jump
+	                    linkLinesToTest.splice(overlapIndex + 1, 1);
+	                }
+	                var lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
+	                res.push.apply(res, lineIntersections);
+	            }
+	            return res;
+	        }, []).sort(function(a, b) {
+	            return sortPoints(thisLine.start, a) - sortPoints(thisLine.start, b);
+	        });
+
+	        if (intersections.length > 0) {
+	            // split the line based on found intersection points
+	            resultLines.push.apply(resultLines, createJumps(thisLine, intersections, jumpSize));
+	        } else {
+	            // without any intersection the line goes uninterrupted
+	            resultLines.push(thisLine);
+	        }
+	        return resultLines;
+	    }, []);
+
+	    var path = buildPath(jumpingLines, jumpSize, jumpType, radius);
+	    return (raw) ? path : path.serialize();
+	};
+
+	var normal = function(sourcePoint, targetPoint, route, opt) {
+	    if ( route === void 0 ) route = [];
+	    if ( opt === void 0 ) opt = {};
+
+
+	    var raw = opt.raw;
+	    var localOpt = {
+	        cornerType: 'point',
+	        raw: raw
+	    };
+
+	    return straight(sourcePoint, targetPoint, route, localOpt);
+	};
+
+	var CORNER_RADIUS$1 = 10;
+	var PRECISION$1 = 0;
+
+	var rounded = function(sourcePoint, targetPoint, route, opt) {
+	    if ( route === void 0 ) route = [];
+	    if ( opt === void 0 ) opt = {};
+
+
+	    var radius = opt.radius; if ( radius === void 0 ) radius = CORNER_RADIUS$1;
+	    var raw = opt.raw;
+	    var localOpt = {
+	        cornerType: 'cubic',
+	        cornerRadius: radius,
+	        precision: PRECISION$1,
+	        raw: raw
+	    };
+
+	    return straight(sourcePoint, targetPoint, route, localOpt);
+	};
+
+	var smooth = function(sourcePoint, targetPoint, route, opt) {
+
+	    var raw = opt && opt.raw;
+	    var path;
+
+	    if (route && route.length !== 0) {
+
+	        var points = [sourcePoint].concat(route).concat([targetPoint]);
+	        var curves = Curve.throughPoints(points);
+
+	        path = new Path(curves);
+
+	    } else {
+	        // if we have no route, use a default cubic bezier curve
+	        // cubic bezier requires two control points
+	        // the control points have `x` midway between source and target
+	        // this produces an S-like curve
+
+	        path = new Path();
+
+	        var segment;
+
+	        segment = Path.createSegment('M', sourcePoint);
+	        path.appendSegment(segment);
+
+	        if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
+	            var controlPointX = (sourcePoint.x + targetPoint.x) / 2;
+
+	            segment = Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
+	            path.appendSegment(segment);
+
+	        } else {
+	            var controlPointY = (sourcePoint.y + targetPoint.y) / 2;
+
+	            segment = Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
+	            path.appendSegment(segment);
+
+	        }
+	    }
+
+	    return (raw) ? path : path.serialize();
+	};
+
+	var Directions = {
+	    AUTO: 'auto',
+	    HORIZONTAL: 'horizontal',
+	    VERTICAL: 'vertical',
+	    CLOSEST_POINT: 'closest-point',
+	    OUTWARDS: 'outwards'
+	};
+
+	var TangentDirections = {
+	    UP: 'up',
+	    DOWN: 'down',
+	    LEFT: 'left',
+	    RIGHT: 'right',
+	    AUTO: 'auto',
+	    CLOSEST_POINT: 'closest-point',
+	    OUTWARDS: 'outwards'
+	};
+
+	var curve = function(sourcePoint, targetPoint, route, opt, linkView) {
+	    if ( route === void 0 ) route = [];
+	    if ( opt === void 0 ) opt = {};
+
+	    var raw = Boolean(opt.raw);
+	    // distanceCoefficient - a coefficient of the tangent vector length relative to the distance between points.
+	    // angleTangentCoefficient - a coefficient of the end tangents length in the case of angles larger than 45 degrees.
+	    // tension - a Catmull-Rom curve tension parameter.
+	    // sourceTangent - a tangent vector along the curve at the sourcePoint.
+	    // sourceDirection - a unit direction vector along the curve at the sourcePoint.
+	    // targetTangent - a tangent vector along the curve at the targetPoint.
+	    // targetDirection - a unit direction vector along the curve at the targetPoint.
+	    // precision - a rounding precision for path values.
+	    var direction = opt.direction; if ( direction === void 0 ) direction = Directions.AUTO;
+	    var precision = opt.precision; if ( precision === void 0 ) precision = 3;
+	    var options = {
+	        coeff: opt.distanceCoefficient || 0.6,
+	        angleTangentCoefficient: opt.angleTangentCoefficient || 80,
+	        tau: opt.tension || 0.5,
+	        sourceTangent: opt.sourceTangent ? new Point(opt.sourceTangent) : null,
+	        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null,
+	        rotate: Boolean(opt.rotate)
+	    };
+	    if (typeof opt.sourceDirection === 'string')
+	        { options.sourceDirection = opt.sourceDirection; }
+	    else if (typeof opt.sourceDirection === 'number')
+	        { options.sourceDirection = new Point(1, 0).rotate(null, opt.sourceDirection); }
+	    else
+	        { options.sourceDirection = opt.sourceDirection ? new Point(opt.sourceDirection).normalize() : null; }
+
+	    if (typeof opt.targetDirection === 'string')
+	        { options.targetDirection = opt.targetDirection; }
+	    else if (typeof opt.targetDirection === 'number')
+	        { options.targetDirection = new Point(1, 0).rotate(null, opt.targetDirection); }
+	    else
+	        { options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null; }
+
+	    var completeRoute = [sourcePoint ].concat( route, [targetPoint]).map(function (p) { return new Point(p); });
+
+	    // The calculation of a sourceTangent
+	    var sourceTangent;
+	    if (options.sourceTangent) {
+	        sourceTangent = options.sourceTangent;
+	    } else {
+	        var sourceDirection = getSourceTangentDirection(linkView, completeRoute, direction, options);
+	        var tangentLength = completeRoute[0].distance(completeRoute[1]) * options.coeff;
+	        var pointsVector = completeRoute[1].difference(completeRoute[0]).normalize();
+	        var angle = angleBetweenVectors(sourceDirection, pointsVector);
+	        if (angle > Math.PI / 4) {
+	            var updatedLength = tangentLength + (angle - Math.PI / 4) * options.angleTangentCoefficient;
+	            sourceTangent = sourceDirection.clone().scale(updatedLength, updatedLength);
+	        } else {
+	            sourceTangent = sourceDirection.clone().scale(tangentLength, tangentLength);
+	        }
+	    }
+
+	    // The calculation of a targetTangent
+	    var targetTangent;
+	    if (options.targetTangent) {
+	        targetTangent = options.targetTangent;
+	    } else {
+	        var targetDirection = getTargetTangentDirection(linkView, completeRoute, direction, options);
+	        var last = completeRoute.length - 1;
+	        var tangentLength$1 = completeRoute[last - 1].distance(completeRoute[last]) * options.coeff;
+	        var pointsVector$1 = completeRoute[last - 1].difference(completeRoute[last]).normalize();
+	        var angle$1 = angleBetweenVectors(targetDirection, pointsVector$1);
+	        if (angle$1 > Math.PI / 4) {
+	            var updatedLength$1 = tangentLength$1 + (angle$1 - Math.PI / 4) * options.angleTangentCoefficient;
+	            targetTangent = targetDirection.clone().scale(updatedLength$1, updatedLength$1);
+	        } else {
+	            targetTangent = targetDirection.clone().scale(tangentLength$1, tangentLength$1);
+	        }
+	    }
+
+	    var catmullRomCurves = createCatmullRomCurves(completeRoute, sourceTangent, targetTangent, options);
+	    var bezierCurves = catmullRomCurves.map(function (curve) { return catmullRomToBezier(curve, options); });
+	    var path = new Path(bezierCurves).round(precision);
+
+	    return (raw) ? path : path.serialize();
+	};
+	curve.Directions = Directions;
+	curve.TangentDirections = TangentDirections;
+
+	function getHorizontalSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+
+	    var sourceSide;
+	    var rotation;
+	    if (!linkView.sourceView) {
+	        if (sourceBBox.x > route[1].x)
+	            { sourceSide = 'right'; }
+	        else
+	            { sourceSide = 'left'; }
+	    } else {
+	        rotation = linkView.sourceView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+	            var sourcePoint = route[0].clone();
+	            sourcePoint.rotate(sourceBBox.center(), rotation);
+	            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+	        } else {
+	            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	        }
+	    }
+
+	    var direction;
+	    switch (sourceSide) {
+	        case 'left':
+	            direction = new Point(-1, 0);
+	            break;
+	        case 'right':
+	        default:
+	            direction = new Point(1, 0);
+	            break;
+	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
+	}
+
+	function getHorizontalTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+
+	    var targetSide;
+	    var rotation;
+	    if (!linkView.targetView) {
+	        if (targetBBox.x > route[route.length - 2].x)
+	            { targetSide = 'left'; }
+	        else
+	            { targetSide = 'right'; }
+	    } else {
+	        rotation = linkView.targetView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+	            var targetPoint = route[route.length - 1].clone();
+	            targetPoint.rotate(targetBBox.center(), rotation);
+	            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+	        } else {
+	            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	        }
+	    }
+
+	    var direction;
+	    switch (targetSide) {
+	        case 'left':
+	            direction = new Point(-1, 0);
+	            break;
+	        case 'right':
+	        default:
+	            direction = new Point(1, 0);
+	            break;
+	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
+	}
+
+	function getVerticalSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+
+	    var sourceSide;
+	    var rotation;
+	    if (!linkView.sourceView) {
+	        if (sourceBBox.y > route[1].y)
+	            { sourceSide = 'bottom'; }
+	        else
+	            { sourceSide = 'top'; }
+	    } else {
+	        rotation = linkView.sourceView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+	            var sourcePoint = route[0].clone();
+	            sourcePoint.rotate(sourceBBox.center(), rotation);
+	            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+	        } else {
+	            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	        }
+	    }
+
+	    var direction;
+	    switch (sourceSide) {
+	        case 'top':
+	            direction = new Point(0, -1);
+	            break;
+	        case 'bottom':
+	        default:
+	            direction = new Point(0, 1);
+	            break;
+	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
+	}
+
+	function getVerticalTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+
+	    var targetSide;
+	    var rotation;
+	    if (!linkView.targetView) {
+	        if (targetBBox.y > route[route.length - 2].y)
+	            { targetSide = 'top'; }
+	        else
+	            { targetSide = 'bottom'; }
+	    } else {
+	        rotation = linkView.targetView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+	            var targetPoint = route[route.length - 1].clone();
+	            targetPoint.rotate(targetBBox.center(), rotation);
+	            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+	        } else {
+	            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	        }
+	    }
+
+
+	    var direction;
+	    switch (targetSide) {
+	        case 'top':
+	            direction = new Point(0, -1);
+	            break;
+	        case 'bottom':
+	        default:
+	            direction = new Point(0, 1);
+	            break;
+	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
+	}
+
+	function getAutoSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+
+	    var sourceSide;
+	    var rotation;
+	    if (!linkView.sourceView) {
+	        sourceSide = sourceBBox.sideNearestToPoint(route[1]);
+	    } else {
+	        rotation = linkView.sourceView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+	            var sourcePoint = route[0].clone();
+	            sourcePoint.rotate(sourceBBox.center(), rotation);
+	            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+	        } else {
+	            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	        }
+	    }
+
+	    var direction;
+	    switch (sourceSide) {
+	        case 'top':
+	            direction = new Point(0, -1);
+	            break;
+	        case 'bottom':
+	            direction = new Point(0, 1);
+	            break;
+	        case 'right':
+	            direction = new Point(1, 0);
+	            break;
+	        case 'left':
+	            direction = new Point(-1, 0);
+	            break;
+	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
+	}
+
+	function getAutoTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+
+	    var targetSide;
+	    var rotation;
+	    if (!linkView.targetView) {
+	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
+	    } else {
+	        rotation = linkView.targetView.model.angle();
+	        if (options.rotate && rotation) {
+	            var unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+	            var targetPoint = route[route.length - 1].clone();
+	            targetPoint.rotate(targetBBox.center(), rotation);
+	            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+	        } else {
+	            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	        }
+	    }
+
+	    var direction;
+	    switch (targetSide) {
+	        case 'top':
+	            direction = new Point(0, -1);
+	            break;
+	        case 'bottom':
+	            direction = new Point(0, 1);
+	            break;
+	        case 'right':
+	            direction = new Point(1, 0);
+	            break;
+	        case 'left':
+	            direction = new Point(-1, 0);
+	            break;
+	    }
+
+	    if (options.rotate && rotation) {
+	        direction.rotate(null, -rotation);
+	    }
+
+	    return direction;
+	}
+
+	function getClosestPointSourceDirection(linkView, route, options) {
+	    return route[1].difference(route[0]).normalize();
+	}
+
+	function getClosestPointTargetDirection(linkView, route, options) {
+	    var last = route.length - 1;
+	    return route[last - 1].difference(route[last]).normalize();
+	}
+
+	function getOutwardsSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+	    var sourceCenter = sourceBBox.center();
+	    return route[0].difference(sourceCenter).normalize();
+	}
+
+	function getOutwardsTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+	    var targetCenter = targetBBox.center();
+	    return route[route.length - 1].difference(targetCenter).normalize();
+	}
+
+	function getSourceTangentDirection(linkView, route, direction, options) {
+	    if (options.sourceDirection) {
+	        switch (options.sourceDirection) {
+	            case TangentDirections.UP:
+	                return new Point(0, -1);
+	            case TangentDirections.DOWN:
+	                return new Point(0, 1);
+	            case TangentDirections.LEFT:
+	                return new Point(-1, 0);
+	            case TangentDirections.RIGHT:
+	                return new Point(1, 0);
+	            case TangentDirections.AUTO:
+	                return getAutoSourceDirection(linkView, route, options);
+	            case TangentDirections.CLOSEST_POINT:
+	                return getClosestPointSourceDirection(linkView, route, options);
+	            case TangentDirections.OUTWARDS:
+	                return getOutwardsSourceDirection(linkView, route, options);
+	            default:
+	                return options.sourceDirection;
+	        }
+	    }
+
+	    switch (direction) {
+	        case Directions.HORIZONTAL:
+	            return getHorizontalSourceDirection(linkView, route, options);
+	        case Directions.VERTICAL:
+	            return getVerticalSourceDirection(linkView, route, options);
+	        case Directions.CLOSEST_POINT:
+	            return getClosestPointSourceDirection(linkView, route, options);
+	        case Directions.OUTWARDS:
+	            return getOutwardsSourceDirection(linkView, route, options);
+	        case Directions.AUTO:
+	        default:
+	            return getAutoSourceDirection(linkView, route, options);
+	    }
+	}
+
+	function getTargetTangentDirection(linkView, route, direction, options) {
+	    if (options.targetDirection) {
+	        switch (options.targetDirection) {
+	            case TangentDirections.UP:
+	                return new Point(0, -1);
+	            case TangentDirections.DOWN:
+	                return new Point(0, 1);
+	            case TangentDirections.LEFT:
+	                return new Point(-1, 0);
+	            case TangentDirections.RIGHT:
+	                return new Point(1, 0);
+	            case TangentDirections.AUTO:
+	                return getAutoTargetDirection(linkView, route, options);
+	            case TangentDirections.CLOSEST_POINT:
+	                return getClosestPointTargetDirection(linkView, route, options);
+	            case TangentDirections.OUTWARDS:
+	                return getOutwardsTargetDirection(linkView, route, options);
+	            default:
+	                return options.targetDirection;
+	        }
+	    }
+
+	    switch (direction) {
+	        case Directions.HORIZONTAL:
+	            return getHorizontalTargetDirection(linkView, route, options);
+	        case Directions.VERTICAL:
+	            return getVerticalTargetDirection(linkView, route, options);
+	        case Directions.CLOSEST_POINT:
+	            return getClosestPointTargetDirection(linkView, route, options);
+	        case Directions.OUTWARDS:
+	            return getOutwardsTargetDirection(linkView, route, options);
+	        case Directions.AUTO:
+	        default:
+	            return getAutoTargetDirection(linkView, route, options);
+	    }
+	}
+
+	function rotateVector(vector, angle) {
+	    var cos = Math.cos(angle);
+	    var sin = Math.sin(angle);
+	    var x = cos * vector.x - sin * vector.y;
+	    var y = sin * vector.x + cos * vector.y;
+	    vector.x = x;
+	    vector.y = y;
+	}
+
+	function angleBetweenVectors(v1, v2) {
+	    var cos = v1.dot(v2) / (v1.magnitude() * v2.magnitude());
+	    if (cos < -1) { cos = -1; }
+	    if (cos > 1) { cos = 1; }
+	    return Math.acos(cos);
+	}
+
+	function determinant(v1, v2) {
+	    return v1.x * v2.y - v1.y * v2.x;
+	}
+
+	function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
+	    var tau = options.tau;
+	    var coeff = options.coeff;
+	    var distances = [];
+	    var tangents = [];
+	    var catmullRomCurves = [];
+	    var n = points.length - 1;
+
+	    for (var i = 0; i < n; i++) {
+	        distances[i] = points[i].distance(points[i + 1]);
+	    }
+
+	    tangents[0] = sourceTangent;
+	    tangents[n] = targetTangent;
+
+	    // The calculation of tangents of vertices
+	    for (var i$1 = 1; i$1 < n; i$1++) {
+	        var tpPrev = (void 0);
+	        var tpNext = (void 0);
+	        if (i$1 === 1) {
+	            tpPrev = points[i$1 - 1].clone().offset(tangents[i$1 - 1].x, tangents[i$1 - 1].y);
+	        } else {
+	            tpPrev = points[i$1 - 1].clone();
+	        }
+	        if (i$1 === n - 1) {
+	            tpNext = points[i$1 + 1].clone().offset(tangents[i$1 + 1].x, tangents[i$1 + 1].y);
+	        } else {
+	            tpNext = points[i$1 + 1].clone();
+	        }
+	        var v1 = tpPrev.difference(points[i$1]).normalize();
+	        var v2 = tpNext.difference(points[i$1]).normalize();
+	        var vAngle = angleBetweenVectors(v1, v2);
+
+	        var rot = (Math.PI - vAngle) / 2;
+	        var t = (void 0);
+	        var vectorDeterminant = determinant(v1, v2);
+	        var pointsDeterminant = (void 0);
+	        pointsDeterminant = determinant(points[i$1].difference(points[i$1 + 1]), points[i$1].difference(points[i$1 - 1]));
+	        if (vectorDeterminant < 0) {
+	            rot = -rot;
+	        }
+	        if ((vAngle < Math.PI / 2) && ((rot < 0 && pointsDeterminant < 0) || (rot > 0 && pointsDeterminant > 0))) {
+	            rot = rot - Math.PI;
+	        }
+	        t = v2.clone();
+	        rotateVector(t, rot);
+
+	        var t1 = t.clone();
+	        var t2 = t.clone();
+	        var scaleFactor1 = distances[i$1 - 1] * coeff;
+	        var scaleFactor2 = distances[i$1] * coeff;
+	        t1.scale(scaleFactor1, scaleFactor1);
+	        t2.scale(scaleFactor2, scaleFactor2);
+
+	        tangents[i$1] = [t1, t2];
+	    }
+
+	    // The building of a Catmull-Rom curve based of tangents of points
+	    for (var i$2 = 0; i$2 < n; i$2++) {
+	        var p0 = (void 0);
+	        var p3 = (void 0);
+	        if (i$2 === 0) {
+	            p0 = points[i$2 + 1].difference(tangents[i$2].x / tau, tangents[i$2].y / tau);
+	        } else {
+	            p0 = points[i$2 + 1].difference(tangents[i$2][1].x / tau, tangents[i$2][1].y / tau);
+	        }
+	        if (i$2 === n - 1) {
+	            p3 = points[i$2].clone().offset(tangents[i$2 + 1].x / tau, tangents[i$2 + 1].y / tau);
+	        } else {
+	            p3 = points[i$2].difference(tangents[i$2 + 1][0].x / tau, tangents[i$2 + 1][0].y / tau);
+	        }
+
+	        catmullRomCurves[i$2] = [p0, points[i$2], points[i$2 + 1], p3];
+	    }
+	    return catmullRomCurves;
+	}
+
+	// The function to convert Catmull-Rom curve to Bezier curve using the tension (tau)
+	function catmullRomToBezier(points, options) {
+	    var tau = options.tau;
+
+	    var bcp1 = new Point();
+	    bcp1.x = points[1].x + (points[2].x - points[0].x) / (6 * tau);
+	    bcp1.y = points[1].y + (points[2].y - points[0].y) / (6 * tau);
+
+	    var bcp2 = new Point();
+	    bcp2.x = points[2].x + (points[3].x - points[1].x) / (6 * tau);
+	    bcp2.y = points[2].y + (points[3].y - points[1].y) / (6 * tau);
+	    return new Curve(
+	        points[1],
+	        bcp1,
+	        bcp2,
+	        points[2]
+	    );
+	}
+
+
+
+	var connectors = ({
+		straight: straight,
+		jumpover: jumpover,
+		normal: normal,
+		rounded: rounded,
+		smooth: smooth,
+		curve: curve
+	});
+
+	// ViewBase
+	// -------------
+
+	// ViewBases are almost more convention than they are actual code. A View
+	// is simply a JavaScript object that represents a logical chunk of UI in the
+	// DOM. This might be a single item, an entire list, a sidebar or panel, or
+	// even the surrounding frame which wraps your whole app. Defining a chunk of
+	// UI as a **View** allows you to define your DOM events declaratively, without
+	// having to worry about render order ... and makes it easy for the view to
+	// react to specific changes in the state of your models.
+
+	// Creating a ViewBase creates its initial element outside of the DOM,
+	// if an existing element is not provided...
+	var ViewBase = function(options) {
+	    this.cid = uniqueId('view');
+	    this.preinitialize.apply(this, arguments);
+	    assign(this, pick(options, viewOptions));
+	    this._ensureElement();
+	    this.initialize.apply(this, arguments);
+	};
+
+	// Cached regex to split keys for `delegate`.
+	var delegateEventSplitter = /^(\S+)\s*(.*)$/;
+
+	// List of view options to be set as properties.
+	var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
+
+	// Set up all inheritable **ViewBase** properties and methods.
+	assign(ViewBase.prototype, Events, {
+
+	    // The default `tagName` of a View's element is `"div"`.
+	    tagName: 'div',
+
+	    // mvc.$ delegate for element lookup, scoped to DOM elements within the
+	    // current view. This should be preferred to global lookups where possible.
+	    $: function(selector) {
+	        return this.$el.find(selector);
+	    },
+
+	    // preinitialize is an empty function by default. You can override it with a function
+	    // or object.  preinitialize will run before any instantiation logic is run in the View
+	    preinitialize: function(){},
+
+	    // Initialize is an empty function by default. Override it with your own
+	    // initialization logic.
+	    initialize: function(){},
+
+	    // **render** is the core function that your view should override, in order
+	    // to populate its element (`this.el`), with the appropriate HTML. The
+	    // convention is for **render** to always return `this`.
+	    render: function() {
+	        return this;
+	    },
+
+	    // Remove this view by taking the element out of the DOM, and removing any
+	    // applicable Events listeners.
+	    remove: function() {
+	        this._removeElement();
+	        this.stopListening();
+	        return this;
+	    },
+
+	    // Remove this view's element from the document and all event listeners
+	    // attached to it. Exposed for subclasses using an alternative DOM
+	    // manipulation API.
+	    _removeElement: function() {
+	        this.$el.remove();
+	    },
+
+	    // Change the view's element (`this.el` property) and re-delegate the
+	    // view's events on the new element.
+	    setElement: function(element) {
+	        this.undelegateEvents();
+	        this._setElement(element);
+	        this.delegateEvents();
+	        return this;
+	    },
+
+	    // Creates the `this.el` and `this.$el` references for this view using the
+	    // given `el`. `el` can be a CSS selector or an HTML string, a mvc.$
+	    // context or an element. Subclasses can override this to utilize an
+	    // alternative DOM manipulation API and are only required to set the
+	    // `this.el` property.
+	    _setElement: function(el) {
+	        this.$el = el instanceof $ ? el : $(el);
+	        this.el = this.$el[0];
+	    },
+
+	    // Set callbacks, where `this.events` is a hash of
+	    //
+	    // *{"event selector": "callback"}*
+	    //
+	    //     {
+	    //       'mousedown .title':  'edit',
+	    //       'click .button':     'save',
+	    //       'click .open':       function(e) { ... }
+	    //     }
+	    //
+	    // pairs. Callbacks will be bound to the view, with `this` set properly.
+	    // Uses event delegation for efficiency.
+	    // Omitting the selector binds the event to `this.el`.
+	    delegateEvents: function(events) {
+	        events || (events = result(this, 'events'));
+	        if (!events) { return this; }
+	        this.undelegateEvents();
+	        for (var key in events) {
+	            var method = events[key];
+	            if (!isFunction(method)) { method = this[method]; }
+	            if (!method) { continue; }
+	            var match = key.match(delegateEventSplitter);
+	            this.delegate(match[1], match[2], method.bind(this));
+	        }
+	        return this;
+	    },
+
+	    // Add a single event listener to the view's element (or a child element
+	    // using `selector`). This only works for delegate-able events: not `focus`,
+	    // `blur`, and not `change`, `submit`, and `reset` in Internet Explorer.
+	    delegate: function(eventName, selector, listener) {
+	        this.$el.on(eventName + '.delegateEvents' + this.cid, selector, listener);
+	        return this;
+	    },
+
+	    // Clears all callbacks previously bound to the view by `delegateEvents`.
+	    // You usually don't need to use this, but may wish to if you have multiple
+	    // viewbases attached to the same DOM element.
+	    undelegateEvents: function() {
+	        if (this.$el) { this.$el.off('.delegateEvents' + this.cid); }
+	        return this;
+	    },
+
+	    // A finer-grained `undelegateEvents` for removing a single delegated event.
+	    // `selector` and `listener` are both optional.
+	    undelegate: function(eventName, selector, listener) {
+	        this.$el.off(eventName + '.delegateEvents' + this.cid, selector, listener);
+	        return this;
+	    },
+
+	    // Produces a DOM element to be assigned to your view. Exposed for
+	    // subclasses using an alternative DOM manipulation API.
+	    _createElement: function(tagName) {
+	        return document.createElement(tagName);
+	    },
+
+	    // Ensure that the View has a DOM element to render into.
+	    // If `this.el` is a string, pass it through `$()`, take the first
+	    // matching element, and re-assign it to `el`. Otherwise, create
+	    // an element from the `id`, `className` and `tagName` properties.
+	    _ensureElement: function() {
+	        if (!this.el) {
+	            var attrs = assign({}, result(this, 'attributes'));
+	            if (this.id) { attrs.id = result(this, 'id'); }
+	            if (this.className) { attrs['class'] = result(this, 'className'); }
+	            this.setElement(this._createElement(result(this, 'tagName')));
+	            this._setAttributes(attrs);
+	        } else {
+	            this.setElement(result(this, 'el'));
+	        }
+	    },
+
+	    // Set attributes from a hash on this view's element.  Exposed for
+	    // subclasses using an alternative DOM manipulation API.
+	    _setAttributes: function(attributes) {
+	        this.$el.attr(attributes);
+	    }
+
+	});
+
+	// Set up inheritance for the view.
+	ViewBase.extend = extend$1;
+
+	var views = {};
+
+	var View = ViewBase.extend({
+
+	    options: {},
+	    theme: null,
+	    themeClassNamePrefix: addClassNamePrefix('theme-'),
+	    requireSetThemeOverride: false,
+	    defaultTheme: config.defaultTheme,
+	    children: null,
+	    childNodes: null,
+
+	    DETACHABLE: true,
+	    UPDATE_PRIORITY: 2,
+	    FLAG_INSERT: 1<<30,
+	    FLAG_REMOVE: 1<<29,
+	    FLAG_INIT: 1<<28,
+
+	    constructor: function(options) {
+
+	        this.requireSetThemeOverride = options && !!options.theme;
+	        this.options = assign({}, this.options, options);
+
+	        ViewBase.call(this, options);
+	    },
+
+	    initialize: function() {
+
+	        views[this.cid] = this;
+
+	        this.setTheme(this.options.theme || this.defaultTheme);
+	        this.init();
+	    },
+
+	    unmount: function() {
+	        if (this.svgElement) {
+	            this.vel.remove();
+	        } else {
+	            this.$el.remove();
+	        }
+	    },
+
+	    isMounted: function() {
+	        return this.el.parentNode !== null;
+	    },
+
+	    renderChildren: function(children) {
+	        children || (children = result(this, 'children'));
+	        if (children) {
+	            var isSVG = this.svgElement;
+	            var namespace = V.namespace[isSVG ? 'svg' : 'xhtml'];
+	            var doc = parseDOMJSON(children, namespace);
+	            (isSVG ? this.vel : this.$el).empty().append(doc.fragment);
+	            this.childNodes = doc.selectors;
+	        }
+	        return this;
+	    },
+
+	    findAttribute: function(attributeName, node) {
+
+	        var currentNode = node;
+
+	        while (currentNode && currentNode.nodeType === 1) {
+	            var attributeValue = currentNode.getAttribute(attributeName);
+	            // attribute found
+	            if (attributeValue) { return attributeValue; }
+	            // do not climb up the DOM
+	            if (currentNode === this.el) { return null; }
+	            // try parent node
+	            currentNode = currentNode.parentNode;
+	        }
+
+	        return null;
+	    },
+
+	    // Override the mvc ViewBase `_ensureElement()` method in order to create an
+	    // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
+	    // Expose class name setter as a separate method.
+	    _ensureElement: function() {
+	        if (!this.el) {
+	            var tagName = result(this, 'tagName');
+	            var attrs = assign({}, result(this, 'attributes'));
+	            var style = assign({}, result(this, 'style'));
+	            if (this.id) { attrs.id = result(this, 'id'); }
+	            this.setElement(this._createElement(tagName));
+	            this._setAttributes(attrs);
+	            this._setStyle(style);
+	        } else {
+	            this.setElement(result(this, 'el'));
+	        }
+	        this._ensureElClassName();
+	    },
+
+	    _setAttributes: function(attrs) {
+	        if (this.svgElement) {
+	            this.vel.attr(attrs);
+	        } else {
+	            this.$el.attr(attrs);
+	        }
+	    },
+
+	    _setStyle: function(style) {
+	        this.$el.css(style);
+	    },
+
+	    _createElement: function(tagName) {
+	        if (this.svgElement) {
+	            return document.createElementNS(V.namespace.svg, tagName);
+	        } else {
+	            return document.createElement(tagName);
+	        }
+	    },
+
+	    // Utilize an alternative DOM manipulation API by
+	    // adding an element reference wrapped in Vectorizer.
+	    _setElement: function(el) {
+	        this.$el = el instanceof $ ? el : $(el);
+	        this.el = this.$el[0];
+	        if (this.svgElement) { this.vel = V(this.el); }
+	    },
+
+	    _ensureElClassName: function() {
+	        var className = result(this, 'className');
+	        if (!className) { return; }
+	        var prefixedClassName = addClassNamePrefix(className);
+	        // Note: className removal here kept for backwards compatibility only
+	        if (this.svgElement) {
+	            this.vel.removeClass(className).addClass(prefixedClassName);
+	        } else {
+	            this.$el.removeClass(className).addClass(prefixedClassName);
+	        }
+	    },
+
+	    init: function() {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	    },
+
+	    onRender: function() {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	    },
+
+	    confirmUpdate: function() {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	        return 0;
+	    },
+
+	    setTheme: function(theme, opt) {
+
+	        opt = opt || {};
+
+	        // Theme is already set, override is required, and override has not been set.
+	        // Don't set the theme.
+	        if (this.theme && this.requireSetThemeOverride && !opt.override) {
+	            return this;
+	        }
+
+	        this.removeThemeClassName();
+	        this.addThemeClassName(theme);
+	        this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
+	        this.theme = theme;
+
+	        return this;
+	    },
+
+	    addThemeClassName: function(theme) {
+
+	        theme = theme || this.theme;
+	        if (!theme) { return this; }
+
+	        var className = this.themeClassNamePrefix + theme;
+
+	        if (this.svgElement) {
+	            this.vel.addClass(className);
+	        } else {
+	            this.$el.addClass(className);
+	        }
+
+	        return this;
+	    },
+
+	    removeThemeClassName: function(theme) {
+
+	        theme = theme || this.theme;
+
+	        var className = this.themeClassNamePrefix + theme;
+
+	        if (this.svgElement) {
+	            this.vel.removeClass(className);
+	        } else {
+	            this.$el.removeClass(className);
+	        }
+
+	        return this;
+	    },
+
+	    onSetTheme: function(oldTheme, newTheme) {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	    },
+
+	    remove: function() {
+
+	        this.onRemove();
+	        this.undelegateDocumentEvents();
+
+	        views[this.cid] = null;
+
+	        ViewBase.prototype.remove.apply(this, arguments);
+
+	        return this;
+	    },
+
+	    onRemove: function() {
+	        // Intentionally empty.
+	        // This method is meant to be overridden.
+	    },
+
+	    getEventNamespace: function() {
+	        // Returns a per-session unique namespace
+	        return '.joint-event-ns-' + this.cid;
+	    },
+
+	    delegateElementEvents: function(element, events, data) {
+	        if (!events) { return this; }
+	        data || (data = {});
+	        var eventNS = this.getEventNamespace();
+	        for (var eventName in events) {
+	            var method = events[eventName];
+	            if (typeof method !== 'function') { method = this[method]; }
+	            if (!method) { continue; }
+	            $(element).on(eventName + eventNS, data, method.bind(this));
+	        }
+	        return this;
+	    },
+
+	    undelegateElementEvents: function(element) {
+	        $(element).off(this.getEventNamespace());
+	        return this;
+	    },
+
+	    delegateDocumentEvents: function(events, data) {
+	        events || (events = result(this, 'documentEvents'));
+	        return this.delegateElementEvents(document, events, data);
+	    },
+
+	    undelegateDocumentEvents: function() {
+	        return this.undelegateElementEvents(document);
+	    },
+
+	    eventData: function(evt, data) {
+	        if (!evt) { throw new Error('eventData(): event object required.'); }
+	        var currentData = evt.data;
+	        var key = '__' + this.cid + '__';
+	        if (data === undefined) {
+	            if (!currentData) { return {}; }
+	            return currentData[key] || {};
+	        }
+	        currentData || (currentData = evt.data = {});
+	        currentData[key] || (currentData[key] = {});
+	        assign(currentData[key], data);
+	        return this;
+	    },
+
+	    stopPropagation: function(evt) {
+	        this.eventData(evt, { propagationStopped: true });
+	        return this;
+	    },
+
+	    isPropagationStopped: function(evt) {
+	        return !!this.eventData(evt).propagationStopped;
+	    }
+
+	}, {
+
+	    extend: function() {
+
+	        var args = Array.from(arguments);
+
+	        // Deep clone the prototype and static properties objects.
+	        // This prevents unexpected behavior where some properties are overwritten outside of this function.
+	        var protoProps = args[0] && assign({}, args[0]) || {};
+	        var staticProps = args[1] && assign({}, args[1]) || {};
+
+	        // Need the real render method so that we can wrap it and call it later.
+	        var renderFn = protoProps.render || (this.prototype && this.prototype.render) || null;
+
+	        /*
+	            Wrap the real render method so that:
+	                .. `onRender` is always called.
+	                .. `this` is always returned.
+	        */
+	        protoProps.render = function() {
+
+	            if (typeof renderFn === 'function') {
+	                // Call the original render method.
+	                renderFn.apply(this, arguments);
+	            }
+
+	            if (this.render.__render__ === renderFn) {
+	                // Should always call onRender() method.
+	                // Should call it only once when renderFn is actual prototype method i.e. not the wrapper
+	                this.onRender();
+	            }
+
+	            // Should always return itself.
+	            return this;
+	        };
+
+	        protoProps.render.__render__ = renderFn;
+
+	        return ViewBase.extend.call(this, protoProps, staticProps);
+	    }
+	});
+
+	var Listener = function Listener() {
+	    var callbackArguments = [], len = arguments.length;
+	    while ( len-- ) callbackArguments[ len ] = arguments[ len ];
+
+	    this.callbackArguments = callbackArguments;
+	};
+
+	Listener.prototype.listenTo = function listenTo (object, evt) {
+	        var this$1 = this;
+	        var args = [], len = arguments.length - 2;
+	        while ( len-- > 0 ) args[ len ] = arguments[ len + 2 ];
+
+	    var ref = this;
+	        var callbackArguments = ref.callbackArguments;
+	    // signature 1 - (object, eventHashMap, context)
+	    if (V.isObject(evt)) {
+	        var context = args[0]; if ( context === void 0 ) context = null;
+	        Object.entries(evt).forEach(function (ref) {
+	                var eventName = ref[0];
+	                var cb = ref[1];
+
+	            if (typeof cb !== 'function') { return; }
+	            // Invoke the callback with callbackArguments passed first
+	            if (context || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context ].concat( callbackArguments )); }
+	            Events.listenTo.call(this$1, object, eventName, cb);
+	        });
+	    }
+	    // signature 2 - (object, event, callback, context)
+	    else if (typeof evt === 'string' && typeof args[0] === 'function') {
+	        var cb = args[0];
+	            var context$1 = args[1]; if ( context$1 === void 0 ) context$1 = null;
+	        // Invoke the callback with callbackArguments passed first
+	        if (context$1 || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context$1 ].concat( callbackArguments )); }
+	        Events.listenTo.call(this, object, evt, cb);
+	    }
+	};
+
+	Listener.prototype.stopListening = function stopListening () {
+	    Events.stopListening.call(this);
+	};
+
+	// Collection
+	// -------------------
+
+	// If models tend to represent a single row of data, a Collection is
+	// more analogous to a table full of data ... or a small slice or page of that
+	// table, or a collection of rows that belong together for a particular reason
+	// -- all of the messages in this particular folder, all of the documents
+	// belonging to this particular author, and so on. Collections maintain
+	// indexes of their models, both in order, and for lookup by `id`.
+
+	// Create a new **Collection**, perhaps to contain a specific type of `model`.
+	// If a `comparator` is specified, the Collection will maintain
+	// its models in sort order, as they're added and removed.
+	var Collection = function(models, options) {
+	    options || (options = {});
+	    this.preinitialize.apply(this, arguments);
+	    if (options.model) { this.model = options.model; }
+	    if (options.comparator !== void 0) { this.comparator = options.comparator; }
+	    this._reset();
+	    this.initialize.apply(this, arguments);
+	    if (models) { this.reset(models, assign({ silent: true }, options)); }
+	};
+
+	// Default options for `Collection#set`.
+	var setOptions = { add: true, remove: true, merge: true };
+	var addOptions = { add: true, remove: false };
+
+	// Splices `insert` into `array` at index `at`.
+	var splice = function(array, insert, at) {
+	    at = Math.min(Math.max(at, 0), array.length);
+	    var tail = Array(array.length - at);
+	    var length = insert.length;
+	    var i;
+	    for (i = 0; i < tail.length; i++) { tail[i] = array[i + at]; }
+	    for (i = 0; i < length; i++) { array[i + at] = insert[i]; }
+	    for (i = 0; i < tail.length; i++) { array[i + length + at] = tail[i]; }
+	};
+
+	// Define the Collection's inheritable methods.
+	assign(Collection.prototype, Events, {
+
+	    // The default model for a collection is just a **Model**.
+	    // This should be overridden in most cases.
+	    model: Model,
+
+
+	    // preinitialize is an empty function by default. You can override it with a function
+	    // or object.  preinitialize will run before any instantiation logic is run in the Collection.
+	    preinitialize: function(){},
+
+	    // Initialize is an empty function by default. Override it with your own
+	    // initialization logic.
+	    initialize: function(){},
+
+	    // The JSON representation of a Collection is an array of the
+	    // models' attributes.
+	    toJSON: function(options) {
+	        return Array.from(this).map(function(model) { return model.toJSON(options); });
+	    },
+
+	    // Add a model, or list of models to the set. `models` may be
+	    // Models or raw JavaScript objects to be converted to Models, or any
+	    // combination of the two.
+	    add: function(models, options) {
+	        return this.set(models, assign({ merge: false }, options, addOptions));
+	    },
+
+	    // Remove a model, or a list of models from the set.
+	    remove: function(models, options) {
+	        options = assign({}, options);
+	        var singular = !Array.isArray(models);
+	        models = singular ? [models] : models.slice();
+	        var removed = this._removeModels(models, options);
+	        if (!options.silent && removed.length) {
+	            options.changes = { added: [], merged: [], removed: removed };
+	            this.trigger('update', this, options);
+	        }
+	        return singular ? removed[0] : removed;
+	    },
+
+	    // Update a collection by `set`-ing a new list of models, adding new ones,
+	    // removing models that are no longer present, and merging models that
+	    // already exist in the collection, as necessary. Similar to **Model#set**,
+	    // the core operation for updating the data contained by the collection.
+	    set: function(models, options) {
+	        if (models == null) { return; }
+
+	        options = assign({}, setOptions, options);
+
+	        var singular = !Array.isArray(models);
+	        models = singular ? [models] : models.slice();
+
+	        var at = options.at;
+	        if (at != null) { at = +at; }
+	        if (at > this.length) { at = this.length; }
+	        if (at < 0) { at += this.length + 1; }
+
+	        var set = [];
+	        var toAdd = [];
+	        var toMerge = [];
+	        var toRemove = [];
+	        var modelMap = {};
+
+	        var add = options.add;
+	        var merge = options.merge;
+	        var remove = options.remove;
+
+	        var sort = false;
+	        var sortable = this.comparator && at == null && options.sort !== false;
+	        var sortAttr = isString(this.comparator) ? this.comparator : null;
+
+	        // Turn bare objects into model references, and prevent invalid models
+	        // from being added.
+	        var model, i;
+	        for (i = 0; i < models.length; i++) {
+	            model = models[i];
+
+	            // If a duplicate is found, prevent it from being added and
+	            // optionally merge it into the existing model.
+	            var existing = this.get(model);
+	            if (existing) {
+	                if (merge && model !== existing) {
+	                    var attrs = this._isModel(model) ? model.attributes : model;
+	                    existing.set(attrs, options);
+	                    toMerge.push(existing);
+	                    if (sortable && !sort) { sort = existing.hasChanged(sortAttr); }
+	                }
+	                if (!modelMap[existing.cid]) {
+	                    modelMap[existing.cid] = true;
+	                    set.push(existing);
+	                }
+	                models[i] = existing;
+
+	                // If this is a new, valid model, push it to the `toAdd` list.
+	            } else if (add) {
+	                model = models[i] = this._prepareModel(model, options);
+	                if (model) {
+	                    toAdd.push(model);
+	                    this._addReference(model, options);
+	                    modelMap[model.cid] = true;
+	                    set.push(model);
+	                }
+	            }
+	        }
+
+	        // Remove stale models.
+	        if (remove) {
+	            for (i = 0; i < this.length; i++) {
+	                model = this.models[i];
+	                if (!modelMap[model.cid]) { toRemove.push(model); }
+	            }
+	            if (toRemove.length) { this._removeModels(toRemove, options); }
+	        }
+
+	        // See if sorting is needed, update `length` and splice in new models.
+	        var orderChanged = false;
+	        var replace = !sortable && add && remove;
+	        if (set.length && replace) {
+	            orderChanged = this.length !== set.length || this.models.some(function(m, index) {
+	                return m !== set[index];
+	            });
+	            this.models.length = 0;
+	            splice(this.models, set, 0);
+	            this.length = this.models.length;
+	        } else if (toAdd.length) {
+	            if (sortable) { sort = true; }
+	            splice(this.models, toAdd, at == null ? this.length : at);
+	            this.length = this.models.length;
+	        }
+
+	        // Silently sort the collection if appropriate.
+	        if (sort) { this.sort({ silent: true }); }
+
+	        // Unless silenced, it's time to fire all appropriate add/sort/update events.
+	        if (!options.silent) {
+	            for (i = 0; i < toAdd.length; i++) {
+	                if (at != null) { options.index = at + i; }
+	                model = toAdd[i];
+	                model.trigger('add', model, this, options);
+	            }
+	            if (sort || orderChanged) { this.trigger('sort', this, options); }
+	            if (toAdd.length || toRemove.length || toMerge.length) {
+	                options.changes = {
+	                    added: toAdd,
+	                    removed: toRemove,
+	                    merged: toMerge
+	                };
+	                this.trigger('update', this, options);
+	            }
+	        }
+
+	        // Return the added (or merged) model (or models).
+	        return singular ? models[0] : models;
+	    },
+
+	    // When you have more items than you want to add or remove individually,
+	    // you can reset the entire set with a new list of models, without firing
+	    // any granular `add` or `remove` events. Fires `reset` when finished.
+	    // Useful for bulk operations and optimizations.
+	    reset: function(models, options) {
+	        options = options ? clone(options) : {};
+	        for (var i = 0; i < this.models.length; i++) {
+	            this._removeReference(this.models[i], options);
+	        }
+	        options.previousModels = this.models;
+	        this._reset();
+	        models = this.add(models, assign({ silent: true }, options));
+	        if (!options.silent) { this.trigger('reset', this, options); }
+	        return models;
+	    },
+
+	    // Add a model to the end of the collection.
+	    push: function(model, options) {
+	        return this.add(model, assign({ at: this.length }, options));
+	    },
+
+	    // Remove a model from the end of the collection.
+	    pop: function(options) {
+	        var model = this.at(this.length - 1);
+	        return this.remove(model, options);
+	    },
+
+	    // Add a model to the beginning of the collection.
+	    unshift: function(model, options) {
+	        return this.add(model, assign({ at: 0 }, options));
+	    },
+
+	    // Remove a model from the beginning of the collection.
+	    shift: function(options) {
+	        var model = this.at(0);
+	        return this.remove(model, options);
+	    },
+
+	    // Slice out a sub-array of models from the collection.
+	    slice: function() {
+	        return Array.prototype.slice.apply(this.models, arguments);
+	    },
+
+	    // Get a model from the set by id, cid, model object with id or cid
+	    // properties, or an attributes object that is transformed through modelId.
+	    get: function(obj) {
+	        if (obj == null) { return void 0; }
+	        return this._byId[obj] ||
+	        this._byId[this.modelId(this._isModel(obj) ? obj.attributes : obj, obj.idAttribute)] ||
+	        obj.cid && this._byId[obj.cid];
+	    },
+
+	    // Returns `true` if the model is in the collection.
+	    has: function(obj) {
+	        return this.get(obj) != null;
+	    },
+
+	    // Get the model at the given index.
+	    at: function(index) {
+	        if (index < 0) { index += this.length; }
+	        return this.models[index];
+	    },
+
+	    // Force the collection to re-sort itself. You don't need to call this under
+	    // normal circumstances, as the set will maintain sort order as each item
+	    // is added.
+	    sort: function(options) {
+	        var comparator = this.comparator;
+	        if (!comparator) { throw new Error('Cannot sort a set without a comparator'); }
+	        options || (options = {});
+
+	        var length = comparator.length;
+	        if (isFunction(comparator)) { comparator = comparator.bind(this); }
+
+	        // Run sort based on type of `comparator`.
+	        if (length === 1 || isString(comparator)) {
+	            this.models = this.sortBy(comparator);
+	        } else {
+	            this.models.sort(comparator);
+	        }
+	        if (!options.silent) { this.trigger('sort', this, options); }
+	        return this;
+	    },
+
+	    // Pluck an attribute from each model in the collection.
+	    pluck: function(attr) {
+	        return Array.from(this).map(function (model) { return model.get(attr + ''); });
+	    },
+
+	    // Create a new collection with an identical list of models as this one.
+	    clone: function() {
+	        return new this.constructor(this.models, {
+	            model: this.model,
+	            comparator: this.comparator
+	        });
+	    },
+
+	    // Define how to uniquely identify models in the collection.
+	    modelId: function(attrs, idAttribute) {
+	        return attrs[idAttribute || this.model.prototype.idAttribute || 'id'];
+	    },
+
+	    // Get an iterator of all models in this collection.
+	    values: function() {
+	        return new CollectionIterator(this, ITERATOR_VALUES);
+	    },
+
+	    // Get an iterator of all model IDs in this collection.
+	    keys: function() {
+	        return new CollectionIterator(this, ITERATOR_KEYS);
+	    },
+
+	    // Get an iterator of all [ID, model] tuples in this collection.
+	    entries: function() {
+	        return new CollectionIterator(this, ITERATOR_KEYSVALUES);
+	    },
+
+	    // Private method to reset all internal state. Called when the collection
+	    // is first initialized or reset.
+	    _reset: function() {
+	        this.length = 0;
+	        this.models = [];
+	        this._byId  = {};
+	    },
+
+	    // Prepare a hash of attributes (or other model) to be added to this
+	    // collection.
+	    _prepareModel: function(attrs, options) {
+	        if (this._isModel(attrs)) {
+	            if (!attrs.collection) { attrs.collection = this; }
+	            return attrs;
+	        }
+	        options = options ? clone(options) : {};
+	        options.collection = this;
+
+	        var model;
+	        if (this.model.prototype) {
+	            model = new this.model(attrs, options);
+	        } else {
+	        // ES class methods didn't have prototype
+	            model = this.model(attrs, options);
+	        }
+
+	        if (!model.validationError) { return model; }
+	        this.trigger('invalid', this, model.validationError, options);
+	        return false;
+	    },
+
+	    // Internal method called by both remove and set.
+	    _removeModels: function(models, options) {
+	        var removed = [];
+	        for (var i = 0; i < models.length; i++) {
+	            var model = this.get(models[i]);
+	            if (!model) { continue; }
+
+	            var index = Array.from(this).indexOf(model);
+	            this.models.splice(index, 1);
+	            this.length--;
+
+	            // Remove references before triggering 'remove' event to prevent an
+	            // infinite loop. #3693
+	            delete this._byId[model.cid];
+	            var id = this.modelId(model.attributes, model.idAttribute);
+	            if (id != null) { delete this._byId[id]; }
+
+	            if (!options.silent) {
+	                options.index = index;
+	                model.trigger('remove', model, this, options);
+	            }
+
+	            removed.push(model);
+	            this._removeReference(model, options);
+	        }
+	        if (models.length > 0 && !options.silent) { delete options.index; }
+	        return removed;
+	    },
+
+	    // Method for checking whether an object should be considered a model for
+	    // the purposes of adding to the collection.
+	    _isModel: function(model) {
+	        return model instanceof Model;
+	    },
+
+	    // Internal method to create a model's ties to a collection.
+	    _addReference: function(model, options) {
+	        this._byId[model.cid] = model;
+	        var id = this.modelId(model.attributes, model.idAttribute);
+	        if (id != null) { this._byId[id] = model; }
+	        model.on('all', this._onModelEvent, this);
+	    },
+
+	    // Internal method to sever a model's ties to a collection.
+	    _removeReference: function(model, options) {
+	        delete this._byId[model.cid];
+	        var id = this.modelId(model.attributes, model.idAttribute);
+	        if (id != null) { delete this._byId[id]; }
+	        if (this === model.collection) { delete model.collection; }
+	        model.off('all', this._onModelEvent, this);
+	    },
+
+	    // Internal method called every time a model in the set fires an event.
+	    // Sets need to update their indexes when models change ids. All other
+	    // events simply proxy through. "add" and "remove" events that originate
+	    // in other collections are ignored.
+	    _onModelEvent: function(event, model, collection, options) {
+	        if (model) {
+	            if ((event === 'add' || event === 'remove') && collection !== this) { return; }
+	            if (event === 'changeId') {
+	                var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
+	                var id = this.modelId(model.attributes, model.idAttribute);
+	                if (prevId != null) { delete this._byId[prevId]; }
+	                if (id != null) { this._byId[id] = model; }
+	            }
+	        }
+	        this.trigger.apply(this, arguments);
+	    }
+
+	});
+
+	// Defining an @@iterator method implements JavaScript's Iterable protocol.
+	// In modern ES2015 browsers, this value is found at Symbol.iterator.
+	var $$iterator = typeof Symbol === 'function' && Symbol.iterator;
+	if ($$iterator) {
+	    Collection.prototype[$$iterator] = Collection.prototype.values;
+	}
+
+	// CollectionIterator
+	// ------------------
+
+	// A CollectionIterator implements JavaScript's Iterator protocol, allowing the
+	// use of `for of` loops in modern browsers and interoperation between
+	// Collection and other JavaScript functions and third-party libraries
+	// which can operate on Iterables.
+	var CollectionIterator = function(collection, kind) {
+	    this._collection = collection;
+	    this._kind = kind;
+	    this._index = 0;
+	};
+
+	// This "enum" defines the three possible kinds of values which can be emitted
+	// by a CollectionIterator that correspond to the values(), keys() and entries()
+	// methods on Collection, respectively.
+	var ITERATOR_VALUES = 1;
+	var ITERATOR_KEYS = 2;
+	var ITERATOR_KEYSVALUES = 3;
+
+	// All Iterators should themselves be Iterable.
+	if ($$iterator) {
+	    CollectionIterator.prototype[$$iterator] = function() {
+	        return this;
+	    };
+	}
+
+	CollectionIterator.prototype.next = function() {
+	    if (this._collection) {
+
+	        // Only continue iterating if the iterated collection is long enough.
+	        if (this._index < this._collection.length) {
+	            var model = this._collection.at(this._index);
+	            this._index++;
+
+	            // Construct a value depending on what kind of values should be iterated.
+	            var value;
+	            if (this._kind === ITERATOR_VALUES) {
+	                value = model;
+	            } else {
+	                var id = this._collection.modelId(model.attributes, model.idAttribute);
+	                if (this._kind === ITERATOR_KEYS) {
+	                    value = id;
+	                } else { // ITERATOR_KEYSVALUES
+	                    value = [id, model];
+	                }
+	            }
+	            return { value: value, done: false };
+	        }
+
+	        // Once exhausted, remove the reference to the collection so future
+	        // calls to the next method always return done.
+	        this._collection = void 0;
+	    }
+
+	    return { value: void 0, done: true };
+	};
+
+	//  Methods that we want to implement on the Collection.
+	var collectionMethods = { toArray: 1, first: 3, last: 3, sortBy: 3 };
+
+
+	// Mix in each method as a proxy to `Collection#models`.
+
+	var config$1 = [ Collection, collectionMethods, 'models' ];
+
+	function addMethods(config) {
+	    var Base = config[0],
+	        methods = config[1],
+	        attribute = config[2];
+
+	    function first(array) {
+	        return (array && array.length) ? array[0] : undefined;
+	    }
+
+	    function last(array) {
+	        var length = array == null ? 0 : array.length;
+	        return length ? array[length - 1] : undefined;
+	    }
+
+	    var methodsToAdd = {
+	        sortBy: sortBy,
+	        first: first,
+	        last: last,
+	        toArray: toArray
+	    };
+
+	    addMethodsUtil(Base, methodsToAdd, methods, attribute);
+	}
+
+	addMethods(config$1);
+
+	// Set up inheritance for the collection.
+	Collection.extend = extend$1;
+
+
+
+	var index$2 = ({
+		Data: Data,
+		$: $,
+		views: views,
+		View: View,
+		Listener: Listener,
+		Events: Events,
+		Collection: Collection,
+		Model: Model,
+		ViewBase: ViewBase,
+		extend: extend$1,
+		addMethodsUtil: addMethodsUtil,
+		Event: Event
+	});
+
+	function toArray$1(obj) {
+	    if (!obj) { return []; }
+	    if (Array.isArray(obj)) { return obj; }
+	    return [obj];
+	}
+
+	var HighlighterView = View.extend({
+
+	    tagName: 'g',
+	    svgElement: true,
+	    className: 'highlight',
+
+	    HIGHLIGHT_FLAG: 1,
+	    UPDATE_PRIORITY: 3,
+	    DETACHABLE: false,
+	    UPDATABLE: true,
+	    MOUNTABLE: true,
+
+	    cellView: null,
+	    nodeSelector: null,
+	    node: null,
+	    updateRequested: false,
+	    postponedUpdate: false,
+	    transformGroup: null,
+	    detachedTransformGroup: null,
+
+	    requestUpdate: function requestUpdate(cellView, nodeSelector) {
+	        var paper = cellView.paper;
+	        this.cellView = cellView;
+	        this.nodeSelector = nodeSelector;
+	        if (paper) {
+	            this.updateRequested = true;
+	            paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
+	        }
+	    },
+
+	    confirmUpdate: function confirmUpdate() {
+	        // The cellView is now rendered/updated since it has a higher update priority.
+	        this.updateRequested = false;
+	        var ref = this;
+	        var cellView = ref.cellView;
+	        var nodeSelector = ref.nodeSelector;
+	        if (!cellView.isMounted()) {
+	            this.postponedUpdate = true;
+	            return 0;
+	        }
+	        this.update(cellView, nodeSelector);
+	        this.mount();
+	        this.transform();
+	        return 0;
+	    },
+
+	    findNode: function findNode(cellView, nodeSelector) {
+	        if ( nodeSelector === void 0 ) nodeSelector = null;
+
+	        var el;
+	        if (typeof nodeSelector === 'string') {
+	            el = cellView.findNode(nodeSelector);
+	        } else if (isPlainObject(nodeSelector)) {
+	            var isLink = cellView.model.isLink();
+	            var label = nodeSelector.label; if ( label === void 0 ) label = null;
+	            var port = nodeSelector.port;
+	            var selector = nodeSelector.selector;
+	            if (isLink && label !== null) {
+	                // Link Label Selector
+	                el = cellView.findLabelNode(label, selector);
+	            } else if (!isLink && port) {
+	                // Element Port Selector
+	                el = cellView.findPortNode(port, selector);
+	            } else {
+	                // Cell Selector
+	                el = cellView.findNode(selector);
+	            }
+	        } else if (nodeSelector) {
+	            el = V.toNode(nodeSelector);
+	            if (!(el instanceof SVGElement)) { el = null; }
+	        }
+	        return el ? el : null;
+	    },
+
+	    getNodeMatrix: function getNodeMatrix(cellView, node) {
+	        var ref = this;
+	        var options = ref.options;
+	        var layer = options.layer;
+	        var rotatableNode = cellView.rotatableNode;
+	        var nodeMatrix = cellView.getNodeMatrix(node);
+	        if (rotatableNode) {
+	            if (layer) {
+	                if (rotatableNode.contains(node)) {
+	                    return nodeMatrix;
+	                }
+	                // The node is outside of the rotatable group.
+	                // Compensate the rotation set by transformGroup.
+	                return cellView.getRootRotateMatrix().inverse().multiply(nodeMatrix);
+	            } else {
+	                return cellView.getNodeRotateMatrix(node).multiply(nodeMatrix);
+	            }
+	        }
+	        return nodeMatrix;
+	    },
+
+	    mount: function mount() {
+	        var ref = this;
+	        var MOUNTABLE = ref.MOUNTABLE;
+	        var cellView = ref.cellView;
+	        var el = ref.el;
+	        var options = ref.options;
+	        var transformGroup = ref.transformGroup;
+	        var detachedTransformGroup = ref.detachedTransformGroup;
+	        var postponedUpdate = ref.postponedUpdate;
+	        var nodeSelector = ref.nodeSelector;
+	        if (!MOUNTABLE || transformGroup) { return; }
+	        if (postponedUpdate) {
+	            // The cellView was not mounted when the update was requested.
+	            // The update was postponed until the cellView is mounted.
+	            this.update(cellView, nodeSelector);
+	            this.transform();
+	            return;
+	        }
+	        var cellViewRoot = cellView.vel;
+	        var paper = cellView.paper;
+	        var layerName = options.layer;
+	        if (layerName) {
+	            var vGroup;
+	            if (detachedTransformGroup) {
+	                vGroup = detachedTransformGroup;
+	                this.detachedTransformGroup = null;
+	            } else {
+	                vGroup = V('g').addClass('highlight-transform').append(el);
+	            }
+	            this.transformGroup = vGroup;
+	            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
+	        } else {
+	            // TODO: prepend vs append
+	            if (!el.parentNode || el.nextSibling) {
+	                // Not appended yet or not the last child
+	                cellViewRoot.append(el);
+	            }
+	        }
+	    },
+
+	    unmount: function unmount() {
+	        var ref = this;
+	        var MOUNTABLE = ref.MOUNTABLE;
+	        var transformGroup = ref.transformGroup;
+	        var vel = ref.vel;
+	        if (!MOUNTABLE) { return; }
+	        if (transformGroup) {
+	            this.transformGroup = null;
+	            this.detachedTransformGroup = transformGroup;
+	            transformGroup.remove();
+	        } else {
+	            vel.remove();
+	        }
+	    },
+
+	    transform: function transform() {
+	        var ref = this;
+	        var transformGroup = ref.transformGroup;
+	        var cellView = ref.cellView;
+	        var updateRequested = ref.updateRequested;
+	        if (!transformGroup || cellView.model.isLink() || updateRequested) { return; }
+	        var translateMatrix = cellView.getRootTranslateMatrix();
+	        var rotateMatrix = cellView.getRootRotateMatrix();
+	        var transformMatrix = translateMatrix.multiply(rotateMatrix);
+	        transformGroup.attr('transform', V.matrixToTransformString(transformMatrix));
+	    },
+
+	    update: function update() {
+	        var ref = this;
+	        var prevNode = ref.node;
+	        var cellView = ref.cellView;
+	        var nodeSelector = ref.nodeSelector;
+	        var updateRequested = ref.updateRequested;
+	        var id = ref.id;
+	        if (updateRequested) { return; }
+	        this.postponedUpdate = false;
+	        var node = this.node = this.findNode(cellView, nodeSelector);
+	        if (prevNode) {
+	            this.unhighlight(cellView, prevNode);
+	        }
+	        if (node) {
+	            this.highlight(cellView, node);
+	            this.mount();
+	        } else {
+	            this.unmount();
+	            cellView.notify('cell:highlight:invalid', id, this);
+	        }
+	    },
+
+	    onRemove: function onRemove() {
+	        var ref = this;
+	        var node = ref.node;
+	        var cellView = ref.cellView;
+	        var id = ref.id;
+	        var constructor = ref.constructor;
+	        if (node) {
+	            this.unhighlight(cellView, node);
+	        }
+	        this.unmount();
+	        constructor._removeRef(cellView, id);
+	    },
+
+	    highlight: function highlight(_cellView, _node) {
+	        // to be overridden
+	    },
+
+	    unhighlight: function unhighlight(_cellView, _node) {
+	        // to be overridden
+	    },
+
+	    // Update Attributes
+
+	    listenToUpdateAttributes: function listenToUpdateAttributes(cellView) {
+	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
+	        if (!Array.isArray(attributes) || attributes.length === 0) { return; }
+	        this.listenTo(cellView.model, 'change', this.onCellAttributeChange);
+	    },
+
+	    onCellAttributeChange: function onCellAttributeChange() {
+	        var ref = this;
+	        var cellView = ref.cellView;
+	        if (!cellView) { return; }
+	        var model = cellView.model;
+	        var paper = cellView.paper;
+	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
+	        if (!attributes.some(function (attribute) { return model.hasChanged(attribute); })) { return; }
+	        paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
+	    }
+
+	}, {
+
+	    _views: {},
+
+	    // Used internally by CellView highlight()
+	    highlight: function(cellView, node, opt) {
+	        var id = this.uniqueId(node, opt);
+	        this.add(cellView, node, id, opt);
+	    },
+
+	    // Used internally by CellView unhighlight()
+	    unhighlight: function(cellView, node, opt) {
+	        var id = this.uniqueId(node, opt);
+	        this.remove(cellView, id);
+	    },
+
+	    get: function get(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        var cid = cellView.cid;
+	        var ref$2 = this;
+	        var _views = ref$2._views;
+	        var refs = _views[cid];
+	        if (id === null) {
+	            // all highlighters
+	            var views = [];
+	            if (!refs) { return views; }
+	            for (var hid in refs) {
+	                var ref = refs[hid];
+	                if (ref instanceof this) {
+	                    views.push(ref);
+	                }
+	            }
+	            return views;
+	        } else {
+	            // single highlighter
+	            if (!refs) { return null; }
+	            if (id in refs) {
+	                var ref$1 = refs[id];
+	                if (ref$1 instanceof this) { return ref$1; }
+	            }
+	            return null;
+	        }
+	    },
+
+	    add: function add(cellView, nodeSelector, id, opt) {
+	        if ( opt === void 0 ) opt = {};
+
+	        if (!id) { throw new Error('dia.HighlighterView: An ID required.'); }
+	        // Search the existing view amongst all the highlighters
+	        var previousView = HighlighterView.get(cellView, id);
+	        if (previousView) { previousView.remove(); }
+	        var view = new this(opt);
+	        view.id = id;
+	        this._addRef(cellView, id, view);
+	        view.requestUpdate(cellView, nodeSelector);
+	        view.listenToUpdateAttributes(cellView);
+	        return view;
+	    },
+
+	    _addRef: function _addRef(cellView, id, view) {
+	        var cid = cellView.cid;
+	        var ref = this;
+	        var _views = ref._views;
+	        var refs = _views[cid];
+	        if (!refs) { refs = _views[cid] = {}; }
+	        refs[id] = view;
+	    },
+
+	    _removeRef: function _removeRef(cellView, id) {
+	        var cid = cellView.cid;
+	        var ref = this;
+	        var _views = ref._views;
+	        var refs = _views[cid];
+	        if (!refs) { return; }
+	        if (id) { delete refs[id]; }
+	        for (var _ in refs) { return; }
+	        delete _views[cid];
+	    },
+
+	    remove: function remove(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) {
+	            view.remove();
+	        });
+	    },
+
+	    removeAll: function removeAll(paper, id) {
+	        if ( id === void 0 ) id = null;
+
+	        var ref = this;
+	        var _views = ref._views;
+
+	        for (var cid in _views) {
+	            for (var hid in _views[cid]) {
+	                var view = _views[cid][hid];
+
+	                if (view.cellView.paper === paper && view instanceof this && (id === null || hid === id)) {
+	                    view.remove();
+	                }
+	            }
+	        }
+	    },
+
+	    update: function update(cellView, id, dirty) {
+	        if ( id === void 0 ) id = null;
+	        if ( dirty === void 0 ) dirty = false;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) {
+	            if (dirty || view.UPDATABLE) { view.update(); }
+	        });
+	    },
+
+	    transform: function transform(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) {
+	            if (view.UPDATABLE) { view.transform(); }
+	        });
+	    },
+
+	    unmount: function unmount(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.unmount(); });
+	    },
+
+	    mount: function mount(cellView, id) {
+	        if ( id === void 0 ) id = null;
+
+	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.mount(); });
+	    },
+
+	    uniqueId: function uniqueId(node, opt) {
+	        if ( opt === void 0 ) opt = '';
+
+	        return V.ensureId(node) + JSON.stringify(opt);
+	    }
+
+	});
+
+	var stroke = HighlighterView.extend({
+
+	    tagName: 'path',
+	    className: 'highlight-stroke',
+	    attributes: {
+	        'pointer-events': 'none',
+	        'fill': 'none'
+	    },
+
+	    options: {
+	        padding: 3,
+	        rx: 0,
+	        ry: 0,
+	        useFirstSubpath: false,
+	        attrs: {
+	            'stroke-width': 3,
+	            'stroke': '#FEB663'
+	        }
+	    },
+
+	    getPathData: function getPathData(cellView, node) {
+	        var ref = this;
+	        var options = ref.options;
+	        var useFirstSubpath = options.useFirstSubpath;
+	        var d;
+	        try {
+	            var vNode = V(node);
+	            d = vNode.convertToPathData().trim();
+	            if (vNode.tagName() === 'PATH' && useFirstSubpath) {
+	                var secondSubpathIndex = d.search(/.M/i) + 1;
+	                if (secondSubpathIndex > 0) {
+	                    d = d.substr(0, secondSubpathIndex);
+	                }
+	            }
+	        } catch (error) {
+	            // Failed to get path data from magnet element.
+	            // Draw a rectangle around the node instead.
+	            var nodeBBox = cellView.getNodeBoundingRect(node);
+	            d = V.rectToPath(assign({}, options, nodeBBox.toJSON()));
+	        }
+	        return d;
+	    },
+
+	    highlightConnection: function highlightConnection(cellView) {
+	        this.vel.attr('d', cellView.getSerializedConnection());
+	    },
+
+	    highlightNode: function highlightNode(cellView, node) {
+	        var ref = this;
+	        var vel = ref.vel;
+	        var options = ref.options;
+	        var padding = options.padding;
+	        var layer = options.layer;
+	        var highlightMatrix = this.getNodeMatrix(cellView, node);
+	        // Add padding to the highlight element.
+	        if (padding) {
+	            if (!layer && node === cellView.el) {
+	                // If the highlighter is appended to the cellView
+	                // and we measure the size of the cellView wrapping group
+	                // it's necessary to remove the highlighter first
+	                vel.remove();
+	            }
+	            var nodeBBox = cellView.getNodeBoundingRect(node);
+	            var cx = nodeBBox.x + (nodeBBox.width / 2);
+	            var cy = nodeBBox.y + (nodeBBox.height / 2);
+	            nodeBBox = V.transformRect(nodeBBox, highlightMatrix);
+	            var width = Math.max(nodeBBox.width, 1);
+	            var height = Math.max(nodeBBox.height, 1);
+	            var sx = (width + padding) / width;
+	            var sy = (height + padding) / height;
+	            var paddingMatrix = V.createSVGMatrix({
+	                a: sx,
+	                b: 0,
+	                c: 0,
+	                d: sy,
+	                e: cx - sx * cx,
+	                f: cy - sy * cy
+	            });
+	            highlightMatrix = highlightMatrix.multiply(paddingMatrix);
+	        }
+	        vel.attr({
+	            'd': this.getPathData(cellView, node),
+	            'transform': V.matrixToTransformString(highlightMatrix)
+	        });
+	    },
+
+	    highlight: function highlight(cellView, node) {
+	        var ref = this;
+	        var vel = ref.vel;
+	        var options = ref.options;
+	        vel.attr(options.attrs);
+	        if (options.nonScalingStroke) {
+	            vel.attr('vector-effect', 'non-scaling-stroke');
+	        }
+	        if (cellView.isNodeConnection(node)) {
+	            this.highlightConnection(cellView);
+	        } else {
+	            this.highlightNode(cellView, node);
+	        }
+	    }
+
+	});
+
+	var MASK_CLIP = 20;
+
+	function forEachDescendant(vel, fn) {
+	    var descendants = vel.children();
+	    while (descendants.length > 0) {
+	        var descendant = descendants.shift();
+	        if (fn(descendant)) {
+	            descendants.push.apply(descendants, descendant.children());
+	        }
+	    }
+	}
+
+	var mask = HighlighterView.extend({
+
+	    tagName: 'rect',
+	    className: 'highlight-mask',
+	    attributes: {
+	        'pointer-events': 'none'
+	    },
+
+	    options: {
+	        padding: 3,
+	        maskClip: MASK_CLIP,
+	        deep: false,
+	        attrs: {
+	            'stroke': '#FEB663',
+	            'stroke-width': 3,
+	            'stroke-linecap': 'butt',
+	            'stroke-linejoin': 'miter',
+	        }
+	    },
+
+	    VISIBLE: 'white',
+	    INVISIBLE: 'black',
+
+	    MASK_ROOT_ATTRIBUTE_BLACKLIST: [
+	        'marker-start',
+	        'marker-end',
+	        'marker-mid',
+	        'transform',
+	        'stroke-dasharray',
+	        'class' ],
+
+	    MASK_CHILD_ATTRIBUTE_BLACKLIST: [
+	        'stroke',
+	        'fill',
+	        'stroke-width',
+	        'stroke-opacity',
+	        'stroke-dasharray',
+	        'fill-opacity',
+	        'marker-start',
+	        'marker-end',
+	        'marker-mid',
+	        'class' ],
+
+	    // TODO: change the list to a function callback
+	    MASK_REPLACE_TAGS: [
+	        'FOREIGNOBJECT',
+	        'IMAGE',
+	        'USE',
+	        'TEXT',
+	        'TSPAN',
+	        'TEXTPATH'
+	    ],
+
+	    // TODO: change the list to a function callback
+	    MASK_REMOVE_TAGS: [
+	        'TEXT',
+	        'TSPAN',
+	        'TEXTPATH'
+	    ],
+
+	    transformMaskChild: function transformMaskChild(cellView, childEl) {
+	        var ref = this;
+	        var MASK_CHILD_ATTRIBUTE_BLACKLIST = ref.MASK_CHILD_ATTRIBUTE_BLACKLIST;
+	        var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
+	        var MASK_REMOVE_TAGS = ref.MASK_REMOVE_TAGS;
+	        var childTagName = childEl.tagName();
+	        // Do not include the element in the mask's image
+	        if (!V.isSVGGraphicsElement(childEl) || MASK_REMOVE_TAGS.includes(childTagName)) {
+	            childEl.remove();
+	            return false;
+	        }
+	        // Replace the element with a rectangle
+	        if (MASK_REPLACE_TAGS.includes(childTagName)) {
+	            // Note: clone() method does not change the children ids
+	            var originalChild = cellView.vel.findOne(("#" + (childEl.id)));
+	            if (originalChild) {
+	                var originalNode = originalChild.node;
+	                var childBBox = cellView.getNodeBoundingRect(originalNode);
+	                if (cellView.model.isElement()) {
+	                    childBBox = V.transformRect(childBBox, cellView.getNodeMatrix(originalNode));
+	                }
+	                var replacement = V('rect', childBBox.toJSON());
+	                var ref$1 = childBBox.center();
+	                var ox = ref$1.x;
+	                var oy = ref$1.y;
+	                var ref$2 = originalChild.rotate();
+	                var angle = ref$2.angle;
+	                var cx = ref$2.cx; if ( cx === void 0 ) cx = ox;
+	                var cy = ref$2.cy; if ( cy === void 0 ) cy = oy;
+	                if (angle) { replacement.rotate(angle, cx, cy); }
+	                // Note: it's not important to keep the same sibling index since all subnodes are filled
+	                childEl.parent().append(replacement);
+	            }
+	            childEl.remove();
+	            return false;
+	        }
+	        // Keep the element, but clean it from certain attributes
+	        MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
+	            if (attrName === 'fill' && childEl.attr('fill') === 'none') { return; }
+	            childEl.removeAttr(attrName);
+	        });
+	        return true;
+	    },
+
+	    transformMaskRoot: function transformMaskRoot(_cellView, rootEl) {
+	        var ref = this;
+	        var MASK_ROOT_ATTRIBUTE_BLACKLIST = ref.MASK_ROOT_ATTRIBUTE_BLACKLIST;
+	        MASK_ROOT_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
+	            rootEl.removeAttr(attrName);
+	        });
+	    },
+
+	    getMaskShape: function getMaskShape(cellView, vel) {
+	        var this$1 = this;
+
+	        var ref = this;
+	        var options = ref.options;
+	        var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
+	        var deep = options.deep;
+	        var tagName = vel.tagName();
+	        var maskRoot;
+	        if (tagName === 'G') {
+	            if (!deep) { return null; }
+	            maskRoot = vel.clone();
+	            forEachDescendant(maskRoot, function (maskChild) { return this$1.transformMaskChild(cellView, maskChild); });
+	        } else {
+	            if (MASK_REPLACE_TAGS.includes(tagName)) { return null; }
+	            maskRoot = vel.clone();
+	        }
+	        this.transformMaskRoot(cellView, maskRoot);
+	        return maskRoot;
+	    },
+
+	    getMaskId: function getMaskId() {
+	        return ("highlight-mask-" + (this.cid));
+	    },
+
+	    getMask: function getMask(cellView, vNode) {
+
+	        var ref = this;
+	        var VISIBLE = ref.VISIBLE;
+	        var INVISIBLE = ref.INVISIBLE;
+	        var options = ref.options;
+	        var padding = options.padding;
+	        var attrs = options.attrs;
+	        // support both `strokeWidth` and `stroke-width` attribute names
+	        var strokeWidth = parseFloat(V('g').attr(attrs).attr('stroke-width'));
+	        var hasNodeFill = vNode.attr('fill') !== 'none';
+	        var magnetStrokeWidth = parseFloat(vNode.attr('stroke-width'));
+	        if (isNaN(magnetStrokeWidth)) { magnetStrokeWidth = 1; }
+	        // stroke of the invisible shape
+	        var minStrokeWidth = magnetStrokeWidth + padding * 2;
+	        // stroke of the visible shape
+	        var maxStrokeWidth = minStrokeWidth + strokeWidth * 2;
+	        var maskEl = this.getMaskShape(cellView, vNode);
+	        if (!maskEl) {
+	            var nodeBBox = cellView.getNodeBoundingRect(vNode.node);
+	            // Make sure the rect is visible
+	            nodeBBox.inflate(nodeBBox.width ? 0 : 0.5, nodeBBox.height ? 0 : 0.5);
+	            maskEl =  V('rect', nodeBBox.toJSON());
+	        }
+	        maskEl.attr(attrs);
+	        return V('mask', {
+	            'id': this.getMaskId()
+	        }).append([
+	            maskEl.clone().attr({
+	                'fill': hasNodeFill ? VISIBLE : 'none',
+	                'stroke': VISIBLE,
+	                'stroke-width': maxStrokeWidth
+	            }),
+	            maskEl.clone().attr({
+	                'fill': hasNodeFill ? INVISIBLE : 'none',
+	                'stroke': INVISIBLE,
+	                'stroke-width': minStrokeWidth
+	            })
+	        ]);
+	    },
+
+	    removeMask: function removeMask(paper) {
+	        var maskNode = paper.svg.getElementById(this.getMaskId());
+	        if (maskNode) {
+	            paper.defs.removeChild(maskNode);
+	        }
+	    },
+
+	    addMask: function addMask(paper, maskEl) {
+	        paper.defs.appendChild(maskEl.node);
+	    },
+
+	    highlight: function highlight(cellView, node) {
+	        var ref = this;
+	        var options = ref.options;
+	        var vel = ref.vel;
+	        var padding = options.padding;
+	        var attrs = options.attrs;
+	        var maskClip = options.maskClip; if ( maskClip === void 0 ) maskClip = MASK_CLIP;
+	        var layer = options.layer;
+	        var color = ('stroke' in attrs) ? attrs['stroke'] : '#000000';
+	        if (!layer && node === cellView.el) {
+	            // If the highlighter is appended to the cellView
+	            // and we measure the size of the cellView wrapping group
+	            // it's necessary to remove the highlighter first
+	            vel.remove();
+	        }
+	        var highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
+	        var highlightMatrix = this.getNodeMatrix(cellView, node);
+	        var maskEl = this.getMask(cellView, V(node));
+	        this.addMask(cellView.paper, maskEl);
+	        vel.attr(highlighterBBox.toJSON());
+	        vel.attr({
+	            'transform': V.matrixToTransformString(highlightMatrix),
+	            'mask': ("url(#" + (maskEl.id) + ")"),
+	            'fill': color
+	        });
+	    },
+
+	    unhighlight: function unhighlight(cellView) {
+	        this.removeMask(cellView.paper);
+	    }
+
+	});
+
+	var opacity = HighlighterView.extend({
+
+	    UPDATABLE: false,
+	    MOUNTABLE: false,
+
+	    highlight: function(_cellView, node) {
+	        var ref = this.options;
+	        var alphaValue = ref.alphaValue; if ( alphaValue === void 0 ) alphaValue = 0.3;
+	        node.style.opacity = alphaValue;
+	    },
+
+	    unhighlight: function(_cellView, node) {
+	        node.style.opacity = '';
+	    }
+
+	});
+
+	var className = addClassNamePrefix('highlighted');
+
+	var addClass$1 = HighlighterView.extend({
+
+	    UPDATABLE: false,
+	    MOUNTABLE: false,
+
+	    options: {
+	        className: className
+	    },
+
+	    highlight: function(_cellView, node) {
+	        V(node).addClass(this.options.className);
+	    },
+
+	    unhighlight: function(_cellView, node) {
+	        V(node).removeClass(this.options.className);
+	    }
+
+	}, {
+	    // Backwards Compatibility
+	    className: className
+	});
+
+	var Directions$1 = {
+	    ROW: 'row',
+	    COLUMN: 'column'
+	};
+
+	var list = HighlighterView.extend({
+
+	    tagName: 'g',
+	    MOUNTABLE: true,
+	    UPDATE_ATTRIBUTES: function() {
+	        return [this.options.attribute];
+	    },
+
+	    _prevItems: null,
+
+	    highlight: function highlight(elementView, node) {
+	        var this$1 = this;
+
+	        var element = elementView.model;
+	        var ref = this.options;
+	        var attribute = ref.attribute;
+	        var size = ref.size; if ( size === void 0 ) size = 20;
+	        var gap = ref.gap; if ( gap === void 0 ) gap = 5;
+	        var direction = ref.direction; if ( direction === void 0 ) direction = Directions$1.ROW;
+	        if (!attribute) { throw new Error('List: attribute is required'); }
+	        var normalizedSize = (typeof size === 'number') ? { width: size, height: size } : size;
+	        var isRowDirection = (direction === Directions$1.ROW);
+	        var itemWidth = isRowDirection ? normalizedSize.width : normalizedSize.height;
+	        var items = element.get(attribute);
+	        if (!Array.isArray(items)) { items = []; }
+	        var prevItems = this._prevItems || [];
+	        var comparison = items.map(function (item, index) { return isEqual(prevItems[index], items[index]); });
+	        if (prevItems.length !== items.length || comparison.some(function (unchanged) { return !unchanged; })) {
+	            var prevEls = this.vel.children();
+	            var itemsEls = items.map(function (item, index) {
+	                var prevEl = (index in prevEls) ? prevEls[index].node : null;
+	                if (comparison[index]) { return prevEl; }
+	                var itemEl = this$1.createListItem(item, normalizedSize, prevEl);
+	                if (!itemEl) { return null; }
+	                if (!(itemEl instanceof SVGElement)) { throw new Error('List: item must be an SVGElement'); }
+	                itemEl.dataset.index = index;
+	                itemEl.dataset.attribute = attribute;
+	                var offset = index * (itemWidth + gap);
+	                itemEl.setAttribute('transform', (isRowDirection)
+	                    ? ("translate(" + offset + ", 0)")
+	                    : ("translate(0, " + offset + ")")
+	                );
+	                return itemEl;
+	            });
+	            this.vel.empty().append(itemsEls);
+	            this._prevItems = items;
+	        }
+	        var itemsCount = items.length;
+	        var length = (itemsCount === 0)
+	            ? 0
+	            : (itemsCount * itemWidth + (itemsCount - 1) * gap);
+	        var listSize = (isRowDirection)
+	            ? { width: length, height: normalizedSize.height }
+	            : { width: normalizedSize.width, height: length };
+
+	        this.position(element, listSize);
+	    },
+
+	    position: function position(element, listSize) {
+	        var ref = this;
+	        var vel = ref.vel;
+	        var options = ref.options;
+	        var margin = options.margin; if ( margin === void 0 ) margin = 5;
+	        var position = options.position; if ( position === void 0 ) position = 'top-left';
+	        var ref$1 = element.size();
+	        var width = ref$1.width;
+	        var height = ref$1.height;
+	        var ref$2 = normalizeSides(margin);
+	        var left = ref$2.left;
+	        var right = ref$2.right;
+	        var top = ref$2.top;
+	        var bottom = ref$2.bottom;
+	        var bbox = new Rect(left, top, width - (left + right), height - (top + bottom));
+	        var ref$3 = getRectPoint(bbox, position);
+	        var x = ref$3.x;
+	        var y = ref$3.y;
+	        // x
+	        switch (position) {
+	            case Positions.CENTER:
+	            case Positions.TOP:
+	            case Positions.BOTTOM: {
+	                x -= listSize.width / 2;
+	                break;
+	            }
+	            case Positions.RIGHT:
+	            case Positions.BOTTOM_RIGHT:
+	            case Positions.TOP_RIGHT: {
+	                x -= listSize.width;
+	                break;
+	            }
+	        }
+	        // y
+	        switch (position) {
+	            case Positions.CENTER:
+	            case Positions.RIGHT:
+	            case Positions.LEFT: {
+	                y -= listSize.height / 2;
+	                break;
+	            }
+	            case Positions.BOTTOM:
+	            case Positions.BOTTOM_RIGHT:
+	            case Positions.BOTTOM_LEFT: {
+	                y -= listSize.height;
+	                break;
+	            }
+	        }
+	        vel.attr('transform', ("translate(" + x + ", " + y + ")"));
+	    }
+	}, {
+	    Directions: Directions$1,
+	    Positions: Positions
+	});
+
+
+
+	var highlighters = ({
+		stroke: stroke,
+		mask: mask,
+		opacity: opacity,
+		addClass: addClass$1,
+		list: list
+	});
+
+	function offsetPoint(p1, p2, offset) {
+	    if (isPlainObject(offset)) {
+	        var x = offset.x;
+	        var y = offset.y;
+	        if (isFinite(y)) {
+	            var line =  new Line(p2, p1);
+	            var ref = line.parallel(y);
+	            var start = ref.start;
+	            var end = ref.end;
+	            p2 = start;
+	            p1 = end;
+	        }
+	        offset = x;
+	    }
+	    if (!isFinite(offset)) { return p1; }
+	    var length = p1.distance(p2);
+	    if (offset === 0 && length > 0) { return p1; }
+	    return p1.move(p2, -Math.min(offset, length - 1));
+	}
+
+	function stroke$1(magnet) {
+
+	    var stroke = magnet.getAttribute('stroke-width');
+	    if (stroke === null) { return 0; }
+	    return parseFloat(stroke) || 0;
+	}
+
+	function alignLine(line, type, offset) {
+	    if ( offset === void 0 ) offset = 0;
+
+	    var coordinate, a, b, direction;
+	    var start = line.start;
+	    var end = line.end;
+	    switch (type) {
+	        case 'left':
+	            coordinate = 'x';
+	            a = end;
+	            b = start;
+	            direction = -1;
+	            break;
+	        case 'right':
+	            coordinate = 'x';
+	            a = start;
+	            b = end;
+	            direction = 1;
+	            break;
+	        case 'top':
+	            coordinate = 'y';
+	            a = end;
+	            b = start;
+	            direction = -1;
+	            break;
+	        case 'bottom':
+	            coordinate = 'y';
+	            a = start;
+	            b = end;
+	            direction = 1;
+	            break;
+	        default:
+	            return;
+	    }
+	    if (start[coordinate] < end[coordinate]) {
+	        a[coordinate] = b[coordinate];
+	    } else {
+	        b[coordinate] = a[coordinate];
+	    }
+	    if (isFinite(offset)) {
+	        a[coordinate] += direction * offset;
+	        b[coordinate] += direction * offset;
+	    }
+	}
+
+	// Connection Points
+
+	function anchorConnectionPoint(line, _view, _magnet, opt) {
+	    var offset = opt.offset;
+	    var alignOffset = opt.alignOffset;
+	    var align = opt.align;
+	    if (align) { alignLine(line, align, alignOffset); }
+	    return offsetPoint(line.end, line.start, offset);
+	}
+
+	function bboxIntersection(line, view, magnet, opt) {
+
+	    var bbox = view.getNodeBBox(magnet);
+	    if (opt.stroke) { bbox.inflate(stroke$1(magnet) / 2); }
+	    var intersections = line.intersect(bbox);
+	    var cp = (intersections)
+	        ? line.start.chooseClosest(intersections)
+	        : line.end;
+	    return offsetPoint(cp, line.start, opt.offset);
+	}
+
+	function rectangleIntersection(line, view, magnet, opt) {
+
+	    var angle = view.model.angle();
+	    if (angle === 0) {
+	        return bboxIntersection(line, view, magnet, opt);
+	    }
+
+	    var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
+	    if (opt.stroke) { bboxWORotation.inflate(stroke$1(magnet) / 2); }
+	    var center = bboxWORotation.center();
+	    var lineWORotation = line.clone().rotate(center, angle);
+	    var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
+	    var cp = (intersections)
+	        ? lineWORotation.start.chooseClosest(intersections).rotate(center, -angle)
+	        : line.end;
+	    return offsetPoint(cp, line.start, opt.offset);
+	}
+
+	function findShapeNode(magnet) {
+	    if (!magnet) { return null; }
+	    var node = magnet;
+	    do {
+	        var tagName = node.tagName;
+	        if (typeof tagName !== 'string') { return null; }
+	        tagName = tagName.toUpperCase();
+	        if (tagName === 'G') {
+	            node = node.firstElementChild;
+	        } else if (tagName === 'TITLE') {
+	            node = node.nextElementSibling;
+	        } else { break; }
+	    } while (node);
+	    return node;
+	}
+
+	var BNDR_SUBDIVISIONS = 'segmentSubdivisons';
+	var BNDR_SHAPE_BBOX = 'shapeBBox';
+
+	function boundaryIntersection(line, view, magnet, opt) {
+
+	    var node, intersection;
+	    var selector = opt.selector;
+	    var anchor = line.end;
+
+	    if (typeof selector === 'string') {
+	        node = view.findNode(selector);
+	    } else if (selector === false) {
+	        node = magnet;
+	    } else if (Array.isArray(selector)) {
+	        node = getByPath(magnet, selector);
+	    } else {
+	        node = findShapeNode(magnet);
+	    }
+
+	    if (!V.isSVGGraphicsElement(node)) {
+	        if (node === magnet || !V.isSVGGraphicsElement(magnet)) { return anchor; }
+	        node = magnet;
+	    }
+
+	    var localShape = view.getNodeShape(node);
+	    var magnetMatrix = view.getNodeMatrix(node);
+	    var translateMatrix = view.getRootTranslateMatrix();
+	    var rotateMatrix = view.getRootRotateMatrix();
+	    var targetMatrix = translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix);
+	    var localMatrix = targetMatrix.inverse();
+	    var localLine = V.transformLine(line, localMatrix);
+	    var localRef = localLine.start.clone();
+	    var data = view.getNodeData(node);
+
+	    if (opt.insideout === false) {
+	        if (!data[BNDR_SHAPE_BBOX]) { data[BNDR_SHAPE_BBOX] = localShape.bbox(); }
+	        var localBBox = data[BNDR_SHAPE_BBOX];
+	        if (localBBox.containsPoint(localRef)) { return anchor; }
+	    }
+
+	    // Caching segment subdivisions for paths
+	    var pathOpt;
+	    if (localShape instanceof Path) {
+	        var precision = opt.precision || 2;
+	        if (!data[BNDR_SUBDIVISIONS]) { data[BNDR_SUBDIVISIONS] = localShape.getSegmentSubdivisions({ precision: precision }); }
+	        pathOpt = {
+	            precision: precision,
+	            segmentSubdivisions: data[BNDR_SUBDIVISIONS]
+	        };
+	    }
+
+	    if (opt.extrapolate === true) { localLine.setLength(1e6); }
+
+	    intersection = localLine.intersect(localShape, pathOpt);
+	    if (intersection) {
+	        // More than one intersection
+	        if (V.isArray(intersection)) { intersection = localRef.chooseClosest(intersection); }
+	    } else if (opt.sticky === true) {
+	        // No intersection, find the closest point instead
+	        if (localShape instanceof Rect) {
+	            intersection = localShape.pointNearestToPoint(localRef);
+	        } else if (localShape instanceof Ellipse) {
+	            intersection = localShape.intersectionWithLineFromCenterToPoint(localRef);
+	        } else {
+	            intersection = localShape.closestPoint(localRef, pathOpt);
+	        }
+	    }
+
+	    var cp = (intersection) ? V.transformPoint(intersection, targetMatrix) : anchor;
+	    var cpOffset = opt.offset || 0;
+	    if (opt.stroke) { cpOffset += stroke$1(node) / 2; }
+
+	    return offsetPoint(cp, line.start, cpOffset);
+	}
+
+	var anchor = anchorConnectionPoint;
+	var bbox = bboxIntersection;
+	var rectangle = rectangleIntersection;
+	var boundary = boundaryIntersection;
+
+	var connectionPoints = ({
+		anchor: anchor,
+		bbox: bbox,
+		rectangle: rectangle,
+		boundary: boundary
+	});
+
+	function abs2rel(absolute, max) {
+
+	    if (max === 0) { return '0%'; }
+	    // round to 3 decimal places
+	    var dp = 1000;
+	    var relative = Math.round(absolute / max * 100 * dp) / dp;
+	    return (relative + "%");
+	}
+
+	function pin(relative) {
+
+	    return function(end, view, magnet, coords) {
+	        var fn = (view.isNodeConnection(magnet)) ? pinnedLinkEnd : pinnedElementEnd;
+	        return fn(relative, end, view, magnet, coords);
+	    };
+	}
+
+	function pinnedElementEnd(relative, end, view, magnet, coords) {
+
+	    var angle = view.model.angle();
+	    var bbox = view.getNodeUnrotatedBBox(magnet);
+	    var origin = view.model.getBBox().center();
+	    coords.rotate(origin, angle);
+	    var dx = coords.x - bbox.x;
+	    var dy = coords.y - bbox.y;
+
+	    if (relative) {
+	        dx = abs2rel(dx, bbox.width);
+	        dy = abs2rel(dy, bbox.height);
+	    }
+
+	    end.anchor = {
+	        name: 'topLeft',
+	        args: {
+	            dx: dx,
+	            dy: dy,
+	            rotate: true
+	        }
+	    };
+
+	    return end;
+	}
+
+	function pinnedLinkEnd(relative, end, view, _magnet, coords) {
+
+	    var connection = view.getConnection();
+	    if (!connection) { return end; }
+	    var length = connection.closestPointLength(coords);
+	    if (relative) {
+	        var totalLength = connection.length();
+	        end.anchor = {
+	            name: 'connectionRatio',
+	            args: {
+	                ratio: length / totalLength
+	            }
+	        };
+	    } else {
+	        end.anchor = {
+	            name: 'connectionLength',
+	            args: {
+	                length: length
+	            }
+	        };
+	    }
+	    return end;
+	}
+
+	var useDefaults = noop;
+	var pinAbsolute = pin(false);
+	var pinRelative = pin(true);
+
+	var index$3 = ({
+		useDefaults: useDefaults,
+		pinAbsolute: pinAbsolute,
+		pinRelative: pinRelative
+	});
+
+	// Does not make any changes to vertices.
+	// Returns the arguments that are passed to it, unchanged.
+	var normal$1 = function(vertices, opt, linkView) {
+
+	    return vertices;
+	};
+
+	// Routes the link always to/from a certain side
+	//
+	// Arguments:
+	//   padding ... gap between the element and the first vertex. :: Default 40.
+	//   side ... 'left' | 'right' | 'top' | 'bottom' :: Default 'bottom'.
+	//
+	var oneSide = function(vertices, opt, linkView) {
+
+	    var side = opt.side || 'bottom';
+	    var padding = normalizeSides(opt.padding || 40);
+
+	    // LinkView contains cached source an target bboxes.
+	    // Note that those are Geometry rectangle objects.
+	    var sourceBBox = linkView.sourceBBox;
+	    var targetBBox = linkView.targetBBox;
+	    var sourcePoint = sourceBBox.center();
+	    var targetPoint = targetBBox.center();
+
+	    var coordinate, dimension, direction;
+
+	    switch (side) {
+	        case 'bottom':
+	            direction = 1;
+	            coordinate = 'y';
+	            dimension = 'height';
+	            break;
+	        case 'top':
+	            direction = -1;
+	            coordinate = 'y';
+	            dimension = 'height';
+	            break;
+	        case 'left':
+	            direction = -1;
+	            coordinate = 'x';
+	            dimension = 'width';
+	            break;
+	        case 'right':
+	            direction = 1;
+	            coordinate = 'x';
+	            dimension = 'width';
+	            break;
+	        default:
+	            throw new Error('Router: invalid side');
+	    }
+
+	    // move the points from the center of the element to outside of it.
+	    sourcePoint[coordinate] += direction * (sourceBBox[dimension] / 2 + padding[side]);
+	    targetPoint[coordinate] += direction * (targetBBox[dimension] / 2 + padding[side]);
+
+	    // make link orthogonal (at least the first and last vertex).
+	    if ((direction * (sourcePoint[coordinate] - targetPoint[coordinate])) > 0) {
+	        targetPoint[coordinate] = sourcePoint[coordinate];
+	    } else {
+	        sourcePoint[coordinate] = targetPoint[coordinate];
+	    }
+
+	    return [sourcePoint].concat(vertices, targetPoint);
+	};
+
+	// bearing -> opposite bearing
+	var opposites = {
+	    N: 'S',
+	    S: 'N',
+	    E: 'W',
+	    W: 'E'
+	};
+
+	// bearing -> radians
+	var radians = {
+	    N: -Math.PI / 2 * 3,
+	    S: -Math.PI / 2,
+	    E: 0,
+	    W: Math.PI
+	};
+
+	// HELPERS //
+
+	// returns a point `p` where lines p,p1 and p,p2 are perpendicular and p is not contained
+	// in the given box
+	function freeJoin(p1, p2, bbox) {
+
+	    var p = new Point(p1.x, p2.y);
+	    if (bbox.containsPoint(p)) { p = new Point(p2.x, p1.y); }
+	    // kept for reference
+	    // if (bbox.containsPoint(p)) p = null;
+
+	    return p;
+	}
+
+	// returns either width or height of a bbox based on the given bearing
+	function getBBoxSize(bbox, bearing) {
+
+	    return bbox[(bearing === 'W' || bearing === 'E') ? 'width' : 'height'];
+	}
+
+	// simple bearing method (calculates only orthogonal cardinals)
+	function getBearing(from, to) {
+
+	    if (from.x === to.x) { return (from.y > to.y) ? 'N' : 'S'; }
+	    if (from.y === to.y) { return (from.x > to.x) ? 'W' : 'E'; }
+	    return null;
+	}
+
+	// transform point to a rect
+	function getPointBox(p) {
+
+	    return new Rect(p.x, p.y, 0, 0);
+	}
+
+	function getPaddingBox(opt) {
+
+	    // if both provided, opt.padding wins over opt.elementPadding
+	    var sides = normalizeSides(opt.padding || opt.elementPadding || 20);
+
+	    return {
+	        x: -sides.left,
+	        y: -sides.top,
+	        width: sides.left + sides.right,
+	        height: sides.top + sides.bottom
+	    };
+	}
+
+	// return source bbox
+	function getSourceBBox(linkView, opt) {
+
+	    return linkView.sourceBBox.clone().moveAndExpand(getPaddingBox(opt));
+	}
+
+	// return target bbox
+	function getTargetBBox(linkView, opt) {
+
+	    return linkView.targetBBox.clone().moveAndExpand(getPaddingBox(opt));
+	}
+
+	// return source anchor
+	function getSourceAnchor(linkView, opt) {
+
+	    if (linkView.sourceAnchor) { return linkView.sourceAnchor; }
+
+	    // fallback: center of bbox
+	    var sourceBBox = getSourceBBox(linkView, opt);
+	    return sourceBBox.center();
+	}
+
+	// return target anchor
+	function getTargetAnchor(linkView, opt) {
+
+	    if (linkView.targetAnchor) { return linkView.targetAnchor; }
+
+	    // fallback: center of bbox
+	    var targetBBox = getTargetBBox(linkView, opt);
+	    return targetBBox.center(); // default
+	}
+
+	// PARTIAL ROUTERS //
+
+	function vertexVertex(from, to, bearing) {
+
+	    var p1 = new Point(from.x, to.y);
+	    var p2 = new Point(to.x, from.y);
+	    var d1 = getBearing(from, p1);
+	    var d2 = getBearing(from, p2);
+	    var opposite = opposites[bearing];
+
+	    var p = (d1 === bearing || (d1 !== opposite && (d2 === opposite || d2 !== bearing))) ? p1 : p2;
+
+	    return { points: [p], direction: getBearing(p, to) };
+	}
+
+	function elementVertex(from, to, fromBBox) {
+
+	    var p = freeJoin(from, to, fromBBox);
+
+	    return { points: [p], direction: getBearing(p, to) };
+	}
+
+	function vertexElement(from, to, toBBox, bearing) {
+
+	    var route = {};
+
+	    var points = [new Point(from.x, to.y), new Point(to.x, from.y)];
+	    var freePoints = points.filter(function(pt) {
+	        return !toBBox.containsPoint(pt);
+	    });
+	    var freeBearingPoints = freePoints.filter(function(pt) {
+	        return getBearing(pt, from) !== bearing;
+	    });
+
+	    var p;
+
+	    if (freeBearingPoints.length > 0) {
+	        // Try to pick a point which bears the same direction as the previous segment.
+
+	        p = freeBearingPoints.filter(function(pt) {
+	            return getBearing(from, pt) === bearing;
+	        }).pop();
+	        p = p || freeBearingPoints[0];
+
+	        route.points = [p];
+	        route.direction = getBearing(p, to);
+
+	    } else {
+	        // Here we found only points which are either contained in the element or they would create
+	        // a link segment going in opposite direction from the previous one.
+	        // We take the point inside element and move it outside the element in the direction the
+	        // route is going. Now we can join this point with the current end (using freeJoin).
+
+	        p = difference(points, freePoints)[0];
+
+	        var p2 = (new Point(to)).move(p, -getBBoxSize(toBBox, bearing) / 2);
+	        var p1 = freeJoin(p2, from, toBBox);
+
+	        route.points = [p1, p2];
+	        route.direction = getBearing(p2, to);
+	    }
+
+	    return route;
+	}
+
+	function elementElement(from, to, fromBBox, toBBox) {
+
+	    var route = elementVertex(to, from, toBBox);
+	    var p1 = route.points[0];
+
+	    if (fromBBox.containsPoint(p1)) {
+
+	        route = elementVertex(from, to, fromBBox);
+	        var p2 = route.points[0];
+
+	        if (toBBox.containsPoint(p2)) {
+
+	            var fromBorder = (new Point(from)).move(p2, -getBBoxSize(fromBBox, getBearing(from, p2)) / 2);
+	            var toBorder = (new Point(to)).move(p1, -getBBoxSize(toBBox, getBearing(to, p1)) / 2);
+	            var mid = (new Line(fromBorder, toBorder)).midpoint();
+
+	            var startRoute = elementVertex(from, mid, fromBBox);
+	            var endRoute = vertexVertex(mid, to, startRoute.direction);
+
+	            route.points = [startRoute.points[0], endRoute.points[0]];
+	            route.direction = endRoute.direction;
+	        }
+	    }
+
+	    return route;
+	}
+
+	// Finds route for situations where one element is inside the other.
+	// Typically the route is directed outside the outer element first and
+	// then back towards the inner element.
+	function insideElement(from, to, fromBBox, toBBox, bearing) {
+
+	    var route = {};
+	    var boundary = fromBBox.union(toBBox).inflate(1);
+
+	    // start from the point which is closer to the boundary
+	    var reversed = boundary.center().distance(to) > boundary.center().distance(from);
+	    var start = reversed ? to : from;
+	    var end = reversed ? from : to;
+
+	    var p1, p2, p3;
+
+	    if (bearing) {
+	        // Points on circle with radius equals 'W + H` are always outside the rectangle
+	        // with width W and height H if the center of that circle is the center of that rectangle.
+	        p1 = Point.fromPolar(boundary.width + boundary.height, radians[bearing], start);
+	        p1 = boundary.pointNearestToPoint(p1).move(p1, -1);
+
+	    } else {
+	        p1 = boundary.pointNearestToPoint(start).move(start, 1);
+	    }
+
+	    p2 = freeJoin(p1, end, boundary);
+
+	    if (p1.round().equals(p2.round())) {
+	        p2 = Point.fromPolar(boundary.width + boundary.height, toRad(p1.theta(start)) + Math.PI / 2, end);
+	        p2 = boundary.pointNearestToPoint(p2).move(end, 1).round();
+	        p3 = freeJoin(p1, p2, boundary);
+	        route.points = reversed ? [p2, p3, p1] : [p1, p3, p2];
+
+	    } else {
+	        route.points = reversed ? [p2, p1] : [p1, p2];
+	    }
+
+	    route.direction = reversed ? getBearing(p1, to) : getBearing(p2, to);
+
+	    return route;
+	}
+
+	// MAIN ROUTER //
+
+	// Return points through which a connection needs to be drawn in order to obtain an orthogonal link
+	// routing from source to target going through `vertices`.
+	function orthogonal(vertices, opt, linkView) {
+
+	    var sourceBBox = getSourceBBox(linkView, opt);
+	    var targetBBox = getTargetBBox(linkView, opt);
+
+	    var sourceAnchor = getSourceAnchor(linkView, opt);
+	    var targetAnchor = getTargetAnchor(linkView, opt);
+
+	    // if anchor lies outside of bbox, the bbox expands to include it
+	    sourceBBox = sourceBBox.union(getPointBox(sourceAnchor));
+	    targetBBox = targetBBox.union(getPointBox(targetAnchor));
+
+	    vertices = toArray(vertices).map(Point);
+	    vertices.unshift(sourceAnchor);
+	    vertices.push(targetAnchor);
+
+	    var bearing; // bearing of previous route segment
+
+	    var orthogonalVertices = []; // the array of found orthogonal vertices to be returned
+	    for (var i = 0, max = vertices.length - 1; i < max; i++) {
+
+	        var route = null;
+
+	        var from = vertices[i];
+	        var to = vertices[i + 1];
+
+	        var isOrthogonal = !!getBearing(from, to);
+
+	        if (i === 0) { // source
+
+	            if (i + 1 === max) { // route source -> target
+
+	                // Expand one of the elements by 1px to detect situations when the two
+	                // elements are positioned next to each other with no gap in between.
+	                if (sourceBBox.intersect(targetBBox.clone().inflate(1))) {
+	                    route = insideElement(from, to, sourceBBox, targetBBox);
+
+	                } else if (!isOrthogonal) {
+	                    route = elementElement(from, to, sourceBBox, targetBBox);
+	                }
+
+	            } else { // route source -> vertex
+
+	                if (sourceBBox.containsPoint(to)) {
+	                    route = insideElement(from, to, sourceBBox, getPointBox(to).moveAndExpand(getPaddingBox(opt)));
+
+	                } else if (!isOrthogonal) {
+	                    route = elementVertex(from, to, sourceBBox);
+	                }
+	            }
+
+	        } else if (i + 1 === max) { // route vertex -> target
+
+	            // prevent overlaps with previous line segment
+	            var isOrthogonalLoop = isOrthogonal && getBearing(to, from) === bearing;
+
+	            if (targetBBox.containsPoint(from) || isOrthogonalLoop) {
+	                route = insideElement(from, to, getPointBox(from).moveAndExpand(getPaddingBox(opt)), targetBBox, bearing);
+
+	            } else if (!isOrthogonal) {
+	                route = vertexElement(from, to, targetBBox, bearing);
+	            }
+
+	        } else if (!isOrthogonal) { // route vertex -> vertex
+	            route = vertexVertex(from, to, bearing);
+	        }
+
+	        // applicable to all routes:
+
+	        // set bearing for next iteration
+	        if (route) {
+	            Array.prototype.push.apply(orthogonalVertices, route.points);
+	            bearing = route.direction;
+
+	        } else {
+	            // orthogonal route and not looped
+	            bearing = getBearing(from, to);
+	        }
+
+	        // push `to` point to identified orthogonal vertices array
+	        if (i + 1 < max) {
+	            orthogonalVertices.push(to);
+	        }
+	    }
+
+	    return orthogonalVertices;
+	}
+
+	var config$2 = {
+
+	    // size of the step to find a route (the grid of the manhattan pathfinder)
+	    step: 10,
+
+	    // the number of route finding loops that cause the router to abort
+	    // returns fallback route instead
+	    maximumLoops: 2000,
+
+	    // the number of decimal places to round floating point coordinates
+	    precision: 1,
+
+	    // maximum change of direction
+	    maxAllowedDirectionChange: 90,
+
+	    // should the router use perpendicular linkView option?
+	    // does not connect anchor of element but rather a point close-by that is orthogonal
+	    // this looks much better
+	    perpendicular: true,
+
+	    // should the source and/or target not be considered as obstacles?
+	    excludeEnds: [], // 'source', 'target'
+
+	    // should certain types of elements not be considered as obstacles?
+	    excludeTypes: [],
+
+	    // possible starting directions from an element
+	    startDirections: ['top', 'right', 'bottom', 'left'],
+
+	    // possible ending directions to an element
+	    endDirections: ['top', 'right', 'bottom', 'left'],
+
+	    // specify the directions used above and what they mean
+	    directionMap: {
+	        top: { x: 0, y: -1 },
+	        right: { x: 1, y: 0 },
+	        bottom: { x: 0, y: 1 },
+	        left: { x: -1, y: 0 }
+	    },
+
+	    // cost of an orthogonal step
+	    cost: function() {
+
+	        return this.step;
+	    },
+
+	    // an array of directions to find next points on the route
+	    // different from start/end directions
+	    directions: function() {
+
+	        var step = this.step;
+	        var cost = this.cost();
+
+	        return [
+	            { offsetX: step, offsetY: 0, cost: cost },
+	            { offsetX: -step, offsetY: 0, cost: cost },
+	            { offsetX: 0, offsetY: step, cost: cost },
+	            { offsetX: 0, offsetY: -step, cost: cost }
+	        ];
+	    },
+
+	    // a penalty received for direction change
+	    penalties: function() {
+
+	        return {
+	            0: 0,
+	            45: this.step / 2,
+	            90: this.step / 2
+	        };
+	    },
+
+	    // padding applied on the element bounding boxes
+	    paddingBox: function() {
+
+	        var step = this.step;
+
+	        return {
+	            x: -step,
+	            y: -step,
+	            width: 2 * step,
+	            height: 2 * step
+	        };
+	    },
+
+	    // A function that determines whether a given point is an obstacle or not.
+	    // If used, the `padding`, `excludeEnds`and `excludeTypes` options are ignored.
+	    // (point: dia.Point) => boolean;
+	    isPointObstacle: null,
+
+	    // a router to use when the manhattan router fails
+	    // (one of the partial routes returns null)
+	    fallbackRouter: function(vertices, opt, linkView) {
+
+	        if (!isFunction(orthogonal)) {
+	            throw new Error('Manhattan requires the orthogonal router as default fallback.');
+	        }
+
+	        return orthogonal(vertices, assign({}, config$2, opt), linkView);
+	    },
+
+	    /* Deprecated */
+	    // a simple route used in situations when main routing method fails
+	    // (exceed max number of loop iterations, inaccessible)
+	    fallbackRoute: function(from, to, opt) {
+
+	        return null; // null result will trigger the fallbackRouter
+
+	        // left for reference:
+	        /*// Find an orthogonal route ignoring obstacles.
+
+	        var point = ((opt.previousDirAngle || 0) % 180 === 0)
+	                ? new g.Point(from.x, to.y)
+	                : new g.Point(to.x, from.y);
+
+	        return [point];*/
+	    },
+
+	    // if a function is provided, it's used to route the link while dragging an end
+	    // i.e. function(from, to, opt) { return []; }
+	    draggingRoute: null
+	};
+
+	// HELPER CLASSES //
+
+	// Map of obstacles
+	// Helper structure to identify whether a point lies inside an obstacle.
+	function ObstacleMap(opt) {
+
+	    this.map = {};
+	    this.options = opt;
+	    // tells how to divide the paper when creating the elements map
+	    this.mapGridSize = 100;
+	}
+
+	ObstacleMap.prototype.build = function(graph, link) {
+
+	    var opt = this.options;
+
+	    // source or target element could be excluded from set of obstacles
+	    var excludedEnds = toArray(opt.excludeEnds).reduce(function(res, item) {
+
+	        var end = link.get(item);
+	        if (end) {
+	            var cell = graph.getCell(end.id);
+	            if (cell) {
+	                res.push(cell);
+	            }
+	        }
+
+	        return res;
+	    }, []);
+
+	    // Exclude any embedded elements from the source and the target element.
+	    var excludedAncestors = [];
+
+	    var source = graph.getCell(link.get('source').id);
+	    if (source) {
+	        excludedAncestors = union(excludedAncestors, source.getAncestors().map(function(cell) {
+	            return cell.id;
+	        }));
+	    }
+
+	    var target = graph.getCell(link.get('target').id);
+	    if (target) {
+	        excludedAncestors = union(excludedAncestors, target.getAncestors().map(function(cell) {
+	            return cell.id;
+	        }));
+	    }
+
+	    // Builds a map of all elements for quicker obstacle queries (i.e. is a point contained
+	    // in any obstacle?) (a simplified grid search).
+	    // The paper is divided into smaller cells, where each holds information about which
+	    // elements belong to it. When we query whether a point lies inside an obstacle we
+	    // don't need to go through all obstacles, we check only those in a particular cell.
+	    var mapGridSize = this.mapGridSize;
+
+	    graph.getElements().reduce(function(map, element) {
+
+	        var isExcludedType = toArray(opt.excludeTypes).includes(element.get('type'));
+	        var isExcludedEnd = excludedEnds.find(function(excluded) {
+	            return excluded.id === element.id;
+	        });
+	        var isExcludedAncestor = excludedAncestors.includes(element.id);
+
+	        var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
+	        if (!isExcluded) {
+	            var bbox = element.getBBox().moveAndExpand(opt.paddingBox);
+
+	            var origin = bbox.origin().snapToGrid(mapGridSize);
+	            var corner = bbox.corner().snapToGrid(mapGridSize);
+
+	            for (var x = origin.x; x <= corner.x; x += mapGridSize) {
+	                for (var y = origin.y; y <= corner.y; y += mapGridSize) {
+	                    var gridKey = x + '@' + y;
+	                    map[gridKey] = map[gridKey] || [];
+	                    map[gridKey].push(bbox);
+	                }
+	            }
+	        }
+
+	        return map;
+	    }, this.map);
+
+	    return this;
+	};
+
+	ObstacleMap.prototype.isPointAccessible = function(point) {
+
+	    var mapKey = point.clone().snapToGrid(this.mapGridSize).toString();
+
+	    return toArray(this.map[mapKey]).every(function(obstacle) {
+	        return !obstacle.containsPoint(point);
+	    });
+	};
+
+	// Sorted Set
+	// Set of items sorted by given value.
+	function SortedSet() {
+	    this.items = [];
+	    this.hash = {};
+	    this.values = {};
+	    this.OPEN = 1;
+	    this.CLOSE = 2;
+	}
+
+	SortedSet.prototype.add = function(item, value) {
+
+	    if (this.hash[item]) {
+	        // item removal
+	        this.items.splice(this.items.indexOf(item), 1);
+	    } else {
+	        this.hash[item] = this.OPEN;
+	    }
+
+	    this.values[item] = value;
+
+	    var index$1 = sortedIndex(this.items, item, function(i) {
+	        return this.values[i];
+	    }.bind(this));
+
+	    this.items.splice(index$1, 0, item);
+	};
+
+	SortedSet.prototype.remove = function(item) {
+
+	    this.hash[item] = this.CLOSE;
+	};
+
+	SortedSet.prototype.isOpen = function(item) {
+
+	    return this.hash[item] === this.OPEN;
+	};
+
+	SortedSet.prototype.isClose = function(item) {
+
+	    return this.hash[item] === this.CLOSE;
+	};
+
+	SortedSet.prototype.isEmpty = function() {
+
+	    return this.items.length === 0;
+	};
+
+	SortedSet.prototype.pop = function() {
+
+	    var item = this.items.shift();
+	    this.remove(item);
+	    return item;
+	};
+
+	// HELPERS //
+
+	// return source bbox
+	function getSourceBBox$1(linkView, opt) {
+
+	    // expand by padding box
+	    if (opt && opt.paddingBox) { return linkView.sourceBBox.clone().moveAndExpand(opt.paddingBox); }
+
+	    return linkView.sourceBBox.clone();
+	}
+
+	// return target bbox
+	function getTargetBBox$1(linkView, opt) {
+
+	    // expand by padding box
+	    if (opt && opt.paddingBox) { return linkView.targetBBox.clone().moveAndExpand(opt.paddingBox); }
+
+	    return linkView.targetBBox.clone();
+	}
+
+	// return source anchor
+	function getSourceAnchor$1(linkView, opt) {
+
+	    if (linkView.sourceAnchor) { return linkView.sourceAnchor; }
+
+	    // fallback: center of bbox
+	    var sourceBBox = getSourceBBox$1(linkView, opt);
+	    return sourceBBox.center();
+	}
+
+	// return target anchor
+	function getTargetAnchor$1(linkView, opt) {
+
+	    if (linkView.targetAnchor) { return linkView.targetAnchor; }
+
+	    // fallback: center of bbox
+	    var targetBBox = getTargetBBox$1(linkView, opt);
+	    return targetBBox.center(); // default
+	}
+
+	// returns a direction index from start point to end point
+	// corrects for grid deformation between start and end
+	function getDirectionAngle(start, end, numDirections, grid, opt) {
+
+	    var quadrant = 360 / numDirections;
+	    var angleTheta = start.theta(fixAngleEnd(start, end, grid, opt));
+	    var normalizedAngle = normalizeAngle(angleTheta + (quadrant / 2));
+	    return quadrant * Math.floor(normalizedAngle / quadrant);
+	}
+
+	// helper function for getDirectionAngle()
+	// corrects for grid deformation
+	// (if a point is one grid steps away from another in both dimensions,
+	// it is considered to be 45 degrees away, even if the real angle is different)
+	// this causes visible angle discrepancies if `opt.step` is much larger than `paper.gridSize`
+	function fixAngleEnd(start, end, grid, opt) {
+
+	    var step = opt.step;
+
+	    var diffX = end.x - start.x;
+	    var diffY = end.y - start.y;
+
+	    var gridStepsX = diffX / grid.x;
+	    var gridStepsY = diffY / grid.y;
+
+	    var distanceX = gridStepsX * step;
+	    var distanceY = gridStepsY * step;
+
+	    return new Point(start.x + distanceX, start.y + distanceY);
+	}
+
+	// return the change in direction between two direction angles
+	function getDirectionChange(angle1, angle2) {
+
+	    var directionChange = Math.abs(angle1 - angle2);
+	    return (directionChange > 180) ? (360 - directionChange) : directionChange;
+	}
+
+	// fix direction offsets according to current grid
+	function getGridOffsets(directions, grid, opt) {
+
+	    var step = opt.step;
+
+	    toArray(opt.directions).forEach(function(direction) {
+
+	        direction.gridOffsetX = (direction.offsetX / step) * grid.x;
+	        direction.gridOffsetY = (direction.offsetY / step) * grid.y;
+	    });
+	}
+
+	// get grid size in x and y dimensions, adapted to source and target positions
+	function getGrid(step, source, target) {
+
+	    return {
+	        source: source.clone(),
+	        x: getGridDimension(target.x - source.x, step),
+	        y: getGridDimension(target.y - source.y, step)
+	    };
+	}
+
+	// helper function for getGrid()
+	function getGridDimension(diff, step) {
+
+	    // return step if diff = 0
+	    if (!diff) { return step; }
+
+	    var absDiff = Math.abs(diff);
+	    var numSteps = Math.round(absDiff / step);
+
+	    // return absDiff if less than one step apart
+	    if (!numSteps) { return absDiff; }
+
+	    // otherwise, return corrected step
+	    var roundedDiff = numSteps * step;
+	    var remainder = absDiff - roundedDiff;
+	    var stepCorrection = remainder / numSteps;
+
+	    return step + stepCorrection;
+	}
+
+	// return a clone of point snapped to grid
+	function snapToGrid$1(point, grid) {
+
+	    var source = grid.source;
+
+	    var snappedX = snapToGrid(point.x - source.x, grid.x) + source.x;
+	    var snappedY = snapToGrid(point.y - source.y, grid.y) + source.y;
+
+	    return new Point(snappedX, snappedY);
+	}
+
+	// round the point to opt.precision
+	function round$4(point, precision) {
+
+	    return point.round(precision);
+	}
+
+	// snap to grid and then round the point
+	function align(point, grid, precision) {
+
+	    return round$4(snapToGrid$1(point.clone(), grid), precision);
+	}
+
+	// return a string representing the point
+	// string is rounded in both dimensions
+	function getKey(point) {
+
+	    return point.clone().toString();
+	}
+
+	// return a normalized vector from given point
+	// used to determine the direction of a difference of two points
+	function normalizePoint(point) {
+
+	    return new Point(
+	        point.x === 0 ? 0 : Math.abs(point.x) / point.x,
+	        point.y === 0 ? 0 : Math.abs(point.y) / point.y
+	    );
+	}
+
+	// PATHFINDING //
+
+	// reconstructs a route by concatenating points with their parents
+	function reconstructRoute(parents, points, tailPoint, from, to, grid, opt) {
+
+	    var route = [];
+
+	    var prevDiff = normalizePoint(to.difference(tailPoint));
+
+	    // tailPoint is assumed to be aligned already
+	    var currentKey = getKey(tailPoint);
+	    var parent = parents[currentKey];
+
+	    var point;
+	    while (parent) {
+
+	        // point is assumed to be aligned already
+	        point = points[currentKey];
+
+	        var diff = normalizePoint(point.difference(parent));
+	        if (!diff.equals(prevDiff)) {
+	            route.unshift(point);
+	            prevDiff = diff;
+	        }
+
+	        // parent is assumed to be aligned already
+	        currentKey = getKey(parent);
+	        parent = parents[currentKey];
+	    }
+
+	    // leadPoint is assumed to be aligned already
+	    var leadPoint = points[currentKey];
+
+	    var fromDiff = normalizePoint(leadPoint.difference(from));
+	    if (!fromDiff.equals(prevDiff)) {
+	        route.unshift(leadPoint);
+	    }
+
+	    return route;
+	}
+
+	// heuristic method to determine the distance between two points
+	function estimateCost(from, endPoints) {
+
+	    var min = Infinity;
+
+	    for (var i = 0, len = endPoints.length; i < len; i++) {
+	        var cost = from.manhattanDistance(endPoints[i]);
+	        if (cost < min) { min = cost; }
+	    }
+
+	    return min;
+	}
+
+	// find points around the bbox taking given directions into account
+	// lines are drawn from anchor in given directions, intersections recorded
+	// if anchor is outside bbox, only those directions that intersect get a rect point
+	// the anchor itself is returned as rect point (representing some directions)
+	// (since those directions are unobstructed by the bbox)
+	function getRectPoints(anchor, bbox, directionList, grid, opt) {
+
+	    var precision = opt.precision;
+	    var directionMap = opt.directionMap;
+
+	    var anchorCenterVector = anchor.difference(bbox.center());
+
+	    var keys = isObject$1(directionMap) ? Object.keys(directionMap) : [];
+	    var dirList = toArray(directionList);
+	    var rectPoints = keys.reduce(function(res, key) {
+
+	        if (dirList.includes(key)) {
+	            var direction = directionMap[key];
+
+	            // create a line that is guaranteed to intersect the bbox if bbox is in the direction
+	            // even if anchor lies outside of bbox
+	            var endpoint = new Point(
+	                anchor.x + direction.x * (Math.abs(anchorCenterVector.x) + bbox.width),
+	                anchor.y + direction.y * (Math.abs(anchorCenterVector.y) + bbox.height)
+	            );
+	            var intersectionLine = new Line(anchor, endpoint);
+
+	            // get the farther intersection, in case there are two
+	            // (that happens if anchor lies next to bbox)
+	            var intersections = intersectionLine.intersect(bbox) || [];
+	            var numIntersections = intersections.length;
+	            var farthestIntersectionDistance;
+	            var farthestIntersection = null;
+	            for (var i = 0; i < numIntersections; i++) {
+	                var currentIntersection = intersections[i];
+	                var distance = anchor.squaredDistance(currentIntersection);
+	                if ((farthestIntersectionDistance === undefined) || (distance > farthestIntersectionDistance)) {
+	                    farthestIntersectionDistance = distance;
+	                    farthestIntersection = currentIntersection;
+	                }
+	            }
+
+	            // if an intersection was found in this direction, it is our rectPoint
+	            if (farthestIntersection) {
+	                var point = align(farthestIntersection, grid, precision);
+
+	                // if the rectPoint lies inside the bbox, offset it by one more step
+	                if (bbox.containsPoint(point)) {
+	                    point = align(point.offset(direction.x * grid.x, direction.y * grid.y), grid, precision);
+	                }
+
+	                // then add the point to the result array
+	                // aligned
+	                res.push(point);
+	            }
+	        }
+
+	        return res;
+	    }, []);
+
+	    // if anchor lies outside of bbox, add it to the array of points
+	    if (!bbox.containsPoint(anchor)) {
+	        // aligned
+	        rectPoints.push(align(anchor, grid, precision));
+	    }
+
+	    return rectPoints;
+	}
+
+	// finds the route between two points/rectangles (`from`, `to`) implementing A* algorithm
+	// rectangles get rect points assigned by getRectPoints()
+	function findRoute(from, to, isPointObstacle, opt) {
+
+	    var precision = opt.precision;
+
+	    // Get grid for this route.
+
+	    var sourceAnchor, targetAnchor;
+
+	    if (from instanceof Rect) { // `from` is sourceBBox
+	        sourceAnchor = round$4(getSourceAnchor$1(this, opt).clone(), precision);
+	    } else {
+	        sourceAnchor = round$4(from.clone(), precision);
+	    }
+
+	    if (to instanceof Rect) { // `to` is targetBBox
+	        targetAnchor = round$4(getTargetAnchor$1(this, opt).clone(), precision);
+	    } else {
+	        targetAnchor = round$4(to.clone(), precision);
+	    }
+
+	    var grid = getGrid(opt.step, sourceAnchor, targetAnchor);
+
+	    // Get pathfinding points.
+
+	    var start, end; // aligned with grid by definition
+	    var startPoints, endPoints; // assumed to be aligned with grid already
+
+	    // set of points we start pathfinding from
+	    if (from instanceof Rect) { // `from` is sourceBBox
+	        start = sourceAnchor;
+	        startPoints = getRectPoints(start, from, opt.startDirections, grid, opt);
+
+	    } else {
+	        start = sourceAnchor;
+	        startPoints = [start];
+	    }
+
+	    // set of points we want the pathfinding to finish at
+	    if (to instanceof Rect) { // `to` is targetBBox
+	        end = targetAnchor;
+	        endPoints = getRectPoints(targetAnchor, to, opt.endDirections, grid, opt);
+
+	    } else {
+	        end = targetAnchor;
+	        endPoints = [end];
+	    }
+
+	    // take into account only accessible rect points (those not under obstacles)
+	    startPoints = startPoints.filter(function (p) { return !isPointObstacle(p); });
+	    endPoints = endPoints.filter(function (p) { return !isPointObstacle(p); });
+
+	    // Check that there is an accessible route point on both sides.
+	    // Otherwise, use fallbackRoute().
+	    if (startPoints.length > 0 && endPoints.length > 0) {
+
+	        // The set of tentative points to be evaluated, initially containing the start points.
+	        // Rounded to nearest integer for simplicity.
+	        var openSet = new SortedSet();
+	        // Keeps reference to actual points for given elements of the open set.
+	        var points = {};
+	        // Keeps reference to a point that is immediate predecessor of given element.
+	        var parents = {};
+	        // Cost from start to a point along best known path.
+	        var costs = {};
+
+	        for (var i = 0, n = startPoints.length; i < n; i++) {
+	            // startPoint is assumed to be aligned already
+	            var startPoint = startPoints[i];
+
+	            var key = getKey(startPoint);
+
+	            openSet.add(key, estimateCost(startPoint, endPoints));
+	            points[key] = startPoint;
+	            costs[key] = 0;
+	        }
+
+	        var previousRouteDirectionAngle = opt.previousDirectionAngle; // undefined for first route
+	        var isPathBeginning = (previousRouteDirectionAngle === undefined);
+
+	        // directions
+	        var direction, directionChange;
+	        var directions = opt.directions;
+	        getGridOffsets(directions, grid, opt);
+
+	        var numDirections = directions.length;
+
+	        var endPointsKeys = toArray(endPoints).reduce(function(res, endPoint) {
+	            // endPoint is assumed to be aligned already
+
+	            var key = getKey(endPoint);
+	            res.push(key);
+	            return res;
+	        }, []);
+
+	        // main route finding loop
+	        var loopsRemaining = opt.maximumLoops;
+	        while (!openSet.isEmpty() && loopsRemaining > 0) {
+
+	            // remove current from the open list
+	            var currentKey = openSet.pop();
+	            var currentPoint = points[currentKey];
+	            var currentParent = parents[currentKey];
+	            var currentCost = costs[currentKey];
+
+	            var isRouteBeginning = (currentParent === undefined); // undefined for route starts
+	            var isStart = currentPoint.equals(start); // (is source anchor or `from` point) = can leave in any direction
+
+	            var previousDirectionAngle;
+	            if (!isRouteBeginning) { previousDirectionAngle = getDirectionAngle(currentParent, currentPoint, numDirections, grid, opt); } // a vertex on the route
+	            else if (!isPathBeginning) { previousDirectionAngle = previousRouteDirectionAngle; } // beginning of route on the path
+	            else if (!isStart) { previousDirectionAngle = getDirectionAngle(start, currentPoint, numDirections, grid, opt); } // beginning of path, start rect point
+	            else { previousDirectionAngle = null; } // beginning of path, source anchor or `from` point
+
+	            // check if we reached any endpoint
+	            var samePoints = startPoints.length === endPoints.length;
+	            if (samePoints) {
+	                for (var j = 0; j < startPoints.length; j++) {
+	                    if (!startPoints[j].equals(endPoints[j])) {
+	                        samePoints = false;
+	                        break;
+	                    }
+	                }
+	            }
+	            var skipEndCheck = (isRouteBeginning && samePoints);
+	            if (!skipEndCheck && (endPointsKeys.indexOf(currentKey) >= 0)) {
+	                opt.previousDirectionAngle = previousDirectionAngle;
+	                return reconstructRoute(parents, points, currentPoint, start, end, grid, opt);
+	            }
+
+	            // go over all possible directions and find neighbors
+	            for (i = 0; i < numDirections; i++) {
+	                direction = directions[i];
+
+	                var directionAngle = direction.angle;
+	                directionChange = getDirectionChange(previousDirectionAngle, directionAngle);
+
+	                // if the direction changed rapidly, don't use this point
+	                // any direction is allowed for starting points
+	                if (!(isPathBeginning && isStart) && directionChange > opt.maxAllowedDirectionChange) { continue; }
+
+	                var neighborPoint = align(currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY), grid, precision);
+	                var neighborKey = getKey(neighborPoint);
+
+	                // Closed points from the openSet were already evaluated.
+	                if (openSet.isClose(neighborKey) || isPointObstacle(neighborPoint)) { continue; }
+
+	                // We can only enter end points at an acceptable angle.
+	                if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
+
+	                    var isNeighborEnd = neighborPoint.equals(end); // (is target anchor or `to` point) = can be entered in any direction
+
+	                    if (!isNeighborEnd) {
+	                        var endDirectionAngle = getDirectionAngle(neighborPoint, end, numDirections, grid, opt);
+	                        var endDirectionChange = getDirectionChange(directionAngle, endDirectionAngle);
+
+	                        if (endDirectionChange > opt.maxAllowedDirectionChange) { continue; }
+	                    }
+	                }
+
+	                // The current direction is ok.
+
+	                var neighborCost = direction.cost;
+	                var neighborPenalty = isStart ? 0 : opt.penalties[directionChange]; // no penalties for start point
+	                var costFromStart = currentCost + neighborCost + neighborPenalty;
+
+	                if (!openSet.isOpen(neighborKey) || (costFromStart < costs[neighborKey])) {
+	                    // neighbor point has not been processed yet
+	                    // or the cost of the path from start is lower than previously calculated
+
+	                    points[neighborKey] = neighborPoint;
+	                    parents[neighborKey] = currentPoint;
+	                    costs[neighborKey] = costFromStart;
+	                    openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
+	                }
+	            }
+
+	            loopsRemaining--;
+	        }
+	    }
+
+	    // no route found (`to` point either wasn't accessible or finding route took
+	    // way too much calculation)
+	    return opt.fallbackRoute.call(this, start, end, opt);
+	}
+
+	// resolve some of the options
+	function resolveOptions(opt) {
+
+	    opt.directions = result(opt, 'directions');
+	    opt.penalties = result(opt, 'penalties');
+	    opt.paddingBox = result(opt, 'paddingBox');
+	    opt.padding = result(opt, 'padding');
+
+	    if (opt.padding) {
+	        // if both provided, opt.padding wins over opt.paddingBox
+	        var sides = normalizeSides(opt.padding);
+	        opt.paddingBox = {
+	            x: -sides.left,
+	            y: -sides.top,
+	            width: sides.left + sides.right,
+	            height: sides.top + sides.bottom
+	        };
+	    }
+
+	    toArray(opt.directions).forEach(function(direction) {
+
+	        var point1 = new Point(0, 0);
+	        var point2 = new Point(direction.offsetX, direction.offsetY);
+
+	        direction.angle = normalizeAngle(point1.theta(point2));
+	    });
+	}
+
+	// initialization of the route finding
+	function router(vertices, opt, linkView) {
+
+	    resolveOptions(opt);
+
+	    // enable/disable linkView perpendicular option
+	    linkView.options.perpendicular = !!opt.perpendicular;
+
+	    var sourceBBox = getSourceBBox$1(linkView, opt);
+	    var targetBBox = getTargetBBox$1(linkView, opt);
+
+	    var sourceAnchor = getSourceAnchor$1(linkView, opt);
+	    //var targetAnchor = getTargetAnchor(linkView, opt);
+
+	    // pathfinding
+	    var isPointObstacle;
+	    if (typeof opt.isPointObstacle === 'function') {
+	        isPointObstacle = opt.isPointObstacle;
+	    } else {
+	        var map = new ObstacleMap(opt);
+	        map.build(linkView.paper.model, linkView.model);
+	        isPointObstacle = function (point) { return !map.isPointAccessible(point); };
+	    }
+
+	    var oldVertices = toArray(vertices).map(Point);
+	    var newVertices = [];
+	    var tailPoint = sourceAnchor; // the origin of first route's grid, does not need snapping
+
+	    // find a route by concatenating all partial routes (routes need to pass through vertices)
+	    // source -> vertex[1] -> ... -> vertex[n] -> target
+	    var to, from;
+
+	    for (var i = 0, len = oldVertices.length; i <= len; i++) {
+
+	        var partialRoute = null;
+
+	        from = to || sourceBBox;
+	        to = oldVertices[i];
+
+	        if (!to) {
+	            // this is the last iteration
+	            // we ran through all vertices in oldVertices
+	            // 'to' is not a vertex.
+
+	            to = targetBBox;
+
+	            // If the target is a point (i.e. it's not an element), we
+	            // should use dragging route instead of main routing method if it has been provided.
+	            var isEndingAtPoint = !linkView.model.get('source').id || !linkView.model.get('target').id;
+
+	            if (isEndingAtPoint && isFunction(opt.draggingRoute)) {
+	                // Make sure we are passing points only (not rects).
+	                var dragFrom = (from === sourceBBox) ? sourceAnchor : from;
+	                var dragTo = to.origin();
+
+	                partialRoute = opt.draggingRoute.call(linkView, dragFrom, dragTo, opt);
+	            }
+	        }
+
+	        // if partial route has not been calculated yet use the main routing method to find one
+	        partialRoute = partialRoute || findRoute.call(linkView, from, to, isPointObstacle, opt);
+
+	        if (partialRoute === null) { // the partial route cannot be found
+	            return opt.fallbackRouter(vertices, opt, linkView);
+	        }
+
+	        var leadPoint = partialRoute[0];
+
+	        // remove the first point if the previous partial route had the same point as last
+	        if (leadPoint && leadPoint.equals(tailPoint)) { partialRoute.shift(); }
+
+	        // save tailPoint for next iteration
+	        tailPoint = partialRoute[partialRoute.length - 1] || tailPoint;
+
+	        Array.prototype.push.apply(newVertices, partialRoute);
+	    }
+
+	    return newVertices;
+	}
+
+	// public function
+	var manhattan = function(vertices, opt, linkView) {
+	    return router(vertices, assign({}, config$2, opt), linkView);
+	};
+
+	var config$3 = {
+
+	    maxAllowedDirectionChange: 45,
+
+	    // cost of a diagonal step
+	    diagonalCost: function() {
+
+	        var step = this.step;
+	        return Math.ceil(Math.sqrt(step * step << 1));
+	    },
+
+	    // an array of directions to find next points on the route
+	    // different from start/end directions
+	    directions: function() {
+
+	        var step = this.step;
+	        var cost = this.cost();
+	        var diagonalCost = this.diagonalCost();
+
+	        return [
+	            { offsetX: step, offsetY: 0, cost: cost },
+	            { offsetX: step, offsetY: step, cost: diagonalCost },
+	            { offsetX: 0, offsetY: step, cost: cost },
+	            { offsetX: -step, offsetY: step, cost: diagonalCost },
+	            { offsetX: -step, offsetY: 0, cost: cost },
+	            { offsetX: -step, offsetY: -step, cost: diagonalCost },
+	            { offsetX: 0, offsetY: -step, cost: cost },
+	            { offsetX: step, offsetY: -step, cost: diagonalCost }
+	        ];
+	    },
+
+	    // a simple route used in situations when main routing method fails
+	    // (exceed max number of loop iterations, inaccessible)
+	    fallbackRoute: function(from, to, opt) {
+
+	        // Find a route which breaks by 45 degrees ignoring all obstacles.
+
+	        var theta = from.theta(to);
+
+	        var route = [];
+
+	        var a = { x: to.x, y: from.y };
+	        var b = { x: from.x, y: to.y };
+
+	        if (theta % 180 > 90) {
+	            var t = a;
+	            a = b;
+	            b = t;
+	        }
+
+	        var p1 = (theta % 90) < 45 ? a : b;
+	        var l1 = new Line(from, p1);
+
+	        var alpha = 90 * Math.ceil(theta / 90);
+
+	        var p2 = Point.fromPolar(l1.squaredLength(), toRad(alpha + 135), p1);
+	        var l2 = new Line(to, p2);
+
+	        var intersectionPoint = l1.intersection(l2);
+	        var point = intersectionPoint ? intersectionPoint : to;
+
+	        var directionFrom = intersectionPoint ? point : from;
+
+	        var quadrant = 360 / opt.directions.length;
+	        var angleTheta = directionFrom.theta(to);
+	        var normalizedAngle = normalizeAngle(angleTheta + (quadrant / 2));
+	        var directionAngle = quadrant * Math.floor(normalizedAngle / quadrant);
+
+	        opt.previousDirectionAngle = directionAngle;
+
+	        if (point) { route.push(point.round()); }
+	        route.push(to);
+
+	        return route;
+	    }
+	};
+
+	// public function
+	var metro = function(vertices, opt, linkView) {
+
+	    if (!isFunction(manhattan)) {
+	        throw new Error('Metro requires the manhattan router.');
+	    }
+
+	    return manhattan(vertices, assign({}, config$3, opt), linkView);
+	};
+
+	var Directions$2 = {
+	    AUTO: 'auto',
+	    LEFT: 'left',
+	    RIGHT: 'right',
+	    TOP: 'top',
+	    BOTTOM: 'bottom',
+	    ANCHOR_SIDE: 'anchor-side',
+	    MAGNET_SIDE: 'magnet-side'
+	};
+
+	var DEFINED_DIRECTIONS = [Directions$2.LEFT, Directions$2.RIGHT, Directions$2.TOP, Directions$2.BOTTOM];
+
+	var OPPOSITE_DIRECTIONS = {};
+	OPPOSITE_DIRECTIONS[Directions$2.LEFT] = Directions$2.RIGHT;
+	OPPOSITE_DIRECTIONS[Directions$2.RIGHT] = Directions$2.LEFT;
+	OPPOSITE_DIRECTIONS[Directions$2.TOP] = Directions$2.BOTTOM;
+	OPPOSITE_DIRECTIONS[Directions$2.BOTTOM] = Directions$2.TOP;
+
+	var VERTICAL_DIRECTIONS = [Directions$2.TOP, Directions$2.BOTTOM];
+
+	var ANGLE_DIRECTION_MAP = {
+	    0: Directions$2.RIGHT,
+	    180: Directions$2.LEFT,
+	    270: Directions$2.TOP,
+	    90: Directions$2.BOTTOM
+	};
+
+	function getSegmentAngle(line) {
+	    // TODO: the angle() method is general and therefore unnecessarily heavy for orthogonal links
+	    return line.angle();
+	}
+
+	function simplifyPoints(points) {
+	    // TODO: use own more efficient implementation (filter points that do not change direction).
+	    // To simplify segments that are almost aligned (start and end points differ by e.g. 0.5px), use a threshold of 1.
+	    return new Polyline(points).simplify({ threshold: 1 }).points;
+	}
+
+	function resolveSides(source, target) {
+	    var sourcePoint = source.point;
+	    var sx0 = source.x0;
+	    var sy0 = source.y0;
+	    var sourceView = source.view;
+	    var sourceBBox = source.bbox;
+	    var sourceDirection = source.direction;
+	    var targetPoint = target.point;
+	    var tx0 = target.x0;
+	    var ty0 = target.y0;
+	    var targetView = target.view;
+	    var targetBBox = target.bbox;
+	    var targetDirection = target.direction;
+
+	    var sourceSide;
+
+	    if (!sourceView) {
+	        var sourceLinkAnchorBBox = new Rect(sx0, sy0, 0, 0);
+	        sourceSide = DEFINED_DIRECTIONS.includes(sourceDirection) ? sourceDirection : sourceLinkAnchorBBox.sideNearestToPoint(targetPoint);
+	    } else if (sourceView.model.isLink()) {
+	        sourceSide = getDirectionForLinkConnection(targetPoint, sourcePoint, sourceView);
+	    } else if (sourceDirection === Directions$2.ANCHOR_SIDE) {
+	        sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
+	    } else if (sourceDirection === Directions$2.MAGNET_SIDE) {
+	        sourceSide = sourceView.model.getBBox().sideNearestToPoint(sourcePoint);
+	    } else {
+	        sourceSide = sourceDirection;
+	    }
+
+	    var targetSide;
+
+	    if (!targetView) {
+	        var targetLinkAnchorBBox = new Rect(tx0, ty0, 0, 0);
+	        targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : targetLinkAnchorBBox.sideNearestToPoint(sourcePoint);
+	    } else if (targetView.model.isLink()) {
+	        targetSide = getDirectionForLinkConnection(sourcePoint, targetPoint, targetView);
+	    } else if (targetDirection === Directions$2.ANCHOR_SIDE) {
+	        targetSide = targetBBox.sideNearestToPoint(targetPoint);
+	    } else if (targetDirection === Directions$2.MAGNET_SIDE) {
+	        targetSide = targetView.model.getBBox().sideNearestToPoint(targetPoint);
+	    } else {
+	        targetSide = targetDirection;
+	    }
+
+	    return [sourceSide, targetSide];
+	}
+
+	function resolveForTopSourceSide(source, target, nextInLine) {
+	    var sx0 = source.x0;
+	    var sy0 = source.y0;
+	    var width = source.width;
+	    var height = source.height;
+	    var anchor = source.point;
+	    var margin = source.margin;
+	    var sx1 = sx0 + width;
+	    var sy1 = sy0 + height;
+	    var smx0 = sx0 - margin;
+	    var smx1 = sx1 + margin;
+	    var smy0 = sy0 - margin;
+
+	    var ax = anchor.x;
+	    var tx = target.x0;
+	    var ty = target.y0;
+
+	    if (tx === ax && ty < sy0) { return Directions$2.BOTTOM; }
+	    if (tx < ax && ty < smy0) { return Directions$2.RIGHT; }
+	    if (tx > ax && ty < smy0) { return Directions$2.LEFT; }
+	    if (tx < smx0 && ty >= sy0) { return Directions$2.TOP; }
+	    if (tx > smx1 && ty >= sy0) { return Directions$2.TOP; }
+	    if (tx >= smx0 && tx <= ax && ty > sy1) {
+	        if (nextInLine.point.x < tx) {
+	            return Directions$2.RIGHT;
+	        }
+
+	        return Directions$2.LEFT;
+	    }
+	    if (tx <= smx1 && tx >= ax && ty > sy1) {
+	        if (nextInLine.point.x < tx) {
+	            return Directions$2.RIGHT;
+	        }
+
+	        return Directions$2.LEFT;
+	    }
+
+	    return Directions$2.TOP;
+	}
+
+	function resolveForBottomSourceSide(source, target, nextInLine) {
+	    var sx0 = source.x0;
+	    var sy0 = source.y0;
+	    var width = source.width;
+	    var height = source.height;
+	    var anchor = source.point;
+	    var margin = source.margin;
+	    var sx1 = sx0 + width;
+	    var sy1 = sy0 + height;
+	    var smx0 = sx0 - margin;
+	    var smx1 = sx1 + margin;
+	    var smy1 = sy1 + margin;
+
+	    var ax = anchor.x;
+	    var tx = target.x0;
+	    var ty = target.y0;
+
+	    if (tx === ax && ty > sy1) { return Directions$2.TOP; }
+	    if (tx < ax && ty > smy1) { return Directions$2.RIGHT; }
+	    if (tx > ax && ty > smy1) { return Directions$2.LEFT; }
+	    if (tx < smx0 && ty <= sy1) { return Directions$2.BOTTOM; }
+	    if (tx > smx1 && ty <= sy1) { return Directions$2.BOTTOM; }
+	    if (tx >= smx0 && tx <= ax && ty < sy0) {
+	        if (nextInLine.point.x < tx) {
+	            return Directions$2.RIGHT;
+	        }
+
+	        return Directions$2.LEFT;
+	    }
+	    if (tx <= smx1 && tx >= ax && ty < sy0) {
+	        if (nextInLine.point.x < tx) {
+	            return Directions$2.RIGHT;
+	        }
+
+	        return Directions$2.LEFT;
+	    }
+
+	    return Directions$2.BOTTOM;
+	}
+
+	function resolveForLeftSourceSide(source, target, nextInLine) {
+	    var sy0 = source.y0;
+	    var sx0 = source.x0;
+	    var width = source.width;
+	    var height = source.height;
+	    var anchor = source.point;
+	    var margin = source.margin;
+	    var sx1 = sx0 + width;
+	    var sy1 = sy0 + height;
+	    var smx0 = sx0 - margin;
+	    var smy0 = sy0 - margin;
+	    var smy1 = sy1 + margin;
+
+	    var ax = anchor.x;
+	    var ay = anchor.y;
+	    var tx = target.x0;
+	    var ty = target.y0;
+
+	    if (tx < ax && ty === ay) { return Directions$2.RIGHT; }
+	    if (tx <= smx0 && ty < ay) { return Directions$2.BOTTOM; }
+	    if (tx <= smx0 && ty > ay) { return Directions$2.TOP; }
+	    if (tx >= sx0 && ty <= smy0) { return Directions$2.LEFT; }
+	    if (tx >= sx0 && ty >= smy1) { return Directions$2.LEFT; }
+	    if (tx > sx1 && ty >= smy0 && ty <= ay) {
+	        if (nextInLine.point.y < ty) {
+	            return Directions$2.BOTTOM;
+	        }
+
+	        return Directions$2.TOP;
+	    }
+	    if (tx > sx1 && ty <= smy1 && ty >= ay) {
+	        if (nextInLine.point.y < ty) {
+	            return Directions$2.BOTTOM;
+	        }
+
+	        return Directions$2.TOP;
+	    }
+
+	    return Directions$2.LEFT;
+	}
+
+	function resolveForRightSourceSide(source, target, nextInLine) {
+	    var sy0 = source.y0;
+	    var sx0 = source.x0;
+	    var width = source.width;
+	    var height = source.height;
+	    var anchor = source.point;
+	    var margin = source.margin;
+	    var sx1 = sx0 + width;
+	    var sy1 = sy0 + height;
+	    var smx1 = sx1 + margin;
+	    var smy0 = sy0 - margin;
+	    var smy1 = sy1 + margin;
+
+	    var ax = anchor.x;
+	    var ay = anchor.y;
+	    var tx = target.x0;
+	    var ty = target.y0;
+
+	    if (tx > ax && ty === ay) { return Directions$2.LEFT; }
+	    if (tx >= smx1 && ty < ay) { return Directions$2.BOTTOM; }
+	    if (tx >= smx1 && ty > ay) { return Directions$2.TOP; }
+	    if (tx <= sx1 && ty <= smy0) { return Directions$2.RIGHT; }
+	    if (tx <= sx1 && ty >= smy1) { return Directions$2.RIGHT; }
+	    if (tx < sx0 && ty >= smy0 && ty <= ay) {
+	        if (nextInLine.point.y < ty) {
+	            return Directions$2.BOTTOM;
+	        }
+
+	        return Directions$2.TOP;
+	    }
+	    if (tx < sx0 && ty <= smy1 && ty >= ay) {
+	        if (nextInLine.point.y < ty) {
+	            return Directions$2.BOTTOM;
+	        }
+
+	        return Directions$2.TOP;
+	    }
+
+	    return Directions$2.RIGHT;
+	}
+
+	function resolveInitialDirection(source, target, nextInLine) {
+	    var ref = resolveSides(source, target);
+	    var sourceSide = ref[0];
+
+	    switch (sourceSide) {
+	        case Directions$2.TOP:
+	            return resolveForTopSourceSide(source, target, nextInLine);
+	        case Directions$2.RIGHT:
+	            return resolveForRightSourceSide(source, target, nextInLine);
+	        case Directions$2.BOTTOM:
+	            return resolveForBottomSourceSide(source, target, nextInLine);
+	        case Directions$2.LEFT:
+	            return resolveForLeftSourceSide(source, target, nextInLine);
+	    }
+	}
+
+	function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
+	    var tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
+	    var roundedAngle = Math.round(getSegmentAngle(tangent) / 90) * 90;
+
+	    if (roundedAngle % 180 === 0 && linkOrigin.y === connectionPoint.y) {
+	        return linkOrigin.x < connectionPoint.x ? Directions$2.LEFT : Directions$2.RIGHT;
+	    } else if (linkOrigin.x === connectionPoint.x) {
+	        return linkOrigin.y < connectionPoint.y ? Directions$2.TOP : Directions$2.BOTTOM;
+	    }
+
+	    switch (roundedAngle) {
+	        case 0:
+	        case 180:
+	        case 360:
+	            return linkOrigin.y < connectionPoint.y ? Directions$2.TOP : Directions$2.BOTTOM;
+	        case 90:
+	        case 270:
+	            return linkOrigin.x < connectionPoint.x ? Directions$2.LEFT : Directions$2.RIGHT;
+	    }
+	}
+
+	function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAnchor, margin) {
+	    if (direction === Directions$2.AUTO) {
+	        direction = isPort ? Directions$2.MAGNET_SIDE : Directions$2.ANCHOR_SIDE;
+	    }
+
+	    var isElement = view && view.model.isElement();
+
+	    var ref = isElement ? Rect.fromRectUnion(bbox, view.model.getBBox()) : fallBackAnchor;
+	    var x0 = ref.x;
+	    var y0 = ref.y;
+	    var width = ref.width; if ( width === void 0 ) width = 0;
+	    var height = ref.height; if ( height === void 0 ) height = 0;
+
+	    return {
+	        point: point,
+	        x0: x0,
+	        y0: y0,
+	        view: view,
+	        bbox: bbox,
+	        width: width,
+	        height: height,
+	        direction: direction,
+	        margin: isElement ? margin : 0
+	    };
+	}
+
+	function pointDataFromVertex(ref) {
+	    var x = ref.x;
+	    var y = ref.y;
+
+	    var point = new Point(x, y);
+
+	    return {
+	        point: point,
+	        x0: point.x,
+	        y0: point.y,
+	        view: null,
+	        bbox: new Rect(x, y, 0, 0),
+	        width: 0,
+	        height: 0,
+	        direction: null,
+	        margin: 0
+	    };
+	}
+
+	function getOutsidePoint(side, pointData, margin) {
+	    var outsidePoint = pointData.point.clone();
+
+	    var x0 = pointData.x0;
+	    var y0 = pointData.y0;
+	    var width = pointData.width;
+	    var height = pointData.height;
+
+	    switch (side) {
+	        case 'left':
+	            outsidePoint.x = x0 - margin;
+	            break;
+	        case 'right':
+	            outsidePoint.x = x0 + width + margin;
+	            break;
+	        case 'top':
+	            outsidePoint.y = y0 - margin;
+	            break;
+	        case 'bottom':
+	            outsidePoint.y = y0 + height + margin;
+	            break;
+	    }
+
+	    return outsidePoint;
+	}
+
+	function routeBetweenPoints(source, target) {
+	    var sourcePoint = source.point;
+	    var sx0 = source.x0;
+	    var sy0 = source.y0;
+	    var sourceView = source.view;
+	    var sourceWidth = source.width;
+	    var sourceHeight = source.height;
+	    var sourceMargin = source.margin;
+	    var targetPoint = target.point;
+	    var tx0 = target.x0;
+	    var ty0 = target.y0;
+	    var targetWidth = target.width;
+	    var targetHeight = target.height;
+	    var targetMargin = target.margin;
+
+	    var tx1 = tx0 + targetWidth;
+	    var ty1 = ty0 + targetHeight;
+	    var sx1 = sx0 + sourceWidth;
+	    var sy1 = sy0 + sourceHeight;
+
+	    var isSourceEl = sourceView && sourceView.model.isElement();
+
+	    // Key coordinates including the margin
+	    var smx0 = sx0 - sourceMargin;
+	    var smx1 = sx1 + sourceMargin;
+	    var smy0 = sy0 - sourceMargin;
+	    var smy1 = sy1 + sourceMargin;
+
+	    var tmx0 = tx0 - targetMargin;
+	    var tmx1 = tx1 + targetMargin;
+	    var tmy0 = ty0 - targetMargin;
+	    var tmy1 = ty1 + targetMargin;
+
+	    var ref = resolveSides(source, target);
+	    var sourceSide = ref[0];
+	    var targetSide = ref[1];
+
+	    var sourceOutsidePoint = getOutsidePoint(sourceSide, { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight }, sourceMargin);
+	    var targetOutsidePoint = getOutsidePoint(targetSide, { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight }, targetMargin);
+
+	    var sox = sourceOutsidePoint.x;
+	    var soy = sourceOutsidePoint.y;
+	    var tox = targetOutsidePoint.x;
+	    var toy = targetOutsidePoint.y;
+	    var tcx = (tx0 + tx1) / 2;
+	    var tcy = (ty0 + ty1) / 2;
+	    var scx = (sx0 + sx1) / 2;
+	    var scy = (sy0 + sy1) / 2;
+	    var middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
+	    var middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
+
+	    if (sourceSide === 'left' && targetSide === 'right') {
+	        if (smx0 <= tmx1) {
+	            var y = middleOfHorizontalSides;
+	            if (sx1 <= tx0) {
+	                if (ty1 >= smy0 && toy < soy) {
+	                    y = Math.min(tmy0, smy0);
+	                } else if (ty0 <= smy1 && toy >= soy) {
+	                    y = Math.max(tmy1, smy1);
+	                }
+	            }
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y },
+	                { x: tox, y: y },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        var x = (sox + tox) / 2;
+	        return [
+	            { x: x, y: soy },
+	            { x: x, y: toy }
+	        ];
+	    } else if (sourceSide === 'right' && targetSide === 'left') {
+	        if (smx1 >= tmx0) {
+	            var y$1 = middleOfHorizontalSides;
+	            if (sox > tx1) {
+	                if (ty1 >= smy0 && toy < soy) {
+	                    y$1 = Math.min(tmy0, smy0);
+	                } else if (ty0 <= smy1 && toy >= soy) {
+	                    y$1 = Math.max(tmy1, smy1);
+	                }
+	            }
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$1 },
+	                { x: tox, y: y$1 },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        var x$1 = (sox + tox) / 2;
+	        return [
+	            { x: x$1, y: soy },
+	            { x: x$1, y: toy }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'bottom') {
+	        if (soy < toy) {
+	            var x$2 = middleOfVerticalSides;
+	            var y$2 = soy;
+
+	            if (soy < ty0) {
+	                if (tx1 >= smx0 && tox < sox) {
+	                    x$2 = Math.min(tmx0, smx0);
+	                } else if (tx0 <= smx1 && tox >= sox) {
+	                    x$2 = Math.max(tmx1, smx1);
+	                }
+	            }
+
+	            return [
+	                { x: sox, y: y$2 },
+	                { x: x$2, y: y$2 },
+	                { x: x$2, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+	        var y$3 = (soy + toy) / 2;
+	        return [
+	            { x: sox, y: y$3 },
+	            { x: tox, y: y$3 }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'top') {
+	        if (soy - sourceMargin > toy) {
+	            var x$3 = middleOfVerticalSides;
+	            var y$4 = soy;
+
+	            if (soy > ty1) {
+	                if (tx1 >= smx0 && tox < sox) {
+	                    x$3 = Math.min(tmx0, smx0);
+	                } else if (tx0 <= smx1 && tox >= sox) {
+	                    x$3 = Math.max(tmx1, smx1);
+	                }
+	            }
+
+	            return [
+	                { x: sox, y: y$4 },
+	                { x: x$3, y: y$4 },
+	                { x: x$3, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+	        var y$5 = (soy + toy) / 2;
+	        return [
+	            { x: sox, y: y$5 },
+	            { x: tox, y: y$5 }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'top') {
+	        var x$4;
+	        var y1 = Math.min((sy1 + ty0) / 2, toy);
+	        var y2 = Math.min((sy0 + ty1) / 2, soy);
+
+	        if (toy < soy) {
+	            if (sox >= tmx1 || sox <= tmx0) {
+	                return [
+	                    { x: sox, y: Math.min(soy, toy) },
+	                    { x: tox, y: Math.min(soy, toy) }
+	                ];
+	            } else if (tox > sox) {
+	                x$4 = Math.min(sox, tmx0);
+	            } else {
+	                x$4 = Math.max(sox, tmx1);
+	            }
+	        } else {
+	            if (tox >= smx1 || tox <= smx0) {
+	                return [
+	                    { x: sox, y: Math.min(soy, toy) },
+	                    { x: tox, y: Math.min(soy, toy) }
+	                ];
+	            } else if (tox >= sox) {
+	                x$4 = Math.max(tox, smx1);
+	            } else {
+	                x$4 = Math.min(tox, smx0);
+	            }
+	        }
+
+	        return [
+	            { x: sox, y: y2 },
+	            { x: x$4, y: y2 },
+	            { x: x$4, y: y1 },
+	            { x: tox, y: y1 }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
+	        var x$5;
+	        var y1$1 = Math.max((sy0 + ty1) / 2, toy);
+	        var y2$1 = Math.max((sy1 + ty0) / 2, soy);
+
+	        if (toy > soy) {
+	            if (sox >= tmx1 || sox <= tmx0) {
+	                return [
+	                    { x: sox, y: Math.max(soy, toy) },
+	                    { x: tox, y: Math.max(soy, toy) }
+	                ];
+	            } else if (tox > sox) {
+	                x$5 = Math.min(sox, tmx0);
+	            } else {
+	                x$5 = Math.max(sox, tmx1);
+	            }
+	        } else {
+	            if (tox >= smx1 || tox <= smx0) {
+	                return [
+	                    { x: sox, y: Math.max(soy, toy) },
+	                    { x: tox, y: Math.max(soy, toy) }
+	                ];
+	            } else if (tox >= sox) {
+	                x$5 = Math.max(tox, smx1);
+	            } else {
+	                x$5 = Math.min(tox, smx0);
+	            }
+	        }
+
+	        return [
+	            { x: sox, y: y2$1 },
+	            { x: x$5, y: y2$1 },
+	            { x: x$5, y: y1$1 },
+	            { x: tox, y: y1$1 }
+	        ];
+	    } else if (sourceSide === 'left' && targetSide === 'left') {
+	        var y$6;
+	        var x1 = Math.min((sx1 + tx0) / 2, tox);
+	        var x2 = Math.min((sx0 + tx1) / 2, sox);
+
+	        if (tox > sox) {
+	            if (toy <= soy) {
+	                y$6 = Math.min(smy0, toy);
+	            } else {
+	                y$6 = Math.max(smy1, toy);
+	            }
+	        } else {
+	            if (toy >= soy) {
+	                y$6 = Math.min(tmy0, soy);
+	            } else {
+	                y$6 = Math.max(tmy1, soy);
+	            }
+	        }
+
+	        return [
+	            { x: x2, y: soy },
+	            { x: x2, y: y$6 },
+	            { x: x1, y: y$6 },
+	            { x: x1, y: toy }
+	        ];
+	    } else if (sourceSide === 'right' && targetSide === 'right') {
+	        var y$7;
+	        var x1$1 = Math.max((sx0 + tx1) / 2, tox);
+	        var x2$1 = Math.max((sx1 + tx0) / 2, sox);
+
+	        if (tox < sox) {
+	            if (toy <= soy) {
+	                y$7 = Math.min(smy0, toy);
+	            } else {
+	                y$7 = Math.max(smy1, toy);
+	            }
+	        } else {
+	            if (toy >= soy) {
+	                y$7 = Math.min(tmy0, soy);
+	            } else {
+	                y$7 = Math.max(tmy1, soy);
+	            }
+	        }
+
+	        return [
+	            { x: x2$1, y: soy },
+	            { x: x2$1, y: y$7 },
+	            { x: x1$1, y: y$7 },
+	            { x: x1$1, y: toy }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'right') {
+	        if (soy > toy) {
+	            if (sox < tox) {
+	                var y$8 = middleOfHorizontalSides;
+
+	                if ((y$8 > tcy || !isSourceEl) && y$8 < tmy1 && sox < tx0) {
+	                    y$8 = tmy0;
+	                }
+	                return [
+	                    { x: sox, y: y$8 },
+	                    { x: tox, y: y$8 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+
+	            return [{ x: sox, y: toy }];
+	        }
+
+	        var x$6 = Math.max(middleOfVerticalSides, tmx1);
+
+	        if (tox < sox && toy > sy0 && toy < sy1) {
+	            return [
+	                { x: sox, y: soy },
+	                { x: x$6, y: soy },
+	                { x: x$6, y: toy }
+	            ];
+	        }
+
+	        if ((x$6 > smx0 && toy > sy0) || tx0 > sx1) {
+	            var y$9 = Math.min(sy0 - sourceMargin, ty0 - targetMargin);
+	            var x$7 = Math.max(sx1 + sourceMargin, tx1 + targetMargin);
+	            return [
+	                { x: sox, y: y$9 },
+	                { x: x$7, y: y$9 },
+	                { x: x$7, y: toy }
+	            ];
+	        }
+
+	        return [
+	            { x: sox, y: soy },
+	            { x: Math.max(x$6, tox), y: soy },
+	            { x: Math.max(x$6, tox), y: toy }
+	        ];
+	    } else if (sourceSide === 'top' && targetSide === 'left') {
+	        if (soy > toy) {
+	            if (sox > tox) {
+	                var y$10 = middleOfHorizontalSides;
+
+	                if ((y$10 > tcy || !isSourceEl) && y$10 < tmy1 && sox > tx1) {
+	                    y$10 = tmy0;
+	                }
+	                return [
+	                    { x: sox, y: y$10 },
+	                    { x: tox, y: y$10 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        }
+
+	        var x$8 = Math.min(tmx0, middleOfVerticalSides);
+
+	        if (sox < tox && sy1 >= toy) {
+	            return [
+	                { x: sox, y: soy },
+	                { x: x$8, y: soy },
+	                { x: x$8, y: toy }];
+	        }
+
+	        if (x$8 < smx1 && soy < ty1) {
+	            var y$11 = Math.min(smy0, tmy0);
+	            var x$9 = Math.min(smx0, tmx0);
+	            return [
+	                { x: sox, y: y$11 },
+	                { x: x$9, y: y$11 },
+	                { x: x$9, y: toy }
+	            ];
+	        }
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$8, y: soy },
+	            { x: x$8, y: toy }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'right') {
+	        if (soy < toy) {
+	            if (sox < tox) {
+	                var y$12 = middleOfHorizontalSides;
+
+	                if ((y$12 < tcy || !isSourceEl) && y$12 > tmy0 && sox < tx0) {
+	                    y$12 = tmy1;
+	                }
+	                return [
+	                    { x: sox, y: y$12 },
+	                    { x: tox, y: y$12 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        } else {
+	            if (sx0 < tox) {
+	                var y$13 = Math.max(smy1, tmy1);
+	                var x$10 = Math.max(smx1, tmx1);
+	                return [
+	                    { x: sox, y: y$13 },
+	                    { x: x$10, y: y$13 },
+	                    { x: x$10, y: toy }
+	                ];
+	            }
+	        }
+
+	        var x$11 = middleOfVerticalSides;
+
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$11, y: soy },
+	            { x: x$11, y: toy }
+	        ];
+	    } else if (sourceSide === 'bottom' && targetSide === 'left') {
+	        if (soy < toy) {
+	            if (sox > tox) {
+	                var y$14 = middleOfHorizontalSides;
+
+	                if ((y$14 < tcy || !isSourceEl) && y$14 > tmy0 && sox > tx1) {
+	                    y$14 = tmy1;
+	                }
+	                return [
+	                    { x: sox, y: y$14 },
+	                    { x: tox, y: y$14 },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	            return [{ x: sox, y: toy }];
+	        } else {
+	            if (sx1 > tox) {
+	                var y$15 = Math.max(smy1, tmy1);
+	                var x$12 = Math.min(smx0, tmx0);
+	                return [
+	                    { x: sox, y: y$15 },
+	                    { x: x$12, y: y$15 },
+	                    { x: x$12, y: toy }
+	                ];
+	            }
+	        }
+
+	        var x$13 = middleOfVerticalSides;
+
+	        return [
+	            { x: sox, y: soy },
+	            { x: x$13, y: soy },
+	            { x: x$13, y: toy }
+	        ];
+	    }
+	    else if (sourceSide === 'left' && targetSide === 'bottom') {
+	        if (sox >= tox && soy >= tmy1) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sox >= tx1 && soy < toy) {
+	            var x$14 = middleOfVerticalSides;
+
+	            return [
+	                { x: x$14, y: soy },
+	                { x: x$14, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        if (tox < sx1 && ty1 <= sy0) {
+	            var y$16 = middleOfHorizontalSides;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$16 },
+	                { x: tox, y: y$16 }
+	            ];
+	        }
+
+	        var x$15 = Math.min(tmx0, sox);
+	        var y$17 = Math.max(smy1, tmy1);
+
+	        return [
+	            { x: x$15, y: soy },
+	            { x: x$15, y: y$17 },
+	            { x: tox, y: y$17 }
+	        ];
+	    } else if (sourceSide === 'left' && targetSide === 'top') {
+	        if (sox > tox && soy < tmy0) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sox >= tx1) {
+	            if (soy > toy) {
+	                var x$16 = middleOfVerticalSides;
+
+	                return [
+	                    { x: x$16, y: soy },
+	                    { x: x$16, y: toy },
+	                    { x: tox, y: toy }
+	                ];
+	            }
+	        }
+
+	        if (tox <= sx1 && toy > soy) {
+	            var y$18 = middleOfHorizontalSides;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$18 },
+	                { x: tox, y: y$18 } ];
+	        }
+
+	        var x$17 = toy < soy ? Math.min(smx0, tmx0) : smx0;
+	        var y$19 = Math.min(smy0, tmy0);
+
+	        return [
+	            { x: x$17, y: soy },
+	            { x: x$17, y: y$19 },
+	            { x: tox, y: y$19 }
+	        ];
+
+	    } else if (sourceSide === 'right' && targetSide === 'top') {
+	        if (sox <= tox && soy < tmy0) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sx1 < tx0 && soy > toy) {
+	            var x$18 = middleOfVerticalSides;
+
+	            return [
+	                { x: x$18, y: soy },
+	                { x: x$18, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        if (tox < sox && ty0 > sy1) {
+	            var y$20 = middleOfHorizontalSides;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$20 },
+	                { x: tox, y: y$20 }
+	            ];
+	        }
+
+	        var x$19 = Math.max(smx1, tmx1);
+	        var y$21 = Math.min(smy0, tmy0);
+
+	        return [
+	            { x: x$19, y: soy },
+	            { x: x$19, y: y$21 },
+	            { x: tox, y: y$21 }
+	        ];
+	    } else if (sourceSide === 'right' && targetSide === 'bottom') {
+	        if (sox <= tox && soy >= tmy1) {
+	            return [{ x: tox, y: soy }];
+	        }
+
+	        if (sox <= tmx0 && soy < toy) {
+	            var x$20 = middleOfVerticalSides;
+
+	            return [
+	                { x: x$20, y: soy },
+	                { x: x$20, y: toy },
+	                { x: tox, y: toy }
+	            ];
+	        }
+
+	        if (tox > sx0 && ty1 < sy0) {
+	            var y$22 = middleOfHorizontalSides;
+
+	            return [
+	                { x: sox, y: soy },
+	                { x: sox, y: y$22 },
+	                { x: tox, y: y$22 }
+	            ];
+	        }
+
+	        var x$21 = Math.max(tmx1, sox);
+	        var y$23 = Math.max(smy1, tmy1);
+
+	        return [
+	            { x: x$21, y: soy },
+	            { x: x$21, y: y$23 },
+	            { x: tox, y: y$23 }
+	        ];
+	    }
+	}
+
+	function rightAngleRouter(vertices, opt, linkView) {
+	    var sourceDirection = opt.sourceDirection; if ( sourceDirection === void 0 ) sourceDirection = Directions$2.AUTO;
+	    var targetDirection = opt.targetDirection; if ( targetDirection === void 0 ) targetDirection = Directions$2.AUTO;
+	    var margin = opt.margin || 20;
+	    var useVertices = opt.useVertices || false;
+
+	    var isSourcePort = !!linkView.model.source().port;
+	    var sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor, margin);
+
+	    var isTargetPort = !!linkView.model.target().port;
+	    var targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor, margin);
+
+	    var resultVertices = [];
+
+	    if (!useVertices || vertices.length === 0) {
+	        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint));
+	    }
+
+	    var verticesData = vertices.map(function (v) { return pointDataFromVertex(v); });
+	    var firstVertex = verticesData[0];
+
+	    if (sourcePoint.view && sourcePoint.view.model.isElement() && sourcePoint.view.model.getBBox().inflate(margin).containsPoint(firstVertex.point)) {
+	        var ref = resolveSides(sourcePoint, firstVertex);
+	        var fromDirection = ref[0];
+	        var toDirection = fromDirection;
+	        var dummySource = pointDataFromVertex(sourcePoint.point);
+	        // Points do not usually have margin. Here we create a point with a margin.
+	        dummySource.margin = margin;
+	        dummySource.direction = fromDirection;
+	        firstVertex.direction = toDirection;
+
+	        resultVertices.push.apply(resultVertices, routeBetweenPoints(dummySource, firstVertex).concat( [firstVertex.point] ));
+	    } else {
+	        // The first point responsible for the initial direction of the route
+	        var next = verticesData[1] || targetPoint;
+	        var direction = resolveInitialDirection(sourcePoint, firstVertex, next);
+	        firstVertex.direction = direction;
+
+	        resultVertices.push.apply(resultVertices, routeBetweenPoints(sourcePoint, firstVertex).concat( [firstVertex.point] ));
+	    }
+
+	    for (var i = 0; i < verticesData.length - 1; i++) {
+	        var from = verticesData[i];
+	        var to = verticesData[i + 1];
+
+	        var segment = new Line(from.point, to.point);
+	        var segmentAngle = getSegmentAngle(segment);
+	        if (segmentAngle % 90 === 0) {
+	            // Since the segment is horizontal or vertical, we can skip the routing and just connect them with a straight line
+	            var toDirection$1 = ANGLE_DIRECTION_MAP[segmentAngle];
+	            var accessDirection = OPPOSITE_DIRECTIONS[toDirection$1];
+
+	            if (toDirection$1 !== from.direction) {
+	                resultVertices.push(from.point, to.point);
+	                to.direction = accessDirection;
+	            } else {
+	                var angle = normalizeAngle(segmentAngle - 90);
+
+	                var dx = 0;
+	                var dy = 0;
+
+	                if (angle === 90) {
+	                    dy = -margin;
+	                } else if (angle === 180) {
+	                    dx = -margin;
+	                } else if (angle === 270) {
+	                    dy = margin;
+	                } else if (angle === 0) {
+	                    dx = margin;
+	                }
+
+	                var p1 = { x: from.point.x + dx, y: from.point.y + dy };
+	                var p2 = { x: to.point.x + dx, y: to.point.y + dy };
+
+	                var segment2 = new Line(to.point, p2);
+	                to.direction = ANGLE_DIRECTION_MAP[getSegmentAngle(segment2)];
+
+	                // Constructing a loop
+	                resultVertices.push(from.point, p1, p2, to.point);
+	            }
+
+	            continue;
+	        }
+
+	        var ref$1 = resolveDirection(from, to);
+	        var fromDirection$1 = ref$1[0];
+	        var toDirection$2 = ref$1[1];
+
+	        from.direction = fromDirection$1;
+	        to.direction = toDirection$2;
+
+	        resultVertices.push.apply(resultVertices, routeBetweenPoints(from, to).concat( [to.point] ));
+	    }
+
+	    var lastVertex = verticesData[verticesData.length - 1];
+
+	    if (targetPoint.view && targetPoint.view.model.isElement()) {
+	        if (targetPoint.view.model.getBBox().inflate(margin).containsPoint(lastVertex.point)) {
+	            var ref$2 = resolveDirection(lastVertex, targetPoint);
+	            var fromDirection$2 = ref$2[0];
+	            var dummyTarget = pointDataFromVertex(targetPoint.point);
+	            var ref$3 = resolveSides(lastVertex, targetPoint);
+	            var toDirection$3 = ref$3[1];
+	            // we are creating a point that has a margin
+	            dummyTarget.margin = margin;
+	            dummyTarget.direction = toDirection$3;
+	            lastVertex.direction = fromDirection$2;
+
+	            resultVertices.push.apply(resultVertices, routeBetweenPoints(lastVertex, dummyTarget));
+	        } else {
+	            // the last point of `simplified` array is the last defined vertex
+	            // grab the penultimate point and construct a line segment from it to the last vertex
+	            // this will ensure that the last segment continues in a straight line
+
+	            var simplified = simplifyPoints(resultVertices);
+	            var segment$1 = new Line(simplified[simplified.length - 2], lastVertex.point);
+	            var definedDirection = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(segment$1))];
+	            lastVertex.direction = definedDirection;
+
+	            var lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
+	            var ref$4 = simplifyPoints(lastSegmentRoute.concat( [targetPoint.point]));
+	            var p1$1 = ref$4[0];
+	            var p2$1 = ref$4[1];
+
+	            var lastSegment = new Line(p1$1, p2$1);
+	            var roundedLastSegmentAngle = Math.round(getSegmentAngle(lastSegment));
+	            var lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
+
+	            if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
+	                lastVertex.margin = margin;
+	                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
+	            }
+
+	            resultVertices.push.apply(resultVertices, lastSegmentRoute);
+	        }
+	    } else {
+	        // since the target is only a point we can apply the same logic as if we connected two verticesData
+	        var ref$5 = resolveDirection(lastVertex, targetPoint);
+	        var vertexDirection = ref$5[0];
+	        lastVertex.direction = vertexDirection;
+
+	        resultVertices.push.apply(resultVertices, routeBetweenPoints(lastVertex, targetPoint));
+	    }
+
+	    return simplifyPoints(resultVertices);
+	}
+
+	function resolveDirection(from, to) {
+	    var accessDirection = from.direction;
+	    var isDirectionVertical = VERTICAL_DIRECTIONS.includes(accessDirection);
+
+	    var sourceDirection = from.direction;
+	    var targetDirection = to.direction;
+
+	    if (isDirectionVertical) {
+	        var isToAbove = from.point.y > to.point.y;
+	        var dx = to.point.x - from.point.x;
+
+	        if (accessDirection === Directions$2.BOTTOM) {
+	            // If isToAbove === false and we need figure out if to go left or right
+	            sourceDirection = isToAbove ? OPPOSITE_DIRECTIONS[accessDirection] : dx >= 0 ? Directions$2.RIGHT : Directions$2.LEFT;
+
+	            if (dx > 0) {
+	                targetDirection = isToAbove ? Directions$2.LEFT : Directions$2.TOP;
+	            } else if (dx < 0) {
+	                targetDirection = isToAbove ? Directions$2.RIGHT : Directions$2.TOP;
+	            }
+	        } else {
+	            // If isToAbove === true and we need figure out if to go left or right
+	            sourceDirection = isToAbove ? dx >= 0 ? Directions$2.RIGHT : Directions$2.LEFT : OPPOSITE_DIRECTIONS[accessDirection];
+
+	            if (dx > 0) {
+	                targetDirection = isToAbove ? Directions$2.BOTTOM : Directions$2.LEFT;
+	            } else if (dx < 0) {
+	                targetDirection = isToAbove ? Directions$2.BOTTOM : Directions$2.RIGHT;
+	            }
+	        }
+	    } else {
+	        var isToLeft = from.point.x > to.point.x;
+	        var dy = to.point.y - from.point.y;
+
+	        if (accessDirection === Directions$2.RIGHT) {
+	            sourceDirection = isToLeft ? OPPOSITE_DIRECTIONS[accessDirection] : dy >= 0 ? Directions$2.BOTTOM : Directions$2.TOP;
+
+	            if (dy > 0) {
+	                targetDirection = isToLeft ? Directions$2.TOP : Directions$2.LEFT;
+	            } else if (dy < 0) {
+	                targetDirection = isToLeft ? Directions$2.BOTTOM : Directions$2.LEFT;
+	            }
+	        } else {
+	            sourceDirection = isToLeft ? dy >= 0 ? Directions$2.BOTTOM : Directions$2.TOP : OPPOSITE_DIRECTIONS[accessDirection];
+
+	            if (dy > 0) {
+	                targetDirection = isToLeft ? Directions$2.RIGHT : Directions$2.TOP;
+	            } else if (dy < 0) {
+	                targetDirection = isToLeft ? Directions$2.RIGHT : Directions$2.BOTTOM;
+	            }
+	        }
+	    }
+
+	    return [sourceDirection, targetDirection];
+	}
+
+	rightAngleRouter.Directions = Directions$2;
+
+	var rightAngle = rightAngleRouter;
+
+
+
+	var routers = ({
+		normal: normal$1,
+		oneSide: oneSide,
+		orthogonal: orthogonal,
+		manhattan: manhattan,
+		metro: metro,
+		rightAngle: rightAngle
+	});
+
+	function connectionRatio(view, _magnet, _refPoint, opt) {
+
+	    var ratio = ('ratio' in opt) ? opt.ratio : 0.5;
+	    return view.getPointAtRatio(ratio);
+	}
+
+	function connectionLength(view, _magnet, _refPoint, opt) {
+
+	    var length = ('length' in opt) ? opt.length : 20;
+	    return view.getPointAtLength(length);
+	}
+
+	function _connectionPerpendicular(view, _magnet, refPoint, opt) {
+
+	    var OFFSET = 1e6;
+	    var path = view.getConnection();
+	    var segmentSubdivisions = view.getConnectionSubdivisions();
+	    var verticalLine = new Line(refPoint.clone().offset(0, OFFSET), refPoint.clone().offset(0, -OFFSET));
+	    var horizontalLine = new Line(refPoint.clone().offset(OFFSET, 0), refPoint.clone().offset(-OFFSET, 0));
+	    var verticalIntersections = verticalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
+	    var horizontalIntersections = horizontalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
+	    var intersections = [];
+	    if (verticalIntersections) { Array.prototype.push.apply(intersections, verticalIntersections); }
+	    if (horizontalIntersections) { Array.prototype.push.apply(intersections, horizontalIntersections); }
+	    if (intersections.length > 0) { return refPoint.chooseClosest(intersections); }
+	    if ('fallbackAt' in opt) {
+	        return getPointAtLink(view, opt.fallbackAt);
+	    }
+	    return connectionClosest(view, _magnet, refPoint, opt);
+	}
+
+	function _connectionClosest(view, _magnet, refPoint, _opt) {
+
+	    var closestPoint = view.getClosestPoint(refPoint);
+	    if (!closestPoint) { return new Point(); }
+	    return closestPoint;
+	}
+
+	function resolveRef(fn) {
+	    return function(view, magnet, ref, opt) {
+	        if (ref instanceof Element) {
+	            var refView = this.paper.findView(ref);
+	            var refPoint;
+	            if (refView) {
+	                if (refView.isNodeConnection(ref)) {
+	                    var distance = ('fixedAt' in opt) ? opt.fixedAt : '50%';
+	                    refPoint = getPointAtLink(refView, distance);
+	                } else {
+	                    refPoint = refView.getNodeBBox(ref).center();
+	                }
+	            } else {
+	                // Something went wrong
+	                refPoint = new Point();
+	            }
+	            return fn.call(this, view, magnet, refPoint, opt);
+	        }
+	        return fn.apply(this, arguments);
+	    };
+	}
+
+	function getPointAtLink(view, value) {
+	    var parsedValue = parseFloat(value);
+	    if (isPercentage(value)) {
+	        return view.getPointAtRatio(parsedValue / 100);
+	    } else {
+	        return view.getPointAtLength(parsedValue);
+	    }
+	}
+	var connectionPerpendicular = resolveRef(_connectionPerpendicular);
+	var connectionClosest = resolveRef(_connectionClosest);
+
+	var linkAnchors = ({
+		resolveRef: resolveRef,
+		connectionRatio: connectionRatio,
+		connectionLength: connectionLength,
+		connectionPerpendicular: connectionPerpendicular,
+		connectionClosest: connectionClosest
+	});
+
+	function bboxWrapper(method) {
+
+	    return function(view, magnet, ref, opt) {
+
+	        var rotate = !!opt.rotate;
+	        var bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
+	        var anchor = bbox[method]();
+
+	        var dx = opt.dx;
+	        if (dx) {
+	            var dxPercentage = isPercentage(dx);
+	            dx = parseFloat(dx);
+	            if (isFinite(dx)) {
+	                if (dxPercentage) {
+	                    dx /= 100;
+	                    dx *= bbox.width;
+	                }
+	                anchor.x += dx;
+	            }
+	        }
+
+	        var dy = opt.dy;
+	        if (dy) {
+	            var dyPercentage = isPercentage(dy);
+	            dy = parseFloat(dy);
+	            if (isFinite(dy)) {
+	                if (dyPercentage) {
+	                    dy /= 100;
+	                    dy *= bbox.height;
+	                }
+	                anchor.y += dy;
+	            }
+	        }
+
+	        return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
+	    };
+	}
+
+	function _perpendicular(view, magnet, refPoint, opt) {
+
+	    var angle = view.model.angle();
+	    var bbox = view.getNodeBBox(magnet);
+	    var anchor = bbox.center();
+	    var topLeft = bbox.origin();
+	    var bottomRight = bbox.corner();
+
+	    var padding = opt.padding;
+	    if (!isFinite(padding)) { padding = 0; }
+
+	    if ((topLeft.y + padding) <= refPoint.y && refPoint.y <= (bottomRight.y - padding)) {
+	        var dy = (refPoint.y - anchor.y);
+	        anchor.x += (angle === 0 || angle === 180) ? 0 : dy * 1 / Math.tan(toRad(angle));
+	        anchor.y += dy;
+	    } else if ((topLeft.x + padding) <= refPoint.x && refPoint.x <= (bottomRight.x - padding)) {
+	        var dx = (refPoint.x - anchor.x);
+	        anchor.y += (angle === 90 || angle === 270) ? 0 : dx * Math.tan(toRad(angle));
+	        anchor.x += dx;
+	    }
+
+	    return anchor;
+	}
+
+	function _midSide(view, magnet, refPoint, opt) {
+
+	    var rotate = !!opt.rotate;
+	    var bbox, angle, center;
+	    if (rotate) {
+	        bbox = view.getNodeUnrotatedBBox(magnet);
+	        center = view.model.getBBox().center();
+	        angle = view.model.angle();
+	    } else {
+	        bbox = view.getNodeBBox(magnet);
+	    }
+
+	    var padding = opt.padding;
+	    if (isFinite(padding)) { bbox.inflate(padding); }
+
+	    if (rotate) { refPoint.rotate(center, angle); }
+
+	    var side = bbox.sideNearestToPoint(refPoint);
+	    var anchor;
+	    switch (side) {
+	        case 'left':
+	            anchor = bbox.leftMiddle();
+	            break;
+	        case 'right':
+	            anchor = bbox.rightMiddle();
+	            break;
+	        case 'top':
+	            anchor = bbox.topMiddle();
+	            break;
+	        case 'bottom':
+	            anchor = bbox.bottomMiddle();
+	            break;
+	    }
+
+	    return (rotate) ? anchor.rotate(center, -angle) : anchor;
+	}
+
+	// Can find anchor from model, when there is no selector or the link end
+	// is connected to a port
+	function _modelCenter(view, _magnet, _refPoint, opt, endType) {
+	    return view.model.getPointFromConnectedLink(this.model, endType).offset(opt.dx, opt.dy);
+	}
+
+	//joint.anchors
+	var center = bboxWrapper('center');
+	var top$2 = bboxWrapper('topMiddle');
+	var bottom$2 = bboxWrapper('bottomMiddle');
+	var left$2 = bboxWrapper('leftMiddle');
+	var right$2 = bboxWrapper('rightMiddle');
+	var topLeft = bboxWrapper('origin');
+	var topRight = bboxWrapper('topRight');
+	var bottomLeft = bboxWrapper('bottomLeft');
+	var bottomRight = bboxWrapper('corner');
+	var perpendicular = resolveRef(_perpendicular);
+	var midSide = resolveRef(_midSide);
+	var modelCenter = _modelCenter;
+
+	var anchors = ({
+		center: center,
+		top: top$2,
+		bottom: bottom$2,
+		left: left$2,
+		right: right$2,
+		topLeft: topLeft,
+		topRight: topRight,
+		bottomLeft: bottomLeft,
+		bottomRight: bottomRight,
+		perpendicular: perpendicular,
+		midSide: midSide,
+		modelCenter: modelCenter
+	});
 
 	var GraphCells = Collection.extend({
 
@@ -21955,578 +29290,6 @@ var joint = (function (exports, $) {
 
 	wrapWith(Graph.prototype, ['resetCells', 'addCells', 'removeCells'], wrappers.cells);
 
-	// ViewBase
-	// -------------
-
-	// ViewBases are almost more convention than they are actual code. A View
-	// is simply a JavaScript object that represents a logical chunk of UI in the
-	// DOM. This might be a single item, an entire list, a sidebar or panel, or
-	// even the surrounding frame which wraps your whole app. Defining a chunk of
-	// UI as a **View** allows you to define your DOM events declaratively, without
-	// having to worry about render order ... and makes it easy for the view to
-	// react to specific changes in the state of your models.
-
-	// Creating a ViewBase creates its initial element outside of the DOM,
-	// if an existing element is not provided...
-	var ViewBase = function(options) {
-	    this.cid = uniqueId('view');
-	    this.preinitialize.apply(this, arguments);
-	    assign(this, pick(options, viewOptions));
-	    this._ensureElement();
-	    this.initialize.apply(this, arguments);
-	};
-
-	// Cached regex to split keys for `delegate`.
-	var delegateEventSplitter = /^(\S+)\s*(.*)$/;
-
-	// List of view options to be set as properties.
-	var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
-
-	// Set up all inheritable **ViewBase** properties and methods.
-	assign(ViewBase.prototype, Events, {
-
-	    // The default `tagName` of a View's element is `"div"`.
-	    tagName: 'div',
-
-	    // jQuery delegate for element lookup, scoped to DOM elements within the
-	    // current view. This should be preferred to global lookups where possible.
-	    $: function(selector) {
-	        return this.$el.find(selector);
-	    },
-
-	    // preinitialize is an empty function by default. You can override it with a function
-	    // or object.  preinitialize will run before any instantiation logic is run in the View
-	    preinitialize: function(){},
-
-	    // Initialize is an empty function by default. Override it with your own
-	    // initialization logic.
-	    initialize: function(){},
-
-	    // **render** is the core function that your view should override, in order
-	    // to populate its element (`this.el`), with the appropriate HTML. The
-	    // convention is for **render** to always return `this`.
-	    render: function() {
-	        return this;
-	    },
-
-	    // Remove this view by taking the element out of the DOM, and removing any
-	    // applicable Events listeners.
-	    remove: function() {
-	        this._removeElement();
-	        this.stopListening();
-	        return this;
-	    },
-
-	    // Remove this view's element from the document and all event listeners
-	    // attached to it. Exposed for subclasses using an alternative DOM
-	    // manipulation API.
-	    _removeElement: function() {
-	        this.$el.remove();
-	    },
-
-	    // Change the view's element (`this.el` property) and re-delegate the
-	    // view's events on the new element.
-	    setElement: function(element) {
-	        this.undelegateEvents();
-	        this._setElement(element);
-	        this.delegateEvents();
-	        return this;
-	    },
-
-	    // Creates the `this.el` and `this.$el` references for this view using the
-	    // given `el`. `el` can be a CSS selector or an HTML string, a jQuery
-	    // context or an element. Subclasses can override this to utilize an
-	    // alternative DOM manipulation API and are only required to set the
-	    // `this.el` property.
-	    _setElement: function(el) {
-	        this.$el = el instanceof $ ? el : $(el);
-	        this.el = this.$el[0];
-	    },
-
-	    // Set callbacks, where `this.events` is a hash of
-	    //
-	    // *{"event selector": "callback"}*
-	    //
-	    //     {
-	    //       'mousedown .title':  'edit',
-	    //       'click .button':     'save',
-	    //       'click .open':       function(e) { ... }
-	    //     }
-	    //
-	    // pairs. Callbacks will be bound to the view, with `this` set properly.
-	    // Uses event delegation for efficiency.
-	    // Omitting the selector binds the event to `this.el`.
-	    delegateEvents: function(events) {
-	        events || (events = result(this, 'events'));
-	        if (!events) { return this; }
-	        this.undelegateEvents();
-	        for (var key in events) {
-	            var method = events[key];
-	            if (!isFunction(method)) { method = this[method]; }
-	            if (!method) { continue; }
-	            var match = key.match(delegateEventSplitter);
-	            this.delegate(match[1], match[2], method.bind(this));
-	        }
-	        return this;
-	    },
-
-	    // Add a single event listener to the view's element (or a child element
-	    // using `selector`). This only works for delegate-able events: not `focus`,
-	    // `blur`, and not `change`, `submit`, and `reset` in Internet Explorer.
-	    delegate: function(eventName, selector, listener) {
-	        this.$el.on(eventName + '.delegateEvents' + this.cid, selector, listener);
-	        return this;
-	    },
-
-	    // Clears all callbacks previously bound to the view by `delegateEvents`.
-	    // You usually don't need to use this, but may wish to if you have multiple
-	    // viewbases attached to the same DOM element.
-	    undelegateEvents: function() {
-	        if (this.$el) { this.$el.off('.delegateEvents' + this.cid); }
-	        return this;
-	    },
-
-	    // A finer-grained `undelegateEvents` for removing a single delegated event.
-	    // `selector` and `listener` are both optional.
-	    undelegate: function(eventName, selector, listener) {
-	        this.$el.off(eventName + '.delegateEvents' + this.cid, selector, listener);
-	        return this;
-	    },
-
-	    // Produces a DOM element to be assigned to your view. Exposed for
-	    // subclasses using an alternative DOM manipulation API.
-	    _createElement: function(tagName) {
-	        return document.createElement(tagName);
-	    },
-
-	    // Ensure that the View has a DOM element to render into.
-	    // If `this.el` is a string, pass it through `$()`, take the first
-	    // matching element, and re-assign it to `el`. Otherwise, create
-	    // an element from the `id`, `className` and `tagName` properties.
-	    _ensureElement: function() {
-	        if (!this.el) {
-	            var attrs = assign({}, result(this, 'attributes'));
-	            if (this.id) { attrs.id = result(this, 'id'); }
-	            if (this.className) { attrs['class'] = result(this, 'className'); }
-	            this.setElement(this._createElement(result(this, 'tagName')));
-	            this._setAttributes(attrs);
-	        } else {
-	            this.setElement(result(this, 'el'));
-	        }
-	    },
-
-	    // Set attributes from a hash on this view's element.  Exposed for
-	    // subclasses using an alternative DOM manipulation API.
-	    _setAttributes: function(attributes) {
-	        this.$el.attr(attributes);
-	    }
-
-	});
-
-	// Set up inheritance for the view.
-	ViewBase.extend = extend$1;
-
-	var views = {};
-
-	var View = ViewBase.extend({
-
-	    options: {},
-	    theme: null,
-	    themeClassNamePrefix: addClassNamePrefix('theme-'),
-	    requireSetThemeOverride: false,
-	    defaultTheme: config.defaultTheme,
-	    children: null,
-	    childNodes: null,
-
-	    DETACHABLE: true,
-	    UPDATE_PRIORITY: 2,
-	    FLAG_INSERT: 1<<30,
-	    FLAG_REMOVE: 1<<29,
-	    FLAG_INIT: 1<<28,
-
-	    constructor: function(options) {
-
-	        this.requireSetThemeOverride = options && !!options.theme;
-	        this.options = assign({}, this.options, options);
-
-	        ViewBase.call(this, options);
-	    },
-
-	    initialize: function() {
-
-	        views[this.cid] = this;
-
-	        this.setTheme(this.options.theme || this.defaultTheme);
-	        this.init();
-	    },
-
-	    unmount: function() {
-	        if (this.svgElement) {
-	            this.vel.remove();
-	        } else {
-	            this.$el.remove();
-	        }
-	    },
-
-	    isMounted: function() {
-	        return this.el.parentNode !== null;
-	    },
-
-	    renderChildren: function(children) {
-	        children || (children = result(this, 'children'));
-	        if (children) {
-	            var isSVG = this.svgElement;
-	            var namespace = V.namespace[isSVG ? 'svg' : 'xhtml'];
-	            var doc = parseDOMJSON(children, namespace);
-	            (isSVG ? this.vel : this.$el).empty().append(doc.fragment);
-	            this.childNodes = doc.selectors;
-	        }
-	        return this;
-	    },
-
-	    findAttribute: function(attributeName, node) {
-
-	        var currentNode = node;
-
-	        while (currentNode && currentNode.nodeType === 1) {
-	            var attributeValue = currentNode.getAttribute(attributeName);
-	            // attribute found
-	            if (attributeValue) { return attributeValue; }
-	            // do not climb up the DOM
-	            if (currentNode === this.el) { return null; }
-	            // try parent node
-	            currentNode = currentNode.parentNode;
-	        }
-
-	        return null;
-	    },
-
-	    // Override the mvc ViewBase `_ensureElement()` method in order to create an
-	    // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
-	    // Expose class name setter as a separate method.
-	    _ensureElement: function() {
-	        if (!this.el) {
-	            var tagName = result(this, 'tagName');
-	            var attrs = assign({}, result(this, 'attributes'));
-	            var style = assign({}, result(this, 'style'));
-	            if (this.id) { attrs.id = result(this, 'id'); }
-	            this.setElement(this._createElement(tagName));
-	            this._setAttributes(attrs);
-	            this._setStyle(style);
-	        } else {
-	            this.setElement(result(this, 'el'));
-	        }
-	        this._ensureElClassName();
-	    },
-
-	    _setAttributes: function(attrs) {
-	        if (this.svgElement) {
-	            this.vel.attr(attrs);
-	        } else {
-	            this.$el.attr(attrs);
-	        }
-	    },
-
-	    _setStyle: function(style) {
-	        this.$el.css(style);
-	    },
-
-	    _createElement: function(tagName) {
-	        if (this.svgElement) {
-	            return document.createElementNS(V.namespace.svg, tagName);
-	        } else {
-	            return document.createElement(tagName);
-	        }
-	    },
-
-	    // Utilize an alternative DOM manipulation API by
-	    // adding an element reference wrapped in Vectorizer.
-	    _setElement: function(el) {
-	        this.$el = el instanceof $ ? el : $(el);
-	        this.el = this.$el[0];
-	        if (this.svgElement) { this.vel = V(this.el); }
-	    },
-
-	    _ensureElClassName: function() {
-	        var className = result(this, 'className');
-	        if (!className) { return; }
-	        var prefixedClassName = addClassNamePrefix(className);
-	        // Note: className removal here kept for backwards compatibility only
-	        if (this.svgElement) {
-	            this.vel.removeClass(className).addClass(prefixedClassName);
-	        } else {
-	            this.$el.removeClass(className).addClass(prefixedClassName);
-	        }
-	    },
-
-	    init: function() {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	    },
-
-	    onRender: function() {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	    },
-
-	    confirmUpdate: function() {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	        return 0;
-	    },
-
-	    setTheme: function(theme, opt) {
-
-	        opt = opt || {};
-
-	        // Theme is already set, override is required, and override has not been set.
-	        // Don't set the theme.
-	        if (this.theme && this.requireSetThemeOverride && !opt.override) {
-	            return this;
-	        }
-
-	        this.removeThemeClassName();
-	        this.addThemeClassName(theme);
-	        this.onSetTheme(this.theme/* oldTheme */, theme/* newTheme */);
-	        this.theme = theme;
-
-	        return this;
-	    },
-
-	    addThemeClassName: function(theme) {
-
-	        theme = theme || this.theme;
-	        if (!theme) { return this; }
-
-	        var className = this.themeClassNamePrefix + theme;
-
-	        if (this.svgElement) {
-	            this.vel.addClass(className);
-	        } else {
-	            this.$el.addClass(className);
-	        }
-
-	        return this;
-	    },
-
-	    removeThemeClassName: function(theme) {
-
-	        theme = theme || this.theme;
-
-	        var className = this.themeClassNamePrefix + theme;
-
-	        if (this.svgElement) {
-	            this.vel.removeClass(className);
-	        } else {
-	            this.$el.removeClass(className);
-	        }
-
-	        return this;
-	    },
-
-	    onSetTheme: function(oldTheme, newTheme) {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	    },
-
-	    remove: function() {
-
-	        this.onRemove();
-	        this.undelegateDocumentEvents();
-
-	        views[this.cid] = null;
-
-	        ViewBase.prototype.remove.apply(this, arguments);
-
-	        return this;
-	    },
-
-	    onRemove: function() {
-	        // Intentionally empty.
-	        // This method is meant to be overridden.
-	    },
-
-	    getEventNamespace: function() {
-	        // Returns a per-session unique namespace
-	        return '.joint-event-ns-' + this.cid;
-	    },
-
-	    delegateElementEvents: function(element, events, data) {
-	        if (!events) { return this; }
-	        data || (data = {});
-	        var eventNS = this.getEventNamespace();
-	        for (var eventName in events) {
-	            var method = events[eventName];
-	            if (typeof method !== 'function') { method = this[method]; }
-	            if (!method) { continue; }
-	            $(element).on(eventName + eventNS, data, method.bind(this));
-	        }
-	        return this;
-	    },
-
-	    undelegateElementEvents: function(element) {
-	        $(element).off(this.getEventNamespace());
-	        return this;
-	    },
-
-	    delegateDocumentEvents: function(events, data) {
-	        events || (events = result(this, 'documentEvents'));
-	        return this.delegateElementEvents(document, events, data);
-	    },
-
-	    undelegateDocumentEvents: function() {
-	        return this.undelegateElementEvents(document);
-	    },
-
-	    eventData: function(evt, data) {
-	        if (!evt) { throw new Error('eventData(): event object required.'); }
-	        var currentData = evt.data;
-	        var key = '__' + this.cid + '__';
-	        if (data === undefined) {
-	            if (!currentData) { return {}; }
-	            return currentData[key] || {};
-	        }
-	        currentData || (currentData = evt.data = {});
-	        currentData[key] || (currentData[key] = {});
-	        assign(currentData[key], data);
-	        return this;
-	    },
-
-	    stopPropagation: function(evt) {
-	        this.eventData(evt, { propagationStopped: true });
-	        return this;
-	    },
-
-	    isPropagationStopped: function(evt) {
-	        return !!this.eventData(evt).propagationStopped;
-	    }
-
-	}, {
-
-	    extend: function() {
-
-	        var args = Array.from(arguments);
-
-	        // Deep clone the prototype and static properties objects.
-	        // This prevents unexpected behavior where some properties are overwritten outside of this function.
-	        var protoProps = args[0] && assign({}, args[0]) || {};
-	        var staticProps = args[1] && assign({}, args[1]) || {};
-
-	        // Need the real render method so that we can wrap it and call it later.
-	        var renderFn = protoProps.render || (this.prototype && this.prototype.render) || null;
-
-	        /*
-	            Wrap the real render method so that:
-	                .. `onRender` is always called.
-	                .. `this` is always returned.
-	        */
-	        protoProps.render = function() {
-
-	            if (typeof renderFn === 'function') {
-	                // Call the original render method.
-	                renderFn.apply(this, arguments);
-	            }
-
-	            if (this.render.__render__ === renderFn) {
-	                // Should always call onRender() method.
-	                // Should call it only once when renderFn is actual prototype method i.e. not the wrapper
-	                this.onRender();
-	            }
-
-	            // Should always return itself.
-	            return this;
-	        };
-
-	        protoProps.render.__render__ = renderFn;
-
-	        return ViewBase.extend.call(this, protoProps, staticProps);
-	    }
-	});
-
-	var DoubleTapEventName = 'dbltap';
-	if ($.event && !(DoubleTapEventName in $.event.special)) {
-	    var maxDelay = config.doubleTapInterval;
-	    var minDelay = 30;
-	    $.event.special[DoubleTapEventName] = {
-	        bindType: 'touchend',
-	        delegateType: 'touchend',
-	        handle: function(event) {
-	            var ref;
-
-	            var args = [], len = arguments.length - 1;
-	            while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
-	            var handleObj = event.handleObj;
-	            var target = event.target;
-	            var targetData  = $.data(target);
-	            var now = new Date().getTime();
-	            var delta = 'lastTouch' in targetData ? now - targetData.lastTouch : 0;
-	            if (delta < maxDelay && delta > minDelay) {
-	                targetData.lastTouch = null;
-	                event.type = handleObj.origType;
-	                // let jQuery handle the triggering of "dbltap" event handlers
-	                (ref = handleObj.handler).call.apply(ref, [ this, event ].concat( args ));
-	            } else {
-	                targetData.lastTouch = now;
-	            }
-	        }
-	    };
-	}
-
-	var Listener = function Listener() {
-	    var callbackArguments = [], len = arguments.length;
-	    while ( len-- ) callbackArguments[ len ] = arguments[ len ];
-
-	    this.callbackArguments = callbackArguments;
-	};
-
-	Listener.prototype.listenTo = function listenTo (object, evt) {
-	        var this$1 = this;
-	        var args = [], len = arguments.length - 2;
-	        while ( len-- > 0 ) args[ len ] = arguments[ len + 2 ];
-
-	    var ref = this;
-	        var callbackArguments = ref.callbackArguments;
-	    // signature 1 - (object, eventHashMap, context)
-	    if (V.isObject(evt)) {
-	        var context = args[0]; if ( context === void 0 ) context = null;
-	        Object.entries(evt).forEach(function (ref) {
-	                var eventName = ref[0];
-	                var cb = ref[1];
-
-	            if (typeof cb !== 'function') { return; }
-	            // Invoke the callback with callbackArguments passed first
-	            if (context || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context ].concat( callbackArguments )); }
-	            Events.listenTo.call(this$1, object, eventName, cb);
-	        });
-	    }
-	    // signature 2 - (object, event, callback, context)
-	    else if (typeof evt === 'string' && typeof args[0] === 'function') {
-	        var cb = args[0];
-	            var context$1 = args[1]; if ( context$1 === void 0 ) context$1 = null;
-	        // Invoke the callback with callbackArguments passed first
-	        if (context$1 || callbackArguments.length > 0) { cb = cb.bind.apply(cb, [ context$1 ].concat( callbackArguments )); }
-	        Events.listenTo.call(this, object, evt, cb);
-	    }
-	};
-
-	Listener.prototype.stopListening = function stopListening () {
-	    Events.stopListening.call(this);
-	};
-
-
-
-	var index$1 = ({
-		views: views,
-		View: View,
-		Listener: Listener,
-		Events: Events,
-		Collection: Collection,
-		Model: Model,
-		ViewBase: ViewBase,
-		extend: extend$1,
-		addMethodsUtil: addMethodsUtil
-	});
-
 	var LayersNames = {
 	    CELLS: 'cells',
 	    BACK: 'back',
@@ -22600,379 +29363,6 @@ var joint = (function (exports, $) {
 	        var pivotNodes = ref.pivotNodes;
 	        for (var z in pivotNodes) { el.removeChild(pivotNodes[z]); }
 	        this.pivotNodes = {};
-	    }
-
-	});
-
-	function toArray$1(obj) {
-	    if (!obj) { return []; }
-	    if (Array.isArray(obj)) { return obj; }
-	    return [obj];
-	}
-
-	var HighlighterView = View.extend({
-
-	    tagName: 'g',
-	    svgElement: true,
-	    className: 'highlight',
-
-	    HIGHLIGHT_FLAG: 1,
-	    UPDATE_PRIORITY: 3,
-	    DETACHABLE: false,
-	    UPDATABLE: true,
-	    MOUNTABLE: true,
-
-	    cellView: null,
-	    nodeSelector: null,
-	    node: null,
-	    updateRequested: false,
-	    postponedUpdate: false,
-	    transformGroup: null,
-	    detachedTransformGroup: null,
-
-	    requestUpdate: function requestUpdate(cellView, nodeSelector) {
-	        var paper = cellView.paper;
-	        this.cellView = cellView;
-	        this.nodeSelector = nodeSelector;
-	        if (paper) {
-	            this.updateRequested = true;
-	            paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
-	        }
-	    },
-
-	    confirmUpdate: function confirmUpdate() {
-	        // The cellView is now rendered/updated since it has a higher update priority.
-	        this.updateRequested = false;
-	        var ref = this;
-	        var cellView = ref.cellView;
-	        var nodeSelector = ref.nodeSelector;
-	        if (!cellView.isMounted()) {
-	            this.postponedUpdate = true;
-	            return 0;
-	        }
-	        this.update(cellView, nodeSelector);
-	        this.mount();
-	        this.transform();
-	        return 0;
-	    },
-
-	    findNode: function findNode(cellView, nodeSelector) {
-	        var assign, assign$1;
-
-	        if ( nodeSelector === void 0 ) nodeSelector = null;
-	        var el;
-	        if (typeof nodeSelector === 'string') {
-	            (assign = cellView.findBySelector(nodeSelector), el = assign[0]);
-	        } else if (isPlainObject(nodeSelector)) {
-	            var isLink = cellView.model.isLink();
-	            var label = nodeSelector.label; if ( label === void 0 ) label = null;
-	            var port = nodeSelector.port;
-	            var selector = nodeSelector.selector;
-	            if (isLink && label !== null) {
-	                // Link Label Selector
-	                el = cellView.findLabelNode(label, selector);
-	            } else if (!isLink && port) {
-	                // Element Port Selector
-	                el = cellView.findPortNode(port, selector);
-	            } else {
-	                // Cell Selector
-	                (assign$1 = cellView.findBySelector(selector), el = assign$1[0]);
-	            }
-	        } else if (nodeSelector) {
-	            el = V.toNode(nodeSelector);
-	            if (!(el instanceof SVGElement)) { el = null; }
-	        }
-	        return el ? el : null;
-	    },
-
-	    getNodeMatrix: function getNodeMatrix(cellView, node) {
-	        var ref = this;
-	        var options = ref.options;
-	        var layer = options.layer;
-	        var rotatableNode = cellView.rotatableNode;
-	        var nodeMatrix = cellView.getNodeMatrix(node);
-	        if (rotatableNode) {
-	            if (layer) {
-	                if (rotatableNode.contains(node)) {
-	                    return nodeMatrix;
-	                }
-	                // The node is outside of the rotatable group.
-	                // Compensate the rotation set by transformGroup.
-	                return cellView.getRootRotateMatrix().inverse().multiply(nodeMatrix);
-	            } else {
-	                return cellView.getNodeRotateMatrix(node).multiply(nodeMatrix);
-	            }
-	        }
-	        return nodeMatrix;
-	    },
-
-	    mount: function mount() {
-	        var ref = this;
-	        var MOUNTABLE = ref.MOUNTABLE;
-	        var cellView = ref.cellView;
-	        var el = ref.el;
-	        var options = ref.options;
-	        var transformGroup = ref.transformGroup;
-	        var detachedTransformGroup = ref.detachedTransformGroup;
-	        var postponedUpdate = ref.postponedUpdate;
-	        var nodeSelector = ref.nodeSelector;
-	        if (!MOUNTABLE || transformGroup) { return; }
-	        if (postponedUpdate) {
-	            // The cellView was not mounted when the update was requested.
-	            // The update was postponed until the cellView is mounted.
-	            this.update(cellView, nodeSelector);
-	            this.transform();
-	            return;
-	        }
-	        var cellViewRoot = cellView.vel;
-	        var paper = cellView.paper;
-	        var layerName = options.layer;
-	        if (layerName) {
-	            var vGroup;
-	            if (detachedTransformGroup) {
-	                vGroup = detachedTransformGroup;
-	                this.detachedTransformGroup = null;
-	            } else {
-	                vGroup = V('g').addClass('highlight-transform').append(el);
-	            }
-	            this.transformGroup = vGroup;
-	            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
-	        } else {
-	            // TODO: prepend vs append
-	            if (!el.parentNode || el.nextSibling) {
-	                // Not appended yet or not the last child
-	                cellViewRoot.append(el);
-	            }
-	        }
-	    },
-
-	    unmount: function unmount() {
-	        var ref = this;
-	        var MOUNTABLE = ref.MOUNTABLE;
-	        var transformGroup = ref.transformGroup;
-	        var vel = ref.vel;
-	        if (!MOUNTABLE) { return; }
-	        if (transformGroup) {
-	            this.transformGroup = null;
-	            this.detachedTransformGroup = transformGroup;
-	            transformGroup.remove();
-	        } else {
-	            vel.remove();
-	        }
-	    },
-
-	    transform: function transform() {
-	        var ref = this;
-	        var transformGroup = ref.transformGroup;
-	        var cellView = ref.cellView;
-	        var updateRequested = ref.updateRequested;
-	        if (!transformGroup || cellView.model.isLink() || updateRequested) { return; }
-	        var translateMatrix = cellView.getRootTranslateMatrix();
-	        var rotateMatrix = cellView.getRootRotateMatrix();
-	        var transformMatrix = translateMatrix.multiply(rotateMatrix);
-	        transformGroup.attr('transform', V.matrixToTransformString(transformMatrix));
-	    },
-
-	    update: function update() {
-	        var ref = this;
-	        var prevNode = ref.node;
-	        var cellView = ref.cellView;
-	        var nodeSelector = ref.nodeSelector;
-	        var updateRequested = ref.updateRequested;
-	        var id = ref.id;
-	        if (updateRequested) { return; }
-	        this.postponedUpdate = false;
-	        var node = this.node = this.findNode(cellView, nodeSelector);
-	        if (prevNode) {
-	            this.unhighlight(cellView, prevNode);
-	        }
-	        if (node) {
-	            this.highlight(cellView, node);
-	            this.mount();
-	        } else {
-	            this.unmount();
-	            cellView.notify('cell:highlight:invalid', id, this);
-	        }
-	    },
-
-	    onRemove: function onRemove() {
-	        var ref = this;
-	        var node = ref.node;
-	        var cellView = ref.cellView;
-	        var id = ref.id;
-	        var constructor = ref.constructor;
-	        if (node) {
-	            this.unhighlight(cellView, node);
-	        }
-	        this.unmount();
-	        constructor._removeRef(cellView, id);
-	    },
-
-	    highlight: function highlight(_cellView, _node) {
-	        // to be overridden
-	    },
-
-	    unhighlight: function unhighlight(_cellView, _node) {
-	        // to be overridden
-	    },
-
-	    // Update Attributes
-
-	    listenToUpdateAttributes: function listenToUpdateAttributes(cellView) {
-	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
-	        if (!Array.isArray(attributes) || attributes.length === 0) { return; }
-	        this.listenTo(cellView.model, 'change', this.onCellAttributeChange);
-	    },
-
-	    onCellAttributeChange: function onCellAttributeChange() {
-	        var ref = this;
-	        var cellView = ref.cellView;
-	        if (!cellView) { return; }
-	        var model = cellView.model;
-	        var paper = cellView.paper;
-	        var attributes = result(this, 'UPDATE_ATTRIBUTES');
-	        if (!attributes.some(function (attribute) { return model.hasChanged(attribute); })) { return; }
-	        paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
-	    }
-
-	}, {
-
-	    _views: {},
-
-	    // Used internally by CellView highlight()
-	    highlight: function(cellView, node, opt) {
-	        var id = this.uniqueId(node, opt);
-	        this.add(cellView, node, id, opt);
-	    },
-
-	    // Used internally by CellView unhighlight()
-	    unhighlight: function(cellView, node, opt) {
-	        var id = this.uniqueId(node, opt);
-	        this.remove(cellView, id);
-	    },
-
-	    get: function get(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        var cid = cellView.cid;
-	        var ref$2 = this;
-	        var _views = ref$2._views;
-	        var refs = _views[cid];
-	        if (id === null) {
-	            // all highlighters
-	            var views = [];
-	            if (!refs) { return views; }
-	            for (var hid in refs) {
-	                var ref = refs[hid];
-	                if (ref instanceof this) {
-	                    views.push(ref);
-	                }
-	            }
-	            return views;
-	        } else {
-	            // single highlighter
-	            if (!refs) { return null; }
-	            if (id in refs) {
-	                var ref$1 = refs[id];
-	                if (ref$1 instanceof this) { return ref$1; }
-	            }
-	            return null;
-	        }
-	    },
-
-	    add: function add(cellView, nodeSelector, id, opt) {
-	        if ( opt === void 0 ) opt = {};
-
-	        if (!id) { throw new Error('dia.HighlighterView: An ID required.'); }
-	        // Search the existing view amongst all the highlighters
-	        var previousView = HighlighterView.get(cellView, id);
-	        if (previousView) { previousView.remove(); }
-	        var view = new this(opt);
-	        view.id = id;
-	        this._addRef(cellView, id, view);
-	        view.requestUpdate(cellView, nodeSelector);
-	        view.listenToUpdateAttributes(cellView);
-	        return view;
-	    },
-
-	    _addRef: function _addRef(cellView, id, view) {
-	        var cid = cellView.cid;
-	        var ref = this;
-	        var _views = ref._views;
-	        var refs = _views[cid];
-	        if (!refs) { refs = _views[cid] = {}; }
-	        refs[id] = view;
-	    },
-
-	    _removeRef: function _removeRef(cellView, id) {
-	        var cid = cellView.cid;
-	        var ref = this;
-	        var _views = ref._views;
-	        var refs = _views[cid];
-	        if (!refs) { return; }
-	        if (id) { delete refs[id]; }
-	        for (var _ in refs) { return; }
-	        delete _views[cid];
-	    },
-
-	    remove: function remove(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) {
-	            view.remove();
-	        });
-	    },
-
-	    removeAll: function removeAll(paper, id) {
-	        if ( id === void 0 ) id = null;
-
-	        var ref = this;
-	        var _views = ref._views;
-
-	        for (var cid in _views) {
-	            for (var hid in _views[cid]) {
-	                var view = _views[cid][hid];
-
-	                if (view.cellView.paper === paper && view instanceof this && (id === null || hid === id)) {
-	                    view.remove();
-	                }
-	            }
-	        }
-	    },
-
-	    update: function update(cellView, id, dirty) {
-	        if ( id === void 0 ) id = null;
-	        if ( dirty === void 0 ) dirty = false;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) {
-	            if (dirty || view.UPDATABLE) { view.update(); }
-	        });
-	    },
-
-	    transform: function transform(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) {
-	            if (view.UPDATABLE) { view.transform(); }
-	        });
-	    },
-
-	    unmount: function unmount(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.unmount(); });
-	    },
-
-	    mount: function mount(cellView, id) {
-	        if ( id === void 0 ) id = null;
-
-	        toArray$1(this.get(cellView, id)).forEach(function (view) { return view.mount(); });
-	    },
-
-	    uniqueId: function uniqueId(node, opt) {
-	        if ( opt === void 0 ) opt = '';
-
-	        return V.ensureId(node) + JSON.stringify(opt);
 	    }
 
 	});
@@ -23102,9 +29492,6 @@ var joint = (function (exports, $) {
 
 	        this.cleanNodesCache();
 
-	        // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
-	        this.$el.data('view', this);
-
 	        this.startListening();
 	    },
 
@@ -23148,7 +29535,7 @@ var joint = (function (exports, $) {
 	    },
 
 	    // Return `true` if cell link is allowed to perform a certain UI `feature`.
-	    // Example: `can('vertexMove')`, `can('labelMove')`.
+	    // Example: `can('labelMove')`.
 	    can: function(feature) {
 
 	        var interactive = isFunction(this.options.interactive)
@@ -23160,9 +29547,6 @@ var joint = (function (exports, $) {
 	    },
 
 	    findBySelector: function(selector, root, selectors) {
-
-	        root || (root = this.el);
-	        selectors || (selectors = this.selectors);
 
 	        // These are either descendants of `this.$el` of `this.$el` itself.
 	        // `.` is a special selector used to select the wrapping `<g>` element.
@@ -23180,6 +29564,16 @@ var joint = (function (exports, $) {
 	        if (config.useCSSSelectors) { return $(root).find(selector).toArray(); }
 
 	        return [];
+	    },
+
+	    findNodes: function(selector) {
+	        return this.findBySelector(selector, this.el, this.selectors);
+	    },
+
+	    findNode: function(selector) {
+	        var ref = this.findNodes(selector);
+	        var node = ref[0]; if ( node === void 0 ) node = null;
+	        return node;
 	    },
 
 	    notify: function(eventName) {
@@ -23258,16 +29652,16 @@ var joint = (function (exports, $) {
 	    },
 
 	    _notifyHighlight: function(eventName, el, opt) {
-	        var assign, assign$1;
+	        var assign;
 
 	        if ( opt === void 0 ) opt = {};
 	        var ref = this;
 	        var rootNode = ref.el;
 	        var node;
 	        if (typeof el === 'string') {
-	            (assign = this.findBySelector(el), node = assign[0], node = node === void 0 ? rootNode : node);
+	            node = this.findNode(el) || rootNode;
 	        } else {
-	            (assign$1 = this.$(el), node = assign$1[0], node = node === void 0 ? rootNode : node);
+	            (assign = this.$(el), node = assign[0], node = node === void 0 ? rootNode : node);
 	        }
 	        // set partial flag if the highlighted element is not the entire view.
 	        opt.partial = (node !== rootNode);
@@ -23340,8 +29734,7 @@ var joint = (function (exports, $) {
 	        el || (el = this.el);
 	        var nodeSelector = el.getAttribute((type + "-selector"));
 	        if (nodeSelector) {
-	            var ref = this.findBySelector(nodeSelector);
-	            var proxyNode = ref[0];
+	            var proxyNode = this.findNode(nodeSelector);
 	            if (proxyNode) { return proxyNode; }
 	        }
 	        return el;
@@ -23355,7 +29748,7 @@ var joint = (function (exports, $) {
 	        var selector;
 
 	        if (el === this.el) {
-	            if (typeof prevSelector === 'string') { selector = '> ' + prevSelector; }
+	            if (typeof prevSelector === 'string') { selector = ':scope > ' + prevSelector; }
 	            return selector;
 	        }
 
@@ -23432,13 +29825,12 @@ var joint = (function (exports, $) {
 
 	    getMagnetFromLinkEnd: function(end) {
 
-	        var root = this.el;
 	        var port = end.port;
 	        var selector = end.magnet;
 	        var model = this.model;
 	        var magnet;
 	        if (port != null && model.isElement() && model.hasPort(port)) {
-	            magnet = this.findPortNode(port, selector) || root;
+	            magnet = this.findPortNode(port, selector) || this.el;
 	        } else {
 	            if (!selector) { selector = end.selector; }
 	            if (!selector && port != null) {
@@ -23446,7 +29838,7 @@ var joint = (function (exports, $) {
 	                // a port created via the `port` attribute (not API).
 	                selector = '[port="' + port + '"]';
 	            }
-	            magnet = this.findBySelector(selector, root, this.selectors)[0];
+	            magnet = this.findNode(selector);
 	        }
 
 	        return this.findProxyNode(magnet, 'magnet');
@@ -24847,8 +31239,7 @@ var joint = (function (exports, $) {
 	                var proxyPortNode = this.findPortNode(port, nodeSelector);
 	                if (proxyPortNode) { return proxyPortNode; }
 	            } else {
-	                var ref = this.findBySelector(nodeSelector);
-	                var proxyNode = ref[0];
+	                var proxyNode = this.findNode(nodeSelector);
 	                if (proxyNode) { return proxyNode; }
 	            }
 	        }
@@ -25149,3689 +31540,11 @@ var joint = (function (exports, $) {
 
 	assign(ElementView.prototype, elementViewPortPrototype);
 
-	// Does not make any changes to vertices.
-	// Returns the arguments that are passed to it, unchanged.
-	var normal = function(vertices, opt, linkView) {
-
-	    return vertices;
-	};
-
-	// Routes the link always to/from a certain side
-	//
-	// Arguments:
-	//   padding ... gap between the element and the first vertex. :: Default 40.
-	//   side ... 'left' | 'right' | 'top' | 'bottom' :: Default 'bottom'.
-	//
-	var oneSide = function(vertices, opt, linkView) {
-
-	    var side = opt.side || 'bottom';
-	    var padding = normalizeSides(opt.padding || 40);
-
-	    // LinkView contains cached source an target bboxes.
-	    // Note that those are Geometry rectangle objects.
-	    var sourceBBox = linkView.sourceBBox;
-	    var targetBBox = linkView.targetBBox;
-	    var sourcePoint = sourceBBox.center();
-	    var targetPoint = targetBBox.center();
-
-	    var coordinate, dimension, direction;
-
-	    switch (side) {
-	        case 'bottom':
-	            direction = 1;
-	            coordinate = 'y';
-	            dimension = 'height';
-	            break;
-	        case 'top':
-	            direction = -1;
-	            coordinate = 'y';
-	            dimension = 'height';
-	            break;
-	        case 'left':
-	            direction = -1;
-	            coordinate = 'x';
-	            dimension = 'width';
-	            break;
-	        case 'right':
-	            direction = 1;
-	            coordinate = 'x';
-	            dimension = 'width';
-	            break;
-	        default:
-	            throw new Error('Router: invalid side');
-	    }
-
-	    // move the points from the center of the element to outside of it.
-	    sourcePoint[coordinate] += direction * (sourceBBox[dimension] / 2 + padding[side]);
-	    targetPoint[coordinate] += direction * (targetBBox[dimension] / 2 + padding[side]);
-
-	    // make link orthogonal (at least the first and last vertex).
-	    if ((direction * (sourcePoint[coordinate] - targetPoint[coordinate])) > 0) {
-	        targetPoint[coordinate] = sourcePoint[coordinate];
-	    } else {
-	        sourcePoint[coordinate] = targetPoint[coordinate];
-	    }
-
-	    return [sourcePoint].concat(vertices, targetPoint);
-	};
-
-	// bearing -> opposite bearing
-	var opposites = {
-	    N: 'S',
-	    S: 'N',
-	    E: 'W',
-	    W: 'E'
-	};
-
-	// bearing -> radians
-	var radians = {
-	    N: -Math.PI / 2 * 3,
-	    S: -Math.PI / 2,
-	    E: 0,
-	    W: Math.PI
-	};
-
-	// HELPERS //
-
-	// returns a point `p` where lines p,p1 and p,p2 are perpendicular and p is not contained
-	// in the given box
-	function freeJoin(p1, p2, bbox) {
-
-	    var p = new Point(p1.x, p2.y);
-	    if (bbox.containsPoint(p)) { p = new Point(p2.x, p1.y); }
-	    // kept for reference
-	    // if (bbox.containsPoint(p)) p = null;
-
-	    return p;
-	}
-
-	// returns either width or height of a bbox based on the given bearing
-	function getBBoxSize(bbox, bearing) {
-
-	    return bbox[(bearing === 'W' || bearing === 'E') ? 'width' : 'height'];
-	}
-
-	// simple bearing method (calculates only orthogonal cardinals)
-	function getBearing(from, to) {
-
-	    if (from.x === to.x) { return (from.y > to.y) ? 'N' : 'S'; }
-	    if (from.y === to.y) { return (from.x > to.x) ? 'W' : 'E'; }
-	    return null;
-	}
-
-	// transform point to a rect
-	function getPointBox(p) {
-
-	    return new Rect(p.x, p.y, 0, 0);
-	}
-
-	function getPaddingBox(opt) {
-
-	    // if both provided, opt.padding wins over opt.elementPadding
-	    var sides = normalizeSides(opt.padding || opt.elementPadding || 20);
-
-	    return {
-	        x: -sides.left,
-	        y: -sides.top,
-	        width: sides.left + sides.right,
-	        height: sides.top + sides.bottom
-	    };
-	}
-
-	// return source bbox
-	function getSourceBBox(linkView, opt) {
-
-	    return linkView.sourceBBox.clone().moveAndExpand(getPaddingBox(opt));
-	}
-
-	// return target bbox
-	function getTargetBBox(linkView, opt) {
-
-	    return linkView.targetBBox.clone().moveAndExpand(getPaddingBox(opt));
-	}
-
-	// return source anchor
-	function getSourceAnchor(linkView, opt) {
-
-	    if (linkView.sourceAnchor) { return linkView.sourceAnchor; }
-
-	    // fallback: center of bbox
-	    var sourceBBox = getSourceBBox(linkView, opt);
-	    return sourceBBox.center();
-	}
-
-	// return target anchor
-	function getTargetAnchor(linkView, opt) {
-
-	    if (linkView.targetAnchor) { return linkView.targetAnchor; }
-
-	    // fallback: center of bbox
-	    var targetBBox = getTargetBBox(linkView, opt);
-	    return targetBBox.center(); // default
-	}
-
-	// PARTIAL ROUTERS //
-
-	function vertexVertex(from, to, bearing) {
-
-	    var p1 = new Point(from.x, to.y);
-	    var p2 = new Point(to.x, from.y);
-	    var d1 = getBearing(from, p1);
-	    var d2 = getBearing(from, p2);
-	    var opposite = opposites[bearing];
-
-	    var p = (d1 === bearing || (d1 !== opposite && (d2 === opposite || d2 !== bearing))) ? p1 : p2;
-
-	    return { points: [p], direction: getBearing(p, to) };
-	}
-
-	function elementVertex(from, to, fromBBox) {
-
-	    var p = freeJoin(from, to, fromBBox);
-
-	    return { points: [p], direction: getBearing(p, to) };
-	}
-
-	function vertexElement(from, to, toBBox, bearing) {
-
-	    var route = {};
-
-	    var points = [new Point(from.x, to.y), new Point(to.x, from.y)];
-	    var freePoints = points.filter(function(pt) {
-	        return !toBBox.containsPoint(pt);
-	    });
-	    var freeBearingPoints = freePoints.filter(function(pt) {
-	        return getBearing(pt, from) !== bearing;
-	    });
-
-	    var p;
-
-	    if (freeBearingPoints.length > 0) {
-	        // Try to pick a point which bears the same direction as the previous segment.
-
-	        p = freeBearingPoints.filter(function(pt) {
-	            return getBearing(from, pt) === bearing;
-	        }).pop();
-	        p = p || freeBearingPoints[0];
-
-	        route.points = [p];
-	        route.direction = getBearing(p, to);
-
-	    } else {
-	        // Here we found only points which are either contained in the element or they would create
-	        // a link segment going in opposite direction from the previous one.
-	        // We take the point inside element and move it outside the element in the direction the
-	        // route is going. Now we can join this point with the current end (using freeJoin).
-
-	        p = difference(points, freePoints)[0];
-
-	        var p2 = (new Point(to)).move(p, -getBBoxSize(toBBox, bearing) / 2);
-	        var p1 = freeJoin(p2, from, toBBox);
-
-	        route.points = [p1, p2];
-	        route.direction = getBearing(p2, to);
-	    }
-
-	    return route;
-	}
-
-	function elementElement(from, to, fromBBox, toBBox) {
-
-	    var route = elementVertex(to, from, toBBox);
-	    var p1 = route.points[0];
-
-	    if (fromBBox.containsPoint(p1)) {
-
-	        route = elementVertex(from, to, fromBBox);
-	        var p2 = route.points[0];
-
-	        if (toBBox.containsPoint(p2)) {
-
-	            var fromBorder = (new Point(from)).move(p2, -getBBoxSize(fromBBox, getBearing(from, p2)) / 2);
-	            var toBorder = (new Point(to)).move(p1, -getBBoxSize(toBBox, getBearing(to, p1)) / 2);
-	            var mid = (new Line(fromBorder, toBorder)).midpoint();
-
-	            var startRoute = elementVertex(from, mid, fromBBox);
-	            var endRoute = vertexVertex(mid, to, startRoute.direction);
-
-	            route.points = [startRoute.points[0], endRoute.points[0]];
-	            route.direction = endRoute.direction;
-	        }
-	    }
-
-	    return route;
-	}
-
-	// Finds route for situations where one element is inside the other.
-	// Typically the route is directed outside the outer element first and
-	// then back towards the inner element.
-	function insideElement(from, to, fromBBox, toBBox, bearing) {
-
-	    var route = {};
-	    var boundary = fromBBox.union(toBBox).inflate(1);
-
-	    // start from the point which is closer to the boundary
-	    var reversed = boundary.center().distance(to) > boundary.center().distance(from);
-	    var start = reversed ? to : from;
-	    var end = reversed ? from : to;
-
-	    var p1, p2, p3;
-
-	    if (bearing) {
-	        // Points on circle with radius equals 'W + H` are always outside the rectangle
-	        // with width W and height H if the center of that circle is the center of that rectangle.
-	        p1 = Point.fromPolar(boundary.width + boundary.height, radians[bearing], start);
-	        p1 = boundary.pointNearestToPoint(p1).move(p1, -1);
-
-	    } else {
-	        p1 = boundary.pointNearestToPoint(start).move(start, 1);
-	    }
-
-	    p2 = freeJoin(p1, end, boundary);
-
-	    if (p1.round().equals(p2.round())) {
-	        p2 = Point.fromPolar(boundary.width + boundary.height, toRad(p1.theta(start)) + Math.PI / 2, end);
-	        p2 = boundary.pointNearestToPoint(p2).move(end, 1).round();
-	        p3 = freeJoin(p1, p2, boundary);
-	        route.points = reversed ? [p2, p3, p1] : [p1, p3, p2];
-
-	    } else {
-	        route.points = reversed ? [p2, p1] : [p1, p2];
-	    }
-
-	    route.direction = reversed ? getBearing(p1, to) : getBearing(p2, to);
-
-	    return route;
-	}
-
-	// MAIN ROUTER //
-
-	// Return points through which a connection needs to be drawn in order to obtain an orthogonal link
-	// routing from source to target going through `vertices`.
-	function orthogonal(vertices, opt, linkView) {
-
-	    var sourceBBox = getSourceBBox(linkView, opt);
-	    var targetBBox = getTargetBBox(linkView, opt);
-
-	    var sourceAnchor = getSourceAnchor(linkView, opt);
-	    var targetAnchor = getTargetAnchor(linkView, opt);
-
-	    // if anchor lies outside of bbox, the bbox expands to include it
-	    sourceBBox = sourceBBox.union(getPointBox(sourceAnchor));
-	    targetBBox = targetBBox.union(getPointBox(targetAnchor));
-
-	    vertices = toArray(vertices).map(Point);
-	    vertices.unshift(sourceAnchor);
-	    vertices.push(targetAnchor);
-
-	    var bearing; // bearing of previous route segment
-
-	    var orthogonalVertices = []; // the array of found orthogonal vertices to be returned
-	    for (var i = 0, max = vertices.length - 1; i < max; i++) {
-
-	        var route = null;
-
-	        var from = vertices[i];
-	        var to = vertices[i + 1];
-
-	        var isOrthogonal = !!getBearing(from, to);
-
-	        if (i === 0) { // source
-
-	            if (i + 1 === max) { // route source -> target
-
-	                // Expand one of the elements by 1px to detect situations when the two
-	                // elements are positioned next to each other with no gap in between.
-	                if (sourceBBox.intersect(targetBBox.clone().inflate(1))) {
-	                    route = insideElement(from, to, sourceBBox, targetBBox);
-
-	                } else if (!isOrthogonal) {
-	                    route = elementElement(from, to, sourceBBox, targetBBox);
-	                }
-
-	            } else { // route source -> vertex
-
-	                if (sourceBBox.containsPoint(to)) {
-	                    route = insideElement(from, to, sourceBBox, getPointBox(to).moveAndExpand(getPaddingBox(opt)));
-
-	                } else if (!isOrthogonal) {
-	                    route = elementVertex(from, to, sourceBBox);
-	                }
-	            }
-
-	        } else if (i + 1 === max) { // route vertex -> target
-
-	            // prevent overlaps with previous line segment
-	            var isOrthogonalLoop = isOrthogonal && getBearing(to, from) === bearing;
-
-	            if (targetBBox.containsPoint(from) || isOrthogonalLoop) {
-	                route = insideElement(from, to, getPointBox(from).moveAndExpand(getPaddingBox(opt)), targetBBox, bearing);
-
-	            } else if (!isOrthogonal) {
-	                route = vertexElement(from, to, targetBBox, bearing);
-	            }
-
-	        } else if (!isOrthogonal) { // route vertex -> vertex
-	            route = vertexVertex(from, to, bearing);
-	        }
-
-	        // applicable to all routes:
-
-	        // set bearing for next iteration
-	        if (route) {
-	            Array.prototype.push.apply(orthogonalVertices, route.points);
-	            bearing = route.direction;
-
-	        } else {
-	            // orthogonal route and not looped
-	            bearing = getBearing(from, to);
-	        }
-
-	        // push `to` point to identified orthogonal vertices array
-	        if (i + 1 < max) {
-	            orthogonalVertices.push(to);
-	        }
-	    }
-
-	    return orthogonalVertices;
-	}
-
-	var config$2 = {
-
-	    // size of the step to find a route (the grid of the manhattan pathfinder)
-	    step: 10,
-
-	    // the number of route finding loops that cause the router to abort
-	    // returns fallback route instead
-	    maximumLoops: 2000,
-
-	    // the number of decimal places to round floating point coordinates
-	    precision: 1,
-
-	    // maximum change of direction
-	    maxAllowedDirectionChange: 90,
-
-	    // should the router use perpendicular linkView option?
-	    // does not connect anchor of element but rather a point close-by that is orthogonal
-	    // this looks much better
-	    perpendicular: true,
-
-	    // should the source and/or target not be considered as obstacles?
-	    excludeEnds: [], // 'source', 'target'
-
-	    // should certain types of elements not be considered as obstacles?
-	    excludeTypes: ['basic.Text'],
-
-	    // possible starting directions from an element
-	    startDirections: ['top', 'right', 'bottom', 'left'],
-
-	    // possible ending directions to an element
-	    endDirections: ['top', 'right', 'bottom', 'left'],
-
-	    // specify the directions used above and what they mean
-	    directionMap: {
-	        top: { x: 0, y: -1 },
-	        right: { x: 1, y: 0 },
-	        bottom: { x: 0, y: 1 },
-	        left: { x: -1, y: 0 }
-	    },
-
-	    // cost of an orthogonal step
-	    cost: function() {
-
-	        return this.step;
-	    },
-
-	    // an array of directions to find next points on the route
-	    // different from start/end directions
-	    directions: function() {
-
-	        var step = this.step;
-	        var cost = this.cost();
-
-	        return [
-	            { offsetX: step, offsetY: 0, cost: cost },
-	            { offsetX: -step, offsetY: 0, cost: cost },
-	            { offsetX: 0, offsetY: step, cost: cost },
-	            { offsetX: 0, offsetY: -step, cost: cost }
-	        ];
-	    },
-
-	    // a penalty received for direction change
-	    penalties: function() {
-
-	        return {
-	            0: 0,
-	            45: this.step / 2,
-	            90: this.step / 2
-	        };
-	    },
-
-	    // padding applied on the element bounding boxes
-	    paddingBox: function() {
-
-	        var step = this.step;
-
-	        return {
-	            x: -step,
-	            y: -step,
-	            width: 2 * step,
-	            height: 2 * step
-	        };
-	    },
-
-	    // A function that determines whether a given point is an obstacle or not.
-	    // If used, the `padding`, `excludeEnds`and `excludeTypes` options are ignored.
-	    // (point: dia.Point) => boolean;
-	    isPointObstacle: null,
-
-	    // a router to use when the manhattan router fails
-	    // (one of the partial routes returns null)
-	    fallbackRouter: function(vertices, opt, linkView) {
-
-	        if (!isFunction(orthogonal)) {
-	            throw new Error('Manhattan requires the orthogonal router as default fallback.');
-	        }
-
-	        return orthogonal(vertices, assign({}, config$2, opt), linkView);
-	    },
-
-	    /* Deprecated */
-	    // a simple route used in situations when main routing method fails
-	    // (exceed max number of loop iterations, inaccessible)
-	    fallbackRoute: function(from, to, opt) {
-
-	        return null; // null result will trigger the fallbackRouter
-
-	        // left for reference:
-	        /*// Find an orthogonal route ignoring obstacles.
-
-	        var point = ((opt.previousDirAngle || 0) % 180 === 0)
-	                ? new g.Point(from.x, to.y)
-	                : new g.Point(to.x, from.y);
-
-	        return [point];*/
-	    },
-
-	    // if a function is provided, it's used to route the link while dragging an end
-	    // i.e. function(from, to, opt) { return []; }
-	    draggingRoute: null
-	};
-
-	// HELPER CLASSES //
-
-	// Map of obstacles
-	// Helper structure to identify whether a point lies inside an obstacle.
-	function ObstacleMap(opt) {
-
-	    this.map = {};
-	    this.options = opt;
-	    // tells how to divide the paper when creating the elements map
-	    this.mapGridSize = 100;
-	}
-
-	ObstacleMap.prototype.build = function(graph, link) {
-
-	    var opt = this.options;
-
-	    // source or target element could be excluded from set of obstacles
-	    var excludedEnds = toArray(opt.excludeEnds).reduce(function(res, item) {
-
-	        var end = link.get(item);
-	        if (end) {
-	            var cell = graph.getCell(end.id);
-	            if (cell) {
-	                res.push(cell);
-	            }
-	        }
-
-	        return res;
-	    }, []);
-
-	    // Exclude any embedded elements from the source and the target element.
-	    var excludedAncestors = [];
-
-	    var source = graph.getCell(link.get('source').id);
-	    if (source) {
-	        excludedAncestors = union(excludedAncestors, source.getAncestors().map(function(cell) {
-	            return cell.id;
-	        }));
-	    }
-
-	    var target = graph.getCell(link.get('target').id);
-	    if (target) {
-	        excludedAncestors = union(excludedAncestors, target.getAncestors().map(function(cell) {
-	            return cell.id;
-	        }));
-	    }
-
-	    // Builds a map of all elements for quicker obstacle queries (i.e. is a point contained
-	    // in any obstacle?) (a simplified grid search).
-	    // The paper is divided into smaller cells, where each holds information about which
-	    // elements belong to it. When we query whether a point lies inside an obstacle we
-	    // don't need to go through all obstacles, we check only those in a particular cell.
-	    var mapGridSize = this.mapGridSize;
-
-	    graph.getElements().reduce(function(map, element) {
-
-	        var isExcludedType = toArray(opt.excludeTypes).includes(element.get('type'));
-	        var isExcludedEnd = excludedEnds.find(function(excluded) {
-	            return excluded.id === element.id;
-	        });
-	        var isExcludedAncestor = excludedAncestors.includes(element.id);
-
-	        var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
-	        if (!isExcluded) {
-	            var bbox = element.getBBox().moveAndExpand(opt.paddingBox);
-
-	            var origin = bbox.origin().snapToGrid(mapGridSize);
-	            var corner = bbox.corner().snapToGrid(mapGridSize);
-
-	            for (var x = origin.x; x <= corner.x; x += mapGridSize) {
-	                for (var y = origin.y; y <= corner.y; y += mapGridSize) {
-	                    var gridKey = x + '@' + y;
-	                    map[gridKey] = map[gridKey] || [];
-	                    map[gridKey].push(bbox);
-	                }
-	            }
-	        }
-
-	        return map;
-	    }, this.map);
-
-	    return this;
-	};
-
-	ObstacleMap.prototype.isPointAccessible = function(point) {
-
-	    var mapKey = point.clone().snapToGrid(this.mapGridSize).toString();
-
-	    return toArray(this.map[mapKey]).every(function(obstacle) {
-	        return !obstacle.containsPoint(point);
-	    });
-	};
-
-	// Sorted Set
-	// Set of items sorted by given value.
-	function SortedSet() {
-	    this.items = [];
-	    this.hash = {};
-	    this.values = {};
-	    this.OPEN = 1;
-	    this.CLOSE = 2;
-	}
-
-	SortedSet.prototype.add = function(item, value) {
-
-	    if (this.hash[item]) {
-	        // item removal
-	        this.items.splice(this.items.indexOf(item), 1);
-	    } else {
-	        this.hash[item] = this.OPEN;
-	    }
-
-	    this.values[item] = value;
-
-	    var index$1 = sortedIndex(this.items, item, function(i) {
-	        return this.values[i];
-	    }.bind(this));
-
-	    this.items.splice(index$1, 0, item);
-	};
-
-	SortedSet.prototype.remove = function(item) {
-
-	    this.hash[item] = this.CLOSE;
-	};
-
-	SortedSet.prototype.isOpen = function(item) {
-
-	    return this.hash[item] === this.OPEN;
-	};
-
-	SortedSet.prototype.isClose = function(item) {
-
-	    return this.hash[item] === this.CLOSE;
-	};
-
-	SortedSet.prototype.isEmpty = function() {
-
-	    return this.items.length === 0;
-	};
-
-	SortedSet.prototype.pop = function() {
-
-	    var item = this.items.shift();
-	    this.remove(item);
-	    return item;
-	};
-
-	// HELPERS //
-
-	// return source bbox
-	function getSourceBBox$1(linkView, opt) {
-
-	    // expand by padding box
-	    if (opt && opt.paddingBox) { return linkView.sourceBBox.clone().moveAndExpand(opt.paddingBox); }
-
-	    return linkView.sourceBBox.clone();
-	}
-
-	// return target bbox
-	function getTargetBBox$1(linkView, opt) {
-
-	    // expand by padding box
-	    if (opt && opt.paddingBox) { return linkView.targetBBox.clone().moveAndExpand(opt.paddingBox); }
-
-	    return linkView.targetBBox.clone();
-	}
-
-	// return source anchor
-	function getSourceAnchor$1(linkView, opt) {
-
-	    if (linkView.sourceAnchor) { return linkView.sourceAnchor; }
-
-	    // fallback: center of bbox
-	    var sourceBBox = getSourceBBox$1(linkView, opt);
-	    return sourceBBox.center();
-	}
-
-	// return target anchor
-	function getTargetAnchor$1(linkView, opt) {
-
-	    if (linkView.targetAnchor) { return linkView.targetAnchor; }
-
-	    // fallback: center of bbox
-	    var targetBBox = getTargetBBox$1(linkView, opt);
-	    return targetBBox.center(); // default
-	}
-
-	// returns a direction index from start point to end point
-	// corrects for grid deformation between start and end
-	function getDirectionAngle(start, end, numDirections, grid, opt) {
-
-	    var quadrant = 360 / numDirections;
-	    var angleTheta = start.theta(fixAngleEnd(start, end, grid, opt));
-	    var normalizedAngle = normalizeAngle(angleTheta + (quadrant / 2));
-	    return quadrant * Math.floor(normalizedAngle / quadrant);
-	}
-
-	// helper function for getDirectionAngle()
-	// corrects for grid deformation
-	// (if a point is one grid steps away from another in both dimensions,
-	// it is considered to be 45 degrees away, even if the real angle is different)
-	// this causes visible angle discrepancies if `opt.step` is much larger than `paper.gridSize`
-	function fixAngleEnd(start, end, grid, opt) {
-
-	    var step = opt.step;
-
-	    var diffX = end.x - start.x;
-	    var diffY = end.y - start.y;
-
-	    var gridStepsX = diffX / grid.x;
-	    var gridStepsY = diffY / grid.y;
-
-	    var distanceX = gridStepsX * step;
-	    var distanceY = gridStepsY * step;
-
-	    return new Point(start.x + distanceX, start.y + distanceY);
-	}
-
-	// return the change in direction between two direction angles
-	function getDirectionChange(angle1, angle2) {
-
-	    var directionChange = Math.abs(angle1 - angle2);
-	    return (directionChange > 180) ? (360 - directionChange) : directionChange;
-	}
-
-	// fix direction offsets according to current grid
-	function getGridOffsets(directions, grid, opt) {
-
-	    var step = opt.step;
-
-	    toArray(opt.directions).forEach(function(direction) {
-
-	        direction.gridOffsetX = (direction.offsetX / step) * grid.x;
-	        direction.gridOffsetY = (direction.offsetY / step) * grid.y;
-	    });
-	}
-
-	// get grid size in x and y dimensions, adapted to source and target positions
-	function getGrid(step, source, target) {
-
-	    return {
-	        source: source.clone(),
-	        x: getGridDimension(target.x - source.x, step),
-	        y: getGridDimension(target.y - source.y, step)
-	    };
-	}
-
-	// helper function for getGrid()
-	function getGridDimension(diff, step) {
-
-	    // return step if diff = 0
-	    if (!diff) { return step; }
-
-	    var absDiff = Math.abs(diff);
-	    var numSteps = Math.round(absDiff / step);
-
-	    // return absDiff if less than one step apart
-	    if (!numSteps) { return absDiff; }
-
-	    // otherwise, return corrected step
-	    var roundedDiff = numSteps * step;
-	    var remainder = absDiff - roundedDiff;
-	    var stepCorrection = remainder / numSteps;
-
-	    return step + stepCorrection;
-	}
-
-	// return a clone of point snapped to grid
-	function snapToGrid$1(point, grid) {
-
-	    var source = grid.source;
-
-	    var snappedX = snapToGrid(point.x - source.x, grid.x) + source.x;
-	    var snappedY = snapToGrid(point.y - source.y, grid.y) + source.y;
-
-	    return new Point(snappedX, snappedY);
-	}
-
-	// round the point to opt.precision
-	function round$4(point, precision) {
-
-	    return point.round(precision);
-	}
-
-	// snap to grid and then round the point
-	function align(point, grid, precision) {
-
-	    return round$4(snapToGrid$1(point.clone(), grid), precision);
-	}
-
-	// return a string representing the point
-	// string is rounded in both dimensions
-	function getKey(point) {
-
-	    return point.clone().toString();
-	}
-
-	// return a normalized vector from given point
-	// used to determine the direction of a difference of two points
-	function normalizePoint(point) {
-
-	    return new Point(
-	        point.x === 0 ? 0 : Math.abs(point.x) / point.x,
-	        point.y === 0 ? 0 : Math.abs(point.y) / point.y
-	    );
-	}
-
-	// PATHFINDING //
-
-	// reconstructs a route by concatenating points with their parents
-	function reconstructRoute(parents, points, tailPoint, from, to, grid, opt) {
-
-	    var route = [];
-
-	    var prevDiff = normalizePoint(to.difference(tailPoint));
-
-	    // tailPoint is assumed to be aligned already
-	    var currentKey = getKey(tailPoint);
-	    var parent = parents[currentKey];
-
-	    var point;
-	    while (parent) {
-
-	        // point is assumed to be aligned already
-	        point = points[currentKey];
-
-	        var diff = normalizePoint(point.difference(parent));
-	        if (!diff.equals(prevDiff)) {
-	            route.unshift(point);
-	            prevDiff = diff;
-	        }
-
-	        // parent is assumed to be aligned already
-	        currentKey = getKey(parent);
-	        parent = parents[currentKey];
-	    }
-
-	    // leadPoint is assumed to be aligned already
-	    var leadPoint = points[currentKey];
-
-	    var fromDiff = normalizePoint(leadPoint.difference(from));
-	    if (!fromDiff.equals(prevDiff)) {
-	        route.unshift(leadPoint);
-	    }
-
-	    return route;
-	}
-
-	// heuristic method to determine the distance between two points
-	function estimateCost(from, endPoints) {
-
-	    var min = Infinity;
-
-	    for (var i = 0, len = endPoints.length; i < len; i++) {
-	        var cost = from.manhattanDistance(endPoints[i]);
-	        if (cost < min) { min = cost; }
-	    }
-
-	    return min;
-	}
-
-	// find points around the bbox taking given directions into account
-	// lines are drawn from anchor in given directions, intersections recorded
-	// if anchor is outside bbox, only those directions that intersect get a rect point
-	// the anchor itself is returned as rect point (representing some directions)
-	// (since those directions are unobstructed by the bbox)
-	function getRectPoints(anchor, bbox, directionList, grid, opt) {
-
-	    var precision = opt.precision;
-	    var directionMap = opt.directionMap;
-
-	    var anchorCenterVector = anchor.difference(bbox.center());
-
-	    var keys = isObject$1(directionMap) ? Object.keys(directionMap) : [];
-	    var dirList = toArray(directionList);
-	    var rectPoints = keys.reduce(function(res, key) {
-
-	        if (dirList.includes(key)) {
-	            var direction = directionMap[key];
-
-	            // create a line that is guaranteed to intersect the bbox if bbox is in the direction
-	            // even if anchor lies outside of bbox
-	            var endpoint = new Point(
-	                anchor.x + direction.x * (Math.abs(anchorCenterVector.x) + bbox.width),
-	                anchor.y + direction.y * (Math.abs(anchorCenterVector.y) + bbox.height)
-	            );
-	            var intersectionLine = new Line(anchor, endpoint);
-
-	            // get the farther intersection, in case there are two
-	            // (that happens if anchor lies next to bbox)
-	            var intersections = intersectionLine.intersect(bbox) || [];
-	            var numIntersections = intersections.length;
-	            var farthestIntersectionDistance;
-	            var farthestIntersection = null;
-	            for (var i = 0; i < numIntersections; i++) {
-	                var currentIntersection = intersections[i];
-	                var distance = anchor.squaredDistance(currentIntersection);
-	                if ((farthestIntersectionDistance === undefined) || (distance > farthestIntersectionDistance)) {
-	                    farthestIntersectionDistance = distance;
-	                    farthestIntersection = currentIntersection;
-	                }
-	            }
-
-	            // if an intersection was found in this direction, it is our rectPoint
-	            if (farthestIntersection) {
-	                var point = align(farthestIntersection, grid, precision);
-
-	                // if the rectPoint lies inside the bbox, offset it by one more step
-	                if (bbox.containsPoint(point)) {
-	                    point = align(point.offset(direction.x * grid.x, direction.y * grid.y), grid, precision);
-	                }
-
-	                // then add the point to the result array
-	                // aligned
-	                res.push(point);
-	            }
-	        }
-
-	        return res;
-	    }, []);
-
-	    // if anchor lies outside of bbox, add it to the array of points
-	    if (!bbox.containsPoint(anchor)) {
-	        // aligned
-	        rectPoints.push(align(anchor, grid, precision));
-	    }
-
-	    return rectPoints;
-	}
-
-	// finds the route between two points/rectangles (`from`, `to`) implementing A* algorithm
-	// rectangles get rect points assigned by getRectPoints()
-	function findRoute(from, to, isPointObstacle, opt) {
-
-	    var precision = opt.precision;
-
-	    // Get grid for this route.
-
-	    var sourceAnchor, targetAnchor;
-
-	    if (from instanceof Rect) { // `from` is sourceBBox
-	        sourceAnchor = round$4(getSourceAnchor$1(this, opt).clone(), precision);
-	    } else {
-	        sourceAnchor = round$4(from.clone(), precision);
-	    }
-
-	    if (to instanceof Rect) { // `to` is targetBBox
-	        targetAnchor = round$4(getTargetAnchor$1(this, opt).clone(), precision);
-	    } else {
-	        targetAnchor = round$4(to.clone(), precision);
-	    }
-
-	    var grid = getGrid(opt.step, sourceAnchor, targetAnchor);
-
-	    // Get pathfinding points.
-
-	    var start, end; // aligned with grid by definition
-	    var startPoints, endPoints; // assumed to be aligned with grid already
-
-	    // set of points we start pathfinding from
-	    if (from instanceof Rect) { // `from` is sourceBBox
-	        start = sourceAnchor;
-	        startPoints = getRectPoints(start, from, opt.startDirections, grid, opt);
-
-	    } else {
-	        start = sourceAnchor;
-	        startPoints = [start];
-	    }
-
-	    // set of points we want the pathfinding to finish at
-	    if (to instanceof Rect) { // `to` is targetBBox
-	        end = targetAnchor;
-	        endPoints = getRectPoints(targetAnchor, to, opt.endDirections, grid, opt);
-
-	    } else {
-	        end = targetAnchor;
-	        endPoints = [end];
-	    }
-
-	    // take into account only accessible rect points (those not under obstacles)
-	    startPoints = startPoints.filter(function (p) { return !isPointObstacle(p); });
-	    endPoints = endPoints.filter(function (p) { return !isPointObstacle(p); });
-
-	    // Check that there is an accessible route point on both sides.
-	    // Otherwise, use fallbackRoute().
-	    if (startPoints.length > 0 && endPoints.length > 0) {
-
-	        // The set of tentative points to be evaluated, initially containing the start points.
-	        // Rounded to nearest integer for simplicity.
-	        var openSet = new SortedSet();
-	        // Keeps reference to actual points for given elements of the open set.
-	        var points = {};
-	        // Keeps reference to a point that is immediate predecessor of given element.
-	        var parents = {};
-	        // Cost from start to a point along best known path.
-	        var costs = {};
-
-	        for (var i = 0, n = startPoints.length; i < n; i++) {
-	            // startPoint is assumed to be aligned already
-	            var startPoint = startPoints[i];
-
-	            var key = getKey(startPoint);
-
-	            openSet.add(key, estimateCost(startPoint, endPoints));
-	            points[key] = startPoint;
-	            costs[key] = 0;
-	        }
-
-	        var previousRouteDirectionAngle = opt.previousDirectionAngle; // undefined for first route
-	        var isPathBeginning = (previousRouteDirectionAngle === undefined);
-
-	        // directions
-	        var direction, directionChange;
-	        var directions = opt.directions;
-	        getGridOffsets(directions, grid, opt);
-
-	        var numDirections = directions.length;
-
-	        var endPointsKeys = toArray(endPoints).reduce(function(res, endPoint) {
-	            // endPoint is assumed to be aligned already
-
-	            var key = getKey(endPoint);
-	            res.push(key);
-	            return res;
-	        }, []);
-
-	        // main route finding loop
-	        var loopsRemaining = opt.maximumLoops;
-	        while (!openSet.isEmpty() && loopsRemaining > 0) {
-
-	            // remove current from the open list
-	            var currentKey = openSet.pop();
-	            var currentPoint = points[currentKey];
-	            var currentParent = parents[currentKey];
-	            var currentCost = costs[currentKey];
-
-	            var isRouteBeginning = (currentParent === undefined); // undefined for route starts
-	            var isStart = currentPoint.equals(start); // (is source anchor or `from` point) = can leave in any direction
-
-	            var previousDirectionAngle;
-	            if (!isRouteBeginning) { previousDirectionAngle = getDirectionAngle(currentParent, currentPoint, numDirections, grid, opt); } // a vertex on the route
-	            else if (!isPathBeginning) { previousDirectionAngle = previousRouteDirectionAngle; } // beginning of route on the path
-	            else if (!isStart) { previousDirectionAngle = getDirectionAngle(start, currentPoint, numDirections, grid, opt); } // beginning of path, start rect point
-	            else { previousDirectionAngle = null; } // beginning of path, source anchor or `from` point
-
-	            // check if we reached any endpoint
-	            var samePoints = startPoints.length === endPoints.length;
-	            if (samePoints) {
-	                for (var j = 0; j < startPoints.length; j++) {
-	                    if (!startPoints[j].equals(endPoints[j])) {
-	                        samePoints = false;
-	                        break;
-	                    }
-	                }
-	            }
-	            var skipEndCheck = (isRouteBeginning && samePoints);
-	            if (!skipEndCheck && (endPointsKeys.indexOf(currentKey) >= 0)) {
-	                opt.previousDirectionAngle = previousDirectionAngle;
-	                return reconstructRoute(parents, points, currentPoint, start, end, grid, opt);
-	            }
-
-	            // go over all possible directions and find neighbors
-	            for (i = 0; i < numDirections; i++) {
-	                direction = directions[i];
-
-	                var directionAngle = direction.angle;
-	                directionChange = getDirectionChange(previousDirectionAngle, directionAngle);
-
-	                // if the direction changed rapidly, don't use this point
-	                // any direction is allowed for starting points
-	                if (!(isPathBeginning && isStart) && directionChange > opt.maxAllowedDirectionChange) { continue; }
-
-	                var neighborPoint = align(currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY), grid, precision);
-	                var neighborKey = getKey(neighborPoint);
-
-	                // Closed points from the openSet were already evaluated.
-	                if (openSet.isClose(neighborKey) || isPointObstacle(neighborPoint)) { continue; }
-
-	                // We can only enter end points at an acceptable angle.
-	                if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
-
-	                    var isNeighborEnd = neighborPoint.equals(end); // (is target anchor or `to` point) = can be entered in any direction
-
-	                    if (!isNeighborEnd) {
-	                        var endDirectionAngle = getDirectionAngle(neighborPoint, end, numDirections, grid, opt);
-	                        var endDirectionChange = getDirectionChange(directionAngle, endDirectionAngle);
-
-	                        if (endDirectionChange > opt.maxAllowedDirectionChange) { continue; }
-	                    }
-	                }
-
-	                // The current direction is ok.
-
-	                var neighborCost = direction.cost;
-	                var neighborPenalty = isStart ? 0 : opt.penalties[directionChange]; // no penalties for start point
-	                var costFromStart = currentCost + neighborCost + neighborPenalty;
-
-	                if (!openSet.isOpen(neighborKey) || (costFromStart < costs[neighborKey])) {
-	                    // neighbor point has not been processed yet
-	                    // or the cost of the path from start is lower than previously calculated
-
-	                    points[neighborKey] = neighborPoint;
-	                    parents[neighborKey] = currentPoint;
-	                    costs[neighborKey] = costFromStart;
-	                    openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
-	                }
-	            }
-
-	            loopsRemaining--;
-	        }
-	    }
-
-	    // no route found (`to` point either wasn't accessible or finding route took
-	    // way too much calculation)
-	    return opt.fallbackRoute.call(this, start, end, opt);
-	}
-
-	// resolve some of the options
-	function resolveOptions(opt) {
-
-	    opt.directions = result(opt, 'directions');
-	    opt.penalties = result(opt, 'penalties');
-	    opt.paddingBox = result(opt, 'paddingBox');
-	    opt.padding = result(opt, 'padding');
-
-	    if (opt.padding) {
-	        // if both provided, opt.padding wins over opt.paddingBox
-	        var sides = normalizeSides(opt.padding);
-	        opt.paddingBox = {
-	            x: -sides.left,
-	            y: -sides.top,
-	            width: sides.left + sides.right,
-	            height: sides.top + sides.bottom
-	        };
-	    }
-
-	    toArray(opt.directions).forEach(function(direction) {
-
-	        var point1 = new Point(0, 0);
-	        var point2 = new Point(direction.offsetX, direction.offsetY);
-
-	        direction.angle = normalizeAngle(point1.theta(point2));
-	    });
-	}
-
-	// initialization of the route finding
-	function router(vertices, opt, linkView) {
-
-	    resolveOptions(opt);
-
-	    // enable/disable linkView perpendicular option
-	    linkView.options.perpendicular = !!opt.perpendicular;
-
-	    var sourceBBox = getSourceBBox$1(linkView, opt);
-	    var targetBBox = getTargetBBox$1(linkView, opt);
-
-	    var sourceAnchor = getSourceAnchor$1(linkView, opt);
-	    //var targetAnchor = getTargetAnchor(linkView, opt);
-
-	    // pathfinding
-	    var isPointObstacle;
-	    if (typeof opt.isPointObstacle === 'function') {
-	        isPointObstacle = opt.isPointObstacle;
-	    } else {
-	        var map = new ObstacleMap(opt);
-	        map.build(linkView.paper.model, linkView.model);
-	        isPointObstacle = function (point) { return !map.isPointAccessible(point); };
-	    }
-
-	    var oldVertices = toArray(vertices).map(Point);
-	    var newVertices = [];
-	    var tailPoint = sourceAnchor; // the origin of first route's grid, does not need snapping
-
-	    // find a route by concatenating all partial routes (routes need to pass through vertices)
-	    // source -> vertex[1] -> ... -> vertex[n] -> target
-	    var to, from;
-
-	    for (var i = 0, len = oldVertices.length; i <= len; i++) {
-
-	        var partialRoute = null;
-
-	        from = to || sourceBBox;
-	        to = oldVertices[i];
-
-	        if (!to) {
-	            // this is the last iteration
-	            // we ran through all vertices in oldVertices
-	            // 'to' is not a vertex.
-
-	            to = targetBBox;
-
-	            // If the target is a point (i.e. it's not an element), we
-	            // should use dragging route instead of main routing method if it has been provided.
-	            var isEndingAtPoint = !linkView.model.get('source').id || !linkView.model.get('target').id;
-
-	            if (isEndingAtPoint && isFunction(opt.draggingRoute)) {
-	                // Make sure we are passing points only (not rects).
-	                var dragFrom = (from === sourceBBox) ? sourceAnchor : from;
-	                var dragTo = to.origin();
-
-	                partialRoute = opt.draggingRoute.call(linkView, dragFrom, dragTo, opt);
-	            }
-	        }
-
-	        // if partial route has not been calculated yet use the main routing method to find one
-	        partialRoute = partialRoute || findRoute.call(linkView, from, to, isPointObstacle, opt);
-
-	        if (partialRoute === null) { // the partial route cannot be found
-	            return opt.fallbackRouter(vertices, opt, linkView);
-	        }
-
-	        var leadPoint = partialRoute[0];
-
-	        // remove the first point if the previous partial route had the same point as last
-	        if (leadPoint && leadPoint.equals(tailPoint)) { partialRoute.shift(); }
-
-	        // save tailPoint for next iteration
-	        tailPoint = partialRoute[partialRoute.length - 1] || tailPoint;
-
-	        Array.prototype.push.apply(newVertices, partialRoute);
-	    }
-
-	    return newVertices;
-	}
-
-	// public function
-	var manhattan = function(vertices, opt, linkView) {
-	    return router(vertices, assign({}, config$2, opt), linkView);
-	};
-
-	var config$3 = {
-
-	    maxAllowedDirectionChange: 45,
-
-	    // cost of a diagonal step
-	    diagonalCost: function() {
-
-	        var step = this.step;
-	        return Math.ceil(Math.sqrt(step * step << 1));
-	    },
-
-	    // an array of directions to find next points on the route
-	    // different from start/end directions
-	    directions: function() {
-
-	        var step = this.step;
-	        var cost = this.cost();
-	        var diagonalCost = this.diagonalCost();
-
-	        return [
-	            { offsetX: step, offsetY: 0, cost: cost },
-	            { offsetX: step, offsetY: step, cost: diagonalCost },
-	            { offsetX: 0, offsetY: step, cost: cost },
-	            { offsetX: -step, offsetY: step, cost: diagonalCost },
-	            { offsetX: -step, offsetY: 0, cost: cost },
-	            { offsetX: -step, offsetY: -step, cost: diagonalCost },
-	            { offsetX: 0, offsetY: -step, cost: cost },
-	            { offsetX: step, offsetY: -step, cost: diagonalCost }
-	        ];
-	    },
-
-	    // a simple route used in situations when main routing method fails
-	    // (exceed max number of loop iterations, inaccessible)
-	    fallbackRoute: function(from, to, opt) {
-
-	        // Find a route which breaks by 45 degrees ignoring all obstacles.
-
-	        var theta = from.theta(to);
-
-	        var route = [];
-
-	        var a = { x: to.x, y: from.y };
-	        var b = { x: from.x, y: to.y };
-
-	        if (theta % 180 > 90) {
-	            var t = a;
-	            a = b;
-	            b = t;
-	        }
-
-	        var p1 = (theta % 90) < 45 ? a : b;
-	        var l1 = new Line(from, p1);
-
-	        var alpha = 90 * Math.ceil(theta / 90);
-
-	        var p2 = Point.fromPolar(l1.squaredLength(), toRad(alpha + 135), p1);
-	        var l2 = new Line(to, p2);
-
-	        var intersectionPoint = l1.intersection(l2);
-	        var point = intersectionPoint ? intersectionPoint : to;
-
-	        var directionFrom = intersectionPoint ? point : from;
-
-	        var quadrant = 360 / opt.directions.length;
-	        var angleTheta = directionFrom.theta(to);
-	        var normalizedAngle = normalizeAngle(angleTheta + (quadrant / 2));
-	        var directionAngle = quadrant * Math.floor(normalizedAngle / quadrant);
-
-	        opt.previousDirectionAngle = directionAngle;
-
-	        if (point) { route.push(point.round()); }
-	        route.push(to);
-
-	        return route;
-	    }
-	};
-
-	// public function
-	var metro = function(vertices, opt, linkView) {
-
-	    if (!isFunction(manhattan)) {
-	        throw new Error('Metro requires the manhattan router.');
-	    }
-
-	    return manhattan(vertices, assign({}, config$3, opt), linkView);
-	};
-
-	var Directions = {
-	    AUTO: 'auto',
-	    LEFT: 'left',
-	    RIGHT: 'right',
-	    TOP: 'top',
-	    BOTTOM: 'bottom',
-	    ANCHOR_SIDE: 'anchor-side',
-	    MAGNET_SIDE: 'magnet-side'
-	};
-
-	var DEFINED_DIRECTIONS = [Directions.LEFT, Directions.RIGHT, Directions.TOP, Directions.BOTTOM];
-
-	var OPPOSITE_DIRECTIONS = {};
-	OPPOSITE_DIRECTIONS[Directions.LEFT] = Directions.RIGHT;
-	OPPOSITE_DIRECTIONS[Directions.RIGHT] = Directions.LEFT;
-	OPPOSITE_DIRECTIONS[Directions.TOP] = Directions.BOTTOM;
-	OPPOSITE_DIRECTIONS[Directions.BOTTOM] = Directions.TOP;
-
-	var VERTICAL_DIRECTIONS = [Directions.TOP, Directions.BOTTOM];
-
-	var ANGLE_DIRECTION_MAP = {
-	    0: Directions.RIGHT,
-	    180: Directions.LEFT,
-	    270: Directions.TOP,
-	    90: Directions.BOTTOM
-	};
-
-	function getSegmentAngle(line) {
-	    // TODO: the angle() method is general and therefore unnecessarily heavy for orthogonal links
-	    return line.angle();
-	}
-
-	function simplifyPoints(points) {
-	    // TODO: use own more efficient implementation (filter points that do not change direction).
-	    // To simplify segments that are almost aligned (start and end points differ by e.g. 0.5px), use a threshold of 1.
-	    return new Polyline(points).simplify({ threshold: 1 }).points;
-	}
-
-	function resolveSides(source, target) {
-	    var sourcePoint = source.point;
-	    var sx0 = source.x0;
-	    var sy0 = source.y0;
-	    var sourceView = source.view;
-	    var sourceBBox = source.bbox;
-	    var sourceDirection = source.direction;
-	    var targetPoint = target.point;
-	    var tx0 = target.x0;
-	    var ty0 = target.y0;
-	    var targetView = target.view;
-	    var targetBBox = target.bbox;
-	    var targetDirection = target.direction;
-
-	    var sourceSide;
-
-	    if (!sourceView) {
-	        var sourceLinkAnchorBBox = new Rect(sx0, sy0, 0, 0);
-	        sourceSide = DEFINED_DIRECTIONS.includes(sourceDirection) ? sourceDirection : sourceLinkAnchorBBox.sideNearestToPoint(targetPoint);
-	    } else if (sourceView.model.isLink()) {
-	        sourceSide = getDirectionForLinkConnection(targetPoint, sourcePoint, sourceView);
-	    } else if (sourceDirection === Directions.ANCHOR_SIDE) {
-	        sourceSide = sourceBBox.sideNearestToPoint(sourcePoint);
-	    } else if (sourceDirection === Directions.MAGNET_SIDE) {
-	        sourceSide = sourceView.model.getBBox().sideNearestToPoint(sourcePoint);
-	    } else {
-	        sourceSide = sourceDirection;
-	    }
-
-	    var targetSide;
-
-	    if (!targetView) {
-	        var targetLinkAnchorBBox = new Rect(tx0, ty0, 0, 0);
-	        targetSide = DEFINED_DIRECTIONS.includes(targetDirection) ? targetDirection : targetLinkAnchorBBox.sideNearestToPoint(sourcePoint);
-	    } else if (targetView.model.isLink()) {
-	        targetSide = getDirectionForLinkConnection(sourcePoint, targetPoint, targetView);
-	    } else if (targetDirection === Directions.ANCHOR_SIDE) {
-	        targetSide = targetBBox.sideNearestToPoint(targetPoint);
-	    } else if (targetDirection === Directions.MAGNET_SIDE) {
-	        targetSide = targetView.model.getBBox().sideNearestToPoint(targetPoint);
-	    } else {
-	        targetSide = targetDirection;
-	    }
-
-	    return [sourceSide, targetSide];
-	}
-
-	function resolveForTopSourceSide(source, target, nextInLine) {
-	    var sx0 = source.x0;
-	    var sy0 = source.y0;
-	    var width = source.width;
-	    var height = source.height;
-	    var anchor = source.point;
-	    var margin = source.margin;
-	    var sx1 = sx0 + width;
-	    var sy1 = sy0 + height;
-	    var smx0 = sx0 - margin;
-	    var smx1 = sx1 + margin;
-	    var smy0 = sy0 - margin;
-
-	    var ax = anchor.x;
-	    var tx = target.x0;
-	    var ty = target.y0;
-
-	    if (tx === ax && ty < sy0) { return Directions.BOTTOM; }
-	    if (tx < ax && ty < smy0) { return Directions.RIGHT; }
-	    if (tx > ax && ty < smy0) { return Directions.LEFT; }
-	    if (tx < smx0 && ty >= sy0) { return Directions.TOP; }
-	    if (tx > smx1 && ty >= sy0) { return Directions.TOP; }
-	    if (tx >= smx0 && tx <= ax && ty > sy1) {
-	        if (nextInLine.point.x < tx) {
-	            return Directions.RIGHT;
-	        }
-
-	        return Directions.LEFT;
-	    }
-	    if (tx <= smx1 && tx >= ax && ty > sy1) {
-	        if (nextInLine.point.x < tx) {
-	            return Directions.RIGHT;
-	        }
-
-	        return Directions.LEFT;
-	    }
-
-	    return Directions.TOP;
-	}
-
-	function resolveForBottomSourceSide(source, target, nextInLine) {
-	    var sx0 = source.x0;
-	    var sy0 = source.y0;
-	    var width = source.width;
-	    var height = source.height;
-	    var anchor = source.point;
-	    var margin = source.margin;
-	    var sx1 = sx0 + width;
-	    var sy1 = sy0 + height;
-	    var smx0 = sx0 - margin;
-	    var smx1 = sx1 + margin;
-	    var smy1 = sy1 + margin;
-
-	    var ax = anchor.x;
-	    var tx = target.x0;
-	    var ty = target.y0;
-
-	    if (tx === ax && ty > sy1) { return Directions.TOP; }
-	    if (tx < ax && ty > smy1) { return Directions.RIGHT; }
-	    if (tx > ax && ty > smy1) { return Directions.LEFT; }
-	    if (tx < smx0 && ty <= sy1) { return Directions.BOTTOM; }
-	    if (tx > smx1 && ty <= sy1) { return Directions.BOTTOM; }
-	    if (tx >= smx0 && tx <= ax && ty < sy0) {
-	        if (nextInLine.point.x < tx) {
-	            return Directions.RIGHT;
-	        }
-
-	        return Directions.LEFT;
-	    }
-	    if (tx <= smx1 && tx >= ax && ty < sy0) {
-	        if (nextInLine.point.x < tx) {
-	            return Directions.RIGHT;
-	        }
-
-	        return Directions.LEFT;
-	    }
-
-	    return Directions.BOTTOM;
-	}
-
-	function resolveForLeftSourceSide(source, target, nextInLine) {
-	    var sy0 = source.y0;
-	    var sx0 = source.x0;
-	    var width = source.width;
-	    var height = source.height;
-	    var anchor = source.point;
-	    var margin = source.margin;
-	    var sx1 = sx0 + width;
-	    var sy1 = sy0 + height;
-	    var smx0 = sx0 - margin;
-	    var smy0 = sy0 - margin;
-	    var smy1 = sy1 + margin;
-
-	    var ax = anchor.x;
-	    var ay = anchor.y;
-	    var tx = target.x0;
-	    var ty = target.y0;
-
-	    if (tx < ax && ty === ay) { return Directions.RIGHT; }
-	    if (tx <= smx0 && ty < ay) { return Directions.BOTTOM; }
-	    if (tx <= smx0 && ty > ay) { return Directions.TOP; }
-	    if (tx >= sx0 && ty <= smy0) { return Directions.LEFT; }
-	    if (tx >= sx0 && ty >= smy1) { return Directions.LEFT; }
-	    if (tx > sx1 && ty >= smy0 && ty <= ay) {
-	        if (nextInLine.point.y < ty) {
-	            return Directions.BOTTOM;
-	        }
-
-	        return Directions.TOP;
-	    }
-	    if (tx > sx1 && ty <= smy1 && ty >= ay) {
-	        if (nextInLine.point.y < ty) {
-	            return Directions.BOTTOM;
-	        }
-
-	        return Directions.TOP;
-	    }
-
-	    return Directions.LEFT;
-	}
-
-	function resolveForRightSourceSide(source, target, nextInLine) {
-	    var sy0 = source.y0;
-	    var sx0 = source.x0;
-	    var width = source.width;
-	    var height = source.height;
-	    var anchor = source.point;
-	    var margin = source.margin;
-	    var sx1 = sx0 + width;
-	    var sy1 = sy0 + height;
-	    var smx1 = sx1 + margin;
-	    var smy0 = sy0 - margin;
-	    var smy1 = sy1 + margin;
-
-	    var ax = anchor.x;
-	    var ay = anchor.y;
-	    var tx = target.x0;
-	    var ty = target.y0;
-
-	    if (tx > ax && ty === ay) { return Directions.LEFT; }
-	    if (tx >= smx1 && ty < ay) { return Directions.BOTTOM; }
-	    if (tx >= smx1 && ty > ay) { return Directions.TOP; }
-	    if (tx <= sx1 && ty <= smy0) { return Directions.RIGHT; }
-	    if (tx <= sx1 && ty >= smy1) { return Directions.RIGHT; }
-	    if (tx < sx0 && ty >= smy0 && ty <= ay) {
-	        if (nextInLine.point.y < ty) {
-	            return Directions.BOTTOM;
-	        }
-
-	        return Directions.TOP;
-	    }
-	    if (tx < sx0 && ty <= smy1 && ty >= ay) {
-	        if (nextInLine.point.y < ty) {
-	            return Directions.BOTTOM;
-	        }
-
-	        return Directions.TOP;
-	    }
-
-	    return Directions.RIGHT;
-	}
-
-	function resolveInitialDirection(source, target, nextInLine) {
-	    var ref = resolveSides(source, target);
-	    var sourceSide = ref[0];
-
-	    switch (sourceSide) {
-	        case Directions.TOP:
-	            return resolveForTopSourceSide(source, target, nextInLine);
-	        case Directions.RIGHT:
-	            return resolveForRightSourceSide(source, target, nextInLine);
-	        case Directions.BOTTOM:
-	            return resolveForBottomSourceSide(source, target, nextInLine);
-	        case Directions.LEFT:
-	            return resolveForLeftSourceSide(source, target, nextInLine);
-	    }
-	}
-
-	function getDirectionForLinkConnection(linkOrigin, connectionPoint, linkView) {
-	    var tangent = linkView.getTangentAtLength(linkView.getClosestPointLength(connectionPoint));
-	    var roundedAngle = Math.round(getSegmentAngle(tangent) / 90) * 90;
-
-	    if (roundedAngle % 180 === 0 && linkOrigin.y === connectionPoint.y) {
-	        return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
-	    } else if (linkOrigin.x === connectionPoint.x) {
-	        return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
-	    }
-
-	    switch (roundedAngle) {
-	        case 0:
-	        case 180:
-	        case 360:
-	            return linkOrigin.y < connectionPoint.y ? Directions.TOP : Directions.BOTTOM;
-	        case 90:
-	        case 270:
-	            return linkOrigin.x < connectionPoint.x ? Directions.LEFT : Directions.RIGHT;
-	    }
-	}
-
-	function pointDataFromAnchor(view, point, bbox, direction, isPort, fallBackAnchor, margin) {
-	    if (direction === Directions.AUTO) {
-	        direction = isPort ? Directions.MAGNET_SIDE : Directions.ANCHOR_SIDE;
-	    }
-
-	    var isElement = view && view.model.isElement();
-
-	    var ref = isElement ? Rect.fromRectUnion(bbox, view.model.getBBox()) : fallBackAnchor;
-	    var x0 = ref.x;
-	    var y0 = ref.y;
-	    var width = ref.width; if ( width === void 0 ) width = 0;
-	    var height = ref.height; if ( height === void 0 ) height = 0;
-
-	    return {
-	        point: point,
-	        x0: x0,
-	        y0: y0,
-	        view: view,
-	        bbox: bbox,
-	        width: width,
-	        height: height,
-	        direction: direction,
-	        margin: isElement ? margin : 0
-	    };
-	}
-
-	function pointDataFromVertex(ref) {
-	    var x = ref.x;
-	    var y = ref.y;
-
-	    var point = new Point(x, y);
-
-	    return {
-	        point: point,
-	        x0: point.x,
-	        y0: point.y,
-	        view: null,
-	        bbox: new Rect(x, y, 0, 0),
-	        width: 0,
-	        height: 0,
-	        direction: null,
-	        margin: 0
-	    };
-	}
-
-	function getOutsidePoint(side, pointData, margin) {
-	    var outsidePoint = pointData.point.clone();
-
-	    var x0 = pointData.x0;
-	    var y0 = pointData.y0;
-	    var width = pointData.width;
-	    var height = pointData.height;
-
-	    switch (side) {
-	        case 'left':
-	            outsidePoint.x = x0 - margin;
-	            break;
-	        case 'right':
-	            outsidePoint.x = x0 + width + margin;
-	            break;
-	        case 'top':
-	            outsidePoint.y = y0 - margin;
-	            break;
-	        case 'bottom':
-	            outsidePoint.y = y0 + height + margin;
-	            break;
-	    }
-
-	    return outsidePoint;
-	}
-
-	function routeBetweenPoints(source, target) {
-	    var sourcePoint = source.point;
-	    var sx0 = source.x0;
-	    var sy0 = source.y0;
-	    var sourceView = source.view;
-	    var sourceWidth = source.width;
-	    var sourceHeight = source.height;
-	    var sourceMargin = source.margin;
-	    var targetPoint = target.point;
-	    var tx0 = target.x0;
-	    var ty0 = target.y0;
-	    var targetWidth = target.width;
-	    var targetHeight = target.height;
-	    var targetMargin = target.margin;
-
-	    var tx1 = tx0 + targetWidth;
-	    var ty1 = ty0 + targetHeight;
-	    var sx1 = sx0 + sourceWidth;
-	    var sy1 = sy0 + sourceHeight;
-
-	    var isSourceEl = sourceView && sourceView.model.isElement();
-
-	    // Key coordinates including the margin
-	    var smx0 = sx0 - sourceMargin;
-	    var smx1 = sx1 + sourceMargin;
-	    var smy0 = sy0 - sourceMargin;
-	    var smy1 = sy1 + sourceMargin;
-
-	    var tmx0 = tx0 - targetMargin;
-	    var tmx1 = tx1 + targetMargin;
-	    var tmy0 = ty0 - targetMargin;
-	    var tmy1 = ty1 + targetMargin;
-
-	    var ref = resolveSides(source, target);
-	    var sourceSide = ref[0];
-	    var targetSide = ref[1];
-
-	    var sourceOutsidePoint = getOutsidePoint(sourceSide, { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight }, sourceMargin);
-	    var targetOutsidePoint = getOutsidePoint(targetSide, { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight }, targetMargin);
-
-	    var sox = sourceOutsidePoint.x;
-	    var soy = sourceOutsidePoint.y;
-	    var tox = targetOutsidePoint.x;
-	    var toy = targetOutsidePoint.y;
-	    var tcx = (tx0 + tx1) / 2;
-	    var tcy = (ty0 + ty1) / 2;
-	    var scx = (sx0 + sx1) / 2;
-	    var scy = (sy0 + sy1) / 2;
-	    var middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
-	    var middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
-
-	    if (sourceSide === 'left' && targetSide === 'right') {
-	        if (smx0 <= tmx1) {
-	            var y = middleOfHorizontalSides;
-	            if (sx1 <= tx0) {
-	                if (ty1 >= smy0 && toy < soy) {
-	                    y = Math.min(tmy0, smy0);
-	                } else if (ty0 <= smy1 && toy >= soy) {
-	                    y = Math.max(tmy1, smy1);
-	                }
-	            }
-	            return [
-	                { x: sox, y: soy },
-	                { x: sox, y: y },
-	                { x: tox, y: y },
-	                { x: tox, y: toy }
-	            ];
-	        }
-
-	        var x = (sox + tox) / 2;
-	        return [
-	            { x: x, y: soy },
-	            { x: x, y: toy }
-	        ];
-	    } else if (sourceSide === 'right' && targetSide === 'left') {
-	        if (smx1 >= tmx0) {
-	            var y$1 = middleOfHorizontalSides;
-	            if (sox > tx1) {
-	                if (ty1 >= smy0 && toy < soy) {
-	                    y$1 = Math.min(tmy0, smy0);
-	                } else if (ty0 <= smy1 && toy >= soy) {
-	                    y$1 = Math.max(tmy1, smy1);
-	                }
-	            }
-
-	            return [
-	                { x: sox, y: soy },
-	                { x: sox, y: y$1 },
-	                { x: tox, y: y$1 },
-	                { x: tox, y: toy }
-	            ];
-	        }
-
-	        var x$1 = (sox + tox) / 2;
-	        return [
-	            { x: x$1, y: soy },
-	            { x: x$1, y: toy }
-	        ];
-	    } else if (sourceSide === 'top' && targetSide === 'bottom') {
-	        if (soy < toy) {
-	            var x$2 = middleOfVerticalSides;
-	            var y$2 = soy;
-
-	            if (soy < ty0) {
-	                if (tx1 >= smx0 && tox < sox) {
-	                    x$2 = Math.min(tmx0, smx0);
-	                } else if (tx0 <= smx1 && tox >= sox) {
-	                    x$2 = Math.max(tmx1, smx1);
-	                }
-	            }
-
-	            return [
-	                { x: sox, y: y$2 },
-	                { x: x$2, y: y$2 },
-	                { x: x$2, y: toy },
-	                { x: tox, y: toy }
-	            ];
-	        }
-	        var y$3 = (soy + toy) / 2;
-	        return [
-	            { x: sox, y: y$3 },
-	            { x: tox, y: y$3 }
-	        ];
-	    } else if (sourceSide === 'bottom' && targetSide === 'top') {
-	        if (soy - sourceMargin > toy) {
-	            var x$3 = middleOfVerticalSides;
-	            var y$4 = soy;
-
-	            if (soy > ty1) {
-	                if (tx1 >= smx0 && tox < sox) {
-	                    x$3 = Math.min(tmx0, smx0);
-	                } else if (tx0 <= smx1 && tox >= sox) {
-	                    x$3 = Math.max(tmx1, smx1);
-	                }
-	            }
-
-	            return [
-	                { x: sox, y: y$4 },
-	                { x: x$3, y: y$4 },
-	                { x: x$3, y: toy },
-	                { x: tox, y: toy }
-	            ];
-	        }
-	        var y$5 = (soy + toy) / 2;
-	        return [
-	            { x: sox, y: y$5 },
-	            { x: tox, y: y$5 }
-	        ];
-	    } else if (sourceSide === 'top' && targetSide === 'top') {
-	        var x$4;
-	        var y1 = Math.min((sy1 + ty0) / 2, toy);
-	        var y2 = Math.min((sy0 + ty1) / 2, soy);
-
-	        if (toy < soy) {
-	            if (sox >= tmx1 || sox <= tmx0) {
-	                return [
-	                    { x: sox, y: Math.min(soy, toy) },
-	                    { x: tox, y: Math.min(soy, toy) }
-	                ];
-	            } else if (tox > sox) {
-	                x$4 = Math.min(sox, tmx0);
-	            } else {
-	                x$4 = Math.max(sox, tmx1);
-	            }
-	        } else {
-	            if (tox >= smx1 || tox <= smx0) {
-	                return [
-	                    { x: sox, y: Math.min(soy, toy) },
-	                    { x: tox, y: Math.min(soy, toy) }
-	                ];
-	            } else if (tox >= sox) {
-	                x$4 = Math.max(tox, smx1);
-	            } else {
-	                x$4 = Math.min(tox, smx0);
-	            }
-	        }
-
-	        return [
-	            { x: sox, y: y2 },
-	            { x: x$4, y: y2 },
-	            { x: x$4, y: y1 },
-	            { x: tox, y: y1 }
-	        ];
-	    } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
-	        var x$5;
-	        var y1$1 = Math.max((sy0 + ty1) / 2, toy);
-	        var y2$1 = Math.max((sy1 + ty0) / 2, soy);
-
-	        if (toy > soy) {
-	            if (sox >= tmx1 || sox <= tmx0) {
-	                return [
-	                    { x: sox, y: Math.max(soy, toy) },
-	                    { x: tox, y: Math.max(soy, toy) }
-	                ];
-	            } else if (tox > sox) {
-	                x$5 = Math.min(sox, tmx0);
-	            } else {
-	                x$5 = Math.max(sox, tmx1);
-	            }
-	        } else {
-	            if (tox >= smx1 || tox <= smx0) {
-	                return [
-	                    { x: sox, y: Math.max(soy, toy) },
-	                    { x: tox, y: Math.max(soy, toy) }
-	                ];
-	            } else if (tox >= sox) {
-	                x$5 = Math.max(tox, smx1);
-	            } else {
-	                x$5 = Math.min(tox, smx0);
-	            }
-	        }
-
-	        return [
-	            { x: sox, y: y2$1 },
-	            { x: x$5, y: y2$1 },
-	            { x: x$5, y: y1$1 },
-	            { x: tox, y: y1$1 }
-	        ];
-	    } else if (sourceSide === 'left' && targetSide === 'left') {
-	        var y$6;
-	        var x1 = Math.min((sx1 + tx0) / 2, tox);
-	        var x2 = Math.min((sx0 + tx1) / 2, sox);
-
-	        if (tox > sox) {
-	            if (toy <= soy) {
-	                y$6 = Math.min(smy0, toy);
-	            } else {
-	                y$6 = Math.max(smy1, toy);
-	            }
-	        } else {
-	            if (toy >= soy) {
-	                y$6 = Math.min(tmy0, soy);
-	            } else {
-	                y$6 = Math.max(tmy1, soy);
-	            }
-	        }
-
-	        return [
-	            { x: x2, y: soy },
-	            { x: x2, y: y$6 },
-	            { x: x1, y: y$6 },
-	            { x: x1, y: toy }
-	        ];
-	    } else if (sourceSide === 'right' && targetSide === 'right') {
-	        var y$7;
-	        var x1$1 = Math.max((sx0 + tx1) / 2, tox);
-	        var x2$1 = Math.max((sx1 + tx0) / 2, sox);
-
-	        if (tox < sox) {
-	            if (toy <= soy) {
-	                y$7 = Math.min(smy0, toy);
-	            } else {
-	                y$7 = Math.max(smy1, toy);
-	            }
-	        } else {
-	            if (toy >= soy) {
-	                y$7 = Math.min(tmy0, soy);
-	            } else {
-	                y$7 = Math.max(tmy1, soy);
-	            }
-	        }
-
-	        return [
-	            { x: x2$1, y: soy },
-	            { x: x2$1, y: y$7 },
-	            { x: x1$1, y: y$7 },
-	            { x: x1$1, y: toy }
-	        ];
-	    } else if (sourceSide === 'top' && targetSide === 'right') {
-	        if (soy > toy) {
-	            if (sox < tox) {
-	                var y$8 = middleOfHorizontalSides;
-
-	                if ((y$8 > tcy || !isSourceEl) && y$8 < tmy1 && sox < tx0) {
-	                    y$8 = tmy0;
-	                }
-	                return [
-	                    { x: sox, y: y$8 },
-	                    { x: tox, y: y$8 },
-	                    { x: tox, y: toy }
-	                ];
-	            }
-
-	            return [{ x: sox, y: toy }];
-	        }
-
-	        var x$6 = Math.max(middleOfVerticalSides, tmx1);
-
-	        if (tox < sox && toy > sy0 && toy < sy1) {
-	            return [
-	                { x: sox, y: soy },
-	                { x: x$6, y: soy },
-	                { x: x$6, y: toy }
-	            ];
-	        }
-
-	        if ((x$6 > smx0 && toy > sy0) || tx0 > sx1) {
-	            var y$9 = Math.min(sy0 - sourceMargin, ty0 - targetMargin);
-	            var x$7 = Math.max(sx1 + sourceMargin, tx1 + targetMargin);
-	            return [
-	                { x: sox, y: y$9 },
-	                { x: x$7, y: y$9 },
-	                { x: x$7, y: toy }
-	            ];
-	        }
-
-	        return [
-	            { x: sox, y: soy },
-	            { x: Math.max(x$6, tox), y: soy },
-	            { x: Math.max(x$6, tox), y: toy }
-	        ];
-	    } else if (sourceSide === 'top' && targetSide === 'left') {
-	        if (soy > toy) {
-	            if (sox > tox) {
-	                var y$10 = middleOfHorizontalSides;
-
-	                if ((y$10 > tcy || !isSourceEl) && y$10 < tmy1 && sox > tx1) {
-	                    y$10 = tmy0;
-	                }
-	                return [
-	                    { x: sox, y: y$10 },
-	                    { x: tox, y: y$10 },
-	                    { x: tox, y: toy }
-	                ];
-	            }
-	            return [{ x: sox, y: toy }];
-	        }
-
-	        var x$8 = Math.min(tmx0, middleOfVerticalSides);
-
-	        if (sox < tox && sy1 >= toy) {
-	            return [
-	                { x: sox, y: soy },
-	                { x: x$8, y: soy },
-	                { x: x$8, y: toy }];
-	        }
-
-	        if (x$8 < smx1 && soy < ty1) {
-	            var y$11 = Math.min(smy0, tmy0);
-	            var x$9 = Math.min(smx0, tmx0);
-	            return [
-	                { x: sox, y: y$11 },
-	                { x: x$9, y: y$11 },
-	                { x: x$9, y: toy }
-	            ];
-	        }
-	        return [
-	            { x: sox, y: soy },
-	            { x: x$8, y: soy },
-	            { x: x$8, y: toy }
-	        ];
-	    } else if (sourceSide === 'bottom' && targetSide === 'right') {
-	        if (soy < toy) {
-	            if (sox < tox) {
-	                var y$12 = middleOfHorizontalSides;
-
-	                if ((y$12 < tcy || !isSourceEl) && y$12 > tmy0 && sox < tx0) {
-	                    y$12 = tmy1;
-	                }
-	                return [
-	                    { x: sox, y: y$12 },
-	                    { x: tox, y: y$12 },
-	                    { x: tox, y: toy }
-	                ];
-	            }
-	            return [{ x: sox, y: toy }];
-	        } else {
-	            if (sx0 < tox) {
-	                var y$13 = Math.max(smy1, tmy1);
-	                var x$10 = Math.max(smx1, tmx1);
-	                return [
-	                    { x: sox, y: y$13 },
-	                    { x: x$10, y: y$13 },
-	                    { x: x$10, y: toy }
-	                ];
-	            }
-	        }
-
-	        var x$11 = middleOfVerticalSides;
-
-	        return [
-	            { x: sox, y: soy },
-	            { x: x$11, y: soy },
-	            { x: x$11, y: toy }
-	        ];
-	    } else if (sourceSide === 'bottom' && targetSide === 'left') {
-	        if (soy < toy) {
-	            if (sox > tox) {
-	                var y$14 = middleOfHorizontalSides;
-
-	                if ((y$14 < tcy || !isSourceEl) && y$14 > tmy0 && sox > tx1) {
-	                    y$14 = tmy1;
-	                }
-	                return [
-	                    { x: sox, y: y$14 },
-	                    { x: tox, y: y$14 },
-	                    { x: tox, y: toy }
-	                ];
-	            }
-	            return [{ x: sox, y: toy }];
-	        } else {
-	            if (sx1 > tox) {
-	                var y$15 = Math.max(smy1, tmy1);
-	                var x$12 = Math.min(smx0, tmx0);
-	                return [
-	                    { x: sox, y: y$15 },
-	                    { x: x$12, y: y$15 },
-	                    { x: x$12, y: toy }
-	                ];
-	            }
-	        }
-
-	        var x$13 = middleOfVerticalSides;
-
-	        return [
-	            { x: sox, y: soy },
-	            { x: x$13, y: soy },
-	            { x: x$13, y: toy }
-	        ];
-	    }
-	    else if (sourceSide === 'left' && targetSide === 'bottom') {
-	        if (sox >= tox && soy >= tmy1) {
-	            return [{ x: tox, y: soy }];
-	        }
-
-	        if (sox >= tx1 && soy < toy) {
-	            var x$14 = middleOfVerticalSides;
-
-	            return [
-	                { x: x$14, y: soy },
-	                { x: x$14, y: toy },
-	                { x: tox, y: toy }
-	            ];
-	        }
-
-	        if (tox < sx1 && ty1 <= sy0) {
-	            var y$16 = middleOfHorizontalSides;
-
-	            return [
-	                { x: sox, y: soy },
-	                { x: sox, y: y$16 },
-	                { x: tox, y: y$16 }
-	            ];
-	        }
-
-	        var x$15 = Math.min(tmx0, sox);
-	        var y$17 = Math.max(smy1, tmy1);
-
-	        return [
-	            { x: x$15, y: soy },
-	            { x: x$15, y: y$17 },
-	            { x: tox, y: y$17 }
-	        ];
-	    } else if (sourceSide === 'left' && targetSide === 'top') {
-	        if (sox > tox && soy < tmy0) {
-	            return [{ x: tox, y: soy }];
-	        }
-
-	        if (sox >= tx1) {
-	            if (soy > toy) {
-	                var x$16 = middleOfVerticalSides;
-
-	                return [
-	                    { x: x$16, y: soy },
-	                    { x: x$16, y: toy },
-	                    { x: tox, y: toy }
-	                ];
-	            }
-	        }
-
-	        if (tox <= sx1 && toy > soy) {
-	            var y$18 = middleOfHorizontalSides;
-
-	            return [
-	                { x: sox, y: soy },
-	                { x: sox, y: y$18 },
-	                { x: tox, y: y$18 } ];
-	        }
-
-	        var x$17 = toy < soy ? Math.min(smx0, tmx0) : smx0;
-	        var y$19 = Math.min(smy0, tmy0);
-
-	        return [
-	            { x: x$17, y: soy },
-	            { x: x$17, y: y$19 },
-	            { x: tox, y: y$19 }
-	        ];
-
-	    } else if (sourceSide === 'right' && targetSide === 'top') {
-	        if (sox <= tox && soy < tmy0) {
-	            return [{ x: tox, y: soy }];
-	        }
-
-	        if (sx1 < tx0 && soy > toy) {
-	            var x$18 = middleOfVerticalSides;
-
-	            return [
-	                { x: x$18, y: soy },
-	                { x: x$18, y: toy },
-	                { x: tox, y: toy }
-	            ];
-	        }
-
-	        if (tox < sox && ty0 > sy1) {
-	            var y$20 = middleOfHorizontalSides;
-
-	            return [
-	                { x: sox, y: soy },
-	                { x: sox, y: y$20 },
-	                { x: tox, y: y$20 }
-	            ];
-	        }
-
-	        var x$19 = Math.max(smx1, tmx1);
-	        var y$21 = Math.min(smy0, tmy0);
-
-	        return [
-	            { x: x$19, y: soy },
-	            { x: x$19, y: y$21 },
-	            { x: tox, y: y$21 }
-	        ];
-	    } else if (sourceSide === 'right' && targetSide === 'bottom') {
-	        if (sox <= tox && soy >= tmy1) {
-	            return [{ x: tox, y: soy }];
-	        }
-
-	        if (sox <= tmx0 && soy < toy) {
-	            var x$20 = middleOfVerticalSides;
-
-	            return [
-	                { x: x$20, y: soy },
-	                { x: x$20, y: toy },
-	                { x: tox, y: toy }
-	            ];
-	        }
-
-	        if (tox > sx0 && ty1 < sy0) {
-	            var y$22 = middleOfHorizontalSides;
-
-	            return [
-	                { x: sox, y: soy },
-	                { x: sox, y: y$22 },
-	                { x: tox, y: y$22 }
-	            ];
-	        }
-
-	        var x$21 = Math.max(tmx1, sox);
-	        var y$23 = Math.max(smy1, tmy1);
-
-	        return [
-	            { x: x$21, y: soy },
-	            { x: x$21, y: y$23 },
-	            { x: tox, y: y$23 }
-	        ];
-	    }
-	}
-
-	function rightAngleRouter(vertices, opt, linkView) {
-	    var sourceDirection = opt.sourceDirection; if ( sourceDirection === void 0 ) sourceDirection = Directions.AUTO;
-	    var targetDirection = opt.targetDirection; if ( targetDirection === void 0 ) targetDirection = Directions.AUTO;
-	    var margin = opt.margin || 20;
-	    var useVertices = opt.useVertices || false;
-
-	    var isSourcePort = !!linkView.model.source().port;
-	    var sourcePoint = pointDataFromAnchor(linkView.sourceView, linkView.sourceAnchor, linkView.sourceBBox, sourceDirection, isSourcePort, linkView.sourceAnchor, margin);
-
-	    var isTargetPort = !!linkView.model.target().port;
-	    var targetPoint = pointDataFromAnchor(linkView.targetView, linkView.targetAnchor, linkView.targetBBox, targetDirection, isTargetPort, linkView.targetAnchor, margin);
-
-	    var resultVertices = [];
-
-	    if (!useVertices || vertices.length === 0) {
-	        return simplifyPoints(routeBetweenPoints(sourcePoint, targetPoint));
-	    }
-
-	    var verticesData = vertices.map(function (v) { return pointDataFromVertex(v); });
-	    var firstVertex = verticesData[0];
-
-	    if (sourcePoint.view && sourcePoint.view.model.isElement() && sourcePoint.view.model.getBBox().inflate(margin).containsPoint(firstVertex.point)) {
-	        var ref = resolveSides(sourcePoint, firstVertex);
-	        var fromDirection = ref[0];
-	        var toDirection = fromDirection;
-	        var dummySource = pointDataFromVertex(sourcePoint.point);
-	        // Points do not usually have margin. Here we create a point with a margin.
-	        dummySource.margin = margin;
-	        dummySource.direction = fromDirection;
-	        firstVertex.direction = toDirection;
-
-	        resultVertices.push.apply(resultVertices, routeBetweenPoints(dummySource, firstVertex).concat( [firstVertex.point] ));
-	    } else {
-	        // The first point responsible for the initial direction of the route
-	        var next = verticesData[1] || targetPoint;
-	        var direction = resolveInitialDirection(sourcePoint, firstVertex, next);
-	        firstVertex.direction = direction;
-
-	        resultVertices.push.apply(resultVertices, routeBetweenPoints(sourcePoint, firstVertex).concat( [firstVertex.point] ));
-	    }
-
-	    for (var i = 0; i < verticesData.length - 1; i++) {
-	        var from = verticesData[i];
-	        var to = verticesData[i + 1];
-
-	        var segment = new Line(from.point, to.point);
-	        var segmentAngle = getSegmentAngle(segment);
-	        if (segmentAngle % 90 === 0) {
-	            // Since the segment is horizontal or vertical, we can skip the routing and just connect them with a straight line
-	            var toDirection$1 = ANGLE_DIRECTION_MAP[segmentAngle];
-	            var accessDirection = OPPOSITE_DIRECTIONS[toDirection$1];
-
-	            if (toDirection$1 !== from.direction) {
-	                resultVertices.push(from.point, to.point);
-	                to.direction = accessDirection;
-	            } else {
-	                var angle = normalizeAngle(segmentAngle - 90);
-
-	                var dx = 0;
-	                var dy = 0;
-
-	                if (angle === 90) {
-	                    dy = -margin;
-	                } else if (angle === 180) {
-	                    dx = -margin;
-	                } else if (angle === 270) {
-	                    dy = margin;
-	                } else if (angle === 0) {
-	                    dx = margin;
-	                }
-
-	                var p1 = { x: from.point.x + dx, y: from.point.y + dy };
-	                var p2 = { x: to.point.x + dx, y: to.point.y + dy };
-
-	                var segment2 = new Line(to.point, p2);
-	                to.direction = ANGLE_DIRECTION_MAP[getSegmentAngle(segment2)];
-
-	                // Constructing a loop
-	                resultVertices.push(from.point, p1, p2, to.point);
-	            }
-
-	            continue;
-	        }
-
-	        var ref$1 = resolveDirection(from, to);
-	        var fromDirection$1 = ref$1[0];
-	        var toDirection$2 = ref$1[1];
-
-	        from.direction = fromDirection$1;
-	        to.direction = toDirection$2;
-
-	        resultVertices.push.apply(resultVertices, routeBetweenPoints(from, to).concat( [to.point] ));
-	    }
-
-	    var lastVertex = verticesData[verticesData.length - 1];
-
-	    if (targetPoint.view && targetPoint.view.model.isElement()) {
-	        if (targetPoint.view.model.getBBox().inflate(margin).containsPoint(lastVertex.point)) {
-	            var ref$2 = resolveDirection(lastVertex, targetPoint);
-	            var fromDirection$2 = ref$2[0];
-	            var dummyTarget = pointDataFromVertex(targetPoint.point);
-	            var ref$3 = resolveSides(lastVertex, targetPoint);
-	            var toDirection$3 = ref$3[1];
-	            // we are creating a point that has a margin
-	            dummyTarget.margin = margin;
-	            dummyTarget.direction = toDirection$3;
-	            lastVertex.direction = fromDirection$2;
-
-	            resultVertices.push.apply(resultVertices, routeBetweenPoints(lastVertex, dummyTarget));
-	        } else {
-	            // the last point of `simplified` array is the last defined vertex
-	            // grab the penultimate point and construct a line segment from it to the last vertex
-	            // this will ensure that the last segment continues in a straight line
-
-	            var simplified = simplifyPoints(resultVertices);
-	            var segment$1 = new Line(simplified[simplified.length - 2], lastVertex.point);
-	            var definedDirection = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(segment$1))];
-	            lastVertex.direction = definedDirection;
-
-	            var lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
-	            var ref$4 = simplifyPoints(lastSegmentRoute.concat( [targetPoint.point]));
-	            var p1$1 = ref$4[0];
-	            var p2$1 = ref$4[1];
-
-	            var lastSegment = new Line(p1$1, p2$1);
-	            var roundedLastSegmentAngle = Math.round(getSegmentAngle(lastSegment));
-	            var lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
-
-	            if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
-	                lastVertex.margin = margin;
-	                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
-	            }
-
-	            resultVertices.push.apply(resultVertices, lastSegmentRoute);
-	        }
-	    } else {
-	        // since the target is only a point we can apply the same logic as if we connected two verticesData
-	        var ref$5 = resolveDirection(lastVertex, targetPoint);
-	        var vertexDirection = ref$5[0];
-	        lastVertex.direction = vertexDirection;
-
-	        resultVertices.push.apply(resultVertices, routeBetweenPoints(lastVertex, targetPoint));
-	    }
-
-	    return simplifyPoints(resultVertices);
-	}
-
-	function resolveDirection(from, to) {
-	    var accessDirection = from.direction;
-	    var isDirectionVertical = VERTICAL_DIRECTIONS.includes(accessDirection);
-
-	    var sourceDirection = from.direction;
-	    var targetDirection = to.direction;
-
-	    if (isDirectionVertical) {
-	        var isToAbove = from.point.y > to.point.y;
-	        var dx = to.point.x - from.point.x;
-
-	        if (accessDirection === Directions.BOTTOM) {
-	            // If isToAbove === false and we need figure out if to go left or right
-	            sourceDirection = isToAbove ? OPPOSITE_DIRECTIONS[accessDirection] : dx >= 0 ? Directions.RIGHT : Directions.LEFT;
-
-	            if (dx > 0) {
-	                targetDirection = isToAbove ? Directions.LEFT : Directions.TOP;
-	            } else if (dx < 0) {
-	                targetDirection = isToAbove ? Directions.RIGHT : Directions.TOP;
-	            }
-	        } else {
-	            // If isToAbove === true and we need figure out if to go left or right
-	            sourceDirection = isToAbove ? dx >= 0 ? Directions.RIGHT : Directions.LEFT : OPPOSITE_DIRECTIONS[accessDirection];
-
-	            if (dx > 0) {
-	                targetDirection = isToAbove ? Directions.BOTTOM : Directions.LEFT;
-	            } else if (dx < 0) {
-	                targetDirection = isToAbove ? Directions.BOTTOM : Directions.RIGHT;
-	            }
-	        }
-	    } else {
-	        var isToLeft = from.point.x > to.point.x;
-	        var dy = to.point.y - from.point.y;
-
-	        if (accessDirection === Directions.RIGHT) {
-	            sourceDirection = isToLeft ? OPPOSITE_DIRECTIONS[accessDirection] : dy >= 0 ? Directions.BOTTOM : Directions.TOP;
-
-	            if (dy > 0) {
-	                targetDirection = isToLeft ? Directions.TOP : Directions.LEFT;
-	            } else if (dy < 0) {
-	                targetDirection = isToLeft ? Directions.BOTTOM : Directions.LEFT;
-	            }
-	        } else {
-	            sourceDirection = isToLeft ? dy >= 0 ? Directions.BOTTOM : Directions.TOP : OPPOSITE_DIRECTIONS[accessDirection];
-
-	            if (dy > 0) {
-	                targetDirection = isToLeft ? Directions.RIGHT : Directions.TOP;
-	            } else if (dy < 0) {
-	                targetDirection = isToLeft ? Directions.RIGHT : Directions.BOTTOM;
-	            }
-	        }
-	    }
-
-	    return [sourceDirection, targetDirection];
-	}
-
-	rightAngleRouter.Directions = Directions;
-
-	var rightAngle = rightAngleRouter;
-
-
-
-	var routers = ({
-		normal: normal,
-		oneSide: oneSide,
-		orthogonal: orthogonal,
-		manhattan: manhattan,
-		metro: metro,
-		rightAngle: rightAngle
-	});
-
-	var CornerTypes = {
-	    POINT: 'point',
-	    CUBIC: 'cubic',
-	    LINE: 'line',
-	    GAP: 'gap'
-	};
-
-	var DEFINED_CORNER_TYPES = Object.values(CornerTypes);
-
-	var CORNER_RADIUS = 10;
-	var PRECISION = 1;
-
-	var straight = function(sourcePoint, targetPoint, routePoints, opt) {
-	    if ( routePoints === void 0 ) routePoints = [];
-	    if ( opt === void 0 ) opt = {};
-
-
-	    var cornerType = opt.cornerType; if ( cornerType === void 0 ) cornerType = CornerTypes.POINT;
-	    var cornerRadius = opt.cornerRadius; if ( cornerRadius === void 0 ) cornerRadius = CORNER_RADIUS;
-	    var cornerPreserveAspectRatio = opt.cornerPreserveAspectRatio; if ( cornerPreserveAspectRatio === void 0 ) cornerPreserveAspectRatio = false;
-	    var precision = opt.precision; if ( precision === void 0 ) precision = PRECISION;
-	    var raw = opt.raw; if ( raw === void 0 ) raw = false;
-
-	    if (DEFINED_CORNER_TYPES.indexOf(cornerType) === -1) {
-	        // unknown `cornerType` provided => error
-	        throw new Error('Invalid `cornerType` provided to `straight` connector.');
-	    }
-
-	    var path;
-
-	    if ((cornerType === CornerTypes.POINT) || !cornerRadius) {
-	        // default option => normal connector
-	        // simply connect all points with straight lines
-	        var points = [sourcePoint].concat(routePoints).concat([targetPoint]);
-	        var polyline = new Polyline(points);
-	        path = new Path(polyline);
-
-	    } else {
-	        // `cornerType` is not unknown and not 'point' (default) => must be one of other valid types
-	        path = new Path();
-
-	        // add initial gap segment = to source point
-	        path.appendSegment(Path.createSegment('M', sourcePoint));
-
-	        var nextDistance;
-	        var routePointsLength = routePoints.length;
-	        for (var i = 0; i < routePointsLength; i++) {
-
-	            var curr = new Point(routePoints[i]);
-	            var prev = (routePoints[i - 1] || sourcePoint);
-	            var next = (routePoints[i + 1] || targetPoint);
-	            var prevDistance = (nextDistance || (curr.distance(prev) / 2)); // try to re-use previously-computed `nextDistance`
-	            nextDistance = (curr.distance(next) / 2);
-
-	            var startMove = (void 0), endMove = (void 0);
-	            if (!cornerPreserveAspectRatio) {
-	                // `startMove` and `endMove` may be different
-	                // (this happens when next or previous path point is closer than `2 * cornerRadius`)
-	                startMove = -Math.min(cornerRadius, prevDistance);
-	                endMove = -Math.min(cornerRadius, nextDistance);
-	            } else {
-	                // force `startMove` and `endMove` to be the same
-	                startMove = endMove = -Math.min(cornerRadius, prevDistance, nextDistance);
-	            }
-
-	            // to find `cornerStart` and `cornerEnd`, the logic is as follows (using `cornerStart` as example):
-	            // - find a point lying on the line `prev - startMove` such that...
-	            // - ...the point lies `abs(startMove)` distance away from `curr`...
-	            // - ...and its coordinates are rounded to whole numbers
-	            var cornerStart = curr.clone().move(prev, startMove).round(precision);
-	            var cornerEnd = curr.clone().move(next, endMove).round(precision);
-
-	            // add in-between straight segment = from previous route point to corner start point
-	            // (may have zero length)
-	            path.appendSegment(Path.createSegment('L', cornerStart));
-
-	            // add corner segment = from corner start point to corner end point
-	            switch (cornerType) {
-	                case CornerTypes.CUBIC: {
-	                    // corner is rounded
-	                    var _13 = (1 / 3);
-	                    var _23 = (2 / 3);
-	                    var control1 = new Point((_13 * cornerStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * cornerStart.y));
-	                    var control2 = new Point((_13 * cornerEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * cornerEnd.y));
-	                    path.appendSegment(Path.createSegment('C', control1, control2, cornerEnd));
-	                    break;
-	                }
-	                case CornerTypes.LINE: {
-	                    // corner has bevel
-	                    path.appendSegment(Path.createSegment('L', cornerEnd));
-	                    break;
-	                }
-	                case CornerTypes.GAP: {
-	                    // corner has empty space
-	                    path.appendSegment(Path.createSegment('M', cornerEnd));
-	                    break;
-	                }
-	                // default: no segment is created
-	            }
-	        }
-
-	        // add final straight segment = from last corner end point to target point
-	        // (= or from start point to end point, if there are no route points)
-	        // (may have zero length)
-	        path.appendSegment(Path.createSegment('L', targetPoint));
-	    }
-
-	    return ((raw) ? path : path.serialize());
-	};
-
-	// default size of jump if not specified in options
-	var JUMP_SIZE = 5;
-
-	// available jump types
-	// first one taken as default
-	var JUMP_TYPES = ['arc', 'gap', 'cubic'];
-
-	// default radius
-	var RADIUS = 0;
-
-	// takes care of math. error for case when jump is too close to end of line
-	var CLOSE_PROXIMITY_PADDING = 1;
-
-	// list of connector types not to jump over.
-	var IGNORED_CONNECTORS = ['smooth'];
-
-	// internal constants for round segment
-	var _13 = 1 / 3;
-	var _23 = 2 / 3;
-
-	function sortPointsAscending(p1, p2) {
-
-	    var x1 = p1.x;
-	    var y1 = p1.y;
-	    var x2 = p2.x;
-	    var y2 = p2.y;
-
-	    if (x1 > x2) {
-
-	        var swap = x1;
-	        x1 = x2;
-	        x2 = swap;
-
-	        swap = y1;
-	        y1 = y2;
-	        y2 = swap;
-	    }
-
-	    if (y1 > y2) {
-	        var swap$1 = x1;
-	        x1 = x2;
-	        x2 = swap$1;
-
-	        swap$1 = y1;
-	        y1 = y2;
-	        y2 = swap$1;
-	    }
-
-	    return [new Point(x1, y1), new Point(x2, y2)];
-	}
-
-	function overlapExists(line1, line2) {
-
-	    var ref = sortPointsAscending(line1.start, line1.end);
-	    var ref_0 = ref[0];
-	    var x1 = ref_0.x;
-	    var y1 = ref_0.y;
-	    var ref_1 = ref[1];
-	    var x2 = ref_1.x;
-	    var y2 = ref_1.y;
-	    var ref$1 = sortPointsAscending(line2.start, line2.end);
-	    var ref$1_0 = ref$1[0];
-	    var x3 = ref$1_0.x;
-	    var y3 = ref$1_0.y;
-	    var ref$1_1 = ref$1[1];
-	    var x4 = ref$1_1.x;
-	    var y4 = ref$1_1.y;
-
-	    var xMatch = x1 <= x4 && x3 <= x2;
-	    var yMatch = y1 <= y4 && y3 <= y2;
-
-	    return xMatch && yMatch;
-	}
-
-	/**
-	 * Transform start/end and route into series of lines
-	 * @param {g.point} sourcePoint start point
-	 * @param {g.point} targetPoint end point
-	 * @param {g.point[]} route optional list of route
-	 * @return {g.line[]} [description]
-	 */
-	function createLines(sourcePoint, targetPoint, route) {
-	    // make a flattened array of all points
-	    var points = [].concat(sourcePoint, route, targetPoint);
-	    return points.reduce(function(resultLines, point, idx) {
-	        // if there is a next point, make a line with it
-	        var nextPoint = points[idx + 1];
-	        if (nextPoint != null) {
-	            resultLines[idx] = line(point, nextPoint);
-	        }
-	        return resultLines;
-	    }, []);
-	}
-
-	function setupUpdating(jumpOverLinkView) {
-	    var paper = jumpOverLinkView.paper;
-	    var updateList = paper._jumpOverUpdateList;
-
-	    // first time setup for this paper
-	    if (updateList == null) {
-	        updateList = paper._jumpOverUpdateList = [];
-	        var graph = paper.model;
-	        graph.on('batch:stop', function() {
-	            if (this.hasActiveBatch()) { return; }
-	            updateJumpOver(paper);
-	        });
-	        graph.on('reset', function() {
-	            updateList = paper._jumpOverUpdateList = [];
-	        });
-	    }
-
-	    // add this link to a list so it can be updated when some other link is updated
-	    if (updateList.indexOf(jumpOverLinkView) < 0) {
-	        updateList.push(jumpOverLinkView);
-
-	        // watch for change of connector type or removal of link itself
-	        // to remove the link from a list of jump over connectors
-	        jumpOverLinkView.listenToOnce(jumpOverLinkView.model, 'change:connector remove', function() {
-	            updateList.splice(updateList.indexOf(jumpOverLinkView), 1);
-	        });
-	    }
-	}
-
-	/**
-	 * Handler for a batch:stop event to force
-	 * update of all registered links with jump over connector
-	 * @param {object} batchEvent optional object with info about batch
-	 */
-	function updateJumpOver(paper) {
-	    var updateList = paper._jumpOverUpdateList;
-	    for (var i = 0; i < updateList.length; i++) {
-	        var linkView = updateList[i];
-	        var updateFlag = linkView.getFlag(linkView.constructor.Flags.CONNECTOR);
-	        linkView.requestUpdate(updateFlag);
-	    }
-	}
-
-	/**
-	 * Utility function to collect all intersection points of a single
-	 * line against group of other lines.
-	 * @param {g.line} line where to find points
-	 * @param {g.line[]} crossCheckLines lines to cross
-	 * @return {g.point[]} list of intersection points
-	 */
-	function findLineIntersections(line, crossCheckLines) {
-	    return toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
-	        var intersection = line.intersection(crossCheckLine);
-	        if (intersection) {
-	            res.push(intersection);
-	        }
-	        return res;
-	    }, []);
-	}
-
-	/**
-	 * Sorting function for list of points by their distance.
-	 * @param {g.point} p1 first point
-	 * @param {g.point} p2 second point
-	 * @return {number} squared distance between points
-	 */
-	function sortPoints(p1, p2) {
-	    return line(p1, p2).squaredLength();
-	}
-
-	/**
-	 * Split input line into multiple based on intersection points.
-	 * @param {g.line} line input line to split
-	 * @param {g.point[]} intersections points where to split the line
-	 * @param {number} jumpSize the size of jump arc (length empty spot on a line)
-	 * @return {g.line[]} list of lines being split
-	 */
-	function createJumps(line$1, intersections, jumpSize) {
-	    return intersections.reduce(function(resultLines, point$1, idx) {
-	        // skipping points that were merged with the previous line
-	        // to make bigger arc over multiple lines that are close to each other
-	        if (point$1.skip === true) {
-	            return resultLines;
-	        }
-
-	        // always grab the last line from buffer and modify it
-	        var lastLine = resultLines.pop() || line$1;
-
-	        // calculate start and end of jump by moving by a given size of jump
-	        var jumpStart = point(point$1).move(lastLine.start, -(jumpSize));
-	        var jumpEnd = point(point$1).move(lastLine.start, +(jumpSize));
-
-	        // now try to look at the next intersection point
-	        var nextPoint = intersections[idx + 1];
-	        if (nextPoint != null) {
-	            var distance = jumpEnd.distance(nextPoint);
-	            if (distance <= jumpSize) {
-	                // next point is close enough, move the jump end by this
-	                // difference and mark the next point to be skipped
-	                jumpEnd = nextPoint.move(lastLine.start, distance);
-	                nextPoint.skip = true;
-	            }
-	        } else {
-	            // this block is inside of `else` as an optimization so the distance is
-	            // not calculated when we know there are no other intersection points
-	            var endDistance = jumpStart.distance(lastLine.end);
-	            // if the end is too close to possible jump, draw remaining line instead of a jump
-	            if (endDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
-	                resultLines.push(lastLine);
-	                return resultLines;
-	            }
-	        }
-
-	        var startDistance = jumpEnd.distance(lastLine.start);
-	        if (startDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
-	            // if the start of line is too close to jump, draw that line instead of a jump
-	            resultLines.push(lastLine);
-	            return resultLines;
-	        }
-
-	        // finally create a jump line
-	        var jumpLine = line(jumpStart, jumpEnd);
-	        // it's just simple line but with a `isJump` property
-	        jumpLine.isJump = true;
-
-	        resultLines.push(
-	            line(lastLine.start, jumpStart),
-	            jumpLine,
-	            line(jumpEnd, lastLine.end)
-	        );
-	        return resultLines;
-	    }, []);
-	}
-
-	/**
-	 * Assemble `D` attribute of a SVG path by iterating given lines.
-	 * @param {g.line[]} lines source lines to use
-	 * @param {number} jumpSize the size of jump arc (length empty spot on a line)
-	 * @param {number} radius the radius
-	 * @return {string}
-	 */
-	function buildPath(lines, jumpSize, jumpType, radius) {
-
-	    var path = new Path();
-	    var segment;
-
-	    // first move to the start of a first line
-	    segment = Path.createSegment('M', lines[0].start);
-	    path.appendSegment(segment);
-
-	    // make a paths from lines
-	    toArray(lines).forEach(function(line, index) {
-
-	        if (line.isJump) {
-	            var angle, diff;
-
-	            var control1, control2;
-
-	            if (jumpType === 'arc') { // approximates semicircle with 2 curves
-	                angle = -90;
-	                // determine rotation of arc based on difference between points
-	                diff = line.start.difference(line.end);
-	                // make sure the arc always points up (or right)
-	                var xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
-	                if (xAxisRotate) { angle += 180; }
-
-	                var midpoint = line.midpoint();
-	                var centerLine = new Line(midpoint, line.end).rotate(midpoint, angle);
-
-	                var halfLine;
-
-	                // first half
-	                halfLine = new Line(line.start, midpoint);
-
-	                control1 = halfLine.pointAt(2 / 3).rotate(line.start, angle);
-	                control2 = centerLine.pointAt(1 / 3).rotate(centerLine.end, -angle);
-
-	                segment = Path.createSegment('C', control1, control2, centerLine.end);
-	                path.appendSegment(segment);
-
-	                // second half
-	                halfLine = new Line(midpoint, line.end);
-
-	                control1 = centerLine.pointAt(1 / 3).rotate(centerLine.end, angle);
-	                control2 = halfLine.pointAt(1 / 3).rotate(line.end, -angle);
-
-	                segment = Path.createSegment('C', control1, control2, line.end);
-	                path.appendSegment(segment);
-
-	            } else if (jumpType === 'gap') {
-	                segment = Path.createSegment('M', line.end);
-	                path.appendSegment(segment);
-
-	            } else if (jumpType === 'cubic') { // approximates semicircle with 1 curve
-	                angle = line.start.theta(line.end);
-
-	                var xOffset = jumpSize * 0.6;
-	                var yOffset = jumpSize * 1.35;
-
-	                // determine rotation of arc based on difference between points
-	                diff = line.start.difference(line.end);
-	                // make sure the arc always points up (or right)
-	                xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
-	                if (xAxisRotate) { yOffset *= -1; }
-
-	                control1 = Point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
-	                control2 = Point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
-
-	                segment = Path.createSegment('C', control1, control2, line.end);
-	                path.appendSegment(segment);
-	            }
-
-	        } else {
-	            var nextLine = lines[index + 1];
-	            if (radius == 0 || !nextLine || nextLine.isJump) {
-	                segment = Path.createSegment('L', line.end);
-	                path.appendSegment(segment);
-	            } else {
-	                buildRoundedSegment(radius, path, line.end, line.start, nextLine.end);
-	            }
-	        }
-	    });
-
-	    return path;
-	}
-
-	function buildRoundedSegment(offset, path, curr, prev, next) {
-	    var prevDistance = curr.distance(prev) / 2;
-	    var nextDistance = curr.distance(next) / 2;
-
-	    var startMove = -Math.min(offset, prevDistance);
-	    var endMove = -Math.min(offset, nextDistance);
-
-	    var roundedStart = curr.clone().move(prev, startMove).round();
-	    var roundedEnd = curr.clone().move(next, endMove).round();
-
-	    var control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
-	    var control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
-
-	    var segment;
-	    segment = Path.createSegment('L', roundedStart);
-	    path.appendSegment(segment);
-
-	    segment = Path.createSegment('C', control1, control2, roundedEnd);
-	    path.appendSegment(segment);
-	}
-
-	/**
-	 * Actual connector function that will be run on every update.
-	 * @param {g.point} sourcePoint start point of this link
-	 * @param {g.point} targetPoint end point of this link
-	 * @param {g.point[]} route of this link
-	 * @param {object} opt options
-	 * @property {number} size optional size of a jump arc
-	 * @return {string} created `D` attribute of SVG path
-	 */
-	var jumpover = function(sourcePoint, targetPoint, route, opt) { // eslint-disable-line max-params
-
-	    setupUpdating(this);
-
-	    var raw = opt.raw;
-	    var jumpSize = opt.size || JUMP_SIZE;
-	    var jumpType = opt.jump && ('' + opt.jump).toLowerCase();
-	    var radius = opt.radius || RADIUS;
-	    var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
-
-	    // grab the first jump type as a default if specified one is invalid
-	    if (JUMP_TYPES.indexOf(jumpType) === -1) {
-	        jumpType = JUMP_TYPES[0];
-	    }
-
-	    var paper = this.paper;
-	    var graph = paper.model;
-	    var allLinks = graph.getLinks();
-
-	    // there is just one link, draw it directly
-	    if (allLinks.length === 1) {
-	        return buildPath(
-	            createLines(sourcePoint, targetPoint, route),
-	            jumpSize, jumpType, radius
-	        );
-	    }
-
-	    var thisModel = this.model;
-	    var thisIndex = allLinks.indexOf(thisModel);
-	    var defaultConnector = paper.options.defaultConnector || {};
-
-	    // not all links are meant to be jumped over.
-	    var links = allLinks.filter(function(link, idx) {
-
-	        var connector = link.get('connector') || defaultConnector;
-
-	        // avoid jumping over links with connector type listed in `ignored connectors`.
-	        if (toArray(ignoreConnectors).includes(connector.name)) {
-	            return false;
-	        }
-	        // filter out links that are above this one and  have the same connector type
-	        // otherwise there would double hoops for each intersection
-	        if (idx > thisIndex) {
-	            return connector.name !== 'jumpover';
-	        }
-	        return true;
-	    });
-
-	    // find views for all links
-	    var linkViews = links.map(function(link) {
-	        return paper.findViewByModel(link);
-	    });
-
-	    // create lines for this link
-	    var thisLines = createLines(
-	        sourcePoint,
-	        targetPoint,
-	        route
-	    );
-
-	    // create lines for all other links
-	    var linkLines = linkViews.map(function(linkView) {
-	        if (linkView == null) {
-	            return [];
-	        }
-	        if (linkView === this) {
-	            return thisLines;
-	        }
-	        return createLines(
-	            linkView.sourcePoint,
-	            linkView.targetPoint,
-	            linkView.route
-	        );
-	    }, this);
-
-	    // transform lines for this link by splitting with jump lines at
-	    // points of intersection with other links
-	    var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
-	        // iterate all links and grab the intersections with this line
-	        // these are then sorted by distance so the line can be split more easily
-	        var intersections = links.reduce(function(res, link, i) {
-	            // don't intersection with itself
-	            if (link !== thisModel) {
-
-	                var linkLinesToTest = linkLines[i].slice();
-	                var overlapIndex = linkLinesToTest.findIndex(function (line) { return overlapExists(thisLine, line); });
-
-	                // Overlap occurs and the end point of one segment lies on thisLine
-	                if (overlapIndex > -1 && thisLine.containsPoint(linkLinesToTest[overlapIndex].end)) {
-	                    // Remove the next segment because there will never be a jump
-	                    linkLinesToTest.splice(overlapIndex + 1, 1);
-	                } 
-	                var lineIntersections = findLineIntersections(thisLine, linkLinesToTest);
-	                res.push.apply(res, lineIntersections);
-	            }
-	            return res;
-	        }, []).sort(function(a, b) {
-	            return sortPoints(thisLine.start, a) - sortPoints(thisLine.start, b);
-	        });
-
-	        if (intersections.length > 0) {
-	            // split the line based on found intersection points
-	            resultLines.push.apply(resultLines, createJumps(thisLine, intersections, jumpSize));
-	        } else {
-	            // without any intersection the line goes uninterrupted
-	            resultLines.push(thisLine);
-	        }
-	        return resultLines;
-	    }, []);
-
-	    var path = buildPath(jumpingLines, jumpSize, jumpType, radius);
-	    return (raw) ? path : path.serialize();
-	};
-
-	var normal$1 = function(sourcePoint, targetPoint, route, opt) {
-	    if ( route === void 0 ) route = [];
-	    if ( opt === void 0 ) opt = {};
-
-
-	    var raw = opt.raw;
-	    var localOpt = {
-	        cornerType: 'point',
-	        raw: raw
-	    };
-
-	    return straight(sourcePoint, targetPoint, route, localOpt);
-	};
-
-	var CORNER_RADIUS$1 = 10;
-	var PRECISION$1 = 0;
-
-	var rounded = function(sourcePoint, targetPoint, route, opt) {
-	    if ( route === void 0 ) route = [];
-	    if ( opt === void 0 ) opt = {};
-
-
-	    var radius = opt.radius; if ( radius === void 0 ) radius = CORNER_RADIUS$1;
-	    var raw = opt.raw;
-	    var localOpt = {
-	        cornerType: 'cubic',
-	        cornerRadius: radius,
-	        precision: PRECISION$1,
-	        raw: raw
-	    };
-
-	    return straight(sourcePoint, targetPoint, route, localOpt);
-	};
-
-	var smooth = function(sourcePoint, targetPoint, route, opt) {
-
-	    var raw = opt && opt.raw;
-	    var path;
-
-	    if (route && route.length !== 0) {
-
-	        var points = [sourcePoint].concat(route).concat([targetPoint]);
-	        var curves = Curve.throughPoints(points);
-
-	        path = new Path(curves);
-
-	    } else {
-	        // if we have no route, use a default cubic bezier curve
-	        // cubic bezier requires two control points
-	        // the control points have `x` midway between source and target
-	        // this produces an S-like curve
-
-	        path = new Path();
-
-	        var segment;
-
-	        segment = Path.createSegment('M', sourcePoint);
-	        path.appendSegment(segment);
-
-	        if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
-	            var controlPointX = (sourcePoint.x + targetPoint.x) / 2;
-
-	            segment = Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
-	            path.appendSegment(segment);
-
-	        } else {
-	            var controlPointY = (sourcePoint.y + targetPoint.y) / 2;
-
-	            segment = Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
-	            path.appendSegment(segment);
-
-	        }
-	    }
-
-	    return (raw) ? path : path.serialize();
-	};
-
-	var Directions$1 = {
-	    AUTO: 'auto',
-	    HORIZONTAL: 'horizontal',
-	    VERTICAL: 'vertical',
-	    CLOSEST_POINT: 'closest-point',
-	    OUTWARDS: 'outwards'
-	};
-
-	var TangentDirections = {
-	    UP: 'up',
-	    DOWN: 'down',
-	    LEFT: 'left',
-	    RIGHT: 'right',
-	    AUTO: 'auto',
-	    CLOSEST_POINT: 'closest-point',
-	    OUTWARDS: 'outwards'
-	};
-
-	var curve = function(sourcePoint, targetPoint, route, opt, linkView) {
-	    if ( route === void 0 ) route = [];
-	    if ( opt === void 0 ) opt = {};
-
-	    var raw = Boolean(opt.raw);
-	    // distanceCoefficient - a coefficient of the tangent vector length relative to the distance between points.
-	    // angleTangentCoefficient - a coefficient of the end tangents length in the case of angles larger than 45 degrees.
-	    // tension - a Catmull-Rom curve tension parameter.
-	    // sourceTangent - a tangent vector along the curve at the sourcePoint.
-	    // sourceDirection - a unit direction vector along the curve at the sourcePoint.
-	    // targetTangent - a tangent vector along the curve at the targetPoint.
-	    // targetDirection - a unit direction vector along the curve at the targetPoint.
-	    // precision - a rounding precision for path values.
-	    var direction = opt.direction; if ( direction === void 0 ) direction = Directions$1.AUTO;
-	    var precision = opt.precision; if ( precision === void 0 ) precision = 3;
-	    var options = {
-	        coeff: opt.distanceCoefficient || 0.6,
-	        angleTangentCoefficient: opt.angleTangentCoefficient || 80,
-	        tau: opt.tension || 0.5,
-	        sourceTangent: opt.sourceTangent ? new Point(opt.sourceTangent) : null,
-	        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null,
-	        rotate: Boolean(opt.rotate)
-	    };
-	    if (typeof opt.sourceDirection === 'string')
-	        { options.sourceDirection = opt.sourceDirection; }
-	    else if (typeof opt.sourceDirection === 'number')
-	        { options.sourceDirection = new Point(1, 0).rotate(null, opt.sourceDirection); }
-	    else
-	        { options.sourceDirection = opt.sourceDirection ? new Point(opt.sourceDirection).normalize() : null; }
-
-	    if (typeof opt.targetDirection === 'string')
-	        { options.targetDirection = opt.targetDirection; }
-	    else if (typeof opt.targetDirection === 'number')
-	        { options.targetDirection = new Point(1, 0).rotate(null, opt.targetDirection); }
-	    else
-	        { options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null; }
-
-	    var completeRoute = [sourcePoint ].concat( route, [targetPoint]).map(function (p) { return new Point(p); });
-
-	    // The calculation of a sourceTangent
-	    var sourceTangent;
-	    if (options.sourceTangent) {
-	        sourceTangent = options.sourceTangent;
-	    } else {
-	        var sourceDirection = getSourceTangentDirection(linkView, completeRoute, direction, options);
-	        var tangentLength = completeRoute[0].distance(completeRoute[1]) * options.coeff;
-	        var pointsVector = completeRoute[1].difference(completeRoute[0]).normalize();
-	        var angle = angleBetweenVectors(sourceDirection, pointsVector);
-	        if (angle > Math.PI / 4) {
-	            var updatedLength = tangentLength + (angle - Math.PI / 4) * options.angleTangentCoefficient;
-	            sourceTangent = sourceDirection.clone().scale(updatedLength, updatedLength);
-	        } else {
-	            sourceTangent = sourceDirection.clone().scale(tangentLength, tangentLength);
-	        }
-	    }
-
-	    // The calculation of a targetTangent
-	    var targetTangent;
-	    if (options.targetTangent) {
-	        targetTangent = options.targetTangent;
-	    } else {
-	        var targetDirection = getTargetTangentDirection(linkView, completeRoute, direction, options);
-	        var last = completeRoute.length - 1;
-	        var tangentLength$1 = completeRoute[last - 1].distance(completeRoute[last]) * options.coeff;
-	        var pointsVector$1 = completeRoute[last - 1].difference(completeRoute[last]).normalize();
-	        var angle$1 = angleBetweenVectors(targetDirection, pointsVector$1);
-	        if (angle$1 > Math.PI / 4) {
-	            var updatedLength$1 = tangentLength$1 + (angle$1 - Math.PI / 4) * options.angleTangentCoefficient;
-	            targetTangent = targetDirection.clone().scale(updatedLength$1, updatedLength$1);
-	        } else {
-	            targetTangent = targetDirection.clone().scale(tangentLength$1, tangentLength$1);
-	        }
-	    }
-
-	    var catmullRomCurves = createCatmullRomCurves(completeRoute, sourceTangent, targetTangent, options);
-	    var bezierCurves = catmullRomCurves.map(function (curve) { return catmullRomToBezier(curve, options); });
-	    var path = new Path(bezierCurves).round(precision);
-
-	    return (raw) ? path : path.serialize();
-	};
-	curve.Directions = Directions$1;
-	curve.TangentDirections = TangentDirections;
-
-	function getHorizontalSourceDirection(linkView, route, options) {
-	    var sourceBBox = linkView.sourceBBox;
-
-	    var sourceSide;
-	    var rotation;
-	    if (!linkView.sourceView) {
-	        if (sourceBBox.x > route[1].x)
-	            { sourceSide = 'right'; }
-	        else
-	            { sourceSide = 'left'; }
-	    } else {
-	        rotation = linkView.sourceView.model.angle();
-	        if (options.rotate && rotation) {
-	            var unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
-	            var sourcePoint = route[0].clone();
-	            sourcePoint.rotate(sourceBBox.center(), rotation);
-	            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
-	        } else {
-	            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
-	        }
-	    }
-
-	    var direction;
-	    switch (sourceSide) {
-	        case 'left':
-	            direction = new Point(-1, 0);
-	            break;
-	        case 'right':
-	        default:
-	            direction = new Point(1, 0);
-	            break;
-	    }
-
-	    if (options.rotate && rotation) {
-	        direction.rotate(null, -rotation);
-	    }
-
-	    return direction;
-	}
-
-	function getHorizontalTargetDirection(linkView, route, options) {
-	    var targetBBox = linkView.targetBBox;
-
-	    var targetSide;
-	    var rotation;
-	    if (!linkView.targetView) {
-	        if (targetBBox.x > route[route.length - 2].x)
-	            { targetSide = 'left'; }
-	        else
-	            { targetSide = 'right'; }
-	    } else {
-	        rotation = linkView.targetView.model.angle();
-	        if (options.rotate && rotation) {
-	            var unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
-	            var targetPoint = route[route.length - 1].clone();
-	            targetPoint.rotate(targetBBox.center(), rotation);
-	            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
-	        } else {
-	            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
-	        }
-	    }
-
-	    var direction;
-	    switch (targetSide) {
-	        case 'left':
-	            direction = new Point(-1, 0);
-	            break;
-	        case 'right':
-	        default:
-	            direction = new Point(1, 0);
-	            break;
-	    }
-
-	    if (options.rotate && rotation) {
-	        direction.rotate(null, -rotation);
-	    }
-
-	    return direction;
-	}
-
-	function getVerticalSourceDirection(linkView, route, options) {
-	    var sourceBBox = linkView.sourceBBox;
-
-	    var sourceSide;
-	    var rotation;
-	    if (!linkView.sourceView) {
-	        if (sourceBBox.y > route[1].y)
-	            { sourceSide = 'bottom'; }
-	        else
-	            { sourceSide = 'top'; }
-	    } else {
-	        rotation = linkView.sourceView.model.angle();
-	        if (options.rotate && rotation) {
-	            var unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
-	            var sourcePoint = route[0].clone();
-	            sourcePoint.rotate(sourceBBox.center(), rotation);
-	            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
-	        } else {
-	            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
-	        }
-	    }
-
-	    var direction;
-	    switch (sourceSide) {
-	        case 'top':
-	            direction = new Point(0, -1);
-	            break;
-	        case 'bottom':
-	        default:
-	            direction = new Point(0, 1);
-	            break;
-	    }
-
-	    if (options.rotate && rotation) {
-	        direction.rotate(null, -rotation);
-	    }
-
-	    return direction;
-	}
-
-	function getVerticalTargetDirection(linkView, route, options) {
-	    var targetBBox = linkView.targetBBox;
-
-	    var targetSide;
-	    var rotation;
-	    if (!linkView.targetView) {
-	        if (targetBBox.y > route[route.length - 2].y)
-	            { targetSide = 'top'; }
-	        else
-	            { targetSide = 'bottom'; }
-	    } else {
-	        rotation = linkView.targetView.model.angle();
-	        if (options.rotate && rotation) {
-	            var unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
-	            var targetPoint = route[route.length - 1].clone();
-	            targetPoint.rotate(targetBBox.center(), rotation);
-	            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
-	        } else {
-	            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
-	        }
-	    }
-
-
-	    var direction;
-	    switch (targetSide) {
-	        case 'top':
-	            direction = new Point(0, -1);
-	            break;
-	        case 'bottom':
-	        default:
-	            direction = new Point(0, 1);
-	            break;
-	    }
-
-	    if (options.rotate && rotation) {
-	        direction.rotate(null, -rotation);
-	    }
-
-	    return direction;
-	}
-
-	function getAutoSourceDirection(linkView, route, options) {
-	    var sourceBBox = linkView.sourceBBox;
-
-	    var sourceSide;
-	    var rotation;
-	    if (!linkView.sourceView) {
-	        sourceSide = sourceBBox.sideNearestToPoint(route[1]);
-	    } else {
-	        rotation = linkView.sourceView.model.angle();
-	        if (options.rotate && rotation) {
-	            var unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
-	            var sourcePoint = route[0].clone();
-	            sourcePoint.rotate(sourceBBox.center(), rotation);
-	            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
-	        } else {
-	            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
-	        }
-	    }
-
-	    var direction;
-	    switch (sourceSide) {
-	        case 'top':
-	            direction = new Point(0, -1);
-	            break;
-	        case 'bottom':
-	            direction = new Point(0, 1);
-	            break;
-	        case 'right':
-	            direction = new Point(1, 0);
-	            break;
-	        case 'left':
-	            direction = new Point(-1, 0);
-	            break;
-	    }
-
-	    if (options.rotate && rotation) {
-	        direction.rotate(null, -rotation);
-	    }
-
-	    return direction;
-	}
-
-	function getAutoTargetDirection(linkView, route, options) {
-	    var targetBBox = linkView.targetBBox;
-
-	    var targetSide;
-	    var rotation;
-	    if (!linkView.targetView) {
-	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
-	    } else {
-	        rotation = linkView.targetView.model.angle();
-	        if (options.rotate && rotation) {
-	            var unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
-	            var targetPoint = route[route.length - 1].clone();
-	            targetPoint.rotate(targetBBox.center(), rotation);
-	            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
-	        } else {
-	            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
-	        }
-	    }
-
-	    var direction;
-	    switch (targetSide) {
-	        case 'top':
-	            direction = new Point(0, -1);
-	            break;
-	        case 'bottom':
-	            direction = new Point(0, 1);
-	            break;
-	        case 'right':
-	            direction = new Point(1, 0);
-	            break;
-	        case 'left':
-	            direction = new Point(-1, 0);
-	            break;
-	    }
-
-	    if (options.rotate && rotation) {
-	        direction.rotate(null, -rotation);
-	    }
-
-	    return direction;
-	}
-
-	function getClosestPointSourceDirection(linkView, route, options) {
-	    return route[1].difference(route[0]).normalize();
-	}
-
-	function getClosestPointTargetDirection(linkView, route, options) {
-	    var last = route.length - 1;
-	    return route[last - 1].difference(route[last]).normalize();
-	}
-
-	function getOutwardsSourceDirection(linkView, route, options) {
-	    var sourceBBox = linkView.sourceBBox;
-	    var sourceCenter = sourceBBox.center();
-	    return route[0].difference(sourceCenter).normalize();
-	}
-
-	function getOutwardsTargetDirection(linkView, route, options) {
-	    var targetBBox = linkView.targetBBox;
-	    var targetCenter = targetBBox.center();
-	    return route[route.length - 1].difference(targetCenter).normalize();
-	}
-
-	function getSourceTangentDirection(linkView, route, direction, options) {
-	    if (options.sourceDirection) {
-	        switch (options.sourceDirection) {
-	            case TangentDirections.UP:
-	                return new Point(0, -1);
-	            case TangentDirections.DOWN:
-	                return new Point(0, 1);
-	            case TangentDirections.LEFT:
-	                return new Point(-1, 0);
-	            case TangentDirections.RIGHT:
-	                return new Point(1, 0);
-	            case TangentDirections.AUTO:
-	                return getAutoSourceDirection(linkView, route, options);
-	            case TangentDirections.CLOSEST_POINT:
-	                return getClosestPointSourceDirection(linkView, route, options);
-	            case TangentDirections.OUTWARDS:
-	                return getOutwardsSourceDirection(linkView, route, options);
-	            default:
-	                return options.sourceDirection;
-	        }
-	    }
-
-	    switch (direction) {
-	        case Directions$1.HORIZONTAL:
-	            return getHorizontalSourceDirection(linkView, route, options);
-	        case Directions$1.VERTICAL:
-	            return getVerticalSourceDirection(linkView, route, options);
-	        case Directions$1.CLOSEST_POINT:
-	            return getClosestPointSourceDirection(linkView, route, options);
-	        case Directions$1.OUTWARDS:
-	            return getOutwardsSourceDirection(linkView, route, options);
-	        case Directions$1.AUTO:
-	        default:
-	            return getAutoSourceDirection(linkView, route, options);
-	    }
-	}
-
-	function getTargetTangentDirection(linkView, route, direction, options) {
-	    if (options.targetDirection) {
-	        switch (options.targetDirection) {
-	            case TangentDirections.UP:
-	                return new Point(0, -1);
-	            case TangentDirections.DOWN:
-	                return new Point(0, 1);
-	            case TangentDirections.LEFT:
-	                return new Point(-1, 0);
-	            case TangentDirections.RIGHT:
-	                return new Point(1, 0);
-	            case TangentDirections.AUTO:
-	                return getAutoTargetDirection(linkView, route, options);
-	            case TangentDirections.CLOSEST_POINT:
-	                return getClosestPointTargetDirection(linkView, route, options);
-	            case TangentDirections.OUTWARDS:
-	                return getOutwardsTargetDirection(linkView, route, options);
-	            default:
-	                return options.targetDirection;
-	        }
-	    }
-
-	    switch (direction) {
-	        case Directions$1.HORIZONTAL:
-	            return getHorizontalTargetDirection(linkView, route, options);
-	        case Directions$1.VERTICAL:
-	            return getVerticalTargetDirection(linkView, route, options);
-	        case Directions$1.CLOSEST_POINT:
-	            return getClosestPointTargetDirection(linkView, route, options);
-	        case Directions$1.OUTWARDS:
-	            return getOutwardsTargetDirection(linkView, route, options);
-	        case Directions$1.AUTO:
-	        default:
-	            return getAutoTargetDirection(linkView, route, options);
-	    }
-	}
-
-	function rotateVector(vector, angle) {
-	    var cos = Math.cos(angle);
-	    var sin = Math.sin(angle);
-	    var x = cos * vector.x - sin * vector.y;
-	    var y = sin * vector.x + cos * vector.y;
-	    vector.x = x;
-	    vector.y = y;
-	}
-
-	function angleBetweenVectors(v1, v2) {
-	    var cos = v1.dot(v2) / (v1.magnitude() * v2.magnitude());
-	    if (cos < -1) { cos = -1; }
-	    if (cos > 1) { cos = 1; }
-	    return Math.acos(cos);
-	}
-
-	function determinant(v1, v2) {
-	    return v1.x * v2.y - v1.y * v2.x;
-	}
-
-	function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
-	    var tau = options.tau;
-	    var coeff = options.coeff;
-	    var distances = [];
-	    var tangents = [];
-	    var catmullRomCurves = [];
-	    var n = points.length - 1;
-
-	    for (var i = 0; i < n; i++) {
-	        distances[i] = points[i].distance(points[i + 1]);
-	    }
-
-	    tangents[0] = sourceTangent;
-	    tangents[n] = targetTangent;
-
-	    // The calculation of tangents of vertices
-	    for (var i$1 = 1; i$1 < n; i$1++) {
-	        var tpPrev = (void 0);
-	        var tpNext = (void 0);
-	        if (i$1 === 1) {
-	            tpPrev = points[i$1 - 1].clone().offset(tangents[i$1 - 1].x, tangents[i$1 - 1].y);
-	        } else {
-	            tpPrev = points[i$1 - 1].clone();
-	        }
-	        if (i$1 === n - 1) {
-	            tpNext = points[i$1 + 1].clone().offset(tangents[i$1 + 1].x, tangents[i$1 + 1].y);
-	        } else {
-	            tpNext = points[i$1 + 1].clone();
-	        }
-	        var v1 = tpPrev.difference(points[i$1]).normalize();
-	        var v2 = tpNext.difference(points[i$1]).normalize();
-	        var vAngle = angleBetweenVectors(v1, v2);
-
-	        var rot = (Math.PI - vAngle) / 2;
-	        var t = (void 0);
-	        var vectorDeterminant = determinant(v1, v2);
-	        var pointsDeterminant = (void 0);
-	        pointsDeterminant = determinant(points[i$1].difference(points[i$1 + 1]), points[i$1].difference(points[i$1 - 1]));
-	        if (vectorDeterminant < 0) {
-	            rot = -rot;
-	        }
-	        if ((vAngle < Math.PI / 2) && ((rot < 0 && pointsDeterminant < 0) || (rot > 0 && pointsDeterminant > 0))) {
-	            rot = rot - Math.PI;
-	        }
-	        t = v2.clone();
-	        rotateVector(t, rot);
-
-	        var t1 = t.clone();
-	        var t2 = t.clone();
-	        var scaleFactor1 = distances[i$1 - 1] * coeff;
-	        var scaleFactor2 = distances[i$1] * coeff;
-	        t1.scale(scaleFactor1, scaleFactor1);
-	        t2.scale(scaleFactor2, scaleFactor2);
-
-	        tangents[i$1] = [t1, t2];
-	    }
-
-	    // The building of a Catmull-Rom curve based of tangents of points
-	    for (var i$2 = 0; i$2 < n; i$2++) {
-	        var p0 = (void 0);
-	        var p3 = (void 0);
-	        if (i$2 === 0) {
-	            p0 = points[i$2 + 1].difference(tangents[i$2].x / tau, tangents[i$2].y / tau);
-	        } else {
-	            p0 = points[i$2 + 1].difference(tangents[i$2][1].x / tau, tangents[i$2][1].y / tau);
-	        }
-	        if (i$2 === n - 1) {
-	            p3 = points[i$2].clone().offset(tangents[i$2 + 1].x / tau, tangents[i$2 + 1].y / tau);
-	        } else {
-	            p3 = points[i$2].difference(tangents[i$2 + 1][0].x / tau, tangents[i$2 + 1][0].y / tau);
-	        }
-
-	        catmullRomCurves[i$2] = [p0, points[i$2], points[i$2 + 1], p3];
-	    }
-	    return catmullRomCurves;
-	}
-
-	// The function to convert Catmull-Rom curve to Bezier curve using the tension (tau)
-	function catmullRomToBezier(points, options) {
-	    var tau = options.tau;
-
-	    var bcp1 = new Point();
-	    bcp1.x = points[1].x + (points[2].x - points[0].x) / (6 * tau);
-	    bcp1.y = points[1].y + (points[2].y - points[0].y) / (6 * tau);
-
-	    var bcp2 = new Point();
-	    bcp2.x = points[2].x + (points[3].x - points[1].x) / (6 * tau);
-	    bcp2.y = points[2].y + (points[3].y - points[1].y) / (6 * tau);
-	    return new Curve(
-	        points[1],
-	        bcp1,
-	        bcp2,
-	        points[2]
-	    );
-	}
-
-
-
-	var connectors = ({
-		straight: straight,
-		jumpover: jumpover,
-		normal: normal$1,
-		rounded: rounded,
-		smooth: smooth,
-		curve: curve
-	});
-
 	var Flags$2 = {
 	    TOOLS: CellView.Flags.TOOLS,
 	    RENDER: 'RENDER',
 	    UPDATE: 'UPDATE',
-	    LEGACY_TOOLS: 'LEGACY_TOOLS',
 	    LABELS: 'LABELS',
-	    VERTICES: 'VERTICES',
 	    SOURCE: 'SOURCE',
 	    TARGET: 'TARGET',
 	    CONNECTOR: 'CONNECTOR'
@@ -28863,7 +31576,6 @@ var joint = (function (exports, $) {
 
 	    _labelCache: null,
 	    _labelSelectors: null,
-	    _markerCache: null,
 	    _V: null,
 	    _dragData: null, // deprecated
 
@@ -28882,9 +31594,6 @@ var joint = (function (exports, $) {
 	        // a cache of label selectors
 	        this._labelSelectors = {};
 
-	        // keeps markers bboxes and positions again for quicker access
-	        this._markerCache = {};
-
 	        // cache of default markup nodes
 	        this._V = {};
 
@@ -28897,13 +31606,9 @@ var joint = (function (exports, $) {
 	        attrs: [Flags$2.UPDATE],
 	        router: [Flags$2.UPDATE],
 	        connector: [Flags$2.CONNECTOR],
-	        smooth: [Flags$2.UPDATE],
-	        manhattan: [Flags$2.UPDATE],
-	        toolMarkup: [Flags$2.LEGACY_TOOLS],
 	        labels: [Flags$2.LABELS],
 	        labelMarkup: [Flags$2.LABELS],
-	        vertices: [Flags$2.VERTICES, Flags$2.UPDATE],
-	        vertexMarkup: [Flags$2.VERTICES],
+	        vertices: [Flags$2.UPDATE],
 	        source: [Flags$2.SOURCE, Flags$2.UPDATE],
 	        target: [Flags$2.TARGET, Flags$2.UPDATE]
 	    },
@@ -28939,32 +31644,21 @@ var joint = (function (exports, $) {
 	            this.render();
 	            this.updateHighlighters(true);
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, [Flags$2.RENDER, Flags$2.UPDATE, Flags$2.VERTICES, Flags$2.LABELS, Flags$2.TOOLS, Flags$2.LEGACY_TOOLS, Flags$2.CONNECTOR]);
+	            flags = this.removeFlag(flags, [Flags$2.RENDER, Flags$2.UPDATE, Flags$2.LABELS, Flags$2.TOOLS, Flags$2.CONNECTOR]);
 	            return flags;
 	        }
 
 	        var updateHighlighters = false;
 
-	        if (this.hasFlag(flags, Flags$2.VERTICES)) {
-	            this.renderVertexMarkers();
-	            flags = this.removeFlag(flags, Flags$2.VERTICES);
-	        }
-
 	        var ref$1 = this;
 	        var model = ref$1.model;
 	        var attributes = model.attributes;
 	        var updateLabels = this.hasFlag(flags, Flags$2.LABELS);
-	        var updateLegacyTools = this.hasFlag(flags, Flags$2.LEGACY_TOOLS);
 
 	        if (updateLabels) {
 	            this.onLabelsChange(model, attributes.labels, opt);
 	            flags = this.removeFlag(flags, Flags$2.LABELS);
 	            updateHighlighters = true;
-	        }
-
-	        if (updateLegacyTools) {
-	            this.renderTools();
-	            flags = this.removeFlag(flags, Flags$2.LEGACY_TOOLS);
 	        }
 
 	        var updateAll = this.hasFlag(flags, Flags$2.UPDATE);
@@ -28985,16 +31679,11 @@ var joint = (function (exports, $) {
 	            this.updateTools(opt);
 	            flags = this.removeFlag(flags, [Flags$2.UPDATE, Flags$2.TOOLS, Flags$2.CONNECTOR]);
 	            updateLabels = false;
-	            updateLegacyTools = false;
 	            updateHighlighters = true;
 	        }
 
 	        if (updateLabels) {
 	            this.updateLabelPositions();
-	        }
-
-	        if (updateLegacyTools) {
-	            this.updateToolsPosition();
 	        }
 
 	        if (updateHighlighters) {
@@ -29101,21 +31790,7 @@ var joint = (function (exports, $) {
 	        var children = V(markup);
 	        // custom markup may contain only one children
 	        if (!Array.isArray(children)) { children = [children]; }
-	        // Cache all children elements for quicker access.
-	        var cache = this._V; // vectorized markup;
-	        for (var i = 0, n = children.length; i < n; i++) {
-	            var child = children[i];
-	            var className = child.attr('class');
-	            if (className) {
-	                // Strip the joint class name prefix, if there is one.
-	                className = removeClassNamePrefix(className);
-	                cache[$.camelCase(className)] = child;
-	            }
-	        }
-	        // partial rendering
-	        this.renderTools();
-	        this.renderVertexMarkers();
-	        this.renderArrowheadMarkers();
+
 	        this.vel.append(children);
 	    },
 
@@ -29270,15 +31945,18 @@ var joint = (function (exports, $) {
 	        }
 	    },
 
-	    findLabelNode: function(labelIndex, selector) {
+	    findLabelNodes: function(labelIndex, selector) {
 	        var labelRoot = this._labelCache[labelIndex];
-	        if (!labelRoot) { return null; }
+	        if (!labelRoot) { return []; }
 	        var labelSelectors = this._labelSelectors[labelIndex];
-	        var ref = this.findBySelector(selector, labelRoot, labelSelectors);
+	        return this.findBySelector(selector, labelRoot, labelSelectors);
+	    },
+
+	    findLabelNode: function(labelIndex, selector) {
+	        var ref = this.findLabelNodes(labelIndex, selector);
 	        var node = ref[0]; if ( node === void 0 ) node = null;
 	        return node;
 	    },
-
 
 	    // merge default label attrs into label attrs (or use built-in default label attrs if neither is provided)
 	    // keep `undefined` or `null` because `{}` means something else
@@ -29367,83 +32045,6 @@ var joint = (function (exports, $) {
 	        return this;
 	    },
 
-	    renderTools: function() {
-
-	        if (!this._V.linkTools) { return this; }
-
-	        // Tools are a group of clickable elements that manipulate the whole link.
-	        // A good example of this is the remove tool that removes the whole link.
-	        // Tools appear after hovering the link close to the `source` element/point of the link
-	        // but are offset a bit so that they don't cover the `marker-arrowhead`.
-
-	        var $tools = $(this._V.linkTools.node).empty();
-	        var toolTemplate = template(this.model.get('toolMarkup') || this.model.toolMarkup);
-	        var tool = V(toolTemplate());
-
-	        $tools.append(tool.node);
-
-	        // Cache the tool node so that the `updateToolsPosition()` can update the tool position quickly.
-	        this._toolCache = tool;
-
-	        // If `doubleLinkTools` is enabled, we render copy of the tools on the other side of the
-	        // link as well but only if the link is longer than `longLinkLength`.
-	        if (this.options.doubleLinkTools) {
-
-	            var tool2;
-	            if (this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup) {
-	                toolTemplate = template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
-	                tool2 = V(toolTemplate());
-	            } else {
-	                tool2 = tool.clone();
-	            }
-
-	            $tools.append(tool2.node);
-	            this._tool2Cache = tool2;
-	        }
-
-	        return this;
-	    },
-
-	    renderVertexMarkers: function() {
-
-	        if (!this._V.markerVertices) { return this; }
-
-	        var $markerVertices = $(this._V.markerVertices.node).empty();
-
-	        // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
-	        // if default styling (elements) are not desired. This makes it possible to use any
-	        // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-	        var markupTemplate = template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
-
-	        this.model.vertices().forEach(function(vertex, idx) {
-	            $markerVertices.append(V(markupTemplate(assign({ idx: idx }, vertex))).node);
-	        });
-
-	        return this;
-	    },
-
-	    renderArrowheadMarkers: function() {
-
-	        // Custom markups might not have arrowhead markers. Therefore, jump of this function immediately if that's the case.
-	        if (!this._V.markerArrowheads) { return this; }
-
-	        var $markerArrowheads = $(this._V.markerArrowheads.node);
-
-	        $markerArrowheads.empty();
-
-	        // A special markup can be given in the `properties.vertexMarkup` property. This might be handy
-	        // if default styling (elements) are not desired. This makes it possible to use any
-	        // SVG elements for .marker-vertex and .marker-vertex-remove tools.
-	        var markupTemplate = template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
-
-	        this._V.sourceArrowhead = V(markupTemplate({ end: 'source' }));
-	        this._V.targetArrowhead = V(markupTemplate({ end: 'target' }));
-
-	        $markerArrowheads.append(this._V.sourceArrowhead.node, this._V.targetArrowhead.node);
-
-	        return this;
-	    },
-
 	    // remove vertices that lie on (or nearly on) straight lines within the link
 	    // return the number of removed points
 	    removeRedundantLinearVertices: function(opt) {
@@ -29468,23 +32069,6 @@ var joint = (function (exports, $) {
 	        // remove first and last polyline points again (= source/target anchors)
 	        link.vertices(polylinePoints.slice(1, numPolylinePoints - 1), opt);
 	        return (numRoutePoints - numPolylinePoints);
-	    },
-
-	    updateDefaultConnectionPath: function() {
-
-	        var cache = this._V;
-
-	        if (cache.connection) {
-	            cache.connection.attr('d', this.getSerializedConnection());
-	        }
-
-	        if (cache.connectionWrap) {
-	            cache.connectionWrap.attr('d', this.getSerializedConnection());
-	        }
-
-	        if (cache.markerSource && cache.markerTarget) {
-	            this._translateAndAutoOrientArrows(cache.markerSource, cache.markerTarget);
-	        }
 	    },
 
 	    getEndView: function(type) {
@@ -29559,8 +32143,11 @@ var joint = (function (exports, $) {
 	        var polyline = new Polyline(route);
 	        polyline.translate(tx, ty);
 	        this.route = polyline.points;
-	        // translate source and target connection and marker points.
-	        this._translateConnectionPoints(tx, ty);
+	        // translate source and target connection and anchor points.
+	        this.sourcePoint.offset(tx, ty);
+	        this.targetPoint.offset(tx, ty);
+	        this.sourceAnchor.offset(tx, ty);
+	        this.targetAnchor.offset(tx, ty);
 	        // translate the geometry path
 	        path.translate(tx, ty);
 	        this.updateDOM();
@@ -29574,12 +32161,8 @@ var joint = (function (exports, $) {
 	        this.cleanNodesCache();
 	        // update SVG attributes defined by 'attrs/'.
 	        this.updateDOMSubtreeAttributes(el, model.attr(), { selectors: selectors });
-	        // legacy link path update
-	        this.updateDefaultConnectionPath();
 	        // update the label position etc.
 	        this.updateLabelPositions();
-	        this.updateToolsPosition();
-	        this.updateArrowheadMarkers();
 	        // *Deprecated*
 	        // Local perpendicular flag (as opposed to one defined on paper).
 	        // Could be enabled inside a connector/router. It's valid only
@@ -29609,53 +32192,9 @@ var joint = (function (exports, $) {
 	        var route = ref.route;
 	        var sourcePoint = ref.sourcePoint;
 	        var targetPoint = ref.targetPoint;
-	        // 3b. Find Marker Connection Point - Backwards Compatibility
-	        var markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
 	        // 4. Find Connection
-	        var path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
+	        var path = this.findPath(route, sourcePoint.clone(), targetPoint.clone());
 	        this.path = path;
-	    },
-
-	    findMarkerPoints: function(route, sourcePoint, targetPoint) {
-
-	        var firstWaypoint = route[0];
-	        var lastWaypoint = route[route.length - 1];
-
-	        // Move the source point by the width of the marker taking into account
-	        // its scale around x-axis. Note that scale is the only transform that
-	        // makes sense to be set in `.marker-source` attributes object
-	        // as all other transforms (translate/rotate) will be replaced
-	        // by the `translateAndAutoOrient()` function.
-	        var cache = this._markerCache;
-	        // cache source and target points
-	        var sourceMarkerPoint, targetMarkerPoint;
-
-	        if (this._V.markerSource) {
-
-	            cache.sourceBBox = cache.sourceBBox || this._V.markerSource.getBBox();
-	            sourceMarkerPoint = Point(sourcePoint).move(
-	                firstWaypoint || targetPoint,
-	                cache.sourceBBox.width * this._V.markerSource.scale().sx * -1
-	            ).round();
-	        }
-
-	        if (this._V.markerTarget) {
-
-	            cache.targetBBox = cache.targetBBox || this._V.markerTarget.getBBox();
-	            targetMarkerPoint = Point(targetPoint).move(
-	                lastWaypoint || sourcePoint,
-	                cache.targetBBox.width * this._V.markerTarget.scale().sx * -1
-	            ).round();
-	        }
-
-	        // if there was no markup for the marker, use the connection point.
-	        cache.sourcePoint = sourceMarkerPoint || sourcePoint.clone();
-	        cache.targetPoint = targetMarkerPoint || targetPoint.clone();
-
-	        return {
-	            source: sourceMarkerPoint,
-	            target: targetMarkerPoint
-	        };
 	    },
 
 	    findAnchorsOrdered: function(firstEndType, firstRef, secondEndType, secondRef) {
@@ -29774,11 +32313,9 @@ var joint = (function (exports, $) {
 	            if (isConnection) {
 	                anchorDef = paperOptions.defaultLinkAnchor;
 	            } else {
-	                if (paperOptions.perpendicularLinks || this.options.perpendicular) {
+	                if (this.options.perpendicular) {
 	                    // Backwards compatibility
-	                    // If `perpendicularLinks` flag is set on the paper and there are vertices
-	                    // on the link, then try to find a connection point that makes the link perpendicular
-	                    // even though the link won't point to the center of the targeted object.
+	                    // See `manhattan` router for more details
 	                    anchorDef = { name: 'perpendicular' };
 	                } else {
 	                    anchorDef = paperOptions.defaultAnchor;
@@ -29816,13 +32353,6 @@ var joint = (function (exports, $) {
 	        var anchor = line.end;
 	        var paperOptions = this.paper.options;
 
-	        // Backwards compatibility
-	        if (typeof paperOptions.linkConnectionPoint === 'function') {
-	            var linkConnectionMagnet = (magnet === view.el) ? undefined : magnet;
-	            connectionPoint = paperOptions.linkConnectionPoint(this, view, linkConnectionMagnet, line.start, endType);
-	            if (connectionPoint) { return connectionPoint; }
-	        }
-
 	        if (!connectionPointDef) { return anchor; }
 	        var connectionPointFn;
 	        if (typeof connectionPointDef === 'function') {
@@ -29835,18 +32365,6 @@ var joint = (function (exports, $) {
 	        connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
 	        if (!connectionPoint) { return anchor; }
 	        return connectionPoint.round(this.decimalsRounding);
-	    },
-
-	    _translateConnectionPoints: function(tx, ty) {
-
-	        var cache = this._markerCache;
-
-	        cache.sourcePoint.offset(tx, ty);
-	        cache.targetPoint.offset(tx, ty);
-	        this.sourcePoint.offset(tx, ty);
-	        this.targetPoint.offset(tx, ty);
-	        this.sourceAnchor.offset(tx, ty);
-	        this.targetAnchor.offset(tx, ty);
 	    },
 
 	    // combine default label position with built-in default label position
@@ -29931,66 +32449,6 @@ var joint = (function (exports, $) {
 	        }
 	    },
 
-	    updateToolsPosition: function() {
-
-	        if (!this._V.linkTools) { return this; }
-
-	        // Move the tools a bit to the target position but don't cover the `sourceArrowhead` marker.
-	        // Note that the offset is hardcoded here. The offset should be always
-	        // more than the `this.$('.marker-arrowhead[end="source"]')[0].bbox().width` but looking
-	        // this up all the time would be slow.
-
-	        var scale = '';
-	        var offset = this.options.linkToolsOffset;
-	        var connectionLength = this.getConnectionLength();
-
-	        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
-	        // In that case we won't update tools position at all.
-	        if (!Number.isNaN(connectionLength)) {
-
-	            // If the link is too short, make the tools half the size and the offset twice as low.
-	            if (connectionLength < this.options.shortLinkLength) {
-	                scale = 'scale(.5)';
-	                offset /= 2;
-	            }
-
-	            var toolPosition = this.getPointAtLength(offset);
-
-	            this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
-
-	            if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
-
-	                var doubleLinkToolsOffset = this.options.doubleLinkToolsOffset || offset;
-
-	                toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
-	                this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
-	                this._tool2Cache.attr('display', 'inline');
-
-	            } else if (this.options.doubleLinkTools) {
-
-	                this._tool2Cache.attr('display', 'none');
-	            }
-	        }
-
-	        return this;
-	    },
-
-	    updateArrowheadMarkers: function() {
-
-	        if (!this._V.markerArrowheads) { return this; }
-
-	        // getting bbox of an element with `display="none"` in IE9 ends up with access violation
-	        if ($.css(this._V.markerArrowheads.node, 'display') === 'none') { return this; }
-
-	        var sx = this.getConnectionLength() < this.options.shortLinkLength ? .5 : 1;
-	        this._V.sourceArrowhead.scale(sx);
-	        this._V.targetArrowhead.scale(sx);
-
-	        this._translateAndAutoOrientArrows(this._V.sourceArrowhead, this._V.targetArrowhead);
-
-	        return this;
-	    },
-
 	    updateEndProperties: function(endType) {
 
 	        var ref = this;
@@ -30031,28 +32489,6 @@ var joint = (function (exports, $) {
 	            this[endMagnetProperty] = connectedMagnet;
 	        } else {
 	            this[endMagnetProperty] = null;
-	        }
-	    },
-
-	    _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
-
-	        // Make the markers "point" to their sticky points being auto-oriented towards
-	        // `targetPosition`/`sourcePosition`. And do so only if there is a markup for them.
-	        var route = toArray(this.route);
-	        if (sourceArrow) {
-	            sourceArrow.translateAndAutoOrient(
-	                this.sourcePoint,
-	                route[0] || this.targetPoint,
-	                this.paper.cells
-	            );
-	        }
-
-	        if (targetArrow) {
-	            targetArrow.translateAndAutoOrient(
-	                this.targetPoint,
-	                route[route.length - 1] || this.sourcePoint,
-	                this.paper.cells
-	            );
 	        }
 	    },
 
@@ -30170,7 +32606,7 @@ var joint = (function (exports, $) {
 	    // Send a token (an SVG element, usually a circle) along the connection path.
 	    // Example: `link.findView(paper).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
 	    // `opt.duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
-	    // `opt.directon` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
+	    // `opt.direction` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
 	    // `opt.connection` is an optional selector to the connection path.
 	    // `callback` is optional and is a function to be called once the token reaches the target.
 	    sendToken: function(token, opt, callback) {
@@ -30214,7 +32650,7 @@ var joint = (function (exports, $) {
 	        var connection;
 	        if (typeof selector === 'string') {
 	            // Use custom connection path.
-	            connection = this.findBySelector(selector, this.el, this.selectors)[0];
+	            connection = this.findNode(selector);
 	        } else {
 	            // Select connection path automatically.
 	            var cache = this._V;
@@ -30599,34 +33035,6 @@ var joint = (function (exports, $) {
 	    pointerdown: function(evt, x, y) {
 
 	        this.notifyPointerdown(evt, x, y);
-
-	        // Backwards compatibility for the default markup
-	        var className = evt.target.getAttribute('class');
-	        switch (className) {
-
-	            case 'marker-vertex':
-	                this.dragVertexStart(evt, x, y);
-	                return;
-
-	            case 'marker-vertex-remove':
-	            case 'marker-vertex-remove-area':
-	                this.dragVertexRemoveStart(evt, x, y);
-	                return;
-
-	            case 'marker-arrowhead':
-	                this.dragArrowheadStart(evt, x, y);
-	                return;
-
-	            case 'connection':
-	            case 'connection-wrap':
-	                this.dragConnectionStart(evt, x, y);
-	                return;
-
-	            case 'marker-source':
-	            case 'marker-target':
-	                return;
-	        }
-
 	        this.dragStart(evt, x, y);
 	    },
 
@@ -30638,10 +33046,6 @@ var joint = (function (exports, $) {
 
 	        var data = this.eventData(evt);
 	        switch (data.action) {
-
-	            case 'vertex-move':
-	                this.dragVertex(evt, x, y);
-	                break;
 
 	            case 'label-move':
 	                this.dragLabel(evt, x, y);
@@ -30673,10 +33077,6 @@ var joint = (function (exports, $) {
 
 	        var data = this.eventData(evt);
 	        switch (data.action) {
-
-	            case 'vertex-move':
-	                this.dragVertexEnd(evt, x, y);
-	                break;
 
 	            case 'label-move':
 	                this.dragLabelEnd(evt, x, y);
@@ -30724,36 +33124,6 @@ var joint = (function (exports, $) {
 	        this.notify('link:mousewheel', evt, x, y, delta);
 	    },
 
-	    onevent: function(evt, eventName, x, y) {
-
-	        // Backwards compatibility
-	        var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
-	        if (linkTool) {
-	            // No further action to be executed
-	            evt.stopPropagation();
-
-	            // Allow `interactive.useLinkTools=false`
-	            if (this.can('useLinkTools')) {
-	                if (eventName === 'remove') {
-	                    // Built-in remove event
-	                    this.model.remove({ ui: true });
-	                    // Do not trigger link pointerdown
-	                    return;
-
-	                } else {
-	                    // link:options and other custom events inside the link tools
-	                    this.notify(eventName, evt, x, y);
-	                }
-	            }
-
-	            this.notifyPointerdown(evt, x, y);
-	            this.paper.delegateDragEvents(this, evt.data);
-
-	        } else {
-	            CellView.prototype.onevent.apply(this, arguments);
-	        }
-	    },
-
 	    onlabel: function(evt, x, y) {
 
 	        this.notifyPointerdown(evt, x, y);
@@ -30765,19 +33135,6 @@ var joint = (function (exports, $) {
 	    },
 
 	    // Drag Start Handlers
-
-	    dragConnectionStart: function(evt, x, y) {
-
-	        if (!this.can('vertexAdd')) { return; }
-
-	        // Store the index at which the new vertex has just been placed.
-	        // We'll be update the very same vertex position in `pointermove()`.
-	        var vertexIdx = this.addVertex({ x: x, y: y }, { ui: true });
-	        this.eventData(evt, {
-	            action: 'vertex-move',
-	            vertexIdx: vertexIdx
-	        });
-	    },
 
 	    dragLabelStart: function(evt, x, y) {
 
@@ -30819,27 +33176,6 @@ var joint = (function (exports, $) {
 	        }
 
 	        this.paper.delegateDragEvents(this, evt.data);
-	    },
-
-	    dragVertexStart: function(evt, x, y) {
-
-	        if (!this.can('vertexMove')) { return; }
-
-	        var vertexNode = evt.target;
-	        var vertexIdx = parseInt(vertexNode.getAttribute('idx'), 10);
-	        this.eventData(evt, {
-	            action: 'vertex-move',
-	            vertexIdx: vertexIdx
-	        });
-	    },
-
-	    dragVertexRemoveStart: function(evt, x, y) {
-
-	        if (!this.can('vertexRemove')) { return; }
-
-	        var removeNode = evt.target;
-	        var vertexIdx = parseInt(removeNode.getAttribute('idx'), 10);
-	        this.model.removeVertex(vertexIdx);
 	    },
 
 	    dragArrowheadStart: function(evt, x, y) {
@@ -30885,12 +33221,6 @@ var joint = (function (exports, $) {
 	        this.model.label(data.labelIdx, label, setOptions);
 	    },
 
-	    dragVertex: function(evt, x, y) {
-
-	        var data = this.eventData(evt);
-	        this.model.vertex(data.vertexIdx, { x: x, y: y }, { ui: true });
-	    },
-
 	    dragArrowhead: function(evt, x, y) {
 	        if (this.paper.options.snapLinks) {
 	            var isSnapped = this._snapArrowhead(evt, x, y);
@@ -30919,10 +33249,6 @@ var joint = (function (exports, $) {
 	    // Drag End Handlers
 
 	    dragLabelEnd: function() {
-	        // noop
-	    },
-
-	    dragVertexEnd: function() {
 	        // noop
 	    },
 
@@ -31470,937 +33796,6 @@ var joint = (function (exports, $) {
 	    }
 	});
 
-	var stroke = HighlighterView.extend({
-
-	    tagName: 'path',
-	    className: 'highlight-stroke',
-	    attributes: {
-	        'pointer-events': 'none',
-	        'vector-effect': 'non-scaling-stroke',
-	        'fill': 'none'
-	    },
-
-	    options: {
-	        padding: 3,
-	        rx: 0,
-	        ry: 0,
-	        useFirstSubpath: false,
-	        attrs: {
-	            'stroke-width': 3,
-	            'stroke': '#FEB663'
-	        }
-	    },
-
-	    getPathData: function getPathData(cellView, node) {
-	        var ref = this;
-	        var options = ref.options;
-	        var useFirstSubpath = options.useFirstSubpath;
-	        var d;
-	        try {
-	            var vNode = V(node);
-	            d = vNode.convertToPathData().trim();
-	            if (vNode.tagName() === 'PATH' && useFirstSubpath) {
-	                var secondSubpathIndex = d.search(/.M/i) + 1;
-	                if (secondSubpathIndex > 0) {
-	                    d = d.substr(0, secondSubpathIndex);
-	                }
-	            }
-	        } catch (error) {
-	            // Failed to get path data from magnet element.
-	            // Draw a rectangle around the node instead.
-	            var nodeBBox = cellView.getNodeBoundingRect(node);
-	            d = V.rectToPath(assign({}, options, nodeBBox.toJSON()));
-	        }
-	        return d;
-	    },
-
-	    highlightConnection: function highlightConnection(cellView) {
-	        this.vel.attr('d', cellView.getSerializedConnection());
-	    },
-
-	    highlightNode: function highlightNode(cellView, node) {
-	        var ref = this;
-	        var vel = ref.vel;
-	        var options = ref.options;
-	        var padding = options.padding;
-	        var layer = options.layer;
-	        var highlightMatrix = this.getNodeMatrix(cellView, node);
-	        // Add padding to the highlight element.
-	        if (padding) {
-	            if (!layer && node === cellView.el) {
-	                // If the highlighter is appended to the cellView
-	                // and we measure the size of the cellView wrapping group
-	                // it's necessary to remove the highlighter first
-	                vel.remove();
-	            }
-	            var nodeBBox = cellView.getNodeBoundingRect(node);
-	            var cx = nodeBBox.x + (nodeBBox.width / 2);
-	            var cy = nodeBBox.y + (nodeBBox.height / 2);
-	            nodeBBox = V.transformRect(nodeBBox, highlightMatrix);
-	            var width = Math.max(nodeBBox.width, 1);
-	            var height = Math.max(nodeBBox.height, 1);
-	            var sx = (width + padding) / width;
-	            var sy = (height + padding) / height;
-	            var paddingMatrix = V.createSVGMatrix({
-	                a: sx,
-	                b: 0,
-	                c: 0,
-	                d: sy,
-	                e: cx - sx * cx,
-	                f: cy - sy * cy
-	            });
-	            highlightMatrix = highlightMatrix.multiply(paddingMatrix);
-	        }
-	        vel.attr({
-	            'd': this.getPathData(cellView, node),
-	            'transform': V.matrixToTransformString(highlightMatrix)
-	        });
-	    },
-
-	    highlight: function highlight(cellView, node) {
-	        var ref = this;
-	        var vel = ref.vel;
-	        var options = ref.options;
-	        vel.attr(options.attrs);
-	        if (cellView.isNodeConnection(node)) {
-	            this.highlightConnection(cellView);
-	        } else {
-	            this.highlightNode(cellView, node);
-	        }
-	    }
-
-	});
-
-	var MASK_CLIP = 20;
-
-	function forEachDescendant(vel, fn) {
-	    var descendants = vel.children();
-	    while (descendants.length > 0) {
-	        var descendant = descendants.shift();
-	        if (fn(descendant)) {
-	            descendants.push.apply(descendants, descendant.children());
-	        }
-	    }
-	}
-
-	var mask = HighlighterView.extend({
-
-	    tagName: 'rect',
-	    className: 'highlight-mask',
-	    attributes: {
-	        'pointer-events': 'none'
-	    },
-
-	    options: {
-	        padding: 3,
-	        maskClip: MASK_CLIP,
-	        deep: false,
-	        attrs: {
-	            'stroke': '#FEB663',
-	            'stroke-width': 3,
-	            'stroke-linecap': 'butt',
-	            'stroke-linejoin': 'miter',
-	        }
-	    },
-
-	    VISIBLE: 'white',
-	    INVISIBLE: 'black',
-
-	    MASK_ROOT_ATTRIBUTE_BLACKLIST: [
-	        'marker-start',
-	        'marker-end',
-	        'marker-mid',
-	        'transform',
-	        'stroke-dasharray',
-	        'class' ],
-
-	    MASK_CHILD_ATTRIBUTE_BLACKLIST: [
-	        'stroke',
-	        'fill',
-	        'stroke-width',
-	        'stroke-opacity',
-	        'stroke-dasharray',
-	        'fill-opacity',
-	        'marker-start',
-	        'marker-end',
-	        'marker-mid',
-	        'class' ],
-
-	    // TODO: change the list to a function callback
-	    MASK_REPLACE_TAGS: [
-	        'FOREIGNOBJECT',
-	        'IMAGE',
-	        'USE',
-	        'TEXT',
-	        'TSPAN',
-	        'TEXTPATH'
-	    ],
-
-	    // TODO: change the list to a function callback
-	    MASK_REMOVE_TAGS: [
-	        'TEXT',
-	        'TSPAN',
-	        'TEXTPATH'
-	    ],
-
-	    transformMaskChild: function transformMaskChild(cellView, childEl) {
-	        var ref = this;
-	        var MASK_CHILD_ATTRIBUTE_BLACKLIST = ref.MASK_CHILD_ATTRIBUTE_BLACKLIST;
-	        var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
-	        var MASK_REMOVE_TAGS = ref.MASK_REMOVE_TAGS;
-	        var childTagName = childEl.tagName();
-	        // Do not include the element in the mask's image
-	        if (!V.isSVGGraphicsElement(childEl) || MASK_REMOVE_TAGS.includes(childTagName)) {
-	            childEl.remove();
-	            return false;
-	        }
-	        // Replace the element with a rectangle
-	        if (MASK_REPLACE_TAGS.includes(childTagName)) {
-	            // Note: clone() method does not change the children ids
-	            var originalChild = cellView.vel.findOne(("#" + (childEl.id)));
-	            if (originalChild) {
-	                var originalNode = originalChild.node;
-	                var childBBox = cellView.getNodeBoundingRect(originalNode);
-	                if (cellView.model.isElement()) {
-	                    childBBox = V.transformRect(childBBox, cellView.getNodeMatrix(originalNode));
-	                }
-	                var replacement = V('rect', childBBox.toJSON());
-	                var ref$1 = childBBox.center();
-	                var ox = ref$1.x;
-	                var oy = ref$1.y;
-	                var ref$2 = originalChild.rotate();
-	                var angle = ref$2.angle;
-	                var cx = ref$2.cx; if ( cx === void 0 ) cx = ox;
-	                var cy = ref$2.cy; if ( cy === void 0 ) cy = oy;
-	                if (angle) { replacement.rotate(angle, cx, cy); }
-	                // Note: it's not important to keep the same sibling index since all subnodes are filled
-	                childEl.parent().append(replacement);
-	            }
-	            childEl.remove();
-	            return false;
-	        }
-	        // Keep the element, but clean it from certain attributes
-	        MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
-	            if (attrName === 'fill' && childEl.attr('fill') === 'none') { return; }
-	            childEl.removeAttr(attrName);
-	        });
-	        return true;
-	    },
-
-	    transformMaskRoot: function transformMaskRoot(_cellView, rootEl) {
-	        var ref = this;
-	        var MASK_ROOT_ATTRIBUTE_BLACKLIST = ref.MASK_ROOT_ATTRIBUTE_BLACKLIST;
-	        MASK_ROOT_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
-	            rootEl.removeAttr(attrName);
-	        });
-	    },
-
-	    getMaskShape: function getMaskShape(cellView, vel) {
-	        var this$1 = this;
-
-	        var ref = this;
-	        var options = ref.options;
-	        var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
-	        var deep = options.deep;
-	        var tagName = vel.tagName();
-	        var maskRoot;
-	        if (tagName === 'G') {
-	            if (!deep) { return null; }
-	            maskRoot = vel.clone();
-	            forEachDescendant(maskRoot, function (maskChild) { return this$1.transformMaskChild(cellView, maskChild); });
-	        } else {
-	            if (MASK_REPLACE_TAGS.includes(tagName)) { return null; }
-	            maskRoot = vel.clone();
-	        }
-	        this.transformMaskRoot(cellView, maskRoot);
-	        return maskRoot;
-	    },
-
-	    getMaskId: function getMaskId() {
-	        return ("highlight-mask-" + (this.cid));
-	    },
-
-	    getMask: function getMask(cellView, vNode) {
-
-	        var ref = this;
-	        var VISIBLE = ref.VISIBLE;
-	        var INVISIBLE = ref.INVISIBLE;
-	        var options = ref.options;
-	        var padding = options.padding;
-	        var attrs = options.attrs;
-
-	        var strokeWidth = ('stroke-width' in attrs) ? attrs['stroke-width'] : 1;
-	        var hasNodeFill = vNode.attr('fill') !== 'none';
-	        var magnetStrokeWidth = parseFloat(vNode.attr('stroke-width'));
-	        if (isNaN(magnetStrokeWidth)) { magnetStrokeWidth = 1; }
-	        // stroke of the invisible shape
-	        var minStrokeWidth = magnetStrokeWidth + padding * 2;
-	        // stroke of the visible shape
-	        var maxStrokeWidth = minStrokeWidth + strokeWidth * 2;
-	        var maskEl = this.getMaskShape(cellView, vNode);
-	        if (!maskEl) {
-	            var nodeBBox = cellView.getNodeBoundingRect(vNode.node);
-	            // Make sure the rect is visible
-	            nodeBBox.inflate(nodeBBox.width ? 0 : 0.5, nodeBBox.height ? 0 : 0.5);
-	            maskEl =  V('rect', nodeBBox.toJSON());
-	        }
-	        maskEl.attr(attrs);
-	        return V('mask', {
-	            'id': this.getMaskId()
-	        }).append([
-	            maskEl.clone().attr({
-	                'fill': hasNodeFill ? VISIBLE : 'none',
-	                'stroke': VISIBLE,
-	                'stroke-width': maxStrokeWidth
-	            }),
-	            maskEl.clone().attr({
-	                'fill': hasNodeFill ? INVISIBLE : 'none',
-	                'stroke': INVISIBLE,
-	                'stroke-width': minStrokeWidth
-	            })
-	        ]);
-	    },
-
-	    removeMask: function removeMask(paper) {
-	        var maskNode = paper.svg.getElementById(this.getMaskId());
-	        if (maskNode) {
-	            paper.defs.removeChild(maskNode);
-	        }
-	    },
-
-	    addMask: function addMask(paper, maskEl) {
-	        paper.defs.appendChild(maskEl.node);
-	    },
-
-	    highlight: function highlight(cellView, node) {
-	        var ref = this;
-	        var options = ref.options;
-	        var vel = ref.vel;
-	        var padding = options.padding;
-	        var attrs = options.attrs;
-	        var maskClip = options.maskClip; if ( maskClip === void 0 ) maskClip = MASK_CLIP;
-	        var layer = options.layer;
-	        var color = ('stroke' in attrs) ? attrs['stroke'] : '#000000';
-	        if (!layer && node === cellView.el) {
-	            // If the highlighter is appended to the cellView
-	            // and we measure the size of the cellView wrapping group
-	            // it's necessary to remove the highlighter first
-	            vel.remove();
-	        }
-	        var highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
-	        var highlightMatrix = this.getNodeMatrix(cellView, node);
-	        var maskEl = this.getMask(cellView, V(node));
-	        this.addMask(cellView.paper, maskEl);
-	        vel.attr(highlighterBBox.toJSON());
-	        vel.attr({
-	            'transform': V.matrixToTransformString(highlightMatrix),
-	            'mask': ("url(#" + (maskEl.id) + ")"),
-	            'fill': color
-	        });
-	    },
-
-	    unhighlight: function unhighlight(cellView) {
-	        this.removeMask(cellView.paper);
-	    }
-
-	});
-
-	var opacity = HighlighterView.extend({
-
-	    UPDATABLE: false,
-	    MOUNTABLE: false,
-
-	    opacityClassName: addClassNamePrefix('highlight-opacity'),
-
-	    highlight: function(_cellView, node) {
-	        V(node).addClass(this.opacityClassName);
-	    },
-
-	    unhighlight: function(_cellView, node) {
-	        V(node).removeClass(this.opacityClassName);
-	    }
-
-	});
-
-	var className = addClassNamePrefix('highlighted');
-
-	var addClass = HighlighterView.extend({
-
-	    UPDATABLE: false,
-	    MOUNTABLE: false,
-
-	    options: {
-	        className: className
-	    },
-
-	    highlight: function(_cellView, node) {
-	        V(node).addClass(this.options.className);
-	    },
-
-	    unhighlight: function(_cellView, node) {
-	        V(node).removeClass(this.options.className);
-	    }
-
-	}, {
-	    // Backwards Compatibility
-	    className: className
-	});
-
-	var Directions$2 = {
-	    ROW: 'row',
-	    COLUMN: 'column'
-	};
-
-	var list = HighlighterView.extend({
-
-	    tagName: 'g',
-	    MOUNTABLE: true,
-	    UPDATE_ATTRIBUTES: function() {
-	        return [this.options.attribute];
-	    },
-
-	    _prevItems: null,
-
-	    highlight: function highlight(elementView, node) {
-	        var this$1 = this;
-
-	        var element = elementView.model;
-	        var ref = this.options;
-	        var attribute = ref.attribute;
-	        var size = ref.size; if ( size === void 0 ) size = 20;
-	        var gap = ref.gap; if ( gap === void 0 ) gap = 5;
-	        var direction = ref.direction; if ( direction === void 0 ) direction = Directions$2.ROW;
-	        if (!attribute) { throw new Error('List: attribute is required'); }
-	        var normalizedSize = (typeof size === 'number') ? { width: size, height: size } : size;
-	        var isRowDirection = (direction === Directions$2.ROW);
-	        var itemWidth = isRowDirection ? normalizedSize.width : normalizedSize.height;
-	        var items = element.get(attribute);
-	        if (!Array.isArray(items)) { items = []; }
-	        var prevItems = this._prevItems || [];
-	        var comparison = items.map(function (item, index) { return isEqual(prevItems[index], items[index]); });
-	        if (prevItems.length !== items.length || comparison.some(function (unchanged) { return !unchanged; })) {
-	            var prevEls = this.vel.children();
-	            var itemsEls = items.map(function (item, index) {
-	                var prevEl = (index in prevEls) ? prevEls[index].node : null;
-	                if (comparison[index]) { return prevEl; }
-	                var itemEl = this$1.createListItem(item, normalizedSize, prevEl);
-	                if (!itemEl) { return null; }
-	                if (!(itemEl instanceof SVGElement)) { throw new Error('List: item must be an SVGElement'); }
-	                itemEl.dataset.index = index;
-	                itemEl.dataset.attribute = attribute;
-	                var offset = index * (itemWidth + gap);
-	                itemEl.setAttribute('transform', (isRowDirection)
-	                    ? ("translate(" + offset + ", 0)")
-	                    : ("translate(0, " + offset + ")")
-	                );
-	                return itemEl;
-	            });
-	            this.vel.empty().append(itemsEls);
-	            this._prevItems = items;
-	        }
-	        var itemsCount = items.length;
-	        var length = (itemsCount === 0)
-	            ? 0
-	            : (itemsCount * itemWidth + (itemsCount - 1) * gap);
-	        var listSize = (isRowDirection)
-	            ? { width: length, height: normalizedSize.height }
-	            : { width: normalizedSize.width, height: length };
-
-	        this.position(element, listSize);
-	    },
-
-	    position: function position(element, listSize) {
-	        var ref = this;
-	        var vel = ref.vel;
-	        var options = ref.options;
-	        var margin = options.margin; if ( margin === void 0 ) margin = 5;
-	        var position = options.position; if ( position === void 0 ) position = 'top-left';
-	        var ref$1 = element.size();
-	        var width = ref$1.width;
-	        var height = ref$1.height;
-	        var ref$2 = normalizeSides(margin);
-	        var left = ref$2.left;
-	        var right = ref$2.right;
-	        var top = ref$2.top;
-	        var bottom = ref$2.bottom;
-	        var bbox = new Rect(left, top, width - (left + right), height - (top + bottom));
-	        var ref$3 = getRectPoint(bbox, position);
-	        var x = ref$3.x;
-	        var y = ref$3.y;
-	        // x
-	        switch (position) {
-	            case Positions.CENTER:
-	            case Positions.TOP:
-	            case Positions.BOTTOM: {
-	                x -= listSize.width / 2;
-	                break;
-	            }
-	            case Positions.RIGHT:
-	            case Positions.BOTTOM_RIGHT:
-	            case Positions.TOP_RIGHT: {
-	                x -= listSize.width;
-	                break;
-	            }
-	        }
-	        // y
-	        switch (position) {
-	            case Positions.CENTER:
-	            case Positions.RIGHT:
-	            case Positions.LEFT: {
-	                y -= listSize.height / 2;
-	                break;
-	            }
-	            case Positions.BOTTOM:
-	            case Positions.BOTTOM_RIGHT:
-	            case Positions.BOTTOM_LEFT: {
-	                y -= listSize.height;
-	                break;
-	            }
-	        }
-	        vel.attr('transform', ("translate(" + x + ", " + y + ")"));
-	    }
-	}, {
-	    Directions: Directions$2,
-	    Positions: Positions
-	});
-
-
-
-	var highlighters = ({
-		stroke: stroke,
-		mask: mask,
-		opacity: opacity,
-		addClass: addClass,
-		list: list
-	});
-
-	function connectionRatio(view, _magnet, _refPoint, opt) {
-
-	    var ratio = ('ratio' in opt) ? opt.ratio : 0.5;
-	    return view.getPointAtRatio(ratio);
-	}
-
-	function connectionLength(view, _magnet, _refPoint, opt) {
-
-	    var length = ('length' in opt) ? opt.length : 20;
-	    return view.getPointAtLength(length);
-	}
-
-	function _connectionPerpendicular(view, _magnet, refPoint, opt) {
-
-	    var OFFSET = 1e6;
-	    var path = view.getConnection();
-	    var segmentSubdivisions = view.getConnectionSubdivisions();
-	    var verticalLine = new Line(refPoint.clone().offset(0, OFFSET), refPoint.clone().offset(0, -OFFSET));
-	    var horizontalLine = new Line(refPoint.clone().offset(OFFSET, 0), refPoint.clone().offset(-OFFSET, 0));
-	    var verticalIntersections = verticalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
-	    var horizontalIntersections = horizontalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
-	    var intersections = [];
-	    if (verticalIntersections) { Array.prototype.push.apply(intersections, verticalIntersections); }
-	    if (horizontalIntersections) { Array.prototype.push.apply(intersections, horizontalIntersections); }
-	    if (intersections.length > 0) { return refPoint.chooseClosest(intersections); }
-	    if ('fallbackAt' in opt) {
-	        return getPointAtLink(view, opt.fallbackAt);
-	    }
-	    return connectionClosest(view, _magnet, refPoint, opt);
-	}
-
-	function _connectionClosest(view, _magnet, refPoint, _opt) {
-
-	    var closestPoint = view.getClosestPoint(refPoint);
-	    if (!closestPoint) { return new Point(); }
-	    return closestPoint;
-	}
-
-	function resolveRef(fn) {
-	    return function(view, magnet, ref, opt) {
-	        if (ref instanceof Element) {
-	            var refView = this.paper.findView(ref);
-	            var refPoint;
-	            if (refView) {
-	                if (refView.isNodeConnection(ref)) {
-	                    var distance = ('fixedAt' in opt) ? opt.fixedAt : '50%';
-	                    refPoint = getPointAtLink(refView, distance);
-	                } else {
-	                    refPoint = refView.getNodeBBox(ref).center();
-	                }
-	            } else {
-	                // Something went wrong
-	                refPoint = new Point();
-	            }
-	            return fn.call(this, view, magnet, refPoint, opt);
-	        }
-	        return fn.apply(this, arguments);
-	    };
-	}
-
-	function getPointAtLink(view, value) {
-	    var parsedValue = parseFloat(value);
-	    if (isPercentage(value)) {
-	        return view.getPointAtRatio(parsedValue / 100);
-	    } else {
-	        return view.getPointAtLength(parsedValue);
-	    }
-	}
-	var connectionPerpendicular = resolveRef(_connectionPerpendicular);
-	var connectionClosest = resolveRef(_connectionClosest);
-
-	var linkAnchors = ({
-		resolveRef: resolveRef,
-		connectionRatio: connectionRatio,
-		connectionLength: connectionLength,
-		connectionPerpendicular: connectionPerpendicular,
-		connectionClosest: connectionClosest
-	});
-
-	function offsetPoint(p1, p2, offset) {
-	    if (isPlainObject(offset)) {
-	        var x = offset.x;
-	        var y = offset.y;
-	        if (isFinite(y)) {
-	            var line =  new Line(p2, p1);
-	            var ref = line.parallel(y);
-	            var start = ref.start;
-	            var end = ref.end;
-	            p2 = start;
-	            p1 = end;
-	        }
-	        offset = x;
-	    }
-	    if (!isFinite(offset)) { return p1; }
-	    var length = p1.distance(p2);
-	    if (offset === 0 && length > 0) { return p1; }
-	    return p1.move(p2, -Math.min(offset, length - 1));
-	}
-
-	function stroke$1(magnet) {
-
-	    var stroke = magnet.getAttribute('stroke-width');
-	    if (stroke === null) { return 0; }
-	    return parseFloat(stroke) || 0;
-	}
-
-	function alignLine(line, type, offset) {
-	    if ( offset === void 0 ) offset = 0;
-
-	    var coordinate, a, b, direction;
-	    var start = line.start;
-	    var end = line.end;
-	    switch (type) {
-	        case 'left':
-	            coordinate = 'x';
-	            a = end;
-	            b = start;
-	            direction = -1;
-	            break;
-	        case 'right':
-	            coordinate = 'x';
-	            a = start;
-	            b = end;
-	            direction = 1;
-	            break;
-	        case 'top':
-	            coordinate = 'y';
-	            a = end;
-	            b = start;
-	            direction = -1;
-	            break;
-	        case 'bottom':
-	            coordinate = 'y';
-	            a = start;
-	            b = end;
-	            direction = 1;
-	            break;
-	        default:
-	            return;
-	    }
-	    if (start[coordinate] < end[coordinate]) {
-	        a[coordinate] = b[coordinate];
-	    } else {
-	        b[coordinate] = a[coordinate];
-	    }
-	    if (isFinite(offset)) {
-	        a[coordinate] += direction * offset;
-	        b[coordinate] += direction * offset;
-	    }
-	}
-
-	// Connection Points
-
-	function anchorConnectionPoint(line, _view, _magnet, opt) {
-	    var offset = opt.offset;
-	    var alignOffset = opt.alignOffset;
-	    var align = opt.align;
-	    if (align) { alignLine(line, align, alignOffset); }
-	    return offsetPoint(line.end, line.start, offset);
-	}
-
-	function bboxIntersection(line, view, magnet, opt) {
-
-	    var bbox = view.getNodeBBox(magnet);
-	    if (opt.stroke) { bbox.inflate(stroke$1(magnet) / 2); }
-	    var intersections = line.intersect(bbox);
-	    var cp = (intersections)
-	        ? line.start.chooseClosest(intersections)
-	        : line.end;
-	    return offsetPoint(cp, line.start, opt.offset);
-	}
-
-	function rectangleIntersection(line, view, magnet, opt) {
-
-	    var angle = view.model.angle();
-	    if (angle === 0) {
-	        return bboxIntersection(line, view, magnet, opt);
-	    }
-
-	    var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
-	    if (opt.stroke) { bboxWORotation.inflate(stroke$1(magnet) / 2); }
-	    var center = bboxWORotation.center();
-	    var lineWORotation = line.clone().rotate(center, angle);
-	    var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
-	    var cp = (intersections)
-	        ? lineWORotation.start.chooseClosest(intersections).rotate(center, -angle)
-	        : line.end;
-	    return offsetPoint(cp, line.start, opt.offset);
-	}
-
-	function findShapeNode(magnet) {
-	    if (!magnet) { return null; }
-	    var node = magnet;
-	    do {
-	        var tagName = node.tagName;
-	        if (typeof tagName !== 'string') { return null; }
-	        tagName = tagName.toUpperCase();
-	        if (tagName === 'G') {
-	            node = node.firstElementChild;
-	        } else if (tagName === 'TITLE') {
-	            node = node.nextElementSibling;
-	        } else { break; }
-	    } while (node);
-	    return node;
-	}
-
-	var BNDR_SUBDIVISIONS = 'segmentSubdivisons';
-	var BNDR_SHAPE_BBOX = 'shapeBBox';
-
-	function boundaryIntersection(line, view, magnet, opt) {
-
-	    var node, intersection;
-	    var selector = opt.selector;
-	    var anchor = line.end;
-
-	    if (typeof selector === 'string') {
-	        node = view.findBySelector(selector)[0];
-	    } else if (selector === false) {
-	        node = magnet;
-	    } else if (Array.isArray(selector)) {
-	        node = getByPath(magnet, selector);
-	    } else {
-	        node = findShapeNode(magnet);
-	    }
-
-	    if (!V.isSVGGraphicsElement(node)) {
-	        if (node === magnet || !V.isSVGGraphicsElement(magnet)) { return anchor; }
-	        node = magnet;
-	    }
-
-	    var localShape = view.getNodeShape(node);
-	    var magnetMatrix = view.getNodeMatrix(node);
-	    var translateMatrix = view.getRootTranslateMatrix();
-	    var rotateMatrix = view.getRootRotateMatrix();
-	    var targetMatrix = translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix);
-	    var localMatrix = targetMatrix.inverse();
-	    var localLine = V.transformLine(line, localMatrix);
-	    var localRef = localLine.start.clone();
-	    var data = view.getNodeData(node);
-
-	    if (opt.insideout === false) {
-	        if (!data[BNDR_SHAPE_BBOX]) { data[BNDR_SHAPE_BBOX] = localShape.bbox(); }
-	        var localBBox = data[BNDR_SHAPE_BBOX];
-	        if (localBBox.containsPoint(localRef)) { return anchor; }
-	    }
-
-	    // Caching segment subdivisions for paths
-	    var pathOpt;
-	    if (localShape instanceof Path) {
-	        var precision = opt.precision || 2;
-	        if (!data[BNDR_SUBDIVISIONS]) { data[BNDR_SUBDIVISIONS] = localShape.getSegmentSubdivisions({ precision: precision }); }
-	        pathOpt = {
-	            precision: precision,
-	            segmentSubdivisions: data[BNDR_SUBDIVISIONS]
-	        };
-	    }
-
-	    if (opt.extrapolate === true) { localLine.setLength(1e6); }
-
-	    intersection = localLine.intersect(localShape, pathOpt);
-	    if (intersection) {
-	        // More than one intersection
-	        if (V.isArray(intersection)) { intersection = localRef.chooseClosest(intersection); }
-	    } else if (opt.sticky === true) {
-	        // No intersection, find the closest point instead
-	        if (localShape instanceof Rect) {
-	            intersection = localShape.pointNearestToPoint(localRef);
-	        } else if (localShape instanceof Ellipse) {
-	            intersection = localShape.intersectionWithLineFromCenterToPoint(localRef);
-	        } else {
-	            intersection = localShape.closestPoint(localRef, pathOpt);
-	        }
-	    }
-
-	    var cp = (intersection) ? V.transformPoint(intersection, targetMatrix) : anchor;
-	    var cpOffset = opt.offset || 0;
-	    if (opt.stroke) { cpOffset += stroke$1(node) / 2; }
-
-	    return offsetPoint(cp, line.start, cpOffset);
-	}
-
-	var anchor = anchorConnectionPoint;
-	var bbox = bboxIntersection;
-	var rectangle = rectangleIntersection;
-	var boundary = boundaryIntersection;
-
-	var connectionPoints = ({
-		anchor: anchor,
-		bbox: bbox,
-		rectangle: rectangle,
-		boundary: boundary
-	});
-
-	function bboxWrapper(method) {
-
-	    return function(view, magnet, ref, opt) {
-
-	        var rotate = !!opt.rotate;
-	        var bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
-	        var anchor = bbox[method]();
-
-	        var dx = opt.dx;
-	        if (dx) {
-	            var dxPercentage = isPercentage(dx);
-	            dx = parseFloat(dx);
-	            if (isFinite(dx)) {
-	                if (dxPercentage) {
-	                    dx /= 100;
-	                    dx *= bbox.width;
-	                }
-	                anchor.x += dx;
-	            }
-	        }
-
-	        var dy = opt.dy;
-	        if (dy) {
-	            var dyPercentage = isPercentage(dy);
-	            dy = parseFloat(dy);
-	            if (isFinite(dy)) {
-	                if (dyPercentage) {
-	                    dy /= 100;
-	                    dy *= bbox.height;
-	                }
-	                anchor.y += dy;
-	            }
-	        }
-
-	        return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
-	    };
-	}
-
-	function _perpendicular(view, magnet, refPoint, opt) {
-
-	    var angle = view.model.angle();
-	    var bbox = view.getNodeBBox(magnet);
-	    var anchor = bbox.center();
-	    var topLeft = bbox.origin();
-	    var bottomRight = bbox.corner();
-
-	    var padding = opt.padding;
-	    if (!isFinite(padding)) { padding = 0; }
-
-	    if ((topLeft.y + padding) <= refPoint.y && refPoint.y <= (bottomRight.y - padding)) {
-	        var dy = (refPoint.y - anchor.y);
-	        anchor.x += (angle === 0 || angle === 180) ? 0 : dy * 1 / Math.tan(toRad(angle));
-	        anchor.y += dy;
-	    } else if ((topLeft.x + padding) <= refPoint.x && refPoint.x <= (bottomRight.x - padding)) {
-	        var dx = (refPoint.x - anchor.x);
-	        anchor.y += (angle === 90 || angle === 270) ? 0 : dx * Math.tan(toRad(angle));
-	        anchor.x += dx;
-	    }
-
-	    return anchor;
-	}
-
-	function _midSide(view, magnet, refPoint, opt) {
-
-	    var rotate = !!opt.rotate;
-	    var bbox, angle, center;
-	    if (rotate) {
-	        bbox = view.getNodeUnrotatedBBox(magnet);
-	        center = view.model.getBBox().center();
-	        angle = view.model.angle();
-	    } else {
-	        bbox = view.getNodeBBox(magnet);
-	    }
-
-	    var padding = opt.padding;
-	    if (isFinite(padding)) { bbox.inflate(padding); }
-
-	    if (rotate) { refPoint.rotate(center, angle); }
-
-	    var side = bbox.sideNearestToPoint(refPoint);
-	    var anchor;
-	    switch (side) {
-	        case 'left':
-	            anchor = bbox.leftMiddle();
-	            break;
-	        case 'right':
-	            anchor = bbox.rightMiddle();
-	            break;
-	        case 'top':
-	            anchor = bbox.topMiddle();
-	            break;
-	        case 'bottom':
-	            anchor = bbox.bottomMiddle();
-	            break;
-	    }
-
-	    return (rotate) ? anchor.rotate(center, -angle) : anchor;
-	}
-
-	// Can find anchor from model, when there is no selector or the link end
-	// is connected to a port
-	function _modelCenter(view, _magnet, _refPoint, opt, endType) {
-	    return view.model.getPointFromConnectedLink(this.model, endType).offset(opt.dx, opt.dy);
-	}
-
-	//joint.anchors
-	var center = bboxWrapper('center');
-	var top$2 = bboxWrapper('topMiddle');
-	var bottom$2 = bboxWrapper('bottomMiddle');
-	var left$2 = bboxWrapper('leftMiddle');
-	var right$2 = bboxWrapper('rightMiddle');
-	var topLeft = bboxWrapper('origin');
-	var topRight = bboxWrapper('topRight');
-	var bottomLeft = bboxWrapper('bottomLeft');
-	var bottomRight = bboxWrapper('corner');
-	var perpendicular = resolveRef(_perpendicular);
-	var midSide = resolveRef(_midSide);
-	var modelCenter = _modelCenter;
-
-	var anchors = ({
-		center: center,
-		top: top$2,
-		bottom: bottom$2,
-		left: left$2,
-		right: right$2,
-		topLeft: topLeft,
-		topRight: topRight,
-		bottomLeft: bottomLeft,
-		bottomRight: bottomRight,
-		perpendicular: perpendicular,
-		midSide: midSide,
-		modelCenter: modelCenter
-	});
-
 	var sortingTypes = {
 	    NONE: 'sorting-none',
 	    APPROX: 'sorting-approximate',
@@ -32467,7 +33862,6 @@ var joint = (function (exports, $) {
 	        // e.g. background: { color: 'lightblue', image: '/paper-background.png', repeat: 'flip-xy' }
 	        background: false,
 
-	        perpendicularLinks: false,
 	        elementView: ElementView,
 	        linkView: LinkView,
 	        snapLabels: false, // false, true
@@ -32521,8 +33915,17 @@ var joint = (function (exports, $) {
 
 	        // Defines what link model is added to the graph after an user clicks on an active magnet.
 	        // Value could be the mvc.model or a function returning the mvc.model
-	        // defaultLink: function(elementView, magnet) { return condition ? new customLink1() : new customLink2() }
-	        defaultLink: new Link,
+	        // defaultLink: (elementView, magnet) => {
+	        //   return condition ? new customLink1() : new customLink2()
+	        // }
+	        defaultLink: function() {
+	            // Do not create hard dependency on the joint.shapes.standard namespace (by importing the standard.Link model directly)
+	            var ref = this.model.get('cells');
+	            var cellNamespace = ref.cellNamespace;
+	            var ctor = getByPath(cellNamespace, ['standard', 'Link']);
+	            if (!ctor) { throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.'); }
+	            return new ctor();
+	        },
 
 	        // A connector that is used by links with no connector defined on the model.
 	        // e.g. { name: 'rounded', args: { radius: 5 }} or a function
@@ -32606,7 +34009,7 @@ var joint = (function (exports, $) {
 
 	        // Rendering Options
 
-	        sorting: sortingTypes.EXACT,
+	        sorting: sortingTypes.APPROX,
 
 	        frozen: false,
 
@@ -32687,10 +34090,7 @@ var joint = (function (exports, $) {
 	    viewport: null,
 	    defs: null,
 	    tools: null,
-	    $background: null,
 	    layers: null,
-	    $grid: null,
-	    $document: null,
 
 	    // For storing the current transformation matrix (CTM) of the paper's viewport.
 	    _viewportMatrix: null,
@@ -32723,7 +34123,6 @@ var joint = (function (exports, $) {
 
 	        var ref = this;
 	        var options = ref.options;
-	        var el = ref.el;
 	        if (!options.cellViewNamespace) {
 	            /* eslint-disable no-undef */
 	            options.cellViewNamespace = typeof joint !== 'undefined' && has$2(joint, 'shapes') ? joint.shapes : null;
@@ -32750,8 +34149,6 @@ var joint = (function (exports, $) {
 	            deltas: [],
 	        };
 
-	        // Reference to the paper owner document
-	        this.$document = $(el.ownerDocument);
 	        // Render existing cells in the graph
 	        this.resetViews(model.attributes.cells.models);
 	        // Start the Rendering Loop
@@ -32944,16 +34341,12 @@ var joint = (function (exports, $) {
 	        var svg = childNodes.svg;
 	        var defs = childNodes.defs;
 	        var layers = childNodes.layers;
-	        var background = childNodes.background;
-	        var grid = childNodes.grid;
 
 	        svg.style.overflow = options.overflow ? 'visible' : 'hidden';
 
 	        this.svg = svg;
 	        this.defs = defs;
 	        this.layers = layers;
-	        this.$background = $(background);
-	        this.$grid = $(grid);
 
 	        this.renderLayers();
 
@@ -33672,8 +35065,8 @@ var joint = (function (exports, $) {
 	        var options = ref.options;
 	        var w = options.width;
 	        var h = options.height;
-	        if (isNumber(w)) { w = Math.round(w); }
-	        if (isNumber(h)) { h = Math.round(h); }
+	        if (isNumber(w)) { w = (Math.round(w)) + "px"; }
+	        if (isNumber(h)) { h = (Math.round(h)) + "px"; }
 	        this.$el.css({
 	            width: (w === null) ? '' : w,
 	            height: (h === null) ? '' : h
@@ -33955,7 +35348,7 @@ var joint = (function (exports, $) {
 	        var defaultViewClass;
 
 	        // A special class defined for this model in the corresponding namespace.
-	        // e.g. joint.shapes.basic.Rect searches for joint.shapes.basic.RectView
+	        // e.g. joint.shapes.standard.Rectangle searches for joint.shapes.standard.RectangleView
 	        var namespace = options.cellViewNamespace;
 	        var type = cell.get('type') + 'View';
 	        var namespaceViewClass = getByPath(namespace, type, '.');
@@ -34081,10 +35474,10 @@ var joint = (function (exports, $) {
 	        // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
 	        // associated model `z` attribute.
 
-	        var $cells = $(this.cells).children('[model-id]');
+	        var cellNodes = Array.from(this.cells.childNodes).filter(function (node) { return node.getAttribute('model-id'); });
 	        var cells = this.model.get('cells');
 
-	        sortElements($cells, function(a, b) {
+	        sortElements(cellNodes, function(a, b) {
 	            var cellA = cells.get(a.getAttribute('model-id'));
 	            var cellB = cells.get(b.getAttribute('model-id'));
 	            var zA = cellA.attributes.z || 0;
@@ -34637,7 +36030,7 @@ var joint = (function (exports, $) {
 	            // Element magnet
 	            var magnetNode = target.closest('[magnet]');
 	            if (magnetNode && view.el !== magnetNode && view.el.contains(magnetNode)) {
-	                var magnetEvt = normalizeEvent($.Event(evt.originalEvent, {
+	                var magnetEvt = normalizeEvent(new $.Event(evt.originalEvent, {
 	                    data: evt.data,
 	                    // Originally the event listener was attached to the magnet element.
 	                    currentTarget: magnetNode
@@ -34659,7 +36052,7 @@ var joint = (function (exports, $) {
 
 	        if (isContextMenu) {
 	            this.contextMenuFired = true;
-	            var contextmenuEvt = $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
+	            var contextmenuEvt = new $.Event(evt.originalEvent, { type: 'contextmenu', data: evt.data });
 	            this.contextMenuTrigger(contextmenuEvt);
 	        } else {
 	            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
@@ -34724,7 +36117,7 @@ var joint = (function (exports, $) {
 	        }
 
 	        if (!normalizedEvt.isPropagationStopped()) {
-	            this.pointerclick($.Event(evt.originalEvent, { type: 'click', data: evt.data }));
+	            this.pointerclick(new $.Event(evt.originalEvent, { type: 'click', data: evt.data }));
 	        }
 
 	        this.delegateEvents();
@@ -34921,7 +36314,7 @@ var joint = (function (exports, $) {
 	        if (evt.button === 2) {
 	            this.contextMenuFired = true;
 	            this.magnetContextMenuFired = true;
-	            var contextmenuEvt = $.Event(evt.originalEvent, {
+	            var contextmenuEvt = new $.Event(evt.originalEvent, {
 	                type: 'contextmenu',
 	                data: evt.data,
 	                currentTarget: evt.currentTarget,
@@ -35026,7 +36419,7 @@ var joint = (function (exports, $) {
 	            return false;
 	        }
 
-	        if (this.svg === target || this.el === target || $.contains(this.svg, target)) {
+	        if (this.el === target || this.svg.contains(target)) {
 	            return false;
 	        }
 
@@ -35049,8 +36442,10 @@ var joint = (function (exports, $) {
 
 	    clearGrid: function() {
 
-	        if (this.$grid) {
-	            this.$grid.css('backgroundImage', 'none');
+	        var ref = this;
+	        var childNodes = ref.childNodes;
+	        if (childNodes && childNodes.grid) {
+	            childNodes.grid.style.backgroundImage = '';
 	        }
 	        return this;
 	    },
@@ -35181,7 +36576,7 @@ var joint = (function (exports, $) {
 	        var patternUri = new XMLSerializer().serializeToString(refs.root.node);
 	        patternUri = 'url(data:image/svg+xml;base64,' + btoa(patternUri) + ')';
 
-	        this.$grid.css('backgroundImage', patternUri);
+	        this.childNodes.grid.style.backgroundImage = patternUri;
 
 	        return this;
 	    },
@@ -35209,17 +36604,17 @@ var joint = (function (exports, $) {
 	            backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
 	        }
 
-	        this.$background.css({
-	            backgroundSize: backgroundSize,
-	            backgroundPosition: backgroundPosition
-	        });
+	        var ref = this.childNodes;
+	        var background = ref.background;
+	        background.style.backgroundSize = backgroundSize;
+	        background.style.backgroundPosition = backgroundPosition;
 	    },
 
 	    drawBackgroundImage: function(img, opt) {
 
 	        // Clear the background image if no image provided
 	        if (!(img instanceof HTMLImageElement)) {
-	            this.$background.css('backgroundImage', '');
+	            this.childNodes.background.style.backgroundImage = '';
 	            return;
 	        }
 
@@ -35272,11 +36667,9 @@ var joint = (function (exports, $) {
 	            }
 	        }
 
-	        this.$background.css({
-	            opacity: backgroundOpacity,
-	            backgroundRepeat: backgroundRepeat,
-	            backgroundImage: 'url(' + backgroundImage + ')'
-	        });
+	        this.childNodes.background.style.opacity = backgroundOpacity;
+	        this.childNodes.background.style.backgroundRepeat = backgroundRepeat;
+	        this.childNodes.background.style.backgroundImage = "url(" + backgroundImage + ")";
 
 	        this.updateBackgroundImage(opt);
 	    },
@@ -35513,7 +36906,7 @@ var joint = (function (exports, $) {
 	        var eventNode = evt.target.closest('[event]');
 
 	        if (eventNode && rootNode !== eventNode && view.el.contains(eventNode)) {
-	            var eventEvt = normalizeEvent($.Event(evt.originalEvent, {
+	            var eventEvt = normalizeEvent(new $.Event(evt.originalEvent, {
 	                data: evt.data,
 	                // Originally the event listener was attached to the event element.
 	                currentTarget: eventNode
@@ -35927,7 +37320,7 @@ var joint = (function (exports, $) {
 
 
 
-	var index$2 = ({
+	var index$4 = ({
 		Graph: Graph,
 		attributes: attributes,
 		LayersNames: LayersNames,
@@ -35942,2674 +37335,6 @@ var joint = (function (exports, $) {
 		ToolView: ToolView,
 		ToolsView: ToolsView,
 		HighlighterView: HighlighterView
-	});
-
-	var DirectedGraph = {
-
-	    exportElement: function(element) {
-
-	        // The width and height of the element.
-	        return element.size();
-	    },
-
-	    exportLink: function(link) {
-
-	        var labelSize = link.get('labelSize') || {};
-	        var edge = {
-	            // The number of ranks to keep between the source and target of the edge.
-	            minLen: link.get('minLen') || 1,
-	            // The weight to assign edges. Higher weight edges are generally
-	            // made shorter and straighter than lower weight edges.
-	            weight: link.get('weight') || 1,
-	            // Where to place the label relative to the edge.
-	            // l = left, c = center r = right.
-	            labelpos: link.get('labelPosition') || 'c',
-	            // How many pixels to move the label away from the edge.
-	            // Applies only when labelpos is l or r.
-	            labeloffset: link.get('labelOffset') || 0,
-	            // The width of the edge label in pixels.
-	            width: labelSize.width || 0,
-	            // The height of the edge label in pixels.
-	            height: labelSize.height || 0
-	        };
-
-	        return edge;
-	    },
-
-	    importElement: function(opt, v, gl) {
-
-	        var element = this.getCell(v);
-	        var glNode = gl.node(v);
-
-	        if (opt.setPosition) {
-	            opt.setPosition(element, glNode);
-	        } else {
-	            element.set('position', {
-	                x: glNode.x - glNode.width / 2,
-	                y: glNode.y - glNode.height / 2
-	            });
-	        }
-	    },
-
-	    importLink: function(opt, edgeObj, gl) {
-
-	        var SIMPLIFY_THRESHOLD = 0.001;
-
-	        var link = this.getCell(edgeObj.name);
-	        var glEdge = gl.edge(edgeObj);
-	        var points = glEdge.points || [];
-	        var polyline = new Polyline(points);
-
-	        // check the `setLinkVertices` here for backwards compatibility
-	        if (opt.setVertices || opt.setLinkVertices) {
-	            if (isFunction(opt.setVertices)) {
-	                opt.setVertices(link, points);
-	            } else {
-	                // simplify the `points` polyline
-	                polyline.simplify({ threshold: SIMPLIFY_THRESHOLD });
-	                var polylinePoints = polyline.points.map(function (point) { return (point.toJSON()); }); // JSON of points after simplification
-	                var numPolylinePoints = polylinePoints.length; // number of points after simplification
-	                // set simplified polyline points as link vertices
-	                // remove first and last polyline points (= source/target sonnectionPoints)
-	                link.set('vertices', polylinePoints.slice(1, numPolylinePoints - 1));
-	            }
-	        }
-
-	        if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
-	            var labelPosition = { x: glEdge.x, y: glEdge.y };
-	            if (isFunction(opt.setLabels)) {
-	                opt.setLabels(link, labelPosition, points);
-	            } else {
-	                // convert the absolute label position to a relative position
-	                // towards the closest point on the edge
-	                var length = polyline.closestPointLength(labelPosition);
-	                var closestPoint = polyline.pointAtLength(length);
-	                var distance = (length / polyline.length());
-	                var offset = new Point(labelPosition).difference(closestPoint).toJSON();
-	                link.label(0, {
-	                    position: {
-	                        distance: distance,
-	                        offset: offset
-	                    }
-	                });
-	            }
-	        }
-	    },
-
-	    layout: function(graphOrCells, opt) {
-
-	        var graph;
-
-	        if (graphOrCells instanceof Graph) {
-	            graph = graphOrCells;
-	        } else {
-	            // Reset cells in dry mode so the graph reference is not stored on the cells.
-	            // `sort: false` to prevent elements to change their order based on the z-index
-	            graph = (new Graph()).resetCells(graphOrCells, { dry: true, sort: false });
-	        }
-
-	        // This is not needed anymore.
-	        graphOrCells = null;
-
-	        opt = defaults(opt || {}, {
-	            resizeClusters: true,
-	            clusterPadding: 10,
-	            exportElement: this.exportElement,
-	            exportLink: this.exportLink
-	        });
-
-	        /* eslint-disable no-undef */
-	        var dagreUtil = opt.dagre || (typeof dagre !== 'undefined' ? dagre : undefined);
-	        /* eslint-enable no-undef */
-
-	        if (dagreUtil === undefined) { throw new Error('The the "dagre" utility is a mandatory dependency.'); }
-
-	        // create a graphlib.Graph that represents the joint.dia.Graph
-	        // var glGraph = graph.toGraphLib({
-	        var glGraph = DirectedGraph.toGraphLib(graph, {
-	            graphlib: opt.graphlib,
-	            directed: true,
-	            // We are about to use edge naming feature.
-	            multigraph: true,
-	            // We are able to layout graphs with embeds.
-	            compound: true,
-	            setNodeLabel: opt.exportElement,
-	            setEdgeLabel: opt.exportLink,
-	            setEdgeName: function(link) {
-	                // Graphlib edges have no ids. We use edge name property
-	                // to store and retrieve ids instead.
-	                return link.id;
-	            }
-	        });
-
-	        var glLabel = {};
-	        var marginX = opt.marginX || 0;
-	        var marginY = opt.marginY || 0;
-
-	        // Dagre layout accepts options as lower case.
-	        // Direction for rank nodes. Can be TB, BT, LR, or RL
-	        if (opt.rankDir) { glLabel.rankdir = opt.rankDir; }
-	        // Alignment for rank nodes. Can be UL, UR, DL, or DR
-	        if (opt.align) { glLabel.align = opt.align; }
-	        // Number of pixels that separate nodes horizontally in the layout.
-	        if (opt.nodeSep) { glLabel.nodesep = opt.nodeSep; }
-	        // Number of pixels that separate edges horizontally in the layout.
-	        if (opt.edgeSep) { glLabel.edgesep = opt.edgeSep; }
-	        // Number of pixels between each rank in the layout.
-	        if (opt.rankSep) { glLabel.ranksep = opt.rankSep; }
-	        // Type of algorithm to assign a rank to each node in the input graph.
-	        // Possible values: network-simplex, tight-tree or longest-path
-	        if (opt.ranker) { glLabel.ranker = opt.ranker; }
-	        // Number of pixels to use as a margin around the left and right of the graph.
-	        if (marginX) { glLabel.marginx = marginX; }
-	        // Number of pixels to use as a margin around the top and bottom of the graph.
-	        if (marginY) { glLabel.marginy = marginY; }
-
-	        // Set the option object for the graph label.
-	        glGraph.setGraph(glLabel);
-
-	        // Executes the layout.
-	        dagreUtil.layout(glGraph, { debugTiming: !!opt.debugTiming });
-
-	        // Wrap all graph changes into a batch.
-	        graph.startBatch('layout');
-
-	        DirectedGraph.fromGraphLib(glGraph, {
-	            importNode: this.importElement.bind(graph, opt),
-	            importEdge: this.importLink.bind(graph, opt)
-	        });
-
-	        // // Update the graph.
-	        // graph.fromGraphLib(glGraph, {
-	        //     importNode: this.importElement.bind(graph, opt),
-	        //     importEdge: this.importLink.bind(graph, opt)
-	        // });
-
-	        if (opt.resizeClusters) {
-	            // Resize and reposition cluster elements (parents of other elements)
-	            // to fit their children.
-	            // 1. filter clusters only
-	            // 2. map id on cells
-	            // 3. sort cells by their depth (the deepest first)
-	            // 4. resize cell to fit their direct children only.
-	            var clusters = glGraph.nodes()
-	                .filter(function(v) { return glGraph.children(v).length > 0; })
-	                .map(graph.getCell.bind(graph))
-	                .sort(function(aCluster, bCluster) {
-	                    return bCluster.getAncestors().length - aCluster.getAncestors().length;
-	                });
-
-	            invoke(clusters, 'fitToChildren', { padding: opt.clusterPadding });
-	        }
-
-	        graph.stopBatch('layout');
-
-	        // Width and height of the graph extended by margins.
-	        var glSize = glGraph.graph();
-	        // Return the bounding box of the graph after the layout.
-	        return new Rect(
-	            marginX,
-	            marginY,
-	            Math.abs(glSize.width - 2 * marginX),
-	            Math.abs(glSize.height - 2 * marginY)
-	        );
-	    },
-
-	    fromGraphLib: function(glGraph, opt) {
-
-	        opt = opt || {};
-
-	        var importNode = opt.importNode || noop;
-	        var importEdge = opt.importEdge || noop;
-	        var graph = (this instanceof Graph) ? this : new Graph;
-
-	        // Import all nodes.
-	        glGraph.nodes().forEach(function(node) {
-	            importNode.call(graph, node, glGraph, graph, opt);
-	        });
-
-	        // Import all edges.
-	        glGraph.edges().forEach(function(edge) {
-	            importEdge.call(graph, edge, glGraph, graph, opt);
-	        });
-
-	        return graph;
-	    },
-
-	    // Create new graphlib graph from existing JointJS graph.
-	    toGraphLib: function(graph, opt) {
-
-	        opt = opt || {};
-
-	        /* eslint-disable no-undef */
-	        var graphlibUtil = opt.graphlib || (typeof graphlib !== 'undefined' ? graphlib : undefined);
-	        /* eslint-enable no-undef */
-
-	        if (graphlibUtil === undefined) { throw new Error('The the "graphlib" utility is a mandatory dependency.'); }
-
-	        var glGraphType = pick(opt, 'directed', 'compound', 'multigraph');
-	        var glGraph = new graphlibUtil.Graph(glGraphType);
-	        var setNodeLabel = opt.setNodeLabel || noop;
-	        var setEdgeLabel = opt.setEdgeLabel || noop;
-	        var setEdgeName = opt.setEdgeName || noop;
-	        var collection = graph.get('cells');
-
-	        for (var i = 0, n = collection.length; i < n; i++) {
-
-	            var cell = collection.at(i);
-	            if (cell.isLink()) {
-
-	                var source = cell.get('source');
-	                var target = cell.get('target');
-
-	                // Links that end at a point are ignored.
-	                if (!source.id || !target.id) { break; }
-
-	                // Note that if we are creating a multigraph we can name the edges. If
-	                // we try to name edges on a non-multigraph an exception is thrown.
-	                glGraph.setEdge(source.id, target.id, setEdgeLabel(cell), setEdgeName(cell));
-
-	            } else {
-
-	                glGraph.setNode(cell.id, setNodeLabel(cell));
-
-	                // For the compound graphs we have to take embeds into account.
-	                if (glGraph.isCompound() && cell.has('parent')) {
-	                    var parentId = cell.get('parent');
-	                    if (collection.has(parentId)) {
-	                        // Make sure the parent cell is included in the graph (this can
-	                        // happen when the layout is run on part of the graph only).
-	                        glGraph.setParent(cell.id, parentId);
-	                    }
-	                }
-	            }
-	        }
-
-	        return glGraph;
-	    }
-	};
-
-	Graph.prototype.toGraphLib = function(opt) {
-
-	    return DirectedGraph.toGraphLib(this, opt);
-	};
-
-	Graph.prototype.fromGraphLib = function(glGraph, opt) {
-
-	    return DirectedGraph.fromGraphLib.call(this, glGraph, opt);
-	};
-
-	var env = {
-
-	    _results: {},
-
-	    _tests: {
-
-	        svgforeignobject: function() {
-	            return !!document.createElementNS &&
-	                /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
-	        }
-	    },
-
-	    addTest: function(name, fn) {
-
-	        return this._tests[name] = fn;
-	    },
-
-	    test: function(name) {
-
-	        var fn = this._tests[name];
-
-	        if (!fn) {
-	            throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
-	        }
-
-	        var result = this._results[name];
-
-	        if (typeof result !== 'undefined') {
-	            return result;
-	        }
-
-	        try {
-	            result = fn();
-	        } catch (error) {
-	            result = false;
-	        }
-
-	        // Cache the test result.
-	        this._results[name] = result;
-
-	        return result;
-	    }
-	};
-
-	var Generic = Element$1.define('basic.Generic', {
-	    attrs: {
-	        '.': { fill: '#ffffff', stroke: 'none' }
-	    }
-	});
-
-	var Rect$1 = Generic.define('basic.Rect', {
-	    attrs: {
-	        'rect': {
-	            fill: '#ffffff',
-	            stroke: '#000000',
-	            width: 100,
-	            height: 60
-	        },
-	        'text': {
-	            fill: '#000000',
-	            text: '',
-	            'font-size': 14,
-	            'ref-x': .5,
-	            'ref-y': .5,
-	            'text-anchor': 'middle',
-	            'y-alignment': 'middle',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><rect/></g><text/></g>'
-	});
-
-	var TextView = ElementView.extend({
-
-	    presentationAttributes: ElementView.addPresentationAttributes({
-	        // The element view is not automatically re-scaled to fit the model size
-	        // when the attribute 'attrs' is changed.
-	        attrs: ['SCALE']
-	    }),
-
-	    confirmUpdate: function() {
-	        var flags = ElementView.prototype.confirmUpdate.apply(this, arguments);
-	        if (this.hasFlag(flags, 'SCALE')) {
-	            this.resize();
-	            flags = this.removeFlag(flags, 'SCALE');
-	        }
-	        return flags;
-	    }
-	});
-
-	var Text = Generic.define('basic.Text', {
-	    attrs: {
-	        'text': {
-	            'font-size': 18,
-	            fill: '#000000'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><text/></g></g>',
-	});
-
-	var Circle = Generic.define('basic.Circle', {
-	    size: { width: 60, height: 60 },
-	    attrs: {
-	        'circle': {
-	            fill: '#ffffff',
-	            stroke: '#000000',
-	            r: 30,
-	            cx: 30,
-	            cy: 30
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-y': .5,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
-	});
-
-	var Ellipse$1 = Generic.define('basic.Ellipse', {
-	    size: { width: 60, height: 40 },
-	    attrs: {
-	        'ellipse': {
-	            fill: '#ffffff',
-	            stroke: '#000000',
-	            rx: 30,
-	            ry: 20,
-	            cx: 30,
-	            cy: 20
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-y': .5,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><ellipse/></g><text/></g>',
-	});
-
-	var Polygon$1 = Generic.define('basic.Polygon', {
-	    size: { width: 60, height: 40 },
-	    attrs: {
-	        'polygon': {
-	            fill: '#ffffff',
-	            stroke: '#000000'
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-dy': 20,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
-	});
-
-	var Polyline$1 = Generic.define('basic.Polyline', {
-	    size: { width: 60, height: 40 },
-	    attrs: {
-	        'polyline': {
-	            fill: '#ffffff',
-	            stroke: '#000000'
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-dy': 20,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><polyline/></g><text/></g>',
-	});
-
-	var Image = Generic.define('basic.Image', {
-	    attrs: {
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-dy': 20,
-	            'y-alignment': 'middle',
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><image/></g><text/></g>',
-	});
-
-	var Path$1 = Generic.define('basic.Path', {
-	    size: { width: 60, height: 60 },
-	    attrs: {
-	        'path': {
-	            fill: '#ffffff',
-	            stroke: '#000000'
-	        },
-	        'text': {
-	            'font-size': 14,
-	            text: '',
-	            'text-anchor': 'middle',
-	            'ref': 'path',
-	            'ref-x': .5,
-	            'ref-dy': 10,
-	            fill: '#000000',
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        }
-	    }
-
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
-	});
-
-	var Rhombus = Path$1.define('basic.Rhombus', {
-	    attrs: {
-	        'path': {
-	            d: 'M 30 0 L 60 30 30 60 0 30 z'
-	        },
-	        'text': {
-	            'ref-y': .5,
-	            'ref-dy': null,
-	            'y-alignment': 'middle'
-	        }
-	    }
-	});
-
-	var svgForeignObjectSupported = env.test('svgforeignobject');
-
-	var TextBlock = Generic.define('basic.TextBlock', {
-	    // see joint.css for more element styles
-	    attrs: {
-	        rect: {
-	            fill: '#ffffff',
-	            stroke: '#000000',
-	            width: 80,
-	            height: 100
-	        },
-	        text: {
-	            fill: '#000000',
-	            'font-size': 14,
-	            'font-family': 'Arial, helvetica, sans-serif'
-	        },
-	        '.content': {
-	            text: '',
-	            'ref-x': .5,
-	            'ref-y': .5,
-	            'y-alignment': 'middle',
-	            'x-alignment': 'middle'
-	        }
-	    },
-
-	    content: ''
-	}, {
-	    markup: [
-	        '<g class="rotatable">',
-	        '<g class="scalable"><rect/></g>',
-	        svgForeignObjectSupported
-	            ? '<foreignObject class="fobj"><body xmlns="http://www.w3.org/1999/xhtml"><div class="content"/></body></foreignObject>'
-	            : '<text class="content"/>',
-	        '</g>'
-	    ].join(''),
-
-	    initialize: function() {
-
-	        this.listenTo(this, 'change:size', this.updateSize);
-	        this.listenTo(this, 'change:content', this.updateContent);
-	        this.updateSize(this, this.get('size'));
-	        this.updateContent(this, this.get('content'));
-	        Generic.prototype.initialize.apply(this, arguments);
-	    },
-
-	    updateSize: function(cell, size) {
-
-	        // Selector `foreignObject' doesn't work across all browsers, we're using class selector instead.
-	        // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
-	        this.attr({
-	            '.fobj': assign({}, size),
-	            div: {
-	                style: assign({}, size)
-	            }
-	        });
-	    },
-
-	    updateContent: function(cell, content) {
-
-	        if (svgForeignObjectSupported) {
-
-	            // Content element is a <div> element.
-	            this.attr({
-	                '.content': {
-	                    html: sanitizeHTML(content)
-	                }
-	            });
-
-	        } else {
-
-	            // Content element is a <text> element.
-	            // SVG elements don't have innerHTML attribute.
-	            this.attr({
-	                '.content': {
-	                    text: content
-	                }
-	            });
-	        }
-	    },
-
-	    // Here for backwards compatibility:
-	    setForeignObjectSize: function() {
-
-	        this.updateSize.apply(this, arguments);
-	    },
-
-	    // Here for backwards compatibility:
-	    setDivContent: function() {
-
-	        this.updateContent.apply(this, arguments);
-	    }
-	});
-
-	// TextBlockView implements the fallback for IE when no foreignObject exists and
-	// the text needs to be manually broken.
-	var TextBlockView = ElementView.extend({
-
-	    presentationAttributes: svgForeignObjectSupported
-	        ? ElementView.prototype.presentationAttributes
-	        : ElementView.addPresentationAttributes({
-	            content: ['CONTENT'],
-	            size: ['CONTENT']
-	        }),
-
-	    initFlag: ['RENDER', 'CONTENT'],
-
-	    confirmUpdate: function() {
-	        var flags = ElementView.prototype.confirmUpdate.apply(this, arguments);
-	        if (this.hasFlag(flags, 'CONTENT')) {
-	            this.updateContent(this.model);
-	            flags = this.removeFlag(flags, 'CONTENT');
-	        }
-	        return flags;
-	    },
-
-	    update: function(_, renderingOnlyAttrs) {
-
-	        var model = this.model;
-
-	        if (!svgForeignObjectSupported) {
-
-	            // Update everything but the content first.
-	            var noTextAttrs = omit(renderingOnlyAttrs || model.get('attrs'), '.content');
-	            ElementView.prototype.update.call(this, model, noTextAttrs);
-
-	            if (!renderingOnlyAttrs || has$2(renderingOnlyAttrs, '.content')) {
-	                // Update the content itself.
-	                this.updateContent(model, renderingOnlyAttrs);
-	            }
-
-	        } else {
-
-	            ElementView.prototype.update.call(this, model, renderingOnlyAttrs);
-	        }
-	    },
-
-	    updateContent: function(cell, renderingOnlyAttrs) {
-
-	        // Create copy of the text attributes
-	        var textAttrs = merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
-
-	        textAttrs = omit(textAttrs, 'text');
-
-	        // Break the content to fit the element size taking into account the attributes
-	        // set on the model.
-	        var text = breakText(cell.get('content'), cell.get('size'), textAttrs, {
-	            // measuring sandbox svg document
-	            svgDocument: this.paper.svg
-	        });
-
-	        // Create a new attrs with same structure as the model attrs { text: { *textAttributes* }}
-	        var attrs = setByPath({}, '.content', textAttrs, '/');
-
-	        // Replace text attribute with the one we just processed.
-	        attrs['.content'].text = text;
-
-	        // Update the view using renderingOnlyAttributes parameter.
-	        ElementView.prototype.update.call(this, cell, attrs);
-	    }
-	});
-
-	var basic = ({
-		Generic: Generic,
-		Rect: Rect$1,
-		TextView: TextView,
-		Text: Text,
-		Circle: Circle,
-		Ellipse: Ellipse$1,
-		Polygon: Polygon$1,
-		Polyline: Polyline$1,
-		Image: Image,
-		Path: Path$1,
-		Rhombus: Rhombus,
-		TextBlock: TextBlock,
-		TextBlockView: TextBlockView
-	});
-
-	// ELEMENTS
-
-	var Rectangle = Element$1.define('standard.Rectangle', {
-	    attrs: {
-	        body: {
-	            refWidth: '100%',
-	            refHeight: '100%',
-	            strokeWidth: 2,
-	            stroke: '#000000',
-	            fill: '#FFFFFF'
-	        },
-	        label: {
-	            textVerticalAnchor: 'middle',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'rect',
-	        selector: 'body',
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var Circle$1 = Element$1.define('standard.Circle', {
-	    attrs: {
-	        body: {
-	            refCx: '50%',
-	            refCy: '50%',
-	            refR: '50%',
-	            strokeWidth: 2,
-	            stroke: '#333333',
-	            fill: '#FFFFFF'
-	        },
-	        label: {
-	            textVerticalAnchor: 'middle',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'circle',
-	        selector: 'body'
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var Ellipse$2 = Element$1.define('standard.Ellipse', {
-	    attrs: {
-	        body: {
-	            refCx: '50%',
-	            refCy: '50%',
-	            refRx: '50%',
-	            refRy: '50%',
-	            strokeWidth: 2,
-	            stroke: '#333333',
-	            fill: '#FFFFFF'
-	        },
-	        label: {
-	            textVerticalAnchor: 'middle',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'ellipse',
-	        selector: 'body'
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var Path$2 = Element$1.define('standard.Path', {
-	    attrs: {
-	        body: {
-	            refD: 'M 0 0 L 10 0 10 10 0 10 Z',
-	            strokeWidth: 2,
-	            stroke: '#333333',
-	            fill: '#FFFFFF'
-	        },
-	        label: {
-	            textVerticalAnchor: 'middle',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'path',
-	        selector: 'body'
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var Polygon$2 = Element$1.define('standard.Polygon', {
-	    attrs: {
-	        body: {
-	            refPoints: '0 0 10 0 10 10 0 10',
-	            strokeWidth: 2,
-	            stroke: '#333333',
-	            fill: '#FFFFFF'
-	        },
-	        label: {
-	            textVerticalAnchor: 'middle',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'polygon',
-	        selector: 'body'
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var Polyline$2 = Element$1.define('standard.Polyline', {
-	    attrs: {
-	        body: {
-	            refPoints: '0 0 10 0 10 10 0 10 0 0',
-	            strokeWidth: 2,
-	            stroke: '#333333',
-	            fill: '#FFFFFF'
-	        },
-	        label: {
-	            textVerticalAnchor: 'middle',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'polyline',
-	        selector: 'body'
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var Image$1 = Element$1.define('standard.Image', {
-	    attrs: {
-	        image: {
-	            refWidth: '100%',
-	            refHeight: '100%',
-	            // xlinkHref: '[URL]'
-	        },
-	        label: {
-	            textVerticalAnchor: 'top',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '100%',
-	            refY2: 10,
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'image',
-	        selector: 'image'
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var BorderedImage = Element$1.define('standard.BorderedImage', {
-	    attrs: {
-	        border: {
-	            refWidth: '100%',
-	            refHeight: '100%',
-	            stroke: '#333333',
-	            strokeWidth: 2
-	        },
-	        background: {
-	            refWidth: -1,
-	            refHeight: -1,
-	            x: 0.5,
-	            y: 0.5,
-	            fill: '#FFFFFF'
-	        },
-	        image: {
-	            // xlinkHref: '[URL]'
-	            refWidth: -1,
-	            refHeight: -1,
-	            x: 0.5,
-	            y: 0.5
-	        },
-	        label: {
-	            textVerticalAnchor: 'top',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '100%',
-	            refY2: 10,
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'rect',
-	        selector: 'background',
-	        attributes: {
-	            'stroke': 'none'
-	        }
-	    }, {
-	        tagName: 'image',
-	        selector: 'image'
-	    }, {
-	        tagName: 'rect',
-	        selector: 'border',
-	        attributes: {
-	            'fill': 'none'
-	        }
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var EmbeddedImage = Element$1.define('standard.EmbeddedImage', {
-	    attrs: {
-	        body: {
-	            refWidth: '100%',
-	            refHeight: '100%',
-	            stroke: '#333333',
-	            fill: '#FFFFFF',
-	            strokeWidth: 2
-	        },
-	        image: {
-	            // xlinkHref: '[URL]'
-	            refWidth: '30%',
-	            refHeight: -20,
-	            x: 10,
-	            y: 10,
-	            preserveAspectRatio: 'xMidYMin'
-	        },
-	        label: {
-	            textVerticalAnchor: 'top',
-	            textAnchor: 'left',
-	            refX: '30%',
-	            refX2: 20, // 10 + 10
-	            refY: 10,
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'rect',
-	        selector: 'body'
-	    }, {
-	        tagName: 'image',
-	        selector: 'image'
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var InscribedImage = Element$1.define('standard.InscribedImage', {
-	    attrs: {
-	        border: {
-	            refRx: '50%',
-	            refRy: '50%',
-	            refCx: '50%',
-	            refCy: '50%',
-	            stroke: '#333333',
-	            strokeWidth: 2
-	        },
-	        background: {
-	            refRx: '50%',
-	            refRy: '50%',
-	            refCx: '50%',
-	            refCy: '50%',
-	            fill: '#FFFFFF'
-	        },
-	        image: {
-	            // The image corners touch the border when its size is Math.sqrt(2) / 2 = 0.707.. ~= 70%
-	            refWidth: '68%',
-	            refHeight: '68%',
-	            // The image offset is calculated as (100% - 68%) / 2
-	            refX: '16%',
-	            refY: '16%',
-	            preserveAspectRatio: 'xMidYMid'
-	            // xlinkHref: '[URL]'
-	        },
-	        label: {
-	            textVerticalAnchor: 'top',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '100%',
-	            refY2: 10,
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'ellipse',
-	        selector: 'background'
-	    }, {
-	        tagName: 'image',
-	        selector: 'image'
-	    }, {
-	        tagName: 'ellipse',
-	        selector: 'border',
-	        attributes: {
-	            'fill': 'none'
-	        }
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }]
-	});
-
-	var HeaderedRectangle = Element$1.define('standard.HeaderedRectangle', {
-	    attrs: {
-	        body: {
-	            refWidth: '100%',
-	            refHeight: '100%',
-	            strokeWidth: 2,
-	            stroke: '#000000',
-	            fill: '#FFFFFF'
-	        },
-	        header: {
-	            refWidth: '100%',
-	            height: 30,
-	            strokeWidth: 2,
-	            stroke: '#000000',
-	            fill: '#FFFFFF'
-	        },
-	        headerText: {
-	            textVerticalAnchor: 'middle',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: 15,
-	            fontSize: 16,
-	            fill: '#333333'
-	        },
-	        bodyText: {
-	            textVerticalAnchor: 'middle',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '50%',
-	            refY2: 15,
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'rect',
-	        selector: 'body'
-	    }, {
-	        tagName: 'rect',
-	        selector: 'header'
-	    }, {
-	        tagName: 'text',
-	        selector: 'headerText'
-	    }, {
-	        tagName: 'text',
-	        selector: 'bodyText'
-	    }]
-	});
-
-	var CYLINDER_TILT = 10;
-
-	var Cylinder = Element$1.define('standard.Cylinder', {
-	    attrs: {
-	        body: {
-	            lateralArea: CYLINDER_TILT,
-	            fill: '#FFFFFF',
-	            stroke: '#333333',
-	            strokeWidth: 2
-	        },
-	        top: {
-	            refCx: '50%',
-	            cy: CYLINDER_TILT,
-	            refRx: '50%',
-	            ry: CYLINDER_TILT,
-	            fill: '#FFFFFF',
-	            stroke: '#333333',
-	            strokeWidth: 2
-	        },
-	        label: {
-	            textVerticalAnchor: 'middle',
-	            textAnchor: 'middle',
-	            refX: '50%',
-	            refY: '100%',
-	            refY2: 15,
-	            fontSize: 14,
-	            fill: '#333333'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'path',
-	        selector: 'body'
-	    }, {
-	        tagName: 'ellipse',
-	        selector: 'top'
-	    }, {
-	        tagName: 'text',
-	        selector: 'label'
-	    }],
-
-	    topRy: function(t, opt) {
-	        // getter
-	        if (t === undefined) { return this.attr('body/lateralArea'); }
-
-	        // setter
-	        var isPercentageSetter = isPercentage(t);
-
-	        var bodyAttrs = { lateralArea: t };
-	        var topAttrs = isPercentageSetter
-	            ? { refCy: t, refRy: t, cy: null, ry: null }
-	            : { refCy: null, refRy: null, cy: t, ry: t };
-
-	        return this.attr({ body: bodyAttrs, top: topAttrs }, opt);
-	    }
-
-	}, {
-	    attributes: {
-	        lateralArea: {
-	            set: function(t, refBBox) {
-	                var isPercentageSetter = isPercentage(t);
-	                if (isPercentageSetter) { t = parseFloat(t) / 100; }
-
-	                var x = refBBox.x;
-	                var y = refBBox.y;
-	                var w = refBBox.width;
-	                var h = refBBox.height;
-
-	                // curve control point variables
-	                var rx = w / 2;
-	                var ry = isPercentageSetter ? (h * t) : t;
-
-	                var kappa = V.KAPPA;
-	                var cx = kappa * rx;
-	                var cy = kappa * (isPercentageSetter ? (h * t) : t);
-
-	                // shape variables
-	                var xLeft = x;
-	                var xCenter = x + (w / 2);
-	                var xRight = x + w;
-
-	                var ySideTop = y + ry;
-	                var yCurveTop = ySideTop - ry;
-	                var ySideBottom = y + h - ry;
-	                var yCurveBottom = y + h;
-
-	                // return calculated shape
-	                var data = [
-	                    'M', xLeft, ySideTop,
-	                    'L', xLeft, ySideBottom,
-	                    'C', x, (ySideBottom + cy), (xCenter - cx), yCurveBottom, xCenter, yCurveBottom,
-	                    'C', (xCenter + cx), yCurveBottom, xRight, (ySideBottom + cy), xRight, ySideBottom,
-	                    'L', xRight, ySideTop,
-	                    'C', xRight, (ySideTop - cy), (xCenter + cx), yCurveTop, xCenter, yCurveTop,
-	                    'C', (xCenter - cx), yCurveTop, xLeft, (ySideTop - cy), xLeft, ySideTop,
-	                    'Z'
-	                ];
-	                return { d: data.join(' ') };
-	            }
-	        }
-	    }
-	});
-
-	var foLabelMarkup = {
-	    tagName: 'foreignObject',
-	    selector: 'foreignObject',
-	    attributes: {
-	        'overflow': 'hidden'
-	    },
-	    children: [{
-	        tagName: 'div',
-	        namespaceURI: 'http://www.w3.org/1999/xhtml',
-	        selector: 'label',
-	        style: {
-	            width: '100%',
-	            height: '100%',
-	            position: 'static',
-	            backgroundColor: 'transparent',
-	            textAlign: 'center',
-	            margin: 0,
-	            padding: '0px 5px',
-	            boxSizing: 'border-box',
-	            display: 'flex',
-	            alignItems: 'center',
-	            justifyContent: 'center'
-	        }
-	    }]
-	};
-
-	var svgLabelMarkup = {
-	    tagName: 'text',
-	    selector: 'label',
-	    attributes: {
-	        'text-anchor': 'middle'
-	    }
-	};
-
-	var labelMarkup = (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup;
-
-	var TextBlock$1 = Element$1.define('standard.TextBlock', {
-	    attrs: {
-	        body: {
-	            refWidth: '100%',
-	            refHeight: '100%',
-	            stroke: '#333333',
-	            fill: '#ffffff',
-	            strokeWidth: 2
-	        },
-	        foreignObject: {
-	            refWidth: '100%',
-	            refHeight: '100%'
-	        },
-	        label: {
-	            style: {
-	                fontSize: 14
-	            }
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'rect',
-	        selector: 'body'
-	    }, labelMarkup]
-	}, {
-	    attributes: {
-	        text: {
-	            set: function(text, refBBox, node, attrs) {
-	                if (node instanceof HTMLElement) {
-	                    node.textContent = text;
-	                } else {
-	                    // No foreign object
-	                    var style = attrs.style || {};
-	                    var wrapValue = { text: text, width: -5, height: '100%' };
-	                    var wrapAttrs = assign({ textVerticalAnchor: 'middle' }, style);
-	                    attributes.textWrap.set.call(this, wrapValue, refBBox, node, wrapAttrs);
-	                    return { fill: style.color || null };
-	                }
-	            },
-	            position: function(text, refBBox, node) {
-	                // No foreign object
-	                if (node instanceof SVGElement) { return refBBox.center(); }
-	            }
-	        }
-	    }
-	});
-
-	// LINKS
-
-	var Link$1 = Link.define('standard.Link', {
-	    attrs: {
-	        line: {
-	            connection: true,
-	            stroke: '#333333',
-	            strokeWidth: 2,
-	            strokeLinejoin: 'round',
-	            targetMarker: {
-	                'type': 'path',
-	                'd': 'M 10 -5 0 0 10 5 z'
-	            }
-	        },
-	        wrapper: {
-	            connection: true,
-	            strokeWidth: 10,
-	            strokeLinejoin: 'round'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'path',
-	        selector: 'wrapper',
-	        attributes: {
-	            'fill': 'none',
-	            'cursor': 'pointer',
-	            'stroke': 'transparent',
-	            'stroke-linecap': 'round'
-	        }
-	    }, {
-	        tagName: 'path',
-	        selector: 'line',
-	        attributes: {
-	            'fill': 'none',
-	            'pointer-events': 'none'
-	        }
-	    }]
-	});
-
-	var DoubleLink = Link.define('standard.DoubleLink', {
-	    attrs: {
-	        line: {
-	            connection: true,
-	            stroke: '#DDDDDD',
-	            strokeWidth: 4,
-	            strokeLinejoin: 'round',
-	            targetMarker: {
-	                type: 'path',
-	                stroke: '#000000',
-	                d: 'M 10 -3 10 -10 -2 0 10 10 10 3'
-	            }
-	        },
-	        outline: {
-	            connection: true,
-	            stroke: '#000000',
-	            strokeWidth: 6,
-	            strokeLinejoin: 'round'
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'path',
-	        selector: 'outline',
-	        attributes: {
-	            'fill': 'none',
-	            'cursor': 'pointer'
-	        }
-	    }, {
-	        tagName: 'path',
-	        selector: 'line',
-	        attributes: {
-	            'fill': 'none',
-	            'pointer-events': 'none'
-	        }
-	    }]
-	});
-
-	var ShadowLink = Link.define('standard.ShadowLink', {
-	    attrs: {
-	        line: {
-	            connection: true,
-	            stroke: '#FF0000',
-	            strokeWidth: 20,
-	            strokeLinejoin: 'round',
-	            targetMarker: {
-	                'type': 'path',
-	                'stroke': 'none',
-	                'd': 'M 0 -10 -10 0 0 10 z'
-	            },
-	            sourceMarker: {
-	                'type': 'path',
-	                'stroke': 'none',
-	                'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
-	            }
-	        },
-	        shadow: {
-	            connection: true,
-	            refX: 3,
-	            refY: 6,
-	            stroke: '#000000',
-	            strokeOpacity: 0.2,
-	            strokeWidth: 20,
-	            strokeLinejoin: 'round',
-	            targetMarker: {
-	                'type': 'path',
-	                'd': 'M 0 -10 -10 0 0 10 z',
-	                'stroke': 'none'
-	            },
-	            sourceMarker: {
-	                'type': 'path',
-	                'stroke': 'none',
-	                'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
-	            }
-	        }
-	    }
-	}, {
-	    markup: [{
-	        tagName: 'path',
-	        selector: 'shadow',
-	        attributes: {
-	            'fill': 'none',
-	            'pointer-events': 'none'
-	        }
-	    }, {
-	        tagName: 'path',
-	        selector: 'line',
-	        attributes: {
-	            'fill': 'none',
-	            'cursor': 'pointer'
-	        }
-	    }]
-	});
-
-	var standard = ({
-		Rectangle: Rectangle,
-		Circle: Circle$1,
-		Ellipse: Ellipse$2,
-		Path: Path$2,
-		Polygon: Polygon$2,
-		Polyline: Polyline$2,
-		Image: Image$1,
-		BorderedImage: BorderedImage,
-		EmbeddedImage: EmbeddedImage,
-		InscribedImage: InscribedImage,
-		HeaderedRectangle: HeaderedRectangle,
-		Cylinder: Cylinder,
-		TextBlock: TextBlock$1,
-		Link: Link$1,
-		DoubleLink: DoubleLink,
-		ShadowLink: ShadowLink
-	});
-
-	/**
-	 * @deprecated use the port api instead
-	 */
-	var Model$1 = Generic.define('devs.Model', {
-	    inPorts: [],
-	    outPorts: [],
-	    size: {
-	        width: 80,
-	        height: 80
-	    },
-	    attrs: {
-	        '.': {
-	            magnet: false
-	        },
-	        '.label': {
-	            text: 'Model',
-	            'ref-x': .5,
-	            'ref-y': 10,
-	            'font-size': 18,
-	            'text-anchor': 'middle',
-	            fill: '#000'
-	        },
-	        '.body': {
-	            'ref-width': '100%',
-	            'ref-height': '100%',
-	            stroke: '#000'
-	        }
-	    },
-	    ports: {
-	        groups: {
-	            'in': {
-	                position: {
-	                    name: 'left'
-	                },
-	                attrs: {
-	                    '.port-label': {
-	                        fill: '#000'
-	                    },
-	                    '.port-body': {
-	                        fill: '#fff',
-	                        stroke: '#000',
-	                        r: 10,
-	                        magnet: true
-	                    }
-	                },
-	                label: {
-	                    position: {
-	                        name: 'left',
-	                        args: {
-	                            y: 10
-	                        }
-	                    }
-	                }
-	            },
-	            'out': {
-	                position: {
-	                    name: 'right'
-	                },
-	                attrs: {
-	                    '.port-label': {
-	                        fill: '#000'
-	                    },
-	                    '.port-body': {
-	                        fill: '#fff',
-	                        stroke: '#000',
-	                        r: 10,
-	                        magnet: true
-	                    }
-	                },
-	                label: {
-	                    position: {
-	                        name: 'right',
-	                        args: {
-	                            y: 10
-	                        }
-	                    }
-	                }
-	            }
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
-	    portMarkup: '<circle class="port-body"/>',
-	    portLabelMarkup: '<text class="port-label"/>',
-
-	    initialize: function() {
-
-	        Generic.prototype.initialize.apply(this, arguments);
-
-	        this.on('change:inPorts change:outPorts', this.updatePortItems, this);
-	        this.updatePortItems();
-	    },
-
-	    updatePortItems: function(model, changed, opt) {
-
-	        // Make sure all ports are unique.
-	        var inPorts = uniq(this.get('inPorts'));
-	        var outPorts = difference(uniq(this.get('outPorts')), inPorts);
-
-	        var inPortItems = this.createPortItems('in', inPorts);
-	        var outPortItems = this.createPortItems('out', outPorts);
-
-	        this.prop('ports/items', inPortItems.concat(outPortItems), assign({ rewrite: true }, opt));
-	    },
-
-	    createPortItem: function(group, port) {
-
-	        return {
-	            id: port,
-	            group: group,
-	            attrs: {
-	                '.port-label': {
-	                    text: port
-	                }
-	            }
-	        };
-	    },
-
-	    createPortItems: function(group, ports) {
-
-	        return toArray(ports).map(this.createPortItem.bind(this, group));
-	    },
-
-	    _addGroupPort: function(port, group, opt) {
-
-	        var ports = this.get(group);
-	        return this.set(group, Array.isArray(ports) ? ports.concat(port) : [port], opt);
-	    },
-
-	    addOutPort: function(port, opt) {
-
-	        return this._addGroupPort(port, 'outPorts', opt);
-	    },
-
-	    addInPort: function(port, opt) {
-
-	        return this._addGroupPort(port, 'inPorts', opt);
-	    },
-
-	    _removeGroupPort: function(port, group, opt) {
-
-	        return this.set(group, without(this.get(group), port), opt);
-	    },
-
-	    removeOutPort: function(port, opt) {
-
-	        return this._removeGroupPort(port, 'outPorts', opt);
-	    },
-
-	    removeInPort: function(port, opt) {
-
-	        return this._removeGroupPort(port, 'inPorts', opt);
-	    },
-
-	    _changeGroup: function(group, properties, opt) {
-
-	        return this.prop('ports/groups/' + group, isObject$1(properties) ? properties : {}, opt);
-	    },
-
-	    changeInGroup: function(properties, opt) {
-
-	        return this._changeGroup('in', properties, opt);
-	    },
-
-	    changeOutGroup: function(properties, opt) {
-
-	        return this._changeGroup('out', properties, opt);
-	    }
-	});
-
-	var Atomic = Model$1.define('devs.Atomic', {
-	    size: {
-	        width: 80,
-	        height: 80
-	    },
-	    attrs: {
-	        '.label': {
-	            text: 'Atomic'
-	        }
-	    }
-	});
-
-	var Coupled = Model$1.define('devs.Coupled', {
-	    size: {
-	        width: 200,
-	        height: 300
-	    },
-	    attrs: {
-	        '.label': {
-	            text: 'Coupled'
-	        }
-	    }
-	});
-
-	var Link$2 = Link.define('devs.Link', {
-	    attrs: {
-	        '.connection': {
-	            'stroke-width': 2
-	        }
-	    }
-	});
-
-	var devs = ({
-		Model: Model$1,
-		Atomic: Atomic,
-		Coupled: Coupled,
-		Link: Link$2
-	});
-
-	var Gate = Generic.define('logic.Gate', {
-	    size: { width: 80, height: 40 },
-	    attrs: {
-	        '.': { magnet: false },
-	        '.body': { width: 100, height: 50 },
-	        circle: { r: 7, stroke: 'black', fill: 'transparent', 'stroke-width': 2 }
-	    }
-	}, {
-	    operation: function() {
-	        return true;
-	    }
-	});
-
-	var IO = Gate.define('logic.IO', {
-	    size: { width: 60, height: 30 },
-	    attrs: {
-	        '.body': { fill: 'white', stroke: 'black', 'stroke-width': 2 },
-	        '.wire': { ref: '.body', 'ref-y': .5, stroke: 'black' },
-	        text: {
-	            fill: 'black',
-	            ref: '.body', 'ref-x': .5, 'ref-y': .5, 'y-alignment': 'middle',
-	            'text-anchor': 'middle',
-	            'font-weight': 'bold',
-	            'font-variant': 'small-caps',
-	            'text-transform': 'capitalize',
-	            'font-size': '14px'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><path class="wire"/><circle/><text/></g>',
-	});
-
-	var Input = IO.define('logic.Input', {
-	    attrs: {
-	        '.wire': { 'ref-dx': 0, d: 'M 0 0 L 23 0' },
-	        circle: { ref: '.body', 'ref-dx': 30, 'ref-y': 0.5, magnet: true, 'class': 'output', port: 'out' },
-	        text: { text: 'input' }
-	    }
-	});
-
-	var Output = IO.define('logic.Output', {
-	    attrs: {
-	        '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
-	        circle: { ref: '.body', 'ref-x': -30, 'ref-y': 0.5, magnet: 'passive', 'class': 'input', port: 'in' },
-	        text: { text: 'output' }
-	    }
-	});
-
-	var Gate11 = Gate.define('logic.Gate11', {
-	    attrs: {
-	        '.input': { ref: '.body', 'ref-x': -2, 'ref-y': 0.5, magnet: 'passive', port: 'in' },
-	        '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input"/><circle class="output"/></g>',
-	});
-
-	var Gate21 = Gate.define('logic.Gate21', {
-	    attrs: {
-	        '.input1': { ref: '.body', 'ref-x': -2, 'ref-y': 0.3, magnet: 'passive', port: 'in1' },
-	        '.input2': { ref: '.body', 'ref-x': -2, 'ref-y': 0.7, magnet: 'passive', port: 'in2' },
-	        '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input input1"/><circle  class="input input2"/><circle class="output"/></g>',
-	});
-
-	var Repeater = Gate11.define('logic.Repeater', {
-	    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzIuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICA8L2c+Cjwvc3ZnPgo=' }}
-	}, {
-	    operation: function(input) {
-	        return input;
-	    }
-	});
-
-	var Not = Gate11.define('logic.Not', {
-	    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PVCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjgiCiAgICAgaW5rc2NhcGU6Y3g9Ijg0LjY4NTM1MiIKICAgICBpbmtzY2FwZTpjeT0iMTUuMjg4NjI4IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzkuMTU2OTEsMjUgTCA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAyOS4wNDM0NzgsMjUgTCA1LjA0MzQ3ODEsMjUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgZD0iTSAyOC45Njg3NSwyLjU5Mzc1IEwgMjguOTY4NzUsNSBMIDI4Ljk2ODc1LDQ1IEwgMjguOTY4NzUsNDcuNDA2MjUgTCAzMS4xMjUsNDYuMzQzNzUgTCA3Mi4xNTYyNSwyNi4zNDM3NSBMIDcyLjE1NjI1LDIzLjY1NjI1IEwgMzEuMTI1LDMuNjU2MjUgTCAyOC45Njg3NSwyLjU5Mzc1IHogTSAzMS45Njg3NSw3LjQwNjI1IEwgNjguMDkzNzUsMjUgTCAzMS45Njg3NSw0Mi41OTM3NSBMIDMxLjk2ODc1LDcuNDA2MjUgeiIKICAgICAgIGlkPSJwYXRoMjYzOCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2NjY2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDI2NzEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzYiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA4MCwyNSBBIDQsNCAwIDEgMSA3MiwyNSBBIDQsNCAwIDEgMSA4MCwyNSB6IgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEsMCkiIC8+CiAgPC9nPgo8L3N2Zz4K' }}
-	}, {
-	    operation: function(input) {
-	        return !input;
-	    }
-	});
-
-	var Or = Gate21.define('logic.Or', {
-	    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik9SIEFOU0kuc3ZnIgogICBpbmtzY2FwZTpvdXRwdXRfZXh0ZW5zaW9uPSJvcmcuaW5rc2NhcGUub3V0cHV0LnN2Zy5pbmtzY2FwZSI+CiAgPGRlZnMKICAgICBpZD0iZGVmczQiPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTAgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjcxNCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iMSA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMC41IDogMC4zMzMzMzMzMyA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODA2IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyODE5IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjM3Mi4wNDcyNCA6IDM1MC43ODczOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI3NDQuMDk0NDggOiA1MjYuMTgxMDkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzc3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49Ijc1IDogNDAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTUwIDogNjAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDYwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTMyNzUiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNTAgOiAzMy4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iMTAwIDogNTAgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDUwIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTU1MzMiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzIgOiAyMS4zMzMzMzMgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNjQgOiAzMiA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMzIgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjU1NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDE2LjY2NjY2NyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDI1IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAyNSA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iNCIKICAgICBpbmtzY2FwZTpjeD0iMTEzLjAwMDM5IgogICAgIGlua3NjYXBlOmN5PSIxMi44OTM3MzEiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9InB4IgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImcyNTYwIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTpncmlkLWJib3g9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1wb2ludHM9InRydWUiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAwMDAiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMzk5IgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijg3NCIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMzciCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii00IgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Im0gNzAsMjUgYyAyMCwwIDI1LDAgMjUsMCIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMSwxNSA1LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzIsMzUgNSwzNSIKICAgICAgIGlkPSJwYXRoMzk0NCIgLz4KICAgIDxnCiAgICAgICBpZD0iZzI1NjAiCiAgICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2LjUsLTM5LjUpIj4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo=' }}
-	}, {
-	    operation: function(input1, input2) {
-	        return input1 || input2;
-	    }
-	});
-
-	var And = Gate21.define('logic.And', {
-	    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IkFORCBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI4IgogICAgIGlua3NjYXBlOmN4PSI1Ni42OTgzNDgiCiAgICAgaW5rc2NhcGU6Y3k9IjI1LjMyNjg5OSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZvbnQtc2l6ZTptZWRpdW07Zm9udC1zdHlsZTpub3JtYWw7Zm9udC12YXJpYW50Om5vcm1hbDtmb250LXdlaWdodDpub3JtYWw7Zm9udC1zdHJldGNoOm5vcm1hbDt0ZXh0LWluZGVudDowO3RleHQtYWxpZ246c3RhcnQ7dGV4dC1kZWNvcmF0aW9uOm5vbmU7bGluZS1oZWlnaHQ6bm9ybWFsO2xldHRlci1zcGFjaW5nOm5vcm1hbDt3b3JkLXNwYWNpbmc6bm9ybWFsO3RleHQtdHJhbnNmb3JtOm5vbmU7ZGlyZWN0aW9uOmx0cjtibG9jay1wcm9ncmVzc2lvbjp0Yjt3cml0aW5nLW1vZGU6bHItdGI7dGV4dC1hbmNob3I6c3RhcnQ7ZmlsbDojMDAwMDAwO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lO3N0cm9rZS13aWR0aDozO21hcmtlcjpub25lO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGU7Zm9udC1mYW1pbHk6Qml0c3RyZWFtIFZlcmEgU2FuczstaW5rc2NhcGUtZm9udC1zcGVjaWZpY2F0aW9uOkJpdHN0cmVhbSBWZXJhIFNhbnMiCiAgICAgICBkPSJNIDMwLDUgTCAzMCw2LjQyODU3MTQgTCAzMCw0My41NzE0MjkgTCAzMCw0NSBMIDMxLjQyODU3MSw0NSBMIDUwLjQ3NjE5LDQ1IEMgNjEuNzQ0MDk4LDQ1IDcwLjQ3NjE5LDM1Ljk5OTk1NSA3MC40NzYxOSwyNSBDIDcwLjQ3NjE5LDE0LjAwMDA0NSA2MS43NDQwOTksNS4wMDAwMDAyIDUwLjQ3NjE5LDUgQyA1MC40NzYxOSw1IDUwLjQ3NjE5LDUgMzEuNDI4NTcxLDUgTCAzMCw1IHogTSAzMi44NTcxNDMsNy44NTcxNDI5IEMgNDAuODM0MjY0LDcuODU3MTQyOSA0NS45MTgzNjgsNy44NTcxNDI5IDQ4LjA5NTIzOCw3Ljg1NzE0MjkgQyA0OS4yODU3MTQsNy44NTcxNDI5IDQ5Ljg4MDk1Miw3Ljg1NzE0MjkgNTAuMTc4NTcxLDcuODU3MTQyOSBDIDUwLjMyNzM4MSw3Ljg1NzE0MjkgNTAuNDA5MjI3LDcuODU3MTQyOSA1MC40NDY0MjksNy44NTcxNDI5IEMgNTAuNDY1MDI5LDcuODU3MTQyOSA1MC40NzE1NDMsNy44NTcxNDI5IDUwLjQ3NjE5LDcuODU3MTQyOSBDIDYwLjIzNjg1Myw3Ljg1NzE0MyA2Ny4xNDI4NTcsMTUuNDk3MDk4IDY3LjE0Mjg1NywyNSBDIDY3LjE0Mjg1NywzNC41MDI5MDIgNTkuNzYwNjYyLDQyLjE0Mjg1NyA1MCw0Mi4xNDI4NTcgTCAzMi44NTcxNDMsNDIuMTQyODU3IEwgMzIuODU3MTQzLDcuODU3MTQyOSB6IgogICAgICAgaWQ9InBhdGgyODg0IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2NjY2NzY2NjY3Nzc3NzY2NjIiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
-
-	}, {
-	    operation: function(input1, input2) {
-	        return input1 && input2;
-	    }
-	});
-
-	var Nor = Gate21.define('logic.Nor', {
-	    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5PUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjEiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjY3NzY0NCIKICAgICBpbmtzY2FwZTpjeT0iMjIuMTAyMzQ0IgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjM3IgogICAgIGlua3NjYXBlOndpbmRvdy15PSItNCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc5LDI1IEMgOTksMjUgOTUsMjUgOTUsMjUiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEsMTUgNSwxNSIKICAgICAgIGlkPSJwYXRoMzA2MSIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoxLjk5OTk5OTg4O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMyLDM1IDUsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHNvZGlwb2RpOnR5cGU9ImFyYyIKICAgICAgICAgc3R5bGU9ImZpbGw6bm9uZTtmaWxsLW9wYWNpdHk6MTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWpvaW46bWl0ZXI7bWFya2VyOm5vbmU7c3Ryb2tlLW9wYWNpdHk6MTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlIgogICAgICAgICBpZD0icGF0aDI2MDQiCiAgICAgICAgIHNvZGlwb2RpOmN4PSI3NSIKICAgICAgICAgc29kaXBvZGk6Y3k9IjI1IgogICAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgICAgc29kaXBvZGk6cnk9IjQiCiAgICAgICAgIGQ9Ik0gNzksMjUgQSA0LDQgMCAxIDEgNzEsMjUgQSA0LDQgMCAxIDEgNzksMjUgeiIKICAgICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI2LjUsMzkuNSkiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
-	}, {
-	    operation: function(input1, input2) {
-	        return !(input1 || input2);
-	    }
-	});
-
-	var Nand = Gate21.define('logic.Nand', {
-	    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9Ik5BTkQgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogIDwvZGVmcz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6em9vbT0iMTYiCiAgICAgaW5rc2NhcGU6Y3g9Ijc4LjI4MzMwNyIKICAgICBpbmtzY2FwZTpjeT0iMTYuNDQyODQzIgogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJweCIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJsYXllcjEiCiAgICAgc2hvd2dyaWQ9InRydWUiCiAgICAgaW5rc2NhcGU6Z3JpZC1iYm94PSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtcG9pbnRzPSJ0cnVlIgogICAgIGdyaWR0b2xlcmFuY2U9IjEwMDAwIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTM5OSIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NzQiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjMzIgogICAgIGlua3NjYXBlOndpbmRvdy15PSIwIgogICAgIGlua3NjYXBlOnNuYXAtYmJveD0idHJ1ZSI+CiAgICA8aW5rc2NhcGU6Z3JpZAogICAgICAgaWQ9IkdyaWRGcm9tUHJlMDQ2U2V0dGluZ3MiCiAgICAgICB0eXBlPSJ4eWdyaWQiCiAgICAgICBvcmlnaW54PSIwcHgiCiAgICAgICBvcmlnaW55PSIwcHgiCiAgICAgICBzcGFjaW5neD0iMXB4IgogICAgICAgc3BhY2luZ3k9IjFweCIKICAgICAgIGNvbG9yPSIjMDAwMGZmIgogICAgICAgZW1wY29sb3I9IiMwMDAwZmYiCiAgICAgICBvcGFjaXR5PSIwLjIiCiAgICAgICBlbXBvcGFjaXR5PSIwLjQiCiAgICAgICBlbXBzcGFjaW5nPSI1IgogICAgICAgdmlzaWJsZT0idHJ1ZSIKICAgICAgIGVuYWJsZWQ9InRydWUiIC8+CiAgPC9zb2RpcG9kaTpuYW1lZHZpZXc+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhNyI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjI7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gNzksMjUgQyA5MS44LDI1IDk1LDI1IDk1LDI1IgogICAgICAgaWQ9InBhdGgzMDU5IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDMxLDE1IDUsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMiwzNSA1LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmb250LXNpemU6bWVkaXVtO2ZvbnQtc3R5bGU6bm9ybWFsO2ZvbnQtdmFyaWFudDpub3JtYWw7Zm9udC13ZWlnaHQ6bm9ybWFsO2ZvbnQtc3RyZXRjaDpub3JtYWw7dGV4dC1pbmRlbnQ6MDt0ZXh0LWFsaWduOnN0YXJ0O3RleHQtZGVjb3JhdGlvbjpub25lO2xpbmUtaGVpZ2h0Om5vcm1hbDtsZXR0ZXItc3BhY2luZzpub3JtYWw7d29yZC1zcGFjaW5nOm5vcm1hbDt0ZXh0LXRyYW5zZm9ybTpub25lO2RpcmVjdGlvbjpsdHI7YmxvY2stcHJvZ3Jlc3Npb246dGI7d3JpdGluZy1tb2RlOmxyLXRiO3RleHQtYW5jaG9yOnN0YXJ0O2ZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MzttYXJrZXI6bm9uZTt2aXNpYmlsaXR5OnZpc2libGU7ZGlzcGxheTppbmxpbmU7b3ZlcmZsb3c6dmlzaWJsZTtlbmFibGUtYmFja2dyb3VuZDphY2N1bXVsYXRlO2ZvbnQtZmFtaWx5OkJpdHN0cmVhbSBWZXJhIFNhbnM7LWlua3NjYXBlLWZvbnQtc3BlY2lmaWNhdGlvbjpCaXRzdHJlYW0gVmVyYSBTYW5zIgogICAgICAgZD0iTSAzMCw1IEwgMzAsNi40Mjg1NzE0IEwgMzAsNDMuNTcxNDI5IEwgMzAsNDUgTCAzMS40Mjg1NzEsNDUgTCA1MC40NzYxOSw0NSBDIDYxLjc0NDA5OCw0NSA3MC40NzYxOSwzNS45OTk5NTUgNzAuNDc2MTksMjUgQyA3MC40NzYxOSwxNC4wMDAwNDUgNjEuNzQ0MDk5LDUuMDAwMDAwMiA1MC40NzYxOSw1IEMgNTAuNDc2MTksNSA1MC40NzYxOSw1IDMxLjQyODU3MSw1IEwgMzAsNSB6IE0gMzIuODU3MTQzLDcuODU3MTQyOSBDIDQwLjgzNDI2NCw3Ljg1NzE0MjkgNDUuOTE4MzY4LDcuODU3MTQyOSA0OC4wOTUyMzgsNy44NTcxNDI5IEMgNDkuMjg1NzE0LDcuODU3MTQyOSA0OS44ODA5NTIsNy44NTcxNDI5IDUwLjE3ODU3MSw3Ljg1NzE0MjkgQyA1MC4zMjczODEsNy44NTcxNDI5IDUwLjQwOTIyNyw3Ljg1NzE0MjkgNTAuNDQ2NDI5LDcuODU3MTQyOSBDIDUwLjQ2NTAyOSw3Ljg1NzE0MjkgNTAuNDcxNTQzLDcuODU3MTQyOSA1MC40NzYxOSw3Ljg1NzE0MjkgQyA2MC4yMzY4NTMsNy44NTcxNDMgNjcuMTQyODU3LDE1LjQ5NzA5OCA2Ny4xNDI4NTcsMjUgQyA2Ny4xNDI4NTcsMzQuNTAyOTAyIDU5Ljc2MDY2Miw0Mi4xNDI4NTcgNTAsNDIuMTQyODU3IEwgMzIuODU3MTQzLDQyLjE0Mjg1NyBMIDMyLjg1NzE0Myw3Ljg1NzE0MjkgeiIKICAgICAgIGlkPSJwYXRoMjg4NCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2Njc2NjY2Nzc3Nzc2NjYyIgLz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDQwMDgiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
-	}, {
-	    operation: function(input1, input2) {
-	        return !(input1 && input2);
-	    }
-	});
-
-	var Xor = Gate21.define('logic.Xor', {
-	    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhPUiBBTlNJLnN2ZyIKICAgaW5rc2NhcGU6b3V0cHV0X2V4dGVuc2lvbj0ib3JnLmlua3NjYXBlLm91dHB1dC5zdmcuaW5rc2NhcGUiPgogIDxkZWZzCiAgICAgaWQ9ImRlZnM0Ij4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSI1MCA6IDE1IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIyNSA6IDEwIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3MTQiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjAuNSA6IDAuMzMzMzMzMzMgOiAxIgogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgwNiIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjgxOSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzNzIuMDQ3MjQgOiAzNTAuNzg3MzkgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MjYuMTgxMDkgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMjc3NyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI3NSA6IDQwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjE1MCA6IDYwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA2MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUzMjc1IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjUwIDogMzMuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjEwMCA6IDUwIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiA1MCA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmU1NTMzIgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjMyIDogMjEuMzMzMzMzIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjY0IDogMzIgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDMyIDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI1NTciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxNi42NjY2NjcgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAyNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMjUgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICA8L2RlZnM+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjUuNjU2ODU0MiIKICAgICBpbmtzY2FwZTpjeD0iMjUuOTM4MTE2IgogICAgIGlua3NjYXBlOmN5PSIxNy4yMzAwNSIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyO3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJtIDcwLDI1IGMgMjAsMCAyNSwwIDI1LDAiCiAgICAgICBpZD0icGF0aDMwNTkiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5ODg7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzAuMzg1NzE3LDE1IEwgNC45OTk5OTk4LDE1IgogICAgICAgaWQ9InBhdGgzMDYxIiAvPgogICAgPHBhdGgKICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjEuOTk5OTk5NzY7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgIGQ9Ik0gMzEuMzYyMDkxLDM1IEwgNC45OTk5OTk4LDM1IgogICAgICAgaWQ9InBhdGgzOTQ0IiAvPgogICAgPGcKICAgICAgIGlkPSJnMjU2MCIKICAgICAgIGlua3NjYXBlOmxhYmVsPSJMYXllciAxIgogICAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYuNSwtMzkuNSkiPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDM1MTYiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi4yNSw4MS41MDAwMDUgQyAtMy44NDczNzQsODQuMTQ0NDA1IC00LjUsODQuNTAwMDA1IC00LjUsODQuNTAwMDA1IEwgLTguMTU2MjUsODQuNTAwMDA1IEwgLTYuMTU2MjUsODIuMDYyNTA1IEMgLTYuMTU2MjUsODIuMDYyNTA1IC0wLjUsNzUuMDYyNDUxIC0wLjUsNjQuNSBDIC0wLjUsNTMuOTM3NTQ5IC02LjE1NjI1LDQ2LjkzNzUgLTYuMTU2MjUsNDYuOTM3NSBMIC04LjE1NjI1LDQ0LjUgTCAtNC41LDQ0LjUgQyAtMy43MTg3NSw0NS40Mzc1IC0zLjA3ODEyNSw0Ni4xNTYyNSAtMi4yODEyNSw0Ny41IEMgLTAuNDA4NTMxLDUwLjU5OTgxNSAyLjUsNTYuNTI2NjQ2IDIuNSw2NC41IEMgMi41LDcyLjQ1MDY1IC0wLjM5NjY5Nyw3OC4zNzk0MjUgLTIuMjUsODEuNTAwMDA1IHoiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY3NjY2Njc2MiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMDAwMDA7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlOm5vbmU7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlLWxpbmVjYXA6YnV0dDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW9wYWNpdHk6MSIKICAgICAgICAgZD0iTSAtMi40MDYyNSw0NC41IEwgLTAuNDA2MjUsNDYuOTM3NSBDIC0wLjQwNjI1LDQ2LjkzNzUgNS4yNSw1My45Mzc1NDkgNS4yNSw2NC41IEMgNS4yNSw3NS4wNjI0NTEgLTAuNDA2MjUsODIuMDYyNSAtMC40MDYyNSw4Mi4wNjI1IEwgLTIuNDA2MjUsODQuNSBMIDAuNzUsODQuNSBMIDE0Ljc1LDg0LjUgQyAxNy4xNTgwNzYsODQuNTAwMDAxIDIyLjQzOTY5OSw4NC41MjQ1MTQgMjguMzc1LDgyLjA5Mzc1IEMgMzQuMzEwMzAxLDc5LjY2Mjk4NiA0MC45MTE1MzYsNzQuNzUwNDg0IDQ2LjA2MjUsNjUuMjE4NzUgTCA0NC43NSw2NC41IEwgNDYuMDYyNSw2My43ODEyNSBDIDM1Ljc1OTM4Nyw0NC43MTU1OSAxOS41MDY1NzQsNDQuNSAxNC43NSw0NC41IEwgMC43NSw0NC41IEwgLTIuNDA2MjUsNDQuNSB6IE0gMy40Njg3NSw0Ny41IEwgMTQuNzUsNDcuNSBDIDE5LjQzNDE3Myw0Ny41IDMzLjAzNjg1LDQ3LjM2OTc5MyA0Mi43MTg3NSw2NC41IEMgMzcuOTUxOTY0LDcyLjkyOTA3NSAzMi4xOTc0NjksNzcuMTgzOTEgMjcsNzkuMzEyNSBDIDIxLjYzOTMzOSw4MS41MDc5MjQgMTcuMTU4MDc1LDgxLjUwMDAwMSAxNC43NSw4MS41IEwgMy41LDgxLjUgQyA1LjM3MzU4ODQsNzguMzkxNTY2IDguMjUsNzIuNDUwNjUgOC4yNSw2NC41IEMgOC4yNSw1Ni41MjY2NDYgNS4zNDE0Njg2LDUwLjU5OTgxNSAzLjQ2ODc1LDQ3LjUgeiIKICAgICAgICAgaWQ9InBhdGg0OTczIgogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjc2NjY2NzY2NjY2NjY2Njc2Njc2MiIC8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K' }}
-	}, {
-	    operation: function(input1, input2) {
-	        return (!input1 || input2) && (input1 || !input2);
-	    }
-	});
-
-	var Xnor = Gate21.define('logic.Xnor', {
-	    attrs: { image: { 'xlink:href': 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgo8c3ZnCiAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIKICAgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHdpZHRoPSIxMDAiCiAgIGhlaWdodD0iNTAiCiAgIGlkPSJzdmcyIgogICBzb2RpcG9kaTp2ZXJzaW9uPSIwLjMyIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ2IgogICB2ZXJzaW9uPSIxLjAiCiAgIHNvZGlwb2RpOmRvY25hbWU9IlhOT1IgQU5TSS5zdmciCiAgIGlua3NjYXBlOm91dHB1dF9leHRlbnNpb249Im9yZy5pbmtzY2FwZS5vdXRwdXQuc3ZnLmlua3NjYXBlIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCI+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMTUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfej0iNTAgOiAxNSA6IDEiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMjUgOiAxMCA6IDEiCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNzE0IiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDAuNSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxIDogMC41IDogMSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIwLjUgOiAwLjMzMzMzMzMzIDogMSIKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MDYiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MTkiCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9Ijc0NC4wOTQ0OCA6IDUyNi4xODEwOSA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgICA8aW5rc2NhcGU6cGVyc3BlY3RpdmUKICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI3NzciCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iNzUgOiA0MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxNTAgOiA2MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNjAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlMzI3NSIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSI1MCA6IDMzLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSIxMDAgOiA1MCA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTAgOiAxIgogICAgICAgc29kaXBvZGk6dHlwZT0iaW5rc2NhcGU6cGVyc3AzZCIgLz4KICAgIDxpbmtzY2FwZTpwZXJzcGVjdGl2ZQogICAgICAgaWQ9InBlcnNwZWN0aXZlNTUzMyIKICAgICAgIGlua3NjYXBlOnBlcnNwM2Qtb3JpZ2luPSIzMiA6IDIxLjMzMzMzMyA6IDEiCiAgICAgICBpbmtzY2FwZTp2cF96PSI2NCA6IDMyIDogMSIKICAgICAgIGlua3NjYXBlOnZwX3k9IjAgOiAxMDAwIDogMCIKICAgICAgIGlua3NjYXBlOnZwX3g9IjAgOiAzMiA6IDEiCiAgICAgICBzb2RpcG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPgogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlCiAgICAgICBpZD0icGVyc3BlY3RpdmUyNTU3IgogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49IjI1IDogMTYuNjY2NjY3IDogMSIKICAgICAgIGlua3NjYXBlOnZwX3o9IjUwIDogMjUgOiAxIgogICAgICAgaW5rc2NhcGU6dnBfeT0iMCA6IDEwMDAgOiAwIgogICAgICAgaW5rc2NhcGU6dnBfeD0iMCA6IDI1IDogMSIKICAgICAgIHNvZGlwb2RpOnR5cGU9Imlua3NjYXBlOnBlcnNwM2QiIC8+CiAgPC9kZWZzPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0iYmFzZSIKICAgICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTp6b29tPSI0IgogICAgIGlua3NjYXBlOmN4PSI5NS43MjM2NiIKICAgICBpbmtzY2FwZTpjeT0iLTI2Ljc3NTAyMyIKICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ibGF5ZXIxIgogICAgIHNob3dncmlkPSJ0cnVlIgogICAgIGlua3NjYXBlOmdyaWQtYmJveD0idHJ1ZSIKICAgICBpbmtzY2FwZTpncmlkLXBvaW50cz0idHJ1ZSIKICAgICBncmlkdG9sZXJhbmNlPSIxMDAwMCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzOTkiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc0IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIzMyIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMCIKICAgICBpbmtzY2FwZTpzbmFwLWJib3g9InRydWUiPgogICAgPGlua3NjYXBlOmdyaWQKICAgICAgIGlkPSJHcmlkRnJvbVByZTA0NlNldHRpbmdzIgogICAgICAgdHlwZT0ieHlncmlkIgogICAgICAgb3JpZ2lueD0iMHB4IgogICAgICAgb3JpZ2lueT0iMHB4IgogICAgICAgc3BhY2luZ3g9IjFweCIKICAgICAgIHNwYWNpbmd5PSIxcHgiCiAgICAgICBjb2xvcj0iIzAwMDBmZiIKICAgICAgIGVtcGNvbG9yPSIjMDAwMGZmIgogICAgICAgb3BhY2l0eT0iMC4yIgogICAgICAgZW1wb3BhY2l0eT0iMC40IgogICAgICAgZW1wc3BhY2luZz0iNSIKICAgICAgIHZpc2libGU9InRydWUiCiAgICAgICBlbmFibGVkPSJ0cnVlIiAvPgogIDwvc29kaXBvZGk6bmFtZWR2aWV3PgogIDxtZXRhZGF0YQogICAgIGlkPSJtZXRhZGF0YTciPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxnCiAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciIKICAgICBpZD0ibGF5ZXIxIj4KICAgIDxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDoyLjAwMDAwMDI0O3N0cm9rZS1saW5lY2FwOmJ1dHQ7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1vcGFjaXR5OjEiCiAgICAgICBkPSJNIDc4LjMzMzMzMiwyNSBDIDkxLjY2NjY2NiwyNSA5NSwyNSA5NSwyNSIKICAgICAgIGlkPSJwYXRoMzA1OSIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk4ODtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMC4zODU3MTcsMTUgTCA0Ljk5OTk5OTgsMTUiCiAgICAgICBpZD0icGF0aDMwNjEiIC8+CiAgICA8cGF0aAogICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6MS45OTk5OTk3NjtzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgZD0iTSAzMS4zNjIwOTEsMzUgTCA0Ljk5OTk5OTgsMzUiCiAgICAgICBpZD0icGF0aDM5NDQiIC8+CiAgICA8ZwogICAgICAgaWQ9ImcyNTYwIgogICAgICAgaW5rc2NhcGU6bGFiZWw9IkxheWVyIDEiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNi41LC0zOS41KSI+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoMzUxNiIKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjI1LDgxLjUwMDAwNSBDIC0zLjg0NzM3NCw4NC4xNDQ0MDUgLTQuNSw4NC41MDAwMDUgLTQuNSw4NC41MDAwMDUgTCAtOC4xNTYyNSw4NC41MDAwMDUgTCAtNi4xNTYyNSw4Mi4wNjI1MDUgQyAtNi4xNTYyNSw4Mi4wNjI1MDUgLTAuNSw3NS4wNjI0NTEgLTAuNSw2NC41IEMgLTAuNSw1My45Mzc1NDkgLTYuMTU2MjUsNDYuOTM3NSAtNi4xNTYyNSw0Ni45Mzc1IEwgLTguMTU2MjUsNDQuNSBMIC00LjUsNDQuNSBDIC0zLjcxODc1LDQ1LjQzNzUgLTMuMDc4MTI1LDQ2LjE1NjI1IC0yLjI4MTI1LDQ3LjUgQyAtMC40MDg1MzEsNTAuNTk5ODE1IDIuNSw1Ni41MjY2NDYgMi41LDY0LjUgQyAyLjUsNzIuNDUwNjUgLTAuMzk2Njk3LDc4LjM3OTQyNSAtMi4yNSw4MS41MDAwMDUgeiIKICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2Njc2NjY2NzYyIgLz4KICAgICAgPHBhdGgKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwMDAwMDtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6ZXZlbm9kZDtzdHJva2U6bm9uZTtzdHJva2Utd2lkdGg6MztzdHJva2UtbGluZWNhcDpidXR0O3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2Utb3BhY2l0eToxIgogICAgICAgICBkPSJNIC0yLjQwNjI1LDQ0LjUgTCAtMC40MDYyNSw0Ni45Mzc1IEMgLTAuNDA2MjUsNDYuOTM3NSA1LjI1LDUzLjkzNzU0OSA1LjI1LDY0LjUgQyA1LjI1LDc1LjA2MjQ1MSAtMC40MDYyNSw4Mi4wNjI1IC0wLjQwNjI1LDgyLjA2MjUgTCAtMi40MDYyNSw4NC41IEwgMC43NSw4NC41IEwgMTQuNzUsODQuNSBDIDE3LjE1ODA3Niw4NC41MDAwMDEgMjIuNDM5Njk5LDg0LjUyNDUxNCAyOC4zNzUsODIuMDkzNzUgQyAzNC4zMTAzMDEsNzkuNjYyOTg2IDQwLjkxMTUzNiw3NC43NTA0ODQgNDYuMDYyNSw2NS4yMTg3NSBMIDQ0Ljc1LDY0LjUgTCA0Ni4wNjI1LDYzLjc4MTI1IEMgMzUuNzU5Mzg3LDQ0LjcxNTU5IDE5LjUwNjU3NCw0NC41IDE0Ljc1LDQ0LjUgTCAwLjc1LDQ0LjUgTCAtMi40MDYyNSw0NC41IHogTSAzLjQ2ODc1LDQ3LjUgTCAxNC43NSw0Ny41IEMgMTkuNDM0MTczLDQ3LjUgMzMuMDM2ODUsNDcuMzY5NzkzIDQyLjcxODc1LDY0LjUgQyAzNy45NTE5NjQsNzIuOTI5MDc1IDMyLjE5NzQ2OSw3Ny4xODM5MSAyNyw3OS4zMTI1IEMgMjEuNjM5MzM5LDgxLjUwNzkyNCAxNy4xNTgwNzUsODEuNTAwMDAxIDE0Ljc1LDgxLjUgTCAzLjUsODEuNSBDIDUuMzczNTg4NCw3OC4zOTE1NjYgOC4yNSw3Mi40NTA2NSA4LjI1LDY0LjUgQyA4LjI1LDU2LjUyNjY0NiA1LjM0MTQ2ODYsNTAuNTk5ODE1IDMuNDY4NzUsNDcuNSB6IgogICAgICAgICBpZD0icGF0aDQ5NzMiCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NzY2NjY3NjY2NjY2NjY2NzY2NzYyIgLz4KICAgIDwvZz4KICAgIDxwYXRoCiAgICAgICBzb2RpcG9kaTp0eXBlPSJhcmMiCiAgICAgICBzdHlsZT0iZmlsbDpub25lO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozO3N0cm9rZS1saW5lam9pbjptaXRlcjttYXJrZXI6bm9uZTtzdHJva2Utb3BhY2l0eToxO3Zpc2liaWxpdHk6dmlzaWJsZTtkaXNwbGF5OmlubGluZTtvdmVyZmxvdzp2aXNpYmxlO2VuYWJsZS1iYWNrZ3JvdW5kOmFjY3VtdWxhdGUiCiAgICAgICBpZD0icGF0aDM1NTEiCiAgICAgICBzb2RpcG9kaTpjeD0iNzUiCiAgICAgICBzb2RpcG9kaTpjeT0iMjUiCiAgICAgICBzb2RpcG9kaTpyeD0iNCIKICAgICAgIHNvZGlwb2RpOnJ5PSI0IgogICAgICAgZD0iTSA3OSwyNSBBIDQsNCAwIDEgMSA3MSwyNSBBIDQsNCAwIDEgMSA3OSwyNSB6IiAvPgogIDwvZz4KPC9zdmc+Cg==' }}
-	}, {
-	    operation: function(input1, input2) {
-	        return (!input1 || !input2) && (input1 || input2);
-	    }
-	});
-
-	var Wire = Link.define('logic.Wire', {
-	    attrs: {
-	        '.connection': { 'stroke-width': 2 },
-	        '.marker-vertex': { r: 7 }
-	    },
-
-	    router: { name: 'orthogonal' },
-	    connector: { name: 'rounded', args: { radius: 10 }}
-	}, {
-	    arrowheadMarkup: [
-	        '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
-	        '<circle class="marker-arrowhead" end="<%= end %>" r="7"/>',
-	        '</g>'
-	    ].join(''),
-
-	    vertexMarkup: [
-	        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-	        '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
-	        '<g class="marker-vertex-remove-group">',
-	        '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
-	        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
-	        '<title>Remove vertex.</title>',
-	        '</path>',
-	        '</g>',
-	        '</g>'
-	    ].join('')
-	});
-
-	var logic = ({
-		Gate: Gate,
-		IO: IO,
-		Input: Input,
-		Output: Output,
-		Gate11: Gate11,
-		Gate21: Gate21,
-		Repeater: Repeater,
-		Not: Not,
-		Or: Or,
-		And: And,
-		Nor: Nor,
-		Nand: Nand,
-		Xor: Xor,
-		Xnor: Xnor,
-		Wire: Wire
-	});
-
-	var KingWhite = Generic.define('chess.KingWhite', {
-	    size: { width: 42, height: 38 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;"><path      d="M 22.5,11.63 L 22.5,6"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 20,8 L 25,8"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path      d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"      style="fill:#ffffff; stroke:#000000; stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 11.5,30 C 17,27 27,27 32.5,30"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5"      style="fill:none; stroke:#000000;" />    <path      d="M 11.5,37 C 17,34 27,34 32.5,37"      style="fill:none; stroke:#000000;" />  </g></g></g>'
-	});
-
-	var KingBlack = Generic.define('chess.KingBlack', {
-	    size: { width: 42, height: 38 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path       d="M 22.5,11.63 L 22.5,6"       style="fill:none; stroke:#000000; stroke-linejoin:miter;"       id="path6570" />    <path       d="M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 25.5,14.5 24.5,12 22.5,12 C 20.5,12 19.5,14.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25"       style="fill:#000000;fill-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;" />    <path       d="M 11.5,37 C 17,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 19,16 9.5,13 6.5,19.5 C 3.5,25.5 11.5,29.5 11.5,29.5 L 11.5,37 z "       style="fill:#000000; stroke:#000000;" />    <path       d="M 20,8 L 25,8"       style="fill:none; stroke:#000000; stroke-linejoin:miter;" />    <path       d="M 32,29.5 C 32,29.5 40.5,25.5 38.03,19.85 C 34.15,14 25,18 22.5,24.5 L 22.51,26.6 L 22.5,24.5 C 20,18 9.906,14 6.997,19.85 C 4.5,25.5 11.85,28.85 11.85,28.85"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,30 C 17,27 27,27 32.5,30 M 11.5,33.5 C 17,30.5 27,30.5 32.5,33.5 M 11.5,37 C 17,34 27,34 32.5,37"       style="fill:none; stroke:#ffffff;" />  </g></g></g>'
-	});
-
-	var QueenWhite = Generic.define('chess.QueenWhite', {
-	    size: { width: 42, height: 38 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(-1,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(15.5,-5.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(32,-1)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(7,-4.5)" />    <path      d="M 9 13 A 2 2 0 1 1  5,13 A 2 2 0 1 1  9 13 z"      transform="translate(24,-4)" />    <path      d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38,14 L 31,25 L 31,11 L 25.5,24.5 L 22.5,9.5 L 19.5,24.5 L 14,10.5 L 14,25 L 7,14 L 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z "      style="stroke-linecap:butt;" />    <path      d="M 11.5,30 C 15,29 30,29 33.5,30"      style="fill:none;" />    <path      d="M 12,33.5 C 18,32.5 27,32.5 33,33.5"      style="fill:none;" />  </g></g></g>'
-	});
-
-	var QueenBlack = Generic.define('chess.QueenBlack', {
-	    size: { width: 42, height: 38 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:none;">      <circle cx="6"    cy="12" r="2.75" />      <circle cx="14"   cy="9"  r="2.75" />      <circle cx="22.5" cy="8"  r="2.75" />      <circle cx="31"   cy="9"  r="2.75" />      <circle cx="39"   cy="12" r="2.75" />    </g>    <path       d="M 9,26 C 17.5,24.5 30,24.5 36,26 L 38.5,13.5 L 31,25 L 30.7,10.9 L 25.5,24.5 L 22.5,10 L 19.5,24.5 L 14.3,10.9 L 14,25 L 6.5,13.5 L 9,26 z"       style="stroke-linecap:butt; stroke:#000000;" />    <path       d="M 9,26 C 9,28 10.5,28 11.5,30 C 12.5,31.5 12.5,31 12,33.5 C 10.5,34.5 10.5,36 10.5,36 C 9,37.5 11,38.5 11,38.5 C 17.5,39.5 27.5,39.5 34,38.5 C 34,38.5 35.5,37.5 34,36 C 34,36 34.5,34.5 33,33.5 C 32.5,31 32.5,31.5 33.5,30 C 34.5,28 36,28 36,26 C 27.5,24.5 17.5,24.5 9,26 z"       style="stroke-linecap:butt;" />    <path       d="M 11,38.5 A 35,35 1 0 0 34,38.5"       style="fill:none; stroke:#000000; stroke-linecap:butt;" />    <path       d="M 11,29 A 35,35 1 0 1 34,29"       style="fill:none; stroke:#ffffff;" />    <path       d="M 12.5,31.5 L 32.5,31.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 11.5,34.5 A 35,35 1 0 0 33.5,34.5"       style="fill:none; stroke:#ffffff;" />    <path       d="M 10.5,37.5 A 35,35 1 0 0 34.5,37.5"       style="fill:none; stroke:#ffffff;" />  </g></g></g>'
-	});
-
-	var RookWhite = Generic.define('chess.RookWhite', {
-	    size: { width: 32, height: 34 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14"      style="stroke-linecap:butt;" />    <path      d="M 34,14 L 31,17 L 14,17 L 11,14" />    <path      d="M 31,17 L 31,29.5 L 14,29.5 L 14,17"      style="stroke-linecap:butt; stroke-linejoin:miter;" />    <path      d="M 31,29.5 L 32.5,32 L 12.5,32 L 14,29.5" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>'
-	});
-
-	var RookBlack = Generic.define('chess.RookBlack', {
-	    size: { width: 32, height: 34 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z "      style="stroke-linecap:butt;" />    <path      d="M 12.5,32 L 14,29.5 L 31,29.5 L 32.5,32 L 12.5,32 z "      style="stroke-linecap:butt;" />    <path      d="M 12,36 L 12,32 L 33,32 L 33,36 L 12,36 z "      style="stroke-linecap:butt;" />    <path      d="M 14,29.5 L 14,16.5 L 31,16.5 L 31,29.5 L 14,29.5 z "      style="stroke-linecap:butt;stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 11,14 L 34,14 L 31,16.5 L 14,16.5 z "      style="stroke-linecap:butt;" />    <path      d="M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 11,14 z "      style="stroke-linecap:butt;" />    <path      d="M 12,35.5 L 33,35.5 L 33,35.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 13,31.5 L 32,31.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,29.5 L 31,29.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 14,16.5 L 31,16.5"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />    <path      d="M 11,14 L 34,14"      style="fill:none; stroke:#ffffff; stroke-width:1; stroke-linejoin:miter;" />  </g></g></g>'
-	});
-
-	var BishopWhite = Generic.define('chess.BishopWhite', {
-	    size: { width: 38, height: 38 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#ffffff; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path      d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"      style="fill:none; stroke:#000000; stroke-linejoin:miter;" />  </g></g></g>'
-	});
-
-	var BishopBlack = Generic.define('chess.BishopBlack', {
-	    size: { width: 38, height: 38 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-rule:evenodd; fill-opacity:1; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <g style="fill:#000000; stroke:#000000; stroke-linecap:butt;">       <path        d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.646,38.99 6.677,38.97 6,38 C 7.354,36.06 9,36 9,36 z" />      <path        d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />      <path        d="M 25 8 A 2.5 2.5 0 1 1  20,8 A 2.5 2.5 0 1 1  25 8 z" />    </g>    <path       d="M 17.5,26 L 27.5,26 M 15,30 L 30,30 M 22.5,15.5 L 22.5,20.5 M 20,18 L 25,18"       style="fill:none; stroke:#ffffff; stroke-linejoin:miter;" />  </g></g></g>'
-	});
-
-	var KnightWhite = Generic.define('chess.KnightWhite', {
-	    size: { width: 38, height: 37 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#ffffff; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#000000; stroke:#000000;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#000000; stroke:#000000;" />  </g></g></g>'
-	});
-
-	var KnightBlack = Generic.define('chess.KnightBlack', {
-	    size: { width: 38, height: 37 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><g style="opacity:1; fill:none; fill-opacity:1; fill-rule:evenodd; stroke:#000000; stroke-width:1.5; stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;">    <path      d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"      style="fill:#000000; stroke:#000000;" />    <path      d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"      style="fill:#000000; stroke:#000000;" />    <path      d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 15 15.5 A 0.5 1.5 0 1 1  14,15.5 A 0.5 1.5 0 1 1  15 15.5 z"      transform="matrix(0.866,0.5,-0.5,0.866,9.693,-5.173)"      style="fill:#ffffff; stroke:#ffffff;" />    <path      d="M 24.55,10.4 L 24.1,11.85 L 24.6,12 C 27.75,13 30.25,14.49 32.5,18.75 C 34.75,23.01 35.75,29.06 35.25,39 L 35.2,39.5 L 37.45,39.5 L 37.5,39 C 38,28.94 36.62,22.15 34.25,17.66 C 31.88,13.17 28.46,11.02 25.06,10.5 L 24.55,10.4 z "      style="fill:#ffffff; stroke:none;" />  </g></g></g>'
-	});
-
-	var PawnWhite = Generic.define('chess.PawnWhite', {
-	    size: { width: 28, height: 33 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#ffffff; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>'
-	});
-
-	var PawnBlack = Generic.define('chess.PawnBlack', {
-	    size: { width: 28, height: 33 }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><path d="M 22,9 C 19.79,9 18,10.79 18,13 C 18,13.89 18.29,14.71 18.78,15.38 C 16.83,16.5 15.5,18.59 15.5,21 C 15.5,23.03 16.44,24.84 17.91,26.03 C 14.91,27.09 10.5,31.58 10.5,39.5 L 33.5,39.5 C 33.5,31.58 29.09,27.09 26.09,26.03 C 27.56,24.84 28.5,23.03 28.5,21 C 28.5,18.59 27.17,16.5 25.22,15.38 C 25.71,14.71 26,13.89 26,13 C 26,10.79 24.21,9 22,9 z "  style="opacity:1; fill:#000000; fill-opacity:1; fill-rule:nonzero; stroke:#000000; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:miter; stroke-miterlimit:4; stroke-dasharray:none; stroke-opacity:1;" /></g></g>'
-	});
-
-	var chess = ({
-		KingWhite: KingWhite,
-		KingBlack: KingBlack,
-		QueenWhite: QueenWhite,
-		QueenBlack: QueenBlack,
-		RookWhite: RookWhite,
-		RookBlack: RookBlack,
-		BishopWhite: BishopWhite,
-		BishopBlack: BishopBlack,
-		KnightWhite: KnightWhite,
-		KnightBlack: KnightBlack,
-		PawnWhite: PawnWhite,
-		PawnBlack: PawnBlack
-	});
-
-	var Entity = Element$1.define('erd.Entity', {
-	    size: { width: 150, height: 60 },
-	    attrs: {
-	        '.outer': {
-	            fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
-	            points: '100,0 100,60 0,60 0,0'
-	        },
-	        '.inner': {
-	            fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2,
-	            points: '95,5 95,55 5,55 5,5',
-	            display: 'none'
-	        },
-	        text: {
-	            text: 'Entity',
-	            'font-family': 'Arial', 'font-size': 14,
-	            'ref-x': .5, 'ref-y': .5,
-	            'y-alignment': 'middle', 'text-anchor': 'middle'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
-	});
-
-	var WeakEntity = Entity.define('erd.WeakEntity', {
-	    attrs: {
-	        '.inner': { display: 'auto' },
-	        text: { text: 'Weak Entity' }
-	    }
-	});
-
-	var Relationship = Element$1.define('erd.Relationship', {
-	    size: { width: 80, height: 80 },
-	    attrs: {
-	        '.outer': {
-	            fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
-	            points: '40,0 80,40 40,80 0,40'
-	        },
-	        '.inner': {
-	            fill: '#3498DB', stroke: '#2980B9', 'stroke-width': 2,
-	            points: '40,5 75,40 40,75 5,40',
-	            display: 'none'
-	        },
-	        text: {
-	            text: 'Relationship',
-	            'font-family': 'Arial', 'font-size': 12,
-	            'ref-x': .5, 'ref-y': .5,
-	            'y-alignment': 'middle', 'text-anchor': 'middle'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
-	});
-
-	var IdentifyingRelationship = Relationship.define('erd.IdentifyingRelationship', {
-	    attrs: {
-	        '.inner': { display: 'auto' },
-	        text: { text: 'Identifying' }
-	    }
-	});
-
-	var Attribute = Element$1.define('erd.Attribute', {
-	    size: { width: 100, height: 50 },
-	    attrs: {
-	        'ellipse': {
-	            transform: 'translate(50, 25)'
-	        },
-	        '.outer': {
-	            stroke: '#D35400', 'stroke-width': 2,
-	            cx: 0, cy: 0, rx: 50, ry: 25,
-	            fill: '#E67E22'
-	        },
-	        '.inner': {
-	            stroke: '#D35400', 'stroke-width': 2,
-	            cx: 0, cy: 0, rx: 45, ry: 20,
-	            fill: '#E67E22', display: 'none'
-	        },
-	        text: {
-	            'font-family': 'Arial', 'font-size': 14,
-	            'ref-x': .5, 'ref-y': .5,
-	            'y-alignment': 'middle', 'text-anchor': 'middle'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><ellipse class="outer"/><ellipse class="inner"/></g><text/></g>',
-	});
-
-	var Multivalued = Attribute.define('erd.Multivalued', {
-	    attrs: {
-	        '.inner': { display: 'block' },
-	        text: { text: 'multivalued' }
-	    }
-	});
-
-	var Derived = Attribute.define('erd.Derived', {
-	    attrs: {
-	        '.outer': { 'stroke-dasharray': '3,5' },
-	        text: { text: 'derived' }
-	    }
-	});
-
-	var Key = Attribute.define('erd.Key', {
-	    attrs: {
-	        ellipse: { 'stroke-width': 4 },
-	        text: { text: 'key', 'font-weight': '800', 'text-decoration': 'underline' }
-	    }
-	});
-
-	var Normal = Attribute.define('erd.Normal', {
-	    attrs: { text: { text: 'Normal' }}
-	});
-
-	var ISA = Element$1.define('erd.ISA', {
-	    type: 'erd.ISA',
-	    size: { width: 100, height: 50 },
-	    attrs: {
-	        polygon: {
-	            points: '0,0 50,50 100,0',
-	            fill: '#F1C40F', stroke: '#F39C12', 'stroke-width': 2
-	        },
-	        text: {
-	            text: 'ISA', 'font-size': 18,
-	            'ref-x': .5, 'ref-y': .3,
-	            'y-alignment': 'middle', 'text-anchor': 'middle'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
-	});
-
-	var Line$1 = Link.define('erd.Line', {}, {
-	    cardinality: function(value) {
-	        this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
-	    }
-	});
-
-	var erd = ({
-		Entity: Entity,
-		WeakEntity: WeakEntity,
-		Relationship: Relationship,
-		IdentifyingRelationship: IdentifyingRelationship,
-		Attribute: Attribute,
-		Multivalued: Multivalued,
-		Derived: Derived,
-		Key: Key,
-		Normal: Normal,
-		ISA: ISA,
-		Line: Line$1
-	});
-
-	var State = Circle.define('fsa.State', {
-	    attrs: {
-	        circle: { 'stroke-width': 3 },
-	        text: { 'font-weight': '800' }
-	    }
-	});
-
-	var StartState = Element$1.define('fsa.StartState', {
-	    size: { width: 20, height: 20 },
-	    attrs: {
-	        circle: {
-	            transform: 'translate(10, 10)',
-	            r: 10,
-	            fill: '#000000'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><circle/></g></g>',
-	});
-
-	var EndState = Element$1.define('fsa.EndState', {
-	    size: { width: 20, height: 20 },
-	    attrs: {
-	        '.outer': {
-	            transform: 'translate(10, 10)',
-	            r: 10,
-	            fill: '#ffffff',
-	            stroke: '#000000'
-	        },
-
-	        '.inner': {
-	            transform: 'translate(10, 10)',
-	            r: 6,
-	            fill: '#000000'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
-	});
-
-	var Arrow = Link.define('fsa.Arrow', {
-	    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
-	    smooth: true
-	});
-
-	var fsa = ({
-		State: State,
-		StartState: StartState,
-		EndState: EndState,
-		Arrow: Arrow
-	});
-
-	var Member = Element$1.define('org.Member', {
-	    size: { width: 180, height: 70 },
-	    attrs: {
-	        rect: { width: 170, height: 60 },
-
-	        '.card': {
-	            fill: '#FFFFFF', stroke: '#000000', 'stroke-width': 2,
-	            'pointer-events': 'visiblePainted', rx: 10, ry: 10
-	        },
-
-	        image: {
-	            width: 48, height: 48,
-	            ref: '.card', 'ref-x': 10, 'ref-y': 5
-	        },
-
-	        '.rank': {
-	            'text-decoration': 'underline',
-	            ref: '.card', 'ref-x': 0.9, 'ref-y': 0.2,
-	            'font-family': 'Courier New', 'font-size': 14,
-	            'text-anchor': 'end'
-	        },
-
-	        '.name': {
-	            'font-weight': '800',
-	            ref: '.card', 'ref-x': 0.9, 'ref-y': 0.6,
-	            'font-family': 'Courier New', 'font-size': 14,
-	            'text-anchor': 'end'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><rect class="card"/><image/></g><text class="rank"/><text class="name"/></g>',
-	});
-
-	var Arrow$1 = Link.define('org.Arrow', {
-	    source: { selector: '.card' }, target: { selector: '.card' },
-	    attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 }},
-	    z: -1
-	});
-
-	var org = ({
-		Member: Member,
-		Arrow: Arrow$1
-	});
-
-	var Place = Generic.define('pn.Place', {
-	    size: { width: 50, height: 50 },
-	    attrs: {
-	        '.root': {
-	            r: 25,
-	            fill: '#ffffff',
-	            stroke: '#000000',
-	            transform: 'translate(25, 25)'
-	        },
-	        '.label': {
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-y': -20,
-	            ref: '.root',
-	            fill: '#000000',
-	            'font-size': 12
-	        },
-	        '.tokens > circle': {
-	            fill: '#000000',
-	            r: 5
-	        },
-	        '.tokens.one > circle': { transform: 'translate(25, 25)' },
-
-	        '.tokens.two > circle:nth-child(1)': { transform: 'translate(19, 25)' },
-	        '.tokens.two > circle:nth-child(2)': { transform: 'translate(31, 25)' },
-
-	        '.tokens.three > circle:nth-child(1)': { transform: 'translate(18, 29)' },
-	        '.tokens.three > circle:nth-child(2)': { transform: 'translate(25, 19)' },
-	        '.tokens.three > circle:nth-child(3)': { transform: 'translate(32, 29)' },
-
-	        '.tokens.alot > text': {
-	            transform: 'translate(25, 18)',
-	            'text-anchor': 'middle',
-	            fill: '#000000'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
-	});
-
-	var PlaceView = ElementView.extend({
-
-	    presentationAttributes: ElementView.addPresentationAttributes({
-	        tokens: ['TOKENS']
-	    }),
-
-	    initFlag: ElementView.prototype.initFlag.concat(['TOKENS']),
-
-	    confirmUpdate: function() {
-	        var ref;
-
-	        var args = [], len = arguments.length;
-	        while ( len-- ) args[ len ] = arguments[ len ];
-	        var flags = (ref = ElementView.prototype.confirmUpdate).call.apply(ref, [ this ].concat( args ));
-	        if (this.hasFlag(flags, 'TOKENS')) {
-	            this.renderTokens();
-	            this.update();
-	            flags = this.removeFlag(flags, 'TOKENS');
-	        }
-	        return flags;
-	    },
-
-	    renderTokens: function() {
-
-	        var vTokens = this.vel.findOne('.tokens').empty();
-	        ['one', 'two', 'three', 'alot'].forEach(function(className) {
-	            vTokens.removeClass(className);
-	        });
-
-	        var tokens = this.model.get('tokens');
-	        if (!tokens) { return; }
-
-	        switch (tokens) {
-
-	            case 1:
-	                vTokens.addClass('one');
-	                vTokens.append(V('circle'));
-	                break;
-
-	            case 2:
-	                vTokens.addClass('two');
-	                vTokens.append([V('circle'), V('circle')]);
-	                break;
-
-	            case 3:
-	                vTokens.addClass('three');
-	                vTokens.append([V('circle'), V('circle'), V('circle')]);
-	                break;
-
-	            default:
-	                vTokens.addClass('alot');
-	                vTokens.append(V('text').text(tokens + ''));
-	                break;
-	        }
-	    }
-	});
-
-	var Transition = Generic.define('pn.Transition', {
-	    size: { width: 12, height: 50 },
-	    attrs: {
-	        'rect': {
-	            width: 12,
-	            height: 50,
-	            fill: '#000000',
-	            stroke: '#000000'
-	        },
-	        '.label': {
-	            'text-anchor': 'middle',
-	            'ref-x': .5,
-	            'ref-y': -20,
-	            ref: 'rect',
-	            fill: '#000000',
-	            'font-size': 12
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
-	});
-
-	var Link$3 = Link.define('pn.Link', {
-	    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
-	});
-
-	var pn = ({
-		Place: Place,
-		PlaceView: PlaceView,
-		Transition: Transition,
-		Link: Link$3
-	});
-
-	var Class = Generic.define('uml.Class', {
-	    attrs: {
-	        rect: { 'width': 200 },
-
-	        '.uml-class-name-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
-	        '.uml-class-attrs-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
-	        '.uml-class-methods-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
-
-	        '.uml-class-name-text': {
-	            'ref': '.uml-class-name-rect',
-	            'ref-y': .5,
-	            'ref-x': .5,
-	            'text-anchor': 'middle',
-	            'y-alignment': 'middle',
-	            'font-weight': 'bold',
-	            'fill': 'black',
-	            'font-size': 12,
-	            'font-family': 'Times New Roman'
-	        },
-	        '.uml-class-attrs-text': {
-	            'ref': '.uml-class-attrs-rect', 'ref-y': 5, 'ref-x': 5,
-	            'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-	        },
-	        '.uml-class-methods-text': {
-	            'ref': '.uml-class-methods-rect', 'ref-y': 5, 'ref-x': 5,
-	            'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-	        }
-	    },
-
-	    name: [],
-	    attributes: [],
-	    methods: []
-	}, {
-	    markup: [
-	        '<g class="rotatable">',
-	        '<g class="scalable">',
-	        '<rect class="uml-class-name-rect"/><rect class="uml-class-attrs-rect"/><rect class="uml-class-methods-rect"/>',
-	        '</g>',
-	        '<text class="uml-class-name-text"/><text class="uml-class-attrs-text"/><text class="uml-class-methods-text"/>',
-	        '</g>'
-	    ].join(''),
-
-	    initialize: function() {
-
-	        this.on('change:name change:attributes change:methods', function() {
-	            this.updateRectangles();
-	            this.trigger('uml-update');
-	        }, this);
-
-	        this.updateRectangles();
-
-	        Generic.prototype.initialize.apply(this, arguments);
-	    },
-
-	    getClassName: function() {
-	        return this.get('name');
-	    },
-
-	    updateRectangles: function() {
-
-	        var attrs = this.get('attrs');
-
-	        var rects = [
-	            { type: 'name', text: this.getClassName() },
-	            { type: 'attrs', text: this.get('attributes') },
-	            { type: 'methods', text: this.get('methods') }
-	        ];
-
-	        var offsetY = 0;
-
-	        rects.forEach(function(rect) {
-
-	            var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
-	            var rectHeight = lines.length * 20 + 20;
-
-	            attrs['.uml-class-' + rect.type + '-text'].text = lines.join('\n');
-	            attrs['.uml-class-' + rect.type + '-rect'].height = rectHeight;
-	            attrs['.uml-class-' + rect.type + '-rect'].transform = 'translate(0,' + offsetY + ')';
-
-	            offsetY += rectHeight;
-	        });
-	    }
-
-	});
-
-	var ClassView = ElementView.extend({
-
-	    initialize: function() {
-
-	        ElementView.prototype.initialize.apply(this, arguments);
-
-	        this.listenTo(this.model, 'uml-update', function() {
-	            this.update();
-	            this.resize();
-	        });
-	    }
-	});
-
-	var Abstract = Class.define('uml.Abstract', {
-	    attrs: {
-	        '.uml-class-name-rect': { fill: '#e74c3c' },
-	        '.uml-class-attrs-rect': { fill: '#c0392b' },
-	        '.uml-class-methods-rect': { fill: '#c0392b' }
-	    }
-	}, {
-
-	    getClassName: function() {
-	        return ['<<Abstract>>', this.get('name')];
-	    }
-
-	});
-	var AbstractView = ClassView;
-
-	var Interface = Class.define('uml.Interface', {
-	    attrs: {
-	        '.uml-class-name-rect': { fill: '#f1c40f' },
-	        '.uml-class-attrs-rect': { fill: '#f39c12' },
-	        '.uml-class-methods-rect': { fill: '#f39c12' }
-	    }
-	}, {
-	    getClassName: function() {
-	        return ['<<Interface>>', this.get('name')];
-	    }
-	});
-	var InterfaceView = ClassView;
-
-	var Generalization = Link.define('uml.Generalization', {
-	    attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' }}
-	});
-
-	var Implementation = Link.define('uml.Implementation', {
-	    attrs: {
-	        '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' },
-	        '.connection': { 'stroke-dasharray': '3,3' }
-	    }
-	});
-
-	var Aggregation = Link.define('uml.Aggregation', {
-	    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' }}
-	});
-
-	var Composition = Link.define('uml.Composition', {
-	    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' }}
-	});
-
-	var Association = Link.define('uml.Association');
-
-	// Statechart
-
-	var State$1 = Generic.define('uml.State', {
-	    attrs: {
-	        '.uml-state-body': {
-	            'width': 200, 'height': 200, 'rx': 10, 'ry': 10,
-	            'fill': '#ecf0f1', 'stroke': '#bdc3c7', 'stroke-width': 3
-	        },
-	        '.uml-state-separator': {
-	            'stroke': '#bdc3c7', 'stroke-width': 2
-	        },
-	        '.uml-state-name': {
-	            'ref': '.uml-state-body', 'ref-x': .5, 'ref-y': 5, 'text-anchor': 'middle',
-	            'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
-	        },
-	        '.uml-state-events': {
-	            'ref': '.uml-state-separator', 'ref-x': 5, 'ref-y': 5,
-	            'fill': '#000000', 'font-family': 'Courier New', 'font-size': 14
-	        }
-	    },
-
-	    name: 'State',
-	    events: []
-
-	}, {
-	    markup: [
-	        '<g class="rotatable">',
-	        '<g class="scalable">',
-	        '<rect class="uml-state-body"/>',
-	        '</g>',
-	        '<path class="uml-state-separator"/>',
-	        '<text class="uml-state-name"/>',
-	        '<text class="uml-state-events"/>',
-	        '</g>'
-	    ].join(''),
-
-	    initialize: function() {
-
-	        this.on({
-	            'change:name': this.updateName,
-	            'change:events': this.updateEvents,
-	            'change:size': this.updatePath
-	        }, this);
-
-	        this.updateName();
-	        this.updateEvents();
-	        this.updatePath();
-
-	        Generic.prototype.initialize.apply(this, arguments);
-	    },
-
-	    updateName: function() {
-
-	        this.attr('.uml-state-name/text', this.get('name'));
-	    },
-
-	    updateEvents: function() {
-
-	        this.attr('.uml-state-events/text', this.get('events').join('\n'));
-	    },
-
-	    updatePath: function() {
-
-	        var d = 'M 0 20 L ' + this.get('size').width + ' 20';
-
-	        // We are using `silent: true` here because updatePath() is meant to be called
-	        // on resize and there's no need to to update the element twice (`change:size`
-	        // triggers also an update).
-	        this.attr('.uml-state-separator/d', d, { silent: true });
-	    }
-	});
-
-	var StartState$1 = Circle.define('uml.StartState', {
-	    type: 'uml.StartState',
-	    attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 }}
-	});
-
-	var EndState$1 = Generic.define('uml.EndState', {
-	    size: { width: 20, height: 20 },
-	    attrs: {
-	        'circle.outer': {
-	            transform: 'translate(10, 10)',
-	            r: 10,
-	            fill: '#ffffff',
-	            stroke: '#2c3e50'
-	        },
-
-	        'circle.inner': {
-	            transform: 'translate(10, 10)',
-	            r: 6,
-	            fill: '#34495e'
-	        }
-	    }
-	}, {
-	    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
-	});
-
-	var Transition$1 = Link.define('uml.Transition', {
-	    attrs: {
-	        '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z', fill: '#34495e', stroke: '#2c3e50' },
-	        '.connection': { stroke: '#2c3e50' }
-	    }
-	});
-
-	var uml = ({
-		Class: Class,
-		ClassView: ClassView,
-		Abstract: Abstract,
-		AbstractView: AbstractView,
-		Interface: Interface,
-		InterfaceView: InterfaceView,
-		Generalization: Generalization,
-		Implementation: Implementation,
-		Aggregation: Aggregation,
-		Composition: Composition,
-		Association: Association,
-		State: State$1,
-		StartState: StartState$1,
-		EndState: EndState$1,
-		Transition: Transition$1
-	});
-
-
-
-	var index$3 = ({
-		basic: basic,
-		standard: standard,
-		devs: devs,
-		logic: logic,
-		chess: chess,
-		erd: erd,
-		fsa: fsa,
-		org: org,
-		pn: pn,
-		uml: uml
-	});
-
-	function abs2rel(absolute, max) {
-
-	    if (max === 0) { return '0%'; }
-	    // round to 3 decimal places
-	    var dp = 1000;
-	    var relative = Math.round(absolute / max * 100 * dp) / dp;
-	    return (relative + "%");
-	}
-
-	function pin(relative) {
-
-	    return function(end, view, magnet, coords) {
-	        var fn = (view.isNodeConnection(magnet)) ? pinnedLinkEnd : pinnedElementEnd;
-	        return fn(relative, end, view, magnet, coords);
-	    };
-	}
-
-	function pinnedElementEnd(relative, end, view, magnet, coords) {
-
-	    var angle = view.model.angle();
-	    var bbox = view.getNodeUnrotatedBBox(magnet);
-	    var origin = view.model.getBBox().center();
-	    coords.rotate(origin, angle);
-	    var dx = coords.x - bbox.x;
-	    var dy = coords.y - bbox.y;
-
-	    if (relative) {
-	        dx = abs2rel(dx, bbox.width);
-	        dy = abs2rel(dy, bbox.height);
-	    }
-
-	    end.anchor = {
-	        name: 'topLeft',
-	        args: {
-	            dx: dx,
-	            dy: dy,
-	            rotate: true
-	        }
-	    };
-
-	    return end;
-	}
-
-	function pinnedLinkEnd(relative, end, view, _magnet, coords) {
-
-	    var connection = view.getConnection();
-	    if (!connection) { return end; }
-	    var length = connection.closestPointLength(coords);
-	    if (relative) {
-	        var totalLength = connection.length();
-	        end.anchor = {
-	            name: 'connectionRatio',
-	            args: {
-	                ratio: length / totalLength
-	            }
-	        };
-	    } else {
-	        end.anchor = {
-	            name: 'connectionLength',
-	            args: {
-	                length: length
-	            }
-	        };
-	    }
-	    return end;
-	}
-
-	var useDefaults = noop;
-	var pinAbsolute = pin(false);
-	var pinRelative = pin(true);
-
-	var index$4 = ({
-		useDefaults: useDefaults,
-		pinAbsolute: pinAbsolute,
-		pinRelative: pinRelative
 	});
 
 	// Vertex Handles
@@ -38761,13 +37486,15 @@ var joint = (function (exports, $) {
 	        if (connection) { connection.setAttribute('d', this.relatedView.getSerializedConnection()); }
 	    },
 	    startHandleListening: function(handle) {
-	        var relatedView = this.relatedView;
-	        if (relatedView.can('vertexMove')) {
+	        var ref = this.options;
+	        var vertexRemoving = ref.vertexRemoving; if ( vertexRemoving === void 0 ) vertexRemoving = true;
+	        var vertexMoving = ref.vertexMoving; if ( vertexMoving === void 0 ) vertexMoving = true;
+	        if (vertexMoving) {
 	            this.listenTo(handle, 'will-change', this.onHandleWillChange);
 	            this.listenTo(handle, 'changing', this.onHandleChanging);
 	            this.listenTo(handle, 'changed', this.onHandleChanged);
 	        }
-	        if (relatedView.can('vertexRemove')) {
+	        if (vertexRemoving) {
 	            this.listenTo(handle, 'remove', this.onHandleRemove);
 	        }
 	    },
@@ -39349,11 +38076,9 @@ var joint = (function (exports, $) {
 	        evt.preventDefault();
 	        var relatedView = this.relatedView;
 	        relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
-	        if (relatedView.can('arrowheadMove')) {
-	            relatedView.startArrowheadMove(this.arrowheadType);
-	            this.delegateDocumentEvents();
-	            relatedView.paper.undelegateEvents();
-	        }
+	        relatedView.startArrowheadMove(this.arrowheadType);
+	        this.delegateDocumentEvents();
+	        relatedView.paper.undelegateEvents();
 	        this.focus();
 	        this.el.style.pointerEvents = 'none';
 	    },
@@ -39783,6 +38508,7 @@ var joint = (function (exports, $) {
 	});
 
 	var Remove = Button.extend({
+	    name: 'remove',
 	    children: [{
 	        tagName: 'circle',
 	        selector: 'button',
@@ -39846,8 +38572,6 @@ var joint = (function (exports, $) {
 	        action: function (evt, _view, tool) { return tool.dragstart(evt); },
 	    },
 	    getMagnetNode: function() {
-	        var assign;
-
 	        var ref = this;
 	        var options = ref.options;
 	        var relatedView = ref.relatedView;
@@ -39859,7 +38583,7 @@ var joint = (function (exports, $) {
 	                break;
 	            }
 	            case 'string': {
-	                (assign = relatedView.findBySelector(magnet), magnetNode = assign[0]);
+	                magnetNode = relatedView.findNode(magnet);
 	                break;
 	            }
 	            default: {
@@ -40049,7 +38773,7 @@ var joint = (function (exports, $) {
 	    canShowButton: function canShowButton() {
 	        // Has been the paper events undelegated? If so, we can't show the button.
 	        // TODO: add a method to the paper to check if the events are delegated.
-	        return $._data(this.paper.el, 'events');
+	        return $.event.has(this.paper.el);
 	    },
 
 	    showButton: function showButton() {
@@ -40198,8 +38922,7 @@ var joint = (function (exports, $) {
 	            this.toggleExtras(false);
 	            return;
 	        }
-	        var ref$2 = relatedView.findBySelector(selector);
-	        var magnet = ref$2[0];
+	        var magnet = relatedView.findNode(selector);
 	        if (!magnet) { throw new Error('Control: invalid selector.'); }
 	        var padding = options.padding;
 	        if (!isFinite(padding)) { padding = 0; }
@@ -40326,7 +39049,7 @@ var joint = (function (exports, $) {
 	    View.prototype.defaultTheme = theme;
 	};
 
-	var layout$1 = { DirectedGraph: DirectedGraph, PortLabel: PortLabel, Port: Port };
+	var layout$1 = { PortLabel: PortLabel, Port: Port };
 
 	// export empty namespaces - backward compatibility
 	var format$1 = {};
@@ -40337,9 +39060,9 @@ var joint = (function (exports, $) {
 	exports.anchors = anchors;
 	exports.config = config;
 	exports.connectionPoints = connectionPoints;
-	exports.connectionStrategies = index$4;
+	exports.connectionStrategies = index$3;
 	exports.connectors = connectors;
-	exports.dia = index$2;
+	exports.dia = index$4;
 	exports.elementTools = index$6;
 	exports.env = env;
 	exports.format = format$1;
@@ -40348,15 +39071,15 @@ var joint = (function (exports, $) {
 	exports.layout = layout$1;
 	exports.linkAnchors = linkAnchors;
 	exports.linkTools = index$5;
-	exports.mvc = index$1;
+	exports.mvc = index$2;
 	exports.routers = routers;
 	exports.setTheme = setTheme;
-	exports.shapes = index$3;
+	exports.shapes = index$1;
 	exports.ui = ui;
 	exports.util = index;
 	exports.version = version;
 
 	return exports;
 
-}({}, $));
+}({}));
 if (typeof joint !== 'undefined') { var g = joint.g, V = joint.V, Vectorizer = joint.V; }
