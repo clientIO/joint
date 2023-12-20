@@ -83,7 +83,7 @@ export interface RadiusControlOptions extends elementTools.Control.Options {
     protected updateExtras(extrasNode: SVGElement): void {
         const { relatedView, options } = this;
         const { selector, padding = 0 } = options;
-        const [magnet] = relatedView.findBySelector(selector);
+        const magnet = relatedView.findNode(selector) as unknown as SVGElement;
         if (!magnet) return;
         const { model } = relatedView;
         const angle = model.angle();
