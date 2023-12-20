@@ -1,5 +1,3 @@
-const core = require('../resources/core');
-
 module.exports = function(grunt) {
 
     return {
@@ -12,18 +10,6 @@ module.exports = function(grunt) {
             ],
             dest:
                 'build/joint.d.ts'
-        },
-        joint: {
-            files: {
-                'build/joint.core.css':
-                    [].concat(
-                        core.css
-                    ),
-                'build/joint.css':
-                    [].concat(
-                        core.css
-                    )
-            }
         }
     };
 };

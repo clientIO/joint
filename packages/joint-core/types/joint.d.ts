@@ -1414,6 +1414,8 @@ export namespace dia {
 
         options: Paper.Options;
 
+        stylesheet: string;
+
         svg: SVGSVGElement;
         defs: SVGDefsElement;
         cells: SVGGElement;

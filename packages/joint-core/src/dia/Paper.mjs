@@ -337,6 +337,16 @@ export const Paper = View.extend({
         'touchcancel': 'pointerup'
     },
 
+    /* CSS within the SVG document
+    * 1. Adding vector-effect: non-scaling-stroke; to prevent the stroke width from scaling for
+    *    elements that use the `scalable` group.
+    */
+    stylesheet: /*css*/`
+        .joint-element .scalable * {
+            vector-effect: non-scaling-stroke;
+        }
+    `,
+
     svg: null,
     viewport: null,
     defs: null,
@@ -541,12 +551,20 @@ export const Paper = View.extend({
             namespaceURI: ns.xhtml,
             tagName: 'div',
             className: addClassNamePrefix('paper-background'),
-            selector: 'background'
+            selector: 'background',
+            style: {
+                position: 'absolute',
+                inset: 0
+            }
         }, {
             namespaceURI: ns.xhtml,
             tagName: 'div',
             className: addClassNamePrefix('paper-grid'),
-            selector: 'grid'
+            selector: 'grid',
+            style: {
+                position: 'absolute',
+                inset: 0
+            }
         }, {
             namespaceURI: ns.svg,
             tagName: 'svg',
@@ -556,6 +574,10 @@ export const Paper = View.extend({
                 'xmlns:xlink': ns.xlink
             },
             selector: 'svg',
+            style: {
+                position: 'absolute',
+                inset: 0
+            },
             children: [{
                 // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
                 // It's desired to have the defs defined before the viewport (e.g. to make a PDF document pick up defs properly).
@@ -586,9 +608,10 @@ export const Paper = View.extend({
     render: function() {
 
         this.renderChildren();
-        const { childNodes, options } = this;
+        const { el, childNodes, options, stylesheet } = this;
         const { svg, defs, layers } = childNodes;
 
+        el.style.position = 'relative';
         svg.style.overflow = options.overflow ? 'visible' : 'hidden';
 
         this.svg = svg;
@@ -599,6 +622,8 @@ export const Paper = View.extend({
 
         V.ensureId(svg);
 
+        this.addStylesheet(stylesheet);
+
         if (options.background) {
             this.drawBackground(options.background);
         }
@@ -608,6 +633,11 @@ export const Paper = View.extend({
         }
 
         return this;
+    },
+
+    addStylesheet: function(css) {
+        if (!css) return;
+        V(this.svg).prepend(V.createSVGStyle(css));
     },
 
     renderLayers: function(layers = defaultLayers) {
@@ -628,6 +658,10 @@ export const Paper = View.extend({
         // user-select: none;
         cellsLayerView.vel.addClass(addClassNamePrefix('viewport'));
         labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
+        cellsLayerView.el.style.webkitUserSelect = 'none';
+        cellsLayerView.el.style.userSelect = 'none';
+        labelsLayerView.el.style.webkitUserSelect = 'none';
+        labelsLayerView.el.style.userSelect = 'none';
     },
 
     removeLayers: function() {

@@ -10,6 +10,9 @@ import { env } from '../env/index.mjs';
 
 export const Rectangle = Element.define('standard.Rectangle', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             width: 'calc(w)',
             height: 'calc(h)',
@@ -38,6 +41,9 @@ export const Rectangle = Element.define('standard.Rectangle', {
 
 export const Circle = Element.define('standard.Circle', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             cx: 'calc(s/2)',
             cy: 'calc(s/2)',
@@ -67,6 +73,9 @@ export const Circle = Element.define('standard.Circle', {
 
 export const Ellipse = Element.define('standard.Ellipse', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             cx: 'calc(w/2)',
             cy: 'calc(h/2)',
@@ -97,6 +106,9 @@ export const Ellipse = Element.define('standard.Ellipse', {
 
 export const Path = Element.define('standard.Path', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             d: 'M 0 0 H calc(w) V calc(h) H 0 Z',
             strokeWidth: 2,
@@ -124,6 +136,9 @@ export const Path = Element.define('standard.Path', {
 
 export const Polygon = Element.define('standard.Polygon', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
             strokeWidth: 2,
@@ -151,6 +166,9 @@ export const Polygon = Element.define('standard.Polygon', {
 
 export const Polyline = Element.define('standard.Polyline', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
             strokeWidth: 2,
@@ -178,6 +196,9 @@ export const Polyline = Element.define('standard.Polyline', {
 
 export const Image = Element.define('standard.Image', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         image: {
             width: 'calc(w)',
             height: 'calc(h)',
@@ -204,6 +225,9 @@ export const Image = Element.define('standard.Image', {
 
 export const BorderedImage = Element.define('standard.BorderedImage', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         border: {
             width: 'calc(w)',
             height: 'calc(h)',
@@ -257,6 +281,9 @@ export const BorderedImage = Element.define('standard.BorderedImage', {
 
 export const EmbeddedImage = Element.define('standard.EmbeddedImage', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             width: 'calc(w)',
             height: 'calc(h)',
@@ -296,6 +323,9 @@ export const EmbeddedImage = Element.define('standard.EmbeddedImage', {
 
 export const InscribedImage = Element.define('standard.InscribedImage', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         border: {
             rx: 'calc(w/2)',
             ry: 'calc(h/2)',
@@ -351,6 +381,9 @@ export const InscribedImage = Element.define('standard.InscribedImage', {
 
 export const HeaderedRectangle = Element.define('standard.HeaderedRectangle', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             width: 'calc(w)',
             height: 'calc(h)',
@@ -402,6 +435,9 @@ var CYLINDER_TILT = 10;
 
 export const Cylinder = Element.define('standard.Cylinder', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             lateralArea: CYLINDER_TILT,
             fill: '#FFFFFF',
@@ -537,6 +573,9 @@ var labelMarkup = (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarku
 
 export const TextBlock = Element.define('standard.TextBlock', {
     attrs: {
+        root: {
+            cursor: 'move'
+        },
         body: {
             width: 'calc(w)',
             height: 'calc(h)',
