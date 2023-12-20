@@ -2916,11 +2916,7 @@ export const Paper = View.extend({
             // Set the filter area to be 3x the bounding box of the cell
             // and center the filter around the cell.
             var filterAttrs = assign({
-                filterUnits: 'objectBoundingBox',
-                x: -1,
-                y: -1,
-                width: 3,
-                height: 3
+                filterUnits: 'userSpaceOnUse',
             }, filter.attrs, {
                 id: filterId
             });
