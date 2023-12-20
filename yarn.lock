@@ -1394,12 +1394,14 @@ __metadata:
     karma-chrome-launcher: ^3.2.0
     karma-coverage: ^2.2.1
     karma-qunit: ^4.1.2
-    karma-sinon: ^1.0.5
+    mocha: 5.2.0
     puppeteer: 10.2.0
     qunit: ^2.20.0
+    requirejs: 2.3.6
     rollup: ^4.4.0
-    sinon: ^17.0.1
-    typescript: 4.8.3
+    rollup-plugin-banner2: ^1.2.2
+    rollup-plugin-uglify: ^6.0.4
+    should: 13.2.3
   languageName: unknown
   linkType: soft
 
@@ -1679,42 +1681,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sinonjs/commons@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@sinonjs/commons@npm:2.0.0"
-  dependencies:
-    type-detect: 4.0.8
-  checksum: 5023ba17edf2b85ed58262313b8e9b59e23c6860681a9af0200f239fe939e2b79736d04a260e8270ddd57196851dde3ba754d7230be5c5234e777ae2ca8af137
-  languageName: node
-  linkType: hard
-
-"@sinonjs/commons@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@sinonjs/commons@npm:3.0.0"
-  dependencies:
-    type-detect: 4.0.8
-  checksum: b4b5b73d4df4560fb8c0c7b38c7ad4aeabedd362f3373859d804c988c725889cde33550e4bcc7cd316a30f5152a2d1d43db71b6d0c38f5feef71fd8d016763f8
-  languageName: node
-  linkType: hard
-
-"@sinonjs/fake-timers@npm:^10.0.2":
-  version: 10.3.0
-  resolution: "@sinonjs/fake-timers@npm:10.3.0"
-  dependencies:
-    "@sinonjs/commons": ^3.0.0
-  checksum: 614d30cb4d5201550c940945d44c9e0b6d64a888ff2cd5b357f95ad6721070d6b8839cd10e15b76bf5e14af0bcc1d8f9ec00d49a46318f1f669a4bec1d7f3148
-  languageName: node
-  linkType: hard
-
-"@sinonjs/fake-timers@npm:^11.2.2":
-  version: 11.2.2
-  resolution: "@sinonjs/fake-timers@npm:11.2.2"
-  dependencies:
-    "@sinonjs/commons": ^3.0.0
-  checksum: 68c29b0e1856fdc280df03ddbf57c726420b78e9f943a241b471edc018fb14ff36fdc1daafd6026cba08c3c7f50c976fb7ae11b88ff44cd7f609692ca7d25158
-  languageName: node
-  linkType: hard
-
 "@sinonjs/formatio@npm:^3.1.0, @sinonjs/formatio@npm:^3.2.1":
   version: 3.2.2
   resolution: "@sinonjs/formatio@npm:3.2.2"
@@ -1733,17 +1699,6 @@ __metadata:
     array-from: ^2.1.1
     lodash: ^4.17.15
   checksum: 340f2f62dec3fa1e5e9300a75996bd12ab9d2da4f6b453fa5d1ee101cc5e58eb218af2e2584b496d41ba31c3c0854d47a691fd9a0d8b9092f3cb6a5c7a080856
-  languageName: node
-  linkType: hard
-
-"@sinonjs/samsam@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "@sinonjs/samsam@npm:8.0.0"
-  dependencies:
-    "@sinonjs/commons": ^2.0.0
-    lodash.get: ^4.4.2
-    type-detect: ^4.0.8
-  checksum: 95e40d0bb9f7288e27c379bee1b03c3dc51e7e78b9d5ea6aef66a690da7e81efc4715145b561b449cefc5361a171791e3ce30fb1a46ab247d4c0766024c60a60
   languageName: node
   linkType: hard
 
@@ -5431,13 +5386,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "diff@npm:5.1.0"
-  checksum: c7bf0df7c9bfbe1cf8a678fd1b2137c4fb11be117a67bc18a0e03ae75105e8533dbfb1cda6b46beb3586ef5aed22143ef9d70713977d5fb1f9114e21455fba90
-  languageName: node
-  linkType: hard
-
 "diffie-hellman@npm:^5.0.0":
   version: 5.0.3
   resolution: "diffie-hellman@npm:5.0.3"
@@ -9030,6 +8978,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jest-worker@npm:^24.0.0":
+  version: 24.9.0
+  resolution: "jest-worker@npm:24.9.0"
+  dependencies:
+    merge-stream: ^2.0.0
+    supports-color: ^6.1.0
+  checksum: bd23b6c8728dcf3bad0d84543ea1bc4a95ccd3b5a40f9e2796d527ab0e87dc6afa6c30cc7b67845dce1cfe7894753812d19793de605db1976b7ac08930671bff
+  languageName: node
+  linkType: hard
+
 "jest-worker@npm:^27.4.5":
   version: 27.5.1
   resolution: "jest-worker@npm:27.5.1"
@@ -9405,7 +9363,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"karma-sinon@npm:1.0.5, karma-sinon@npm:^1.0.5":
+"karma-sinon@npm:1.0.5":
   version: 1.0.5
   resolution: "karma-sinon@npm:1.0.5"
   peerDependencies:
@@ -9735,13 +9693,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash.get@npm:^4.4.2":
-  version: 4.4.2
-  resolution: "lodash.get@npm:4.4.2"
-  checksum: e403047ddb03181c9d0e92df9556570e2b67e0f0a930fcbbbd779370972368f5568e914f913e93f3b08f6d492abc71e14d4e9b7a18916c31fa04bd2306efe545
-  languageName: node
-  linkType: hard
-
 "lodash.isplainobject@npm:^4.0.6":
   version: 4.0.6
   resolution: "lodash.isplainobject@npm:4.0.6"
@@ -9917,7 +9868,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"magic-string@npm:^0.25.1, magic-string@npm:^0.25.3":
+"magic-string@npm:^0.25.1, magic-string@npm:^0.25.3, magic-string@npm:^0.25.7":
   version: 0.25.9
   resolution: "magic-string@npm:0.25.9"
   dependencies:
@@ -10638,19 +10589,6 @@ __metadata:
     lolex: ^5.0.1
     path-to-regexp: ^1.7.0
   checksum: ec3af21345dcaf34650a6f5420a11e0fd21a836ac5960f5e8523c301ee98465abf88b958f7b3084ecc6e0a7133e5cf7963f4df176b90b423c4da4984f1ebd75e
-  languageName: node
-  linkType: hard
-
-"nise@npm:^5.1.5":
-  version: 5.1.5
-  resolution: "nise@npm:5.1.5"
-  dependencies:
-    "@sinonjs/commons": ^2.0.0
-    "@sinonjs/fake-timers": ^10.0.2
-    "@sinonjs/text-encoding": ^0.7.1
-    just-extend: ^4.0.2
-    path-to-regexp: ^1.7.0
-  checksum: c763dc62c5796cafa5c9268e14a5b34db6e6fa2f1dbc57a891fe5d7ea632a87868e22b5bb34965006f984630793ea11368351e94971163228d9e20b2e88edce8
   languageName: node
   linkType: hard
 
@@ -12728,6 +12666,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rollup-plugin-banner2@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "rollup-plugin-banner2@npm:1.2.2"
+  dependencies:
+    magic-string: ^0.25.7
+  checksum: 6647602b31d35d5f925920254e70fa9f0d272fda2a3eae0a749a500f32c78ce82f3f48200c5b6cc0f983fe412471b749b53333d87f9e430bd8b2a95637648347
+  languageName: node
+  linkType: hard
+
 "rollup-plugin-buble@npm:0.19.6":
   version: 0.19.6
   resolution: "rollup-plugin-buble@npm:0.19.6"
@@ -12769,6 +12716,20 @@ __metadata:
     is-module: ^1.0.0
     resolve: ^1.8.1
   checksum: b7c7dd5cf33bb03bf52fb2b8f88e7297c80d711034605a2bf37b110be30385cdf87e437021547fd610d6a3b29448fdff1751d1fe251655408474081cda3b0dc2
+  languageName: node
+  linkType: hard
+
+"rollup-plugin-uglify@npm:^6.0.4":
+  version: 6.0.4
+  resolution: "rollup-plugin-uglify@npm:6.0.4"
+  dependencies:
+    "@babel/code-frame": ^7.0.0
+    jest-worker: ^24.0.0
+    serialize-javascript: ^2.1.2
+    uglify-js: ^3.4.9
+  peerDependencies:
+    rollup: ">=0.66.0 <2"
+  checksum: 0cc46b7346906aa2af80d1729a292c547a9014a934daae07d54d6f4c858c822b71222e3f62cc12498880efaf1ddad26b9c0aca17e788b467aea61fde135e2ed3
   languageName: node
   linkType: hard
 
@@ -13514,20 +13475,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sinon@npm:^17.0.1":
-  version: 17.0.1
-  resolution: "sinon@npm:17.0.1"
-  dependencies:
-    "@sinonjs/commons": ^3.0.0
-    "@sinonjs/fake-timers": ^11.2.2
-    "@sinonjs/samsam": ^8.0.0
-    diff: ^5.1.0
-    nise: ^5.1.5
-    supports-color: ^7.2.0
-  checksum: a807c2997d6eabdcaa4409df9fd9816a3e839f96d7e5d76610a33f5e1b60cf37616c6288f0f580262da17ea4ee626c6d1600325bf423e30c5a7f0d9a203e26c0
-  languageName: node
-  linkType: hard
-
 "sirv@npm:^1.0.7":
   version: 1.0.19
   resolution: "sirv@npm:1.0.19"
@@ -14254,7 +14201,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"supports-color@npm:^7.1.0, supports-color@npm:^7.2.0":
+"supports-color@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "supports-color@npm:6.1.0"
+  dependencies:
+    has-flag: ^3.0.0
+  checksum: 74358f9535c83ee113fbaac354b11e808060f6e7d8722082ee43af3578469134e89d00026dce2a6b93ce4e5b89d0e9a10f638b2b9f64c7838c2fb2883a47b3d5
+  languageName: node
+  linkType: hard
+
+"supports-color@npm:^7.1.0":
   version: 7.2.0
   resolution: "supports-color@npm:7.2.0"
   dependencies:
@@ -14727,7 +14683,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-detect@npm:4.0.8, type-detect@npm:^4.0.0, type-detect@npm:^4.0.5, type-detect@npm:^4.0.8":
+"type-detect@npm:4.0.8, type-detect@npm:^4.0.0, type-detect@npm:^4.0.5":
   version: 4.0.8
   resolution: "type-detect@npm:4.0.8"
   checksum: 62b5628bff67c0eb0b66afa371bd73e230399a8d2ad30d852716efcc4656a7516904570cd8631a49a3ce57c10225adf5d0cbdcb47f6b0255fe6557c453925a15
@@ -14814,7 +14770,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uglify-js@npm:^3.1.4":
+"uglify-js@npm:^3.1.4, uglify-js@npm:^3.4.9":
   version: 3.17.4
   resolution: "uglify-js@npm:3.17.4"
   bin:

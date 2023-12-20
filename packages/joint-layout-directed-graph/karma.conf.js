@@ -7,22 +7,17 @@ module.exports = function(config) {
         files: [
             './node_modules/@dagrejs/graphlib/dist/graphlib.js',
             './node_modules/@dagrejs/dagre/dist/dagre.js',
-
-            './node_modules/jointjs/build/geometry.js',
-            './node_modules/jointjs/build/vectorizer.js',
             './node_modules/jointjs/build/joint.js',
+            './dist/DirectedGraph.js',
 
-            './build/DirectedGraph.umd.js',
-
-            './test/**/*.js'
+            './test/index.js'
         ],
         singleRun: true,
-        frameworks: ['sinon','qunit'],
+        frameworks: ['qunit'],
         plugins: [
             'karma-qunit',
             'karma-coverage',
-            'karma-chrome-launcher',
-            'karma-sinon'
+            'karma-chrome-launcher'
         ],
         reporters: ['progress', 'coverage'],
         proxies: {},
@@ -41,7 +36,7 @@ module.exports = function(config) {
         },
         exclude: [],
         preprocessors: {
-            './build/DirectedGraph.umd.js': ['coverage']
+            './dist/DirectedGraph.js': ['coverage']
         },
         coverageReporter: {
             // specify a common output directory
