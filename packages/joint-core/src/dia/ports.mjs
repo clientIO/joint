@@ -535,8 +535,6 @@ export const elementViewPortPrototype = {
         tagName: 'circle',
         selector: 'circle',
         attributes: {
-            'cursor': 'crosshair',
-            'magnet': true,
             'r': 10,
             'fill': '#FFFFFF',
             'stroke': '#000000'
