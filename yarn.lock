@@ -4279,15 +4279,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clean-css@npm:~4.2.1":
-  version: 4.2.4
-  resolution: "clean-css@npm:4.2.4"
-  dependencies:
-    source-map: ~0.6.0
-  checksum: 045ff6fcf4b5c76a084b24e1633e0c78a13b24080338fc8544565a9751559aa32ff4ee5886d9e52c18a644a6ff119bd8e37bc58e574377c05382a1fb7dbe39f8
-  languageName: node
-  linkType: hard
-
 "clean-stack@npm:^2.0.0":
   version: 2.2.0
   resolution: "clean-stack@npm:2.2.0"
@@ -7594,17 +7585,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"grunt-contrib-cssmin@npm:3.0.0":
-  version: 3.0.0
-  resolution: "grunt-contrib-cssmin@npm:3.0.0"
-  dependencies:
-    chalk: ^2.4.1
-    clean-css: ~4.2.1
-    maxmin: ^2.1.0
-  checksum: dd9d9a6a5300537cc3753a25fbf38e61c7bc653de824d8991dcb9156f532fe0ea0286a85f214077a401a94a5965cf2295dc9b4d0bf08cd9fe7081d089701d79a
-  languageName: node
-  linkType: hard
-
 "grunt-contrib-qunit@npm:3.1.0":
   version: 3.1.0
   resolution: "grunt-contrib-qunit@npm:3.1.0"
@@ -9075,7 +9055,6 @@ __metadata:
     grunt-contrib-clean: 2.0.0
     grunt-contrib-concat: 1.0.1
     grunt-contrib-copy: 1.0.0
-    grunt-contrib-cssmin: 3.0.0
     grunt-contrib-qunit: 3.1.0
     grunt-contrib-uglify: 4.0.0
     grunt-contrib-watch: 1.1.0
@@ -13771,7 +13750,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map@npm:^0.6.0, source-map@npm:^0.6.1, source-map@npm:~0.6.0, source-map@npm:~0.6.1":
+"source-map@npm:^0.6.0, source-map@npm:^0.6.1, source-map@npm:~0.6.1":
   version: 0.6.1
   resolution: "source-map@npm:0.6.1"
   checksum: 59ce8640cf3f3124f64ac289012c2b8bd377c238e316fb323ea22fbfe83da07d81e000071d7242cad7a23cd91c7de98e4df8830ec3f133cb6133a5f6e9f67bc2
