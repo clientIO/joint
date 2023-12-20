@@ -24,7 +24,8 @@
     "lint": "yarn workspaces foreach --verbose run lint",
     "lint-fix": "yarn workspaces foreach --verbose run lint-fix",
     "dist": "yarn workspaces foreach --verbose run dist",
-    "build-docs": "yarn workspaces foreach --verbose run build-docs"
+    "build-docs": "yarn workspaces foreach --verbose run build-docs",
+    "pack-all": "yarn workspaces foreach --verbose --include \"@joint/layout-directed-graph\" --include \"jointjs\" pack --out %s-%v.tgz"
   },
   "workspaces": [
     "./packages/*",
