@@ -1,4 +1,4 @@
-/*! JointJS v3.7.7 (2023-11-24) - JavaScript diagramming library
+/*! JointJS v3.7.7 (2023-12-20) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -15,8 +15,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // typings: https://github.com/CaselIT/typings-jointjs
-
-/// <reference types="jquery" />
 
 export as namespace joint;
 
@@ -1156,6 +1154,10 @@ interface VStatic {
     toNode(el: SVGElement | VElement | SVGElement[]): SVGElement;
 
     prototype: VElement;
+
+    attributeNames: { [key: string]: string };
+
+    supportCamelCaseAttributes: boolean;
 }
 
 
@@ -1168,9 +1170,14 @@ export namespace config {
     var doubleTapInterval: number;
 }
 
+type NativeEvent = Event;
+
+/* A JQuery-like object */
+type Dom = any;
+
 export namespace dia {
 
-    type Event = JQuery.TriggeredEvent;
+    type Event = mvc.TriggeredEvent;
 
     type ObjectHash = { [key: string]: any };
 
@@ -1415,10 +1422,6 @@ export namespace dia {
         startBatch(name: string, data?: { [key: string]: any }): this;
 
         stopBatch(name: string, data?: { [key: string]: any }): this;
-
-        toGraphLib(opt?: { [key: string]: any }): any;
-
-        fromGraphLib(glGraph: any, opt?: { [key: string]: any }): this;
     }
 
     // dia.Cell
@@ -1737,9 +1740,7 @@ export namespace dia {
             target?: EndJSON;
             labels?: Label[];
             vertices?: Point[];
-            manhattan?: boolean;
             router?: routers.Router | routers.RouterJSON;
-            smooth?: boolean;
             connector?: connectors.Connector | connectors.ConnectorJSON;
         }
 
@@ -1912,15 +1913,17 @@ export namespace dia {
 
         presentationAttributes(): CellView.PresentationAttributes;
 
-        highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
+        highlight(el?: SVGElement | Dom | string, opt?: { [key: string]: any }): this;
 
-        unhighlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
+        unhighlight(el?: SVGElement | Dom | string, opt?: { [key: string]: any }): this;
 
         can(feature: string): boolean;
 
-        findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
+        findMagnet(el: SVGElement | Dom | string): SVGElement | undefined;
 
-        findBySelector(selector: string, root?: SVGElement | JQuery | string): SVGElement[];
+        findNode(selector: string): Element | null;
+
+        findNodes(groupSelector: string): Element[];
 
         findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
@@ -1975,6 +1978,8 @@ export namespace dia {
         preventDefaultInteraction(evt: dia.Event): void;
 
         isDefaultInteractionPrevented(evt: dia.Event): boolean;
+
+        protected findBySelector(selector: string, root?: SVGElement | Dom | string): SVGElement[];
 
         protected removeHighlighters(): void;
 
@@ -2073,7 +2078,10 @@ export namespace dia {
 
         getDelegatedView(): ElementView | null;
 
-        findPortNode(portId: string | number, selector?: string): SVGElement | null;
+        findPortNode(portId: string | number): SVGElement | null;
+        findPortNode(portId: string | number, selector: string): Element | null;
+
+        findPortNodes(portId: string | number, groupSelector: string): Element[];
 
         protected renderMarkup(): void;
 
@@ -2139,16 +2147,6 @@ export namespace dia {
             labelMove?: boolean;
             linkMove?: boolean;
             useLinkTools?: boolean;
-        }
-
-        interface GetConnectionPoint {
-            (
-                linkView: LinkView,
-                view: ElementView,
-                magnet: SVGElement,
-                reference: Point,
-                end: LinkEnd
-            ): Point;
         }
 
         interface LabelOptions extends Cell.Options {
@@ -2237,7 +2235,10 @@ export namespace dia {
 
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
-        findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
+        findLabelNode(labelIndex: string | number): SVGElement | null;
+        findLabelNode(labelIndex: string | number, selector: string): Element | null;
+
+        findLabelNodes(labelIndex: string | number, groupSelector: string): Element[];
 
         removeRedundantLinearVertices(opt?: dia.ModelSetOptions): number;
 
@@ -2259,31 +2260,19 @@ export namespace dia {
 
         protected onlabel(evt: dia.Event, x: number, y: number): void;
 
-        protected dragConnectionStart(evt: dia.Event, x: number, y: number): void;
-
         protected dragLabelStart(evt: dia.Event, x: number, y: number): void;
-
-        protected dragVertexStart(evt: dia.Event, x: number, y: number): void;
 
         protected dragArrowheadStart(evt: dia.Event, x: number, y: number): void;
 
         protected dragStart(evt: dia.Event, x: number, y: number): void;
 
-        protected dragConnection(evt: dia.Event, x: number, y: number): void;
-
         protected dragLabel(evt: dia.Event, x: number, y: number): void;
-
-        protected dragVertex(evt: dia.Event, x: number, y: number): void;
 
         protected dragArrowhead(evt: dia.Event, x: number, y: number): void;
 
         protected drag(evt: dia.Event, x: number, y: number): void;
 
-        protected dragConnectionEnd(evt: dia.Event, x: number, y: number): void;
-
         protected dragLabelEnd(evt: dia.Event, x: number, y: number): void;
-
-        protected dragVertexEnd(evt: dia.Event, x: number, y: number): void;
 
         protected dragArrowheadEnd(evt: dia.Event, x: number, y: number): void;
 
@@ -2401,8 +2390,6 @@ export namespace dia {
             width?: Dimension;
             height?: Dimension;
             origin?: Point;
-            perpendicularLinks?: boolean;
-            linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             drawGridSize?: number | null;
             background?: BackgroundOptions;
@@ -2596,10 +2583,6 @@ export namespace dia {
         layers: SVGGElement;
         viewport: SVGGElement;
 
-        $document: JQuery;
-        $grid: JQuery;
-        $background: JQuery;
-
         GUARDED_TAG_NAMES: string[];
         FORM_CONTROLS_TAG_NAMES: string[];
 
@@ -2672,7 +2655,7 @@ export namespace dia {
 
         getContentBBox(opt?: { useModelGeometry: boolean }): g.Rect;
 
-        findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
+        findView<T extends ElementView | LinkView>(element: string | Dom | SVGElement): T;
 
         findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
 
@@ -3121,7 +3104,7 @@ export namespace highlighters {
     }
 
     interface OpacityHighlighterArguments extends HighlighterView.Options {
-
+        alphaValue?: number;
     }
 
     interface StrokeHighlighterArguments extends HighlighterView.Options {
@@ -3129,6 +3112,7 @@ export namespace highlighters {
         rx?: number;
         ry?: number;
         useFirstSubpath?: boolean;
+        nonScalingStroke?: boolean;
         attrs?: attributes.NativeSVGAttributes;
     }
 
@@ -3262,6 +3246,38 @@ export namespace highlighters {
 }
 
 export namespace shapes {
+
+    interface SVGTextSelector extends dia.Cell.Selectors {
+        text?: attributes.SVGTextAttributes;
+    }
+
+    interface SVGRectSelector extends dia.Cell.Selectors {
+        rect?: attributes.SVGRectAttributes;
+    }
+
+    interface SVGCircleSelector extends dia.Cell.Selectors {
+        circle?: attributes.SVGCircleAttributes;
+    }
+
+    interface SVGEllipseSelector extends dia.Cell.Selectors {
+        ellipse?: attributes.SVGEllipseAttributes;
+    }
+
+    interface SVGPolygonSelector extends dia.Cell.Selectors {
+        polygon?: attributes.SVGPolygonAttributes;
+    }
+
+    interface SVGPolylineSelector extends dia.Cell.Selectors {
+        polyline?: attributes.SVGPolylineAttributes;
+    }
+
+    interface SVGImageSelector extends dia.Cell.Selectors {
+        image?: attributes.SVGImageAttributes;
+    }
+
+    interface SVGPathSelector extends dia.Cell.Selectors {
+        path?: attributes.SVGPathAttributes;
+    }
 
     namespace standard {
 
@@ -3459,200 +3475,6 @@ export namespace shapes {
         }
     }
 
-    interface SVGTextSelector extends dia.Cell.Selectors {
-        text?: attributes.SVGTextAttributes;
-    }
-
-    interface SVGRectSelector extends dia.Cell.Selectors {
-        rect?: attributes.SVGRectAttributes;
-    }
-
-    interface SVGCircleSelector extends dia.Cell.Selectors {
-        circle?: attributes.SVGCircleAttributes;
-    }
-
-    interface SVGEllipseSelector extends dia.Cell.Selectors {
-        ellipse?: attributes.SVGEllipseAttributes;
-    }
-
-    interface SVGPolygonSelector extends dia.Cell.Selectors {
-        polygon?: attributes.SVGPolygonAttributes;
-    }
-
-    interface SVGPolylineSelector extends dia.Cell.Selectors {
-        polyline?: attributes.SVGPolylineAttributes;
-    }
-
-    interface SVGImageSelector extends dia.Cell.Selectors {
-        image?: attributes.SVGImageAttributes;
-    }
-
-    interface SVGPathSelector extends dia.Cell.Selectors {
-        path?: attributes.SVGPathAttributes;
-    }
-
-    namespace basic {
-
-        class Generic extends dia.Element {
-
-        }
-
-        class Text extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<SVGTextSelector>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface RectSelectors extends SVGTextSelector, SVGRectSelector {
-
-        }
-
-        class Rect extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<RectSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface CircleSelectors extends SVGTextSelector, SVGCircleSelector {
-
-        }
-
-        class Circle extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<CircleSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface EllipseSelectors extends SVGTextSelector, SVGEllipseSelector {
-
-        }
-
-
-        class Ellipse extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<EllipseSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface PolygonSelectors extends SVGTextSelector, SVGPolygonSelector {
-
-        }
-
-
-        class Polygon extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PolygonSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface PolylineSelectors extends SVGTextSelector, SVGPolylineSelector {
-
-        }
-
-        class Polyline extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PolylineSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface ImageSelectors extends SVGTextSelector, SVGImageSelector {
-
-        }
-
-        class Image extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<ImageSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface PathSelectors extends SVGTextSelector, SVGPathSelector {
-
-        }
-
-        class Path extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PathSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class Rhombus extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PathSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface TextBlockSelectors extends SVGTextSelector, SVGRectSelector {
-            '.content'?: attributes.SVGTextAttributes;
-        }
-
-        class TextBlock extends Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-    }
-
-    namespace chess {
-
-        class KingWhite extends basic.Generic {
-
-        }
-
-        class KingBlack extends basic.Generic {
-
-        }
-
-        class QueenWhite extends basic.Generic {
-
-        }
-
-        class QueenBlack extends basic.Generic {
-
-        }
-
-        class RookWhite extends basic.Generic {
-
-        }
-
-        class RookBlack extends basic.Generic {
-
-        }
-
-        class BishopWhite extends basic.Generic {
-
-        }
-
-        class BishopBlack extends basic.Generic {
-
-        }
-
-        class KnightWhite extends basic.Generic {
-
-        }
-
-        class KnightBlack extends basic.Generic {
-
-        }
-
-        class PawnWhite extends basic.Generic {
-
-        }
-
-        class PawnBlack extends basic.Generic {
-
-        }
-    }
-
     namespace devs {
 
         interface ModelSelectors extends dia.Cell.Selectors {
@@ -3665,7 +3487,7 @@ export namespace shapes {
             outPorts?: string[];
         }
 
-        class Model extends basic.Generic {
+        class Model extends dia.Element {
 
             constructor(attributes?: ModelAttributes, opt?: { [key: string]: any });
 
@@ -3698,356 +3520,6 @@ export namespace shapes {
 
         }
     }
-
-    namespace erd {
-
-        interface PolygonalSelectors extends dia.Cell.Selectors {
-            '.label'?: attributes.SVGPolygonAttributes;
-            '.body'?: attributes.SVGPolygonAttributes;
-            'text'?: attributes.SVGTextAttributes;
-        }
-
-        interface EllipsoidSelectors extends dia.Cell.Selectors {
-            '.label'?: attributes.SVGEllipseAttributes;
-            '.body'?: attributes.SVGEllipseAttributes;
-            'text'?: attributes.SVGTextAttributes;
-        }
-
-        class Entity extends basic.Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PolygonalSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class WeakEntity extends Entity {
-
-        }
-
-        class Relationship extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PolygonalSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class IdentifyingRelationship extends Relationship {
-
-        }
-
-        class Attribute extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<EllipsoidSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class Multivalued extends Attribute {
-
-        }
-
-        class Derived extends Attribute {
-
-        }
-
-        class Key extends Attribute {
-
-        }
-
-        class Normal extends Attribute {
-
-        }
-
-        class ISA extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<basic.PolygonSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class Line extends dia.Link {
-
-            cardinality(value: string | number): void;
-        }
-    }
-
-    namespace fsa {
-
-        class State extends basic.Circle {
-
-        }
-
-        class StartState extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<SVGCircleSelector>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface CirculoidSelectors extends dia.Cell.Selectors {
-            '.outer'?: attributes.SVGCircleAttributes;
-            '.inner'?: attributes.SVGCircleAttributes;
-        }
-
-        class EndState extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<CirculoidSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class Arrow extends dia.Link {
-
-        }
-    }
-
-    namespace logic {
-
-        abstract class Gate extends basic.Generic {
-
-        }
-
-        interface GateSelectors extends dia.Cell.Selectors {
-            '.body'?: attributes.SVGRectAttributes;
-            '.wire'?: attributes.SVGPathAttributes;
-            'circle'?: attributes.SVGCircleAttributes;
-            'text'?: attributes.SVGTextAttributes;
-        }
-
-        class IO extends Gate {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class Input extends IO {
-
-        }
-
-        class Output extends IO {
-
-        }
-
-        interface Gate11Selectors extends dia.Cell.Selectors {
-            '.input'?: attributes.SVGCircleAttributes;
-            '.output'?: attributes.SVGCircleAttributes;
-            '.body'?: attributes.SVGImageAttributes;
-            'image'?: attributes.SVGImageAttributes;
-        }
-
-        class Gate11 extends Gate {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<Gate11Selectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface Gate21Selectors extends dia.Cell.Selectors {
-            '.input'?: attributes.SVGCircleAttributes;
-            '.input1'?: attributes.SVGCircleAttributes;
-            '.input2'?: attributes.SVGCircleAttributes;
-            '.output'?: attributes.SVGCircleAttributes;
-            '.body'?: attributes.SVGImageAttributes;
-            'image'?: attributes.SVGImageAttributes;
-        }
-
-        class Gate21 extends Gate {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<Gate21Selectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class Repeater extends Gate11 {
-
-            operation(input: any): any;
-        }
-
-        class Not extends Gate11 {
-
-            operation(input: any): boolean;
-        }
-
-        class Or extends Gate21 {
-
-            operation(input1: any, input2: any): boolean;
-        }
-
-        class And extends Gate21 {
-
-            operation(input1: any, input2: any): boolean;
-        }
-
-        class Nor extends Gate21 {
-
-            operation(input1: any, input2: any): boolean;
-        }
-
-        class Nand extends Gate21 {
-
-            operation(input1: any, input2: any): boolean;
-        }
-
-        class Xor extends Gate21 {
-
-            operation(input1: any, input2: any): boolean;
-        }
-
-        class Xnor extends Gate21 {
-
-            operation(input1: any, input2: any): boolean;
-        }
-
-        class Wire extends dia.Link {
-
-        }
-    }
-
-    namespace org {
-
-        interface MemberSelectors extends dia.Cell.Selectors {
-            '.card'?: attributes.SVGRectAttributes;
-            '.rank'?: attributes.SVGTextAttributes;
-            '.name'?: attributes.SVGTextAttributes;
-            'image'?: attributes.SVGImageAttributes;
-        }
-
-        class Member extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<MemberSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class Arrow extends dia.Link {
-
-        }
-    }
-
-    namespace pn {
-
-        class Place extends basic.Generic {
-            constructor(attributes?: dia.Element.Attributes, opt?: { [key: string]: any });
-        }
-
-        class PlaceView extends dia.ElementView {
-            renderTokens(): void;
-        }
-
-        class Transition extends basic.Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<SVGRectSelector>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class Link extends dia.Link {
-
-        }
-    }
-
-    namespace uml {
-
-        interface ClassAttributes extends dia.Element.GenericAttributes<SVGRectSelector> {
-            name: string[];
-            attributes: string[];
-            methods: string[];
-        }
-
-        class Class extends basic.Generic {
-
-            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
-
-            getClassName(): string[];
-
-            protected updateRectangles(): void;
-        }
-
-        class ClassView extends dia.ElementView {
-
-        }
-
-        class Abstract extends Class {
-            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
-        }
-
-        class AbstractView extends ClassView {
-            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
-        }
-
-        class Interface extends Class {
-            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
-        }
-
-        class InterfaceView extends ClassView {
-            constructor(attributes?: ClassAttributes, opt?: { [key: string]: any });
-        }
-
-        class Generalization extends dia.Link {
-
-        }
-
-        class Implementation extends dia.Link {
-
-        }
-
-        class Aggregation extends dia.Link {
-
-        }
-
-        class Composition extends dia.Link {
-
-        }
-
-        class Association extends dia.Link {
-
-        }
-
-        interface StateSelectors extends dia.Cell.Selectors {
-            '.uml-state-body'?: attributes.SVGRectAttributes;
-            '.uml-state-separator'?: attributes.SVGPathAttributes;
-            '.uml-state-name'?: attributes.SVGTextAttributes;
-            '.uml-state-events'?: attributes.SVGTextAttributes;
-        }
-
-        class State extends basic.Generic {
-
-            constructor(
-                attributes?: dia.Element.GenericAttributes<StateSelectors>,
-                opt?: { [key: string]: any }
-            );
-
-            protected updateName(): void;
-
-            protected updateEvents(): void;
-
-            protected updatePath(): void;
-        }
-
-        class StartState extends basic.Circle {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<basic.CircleSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        interface EndStateSelectors extends dia.Cell.Selectors {
-            'circle.outer'?: attributes.SVGCircleAttributes;
-            'circle.inner'?: attributes.SVGCircleAttributes;
-        }
-
-        class EndState extends basic.Generic {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<EndStateSelectors>,
-                opt?: { [key: string]: any }
-            );
-        }
-
-        class Transition extends dia.Link {
-
-        }
-    }
 }
 
 // util
@@ -4077,8 +3549,6 @@ export namespace util {
     export function nextFrame(callback: () => void, context?: { [key: string]: any }, ...args: any[]): number;
 
     export function cancelFrame(requestId: number): void;
-
-    export var shapePerimeterConnectionPoint: dia.LinkView.GetConnectionPoint;
 
     export function isPercentage(val: any): boolean;
 
@@ -4114,7 +3584,7 @@ export namespace util {
     export function getElementBBox(el: Element): dia.BBox;
 
     export function sortElements(
-        elements: Element[] | string | JQuery,
+        elements: Element[] | string | Dom,
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
@@ -4381,57 +3851,6 @@ export namespace env {
 
 export namespace layout {
 
-    export namespace DirectedGraph {
-
-        interface Edge {
-            minLen?: number;
-            weight?: number;
-            labelpos?: 'l' | 'c' | 'r';
-            labeloffset?: number;
-            width?: number;
-            height?: number;
-        }
-
-        interface Node {
-            width?: number;
-            height?: number;
-        }
-
-        interface LayoutOptions {
-            dagre?: any;
-            graphlib?: any;
-            align?: 'UR' | 'UL' | 'DR' | 'DL';
-            rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
-            ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
-            nodeSep?: number;
-            edgeSep?: number;
-            rankSep?: number;
-            marginX?: number;
-            marginY?: number;
-            resizeClusters?: boolean;
-            clusterPadding?: dia.Padding;
-            setPosition?: (element: dia.Element, position: dia.BBox) => void;
-            setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
-            setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
-            debugTiming?: boolean;
-            exportElement?: (element: dia.Element) => Node;
-            exportLink?: (link: dia.Link) => Edge;
-            // deprecated
-            setLinkVertices?: boolean;
-        }
-
-        interface toGraphLibOptions {
-            graphlib?: any;
-            [key: string]: any;
-        }
-
-        export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
-
-        export function toGraphLib(graph: dia.Graph, opt?: toGraphLibOptions): any;
-
-        export function fromGraphLib(glGraph: any, opt?: { [key: string]: any }): dia.Graph;
-    }
-
     export namespace Port {
 
         type Position = {
@@ -4508,6 +3927,74 @@ export namespace layout {
 
 export namespace mvc {
 
+    interface Event {
+        // Event
+        bubbles: boolean | undefined;
+        cancelable: boolean | undefined;
+        eventPhase: number | undefined;
+        // UIEvent
+        detail: number | undefined;
+        view: Window | undefined;
+        // MouseEvent
+        button: number | undefined;
+        buttons: number | undefined;
+        clientX: number | undefined;
+        clientY: number | undefined;
+        offsetX: number | undefined;
+        offsetY: number | undefined;
+        pageX: number | undefined;
+        pageY: number | undefined;
+        screenX: number | undefined;
+        screenY: number | undefined;
+        /** @deprecated */
+        toElement: Element | undefined;
+        // PointerEvent
+        pointerId: number | undefined;
+        pointerType: string | undefined;
+        // KeyboardEvent
+        /** @deprecated */
+        char: string | undefined;
+        /** @deprecated */
+        charCode: number | undefined;
+        key: string | undefined;
+        /** @deprecated */
+        keyCode: number | undefined;
+        // TouchEvent
+        changedTouches: TouchList | undefined;
+        targetTouches: TouchList | undefined;
+        touches: TouchList | undefined;
+        // MouseEvent, KeyboardEvent
+        which: number | undefined;
+        // MouseEvent, KeyboardEvent, TouchEvent
+        altKey: boolean | undefined;
+        ctrlKey: boolean | undefined;
+        metaKey: boolean | undefined;
+        shiftKey: boolean | undefined;
+        timeStamp: number;
+        type: string;
+        isDefaultPrevented(): boolean;
+        isImmediatePropagationStopped(): boolean;
+        isPropagationStopped(): boolean;
+        preventDefault(): void;
+        stopImmediatePropagation(): void;
+        stopPropagation(): void;
+    }
+
+    interface TriggeredEvent<
+        TDelegateTarget = any,
+        TData = any,
+        TCurrentTarget = any,
+        TTarget = any
+    > extends Event {
+        currentTarget: TCurrentTarget;
+        delegateTarget: TDelegateTarget;
+        target: TTarget;
+        data: TData;
+        namespace?: string | undefined;
+        originalEvent?: NativeEvent | undefined;
+        result?: any;
+    }
+
     type List<T> = ArrayLike<T>;
     type ListIterator<T, TResult> = (value: T, index: number, collection: List<T>) => TResult;
 
@@ -4554,7 +4041,7 @@ export namespace mvc {
      * DOM events (used in the events property of a View)
      */
     interface EventsHash {
-        [selector: string]: string | { (eventObject: JQuery.TriggeredEvent): void };
+        [selector: string]: string | { (eventObject: mvc.TriggeredEvent): void };
     }
 
     /**
@@ -4823,7 +4310,7 @@ export namespace mvc {
         model?: TModel | undefined;
         // TODO: quickfix, this can't be fixed easy. The collection does not need to have the same model as the parent view.
         collection?: Collection<any> | undefined; // was: Collection<TModel>;
-        el?: TElement | JQuery | string | undefined;
+        el?: TElement | Dom | string | undefined;
         id?: string | undefined;
         attributes?: Record<string, any> | undefined;
         className?: string | undefined;
@@ -4831,7 +4318,7 @@ export namespace mvc {
         events?: _Result<EventsHash> | undefined;
     }
 
-    type ViewBaseEventListener = (event: JQuery.Event) => void;
+    type ViewBaseEventListener = (event: mvc.Event) => void;
 
     class ViewBase<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> extends EventsMixin implements Events {
         /**
@@ -4859,16 +4346,18 @@ export namespace mvc {
         // A conditional type used here to prevent `TS2532: Object is possibly 'undefined'`
         model: TModel extends Model ? TModel : undefined;
         collection: Collection<any>;
-        setElement(element: TElement | JQuery): this;
+        setElement(element: TElement | Dom): this;
         id?: string | undefined;
         cid: string;
         className?: string | undefined;
         tagName: string;
 
         el: TElement;
-        $el: JQuery;
         attributes: Record<string, any>;
-        $(selector: string): JQuery;
+        /* @deprecated use `el` instead */
+        $el: Dom;
+        /* @deprecated use `el.querySelector()` instead */
+        $(selector: string): Dom;
         render(): this;
         remove(): this;
         delegateEvents(events?: _Result<EventsHash>): this;
@@ -4877,7 +4366,7 @@ export namespace mvc {
         undelegate(eventName: string, selector?: string, listener?: ViewBaseEventListener): this;
 
         protected _removeElement(): void;
-        protected _setElement(el: TElement | JQuery): void;
+        protected _setElement(el: TElement | Dom): void;
         protected _createElement(tagName: string): void;
         protected _ensureElement(): void;
         protected _setAttributes(attributes: Record<string, any>): void;
@@ -5847,6 +5336,8 @@ export namespace linkTools {
             snapRadius?: number;
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
+            vertexRemoving?: boolean;
+            vertexMoving?: boolean;
             stopPropagation?: boolean;
             scale?: number;
         }

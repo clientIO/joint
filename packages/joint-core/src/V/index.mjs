@@ -2221,7 +2221,6 @@ const V = (function() {
     // Take a path data string
     // Return a normalized path data string
     // If data cannot be parsed, return 'M 0 0'
-    // Adapted from Rappid normalizePath polyfill
     // Highly inspired by Raphael Library (www.raphael.com)
     V.normalizePathData = (function() {
 
