@@ -112,6 +112,30 @@ QUnit.module('cell', function(hooks) {
         });
     });
 
+    QUnit.module('defaults', function() {
+
+        QUnit.test('arrays', function(assert) {
+
+            const Rect = joint.shapes.standard.Rectangle.define('Rect', {
+                array: [1,2]
+            });
+
+            const rect1 = new Rect({});
+            assert.deepEqual(rect1.get('array'), [1,2]);
+            const rect2 = new Rect({ array: [] });
+            assert.deepEqual(rect2.get('array'), []);
+            const rect3 = new Rect({ array: [3] });
+            assert.deepEqual(rect3.get('array'), [3]);
+
+            const rect4 = new Rect({}, { mergeArrays: true });
+            assert.deepEqual(rect4.get('array'), [1,2]);
+            const rect5 = new Rect({ array: [] }, { mergeArrays: true });
+            assert.deepEqual(rect5.get('array'), [1,2]);
+            const rect6 = new Rect({ array: [3] }, { mergeArrays: true });
+            assert.deepEqual(rect6.get('array'), [3,2]);
+        });
+    });
+
     QUnit.module('parent', function(hooks) {
 
         QUnit.test('parent', function(assert) {

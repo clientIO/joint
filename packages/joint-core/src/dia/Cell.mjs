@@ -36,6 +36,12 @@ import * as g from '../g/index.mjs';
 // Cell base model.
 // --------------------------
 
+const attributesMerger = function(a, b) {
+    if (Array.isArray(a)) {
+        return b;
+    }
+};
+
 export const Cell = Model.extend({
 
     // This is the same as mvc.Model with the only difference that is uses util.merge
@@ -55,7 +61,8 @@ export const Cell = Model.extend({
         if ((defaults = result(this, 'defaults'))) {
             //<custom code>
             // Replaced the call to _.defaults with util.merge.
-            attrs = merge({}, defaults, attrs);
+            const customizer = (options && options.mergeArrays === true) ? false : attributesMerger;
+            attrs = merge({}, defaults, attrs, customizer);
             //</custom code>
         }
         this.set(attrs, options);

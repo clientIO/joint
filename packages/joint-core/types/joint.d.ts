@@ -320,11 +320,15 @@ export namespace dia {
             timingFunction?: util.timing.TimingFunction;
             valueFunction?: util.interpolate.InterpolateFunction<any>;
         }
+
+        interface ConstructorOptions extends Graph.Options {
+            mergeArrays?: boolean;
+        }
     }
 
     class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
-        constructor(attributes?: A, opt?: Graph.Options);
+        constructor(attributes?: A, opt?: Cell.ConstructorOptions);
 
         id: Cell.ID;
         graph: Graph;
