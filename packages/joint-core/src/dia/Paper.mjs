@@ -2913,8 +2913,7 @@ export const Paper = View.extend({
                 throw new Error('Non-existing filter ' + name);
             }
 
-            // Set the filter area to be 3x the bounding box of the cell
-            // and center the filter around the cell.
+            // SVG <filter/> attributes
             var filterAttrs = assign({
                 filterUnits: 'userSpaceOnUse',
             }, filter.attrs, {
