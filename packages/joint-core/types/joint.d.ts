@@ -1418,6 +1418,8 @@ export namespace dia {
 
         options: Paper.Options;
 
+        stylesheet: string;
+
         svg: SVGSVGElement;
         defs: SVGDefsElement;
         cells: SVGGElement;
@@ -1744,6 +1746,8 @@ export namespace dia {
         protected detachView(cellView: CellView): void;
 
         protected customEventTrigger(event: dia.Event, view: CellView, rootNode?: SVGElement): dia.Event | null;
+
+        protected addStylesheet(stylesheet: string): void;
     }
 
     namespace PaperLayer {

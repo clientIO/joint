@@ -19,7 +19,6 @@ module.exports = function(grunt) {
                 './plugins/**/*.mjs',
                 './src/**/*.js',
                 './src/**/*.mjs',
-                './css/**/*.css'
             ],
             options: watchOptions,
             tasks: ['build']

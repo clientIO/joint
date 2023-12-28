@@ -29,7 +29,6 @@ module.exports = function(grunt) {
         ],
         'build:joint': [
             'shell:rollup-joint',
-            'newer:concat:joint',
             'newer:concat:types',
             'newer:copy:appsLibs'
         ],
@@ -40,8 +39,7 @@ module.exports = function(grunt) {
             'newer:uglify:joint',
             'newer:uglify:jointCore',
             'newer:uglify:jointNoWrap',
-            'newer:uglify:plugins',
-            'newer:cssmin:joint',
+            'newer:uglify:plugins'
         ],
         'build:bundles': [
             'newer:browserify',

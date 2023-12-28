@@ -55,11 +55,6 @@ module.exports = function(grunt) {
                 },
                 {
                     nonull: true,
-                    src: 'build/joint.min.css',
-                    dest: 'build/docs/css/lib/joint.min.css'
-                },
-                {
-                    nonull: true,
                     src: 'node_modules/prism-themes/themes/prism-one-light.css',
                     dest: 'build/docs/css/prism.css'
                 }
@@ -69,7 +64,6 @@ module.exports = function(grunt) {
             files: [
                 { nonull: true, src: 'build/joint.d.ts', dest: 'demo/ts-demo/vendor/joint.d.ts' },
                 { nonull: true, src: 'build/joint.js', dest: 'demo/ts-demo/vendor/joint.js' },
-                { nonull: true, src: 'build/joint.css', dest: 'demo/ts-demo/vendor/joint.css' }
             ]
         }
     };
