@@ -1,0 +1,13 @@
+<pre class="docs-method-signature"><code>new Cell([attributes], [options])</code></pre>
+
+<p>When creating an instance of a cell, you can pass in the initial values of the attributes, which will be set on the model.</p>
+
+<p>If you pass a <code>{ mergeArrays: true }</code> as the options, all the arrays defined as class defaults will be merged instead of overridden.</p>
+
+<pre><code>const MyRect = joint.shapes.standard.Rectangle.define('Rect', { array: [1,2] });
+
+const rect1 = new MyRect({ array: [3] });
+console.log(rect1.get('array')); // [3] array was overridden
+
+const rect2 = new MyRect({ array: [3] }, { mergeArrays: true });
+console.log(rect2.get('array')); // [3,2] array was merged </code></pre>
