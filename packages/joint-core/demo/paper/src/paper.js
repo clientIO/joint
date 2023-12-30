@@ -367,8 +367,7 @@ $h.on('input change', function() {
     paper.setDimensions(parseInt($w.val(), 10), parseInt(this.value, 10));
 });
 $grid.on('input change', function() {
-    paper.options.gridSize = this.value;
-    paper.drawGrid();
+    paper.setGridSize(this.value);
 });
 $('.range').on('input change', function() {
     $(this).next().text(this.value);
@@ -548,7 +547,6 @@ var gridTypes = {
 var renderer = _inputRenderer(gridTypes, function(gridOpt) {
 
     paper.setGrid(gridOpt);
-    paper.drawGrid();
 });
 
 var $gridTypesOpt = $('.grid-types-opt');

@@ -83,6 +83,8 @@ const defaultHighlighting = {
 };
 
 const defaultLayers = [{
+    name: LayersNames.GRID,
+}, {
     name: LayersNames.BACK,
 }, {
     name: LayersNames.CELLS,
@@ -395,7 +397,7 @@ export const Paper = View.extend({
         // Layers (SVGGroups)
         this._layers = {};
 
-        this.setGrid(options.drawGrid);
+        this._setGrid(options.drawGrid);
         this.cloneOptions();
         this.render();
         this._setDimensions();
@@ -557,15 +559,6 @@ export const Paper = View.extend({
                 inset: 0
             }
         }, {
-            namespaceURI: ns.xhtml,
-            tagName: 'div',
-            className: addClassNamePrefix('paper-grid'),
-            selector: 'grid',
-            style: {
-                position: 'absolute',
-                inset: 0
-            }
-        }, {
             namespaceURI: ns.svg,
             tagName: 'svg',
             attributes: {
@@ -629,7 +622,7 @@ export const Paper = View.extend({
         }
 
         if (options.drawGrid) {
-            this.drawGrid();
+            this.renderGrid();
         }
 
         return this;
@@ -652,6 +645,7 @@ export const Paper = View.extend({
         const cellsLayerView = this.getLayerView(LayersNames.CELLS);
         const toolsLayerView = this.getLayerView(LayersNames.TOOLS);
         const labelsLayerView = this.getLayerView(LayersNames.LABELS);
+        const gridLayerView = this.getLayerView(LayersNames.GRID);
         // backwards compatibility
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
@@ -662,6 +656,7 @@ export const Paper = View.extend({
         cellsLayerView.el.style.userSelect = 'none';
         labelsLayerView.el.style.webkitUserSelect = 'none';
         labelsLayerView.el.style.userSelect = 'none';
+        gridLayerView.el.style.pointerEvents = 'none';
     },
 
     removeLayers: function() {
@@ -682,7 +677,7 @@ export const Paper = View.extend({
     update: function() {
 
         if (this.options.drawGrid) {
-            this.drawGrid();
+            this.updateGrid();
         }
 
         if (this._background) {
@@ -1310,6 +1305,7 @@ export const Paper = View.extend({
         this._setDimensions();
         const computedSize = this.getComputedSize();
         this.trigger('resize', computedSize.width, computedSize.height);
+        this.updateGrid();
     },
 
     _setDimensions: function() {
@@ -1830,7 +1826,7 @@ export const Paper = View.extend({
         this.trigger('translate', ox, oy);
 
         if (drawGrid) {
-            this.drawGrid();
+            this.updateGrid();
         }
 
         return this;
@@ -2645,56 +2641,62 @@ export const Paper = View.extend({
 
         if (options.drawGrid && !options.drawGridSize) {
             // Do not redraw the grid if the `drawGridSize` is set.
-            this.drawGrid();
+            this.renderGrid();
         }
 
         return this;
     },
 
-    clearGrid: function() {
+    removeGrid: function() {
 
-        const { childNodes } = this;
-        if (childNodes && childNodes.grid) {
-            childNodes.grid.style.backgroundImage = '';
+        const { _gridCache: grid } = this;
+        if (grid) {
+            grid.root.remove();
+            this._gridCache = null;
         }
+
         return this;
     },
 
     _getGridRefs: function() {
 
-        if (!this._gridCache) {
+        let { _gridCache: grid } = this;
+        if (grid) return grid;
 
-            this._gridCache = {
-                root: V('svg', { width: '100%', height: '100%' }, V('defs')),
-                patterns: {},
-                add: function(id, vel) {
-                    V(this.root.node.childNodes[0]).append(vel);
-                    this.patterns[id] = vel;
-                    this.root.append(V('rect', { width: '100%', height: '100%', fill: 'url(#' + id + ')' }));
-                },
-                get: function(id) {
-                    return this.patterns[id];
-                },
-                exist: function(id) {
-                    return this.patterns[id] !== undefined;
-                }
-            };
-        }
+        grid = this._gridCache = {
+            root: V('svg', { width: '100%', height: '100%' }, V('defs')),
+            patterns: {},
+            add: function(id, vel) {
+                V(this.root.node.childNodes[0]).append(vel);
+                this.patterns[id] = vel;
+                this.root.append(V('rect', { width: '100%', height: '100%', fill: 'url(#' + id + ')' }));
+            },
+            get: function(id) {
+                return this.patterns[id];
+            },
+            exist: function(id) {
+                return this.patterns[id] !== undefined;
+            }
+        };
 
-        return this._gridCache;
+        return grid;
+    },
+
+    _setGrid: function(drawGrid) {
+        this.removeGrid();
+        this._gridCache = null;
+        this._gridSettings = [];
+        if (!drawGrid) return this;
+        const optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
+        optionsList.forEach((item) => {
+            this._gridSettings.push(...this._resolveDrawGridOption(item));
+        });
+        return this;
     },
 
     setGrid: function(drawGrid) {
-
-        this.clearGrid();
-
-        this._gridCache = null;
-        this._gridSettings = [];
-
-        var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        optionsList.forEach(function(item) {
-            this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
-        }, this);
+        this._setGrid(drawGrid);
+        this.renderGrid();
         return this;
     },
 
@@ -2734,61 +2736,64 @@ export const Paper = View.extend({
         return isArray ? options : [options];
     },
 
-    drawGrid: function(opt) {
+    renderGrid: function() {
+
+        this.removeGrid();
 
         const gridSize = this.options.drawGridSize || this.options.gridSize;
         if (gridSize <= 1) {
-            return this.clearGrid();
+            return;
         }
 
-        var localOptions = Array.isArray(opt) ? opt : [opt];
+        const refs = this._getGridRefs();
+        const { _gridSettings: gridSettings } = this;
 
-        var ctm = this.matrix();
-        var refs = this._getGridRefs();
+        gridSettings.forEach((gridLayerSetting, index) => {
 
-        this._gridSettings.forEach(function(gridLayerSetting, index) {
+            const id = 'pattern_' + index;
+            const options = merge({}, gridLayerSetting);
+            const { scaleFactor = 1 } = options;
+            options.width = gridSize * scaleFactor || 1;
+            options.height = gridSize * scaleFactor || 1;
 
-            var id = 'pattern_' + index;
-            var options = merge(gridLayerSetting, localOptions[index], {
-                sx: ctm.a || 1,
-                sy: ctm.d || 1,
-                ox: ctm.e || 0,
-                oy: ctm.f || 0
-            });
-
-            options.width = gridSize * (ctm.a || 1) * (options.scaleFactor || 1);
-            options.height = gridSize * (ctm.d || 1) * (options.scaleFactor || 1);
-
+            let vPattern;
             if (!refs.exist(id)) {
-                refs.add(id, V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup)));
+                vPattern = V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup));
+                refs.add(id, vPattern);
+            } else {
+                vPattern = refs.get(id);
             }
 
-            var patternDefVel = refs.get(id);
-
-            if (isFunction(options.update)) {
-                options.update(patternDefVel.node.childNodes[0], options);
+            if (isFunction(options.render)) {
+                options.render(vPattern.node.firstChild, options, this);
             }
-
-            var x = options.ox % options.width;
-            if (x < 0) x += options.width;
-
-            var y = options.oy % options.height;
-            if (y < 0) y += options.height;
-
-            patternDefVel.attr({
-                x: x,
-                y: y,
+            vPattern.attr({
                 width: options.width,
                 height: options.height
             });
         });
 
-        var patternUri = new XMLSerializer().serializeToString(refs.root.node);
-        patternUri = 'url(data:image/svg+xml;base64,' + btoa(patternUri) + ')';
-
-        this.childNodes.grid.style.backgroundImage = patternUri;
-
+        refs.root.appendTo(this.getLayerNode(LayersNames.GRID));
+        this.updateGrid();
         return this;
+    },
+
+    updateGrid: function() {
+        const { _gridCache: grid, _gridSettings: gridSettings } = this;
+        if (!grid) return;
+        const { root: vSvg, patterns } = grid;
+        const { x, y, width, height } = this.getArea();
+        vSvg.attr({ x, y, width, height });
+        for (const patternId in patterns) {
+            const vPattern = patterns[patternId];
+            vPattern.attr({ x: -x, y: -y });
+        }
+        gridSettings.forEach((options, index) => {
+            if (isFunction(options.update)) {
+                const vPattern = patterns['pattern_' + index];
+                options.update(vPattern.node.firstChild, options, this);
+            }
+        });
     },
 
     updateBackgroundImage: function(opt) {
@@ -3250,10 +3255,10 @@ export const Paper = View.extend({
             color: '#AAAAAA',
             thickness: 1,
             markup: 'rect',
-            update: function(el, opt) {
+            render: function(el, opt) {
                 V(el).attr({
-                    width: opt.thickness * opt.sx,
-                    height: opt.thickness * opt.sy,
+                    width: opt.thickness,
+                    height: opt.thickness,
                     fill: opt.color
                 });
             }
@@ -3262,16 +3267,21 @@ export const Paper = View.extend({
             color: '#AAAAAA',
             thickness: 1,
             markup: 'rect',
-            update: function(el, opt) {
-                var size = opt.sx <= 1 ? opt.thickness * opt.sx : opt.thickness;
-                V(el).attr({ width: size, height: size, fill: opt.color });
+            render: function(el, opt) {
+                V(el).attr({ fill: opt.color });
+            },
+            update: function(el, opt, paper) {
+                const { sx, sy } = paper.scale();
+                const width = sx <= 1 ? opt.thickness : opt.thickness / sx;
+                const height = sy <= 1 ? opt.thickness : opt.thickness / sy;
+                V(el).attr({ width, height });
             }
         }],
         mesh: [{
             color: '#AAAAAA',
             thickness: 1,
             markup: 'path',
-            update: function(el, opt) {
+            render: function(el, opt) {
 
                 var d;
                 var width = opt.width;
@@ -3291,7 +3301,7 @@ export const Paper = View.extend({
             color: '#AAAAAA',
             thickness: 1,
             markup: 'path',
-            update: function(el, opt) {
+            render: function(el, opt) {
 
                 var d;
                 var width = opt.width;
@@ -3311,7 +3321,7 @@ export const Paper = View.extend({
             thickness: 3,
             scaleFactor: 4,
             markup: 'path',
-            update: function(el, opt) {
+            render: function(el, opt) {
 
                 var d;
                 var width = opt.width;
