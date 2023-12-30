@@ -1187,6 +1187,7 @@ export namespace dia {
             BACK = 'back',
             FRONT = 'front',
             TOOLS = 'tools',
+            GRID = 'grid',
         }
 
         type UpdateStats = {
