@@ -21,7 +21,6 @@ import {
     debounce,
     omit,
     result,
-    merge,
     camelCase,
     cloneDeep,
     invoke,
@@ -46,6 +45,7 @@ import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
+import { GridLayer } from './layers/GridLayer.mjs';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -397,7 +397,6 @@ export const Paper = View.extend({
         // Layers (SVGGroups)
         this._layers = {};
 
-        this._setGrid(options.drawGrid);
         this.cloneOptions();
         this.render();
         this._setDimensions();
@@ -622,7 +621,7 @@ export const Paper = View.extend({
         }
 
         if (options.drawGrid) {
-            this.renderGrid();
+            this.setGrid(options.drawGrid);
         }
 
         return this;
@@ -633,11 +632,20 @@ export const Paper = View.extend({
         V(this.svg).prepend(V.createSVGStyle(css));
     },
 
+    createLayer(name) {
+        switch (name) {
+            case LayersNames.GRID:
+                return new GridLayer({ name, paper: this, patterns: this.constructor.gridPatterns });
+            default:
+                return new PaperLayer({ name });
+        }
+    },
+
     renderLayers: function(layers = defaultLayers) {
         this.removeLayers();
         // TODO: Layers to be read from the graph `layers` attribute
         layers.forEach(({ name, sorted }) => {
-            const layerView = new PaperLayer({ name });
+            const layerView = this.createLayer(name);
             this.layers.appendChild(layerView.el);
             this._layers[name] = layerView;
         });
@@ -645,7 +653,6 @@ export const Paper = View.extend({
         const cellsLayerView = this.getLayerView(LayersNames.CELLS);
         const toolsLayerView = this.getLayerView(LayersNames.TOOLS);
         const labelsLayerView = this.getLayerView(LayersNames.LABELS);
-        const gridLayerView = this.getLayerView(LayersNames.GRID);
         // backwards compatibility
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
@@ -656,7 +663,6 @@ export const Paper = View.extend({
         cellsLayerView.el.style.userSelect = 'none';
         labelsLayerView.el.style.webkitUserSelect = 'none';
         labelsLayerView.el.style.userSelect = 'none';
-        gridLayerView.el.style.pointerEvents = 'none';
     },
 
     removeLayers: function() {
@@ -675,10 +681,6 @@ export const Paper = View.extend({
     },
 
     update: function() {
-
-        if (this.options.drawGrid) {
-            this.updateGrid();
-        }
 
         if (this._background) {
             this.updateBackgroundImage(this._background);
@@ -1305,7 +1307,6 @@ export const Paper = View.extend({
         this._setDimensions();
         const computedSize = this.getComputedSize();
         this.trigger('resize', computedSize.width, computedSize.height);
-        this.updateGrid();
     },
 
     _setDimensions: function() {
@@ -1824,11 +1825,6 @@ export const Paper = View.extend({
         origin.y = oy;
 
         this.trigger('translate', ox, oy);
-
-        if (drawGrid) {
-            this.updateGrid();
-        }
-
         return this;
     },
 
@@ -2635,165 +2631,18 @@ export const Paper = View.extend({
     },
 
     setGridSize: function(gridSize) {
-
         const { options } = this;
         options.gridSize = gridSize;
-
         if (options.drawGrid && !options.drawGridSize) {
             // Do not redraw the grid if the `drawGridSize` is set.
-            this.renderGrid();
+            this.getLayerView(LayersNames.GRID).renderGrid();
         }
-
-        return this;
-    },
-
-    removeGrid: function() {
-
-        const { _gridCache: grid } = this;
-        if (grid) {
-            grid.root.remove();
-            this._gridCache = null;
-        }
-
-        return this;
-    },
-
-    _getGridRefs: function() {
-
-        let { _gridCache: grid } = this;
-        if (grid) return grid;
-
-        grid = this._gridCache = {
-            root: V('svg', { width: '100%', height: '100%' }, V('defs')),
-            patterns: {},
-            add: function(id, vel) {
-                this.root.children()[0].append(vel);
-                this.patterns[id] = vel;
-                this.root.append(V('rect', { width: '100%', height: '100%', fill: 'url(#' + id + ')' }));
-            },
-            get: function(id) {
-                return this.patterns[id];
-            },
-            exist: function(id) {
-                return this.patterns[id] !== undefined;
-            }
-        };
-
-        return grid;
-    },
-
-    _setGrid: function(drawGrid) {
-        this.removeGrid();
-        this._gridCache = null;
-        this._gridSettings = [];
-        if (!drawGrid) return this;
-        const optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        optionsList.forEach((item) => {
-            this._gridSettings.push(...this._resolveDrawGridOption(item));
-        });
         return this;
     },
 
     setGrid: function(drawGrid) {
-        this._setGrid(drawGrid);
-        this.renderGrid();
+        this.getLayerView(LayersNames.GRID).setGrid(drawGrid);
         return this;
-    },
-
-    _resolveDrawGridOption: function(opt) {
-
-        var namespace = this.constructor.gridPatterns;
-        if (isString(opt) && Array.isArray(namespace[opt])) {
-            return namespace[opt].map(function(item) {
-                return assign({}, item);
-            });
-        }
-
-        var options = opt || { args: [{}] };
-        var isArray = Array.isArray(options);
-        var name = options.name;
-
-        if (!isArray && !name && !options.markup) {
-            name = 'dot';
-        }
-
-        if (name && Array.isArray(namespace[name])) {
-            var pattern = namespace[name].map(function(item) {
-                return assign({}, item);
-            });
-
-            var args = Array.isArray(options.args) ? options.args : [options.args || {}];
-
-            defaults(args[0], omit(opt, 'args'));
-            for (var i = 0; i < args.length; i++) {
-                if (pattern[i]) {
-                    assign(pattern[i], args[i]);
-                }
-            }
-            return pattern;
-        }
-
-        return isArray ? options : [options];
-    },
-
-    renderGrid: function() {
-
-        this.removeGrid();
-
-        const gridSize = this.options.drawGridSize || this.options.gridSize;
-        if (gridSize <= 1) {
-            return;
-        }
-
-        const refs = this._getGridRefs();
-        const { _gridSettings: gridSettings } = this;
-
-        gridSettings.forEach((gridLayerSetting, index) => {
-
-            const id = 'pattern_' + index;
-            const options = merge({}, gridLayerSetting);
-            const { scaleFactor = 1 } = options;
-            options.width = gridSize * scaleFactor || 1;
-            options.height = gridSize * scaleFactor || 1;
-
-            let vPattern;
-            if (!refs.exist(id)) {
-                vPattern = V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup));
-                refs.add(id, vPattern);
-            } else {
-                vPattern = refs.get(id);
-            }
-
-            if (isFunction(options.render)) {
-                options.render(vPattern.node.firstChild, options, this);
-            }
-            vPattern.attr({
-                width: options.width,
-                height: options.height
-            });
-        });
-
-        refs.root.appendTo(this.getLayerNode(LayersNames.GRID));
-        this.updateGrid();
-        return this;
-    },
-
-    updateGrid: function() {
-        const { _gridCache: grid, _gridSettings: gridSettings } = this;
-        if (!grid) return;
-        const { root: vSvg, patterns } = grid;
-        const { x, y, width, height } = this.getArea();
-        vSvg.attr({ x, y, width, height });
-        for (const patternId in patterns) {
-            const vPattern = patterns[patternId];
-            vPattern.attr({ x: -x, y: -y });
-        }
-        gridSettings.forEach((options, index) => {
-            if (isFunction(options.update)) {
-                const vPattern = patterns['pattern_' + index];
-                options.update(vPattern.node.firstChild, options, this);
-            }
-        });
     },
 
     updateBackgroundImage: function(opt) {

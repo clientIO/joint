@@ -1541,10 +1541,6 @@ export namespace dia {
 
         // grid
 
-        protected renderGrid(): this;
-
-        protected removeGrid(): this;
-
         setGrid(opt?: null | boolean | string | Paper.GridOptions | Paper.GridOptions[]): this;
 
         setGridSize(gridSize: number): this;
