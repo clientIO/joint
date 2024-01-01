@@ -1807,7 +1807,7 @@ export const Paper = View.extend({
         }
 
         const { options } = this;
-        const { origin, drawGrid } = options;
+        const { origin } = options;
 
         // setter
         tx || (tx = 0);
