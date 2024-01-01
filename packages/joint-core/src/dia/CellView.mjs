@@ -11,7 +11,6 @@ import {
     isBoolean,
     isEmpty,
     isString,
-    toKebabCase,
     result,
     sortedIndex,
     merge,
@@ -21,6 +20,7 @@ import { Point, Rect } from '../g/index.mjs';
 import V from '../V/index.mjs';
 import $ from '../mvc/Dom/index.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
+import { evalAttributes, evalAttribute } from './attributes/eval.mjs';
 
 const HighlightingTypes = {
     DEFAULT: 'default',
@@ -544,12 +544,17 @@ export const CellView = View.extend({
         var attrName, attrVal, def, i, n;
         var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
         var relatives = [];
-        // divide the attributes between normal and special
+        const rawAttrs = {};
         for (attrName in attrs) {
             if (!attrs.hasOwnProperty(attrName)) continue;
-            attrVal = attrs[attrName];
+            rawAttrs[V.attributeNames[attrName]] = attrs[attrName];
+        }
+        // divide the attributes between normal and special
+        for (attrName in rawAttrs) {
+            if (!rawAttrs.hasOwnProperty(attrName)) continue;
+            attrVal = rawAttrs[attrName];
             def = this.getAttributeDefinition(attrName);
-            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs, this))) {
+            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, rawAttrs, this))) {
                 if (isString(def.set)) {
                     normalAttrs || (normalAttrs = {});
                     normalAttrs[def.set] = attrVal;
@@ -559,7 +564,7 @@ export const CellView = View.extend({
                 }
             } else {
                 normalAttrs || (normalAttrs = {});
-                normalAttrs[toKebabCase(attrName)] = attrVal;
+                normalAttrs[attrName] = attrVal;
             }
         }
 
@@ -584,7 +589,7 @@ export const CellView = View.extend({
         }
 
         return {
-            raw: attrs,
+            raw: rawAttrs,
             normal: normalAttrs,
             set: setAttrs,
             position: positionAttrs,
@@ -597,19 +602,22 @@ export const CellView = View.extend({
         opt || (opt = {});
 
         var attrName, attrVal, def;
-        var rawAttrs = attrs.raw || {};
+        var evalAttrs = evalAttributes(attrs.raw || {}, refBBox);
         var nodeAttrs = attrs.normal || {};
+        for (const nodeAttrName in nodeAttrs) {
+            nodeAttrs[nodeAttrName] = evalAttrs[nodeAttrName];
+        }
         var setAttrs = attrs.set;
         var positionAttrs = attrs.position;
         var offsetAttrs = attrs.offset;
 
         for (attrName in setAttrs) {
-            attrVal = setAttrs[attrName];
+            attrVal = evalAttrs[attrName];
             def = this.getAttributeDefinition(attrName);
             // SET - set function should return attributes to be set on the node,
             // which will affect the node dimensions based on the reference bounding
             // box. e.g. `width`, `height`, `d`, `rx`, `ry`, `points
-            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
+            var setResult = def.set.call(this, attrVal, refBBox.clone(), node, evalAttrs, this);
             if (isObject(setResult)) {
                 assign(nodeAttrs, setResult);
             } else if (setResult !== undefined) {
@@ -645,13 +653,13 @@ export const CellView = View.extend({
 
         var positioned = false;
         for (attrName in positionAttrs) {
-            attrVal = positionAttrs[attrName];
+            attrVal = evalAttrs[attrName];
             def = this.getAttributeDefinition(attrName);
             // POSITION - position function should return a point from the
             // reference bounding box. The default position of the node is x:0, y:0 of
             // the reference bounding box or could be further specify by some
             // SVG attributes e.g. `x`, `y`
-            translation = def.position.call(this, attrVal, refBBox.clone(), node, rawAttrs, this);
+            translation = def.position.call(this, attrVal, refBBox.clone(), node, evalAttrs, this);
             if (translation) {
                 nodePosition.offset(Point(translation).scale(sx, sy));
                 positioned || (positioned = true);
@@ -669,12 +677,12 @@ export const CellView = View.extend({
             if (nodeBoundingRect.width > 0 && nodeBoundingRect.height > 0) {
                 var nodeBBox = V.transformRect(nodeBoundingRect, nodeMatrix).scale(1 / sx, 1 / sy);
                 for (attrName in offsetAttrs) {
-                    attrVal = offsetAttrs[attrName];
+                    attrVal = evalAttrs[attrName];
                     def = this.getAttributeDefinition(attrName);
                     // OFFSET - offset function should return a point from the element
                     // bounding box. The default offset point is x:0, y:0 (origin) or could be further
                     // specify with some SVG attributes e.g. `text-anchor`, `cx`, `cy`
-                    translation = def.offset.call(this, attrVal, nodeBBox, node, rawAttrs, this);
+                    translation = def.offset.call(this, attrVal, nodeBBox, node, evalAttrs, this);
                     if (translation) {
                         nodePosition.offset(Point(translation).scale(sx, sy));
                         offseted || (offseted = true);
@@ -874,9 +882,9 @@ export const CellView = View.extend({
             node = nodeData.node;
             processedAttrs = this.processNodeAttributes(node, nodeAttrs);
 
-            if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
+            if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset && !processedAttrs.raw.ref) {
                 // Set all the normal attributes right on the SVG/HTML element.
-                this.setNodeAttributes(node, processedAttrs.normal);
+                this.setNodeAttributes(node, evalAttributes(processedAttrs.normal, opt.rootBBox));
 
             } else {
 
@@ -1280,7 +1288,10 @@ export const CellView = View.extend({
             if (typeof b === 'string') b = [b];
             if (Array.isArray(a) && Array.isArray(b)) return uniq(a.concat(b));
         });
-    }
+    },
+
+    evalAttribute,
+
 });
 
 // TODO: Move to Vectorizer library.

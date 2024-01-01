@@ -14,10 +14,10 @@ var paper = new joint.dia.Paper({
 });
 
 // Global special attributes
-joint.dia.attributes.lineStyle = {
+joint.dia.attributes['line-style'] = {
     set: function(lineStyle, refBBox, node, attrs) {
 
-        var n = attrs['strokeWidth'] || attrs['stroke-width'] || 1;
+        var n = attrs['stroke-width'] || 1;
         var dasharray = {
             'dashed': (4*n) + ',' + (2*n),
             'dotted': n + ',' + n
@@ -27,7 +27,7 @@ joint.dia.attributes.lineStyle = {
     }
 };
 
-joint.dia.attributes.fitRef = {
+joint.dia.attributes['fit-ref'] = {
     set: function(fitRef, refBBox, node) {
         switch (node.tagName.toUpperCase()) {
             case 'ELLIPSE':
@@ -509,7 +509,7 @@ var Progress = joint.dia.Element.define('progress', {
     }
 }, {
     attributes: {
-        progressD: {
+        'progress-d': {
             set: function(value, bbox) {
 
                 function polarToCartesian(centerX, centerY, radius, angleInDegrees) {

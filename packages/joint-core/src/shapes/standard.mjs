@@ -490,7 +490,7 @@ export const Cylinder = Element.define('standard.Cylinder', {
 
 }, {
     attributes: {
-        lateralArea: {
+        'lateral-area': {
             set: function(t, refBBox) {
                 var isPercentageSetter = isPercentage(t);
                 if (isPercentageSetter) t = parseFloat(t) / 100;

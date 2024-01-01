@@ -224,7 +224,7 @@
         },
 
         attributes: {
-            rough: {
+            'rough': {
                 set: function(opt, bbox) {
                     var r = this.paper.rough;
                     if (!r) return;
@@ -248,7 +248,7 @@
                     return { d: r.opsToPath(sets[opt.fillSketch ? 0 : 1]) };
                 }
             },
-            pointerShape: {
+            'pointer-shape': {
                 set: function(type, bbox) {
                     var vel;
                     var width = bbox.width;
@@ -314,7 +314,7 @@
         }]
     }, {
         attributes: {
-            rough: {
+            'rough': {
                 set: function(opt) {
                     var r = this.paper.rough;
                     if (!r) return;

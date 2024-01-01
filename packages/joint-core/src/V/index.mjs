@@ -1445,6 +1445,16 @@ const V = (function() {
         'zoomAndPan' // deprecated
     ].forEach((name) => _attributeNames[name] = name);
 
+    _attributeNames['xlinkShow'] = 'xlink:show';
+    _attributeNames['xlinkRole'] = 'xlink:role';
+    _attributeNames['xlinkActuate'] = 'xlink:actuate';
+    _attributeNames['xlinkHref'] = 'xlink:href';
+    _attributeNames['xlinkType'] = 'xlink:type';
+    _attributeNames['xlinkTitle'] = 'xlink:title';
+    _attributeNames['xmlBase'] = 'xml:base';
+    _attributeNames['xmlLang'] = 'xml:lang';
+    _attributeNames['xmlSpace'] = 'xml:space';
+
     const attributeNames = new Proxy(_attributeNames, {
         get(cache, name) {
             // The cache is a dictionary of attribute names. See `_attributeNames` above.
