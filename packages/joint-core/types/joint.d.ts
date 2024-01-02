@@ -763,9 +763,9 @@ export namespace dia {
 
         findMagnet(el: SVGElement | Dom | string): SVGElement | undefined;
 
-        findNode(selector: string): Element | null;
+        findNode(selector: string): SVGElement | HTMLElement | null;
 
-        findNodes(groupSelector: string): Element[];
+        findNodes(groupSelector: string): Array<SVGElement | HTMLElement>;
 
         findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
