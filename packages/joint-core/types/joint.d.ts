@@ -884,6 +884,8 @@ export namespace dia {
         protected onDetach(): void;
 
         static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
+
+        static evalAttribute(attrName: string, attrValue: any, refBBox: dia.BBox): any;
     }
 
     class CellView extends CellViewGeneric<Cell> {
