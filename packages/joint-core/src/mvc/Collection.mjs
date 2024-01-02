@@ -9,6 +9,16 @@ import {
     sortBy,
     toArray
 } from '../util/util.mjs';
+import {
+    each,
+    filter,
+    first,
+    includes,
+    isEmpty,
+    last,
+    map,
+    reduce
+} from '../util/utilHelpers.mjs';
 
 
 // Collection
@@ -68,7 +78,7 @@ assign(Collection.prototype, Events, {
     // The JSON representation of a Collection is an array of the
     // models' attributes.
     toJSON: function(options) {
-        return Array.from(this).map(function(model) { return model.toJSON(options); });
+        return this.map(function(model) { return model.toJSON(options); });
     },
 
     // Add a model, or list of models to the set. `models` may be
@@ -290,11 +300,6 @@ assign(Collection.prototype, Events, {
         return this;
     },
 
-    // Pluck an attribute from each model in the collection.
-    pluck: function(attr) {
-        return Array.from(this).map((model) => model.get(attr + ''));
-    },
-
     // Create a new collection with an identical list of models as this one.
     clone: function() {
         return new this.constructor(this.models, {
@@ -361,7 +366,7 @@ assign(Collection.prototype, Events, {
             var model = this.get(models[i]);
             if (!model) continue;
 
-            var index = Array.from(this).indexOf(model);
+            var index = this.models.indexOf(model);
             this.models.splice(index, 1);
             this.length--;
 
@@ -491,7 +496,7 @@ CollectionIterator.prototype.next = function() {
 };
 
 //  Methods that we want to implement on the Collection.
-var collectionMethods = { toArray: 1, first: 3, last: 3, sortBy: 3 };
+var collectionMethods = { each: 3, map: 3, reduce: 0, filter: 3, includes: 3, toArray: 1, first: 3, last: 3, isEmpty: 1, sortBy: 3 };
 
 
 // Mix in each method as a proxy to `Collection#models`.
@@ -503,19 +508,16 @@ function addMethods(config) {
         methods = config[1],
         attribute = config[2];
 
-    function first(array) {
-        return (array && array.length) ? array[0] : undefined;
-    }
-
-    function last(array) {
-        var length = array == null ? 0 : array.length;
-        return length ? array[length - 1] : undefined;
-    }
-
     const methodsToAdd = {
-        sortBy,
+        each,
+        filter,
         first,
+        includes,
+        isEmpty,
         last,
+        map,
+        reduce,
+        sortBy,
         toArray
     };
 
