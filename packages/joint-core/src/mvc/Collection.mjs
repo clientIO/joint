@@ -330,7 +330,7 @@ assign(Collection.prototype, Events, {
 
     // Return the first model of the collection
     first: function() {
-        return (this.models && this.models.length) ? this.models[0] : undefined;
+        return this.models[0];
     },
 
     // Return true if value is in the collection
@@ -340,8 +340,7 @@ assign(Collection.prototype, Events, {
 
     // Return the last model of the collection
     last: function() {
-        const length = this.models === null ? 0 : this.models.length;
-        return length ? this.models[length - 1] : undefined;
+        return this.models[this.models.length - 1];
     },
 
     // Return true if collection has no elements
