@@ -1,4 +1,4 @@
-/*! JointJS v3.7.7 (2023-12-20) - JavaScript diagramming library
+/*! JointJS v3.7.7 (2024-01-03) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1482,11 +1482,15 @@ export namespace dia {
             timingFunction?: util.timing.TimingFunction;
             valueFunction?: util.interpolate.InterpolateFunction<any>;
         }
+
+        interface ConstructorOptions extends Graph.Options {
+            mergeArrays?: boolean;
+        }
     }
 
     class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
-        constructor(attributes?: A, opt?: Graph.Options);
+        constructor(attributes?: A, opt?: Cell.ConstructorOptions);
 
         id: Cell.ID;
         graph: Graph;
@@ -2576,6 +2580,8 @@ export namespace dia {
 
         options: Paper.Options;
 
+        stylesheet: string;
+
         svg: SVGSVGElement;
         defs: SVGDefsElement;
         cells: SVGGElement;
@@ -2902,6 +2908,8 @@ export namespace dia {
         protected detachView(cellView: CellView): void;
 
         protected customEventTrigger(event: dia.Event, view: CellView, rootNode?: SVGElement): dia.Event | null;
+
+        protected addStylesheet(stylesheet: string): void;
     }
 
     namespace PaperLayer {
@@ -3997,6 +4005,7 @@ export namespace mvc {
 
     type List<T> = ArrayLike<T>;
     type ListIterator<T, TResult> = (value: T, index: number, collection: List<T>) => TResult;
+    type MemoIterator<T, TResult> = (prev: TResult, curr: T, indexOrKey: any, list: T[]) => TResult;
 
     type _Result<T> = T | (() => T);
     type _StringKey<T> = keyof T & string;
@@ -4255,7 +4264,6 @@ export namespace mvc {
         get(id: number | string | Model): TModel;
         has(key: number | string | Model): boolean;
         clone(): this;
-        pluck(attribute: string): any[];
         push(model: TModel, options?: AddOptions): TModel;
         pop(options?: Silenceable): TModel;
         remove(model: {} | TModel, options?: Silenceable): TModel;
@@ -4296,10 +4304,14 @@ export namespace mvc {
 
         // mixins
 
+        each(iterator: ListIterator<TModel, void>, context?: any): void;
+        filter(iterator: ListIterator<TModel, boolean>, context?: any): TModel[];
         first(): TModel;
-        first(n: number): TModel[];
+        includes(value: TModel): boolean;
+        isEmpty(): boolean;
         last(): TModel;
-        last(n: number): TModel[];
+        map<TResult>(iterator: ListIterator<TModel, TResult>, context?: any): TResult[];
+        reduce<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult, context?: any): TResult;
         sortBy(iterator?: ListIterator<TModel, any>, context?: any): TModel[];
         sortBy(iterator: string, context?: any): TModel[];
         toArray(): TModel[];

@@ -1,4 +1,4 @@
-/*! JointJS v3.7.7 (2023-12-20) - JavaScript diagramming library
+/*! JointJS v3.7.7 (2024-01-03) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -17433,6 +17433,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	// Cell base model.
 	// --------------------------
 
+	var attributesMerger = function(a, b) {
+	    if (Array.isArray(a)) {
+	        return b;
+	    }
+	};
+
 	var Cell = Model.extend({
 
 	    // This is the same as mvc.Model with the only difference that is uses util.merge
@@ -17452,7 +17458,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if ((defaults = result(this, 'defaults'))) {
 	            //<custom code>
 	            // Replaced the call to _.defaults with util.merge.
-	            attrs = merge({}, defaults, attrs);
+	            var customizer = (options && options.mergeArrays === true) ? false : attributesMerger;
+	            attrs = merge({}, defaults, attrs, customizer);
 	            //</custom code>
 	        }
 	        this.set(attrs, options);
@@ -21152,6 +21159,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var Rectangle = Element$1.define('standard.Rectangle', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            width: 'calc(w)',
 	            height: 'calc(h)',
@@ -21180,6 +21190,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var Circle = Element$1.define('standard.Circle', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            cx: 'calc(s/2)',
 	            cy: 'calc(s/2)',
@@ -21209,6 +21222,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var Ellipse$1 = Element$1.define('standard.Ellipse', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            cx: 'calc(w/2)',
 	            cy: 'calc(h/2)',
@@ -21239,6 +21255,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var Path$1 = Element$1.define('standard.Path', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            d: 'M 0 0 H calc(w) V calc(h) H 0 Z',
 	            strokeWidth: 2,
@@ -21266,6 +21285,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var Polygon$1 = Element$1.define('standard.Polygon', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
 	            strokeWidth: 2,
@@ -21293,6 +21315,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var Polyline$1 = Element$1.define('standard.Polyline', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            points: '0 0 calc(w) 0 calc(w) calc(h) 0 calc(h)',
 	            strokeWidth: 2,
@@ -21320,6 +21345,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var Image = Element$1.define('standard.Image', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        image: {
 	            width: 'calc(w)',
 	            height: 'calc(h)',
@@ -21346,6 +21374,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var BorderedImage = Element$1.define('standard.BorderedImage', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        border: {
 	            width: 'calc(w)',
 	            height: 'calc(h)',
@@ -21399,6 +21430,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var EmbeddedImage = Element$1.define('standard.EmbeddedImage', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            width: 'calc(w)',
 	            height: 'calc(h)',
@@ -21438,6 +21472,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var InscribedImage = Element$1.define('standard.InscribedImage', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        border: {
 	            rx: 'calc(w/2)',
 	            ry: 'calc(h/2)',
@@ -21493,6 +21530,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var HeaderedRectangle = Element$1.define('standard.HeaderedRectangle', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            width: 'calc(w)',
 	            height: 'calc(h)',
@@ -21544,6 +21584,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var Cylinder = Element$1.define('standard.Cylinder', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            lateralArea: CYLINDER_TILT,
 	            fill: '#FFFFFF',
@@ -21679,6 +21722,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	var TextBlock = Element$1.define('standard.TextBlock', {
 	    attrs: {
+	        root: {
+	            cursor: 'move'
+	        },
 	        body: {
 	            width: 'calc(w)',
 	            height: 'calc(h)',
@@ -23681,7 +23727,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // The JSON representation of a Collection is an array of the
 	    // models' attributes.
 	    toJSON: function(options) {
-	        return Array.from(this).map(function(model) { return model.toJSON(options); });
+	        return this.map(function(model) { return model.toJSON(options); });
 	    },
 
 	    // Add a model, or list of models to the set. `models` may be
@@ -23903,11 +23949,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return this;
 	    },
 
-	    // Pluck an attribute from each model in the collection.
-	    pluck: function(attr) {
-	        return Array.from(this).map(function (model) { return model.get(attr + ''); });
-	    },
-
 	    // Create a new collection with an identical list of models as this one.
 	    clone: function() {
 	        return new this.constructor(this.models, {
@@ -23934,6 +23975,46 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // Get an iterator of all [ID, model] tuples in this collection.
 	    entries: function() {
 	        return new CollectionIterator(this, ITERATOR_KEYSVALUES);
+	    },
+
+	    // Iterate over elements of the collection, and invoke fn for each element
+	    each: function(fn, context) {
+	        this.models.forEach(fn, context);
+	    },
+
+	    // Iterate over elements of collection, and return an array of all elements fn returns truthy for
+	    filter: function(fn, context) {
+	        return this.models.filter(fn, context);
+	    },
+
+	    // Return the first model of the collection
+	    first: function() {
+	        return this.models[0];
+	    },
+
+	    // Return true if value is in the collection
+	    includes: function(value) {
+	        return this.models.includes(value);
+	    },
+
+	    // Return the last model of the collection
+	    last: function() {
+	        return this.models[this.models.length - 1];
+	    },
+
+	    // Return true if collection has no elements
+	    isEmpty: function() {
+	        return !this.models.length;
+	    },
+
+	    // Create an array of values by running each element in the collection through fn
+	    map: function(fn, context) {
+	        return this.models.map(fn, context);
+	    },
+
+	    // Runs "reducer" fn over all elements in the collection, in ascending-index order, and accumulates them into a single value
+	    reduce: function(fn, initAcc, context) {
+	        return this.models.reduce(fn, initAcc, context);
 	    },
 
 	    // Private method to reset all internal state. Called when the collection
@@ -23974,7 +24055,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            var model = this.get(models[i]);
 	            if (!model) { continue; }
 
-	            var index = Array.from(this).indexOf(model);
+	            var index = this.models.indexOf(model);
 	            this.models.splice(index, 1);
 	            this.length--;
 
@@ -24104,7 +24185,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	//  Methods that we want to implement on the Collection.
-	var collectionMethods = { toArray: 1, first: 3, last: 3, sortBy: 3 };
+	var collectionMethods = { toArray: 1, sortBy: 3 };
 
 
 	// Mix in each method as a proxy to `Collection#models`.
@@ -24116,19 +24197,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        methods = config[1],
 	        attribute = config[2];
 
-	    function first(array) {
-	        return (array && array.length) ? array[0] : undefined;
-	    }
-
-	    function last(array) {
-	        var length = array == null ? 0 : array.length;
-	        return length ? array[length - 1] : undefined;
-	    }
-
 	    var methodsToAdd = {
 	        sortBy: sortBy,
-	        first: first,
-	        last: last,
 	        toArray: toArray
 	    };
 
@@ -24152,8 +24222,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Collection: Collection,
 		Model: Model,
 		ViewBase: ViewBase,
-		extend: extend$1,
-		addMethodsUtil: addMethodsUtil,
 		Event: Event
 	});
 
@@ -33927,6 +33995,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        'touchcancel': 'pointerup'
 	    },
 
+	    /* CSS within the SVG document
+	    * 1. Adding vector-effect: non-scaling-stroke; to prevent the stroke width from scaling for
+	    *    elements that use the `scalable` group.
+	    */
+	    stylesheet: /*css*/"\n        .joint-element .scalable * {\n            vector-effect: non-scaling-stroke;\n        }\n    ",
+
 	    svg: null,
 	    viewport: null,
 	    defs: null,
@@ -34130,12 +34204,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            namespaceURI: ns.xhtml,
 	            tagName: 'div',
 	            className: addClassNamePrefix('paper-background'),
-	            selector: 'background'
+	            selector: 'background',
+	            style: {
+	                position: 'absolute',
+	                inset: 0
+	            }
 	        }, {
 	            namespaceURI: ns.xhtml,
 	            tagName: 'div',
 	            className: addClassNamePrefix('paper-grid'),
-	            selector: 'grid'
+	            selector: 'grid',
+	            style: {
+	                position: 'absolute',
+	                inset: 0
+	            }
 	        }, {
 	            namespaceURI: ns.svg,
 	            tagName: 'svg',
@@ -34145,6 +34227,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                'xmlns:xlink': ns.xlink
 	            },
 	            selector: 'svg',
+	            style: {
+	                position: 'absolute',
+	                inset: 0
+	            },
 	            children: [{
 	                // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
 	                // It's desired to have the defs defined before the viewport (e.g. to make a PDF document pick up defs properly).
@@ -34177,12 +34263,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        this.renderChildren();
 	        var ref = this;
+	        var el = ref.el;
 	        var childNodes = ref.childNodes;
 	        var options = ref.options;
+	        var stylesheet = ref.stylesheet;
 	        var svg = childNodes.svg;
 	        var defs = childNodes.defs;
 	        var layers = childNodes.layers;
 
+	        el.style.position = 'relative';
 	        svg.style.overflow = options.overflow ? 'visible' : 'hidden';
 
 	        this.svg = svg;
@@ -34193,6 +34282,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        V.ensureId(svg);
 
+	        this.addStylesheet(stylesheet);
+
 	        if (options.background) {
 	            this.drawBackground(options.background);
 	        }
@@ -34202,6 +34293,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        return this;
+	    },
+
+	    addStylesheet: function(css) {
+	        if (!css) { return; }
+	        V(this.svg).prepend(V.createSVGStyle(css));
 	    },
 
 	    renderLayers: function(layers) {
@@ -34228,6 +34324,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // user-select: none;
 	        cellsLayerView.vel.addClass(addClassNamePrefix('viewport'));
 	        labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
+	        cellsLayerView.el.style.webkitUserSelect = 'none';
+	        cellsLayerView.el.style.userSelect = 'none';
+	        labelsLayerView.el.style.webkitUserSelect = 'none';
+	        labelsLayerView.el.style.userSelect = 'none';
 	    },
 
 	    removeLayers: function() {
@@ -36579,14 +36679,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                throw new Error('Non-existing filter ' + name);
 	            }
 
-	            // Set the filter area to be 3x the bounding box of the cell
-	            // and center the filter around the cell.
+	            // SVG <filter/> attributes
 	            var filterAttrs = assign({
-	                filterUnits: 'objectBoundingBox',
-	                x: -1,
-	                y: -1,
-	                width: 3,
-	                height: 3
+	                filterUnits: 'userSpaceOnUse',
 	            }, filter$1.attrs, {
 	                id: filterId
 	            });
