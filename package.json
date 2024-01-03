@@ -28,6 +28,7 @@
     "pack-all": "yarn workspaces foreach --verbose --include \"@joint/layout-directed-graph\" --include \"jointjs\" pack --out %s-%v.tgz"
   },
   "workspaces": [
+    "./packages/joint-core",
     "./packages/*",
     "./examples/*"
   ],

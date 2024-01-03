@@ -6,9 +6,9 @@ This library fully depends on [JointJS](https://github.com/clientio/joint) (*>=4
 
 ### Tests
 
-Generate build files from the source code:
+Generate distribution files from the source code:
 ```bash
-yarn run build
+yarn run dist
 ```
 
 To run all tests:

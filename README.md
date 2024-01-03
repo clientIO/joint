@@ -82,9 +82,9 @@ Install all dependencies:
 yarn install
 ```
 
-Generate build files from the source code:
+Generate distribution files from the source code:
 ```bash
-yarn run build
+yarn run dist
 ```
 
 You are now ready to browse our example applications, which combine functionality from multiple JointJS packages:
@@ -146,13 +146,6 @@ yarn run test-coverage-lcov
 ```
 
 The output for all unit tests will be saved in the `packages/joint-core/coverage` directory.
-
-### Building Distribution Files
-
-The `packages/joint-core/dist` directory contains pre-built distribution files. To re-build them, run the following:
-```bash
-yarn run dist
-```
 
 ## Documentation
 
