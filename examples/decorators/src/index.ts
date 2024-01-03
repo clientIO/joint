@@ -1,8 +1,6 @@
 import { g, dia, shapes } from 'jointjs';
 import { Model, View, On, SVGAttribute, Function } from '@joint/decorators';
 
-import 'jointjs/dist/joint.css';
-
 const shapeNamespace = {
     ...shapes,
 }

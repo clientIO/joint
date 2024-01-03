@@ -31,9 +31,9 @@ Install all dependencies:
 yarn install
 ```
 
-Generate build files from the source code:
+Generate distribution files from the source code:
 ```bash
-yarn run build
+yarn run dist
 ```
 
 You are now ready to browse our demos:

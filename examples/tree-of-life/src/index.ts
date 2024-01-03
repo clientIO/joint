@@ -10,7 +10,6 @@ import {
     highlighters,
 } from 'jointjs';
 
-import 'jointjs/dist/joint.css';
 import '../index.css'
 
 const { TangentDirections } = connectors.curve;

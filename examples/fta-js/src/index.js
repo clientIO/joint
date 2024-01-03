@@ -1,7 +1,6 @@
 import { dia, elementTools, shapes as defaultShapes, util } from 'jointjs';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
-import 'jointjs/dist/joint.css';
 import '../css/fta.css'
 
 const Event = dia.Element.define(

@@ -21,7 +21,7 @@ install:
   - yarn install
 
 before_script:
-  - yarn run build
+  - yarn run dist
 
 script:
   - yarn run test

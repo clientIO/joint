@@ -31,8 +31,6 @@ import {
     CardOffsetControl,
 } from '@joint/shapes-general-tools';
 
-import 'jointjs/dist/joint.css';
-
 const namespace = {
     LinkedProcess,
     Input,
