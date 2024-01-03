@@ -31,7 +31,7 @@ export function html(html) {
     if (!el) return null;
     if (!html) return el.innerHTML;
     cleanNodesData(dataPriv, el.getElementsByTagName('*'));
-    if (typeof string === 'string') {
+    if (typeof string === 'string' || typeof string === 'number') {
         el.innerHTML = html;
     } else {
         el.innerHTML = '';
