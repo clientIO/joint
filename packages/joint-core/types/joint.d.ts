@@ -3142,7 +3142,7 @@ export namespace mvc {
 
         // mixins
 
-        each(iterator: ListIterator<TModel, void>, context?: any): undefined;
+        each(iterator: ListIterator<TModel, void>, context?: any): void;
         filter(iterator: ListIterator<TModel, boolean>, context?: any): TModel[];
         first(): TModel;
         includes(value: TModel): boolean;
