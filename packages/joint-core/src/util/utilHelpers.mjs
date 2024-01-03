@@ -158,27 +158,10 @@ const hasUnicodeWord = RegExp.prototype.test.bind(
 
 const MAX_ARRAY_INDEX = 4294967295 - 1;
 
-/** Used as references for various `Number` constants. */
-const INFINITY = 1 / 0;
-const MAX_INTEGER = 1.7976931348623157e+308;
-const NAN = 0 / 0;
-
 /** Used to match words composed of alphanumeric characters. */
 // eslint-disable-next-line no-control-regex
 const reAsciiWord = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g;
 
-/** Used to match leading and trailing whitespace. */
-const reTrim = /^\s+|\s+$/g;
-const reTrimStart = /^\s+/;
-
-/** Used to detect binary string values. */
-const reIsBinary = /^0b[01]+$/i;
-
-/** Used to detect octal string values. */
-const reIsOctal = /^0o[0-7]+$/i;
-
-/** Used to detect bad signed hexadecimal string values. */
-const reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
 
 
 // -- helper functions
@@ -1271,18 +1254,6 @@ const baseForOwn = (object, iteratee) => {
     return object && baseFor(object, iteratee, keys);
 };
 
-const arrayEach = (array, iteratee) => {
-    let index = -1;
-    const length = array == null ? 0 : array.length;
-
-    while (++index < length) {
-        if (iteratee(array[index], index, array) === false) {
-            break;
-        }
-    }
-    return array;
-};
-
 const baseEach = (collection, iteratee) => {
     if (collection == null) {
         return collection;
@@ -1302,133 +1273,9 @@ const baseEach = (collection, iteratee) => {
     return collection;
 };
 
-function arrayMap(array, iteratee) {
-    let index = -1;
+function last(array) {
     const length = array == null ? 0 : array.length;
-    const result = Array(length);
-
-    while (++index < length) {
-        result[index] = iteratee(array[index], index, array);
-    }
-    return result;
-}
-
-function baseMap(collection, iteratee) {
-    let index = -1;
-    const result = isArrayLike(collection) ? Array(collection.length) : [];
-
-    baseEach(collection, function(value, key, collection) {
-        result[++index] = iteratee(value, key, collection);
-    });
-    return result;
-}
-
-function arrayFilter(array, predicate) {
-    let index = -1;
-    const length = array == null ? 0 : array.length;
-    let resIndex = 0;
-    const result = [];
-
-    while (++index < length) {
-        var value = array[index];
-        if (predicate(value, index, array)) {
-            result[resIndex++] = value;
-        }
-    }
-    return result;
-}
-
-function baseFilter(collection, predicate) {
-    const result = [];
-    baseEach(collection, function(value, index, collection) {
-        if (predicate(value, index, collection)) {
-            result.push(value);
-        }
-    });
-    return result;
-}
-
-function freeParseInt(string, radix, guard) {
-    if (guard || radix == null) {
-        radix = 0;
-    } else if (radix) {
-        radix = +radix;
-    }
-    return parseInt(toString(string).replace(reTrimStart, ''), radix || 0);
-}
-
-function toNumber(value) {
-    if (typeof value == 'number') {
-        return value;
-    }
-    if (isSymbol(value)) {
-        return NAN;
-    }
-    if (isObject(value)) {
-        const other = typeof value.valueOf == 'function' ? value.valueOf() : value;
-        value = isObject(other) ? (other + '') : other;
-    }
-    if (typeof value != 'string') {
-        return value === 0 ? value : +value;
-    }
-    value = value.replace(reTrim, '');
-    const isBinary = reIsBinary.test(value);
-    return (isBinary || reIsOctal.test(value))
-        ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
-        : (reIsBadHex.test(value) ? NAN : +value);
-}
-
-function toFinite(value) {
-    if (!value) {
-        return value === 0 ? value : 0;
-    }
-    value = toNumber(value);
-    if (value === INFINITY || value === -INFINITY) {
-        const sign = (value < 0 ? -1 : 1);
-        return sign * MAX_INTEGER;
-    }
-    return value === value ? value : 0;
-}
-
-function toInteger(value) {
-    const result = toFinite(value);
-    const remainder = result % 1;
-
-    return result === result ? (remainder ? result - remainder : result) : 0;
-}
-
-function baseIsNaN(value) {
-    return value !== value;
-}
-
-function strictIndexOf(array, value, fromIndex) {
-    let index = fromIndex - 1;
-    const length = array.length;
-
-    while (++index < length) {
-        if (array[index] === value) {
-            return index;
-        }
-    }
-    return -1;
-}
-
-function baseFindIndex(array, predicate, fromIndex, fromRight) {
-    const length = array.length;
-    let index = fromIndex + (fromRight ? 1 : -1);
-
-    while ((fromRight ? index-- : ++index < length)) {
-        if (predicate(array[index], index, array)) {
-            return index;
-        }
-    }
-    return -1;
-}
-
-function baseIndexOf(array, value, fromIndex) {
-    return value === value
-        ? strictIndexOf(array, value, fromIndex)
-        : baseFindIndex(array, baseIsNaN, fromIndex);
+    return length ? array[length - 1] : undefined;
 }
 
 const createSet = (Set && (1 / setToArray(new Set([undefined,-0]))[1]) == 1 / 0)
@@ -1635,6 +1482,12 @@ const baseReduce = (collection, iteratee, accumulator, initAccum, eachFunc) => {
     });
     return accumulator;
 };
+
+function reduce(collection, iteratee, accumulator) {
+    const func = Array.isArray(collection) ? arrayReduce : baseReduce;
+    const initAccum = arguments.length < 3;
+    return func(collection, iteratee, accumulator, initAccum, baseEach);
+}
 
 const isFlattenable = (value) => {
     return Array.isArray(value) || isArguments(value) ||
@@ -2547,46 +2400,3 @@ export const uniqueId = (prefix = '') => {
 export const merge = createAssigner((object, source, srcIndex, customizer) => {
     baseMerge(object, source, srcIndex, customizer);
 }, true);
-
-export const each = (collection, iteratee) => {
-    const func = Array.isArray(collection) ? arrayEach : baseEach;
-    return func(collection, getIteratee(iteratee, 3));
-};
-
-export const filter = (collection, predicate) => {
-    const func = Array.isArray(collection) ? arrayFilter : baseFilter;
-    return func(collection, getIteratee(predicate, 3));
-};
-
-export const first = (array) => {
-    return (array && array.length) ? array[0] : undefined;
-};
-
-export const includes = (collection, value, fromIndex, guard) => {
-    collection = isArrayLike(collection) ? collection : values(collection);
-    fromIndex = (fromIndex && !guard) ? toInteger(fromIndex) : 0;
-
-    const length = collection.length;
-    if (fromIndex < 0) {
-        fromIndex = Math.max(length + fromIndex, 0);
-    }
-    return isString(collection)
-        ? (fromIndex <= length && collection.indexOf(value, fromIndex) > -1)
-        : (!!length && baseIndexOf(collection, value, fromIndex) > -1);
-};
-
-export const last = (array) => {
-    const length = array == null ? 0 : array.length;
-    return length ? array[length - 1] : undefined;
-};
-
-export const map = (collection, iteratee) => {
-    const func = Array.isArray(collection) ? arrayMap : baseMap;
-    return func(collection, getIteratee(iteratee, 3));
-};
-
-export const reduce = function(collection, iteratee, accumulator) {
-    const func = Array.isArray(collection) ? arrayReduce : baseReduce;
-    const initAccum = arguments.length < 3;
-    return func(collection, getIteratee(iteratee, 4), accumulator, initAccum, baseEach);
-};

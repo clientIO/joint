@@ -9,16 +9,6 @@ import {
     sortBy,
     toArray
 } from '../util/util.mjs';
-import {
-    each,
-    filter,
-    first,
-    includes,
-    isEmpty,
-    last,
-    map,
-    reduce
-} from '../util/utilHelpers.mjs';
 
 
 // Collection
@@ -328,6 +318,47 @@ assign(Collection.prototype, Events, {
         return new CollectionIterator(this, ITERATOR_KEYSVALUES);
     },
 
+    // Iterate over elements of the collection, and invoke fn for each element
+    each: function(fn, context) {
+        this.models.forEach(fn, context);
+    },
+
+    // Iterate over elements of collection, and return an array of all elements fn returns truthy for
+    filter: function(fn, context) {
+        return this.models.filter(fn, context);
+    },
+
+    // Return the first model of the collection
+    first: function() {
+        return (this.models && this.models.length) ? this.models[0] : undefined;
+    },
+
+    // Return true if value is in the collection
+    includes: function(value) {
+        return this.models.includes(value);
+    },
+
+    // Return the last model of the collection
+    last: function() {
+        const length = this.models === null ? 0 : this.models.length;
+        return length ? this.models[length - 1] : undefined;
+    },
+
+    // Return true if collection has no elements
+    isEmpty: function() {
+        return !this.models.length;
+    },
+
+    // Create an array of values by running each element in the collection through fn
+    map: function(fn, context) {
+        return this.models.map(fn, context);
+    },
+
+    // Runs "reducer" fn over all elements in the collection, in ascending-index order, and accumulates them into a single value
+    reduce: function(fn, initAcc, context) {
+        return this.models.reduce(fn, initAcc, context);
+    },
+
     // Private method to reset all internal state. Called when the collection
     // is first initialized or reset.
     _reset: function() {
@@ -496,7 +527,7 @@ CollectionIterator.prototype.next = function() {
 };
 
 //  Methods that we want to implement on the Collection.
-var collectionMethods = { each: 3, map: 3, reduce: 0, filter: 3, includes: 3, toArray: 1, first: 3, last: 3, isEmpty: 1, sortBy: 3 };
+var collectionMethods = { toArray: 1, sortBy: 3 };
 
 
 // Mix in each method as a proxy to `Collection#models`.
@@ -509,14 +540,6 @@ function addMethods(config) {
         attribute = config[2];
 
     const methodsToAdd = {
-        each,
-        filter,
-        first,
-        includes,
-        isEmpty,
-        last,
-        map,
-        reduce,
         sortBy,
         toArray
     };
