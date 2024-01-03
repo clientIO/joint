@@ -3145,11 +3145,9 @@ export namespace mvc {
         each(iterator: ListIterator<TModel, void>, context?: any): undefined;
         filter(iterator: ListIterator<TModel, boolean>, context?: any): TModel[];
         first(): TModel;
-        first(n: number): TModel[];
         includes(value: TModel): boolean;
         isEmpty(): boolean;
         last(): TModel;
-        last(n: number): TModel[];
         map<TResult>(iterator: ListIterator<TModel, TResult>, context?: any): TResult[];
         reduce<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult, context?: any): TResult;
         sortBy(iterator?: ListIterator<TModel, any>, context?: any): TModel[];
