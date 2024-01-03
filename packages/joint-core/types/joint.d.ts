@@ -2843,6 +2843,7 @@ export namespace mvc {
 
     type List<T> = ArrayLike<T>;
     type ListIterator<T, TResult> = (value: T, index: number, collection: List<T>) => TResult;
+    type MemoIterator<T, TResult> = (prev: TResult, curr: T, indexOrKey: any, list: T[]) => TResult;
 
     type _Result<T> = T | (() => T);
     type _StringKey<T> = keyof T & string;
@@ -3101,7 +3102,6 @@ export namespace mvc {
         get(id: number | string | Model): TModel;
         has(key: number | string | Model): boolean;
         clone(): this;
-        pluck(attribute: string): any[];
         push(model: TModel, options?: AddOptions): TModel;
         pop(options?: Silenceable): TModel;
         remove(model: {} | TModel, options?: Silenceable): TModel;
@@ -3142,10 +3142,14 @@ export namespace mvc {
 
         // mixins
 
+        each(iterator: ListIterator<TModel, void>, context?: any): void;
+        filter(iterator: ListIterator<TModel, boolean>, context?: any): TModel[];
         first(): TModel;
-        first(n: number): TModel[];
+        includes(value: TModel): boolean;
+        isEmpty(): boolean;
         last(): TModel;
-        last(n: number): TModel[];
+        map<TResult>(iterator: ListIterator<TModel, TResult>, context?: any): TResult[];
+        reduce<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult, context?: any): TResult;
         sortBy(iterator?: ListIterator<TModel, any>, context?: any): TModel[];
         sortBy(iterator: string, context?: any): TModel[];
         toArray(): TModel[];
