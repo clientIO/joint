@@ -6,7 +6,6 @@ import { sortElements, drawGrid, switchView } from './utils';
 import { GRID_SIZE, GRID_COUNT, HIGHLIGHT_COLOR, SCALE, ISOMETRIC_SCALE } from './theme';
 
 import '../style.css';
-import 'jointjs/dist/joint.css';
 
 const canvasEl = document.getElementById('canvas') as HTMLDivElement;
 const buttonEl = document.getElementById('toggle') as HTMLButtonElement;

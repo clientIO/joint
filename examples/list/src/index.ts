@@ -1,7 +1,5 @@
 import { dia, shapes, g, linkTools, util } from 'jointjs';
 
-import 'jointjs/dist/joint.css';
-
 const GRID_SIZE = 8;
 const PADDING_S = GRID_SIZE;
 const PADDING_L = GRID_SIZE * 2;
