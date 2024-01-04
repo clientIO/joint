@@ -2427,7 +2427,7 @@ export namespace util {
     export function getElementBBox(el: Element): dia.BBox;
 
     export function sortElements(
-        elements: $Element,
+        elements: mvc.$Element,
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
