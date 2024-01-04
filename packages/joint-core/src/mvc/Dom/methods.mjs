@@ -4,14 +4,24 @@ import { dataPriv, cleanNodesData } from './vars.mjs';
 
 // Manipulation
 
-export function remove() {
-    for (let i = 0; i < this.length; i++) {
-        const node = this[i];
-        dataPriv.remove(node);
+function removeNodes(nodes, removeData) {
+    for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        removeData && dataPriv.remove(node);
         if (node.parentNode) {
             node.parentNode.removeChild(node);
         }
     }
+}
+
+export function remove() {
+    removeNodes(this, true);
+    return this;
+}
+
+export function detach() {
+    removeNodes(this, false);
+    return this;
 }
 
 export function empty() {
@@ -31,7 +41,7 @@ export function html(html) {
     if (!el) return null;
     if (!html) return el.innerHTML;
     cleanNodesData(dataPriv, el.getElementsByTagName('*'));
-    if (typeof string === 'string') {
+    if (typeof string === 'string' || typeof string === 'number') {
         el.innerHTML = html;
     } else {
         el.innerHTML = '';

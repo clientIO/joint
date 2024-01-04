@@ -121,6 +121,16 @@ $.fn.addBack = function() {
     return this.add(this.prevObject);
 };
 
+$.fn.filter = function(selector) {
+    const matches = [];
+    for (let i = 0; i < this.length; i++) {
+        const node = this[i];
+        if (!node.matches(selector)) continue;
+        matches.push(node);
+    }
+    return this.pushStack(matches);
+};
+
 // A simple way to check for HTML strings
 // Prioritize #id over <tag> to avoid XSS via location.hash (trac-9521)
 // Strict HTML recognition (trac-11290: must start with <)
@@ -200,8 +210,11 @@ $.event = {
     special: Object.create(null),
 };
 
-$.event.has = function(elem) {
-    return dataPriv.has(elem, 'events');
+$.event.has = function(elem, eventType) {
+    const events = dataPriv.get(elem, 'events');
+    if (!events) return false;
+    if (!eventType) return true;
+    return Array.isArray(events[eventType]) && events[eventType].length > 0;
 };
 
 $.event.on = function(elem, types, selector, data, fn, one) {

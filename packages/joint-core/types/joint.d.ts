@@ -10,9 +10,6 @@ export namespace config {
 
 type NativeEvent = Event;
 
-/* A JQuery-like object */
-type Dom = any;
-
 export namespace dia {
 
     type Event = mvc.TriggeredEvent;
@@ -755,13 +752,13 @@ export namespace dia {
 
         presentationAttributes(): CellView.PresentationAttributes;
 
-        highlight(el?: SVGElement | Dom | string, opt?: { [key: string]: any }): this;
+        highlight(el?: mvc.$SVGElement, opt?: { [key: string]: any }): this;
 
-        unhighlight(el?: SVGElement | Dom | string, opt?: { [key: string]: any }): this;
+        unhighlight(el?: mvc.$SVGElement, opt?: { [key: string]: any }): this;
 
         can(feature: string): boolean;
 
-        findMagnet(el: SVGElement | Dom | string): SVGElement | undefined;
+        findMagnet(el: mvc.$SVGElement): SVGElement | undefined;
 
         findNode(selector: string): SVGElement | HTMLElement | null;
 
@@ -821,7 +818,7 @@ export namespace dia {
 
         isDefaultInteractionPrevented(evt: dia.Event): boolean;
 
-        protected findBySelector(selector: string, root?: SVGElement | Dom | string): SVGElement[];
+        protected findBySelector(selector: string, root?: SVGElement): SVGElement[];
 
         protected removeHighlighters(): void;
 
@@ -1499,7 +1496,7 @@ export namespace dia {
 
         getContentBBox(opt?: { useModelGeometry: boolean }): g.Rect;
 
-        findView<T extends ElementView | LinkView>(element: string | Dom | SVGElement): T;
+        findView<T extends ElementView | LinkView>(element: mvc.$SVGElement): T;
 
         findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
 
@@ -2430,7 +2427,7 @@ export namespace util {
     export function getElementBBox(el: Element): dia.BBox;
 
     export function sortElements(
-        elements: Element[] | string | Dom,
+        elements: mvc.$Element,
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
@@ -2772,6 +2769,13 @@ export namespace layout {
 // mvc
 
 export namespace mvc {
+
+    type Dom = unknown;
+    // The following types represent the DOM elements that can be passed to the
+    // $() function.
+    type $Element<T extends Element = Element> = string | T | T[] | Dom;
+    type $HTMLElement = $Element<HTMLElement>;
+    type $SVGElement = $Element<SVGElement>;
 
     interface Event {
         // Event
@@ -3160,7 +3164,7 @@ export namespace mvc {
         model?: TModel | undefined;
         // TODO: quickfix, this can't be fixed easy. The collection does not need to have the same model as the parent view.
         collection?: Collection<any> | undefined; // was: Collection<TModel>;
-        el?: TElement | Dom | string | undefined;
+        el?: $Element<TElement> | string | undefined;
         id?: string | undefined;
         attributes?: Record<string, any> | undefined;
         className?: string | undefined;
@@ -3196,7 +3200,7 @@ export namespace mvc {
         // A conditional type used here to prevent `TS2532: Object is possibly 'undefined'`
         model: TModel extends Model ? TModel : undefined;
         collection: Collection<any>;
-        setElement(element: TElement | Dom): this;
+        setElement(element: $Element<TElement>): this;
         id?: string | undefined;
         cid: string;
         className?: string | undefined;
@@ -3216,7 +3220,7 @@ export namespace mvc {
         undelegate(eventName: string, selector?: string, listener?: ViewBaseEventListener): this;
 
         protected _removeElement(): void;
-        protected _setElement(el: TElement | Dom): void;
+        protected _setElement(el: $Element<TElement>): void;
         protected _createElement(tagName: string): void;
         protected _ensureElement(): void;
         protected _setAttributes(attributes: Record<string, any>): void;
