@@ -752,13 +752,13 @@ export namespace dia {
 
         presentationAttributes(): CellView.PresentationAttributes;
 
-        highlight(el?: $SVGElement, opt?: { [key: string]: any }): this;
+        highlight(el?: mvc.$SVGElement, opt?: { [key: string]: any }): this;
 
-        unhighlight(el?: $SVGElement, opt?: { [key: string]: any }): this;
+        unhighlight(el?: mvc.$SVGElement, opt?: { [key: string]: any }): this;
 
         can(feature: string): boolean;
 
-        findMagnet(el: $SVGElement): SVGElement | undefined;
+        findMagnet(el: mvc.$SVGElement): SVGElement | undefined;
 
         findNode(selector: string): Element | null;
 
@@ -1496,7 +1496,7 @@ export namespace dia {
 
         getContentBBox(opt?: { useModelGeometry: boolean }): g.Rect;
 
-        findView<T extends ElementView | LinkView>(element: $SVGElement): T;
+        findView<T extends ElementView | LinkView>(element: mvc.$SVGElement): T;
 
         findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
 
