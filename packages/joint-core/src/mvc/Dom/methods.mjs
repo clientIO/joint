@@ -4,14 +4,22 @@ import { dataPriv, cleanNodesData } from './vars.mjs';
 
 // Manipulation
 
-export function remove() {
+function _remove(removeData) {
     for (let i = 0; i < this.length; i++) {
         const node = this[i];
-        dataPriv.remove(node);
+        removeData && dataPriv.remove(node);
         if (node.parentNode) {
             node.parentNode.removeChild(node);
         }
     }
+}
+
+export function remove() {
+    _remove(true);
+}
+
+export function detach() {
+    _remove(false);
 }
 
 export function empty() {

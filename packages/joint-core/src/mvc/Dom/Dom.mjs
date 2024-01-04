@@ -210,8 +210,11 @@ $.event = {
     special: Object.create(null),
 };
 
-$.event.has = function(elem) {
-    return dataPriv.has(elem, 'events');
+$.event.has = function(elem, eventType) {
+    const events = dataPriv.get(elem, 'events');
+    if (!events) return false;
+    if (!eventType) return true;
+    return Array.isArray(events[eventType]) && events[eventType].length > 0;
 };
 
 $.event.on = function(elem, types, selector, data, fn, one) {
