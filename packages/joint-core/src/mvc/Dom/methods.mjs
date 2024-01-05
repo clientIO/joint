@@ -200,6 +200,20 @@ export function hasClass() {
     return V.prototype.hasClass.apply({ node }, arguments);
 }
 
+// Traversing
+
+export function children(selector) {
+    const matches = [];
+    for(let i = 0; i < this.length; i++) {
+        const node = this[i];
+        let children = Array.from(node.children);
+        if (typeof selector === 'string') {
+            children = children.filter(child => child.matches(selector));
+        }
+        matches.push(...children);
+    }
+    return this.pushStack(matches);
+}
 
 // Events
 
@@ -242,4 +256,32 @@ export function off(types, selector, fn) {
         $.event.remove(this[i], types, fn, selector);
     }
     return this;
+}
+
+// Measurements
+
+export function width() {
+    const [el] = this;
+    if (el === window) return el.document.documentElement.clientWidth;
+    else if (!el) return undefined;
+    const styles = window.getComputedStyle(el);
+    const height = el.offsetWidth;
+    const borderTopWidth = parseFloat(styles.borderTopWidth);
+    const borderBottomWidth = parseFloat(styles.borderBottomWidth);
+    const paddingTop = parseFloat(styles.paddingTop);
+    const paddingBottom = parseFloat(styles.paddingBottom);
+    return height - borderBottomWidth - borderTopWidth - paddingTop - paddingBottom;
+}
+
+export function height() {
+    const [el] = this;
+    if (el === window) return el.document.documentElement.clientHeight;
+    if (!el) return undefined;
+    const styles = window.getComputedStyle(el);
+    const width = el.offsetHeight;
+    const borderLeftWidth = parseFloat(styles.borderLeftWidth);
+    const borderRightWidth = parseFloat(styles.borderRightWidth);
+    const paddingLeft = parseFloat(styles.paddingLeft);
+    const paddingRight = parseFloat(styles.paddingRight);
+    return width - borderLeftWidth - borderRightWidth - paddingLeft - paddingRight;
 }
