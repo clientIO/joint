@@ -39,9 +39,9 @@ export function empty() {
 export function html(html) {
     const [el] = this;
     if (!el) return null;
-    if (!html) return el.innerHTML;
+    if (html === undefined) return el.innerHTML;
     cleanNodesData(dataPriv, el.getElementsByTagName('*'));
-    if (typeof string === 'string' || typeof string === 'number') {
+    if (typeof html === 'string' || typeof html === 'number') {
         el.innerHTML = html;
     } else {
         el.innerHTML = '';
@@ -151,6 +151,20 @@ export function attr(name, value) {
             for (let i = 0; i < this.length; i++) {
                 this[i].setAttribute(attr, attributes[attr]);
             }
+        }
+    }
+    return this;
+}
+
+export function prop(name, value) {
+    if (!name) throw new Error('no property provided');
+    if (value === undefined) {
+        const [el] = this;
+        if (!el) return null;
+        return el[name];
+    } else {
+        for (let i = 0; i < this.length; i++) {
+            this[i][name] = value;
         }
     }
     return this;
