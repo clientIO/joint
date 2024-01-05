@@ -519,7 +519,7 @@ $.event.dispatch = function(nativeEvent) {
     }
 
     return event.result;
-},
+};
 
 $.event.handlers = function(event, handlers) {
 

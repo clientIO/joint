@@ -158,19 +158,25 @@ export function attr(name, value) {
 
 // Classes
 
-export function removeClass() {
-    for (let i = 0; i < this.length; i++) {
-        const node = this[i];
-        V.prototype.removeClass.apply({ node }, arguments);
+function setNodesClass(method, nodes, args) {
+    for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        V.prototype[method].apply({ node }, args);
     }
+}
+
+export function removeClass() {
+    setNodesClass('removeClass', this, arguments);
     return this;
 }
 
 export function addClass() {
-    for (let i = 0; i < this.length; i++) {
-        const node = this[i];
-        V.prototype.addClass.apply({ node }, arguments);
-    }
+    setNodesClass('addClass', this, arguments);
+    return this;
+}
+
+export function toggleClass() {
+    setNodesClass('toggleClass', this, arguments);
     return this;
 }
 
@@ -180,14 +186,17 @@ export function hasClass() {
     return V.prototype.hasClass.apply({ node }, arguments);
 }
 
+
 // Events
 
 export function on(types, selector, data, fn) {
-    return $.event.on(this, types, selector, data, fn);
+    $.event.on(this, types, selector, data, fn);
+    return this;
 }
 
 export function one(types, selector, data, fn) {
-    return $.event.on(this, types, selector, data, fn, 1);
+    $.event.on(this, types, selector, data, fn, 1);
+    return this;
 }
 
 export function off(types, selector, fn) {
@@ -218,4 +227,5 @@ export function off(types, selector, fn) {
     for (let i = 0; i < this.length; i++) {
         $.event.remove(this[i], types, fn, selector);
     }
+    return this;
 }
