@@ -190,50 +190,6 @@ export function attr(name, value) {
     return this;
 }
 
-// Properties
-
-export function prop(name, value) {
-    if (!name) throw new Error('no property provided');
-    if (arguments.length === 1) {
-        const [el] = this;
-        if (!el) return null;
-        return el[name];
-    } else {
-        for (let i = 0; i < this.length; i++) {
-            this[i][name] = value;
-        }
-    }
-    return this;
-}
-
-export function outerWidth(...args) {
-    return this.prop('offsetWidth', ...args);
-}
-
-export function outerHeight(...args) {
-    return this.prop('offsetHeight', ...args);
-}
-
-export function innerWidth(...args) {
-    return this.prop('clientWidth', ...args);
-}
-
-export function innerHeight(...args) {
-    return this.prop('clientHeight', ...args);
-}
-
-export function scrollLeft(...args) {
-    return this.prop('scrollLeft', ...args);
-}
-
-export function scrollTop(...args) {
-    return this.prop('scrollTop', ...args);
-}
-
-export function val(...args) {
-    return this.prop('...args', ...args);
-}
-
 export function data(name, value) {
     if (arguments.length < 2) {
         const [el] = this;
