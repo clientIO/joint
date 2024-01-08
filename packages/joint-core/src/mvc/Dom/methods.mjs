@@ -358,26 +358,27 @@ export function position() {
         // when a statically positioned element is identified
         doc = el.ownerDocument;
         offsetParent = el.offsetParent || doc.documentElement;
-        const parentOffsetElement = $(offsetParent);
-        const parentOffsetElementPosition = parentOffsetElement.css('position') || 'static';
+        const $parentOffset = $(offsetParent);
+        const parentOffsetElementPosition = $parentOffset.css('position') || 'static';
         while ( offsetParent && (offsetParent === doc.body || offsetParent === doc.documentElement) && parentOffsetElementPosition === 'static') {
             offsetParent = offsetParent.parentNode;
         }
         if (offsetParent && offsetParent !== el && offsetParent.nodeType === 1) {
             // Incorporate borders into its offset, since they are outside its content origin
-            const borderTopWidth = parseFloat(window.getComputedStyle(offsetParent).borderTopWidth) || 0;
-            const borderLeftWidth = parseFloat(window.getComputedStyle(offsetParent).borderLeftWidth) || 0;
-            parentOffset = parentOffsetElement.offset();
-            parentOffset.top += parseFloat(borderTopWidth);
-            parentOffset.left += parseFloat(borderLeftWidth);
+            const offsetParentStyles = window.getComputedStyle(offsetParent);
+            const borderTopWidth = parseFloat(offsetParentStyles.borderTopWidth) || 0;
+            const borderLeftWidth = parseFloat(offsetParentStyles.borderLeftWidth) || 0;
+            parentOffset = $parentOffset.offset();
+            parentOffset.top += borderTopWidth;
+            parentOffset.left += borderLeftWidth;
         }
     }
     const marginTop = parseFloat(window.getComputedStyle(el).marginTop) || 0;
     const marginLeft = parseFloat(window.getComputedStyle(el).marginLeft) || 0;
     // Subtract parent offsets and element margins
     return {
-        top: offset.top - parentOffset.top - parseFloat(marginTop),
-        left: offset.left - parentOffset.left - parseFloat(marginLeft)
+        top: offset.top - parentOffset.top - marginTop,
+        left: offset.left - parentOffset.left - marginLeft
     };
 }
 
