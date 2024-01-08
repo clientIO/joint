@@ -1,3 +1,5 @@
+import { g } from "./geometry";
+
 export const V: VCallable;
 export type V = VElement;
 

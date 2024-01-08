@@ -1,3 +1,5 @@
+import { g } from "./geometry";
+import { Vectorizer } from "./vectorizer";
 
 export const version: string;
 
