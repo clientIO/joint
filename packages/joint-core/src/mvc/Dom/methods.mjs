@@ -1,3 +1,4 @@
+import { camelCase } from '../../util/utilHelpers.mjs';
 import $ from './Dom.mjs';
 import V from '../../V/index.mjs';
 import { dataPriv, cleanNodesData } from './vars.mjs';
@@ -36,6 +37,14 @@ export function empty() {
     return this;
 }
 
+export function clone() {
+    const clones = [];
+    for (let i = 0; i < this.length; i++) {
+        clones.push(this[i].cloneNode(true));
+    }
+    return this.pushStack(clones);
+}
+
 export function html(html) {
     const [el] = this;
     if (!el) return null;
@@ -67,7 +76,9 @@ export function append(...nodes) {
             parent.append(...$.parseHTML(node));
         } else if (node.toString() === '[object Object]') {
             // $ object
-            parent.append(...node.toArray());
+            this.append(...Array.from(node));
+        } else if (Array.isArray(node)) {
+            this.append(...node);
         } else {
             // DOM node
             parent.appendChild(node);
@@ -85,7 +96,9 @@ export function prepend(...nodes) {
             parent.prepend(...$.parseHTML(node));
         } else if (node.toString() === '[object Object]') {
             // $ object
-            parent.prepend(...node.toArray());
+            this.prepend(...Array.from(node));
+        } else if (Array.isArray(node)) {
+            this.prepend(...node);
         } else {
             // DOM node
             parent.insertBefore(node, parent.firstChild);
@@ -106,6 +119,22 @@ export function prependTo(parent) {
 
 // Styles and attributes
 
+const requireUnits = {};
+[
+    'width', 'height', 'top', 'bottom', 'left', 'right',
+    'padding', 'paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight',
+    'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight',
+].forEach((cssProp) => {
+    requireUnits[cssProp] = true;
+});
+
+function setCSSProperty(el, name, value) {
+    if (typeof value === 'number' && requireUnits[camelCase(name)]) {
+        value += 'px';
+    }
+    el.style[name] = value;
+}
+
 export function css(name, value) {
     let styles;
     if (typeof name === 'string') {
@@ -124,7 +153,7 @@ export function css(name, value) {
     for (let style in styles) {
         if (styles.hasOwnProperty(style)) {
             for (let i = 0; i < this.length; i++) {
-                this[i].style[style] = styles[style];
+                setCSSProperty(this[i], style, styles[style]);
             }
         }
     }
@@ -149,16 +178,23 @@ export function attr(name, value) {
     for (let attr in attributes) {
         if (attributes.hasOwnProperty(attr)) {
             for (let i = 0; i < this.length; i++) {
-                this[i].setAttribute(attr, attributes[attr]);
+                const value = attributes[attr];
+                if (value === null) {
+                    this[i].removeAttribute(attr);
+                } else {
+                    this[i].setAttribute(attr, value);
+                }
             }
         }
     }
     return this;
 }
 
+// Properties
+
 export function prop(name, value) {
     if (!name) throw new Error('no property provided');
-    if (value === undefined) {
+    if (arguments.length === 1) {
         const [el] = this;
         if (!el) return null;
         return el[name];
@@ -166,6 +202,49 @@ export function prop(name, value) {
         for (let i = 0; i < this.length; i++) {
             this[i][name] = value;
         }
+    }
+    return this;
+}
+
+export function outerWidth(...args) {
+    return this.prop('offsetWidth', ...args);
+}
+
+export function outerHeight(...args) {
+    return this.prop('offsetHeight', ...args);
+}
+
+export function innerWidth(...args) {
+    return this.prop('clientWidth', ...args);
+}
+
+export function innerHeight(...args) {
+    return this.prop('clientHeight', ...args);
+}
+
+export function scrollLeft(...args) {
+    return this.prop('scrollLeft', ...args);
+}
+
+export function scrollTop(...args) {
+    return this.prop('scrollTop', ...args);
+}
+
+export function val(...args) {
+    return this.prop('...args', ...args);
+}
+
+export function data(name, value) {
+    if (arguments.length < 2) {
+        const [el] = this;
+        if (!el) return null;
+        if (name === undefined) {
+            return el.dataset;
+        }
+        return el.dataset[name];
+    }
+    for (let i = 0; i < this.length; i++) {
+        this[i].dataset[name] = value;
     }
     return this;
 }
@@ -213,6 +292,25 @@ export function children(selector) {
         matches.push(...children);
     }
     return this.pushStack(matches);
+}
+
+export function closest(selector) {
+    const closest = [];
+    for (let i = 0; i < this.length; i++) {
+        const el = this[i];
+        if (typeof selector === 'string') {
+            const closestEl = el.closest(selector);
+            if (closestEl) {
+                closest.push(closestEl);
+            }
+        } else {
+            const [ancestorEl] = $(selector);
+            if (ancestorEl && ancestorEl.contains(el)) {
+                closest.push(ancestorEl);
+            }
+        }
+    }
+    return this.pushStack(closest);
 }
 
 // Events
@@ -285,3 +383,75 @@ export function height() {
     const paddingRight = parseFloat(styles.paddingRight);
     return width - borderLeftWidth - borderRightWidth - paddingLeft - paddingRight;
 }
+
+export function position() {
+    const [el] = this;
+    if (!el) return;
+    let $el = $(el);
+    let offsetParent;
+    let offset;
+    let doc;
+    let parentOffset = { top: 0, left: 0 };
+    // position:fixed elements are offset from the viewport, which itself always has zero offset
+    if ($el.css('position') === 'fixed') {
+        // Assume position:fixed implies availability of getBoundingClientRect
+        offset = el.getBoundingClientRect();
+    } else {
+        offset = $el.offset();
+        // Account for the *real* offset parent, which can be the document or its root element
+        // when a statically positioned element is identified
+        doc = el.ownerDocument;
+        offsetParent = el.offsetParent || doc.documentElement;
+        const parentOffsetElement = $(offsetParent);
+        const parentOffsetElementPosition = parentOffsetElement.css('position') || 'static';
+        while ( offsetParent && (offsetParent === doc.body || offsetParent === doc.documentElement) && parentOffsetElementPosition === 'static') {
+            offsetParent = offsetParent.parentNode;
+        }
+        if (offsetParent && offsetParent !== el && offsetParent.nodeType === 1) {
+            // Incorporate borders into its offset, since they are outside its content origin
+            const borderTopWidth = parseFloat(window.getComputedStyle(offsetParent).borderTopWidth) || 0;
+            const borderLeftWidth = parseFloat(window.getComputedStyle(offsetParent).borderLeftWidth) || 0;
+            parentOffset = parentOffsetElement.offset();
+            parentOffset.top += parseFloat(borderTopWidth);
+            parentOffset.left += parseFloat(borderLeftWidth);
+        }
+    }
+    const marginTop = parseFloat(window.getComputedStyle(el).marginTop) || 0;
+    const marginLeft = parseFloat(window.getComputedStyle(el).marginLeft) || 0;
+    // Subtract parent offsets and element margins
+    return {
+        top: offset.top - parentOffset.top - parseFloat(marginTop),
+        left: offset.left - parentOffset.left - parseFloat(marginLeft)
+    };
+}
+
+export function offset(coordinates) {
+    const [el] = this;
+    //  Getter
+    if (coordinates === undefined) {
+        if (!el) return null;
+        if (!el.getClientRects().length) {
+            return { top: 0, left: 0 };
+        }
+        const rect = el.getBoundingClientRect();
+        return {
+            top: rect.top + window.scrollY,
+            left: rect.left + window.scrollX
+        };
+    }
+    // Setter
+    if (!el) return this;
+    const currentStyle = window.getComputedStyle(el);
+    if (currentStyle.position === 'static') {
+        this.css('position', 'relative');
+    }
+    const currentOffset = this.offset();
+    const topDifference = coordinates.top - currentOffset.top;
+    const leftDifference = coordinates.left - currentOffset.left;
+    this.css({
+        top: (parseFloat(currentStyle.top) || 0) + topDifference + 'px',
+        left: (parseFloat(currentStyle.left) || 0) + leftDifference + 'px'
+    });
+    return this;
+}
+
