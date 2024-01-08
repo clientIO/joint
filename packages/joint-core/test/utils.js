@@ -153,23 +153,6 @@ $.fn.index = function() {
     return Array.prototype.indexOf.call(el.parentNode.children, el);
 };
 
-$.fn.offset = function() {
-    const [el] = this;
-    const box = el.getBoundingClientRect();
-    return {
-        top: box.top + window.scrollY - document.documentElement.clientTop,
-        left: box.left + window.scrollX - document.documentElement.clientLeft
-    };
-};
-
-$.fn.children = function(selector) {
-    const [el] = this;
-    if (selector) {
-        return $(Array.from(el.children).filter(child => child.matches(selector)));
-    }
-    return $(el.children);
-};
-
 $.fn.parent = function() {
     const [el] = this;
     return $(el.parentNode);
