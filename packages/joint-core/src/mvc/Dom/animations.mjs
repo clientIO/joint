@@ -1,78 +1,88 @@
+import { nextFrame, cancelFrame } from '../../util/util.mjs';
+import { dataPriv } from './vars.mjs';
+
+const animationKey = 'animationFrameId';
+const cssReset = {};
+
+cssReset['transition-property'] =
+cssReset['transition-duration'] =
+cssReset['transition-delay'] =
+cssReset['transition-timing-function'] =
+cssReset['animation-name'] =
+cssReset['animation-duration'] =
+cssReset['animation-delay'] =
+cssReset['animation-timing-function'] = '';
+
 export function animate(properties, opt = {}) {
+    if (this.length === 0) return this;
+    this.stop();
     let {
         duration = 400,
         easing = 'ease-in-out',
         delay = 0,
         complete
     } = opt;
-
-    const that = this;
-    const [node] = this;
-
     let endEvent = 'transitionend';
-    let fired = false;
-
     // Convert milliseconds to seconds for CSS
     duration = duration / 1000;
     delay = delay / 1000;
-
-    // Set up CSS values for transition or keyframe animation
-    var cssValues = {};
-    if (typeof properties === 'string') {
+    const frameId = nextFrame(() => {
+        if (duration <= 0) {
+            // Note: delay is ignored when duration is 0
+            this.css(properties);
+            if (complete) {
+                for (let i = 0; i < this.length; i++) {
+                    complete.call(this[i]);
+                }
+            }
+            return;
+        }
+        // Set up CSS values for transition or keyframe animation
+        const cssValues = {};
+        if (typeof properties === 'string') {
         // Keyframe animation
-        cssValues['animation-name'] = properties;
-        cssValues['animation-duration'] = duration + 's';
-        cssValues['animation-delay'] = delay + 's';
-        cssValues['animation-timing-function'] = easing;
-        endEvent = 'animationend';
-    } else {
+            cssValues['animation-name'] = properties;
+            cssValues['animation-duration'] = duration + 's';
+            cssValues['animation-delay'] = delay + 's';
+            cssValues['animation-timing-function'] = easing;
+            endEvent = 'animationend';
+        } else {
         // CSS transitions
-        var transitionProperties = [];
-        for (var key in properties) {
-            if (properties.hasOwnProperty(key)) {
-                cssValues[key] = properties[key];
-                transitionProperties.push(key);
+            const transitionProperties = [];
+            for (var key in properties) {
+                if (properties.hasOwnProperty(key)) {
+                    cssValues[key] = properties[key];
+                    transitionProperties.push(key);
+                }
+            }
+            if (duration > 0) {
+                cssValues['transition-property'] = transitionProperties.join(', ');
+                cssValues['transition-duration'] = duration + 's';
+                cssValues['transition-delay'] = delay + 's';
+                cssValues['transition-timing-function'] = easing;
             }
         }
-
-        if (duration > 0) {
-            cssValues['transition-property'] = transitionProperties.join(', ');
-            cssValues['transition-duration'] = duration + 's';
-            cssValues['transition-delay'] = delay + 's';
-            cssValues['transition-timing-function'] = easing;
-        }
+        this.on(`${endEvent}.animate`, (event) => {
+            this.stop();
+            complete && complete.call(event.target);
+        });
+        this.css(cssValues);
+    });
+    for (let i = 0; i < this.length; i++) {
+        dataPriv.set(this[i], animationKey, frameId);
     }
-
-    const wrappedCallback = function(event){
-        if (typeof event !== 'undefined') {
-            if (event.target !== event.currentTarget) return; // makes sure the event didn't bubble from "below"
-            event.target.removeEventListener(endEvent, wrappedCallback);
-        } else
-            node.removeEventListener(endEvent, wrappedCallback); // triggered by setTimeout
-
-        fired = true;
-        // $(this).css(cssReset);
-        complete && complete.call(node);
-    };
-    if (duration > 0){
-        node.addEventListener(endEvent, wrappedCallback);
-        // transitionEnd is not always firing on older Android phones
-        // so make sure it gets fired
-        setTimeout(function(){
-            if (fired) return;
-            wrappedCallback.call(that);
-        }, ((duration + delay) * 1000) + 25);
-    }
-
-    this.css(cssValues);
-
-    if (duration <= 0) setTimeout(function() {
-        for (var i = 0; i < that.length; i++) wrappedCallback.call(that[i]);
-    }, 0);
-
     return this;
 }
 
 export function stop() {
-    // TBD
+    for (let i = 0; i < this.length; i++) {
+        const frameId = dataPriv.get(this[i], animationKey);
+        if (frameId) {
+            cancelFrame(frameId);
+            dataPriv.remove(this[i], animationKey);
+        }
+    }
+    this.css(cssReset);
+    this.off('.animate');
+    return this;
 }
