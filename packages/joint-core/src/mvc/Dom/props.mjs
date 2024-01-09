@@ -22,7 +22,7 @@ const properties = {
     val: 'value',
 };
 
-export const methods = {
+const methods = {
     prop
 };
 
@@ -32,3 +32,4 @@ Object.keys(properties).forEach(methodName => {
     };
 });
 
+export default methods;

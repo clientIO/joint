@@ -5,7 +5,9 @@ import $ from './Dom.mjs';
 
 // Special events
 
-export const special = Object.create(null);
+const special = Object.create(null);
+
+export default special;
 
 special.load = {
     // Prevent triggered image.load events from bubbling to window.load
