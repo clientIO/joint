@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "projectFolder": ".",
-  "mainEntryPointFilePath": "<projectFolder>/build/joint.d.ts",
+  "mainEntryPointFilePath": "<projectFolder>/types/index.d.ts",
   "bundledPackages": [],
   "newlineKind": "lf",
   "testMode": false,
@@ -25,7 +25,7 @@
   },
   "dtsRollup": {
     "enabled": true,
-    "untrimmedFilePath": "<projectFolder>/dist/joint.d.ts",
+    "untrimmedFilePath": "<projectFolder>/build/api-extractor/joint.d.ts",
     "alphaTrimmedFilePath": "",
     "betaTrimmedFilePath": "",
     "publicTrimmedFilePath": "",
@@ -39,19 +39,23 @@
     "compilerMessageReporting": {
       "default": {
         "logLevel": "warning",
-        "addToApiReportFile": false
+        "addToApiReportFile": true
       }
     },
     "extractorMessageReporting": {
       "default": {
         "logLevel": "warning",
+        "addToApiReportFile": true
+      },
+      "ae-missing-release-tag": {
+        "logLevel": "none",
         "addToApiReportFile": false
       }
     },
     "tsdocMessageReporting": {
       "default": {
         "logLevel": "warning",
-        "addToApiReportFile": false
+        "addToApiReportFile": true
       }
     }
   }

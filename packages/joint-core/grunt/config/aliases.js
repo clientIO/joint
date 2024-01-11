@@ -29,6 +29,7 @@ module.exports = function(grunt) {
         ],
         'build:joint': [
             'shell:rollup-joint',
+            'shell:api-extractor-dts-bundle',
             'newer:concat:types',
             'newer:copy:appsLibs'
         ],

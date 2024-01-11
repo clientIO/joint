@@ -10,6 +10,7 @@ module.exports = function(grunt) {
                 cwd: 'build/',
                 src: [
                     '*',
+                    '!api-extractor',
                     '!docs',
                     '!min',
                     '!joint.browserify-bundle.js',

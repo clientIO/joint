@@ -1241,7 +1241,7 @@ __metadata:
   resolution: "@joint/decorators@workspace:packages/joint-decorators"
   dependencies:
     jointjs: "workspace:^"
-    typescript: 4.8.3
+    typescript: 4.8.4
   languageName: unknown
   linkType: soft
 
@@ -1412,7 +1412,7 @@ __metadata:
     "@joint/decorators": "workspace:^"
     "@joint/shapes-general": "workspace:^"
     jointjs: "workspace:^"
-    typescript: 4.8.3
+    typescript: 4.8.4
   languageName: unknown
   linkType: soft
 
@@ -1422,7 +1422,7 @@ __metadata:
   dependencies:
     "@joint/decorators": "workspace:^"
     jointjs: "workspace:^"
-    typescript: 4.8.3
+    typescript: 4.8.4
   languageName: unknown
   linkType: soft
 
@@ -9195,7 +9195,7 @@ __metadata:
     should: 13.2.3
     sinon: 7.2.2
     time-grunt: 2.0.0
-    typescript: 4.8.3
+    typescript: 4.8.4
     webdriverio: 4.13.2
     webpack: 5.89.0
     webpack-dev-server: 4.15.1
@@ -14905,13 +14905,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.8.3":
-  version: 4.8.3
-  resolution: "typescript@npm:4.8.3"
+"typescript@npm:4.8.4, typescript@npm:~4.8.4":
+  version: 4.8.4
+  resolution: "typescript@npm:4.8.4"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 8286a5edcaf3d68e65c451aa1e7150ad1cf53ee0813c07ec35b7abdfdb10f355ecaa13c6a226a694ae7a67785fd7eeebf89f845da0b4f7e4a35561ddc459aba0
+  checksum: 3e4f061658e0c8f36c820802fa809e0fd812b85687a9a2f5430bc3d0368e37d1c9605c3ce9b39df9a05af2ece67b1d844f9f6ea8ff42819f13bcb80f85629af0
   languageName: node
   linkType: hard
 
@@ -14925,23 +14925,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~4.8.4":
+"typescript@patch:typescript@4.8.4#~builtin<compat/typescript>, typescript@patch:typescript@~4.8.4#~builtin<compat/typescript>":
   version: 4.8.4
-  resolution: "typescript@npm:4.8.4"
+  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=1a91c8"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 3e4f061658e0c8f36c820802fa809e0fd812b85687a9a2f5430bc3d0368e37d1c9605c3ce9b39df9a05af2ece67b1d844f9f6ea8ff42819f13bcb80f85629af0
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@4.8.3#~builtin<compat/typescript>":
-  version: 4.8.3
-  resolution: "typescript@patch:typescript@npm%3A4.8.3#~builtin<compat/typescript>::version=4.8.3&hash=3b564f"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: dfe2ee3b9da1d74b9e06784ae90c20c435db9ad6ab23172911f6cdbfd7ab7213ae3611c4254c5a2c6dc2e89f05a658b95493890bf62d218267033b3d8a2e4dd6
+  checksum: c981e82b77a5acdcc4e69af9c56cdecf5b934a87a08e7b52120596701e389a878b8e3f860e73ffb287bf649cc47a8c741262ce058148f71de4cdd88bb9c75153
   languageName: node
   linkType: hard
 
@@ -14952,16 +14942,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@~4.8.4#~builtin<compat/typescript>":
-  version: 4.8.4
-  resolution: "typescript@patch:typescript@npm%3A4.8.4#~builtin<compat/typescript>::version=4.8.4&hash=1a91c8"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: c981e82b77a5acdcc4e69af9c56cdecf5b934a87a08e7b52120596701e389a878b8e3f860e73ffb287bf649cc47a8c741262ce058148f71de4cdd88bb9c75153
   languageName: node
   linkType: hard
 
