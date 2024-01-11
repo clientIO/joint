@@ -2777,6 +2777,13 @@ export namespace mvc {
     type $HTMLElement = $Element<HTMLElement>;
     type $SVGElement = $Element<SVGElement>;
 
+    interface $AnimationOptions {
+        duration?: number;
+        delay?: number;
+        easing?: string;
+        complete?: (this: Element) => void;
+    }
+
     interface Event {
         // Event
         bubbles: boolean | undefined;
