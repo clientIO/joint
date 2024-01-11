@@ -354,8 +354,8 @@ assign(Collection.prototype, Events, {
     },
 
     // Runs "reducer" fn over all elements in the collection, in ascending-index order, and accumulates them into a single value
-    reduce: function(fn, initAcc, context) {
-        return this.models.reduce(fn, initAcc, context);
+    reduce: function(fn, initAcc = this.models[0]) {
+        return this.models.reduce(fn, initAcc);
     },
 
     // Private method to reset all internal state. Called when the collection

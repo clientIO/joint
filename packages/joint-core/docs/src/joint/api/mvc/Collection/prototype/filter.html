@@ -1,0 +1,15 @@
+<pre class="docs-method-signature"><code>collection.filter(fn, [context])</code></pre>
+
+<p>
+    Iterate over models of a collection, returning an array of all models <code>fn</code> returns truthy for. <code>fn</code> is invoked with three
+    arguments: <i>(model, index, array)</i>.
+</p>
+
+<pre><code>const a = new mvc.Model({ id: 3, label: 'a' });
+const b = new mvc.Model({ id: 2, label: 'b' });
+const c = new mvc.Model({ id: 1, label: 'c' });
+const d = new mvc.Model({ id: 0, label: 'd' });
+const col = new mvc.Collection([a, b, c, d]);
+
+console.log(col.filter((model) => model.get('id') === 0).length); // 1
+</code></pre>

@@ -3153,7 +3153,7 @@ export namespace mvc {
         isEmpty(): boolean;
         last(): TModel;
         map<TResult>(iterator: ListIterator<TModel, TResult>, context?: any): TResult[];
-        reduce<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult, context?: any): TResult;
+        reduce<TResult>(iterator: MemoIterator<TModel, TResult>, memo?: TResult): TResult;
         sortBy(iterator?: ListIterator<TModel, any>, context?: any): TModel[];
         sortBy(iterator: string, context?: any): TModel[];
         toArray(): TModel[];

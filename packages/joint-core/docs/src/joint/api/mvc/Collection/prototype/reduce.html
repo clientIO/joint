@@ -1,0 +1,12 @@
+<pre class="docs-method-signature"><code>collection.reduce(fn, [initialValue])</code></pre>
+
+<p>
+    Reduce a collection to a value which is the accumulated result of running each model in the collection through <code>fn</code>, where each
+    successive invocation is supplied the return value of the previous. If <code>initialValue</code> is not given, the first model in the collection
+    is used as the initial value. <code>fn</code> is invoked with four arguments: <i>(accumulator, currentValue, currentIndex, array)</i>.
+</p>
+
+<pre><code>const collection = new mvc.Collection([new mvc.Model({ id: 1, label: 'a' })]);
+
+console.log(collection.reduce((acc, model) => acc.get('id') + model.id )); // 2
+</code></pre>
