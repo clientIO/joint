@@ -1,9 +1,9 @@
-import { g } from "./geometry";
+import { g } from './geometry';
 import {
     V,
     Vectorizer,
     VElement
-} from "./vectorizer";
+} from './vectorizer';
 import {
     version,
     config,
@@ -24,7 +24,7 @@ import {
     setTheme,
     elementTools,
     linkTools
-} from "./joint";
+} from './joint';
 
 export {
     g,
@@ -50,4 +50,4 @@ export {
     setTheme,
     elementTools,
     linkTools
-}
+};
