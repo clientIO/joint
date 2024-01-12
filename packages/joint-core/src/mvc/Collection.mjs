@@ -354,7 +354,7 @@ assign(Collection.prototype, Events, {
     },
 
     // Runs "reducer" fn over all elements in the collection, in ascending-index order, and accumulates them into a single value
-    reduce: function(fn, initAcc = this.models[0]) {
+    reduce: function(fn, initAcc = this.first()) {
         return this.models.reduce(fn, initAcc);
     },
 
