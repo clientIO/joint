@@ -1,0 +1,19 @@
+<pre class="docs-method-signature"><code>collection.each(fn, [context])</code></pre>
+
+<p>
+    Iterate over models of a collection, and invoke <code>fn</code> for each model. <code>fn</code> is invoked with 3 arguments:
+    <i>(model, index, array)</i>.
+</p>
+
+<pre><code>const a = new mvc.Model({ id: 1, label: 'a' });
+const b = new mvc.Model({ id: 2, label: 'b' });
+const c = new mvc.Model({ id: 3, label: 'c' });
+const col = new mvc.Collection([a, b, c]);
+
+col.each((model, i) => model.set({ customData: i }));
+
+col.each((model) => console.log(model.get('customData')));
+// 0
+// 1
+// 2
+</code></pre>

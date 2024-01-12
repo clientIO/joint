@@ -1,0 +1,15 @@
+<pre class="docs-method-signature"><code>collection.map(fn, [context])</code></pre>
+
+<p>
+    Create an array of values by running each model in the collection through <code>fn</code>. <code>fn</code> is invoked with three arguments:
+    <i>(model, index, array)</i>.
+</p>
+
+<pre><code>const a = new mvc.Model({ id: 3, label: 'a' });
+const b = new mvc.Model({ id: 2, label: 'b' });
+const c = new mvc.Model({ id: 1, label: 'c' });
+const d = new mvc.Model({ id: 0, label: 'd' });
+const col = new mvc.Collection([a, b, c, d]);
+
+console.log(col.map((model) => model.get('label')).join(' ')); // 'a b c d'
+</code></pre>

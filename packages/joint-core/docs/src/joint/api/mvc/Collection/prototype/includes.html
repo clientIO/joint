@@ -1,0 +1,15 @@
+<pre class="docs-method-signature"><code>collection.includes(value)</code></pre>
+
+<p>
+    Return <code>true</code> if model is found in a collection.
+</p>
+
+<pre><code>const a = new mvc.Model({ id: 3, label: 'a' });
+const b = new mvc.Model({ id: 2, label: 'b' });
+const c = new mvc.Model({ id: 1, label: 'c' });
+const d = new mvc.Model({ id: 0, label: 'd' });
+const col = new mvc.Collection([a, b, c]);
+
+console.log(col.includes(a)); // true
+console.log(col.includes(d)); // false
+</code></pre>

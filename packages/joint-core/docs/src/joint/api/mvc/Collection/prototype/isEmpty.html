@@ -1,0 +1,14 @@
+<pre class="docs-method-signature"><code>collection.isEmpty()</code></pre>
+
+<p>
+    Return <code>true</code> if a collection is empty.
+</p>
+
+<pre><code>const col = new mvc.Collection([]);
+
+console.log(col.isEmpty()); // true
+
+col.set([new mvc.Model({ id: 1, label: 'a' })]);
+
+console.log(col.isEmpty()); // false
+</code></pre>

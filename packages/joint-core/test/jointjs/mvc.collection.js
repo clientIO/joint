@@ -488,6 +488,66 @@ QUnit.module('joint.mvc.Collection', function(hooks) {
         assert.equal(JSON.stringify(col), '[{"id":3,"label":"a"},{"id":2,"label":"b"},{"id":1,"label":"c"},{"id":0,"label":"d"}]');
     });
 
+    QUnit.test('Collection methods', function(assert) {
+        assert.expect(14);
+
+        // each
+        col.each((model, i) => model.set({ customData: i }));
+        assert.equal(JSON.stringify(col), '[{"id":3,"label":"a","customData":0},{"id":2,"label":"b","customData":1},{"id":1,"label":"c","customData":2},{"id":0,"label":"d","customData":3}]');
+
+        // filter
+        assert.equal(col.filter((model) => model.get('customData') === 0).length, 1);
+
+        // first
+        assert.equal(col.first().get('id'), col.models[0].id);
+
+        // includes
+        assert.ok(col.includes(col.models[0]));
+
+        const model = new joint.mvc.Model({ id: 5, label: 'a' });
+        assert.ok(!col.includes(model));
+
+        // last
+        assert.equal(col.last().get('id'), col.models[col.models.length - 1].id);
+
+        // isEmpty
+        assert.ok(!col.isEmpty());
+
+        const collection = new joint.mvc.Collection([]);
+        assert.ok(collection.isEmpty());
+
+        collection.set([new joint.mvc.Model({ id: 1, label: 'a' })]);
+        assert.ok(!collection.isEmpty());
+
+        // map
+        assert.equal(col.map((model) => model.get('label')).join(' '), 'a b c d');
+
+        // reduce
+        const initAcc = 0;
+        assert.equal(col.reduce((acc, model) => acc + model.id, initAcc), 6);
+        assert.equal(collection.reduce((acc, model) => acc.get('id') + model.id ), 2);
+
+        // sortBy
+        assert.deepEqual(col.sortBy((model) => model.id)[0], col.at(3));
+
+        // toArray
+        assert.ok(Array.isArray(col.toArray()));
+    });
+
+    QUnit.test('Collection methods with object-style and property-style iteratee', function(assert) {
+        assert.expect(2);
+        const model = new joint.mvc.Model({ a: 4, b: 1, e: 3 });
+        const collection = new joint.mvc.Collection([
+            { a: 1, b: 1 },
+            { a: 2, b: 1, c: 1 },
+            { a: 3, b: 1 },
+            model
+        ]);
+
+        assert.deepEqual(collection.sortBy('a')[3], model);
+        assert.deepEqual(collection.sortBy('e')[0], model);
+    });
+
     QUnit.test('reset', function(assert) {
         assert.expect(16);
 
