@@ -171,7 +171,7 @@ const IntermediateEvent = Event.define(
     },
     {
         attributes: {
-            gateType: {
+            'gate-type': {
                 set: function(type) {
                     const data = this.model.gateTypes[type];
                     return { d: data ? data + ' M 0 -30 0 -80' : 'M 0 0 0 0' };
