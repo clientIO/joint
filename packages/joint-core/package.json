@@ -1,7 +1,7 @@
 {
   "name": "jointjs",
   "title": "JointJS",
-  "version": "3.7.7",
+  "version": "4.0.0-alpha.1",
   "description": "JavaScript diagramming library",
   "sideEffects": false,
   "main": "./dist/joint.min.js",
