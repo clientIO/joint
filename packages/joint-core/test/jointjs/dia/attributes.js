@@ -4,13 +4,13 @@ QUnit.module('Attributes', function() {
 
         QUnit.test('will find correct definition', function(assert) {
 
-            joint.dia.attributes['global-test'] = 'global';
-            joint.dia.attributes['priority'] = 'lower';
+            joint.dia.attributes.globalTest = 'global';
+            joint.dia.attributes.priority = 'lower';
 
             var Cell = joint.dia.Cell.extend({}, {
                 attributes: {
-                    'local-test': 'local',
-                    'priority': 'higher'
+                    localTest: 'local',
+                    priority: 'higher'
                 }
             });
 
