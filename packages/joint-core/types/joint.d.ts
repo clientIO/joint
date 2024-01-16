@@ -1187,6 +1187,7 @@ export namespace dia {
             BACK = 'back',
             FRONT = 'front',
             TOOLS = 'tools',
+            GRID = 'grid',
         }
 
         type UpdateStats = {
@@ -1518,19 +1519,11 @@ export namespace dia {
 
         drawBackground(opt?: Paper.BackgroundOptions): this;
 
-        drawGrid(opt?: Paper.GridOptions | Paper.GridOptions[]): this;
-
-        clearGrid(): this;
-
         getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
 
         getModelById(id: Cell.ID | Cell): Cell;
 
         setDimensions(width: Paper.Dimension, height: Paper.Dimension): void;
-
-        setGrid(opt?: boolean | string | Paper.GridOptions | Paper.GridOptions[]): this;
-
-        setGridSize(gridSize: number): this;
 
         setInteractivity(value: any): void;
 
@@ -1545,6 +1538,12 @@ export namespace dia {
         update(): this;
 
         getPointerArgs(evt: dia.Event): [dia.Event, number, number];
+
+        // grid
+
+        setGrid(opt?: null | boolean | string | Paper.GridOptions | Paper.GridOptions[]): this;
+
+        setGridSize(gridSize: number): this;
 
         // tools
 

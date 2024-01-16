@@ -1337,9 +1337,12 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.module('draw grid options', function(hooks) {
 
-        var getGridVel = function(paper) {
-            var image = paper.childNodes.grid.style.backgroundImage.replace(/url\("*|"*\)/g, '').replace('data:image/svg+xml;base64,', '');
-            return image !== 'none' ?  V(atob(image)) : undefined;
+        const getGridSettings = function(paper) {
+            return paper.getLayerView(joint.dia.Paper.Layers.GRID)._gridSettings;
+        };
+
+        const getGridVel = function(paper) {
+            return V(paper.getLayerNode(joint.dia.Paper.Layers.GRID).firstChild);
         };
 
         var preparePaper = function(drawGrid, paperSettings) {
@@ -1384,7 +1387,7 @@ QUnit.module('paper', function(hooks) {
                     gridSize: 1,
                     drawGridSize: 17
                 });
-                const drawGridSpy = sinon.spy(paper, 'drawGrid');
+                const drawGridSpy = sinon.spy(paper.getLayerView(joint.dia.Paper.Layers.GRID), 'renderGrid');
                 paper.setGridSize(5);
                 assert.ok(drawGridSpy.notCalled);
                 drawGridSpy.restore();
@@ -1405,7 +1408,6 @@ QUnit.module('paper', function(hooks) {
 
                 var drawGrid = { color: 'red', thickness: 2 };
                 var paper = preparePaper(drawGrid);
-                paper.drawGrid();
 
                 var svg = getGridVel(paper);
 
@@ -1423,7 +1425,6 @@ QUnit.module('paper', function(hooks) {
 
                 var drawGrid = { markup: '<circle r="10" fill="black" />', color: 'red' };
                 var paper = preparePaper(drawGrid);
-                paper.drawGrid();
 
                 var svg = getGridVel(paper);
 
@@ -1447,7 +1448,6 @@ QUnit.module('paper', function(hooks) {
                     }, color: 'red'
                 };
                 var paper = preparePaper(drawGrid);
-                paper.drawGrid();
 
                 var svg = getGridVel(paper);
 
@@ -1474,8 +1474,6 @@ QUnit.module('paper', function(hooks) {
                     origin: { x: -5, y: -5 }
                 });
 
-                paper.drawGrid();
-
                 var svg = getGridVel(paper);
 
                 var patterns = V(svg.node.childNodes[0]).find('pattern');
@@ -1487,7 +1485,7 @@ QUnit.module('paper', function(hooks) {
 
                 assert.deepEqual(
                     { width: redDotAttrs.width, height: redDotAttrs.height, x: redDotAttrs.x, y: redDotAttrs.y },
-                    { width: '10', height: '10', x: '5', y: '5' },
+                    { width: '10', height: '10', x: '-5', y: '-5' },
                     'red dot pattern attrs'
                 );
 
@@ -1498,12 +1496,12 @@ QUnit.module('paper', function(hooks) {
                         x: greenDotAttrs.x,
                         y: greenDotAttrs.y
                     },
-                    { width: '20', height: '20', x: '15', y: '15' },
+                    { width: '20', height: '20', x: '-5', y: '-5' },
                     'green dot pattern attrs'
                 );
             });
 
-            QUnit.test('local options - as an object', function(assert) {
+            QUnit.test('reset grid array - partial', function(assert) {
 
                 var drawGrid = [
                     { color: 'red' },
@@ -1516,7 +1514,7 @@ QUnit.module('paper', function(hooks) {
                     origin: { x: -5, y: -5 }
                 });
 
-                paper.drawGrid({ color: 'pink' });
+                paper.setGrid(joint.util.defaultsDeep([{ color: 'pink' }], drawGrid));
 
                 var svg = getGridVel(paper);
 
@@ -1526,12 +1524,13 @@ QUnit.module('paper', function(hooks) {
 
                 assert.equal(patterns.length, 2);
 
-                var redDot = V(patterns[0].node.childNodes[0]);
+                const [redDot, greenDot] = patterns.map((pattern) => V(pattern.node.firstChild));
+                assert.equal(redDot.attr('fill'), 'pink', 'color updated by reset');
+                assert.equal(greenDot.attr('fill'), 'green', 'not updated by reset');
 
-                assert.equal(redDot.attr('fill'), 'pink', 'color updated by local options');
             });
 
-            QUnit.test('local options - as an array', function(assert) {
+            QUnit.test('reset grid array', function(assert) {
 
                 var drawGrid = [
                     { color: 'red' },
@@ -1544,7 +1543,7 @@ QUnit.module('paper', function(hooks) {
                     origin: { x: -5, y: -5 }
                 });
 
-                paper.drawGrid([{ color: 'black' }, { color: 'pink' }]);
+                paper.setGrid(joint.util.defaultsDeep([{ color: 'black' }, { color: 'pink' }], drawGrid));
 
                 var svg = getGridVel(paper);
 
@@ -1553,14 +1552,13 @@ QUnit.module('paper', function(hooks) {
 
                 assert.equal(svg.node.childNodes.length, 3, 'defs + 2x rect with pattern fill');
                 assert.equal(patterns.length, 2);
-                assert.equal(greenDot.attr('fill'), 'pink', 'color updated by local options');
+                assert.equal(greenDot.attr('fill'), 'pink', 'color updated by reset');
             });
 
             QUnit.test('update mesh', function(assert) {
 
                 var drawGrid = { name: 'mesh', color: 'red', thickness: 2 };
                 var paper = preparePaper(drawGrid);
-                paper.drawGrid();
 
                 var svg = getGridVel(paper);
 
@@ -1569,7 +1567,7 @@ QUnit.module('paper', function(hooks) {
                 assert.equal(patternAttr.stroke, 'red');
                 assert.equal(patternAttr['stroke-width'], '2');
 
-                paper.drawGrid({ color: 'blue', thickness: 1 });
+                paper.setGrid(joint.util.defaults({ color: 'blue', thickness: 1 }, drawGrid));
                 svg = getGridVel(paper);
                 patterns = V(svg.node.childNodes[0]).find('pattern');
                 patternAttr = V(patterns[0].node.childNodes[0]).attr();
@@ -1581,7 +1579,6 @@ QUnit.module('paper', function(hooks) {
 
                 var drawGrid = { name: 'doubleMesh', args: [{ color: 'red', thickness: 2 }] };
                 var paper = preparePaper(drawGrid);
-                paper.drawGrid();
 
                 var svg = getGridVel(paper);
 
@@ -1590,7 +1587,8 @@ QUnit.module('paper', function(hooks) {
                 assert.equal(patternAttr.stroke, 'red');
                 assert.equal(patternAttr['stroke-width'], '2');
 
-                paper.drawGrid({ color: 'blue', thickness: 1 });
+                paper.setGrid(joint.util.defaultsDeep({ args: { color: 'blue', thickness: 1 }}, drawGrid));
+
                 svg = getGridVel(paper);
                 patterns = V(svg.node.childNodes[0]).find('pattern');
                 patternAttr = V(patterns[0].node.childNodes[0]).attr();
@@ -1608,6 +1606,10 @@ QUnit.module('paper', function(hooks) {
                 paper = new joint.dia.Paper();
             });
 
+            hooks.afterEach(function() {
+                paper.remove();
+            });
+
             QUnit.test('set doubleMesh settings', function(assert) {
 
                 var drawGridTestFixtures = [
@@ -1618,41 +1620,42 @@ QUnit.module('paper', function(hooks) {
 
                 var check = function(message) {
 
-                    assert.equal(paper._gridSettings.length, 2);
-                    var firstLayer = paper._gridSettings[0];
+                    const gridSettings = getGridSettings(paper);
+                    assert.equal(gridSettings.length, 2);
+                    var firstLayer = gridSettings[0];
 
                     assert.equal(firstLayer.color, 'red', message + ': color');
                     assert.equal(firstLayer.thickness, 11, message + ': thickness');
                     assert.equal(firstLayer.markup, 'path', message + ': markup');
-                    assert.ok(_.isFunction(firstLayer.update), message + ': update');
+                    assert.ok(_.isFunction(firstLayer.render), message + ': update');
                 };
 
                 paper.setGrid(drawGridTestFixtures[0]);
                 check('args: {}');
 
                 paper.setGrid(drawGridTestFixtures[1]);
-                var secondLayer = paper._gridSettings[1];
+                var secondLayer = getGridSettings(paper)[1];
                 var message = 'args: [{}] - second layer';
                 assert.equal(secondLayer.color, 'black', message + ': color');
                 assert.equal(secondLayer.thickness, 55, message + ': thickness');
                 assert.equal(secondLayer.markup, 'path', message + ': markup');
-                assert.ok(_.isFunction(secondLayer.update), message + ': update');
+                assert.ok(_.isFunction(secondLayer.render), message + ': update');
                 check('args: [{}]');
 
                 paper.setGrid(drawGridTestFixtures[2]);
                 check('no args');
             });
 
-            QUnit.test('update default', function(assert){
+            QUnit.test('render default', function(assert){
 
                 paper.setGrid({ color: 'red', thickness: 11 });
-                assert.propEqual(paper._gridSettings[0], {
+                assert.propEqual(getGridSettings(paper)[0], {
                     color: 'red',
                     thickness: 11,
                     markup: 'rect',
-                    update: {}
+                    render: {}
                 }, 'update default');
-                assert.ok(_.isFunction(paper._gridSettings[0].update));
+                assert.ok(_.isFunction(getGridSettings(paper)[0].render));
             });
 
             QUnit.test('create custom', function(assert) {
@@ -1664,16 +1667,16 @@ QUnit.module('paper', function(hooks) {
                 ];
 
                 paper.setGrid(drawGridTestFixtures[0]);
-                assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update');
+                assert.deepEqual(getGridSettings(paper)[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update');
 
                 paper.setGrid(drawGridTestFixtures[1]);
-                assert.ok(_.isArray(paper._gridSettings));
-                assert.deepEqual(paper._gridSettings[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update - first layer');
-                assert.deepEqual(paper._gridSettings[1], { markup: 'rect2', update: 'fnc2' }, 'custom markup and update- second layer');
+                assert.ok(_.isArray(getGridSettings(paper)));
+                assert.deepEqual(getGridSettings(paper)[0], { markup: 'rect', update: 'fnc' }, 'custom markup and update - first layer');
+                assert.deepEqual(getGridSettings(paper)[1], { markup: 'rect2', update: 'fnc2' }, 'custom markup and update- second layer');
 
                 paper.setGrid(drawGridTestFixtures[2]);
-                assert.ok(_.isArray(paper._gridSettings));
-                assert.deepEqual(paper._gridSettings[0], { markup: '<circle/>' }, 'custom grid - minimal setup');
+                assert.ok(_.isArray(getGridSettings(paper)));
+                assert.deepEqual(getGridSettings(paper)[0], { markup: '<circle/>' }, 'custom grid - minimal setup');
             });
 
             QUnit.test('initialize gridSettings', function(assert) {
@@ -1681,14 +1684,14 @@ QUnit.module('paper', function(hooks) {
                 var dotDefault = joint.dia.Paper.gridPatterns.dot[0];
 
                 paper.setGrid({ markup: '<rect/>' });
-                assert.deepEqual(paper._gridSettings[0], { markup: '<rect/>' }, 'markup only');
+                assert.deepEqual(getGridSettings(paper)[0], { markup: '<rect/>' }, 'markup only');
 
                 paper.setGrid({ update: 'custom' });
-                assert.propEqual(_.omit(paper._gridSettings[0], 'update'), _.omit(dotDefault, 'update'), 'override update function');
-                assert.equal(paper._gridSettings[0].update, 'custom');
+                assert.propEqual(_.omit(getGridSettings(paper)[0], 'update'), _.omit(dotDefault, 'update'), 'override update function');
+                assert.equal(getGridSettings(paper)[0].update, 'custom');
 
                 paper.setGrid('dot');
-                assert.propEqual(paper._gridSettings[0], dotDefault, 'update');
+                assert.propEqual(getGridSettings(paper)[0], dotDefault, 'update');
 
                 paper.setGrid([{ color: 'red' }, { color: 'black' }]);
             });

@@ -2,6 +2,7 @@ import { View } from '../mvc/index.mjs';
 import { addClassNamePrefix } from '../util/util.mjs';
 
 export const LayersNames = {
+    GRID: 'grid',
     CELLS: 'cells',
     BACK: 'back',
     FRONT: 'front',
