@@ -36,6 +36,7 @@ const Place = joint.dia.Element.define('pn.Place', {
     }
 }, {
     markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
+    useCSSSelectors: true,
 });
 
 const PlaceView = joint.dia.ElementView.extend({
@@ -111,10 +112,13 @@ const Transition = joint.dia.Element.define('pn.Transition', {
     }
 }, {
     markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
+    useCSSSelectors: true,
 });
 
 const Link = joint.dia.Link.define('pn.Link', {
     attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
+}, {
+    useCSSSelectors: true
 });
 
 const shapes = { ...joint.shapes, pn: { Place, PlaceView, Transition, Link }};

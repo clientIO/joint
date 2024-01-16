@@ -1,7 +1,7 @@
 QUnit.module('element ports', function() {
 
     var Model = joint.dia.Element.extend({
-
+        useCSSSelectors: true,
         markup: '<g class="rotatable"><g class="scalable"><rect class="rectangle"/></g><text/></g>',
         portMarkup: '<circle class="circle-port" />',
         defaults: _.defaultsDeep({
@@ -359,38 +359,46 @@ QUnit.module('element ports', function() {
         });
 
         QUnit.test('port update/render count', function(assert) {
-            const model = new joint.shapes.standard.Rectangle({
-                size: { width: 100, height: 100 },
-                ports: {
-                    items: [{ id: 'port1' }, { id: 'port2' }]
-                }
-            });
-            const shapeView = new joint.dia.ElementView({ model: model });
-            const renderPortsSpy = sinon.spy(shapeView, '_renderPorts');
-            const updatePortsSpy = sinon.spy(shapeView, '_updatePorts');
-            const flags = joint.dia.ElementView.Flags;
-            // 1 update exactly
-            [
-                [flags.PORTS], // on ports change
-                [flags.UPDATE], // on attrs change
-                [flags.RESIZE, flags.PORTS, flags.TOOLS], // on resize
-            ].forEach(flags => {
-                renderPortsSpy.resetHistory();
-                updatePortsSpy.resetHistory();
-                shapeView.confirmUpdate(shapeView.getFlag(flags), {});
-                assert.equal(renderPortsSpy.callCount, 1);
-                assert.equal(updatePortsSpy.callCount, 1);
-            });
-            // No update
-            [
-                [flags.TRANSLATE], // on position change
-                [flags.ROTATE], // on angle change
-            ].forEach(flags => {
-                renderPortsSpy.resetHistory();
-                updatePortsSpy.resetHistory();
-                shapeView.confirmUpdate(shapeView.getFlag(flags), {});
-                assert.equal(renderPortsSpy.callCount, 0);
-                assert.equal(updatePortsSpy.callCount, 0);
+            [true, false].forEach(useCSSSelectors => {
+                const model = new joint.shapes.standard.Rectangle({
+                    size: { width: 100, height: 100 },
+                    ports: {
+                        items: [{ id: 'port1' }, { id: 'port2' }]
+                    }
+                });
+                model.useCSSSelectors = useCSSSelectors;
+                const shapeView = new joint.dia.ElementView({ model: model });
+                const renderPortsSpy = sinon.spy(shapeView, '_renderPorts');
+                const updatePortsSpy = sinon.spy(shapeView, '_updatePorts');
+                const flags = joint.dia.ElementView.Flags;
+                // 1 update exactly
+                [
+                    [flags.PORTS], // on ports change
+                    [flags.UPDATE], // on attrs change
+                    [flags.RESIZE, flags.PORTS, flags.TOOLS], // on resize
+                ].forEach(f => {
+                    renderPortsSpy.resetHistory();
+                    updatePortsSpy.resetHistory();
+                    shapeView.confirmUpdate(shapeView.getFlag(f), {});
+                    let expectedCount = 1;
+                    if (useCSSSelectors === false && joint.util.isEqual(f, [flags.UPDATE])) {
+                        expectedCount = 0;
+                    }
+                    assert.equal(renderPortsSpy.callCount, expectedCount, `render called ${flags}`);
+                    assert.equal(updatePortsSpy.callCount, expectedCount, `update called ${flags}`);
+                });
+
+                // No update
+                [
+                    [flags.TRANSLATE], // on position change
+                    [flags.ROTATE], // on angle change
+                ].forEach(flags => {
+                    renderPortsSpy.resetHistory();
+                    updatePortsSpy.resetHistory();
+                    shapeView.confirmUpdate(shapeView.getFlag(flags), {});
+                    assert.equal(renderPortsSpy.callCount, 0, `render called ${flags}`);
+                    assert.equal(updatePortsSpy.callCount, 0, `update called ${flags}`);
+                });
             });
         });
 

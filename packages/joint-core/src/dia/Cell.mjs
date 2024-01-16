@@ -942,3 +942,4 @@ export const Cell = Model.extend({
         return Cell;
     }
 });
+

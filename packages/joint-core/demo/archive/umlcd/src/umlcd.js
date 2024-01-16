@@ -31,6 +31,7 @@ const Class = joint.dia.Element.define('uml.Class', {
     attributes: [],
     methods: []
 }, {
+    useCSSSelectors: true,
     markup: [
         '<g class="rotatable">',
         '<g class="scalable">',

@@ -215,7 +215,7 @@ export const CellView = View.extend({
 
         // Maintaining backwards compatibility
         // e.g. `circle:first` would fail with querySelector() call
-        if (config.useCSSSelectors) return $(root).find(selector).toArray();
+        if (this.useCSSSelectors) return $(root).find(selector).toArray();
 
         return [];
     },
@@ -1294,6 +1294,15 @@ export const CellView = View.extend({
 
 });
 
+
+Object.defineProperty(CellView.prototype, 'useCSSSelectors', {
+    get() {
+        const localUse = this.model.useCSSSelectors;
+        if (localUse !== undefined) return localUse;
+        return config.useCSSSelectors;
+    }
+});
+
 // TODO: Move to Vectorizer library.
 function getCommonAncestorNode(node1, node2) {
     let parent = node1;
@@ -1303,4 +1312,5 @@ function getCommonAncestorNode(node1, node2) {
     } while (parent);
     return null;
 }
+
 

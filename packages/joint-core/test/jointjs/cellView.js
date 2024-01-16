@@ -17,7 +17,7 @@ QUnit.module('cellView', function(hooks) {
             type: 'element',
             markup: '<rect/>'
         });
-
+        cell.useCSSSelectors = true;
         paper.model.addCell(cell);
         cellView = paper.findViewByModel(cell);
     });

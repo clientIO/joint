@@ -1,3 +1,5 @@
+joint.config.useCSSSelectors = true;
+
 joint.connectors.normal = function(sourcePoint, targetPoint, vertices) {
 
     var chromeFix = 1e-3;

@@ -293,7 +293,7 @@ QUnit.module('links', function(hooks) {
         var model = new joint.shapes.standard.Rectangle({
             position: { x: 100, y: 100 },
             size: { width: 100, height: 100 },
-            attrs: { rect: { magnet: true, port: 'myPort' }}
+            attrs: { body: { magnet: true, port: 'myPort' }}
         });
 
         this.graph.addCell(model);
@@ -1246,8 +1246,8 @@ QUnit.module('links', function(hooks) {
 
         this.graph.addCells([myrect, myrect2]);
 
-        myrect.attr('text', { magnet: true, port: 'port1' });
-        myrect2.attr('text', { magnet: true, port: 'port2' });
+        myrect.attr('label', { magnet: true, port: 'port1' });
+        myrect2.attr('label', { magnet: true, port: 'port2' });
 
         var myrectView = this.paper.findViewByModel(myrect);
         var myrect2View = this.paper.findViewByModel(myrect2);
@@ -1270,7 +1270,6 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('snap links', function(assert) {
 
-        var event;
         var link = new joint.shapes.standard.Link({
             source: { x: 0, y: 0 },
             target: { x: 0, y: 0 }
@@ -1339,8 +1338,8 @@ QUnit.module('links', function(hooks) {
             position: { x: 200, y: 200 },
             attrs: {
                 '.': { magnet: false },
-                rect: { magnet: true },
-                text: { magnet: true }
+                body: { magnet: true },
+                label: { magnet: true }
             }
         });
 
@@ -1369,7 +1368,7 @@ QUnit.module('links', function(hooks) {
         availableCells = this.paper.el.querySelectorAll('.available-cell');
 
         assert.equal(availableMagnets.length + availableCells.length, 0,
-            'When dragging an arrowhed stopped all magnets and cells were unmarked.');
+            'When dragging an arrowhead stopped all magnets and cells were unmarked.');
     });
 
     QUnit.test('defaultRouter', function(assert) {

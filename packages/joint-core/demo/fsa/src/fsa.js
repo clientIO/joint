@@ -1,81 +1,11 @@
-const State = joint.dia.Element.define('fsa.State', {
-    size: { width: 60, height: 60 },
-    attrs: {
-        'circle': {
-            fill: '#ffffff',
-            stroke: '#000000',
-            'stroke-width': 3,
-            r: 30,
-            cx: 30,
-            cy: 30
-        },
-        'text': {
-            'font-size': 14,
-            text: '',
-            'text-anchor': 'middle',
-            'ref-x': .5,
-            'ref-y': .5,
-            'y-alignment': 'middle',
-            fill: '#000000',
-            'font-weight': '800',
-            'font-family': 'Arial, helvetica, sans-serif'
-        }
-    }
-}, {
-    markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
-});
+const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
-const StartState = joint.dia.Element.define('fsa.StartState', {
-    size: { width: 20, height: 20 },
-    attrs: {
-        circle: {
-            transform: 'translate(10, 10)',
-            r: 10,
-            fill: '#000000'
-        }
-    }
-}, {
-    markup: '<g class="rotatable"><g class="scalable"><circle/></g></g>',
-});
-
-const EndState = joint.dia.Element.define('fsa.EndState', {
-    size: { width: 20, height: 20 },
-    attrs: {
-        '.outer': {
-            transform: 'translate(10, 10)',
-            r: 10,
-            fill: '#ffffff',
-            stroke: '#000000'
-        },
-
-        '.inner': {
-            transform: 'translate(10, 10)',
-            r: 6,
-            fill: '#000000'
-        }
-    }
-}, {
-    markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
-});
-
-const Arrow = joint.dia.Link.define('fsa.Arrow', {
-    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
-});
-
-const shapes = {
-    ...joint.shapes,
-    fsa: { State, StartState, EndState, Arrow }
-};
-
-
-var graph = new joint.dia.Graph({}, { cellNamespace: shapes });
-
-var paper = new joint.dia.Paper({
+const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 800,
     height: 600,
     model: graph,
-    cellViewNamespace: shapes,
+    cellViewNamespace: joint.shapes,
     defaultConnectionPoint: { name: 'boundary' },
     defaultConnector: { name: 'smooth' },
     interactive: { linkMove: false },
@@ -97,7 +27,7 @@ paper.on('cell:pointerdown blank:pointerdown', function() {
 });
 
 function state(x, y, label) {
-    var circle = new joint.shapes.standard.Circle({
+    const circle = new joint.shapes.standard.Circle({
         position: { x: x, y: y },
         size: { width: 60, height: 60 },
         attrs: {
@@ -119,7 +49,7 @@ function state(x, y, label) {
 }
 
 function initState(x, y) {
-    var start = new joint.shapes.standard.Circle({
+    const start = new joint.shapes.standard.Circle({
         position: { x: x, y: y },
         size: { width: 20, height: 20 },
         attrs: {
@@ -132,7 +62,7 @@ function initState(x, y) {
 }
 
 function link(source, target, label, vertices) {
-    var link = new joint.shapes.standard.Link({
+    const link = new joint.shapes.standard.Link({
         source: { id: source.id },
         target: { id: target.id },
         attrs: {
@@ -161,12 +91,12 @@ function link(source, target, label, vertices) {
     return link.addTo(graph);
 }
 
-var start = initState(50, 530);
-var code  = state(180, 390, 'code');
-var slash = state(340, 220, 'slash');
-var star  = state(600, 400, 'star');
-var line  = state(190, 100, 'line');
-var block = state(560, 140, 'block');
+const start = initState(50, 530);
+const code  = state(180, 390, 'code');
+const slash = state(340, 220, 'slash');
+const star  = state(600, 400, 'star');
+const line  = state(190, 100, 'line');
+const block = state(560, 140, 'block');
 
 link(start, code,  'start');
 link(code,  slash, '/');

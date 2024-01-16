@@ -6,6 +6,7 @@ const Gate = joint.dia.Element.define('logic.Gate', {
         circle: { r: 7, stroke: 'black', fill: 'transparent', 'stroke-width': 2 }
     }
 }, {
+    useCSSSelectors: true,
     operation: function() {
         return true;
     }
@@ -139,6 +140,7 @@ const Wire = joint.dia.Link.define('logic.Wire', {
     router: { name: 'orthogonal' },
     connector: { name: 'rounded', args: { radius: 10 }}
 }, {
+    useCSSSelectors: true,
     arrowheadMarkup: [
         '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
         '<circle class="marker-arrowhead" end="<%= end %>" r="7"/>',

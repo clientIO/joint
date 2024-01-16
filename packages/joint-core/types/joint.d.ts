@@ -330,6 +330,7 @@ export namespace dia {
         id: Cell.ID;
         graph: Graph;
         markup: string | MarkupJSON;
+        useCSSSelectors: boolean;
 
         protected generateId(): string | number;
 
