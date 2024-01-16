@@ -1,23 +1,14 @@
 {
     "compilerOptions": {
-        "module": "ES6",
         "lib": [
-            "DOM",
-            "es6"
-        ],
-        "noImplicitAny": true,
-        "noImplicitThis": true,
-        "strictNullChecks": true,
-        "strictFunctionTypes": true,
-        "baseUrl": "./types",
-        "typeRoots": [
-            "./types"
+            "ES6",
+            "DOM"
         ],
         "types": [],
         "noEmit": true,
         "forceConsistentCasingInFileNames": true
     },
     "files": [
-        "types/index.d.ts"
+        "./types/index.d.ts"
     ]
 }
