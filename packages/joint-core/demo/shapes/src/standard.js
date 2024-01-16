@@ -5,6 +5,9 @@ var util = joint.util;
 var standard = joint.shapes.standard;
 var elementTools = joint.elementTools;
 
+// Do not translate the following attribute names.
+V.attributeNames['placeholderURL'] = 'placeholderURL';
+
 // Custom attribute for retrieving image placeholder with specific size
 dia.attributes.placeholderURL = {
     qualify: function(url) {

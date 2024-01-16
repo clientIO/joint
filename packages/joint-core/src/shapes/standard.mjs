@@ -490,7 +490,7 @@ export const Cylinder = Element.define('standard.Cylinder', {
 
 }, {
     attributes: {
-        lateralArea: {
+        'lateral-area': {
             set: function(t, refBBox) {
                 var isPercentageSetter = isPercentage(t);
                 if (isPercentageSetter) t = parseFloat(t) / 100;
@@ -606,10 +606,10 @@ export const TextBlock = Element.define('standard.TextBlock', {
                     node.textContent = text;
                 } else {
                     // No foreign object
-                    var style = attrs.style || {};
-                    var wrapValue = { text: text, width: -5, height: '100%' };
-                    var wrapAttrs = assign({ textVerticalAnchor: 'middle' }, style);
-                    attributes.textWrap.set.call(this, wrapValue, refBBox, node, wrapAttrs);
+                    var style = attrs['style'] || {};
+                    var wrapValue = { text, width: -5, height: '100%' };
+                    var wrapAttrs = assign({ 'text-vertical-anchor': 'middle' }, style);
+                    attributes['text-wrap'].set.call(this, wrapValue, refBBox, node, wrapAttrs);
                     return { fill: style.color || null };
                 }
             },

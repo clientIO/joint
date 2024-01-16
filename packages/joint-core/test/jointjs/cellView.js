@@ -226,7 +226,7 @@ QUnit.module('cellView', function(hooks) {
 
                 var spy = sinon.spy();
                 cell.constructor.attributes || (cell.constructor.attributes = {});
-                cell.constructor.attributes.setTestAttribute = { set: spy };
+                cell.constructor.attributes['set-test-attribute'] = { set: spy };
                 cell.attr('.a/setTestAttribute', 'value');
 
                 assert.ok(spy.calledOnce);
@@ -235,10 +235,10 @@ QUnit.module('cellView', function(hooks) {
                     'value',
                     sinon.match.instanceOf(g.Rect),
                     rectA.node,
-                    cell.attr('.a')
+                    { 'set-test-attribute': 'value' }
                 ));
 
-                delete cell.constructor.attributes.setTestAttribute;
+                delete cell.constructor.attributes['set-test-attribute'];
             });
 
             QUnit.test('Basics', function(assert) {
@@ -273,7 +273,7 @@ QUnit.module('cellView', function(hooks) {
 
                 var spy = sinon.spy();
                 cell.constructor.attributes || (cell.constructor.attributes = {});
-                cell.constructor.attributes.positionTestAttribute = { position: spy };
+                cell.constructor.attributes['position-test-attribute'] = { position: spy };
                 cell.attr('.a/positionTestAttribute', 'value');
 
 
@@ -283,10 +283,10 @@ QUnit.module('cellView', function(hooks) {
                     'value',
                     sinon.match.instanceOf(g.Rect),
                     rectA.node,
-                    cell.attr('.a')
+                    { 'position-test-attribute': 'value' }
                 ));
 
-                delete cell.constructor.attributes.positionTestAttribute;
+                delete cell.constructor.attributes['position-test-attribute'];
             }),
 
             QUnit.test('Basics', function(assert) {
@@ -453,7 +453,7 @@ QUnit.module('cellView', function(hooks) {
 
                 var spy = sinon.spy();
                 cell.constructor.attributes || (cell.constructor.attributes = {});
-                cell.constructor.attributes.offsetTestAttribute = { offset: spy };
+                cell.constructor.attributes['offset-test-attribute'] = { offset: spy };
                 cell.attr('.a/offsetTestAttribute', 'value');
 
                 // Rect has no dimension yet
@@ -472,10 +472,10 @@ QUnit.module('cellView', function(hooks) {
                     'value',
                     sinon.match.instanceOf(g.Rect),
                     rectA.node,
-                    cell.attr('.a')
+                    { 'offset-test-attribute': 'value', width: 100, height: 100 }
                 ));
 
-                delete cell.constructor.attributes.offsetTestAttribute;
+                delete cell.constructor.attributes['offset-test-attribute'];
             }),
 
             QUnit.test('Basics', function(assert) {
@@ -493,8 +493,8 @@ QUnit.module('cellView', function(hooks) {
 
                 assert.deepEqual(rectB.bbox().toString(), '25@25 75@75');
                 // Attributes are not actually set on the DOM Element
-                assert.equal(rectB.attr('xAlignment'), null);
-                assert.equal(rectB.attr('yAlignment'), null);
+                assert.equal(rectB.attr('x-alignment'), null);
+                assert.equal(rectB.attr('y-alignment'), null);
             });
 
             QUnit.test('With Ref', function(assert) {

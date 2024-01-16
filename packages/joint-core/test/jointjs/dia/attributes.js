@@ -50,56 +50,56 @@ QUnit.module('Attributes', function() {
 
             QUnit.test('qualify', function(assert) {
 
-                var ns = joint.dia.attributes;
-                assert.notOk(ns.textWrap.qualify.call(cellView, 'string', node, {}));
-                assert.ok(ns.textWrap.qualify.call(cellView, { 'plainObject': true }, node, {}));
+                var textWrap = joint.dia.attributes['text-wrap'];
+                assert.notOk(textWrap.qualify.call(cellView, 'string', node, {}));
+                assert.ok(textWrap.qualify.call(cellView, { 'plainObject': true }, node, {}));
             });
 
             QUnit.test('set', function(assert) {
 
-                var ns = joint.dia.attributes;
+                var textWrap = joint.dia.attributes['text-wrap'];
                 var bbox = refBBox.clone();
                 var spy = sinon.spy(joint.util, 'breakText');
 
                 // no text
                 spy.resetHistory();
-                ns.textWrap.set.call(cellView, {}, bbox, node, {});
+                textWrap.set.call(cellView, {}, bbox, node, {});
                 assert.equal(node.textContent, '-'); // Vectorizer empty line has `-` character with opacity 0
 
                 // text via `text` attribute
                 spy.resetHistory();
-                ns.textWrap.set.call(cellView, {}, bbox, node, { text: 'text' });
+                textWrap.set.call(cellView, {}, bbox, node, { text: 'text' });
                 assert.equal(node.textContent, 'text');
 
                 // text as part of the `textWrap` value
                 spy.resetHistory();
-                ns.textWrap.set.call(cellView, { text: 'text' }, bbox, node, {});
+                textWrap.set.call(cellView, { text: 'text' }, bbox, node, {});
                 assert.equal(node.textContent, 'text');
 
                 // width & height absolute
                 spy.resetHistory();
-                ns.textWrap.set.call(cellView, { text: 'text', width: -20, height: -30, breakText: spy }, bbox, node, {});
+                textWrap.set.call(cellView, { text: 'text', width: -20, height: -30, breakText: spy }, bbox, node, {});
                 assert.ok(spy.calledWith(sinon.match.string, sinon.match(function(obj) {
                     return obj.width === WIDTH - 20 && obj.height === HEIGHT - 30;
                 })));
 
                 // width & height relative
                 spy.resetHistory();
-                ns.textWrap.set.call(cellView, { text: 'text', width: '50%', height: '200%', breakText: spy }, bbox, node, {});
+                textWrap.set.call(cellView, { text: 'text', width: '50%', height: '200%', breakText: spy }, bbox, node, {});
                 assert.ok(spy.calledWith(sinon.match.string, sinon.match(function(obj) {
                     return obj.width === WIDTH / 2 && obj.height === HEIGHT * 2;
                 })));
 
                 // width & height no restriction
                 spy.resetHistory();
-                ns.textWrap.set.call(cellView, { text: 'text', width: null, height: null, breakText: spy }, bbox, node, {});
+                textWrap.set.call(cellView, { text: 'text', width: null, height: null, breakText: spy }, bbox, node, {});
                 assert.ok(spy.calledWith(sinon.match.string, sinon.match(function(obj) {
                     return obj.width === Infinity && obj.height === undefined;
                 })));
 
                 // width & height calc()
                 spy.resetHistory();
-                ns.textWrap.set.call(cellView, { text: 'text', width: 'calc(w-11)', height: 'calc(h-13)', breakText: spy }, bbox, node, {});
+                textWrap.set.call(cellView, { text: 'text', width: 'calc(w-11)', height: 'calc(h-13)', breakText: spy }, bbox, node, {});
                 assert.ok(spy.calledWith(sinon.match.string, sinon.match(function(obj) {
                     return obj.width === refBBox.width - 11 && obj.height === refBBox.height - 13;
                 })));
@@ -359,27 +359,13 @@ QUnit.module('Attributes', function() {
         var WIDTH = 85;
         var HEIGHT = 97;
 
-        var paper, graph, cell, cellView, node, refBBox;
+        var refBBox;
 
         hooks.beforeEach(function() {
-            graph = new joint.dia.Graph;
-            var fixtures = document.getElementById('qunit-fixture');
-            var paperEl = document.createElement('div');
-            fixtures.appendChild(paperEl);
-            paper = new joint.dia.Paper({ el: paperEl, model: graph });
-            cell = new joint.shapes.standard.Rectangle();
-            cell.addTo(graph);
-            cellView = cell.findView(paper);
             refBBox = new g.Rect(X, Y, WIDTH, HEIGHT);
-            node = cellView.el.querySelector('path');
-        });
-
-        hooks.afterEach(function() {
-            paper.remove();
         });
 
         QUnit.test('calculates an expression', function(assert) {
-            var ns = joint.dia.attributes;
             [
                 // sanity
                 ['', ''],
@@ -435,13 +421,11 @@ QUnit.module('Attributes', function() {
                 ['M 0 0 calc(w + calc(h + calc(w))) 0', 'M 0 0 ' + (WIDTH + HEIGHT + WIDTH) + ' 0'],
                 ['M 0 0 calc(2 * w + calc(h)) calc(3 * w + calc(h))', 'M 0 0 ' + (2 * WIDTH + HEIGHT) + ' ' + (3 * WIDTH + HEIGHT)],
             ].forEach(function(testCase) {
-                var attrs = ns.d.set.call(cellView, testCase[0], refBBox.clone(), node, {});
-                assert.deepEqual(attrs, { d: testCase[1] });
+                assert.equal(joint.dia.CellView.evalAttribute('d', testCase[0], refBBox.clone()), testCase[1]);
             });
         });
 
         QUnit.test('throws error when invalid', function(assert) {
-            var ns = joint.dia.attributes;
             [
                 'calc()',
                 'calc(10)',
@@ -452,7 +436,7 @@ QUnit.module('Attributes', function() {
             ].forEach(function(testCase) {
                 assert.throws(
                     function() {
-                        ns.d.set.call(cellView, testCase,  refBBox.clone(), node, {});
+                        joint.dia.CellView.evalAttribute('d', testCase, refBBox.clone());
                     },
                     /Invalid calc\(\) expression/,
                     testCase
@@ -461,7 +445,6 @@ QUnit.module('Attributes', function() {
         });
 
         QUnit.test('prevent negative values for dimensions', function(assert) {
-            var ns = joint.dia.attributes;
             var attributes = [
                 'x',
                 'y',
@@ -483,15 +466,8 @@ QUnit.module('Attributes', function() {
                 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0,
             ];
             attributes.forEach(function(attribute, index) {
-                var setter = ns[attribute].set;
-                var result = setter.call(
-                    cellView,
-                    'calc(w-' + (refBBox.width + 1) + ')',
-                    refBBox.clone(),
-                    node,
-                    {}
-                );
-                assert.equal(result[attribute], String(results[index]));
+                const result = joint.dia.CellView.evalAttribute(attribute, `calc(w-${refBBox.width + 1})`, refBBox.clone());
+                assert.equal(result, String(results[index]), attribute);
             });
         });
 
