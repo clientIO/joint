@@ -1,4 +1,3 @@
-vendor/
 dist/
 node_modules/
 .pnp.*

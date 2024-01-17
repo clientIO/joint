@@ -1,7 +1,7 @@
-import * as joint from './vendor/joint';
+import * as joint from '../../';
 
 // extend joint.shapes namespace
-declare module './vendor/joint' {
+declare module '../../' {
     namespace shapes {
         namespace app {
             class CustomRect extends joint.shapes.standard.Rectangle {
@@ -62,4 +62,3 @@ class CustomRectView extends joint.dia.ElementView {
         CustomRectView
     }
 });
-
