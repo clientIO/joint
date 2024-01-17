@@ -1,14 +1,23 @@
 import { camelCase } from '../../util/utilHelpers.mjs';
 import $ from './Dom.mjs';
 import V from '../../V/index.mjs';
-import { dataPriv, cleanNodesData } from './vars.mjs';
+import { dataPriv } from './vars.mjs';
 
 // Manipulation
 
-function removeNodes(nodes, removeData) {
+function cleanNodesData(nodes) {
+    let i = nodes.length;
+    while (i--) cleanNodeData(nodes[i]);
+}
+
+function cleanNodeData(node) {
+    $.event.remove(node);
+    dataPriv.remove(node);
+}
+
+function removeNodes(nodes) {
     for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
-        removeData && dataPriv.remove(node);
         if (node.parentNode) {
             node.parentNode.removeChild(node);
         }
@@ -16,12 +25,17 @@ function removeNodes(nodes, removeData) {
 }
 
 export function remove() {
-    removeNodes(this, true);
+    for (let i = 0; i < this.length; i++) {
+        const node = this[i];
+        cleanNodeData(node);
+        cleanNodesData(node.getElementsByTagName('*'));
+    }
+    removeNodes(this);
     return this;
 }
 
 export function detach() {
-    removeNodes(this, false);
+    removeNodes(this);
     return this;
 }
 
@@ -29,7 +43,7 @@ export function empty() {
     for (let i = 0; i < this.length; i++) {
         const node = this[i];
         if (node.nodeType === 1) {
-            cleanNodesData(dataPriv, node.getElementsByTagName('*'));
+            cleanNodesData(node.getElementsByTagName('*'));
             // Remove any remaining nodes
             node.textContent = '';
         }

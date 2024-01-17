@@ -189,7 +189,10 @@ export const Vertices = ToolView.extend({
     onHandleChanged: function(_handle, evt) {
         const { options, relatedView: linkView } = this;
         if (options.vertexAdding) this.updatePath();
-        if (!options.redundancyRemoval) return;
+        if (!options.redundancyRemoval) {
+            linkView.checkMouseleave(util.normalizeEvent(evt));
+            return;
+        }
         var verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
         if (verticesRemoved) this.render();
         this.blur();
