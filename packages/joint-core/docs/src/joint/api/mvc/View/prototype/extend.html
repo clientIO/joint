@@ -1,12 +1,12 @@
-<pre class="docs-method-signature"><code>mvc.ViewBase.extend(properties, [classProperties])</code></pre>
+<pre class="docs-method-signature"><code>mvc.View.extend(properties, [classProperties])</code></pre>
 
  <p>
-     Create a custom view class. You'll want to override the <code>render</code> function, specify your declarative <code>events</code>, and perhaps 
+     Create a custom view class. You'll want to override the <code>render</code> function, specify your declarative <code>events</code>, and perhaps
      the <code>tagName</code>, <code>className</code>, or <code>id</code> of the View's root element.
  </p>
- 
- <pre><code>const ShapeRow = mvc.ViewBase.extend({
- 
+
+ <pre><code>const ShapeRow = mvc.View.extend({
+
     tagName: "li",
 
     className: "shape-row",
@@ -23,11 +23,11 @@
     render: function() {
         ...
     }
- 
+
 });
 </code></pre>
 
  <p>
-    Properties like <code>tagName</code>, <code>id</code>, <code>className</code>, <code>el</code>, and <code>events</code> may also be defined as 
+    Properties like <code>tagName</code>, <code>id</code>, <code>className</code>, <code>el</code>, and <code>events</code> may also be defined as
     a function, if you want to wait to define them until runtime.
  </p>
