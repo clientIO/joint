@@ -222,22 +222,44 @@ graph.fromJSON({
     }]
 }</code></pre>
 
-            <p>Selectors are important for the targeting of subelements by element attributes.
+        <p>Here's an equivalent markup using the <a href="/docs/jointjs#util.svg">svg tagged template</a> utility:</p>
+
+<pre><code>{
+    markup: util.svg`&lt;rect @selector="body"/&gt;&lt;text @selector="label"/&gt;`
+}</code></pre>
+
+<p>Selectors are important for the targeting of subelements by element attributes.</p>
+
+<pre><code>// set the &lt;rect/&gt; color to red
+el.attr('body/fill', 'red');</code></pre>
+
+<br>
+    <details>
+    <summary>Use of CSS Selectors</summary>
+
+            <p>
                 Although providing a selector to identify a subelement is not strictly required, it makes JointJS
                 noticeably faster because it can avoid querying the DOM.
                 If you really do not want to invent a custom name for the subelement selector, you can use the
-                subelement's tagName.
+                subelement's tagName if you set <code>useCSSSelectors</code> to <code>true</code> on the element prototype.
                 (For up to one subelement per tagName; selector names have to be unique.)</p>
 
             <pre><code>{
+    useCSSSelectors: true,
     markup: [{
         tagName: 'rect',
-        selector: 'rect',
     }, {
         tagName: 'text',
-        selector: 'text'
+        className: 'label'
     }]
 }</code></pre>
+
+<pre><code>el.attr('rect/fill', 'red');
+el.attr('.label/fill', 'blue');</code></pre>
+</details>
+
+<br>
+<br>
 
             <h3 id="default-attributes">Default Attributes</h3>
 
