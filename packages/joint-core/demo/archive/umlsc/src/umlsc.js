@@ -21,6 +21,7 @@ const State = joint.dia.Element.define('uml.State', {
     events: []
 
 }, {
+    useCSSSelectors: true,
     markup: [
         '<g class="rotatable">',
         '<g class="scalable">',
@@ -92,6 +93,7 @@ const StartState = joint.dia.Element.define('uml.StartState', {
         }
     }
 }, {
+    useCSSSelectors: true,
     markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
 });
 
@@ -112,6 +114,7 @@ const EndState = joint.dia.Element.define('uml.EndState', {
         }
     }
 }, {
+    useCSSSelectors: true,
     markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
 });
 
@@ -120,6 +123,8 @@ const Transition = joint.dia.Link.define('uml.Transition', {
         '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z', fill: '#34495e', stroke: '#2c3e50' },
         '.connection': { stroke: '#2c3e50' }
     }
+}, {
+    useCSSSelectors: true
 });
 
 const shapes = { ...joint.shapes, uml: { State, StartState, EndState, Transition }};

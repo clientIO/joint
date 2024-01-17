@@ -5,21 +5,6 @@
     Used as a template to build DOM Elements on the fly when the associated cellView is rendered.
 </p>
 
-<h4 id="dia.Cell.markup.xml">XML String</h4>
-
-<p>
-    A valid XML string that contains either a single <code>tagName</code> or XML that can be parsed with <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/DOMParser"><code>DOMParser</code></a>.
-</p>
-
-<pre><code>markup: 'rect'
-markup: '&lt;rect class="rectangle"/&gt;'
-markup: '&lt;rect&gt;&lt;g&gt;&lt;circle/&gt;&lt;circle/&gt;&lt;/g&gt;'</code></pre>
-
-<p>
-    Note that defining Cell markup with XML strings is slower than defining it with JSON arrays, precisely because of the need for parsing.
-    We strongly recommend you to use the <a href="#dia.Cell.markup.json">JSON markup</a> for your Cell definitions.
-</p>
-
 <h4 id="dia.Cell.markup.json">JSON Markup</h4>
 
 <p>
@@ -175,3 +160,34 @@ Here are simple rules how SVG attributes are set on the nodes when one uses comb
     circle1: { fill: 'red' },
     circles: { fill: 'blue', stroke: 'black' }
 });</code></pre>
+
+<h4 id="dia.Cell.markup.xml">XML String</h4>
+
+<p>
+    A valid XML string that contains either a single <code>tagName</code> or XML that can be parsed with <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/DOMParser"><code>DOMParser</code></a>.
+</p>
+
+<pre><code>markup: 'rect'
+markup: '&lt;rect class="rectangle"/&gt;'
+markup: '&lt;rect&gt;&lt;g&gt;&lt;circle/&gt;&lt;circle/&gt;&lt;/g&gt;'</code></pre>
+
+
+<div class="docs-important-note">
+    Note that defining Cell markup with XML strings is slower than defining it with JSON arrays, precisely because of the need for parsing.
+    We strongly recommend you to use the <a href="#dia.Cell.markup.json">JSON markup</a> for your Cell definitions.
+</div>
+
+<p>
+    Note that you also need to set the <code>useCSSSelectors=true</code> on the model's prototype in order to use CSS selectors in the <code>attrs</code> attribute.
+
+    <pre><code>joint.dia.Element.define('Rectangle', {
+        attrs: {
+            rect: { // CSS Selector for the &lt;rect/&gt; element
+                fill: 'red'
+            }
+        }
+    }, {
+        markup: '&lt;rect class="rectangle"/&gt;',
+        useCSSSelectors: true
+    });</code></pre>
+</p>

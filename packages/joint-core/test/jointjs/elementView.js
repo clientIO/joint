@@ -19,6 +19,7 @@ QUnit.module('elementView', function(hooks) {
             markup: '<toBeOverriden/>'
         });
 
+        element.useCSSSelectors = true;
         element.addTo(paper.model);
         elementView = element.findView(paper);
     });

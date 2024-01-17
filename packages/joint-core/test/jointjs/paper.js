@@ -2931,7 +2931,7 @@ QUnit.module('paper', function(hooks) {
                         pointerEvents: 'none',
                     },
                     labelBody: {
-                        ref: 'text',
+                        ref: 'labelText',
                         width: 'calc(w)',
                         height: 'calc(h)',
                         fill: '#ffffff',

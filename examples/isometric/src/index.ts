@@ -1,4 +1,4 @@
-import { g, dia, config } from 'jointjs';
+import { g, dia } from 'jointjs';
 import Obstacles from './obstacles';
 import IsometricShape, { View } from './shapes/isometric-shape';
 import { Computer, Database, ActiveDirectory, User, Firewall, Switch, Router, Link, cellNamespace } from './shapes';
@@ -18,8 +18,6 @@ const graph = new dia.Graph({}, { cellNamespace });
 // Obstacles listen to changes in the graph and update their internal state
 const obstacles = new Obstacles(graph);
 graph.set('obstacles', obstacles);
-
-config.useCSSSelectors = false
 
 const paper = new dia.Paper({
     el: canvasEl,

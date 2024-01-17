@@ -152,7 +152,7 @@ QUnit.module('basic', function(hooks) {
         assert.equal(bbox.width, 120, 'bbox.width is correct');
         assert.equal(bbox.height, 80, 'bbox.height is correct');
 
-        myrect.attr('label', { ref: 'rect', 'ref-y': 100 });
+        myrect.attr('label', { ref: 'body', 'ref-y': 100 });
 
         bbox = view.getBBox({ useModelGeometry: false });
 
@@ -568,6 +568,7 @@ QUnit.module('basic', function(hooks) {
                 '.small': { width: 10, height: 10, fill: 'red' }
             }
         });
+        el.useCSSSelectors = true;
 
         this.graph.addCell(el);
 
@@ -593,7 +594,7 @@ QUnit.module('basic', function(hooks) {
                 '.small': { width: 10, height: 10, fill: 'red' }
             }
         });
-
+        el.useCSSSelectors = true;
         this.graph.addCell(el);
 
         var elView = this.paper.findViewByModel(el);
@@ -1489,6 +1490,7 @@ QUnit.module('basic', function(hooks) {
                 '.smaller': { width: 5, height: 5, 'ref-x': 20, 'ref-y': 10, ref: '.small', fill: 'black' }
             }
         });
+        el.useCSSSelectors = true;
 
         this.graph.addCell(el);
 
@@ -1570,6 +1572,7 @@ QUnit.module('basic', function(hooks) {
                 '.smaller': { width: 5, height: 5, 'ref-dx': 10, 'ref-dy': 10, ref: '.small', fill: 'black' }
             }
         });
+        el.useCSSSelectors = true;
 
         this.graph.addCell(el);
 
@@ -1614,6 +1617,7 @@ QUnit.module('basic', function(hooks) {
                 '.smaller': { 'ref-width': 10, 'ref-height': -10, ref: '.small', fill: 'black' }
             }
         });
+        el.useCSSSelectors = true;
 
         this.graph.addCell(el);
 
@@ -1690,6 +1694,7 @@ QUnit.module('basic', function(hooks) {
                 }
             }
         });
+        el.useCSSSelectors = true;
 
         this.graph.addCell(el);
 
@@ -1766,7 +1771,7 @@ QUnit.module('basic', function(hooks) {
         var defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
 
-        el.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 }});
+        el.attr('body/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 }});
 
         // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
         // Therefore, we use the following trick to check whether the element is in DOM.
@@ -1779,7 +1784,7 @@ QUnit.module('basic', function(hooks) {
         assert.equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
         assert.checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
 
-        el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 }});
+        el2.attr('body/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 }});
 
         defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 1, 'one element still in <defs>.');
@@ -1789,7 +1794,7 @@ QUnit.module('basic', function(hooks) {
         assert.equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
         assert.checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
 
-        el.attr('rect/filter', { name: 'blur', args: { x: 5 }});
+        el.attr('body/filter', { name: 'blur', args: { x: 5 }});
 
         defsChildrenCount = defs.children.length;
         assert.equal(defsChildrenCount, 2, 'now two elements are in <defs>.');

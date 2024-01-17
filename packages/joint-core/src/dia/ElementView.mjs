@@ -1,4 +1,3 @@
-import { config } from '../config/index.mjs';
 import { assign, isFunction, toArray } from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
 import { Cell } from './Cell.mjs';
@@ -71,7 +70,7 @@ export const ElementView = CellView.extend({
 
     confirmUpdate: function(flag, opt) {
 
-        const { useCSSSelectors } = config;
+        const { useCSSSelectors } = this;
         if (this.hasFlag(flag, Flags.PORTS)) {
             this._removePorts();
             this._cleanPortsCache();
@@ -151,7 +150,7 @@ export const ElementView = CellView.extend({
         this.cleanNodesCache();
 
         // When CSS selector strings are used, make sure no rule matches port nodes.
-        const { useCSSSelectors } = config;
+        const { useCSSSelectors } = this;
         if (useCSSSelectors) this._removePorts();
 
         var model = this.model;
@@ -227,7 +226,7 @@ export const ElementView = CellView.extend({
         } else {
             this.updateTransformation();
         }
-        if (!config.useCSSSelectors) this._renderPorts();
+        if (!this.useCSSSelectors) this._renderPorts();
         return this;
     },
 

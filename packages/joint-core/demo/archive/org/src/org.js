@@ -29,6 +29,7 @@ const Member = joint.dia.Element.define('org.Member', {
     }
 }, {
     markup: '<g class="rotatable"><g class="scalable"><rect class="card"/><image/></g><text class="rank"/><text class="name"/></g>',
+    useCSSSelectors: true,
 });
 
 const Arrow = joint.dia.Link.define('org.Arrow', {

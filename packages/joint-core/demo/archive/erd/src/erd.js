@@ -19,6 +19,7 @@ const Entity = joint.dia.Element.define('erd.Entity', {
     }
 }, {
     markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
+    useCSSSelectors: true
 });
 
 const WeakEntity = Entity.define('erd.WeakEntity', {
@@ -49,6 +50,7 @@ const Relationship = joint.dia.Element.define('erd.Relationship', {
     }
 }, {
     markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
+    useCSSSelectors: true
 });
 
 const IdentifyingRelationship = Relationship.define('erd.IdentifyingRelationship', {
@@ -82,6 +84,7 @@ const Attribute = joint.dia.Element.define('erd.Attribute', {
     }
 }, {
     markup: '<g class="rotatable"><g class="scalable"><ellipse class="outer"/><ellipse class="inner"/></g><text/></g>',
+    useCSSSelectors: true
 });
 
 const Multivalued = Attribute.define('erd.Multivalued', {
@@ -125,9 +128,11 @@ const ISA = joint.dia.Element.define('erd.ISA', {
     }
 }, {
     markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
+    useCSSSelectors: true
 });
 
 const Line = joint.dia.Link.define('erd.Line', {}, {
+    useCSSSelectors: true,
     cardinality: function(value) {
         this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
     }
