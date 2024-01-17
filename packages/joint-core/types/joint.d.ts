@@ -2635,7 +2635,7 @@ export namespace util {
 
     export function toArray(value: any): any[];
 
-    export function debounce<T extends Function>(func: T, wait?: number, options?: { leading: boolean, maxWait: number, trailing: boolean }): T & Cancelable;
+    export function debounce<T extends Function>(func: T, wait?: number, options?: { leading?: boolean, maxWait?: number, trailing?: boolean }): T & Cancelable;
 
     export function groupBy(collection: Collection, iteratee?: IterateeFunction<any>): object;
 
