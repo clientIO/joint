@@ -1,0 +1,21 @@
+<pre class="docs-method-signature"><code>view.el</code></pre>
+
+<p>
+    All views have a DOM element at all times (the <code>el</code> property), whether they've already been inserted into the page or not.
+    In this fashion, views can be rendered at any time, and inserted into the DOM all at once, in order to get high-performance UI rendering with
+    as few reflows and repaints as possible.
+</p>
+
+<p>
+    <code>this.el</code> can be resolved from a DOM selector string or an Element; otherwise it will be created from the view's
+    <code>tagName</code>, <code>className</code>, <code>id</code> and <code>attributes</code> properties. If none are set, <code>this.el</code>
+    is an empty <code>div</code>, which is often just fine. An <code>el</code> reference may also be passed in to the view's constructor.
+</p>
+
+<pre><code>const ShapeView = mvc.View.extend({
+    el: 'body'
+});
+
+const shape = new ShapeView();
+console.log(shape.el) // &lt;body&gt;...&lt;/body&gt;
+</code></pre>
