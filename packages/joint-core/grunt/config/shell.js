@@ -10,6 +10,8 @@ module.exports = {
     },
     'rollup-test-bundle': {
         command: 'rollup -c --config-test-bundle'
+    },
+    'api-extractor-dts-bundle': {
+        command: 'api-extractor run'
     }
 };
-
