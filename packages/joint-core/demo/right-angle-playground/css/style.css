@@ -4,6 +4,6 @@ body {
 }
 
 #paper {
-    position: absolute;
+    position: absolute !important;
     inset: 0 0 0 0;
 }
