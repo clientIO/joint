@@ -156,8 +156,8 @@ const Dom = function(selector) {
     if (arguments.length > 1) {
         throw new Error('selector with context not supported');
     }
-    if (selector.nodeType) {
-        // HANDLE: $(DOMElement)
+    if (selector.nodeType || selector === selector.window) {
+        // HANDLE: $(DOMElement) & $(window)
         this[0] = selector;
         this.length = 1;
         return this;

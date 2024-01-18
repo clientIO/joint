@@ -28,8 +28,10 @@ function removeNodes(nodes) {
 export function remove() {
     for (let i = 0; i < this.length; i++) {
         const node = this[i];
-        cleanNodeData(node);
-        cleanNodesData(node.getElementsByTagName('*'));
+        if (node.nodeType === 1) {
+            cleanNodeData(node);
+            cleanNodesData(node.getElementsByTagName('*'));
+        }
     }
     removeNodes(this);
     return this;
@@ -85,7 +87,7 @@ export function text(text) {
 
 export function append(...nodes) {
     const [parent] = this;
-    if (!parent) return this;
+    if (!parent || parent.nodeType !== 1) return this;
     nodes.forEach((node) => {
         if (!node) return;
         if (typeof node === 'string') {
@@ -105,7 +107,7 @@ export function append(...nodes) {
 
 export function prepend(...nodes) {
     const [parent] = this;
-    if (!parent) return this;
+    if (!parent || parent.nodeType !== 1) return this;
     nodes.forEach((node) => {
         if (!node) return;
         if (typeof node === 'string') {
@@ -155,9 +157,9 @@ export function css(name, value) {
     let styles;
     if (typeof name === 'string') {
         if (value === undefined) {
-            const [el] = this;
-            if (!el) return null;
-            return el.style[name];
+            const [node] = this;
+            if (!node || node.nodeType !== 1) return null;
+            return node.style[name];
         } else {
             styles = { [name]: value };
         }
@@ -169,7 +171,9 @@ export function css(name, value) {
     for (let style in styles) {
         if (styles.hasOwnProperty(style)) {
             for (let i = 0; i < this.length; i++) {
-                setCSSProperty(this[i], style, styles[style]);
+                const node = this[i];
+                if (node.nodeType !== 1) continue;
+                setCSSProperty(node, style, styles[style]);
             }
         }
     }
@@ -180,9 +184,9 @@ export function attr(name, value) {
     let attributes;
     if (typeof name === 'string') {
         if (value === undefined) {
-            const [el] = this;
-            if (!el) return null;
-            return el.getAttribute(name);
+            const [node] = this;
+            if (!node || node.nodeType !== 1) return null;
+            return node.getAttribute(name);
         } else {
             attributes = { [name]: value };
         }
@@ -194,11 +198,13 @@ export function attr(name, value) {
     for (let attr in attributes) {
         if (attributes.hasOwnProperty(attr)) {
             for (let i = 0; i < this.length; i++) {
+                const node = this[i];
+                if (node.nodeType !== 1) continue;
                 const value = attributes[attr];
                 if (value === null) {
-                    this[i].removeAttribute(attr);
+                    node.removeAttribute(attr);
                 } else {
-                    this[i].setAttribute(attr, value);
+                    node.setAttribute(attr, value);
                 }
             }
         }
@@ -208,15 +214,17 @@ export function attr(name, value) {
 
 export function data(name, value) {
     if (arguments.length < 2) {
-        const [el] = this;
-        if (!el) return null;
+        const [node] = this;
+        if (!node || node.nodeType !== 1) return null;
         if (name === undefined) {
-            return el.dataset;
+            return node.dataset;
         }
-        return el.dataset[name];
+        return node.dataset[name];
     }
     for (let i = 0; i < this.length; i++) {
-        this[i].dataset[name] = value;
+        const node = this[i];
+        if (node.nodeType !== 1) continue;
+        node.dataset[name] = value;
     }
     return this;
 }
@@ -226,6 +234,7 @@ export function data(name, value) {
 function setNodesClass(method, nodes, args) {
     for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
+        if (node.nodeType !== 1) continue;
         V.prototype[method].apply({ node }, args);
     }
 }
@@ -247,7 +256,7 @@ export function toggleClass() {
 
 export function hasClass() {
     const [node] = this;
-    if (!node) return false;
+    if (!node || node.nodeType !== 1) return false;
     return V.prototype.hasClass.apply({ node }, arguments);
 }
 
@@ -257,6 +266,7 @@ export function children(selector) {
     const matches = [];
     for(let i = 0; i < this.length; i++) {
         const node = this[i];
+        if (node.nodeType !== 1) continue;
         let children = Array.from(node.children);
         if (typeof selector === 'string') {
             children = children.filter(child => child.matches(selector));
@@ -269,15 +279,16 @@ export function children(selector) {
 export function closest(selector) {
     const closest = [];
     for (let i = 0; i < this.length; i++) {
-        const el = this[i];
+        const node = this[i];
+        if (node.nodeType !== 1) continue;
         if (typeof selector === 'string') {
-            const closestEl = el.closest(selector);
+            const closestEl = node.closest(selector);
             if (closestEl) {
                 closest.push(closestEl);
             }
         } else {
             const [ancestorEl] = $(selector);
-            if (ancestorEl && ancestorEl.contains(el)) {
+            if (ancestorEl && ancestorEl.contains(node)) {
                 closest.push(ancestorEl);
             }
         }
