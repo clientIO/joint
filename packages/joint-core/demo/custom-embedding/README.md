@@ -8,7 +8,6 @@ You need to build *JointJS* first. Navigate to the root folder and run:
 ```bash
 yarn install
 yarn run build
-yarn run build-bundles
 ```
 
 Then navigate to this directory and open `index.html` in your browser:

@@ -60,12 +60,6 @@ module.exports = function(grunt) {
                     dest: 'build/docs/css/prism.css'
                 }
             ]
-        },
-        appsLibs: {
-            files: [
-                { nonull: true, src: 'build/joint.d.ts', dest: 'demo/ts-demo/vendor/joint.d.ts' },
-                { nonull: true, src: 'build/joint.js', dest: 'demo/ts-demo/vendor/joint.js' },
-            ]
         }
     };
 };

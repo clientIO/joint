@@ -1,6 +1,6 @@
-import * as joint from './vendor/joint';
+import * as joint from '../../';
 import './custom';
-import { V, g } from './vendor/joint';
+import { V, g } from '../../';
 import { MyShape } from './shape';
 
 const { body } = document;

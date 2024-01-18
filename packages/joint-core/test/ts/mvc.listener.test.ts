@@ -1,4 +1,4 @@
-import { dia, shapes, mvc } from '../../build/joint';
+import { dia, shapes, mvc } from '../../';
 
 type Args = [
     { graph: dia.Graph },
@@ -37,7 +37,7 @@ listener.listenTo(graph, {
         const element1 = graph.getCell(cellMap.rect1.id) as dia.Element;
         const element2 = cellMap['rect1'] as dia.Element;
         element1.attr({ body: { fill: 'yellow' }});
-        element2.attr({ body: { fill: 'red' }}); 
+        element2.attr({ body: { fill: 'red' }});
     },
     'link:add': ({ graph }, cellMap, _linkView, _evt) => {
         const link1 = graph.getCell(cellMap.link1.id) as dia.Link;

@@ -1,6 +1,6 @@
 type AssertExtends<A,B> = A extends B ? true : never;
 
-import * as joint from '../../build/joint';
+import * as joint from '../../';
 
 const graph = new joint.dia.Graph({ graphAttribute: true });
 
