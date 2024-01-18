@@ -132,7 +132,6 @@ var paper = new joint.dia.Paper({
     cellViewNamespace: shapes,
     linkView: joint.dia.LegacyLinkView,
     defaultAnchor: { name: 'perpendicular' },
-    defaultConnectionPoint: { name: 'boundary' },
     model: graph
 });
 

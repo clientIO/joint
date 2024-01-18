@@ -103,7 +103,6 @@ var paper = new joint.dia.Paper({
     height: 600,
     model: graph,
     cellViewNamespace: joint.shapes,
-    defaultConnectionPoint: { name: 'boundary' }
 });
 
 //var a, aa, aaa, b, c, d, e, f, g, h, t, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17;
@@ -149,7 +148,6 @@ var treePaper = new joint.dia.Paper({
     height: 600,
     model: treeGraph,
     cellViewNamespace: joint.shapes,
-    defaultConnectionPoint: { name: 'boundary' }
 });
 
 treePaper.on('cell:mouseover', info);

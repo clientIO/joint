@@ -15,7 +15,6 @@
         cellViewNamespace: namespace,
         defaultLink: new joint.shapes.standard.Link(),
         linkPinning: false,
-        defaultConnectionPoint: { name: 'boundary' },
         validateConnection: function(cellViewS, _magnetS, cellViewT, _magnetT, _end, _linkView) {
             return (cellViewS !== cellViewT);
         }
@@ -36,7 +35,7 @@
         label: {
             position: {
                 name: 'right',
-                args: { y: 6 } 
+                args: { y: 6 }
             },
             markup: [{
                 tagName: 'text',
@@ -69,7 +68,7 @@
     });
 
     rect.addPorts([
-        { 
+        {
             group: 'out',
             attrs: { label: { text: 'port' }}
         }
@@ -86,8 +85,8 @@
             fill: 'black',
             textWrap: {
                 width: -10,
-                height: '50%', 
-                ellipsis: true 
+                height: '50%',
+                ellipsis: true
             }
         }
     });
@@ -176,5 +175,5 @@
     input.addEventListener('input', (e) => {
         rect.attr('label/text', e.target.value);
     });
-    
+
 })();

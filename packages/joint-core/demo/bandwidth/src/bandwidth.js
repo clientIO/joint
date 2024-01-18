@@ -14,9 +14,6 @@ const paper = new dia.Paper({
     cellViewNamespace: shapes,
     async: true,
     background: { color:  '#F3F7F6' },
-    defaultConnectionPoint: {
-        name: 'boundary',
-    },
     restrictTranslate: (elementView) => {
         // Restrict the element movement along the line only
         const { height } = elementView.model.size();

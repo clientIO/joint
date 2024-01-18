@@ -192,7 +192,7 @@ export const Paper = View.extend({
 
         defaultLinkAnchor: { name: 'connectionRatio' },
 
-        defaultConnectionPoint: { name: 'bbox' },
+        defaultConnectionPoint: { name: 'boundary' },
 
         /* CONNECTING */
 

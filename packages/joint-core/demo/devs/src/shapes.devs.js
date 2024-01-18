@@ -241,7 +241,6 @@ const paper = new dia.Paper({
     embeddingMode: true,
     clickThreshold: 5,
     cellViewNamespace: shapes,
-    defaultConnectionPoint: { name: 'boundary' },
     overflow: true,
     highlighting: {
         'default': {

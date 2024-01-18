@@ -2,16 +2,15 @@
 
     var namespace = joint.shapes;
     var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
-    new joint.dia.Paper({ 
+    new joint.dia.Paper({
         el: document.getElementById('paper-basic'),
         width: 650,
         height: 200,
         gridSize: 1,
-        model: graph, 
+        model: graph,
         cellViewNamespace: namespace,
         linkPinning: false, // Prevent link being dropped in blank paper area
         defaultLink: () => new joint.shapes.standard.Link(),
-        defaultConnectionPoint: { name: 'boundary' },
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
             // Prevent linking between ports within one element
             if (cellViewS === cellViewT) return false;
@@ -28,17 +27,17 @@
                 selector: 'label'
             }]
         },
-        attrs: { 
-            portBody: { 
+        attrs: {
+            portBody: {
                 magnet: true,
                 width: 16,
                 height: 16,
                 x: -8,
                 y: -8,
                 fill:  '#03071E'
-            }, 
-            label: { 
-                text: 'port' 
+            },
+            label: {
+                text: 'port'
             }
         },
         markup: [{

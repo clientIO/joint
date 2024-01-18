@@ -54,7 +54,6 @@ var paper = new Paper({
     async: true,
     frozen: true,
     defaultAnchor: { name: 'modelCenter' },
-    defaultConnectionPoint: { name: 'boundary' },
     viewport: function(view, isInViewport) {
         if (leaveDraggedInViewport && view.cid === draggedCid) return true;
         if (leaveRenderedInViewport && isInViewport) return true;
