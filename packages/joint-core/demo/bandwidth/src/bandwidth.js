@@ -1,16 +1,17 @@
-const { dia, g: geometry, V: vectorizer } = joint;
+const { dia, g: geometry, V: vectorizer, shapes } = joint;
 const svg = joint.util.svg;
 
 const y = 200;
 const x1 = 100;
 const x2 = 700;
 
-const graph = new dia.Graph();
+const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     el: document.getElementById('paper'),
     width: 800,
     height: 300,
     model: graph,
+    cellViewNamespace: shapes,
     async: true,
     background: { color:  '#F3F7F6' },
     defaultConnectionPoint: {

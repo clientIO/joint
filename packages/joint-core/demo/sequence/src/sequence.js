@@ -1,10 +1,11 @@
-(function(dia, sd, linkTools, elementTools, connectionStrategies, highlighters, paperElement) {
+(function(dia, shapes, linkTools, elementTools, connectionStrategies, highlighters, paperElement) {
 
+    const { sd } = shapes;
     const paperWidth = 800;
     const paperHeight = 600;
     const topY = 20;
 
-    const graph = new dia.Graph();
+    const graph = new dia.Graph({}, { cellNamespace: shapes });
     const paper = new dia.Paper({
         el: paperElement,
         width: paperWidth,
@@ -12,6 +13,7 @@
         model: graph,
         frozen: true,
         async: true,
+        cellViewNamespace: shapes,
         defaultConnectionPoint: { name: 'rectangle' },
         background: { color:  '#F3F7F6' },
         moveThreshold: 5,
@@ -362,7 +364,7 @@
 
 })(
     joint.dia,
-    joint.shapes.sd,
+    joint.shapes,
     joint.linkTools,
     joint.elementTools,
     joint.connectionStrategies,

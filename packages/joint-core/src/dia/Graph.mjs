@@ -3,8 +3,6 @@ import * as g from '../g/index.mjs';
 
 import { Model } from '../mvc/Model.mjs';
 import { Collection } from '../mvc/Collection.mjs';
-import { Link } from './Link.mjs';
-import { Element } from './Element.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
 
@@ -27,15 +25,17 @@ const GraphCells = Collection.extend({
 
     model: function(attrs, opt) {
 
-        var collection = opt.collection;
-        var namespace = collection.cellNamespace;
+        const collection = opt.collection;
+        const namespace = collection.cellNamespace;
+        const { type } = attrs;
 
-        // Find the model class in the namespace or use the default one.
-        var ModelClass = (attrs.type === 'link')
-            ? Link
-            : util.getByPath(namespace, attrs.type, '.') || Element;
+        // Find the model class based on the `type` attribute in the cell namespace
+        const ModelClass = util.getByPath(namespace, type, '.');
+        if (!ModelClass) {
+            throw new Error(`dia.Graph: Could not find cell constructor for type: '${type}'. Make sure to add the constructor to 'cellNamespace'.`);
+        }
 
-        var cell = new ModelClass(attrs, opt);
+        const cell = new ModelClass(attrs, opt);
         // Add a reference to the graph. It is necessary to do this here because this is the earliest place
         // where a new model is created from a plain JS object. For other objects, see `joint.dia.Graph>>_prepareCell()`.
         if (!opt.dry) {

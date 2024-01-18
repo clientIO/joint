@@ -1,4 +1,4 @@
-var graph = new joint.dia.Graph();
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
@@ -6,7 +6,8 @@ var paper = new joint.dia.Paper({
     height: 600,
     gridSize: 10,
     async: true,
-    model: graph
+    model: graph,
+    cellViewNamespace: joint.shapes,
 });
 
 var source = new joint.shapes.standard.Rectangle({

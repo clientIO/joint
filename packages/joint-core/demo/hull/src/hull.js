@@ -1,6 +1,6 @@
 (function(joint, V) {
 
-    var graph = new joint.dia.Graph();
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
@@ -8,6 +8,7 @@
         height: 600,
         gridSize: 1,
         model: graph,
+        cellViewNamespace: joint.shapes,
         restrictTranslate: {
             x: 50,
             y: 50,

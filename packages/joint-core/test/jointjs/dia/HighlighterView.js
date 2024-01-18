@@ -121,8 +121,8 @@ QUnit.module('HighlighterView', function(hooks) {
             const highlighterId1 = 'highlighter-id-1';
             const highlighterId2 = 'highlighter-id-2';
 
-            const graph2 = new joint.dia.Graph();
-            const paper2 = new joint.dia.Paper({ model: graph2 });
+            const graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const paper2 = new joint.dia.Paper({ model: graph2, cellViewNamespace: joint.shapes });
             const element2 = element.clone();
             const element3 = element.clone();
 
@@ -149,8 +149,8 @@ QUnit.module('HighlighterView', function(hooks) {
             const highlighterId1 = 'highlighter-id-1';
             const highlighterId2 = 'highlighter-id-2';
 
-            const graph2 = new joint.dia.Graph();
-            const paper2 = new joint.dia.Paper({ model: graph2 });
+            const graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const paper2 = new joint.dia.Paper({ model: graph2, cellViewNamespace: joint.shapes });
             const element2 = element.clone();
             const element3 = element.clone();
 

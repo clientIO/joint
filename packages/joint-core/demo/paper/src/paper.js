@@ -1,4 +1,4 @@
-var graph = new joint.dia.Graph();
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 var paper = new joint.dia.Paper({
     el: $('#paper'),
     width: 600,
@@ -6,6 +6,7 @@ var paper = new joint.dia.Paper({
     gridSize: 10,
     drawGrid: true,
     model: graph,
+    cellViewNamespace: joint.shapes,
     defaultConnectionPoint: { name: 'anchor' }
 });
 
