@@ -46,12 +46,13 @@ function ml(id, s, t, vertices) {
 
 // First example.
 
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 1000,
     height: 600,
-    model: graph
+    model: graph,
+    cellViewNamespace: joint.shapes,
 });
 
 var a = me('a', 100, 30, 420, 200, 'lightblue');

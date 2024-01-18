@@ -1,11 +1,12 @@
 (function(joint) {
 
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     new joint.dia.Paper({
         el: document.getElementById('paper'),
         width: 700,
         height: 700,
-        model: graph
+        model: graph,
+        cellViewNamespace: joint.shapes,
     });
 
     // [[fill, text], ...]
@@ -122,7 +123,7 @@
         });
     }
 
-    var layoutGraph = new joint.dia.Graph;
+    var layoutGraph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     generateRandomChainGraph(layoutGraph, 50, { dry: true });
     spiralLayout(layoutGraph, {
         radius: 10,

@@ -99,11 +99,12 @@ var magnetAvailabilityHighlighter = {
     }
 };
 
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     model: graph,
+    cellViewNamespace: joint.shapes,
     width: 800,
     height: 800,
     gridSize: 1,

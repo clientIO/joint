@@ -1,10 +1,11 @@
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 650,
     height: 400,
     gridSize: 1,
-    model: graph
+    model: graph,
+    cellViewNamespace: joint.shapes,
 });
 
 var el = new joint.shapes.standard.Rectangle({

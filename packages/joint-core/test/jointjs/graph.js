@@ -2,7 +2,7 @@ QUnit.module('graph', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        this.graph = new joint.dia.Graph;
+        this.graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     });
 
     hooks.afterEach(function() {
@@ -122,7 +122,7 @@ QUnit.module('graph', function(hooks) {
 
         hooks.beforeEach(function() {
 
-            this.graph = new joint.dia.Graph;
+            this.graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
             cells = [
                 new joint.shapes.standard.Rectangle,
@@ -351,7 +351,7 @@ QUnit.module('graph', function(hooks) {
         var fromPlainObject = { id: 'b', type: 'standard.Rectangle' };
 
         var graph1 = this.graph;
-        var graph2 = new joint.dia.Graph;
+        var graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
         graph1.addCell(fromInstance);
         graph1.addCell(fromPlainObject);
@@ -391,9 +391,9 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.test('dry flag', function(assert) {
 
-        var graph1 = new joint.dia.Graph;
-        var graph2 = new joint.dia.Graph;
-        var graph3 = new joint.dia.Graph;
+        var graph1 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        var graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        var graph3 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
         // Dry mode
 

@@ -21,7 +21,7 @@ QUnit.module('joint.mvc.Listener', (hooks) => {
 
     QUnit.module('events', (hooks) => {
         hooks.beforeEach(() => {
-            this.graph = new joint.dia.Graph;
+            this.graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             this.rect = new joint.shapes.standard.Rectangle();
             this.graph.resetCells([this.rect]);
         });

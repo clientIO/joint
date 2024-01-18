@@ -23,7 +23,7 @@
 
 </body>
 <script>
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     var div = document.createElement('div');
     document.body.appendChild(div);
     var paper = new joint.dia.Paper({
@@ -37,7 +37,8 @@
                 stopDelegation: view.model.get('stopDelegation')
             }
         },
-        model: graph
+        model: graph,
+        cellViewNamespace: joint.shapes,
     });
 
     // order of 2 and 1 switched so "movable" can be dragged in front of "not movable"

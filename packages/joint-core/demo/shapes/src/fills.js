@@ -1,7 +1,7 @@
 const { dia, shapes } = joint;
 const { Path } = g;
 
-const graph = new dia.Graph;
+const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
     el: document.getElementById('paper'),
     width: 570,
@@ -13,6 +13,7 @@ const paper = new dia.Paper({
     async: true,
     frozen: true,
     model: graph,
+    cellViewNamespace: shapes,
     defaultConnector: (sourcePoint, targetPoint, vertices) => {
         const d = 1e-3;
         const connection = new Path();

@@ -30,11 +30,11 @@ QUnit.module('Attributes', function() {
         var paper, graph, cell, cellView, node, refBBox;
 
         hooks.beforeEach(function() {
-            graph = new joint.dia.Graph;
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             var fixtures = document.getElementById('qunit-fixture');
             var paperEl = document.createElement('div');
             fixtures.appendChild(paperEl);
-            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            paper = new joint.dia.Paper({ el: paperEl, model: graph, cellViewNamespace: joint.shapes });
             cell = new joint.shapes.standard.Rectangle();
             cell.addTo(graph);
             cellView = cell.findView(paper);
@@ -149,11 +149,11 @@ QUnit.module('Attributes', function() {
         var paper, graph, cell, cellView;
 
         hooks.beforeEach(function() {
-            graph = new joint.dia.Graph;
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             var fixtures = document.getElementById('qunit-fixture');
             var paperEl = document.createElement('div');
             fixtures.appendChild(paperEl);
-            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            paper = new joint.dia.Paper({ el: paperEl, model: graph, cellViewNamespace: joint.shapes });
             cell = new joint.shapes.standard.Rectangle({ width: 100, height: 100 });
             cell.addTo(graph);
             cellView = cell.findView(paper);
@@ -479,11 +479,11 @@ QUnit.module('Attributes', function() {
         var idRegex = /^url\(#(.+)\)$/;
 
         hooks.beforeEach(function() {
-            graph = new joint.dia.Graph;
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             var fixtures = document.getElementById('qunit-fixture');
             var paperEl = document.createElement('div');
             fixtures.appendChild(paperEl);
-            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            paper = new joint.dia.Paper({ el: paperEl, model: graph, cellViewNamespace: joint.shapes });
             cell = new joint.shapes.standard.Rectangle();
             cell.addTo(graph);
             cellView = cell.findView(paper);
@@ -877,11 +877,11 @@ QUnit.module('Attributes', function() {
         var paper, graph, cell;
 
         hooks.beforeEach(function() {
-            graph = new joint.dia.Graph;
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             const fixtures = document.getElementById('qunit-fixture');
             const paperEl = document.createElement('div');
             fixtures.appendChild(paperEl);
-            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            paper = new joint.dia.Paper({ el: paperEl, model: graph, cellViewNamespace: joint.shapes });
             cell = new joint.shapes.standard.Rectangle();
             cell.addTo(graph);
         });
@@ -1036,11 +1036,11 @@ QUnit.module('Attributes', function() {
         var paper, graph, cell, cellView;
 
         hooks.beforeEach(function() {
-            graph = new joint.dia.Graph;
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             const fixtures = document.getElementById('qunit-fixture');
             const paperEl = document.createElement('div');
             fixtures.appendChild(paperEl);
-            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            paper = new joint.dia.Paper({ el: paperEl, model: graph, cellViewNamespace: joint.shapes });
             cell = new joint.shapes.standard.Rectangle();
             cell.addTo(graph);
             cellView = cell.findView(paper);

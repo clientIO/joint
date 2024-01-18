@@ -131,7 +131,7 @@ var PatternLinkView = joint.dia.LegacyLinkView.extend({
 
 });
 
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 window.paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
@@ -139,6 +139,7 @@ window.paper = new joint.dia.Paper({
     height: 800,
     gridSize: 1,
     model: graph,
+    cellViewNamespace: joint.shapes,
     defaultAnchor: { name: 'perpendicular' },
     linkView: PatternLinkView.extend({
 

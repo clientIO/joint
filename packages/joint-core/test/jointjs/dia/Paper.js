@@ -34,7 +34,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         fixtureEl.appendChild(paperEl);
         document.body.appendChild(fixtureEl);
 
-        graph = new joint.dia.Graph;
+        graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     });
 
     hooks.afterEach(function() {

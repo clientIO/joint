@@ -3,7 +3,7 @@
     var WIDTH = 800;
     var HEIGHT = 600;
 
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
@@ -11,6 +11,7 @@
         height: HEIGHT,
         gridSize: 1,
         model: graph,
+        cellViewNamespace: joint.shapes,
         clickThreshold: 5,
         async: true,
         connectionStrategy: joint.connectionStrategies.pinAbsolute,

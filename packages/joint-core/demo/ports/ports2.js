@@ -1,4 +1,4 @@
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 new joint.dia.Paper({
     el: document.getElementById('paper'),
@@ -6,6 +6,7 @@ new joint.dia.Paper({
     height: 400,
     gridSize: 1,
     model: graph,
+    cellViewNamespace: joint.shapes,
     defaultConnectionPoint: { name: 'boundary' }
 });
 

@@ -1,6 +1,6 @@
 (function(joint, iphoneSVGString) {
 
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
     new joint.dia.Paper({
         el: document.getElementById('paper'),
@@ -8,6 +8,7 @@
         height: 600,
         gridSize: 20,
         model: graph,
+        cellViewNamespace: joint.shapes,
         defaultConnectionPoint: {
             name: 'boundary',
             args: {
