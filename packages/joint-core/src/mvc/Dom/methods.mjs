@@ -1,7 +1,7 @@
 import { camelCase } from '../../util/utilHelpers.mjs';
 import $ from './Dom.mjs';
 import V from '../../V/index.mjs';
-import { dataPriv } from './vars.mjs';
+import { dataPriv, dataUser } from './vars.mjs';
 
 // Manipulation
 
@@ -13,6 +13,7 @@ function cleanNodesData(nodes) {
 function cleanNodeData(node) {
     $.event.remove(node);
     dataPriv.remove(node);
+    dataUser.remove(node);
 }
 
 function removeNodes(nodes) {
