@@ -99,5 +99,3 @@ new Parent({
         label: { text: 'Parent #2\n(custom embedding logic)\nThree embedded children\n–\nTry to move me!' }
     }
 }).position(620, 480).size(160, 100).addTo(graph).embed(r).embed(g).embed(b);
-
-
