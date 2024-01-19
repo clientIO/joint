@@ -1,11 +1,12 @@
 
 (function() {
 
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
     new joint.dia.Paper({
         el: document.getElementById('paper'),
         model: graph,
+        cellViewNamespace: joint.shapes,
         width: 600,
         height: 100,
         // use a custom element view

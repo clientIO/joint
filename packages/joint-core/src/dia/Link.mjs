@@ -61,7 +61,6 @@ export const Link = Cell.extend({
     },
 
     defaults: {
-        type: 'link',
         source: {},
         target: {}
     },

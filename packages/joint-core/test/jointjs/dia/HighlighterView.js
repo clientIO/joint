@@ -10,10 +10,11 @@ QUnit.module('HighlighterView', function(hooks) {
         fixtureEl.appendChild(paperEl);
         document.body.appendChild(fixtureEl);
 
-        graph = new joint.dia.Graph;
+        graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         paper = new joint.dia.Paper({
             el: paperEl,
-            model: graph
+            model: graph,
+            cellViewNamespace: joint.shapes,
         });
         // Element
         element = new joint.shapes.standard.Rectangle({
@@ -121,8 +122,8 @@ QUnit.module('HighlighterView', function(hooks) {
             const highlighterId1 = 'highlighter-id-1';
             const highlighterId2 = 'highlighter-id-2';
 
-            const graph2 = new joint.dia.Graph();
-            const paper2 = new joint.dia.Paper({ model: graph2 });
+            const graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const paper2 = new joint.dia.Paper({ model: graph2, cellViewNamespace: joint.shapes });
             const element2 = element.clone();
             const element3 = element.clone();
 
@@ -149,8 +150,8 @@ QUnit.module('HighlighterView', function(hooks) {
             const highlighterId1 = 'highlighter-id-1';
             const highlighterId2 = 'highlighter-id-2';
 
-            const graph2 = new joint.dia.Graph();
-            const paper2 = new joint.dia.Paper({ model: graph2 });
+            const graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const paper2 = new joint.dia.Paper({ model: graph2, cellViewNamespace: joint.shapes });
             const element2 = element.clone();
             const element3 = element.clone();
 

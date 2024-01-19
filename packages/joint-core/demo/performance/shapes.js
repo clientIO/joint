@@ -13,12 +13,13 @@ var COUNT = 500;
 // true: does not block the UI
 var ASYNC = false;
 
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 var paper = new joint.dia.Paper({
     el: document.getElementById('canvas'),
     width: COUNT / 2 * 110,
     height: 500,
     model: graph,
+    cellViewNamespace: joint.shapes,
     async: ASYNC,
     frozen: true,
     // Avoid using joint.dia.Paper.sorting.EXACT

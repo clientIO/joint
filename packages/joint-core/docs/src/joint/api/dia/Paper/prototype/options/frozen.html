@@ -2,11 +2,12 @@
 
 <p>Example:</p>
 
-<code><pre>var graph = new joint.dia.Graph();
+<code><pre>var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 graph.resetCells([cell1, cell2]);
 var paper = new joint.dia.Paper({
 	el: document.getElementById('paper-holder'),
 	model: graph,
+	cellViewNamespace: joint.shapes,
 	frozen: true
 });
 paper.unfreeze();</pre></code>

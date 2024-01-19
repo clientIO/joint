@@ -4,10 +4,11 @@ QUnit.module('connectionPoints', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        graph = new joint.dia.Graph;
+        graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         paper = new joint.dia.Paper({
             el: $('<div>').appendTo('#qunit-fixture'),
             model: graph,
+            cellViewNamespace: joint.shapes,
             width: 300,
             height: 300
         });

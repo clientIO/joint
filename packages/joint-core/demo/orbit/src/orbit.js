@@ -9,12 +9,13 @@
             .offset(- width / 2, - height / 2);
     }
 
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
         width: 450,
         height: 300,
         model: graph,
+        cellViewNamespace: joint.shapes,
         async: true,
         sorting: joint.dia.Paper.sorting.NONE,
         restrictTranslate: function(elementView, x0, y0) {

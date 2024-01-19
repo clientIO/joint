@@ -1,12 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
         width: 400,
         height: 300,
         model: graph,
+        cellViewNamespace: joint.shapes,
         interactive: false,
         background: {
             color: '#F3F7F6'

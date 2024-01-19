@@ -1,11 +1,12 @@
 (function(joint) {
 
-    var graph = new joint.dia.Graph();
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
         width: 800,
         height: 600,
         model: graph,
+        cellViewNamespace: joint.shapes,
         async: true,
         background: {
             color: '#F3F7F6'

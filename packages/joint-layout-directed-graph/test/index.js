@@ -31,7 +31,7 @@ QUnit.module('DirectedGraph', function(hooks) {
 
         hooks.beforeEach(function() {
 
-            graph = new joint.dia.Graph;
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         });
 
         hooks.afterEach(function() {
@@ -66,8 +66,8 @@ QUnit.module('DirectedGraph', function(hooks) {
             ];
 
             var links = [
-                new joint.dia.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}),
-                new joint.dia.Link({ source: { id: elements[1].id }, target: { id: elements[3].id }})
+                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}),
+                new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[3].id }})
             ];
 
             var cells = elements.concat(links);
@@ -109,8 +109,8 @@ QUnit.module('DirectedGraph', function(hooks) {
             ];
 
             var links = [
-                new joint.dia.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}),
-                new joint.dia.Link({ source: { id: elements[1].id }, target: { id: elements[3].id }})
+                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}),
+                new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[3].id }})
             ];
 
             var cells = elements.concat(links);
@@ -160,8 +160,8 @@ QUnit.module('DirectedGraph', function(hooks) {
             elements[0].embed(elements[3]);
 
             var links = [
-                new joint.dia.Link({ source: { id: elements[1].id }, target: { id: elements[2].id }}),
-                new joint.dia.Link({ source: { id: elements[2].id }, target: { id: elements[3].id }})
+                new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[2].id }}),
+                new joint.shapes.standard.Link({ source: { id: elements[2].id }, target: { id: elements[3].id }})
             ];
 
             var cells = elements.concat(links);
@@ -200,8 +200,8 @@ QUnit.module('DirectedGraph', function(hooks) {
             ];
 
             var links = [
-                new joint.dia.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}),
-                new joint.dia.Link({ source: { id: elements[1].id }, target: { id: elements[3].id }})
+                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}),
+                new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[3].id }})
             ];
 
             graph.resetCells(elements.concat(links));

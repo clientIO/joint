@@ -5,8 +5,8 @@ type Args = [
     Record<'rect1' | 'link1', dia.Cell>
 ]
 
-const graph = new dia.Graph();
-const paper = new dia.Paper({ model: graph });
+const graph = new dia.Graph({}, { cellNamespace: shapes });
+const paper = new dia.Paper({ model: graph, cellViewNamespace: shapes });
 const rect1 = new shapes.standard.Rectangle();
 const link1 = new shapes.standard.Link();
 graph.addCells([rect1, link1]);

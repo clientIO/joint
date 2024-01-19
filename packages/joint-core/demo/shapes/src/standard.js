@@ -47,13 +47,14 @@ var RadiusTool = elementTools.Control.extend({
     }
 });
 
-var graph = new dia.Graph();
+var graph = new dia.Graph({}, { cellNamespace: joint.shapes });
 var paper = new dia.Paper({
     el: document.getElementById('paper'),
     width: 650,
     height: 800,
     gridSize: 1,
-    model: graph
+    model: graph,
+    cellViewNamespace: joint.shapes,
 });
 
 var rectangle = new standard.Rectangle();

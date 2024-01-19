@@ -10,10 +10,11 @@ QUnit.module('elementTools', function(hooks) {
         fixtureEl.appendChild(paperEl);
         document.body.appendChild(fixtureEl);
 
-        graph = new joint.dia.Graph;
+        graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         paper = new joint.dia.Paper({
             el: paperEl,
-            model: graph
+            model: graph,
+            cellViewNamespace: joint.shapes
         });
         element = new joint.shapes.standard.Rectangle({
             position: { x: 100, y: 100 },

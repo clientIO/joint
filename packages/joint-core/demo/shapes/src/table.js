@@ -1,4 +1,4 @@
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 var div = document.createElement('div');
 div.style.border = '1px solid black';
@@ -10,7 +10,8 @@ new joint.dia.Paper({
     height: 550,
     gridSize: 40,
     drawGrid: 'dot',
-    model: graph
+    model: graph,
+    cellViewNamespace: joint.shapes,
 });
 
 var Table = joint.dia.Element.define('Table', {

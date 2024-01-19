@@ -1,6 +1,6 @@
 function createEverything(selector, modulus, callback) {
 
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     var addCell = callback.bind(null, graph);
 
     var paper = new joint.dia.Paper({
@@ -9,6 +9,7 @@ function createEverything(selector, modulus, callback) {
         height: 350,
         gridSize: 1,
         model: graph,
+        cellViewNamespace: joint.shapes,
         async: true,
         defaultLink: function() {
             return new joint.shapes.standard.Link();

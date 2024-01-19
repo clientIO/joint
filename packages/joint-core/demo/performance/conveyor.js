@@ -154,12 +154,13 @@ function createCircle(center, radius, rectSize) {
 
 var canvasWidth = 1000;
 var canvasHeight = 1000;
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 var paper = new joint.dia.Paper({
     el: document.getElementById('canvas'),
     width: canvasWidth,
     height: canvasHeight,
     model: graph,
+    cellViewNamespace: joint.shapes,
     async: true,
     background: {
         color: '#000000'

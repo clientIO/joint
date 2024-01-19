@@ -96,12 +96,13 @@ function ml(g, id, a, b, v) {
 // Testing graph.
 // --------------
 
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 800,
     height: 600,
     model: graph,
+    cellViewNamespace: joint.shapes,
     defaultConnectionPoint: { name: 'boundary' }
 });
 
@@ -141,12 +142,13 @@ paper.on('cell:mouseout', clear);
 // Tree Graph.
 // -----------
 
-var treeGraph = new joint.dia.Graph;
+var treeGraph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 var treePaper = new joint.dia.Paper({
     el: document.getElementById('tree-paper'),
     width: 800,
     height: 600,
     model: treeGraph,
+    cellViewNamespace: joint.shapes,
     defaultConnectionPoint: { name: 'boundary' }
 });
 

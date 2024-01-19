@@ -5,12 +5,13 @@
     // - It's not possible to export the diagram into PNG/SVG on the client-side
     // - Do not use CSS background on the root HTML element when using ports
 
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
         width: 850,
         height: 600,
         model: graph,
+        cellViewNamespace: joint.shapes,
         async: true,
         frozen: true,
         sorting: joint.dia.Paper.sorting.NONE,

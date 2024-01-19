@@ -13,12 +13,13 @@ var Parent = joint.shapes.standard.Rectangle.define('standard.Parent', {
     }
 });
 
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 var EMBEDDING_OFFSET = 59;
 new joint.dia.Paper({
     el: document.getElementById('paper'),
     model: graph,
+    cellViewNamespace: joint.shapes,
     width: 1000,
     height: 1000,
     gridSize: 20,

@@ -63,7 +63,7 @@ var appModel = joint.shapes.toggable.Element.define('app.Model', {
     }
 });
 
-var graph = new joint.dia.Graph();
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 var paper = new joint.dia.ExpandPaper({
     el: document.getElementById('paper'),
@@ -71,6 +71,7 @@ var paper = new joint.dia.ExpandPaper({
     height: 600,
     gridSize: 1,
     model: graph,
+    cellViewNamespace: joint.shapes,
     defaultLink: new appLink(),
     defaultConnectionPoint: { name: 'boundary' },
     magnetThreshold: 'onleave',

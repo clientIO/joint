@@ -24,7 +24,7 @@ var ConstraintElementView = joint.dia.ElementView.extend({
 });
 
 
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 var paper = new joint.dia.Paper({
 
@@ -33,6 +33,7 @@ var paper = new joint.dia.Paper({
     height: 400,
     gridSize: 1,
     model: graph,
+    cellViewNamespace: joint.shapes,
     elementView: ConstraintElementView
 });
 

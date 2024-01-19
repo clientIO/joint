@@ -8,11 +8,12 @@ QUnit.module('cell', function(hooks) {
         const paperEl = document.createElement('div');
         fixtureEl.appendChild(paperEl);
 
-        this.graph = new joint.dia.Graph;
+        this.graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         this.paper = new joint.dia.Paper({
             el: paperEl,
             gridSize: 10,
-            model: this.graph
+            model: this.graph,
+            cellViewNamespace: joint.shapes,
         });
     });
 

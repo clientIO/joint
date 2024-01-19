@@ -137,6 +137,7 @@ var JointPaperComponent = {
             paperContext.paper = new joint.dia.Paper({
                 el: paperElement.value,
                 model: graph,
+                cellViewNamespace: joint.shapes,
                 width: 850,
                 height: 600,
                 background: {
@@ -201,7 +202,7 @@ var app = Vue.createApp({
     setup() {
         var tasks = Vue.reactive(JSON.parse(JSON.stringify(DATA.tasks)));
         var scale = Vue.ref(DATA.scale);
-        var graph = new joint.dia.Graph();
+        var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
         Vue.provide('graph', graph);
 

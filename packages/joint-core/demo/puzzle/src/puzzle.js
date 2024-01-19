@@ -85,11 +85,12 @@ var Jigsaw = {
 
     createPuzzle: function(sizeArray, imageHref) {
 
-        var graph = this.graph = new joint.dia.Graph;
+        var graph = this.graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         var paper = this.paper = new joint.dia.Paper({
             el: document.getElementById('paper'),
             gridSize: this.GRID,
             model: graph,
+            cellViewNamespace: joint.shapes,
             clickThreshold: 5,
             async: true,
         }).on({

@@ -15,7 +15,7 @@ class ResizeTool extends elementTools.Control {
     }
 }
 
-const graph = new dia.Graph();
+const graph = new dia.Graph({}, { cellNamespace: shapes });
 
 const paper = new dia.Paper({
     el: document.getElementById('paper'),
@@ -25,12 +25,13 @@ const paper = new dia.Paper({
     async: true,
     frozen: true,
     model: graph,
+    cellViewNamespace: shapes,
     defaultRouter: { name: 'rightAngle', args: { useVertices: true }},
     defaultConnector: { name: 'rounded' },
     background: {
         color: '#151D29'
     },
-    defaultLinkAnchor: { 
+    defaultLinkAnchor: {
         name: 'connectionRatio',
         args: {
             ratio: 0.25
@@ -38,7 +39,7 @@ const paper = new dia.Paper({
     }
 });
 
-const rect = new shapes.standard.Rectangle({ 
+const rect = new shapes.standard.Rectangle({
     position: { x: 120, y: 120 },
     size: { width: 220, height: 60 },
     attrs: {

@@ -2,7 +2,7 @@ QUnit.module('graph', function(hooks) {
 
     hooks.beforeEach(function() {
 
-        this.graph = new joint.dia.Graph;
+        this.graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     });
 
     hooks.afterEach(function() {
@@ -122,7 +122,7 @@ QUnit.module('graph', function(hooks) {
 
         hooks.beforeEach(function() {
 
-            this.graph = new joint.dia.Graph;
+            this.graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
             cells = [
                 new joint.shapes.standard.Rectangle,
@@ -351,7 +351,7 @@ QUnit.module('graph', function(hooks) {
         var fromPlainObject = { id: 'b', type: 'standard.Rectangle' };
 
         var graph1 = this.graph;
-        var graph2 = new joint.dia.Graph;
+        var graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
         graph1.addCell(fromInstance);
         graph1.addCell(fromPlainObject);
@@ -391,9 +391,9 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.test('dry flag', function(assert) {
 
-        var graph1 = new joint.dia.Graph;
-        var graph2 = new joint.dia.Graph;
-        var graph3 = new joint.dia.Graph;
+        var graph1 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        var graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        var graph3 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
         // Dry mode
 
@@ -884,31 +884,42 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.test('graph.options: cellNamespace', function(assert) {
 
-        var elementJSON = { id: 'a', type: 'elements.Element' };
-        var linkJSON = { id: 'b', type: 'link' };
-        var nonExistingJSON = { id: 'c', type: 'elements.NonExisting' };
+        const elementJSON = { id: 'a', type: 'elements.Element' };
+        const linkJSON = { id: 'b', type: 'links.Link' };
+        const nonExistingJSON = { id: 'c', type: 'elements.NonExisting' };
 
-        var graph = new joint.dia.Graph({}, {
-            cellNamespace: {
-                elements: { Element: joint.shapes.standard.Rectangle }
+        const graph = new joint.dia.Graph(
+            {},
+            {
+                cellNamespace: {
+                    elements: { Element: joint.shapes.standard.Rectangle },
+                    links: { Link: joint.shapes.standard.Link },
+                },
             }
-        });
+        );
 
         graph.addCell(elementJSON);
-        var element = graph.getCell('a');
-        assert.equal(element.constructor, joint.shapes.standard.Rectangle,
-            'The class was found in the custom namespace based on the type provided.');
+        const element = graph.getCell('a');
+        assert.ok(element.isElement());
+        assert.equal(
+            element.constructor,
+            joint.shapes.standard.Rectangle,
+            'The element class was found in the custom namespace based on the type provided.'
+        );
 
         graph.addCell(linkJSON);
-        var link = graph.getCell('b');
-        assert.equal(link.constructor, joint.dia.Link,
-            'The default link model is created when type equals "link".');
+        const link = graph.getCell('b');
+        assert.ok(link.isLink());
+        assert.equal(
+            link.constructor,
+            joint.shapes.standard.Link,
+            'The link class was found in the custom namespace based on the type provided.'
+        );
 
-        graph.addCell(nonExistingJSON);
-        var nonExisting = graph.getCell('c');
-        assert.equal(nonExisting.constructor, joint.dia.Element,
-            'If there is no class based on the type in the namespace, the default element model is used.');
-
+        assert.throws(
+            () => graph.addCell(nonExistingJSON),
+            new RegExp(`${nonExistingJSON.type}`)
+        );
     });
 
     QUnit.module('graph.getNeighbors(), graph.isNeighbor()', function() {
@@ -1383,7 +1394,7 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.module('graph.fromJSON()', function() {
 
-        var json = JSON.parse('{"cells":[{"type":"standard.Ellipse","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"standard.Rectangle","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
+        var json = JSON.parse('{"cells":[{"type":"standard.Ellipse","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"standard.Link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"standard.Rectangle","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
 
         QUnit.test('should reconstruct graph data from JSON object', function(assert) {
 
@@ -1425,7 +1436,7 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.module('graph.toJSON()', function(hooks) {
 
-        var json = JSON.parse('{"cells":[{"type":"standard.Ellipse","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"standard.Rectangle","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
+        var json = JSON.parse('{"cells":[{"type":"standard.Ellipse","size":{"width":100,"height":60},"position":{"x":110,"y":480},"id":"bbb9e641-9756-4f42-997a-f4818b89f374","embeds":"","z":0},{"type":"standard.Link","source":{"id":"bbb9e641-9756-4f42-997a-f4818b89f374"},"target":{"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6"},"id":"b4289c08-07ea-49d2-8dde-e67eb2f2a06a","z":1},{"type":"standard.Rectangle","position":{"x":420,"y":410},"size":{"width":100,"height":60},"id":"cbd1109e-4d34-4023-91b0-f31bce1318e6","embeds":"","z":2}]}');
 
         hooks.beforeEach(function() {
 

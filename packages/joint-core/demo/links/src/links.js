@@ -1,9 +1,10 @@
-var graph = new joint.dia.Graph();
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 800,
     height: 600,
     model: graph,
+    cellViewNamespace: joint.shapes,
     interactive: { linkMove: false },
     defaultConnectionPoint: {
         name: 'boundary',
@@ -282,6 +283,7 @@ var link8 = new joint.shapes.standard.ShadowLink({
 // Custom Link
 
 var link9 = new joint.dia.Link({
+    type: 'link',
     markup: [{
         tagName: 'path',
         selector: 'p1'
@@ -376,6 +378,7 @@ var el1 = new joint.shapes.standard.Path({
 });
 
 var link10 = new joint.shapes.standard.Link({
+    type: 'link',
     source: { x: 300, y: 400 },
     target: { id: el1.id },
     attrs: {
@@ -392,6 +395,7 @@ var link10 = new joint.shapes.standard.Link({
 // Stubs
 
 var link11 = new joint.dia.Link({
+    type: 'link',
     markup: [{
         tagName: 'path',
         selector: 'line'
@@ -505,6 +509,7 @@ paper.on({
 });
 
 var link12 = new joint.dia.Link({
+    type: 'link',
     markup: [{
         tagName: 'path',
         selector: 'line'
@@ -549,6 +554,7 @@ var link12 = new joint.dia.Link({
 });
 
 var link13 = new joint.shapes.standard.Link({
+    type: 'link',
     source: {
         id: el1.id,
         anchor: { name: 'bottomRight' },
@@ -576,6 +582,7 @@ var link13 = new joint.shapes.standard.Link({
 });
 
 var link14 = new joint.dia.Link({
+    type: 'link',
     markup: [{
         tagName: 'path',
         selector: 'line1',

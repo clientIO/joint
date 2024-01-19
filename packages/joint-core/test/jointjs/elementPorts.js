@@ -2192,11 +2192,11 @@ QUnit.module('element ports', function() {
         let graph, paper;
 
         hooks.beforeEach(function() {
-            graph = new joint.dia.Graph;
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             var fixtures = document.getElementById('qunit-fixture');
             var paperEl = document.createElement('div');
             fixtures.appendChild(paperEl);
-            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            paper = new joint.dia.Paper({ el: paperEl, model: graph, cellViewNamespace: joint.shapes });
         });
 
         hooks.afterEach(function() {

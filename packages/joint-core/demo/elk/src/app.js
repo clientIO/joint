@@ -10,10 +10,11 @@ const minimalViewThreshold = 0.4;
 export const init = () => {
     const canvas = document.getElementById('canvas');
 
-    const graph = new joint.dia.Graph();
+    const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
     const paper = new joint.dia.Paper({
         model: graph,
+        cellViewNamespace: joint.shapes,
         width: 1000,
         height: 600,
         gridSize: 1,

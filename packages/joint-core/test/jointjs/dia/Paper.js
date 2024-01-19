@@ -34,7 +34,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         fixtureEl.appendChild(paperEl);
         document.body.appendChild(fixtureEl);
 
-        graph = new joint.dia.Graph;
+        graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     });
 
     hooks.afterEach(function() {
@@ -107,7 +107,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
     QUnit.module('transformToFitContent', function(hooks) {
 
         hooks.beforeEach(function() {
-            const testGraph = new joint.dia.Graph();
+            const testGraph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
             testGraph.addCells([
                 {
                     'type': 'standard.Rectangle',

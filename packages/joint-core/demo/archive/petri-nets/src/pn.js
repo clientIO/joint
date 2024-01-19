@@ -123,7 +123,7 @@ const Link = joint.dia.Link.define('pn.Link', {
 
 const shapes = { ...joint.shapes, pn: { Place, PlaceView, Transition, Link }};
 
-var graph = new joint.dia.Graph();
+var graph = new joint.dia.Graph({}, { cellNamespace: shapes });
 var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 800,

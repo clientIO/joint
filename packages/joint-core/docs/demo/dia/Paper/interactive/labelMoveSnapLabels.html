@@ -23,7 +23,7 @@
 
 </body>
 <script>
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
     var div = document.createElement('div');
     document.body.appendChild(div);
     var paper = new joint.dia.Paper({
@@ -43,7 +43,8 @@
                 useLinkTools: false
             };
         },
-        model: graph
+        model: graph,
+        cellViewNamespace: joint.shapes,
     });
 
     var linkEnabled = new joint.shapes.standard.DoubleLink({

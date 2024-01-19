@@ -41,14 +41,14 @@
                 Additionally, note that custom properties saved on the graph are preserved as well.
                 You can use this to store additional state information:</p>
 
-            <pre><code>var graph1 = new joint.dia.Graph();
+            <pre><code>var graph1 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 graph1.set('graphCustomProperty', true);
 graph1.set('graphExportTime', Date.now());
 var jsonObject = graph1.toJSON();
 
 // transmission of `jsonObject` across network etc.
 
-var graph2 = new joint.dia.Graph(); // new empty graph
+var graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes }); // new empty graph
 graph2.fromJSON(jsonObject);
 graph2.get('graphCustomProperty'); // true
 graph2.get('graphExportTime'); // e.g. 627247800000</code></pre>
@@ -57,13 +57,13 @@ graph2.get('graphExportTime'); // e.g. 627247800000</code></pre>
                 However, if necessary, you can easily convert back and forth using the native JavaScript
                 <code>JSON.stringify()</code> and <code>JSON.parse()</code> functions:</p>
 
-            <pre><code>var graph1 = new joint.dia.Graph();
+            <pre><code>var graph1 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 var jsonObject = graph1.toJSON();
 var jsonString = JSON.stringify(jsonObject);
 
 // transmission of `jsonString` across network etc.
 
-var graph2 = new joint.dia.Graph(); // new empty graph
+var graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes }); // new empty graph
 graph2.fromJSON(JSON.parse(jsonString));</code></pre>
 
             <p>Depending on how you store/transmit your app data, you may work with the JSON objects directly (e.g. when
@@ -77,7 +77,7 @@ graph2.fromJSON(JSON.parse(jsonString));</code></pre>
                 instead construct your own synthetic graphs; you just need to make sure that the object you provide is
                 valid JSON and that it contains a <code>cells</code> array property:</p>
 
-            <pre><code>var graph = new joint.dia.Graph();
+            <pre><code>var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 graph.fromJSON({
     cells: [{
         id: 1,
@@ -95,7 +95,7 @@ graph.fromJSON({
 
             <p>The <code>cells</code> array can even be empty, if you want to create an empty synthetic graph:</p>
 
-            <pre><code>var graph = new joint.dia.Graph();
+            <pre><code>var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 graph.fromJSON({ cells: [] });</code></pre>
 
             <h3 id="limitations">Limitations</h3>

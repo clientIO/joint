@@ -22,7 +22,7 @@
      * HELPERS
      */
     function createPaper() {
-        var graph = new joint.dia.Graph;
+        var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
         var div = document.createElement('div');
         document.body.appendChild(div);
         return new joint.dia.Paper({
@@ -32,6 +32,7 @@
             gridSize: 1,
             defaultAnchor: { name: 'perpendicular' },
             model: graph,
+            cellViewNamespace: joint.shapes,
         });
     }
 </script>

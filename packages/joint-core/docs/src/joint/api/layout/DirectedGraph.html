@@ -148,7 +148,7 @@ yarn install</code></pre>
             <pre><code>import { DirectedGraph } from '@joint/layout-directed-graph';
 import * as graphlib from '@dagrejs/graphlib';
 
-var graph = new joint.dia.Graph;
+var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 // ... populate the graph with elements connected with links
 
 // Get a Graphlib representation of the graph:
