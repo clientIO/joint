@@ -12,6 +12,7 @@ QUnit.module('connectors', function(hooks) {
             gridSize: 10,
             model: this.graph,
             cellViewNamespace: joint.shapes,
+            defaultConnectionPoint: { name: 'bbox' },
         });
     });
 

@@ -6,7 +6,6 @@ const paper = new joint.dia.Paper({
     height: 600,
     model: graph,
     cellViewNamespace: joint.shapes,
-    defaultConnectionPoint: { name: 'boundary' },
     defaultConnector: { name: 'smooth' },
     interactive: { linkMove: false },
     labelsLayer: true,

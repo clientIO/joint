@@ -2,12 +2,12 @@
 
     var namespace = joint.shapes;
     var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
-    var paper = new joint.dia.Paper({ 
+    var paper = new joint.dia.Paper({
         el: document.getElementById('paper-restrictions'),
         width: 650,
         height: 200,
         gridSize: 1,
-        model: graph, 
+        model: graph,
         cellViewNamespace: namespace,
         linkPinning: false, // Prevent link being dropped in blank paper area
         defaultLink: () => new joint.shapes.standard.Link({
@@ -17,7 +17,6 @@
                 }
             }
         }),
-        defaultConnectionPoint: { name: 'boundary' },
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
             // Prevent linking from output ports to input ports within one element
             if (cellViewS === cellViewT) return false;
@@ -47,7 +46,7 @@
         label: {
             position: {
                 name: 'left',
-                args: { y: 6 } 
+                args: { y: 6 }
             },
             markup: [{
                 tagName: 'text',
@@ -101,7 +100,7 @@
             body: {
                 fill: '#8ECAE6',
             },
-            label: { 
+            label: {
                 text: 'Model',
                 fontSize: 16,
                 y: -10
@@ -117,15 +116,15 @@
 
 
     model.addPorts([
-        { 
+        {
             group: 'in',
             attrs: { label: { text: 'in1' }}
         },
-        { 
+        {
             group: 'in',
             attrs: { label: { text: 'in2' }}
         },
-        { 
+        {
             group: 'out',
             attrs: { label: { text: 'out' }}
         }
@@ -139,7 +138,7 @@
     paper.on('link:mouseenter', (linkView) => {
         showLinkTools(linkView);
     });
-    
+
     paper.on('link:mouseleave', (linkView) => {
         linkView.removeTools();
     });

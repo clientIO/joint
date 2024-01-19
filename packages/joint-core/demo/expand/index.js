@@ -73,7 +73,6 @@ var paper = new joint.dia.ExpandPaper({
     model: graph,
     cellViewNamespace: joint.shapes,
     defaultLink: new appLink(),
-    defaultConnectionPoint: { name: 'boundary' },
     magnetThreshold: 'onleave',
     clickThreshold: 5,
     validateMagnet: function(cellView, magnet) {

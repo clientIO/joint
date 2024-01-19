@@ -112,7 +112,6 @@ var paper = new joint.dia.Paper({
     snapLinks: true,
     defaultLink: new joint.shapes.standard.Link({ z: - 1 }),
     defaultConnector: { name: 'smooth' },
-    defaultConnectionPoint: { name: 'boundary' },
     markAvailable: true,
     validateConnection: function(vS, mS, vT, mT, end, lV) {
         if (!mT) return false;

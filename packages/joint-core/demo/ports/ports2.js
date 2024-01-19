@@ -7,7 +7,6 @@ new joint.dia.Paper({
     gridSize: 1,
     model: graph,
     cellViewNamespace: joint.shapes,
-    defaultConnectionPoint: { name: 'boundary' }
 });
 
 var m1 = new joint.shapes.standard.Rectangle({

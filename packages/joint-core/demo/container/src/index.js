@@ -12,9 +12,6 @@
             color: '#F3F7F6'
         },
         interactive: { linkMove: false },
-        defaultConnectionPoint: {
-            name: 'boundary'
-        },
         viewport: function(view) {
             var element = view.model;
             // Hide any element or link which is embedded inside a collapsed parent (or parent of the parent).
