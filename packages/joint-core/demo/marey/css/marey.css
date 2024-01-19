@@ -1,5 +1,5 @@
 * {
-    user-select: none;  
+    user-select: none;
 }
 
 body {
@@ -8,7 +8,7 @@ body {
 }
 
 #paper {
-    position: absolute;  
+    position: absolute !important;
 }
 
 #description {
