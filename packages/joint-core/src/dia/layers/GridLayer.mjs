@@ -23,7 +23,7 @@ export const GridLayer = PaperLayer.extend({
         const { options: { paper }} = this;
         this._gridCache = null;
         this._gridSettings = [];
-        this.listenTo(paper, 'scale translate resize', this.updateGrid);
+        this.listenTo(paper, 'transform resize', this.updateGrid);
     },
 
     setGrid(drawGrid) {

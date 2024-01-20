@@ -104,7 +104,6 @@ export const Paper = View.extend({
 
         width: 800,
         height: 600,
-        origin: { x: 0, y: 0 }, // x,y coordinates in top-left corner
         gridSize: 1,
         // Whether or not to draw the grid lines on the paper's DOM element.
         // e.g drawGrid: true, drawGrid: { color: 'red', thickness: 2 }
@@ -444,7 +443,7 @@ export const Paper = View.extend({
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
-            .on('scale translate', this.update);
+            .on('transform', this.update);
     },
 
     onCellAdded: function(cell, _, opt) {
@@ -506,7 +505,6 @@ export const Paper = View.extend({
             defaultConnectionPoint,
             defaultAnchor,
             defaultLinkAnchor,
-            origin,
             highlighting,
             cellViewNamespace,
             interactive
@@ -543,7 +541,6 @@ export const Paper = View.extend({
             // Return the default highlighting options into the user specified options.
             options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
         }
-        options.origin = assign({}, origin);
     },
 
     children: function() {
@@ -689,7 +686,41 @@ export const Paper = View.extend({
         return this;
     },
 
-    matrix: function(ctm) {
+    scale: function(sx, sy, data) {
+        const ctm = this.matrix();
+        // getter
+        if (sx === undefined) {
+            return V.matrixToScale(ctm);
+        }
+        // setter
+        if (sy === undefined) {
+            sy = sx;
+        }
+        sx = Math.max(sx || 0, this.MIN_SCALE);
+        sy = Math.max(sy || 0, this.MIN_SCALE);
+        ctm.a = sx;
+        ctm.d = sy;
+        this.matrix(ctm, data);
+        return this;
+    },
+
+    translate: function(tx, ty, data) {
+        const ctm = this.matrix();
+        // getter
+        if (tx === undefined) {
+            return V.matrixToTranslate(ctm);
+        }
+        // setter
+        tx || (tx = 0);
+        ty || (ty = 0);
+        if (ctm.e === tx && ctm.f === ty) return this;
+        ctm.e = tx;
+        ctm.f = ty;
+        this.matrix(ctm, data);
+        return this;
+    },
+
+    matrix: function(ctm, data = {}) {
 
         var viewport = this.layers;
 
@@ -715,13 +746,38 @@ export const Paper = View.extend({
         }
 
         // Setter:
-        ctm = V.createSVGMatrix(ctm);
-        var ctmString = V.matrixToTransformString(ctm);
-        viewport.setAttribute('transform', ctmString);
+        const prev = this.matrix();
+        const current = V.createSVGMatrix(ctm);
+        const currentTransformString = this._viewportTransformString;
+        const ctmString = V.matrixToTransformString(current);
+        if (ctmString === currentTransformString) {
+            // The new transform string is the same as the current one.
+            // No need to update the transform attribute.
+            return this;
+        }
+        if (!currentTransformString && V.matrixToTransformString() === ctmString) {
+            // The current transform string is empty and the new one is also empty.
+            // No need to update the transform attribute.
+            return this;
+        }
 
-        this._viewportMatrix = ctm;
+        const { a, d, e, f } = current;
+
+        viewport.setAttribute('transform', ctmString);
+        this._viewportMatrix = current;
         this._viewportTransformString = viewport.getAttribute('transform');
 
+        // scale event
+        if (a !== prev.a || d !== prev.d) {
+            this.trigger('scale', a, d, data);
+        }
+
+        // translate event
+        if (e !== prev.e || f !== prev.f) {
+            this.trigger('translate', e, f, data);
+        }
+
+        this.trigger('transform', current, data);
         return this;
     },
 
@@ -1296,7 +1352,7 @@ export const Paper = View.extend({
         return { width: w, height: h };
     },
 
-    setDimensions: function(width, height) {
+    setDimensions: function(width, height, data = {}) {
         const { options } = this;
         const { width: currentWidth, height: currentHeight } = options;
         let w = (width === undefined) ? currentWidth : width;
@@ -1306,7 +1362,7 @@ export const Paper = View.extend({
         options.height = h;
         this._setDimensions();
         const computedSize = this.getComputedSize();
-        this.trigger('resize', computedSize.width, computedSize.height);
+        this.trigger('resize', computedSize.width, computedSize.height, data);
     },
 
     _setDimensions: function() {
@@ -1319,10 +1375,6 @@ export const Paper = View.extend({
             width: (w === null) ? '' : w,
             height: (h === null) ? '' : h
         });
-    },
-
-    setOrigin: function(ox, oy) {
-        return this.translate(ox || 0, oy || 0);
     },
 
     // Expand/shrink the paper to fit the content.
@@ -1340,8 +1392,8 @@ export const Paper = View.extend({
         const { x, y, width, height } = this.getFitToContentArea(opt);
         const { sx, sy } = this.scale();
 
-        this.setOrigin(-x * sx, -y * sy);
-        this.setDimensions(width * sx, height * sy);
+        this.translate(-x * sx, -y * sy, opt);
+        this.setDimensions(width * sx, height * sy, opt);
 
         return new Rect(x, y, width, height);
     },
@@ -1462,10 +1514,11 @@ export const Paper = View.extend({
             height: -padding.top - padding.bottom
         });
 
-        const currentScale = this.scale();
+        const ctm = this.matrix();
+        const { a: sx, d: sy, e: tx, f: ty } = ctm;
 
-        let newSx = fittingBBox.width / contentBBox.width * currentScale.sx;
-        let newSy = fittingBBox.height / contentBBox.height * currentScale.sy;
+        let newSx = fittingBBox.width / contentBBox.width * sx;
+        let newSy = fittingBBox.height / contentBBox.height * sy;
 
         if (opt.preserveAspectRatio) {
             newSx = newSy = Math.min(newSx, newSy);
@@ -1485,13 +1538,12 @@ export const Paper = View.extend({
         newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
 
         const scaleDiff = {
-            x: newSx / currentScale.sx,
-            y: newSy / currentScale.sy
+            x: newSx / sx,
+            y: newSy / sy
         };
 
-        const origin = this.options.origin;
-        let newOx = fittingBBox.x - contentLocalOrigin.x * newSx - origin.x;
-        let newOy = fittingBBox.y - contentLocalOrigin.y * newSy - origin.y;
+        let newOx = fittingBBox.x - contentLocalOrigin.x * newSx - tx;
+        let newOy = fittingBBox.y - contentLocalOrigin.y * newSy - ty;
 
         switch (opt.verticalAlign) {
             case 'middle':
@@ -1517,8 +1569,11 @@ export const Paper = View.extend({
                 break;
         }
 
-        this.scale(newSx, newSy);
-        this.translate(newOx, newOy);
+        ctm.a = newSx;
+        ctm.d = newSy;
+        ctm.e = newOx;
+        ctm.f = newOy;
+        this.matrix(ctm, opt);
     },
 
     scaleContentToFit: function(opt) {
@@ -1734,98 +1789,6 @@ export const Paper = View.extend({
     detachView(view) {
         view.unmount();
         view.onDetach();
-    },
-
-    scale: function(sx, sy, ox, oy) {
-
-        // getter
-        if (sx === undefined) {
-            return V.matrixToScale(this.matrix());
-        }
-
-        // setter
-        if (sy === undefined) {
-            sy = sx;
-        }
-        if (ox === undefined) {
-            ox = 0;
-            oy = 0;
-        }
-
-        var translate = this.translate();
-
-        if (ox || oy || translate.tx || translate.ty) {
-            var newTx = translate.tx - ox * (sx - 1);
-            var newTy = translate.ty - oy * (sy - 1);
-            this.translate(newTx, newTy);
-        }
-
-        sx = Math.max(sx || 0, this.MIN_SCALE);
-        sy = Math.max(sy || 0, this.MIN_SCALE);
-
-        var ctm = this.matrix();
-        ctm.a = sx;
-        ctm.d = sy;
-
-        this.matrix(ctm);
-
-        this.trigger('scale', sx, sy, ox, oy);
-
-        return this;
-    },
-
-    // Experimental - do not use in production.
-    rotate: function(angle, cx, cy) {
-
-        // getter
-        if (angle === undefined) {
-            return V.matrixToRotate(this.matrix());
-        }
-
-        // setter
-
-        // If the origin is not set explicitely, rotate around the center. Note that
-        // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
-        // the real bounding box (`bbox()`) including transformations).
-        if (cx === undefined) {
-            var bbox = this.cells.getBBox();
-            cx = bbox.width / 2;
-            cy = bbox.height / 2;
-        }
-
-        var ctm = this.matrix().translate(cx, cy).rotate(angle).translate(-cx, -cy);
-        this.matrix(ctm);
-
-        return this;
-    },
-
-    translate: function(tx, ty) {
-
-        // getter
-        if (tx === undefined) {
-            return V.matrixToTranslate(this.matrix());
-        }
-
-        const { options } = this;
-        const { origin } = options;
-
-        // setter
-        tx || (tx = 0);
-        ty || (ty = 0);
-
-        const ctm = this.matrix();
-        if (ctm.e === tx && ctm.f === ty) return this;
-        ctm.e = tx;
-        ctm.f = ty;
-
-        this.matrix(ctm);
-
-        const { tx: ox, ty: oy } = this.translate();
-        origin.x = ox;
-        origin.y = oy;
-
-        this.trigger('translate', ox, oy);
-        return this;
     },
 
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also

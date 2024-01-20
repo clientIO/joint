@@ -1,6 +1,6 @@
 
-<pre class="docs-method-signature"><code>paper.setDimensions(width, height)</code></pre>
-<p>Change dimensions of a paper. Dimensions should always be passed to the options object of the <code>joint.dia.Paper</code> constructor. Use <code>setDimensions()</code> to change dimensions of the paper later on if needed. If the method is called a <code>&quot;resize&quot;</code> event is triggered on the paper.</p>
+<pre class="docs-method-signature"><code>paper.setDimensions(width, height, [data])</code></pre>
+<p>Change dimensions of a paper. Dimensions should always be passed to the options object of the <code>joint.dia.Paper</code> constructor. Use <code>setDimensions()</code> to change dimensions of the paper later on if needed.</p>
 <table>
     <tr>
         <th>Type</th>
@@ -27,3 +27,8 @@ window.on('resize', joint.util.debounce(function() {
         <td>No dimension set. Useful when size of the paper controlled in CSS.</td>
     </tr>
 </table>
+
+<p>If new dimensions are set, the <code>&quot;resize&quot;</code> event is triggered (only if the size has changed). The event handler receives the current size and the <code>data</code> object if it was specified when the method was called.</p>
+
+<pre><code>paper.on('resize', (width, height, data) => console.log(width, height, data.foo));
+paper.setDimensions(800, 600, { foo: 'bar' }); // will trigger the event</code></pre>
