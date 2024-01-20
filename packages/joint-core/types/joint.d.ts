@@ -1539,6 +1539,8 @@ export namespace dia {
         scale(): Vectorizer.Scale;
         scale(sx: number, sy?: number, data?: any): this;
 
+        scaleUniformAtPoint(scale: number, point: Point, data?: any): this;
+
         translate(): Vectorizer.Translation;
         translate(tx: number, ty?: number, data?: any): this;
 

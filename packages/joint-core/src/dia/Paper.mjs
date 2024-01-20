@@ -704,6 +704,22 @@ export const Paper = View.extend({
         return this;
     },
 
+    scaleUniformAtPoint: function(scale, point, data) {
+        const { a: sx, d: sy, e: tx, f: ty } = this.matrix();
+        if (scale === sx && scale === sy) {
+            // The scale is the same as the current one.
+            return this;
+        }
+        const matrix = V.createSVGMatrix()
+            .translate(
+                tx - point.x * (scale - sx),
+                ty - point.y * (scale - sy)
+            )
+            .scale(scale, scale);
+        this.matrix(matrix, data);
+        return this;
+    },
+
     translate: function(tx, ty, data) {
         const ctm = this.matrix();
         // getter

@@ -29,7 +29,7 @@
     paper.el.appendChild(htmlContainer);
     paper.htmlContainer = htmlContainer;
 
-    paper.on('scale translate', function() {
+    paper.on('transform', function() {
         // Update the transformation of all JointJS HTML Elements
         var htmlContainer = this.htmlContainer;
         htmlContainer.style.transformOrigin = '0 0';
@@ -94,18 +94,16 @@
     // Toolbar
     var zoomLevel = 1;
 
+    var center = paper.getArea().center();
+
     document.getElementById('zoom-in').addEventListener('click', function() {
         zoomLevel = Math.min(3, zoomLevel + 0.2);
-        var size = paper.getComputedSize();
-        paper.translate(0,0);
-        paper.scale(zoomLevel, zoomLevel, size.width / 2, size.height / 2);
+        paper.scaleUniformAtPoint(zoomLevel, center);
     });
 
     document.getElementById('zoom-out').addEventListener('click', function() {
         zoomLevel = Math.max(0.2, zoomLevel - 0.2);
-        var size = paper.getComputedSize();
-        paper.translate(0,0);
-        paper.scale(zoomLevel, zoomLevel, size.width / 2, size.height / 2);
+        paper.scaleUniformAtPoint(zoomLevel, center);
     });
 
     document.getElementById('reset').addEventListener('click', function() {

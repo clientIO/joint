@@ -1775,8 +1775,34 @@ QUnit.module('paper', function(hooks) {
             translateY: 100
         }, 'changing the scale of the paper will modify the matrix');
 
+    });
 
-
+    QUnit.test('scaleUniformAtPoint()', function(assert) {
+        const paper = this.paper;
+        const transformCbSpy = sinon.spy();
+        paper.on('transform', transformCbSpy);
+        // 1.
+        paper.scaleUniformAtPoint(2, { x: 0, y: 0 }, { test: 1 });
+        assert.ok(transformCbSpy.calledOnce);
+        assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({ test: 1 })));
+        assert.equal(V.matrixToTransformString(paper.matrix()), 'matrix(2,0,0,2,0,0)');
+        transformCbSpy.resetHistory();
+        // 2.
+        paper.scaleUniformAtPoint(2, { x: 0, y: 0 });
+        assert.ok(transformCbSpy.notCalled);
+        assert.equal(V.matrixToTransformString(paper.matrix()), 'matrix(2,0,0,2,0,0)');
+        transformCbSpy.resetHistory();
+        // 3.
+        paper.scaleUniformAtPoint(2, { x: 10, y: 20 });
+        assert.ok(transformCbSpy.notCalled);
+        assert.equal(V.matrixToTransformString(paper.matrix()), 'matrix(2,0,0,2,0,0)');
+        transformCbSpy.resetHistory();
+        // 4.
+        paper.scaleUniformAtPoint(4, { x: 10, y: 20 });
+        assert.ok(transformCbSpy.calledOnce);
+        assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({})));
+        assert.equal(V.matrixToTransformString(paper.matrix()), 'matrix(4,0,0,4,-20,-40)');
+        transformCbSpy.resetHistory();
     });
 
     QUnit.module('transformations', function() {
