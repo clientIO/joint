@@ -1853,7 +1853,7 @@ QUnit.module('paper', function(hooks) {
             assert.ok(translateCbSpy.calledWithExactly(10 + 10 * 2, 20 + 20 * 2, sinon.match({ test: 4 })));
             assert.ok(transformCbSpy.calledOnce);
             assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({ test: 4 })));
-            assert.ok(scaleCbSpy.calledBefore(transformCbSpy));
+            assert.ok(scaleCbSpy.calledBefore(translateCbSpy));
             assert.ok(translateCbSpy.calledBefore(transformCbSpy));
             scaleCbSpy.resetHistory();
             translateCbSpy.resetHistory();
