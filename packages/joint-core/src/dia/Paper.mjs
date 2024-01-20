@@ -772,7 +772,7 @@ export const Paper = View.extend({
             return this;
         }
         if (!currentTransformString && V.matrixToTransformString() === ctmString) {
-            // The current transform string is empty and the new one is also empty.
+            // The current transform string is empty and the new one is an identity matrix.
             // No need to update the transform attribute.
             return this;
         }
