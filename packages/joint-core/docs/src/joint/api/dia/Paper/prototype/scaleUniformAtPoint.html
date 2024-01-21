@@ -12,7 +12,7 @@ paper.scaleUniformAtPoint(2, { x: 100, y: 100 });</code></pre>
 <pre><code>paper.on('paper:pinch', function(evt, x, y, sx) {
     evt.preventDefault();
     const { sx: sx0 } = paper.scale();
-    paper.scaleUniformAtPoint(sx0 * sx, x, y);
+    paper.scaleUniformAtPoint(sx0 * sx, { x, y });
 });
 
 paper.on('paper:pan', function(evt, tx, ty) {
