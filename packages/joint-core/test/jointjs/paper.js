@@ -1803,6 +1803,11 @@ QUnit.module('paper', function(hooks) {
         assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({})));
         assert.equal(V.matrixToTransformString(paper.matrix()), 'matrix(4,0,0,4,-20,-40)');
         transformCbSpy.resetHistory();
+        // 5. (minimal scale)
+        paper.scaleUniformAtPoint(0, { x: 0, y: 0 });
+        assert.ok(transformCbSpy.calledOnce);
+        assert.ok(paper.scale().sx > 0 && paper.scale().sy > 0);
+        assert.ok(paper.scale().sx < 1e-3 && paper.scale().sy < 1e-3);
     });
 
     QUnit.module('transformations', function() {

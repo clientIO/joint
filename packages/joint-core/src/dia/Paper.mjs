@@ -706,6 +706,7 @@ export const Paper = View.extend({
 
     scaleUniformAtPoint: function(scale, point, data) {
         const { a: sx, d: sy, e: tx, f: ty } = this.matrix();
+        scale = Math.max(scale || 0, this.MIN_SCALE);
         if (scale === sx && scale === sy) {
             // The scale is the same as the current one.
             return this;
