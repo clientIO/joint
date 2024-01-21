@@ -2467,7 +2467,7 @@ export const Paper = View.extend({
         if (evt.ctrlKey && pinchHandlers && pinchHandlers.length > 0) {
             // This is a pinch gesture, it's safe to assume that we must call .preventDefault()
             originalEvent.preventDefault();
-            this._mw_evt_buffer.event = originalEvent;
+            this._mw_evt_buffer.event = evt;
             this._mw_evt_buffer.deltas.push(deltaY);
             this._processMouseWheelEvtBuf();
         } else {
