@@ -75,14 +75,6 @@ export function html(html) {
     return this;
 }
 
-export function text(text) {
-    const [el] = this;
-    if (!el) return null;
-    if (!text) return el.textContent;
-    el.textContent = text;
-    return this;
-}
-
 export function append(...nodes) {
     const [parent] = this;
     if (!parent) return this;
@@ -170,36 +162,6 @@ export function css(name, value) {
         if (styles.hasOwnProperty(style)) {
             for (let i = 0; i < this.length; i++) {
                 setCSSProperty(this[i], style, styles[style]);
-            }
-        }
-    }
-    return this;
-}
-
-export function attr(name, value) {
-    let attributes;
-    if (typeof name === 'string') {
-        if (value === undefined) {
-            const [el] = this;
-            if (!el) return null;
-            return el.getAttribute(name);
-        } else {
-            attributes = { [name]: value };
-        }
-    } else if (!name) {
-        throw new Error('no attributes provided');
-    } else {
-        attributes = name;
-    }
-    for (let attr in attributes) {
-        if (attributes.hasOwnProperty(attr)) {
-            for (let i = 0; i < this.length; i++) {
-                const value = attributes[attr];
-                if (value === null) {
-                    this[i].removeAttribute(attr);
-                } else {
-                    this[i].setAttribute(attr, value);
-                }
             }
         }
     }
