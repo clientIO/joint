@@ -3159,9 +3159,11 @@ export namespace mvc {
          */
         slice(min?: number, max?: number): TModel[];
 
-        // mixins
+        // array methods
 
         each(iterator: ListIterator<TModel, void>, context?: any): void;
+        find(iterator: ListIterator<TModel, boolean>, context?: any): TModel | undefined;
+        findIndex(iterator: ListIterator<TModel, boolean>, context?: any): number;
         filter(iterator: ListIterator<TModel, boolean>, context?: any): TModel[];
         first(): TModel;
         includes(value: TModel): boolean;
