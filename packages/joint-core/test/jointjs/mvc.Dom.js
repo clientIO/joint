@@ -16,6 +16,19 @@ QUnit.module('joint.mvc.$', function(hooks) {
         assert.equal($el.prop('role'), null);
     });
 
+    QUnit.test('$.fn.attr', function(assert) {
+        const button = document.createElement('button');
+        const $button = joint.mvc.$(button);
+        $button.attr({
+            disabled: true,
+            testAttribute: 'testValue'
+        });
+        assert.equal(button.disabled, true);
+        assert.equal($button.attr('testAttribute'), 'testValue');
+        assert.equal(button.getAttribute('testAttribute'), 'testValue');
+        assert.notOk('testAttribute' in button);
+    });
+
     QUnit.module('$.fn.animate', function() {
 
         QUnit.test('options.complete is called when duration is 0.1s', function(assert) {
