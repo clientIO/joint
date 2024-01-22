@@ -206,9 +206,10 @@ function fitToContent() {
     });
 
     var bbox = paper.getContentBBox();
+    var { tx, ty } = paper.translate();
 
-    var translatedX = allowNewOrigin == 'any' || (allowNewOrigin == 'positive' && bbox.x - paper.options.origin.x >= 0) || (allowNewOrigin == 'negative' && bbox.x - paper.options.origin.x < 0);
-    var translatedY = allowNewOrigin == 'any' || (allowNewOrigin == 'positive' && bbox.y - paper.options.origin.y >= 0) || (allowNewOrigin == 'negative' && bbox.y - paper.options.origin.y < 0);
+    var translatedX = allowNewOrigin == 'any' || (allowNewOrigin == 'positive' && bbox.x - tx >= 0) || (allowNewOrigin == 'negative' && bbox.x - tx < 0);
+    var translatedY = allowNewOrigin == 'any' || (allowNewOrigin == 'positive' && bbox.y - ty >= 0) || (allowNewOrigin == 'negative' && bbox.y - ty < 0);
 
     if (padding) {
 
@@ -334,9 +335,10 @@ function transformToFitContent() {
 function updateBBox() {
 
     var bbox = paper.getContentBBox();
+    var { tx, ty } = paper.translate();
 
-    $bboxX.text(Math.round(bbox.x - paper.options.origin.x));
-    $bboxY.text(Math.round(bbox.y - paper.options.origin.y));
+    $bboxX.text(Math.round(bbox.x - tx));
+    $bboxY.text(Math.round(bbox.y - ty));
     $bboxW.text(Math.round(bbox.width));
     $bboxH.text(Math.round(bbox.height));
 
@@ -350,10 +352,10 @@ $('#scale-to-fit').on('change', transformToFitContent);
 $('#stf-scale-to-fit').on('click', transformToFitContent);
 
 $ox.on('input change', function() {
-    paper.setOrigin(parseInt(this.value, 10), parseInt($oy.val(), 10));
+    paper.translate(parseInt(this.value, 10), parseInt($oy.val(), 10));
 });
 $oy.on('input change', function() {
-    paper.setOrigin(parseInt($ox.val(), 10), parseInt(this.value, 10));
+    paper.translate(parseInt($ox.val(), 10), parseInt(this.value, 10));
 });
 $sx.on('input change', function() {
     paper.scale(parseFloat(this.value), parseFloat($sy.val()));

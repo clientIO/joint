@@ -172,9 +172,8 @@ var JointPaperComponent = {
         Vue.watch(
             function() { return scale.value; },
             function(value) {
-                var size = paperContext.paper.getComputedSize();
-                paperContext.paper.translate(0, 0);
-                paperContext.paper.scale(value, value, size.width / 2, size.height / 2);
+                const { paper } = paperContext;
+                paper.scaleUniformAtPoint(value, paper.getArea().center());
             }
         );
 

@@ -1234,7 +1234,6 @@ export namespace dia {
             // appearance
             width?: Dimension;
             height?: Dimension;
-            origin?: Point;
             drawGrid?: boolean | GridOptions | GridOptions[];
             drawGridSize?: number | null;
             background?: BackgroundOptions;
@@ -1410,6 +1409,11 @@ export namespace dia {
             'link:snap:disconnect': (linkView: dia.LinkView, evt: dia.Event, prevCellView: dia.CellView, prevCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
             // render
             'render:done': (stats: UpdateStats, opt: any) => void;
+            // transformations
+            'translate': (tx: number, ty: number, data: unknown) => void;
+            'scale': (sx: number, sy: number, data: unknown) => void;
+            'resize': (width: number, height: number, data: unknown) => void;
+            'transform': (matrix: SVGMatrix, data: unknown) => void;
             // custom
             [eventName: string]: mvc.EventHandler;
         }
@@ -1434,7 +1438,7 @@ export namespace dia {
         FORM_CONTROLS_TAG_NAMES: string[];
 
         matrix(): SVGMatrix;
-        matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
+        matrix(ctm: SVGMatrix | Vectorizer.Matrix, data?: any): this;
 
         clientMatrix(): SVGMatrix;
 
@@ -1528,17 +1532,17 @@ export namespace dia {
 
         getModelById(id: Cell.ID | Cell): Cell;
 
-        setDimensions(width: Paper.Dimension, height: Paper.Dimension): void;
+        setDimensions(width: Paper.Dimension, height: Paper.Dimension, data?: any): void;
 
         setInteractivity(value: any): void;
 
-        setOrigin(x: number, y: number): this;
-
         scale(): Vectorizer.Scale;
-        scale(sx: number, sy?: number, ox?: number, oy?: number): this;
+        scale(sx: number, sy?: number, data?: any): this;
+
+        scaleUniformAtPoint(scale: number, point: Point, data?: any): this;
 
         translate(): Vectorizer.Translation;
-        translate(tx: number, ty?: number): this;
+        translate(tx: number, ty?: number, data?: any): this;
 
         update(): this;
 

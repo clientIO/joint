@@ -1,0 +1,23 @@
+<pre class="docs-method-signature"><code>paper.scaleUniformAtPoint(scale, point, [data])</code></pre>
+
+<p>Lets you modify the transformation of a paper, so that the paper is scaled uniformly around the given point.</p>
+
+<pre><code>// scale 2x around the point (100, 100)
+paper.scaleUniformAtPoint(2, { x: 100, y: 100 });</code></pre>
+
+<p>When the method is called, a couple of transformation events (e.g. <code>&quot;transform&quot;</code> event) might be triggered. For more details, please see the <a href="#dia.Paper.prototype.matrix">matrix()</a> method.</p>
+
+<p>The method is ideal for zooming in/out around the mouse pointer.</p>
+
+<pre><code>paper.on('paper:pinch', function(evt, x, y, sx) {
+    evt.preventDefault();
+    const { sx: sx0 } = paper.scale();
+    paper.scaleUniformAtPoint(sx0 * sx, { x, y });
+});
+
+paper.on('paper:pan', function(evt, tx, ty) {
+    evt.preventDefault();
+    evt.stopPropagation();
+    const { tx: tx0, ty: ty0 } = paper.translate();
+    paper.translate(tx0 - tx, ty0 - ty);
+});</code></pre>

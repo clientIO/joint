@@ -82,16 +82,16 @@ QUnit.module('paper', function(hooks) {
             var paper = this.paper;
             var resizeCbSpy = sinon.spy();
             paper.on('resize', resizeCbSpy);
-            paper.setDimensions(WIDTH, HEIGHT);
+            paper.setDimensions(WIDTH, HEIGHT, { test: 1 });
             assert.ok(resizeCbSpy.calledOnce);
-            assert.ok(resizeCbSpy.calledWithExactly(WIDTH, HEIGHT));
+            assert.ok(resizeCbSpy.calledWithExactly(WIDTH, HEIGHT, sinon.match({ test: 1 })));
             resizeCbSpy.resetHistory();
             paper.setDimensions(WIDTH, HEIGHT);
             assert.ok(resizeCbSpy.notCalled);
             resizeCbSpy.resetHistory();
             paper.setDimensions(WIDTH+1, HEIGHT+1);
             assert.ok(resizeCbSpy.calledOnce);
-            assert.ok(resizeCbSpy.calledWithExactly(WIDTH+1, HEIGHT+1));
+            assert.ok(resizeCbSpy.calledWithExactly(WIDTH+1, HEIGHT+1, sinon.match({})));
             resizeCbSpy.resetHistory();
         });
 
@@ -232,7 +232,7 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('paper.getArea()', function(assert) {
 
-        this.paper.setOrigin(0, 0);
+        this.paper.translate(0, 0);
         this.paper.setDimensions(1000, 800);
 
         assert.ok(this.paper.getArea() instanceof g.rect, 'Paper area is a geometry rectangle.');
@@ -241,7 +241,7 @@ QUnit.module('paper', function(hooks) {
             { x: 0, y: 0, width: 1000, height: 800 },
             'Paper area returns correct results for unscaled, untranslated viewport.');
 
-        this.paper.setOrigin(100, 100);
+        this.paper.translate(100, 100);
 
         assert.deepEqual(
             _.pick(this.paper.getArea(), 'x', 'y', 'width', 'height'),
@@ -1360,7 +1360,7 @@ QUnit.module('paper', function(hooks) {
 
             paper.setGridSize(paperSettings.gridSize);
             paper.scale(paperSettings.scale.x, paperSettings.scale.y);
-            paper.setOrigin(paperSettings.origin.x, paperSettings.origin.y);
+            paper.translate(paperSettings.origin.x, paperSettings.origin.y);
 
             return paper;
         };
@@ -1753,7 +1753,7 @@ QUnit.module('paper', function(hooks) {
 
         assert.deepEqual(this.paper.matrix(), this.paper.matrix().inverse(), 'when the paper is not transformed it returns the identity matrix');
 
-        this.paper.setOrigin(100, 100);
+        this.paper.translate(100, 100);
         assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
             rotation: 0,
             scaleX: 1,
@@ -1775,65 +1775,181 @@ QUnit.module('paper', function(hooks) {
             translateY: 100
         }, 'changing the scale of the paper will modify the matrix');
 
-        this.paper.rotate(90);
-        assert.deepEqual(V.decomposeMatrix(this.paper.matrix()), {
-            rotation: 90,
-            scaleX: 2,
-            scaleY: 2,
-            skewX: 90,
-            skewY: 90,
-            translateX: 100,
-            translateY: 100
-        }, 'changing the rotation of the paper will modify the matrix');
+    });
+
+    QUnit.test('scaleUniformAtPoint()', function(assert) {
+        const paper = this.paper;
+        const transformCbSpy = sinon.spy();
+        paper.on('transform', transformCbSpy);
+        // 1.
+        paper.scaleUniformAtPoint(2, { x: 0, y: 0 }, { test: 1 });
+        assert.ok(transformCbSpy.calledOnce);
+        assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({ test: 1 })));
+        assert.equal(V.matrixToTransformString(paper.matrix()), 'matrix(2,0,0,2,0,0)');
+        transformCbSpy.resetHistory();
+        // 2.
+        paper.scaleUniformAtPoint(2, { x: 0, y: 0 });
+        assert.ok(transformCbSpy.notCalled);
+        assert.equal(V.matrixToTransformString(paper.matrix()), 'matrix(2,0,0,2,0,0)');
+        transformCbSpy.resetHistory();
+        // 3.
+        paper.scaleUniformAtPoint(2, { x: 10, y: 20 });
+        assert.ok(transformCbSpy.notCalled);
+        assert.equal(V.matrixToTransformString(paper.matrix()), 'matrix(2,0,0,2,0,0)');
+        transformCbSpy.resetHistory();
+        // 4.
+        paper.scaleUniformAtPoint(4, { x: 10, y: 20 });
+        assert.ok(transformCbSpy.calledOnce);
+        assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({})));
+        assert.equal(V.matrixToTransformString(paper.matrix()), 'matrix(4,0,0,4,-20,-40)');
+        transformCbSpy.resetHistory();
+        // 5. (minimal scale)
+        paper.scaleUniformAtPoint(0, { x: 0, y: 0 });
+        assert.ok(transformCbSpy.calledOnce);
+        assert.ok(paper.scale().sx > 0 && paper.scale().sy > 0);
+        assert.ok(paper.scale().sx < 1e-3 && paper.scale().sy < 1e-3);
     });
 
     QUnit.module('transformations', function() {
 
+        QUnit.test('transform', function(assert) {
+            // events
+            const paper = this.paper;
+            const scaleCbSpy = sinon.spy();
+            const translateCbSpy = sinon.spy();
+            const transformCbSpy = sinon.spy();
+            paper.on('scale', scaleCbSpy);
+            paper.on('translate', translateCbSpy);
+            paper.on('transform', transformCbSpy);
+            // 1.
+            paper.matrix(V.createSVGMatrix(), { test: 1 });
+            assert.ok(scaleCbSpy.notCalled);
+            assert.ok(translateCbSpy.notCalled);
+            assert.ok(transformCbSpy.notCalled);
+            scaleCbSpy.resetHistory();
+            translateCbSpy.resetHistory();
+            transformCbSpy.resetHistory();
+            // 2.
+            paper.matrix(V.createSVGMatrix().translate(10, 20), { test: 2 });
+            assert.ok(scaleCbSpy.notCalled);
+            assert.ok(translateCbSpy.calledOnce);
+            assert.ok(translateCbSpy.calledWithExactly(10, 20, sinon.match({ test: 2 })));
+            assert.ok(transformCbSpy.calledOnce);
+            assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({ test: 2 })));
+            assert.ok(translateCbSpy.calledBefore(transformCbSpy));
+            scaleCbSpy.resetHistory();
+            translateCbSpy.resetHistory();
+            transformCbSpy.resetHistory();
+            // 3.
+            paper.matrix(paper.matrix().scale(2, 2), { test: 3 });
+            assert.ok(scaleCbSpy.calledOnce);
+            assert.ok(scaleCbSpy.calledWithExactly(2, 2, sinon.match({ test: 3 })));
+            assert.ok(translateCbSpy.notCalled);
+            assert.ok(transformCbSpy.calledOnce);
+            assert.ok(scaleCbSpy.calledBefore(transformCbSpy));
+            scaleCbSpy.resetHistory();
+            translateCbSpy.resetHistory();
+            transformCbSpy.resetHistory();
+            // 4.
+            paper.matrix(paper.matrix().translate(10, 20).scale(2, 2), { test: 4 });
+            assert.ok(scaleCbSpy.calledOnce);
+            assert.ok(scaleCbSpy.calledWithExactly(4, 4, sinon.match({ test: 4 })));
+            assert.ok(translateCbSpy.calledOnce);
+            assert.ok(translateCbSpy.calledWithExactly(10 + 10 * 2, 20 + 20 * 2, sinon.match({ test: 4 })));
+            assert.ok(transformCbSpy.calledOnce);
+            assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({ test: 4 })));
+            assert.ok(scaleCbSpy.calledBefore(translateCbSpy));
+            assert.ok(translateCbSpy.calledBefore(transformCbSpy));
+            scaleCbSpy.resetHistory();
+            translateCbSpy.resetHistory();
+            transformCbSpy.resetHistory();
+            // 5.
+            paper.matrix(paper.matrix());
+            assert.ok(scaleCbSpy.notCalled);
+            assert.ok(translateCbSpy.notCalled);
+            assert.ok(transformCbSpy.notCalled);
+        });
+
         QUnit.test('scale', function(assert) {
-            this.paper.scale(2);
-            var viewportScale = V.matrixToScale(this.paper.cells.getCTM());
+            const paper = this.paper;
+            // sanity
+            paper.scale(2);
+            const viewportScale = V.matrixToScale(paper.cells.getCTM());
             assert.equal(viewportScale.sx, 2);
             assert.equal(viewportScale.sy, 2);
-            var getterScale = this.paper.scale();
+            const getterScale = paper.scale();
             assert.equal(getterScale.sx, 2);
             assert.equal(getterScale.sy, 2);
+            // events
+            const SX = 3;
+            const SY = 4;
+            const scaleCbSpy = sinon.spy();
+            const transformCbSpy = sinon.spy();
+            paper.on('scale', scaleCbSpy);
+            paper.on('transform', transformCbSpy);
+            // 1.
+            paper.scale(SX, SY, { test: 1 });
+            assert.ok(scaleCbSpy.calledOnce);
+            assert.ok(scaleCbSpy.calledWithExactly(SX, SY, sinon.match({ test: 1 })));
+            assert.ok(transformCbSpy.calledOnce);
+            assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({ test: 1 })));
+            scaleCbSpy.resetHistory();
+            transformCbSpy.resetHistory();
+            // 2.
+            paper.scale(SX, SY);
+            assert.ok(scaleCbSpy.notCalled);
+            assert.ok(transformCbSpy.notCalled);
+            scaleCbSpy.resetHistory();
+            transformCbSpy.resetHistory();
+            // 3.
+            paper.scale(SX+1, SY+1);
+            assert.ok(scaleCbSpy.calledOnce);
+            assert.ok(scaleCbSpy.calledWithExactly(SX+1, SY+1, sinon.match({})));
+            assert.ok(transformCbSpy.calledOnce);
+            assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({})));
+            scaleCbSpy.resetHistory();
+            transformCbSpy.resetHistory();
         });
 
         QUnit.test('translate', function(assert) {
-            this.paper.translate(10, 20);
-            var viewportTranslate = V.matrixToTranslate(this.paper.cells.getCTM());
+            const paper = this.paper;
+            // sanity
+            paper.translate(10, 20);
+            const viewportTranslate = V.matrixToTranslate(paper.cells.getCTM());
             assert.equal(viewportTranslate.tx, 10);
             assert.equal(viewportTranslate.ty, 20);
-            var getterTranslate = this.paper.translate();
+            const getterTranslate = paper.translate();
             assert.equal(getterTranslate.tx, 10);
             assert.equal(getterTranslate.ty, 20);
-        });
-
-        QUnit.test('setOrigin', function(assert) {
-            var X = 100;
-            var Y = 200;
-            var paper = this.paper;
-            var translateCbSpy = sinon.spy();
+            // events
+            const X = 100;
+            const Y = 200;
+            const translateCbSpy = sinon.spy();
+            const transformCbSpy = sinon.spy();
             paper.on('translate', translateCbSpy);
-            paper.setOrigin(X, Y);
+            paper.on('transform', transformCbSpy);
+            // 1.
+            paper.translate(X, Y, { test: 1 });
             assert.ok(translateCbSpy.calledOnce);
-            assert.ok(translateCbSpy.calledWithExactly(X, Y));
+            assert.ok(translateCbSpy.calledWithExactly(X, Y, sinon.match({ test: 1 })));
+            assert.ok(transformCbSpy.calledOnce);
+            assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({ test: 1 })));
             translateCbSpy.resetHistory();
-            paper.setOrigin(X, Y);
+            transformCbSpy.resetHistory();
+            // 2.
+            paper.translate(X, Y);
             assert.ok(translateCbSpy.notCalled);
+            assert.ok(transformCbSpy.notCalled);
             translateCbSpy.resetHistory();
-            paper.setOrigin(X+1, Y+1);
+            transformCbSpy.resetHistory();
+            // 3.
+            paper.translate(X+1, Y+1);
             assert.ok(translateCbSpy.calledOnce);
-            assert.ok(translateCbSpy.calledWithExactly(X+1, Y+1));
+            assert.ok(translateCbSpy.calledWithExactly(X+1, Y+1, sinon.match({})));
+            assert.ok(transformCbSpy.calledOnce);
+            assert.ok(transformCbSpy.calledWithExactly(sinon.match(paper.matrix()), sinon.match({})));
             translateCbSpy.resetHistory();
-        });
-
-        QUnit.test('rotate', function(assert) {
-            this.paper.rotate(45);
-            var viewportRotate = V.matrixToRotate(this.paper.cells.getCTM());
-            assert.equal(viewportRotate.angle, 45);
-            var getterRotate = this.paper.rotate();
-            assert.equal(getterRotate.angle, 45);
+            transformCbSpy.resetHistory();
         });
     });
 
