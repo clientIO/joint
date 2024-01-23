@@ -31,16 +31,6 @@ export const LinkView = CellView.extend({
         return classNames.join(' ');
     },
 
-    options: {
-
-        shortLinkLength: 105,
-        doubleLinkTools: false,
-        longLinkLength: 155,
-        linkToolsOffset: 40,
-        doubleLinkToolsOffset: 65,
-        sampleInterval: 50
-    },
-
     _labelCache: null,
     _labelSelectors: null,
     _V: null,
