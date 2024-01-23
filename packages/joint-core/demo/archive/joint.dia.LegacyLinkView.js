@@ -85,9 +85,11 @@
 
         options: {
 
+            shortLinkLength: 105,
             doubleLinkTools: false,
+            longLinkLength: 155,
             linkToolsOffset: 40,
-            doubleLinkToolsOffset: 65
+            doubleLinkToolsOffset: 65,
         },
 
         _labelCache: null,
