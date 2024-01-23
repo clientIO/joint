@@ -1,0 +1,16 @@
+<pre class="docs-method-signature"><code>collection.find(fn, [context])</code></pre>
+
+<p>
+    Return the first element in the collection that satisfies the provided testing function.
+    If no values satisfy the testing function, <code>undefined</code> is returned.
+</p>
+
+
+<pre><code>const a = new mvc.Model({ id: 3, label: 'a' });
+const b = new mvc.Model({ id: 2, label: 'b' });
+const c = new mvc.Model({ id: 1, label: 'c' });
+const d = new mvc.Model({ id: 0, label: 'd' });
+const col = new mvc.Collection([a, b, c, d]);
+
+console.log(col.find((model) => model.get('label') === 'c').id); // 1
+</code></pre>

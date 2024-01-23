@@ -328,6 +328,14 @@ assign(Collection.prototype, Events, {
         return this.models.filter(fn, context);
     },
 
+    find: function(fn, context) {
+        return this.models.find(fn, context);
+    },
+
+    findIndex: function(fn, context) {
+        return this.models.findIndex(fn, context);
+    },
+
     // Return the first model of the collection
     first: function() {
         return this.models[0];
