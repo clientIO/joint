@@ -349,7 +349,6 @@ export namespace dia {
         toBack(opt?: Cell.ToFrontAndBackOptions): this;
 
         parent(): string;
-        parent(parentId: Cell.ID): this;
 
         getParentCell(): Cell | null;
 
