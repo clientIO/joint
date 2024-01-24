@@ -983,13 +983,8 @@ export namespace dia {
         }
 
         interface InteractivityOptions {
-            vertexAdd?: boolean;
-            vertexMove?: boolean;
-            vertexRemove?: boolean;
-            arrowheadMove?: boolean;
             labelMove?: boolean;
             linkMove?: boolean;
-            useLinkTools?: boolean;
         }
 
         interface LabelOptions extends Cell.Options {
@@ -1005,12 +1000,6 @@ export namespace dia {
         }
 
         interface Options extends mvc.ViewOptions<Link, SVGElement> {
-            shortLinkLength?: number;
-            doubleLinkTools?: boolean;
-            longLinkLength?: number;
-            linkToolsOffset?: number;
-            doubleLinkToolsOffset?: number;
-            sampleInterval?: number;
             labelsLayer?: Paper.Layers | string | false;
         }
     }

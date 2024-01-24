@@ -8,41 +8,30 @@
 
 <p>To find the view associated with a specific link model, use the <code>paper.findViewByModel()</code> <a href="#dia.Paper.prototype.findViewByModel">method</a>:</p>
 
-<pre><code>var linkView = paper.findViewByModel(link);</code></pre>
+<pre><code>const linkView = paper.findViewByModel(link);
+// const linkView = link.findView(paper); // alternatively</code></pre>
+</code></pre>
 
 <h4>Custom LinkView</h4>
 
-<p>It is possible to use a custom default link view for all your links in a paper. This can be set up via the <code>linkView</code> option on the <a href="#dia.Paper.prototype.options">paper object</a>. Several options in <code>joint.dia.LinkView</code> may be overridden in a custom LinkView:</p>
+<p>It is possible to use a custom default link view for all your links in a paper. This can be set up via the <code>linkView</code> option on the <a href="#dia.Paper.prototype.options">paper object</a>.</p>
 
-<ul>
-  <li><b>shortLinkLength</b> - if link is shorter than the length specified, the size of link tools is scaled down by half. Defaults to <code>105</code>.</li>
-  <li><b>doubleLinkTools</b> - render link tools on both ends of the link (only if the link is longer than <code>longLinkLength</code>). Defaults to <code>false</code>.</li>
-  <li><b>longLinkLength</b> - if length is longer than the length specified and <code>doubleLinkTools: true</code>, render link tools on both ends of the link. Defaults to <code>155</code>.</li>
-  <li><b>linkToolsOffset</b> - the offset of link tools from the beginning of the link. Defaults to <code>40</code>.</li>
-  <li><b>doubleLinkToolsOffset</b> - the offset of duplicate link tools from the end of the link, if length is longer than <code>longLinkLength</code> and <code>doubleLinkTools: true</code>. Defaults to <code>65</code>.</li>
-</ul>
-
-<p>A custom LinkView type may also override default LinkView event handlers, or provide new ones. It may be necessary to modify the <code>interactive</code> <a href="#dia.Paper.prototype.options.interactive">paper option</a> to prevent interference from builtin event handlers (most notably <code>vertexAdd</code> which listens for pointerdown events).</p>
+<p>A custom LinkView type may also override default LinkView event handlers, or provide new ones. It may be necessary to modify the <code>interactive</code> <a href="#dia.Paper.prototype.options.interactive">paper option</a> to prevent interference from builtin event handlers.</p>
 
 <p>Example:</p>
 
-<pre><code>var CustomLinkView = joint.dia.LinkView.extend({
+<pre><code>const CustomLinkView = dia.LinkView.extend({
     // custom interactions:
     pointerdblclick: function(evt, x, y) {
         this.addVertex(x, y);
     },
+
     contextmenu: function(evt, x, y) {
         this.addLabel(x, y);
-    },
-
-    // custom options:
-    options: joint.util.defaults({
-        doubleLinkTools: true,
-    }, joint.dia.LinkView.prototype.options)
+    }
 });
 
-var paper = new joint.dia.Paper({
+const paper = new dia.Paper({
     //...
     linkView: CustomLinkView,
-    interactive: { vertexAdd: false } // disable default vertexAdd interaction
 });</code></pre>

@@ -90,7 +90,6 @@
             longLinkLength: 155,
             linkToolsOffset: 40,
             doubleLinkToolsOffset: 65,
-            sampleInterval: 50
         },
 
         _labelCache: null,

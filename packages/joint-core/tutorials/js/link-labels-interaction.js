@@ -15,12 +15,7 @@
         cellViewNamespace: namespace,
         interactive: {
             linkMove: false,
-            labelMove: true,
-            arrowheadMove: false,
-            vertexMove: false,
-            vertexAdd: false,
-            vertexRemove: false,
-            useLinkTools: false,
+            labelMove: true
         }
     });
 

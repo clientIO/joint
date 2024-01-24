@@ -374,7 +374,7 @@ const paper = new dia.Paper({
     async: true,
     width: 'calc(100% - 20px)',
     height: 'calc(100% - 70px)',
-    interactive: { linkMove: false, vertexMove: true },
+    interactive: { linkMove: false },
     background: {
         color: BG_COLOR
     },
