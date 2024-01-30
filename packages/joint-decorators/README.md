@@ -473,4 +473,4 @@ class MyElementView extends dia.ElementView {
 
 ---
 
-Copyright © 2013-2023 client IO
+Copyright © 2013-2024 client IO

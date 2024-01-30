@@ -46,4 +46,4 @@ Most demos can be run by simply opening the `index.html` file in your browser. S
 
 The *JointJS* library is licensed under the [Mozilla Public License 2.0](https://github.com/clientIO/joint/blob/master/LICENSE).
 
-Copyright © 2013-2023 client IO
+Copyright © 2013-2024 client IO
