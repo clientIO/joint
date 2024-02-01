@@ -1,5 +1,5 @@
 {
-  "name": "jointjs",
+  "name": "@joint/core",
   "title": "JointJS",
   "version": "4.0.0",
   "description": "JavaScript diagramming library",
