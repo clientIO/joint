@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-ts",
-  "version": "1.0.0",
+  "version": "4.0.0",
   "description": "JointJS - TypeScript Demo",
   "main": "index.html",
   "homepage": "https://jointjs.com",
