@@ -17,7 +17,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "jointjs": "workspace:^"
+    "@joint/core": "workspace:^"
   },
   "devDependencies": {
     "css-loader": "^3.6.0",

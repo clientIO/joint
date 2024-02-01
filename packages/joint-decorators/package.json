@@ -1,7 +1,7 @@
 {
   "name": "@joint/decorators",
   "title": "JointJS Decorators",
-  "version": "0.3.0",
+  "version": "4.0.0",
   "description": "Decorators module for JointJS",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -34,7 +34,7 @@
     "./SECURITY.md"
   ],
   "dependencies": {
-    "jointjs": "workspace:^"
+    "@joint/core": "workspace:^"
   },
   "devDependencies": {
     "typescript": "4.8.4"

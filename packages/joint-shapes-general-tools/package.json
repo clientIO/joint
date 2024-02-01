@@ -35,9 +35,9 @@
     "./svg.d.ts"
   ],
   "dependencies": {
+    "@joint/core": "workspace:^",
     "@joint/decorators": "workspace:^",
-    "@joint/shapes-general": "workspace:^",
-    "jointjs": "workspace:^"
+    "@joint/shapes-general": "workspace:^"
   },
   "devDependencies": {
     "typescript": "4.8.4"

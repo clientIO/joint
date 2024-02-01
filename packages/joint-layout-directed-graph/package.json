@@ -48,7 +48,7 @@
   "dependencies": {
     "@dagrejs/dagre": "~1.0.4",
     "@dagrejs/graphlib": "~2.1.13",
-    "jointjs": "workspace:^"
+    "@joint/core": "workspace:^"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",

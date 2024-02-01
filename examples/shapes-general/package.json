@@ -17,9 +17,9 @@
     "tsc": "tsc"
   },
   "dependencies": {
+    "@joint/core": "workspace:^",
     "@joint/shapes-general": "workspace:^",
-    "@joint/shapes-general-tools": "workspace:^",
-    "jointjs": "workspace:^"
+    "@joint/shapes-general-tools": "workspace:^"
   },
   "devDependencies": {
     "css-loader": "^6.8.1",

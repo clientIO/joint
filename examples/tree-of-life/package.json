@@ -16,7 +16,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "jointjs": "workspace:^",
+    "@joint/core": "workspace:^",
     "perfect-freehand": "^1.2.0"
   },
   "devDependencies": {
