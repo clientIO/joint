@@ -1,5 +1,5 @@
 import { Model, Function } from '@joint/decorators';
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 import svg from './shipment.svg';
 
 interface ShipmentAttributes extends dia.Element.Attributes {

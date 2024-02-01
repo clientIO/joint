@@ -15,7 +15,7 @@ export default [
         external: [
             '@dagrejs/dagre',
             '@dagrejs/graphlib',
-            'jointjs'
+            '@joint/core'
         ],
         output: [
             {
@@ -26,7 +26,7 @@ export default [
                 globals: {
                     '@dagrejs/dagre': 'dagre',
                     '@dagrejs/graphlib': 'graphlib',
-                    'jointjs': 'joint'
+                    '@joint/core': 'joint'
                 },
                 plugins: [
                     banner(() => bannerText)
@@ -40,7 +40,7 @@ export default [
                 globals: {
                     '@dagrejs/dagre': 'dagre',
                     '@dagrejs/graphlib': 'graphlib',
-                    'jointjs': 'joint'
+                    '@joint/core': 'joint'
                 },
                 plugins: [
                     uglify({ output: { ascii_only: true }}),

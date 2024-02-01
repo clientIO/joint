@@ -1,4 +1,4 @@
-import { anchors } from 'jointjs';
+import { anchors } from '@joint/core';
 import { getPortLinks, isCellHidden } from './utils';
 
 // Shift the anchor point of a link to avoid overlapping with other links (max 2 links per port).

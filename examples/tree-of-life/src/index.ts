@@ -8,7 +8,7 @@ import {
     attributes,
     elementTools,
     highlighters,
-} from 'jointjs';
+} from '@joint/core';
 
 import '../index.css'
 

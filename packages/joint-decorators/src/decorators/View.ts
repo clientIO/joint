@@ -1,4 +1,4 @@
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 
 export interface ViewOptions {
     namespace?: any;

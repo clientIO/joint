@@ -1,4 +1,4 @@
-import { util } from 'jointjs';
+import { util } from '@joint/core';
 import { Card } from './Card';
 import { CARD_BG_COLOR, CARD_COLOR, CARD_LABEL_COLOR } from '../../theme';
 

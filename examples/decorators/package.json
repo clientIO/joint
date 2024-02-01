@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-decorators",
-  "version": "1.0.0",
+  "version": "4.0.0",
   "main": "src/index.ts",
   "homepage": "https://jointjs.com",
   "author": {
@@ -17,8 +17,8 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "@joint/decorators": "workspace:^",
-    "jointjs": "workspace:^"
+    "@joint/core": "workspace:^",
+    "@joint/decorators": "workspace:^"
   },
   "devDependencies": {
     "css-loader": "^6.8.1",

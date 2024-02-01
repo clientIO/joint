@@ -1,4 +1,4 @@
-import { g, dia } from 'jointjs';
+import { g, dia } from '@joint/core';
 import Obstacles from './obstacles';
 import IsometricShape, { View } from './shapes/isometric-shape';
 import { Computer, Database, ActiveDirectory, User, Firewall, Switch, Router, Link, cellNamespace } from './shapes';

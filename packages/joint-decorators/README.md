@@ -41,7 +41,7 @@ The decorator allows you to:
 - introduce a new SVG attribute or change the behavior of an existing one
 
 ```ts
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 import { Model } from '@joint/decorators';
 
 @Model({
@@ -265,7 +265,7 @@ class MyElement extends dia.Element {
 The default attributes of the model. When creating an instance of the model, any unspecified attributes will be set to their default value.
 
 ```ts
-import { dia, shapes } from 'jointjs';
+import { dia, shapes } from '@joint/core';
 import { Model } from '@joint/decorators';
 
 @Model({
@@ -281,7 +281,7 @@ class MyElement extends dia.Element {
 is equivalent to
 
 ```ts
-import { dia, shapes } from 'jointjs';
+import { dia, shapes } from '@joint/core';
 
 class MyElement extends dia.Element {
 
@@ -303,7 +303,7 @@ class MyElement extends dia.Element {
 Syntactic sugar for adding a model to the namespace.
 
 ```ts
-import { dia, shapes } from 'jointjs';
+import { dia, shapes } from '@joint/core';
 import { Model } from '@joint/decorators';
 
 @Model({
@@ -317,7 +317,7 @@ class MyElement extends dia.Element {
 is equivalent to
 
 ```ts
-import { dia, shapes } from 'jointjs';
+import { dia, shapes } from '@joint/core';
 
 class MyElement extends dia.Element {
 
@@ -342,7 +342,7 @@ Object.assign(shapes, {
 Define a new cell view, which is automatically used by 2 different models.
 
 ```ts
-import { dia, shapes } from 'jointjs';
+import { dia, shapes } from '@joint/core';
 import { View } from '@joint/decorators';
 
 @View({
@@ -357,7 +357,7 @@ class MyElementView extends dia.ElementView {
 is equivalent to
 
 ```ts
-import { dia, shapes } from 'jointjs';
+import { dia, shapes } from '@joint/core';
 
 class MyElementView extends dia.ElementView {
 
@@ -398,7 +398,7 @@ class MyElement extends dia.Element {
 Introduce new SVG attributes or redefine existing ones.
 
 ```ts
-import { dia, g, attributes } from 'jointjs';
+import { dia, g, attributes } from '@joint/core';
 import { Model, SVGAttribute } from '@joint/decorators';
 
 @Model({

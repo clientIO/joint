@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-layout-directed-graph",
-  "version": "1.0.0",
+  "version": "4.0.0",
   "description": "JointJS - Directed Graph Layout Demo",
   "main": "./index.js",
   "homepage": "https://jointjs.com",
@@ -19,8 +19,8 @@
     "start": "webpack serve --config webpack.config.js"
   },
   "dependencies": {
-    "@joint/layout-directed-graph": "workspace:^",
-    "jointjs": "workspace:^"
+    "@joint/core": "workspace:^",
+    "@joint/layout-directed-graph": "workspace:^"
   },
   "devDependencies": {
     "@babel/core": "7.10.4",

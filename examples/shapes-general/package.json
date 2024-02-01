@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-shapes-general",
-  "version": "1.0.0",
+  "version": "4.0.0",
   "main": "src/index.ts",
   "homepage": "https://jointjs.com",
   "author": {
@@ -17,9 +17,9 @@
     "tsc": "tsc"
   },
   "dependencies": {
+    "@joint/core": "workspace:^",
     "@joint/shapes-general": "workspace:^",
-    "@joint/shapes-general-tools": "workspace:^",
-    "jointjs": "workspace:^"
+    "@joint/shapes-general-tools": "workspace:^"
   },
   "devDependencies": {
     "css-loader": "^6.8.1",

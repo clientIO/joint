@@ -1,4 +1,4 @@
-import { dia, util } from 'jointjs';
+import { dia, util } from '@joint/core';
 import { parseFromSVGString } from '../parser';
 
 export interface ModelOptions {

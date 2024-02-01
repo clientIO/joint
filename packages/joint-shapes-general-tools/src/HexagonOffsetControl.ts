@@ -1,4 +1,4 @@
-import { dia, elementTools, g } from 'jointjs';
+import { dia, elementTools, g } from '@joint/core';
 import { Hexagon } from '@joint/shapes-general';
 
 export interface HexagonOffsetControlOptions extends elementTools.Control.Options {

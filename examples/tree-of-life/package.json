@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-tree-of-life",
-  "version": "1.0.0",
+  "version": "4.0.0",
   "main": "src/index.ts",
   "author": {
     "name": "client IO",
@@ -16,7 +16,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "jointjs": "workspace:^",
+    "@joint/core": "workspace:^",
     "perfect-freehand": "^1.2.0"
   },
   "devDependencies": {

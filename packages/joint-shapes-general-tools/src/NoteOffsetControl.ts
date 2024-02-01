@@ -1,4 +1,4 @@
-import { dia, elementTools } from 'jointjs';
+import { dia, elementTools } from '@joint/core';
 import { Note } from '@joint/shapes-general';
 
 export interface NoteOffsetControlOptions extends elementTools.Control.Options {

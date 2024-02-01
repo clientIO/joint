@@ -1,5 +1,5 @@
 import { Model, Function } from '@joint/decorators';
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 import svg from './hexagon.svg';
 
 class HexagonAttributes implements dia.Element.Attributes {
@@ -23,12 +23,12 @@ export class Hexagon extends dia.Element<HexagonAttributes> {
         const { offset } = this;
 
         return `
-            M 0 calc(0.5 * h) 
-            L ${offset} calc(h) 
-            L calc(w-${offset}) calc(h) 
-            L calc(w) calc(0.5 * h) 
-            L calc(w-${offset}) 0 
-            L ${offset} 0 
+            M 0 calc(0.5 * h)
+            L ${offset} calc(h)
+            L calc(w-${offset}) calc(h)
+            L calc(w) calc(0.5 * h)
+            L calc(w-${offset}) 0
+            L ${offset} 0
             Z
         `
     }

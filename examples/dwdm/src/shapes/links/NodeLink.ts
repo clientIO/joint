@@ -1,4 +1,4 @@
-import { dia, util } from 'jointjs';
+import { dia, util } from '@joint/core';
 import Link from './Link';
 import { NODE_LINK_COLOR } from '../../theme';
 

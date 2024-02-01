@@ -1,4 +1,4 @@
-import { dia, elementTools, shapes as defaultShapes, util } from 'jointjs';
+import { dia, elementTools, shapes as defaultShapes, util } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
 import '../css/fta.css'

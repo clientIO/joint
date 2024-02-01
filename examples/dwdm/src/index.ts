@@ -1,4 +1,4 @@
-import { dia, routers } from 'jointjs';
+import { dia, routers } from '@joint/core';
 import { Node, cellNamespace } from './shapes';
 import { ExpandButton, NodePlaceholder, toggleCellAlert } from './shapes/highlighters';
 import { multiLinkAnchor } from './shapes/anchors';

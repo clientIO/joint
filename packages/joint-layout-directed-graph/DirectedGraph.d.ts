@@ -1,4 +1,4 @@
-import { dia, g } from 'jointjs';
+import { dia, g } from '@joint/core';
 
 export namespace DirectedGraph {
 

@@ -1,7 +1,7 @@
 {
   "name": "@joint/shapes-general-tools",
   "title": "JointJS General Shapes Tools",
-  "version": "0.0.1",
+  "version": "4.0.0",
   "description": "General Shapes Tools module for JointJS",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -35,9 +35,9 @@
     "./svg.d.ts"
   ],
   "dependencies": {
+    "@joint/core": "workspace:^",
     "@joint/decorators": "workspace:^",
-    "@joint/shapes-general": "workspace:^",
-    "jointjs": "workspace:^"
+    "@joint/shapes-general": "workspace:^"
   },
   "devDependencies": {
     "typescript": "4.8.4"

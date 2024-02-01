@@ -4,7 +4,7 @@ require.config({
         'qunit': 'node_modules/qunit/qunit/qunit',
         '@dagrejs/graphlib': 'node_modules/@dagrejs/graphlib/dist/graphlib',
         '@dagrejs/dagre': 'node_modules/@dagrejs/dagre/dist/dagre',
-        'jointjs': 'node_modules/jointjs/build/joint'
+        '@joint/core': 'node_modules/@joint/core/build/joint'
     }
 });
 
