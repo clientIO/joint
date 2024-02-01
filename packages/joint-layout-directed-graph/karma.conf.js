@@ -7,7 +7,7 @@ module.exports = function(config) {
         files: [
             './node_modules/@dagrejs/graphlib/dist/graphlib.js',
             './node_modules/@dagrejs/dagre/dist/dagre.js',
-            './node_modules/jointjs/build/joint.js',
+            './node_modules/@joint/core/build/joint.js',
             './dist/DirectedGraph.js',
 
             './test/index.js'
