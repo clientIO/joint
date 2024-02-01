@@ -1,4 +1,4 @@
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 import { Model, Function } from '@joint/decorators';
 import svg from './Plus.svg';
 
@@ -22,7 +22,7 @@ export class Plus extends dia.Element<PlusAttributes> {
         return `
         M ${offset} 0
         L calc(w - ${offset}) 0
-        v 0 ${offset} 
+        v 0 ${offset}
         h ${offset}
         V calc(h - ${offset})
         h ${-offset}

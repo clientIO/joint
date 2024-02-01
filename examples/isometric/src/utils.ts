@@ -1,4 +1,4 @@
-import { g, V, dia, util } from 'jointjs';
+import { g, V, dia, util } from '@joint/core';
 import IsometricShape, { View } from './shapes/isometric-shape';
 import { GRID_COUNT, GRID_SIZE, SCALE, ISOMETRIC_SCALE, ROTATION_DEGREES } from './theme';
 import { Link } from './shapes';

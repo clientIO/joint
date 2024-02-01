@@ -1,4 +1,4 @@
-import { dia, elementTools, g } from 'jointjs';
+import { dia, elementTools, g } from '@joint/core';
 import { GRID_SIZE } from '../theme';
 import { ISOMETRIC_HEIGHT_TOOL_MARKUP } from './tools';
 import IsometricShape from '../shapes/isometric-shape';

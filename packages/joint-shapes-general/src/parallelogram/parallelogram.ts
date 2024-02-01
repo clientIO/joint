@@ -1,5 +1,5 @@
 import { Model, Function } from '@joint/decorators';
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 import svg from './parallelogram.svg';
 
 interface ParallelogramAttributes extends dia.Element.Attributes {
@@ -22,10 +22,10 @@ export class Parallelogram extends dia.Element<ParallelogramAttributes> {
         const { offset } = this
 
         return `
-            M 0 calc(h) 
-            L ${offset} 0 
-            L calc(w) 0 
-            L calc(w-${offset}) calc(h) 
+            M 0 calc(h)
+            L ${offset} 0
+            L calc(w) 0
+            L calc(w-${offset}) calc(h)
             Z
         `
     }

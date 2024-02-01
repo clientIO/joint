@@ -1,7 +1,7 @@
 'use strict';
 
 require('should');
-const joint = require('jointjs');
+const joint = require('@joint/core');
 const m = require('../../dist/DirectedGraph');
 
 describe('require jointjs', function() {

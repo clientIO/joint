@@ -1,4 +1,4 @@
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 import { Node, Link, NodeLink } from './shapes';
 
 interface INode {

@@ -1,4 +1,4 @@
-import { dia, elementTools, g } from 'jointjs';
+import { dia, elementTools, g } from '@joint/core';
 import IsometricShape, { PyramidShape } from '../shapes/isometric-shape';
 import { SIZE_TOOL_MARKUP } from './tools';
 import { GRID_SIZE } from '../theme';

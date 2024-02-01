@@ -1,4 +1,4 @@
-import { dia, shapes } from 'jointjs';
+import { dia, shapes } from '@joint/core';
 import { TargetArrowHeadTool, RemoveTool } from '../../tools';
 
 export class Link extends shapes.standard.Link {

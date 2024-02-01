@@ -45,7 +45,7 @@ var arrow1 = new joint.shapes.standard.Arrow({
     size: { width: 100, height: 50 },
     attrs: {
         label: {
-            text: 'JointJS',
+            text: '@joint/core',
             fontSize: 35,
             textPath: { d: 'M 0 50 Q 50 0 100 20' },
             textVerticalAnchor: 'middle'

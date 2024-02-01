@@ -1,4 +1,4 @@
-import * as joint from 'jointjs';
+import * as joint from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 
 function val(view, selector, val) {

@@ -1,4 +1,4 @@
-import { dia, elementTools, g } from 'jointjs';
+import { dia, elementTools, g } from '@joint/core';
 import { Trapezoid } from '@joint/shapes-general';
 
 export interface TrapezoidOffsetControlOptions extends elementTools.Control.Options {

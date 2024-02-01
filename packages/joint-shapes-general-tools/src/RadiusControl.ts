@@ -1,4 +1,4 @@
-import { dia, elementTools, V, Vectorizer } from 'jointjs';
+import { dia, elementTools, V, Vectorizer } from '@joint/core';
 
 export interface RadiusControlOptions extends elementTools.Control.Options {
 

@@ -1,4 +1,4 @@
-import { dia, shapes, g, linkTools, util } from 'jointjs';
+import { dia, shapes, g, linkTools, util } from '@joint/core';
 
 const GRID_SIZE = 8;
 const PADDING_S = GRID_SIZE;

@@ -1,5 +1,5 @@
 import { Model } from '@joint/decorators';
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 import svg from './actor.svg';
 
 interface ActorAttributes extends dia.Element.Attributes {

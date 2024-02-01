@@ -1,4 +1,4 @@
-import { dia, elementTools, g } from 'jointjs';
+import { dia, elementTools, g } from '@joint/core';
 import { Step } from '@joint/shapes-general';
 
 export interface StepOffsetControlOptions extends elementTools.Control.Options {

@@ -1,4 +1,4 @@
-import { util } from 'jointjs';
+import { util } from '@joint/core';
 
 export enum SVGAttributeTypes {
     SET = 'set',

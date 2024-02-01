@@ -1,4 +1,4 @@
-import { shapes } from 'jointjs';
+import { shapes } from '@joint/core';
 import Node from "./nodes/Node";
 import Multiplexer from "./cards/Multiplexer";
 import Demultiplexer from './cards/Demultiplexer';

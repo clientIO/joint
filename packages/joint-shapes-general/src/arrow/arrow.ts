@@ -1,5 +1,5 @@
 //@ts-nocheck
-import { dia } from 'jointjs';
+import { dia } from '@joint/core';
 import { Model, Function } from '@joint/decorators';
 import svg from './Arrow.svg';
 
@@ -24,7 +24,7 @@ export class Arrow extends dia.Element<ArrowAttributes> {
     data(): string {
         const { arrowHeight, thickness } = this;
         return `
-                M calc(w-${arrowHeight}) 0 
+                M calc(w-${arrowHeight}) 0
                 L calc(w) calc(0.5*h)
                 L calc(w -${arrowHeight})  calc(h)
                 v -calc(h/2 - ${thickness / 2})
