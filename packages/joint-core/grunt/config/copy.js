@@ -10,6 +10,7 @@ module.exports = function(grunt) {
                 cwd: 'build/',
                 src: [
                     '*',
+                    '!joint.core.js',
                     '!api-extractor',
                     '!docs',
                     '!min',

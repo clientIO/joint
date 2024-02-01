@@ -16,8 +16,6 @@ require(['qunit'], function(QUnit) {
     QUnit.module('RequireJS');
 
     var buildFiles = [
-        'build/joint.core',
-        'build/joint.core.min',
         'build/joint',
         'build/joint.min'
     ];

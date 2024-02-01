@@ -5,15 +5,12 @@ const JOINT = [
     modules.joint
 ];
 
-const LIBS_ESM = [
-];
-
 const DIST = [
     modules.version,
     modules.jointCore,
     modules.geometry,
     modules.vectorizer,
-].concat(modules.jointPlugins).concat(LIBS_ESM);
+].concat(modules.jointPlugins);
 
 const TEST_BUNDLE = [
     modules.jointNoDependencies
@@ -24,11 +21,6 @@ export default commandLineArgs => {
     // rollup -c --config-joint
     if (commandLineArgs['config-joint']) {
         return JOINT;
-    }
-
-    // rollup -c --config-libs-esm
-    if (commandLineArgs['config-libs-esm']) {
-        return LIBS_ESM;
     }
 
     // rollup -c --config-dist
@@ -43,7 +35,6 @@ export default commandLineArgs => {
 
     // all
     return JOINT
-        .concat(LIBS_ESM)
         .concat(DIST)
         .concat(TEST_BUNDLE);
 };
