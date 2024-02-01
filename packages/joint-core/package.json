@@ -6,6 +6,7 @@
   "sideEffects": false,
   "main": "./dist/joint.min.js",
   "module": "joint.mjs",
+  "style": "./dist/joint.min.css",
   "types": "./types/index.d.ts",
   "homepage": "https://jointjs.com",
   "author": {
@@ -55,6 +56,7 @@
     "build-docs": "grunt build:docs"
   },
   "files": [
+    "css/",
     "dist/",
     "src/",
     "types/*.d.ts",
