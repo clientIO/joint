@@ -22,10 +22,6 @@ module.exports = function() {
             src: modules.joint.umd,
             dest: 'build/joint.min.js'
         },
-        jointCore: {
-            src: modules.jointCore.umd,
-            dest: 'build/joint.core.min.js'
-        },
         jointNoWrap: {
             src: modules.joint.iife,
             dest: 'build/joint.nowrap.min.js'

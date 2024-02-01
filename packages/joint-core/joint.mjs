@@ -1,4 +1,3 @@
-import * as layout from './src/layout/index.mjs';
 import * as shapes from './src/shapes/index.mjs';
 
 // joint core
@@ -7,6 +6,7 @@ export {
     config,
     env,
     anchors,
+    layout,
     linkAnchors,
     connectionPoints,
     connectionStrategies,
@@ -24,4 +24,4 @@ export {
     g
 } from './src/core.mjs';
 
-export { layout, shapes };
+export { shapes };

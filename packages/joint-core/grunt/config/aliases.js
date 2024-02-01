@@ -37,7 +37,6 @@ module.exports = function(grunt) {
             'newer:uglify:geometry',
             'newer:uglify:vectorizer',
             'newer:uglify:joint',
-            'newer:uglify:jointCore',
             'newer:uglify:jointNoWrap',
             'newer:uglify:plugins'
         ],
