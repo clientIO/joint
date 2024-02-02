@@ -1,5 +1,7 @@
 01-02-2024 (v4.0.0)
 
+  * switch to a monorepo
+
   @joint/core
   * rename package from `jointjs` to `@joint/core`
   * remove `jQuery`, `backbone`, and `lodash` dependencies
