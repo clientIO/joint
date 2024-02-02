@@ -14,7 +14,7 @@
   * dia.Paper - drop `drawGrid()` and `clearGrid()` methods
   * dia.Paper - new `transform` event added
   * dia.Paper - allow passing custom data along with transformation events
-  * dia.Paper - allows passing custom data along with resize events
+  * dia.Paper - allow passing custom data along with resize events
   * dia.Paper - `origin` option removed
   * dia.Paper - `setOrigin` method removed
   * dia.Paper - `scale()` no longer accepts scaling origin
