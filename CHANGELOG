@@ -24,6 +24,7 @@
   * dia.CellView - early evaluation of `calc` attributes
   * dia.CellView - disable `useCSSSelectors` by default
   * dia.Graph - throw exception when cell constructor not found
+  * dia.Link - become an abstract class (same as `dia.Element`)
   * dia.Link - replace legacy attributes in the default label definition
   * dia.Link - remove the deprecated `smooth` attribute
   * dia.Link - remove the deprecated `manhattan` attribute
