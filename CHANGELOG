@@ -9,7 +9,7 @@
   * dia.Paper - remove deprecated `dia.Paper.prototype.options.linkConnectionPoint`
   * dia.Paper - change the value of the `defaultConnectionPoint` option to `boundary`
   * dia.Paper - add SVG `grid` layer
-  * dia.Paper - drop `drawGrid()` and `clearGrid()` methods.
+  * dia.Paper - drop `drawGrid()` and `clearGrid()` methods
   * dia.Paper - new `transform` event added
   * dia.Paper - allow passing custom data along with transformation events
   * dia.Paper - allows passing custom data along with resize events
@@ -23,8 +23,8 @@
   * dia.CellView - disable `useCSSSelectors` by default
   * dia.Graph - throw exception when cell constructor not found
   * dia.Link - replace legacy attributes in the default label definition
-  * dia.Link - remove the deprecated smooth attribute
-  * dia.Link - remove the deprecated manhattan attribute
+  * dia.Link - remove the deprecated `smooth` attribute
+  * dia.Link - remove the deprecated `manhattan` attribute
   * dia.Cell - add `mergeArrays` options to constructor
   * dia.Cell - remove the `parent(id)` setter
   * shapes.standard - use `calc` expressions instead of legacy attributes (drop use of `refWidth`, `refHeight`, `refX`, `refY`, etc.)
