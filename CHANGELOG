@@ -5,8 +5,8 @@
   * remove `jQuery`, `backbone`, and `lodash` dependencies
   * drop `CSS` (`JointJS` no longer distributed with CSS)
   * dia.Paper - change the default cell sorting to `APPROX` type
-  * dia.Paper - remove deprecated `dia.Paper.prototype.options.perpendicularLinks`
-  * dia.Paper - remove deprecated `dia.Paper.prototype.options.linkConnectionPoint`
+  * dia.Paper - remove deprecated `perpendicularLinks` option
+  * dia.Paper - remove deprecated `linkConnectionPoint` option
   * dia.Paper - change the value of the `defaultConnectionPoint` option to `boundary`
   * dia.Paper - add SVG `grid` layer
   * dia.Paper - drop `drawGrid()` and `clearGrid()` methods
