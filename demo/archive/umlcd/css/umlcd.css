@@ -1,0 +1,17 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    overflow-y: hidden;
+}
+
+.joint-type-uml-composition .marker-target {
+    fill: #4a4e69;
+    stroke: #4a4e69;
+}

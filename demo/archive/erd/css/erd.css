@@ -1,0 +1,28 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    overflow-y: hidden;
+}
+
+#paper {
+    width: inherit;
+    display: block;
+    border: 0;
+    margin-bottom: 3px;
+    text-align: center;
+    background: #464a65;
+}
+#paper>svg {
+    overflow: visible;
+}
+.connection,
+.connection-wrap {
+    stroke: #ccc0ef;
+}
