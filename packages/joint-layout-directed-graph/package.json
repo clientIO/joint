@@ -1,7 +1,7 @@
 {
   "name": "@joint/layout-directed-graph",
   "title": "JointJS LayoutDirectedGraph",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "LayoutDirectedGraph module for JointJS",
   "main": "dist/DirectedGraph.js",
   "module": "./DirectedGraph.mjs",
@@ -48,7 +48,7 @@
   "dependencies": {
     "@dagrejs/dagre": "~1.0.4",
     "@dagrejs/graphlib": "~2.1.13",
-    "@joint/core": "workspace:^"
+    "@joint/core": "workspace:~"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",

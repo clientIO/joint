@@ -1222,7 +1222,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@joint/core@workspace:^, @joint/core@workspace:packages/joint-core":
+"@joint/core@workspace:^, @joint/core@workspace:packages/joint-core, @joint/core@workspace:~":
   version: 0.0.0-use.local
   resolution: "@joint/core@workspace:packages/joint-core"
   dependencies:
@@ -1439,7 +1439,7 @@ __metadata:
   dependencies:
     "@dagrejs/dagre": ~1.0.4
     "@dagrejs/graphlib": ~2.1.13
-    "@joint/core": "workspace:^"
+    "@joint/core": "workspace:~"
     "@rollup/plugin-node-resolve": ^15.2.3
     karma: ^6.4.2
     karma-chrome-launcher: ^3.2.0
