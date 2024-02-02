@@ -57,7 +57,6 @@
   "files": [
     "dist/",
     "src/",
-    "!src/core.mjs",
     "types/*.d.ts",
     "./index.js",
     "./joint.mjs",
