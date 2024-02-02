@@ -1,3 +1,58 @@
+01-02-2024 (v4.0.0)
+
+  * switch to a monorepo
+
+  @joint/core
+  * rename package from `jointjs` to `@joint/core`
+  * remove `jQuery`, `backbone`, and `lodash` dependencies
+  * drop `CSS` (`JointJS` no longer distributed with CSS)
+  * dia.Paper - change the default cell sorting to `APPROX` type
+  * dia.Paper - remove deprecated `perpendicularLinks` option
+  * dia.Paper - remove deprecated `linkConnectionPoint` option
+  * dia.Paper - change the value of the `defaultConnectionPoint` option to `boundary`
+  * dia.Paper - add SVG `grid` layer
+  * dia.Paper - drop `drawGrid()` and `clearGrid()` methods
+  * dia.Paper - new `transform` event added
+  * dia.Paper - allow passing custom data along with transformation events
+  * dia.Paper - allow passing custom data along with resize events
+  * dia.Paper - `origin` option removed
+  * dia.Paper - `setOrigin` method removed
+  * dia.Paper - `scale()` no longer accepts scaling origin
+  * dia.Paper - add `scaleUniformAtPoint()` method
+  * dia.Paper - fix `paper:pinch` dispatched event type
+  * dia.LinkView - remove support for legacy
+  * dia.CellView - early evaluation of `calc` attributes
+  * dia.CellView - disable `useCSSSelectors` by default
+  * dia.Graph - throw exception when cell constructor not found
+  * dia.Link - become an abstract class (same as `dia.Element`)
+  * dia.Link - replace legacy attributes in the default label definition
+  * dia.Link - remove the deprecated `smooth` attribute
+  * dia.Link - remove the deprecated `manhattan` attribute
+  * dia.Cell - add `mergeArrays` options to constructor
+  * dia.Cell - remove the `parent(id)` setter
+  * shapes.standard - use `calc` expressions instead of legacy attributes (drop use of `refWidth`, `refHeight`, `refX`, `refY`, etc.)
+  * shapes.basic - remove in favor of `shapes.standard`
+  * shapes.devs - remove from package, define as custom shapes in demos
+  * shapes.pn - remove from package, define as custom shapes in demos
+  * shapes.uml - remove from package, define as custom shapes in demos
+  * shapes.logic - remove from package, define as custom shapes in demos
+  * shapes.org - remove from package, define as custom shapes in demos
+  * shapes.chess - remove from package, define as custom shapes in demos
+  * shapes.fsa - remove from package, define as custom shapes in demos
+  * highlighters.opacity - add `alphaValue` option
+  * highlighters.stroke - add `nonScalingStroke` option
+  * elementTools.Remove - change type to `remove`
+  * linkTools.Remove - change type to `remove`
+  * linkTools.Vertices - fix to trigger `link:mouseleave` event when the user stops dragging a vertex
+  * attributes.filter - change the coordinate system of the filters from `objectBoundingBox` to `userSpaceOnUse`
+  * util - remove deprecated `shapePerimeterConnectionPoint`
+  * Vectorizer - enable camel case attribute support by default
+  * Vectorizer - make the `attributeNames` property public
+
+  @joint/layout-directed-graph
+  * move the `DirectedGraph` layout into separate package
+  * upgrade `dagre` to version `1.0.4` (free from `lodash` dependency)
+
 07-11-2023 (v3.7.7)
 
   * dia.Paper - fix custom events on link label
