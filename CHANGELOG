@@ -20,7 +20,7 @@
   * dia.Paper - `scale()` no longer accepts scaling origin
   * dia.Paper - add `scaleUniformAtPoint()` method
   * dia.Paper - fix `paper:pinch` dispatched event type
-  * dia.LinkView - remove support for legacy features of `dia.LinkView`
+  * dia.LinkView - remove support for legacy
   * dia.CellView - early evaluation of `calc` attributes
   * dia.CellView - disable `useCSSSelectors` by default
   * dia.Graph - throw exception when cell constructor not found
