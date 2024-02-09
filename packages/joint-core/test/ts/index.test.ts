@@ -102,6 +102,8 @@ const paper = new joint.dia.Paper({
     findParentBy: (_elementView, _evt, x, y) => graph.findModelsFromPoint({ x, y })
 });
 
+paper.fitToContent({ padding: { top: 10  }, allowNewOrigin: false });
+
 const cellView = graph.getCells[0].findView(paper);
 cellView.vel.addClass('test-class');
 
