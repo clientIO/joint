@@ -104,6 +104,38 @@ QUnit.module('Attributes', function() {
                     return obj.width === refBBox.width - 11 && obj.height === refBBox.height - 13;
                 })));
 
+                // external css styles taken into account
+                spy.resetHistory();
+                const fontSize = '23px';
+                const fontFamily = 'Arial';
+                const fontWeight = '800';
+                const letterSpacing = '5px';
+                const textTransform = 'uppercase';
+                const stylesheet = V.createSVGStyle(`
+                    text {
+                        font-size: ${fontSize};
+                        font-family: ${fontFamily};
+                        font-weight: ${fontWeight};
+                        letter-spacing: ${letterSpacing};
+                        text-transform: ${textTransform};
+                    }
+                `);
+                paper.svg.prepend(stylesheet);
+                textWrap.set.call(cellView, { text: 'text', breakText: spy }, bbox, node, {});
+                assert.ok(spy.calledWith(
+                    sinon.match.string,
+                    sinon.match.object,
+                    sinon.match((obj) => {
+                        return (
+                            obj['font-size'] === fontSize &&
+                            obj['font-family'] === fontFamily &&
+                            obj['letter-spacing'] === letterSpacing &&
+                            obj['text-transform'] === textTransform &&
+                            obj['font-weight'] === fontWeight
+                        );
+                    })));
+                stylesheet.remove();
+
                 spy.restore();
             });
 

@@ -123,12 +123,16 @@ const textAttributesNS = {
             if (text === undefined) text = attrs.text;
             if (text !== undefined) {
                 const breakTextFn = value.breakText || breakText;
+                const computedStyles = getComputedStyle(node);
+
                 wrappedText = breakTextFn('' + text, size, {
-                    'font-weight': attrs['font-weight'],
-                    'font-size': attrs['font-size'],
-                    'font-family': attrs['font-family'],
+                    'font-weight': computedStyles.fontWeight,
+                    'font-family': computedStyles.fontFamily,
+                    'text-transform': computedStyles.textTransform,
+                    'font-size': computedStyles.fontSize,
+                    'letter-spacing': computedStyles.letterSpacing,
+                    // The `line-height` attribute in SVG is JoinJS specific.
                     'lineHeight': attrs['line-height'],
-                    'letter-spacing': attrs['letter-spacing']
                 }, {
                     // Provide an existing SVG Document here
                     // instead of creating a temporary one over again.
