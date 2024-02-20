@@ -1313,7 +1313,7 @@ export namespace dia {
             gridWidth?: number;
             gridHeight?: number;
             padding?: Padding;
-            allowNewOrigin?: 'negative' | 'positive' | 'any';
+            allowNewOrigin?: false | 'negative' | 'positive' | 'any';
             allowNegativeBottomRight?: boolean;
             minWidth?: number;
             minHeight?: number;
