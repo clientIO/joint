@@ -1886,6 +1886,26 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 });
             });
 
+            QUnit.module('resetViews()', function() {
+                QUnit.test('does not leak animation frames', function(assert) {
+                    var done = assert.async();
+                    assert.expect(1);
+
+                    graph.resetCells([
+                        new joint.shapes.standard.Rectangle(),
+                    ]);
+                    paper.freeze();
+
+                    var spy = sinon.spy(paper, 'updateViewsAsync');
+                    requestAnimationFrame(function() {
+                        requestAnimationFrame(function() {
+                            assert.equal(spy.callCount, 0);
+                            done();
+                        });
+                    });
+                });
+            });
+
             QUnit.test('hasScheduledUpdates()', function(assert) {
                 var done = assert.async();
                 assert.expect(4);

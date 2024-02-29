@@ -417,6 +417,8 @@ export const Paper = View.extend({
     },
 
     _resetUpdates: function() {
+        if (this._updates && this._updates.id) cancelFrame(this._updates.id);
+
         return this._updates = {
             id: null,
             priorities: [{}, {}, {}],
