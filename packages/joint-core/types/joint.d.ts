@@ -1074,6 +1074,8 @@ export namespace dia {
 
         removeRedundantLinearVertices(opt?: dia.ModelSetOptions): number;
 
+        startArrowheadMove(end: dia.LinkEnd, options?: any);
+
         protected updateRoute(): void;
 
         protected updatePath(): void;
@@ -4082,6 +4084,14 @@ export namespace elementTools {
         constructor(opt?: Button.Options);
 
         protected onPointerDown(evt: dia.Event): void;
+
+        protected position(): void;
+
+        protected getCellMatrix(): SVGMatrix;
+
+        protected getElementMatrix(): SVGMatrix;
+
+        protected getLinkMatrix(): SVGMatrix;
     }
 
     class Remove extends Button {
