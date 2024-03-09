@@ -1799,8 +1799,6 @@ export namespace dia {
         hide(): this;
 
         mount(): this;
-
-        protected simulateRelatedView(el: SVGElement): void;
     }
 
     namespace ToolView {
@@ -1819,6 +1817,8 @@ export namespace dia {
         constructor(opt?: ToolView.Options);
 
         configure(opt?: ToolView.Options): this;
+
+        protected simulateRelatedView(el: SVGElement): void;
 
         show(): void;
 
