@@ -3602,7 +3602,7 @@ export namespace anchors {
             endMagnet: SVGElement,
             anchorReference: g.Point | SVGElement,
             opt: AnchorArgumentsMap[K],
-            endType: string,
+            endType: dia.LinkEnd,
             linkView: dia.LinkView
         ): g.Point;
     }
@@ -3701,7 +3701,7 @@ export namespace connectionPoints {
             endView: dia.CellView,
             endMagnet: SVGElement,
             opt: ConnectionPointArgumentsMap[K],
-            endType: string,
+            endType: dia.LinkEnd,
             linkView: dia.LinkView
         ): g.Point;
     }
