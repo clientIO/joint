@@ -919,7 +919,7 @@ export namespace dia {
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
-        getDelegatedView(): ElementView<E> | null;
+        getDelegatedView(): ElementView | null;
 
         findPortNode(portId: string | number): SVGElement | null;
         findPortNode(portId: string | number, selector: string): E | null;
