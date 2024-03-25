@@ -1074,7 +1074,7 @@ export namespace dia {
 
         removeRedundantLinearVertices(opt?: dia.ModelSetOptions): number;
 
-        startArrowheadMove(end: dia.LinkEnd, options?: any);
+        startArrowheadMove(end: dia.LinkEnd, options?: any): unknown;
 
         protected updateRoute(): void;
 
