@@ -913,18 +913,18 @@ export namespace dia {
         }
     }
 
-    class ElementView extends CellViewGeneric<Element> {
+    class ElementView<E extends Element = Element> extends CellViewGeneric<E> {
 
-        update(element?: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
+        update(element?: E, renderingOnlyAttrs?: { [key: string]: any }): void;
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
         getDelegatedView(): ElementView | null;
 
         findPortNode(portId: string | number): SVGElement | null;
-        findPortNode(portId: string | number, selector: string): Element | null;
+        findPortNode(portId: string | number, selector: string): E | null;
 
-        findPortNodes(portId: string | number, groupSelector: string): Element[];
+        findPortNodes(portId: string | number, groupSelector: string): E[];
 
         protected renderMarkup(): void;
 
@@ -999,14 +999,14 @@ export namespace dia {
 
         }
 
-        interface Options extends mvc.ViewOptions<Link, SVGElement> {
+        interface Options<L extends Link = Link> extends mvc.ViewOptions<L, SVGElement> {
             labelsLayer?: Paper.Layers | string | false;
         }
     }
 
-    class LinkView extends CellViewGeneric<Link> {
+    class LinkView<L extends Link = Link> extends CellViewGeneric<L> {
 
-        options: LinkView.Options;
+        options: LinkView.Options<L>;
         sourceAnchor: g.Point;
         targetAnchor: g.Point;
 
