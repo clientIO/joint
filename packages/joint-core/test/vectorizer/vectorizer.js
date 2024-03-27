@@ -1486,7 +1486,7 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(V.normalizePathData('A 3 0 0 0 1 10 15'), 'M 0 0 L 10 15'); // 0 y radius
             assert.equal(V.normalizePathData('A 0 0 0 0 1 10 15'), 'M 0 0 L 10 15'); // 0 x and y radii
 
-            assert.equal(V.normalizePathData('M 3 7 A 7 7 0 0 1 3 7'), 'M 3 7 C 3 7 3 7 3 7'); // straight line
+            assert.equal(V.normalizePathData('M 3 7 A 7 7 0 0 1 3 7'), 'M 3 7 C 3 7 3 7 3 7'); // arc corresponding to a single point
 
             // Make sure this does not throw an error because of recursion in a2c() exceeding the maximum stack size
             V.normalizePathData('M 0 0 A 1 1 0 1 0 -1 -1');

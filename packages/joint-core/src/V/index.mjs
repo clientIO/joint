@@ -2293,7 +2293,7 @@ const V = (function() {
 
                 var k = ((large_arc_flag == sweep_flag) ? -1 : 1) * sqrt(abs(((rx2 * ry2) - (rx2 * y * y) - (ry2 * x * x)) / ((rx2 * y * y) + (ry2 * x * x))));
                 if (!Number.isFinite(k)) {
-                    // Straight line
+                    // Arc is a single point
                     return [x1, y1, x2, y2, x2, y2];
                 }
 
