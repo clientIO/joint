@@ -6,7 +6,11 @@
 
 02-02-2024 (v4.0.1)
 
+  @joint/core
   * fix content of `dist` folder
+
+  @joint/layout-directed-graph
+  * change the constraint on `@joint/core` dependency to allow patches only
 
 01-02-2024 (v4.0.0)
 
