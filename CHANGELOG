@@ -1,7 +1,7 @@
 27-03-2024 (v4.0.2)
 
   @joint/core
-  * diaPaper - fix to prevent leaks of pending animation frame requests on `resetViews()`
+  * dia.Paper - fix to prevent leaks of pending animation frame requests on `resetViews()`
   * dia.attributes - fix `text-wrap` to take external CSS into account
 
 02-02-2024 (v4.0.1)
