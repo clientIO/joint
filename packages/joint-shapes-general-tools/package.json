@@ -1,7 +1,7 @@
 {
   "name": "@joint/shapes-general-tools",
   "title": "JointJS General Shapes Tools",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "General Shapes Tools module for JointJS",
   "main": "build/index.js",
   "types": "build/index.d.ts",

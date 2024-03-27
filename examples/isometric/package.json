@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-isometric",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "main": "src/index.ts",
   "homepage": "https://jointjs.com",
   "author": {
