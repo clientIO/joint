@@ -2292,6 +2292,10 @@ const V = (function() {
                 var ry2 = ry * ry;
 
                 var k = ((large_arc_flag == sweep_flag) ? -1 : 1) * sqrt(abs(((rx2 * ry2) - (rx2 * y * y) - (ry2 * x * x)) / ((rx2 * y * y) + (ry2 * x * x))));
+                if (!Number.isFinite(k)) {
+                    // Arc is a single point
+                    return [x1, y1, x2, y2, x2, y2];
+                }
 
                 var cx = ((k * rx * y) / ry) + ((x1 + x2) / 2);
                 var cy = ((k * -ry * x) / rx) + ((y1 + y2) / 2);
