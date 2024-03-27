@@ -46,5 +46,4 @@ export namespace DirectedGraph {
     export function toGraphLib(graph: dia.Graph, opt?: toGraphLibOptions): any;
 
     export function fromGraphLib(glGraph: any, opt?: { [key: string]: any }): dia.Graph;
-    export function fromGraphLib(this: dia.Graph, glGraph: any, opt?: { [key: string]: any }): dia.Graph;
 }
