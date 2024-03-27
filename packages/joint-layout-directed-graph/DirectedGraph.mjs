@@ -34,10 +34,13 @@ export const DirectedGraph = {
         return edge;
     },
 
-    importElement: function(opt, v, gl) {
+    /**
+     * @private
+     */
+    importElement: function(node, glGraph, graph, opt) {
 
-        var element = this.getCell(v);
-        var glNode = gl.node(v);
+        var element = graph.getCell(node);
+        var glNode = glGraph.node(node);
 
         if (opt.setPosition) {
             opt.setPosition(element, glNode);
@@ -49,12 +52,15 @@ export const DirectedGraph = {
         }
     },
 
-    importLink: function(opt, edgeObj, gl) {
+    /**
+     * @private
+     */
+    importLink: function(edge, glGraph, graph, opt) {
 
         const SIMPLIFY_THRESHOLD = 0.001;
 
-        const link = this.getCell(edgeObj.name);
-        const glEdge = gl.edge(edgeObj);
+        const link = graph.getCell(edge.name);
+        const glEdge = glGraph.edge(edge);
         const points = glEdge.points || [];
         const polyline = new g.Polyline(points);
 
@@ -68,7 +74,7 @@ export const DirectedGraph = {
                 const polylinePoints = polyline.points.map((point) => (point.toJSON())); // JSON of points after simplification
                 const numPolylinePoints = polylinePoints.length; // number of points after simplification
                 // set simplified polyline points as link vertices
-                // remove first and last polyline points (= source/target sonnectionPoints)
+                // remove first and last polyline points (= source/target connectionPoints)
                 link.set('vertices', polylinePoints.slice(1, numPolylinePoints - 1));
             }
         }
@@ -113,11 +119,12 @@ export const DirectedGraph = {
             resizeClusters: true,
             clusterPadding: 10,
             exportElement: this.exportElement,
-            exportLink: this.exportLink
+            exportLink: this.exportLink,
+            importNode: this.importElement,
+            importEdge: this.importLink
         });
 
         // create a graphlib.Graph that represents the joint.dia.Graph
-        // var glGraph = graph.toGraphLib({
         var glGraph = DirectedGraph.toGraphLib(graph, {
             directed: true,
             // We are about to use edge naming feature.
@@ -166,15 +173,13 @@ export const DirectedGraph = {
         graph.startBatch('layout');
 
         DirectedGraph.fromGraphLib(glGraph, {
-            importNode: this.importElement.bind(graph, opt),
-            importEdge: this.importLink.bind(graph, opt)
+            importNode: opt.importNode,
+            importEdge: opt.importEdge,
+            setPosition: opt.setPosition,
+            setVertices: opt.setVertices,
+            setLinkVertices: opt.setLinkVertices, // deprecated
+            setLabels: opt.setLabels
         });
-
-        // // Update the graph.
-        // graph.fromGraphLib(glGraph, {
-        //     importNode: this.importElement.bind(graph, opt),
-        //     importEdge: this.importLink.bind(graph, opt)
-        // });
 
         if (opt.resizeClusters) {
             // Resize and reposition cluster elements (parents of other elements)
@@ -212,16 +217,16 @@ export const DirectedGraph = {
 
         var importNode = opt.importNode || util.noop;
         var importEdge = opt.importEdge || util.noop;
-        var graph = (this instanceof dia.Graph) ? this : new dia.Graph();
+        var graph = new dia.Graph();
 
         // Import all nodes.
         glGraph.nodes().forEach(function(node) {
-            importNode.call(graph, node, glGraph, graph, opt);
+            importNode(node, glGraph, graph, opt);
         });
 
         // Import all edges.
         glGraph.edges().forEach(function(edge) {
-            importEdge.call(graph, edge, glGraph, graph, opt);
+            importEdge(edge, glGraph, graph, opt);
         });
 
         return graph;
