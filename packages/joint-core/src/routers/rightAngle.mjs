@@ -88,8 +88,14 @@ function resolveForTopSourceSide(source, target, nextInLine) {
     const { x0: tx, y0: ty } = target;
 
     if (tx === ax && ty < sy0) return Directions.BOTTOM;
-    if (tx < ax && ty < smy0) return Directions.RIGHT;
-    if (tx > ax && ty < smy0) return Directions.LEFT;
+    if (tx < ax && ty < smy0) {
+        if (nextInLine.point.x === ax) return Directions.BOTTOM;
+        return Directions.RIGHT;
+    }
+    if (tx > ax && ty < smy0) {
+        if (nextInLine.point.x === ax) return Directions.BOTTOM;
+        return Directions.LEFT;
+    }
     if (tx < smx0 && ty >= sy0) return Directions.TOP;
     if (tx > smx1 && ty >= sy0) return Directions.TOP;
     if (tx >= smx0 && tx <= ax && ty > sy1) {
@@ -122,8 +128,14 @@ function resolveForBottomSourceSide(source, target, nextInLine) {
     const { x0: tx, y0: ty } = target;
 
     if (tx === ax && ty > sy1) return Directions.TOP;
-    if (tx < ax && ty > smy1) return Directions.RIGHT;
-    if (tx > ax && ty > smy1) return Directions.LEFT;
+    if (tx < ax && ty > smy1) {
+        if (nextInLine.point.x === ax) return Directions.TOP;
+        return Directions.RIGHT;
+    }
+    if (tx > ax && ty > smy1) {
+        if (nextInLine.point.x === ax) return Directions.TOP;
+        return Directions.LEFT;
+    }
     if (tx < smx0 && ty <= sy1) return Directions.BOTTOM;
     if (tx > smx1 && ty <= sy1) return Directions.BOTTOM;
     if (tx >= smx0 && tx <= ax && ty < sy0) {
@@ -314,9 +326,10 @@ function getOutsidePoint(side, pointData, margin) {
     return outsidePoint;
 }
 
-function routeBetweenPoints(source, target) {
+function routeBetweenPoints(source, target, opt = {}) {
     const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
     const { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight, margin: targetMargin } = target;
+    const { targetInSourceBBox = false } = opt;
 
     const tx1 = tx0 + targetWidth;
     const ty1 = ty0 + targetHeight;
@@ -454,6 +467,7 @@ function routeBetweenPoints(source, target) {
         ];
     } else if (sourceSide === 'top' && targetSide === 'top') {
         const useUShapeConnection =
+            targetInSourceBBox ||
             g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
             (soy <= ty0 && (inflatedSourceBBox.bottomRight().x <= tox || inflatedSourceBBox.bottomLeft().x >= tox)) ||
             (soy >= ty0 && (inflatedTargetBBox.bottomRight().x <= sox || inflatedTargetBBox.bottomLeft().x >= sox));
@@ -491,6 +505,7 @@ function routeBetweenPoints(source, target) {
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
         const useUShapeConnection =
+            targetInSourceBBox ||
             g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
             (soy >= toy && (inflatedSourceBBox.topRight().x <= tox || inflatedSourceBBox.topLeft().x >= tox)) ||
             (soy <= toy && (inflatedTargetBBox.topRight().x <= sox || inflatedTargetBBox.topLeft().x >= sox));
@@ -528,6 +543,7 @@ function routeBetweenPoints(source, target) {
         ];
     } else if (sourceSide === 'left' && targetSide === 'left') {
         const useUShapeConnection = 
+            targetInSourceBBox ||
             g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
             (sox <= tox && (inflatedSourceBBox.bottomRight().y <= toy || inflatedSourceBBox.topRight().y >= toy)) ||
             (sox >= tox && (inflatedTargetBBox.bottomRight().y <= soy || inflatedTargetBBox.topRight().y >= soy));
@@ -565,6 +581,7 @@ function routeBetweenPoints(source, target) {
         ];
     } else if (sourceSide === 'right' && targetSide === 'right') {
         const useUShapeConnection =
+            targetInSourceBBox ||
             g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
             (sox >= tox && (inflatedSourceBBox.bottomLeft().y <= toy || inflatedSourceBBox.topLeft().y >= toy)) ||
             (sox <= tox && (inflatedTargetBBox.bottomLeft().y <= soy || inflatedTargetBBox.topLeft().y >= soy));
@@ -919,7 +936,7 @@ function rightAngleRouter(vertices, opt, linkView) {
         dummySource.direction = fromDirection;
         firstVertex.direction = toDirection;
 
-        resultVertices.push(...routeBetweenPoints(dummySource, firstVertex), firstVertex.point);
+        resultVertices.push(...routeBetweenPoints(dummySource, firstVertex, { targetInSourceBBox: true }), firstVertex.point);
     } else {
         // The first point responsible for the initial direction of the route
         const next = verticesData[1] || targetPoint;
