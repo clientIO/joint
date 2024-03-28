@@ -173,6 +173,7 @@ export const DirectedGraph = {
         graph.startBatch('layout');
 
         DirectedGraph.fromGraphLib(glGraph, {
+            graph,
             importNode: opt.importNode,
             importEdge: opt.importEdge,
             setPosition: opt.setPosition,
@@ -217,7 +218,7 @@ export const DirectedGraph = {
 
         var importNode = opt.importNode || util.noop;
         var importEdge = opt.importEdge || util.noop;
-        var graph = new dia.Graph();
+        var graph = opt.graph || new dia.Graph();
 
         // Import all nodes.
         glGraph.nodes().forEach(function(node) {
