@@ -350,6 +350,11 @@ function routeBetweenPoints(source, target) {
     const middleOfVerticalSides = (scx < tcx ? (sx1 + tx0) : (tx1 + sx0)) / 2;
     const middleOfHorizontalSides = (scy < tcy ? (sy1 + ty0) : (ty1 + sy0)) / 2;
 
+    const sourceBBox = new g.Rect(sx0, sy0, sourceWidth, sourceHeight);
+    const targetBBox = new g.Rect(tx0, ty0, targetWidth, targetHeight);
+    const inflatedSourceBBox = sourceBBox.clone().inflate(sourceMargin);
+    const inflatedTargetBBox = targetBBox.clone().inflate(targetMargin);
+
     if (sourceSide === 'left' && targetSide === 'right') {
         if (smx0 <= tmx1) {
             let y = middleOfHorizontalSides;
@@ -448,28 +453,30 @@ function routeBetweenPoints(source, target) {
             { x: tox, y }
         ];
     } else if (sourceSide === 'top' && targetSide === 'top') {
+        const useUShapeConnection =
+            g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
+            (soy <= ty0 && (inflatedSourceBBox.bottomRight().x <= tox || inflatedSourceBBox.bottomLeft().x >= tox)) ||
+            (soy >= ty0 && (inflatedTargetBBox.bottomRight().x <= sox || inflatedTargetBBox.bottomLeft().x >= sox));
+
+        if (useUShapeConnection) {
+            return [
+                { x: sox, y: Math.min(soy, toy) },
+                { x: tox, y: Math.min(soy, toy) }
+            ];
+        }
+
         let x;
         let y1 = Math.min((sy1 + ty0) / 2, toy);
         let y2 = Math.min((sy0 + ty1) / 2, soy);
 
         if (toy < soy) {
-            if (sox >= tmx1 || sox <= tmx0) {
-                return [
-                    { x: sox, y: Math.min(soy, toy) },
-                    { x: tox, y: Math.min(soy, toy) }
-                ];
-            } else if (tox > sox) {
+            if (tox > sox) {
                 x = Math.min(sox, tmx0);
             } else {
                 x = Math.max(sox, tmx1);
             }
         } else {
-            if (tox >= smx1 || tox <= smx0) {
-                return [
-                    { x: sox, y: Math.min(soy, toy) },
-                    { x: tox, y: Math.min(soy, toy) }
-                ];
-            } else if (tox >= sox) {
+            if (tox >= sox) {
                 x = Math.max(tox, smx1);
             } else {
                 x = Math.min(tox, smx0);
@@ -483,28 +490,30 @@ function routeBetweenPoints(source, target) {
             { x: tox, y: y1 }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'bottom') {
+        const useUShapeConnection =
+            g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
+            (soy >= toy && (inflatedSourceBBox.topRight().x <= tox || inflatedSourceBBox.topLeft().x >= tox)) ||
+            (soy <= toy && (inflatedTargetBBox.topRight().x <= sox || inflatedTargetBBox.topLeft().x >= sox));
+
+        if (useUShapeConnection) {
+            return [
+                { x: sox, y: Math.max(soy, toy) },
+                { x: tox, y: Math.max(soy, toy) }
+            ];
+        }
+
         let x;
         let y1 = Math.max((sy0 + ty1) / 2, toy);
         let y2 = Math.max((sy1 + ty0) / 2, soy);
 
         if (toy > soy) {
-            if (sox >= tmx1 || sox <= tmx0) {
-                return [
-                    { x: sox, y: Math.max(soy, toy) },
-                    { x: tox, y: Math.max(soy, toy) }
-                ];
-            } else if (tox > sox) {
+            if (tox > sox) {
                 x = Math.min(sox, tmx0);
             } else {
                 x = Math.max(sox, tmx1);
             }
         } else {
-            if (tox >= smx1 || tox <= smx0) {
-                return [
-                    { x: sox, y: Math.max(soy, toy) },
-                    { x: tox, y: Math.max(soy, toy) }
-                ];
-            } else if (tox >= sox) {
+            if (tox >= sox) {
                 x = Math.max(tox, smx1);
             } else {
                 x = Math.min(tox, smx0);
@@ -518,6 +527,18 @@ function routeBetweenPoints(source, target) {
             { x: tox, y: y1 }
         ];
     } else if (sourceSide === 'left' && targetSide === 'left') {
+        const useUShapeConnection = 
+            g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
+            (sox <= tox && (inflatedSourceBBox.bottomRight().y <= toy || inflatedSourceBBox.topRight().y >= toy)) ||
+            (sox >= tox && (inflatedTargetBBox.bottomRight().y <= soy || inflatedTargetBBox.topRight().y >= soy));
+
+        if (useUShapeConnection) {
+            return [
+                { x: Math.min(sox, tox), y: soy },
+                { x: Math.min(sox, tox), y: toy }
+            ];
+        }
+
         let y;
         let x1 = Math.min((sx1 + tx0) / 2, tox);
         let x2 = Math.min((sx0 + tx1) / 2, sox);
@@ -543,11 +564,23 @@ function routeBetweenPoints(source, target) {
             { x: x1, y: toy }
         ];
     } else if (sourceSide === 'right' && targetSide === 'right') {
+        const useUShapeConnection =
+            g.intersection.rectWithRect(inflatedSourceBBox, targetBBox) ||
+            (sox >= tox && (inflatedSourceBBox.bottomLeft().y <= toy || inflatedSourceBBox.topLeft().y >= toy)) ||
+            (sox <= tox && (inflatedTargetBBox.bottomLeft().y <= soy || inflatedTargetBBox.topLeft().y >= soy));
+
+        if (useUShapeConnection) {
+            return [
+                { x: Math.max(sox, tox), y: soy },
+                { x: Math.max(sox, tox), y: toy }
+            ];
+        }
+
         let y;
         let x1 = Math.max((sx0 + tx1) / 2, tox);
         let x2 = Math.max((sx1 + tx0) / 2, sox);
 
-        if (tox < sox) {
+        if (tox <= sox) {
             if (toy <= soy) {
                 y = Math.min(smy0, toy);
             } else {
