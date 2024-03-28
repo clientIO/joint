@@ -1287,11 +1287,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/decorators@workspace:^, @joint/decorators@workspace:packages/joint-decorators":
+"@joint/decorators@workspace:^, @joint/decorators@workspace:packages/joint-decorators, @joint/decorators@workspace:~":
   version: 0.0.0-use.local
   resolution: "@joint/decorators@workspace:packages/joint-decorators"
   dependencies:
-    "@joint/core": "workspace:^"
+    "@joint/core": "workspace:~"
     typescript: 4.8.4
   languageName: unknown
   linkType: soft
@@ -1460,19 +1460,19 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/shapes-general-tools@workspace:packages/joint-shapes-general-tools"
   dependencies:
-    "@joint/core": "workspace:^"
-    "@joint/decorators": "workspace:^"
-    "@joint/shapes-general": "workspace:^"
+    "@joint/core": "workspace:~"
+    "@joint/decorators": "workspace:~"
+    "@joint/shapes-general": "workspace:~"
     typescript: 4.8.4
   languageName: unknown
   linkType: soft
 
-"@joint/shapes-general@workspace:^, @joint/shapes-general@workspace:packages/joint-shapes-general":
+"@joint/shapes-general@workspace:^, @joint/shapes-general@workspace:packages/joint-shapes-general, @joint/shapes-general@workspace:~":
   version: 0.0.0-use.local
   resolution: "@joint/shapes-general@workspace:packages/joint-shapes-general"
   dependencies:
-    "@joint/core": "workspace:^"
-    "@joint/decorators": "workspace:^"
+    "@joint/core": "workspace:~"
+    "@joint/decorators": "workspace:~"
     typescript: 4.8.4
   languageName: unknown
   linkType: soft

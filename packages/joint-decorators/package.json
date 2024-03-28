@@ -34,14 +34,14 @@
     "./SECURITY.md"
   ],
   "dependencies": {
-    "@joint/core": "workspace:^"
+    "@joint/core": "workspace:~"
   },
   "devDependencies": {
     "typescript": "4.8.4"
   },
   "volta": {
-    "node": "16.18.1",
-    "npm": "8.19.2",
+    "node": "18.18.2",
+    "npm": "9.8.1",
     "yarn": "3.4.1"
   },
   "keywords": [
