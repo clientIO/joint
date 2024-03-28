@@ -37,17 +37,17 @@ export const DirectedGraph = {
     /**
      * @private
      */
-    importElement: function(node, glGraph, graph, opt) {
+    importElement: function(nodeId, glGraph, graph, opt) {
 
-        var element = graph.getCell(node);
-        var glNode = glGraph.node(node);
+        const element = graph.getCell(nodeId);
+        const nodeData = glGraph.node(nodeId);
 
         if (opt.setPosition) {
-            opt.setPosition(element, glNode);
+            opt.setPosition(element, nodeData);
         } else {
             element.set('position', {
-                x: glNode.x - glNode.width / 2,
-                y: glNode.y - glNode.height / 2
+                x: nodeData.x - (nodeData.width / 2),
+                y: nodeData.y - (nodeData.height / 2)
             });
         }
     },
@@ -55,13 +55,13 @@ export const DirectedGraph = {
     /**
      * @private
      */
-    importLink: function(edge, glGraph, graph, opt) {
+    importLink: function(edgeObj, glGraph, graph, opt) {
 
         const SIMPLIFY_THRESHOLD = 0.001;
 
-        const link = graph.getCell(edge.name);
-        const glEdge = glGraph.edge(edge);
-        const points = glEdge.points || [];
+        const link = graph.getCell(edgeObj.name);
+        const edgeData = glGraph.edge(edgeObj);
+        const points = edgeData.points || [];
         const polyline = new g.Polyline(points);
 
         // check the `setLinkVertices` here for backwards compatibility
@@ -79,8 +79,8 @@ export const DirectedGraph = {
             }
         }
 
-        if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
-            const labelPosition = { x: glEdge.x, y: glEdge.y };
+        if (opt.setLabels && ('x' in edgeData) && ('y' in edgeData)) {
+            const labelPosition = { x: edgeData.x, y: edgeData.y };
             if (util.isFunction(opt.setLabels)) {
                 opt.setLabels(link, labelPosition, points);
             } else {
@@ -134,7 +134,7 @@ export const DirectedGraph = {
             setNodeLabel: opt.exportElement,
             setEdgeLabel: opt.exportLink,
             setEdgeName: function(link) {
-                // Graphlib edges have no ids. We use edge name property
+                // Graphlib edges have no ids. We use `edgeObj.name` property
                 // to store and retrieve ids instead.
                 return link.id;
             }
@@ -221,14 +221,10 @@ export const DirectedGraph = {
         var graph = opt.graph || new dia.Graph();
 
         // Import all nodes.
-        glGraph.nodes().forEach(function(node) {
-            importNode(node, glGraph, graph, opt);
-        });
+        glGraph.nodes().forEach((nodeId) => importNode(nodeId, glGraph, graph, opt));
 
         // Import all edges.
-        glGraph.edges().forEach(function(edge) {
-            importEdge(edge, glGraph, graph, opt);
-        });
+        glGraph.edges().forEach((edgeObj) => importEdge(edgeObj, glGraph, graph, opt));
 
         return graph;
     },

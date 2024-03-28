@@ -145,14 +145,15 @@ yarn install</code></pre>
 <table>
     <tr><th>toGraphLib(graph, opt)</th>
         <td>Convert the provided JointJS <code>joint.dia.Graph</code> object to a Graphlib graph object.
-            <pre><code>import { DirectedGraph } from '@joint/layout-directed-graph';
+            <pre><code>import { dia, shapes } from '@joint/core';
+import { DirectedGraph } from '@joint/layout-directed-graph';
 import * as graphlib from '@dagrejs/graphlib';
 
-var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+const graph = new dia.Graph({}, { cellNamespace: shapes });
 // ... populate the graph with elements connected with links
 
 // Get a Graphlib representation of the graph:
-var glGraph = DirectedGraph.toGraphLib(graph);
+const glGraph = DirectedGraph.toGraphLib(graph);
 
 // Use Graphlib algorithms:
 graphlib.alg.isAcyclic(glGraph); // true if the graph is acyclic</code></pre>
@@ -161,31 +162,48 @@ graphlib.alg.isAcyclic(glGraph); // true if the graph is acyclic</code></pre>
     <tr><th>fromGraphLib(glGraph, opt)</th>
         <td>Convert the provided Graphlib graph object to a JointJS <code>joint.dia.Graph</code> object.
             <br/><br/>
-            The <code>opt.importNode</code> and <code>opt.importEdge</code> callbacks are provided with a Graphlib node / edge object, and are expected to return a corresponding JointJS element / link object.
-            <pre><code>import { DirectedGraph } from '@joint/layout-directed-graph';
+            Custom <code>opt.importNode</code> and <code>opt.importEdge</code> callbacks need to be provided in order for this method to work as expected - to return a JointJS Graph matching the structure of the provided Graphlib graph (<code>glGraph</code>). The callbacks are provided with the following attributes:
+            <ul>
+                <li><code>nodeId</code> / <code>edgeObj</code> - a <a href="https://github.com/dagrejs/graphlib/wiki/API-Reference#node-and-edge-representation">Graphlib item ID</a>,</li>
+                <li><code>glGraph</code> - the original Graphlib graph object,</li>
+                <li><code>graph</code> - the JointJS Graph object to be populated (a newly created <code>joint.dia.Graph</code> by default),</li>
+                <li><code>opt</code> - the options object provided to <code>fromGraphLib()</code>.</li>
+            </ul>
+            You can implement your own logic inside the two callbacks to support your use case.
+            <br/><br/>
+            The example below illustrates how Graphlib node/edge labels can be used to store additional information for each item. These labels are accessed in the callbacks as <code>nodeData</code> / <code>edgeData</code>, and the information within is used to specify the position, size, and label text of the Element / Link being created. (Note: In Graphlib, edge source id / edge target id are specified via <code>nodeId</code> of the respective node; we need to set the <code>id</code> of generated Elements as <code>nodeId</code> so that the generated Links can connect the generated Elements.) The callbacks work by adding the generated Element / Link to the <code>graph</code> in the end (e.g. via the <code>graph.addCell()</code> function):
+            <pre><code>import { shapes } from '@joint/core';
+import { DirectedGraph } from '@joint/layout-directed-graph';
 import * as graphlib from 'graphlib';
 
 // Create a graph in Graphlib:
-var glGraph = new graphlib.Graph();
-glGraph.setNode(1);
-glGraph.setNode(2);
-glGraph.setNode(3);
-glGraph.setEdge(1, 2);
-glGraph.setEdge(2, 3);
+const glGraph = new graphlib.Graph();
+glGraph.setNode(1, { x: 50, y: 50, width: 100, height: 50, label: 'A' });
+glGraph.setNode(2, { x: 50, y: 150, width: 100, height: 50, label: 'B' });
+glGraph.setNode(3, { x: 50, y: 250, width: 100, height: 50, label: 'C' });
+glGraph.setEdge(1, 2, { label: 'Hello' });
+glGraph.setEdge(2, 3, { label: 'World!' });
 
 // Get a JointJS representation of the Graphlib graph:
-var graph = DirectedGraph.fromGraphLib(glGraph, {
-    importNode: function(node) {
-        return new joint.shapes.standard.Rectangle({
-            position: { x: node.x, y: node.y },
-            size: { width: node.width, height: node.height }
+const graph = DirectedGraph.fromGraphLib(glGraph, {
+    importNode: (nodeId, glGraph, graph, opt) => {
+        const nodeData = glGraph.node(nodeId);
+        const element = new shapes.standard.Rectangle({
+            id: nodeId,
+            position: { x: nodeData.x, y: nodeData.y },
+            size: { width: nodeData.width, height: nodeData.height },
+            attrs: { label: { text: nodeData.label }}
         });
+        graph.addCell(element);
     },
-    importEdge: function(edge) {
-        return new joint.shapes.standard.Link({
-            source: { id: edge.v },
-            target: { id: edge.w }
+    importEdge: (edgeObj, glGraph, graph, opt) => {
+        const edgeData = glGraph.edge(edgeObj);
+        const link =  new shapes.standard.Link({
+            source: { id: edgeObj.v },
+            target: { id: edgeObj.w },
+            labels: [{ attrs: { text: { text: edgeData.label }}}]
         });
+        graph.addCell(link);
     }
 });</code></pre>
         </td>

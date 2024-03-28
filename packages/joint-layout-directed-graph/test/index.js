@@ -15,6 +15,89 @@ QUnit.module('DirectedGraph', function(hooks) {
 
             assert.equal(typeof DirectedGraph.fromGraphLib, 'function');
         });
+
+        QUnit.test('should correctly convert a graphlib graph into JointJS graph', function(assert) {
+
+            const glGraph = new graphlib.Graph();
+            glGraph.setNode(1, { x: 50, y: 50, width: 100, height: 50, label: 'A' });
+            glGraph.setNode(2, { x: 50, y: 150, width: 100, height: 50, label: 'B' });
+            glGraph.setNode(3, { x: 50, y: 250, width: 100, height: 50, label: 'C' });
+            glGraph.setEdge(1, 2, { label: 'Hello' });
+            glGraph.setEdge(2, 3, { label: 'World!' });
+
+            const graph = DirectedGraph.fromGraphLib(glGraph, {
+                importNode: (nodeId, glGraph, graph, _opt) => {
+                    const nodeData = glGraph.node(nodeId);
+                    const element = new joint.shapes.standard.Rectangle({
+                        id: nodeId,
+                        position: { x: nodeData.x, y: nodeData.y },
+                        size: { width: nodeData.width, height: nodeData.height },
+                        attrs: { label: { text: nodeData.label }}
+                    });
+                    graph.addCell(element);
+                },
+                importEdge: (edgeObj, glGraph, graph, _opt) => {
+                    const edgeData = glGraph.edge(edgeObj);
+                    const link =  new joint.shapes.standard.Link({
+                        source: { id: edgeObj.v },
+                        target: { id: edgeObj.w },
+                        labels: [{ attrs: { text: { text: edgeData.label }}}]
+                    });
+                    graph.addCell(link);
+                }
+            });
+
+            // elements
+            const elements = graph.getElements();
+            assert.equal(elements.length, 3);
+            let id, x, y, width, height, elementLabel;
+
+            (id = elements[0].id);
+            assert.equal(id, '1');
+            ({ x, y } = elements[0].position());
+            assert.deepEqual({ x, y }, { x: 50, y: 50 });
+            ({ width, height} = elements[0].size());
+            assert.deepEqual({ width, height }, {width: 100, height: 50 });
+            (elementLabel = elements[0].attr('label/text'));
+            assert.equal(elementLabel, 'A');
+
+            (id = elements[1].id);
+            assert.equal(id, '2');
+            ({ x, y } = elements[1].position());
+            assert.deepEqual({ x, y }, { x: 50, y: 150 });
+            ({ width, height} = elements[1].size());
+            assert.deepEqual({ width, height }, {width: 100, height: 50 });
+            (elementLabel = elements[1].attr('label/text'));
+            assert.equal(elementLabel, 'B');
+
+            (id = elements[2].id);
+            assert.equal(id, '3');
+            ({ x, y } = elements[2].position());
+            assert.deepEqual({ x, y }, { x: 50, y: 250 });
+            ({ width, height} = elements[2].size());
+            assert.deepEqual({ width, height }, {width: 100, height: 50 });
+            (elementLabel = elements[2].attr('label/text'));
+            assert.equal(elementLabel, 'C');
+
+            // links
+            const links = graph.getLinks();
+            assert.equal(links.length, 2);
+            let source, target, linkLabel;
+
+            (source = links[0].source().id);
+            assert.equal(source, '1');
+            (target = links[0].target().id);
+            assert.equal(target, '2');
+            (linkLabel = links[0].label(0).attrs.text.text);
+            assert.equal(linkLabel, 'Hello');
+
+            (source = links[1].source().id);
+            assert.equal(source, '2');
+            (target = links[1].target().id);
+            assert.equal(target, '3');
+            (linkLabel = links[1].label(0).attrs.text.text);
+            assert.equal(linkLabel, 'World!');
+        });
     });
 
     QUnit.module('toGraphLib(jointGraph[, opt])', function(hooks) {
@@ -186,7 +269,6 @@ QUnit.module('DirectedGraph', function(hooks) {
             ({ x, y } = elements[3].position());
             assert.deepEqual({ x, y }, { x: 5, y: 210 });
         });
-
 
         QUnit.test('should return a rectangle representing the graph bounding box', function(assert) {
 
