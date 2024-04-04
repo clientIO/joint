@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     pointerEvents: 'none'
                 },
                 labelBody: {
-                    ref: 'text',
+                    ref: 'labelText',
                     fill: '#ffffff',
                     stroke: 'black',
                     strokeWidth: 2,
