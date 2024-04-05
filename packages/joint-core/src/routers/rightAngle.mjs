@@ -327,7 +327,7 @@ function getOutsidePoint(side, pointData, margin) {
 }
 
 function routeBetweenPoints(source, target, opt = {}) {
-    const { point: sourcePoint, x0: sx0, y0: sy0, view: sourceView, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
+    const { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
     const { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight, margin: targetMargin } = target;
     const { targetInSourceBBox = false } = opt;
 
@@ -335,8 +335,6 @@ function routeBetweenPoints(source, target, opt = {}) {
     const ty1 = ty0 + targetHeight;
     const sx1 = sx0 + sourceWidth;
     const sy1 = sy0 + sourceHeight;
-
-    const isSourceEl = sourceView && sourceView.model.isElement();
 
     // Key coordinates including the margin
     const smx0 = sx0 - sourceMargin;
@@ -371,7 +369,7 @@ function routeBetweenPoints(source, target, opt = {}) {
     if (sourceSide === 'left' && targetSide === 'right') {
         if (smx0 <= tmx1) {
             let y = middleOfHorizontalSides;
-            if (sx1 <= tx0) {
+            if (sox <= tmx0) {
                 if (ty1 >= smy0 && toy < soy) {
                     y = Math.min(tmy0, smy0);
                 } else if (ty0 <= smy1 && toy >= soy) {
@@ -392,7 +390,7 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'right' && targetSide === 'left') {
-        if (smx1 >= tmx0) {
+        if (sox >= tmx0) {
             let y = middleOfHorizontalSides;
             if (sox > tx1) {
                 if (ty1 >= smy0 && toy < soy) {
@@ -416,16 +414,20 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'top' && targetSide === 'bottom') {
+        const isPointInsideSource = g.intersection.rectWithRect(inflatedSourceBBox, targetBBox);
+
         if (soy < toy) {
             let x = middleOfVerticalSides;
             let y = soy;
 
-            if (soy < ty0) {
-                if (tx1 >= smx0 && tox < sox) {
-                    x = Math.min(tmx0, smx0);
-                } else if (tx0 <= smx1 && tox >= sox) {
-                    x = Math.max(tmx1, smx1);
-                }
+            if (isPointInsideSource) {
+                y = Math.min(y, tmy0);
+            }
+
+            if (tx1 >= smx0 && tox < sox) {
+                x = Math.min(tmx0, smx0);
+            } else if (tx0 <= smx1 && tox >= sox) {
+                x = Math.max(tmx1, smx1);
             }
 
             return [
@@ -441,16 +443,20 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x: tox, y }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'top') {
-        if (soy - sourceMargin > toy) {
+        const isPointInsideSource = g.intersection.rectWithRect(inflatedSourceBBox, targetBBox);
+
+        if (soy > toy) {
             let x = middleOfVerticalSides;
             let y = soy;
 
-            if (soy > ty1) {
-                if (tx1 >= smx0 && tox < sox) {
-                    x = Math.min(tmx0, smx0);
-                } else if (tx0 <= smx1 && tox >= sox) {
-                    x = Math.max(tmx1, smx1);
-                }
+            if (isPointInsideSource) {
+                y = Math.max(y, tmy1);
+            }
+
+            if (tx1 >= smx0 && tox < sox) {
+                x = Math.min(tmx0, smx0);
+            } else if (tx0 <= smx1 && tox >= sox) {
+                x = Math.max(tmx1, smx1);
             }
 
             return [
@@ -618,13 +624,41 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x: x1, y: toy }
         ];
     } else if (sourceSide === 'top' && targetSide === 'right') {
-        if (soy > toy) {
-            if (sox < tox) {
-                let y = middleOfHorizontalSides;
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
-                if ((y > tcy || !isSourceEl) && y < tmy1 && sox < tx0) {
-                    y = tmy0;
+        // The target point is inside the source element
+        if (isPointInsideSource) {
+            if (sox <= tmx1) {
+                const x = Math.max(sox + sourceMargin, tox);
+                const y = Math.min(smy0, tmy0);
+
+                // Target anchor is on the right side of the source anchor
+                return [
+                    { x: sox, y },
+                    { x: x, y },
+                    { x: x, y: toy }
+                ];
+            }
+
+            // Target anchor is on the left side of the source anchor
+            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
+            const anchorMiddleX = (sox - sourceMargin + tox) / 2;
+
+            return [
+                { x: sox, y: soy },
+                { x: anchorMiddleX, y: soy },
+                { x: anchorMiddleX, y: toy }
+            ];
+        }
+
+        if (smy0 > toy) {
+            if (sox < tox) {
+                let y = tmy0;
+
+                if (tmy1 <= smy0 && tmx1 >= sox) {
+                    y = middleOfHorizontalSides;
                 }
+
                 return [
                     { x: sox, y },
                     { x: tox, y },
@@ -637,17 +671,17 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         const x = Math.max(middleOfVerticalSides, tmx1);
 
-        if (tox < sox && toy > sy0 && toy < sy1) {
+        if (sox > tox && sy1 >= toy) {
             return [
                 { x: sox, y: soy },
-                { x: x, y: soy },
-                { x: x, y: toy }
+                { x, y: soy },
+                { x, y: toy }
             ];
         }
 
-        if ((x > smx0 && toy > sy0) || tx0 > sx1) {
-            const y = Math.min(sy0 - sourceMargin, ty0 - targetMargin);
-            const x = Math.max(sx1 + sourceMargin, tx1 + targetMargin);
+        if (x > smx0 && soy < ty1) {
+            const y = Math.min(smy0, tmy0);
+            const x = Math.max(smx1, tmx1);
             return [
                 { x: sox, y },
                 { x, y },
@@ -657,23 +691,52 @@ function routeBetweenPoints(source, target, opt = {}) {
 
         return [
             { x: sox, y: soy },
-            { x: Math.max(x, tox), y: soy },
-            { x: Math.max(x, tox), y: toy }
+            { x, y: soy },
+            { x, y: toy }
         ];
     } else if (sourceSide === 'top' && targetSide === 'left') {
-        if (soy > toy) {
-            if (sox > tox) {
-                let y = middleOfHorizontalSides;
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
-                if ((y > tcy || !isSourceEl) && y < tmy1 && sox > tx1) {
-                    y = tmy0;
+        // The target point is inside the source element
+        if (isPointInsideSource) {
+            if (sox >= tmx0) {
+                const x = Math.min(sox - sourceMargin, tox);
+                const y = Math.min(smy0, tmy0);
+
+                // Target anchor is on the left side of the source anchor
+                return [
+                    { x: sox, y },
+                    { x: x, y },
+                    { x: x, y: toy }
+                ];
+            }
+
+            // Target anchor is on the right side of the source anchor
+            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
+            const anchorMiddleX = (sox + sourceMargin + tox) / 2;
+
+            return [
+                { x: sox, y: soy },
+                { x: anchorMiddleX, y: soy },
+                { x: anchorMiddleX, y: toy }
+            ];
+        }
+
+        if (smy0 > toy) {
+            if (sox > tox) {
+                let y = tmy0;
+
+                if (tmy1 <= smy0 && tmx0 <= sox) {
+                    y = middleOfHorizontalSides;
                 }
+
                 return [
                     { x: sox, y },
                     { x: tox, y },
                     { x: tox, y: toy }
                 ];
             }
+
             return [{ x: sox, y: toy }];
         }
 
@@ -695,39 +758,77 @@ function routeBetweenPoints(source, target, opt = {}) {
                 { x, y: toy }
             ];
         }
+
         return [
             { x: sox, y: soy },
             { x, y: soy },
             { x, y: toy }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'right') {
-        if (soy < toy) {
-            if (sox < tox) {
-                let y = middleOfHorizontalSides;
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
-                if ((y < tcy || !isSourceEl) && y > tmy0 && sox < tx0) {
-                    y = tmy1;
-                }
-                return [
-                    { x: sox, y },
-                    { x: tox, y },
-                    { x: tox, y: toy }
-                ];
-            }
-            return [{ x: sox, y: toy }];
-        } else {
-            if (sx0 < tox) {
+        // The target point is inside the source element
+        if (isPointInsideSource) {
+            if (sox <= tmx1) {
+                const x = Math.max(sox + sourceMargin, tox);
                 const y = Math.max(smy1, tmy1);
-                const x = Math.max(smx1, tmx1);
+
+                // Target anchor is on the right side of the source anchor
                 return [
                     { x: sox, y },
                     { x, y },
                     { x, y: toy }
                 ];
             }
+
+            // Target anchor is on the left side of the source anchor
+            // Subtract the `sourceMargin` since the source anchor is on the right side of the target anchor
+            const anchorMiddleX = (sox - sourceMargin + tox) / 2;
+
+            return [
+                { x: sox, y: soy },
+                { x: anchorMiddleX, y: soy },
+                { x: anchorMiddleX, y: toy }
+            ];
         }
 
-        const x = middleOfVerticalSides;
+        if (smy1 < toy) {
+            if (sox < tox) {
+                let y = tmy1;
+
+                if (tmy0 >= smy1 && tmx1 >= sox) {
+                    y = middleOfHorizontalSides;
+                }
+
+                return [
+                    { x: sox, y },
+                    { x: tox, y },
+                    { x: tox, y: toy }
+                ];
+            }
+
+            return [{ x: sox, y: toy }];
+        }
+
+        const x = Math.max(middleOfVerticalSides, tmx1);
+
+        if (sox > tox && sy0 <= toy) {
+            return [
+                { x: sox, y: soy },
+                { x, y: soy },
+                { x, y: toy }
+            ];
+        }
+
+        if (x > smx0 && soy > ty0) {
+            const y = Math.max(smy1, tmy1);
+            const x = Math.max(smx1, tmx1);
+            return [
+                { x: sox, y },
+                { x, y },
+                { x, y: toy }
+            ];
+        }
 
         return [
             { x: sox, y: soy },
@@ -735,81 +836,109 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'left') {
-        if (soy < toy) {
-            if (sox > tox) {
-                let y = middleOfHorizontalSides;
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
-                if ((y < tcy || !isSourceEl) && y > tmy0 && sox > tx1) {
-                    y = tmy1;
-                }
-                return [
-                    { x: sox, y },
-                    { x: tox, y },
-                    { x: tox, y: toy }
-                ];
-            }
-            return [{ x: sox, y: toy }];
-        } else {
-            if (sx1 > tox) {
+        // The target point is inside the source element
+        if (isPointInsideSource) {
+            if (sox >= tmx0) {
+                const x = Math.min(sox - sourceMargin, tox);
                 const y = Math.max(smy1, tmy1);
-                const x = Math.min(smx0, tmx0);
+
+                // Target anchor is on the left side of the source anchor
                 return [
                     { x: sox, y },
                     { x, y },
                     { x, y: toy }
                 ];
             }
+
+            // Target anchor is on the right side of the source anchor
+            // Add the `sourceMargin` since the source anchor is on the left side of the target anchor
+            const anchorMiddleX = (sox + sourceMargin + tox) / 2;
+
+            return [
+                { x: sox, y: soy },
+                { x: anchorMiddleX, y: soy },
+                { x: anchorMiddleX, y: toy }
+            ];
         }
 
-        const x = middleOfVerticalSides;
+        if (smy1 < toy) {
+            if (sox > tox) {
+                let y = tmy1;
+
+                if (tmy0 >= smy1 && tmx0 <= sox) {
+                    y = middleOfHorizontalSides;
+                }
+
+                return [
+                    { x: sox, y },
+                    { x: tox, y },
+                    { x: tox, y: toy }
+                ];
+            }
+
+            return [{ x: sox, y: toy }];
+        }
+
+        const x = Math.min(tmx0, middleOfVerticalSides);
+
+        if (sox < tox && sy0 <= toy) {
+            return [
+                { x: sox, y: soy },
+                { x, y: soy },
+                { x, y: toy }
+            ];
+        }
+
+        if (x < smx1 && soy > ty0) {
+            const y = Math.max(smy1, tmy1);
+            const x = Math.min(smx0, tmx0);
+            return [
+                { x: sox, y },
+                { x, y },
+                { x, y: toy }
+            ];
+        }
 
         return [
             { x: sox, y: soy },
             { x, y: soy },
             { x, y: toy }
         ];
-    }
-    else if (sourceSide === 'left' && targetSide === 'bottom') {
-        if (sox >= tox && soy >= tmy1) {
-            return [{ x: tox, y: soy }];
-        }
+    } else if (sourceSide === 'left' && targetSide === 'bottom') {
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
-        if (sox >= tx1 && soy < toy) {
-            const x = middleOfVerticalSides;
+        // The target point is inside the source element
+        if (isPointInsideSource) {
+            if (soy <= tmy1) {
+                const x = Math.min(smx0, tmx0);
+                const y = Math.max(soy + sourceMargin, toy);
 
-            return [
-                { x, y: soy },
-                { x, y: toy },
-                { x: tox, y: toy }
-            ];
-        }
+                return [
+                    { x, y: soy },
+                    { x, y },
+                    { x: tox, y }
+                ];
+            }
 
-        if (tox < sx1 && ty1 <= sy0) {
-            const y = middleOfHorizontalSides;
+            // Target anchor is above the source anchor
+            const anchorMiddleY = (soy - sourceMargin + toy) / 2;
 
             return [
                 { x: sox, y: soy },
-                { x: sox, y },
-                { x: tox, y }
+                { x: sox, y: anchorMiddleY },
+                { x: tox, y: anchorMiddleY }
             ];
         }
 
-        const x = Math.min(tmx0, sox);
-        const y = Math.max(smy1, tmy1);
+        if (smx0 > tox) {
+            if (soy < toy) {
+                let x = tmx0;
 
-        return [
-            { x, y: soy },
-            { x, y },
-            { x: tox, y }
-        ];
-    } else if (sourceSide === 'left' && targetSide === 'top') {
-        if (sox > tox && soy < tmy0) {
-            return [{ x: tox, y: soy }];
-        }
-
-        if (sox >= tx1) {
-            if (soy > toy) {
-                const x = middleOfVerticalSides;
+                if (tmx1 <= smx0 && tmy1 >= soy) {
+                    x = middleOfVerticalSides;
+                }
 
                 return [
                     { x, y: soy },
@@ -817,45 +946,13 @@ function routeBetweenPoints(source, target, opt = {}) {
                     { x: tox, y: toy }
                 ];
             }
-        }
 
-        if (tox <= sx1 && toy > soy) {
-            const y = middleOfHorizontalSides;
-
-            return [
-                { x: sox, y: soy },
-                { x: sox, y },
-                { x: tox, y },
-            ];
-        }
-
-        const x = toy < soy ? Math.min(smx0, tmx0) : smx0;
-        const y = Math.min(smy0, tmy0);
-
-        return [
-            { x, y: soy },
-            { x, y },
-            { x: tox, y }
-        ];
-
-    } else if (sourceSide === 'right' && targetSide === 'top') {
-        if (sox <= tox && soy < tmy0) {
             return [{ x: tox, y: soy }];
         }
 
-        if (sx1 < tx0 && soy > toy) {
-            let x = middleOfVerticalSides;
+        const y = Math.max(tmy1, middleOfHorizontalSides);
 
-            return [
-                { x, y: soy },
-                { x, y: toy },
-                { x: tox, y: toy }
-            ];
-        }
-
-        if (tox < sox && ty0 > sy1) {
-            const y = middleOfHorizontalSides;
-
+        if (soy > toy && sx1 >= tox) {
             return [
                 { x: sox, y: soy },
                 { x: sox, y },
@@ -863,32 +960,210 @@ function routeBetweenPoints(source, target, opt = {}) {
             ];
         }
 
-        const x = Math.max(smx1, tmx1);
-        const y = Math.min(smy0, tmy0);
+        if (y > smy0 && sox < tx1) {
+            const x = Math.min(smx0, tmx0);
+            const y = Math.max(smy1, tmy1);
+
+            return [
+                { x, y: soy },
+                { x, y },
+                { x: tox, y }
+            ];
+        }
 
         return [
-            { x, y: soy },
-            { x, y },
+            { x: sox, y: soy },
+            { x: sox, y },
+            { x: tox, y }
+        ];
+    } else if (sourceSide === 'left' && targetSide === 'top') {
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
+
+        // The target point is inside the source element
+        if (isPointInsideSource) {
+            if (soy >= tmy0) {
+                const y = Math.min(soy - sourceMargin, toy);
+                const x = Math.min(smx0, tmx0);
+
+                // Target anchor is on the top side of the source anchor
+                return [
+                    { x, y: soy },
+                    { x, y },
+                    { x: tox, y }
+                ];
+            }
+
+            // Target anchor is below the source anchor
+            // Add the `sourceMargin` since the source anchor is above the target anchor
+            const anchorMiddleY = (soy + sourceMargin + toy) / 2;
+
+            return [
+                { x: sox, y: soy },
+                { x: sox, y: anchorMiddleY },
+                { x: tox, y: anchorMiddleY }
+            ];
+        }
+
+        if (smx0 > tox) {
+            if (soy > toy) {
+                let x = tmx0;
+
+                if (tmx1 <= smx0 && tmy0 <= soy) {
+                    x = middleOfVerticalSides;
+                }
+
+                return [
+                    { x, y: soy },
+                    { x, y: toy },
+                    { x: tox, y: toy }
+                ];
+            }
+
+            return [{ x: tox, y: soy }];
+        }
+
+        const y = Math.min(tmy0, middleOfHorizontalSides);
+
+        if (soy < toy && sx1 >= tox) {
+            return [
+                { x: sox, y: soy },
+                { x: sox, y },
+                { x: tox, y }];
+        }
+
+        if (y < smy1 && sox < tx1) {
+            const x = Math.min(smx0, tmx0);
+            const y = Math.min(smy0, tmy0);
+            return [
+                { x, y: soy },
+                { x, y },
+                { x: tox, y }
+            ];
+        }
+
+        return [
+            { x: sox, y: soy },
+            { x: sox, y },
+            { x: tox, y }
+        ];
+    } else if (sourceSide === 'right' && targetSide === 'top') {
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
+
+        // The target point is inside the source element
+        if (isPointInsideSource) {
+            if (soy >= tmy0) {
+                const x = Math.max(smx1, tmx1);
+                const y = Math.min(soy - sourceMargin, toy);
+
+                // Target anchor is on the top side of the source anchor
+                return [
+                    { x, y: soy },
+                    { x, y }, // Path adjustment for right side start
+                    { x: tox, y }
+                ];
+            }
+
+            // Target anchor is below the source anchor
+            // Adjust sourceMargin calculation since the source anchor is now on the right
+            const anchorMiddleY = (soy + sourceMargin + toy) / 2;
+
+            return [
+                { x: sox, y: soy },
+                { x: sox, y: anchorMiddleY },
+                { x: tox, y: anchorMiddleY }
+            ];
+        }
+
+        if (smx1 < tox) {
+            if (soy > toy) {
+                let x = tmx1;
+
+                if (tmx0 >= smx1 && tmy0 <= soy) {
+                    x = middleOfVerticalSides;
+                }
+
+                return [
+                    { x, y: soy },
+                    { x, y: toy },
+                    { x: tox, y: toy }
+                ];
+            }
+
+            return [{ x: tox, y: soy }];
+        }
+
+        const y = Math.min(tmy0, middleOfHorizontalSides);
+
+        if (soy < toy && sx0 <= tox) {
+            return [
+                { x: sox, y: soy },
+                { x: sox, y },
+                { x: tox, y }];
+        }
+
+        if (y < smy1 && sox > tx0) {
+            const x = Math.max(smx1, tmx1);
+            const y = Math.min(smy0, tmy0);
+
+            return [
+                { x, y: soy },
+                { x, y },
+                { x: tox, y }
+            ];
+        }
+
+        return [
+            { x: sox, y: soy },
+            { x: sox, y },
             { x: tox, y }
         ];
     } else if (sourceSide === 'right' && targetSide === 'bottom') {
-        if (sox <= tox && soy >= tmy1) {
-            return [{ x: tox, y: soy }];
-        }
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetPoint);
 
-        if (sox <= tmx0 && soy < toy) {
-            const x = middleOfVerticalSides;
+        // The target point is inside the source element
+        if (isPointInsideSource) {
+            if (soy <= tmy1) {
+                const x = Math.max(smx1, tmx1);
+                const y = Math.max(soy + sourceMargin, toy);
+
+                return [
+                    { x, y: soy },
+                    { x, y },
+                    { x: tox, y }
+                ];
+            }
+
+            // Target anchor is above the source anchor
+            const anchorMiddleY = (soy - sourceMargin + toy) / 2;
 
             return [
-                { x, y: soy },
-                { x, y: toy },
-                { x: tox, y: toy }
+                { x: sox, y: soy },
+                { x: sox, y: anchorMiddleY },
+                { x: tox, y: anchorMiddleY }
             ];
         }
 
-        if (tox > sx0 && ty1 < sy0) {
-            const y = middleOfHorizontalSides;
+        if (smx1 < tox) {
+            if (soy < toy) {
+                let x = tmx1;
 
+                if (tmx0 >= smx1 && tmy1 >= soy) {
+                    x = middleOfVerticalSides;
+                }
+
+                return [
+                    { x, y: soy },
+                    { x, y: toy },
+                    { x: tox, y: toy }
+                ];
+            }
+
+            return [{ x: tox, y: soy }];
+        }
+
+        const y = Math.max(tmy1, middleOfHorizontalSides);
+
+        if (soy > toy && sx0 <= tox) {
             return [
                 { x: sox, y: soy },
                 { x: sox, y },
@@ -896,12 +1171,20 @@ function routeBetweenPoints(source, target, opt = {}) {
             ];
         }
 
-        const x = Math.max(tmx1, sox);
-        const y = Math.max(smy1, tmy1);
+        if (y > smy0 && sox > tx0) {
+            const x = Math.max(smx1, tmx1);
+            const y = Math.max(smy1, tmy1);
+
+            return [
+                { x, y: soy },
+                { x, y },
+                { x: tox, y }
+            ];
+        }
 
         return [
-            { x, y: soy },
-            { x, y },
+            { x: sox, y: soy },
+            { x: sox, y },
             { x: tox, y }
         ];
     }
