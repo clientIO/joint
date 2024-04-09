@@ -1,6 +1,18 @@
+09-04-2024 (v4.0.2)
+
+  @joint/core
+  * dia.Paper - fix to prevent leaks of pending animation frame requests on `resetViews()`
+  * routers.rightAngle - fix to improve generated route
+  * dia.attributes - fix `text-wrap` to take external CSS into account
+  * Vectorizer - fix `normalizePathData()` to support zero-length arcto curves
+
 02-02-2024 (v4.0.1)
 
+  @joint/core
   * fix content of `dist` folder
+
+  @joint/layout-directed-graph
+  * change the constraint on `@joint/core` dependency to allow patches only
 
 01-02-2024 (v4.0.0)
 
