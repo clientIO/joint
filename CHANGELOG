@@ -1,3 +1,8 @@
+10-04-2024 (v4.0.3)
+
+  @joint/layout-directed-graph
+  * fix distributed `package.json` by resolving `@joint/core` workspace dependency
+
 09-04-2024 (v4.0.2)
 
   @joint/core
