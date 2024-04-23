@@ -63,21 +63,23 @@ export const View = ViewBase.extend({
         return this;
     },
 
-    findAttribute: function(attributeName, node) {
-
-        var currentNode = node;
-
+    findAttributeNode: function(attributeName, node) {
+        let currentNode = node;
         while (currentNode && currentNode.nodeType === 1) {
-            var attributeValue = currentNode.getAttribute(attributeName);
             // attribute found
-            if (attributeValue) return attributeValue;
+            // (empty value does not count as attribute found)
+            if (currentNode.getAttribute(attributeName)) return currentNode;
             // do not climb up the DOM
             if (currentNode === this.el) return null;
             // try parent node
             currentNode = currentNode.parentNode;
         }
-
         return null;
+    },
+
+    findAttribute: function(attributeName, node) {
+        const matchedNode = this.findAttributeNode(attributeName, node);
+        return matchedNode && matchedNode.getAttribute(attributeName);
     },
 
     // Override the mvc ViewBase `_ensureElement()` method in order to create an

@@ -433,15 +433,20 @@ export const CellView = View.extend({
 
     getLinkEnd: function(magnet, ...args) {
 
-        var model = this.model;
-        var id = model.id;
-        var port = this.findAttribute('port', magnet);
+        const model = this.model;
+        const id = model.id;
+        // Find a node with the `port` attribute set on it.
+        const portNode = this.findAttributeNode('port', magnet);
         // Find a unique `selector` of the element under pointer that is a magnet.
-        var selector = magnet.getAttribute('joint-selector');
+        const selector = magnet.getAttribute('joint-selector');
 
-        var end = { id: id };
+        const end = { id: id };
         if (selector != null) end.magnet = selector;
-        if (port != null) {
+        if (portNode != null) {
+            let port = portNode.getAttribute('port');
+            if (portNode.getAttribute('port-id-type') === 'number') {
+                port = parseInt(port, 10);
+            }
             end.port = port;
             if (!model.hasPort(port) && !selector) {
                 // port created via the `port` attribute (not API)

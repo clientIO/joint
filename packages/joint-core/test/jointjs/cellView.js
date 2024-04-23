@@ -666,4 +666,23 @@ QUnit.module('cellView', function(hooks) {
         });
 
     });
+
+    QUnit.module('getLinkEnd()', function (hooks) {
+        ['port1', 13].forEach(function (portId) {
+            QUnit.test('port id: ' + typeof portId, function (assert) {
+                const cell = cellView.model;
+                cell.addPort({
+                    id: portId,
+                });
+                const portNode = cellView.findPortNode(portId);
+                assert.equal(portNode.getAttribute('port'), portId);
+                const end = cellView.getLinkEnd(portNode);
+                assert.deepEqual(end, {
+                    id: cell.id,
+                    magnet: 'circle',
+                    port: portId,
+                });
+            });
+        });
+    });
 });
