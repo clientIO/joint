@@ -1,7 +1,5 @@
 import { shapes } from '@joint/core';
 
-let id = 1000;
-
 const portRadius = 8;
 const portAttrs = {
     circle: {
@@ -54,17 +52,7 @@ export const Node = shapes.standard.Rectangle.define(
             },
         },
     },
-    {
-        generateId: function () {
-            return id++;
-        },
-
-        generatePortId: function () {
-            // to overcome a bug in JointJS:
-            // Link reconnection does not work when the port ID is a number
-            return `${id++}`;
-        },
-    },
+    null,
     {
         PORT_RADIUS: portRadius,
     }
@@ -80,11 +68,6 @@ export const Edge = shapes.standard.Link.define(
                 strokeWidth: 1,
                 targetMarker: { d: 'M 5 2.5 0 0 5 -2.5 Z' },
             },
-        },
-    },
-    {
-        generateId: function () {
-            return id++;
         },
     }
 );

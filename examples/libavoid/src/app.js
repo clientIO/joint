@@ -45,6 +45,7 @@ export const init = async () => {
             default: {
                 name: 'mask',
                 options: {
+                    padding: 2,
                     attrs: {
                         stroke: '#EA3C24',
                         strokeWidth: 2,
@@ -79,19 +80,19 @@ export const init = async () => {
             items: [
                 {
                     group: 'top',
-                    id: `100001`,
+                    id: 'port1',
                 },
                 {
                     group: 'top',
-                    id: `100002`,
+                    id: 'port2',
                 },
                 {
                     group: 'right',
-                    id: `100003`,
+                    id: 'port3',
                 },
                 {
                     group: 'left',
-                    id: `100004`,
+                    id: 'port4',
                     // TODO: we need to redefine the port on element resize
                     // The port is currently defined proportionally to the element size.
                     // args: {
@@ -123,13 +124,13 @@ export const init = async () => {
     });
 
     const l1 = new Edge({
-        source: { id: c1.id, port: `100004` },
-        target: { id: c2.id, port: `100004` },
+        source: { id: c1.id, port: 'port4' },
+        target: { id: c2.id, port: 'port4' },
     });
 
     const l2 = new Edge({
-        source: { id: c2.id, port: `100002` },
-        target: { id: c3.id, port: `100004` },
+        source: { id: c2.id, port: 'port2' },
+        target: { id: c3.id, port: 'port4' },
     });
 
     const l3 = new Edge({
@@ -200,13 +201,16 @@ export const init = async () => {
         linkView.removeTools();
     });
 
-    paper.on('blank:pointerclick', (evt, x, y) => {
+    paper.on('blank:pointerdblclick', (evt, x, y) => {
         const node = new Node({
             position: { x: x - 50, y: y - 50 },
             size: { width: 100, height: 100 },
         });
         graph.addCell(node);
     });
+
+    // Add a class to the links when they are being interacted with.
+    // See `styles.css` for the styles.
 
     paper.on('link:pointerdown', (linkView) => {
         highlighters.addClass.add(linkView, 'line', 'active-link', {
@@ -217,7 +221,6 @@ export const init = async () => {
     paper.on('link:pointerup', (linkView) => {
         highlighters.addClass.remove(linkView);
     });
-
 
     // Start the Avoid Router.
 

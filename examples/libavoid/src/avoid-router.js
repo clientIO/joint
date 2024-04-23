@@ -23,12 +23,19 @@ export class AvoidRouter {
         };
 
         this.shapeRefs = {
-            // [el.id]: shapeRef
+            // [element.id]: shapeRef
         };
 
         this.edgeRefs = {
             // [link.id]: connRef
         };
+
+        // We use this structure to map the JointJS port id
+        // to the libavoid pin id (which must be a number)
+        this.pinIds = {
+            // [element.id + port.id]: number
+        }
+
 
         // libavoid-js seems not to work properly
         // if you add-remove-add a connRef with a same `id`.
@@ -43,6 +50,8 @@ export class AvoidRouter {
         };
 
         this.avoidConnectorCallback = this.onAvoidConnectorChange.bind(this);
+
+        this.id = 100000;
 
         this.createAvoidRouter(options);
     }
@@ -148,20 +157,20 @@ export class AvoidRouter {
         return vertices;
     }
 
-    updateShape(el) {
+    updateShape(element) {
         const Avoid = AvoidLib.getInstance();
         const { shapeRefs, avoidRouter } = this;
-        const shapeRect = this.getAvoidRectFromElement(el);
-        if (shapeRefs[el.id]) {
+        const shapeRect = this.getAvoidRectFromElement(element);
+        if (shapeRefs[element.id]) {
             // Only update the position and size of the shape.
-            const shapeRef = shapeRefs[el.id];
+            const shapeRef = shapeRefs[element.id];
             avoidRouter.moveShape(shapeRef, shapeRect);
             return;
         }
 
-        const shapeRef = new Avoid.ShapeRef(avoidRouter, shapeRect, el.id);
+        const shapeRef = new Avoid.ShapeRef(avoidRouter, shapeRect);
 
-        shapeRefs[el.id] = shapeRef;
+        shapeRefs[element.id] = shapeRef;
 
         const centerPin = new Avoid.ShapeConnectionPin(
             shapeRef,
@@ -179,17 +188,17 @@ export class AvoidRouter {
         // specific sides of the element.
 
         // Add pins to each port of the element.
-        const portGroups = Object.keys(el.prop('ports/groups'));
+        const portGroups = Object.keys(element.prop('ports/groups'));
         portGroups.forEach((group) => {
-            const portsPositions = el.getPortsPositions(group);
-            const { width, height } = el.size();
+            const portsPositions = element.getPortsPositions(group);
+            const { width, height } = element.size();
             const rect = new g.Rect(0, 0, width, height);
             Object.keys(portsPositions).forEach((portId) => {
                 const { x, y } = portsPositions[portId];
                 const side = rect.sideNearestToPoint({ x, y });
                 const pin = new Avoid.ShapeConnectionPin(
                     shapeRef,
-                    portId,
+                    this.getConnectionPinId(element.id, portId),
                     x / width,
                     y / height,
                     true,
@@ -200,6 +209,18 @@ export class AvoidRouter {
                 pin.setExclusive(false);
             });
         });
+    }
+
+    // This method is used to map the JointJS port id to the libavoid pin id.
+    getConnectionPinId(elementId, portId) {
+        // `libavoid-js` requires the pin id to be a number.
+        // Note: It does not have to be unique across the whole diagram, just
+        // unique for the shape (but we use unique id across the whole diagram).
+        const pinKey = `${elementId}:${portId}`;
+        if (pinKey in this.pinIds) return this.pinIds[pinKey];
+        const pinId = this.id++;
+        this.pinIds[pinKey] = pinId;
+        return pinId;
     }
 
     updateConnector(link) {
@@ -220,11 +241,11 @@ export class AvoidRouter {
 
         const sourceConnEnd = new Avoid.ConnEnd(
             shapeRefs[sourceId],
-            sourcePortId || defaultPin
+            sourcePortId ? this.getConnectionPinId(sourceId, sourcePortId) : defaultPin
         );
         const targetConnEnd = new Avoid.ConnEnd(
             shapeRefs[targetId],
-            targetPortId || defaultPin
+            targetPortId ? this.getConnectionPinId(targetId, targetPortId) : defaultPin
         );
 
         if (edgeRefs[link.id]) {
@@ -274,13 +295,13 @@ export class AvoidRouter {
         delete this.shapeRefs[element.id];
     }
 
-    getLinkAnchorDelta(el, portId, point) {
+    getLinkAnchorDelta(element, portId, point) {
         let anchorPosition;
-        const bbox = el.getBBox();
+        const bbox = element.getBBox();
         if (portId) {
-            const port = el.getPort(portId);
-            const portPosition = el.getPortsPositions(port.group)[portId];
-            anchorPosition = el.position().offset(portPosition);
+            const port = element.getPort(portId);
+            const portPosition = element.getPortsPositions(port.group)[portId];
+            anchorPosition = element.position().offset(portPosition);
         } else {
             anchorPosition = bbox.center();
         }
@@ -315,14 +336,14 @@ export class AvoidRouter {
         const linkAttributes = {
             source: {
                 id: sourceId,
-                port: sourcePortId ? `${sourcePortId}` : null,
+                port: sourcePortId || null,
                 anchor: {
                     name: 'modelCenter',
                 },
             },
             target: {
                 id: targetId,
-                port: targetPortId ? `${targetPortId}` : null,
+                port: targetPortId || null,
                 anchor: {
                     name: 'modelCenter',
                 },
@@ -374,7 +395,7 @@ export class AvoidRouter {
     // This method is used to route links
     routeAll() {
         const { graph, avoidRouter } = this;
-        graph.getElements().forEach((el) => this.updateShape(el));
+        graph.getElements().forEach((element) => this.updateShape(element));
         graph.getLinks().forEach((link) => this.updateConnector(link));
         avoidRouter.processTransaction();
     }
