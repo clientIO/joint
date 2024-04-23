@@ -48,12 +48,14 @@ const Arrowhead = ToolView.extend({
         evt.stopPropagation();
         evt.preventDefault();
         var relatedView = this.relatedView;
+        var paper = relatedView.paper;
         relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
         relatedView.startArrowheadMove(this.arrowheadType);
         this.delegateDocumentEvents();
-        relatedView.paper.undelegateEvents();
+        paper.undelegateEvents();
         this.focus();
         this.el.style.pointerEvents = 'none';
+        relatedView.notifyPointerdown(...paper.getPointerArgs(evt));
     },
     onPointerMove: function(evt) {
         var normalizedEvent = util.normalizeEvent(evt);

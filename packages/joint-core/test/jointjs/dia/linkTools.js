@@ -304,6 +304,43 @@ QUnit.module('linkTools', function(hooks) {
         });
     });
 
+    QUnit.module('TargetArrowhead', function() {
 
+        QUnit.test('events', function(assert) {
+
+            const arrowhead = new joint.linkTools.TargetArrowhead();
+            linkView.addTools(new joint.dia.ToolsView({ tools: [arrowhead] }));
+            const listener = new joint.mvc.Listener();
+            const events = [];
+
+            listener.listenTo(paper, {
+                'all': (eventName) => events.push(eventName)
+            });
+
+            // Make sure the link is connected to a target element
+            assert.ok(link.getTargetCell());
+
+            simulate.mousedown({ el: arrowhead.el });
+            simulate.mousemove({ el: paper.el });
+            simulate.mouseup({ el: paper.el });
+
+            assert.deepEqual(
+                events.filter((event) => event !== 'render:done'),
+                [
+                    'cell:pointerdown',
+                    'link:pointerdown',
+                    'cell:pointermove',
+                    'link:pointermove',
+                    'link:disconnect',
+                    'link:pointerup',
+                    'cell:pointerup',
+                    'cell:mouseleave',
+                    'link:mouseleave',
+                ]
+            );
+
+            listener.stopListening();
+        });
+    });
 
 });
