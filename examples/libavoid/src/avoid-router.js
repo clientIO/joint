@@ -68,9 +68,7 @@ export class AvoidRouter {
 
         const Avoid = AvoidLib.getInstance();
 
-        const router = new Avoid.Router(
-            Avoid.PolyLineRouting | Avoid.OrthogonalRouting
-        );
+        const router = new Avoid.Router(Avoid.OrthogonalRouting);
 
         // Avoid Router Parameter
 
@@ -265,8 +263,6 @@ export class AvoidRouter {
         }
 
         edgeRefs[link.id] = connRef;
-
-        connRef.setRoutingType(2);
 
         connRef.setCallback(this.avoidConnectorCallback, connRef);
 
