@@ -23,5 +23,9 @@ body {
         &.full-view .inner-label {
             display: none;
         }
+
+        .active-link {
+            stroke-dasharray: 5, 2;
+        }
     }
 }

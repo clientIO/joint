@@ -1,4 +1,4 @@
-import { linkTools, elementTools, dia, shapes } from '@joint/core';
+import { linkTools, elementTools, dia, shapes, highlighters } from '@joint/core';
 import { Node, Edge } from './shapes';
 import ResizeTool from './resize-tool';
 import { AvoidRouter } from './avoid-router';
@@ -207,6 +207,17 @@ export const init = async () => {
         });
         graph.addCell(node);
     });
+
+    paper.on('link:pointerdown', (linkView) => {
+        highlighters.addClass.add(linkView, 'line', 'active-link', {
+            className: 'active-link'
+        });
+    });
+
+    paper.on('link:pointerup', (linkView) => {
+        highlighters.addClass.remove(linkView);
+    });
+
 
     // Start the Avoid Router.
 
