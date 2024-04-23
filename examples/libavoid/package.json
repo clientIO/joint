@@ -7,7 +7,7 @@
     "name": "client IO",
     "url": "https://client.io"
   },
-  "license": "LGPL-2.1-only",
+  "license": "LGPL-2.1-or-later",
   "private": true,
   "installConfig": {
     "hoistingLimits": "workspaces"
