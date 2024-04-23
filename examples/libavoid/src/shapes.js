@@ -26,14 +26,7 @@ export const Node = shapes.standard.Rectangle.define(
                 strokeWidth: 1,
                 rx: 2,
                 ry: 2,
-            },
-            label: {
-                class: 'inner-label',
-                fontFamily: 'sans-serif',
-                textWrap: {
-                    width: -10,
-                },
-            },
+            }
         },
         ports: {
             groups: {
