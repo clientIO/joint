@@ -3302,6 +3302,8 @@ export namespace mvc {
 
         isMounted(): boolean;
 
+        protected findAttributeNode(attributeName: string, node: Element): Element | null;
+
         protected init(): void;
 
         protected onRender(): void;

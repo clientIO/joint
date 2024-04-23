@@ -731,6 +731,13 @@ export const elementViewPortPrototype = {
             'port-group': port.group
         });
 
+        // If the port ID is a number, we need to add
+        // extra information to the port element to distinguish
+        // between ports with the same ID but different types.
+        if (util.isNumber(port.id)) {
+            portElement.attr('port-id-type', 'number');
+        }
+
         const labelMarkupDef = this._getPortLabelMarkup(port.label);
         if (Array.isArray(labelMarkupDef)) {
             // JSON Markup
