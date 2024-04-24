@@ -1,0 +1,29 @@
+body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+.canvas {
+
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: translateZ(0);
+
+    .joint-paper {
+
+        border: 1px solid #E2E2E2;
+
+        &.full-view .inner-label {
+            display: none;
+        }
+
+        .active-link {
+            stroke-dasharray: 5, 2;
+        }
+    }
+}
