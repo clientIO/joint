@@ -158,6 +158,25 @@
 
         onRemove: function() {
             this.removeHTMLMarkup();
+        },
+
+        // Detach and attach the HTML element to the paper's HTML container
+        // in case the paper `viewport` option is in use.
+
+        onMount(isInitialize) {
+            ElementView.prototype.onMount.apply(this, arguments);
+            var html = this.html;
+            if (!isInitialize && html) {
+                this.paper.htmlContainer.appendChild(html);
+            }
+        },
+
+        onDetach() {
+            ElementView.prototype.onDetach.apply(this, arguments);
+            var html = this.html;
+            if (html && html.isConnected) {
+                this.paper.htmlContainer.removeChild(html);
+            }
         }
     });
 
