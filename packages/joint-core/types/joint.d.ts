@@ -548,6 +548,8 @@ export namespace dia {
 
         getPortIndex(port: string | Element.Port): number;
 
+        getPortGroupNames(): string[];
+
         portProp(portId: string, path: dia.Path): any;
 
         portProp(portId: string, path: dia.Path, value?: any, opt?: S): Element;

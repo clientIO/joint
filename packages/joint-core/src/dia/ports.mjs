@@ -280,6 +280,10 @@ export const elementPortPrototype = {
         }));
     },
 
+    getPortGroupNames: function() {
+        return Object.keys(this._portSettingsData.groups);
+    },
+
     /**
      * @param {string} groupName
      * @returns {Object<portId, {x: number, y: number, angle: number}>}
