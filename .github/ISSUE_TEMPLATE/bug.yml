@@ -1,20 +1,33 @@
 name: Bug Report
-description: Something doesn't work like it should? Tell us!
+description: Something doesn't work like it should? Provide the steps for us to reproduce the bug!
 title: "[Bug]: "
 labels: ["bug"]
-assignees: 
+assignees:
   - ""
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! If you need to ask a general question, create a github [discussion](https://github.com/clientIO/joint/discussions).
+        This form is for bug reports only, and it's required that you provide the steps to reproduce the bug. If you are unsure if the issue is a bug, or if you need to ask a general question, create a GitHub [discussion](https://github.com/clientIO/joint/discussions) instead.
   - type: textarea
-    id: what-happened
+    id: current-versus-expected-behaviour
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen? If relevant, add code examples, screenshots, steps to reproduce, etc.
-      placeholder: Describe the bug!
+      label: Current versus expected behaviour
+      description: What happened, and did you expect to happen? If relevant, add code examples, screenshots, etc.
+      placeholder: |
+        Describe the bug, and what the expected behaviour should be.
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Provide the steps to reproduce the bug.
+      placeholder: |
+        1. Open the ...
+        2. Click on an element ...
+        3. The behaviour should be ...
+        4. Under these conditions what actually happens is ...
     validations:
       required: true
   - type: input
