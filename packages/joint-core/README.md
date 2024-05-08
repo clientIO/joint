@@ -1,6 +1,6 @@
 # JointJS - JavaScript diagramming library powering exceptional UIs
 
-[![Build Status](https://travis-ci.com/clientIO/joint.svg?branch=master)](https://travis-ci.com/clientIO/joint)
+[![Build Status](https://app.travis-ci.com/clientIO/joint.svg?token=YC3doXGarvYwgzfqe9zy&branch=master)](https://app.travis-ci.com/clientIO/joint)
 [![Total Discussion](https://img.shields.io/github/discussions/badges/shields)](https://github.com/clientIO/joint/discussions)
 [![NPM Version](https://img.shields.io/npm/v/jointjs)](https://www.npmjs.com/package/jointjs)
 [![NPM License](https://img.shields.io/npm/l/jointjs?color=blue)](https://github.com/clientIO/joint/blob/master/LICENSE)
