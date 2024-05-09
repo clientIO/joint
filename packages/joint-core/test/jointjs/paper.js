@@ -1365,6 +1365,32 @@ QUnit.module('paper', function(hooks) {
             return paper;
         };
 
+        QUnit.test('Unique pattern id', function(assert) {
+
+            const paper1 = new joint.dia.Paper({
+                drawGrid: true,
+                gridSize: 10
+            });
+
+            const paper2 = new joint.dia.Paper({
+                drawGrid: true,
+                gridSize: 10
+            });
+
+            const svg1 = getGridVel(paper1);
+            const pattern1 = svg1.findOne('pattern');
+            assert.ok(pattern1.id);
+
+            const svg2 = getGridVel(paper2);
+            const pattern2 = svg2.findOne('pattern');
+            assert.ok(pattern2.id);
+
+            assert.notEqual(pattern1.id, pattern2.id);
+
+            paper1.remove();
+            paper2.remove();
+        });
+
         QUnit.module('drawGridSize option', function(hooks) {
 
             QUnit.test('is used to draw grid', function(assert) {

@@ -67,7 +67,7 @@ export const GridLayer = PaperLayer.extend({
 
         gridSettings.forEach((gridLayerSetting, index) => {
 
-            const id = 'pattern_' + index;
+            const id = this._getPatternId(index);
             const options = merge({}, gridLayerSetting);
             const { scaleFactor = 1 } = options;
             options.width = gridSize * scaleFactor || 1;
@@ -107,10 +107,14 @@ export const GridLayer = PaperLayer.extend({
         }
         gridSettings.forEach((options, index) => {
             if (isFunction(options.update)) {
-                const vPattern = patterns['pattern_' + index];
+                const vPattern = patterns[this._getPatternId(index)];
                 options.update(vPattern.node.firstChild, options, paper);
             }
         });
+    },
+
+    _getPatternId(index) {
+        return `pattern_${this.options.paper.cid}_${index}`;
     },
 
     _getGridRefs() {
