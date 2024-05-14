@@ -1,3 +1,13 @@
+14-05-2024 (v4.0.3)
+
+  * examples.libavoid - add new demo to illustrate using libavoid-js for orthogonal routing
+
+  @joint/core
+  * dia.Paper - fix to ensure grid pattern IDs are unique
+  * dia.ElementView - fix to support port IDs of number type
+  * linkTools.SourceArrowhead - fix to trigger `pointerdown` event when the user starts dragging an arrowhead
+  * linkTools.TargetArrowhead - fix to trigger `pointerdown` event when the user starts dragging an arrowhead
+
 10-04-2024 (v4.0.3)
 
   @joint/layout-directed-graph
