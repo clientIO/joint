@@ -22,6 +22,7 @@
     "access": "public"
   },
   "scripts": {
+    "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn run dist",
     "build": "tsc",
     "dist": "tsc"
