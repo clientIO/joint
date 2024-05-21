@@ -12,6 +12,16 @@ export namespace config {
 
 type NativeEvent = Event;
 
+type _DeepRequired<T> = {
+    [P in keyof T]-?: T[P] extends object ? _DeepRequired<T[P]> : T[P];
+};
+
+type _DeepPartial<T> = {
+	[P in keyof T]?: T[P] extends object ? _DeepPartial<T[P]> : T[P];
+};
+
+type DeepPartial<T> = _DeepPartial<_DeepRequired<T>>;
+
 export namespace dia {
 
     type Event = mvc.TriggeredEvent;
@@ -327,7 +337,7 @@ export namespace dia {
 
     class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
-        constructor(attributes?: A, opt?: Cell.ConstructorOptions);
+        constructor(attributes?: DeepPartial<A>, opt?: Cell.ConstructorOptions);
 
         id: Cell.ID;
         graph: Graph;
@@ -361,7 +371,7 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: Path): any;
-        prop(object: Partial<A>, opt?: Cell.Options): this;
+        prop(object: DeepPartial<A>, opt?: Cell.Options): this;
         prop(key: Path, value: any, opt?: Cell.Options): this;
 
         removeProp(path: Path, opt?: Cell.Options): this;
