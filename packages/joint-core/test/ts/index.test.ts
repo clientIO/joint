@@ -194,7 +194,6 @@ joint.connectors.curve({ x: 0, y: 0 }, { x: 20, y: 20 }, [], {
 /* Partial attributes */
 
 rectangle.prop({ size: { width: 100 }});
-rectangle.prop({ size: { width: 100 }}, { rewrite: true });
 
 new joint.shapes.standard.Rectangle({
     position: { x: 100 },
