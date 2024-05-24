@@ -5,13 +5,13 @@
 [![NPM Version](https://img.shields.io/npm/v/jointjs)](https://www.npmjs.com/package/jointjs)
 [![NPM License](https://img.shields.io/npm/l/jointjs?color=blue)](https://github.com/clientIO/joint/blob/master/LICENSE)
 
- [JointJS](https://jointjs.com) is a tested and proven  *JavaScript*/*Typescript* diagramming library that helps developers and companies of any size build visual and No-Code/Low-Code applications faster and with confidence. It’s a flexible tool from which a wide range of UIs can be created (interactive diagramming applications, drawing tools, data visualizations, UIs for monitoring systems, and many more). It can become the foundational layer of your next application and help you bring your idea to market in days, not months or years.
+[JointJS](https://jointjs.com) is a tested and proven *JavaScript*/*Typescript* diagramming library that helps developers and companies of any size build visual and No-Code/Low-Code applications faster and with confidence. It’s a flexible tool from which a wide range of UIs can be created (interactive diagramming applications, drawing tools, data visualizations, UIs for monitoring systems, and many more). It can become the foundational layer of your next application and help you bring your idea to market in days, not months or years.
 
 ![Use Cases](https://user-images.githubusercontent.com/3967880/200360293-808f148c-32af-4f46-bec1-b4ae4e1592a0.jpg)
 
 Further **information**, **examples** and **documentation** can be found at [jointjs.com](https://jointjs.com).
 
-:1234: Get started with [tutorials](https://resources.jointjs.com/tutorial).
+:1234: Get started with [tutorials](https://docs.jointjs.com).
 
 :bulb: To ask a question, share feedback, or engage in a discussion with other community members, visit our [GitHub discussions](https://github.com/clientIO/joint/discussions).
 
