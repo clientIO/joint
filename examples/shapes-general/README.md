@@ -1,5 +1,7 @@
 # JointJS General Shapes Demo
 
+<img width="838" alt="image" src="https://github.com/clientIO/joint/assets/3967880/2dafbb21-a424-47a6-9963-e6789f49868c">
+
 ## Setup
 
 Use Yarn to run this demo.
