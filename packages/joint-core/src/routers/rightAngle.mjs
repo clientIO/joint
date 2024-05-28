@@ -1284,13 +1284,14 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     if (targetPoint.view && targetPoint.view.model.isElement()) {
         if (targetPoint.view.model.getBBox().inflate(margin).containsPoint(lastVertex.point)) {
-            const [fromDirection] = resolveDirection(lastVertex, targetPoint);
+            // if the last vertex is inside the target element we need to create a dummy target point
+            // and continue the route from the last vertex to the dummy target point from the opposite direction
             const dummyTarget = pointDataFromVertex(targetPoint.point);
             const [, toDirection] = resolveSides(lastVertex, targetPoint);
             // we are creating a point that has a margin
             dummyTarget.margin = margin;
             dummyTarget.direction = toDirection;
-            lastVertex.direction = fromDirection;
+            lastVertex.direction = OPPOSITE_DIRECTIONS[lastVertex.direction];
 
             resultVertices.push(...routeBetweenPoints(lastVertex, dummyTarget));
         } else {
