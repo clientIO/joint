@@ -113,7 +113,7 @@ function resolveForTopSourceSide(source, target, nextInLine) {
         return Directions.LEFT;
     }
 
-    return Directions.TOP;
+    return Directions.BOTTOM;
 }
 
 function resolveForBottomSourceSide(source, target, nextInLine) {
@@ -153,7 +153,7 @@ function resolveForBottomSourceSide(source, target, nextInLine) {
         return Directions.LEFT;
     }
 
-    return Directions.BOTTOM;
+    return Directions.TOP;
 }
 
 function resolveForLeftSourceSide(source, target, nextInLine) {
@@ -187,7 +187,7 @@ function resolveForLeftSourceSide(source, target, nextInLine) {
         return Directions.TOP;
     }
 
-    return Directions.LEFT;
+    return Directions.RIGHT;
 }
 
 function resolveForRightSourceSide(source, target, nextInLine) {
@@ -221,7 +221,7 @@ function resolveForRightSourceSide(source, target, nextInLine) {
         return Directions.TOP;
     }
 
-    return Directions.RIGHT;
+    return Directions.LEFT;
 }
 
 function resolveInitialDirection(source, target, nextInLine) {
@@ -1212,12 +1212,13 @@ function rightAngleRouter(vertices, opt, linkView) {
 
     if (sourcePoint.view && sourcePoint.view.model.isElement() && sourcePoint.view.model.getBBox().inflate(margin).containsPoint(firstVertex.point)) {
         const [fromDirection] = resolveSides(sourcePoint, firstVertex);
-        const toDirection = fromDirection;
         const dummySource = pointDataFromVertex(sourcePoint.point);
         // Points do not usually have margin. Here we create a point with a margin.
         dummySource.margin = margin;
         dummySource.direction = fromDirection;
-        firstVertex.direction = toDirection;
+        // since the first vertex is inside the source element use the `fromDirection`
+        // for the vertex itself to create a U shape connection
+        firstVertex.direction = fromDirection;
 
         resultVertices.push(...routeBetweenPoints(dummySource, firstVertex, { targetInSourceBBox: true }), firstVertex.point);
     } else {
@@ -1233,18 +1234,22 @@ function rightAngleRouter(vertices, opt, linkView) {
         const from = verticesData[i];
         const to = verticesData[i + 1];
 
-        const segment = new g.Line(from.point, to.point);
-        const segmentAngle = getSegmentAngle(segment);
-        if (segmentAngle % 90 === 0) {
+        const connectionSegment = new g.Line(from.point, to.point);
+        const connectionSegmentAngle = getSegmentAngle(connectionSegment);
+        if (connectionSegmentAngle % 90 === 0) {
             // Since the segment is horizontal or vertical, we can skip the routing and just connect them with a straight line
-            const toDirection = ANGLE_DIRECTION_MAP[segmentAngle];
-            const accessDirection = OPPOSITE_DIRECTIONS[toDirection];
+            const connectionDirection = ANGLE_DIRECTION_MAP[connectionSegmentAngle];
 
-            if (toDirection !== from.direction) {
+            const simplifiedRoute = simplifyPoints(resultVertices);
+            // find out the direction that is used to connect the current route with the next vertex
+            const accessSegment = new g.Line(simplifiedRoute[simplifiedRoute.length - 2], from.point);
+            const accessDirection = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(accessSegment))];
+
+            if (connectionDirection !== OPPOSITE_DIRECTIONS[accessDirection]) {
                 resultVertices.push(from.point, to.point);
                 to.direction = accessDirection;
             } else {
-                const angle = g.normalizeAngle(segmentAngle - 90);
+                const angle = g.normalizeAngle(connectionSegmentAngle - 90);
 
                 let dx = 0;
                 let dy = 0;
@@ -1262,8 +1267,8 @@ function rightAngleRouter(vertices, opt, linkView) {
                 const p1 = { x: from.point.x + dx, y: from.point.y + dy };
                 const p2 = { x: to.point.x + dx, y: to.point.y + dy };
 
-                const segment2 = new g.Line(to.point, p2);
-                to.direction = ANGLE_DIRECTION_MAP[getSegmentAngle(segment2)];
+                const loopEndSegment = new g.Line(to.point, p2);
+                to.direction = ANGLE_DIRECTION_MAP[getSegmentAngle(loopEndSegment)];
 
                 // Constructing a loop
                 resultVertices.push(from.point, p1, p2, to.point);
