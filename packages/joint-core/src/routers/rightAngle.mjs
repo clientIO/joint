@@ -454,10 +454,21 @@ function routeBetweenPoints(source, target, opt = {}) {
                 y = Math.min(y, tmy0);
             }
 
-            if (tx1 >= smx0 && tox < sox) {
-                x = Math.min(tmx0, smx0);
-            } else if (tx0 <= smx1 && tox >= sox) {
-                x = Math.max(tmx1, smx1);
+            // Calculate the left and right distances
+            const leftDistance1 = Math.abs(sox - tmx0);
+            const leftDistance2 = Math.abs(tox - smx0);
+            const leftD = leftDistance1 + leftDistance2;
+
+            const rightDistance1 = Math.abs(sox - tmx1);
+            const rightDistance2 = Math.abs(tox - smx1);
+            const rightD = rightDistance1 + rightDistance2;
+
+            if ((x >= smx0 && x <= smx1) || (x >= tmx0 && x <= tmx1)) {
+                if (sx1 >= tmx0 && leftD < rightD) {
+                    x = Math.min(tmx0, smx0);
+                } else if (sx0 <= tmx1 && leftD >= rightD) {
+                    x = Math.max(tmx1, smx1);
+                }
             }
 
             return [
