@@ -1237,18 +1237,21 @@ function rightAngleRouter(vertices, opt, linkView) {
         const connectionSegment = new g.Line(from.point, to.point);
         const connectionSegmentAngle = getSegmentAngle(connectionSegment);
         if (connectionSegmentAngle % 90 === 0) {
-            // Since the segment is horizontal or vertical, we can skip the routing and just connect them with a straight line
+            // Segment is horizontal or vertical
             const connectionDirection = ANGLE_DIRECTION_MAP[connectionSegmentAngle];
 
             const simplifiedRoute = simplifyPoints(resultVertices);
-            // find out the direction that is used to connect the current route with the next vertex
+            // Find out the direction that is used to connect the current route with the next vertex
             const accessSegment = new g.Line(simplifiedRoute[simplifiedRoute.length - 2], from.point);
             const accessDirection = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(accessSegment))];
 
             if (connectionDirection !== OPPOSITE_DIRECTIONS[accessDirection]) {
+                // The directions are not opposite, so we can connect the vertices directly
                 resultVertices.push(from.point, to.point);
-                to.direction = accessDirection;
+                const [, toDirection] = resolveSides(from, to);
+                to.direction = toDirection;
             } else {
+                // The directions are overlapping, so we need to create a loop
                 const angle = g.normalizeAngle(connectionSegmentAngle - 90);
 
                 let dx = 0;
