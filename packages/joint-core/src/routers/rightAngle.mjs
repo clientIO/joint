@@ -326,6 +326,36 @@ function getOutsidePoint(side, pointData, margin) {
     return outsidePoint;
 }
 
+function loopSegment(from, to, connectionSegmentAngle, margin) {
+    // Find out the loop coordinates.
+    const angle = g.normalizeAngle(connectionSegmentAngle - 90);
+
+    let dx = 0;
+    let dy = 0;
+
+    if (angle === 90) {
+        dy = -margin;
+    } else if (angle === 180) {
+        dx = -margin;
+    } else if (angle === 270) {
+        dy = margin;
+    } else if (angle === 0) {
+        dx = margin;
+    }
+
+    const p1 = { x: from.point.x + dx, y: from.point.y + dy };
+    const p2 = { x: to.point.x + dx, y: to.point.y + dy };
+
+    const loopEndSegment = new g.Line(to.point, p2);
+    // The direction in which the loop should continue.
+    const continueDirection = ANGLE_DIRECTION_MAP[getSegmentAngle(loopEndSegment)];
+
+    return {
+        loopRoute: [from.point, p1, p2, to.point],
+        continueDirection
+    };
+}
+
 function routeBetweenPoints(source, target, opt = {}) {
     const { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
     const { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight, margin: targetMargin } = target;
@@ -1252,33 +1282,17 @@ function rightAngleRouter(vertices, opt, linkView) {
                 to.direction = toDirection;
             } else {
                 // The directions are overlapping, so we need to create a loop
-                const angle = g.normalizeAngle(connectionSegmentAngle - 90);
-
-                let dx = 0;
-                let dy = 0;
-
-                if (angle === 90) {
-                    dy = -margin;
-                } else if (angle === 180) {
-                    dx = -margin;
-                } else if (angle === 270) {
-                    dy = margin;
-                } else if (angle === 0) {
-                    dx = margin;
-                }
-
-                const p1 = { x: from.point.x + dx, y: from.point.y + dy };
-                const p2 = { x: to.point.x + dx, y: to.point.y + dy };
-
-                const loopEndSegment = new g.Line(to.point, p2);
-                to.direction = ANGLE_DIRECTION_MAP[getSegmentAngle(loopEndSegment)];
-
+                const { loopRoute, continueDirection } = loopSegment(from, to, connectionSegmentAngle, margin);
+                to.direction = continueDirection;
                 // Constructing a loop
-                resultVertices.push(from.point, p1, p2, to.point);
+                resultVertices.push(...loopRoute);
             }
 
             continue;
         }
+
+        // Vertices are not aligned vertically nor horizontally
+        // so we need to route between them
 
         const [fromDirection, toDirection] = resolveDirection(from, to);
 
@@ -1328,10 +1342,42 @@ function rightAngleRouter(vertices, opt, linkView) {
         }
     } else {
         // since the target is only a point we can apply the same logic as if we connected two verticesData
-        const [vertexDirection] = resolveDirection(lastVertex, targetPoint);
-        lastVertex.direction = vertexDirection;
+        const from = lastVertex;
+        const to = targetPoint;
 
-        resultVertices.push(...routeBetweenPoints(lastVertex, targetPoint));
+        const connectionSegment = new g.Line(from.point, to.point);
+        const connectionSegmentAngle = getSegmentAngle(connectionSegment);
+        if (connectionSegmentAngle % 90 === 0) {
+            // Segment is horizontal or vertical
+            const connectionDirection = ANGLE_DIRECTION_MAP[connectionSegmentAngle];
+
+            const simplifiedRoute = simplifyPoints(resultVertices);
+            // Find out the direction that is used to connect the current route with the next vertex
+            const accessSegment = new g.Line(simplifiedRoute[simplifiedRoute.length - 2], from.point);
+            const accessDirection = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(accessSegment))];
+
+            if (connectionDirection !== OPPOSITE_DIRECTIONS[accessDirection]) {
+                // The directions are not opposite, so we can connect the vertices directly by adding the first point
+                // the target point is handled separately
+                resultVertices.push(from.point);
+            } else {
+                // The directions are overlapping, so we need to create a loop
+                const { loopRoute } = loopSegment(from, to, connectionSegmentAngle, margin);
+                // Remove the last point since it is the target that is handled separately
+                loopRoute.pop();
+                // Constructing a loop
+                resultVertices.push(...loopRoute);
+            }
+        } else {
+            // The last vertex and the target are not aligned vertically nor horizontally
+            // so we need to route between them
+            const [fromDirection, toDirection] = resolveDirection(from, to);
+
+            from.direction = fromDirection;
+            to.direction = toDirection;
+
+            resultVertices.push(...routeBetweenPoints(from, to));
+        }
     }
 
     return simplifyPoints(resultVertices);
