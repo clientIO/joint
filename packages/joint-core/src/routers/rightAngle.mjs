@@ -396,6 +396,25 @@ function routeBetweenPoints(source, target, opt = {}) {
     const inflatedSourceBBox = sourceBBox.clone().inflate(sourceMargin);
     const inflatedTargetBBox = targetBBox.clone().inflate(targetMargin);
 
+    // Distances used to determine the shortest route along the connections on horizontal sides for
+    // bottom => bottom
+    // top => bottom
+    // bottom => top
+    // top => top
+
+    // Calculate the distances for the left route
+    const leftBoundary = Math.min(sx0, tx0);
+    const rightBoundary = Math.max(sx1, tx1);
+
+    const leftDistance1 = Math.abs(sox - leftBoundary);
+    const leftDistance2 = Math.abs(tox - leftBoundary);
+    const leftD = leftDistance1 + leftDistance2;
+
+    // Calculate the distances for the right route
+    const rightDistance1 = Math.abs(sox - rightBoundary);
+    const rightDistance2 = Math.abs(tox - rightBoundary);
+    const rightD = rightDistance1 + rightDistance2;
+
     if (sourceSide === 'left' && targetSide === 'right') {
         if (smx0 <= tmx1) {
             let y = middleOfHorizontalSides;
@@ -444,25 +463,12 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'top' && targetSide === 'bottom') {
-        const isPointInsideSource = g.intersection.rectWithRect(inflatedSourceBBox, targetBBox);
-
         if (soy < toy) {
             let x = middleOfVerticalSides;
             let y = soy;
 
-            if (isPointInsideSource) {
-                y = Math.min(y, tmy0);
-            }
-
-            // Calculate the left and right distances
-            const leftDistance1 = Math.abs(sox - tmx0);
-            const leftDistance2 = Math.abs(tox - smx0);
-            const leftD = leftDistance1 + leftDistance2;
-
-            const rightDistance1 = Math.abs(sox - tmx1);
-            const rightDistance2 = Math.abs(tox - smx1);
-            const rightD = rightDistance1 + rightDistance2;
-
+            // If the source and target elements overlap, we need to make sure the connection
+            // goes around the target element.
             if ((x >= smx0 && x <= smx1) || (x >= tmx0 && x <= tmx1)) {
                 if (sx1 >= tmx0 && leftD < rightD) {
                     x = Math.min(tmx0, smx0);
@@ -484,20 +490,18 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x: tox, y }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'top') {
-        const isPointInsideSource = g.intersection.rectWithRect(inflatedSourceBBox, targetBBox);
-
         if (soy > toy) {
             let x = middleOfVerticalSides;
             let y = soy;
 
-            if (isPointInsideSource) {
-                y = Math.max(y, tmy1);
-            }
-
-            if (tx1 >= smx0 && tox < sox) {
-                x = Math.min(tmx0, smx0);
-            } else if (tx0 <= smx1 && tox >= sox) {
-                x = Math.max(tmx1, smx1);
+            // If the source and target elements overlap, we need to make sure the connection
+            // goes around the target element.
+            if ((x >= smx0 && x <= smx1) || (x >= tmx0 && x <= tmx1)) {
+                if (sx1 >= tmx0 && leftD < rightD) {
+                    x = Math.min(tmx0, smx0);
+                } else if (sx0 <= tmx1 && leftD >= rightD) {
+                    x = Math.max(tmx1, smx1);
+                }
             }
 
             return [
@@ -531,7 +535,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         let y2 = Math.min((sy0 + ty1) / 2, soy);
 
         if (toy < soy) {
-            if (tox > sox) {
+            // Use the shortest path along the connections on horizontal sides
+            if (rightD > leftD) {
                 x = Math.min(sox, tmx0);
             } else {
                 x = Math.max(sox, tmx1);
@@ -569,7 +574,8 @@ function routeBetweenPoints(source, target, opt = {}) {
         let y2 = Math.max((sy1 + ty0) / 2, soy);
 
         if (toy > soy) {
-            if (tox > sox) {
+            // Use the shortest path along the connections on horizontal sides
+            if (rightD > leftD) {
                 x = Math.min(sox, tmx0);
             } else {
                 x = Math.max(sox, tmx1);
