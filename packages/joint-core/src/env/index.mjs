@@ -7,6 +7,10 @@ export const env = {
         svgforeignobject: function() {
             return !!document.createElementNS &&
                 /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
+        },
+
+        isSafari: function() {
+            return /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
         }
     },
 

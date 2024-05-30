@@ -5,7 +5,7 @@ import { addClassNamePrefix, merge, assign, isObject, isFunction, clone, isPerce
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
-
+import { env } from '../env/index.mjs';
 
 const Flags = {
     TOOLS: CellView.Flags.TOOLS,
@@ -99,6 +99,11 @@ export const LinkView = CellView.extend({
             this.updateHighlighters(true);
             this.updateTools(opt);
             flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.LABELS, Flags.TOOLS, Flags.CONNECTOR]);
+
+            if (env.test('isSafari')) {
+                this.__fixSafariBug268376();
+            }
+
             return flags;
         }
 
@@ -149,6 +154,19 @@ export const LinkView = CellView.extend({
         }
 
         return flags;
+    },
+
+    __fixSafariBug268376: function() {
+        // Safari has a bug where any change after the first render is not reflected in the DOM.
+        // https://bugs.webkit.org/show_bug.cgi?id=268376
+        const { el } = this;
+        const childNodes = Array.from(el.childNodes);
+        const fragment = document.createDocumentFragment();
+        for (let i = 0, n = childNodes.length; i < n; i++) {
+            el.removeChild(childNodes[i]);
+            fragment.appendChild(childNodes[i]);
+        }
+        el.appendChild(fragment);
     },
 
     requestConnectionUpdate: function(opt) {
