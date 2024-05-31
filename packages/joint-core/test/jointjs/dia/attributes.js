@@ -104,8 +104,14 @@ QUnit.module('Attributes', function() {
                     return obj.width === refBBox.width - 11 && obj.height === refBBox.height - 13;
                 })));
 
-                // external css styles taken into account
-                spy.resetHistory();
+                spy.restore();
+            });
+
+            QUnit.test('takes external CSS into account', function(assert) {
+
+                const spy = sinon.spy(joint.util, 'breakText');
+
+                // no text
                 const fontSize = '23px';
                 const fontFamily = 'Arial';
                 const fontWeight = '800';
@@ -121,7 +127,21 @@ QUnit.module('Attributes', function() {
                     }
                 `);
                 paper.svg.prepend(stylesheet);
-                textWrap.set.call(cellView, { text: 'text', breakText: spy }, bbox, node, {});
+
+                const el = new joint.shapes.standard.Rectangle({
+                    attrs: {
+                        label: {
+                            text: 'text',
+                            textWrap: {
+                                breakText: spy
+                            }
+                        }
+                    }
+
+                });
+                el.addTo(graph);
+                paper.requireView(el);
+
                 assert.ok(spy.calledWith(
                     sinon.match.string,
                     sinon.match.object,
@@ -134,8 +154,8 @@ QUnit.module('Attributes', function() {
                             obj['font-weight'] === fontWeight
                         );
                     })));
-                stylesheet.remove();
 
+                stylesheet.remove();
                 spy.restore();
             });
 

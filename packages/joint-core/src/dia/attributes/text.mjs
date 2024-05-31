@@ -7,6 +7,8 @@ function isTextInUse(_value, _node, attrs) {
     return (attrs.text !== undefined);
 }
 
+const FONT_ATTRIBUTES = ['font-weight', 'font-family', 'font-size', 'letter-spacing', 'text-transform'];
+
 const textAttributesNS = {
 
     'line-height': {
@@ -122,18 +124,28 @@ const textAttributesNS = {
             var text = value.text;
             if (text === undefined) text = attrs.text;
             if (text !== undefined) {
+
                 const breakTextFn = value.breakText || breakText;
                 const computedStyles = getComputedStyle(node);
+                const wrapFontAttributes = {};
+                // The font size attributes must be set on the node
+                // to get the correct text wrapping.
+                // TODO: set the native SVG attributes before special attributes
+                for (let i = 0; i < FONT_ATTRIBUTES.length; i++) {
+                    const name = FONT_ATTRIBUTES[i];
+                    if (name in attrs) {
+                        node.setAttribute(name, attrs[name]);
+                    }
+                    // Note: computedStyles is a live object
+                    // i.e. the properties are evaluated when accessed.
+                    wrapFontAttributes[name] = computedStyles[name];
+                }
 
-                wrappedText = breakTextFn('' + text, size, {
-                    'font-weight': computedStyles.fontWeight,
-                    'font-family': computedStyles.fontFamily,
-                    'text-transform': computedStyles.textTransform,
-                    'font-size': computedStyles.fontSize,
-                    'letter-spacing': computedStyles.letterSpacing,
-                    // The `line-height` attribute in SVG is JoinJS specific.
-                    'lineHeight': attrs['line-height'],
-                }, {
+                // The `line-height` attribute in SVG is JoinJS specific.
+                // TODO: change the `lineHeight` to breakText option.
+                wrapFontAttributes.lineHeight = attrs['line-height'];
+
+                wrappedText = breakTextFn('' + text, size, wrapFontAttributes, {
                     // Provide an existing SVG Document here
                     // instead of creating a temporary one over again.
                     svgDocument: this.paper.svg,
@@ -147,7 +159,11 @@ const textAttributesNS = {
                 wrappedText = '';
             }
             textAttributesNS.text.set.call(this, wrappedText, refBBox, node, attrs);
-        }
+        },
+        // We expose the font attributes list to allow
+        // the user to take other custom font attributes into account
+        // when wrapping the text.
+        FONT_ATTRIBUTES
     },
 
     'title': {
