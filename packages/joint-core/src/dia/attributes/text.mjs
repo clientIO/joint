@@ -126,23 +126,17 @@ const textAttributesNS = {
             if (text !== undefined) {
 
                 const breakTextFn = value.breakText || breakText;
-                const faCount = FONT_ATTRIBUTES.length;
-
+                const computedStyles = getComputedStyle(node);
                 // The font size attributes must be set on the node
                 // to get the correct text wrapping.
                 // TODO: set the native SVG attributes before special attributes
-                for (let i = 0; i < faCount; i++) {
+                for (let i = 0; i < FONT_ATTRIBUTES.length; i++) {
                     const name = FONT_ATTRIBUTES[i];
                     if (name in attrs) {
                         node.setAttribute(name, attrs[name]);
                     }
-                }
-
-                // Get the computed styles of the node for all font attributes.
-                const computedStyles = getComputedStyle(node);
-                const wrapFontAttributes = {};
-                for (let i = 0; i < faCount; i++) {
-                    const name = FONT_ATTRIBUTES[i];
+                    // Note: computedStyles is a live object
+                    // i.e. the properties are evaluated when accessed.
                     wrapFontAttributes[name] = computedStyles[name];
                 }
 
