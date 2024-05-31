@@ -127,6 +127,7 @@ const textAttributesNS = {
 
                 const breakTextFn = value.breakText || breakText;
                 const computedStyles = getComputedStyle(node);
+                const wrapFontAttributes = {};
                 // The font size attributes must be set on the node
                 // to get the correct text wrapping.
                 // TODO: set the native SVG attributes before special attributes
@@ -158,7 +159,11 @@ const textAttributesNS = {
                 wrappedText = '';
             }
             textAttributesNS.text.set.call(this, wrappedText, refBBox, node, attrs);
-        }
+        },
+        // We expose the font attributes list to allow
+        // the user to take other custom font attributes into account
+        // when wrapping the text.
+        FONT_ATTRIBUTES
     },
 
     'title': {
