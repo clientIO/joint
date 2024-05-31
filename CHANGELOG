@@ -1,5 +1,6 @@
 31-05-2024 (v4.0.4)
 
+  @joint/core
   * update HTML demo in alignment with v4
   * dia.LinkView - fix missing arrowheads in Safari
   * dia.attributes - fix to take the inline font attributes into account
