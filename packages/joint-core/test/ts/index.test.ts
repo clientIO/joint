@@ -190,3 +190,11 @@ joint.connectors.curve({ x: 0, y: 0 }, { x: 20, y: 20 }, [], {
     targetDirection: joint.connectors.curve.TangentDirections.CLOSEST_POINT,
     direction: joint.connectors.curve.Directions.HORIZONTAL
 });
+
+/* Partial attributes */
+
+rectangle.prop({ size: { width: 100 }});
+
+new joint.shapes.standard.Rectangle({
+    position: { x: 100 },
+});
