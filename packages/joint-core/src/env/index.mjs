@@ -9,6 +9,7 @@ export const env = {
                 /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
         },
 
+        // works for iOS browsers too
         isSafari: function() {
             return /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
         }
