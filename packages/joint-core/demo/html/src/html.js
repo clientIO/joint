@@ -1,8 +1,9 @@
 (function(joint, V) {
 
     // Notes:
-    // - Currently, there is no support for z-indexes on HTML Elements
-    // - It's not possible to export the diagram into PNG/SVG on the client-side
+    // - It's not possible to use SVG/Raster export plugins with HTML shapes
+    // - Links stacking order is limited to be either above or below HTML elements
+    // - Ports are partially hidden below the HTML elements by default
     // - Do not use CSS background on the root HTML element when using ports
 
     var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
@@ -14,11 +15,7 @@
         cellViewNamespace: joint.shapes,
         async: true,
         frozen: true,
-        sorting: joint.dia.Paper.sorting.NONE,
-        guard: function(evt) {
-            var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
-            return inputs.indexOf(evt.target.tagName.toUpperCase()) > -1;
-        }
+        sorting: joint.dia.Paper.sorting.NONE
     });
 
     // Container for all HTML views inside paper

@@ -146,3 +146,14 @@ select.html-element-field.field-empty {
 .toolbar-button:hover {
     background: #F7F8F9;
 }
+
+/* Bring the links above HTML elements */
+/*
+.joint-paper > svg {
+    z-index: 2;
+    pointer-events: none;
+}
+
+.joint-paper > svg .joint-link {
+    pointer-events: all;
+} */
