@@ -3,7 +3,7 @@
   @joint/core
   * update HTML demo in alignment with v4
   * dia.LinkView - fix missing arrowheads in Safari
-  * dia.attributes - fix to take the inline font attributes into account
+  * dia.attributes - fix to take the inline font attributes into account in `textWrap`
 
 14-05-2024 (v4.0.3)
 
