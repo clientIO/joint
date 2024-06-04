@@ -356,6 +356,88 @@ function loopSegment(from, to, connectionSegmentAngle, margin) {
     };
 }
 
+// Calculates the distances along the horizontal axis for the left and right route.
+function getHorizontalDistance(source, target) {
+
+    const { x0: sx0, x1: sx1, outsidePoint: sourcePoint } = source;
+    const { x0: tx0, x1: tx1, outsidePoint: targetPoint } = target;
+
+    // Furthest left boundary
+    let leftBoundary = Math.min(sx0, tx0);
+    // Furthest right boundary
+    let rightBoundary = Math.max(sx1, tx1);
+
+    // If the source and target elements are on the same side, we need to figure out what shape defines the boundary.
+    if (source.direction === target.direction) {
+
+        const aboveShape = source.y0 < target.y0 ? source : target;
+        const belowShape = aboveShape === source ? target : source;
+
+        // The source and target anchors are on the top => then the `aboveShape` defines the boundary.
+        // The source and target anchors are on the bottom => then the `belowShape` defines the boundary.
+        const boundaryDefiningShape = source.direction === Directions.TOP ? aboveShape : belowShape;
+
+        leftBoundary = boundaryDefiningShape.x0;
+        rightBoundary = boundaryDefiningShape.x1;
+    }
+
+    const { x: sox } = sourcePoint;
+    const { x: tox } = targetPoint;
+
+    // Calculate the distances for the left route
+    const leftDistance1 = Math.abs(sox - leftBoundary);
+    const leftDistance2 = Math.abs(tox - leftBoundary);
+    const leftD = leftDistance1 + leftDistance2;
+
+    // Calculate the distances for the right route
+    const rightDistance1 = Math.abs(sox - rightBoundary);
+    const rightDistance2 = Math.abs(tox - rightBoundary);
+    const rightD = rightDistance1 + rightDistance2;
+
+    return [leftD, rightD];
+}
+
+// Calculates the distances along the vertical axis for the top and bottom route.
+function getVerticalDistance(source, target) {
+
+    const { y0: sy0, y1: sy1, outsidePoint: sourcePoint } = source;
+    const { y0: ty0, y1: ty1, outsidePoint: targetPoint } = target;
+
+    // Furthest top boundary
+    let topBoundary = Math.min(sy0, ty0);
+    // Furthest bottom boundary
+    let bottomBoundary = Math.max(sy1, ty1);
+
+    // If the source and target elements are on the same side, we need to figure out what shape defines the boundary.
+    if (source.direction === target.direction) {
+
+        const leftShape = source.x0 < target.x0 ? source : target;
+        const rightShape = leftShape === source ? target : source;
+
+        // The source and target anchors are on the left => then the `leftShape` defines the boundary.
+        // The source and target anchors are on the right => then the `rightShape` defines the boundary.
+        const boundaryDefiningShape = source.direction === Directions.LEFT ? leftShape : rightShape;
+
+        topBoundary = boundaryDefiningShape.y0;
+        bottomBoundary = boundaryDefiningShape.y1;  
+    }
+
+    const { y: soy } = sourcePoint;
+    const { y: toy } = targetPoint;
+
+    // Calculate the distances for the top route
+    const topDistance1 = Math.abs(soy - topBoundary);
+    const topDistance2 = Math.abs(toy - topBoundary);
+    const topD = topDistance1 + topDistance2;
+
+    // Calculate the distances for the bottom route
+    const bottomDistance1 = Math.abs(soy - bottomBoundary);
+    const bottomDistance2 = Math.abs(toy - bottomBoundary);
+    const bottomD = bottomDistance1 + bottomDistance2;
+
+    return [topD, bottomD];
+}
+
 function routeBetweenPoints(source, target, opt = {}) {
     const { point: sourcePoint, x0: sx0, y0: sy0, width: sourceWidth, height: sourceHeight, margin: sourceMargin } = source;
     const { point: targetPoint, x0: tx0, y0: ty0, width: targetWidth, height: targetHeight, margin: targetMargin } = target;
@@ -396,35 +478,38 @@ function routeBetweenPoints(source, target, opt = {}) {
     const inflatedSourceBBox = sourceBBox.clone().inflate(sourceMargin);
     const inflatedTargetBBox = targetBBox.clone().inflate(targetMargin);
 
+    const sourceForDistance = Object.assign({}, source, { x1: sx1, y1: sy1, outsidePoint: sourceOutsidePoint, direction: sourceSide });
+    const targetForDistance = Object.assign({}, target, { x1: tx1, y1: ty1, outsidePoint: targetOutsidePoint, direction: targetSide });
+
     // Distances used to determine the shortest route along the connections on horizontal sides for
     // bottom => bottom
     // top => bottom
     // bottom => top
     // top => top
+    const [leftD, rightD] = getHorizontalDistance(sourceForDistance, targetForDistance);
 
-    // Calculate the distances for the left route
-    const leftBoundary = Math.min(sx0, tx0);
-    const rightBoundary = Math.max(sx1, tx1);
+    // Distances used to determine the shortest route along the connection on vertical sides for
+    // left => left
+    // left => right
+    // right => right
+    // right => left
+    const [topD, bottomD] = getVerticalDistance(sourceForDistance, targetForDistance);
 
-    const leftDistance1 = Math.abs(sox - leftBoundary);
-    const leftDistance2 = Math.abs(tox - leftBoundary);
-    const leftD = leftDistance1 + leftDistance2;
-
-    // Calculate the distances for the right route
-    const rightDistance1 = Math.abs(sox - rightBoundary);
-    const rightDistance2 = Math.abs(tox - rightBoundary);
-    const rightD = rightDistance1 + rightDistance2;
-
+    // All possible combinations of source and target sides
     if (sourceSide === 'left' && targetSide === 'right') {
-        if (smx0 <= tmx1) {
+        if (sox < tox) {
             let y = middleOfHorizontalSides;
-            if (sox <= tmx0) {
-                if (ty1 >= smy0 && toy < soy) {
+
+            // If the source and target elements overlap, we need to make sure the connection
+            // goes around the target element.
+            if ((y >= smy0 && y <= smy1) || (y >= tmy0 && y <= tmy1)) {
+                if (sy1 >= tmy0 && topD < bottomD) {
                     y = Math.min(tmy0, smy0);
-                } else if (ty0 <= smy1 && toy >= soy) {
+                } else if (sy0 <= tmy1 && topD >= bottomD) {
                     y = Math.max(tmy1, smy1);
                 }
             }
+
             return [
                 { x: sox, y: soy },
                 { x: sox, y },
@@ -436,15 +521,18 @@ function routeBetweenPoints(source, target, opt = {}) {
         const x = (sox + tox) / 2;
         return [
             { x, y: soy },
-            { x, y: toy }
+            { x, y: toy },
         ];
     } else if (sourceSide === 'right' && targetSide === 'left') {
-        if (sox >= tmx0) {
+        if (sox > tox) {
             let y = middleOfHorizontalSides;
-            if (sox > tx1) {
-                if (ty1 >= smy0 && toy < soy) {
+
+            // If the source and target elements overlap, we need to make sure the connection
+            // goes around the target element.
+            if ((y >= smy0 && y <= smy1) || (y >= tmy0 && y <= tmy1)) {
+                if (sy1 >= tmy0 && topD < bottomD) {
                     y = Math.min(tmy0, smy0);
-                } else if (ty0 <= smy1 && toy >= soy) {
+                } else if (sy0 <= tmy1 && topD >= bottomD) {
                     y = Math.max(tmy1, smy1);
                 }
             }
@@ -465,7 +553,6 @@ function routeBetweenPoints(source, target, opt = {}) {
     } else if (sourceSide === 'top' && targetSide === 'bottom') {
         if (soy < toy) {
             let x = middleOfVerticalSides;
-            let y = soy;
 
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
@@ -478,8 +565,8 @@ function routeBetweenPoints(source, target, opt = {}) {
             }
 
             return [
-                { x: sox, y },
-                { x, y },
+                { x: sox, y: soy },
+                { x, y: soy },
                 { x, y: toy },
                 { x: tox, y: toy }
             ];
@@ -542,10 +629,10 @@ function routeBetweenPoints(source, target, opt = {}) {
                 x = Math.max(sox, tmx1);
             }
         } else {
-            if (tox >= sox) {
-                x = Math.max(tox, smx1);
-            } else {
+            if (rightD > leftD) {
                 x = Math.min(tox, smx0);
+            } else {
+                x = Math.max(tox, smx1);
             }
         }
 
@@ -581,10 +668,10 @@ function routeBetweenPoints(source, target, opt = {}) {
                 x = Math.max(sox, tmx1);
             }
         } else {
-            if (tox >= sox) {
-                x = Math.max(tox, smx1);
-            } else {
+            if (rightD > leftD) {
                 x = Math.min(tox, smx0);
+            } else {
+                x = Math.max(tox, smx1);
             }
         }
 
@@ -613,13 +700,13 @@ function routeBetweenPoints(source, target, opt = {}) {
         let x2 = Math.min((sx0 + tx1) / 2, sox);
 
         if (tox > sox) {
-            if (toy <= soy) {
+            if (topD <= bottomD) {
                 y = Math.min(smy0, toy);
             } else {
                 y = Math.max(smy1, toy);
             }
         } else {
-            if (toy >= soy) {
+            if (topD <= bottomD) {
                 y = Math.min(tmy0, soy);
             } else {
                 y = Math.max(tmy1, soy);
@@ -651,13 +738,13 @@ function routeBetweenPoints(source, target, opt = {}) {
         let x2 = Math.max((sx1 + tx0) / 2, sox);
 
         if (tox <= sox) {
-            if (toy <= soy) {
+            if (topD <= bottomD) {
                 y = Math.min(smy0, toy);
             } else {
                 y = Math.max(smy1, toy);
             }
         } else {
-            if (toy >= soy) {
+            if (topD <= bottomD) {
                 y = Math.min(tmy0, soy);
             } else {
                 y = Math.max(tmy1, soy);
