@@ -743,7 +743,8 @@ function routeBetweenPoints(source, target, opt = {}) {
             (soy <= ty0 && (inflatedSourceBBox.bottomRight().x <= tox || inflatedSourceBBox.bottomLeft().x >= tox)) ||
             (soy >= ty0 && (inflatedTargetBBox.bottomRight().x <= sox || inflatedTargetBBox.bottomLeft().x >= sox));
 
-        if (useUShapeConnection) {
+        // U-shape connection is a straight line if `sox` and `tox` are the same
+        if (useUShapeConnection && sox !== tox) {
             return [
                 { x: sox, y: Math.min(soy, toy) },
                 { x: tox, y: Math.min(soy, toy) }
@@ -782,7 +783,8 @@ function routeBetweenPoints(source, target, opt = {}) {
             (soy >= toy && (inflatedSourceBBox.topRight().x <= tox || inflatedSourceBBox.topLeft().x >= tox)) ||
             (soy <= toy && (inflatedTargetBBox.topRight().x <= sox || inflatedTargetBBox.topLeft().x >= sox));
 
-        if (useUShapeConnection) {
+        // U-shape connection is a straight line if `sox` and `tox` are the same
+        if (useUShapeConnection && sox !== tox) {
             return [
                 { x: sox, y: Math.max(soy, toy) },
                 { x: tox, y: Math.max(soy, toy) }
@@ -821,7 +823,8 @@ function routeBetweenPoints(source, target, opt = {}) {
             (sox <= tox && (inflatedSourceBBox.bottomRight().y <= toy || inflatedSourceBBox.topRight().y >= toy)) ||
             (sox >= tox && (inflatedTargetBBox.bottomRight().y <= soy || inflatedTargetBBox.topRight().y >= soy));
 
-        if (useUShapeConnection) {
+        // U-shape connection is a straight line if `soy` and `toy` are the same
+        if (useUShapeConnection && soy !== toy) {
             return [
                 { x: Math.min(sox, tox), y: soy },
                 { x: Math.min(sox, tox), y: toy }
@@ -859,7 +862,8 @@ function routeBetweenPoints(source, target, opt = {}) {
             (sox >= tox && (inflatedSourceBBox.bottomLeft().y <= toy || inflatedSourceBBox.topLeft().y >= toy)) ||
             (sox <= tox && (inflatedTargetBBox.bottomLeft().y <= soy || inflatedTargetBBox.topLeft().y >= soy));
 
-        if (useUShapeConnection) {
+        // U-shape connection is a straight line if `soy` and `toy` are the same
+        if (useUShapeConnection && soy !== toy) {
             return [
                 { x: Math.max(sox, tox), y: soy },
                 { x: Math.max(sox, tox), y: toy }
@@ -1549,8 +1553,20 @@ function rightAngleRouter(vertices, opt, linkView) {
             const [, toDirection] = resolveSides(lastVertex, targetPoint);
             // we are creating a point that has a margin
             dummyTarget.margin = margin;
+            // use same direction for both the dummy target and the last vertex
+            // to ensure that there is a hop between them
             dummyTarget.direction = toDirection;
+
+            const matchingHorizontalAxis = lastVertex.point.y === targetPoint.point.y;
+            const matchingVerticalAxis = lastVertex.point.x === targetPoint.point.x;
+
             lastVertex.direction = OPPOSITE_DIRECTIONS[lastVertex.direction];
+
+            // if the last vertex is aligned with the target element on either axis
+            // we need to ensure that the last segment is not a straight line
+            if ((matchingHorizontalAxis || matchingVerticalAxis) && OPPOSITE_DIRECTIONS[lastVertex.direction] !== toDirection) {
+                lastVertex.direction = toDirection;
+            }
 
             resultVertices.push(...routeBetweenPoints(lastVertex, dummyTarget));
         } else {
