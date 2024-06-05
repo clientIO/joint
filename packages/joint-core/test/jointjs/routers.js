@@ -2060,27 +2060,27 @@ QUnit.module('routers', function(hooks) {
     });
 
     QUnit.test('rightAngle routing with vertex inside the source element bbox - source: right', function(assert) {
-        const vertices = [{ x: 0, y: size.y }, { x: 100, y: 100 }];
+        const vertices = [{ x: 0, y: size.height }, { x: 100, y: 100 }];
         const [, , l] = this.addTestSubjectsWithVertices('right', 'top', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 0 L 0 0 L 0 100 L 100 100 L 100 122 L 25 122 L 25 150', 'Source above target with vertex inside the source element bbox');
+        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 50 L 0 50 L 0 100 L 100 100 L 100 122 L 25 122 L 25 150', 'Source above target with vertex inside the source element bbox');
     });
 
     QUnit.test('rightAngle routing with vertex inside the source element bbox - source: bottom', function(assert) {
-        const vertices = [{ x: size.width, y: size.y }, { x: 100, y: 100 }];
+        const vertices = [{ x: size.width, y: size.height }, { x: 100, y: 100 }];
         const [, , l] = this.addTestSubjectsWithVertices('bottom', 'top', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 25 50 L 25 78 L 50 78 L 50 0 L 100 0 L 100 111 L 25 111 L 25 150', 'Source above target with vertex inside the source element bbox');
+        assert.checkDataPath(d, 'M 25 50 L 25 78 L 50 78 L 50 50 L 100 50 L 100 111 L 25 111 L 25 150', 'Source above target with vertex inside the source element bbox');
     });
 
     QUnit.test('rightAngle routing with vertex inside the source element bbox - source: left', function(assert) {
-        const vertices = [{ x: size.width, y: size.y }, { x: 100, y: 100 }];
+        const vertices = [{ x: size.width, y: size.height }, { x: 100, y: 100 }];
         const [, , l] = this.addTestSubjectsWithVertices('left', 'top', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 0 L 100 0 L 100 111 L 25 111 L 25 150', 'Source above target with vertex inside the source element bbox');
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 50 L 100 50 L 100 111 L 25 111 L 25 150', 'Source above target with vertex inside the source element bbox');
     });
 
     QUnit.test('rightAngle routing with vertex inside the target element bbox - target: top', function(assert) {
