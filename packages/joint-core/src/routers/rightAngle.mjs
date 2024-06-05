@@ -497,24 +497,57 @@ function routeBetweenPoints(source, target, opt = {}) {
 
     // All possible combinations of source and target sides
     if (sourceSide === 'left' && targetSide === 'right') {
-        if (sox < tox) {
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
+        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
+
+        // Use S-shaped connection
+        if (isPointInsideSource || isPointInsideTarget) {
+            const middleOfAnchors = (soy + toy) / 2;
+            
+            return [
+                { x: sox, y: soy },
+                { x: sox, y: middleOfAnchors },
+                { x: tox, y: middleOfAnchors },
+                { x: tox, y: toy }
+            ];
+        }
+
+        if (smx0 < tox) {
             let y = middleOfHorizontalSides;
+            let x1 = sox;
+            let x2 = tox;
+
+            const isUpwardsShorter = topD < bottomD;
 
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
             if ((y >= smy0 && y <= smy1) || (y >= tmy0 && y <= tmy1)) {
-                if (sy1 >= tmy0 && topD < bottomD) {
+                if (smy1 >= tmy0 && isUpwardsShorter) {
                     y = Math.min(tmy0, smy0);
-                } else if (sy0 <= tmy1 && topD >= bottomD) {
+                } else if (smy0 <= tmy1 && !isUpwardsShorter) {
                     y = Math.max(tmy1, smy1);
+                }
+
+                // This handles the case when the source and target elements overlap as well as
+                // the case when the source is to the left of the target element.
+                x1 = Math.min(sox, tmx0);
+                x2 = Math.max(tox, smx1);
+            
+                // This is an edge case when the source and target intersect and
+                if ((isUpwardsShorter && soy < ty0) || (!isUpwardsShorter && soy > ty1)) {
+                    // the path should no longer rely on minimal x boundary in `x1`
+                    x1 = sox;
+                } else if ((isUpwardsShorter && toy < sy0) || (!isUpwardsShorter && toy > sy1)) {
+                    // the path should no longer rely on maximal x boundary in `x2`
+                    x2 = tox;
                 }
             }
 
             return [
-                { x: sox, y: soy },
-                { x: sox, y },
-                { x: tox, y },
-                { x: tox, y: toy }
+                { x: x1, y: soy },
+                { x: x1, y },
+                { x: x2, y },
+                { x: x2, y: toy }
             ];
         }
 
@@ -524,24 +557,57 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x, y: toy },
         ];
     } else if (sourceSide === 'right' && targetSide === 'left') {
-        if (sox > tox) {
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
+        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
+
+        // Use S-shaped connection
+        if (isPointInsideSource || isPointInsideTarget) {
+            const middleOfAnchors = (soy + toy) / 2;
+            
+            return [
+                { x: sox, y: soy },
+                { x: sox, y: middleOfAnchors },
+                { x: tox, y: middleOfAnchors },
+                { x: tox, y: toy }
+            ];
+        }
+
+        if (smx1 > tox) {
             let y = middleOfHorizontalSides;
+            let x1 = sox;
+            let x2 = tox;
+
+            const isUpwardsShorter = topD < bottomD;
 
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
             if ((y >= smy0 && y <= smy1) || (y >= tmy0 && y <= tmy1)) {
-                if (sy1 >= tmy0 && topD < bottomD) {
+                if (smy1 >= tmy0 && isUpwardsShorter) {
                     y = Math.min(tmy0, smy0);
-                } else if (sy0 <= tmy1 && topD >= bottomD) {
+                } else if (smy0 <= tmy1 && !isUpwardsShorter) {
                     y = Math.max(tmy1, smy1);
+                }
+
+                // This handles the case when the source and target elements overlap as well as
+                // the case when the source is to the left of the target element.
+                x1 = Math.max(sox, tmx1);
+                x2 = Math.min(tox, smx0);
+
+                // This is an edge case when the source and target intersect and
+                if ((isUpwardsShorter && soy < ty0) || (!isUpwardsShorter && soy > ty1)) {
+                    // the path should no longer rely on maximal x boundary in `x1`
+                    x1 = sox;
+                } else if ((isUpwardsShorter && toy < sy0) || (!isUpwardsShorter && toy > sy1)) {
+                    // the path should no longer rely on minimal x boundary in `x2`
+                    x2 = tox;
                 }
             }
 
             return [
-                { x: sox, y: soy },
-                { x: sox, y },
-                { x: tox, y },
-                { x: tox, y: toy }
+                { x: x1, y: soy },
+                { x: x1, y },
+                { x: x2, y },
+                { x: x2, y: toy }
             ];
         }
 
@@ -551,53 +617,120 @@ function routeBetweenPoints(source, target, opt = {}) {
             { x, y: toy }
         ];
     } else if (sourceSide === 'top' && targetSide === 'bottom') {
-        if (soy < toy) {
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
+        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
+
+        // Use S-shaped connection
+        if (isPointInsideSource || isPointInsideTarget) {
+            const middleOfAnchors = (sox + tox) / 2;
+
+            return [
+                { x: sox, y: soy },
+                { x: middleOfAnchors, y: soy },
+                { x: middleOfAnchors, y: toy },
+                { x: tox, y: toy }
+            ];
+        }
+
+        if (smy0 < toy) {
             let x = middleOfVerticalSides;
+            let y1 = soy;
+            let y2 = toy;
+
+            const isLeftShorter = leftD < rightD;
 
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
             if ((x >= smx0 && x <= smx1) || (x >= tmx0 && x <= tmx1)) {
-                if (sx1 >= tmx0 && leftD < rightD) {
+                if (smx1 >= tmx0 && isLeftShorter) {
                     x = Math.min(tmx0, smx0);
-                } else if (sx0 <= tmx1 && leftD >= rightD) {
+                } else if (smx0 <= tmx1 && !isLeftShorter) {
                     x = Math.max(tmx1, smx1);
+                }
+
+                // This handles the case when the source and target elements overlap as well as
+                // the case when the source is to the left of the target element.
+                y1 = Math.min(soy, tmy0);
+                y2 = Math.max(toy, smy1);
+
+                // This is an edge case when the source and target intersect and
+                if ((isLeftShorter && sox < tx0) || (!isLeftShorter && sox > tx1)) {
+                    // the path should no longer rely on minimal y boundary in `y1`
+                    y1 = soy;
+                } else if ((isLeftShorter && tox < sx0) || (!isLeftShorter && tox > sx1)) {
+                    // the path should no longer rely on maximal y boundary in `y2`
+                    y2 = toy;
                 }
             }
 
             return [
-                { x: sox, y: soy },
-                { x, y: soy },
-                { x, y: toy },
-                { x: tox, y: toy }
+                { x: sox, y: y1 },
+                { x, y: y1 },
+                { x, y: y2 },
+                { x: tox, y: y2 }
             ];
         }
+
         const y = (soy + toy) / 2;
         return [
             { x: sox, y },
             { x: tox, y }
         ];
     } else if (sourceSide === 'bottom' && targetSide === 'top') {
-        if (soy > toy) {
+        const isPointInsideSource = inflatedSourceBBox.containsPoint(targetOutsidePoint);
+        const isPointInsideTarget = inflatedTargetBBox.containsPoint(sourceOutsidePoint);
+
+        // Use S-shaped connection
+        if (isPointInsideSource || isPointInsideTarget) {
+            const middleOfAnchors = (sox + tox) / 2;
+
+            return [
+                { x: sox, y: soy },
+                { x: middleOfAnchors, y: soy },
+                { x: middleOfAnchors, y: toy },
+                { x: tox, y: toy }
+            ];
+        }
+
+        if (smy1 > toy) {
             let x = middleOfVerticalSides;
-            let y = soy;
+            let y1 = soy;
+            let y2 = toy;
+            
+            const isLeftShorter = leftD < rightD;
 
             // If the source and target elements overlap, we need to make sure the connection
             // goes around the target element.
             if ((x >= smx0 && x <= smx1) || (x >= tmx0 && x <= tmx1)) {
-                if (sx1 >= tmx0 && leftD < rightD) {
+                if (smx1 >= tmx0 && isLeftShorter) {
                     x = Math.min(tmx0, smx0);
-                } else if (sx0 <= tmx1 && leftD >= rightD) {
+                } else if (smx0 <= tmx1 && !isLeftShorter) {
                     x = Math.max(tmx1, smx1);
+                }
+
+                // This handles the case when the source and target elements overlap as well as
+                // the case when the source is to the left of the target element.
+                y1 = Math.max(soy, tmy1);
+                y2 = Math.min(toy, smy0);
+
+                // This is an edge case when the source and target intersect and
+                if ((isLeftShorter && sox < tx0) || (!isLeftShorter && sox > tx1)) {
+                    // the path should no longer rely on maximal y boundary in `y1`
+                    y1 = soy;
+                } else if ((isLeftShorter && tox < sx0) || (!isLeftShorter && tox > sx1)) {
+                    // the path should no longer rely on minimal y boundary in `y2`
+                    y2 = toy;
                 }
             }
 
             return [
-                { x: sox, y },
-                { x, y },
-                { x, y: toy },
-                { x: tox, y: toy }
+                { x: sox, y: y1 },
+                { x, y: y1 },
+                { x, y: y2 },
+                { x: tox, y: y2 }
             ];
         }
+
         const y = (soy + toy) / 2;
         return [
             { x: sox, y },
