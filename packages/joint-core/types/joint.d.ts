@@ -4212,11 +4212,15 @@ export namespace linkTools {
             protected onPointerClick(evt: dia.Event): void;
         }
 
+        interface VertexAddingOptions {
+            interactiveLineNode: string;
+        }
+
         interface Options extends dia.ToolView.Options {
             handleClass?: typeof VertexHandle;
             snapRadius?: number;
             redundancyRemoval?: boolean;
-            vertexAdding?: boolean;
+            vertexAdding?: boolean | Partial<VertexAddingOptions>;
             vertexRemoving?: boolean;
             vertexMoving?: boolean;
             stopPropagation?: boolean;
