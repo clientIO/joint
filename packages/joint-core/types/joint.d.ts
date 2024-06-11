@@ -65,9 +65,10 @@ export namespace dia {
     type OrthogonalDirection =
         'left' | 'top' | 'right' | 'bottom';
 
-    type Direction =
-        OrthogonalDirection |
+    type DiagonalDirection =
         'top-left' | 'top-right' | 'bottom-right' | 'bottom-left';
+
+    type Direction = OrthogonalDirection | DiagonalDirection;
 
     type LinkEnd =
         'source' | 'target';
