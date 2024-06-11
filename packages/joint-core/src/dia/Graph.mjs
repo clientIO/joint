@@ -35,14 +35,25 @@ const GraphCells = Collection.extend({
             throw new Error(`dia.Graph: Could not find cell constructor for type: '${type}'. Make sure to add the constructor to 'cellNamespace'.`);
         }
 
-        const cell = new ModelClass(attrs, opt);
-        // Add a reference to the graph. It is necessary to do this here because this is the earliest place
-        // where a new model is created from a plain JS object. For other objects, see `joint.dia.Graph>>_prepareCell()`.
-        if (!opt.dry) {
-            cell.graph = collection.graph;
-        }
+        return new ModelClass(attrs, opt);
+    },
 
-        return cell;
+    _addReference: function(model, options) {
+        Collection.prototype._addReference.apply(this, arguments);
+        // If not in `dry` mode and the model does not have a graph reference yet,
+        // set the reference.
+        if (!options.dry && !model.graph) {
+            model.graph = this.graph;
+        }
+    },
+
+    _removeReference: function(model, options) {
+        Collection.prototype._removeReference.apply(this, arguments);
+        // If not in `dry` mode and the model has a reference to this exact graph,
+        // remove the reference.
+        if (!options.dry && model.graph === this.graph) {
+            model.graph = null;
+        }
     },
 
     // `comparator` makes it easy to sort cells based on their `z` index.
@@ -268,20 +279,12 @@ export const Graph = Model.extend({
         return this;
     },
 
-    _prepareCell: function(cell, opt) {
+    _prepareCell: function(cell) {
 
-        var attrs;
+        let attrs;
         if (cell instanceof Model) {
             attrs = cell.attributes;
-            if (!cell.graph && (!opt || !opt.dry)) {
-                // An element can not be member of more than one graph.
-                // A cell stops being the member of the graph after it's explicitly removed.
-                cell.graph = this;
-            }
         } else {
-            // In case we're dealing with a plain JS object, we have to set the reference
-            // to the `graph` right after the actual model is created. This happens in the `model()` function
-            // of `joint.dia.GraphCells`.
             attrs = cell;
         }
 
@@ -391,11 +394,6 @@ export const Graph = Model.extend({
         // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
         // would be triggered on the graph model.
         this.get('cells').remove(cell, { silent: true });
-
-        if (cell.graph === this) {
-            // Remove the element graph reference only if the cell is the member of this graph.
-            cell.graph = null;
-        }
     },
 
     // Get a cell by `id`.

@@ -347,11 +347,11 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.test('storing reference on models', function(assert) {
 
-        var fromInstance = new joint.shapes.standard.Rectangle({ id: 'a' });
-        var fromPlainObject = { id: 'b', type: 'standard.Rectangle' };
+        const fromInstance = new joint.shapes.standard.Rectangle({ id: 'a' });
+        const fromPlainObject = { id: 'b', type: 'standard.Rectangle' };
 
-        var graph1 = this.graph;
-        var graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+        const graph1 = this.graph;
+        const graph2 = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
         graph1.addCell(fromInstance);
         graph1.addCell(fromPlainObject);
@@ -368,8 +368,8 @@ QUnit.module('graph', function(hooks) {
             'The graph reference was stored on the model when created from a plain JS object.'
         );
 
-        var a = graph1.getCell('a');
-        var b = graph1.getCell('b');
+        const a = graph1.getCell('a');
+        const b = graph1.getCell('b');
 
         a.remove();
         assert.ok(a.graph === null, 'The graph reference is nulled when the model is removed from the graph.');
@@ -387,6 +387,11 @@ QUnit.module('graph', function(hooks) {
             graph1,
             'The graph reference was not stored after the model was added to a graph while it\'s still member of another graph.'
         );
+
+        graph2.resetCells([]);
+        assert.ok(b.graph === graph1, 'The graph reference is not nulled when the model is removed from a graph which is not its owner.');
+        graph1.resetCells([]);
+        assert.ok(b.graph === null, 'The graph reference is nulled when the model is removed from the graph.');
     });
 
     QUnit.test('dry flag', function(assert) {
