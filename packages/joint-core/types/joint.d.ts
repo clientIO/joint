@@ -1596,7 +1596,6 @@ export namespace dia {
             mountBatchSize?: number;
             unmountBatchSize?: number;
             viewport?: Paper.ViewportCallback;
-            progress?: Paper.ProgressCallback;
         }): void;
 
         checkViewport(opt?: {
@@ -1611,10 +1610,10 @@ export namespace dia {
         updateViews(opt?: {
             batchSize?: number;
             viewport?: Paper.ViewportCallback;
-            progress?: Paper.ProgressCallback;
         }): {
             updated: number;
             batches: number;
+            priority: number;
         };
 
         hasScheduledUpdates(): boolean;
