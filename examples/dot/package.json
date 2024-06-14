@@ -1,0 +1,35 @@
+{
+  "name": "@joint/demo-graphviz-dot-layout",
+  "version": "4.0.1",
+  "main": "src/index.js",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "license": "MPL-2.0",
+  "private": true,
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "scripts": {
+    "start": "webpack-dev-server",
+    "tsc": "tsc"
+  },
+  "dependencies": {
+    "@hpcc-js/wasm": "^2.15.3",
+    "@joint/core": "workspace:^"
+  },
+  "devDependencies": {
+    "css-loader": "3.5.3",
+    "style-loader": "1.2.1",
+    "webpack": "^5.61.0",
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.2.1"
+  },
+  "volta": {
+    "node": "16.18.1",
+    "npm": "8.19.2",
+    "yarn": "3.4.1"
+  }
+}
