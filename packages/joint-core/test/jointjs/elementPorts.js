@@ -2019,6 +2019,37 @@ QUnit.module('element ports', function() {
         });
     });
 
+    QUnit.module('getPortGroupNames', function() {
+
+        QUnit.test('return group names of all ports', function(assert) {
+
+                const shape = new joint.shapes.standard.Rectangle();
+
+                assert.deepEqual(shape.getPortGroupNames(), [], 'no groups');
+
+                shape.set({
+                    ports: {
+                        groups: {
+                            a: { position: 'left' },
+                            b: { position: 'right' }
+                        },
+                        items: [
+                            { id: 'one', group: 'a' },
+                            { id: 'two', group: 'b' },
+                            { id: 'three', group: 'b' },
+                            { id: 'four', group: 'b' }
+                        ]
+                    }
+                });
+
+                assert.deepEqual(shape.getPortGroupNames(), ['a', 'b'], 'group with ports');
+
+                shape.prop('ports/groups/c', { position: 'top' });
+
+                assert.deepEqual(shape.getPortGroupNames(), ['a', 'b', 'c'], 'group without ports');
+            });
+    });
+
     QUnit.module('portProp', function() {
 
         QUnit.test('set port properties', function(assert) {
