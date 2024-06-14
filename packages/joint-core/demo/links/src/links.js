@@ -782,7 +782,7 @@ paper.on('link:mouseenter', function(linkView) {
             break;
         case link6:
             tools = [
-                new joint.linkTools.Vertices(),
+                new joint.linkTools.Vertices({ vertexAdding: { interactiveLinkNode: 'outline' }}),
                 new CustomBoundary({ padding: 25 })
             ];
             break;

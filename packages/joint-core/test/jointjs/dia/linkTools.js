@@ -343,4 +343,39 @@ QUnit.module('linkTools', function(hooks) {
         });
     });
 
+    QUnit.module('Vertices', function() {
+        QUnit.test('vertexAdding', function(assert) {
+            // vertexAdding = true
+            const vertices1 = new joint.linkTools.Vertices({
+                vertexAdding: true
+            });
+            linkView.addTools(new joint.dia.ToolsView({ tools: [vertices1] }));
+            assert.ok(vertices1.el.querySelector('.joint-vertices-path'));
+            assert.notOk(linkView.el.querySelector('.joint-vertices-path'));
+            linkView.removeTools();
+            // vertexAdding = false
+            const vertices2 = new joint.linkTools.Vertices({
+                vertexAdding: false
+            });
+            linkView.addTools(new joint.dia.ToolsView({ tools: [vertices2] }));
+            assert.notOk(vertices2.el.querySelector('.joint-vertices-path'));
+            assert.notOk(linkView.el.querySelector('.joint-vertices-path'));
+            linkView.removeTools();
+            // interactiveLinkNode selector
+            const selector = 'wrapper';
+            const vertices3 = new joint.linkTools.Vertices({
+                vertexAdding: { interactiveLinkNode: selector }
+            });
+            linkView.addTools(new joint.dia.ToolsView({ tools: [vertices3] }));
+            assert.notOk(vertices3.el.querySelector('.joint-vertices-path'));
+            assert.ok(linkView.el.querySelector('.joint-vertices-path'));
+            assert.ok(joint.mvc.$.event.has(linkView.findNode(selector)));
+            assert.ok(linkView.findNode(selector).classList.contains('joint-vertices-path'));
+            linkView.removeTools();
+            assert.notOk(linkView.el.querySelector('.joint-vertices-path'));
+            assert.notOk(linkView.findNode(selector).classList.contains('joint-vertices-path'));
+            assert.notOk(joint.mvc.$.event.has(linkView.findNode(selector)));
+        });
+    });
+
 });
