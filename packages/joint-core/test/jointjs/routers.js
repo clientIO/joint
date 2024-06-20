@@ -448,10 +448,30 @@ QUnit.module('routers', function(hooks) {
     const rightAngleRouter = { name: 'rightAngle', args: { margin }};
     const position = { x: 0, y: 150 };
 
-    this.addTestSubjects = function(sourceSide, targetSide, router = rightAngleRouter) {
+    this.addTestSubjects = function(sourceSide, targetSide, router = rightAngleRouter, anchors = { sourceAnchor: {}, targetAnchor: {}}) {
         const r1 = new joint.shapes.standard.Rectangle({ size });
         const r2 = r1.clone().position(position.x, position.y);
-        const l = new joint.shapes.standard.Link({ source: { id: r1.id, anchor: { name: sourceSide }}, target: { id: r2.id, anchor: { name: targetSide }}, router });
+        const l = new joint.shapes.standard.Link({
+            source: {
+                id: r1.id,
+                anchor: {
+                    args: {
+                        ...anchors.sourceAnchor
+                    },
+                    name: sourceSide 
+                }
+            },
+            target: {
+                id: r2.id,
+                anchor: {
+                    args: {
+                        ...anchors.targetAnchor
+                    },
+                    name: targetSide
+                }
+            },
+            router 
+        });
 
         this.graph.addCells([r1, r2, l]);
         return [r1, r2, l];
@@ -1474,6 +1494,496 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, path, 'Target on the left of source');
     });
 
+    QUnit.test('rightAngle routing horizontal distance - source: top, target: top', function(assert) {
+        const elementSize = {
+            width: 200,
+            height: 50
+        };
+
+        const anchorTemplate = {
+            args: {},
+            name: 'top',
+        }; 
+
+        const [r1, r2, l] = this.addTestSubjects('top', 'top', rightAngleRouter, { sourceAnchor: { dx: -elementSize.width / 2 + 1 }});
+
+        r1.resize(elementSize.width, elementSize.height);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 1 0 L 1 -28 L -28 -28 L -28 100 L 25 100 L 25 150', 'Source above target - route going left');
+
+        l.source(r1, {
+            anchor: {
+                ...anchorTemplate,
+                args: {
+                    dx: elementSize.width / 2 - 1
+                }
+            }
+        });
+
+        r2.position(elementSize.width - size.width, position.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 199 0 L 199 -28 L 228 -28 L 228 100 L 175 100 L 175 150', 'Source above target - route going right');
+
+        r1.resize(size.width, size.height);
+        r1.position(position.x, position.y);
+        r2.resize(elementSize.width, elementSize.height);
+        r2.position(0, 0);
+
+        l.source(r1, {
+            anchor: {
+                ...anchorTemplate,
+                args: {
+                    dx: 0
+                }
+            }
+        });
+
+        l.target(r2, {
+            anchor: {
+                ...anchorTemplate,
+                args: {
+                    dx: -elementSize.width / 2 + 1
+                }
+            }
+        });
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 150 L 25 100 L -28 100 L -28 -28 L 1 -28 L 1 0', 'Target above source - route going left');
+
+        l.target(r2, {
+            anchor: {
+                ...anchorTemplate,
+                args: {
+                    dx: elementSize.width / 2 - 1
+                }
+            }
+        });
+
+        r1.position(elementSize.width - size.width, position.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 175 150 L 175 100 L 228 100 L 228 -28 L 199 -28 L 199 0', 'Target above source - route going right');
+    });
+
+    QUnit.test('rightAngle routing horizontal distance - source: bottom, target: bottom', function(assert) {
+        const elementSize = {
+            width: 200,
+            height: 50
+        };
+
+        const anchorTemplate = {
+            args: {},
+            name: 'bottom',
+        }; 
+
+        const [r1, r2, l] = this.addTestSubjects('bottom', 'bottom', rightAngleRouter, { targetAnchor: { dx: -elementSize.width / 2 + 1 }});
+
+        r2.resize(elementSize.width, elementSize.height);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 50 L 25 100 L -28 100 L -28 228 L 1 228 L 1 200', 'Source above target - route going left');
+
+        l.target(r2, {
+            anchor: {
+                ...anchorTemplate,
+                args: {
+                    dx: elementSize.width / 2 - 1
+                }
+            }
+        });
+
+        r1.position(elementSize.width - size.width, 0);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 175 50 L 175 100 L 228 100 L 228 228 L 199 228 L 199 200', 'Source above target - route going right');
+
+        r1.resize(elementSize.width, elementSize.height);
+        r1.position(position.x, position.y);
+        r2.resize(size.width, size.height);
+        r2.position(0, 0);
+
+        l.source(r1, {
+            anchor: {
+                ...anchorTemplate,
+                args: {
+                    dx: -elementSize.width / 2 + 1
+                }
+            }
+        });
+
+        l.target(r2, {
+            anchor: {
+                ...anchorTemplate,
+                args: {
+                    dx: 0
+                }
+            }
+        });
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 1 200 L 1 228 L -28 228 L -28 100 L 25 100 L 25 50', 'Target above source - route going left');
+
+        l.source(r1, {
+            anchor: {
+                ...anchorTemplate,
+                args: {
+                    dx: elementSize.width / 2 - 1
+                }
+            }
+        });
+
+        r2.position(elementSize.width - size.width, 0);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 199 200 L 199 228 L 228 228 L 228 100 L 175 100 L 175 50', 'Target above source - route going right');
+    });
+
+    QUnit.test('rightAngle routing horizontal distance - source: top, target: bottom', function(assert) {
+        const elementSize = {
+            width: 200,
+            height: 50
+        };
+
+        const [r1, r2, l] = this.addTestSubjects('top', 'bottom');
+
+        r2.resize(elementSize.width, elementSize.height);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L -28 -28 L -28 228 L 100 228 L 100 200', 'Source above target (target wider) - route going left');
+
+        r1.position(elementSize.width - size.width, 0);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 175 0 L 175 -28 L 228 -28 L 228 228 L 100 228 L 100 200', 'Source above target (target wider) - route going right');
+
+        r1.resize(elementSize.width, elementSize.height);
+        r1.position(0, 0);
+        r2.resize(size.width, size.height);
+        r2.position(position.x, position.y);
+
+        l.source(r1, {
+            anchor: {
+                name: 'top',
+                args: {
+                    dx: -elementSize.width / 2 + 1
+                }
+            }
+        });
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 1 0 L 1 -28 L -28 -28 L -28 228 L 25 228 L 25 200', 'Source above target (source wider) - route going left');
+
+        l.source(r1, {
+            anchor: {
+                name: 'top',
+                args: {
+                    dx: elementSize.width / 2 - 1
+                }
+            }
+        });
+
+        r2.position(elementSize.width - size.width, position.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 199 0 L 199 -28 L 228 -28 L 228 228 L 175 228 L 175 200', 'Source above target (source wider) - route going right');
+    });
+
+    QUnit.test('rightAngle routing horizontal distance - source: bottom, target: top', function(assert) {
+        const elementSize = {
+            width: 200,
+            height: 50
+        };
+
+        const [r1, r2, l] = this.addTestSubjects('bottom', 'top');
+
+        r1.position(position.x, position.y);
+        r2.position(0, 0);
+        r2.resize(elementSize.width, elementSize.height);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 25 200 L 25 228 L -28 228 L -28 -28 L 100 -28 L 100 0', 'Target above source (target wider) - route going left');
+
+        r1.position(elementSize.width - size.width, position.y);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 175 200 L 175 228 L 228 228 L 228 -28 L 100 -28 L 100 0', 'Target above source (target wider) - route going right');
+
+        r1.resize(elementSize.width, elementSize.height);
+        r1.position(0, position.y);
+        r2.resize(size.width, size.height);
+
+        l.source(r1, {
+            anchor: {
+                name: 'bottom',
+                args: {
+                    dx: -elementSize.width / 2 + 1
+                }
+            }
+        });
+
+        d = this.paper.findViewByModel(l).metrics.data;
+
+        assert.checkDataPath(d, 'M 1 200 L 1 228 L -28 228 L -28 -28 L 25 -28 L 25 0', 'Source above target (source wider) - route going left');
+    
+        l.source(r1, {
+            anchor: {
+                name: 'bottom',
+                args: {
+                    dx: elementSize.width / 2 - 1
+                }
+            }
+        });
+
+        r2.position(elementSize.width - size.width, 0);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 199 200 L 199 228 L 228 228 L 228 -28 L 175 -28 L 175 0', 'Source above target (source wider) - route going right');
+    });
+
+    QUnit.test('rightAngle routing vertical distance - source: left, target: left', function(assert) {
+        const elementSize = {
+            width: 50,
+            height: 200
+        };
+
+        const [r1, r2, l] = this.addTestSubjects('left', 'left', rightAngleRouter, { targetAnchor: { dy: -elementSize.height / 2 + 1 }});
+
+        r1.position(100, 0);
+        r2.position(0, 0);
+        r2.resize(elementSize.width, elementSize.height);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 100 25 L 72 25 L 72 -28 L -28 -28 L -28 1 L 0 1', 'Target to the left of the source - route going up');
+
+        l.target(r2, {
+            anchor: {
+                name: 'left',
+                args: {
+                    dy: elementSize.height / 2 - 1
+                }
+            }
+        });
+
+        r1.position(100, elementSize.height - size.height);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 100 175 L 72 175 L 72 228 L -28 228 L -28 199 L 0 199', 'Target to the left of the source - route going down');
+
+        r1.position(0, 0);
+        r1.resize(elementSize.width, elementSize.height);
+        r2.position(100, 0);
+        r2.resize(size.width, size.height);
+
+        l.source(r1, {
+            anchor: {
+                name: 'left',
+                args: {
+                    dy: -elementSize.height / 2 + 1
+                }
+            }
+        });
+
+        l.target(r2, {
+            anchor: {
+                name: 'left',
+                args: {
+                    dy: 0
+                }
+            }
+        });
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 0 1 L -28 1 L -28 -28 L 72 -28 L 72 25 L 100 25', 'Source to the left of the target - route going up');
+
+        l.source(r1, {
+            anchor: {
+                name: 'left',
+                args: {
+                    dy: elementSize.height / 2 - 1
+                }
+            }
+        });
+
+        r2.position(100, elementSize.height - size.height);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 0 199 L -28 199 L -28 228 L 72 228 L 72 175 L 100 175', 'Source to the left of the target - route going down');
+    });
+
+    QUnit.test('rightAngle routing vertical distance - source: right, target: right', function(assert) {
+        const elementSize = {
+            width: 50,
+            height: 200
+        };
+
+        const [r1, r2, l] = this.addTestSubjects('right', 'right', rightAngleRouter, { targetAnchor: { dy: -elementSize.height / 2 + 1 }});
+
+        r2.position(100, 0);
+        r2.resize(elementSize.width, elementSize.height);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 -28 L 178 -28 L 178 1 L 150 1', 'Target to the right of the source - route going up');
+
+        l.target(r2, {
+            anchor: {
+                name: 'right',
+                args: {
+                    dy: elementSize.height / 2 - 1
+                }
+            }
+        });
+
+        r1.position(0, elementSize.height - size.height);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 50 175 L 78 175 L 78 228 L 178 228 L 178 199 L 150 199', 'Target to the right of the source - route going down');
+
+        r1.position(100, 0);
+        r1.resize(elementSize.width, elementSize.height);
+        r2.position(0, 0);
+        r2.resize(size.width, size.height);
+
+        l.source(r1, {
+            anchor: {
+                name: 'right',
+                args: {
+                    dy: -elementSize.height / 2 + 1
+                }
+            }
+        });
+
+        l.target(r2, {
+            anchor: {
+                name: 'right',
+                args: {
+                    dy: 0
+                }
+            }
+        });
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 150 1 L 178 1 L 178 -28 L 78 -28 L 78 25 L 50 25', 'Source to the right of the target - route going up');
+
+        l.source(r1, {
+            anchor: {
+                name: 'right',
+                args: {
+                    dy: elementSize.height / 2 - 1
+                }
+            }
+        });
+
+        r2.position(0, elementSize.height - size.height);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 150 199 L 178 199 L 178 228 L 78 228 L 78 175 L 50 175', 'Source to the right of the target - route going down');
+    });
+
+    QUnit.test('rightAngle routing vertical distance - source: left, target: right', function(assert) {
+        const elementSize = {
+            width: 50,
+            height: 200
+        };
+
+        const [r1, r2, l] = this.addTestSubjects('left', 'right');
+
+        r2.resize(elementSize.width, elementSize.height);
+        r2.position(100, 0);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 -28 L 178 -28 L 178 100 L 150 100', 'Source to the left of the target (target higher) - route going up');
+
+        r1.position(0, elementSize.height - size.height);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 0 175 L -28 175 L -28 228 L 178 228 L 178 100 L 150 100', 'Source to the left of the target (target higher) - route going down');
+
+        r1.position(0, 0);
+        r1.resize(elementSize.width, elementSize.height);
+        r2.position(100, 0);
+        r2.resize(size.width, size.height);
+
+        l.source(r1, {
+            anchor: {
+                name: 'left',
+                args: {
+                    dy: -elementSize.height / 2 + 1
+                }
+            }
+        });
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 0 1 L -28 1 L -28 -28 L 178 -28 L 178 25 L 150 25', 'Source to the left of the target (source higher) - route going up');
+
+        l.source(r1, {
+            anchor: {
+                name: 'left',
+                args: {
+                    dy: elementSize.height / 2 - 1
+                }
+            }
+        });
+
+        r2.position(100, elementSize.height - size.height);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 0 199 L -28 199 L -28 228 L 178 228 L 178 175 L 150 175', 'Source to the left of the target (source higher) - route going down');
+    });
+
+    QUnit.test('rightAngle routing vertical distance - source: right, target: left', function(assert) {
+        const elementSize = {
+            width: 50,
+            height: 200
+        };
+
+        const [r1, r2, l] = this.addTestSubjects('right', 'left');
+
+        r1.position(100, 0);
+        r2.position(0, 0);
+        r2.resize(elementSize.width, elementSize.height);
+
+        let d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 150 25 L 178 25 L 178 -28 L -28 -28 L -28 100 L 0 100', 'Source to the right of the target (target higher) - route going up');
+
+        r1.position(100, elementSize.height - size.height);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 150 175 L 178 175 L 178 228 L -28 228 L -28 100 L 0 100', 'Source to the right of the target (target higher) - route going down');
+
+        r1.position(100, 0);
+        r1.resize(elementSize.width, elementSize.height);
+        r2.position(0, 0);
+        r2.resize(size.width, size.height);
+
+        l.source(r1, {
+            anchor: {
+                name: 'right',
+                args: {
+                    dy: -elementSize.height / 2 + 1
+                }
+            }
+        });
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 150 1 L 178 1 L 178 -28 L -28 -28 L -28 25 L 0 25', 'Source to the right of the target (source higher) - route going up');
+
+        l.source(r1, {
+            anchor: {
+                name: 'right',
+                args: {
+                    dy: elementSize.height / 2 - 1
+                }
+            }
+        });
+
+        r2.position(0, elementSize.height - size.height);
+
+        d = this.paper.findViewByModel(l).metrics.data;
+        assert.checkDataPath(d, 'M 150 199 L 178 199 L 178 228 L -28 228 L -28 175 L 0 175', 'Source to the right of the target (source higher) - route going down');
+    });
+
     QUnit.test('rightAngle routing with vertex - source: top, target: top', function(assert) {
         const vertex = { x: 100, y: 100 };
         const [r1, r2, l] = this.addTestSubjectsWithVertices('top', 'top', [vertex]);
@@ -2060,27 +2570,27 @@ QUnit.module('routers', function(hooks) {
     });
 
     QUnit.test('rightAngle routing with vertex inside the source element bbox - source: right', function(assert) {
-        const vertices = [{ x: 0, y: size.y }, { x: 100, y: 100 }];
+        const vertices = [{ x: 0, y: size.height }, { x: 100, y: 100 }];
         const [, , l] = this.addTestSubjectsWithVertices('right', 'top', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 0 L 0 0 L 0 100 L 100 100 L 100 122 L 25 122 L 25 150', 'Source above target with vertex inside the source element bbox');
+        assert.checkDataPath(d, 'M 50 25 L 78 25 L 78 50 L 0 50 L 0 100 L 100 100 L 100 122 L 25 122 L 25 150', 'Source above target with vertex inside the source element bbox');
     });
 
     QUnit.test('rightAngle routing with vertex inside the source element bbox - source: bottom', function(assert) {
-        const vertices = [{ x: size.width, y: size.y }, { x: 100, y: 100 }];
+        const vertices = [{ x: size.width, y: size.height }, { x: 100, y: 100 }];
         const [, , l] = this.addTestSubjectsWithVertices('bottom', 'top', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 25 50 L 25 78 L 50 78 L 50 0 L 100 0 L 100 111 L 25 111 L 25 150', 'Source above target with vertex inside the source element bbox');
+        assert.checkDataPath(d, 'M 25 50 L 25 78 L 50 78 L 50 50 L 100 50 L 100 111 L 25 111 L 25 150', 'Source above target with vertex inside the source element bbox');
     });
 
     QUnit.test('rightAngle routing with vertex inside the source element bbox - source: left', function(assert) {
-        const vertices = [{ x: size.width, y: size.y }, { x: 100, y: 100 }];
+        const vertices = [{ x: size.width, y: size.height }, { x: 100, y: 100 }];
         const [, , l] = this.addTestSubjectsWithVertices('left', 'top', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 0 L 100 0 L 100 111 L 25 111 L 25 150', 'Source above target with vertex inside the source element bbox');
+        assert.checkDataPath(d, 'M 0 25 L -28 25 L -28 50 L 100 50 L 100 111 L 25 111 L 25 150', 'Source above target with vertex inside the source element bbox');
     });
 
     QUnit.test('rightAngle routing with vertex inside the target element bbox - target: top', function(assert) {
@@ -2088,7 +2598,7 @@ QUnit.module('routers', function(hooks) {
         const [, , l] = this.addTestSubjectsWithVertices('top', 'top', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 175 L -3 175 L -3 122 L 25 122 L 25 150', 'Source above target with vertex inside the target element bbox');
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 175 L 37.5 175 L 37.5 122 L 25 122 L 25 150', 'Source above target with vertex inside the target element bbox');
     });
 
     QUnit.test('rightAngle routing with vertex inside the target element bbox - target: right', function(assert) {
@@ -2096,7 +2606,7 @@ QUnit.module('routers', function(hooks) {
         const [, , l] = this.addTestSubjectsWithVertices('top', 'right', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 150 L 0 150 L 0 203 L 78 203 L 78 175 L 50 175', 'Source above target with vertex inside the target element bbox');
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 150 L 0 150 L 0 162.5 L 78 162.5 L 78 175 L 50 175', 'Source above target with vertex inside the target element bbox');
     });
 
     QUnit.test('rightAngle routing with vertex inside the target element bbox - target: bottom', function(assert) {
@@ -2104,7 +2614,7 @@ QUnit.module('routers', function(hooks) {
         const [, , l] = this.addTestSubjectsWithVertices('top', 'bottom', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 150 L -3 150 L -3 228 L 25 228 L 25 200', 'Source above target with vertex inside the target element bbox');
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 150 L 50 150 L 50 228 L 25 228 L 25 200', 'Source above target with vertex inside the target element bbox');
     });
 
     QUnit.test('rightAngle routing with vertex inside the target element bbox - target: left', function(assert) {
@@ -2112,6 +2622,6 @@ QUnit.module('routers', function(hooks) {
         const [, , l] = this.addTestSubjectsWithVertices('top', 'left', vertices);
         let d = this.paper.findViewByModel(l).metrics.data;
 
-        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 150 L 25 150 L 25 147 L -28 147 L -28 175 L 0 175', 'Source above target with vertex inside the target element bbox');
+        assert.checkDataPath(d, 'M 25 0 L 25 -28 L 100 -28 L 100 150 L -28 150 L -28 175 L 0 175', 'Source above target with vertex inside the target element bbox');
     });
 });
