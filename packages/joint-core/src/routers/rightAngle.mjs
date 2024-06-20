@@ -96,20 +96,18 @@ function resolveForTopSourceSide(source, target, nextInLine) {
         if (nextInLine.point.x === ax) return Directions.BOTTOM;
         return Directions.LEFT;
     }
-    if (tx < smx0 && ty >= sy0) return Directions.TOP;
-    if (tx > smx1 && ty >= sy0) return Directions.TOP;
+    if (tx < smx0 && ty > smy0) return Directions.TOP;
+    if (tx > smx1 && ty > smy0) return Directions.TOP;
     if (tx >= smx0 && tx <= ax && ty > sy1) {
         if (nextInLine.point.x < tx) {
             return Directions.RIGHT;
         }
-
         return Directions.LEFT;
     }
     if (tx <= smx1 && tx >= ax && ty > sy1) {
         if (nextInLine.point.x < tx) {
             return Directions.RIGHT;
         }
-
         return Directions.LEFT;
     }
 
@@ -136,20 +134,18 @@ function resolveForBottomSourceSide(source, target, nextInLine) {
         if (nextInLine.point.x === ax) return Directions.TOP;
         return Directions.LEFT;
     }
-    if (tx < smx0 && ty <= sy1) return Directions.BOTTOM;
-    if (tx > smx1 && ty <= sy1) return Directions.BOTTOM;
+    if (tx < smx0 && ty < smy1) return Directions.BOTTOM;
+    if (tx > smx1 && ty < smy1) return Directions.BOTTOM;
     if (tx >= smx0 && tx <= ax && ty < sy0) {
         if (nextInLine.point.x < tx) {
             return Directions.RIGHT;
         }
-
         return Directions.LEFT;
     }
     if (tx <= smx1 && tx >= ax && ty < sy0) {
         if (nextInLine.point.x < tx) {
             return Directions.RIGHT;
         }
-
         return Directions.LEFT;
     }
 
@@ -170,8 +166,8 @@ function resolveForLeftSourceSide(source, target, nextInLine) {
     if (tx < ax && ty === ay) return Directions.RIGHT;
     if (tx <= smx0 && ty < ay) return Directions.BOTTOM;
     if (tx <= smx0 && ty > ay) return Directions.TOP;
-    if (tx >= sx0 && ty <= smy0) return Directions.LEFT;
-    if (tx >= sx0 && ty >= smy1) return Directions.LEFT;
+    if (tx >= smx0 && ty < smy0) return Directions.LEFT;
+    if (tx >= smx0 && ty > smy1) return Directions.LEFT;
     if (tx > sx1 && ty >= smy0 && ty <= ay) {
         if (nextInLine.point.y < ty) {
             return Directions.BOTTOM;
@@ -204,8 +200,8 @@ function resolveForRightSourceSide(source, target, nextInLine) {
     if (tx > ax && ty === ay) return Directions.LEFT;
     if (tx >= smx1 && ty < ay) return Directions.BOTTOM;
     if (tx >= smx1 && ty > ay) return Directions.TOP;
-    if (tx <= sx1 && ty <= smy0) return Directions.RIGHT;
-    if (tx <= sx1 && ty >= smy1) return Directions.RIGHT;
+    if (tx <= smx1 && ty < smy0) return Directions.RIGHT;
+    if (tx <= smx1 && ty > smy1) return Directions.RIGHT;
     if (tx < sx0 && ty >= smy0 && ty <= ay) {
         if (nextInLine.point.y < ty) {
             return Directions.BOTTOM;
@@ -326,6 +322,13 @@ function getOutsidePoint(side, pointData, margin) {
     return outsidePoint;
 }
 
+function createLoop(from, to, { dx = 0, dy = 0 }) {
+    const p1 = { x: from.point.x + dx, y: from.point.y + dy };
+    const p2 = { x: to.point.x + dx, y: to.point.y + dy };
+
+    return [from.point, p1, p2, to.point];
+}
+
 function loopSegment(from, to, connectionSegmentAngle, margin) {
     // Find out the loop coordinates.
     const angle = g.normalizeAngle(connectionSegmentAngle - 90);
@@ -343,15 +346,15 @@ function loopSegment(from, to, connectionSegmentAngle, margin) {
         dx = margin;
     }
 
-    const p1 = { x: from.point.x + dx, y: from.point.y + dy };
-    const p2 = { x: to.point.x + dx, y: to.point.y + dy };
+    const loopRoute = createLoop(from, to, { dx, dy });
 
-    const loopEndSegment = new g.Line(to.point, p2);
+    const secondCreatedPoint = loopRoute[2];
+    const loopEndSegment = new g.Line(to.point, secondCreatedPoint);
     // The direction in which the loop should continue.
     const continueDirection = ANGLE_DIRECTION_MAP[getSegmentAngle(loopEndSegment)];
 
     return {
-        loopRoute: [from.point, p1, p2, to.point],
+        loopRoute,
         continueDirection
     };
 }
@@ -436,6 +439,27 @@ function getVerticalDistance(source, target) {
     const bottomD = bottomDistance1 + bottomDistance2;
 
     return [topD, bottomD];
+}
+
+// Inflate bbox in 3 directions depending on the direction of the anchor
+// don't inflate in the opposite direction of the anchor
+function moveAndExpandBBox(bbox, direction, margin) {
+    switch (direction) {
+        case Directions.LEFT:
+            bbox.inflate(0, margin).moveAndExpand({ x: -margin, width: margin });
+            break;
+        case Directions.RIGHT:
+            bbox.inflate(0, margin).moveAndExpand({ width: margin });
+            break;
+        case Directions.TOP:
+            bbox.inflate(margin, 0).moveAndExpand({ y: -margin, height: margin });
+            break;
+        case Directions.BOTTOM:
+            bbox.inflate(margin, 0).moveAndExpand({ height: margin });
+            break;
+    }
+
+    return bbox;
 }
 
 function routeBetweenPoints(source, target, opt = {}) {
@@ -1461,6 +1485,28 @@ function routeBetweenPoints(source, target, opt = {}) {
     }
 }
 
+function getLoopCoordinates(direction, angle, margin) {
+    const isHorizontal = direction === Directions.LEFT || direction === Directions.RIGHT;
+
+    let dx = 0;
+    let dy = 0;
+
+    switch (g.normalizeAngle(Math.round(angle))) {
+        case 0:
+        case 90:
+            dx = isHorizontal ? 0 : margin;
+            dy = isHorizontal ? margin : 0;
+            break;
+        case 180:
+        case 270:
+            dx = isHorizontal ? 0 : -margin;
+            dy = isHorizontal ? -margin : 0;
+            break;
+    }
+
+    return { dx, dy };
+}
+
 function rightAngleRouter(vertices, opt, linkView) {
     const { sourceDirection = Directions.AUTO, targetDirection = Directions.AUTO } = opt;
     const margin = opt.margin || 20;
@@ -1481,17 +1527,50 @@ function rightAngleRouter(vertices, opt, linkView) {
     const verticesData = vertices.map((v) => pointDataFromVertex(v));
     const [firstVertex] = verticesData;
 
-    if (sourcePoint.view && sourcePoint.view.model.isElement() && sourcePoint.view.model.getBBox().inflate(margin).containsPoint(firstVertex.point)) {
-        const [fromDirection] = resolveSides(sourcePoint, firstVertex);
-        const dummySource = pointDataFromVertex(sourcePoint.point);
-        // Points do not usually have margin. Here we create a point with a margin.
-        dummySource.margin = margin;
-        dummySource.direction = fromDirection;
-        // since the first vertex is inside the source element use the `fromDirection`
-        // for the vertex itself to create a U shape connection
-        firstVertex.direction = fromDirection;
+    const [resolvedSourceDirection] = resolveSides(sourcePoint, firstVertex);
+    const isElement = sourcePoint.view && sourcePoint.view.model.isElement();
+    const sourceBBox = isElement ? moveAndExpandBBox(sourcePoint.view.model.getBBox(), resolvedSourceDirection, margin) : null;
+    const isVertexInside = isElement ? sourceBBox.containsPoint(firstVertex.point) : false;
 
-        resultVertices.push(...routeBetweenPoints(dummySource, firstVertex, { targetInSourceBBox: true }), firstVertex.point);
+    if (isVertexInside) {
+        const outsidePoint = getOutsidePoint(resolvedSourceDirection, sourcePoint, margin);
+        const firstPointOverlap = outsidePoint.equals(firstVertex.point);
+
+        const alignsVertically = sourcePoint.point.x === firstVertex.point.x;
+        const alignsHorizontally = sourcePoint.point.y === firstVertex.point.y;
+
+        const isVerticalAndAligns = alignsVertically && (resolvedSourceDirection === Directions.TOP || resolvedSourceDirection === Directions.BOTTOM);
+        const isHorizontalAndAligns = alignsHorizontally && (resolvedSourceDirection === Directions.LEFT || resolvedSourceDirection === Directions.RIGHT);
+
+        const firstSegment = new g.Line(sourcePoint.point, outsidePoint);
+        const isVertexOnSegment = firstSegment.containsPoint(firstVertex.point);
+
+        const isVertexAlignedAndInside = isVertexInside && (isHorizontalAndAligns || isVerticalAndAligns);
+
+        
+
+        if (firstPointOverlap) {
+            resultVertices.push(sourcePoint.point, firstVertex.point);
+            // Set the access direction as the opposite of the source direction that will be used to connect the route with the next vertex
+            firstVertex.direction = OPPOSITE_DIRECTIONS[resolvedSourceDirection];
+        } else if (isVertexOnSegment || isVertexAlignedAndInside) {
+            // Case where there is a need to create a loop
+            const angle = getSegmentAngle(isVertexOnSegment ? firstSegment : new g.Line(sourcePoint.point, firstVertex.point));
+            const { dx, dy } = getLoopCoordinates(resolvedSourceDirection, angle, margin);
+
+            const loop = createLoop({ point: outsidePoint }, firstVertex, { dx, dy });
+            const secondCreatedPoint = loop[2];
+            const loopEndSegment = new g.Line(firstVertex.point, secondCreatedPoint);
+
+            const accessDirection = ANGLE_DIRECTION_MAP[getSegmentAngle(loopEndSegment)];
+            firstVertex.direction = accessDirection;
+            resultVertices.push(...loop);
+        } else {
+            // No need to create a route, use the `routeBetweenPoints` to construct a route
+            firstVertex.direction = resolvedSourceDirection;
+            firstVertex.margin = margin;
+            resultVertices.push(...routeBetweenPoints(sourcePoint, firstVertex, { targetInSourceBBox: true }), firstVertex.point);
+        }
     } else {
         // The first point responsible for the initial direction of the route
         const next = verticesData[1] || targetPoint;
@@ -1511,10 +1590,19 @@ function rightAngleRouter(vertices, opt, linkView) {
             // Segment is horizontal or vertical
             const connectionDirection = ANGLE_DIRECTION_MAP[connectionSegmentAngle];
 
-            const simplifiedRoute = simplifyPoints(resultVertices);
+            const simplifiedRoute = simplifyPoints([...resultVertices, from.point]);
+            // const simplifiedRoute2 = simplifyPoints([from.point, ...resultVertices]);
             // Find out the direction that is used to connect the current route with the next vertex
-            const accessSegment = new g.Line(simplifiedRoute[simplifiedRoute.length - 2], from.point);
+            const accessSegment = new g.Line(simplifiedRoute[simplifiedRoute.length - 2], simplifiedRoute[simplifiedRoute.length - 1]);
+            // const accessSegment2 = new g.Line(simplifiedRoute2[simplifiedRoute2.length - 2], simplifiedRoute2[simplifiedRoute2.length - 1]);
             const accessDirection = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(accessSegment))];
+            // const accessDirection2 = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(accessSegment2))];
+            // console.log(accessDirection);
+            // console.log(accessDirection2);
+            // if (accessDirection !== accessDirection2) {
+            //     console.log('error');
+            // }
+            // console.log('------------------');
 
             if (connectionDirection !== OPPOSITE_DIRECTIONS[accessDirection]) {
                 // The directions are not opposite, so we can connect the vertices directly
@@ -1546,37 +1634,20 @@ function rightAngleRouter(vertices, opt, linkView) {
     const lastVertex = verticesData[verticesData.length - 1];
 
     if (targetPoint.view && targetPoint.view.model.isElement()) {
-        if (targetPoint.view.model.getBBox().inflate(margin).containsPoint(lastVertex.point)) {
-            // if the last vertex is inside the target element we need to create a dummy target point
-            // and continue the route from the last vertex to the dummy target point from the opposite direction
-            const dummyTarget = pointDataFromVertex(targetPoint.point);
-            const [, toDirection] = resolveSides(lastVertex, targetPoint);
-            // we are creating a point that has a margin
-            dummyTarget.margin = margin;
-            // use same direction for both the dummy target and the last vertex
-            // to ensure that there is a hop between them
-            dummyTarget.direction = toDirection;
+        const [, resolvedTargetDirection] = resolveSides(lastVertex, targetPoint);
+        const outsidePoint = getOutsidePoint(resolvedTargetDirection, targetPoint, margin);
 
-            const matchingHorizontalAxis = lastVertex.point.y === targetPoint.point.y;
-            const matchingVerticalAxis = lastVertex.point.x === targetPoint.point.x;
+        // the last point of `simplified` array is the last defined vertex
+        // this will ensure that the last segment continues in a straight line
+        const simplified = simplifyPoints([...resultVertices, lastVertex.point]);
+        const simplifiedSegment = new g.Line(simplified[simplified.length - 2], simplified[simplified.length - 1]);
+        const simplifiedSegmentAngle = Math.round(getSegmentAngle(simplifiedSegment));
+        const definedDirection = ANGLE_DIRECTION_MAP[simplifiedSegmentAngle];
 
-            lastVertex.direction = OPPOSITE_DIRECTIONS[lastVertex.direction];
+        const lastPointOverlap = outsidePoint.equals(lastVertex.point);
 
-            // if the last vertex is aligned with the target element on either axis
-            // we need to ensure that the last segment is not a straight line
-            if ((matchingHorizontalAxis || matchingVerticalAxis) && OPPOSITE_DIRECTIONS[lastVertex.direction] !== toDirection) {
-                lastVertex.direction = toDirection;
-            }
+        if (!lastPointOverlap || (lastPointOverlap && definedDirection === resolvedTargetDirection)) {
 
-            resultVertices.push(...routeBetweenPoints(lastVertex, dummyTarget));
-        } else {
-            // the last point of `simplified` array is the last defined vertex
-            // grab the penultimate point and construct a line segment from it to the last vertex
-            // this will ensure that the last segment continues in a straight line
-
-            const simplified = simplifyPoints(resultVertices);
-            const segment = new g.Line(simplified[simplified.length - 2], lastVertex.point);
-            const definedDirection = ANGLE_DIRECTION_MAP[Math.round(getSegmentAngle(segment))];
             lastVertex.direction = definedDirection;
 
             let lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
@@ -1586,7 +1657,26 @@ function rightAngleRouter(vertices, opt, linkView) {
             const roundedLastSegmentAngle = Math.round(getSegmentAngle(lastSegment));
             const lastSegmentDirection = ANGLE_DIRECTION_MAP[roundedLastSegmentAngle];
 
-            if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
+            const targetBBox = moveAndExpandBBox(targetPoint.view.model.getBBox(), resolvedTargetDirection, margin);
+
+            const alignsVertically = lastVertex.point.x === targetPoint.point.x;
+            const alignsHorizontally = lastVertex.point.y === targetPoint.point.y;
+            const isVertexInside = targetBBox.containsPoint(lastVertex.point);
+
+            const isVerticalAndAligns = alignsVertically && (resolvedTargetDirection === Directions.TOP || resolvedTargetDirection === Directions.BOTTOM);
+            const isHorizontalAndAligns = alignsHorizontally && (resolvedTargetDirection === Directions.LEFT || resolvedTargetDirection === Directions.RIGHT);
+
+            
+            if (!lastPointOverlap && isVertexInside && (isHorizontalAndAligns || isVerticalAndAligns)) {
+                // Handle special cases when the last vertex is inside the target element
+                // and in is aligned with the connection point => construct a loop
+                const { dx, dy } = getLoopCoordinates(resolvedTargetDirection, simplifiedSegmentAngle, margin);
+                lastSegmentRoute = createLoop(lastVertex, { point: outsidePoint }, { dx, dy });
+            } else if (isVertexInside && resolvedTargetDirection !== OPPOSITE_DIRECTIONS[definedDirection]) {
+                lastVertex.margin = margin;
+                lastVertex.direction = resolvedTargetDirection;
+                lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
+            } else if (lastSegmentDirection !== definedDirection && definedDirection === OPPOSITE_DIRECTIONS[lastSegmentDirection]) {
                 lastVertex.margin = margin;
                 lastSegmentRoute = routeBetweenPoints(lastVertex, targetPoint);
             }
