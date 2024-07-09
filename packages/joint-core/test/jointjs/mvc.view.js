@@ -266,4 +266,23 @@ QUnit.module('joint.mvc.View', function(hooks) {
             view.remove();
         });
     });
+
+    QUnit.module('style', function() {
+
+        QUnit.test('as class property', function(assert) {
+            assert.expect(1);
+            var View = joint.mvc.View.extend({
+                style: {
+                    'color': 'red'
+                }
+            });
+            assert.strictEqual(new View().el.style.color, 'red');
+        });
+
+        QUnit.test('as option', function(assert) {
+            assert.expect(1);
+            var View = joint.mvc.View.extend();
+            assert.strictEqual(new View({ style: { 'color': 'red' }}).el.style.color, 'red');
+        });
+    });
 });
