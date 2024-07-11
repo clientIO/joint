@@ -186,8 +186,7 @@ export class AvoidRouter {
         // specific sides of the element.
 
         // Add pins to each port of the element.
-        const portGroups = Object.keys(element.prop('ports/groups'));
-        portGroups.forEach((group) => {
+        element.getPortGroupNames().forEach((group) => {
             const portsPositions = element.getPortsPositions(group);
             const { width, height } = element.size();
             const rect = new g.Rect(0, 0, width, height);
