@@ -35,7 +35,8 @@ export var ViewBase = function(options) {
 var delegateEventSplitter = /^(\S+)\s*(.*)$/;
 
 // List of view options to be set as properties.
-var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
+// TODO: `style` attribute is not supported in ViewBase class yet, but only in View class that extends ViewBase.
+var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events', 'style'];
 
 // Set up all inheritable **ViewBase** properties and methods.
 assign(ViewBase.prototype, Events, {
