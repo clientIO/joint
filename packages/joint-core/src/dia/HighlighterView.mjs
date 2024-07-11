@@ -278,18 +278,22 @@ export const HighlighterView = mvc.View.extend({
         });
     },
 
-    removeAll(paper, id = null) {
+    getAll(paper, id = null) {
+        const views = [];
         const { _views } = this;
-
         for (let cid in _views) {
             for (let hid in _views[cid]) {
                 const view = _views[cid][hid];
-
                 if (view.cellView.paper === paper && view instanceof this && (id === null || hid === id)) {
-                    view.remove();
+                    views.push(view);
                 }
             }
         }
+        return views;
+    },
+
+    removeAll(paper, id = null) {
+        this.getAll(paper, id).forEach(view => view.remove());
     },
 
     update(cellView, id = null, dirty = false) {
