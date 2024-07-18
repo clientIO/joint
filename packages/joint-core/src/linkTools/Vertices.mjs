@@ -65,6 +65,8 @@ export const Vertices = ToolView.extend({
         snapRadius: 20,
         redundancyRemoval: true,
         vertexAdding: true,
+        // vertexRemoving: true,
+        // vertexMoving: true,
         stopPropagation: true,
         scale: null
     },
@@ -80,18 +82,47 @@ export const Vertices = ToolView.extend({
         }
     }],
     handles: null,
+    interactiveLinkNode: null,
     events: {
         'mousedown .joint-vertices-path': 'onPathPointerDown',
         'touchstart .joint-vertices-path': 'onPathPointerDown'
     },
+    linkEvents: {
+        mousedown: 'onLinkPointerDown',
+        touchstart: 'onLinkPointerDown'
+    },
     onRender: function() {
-        if (this.options.vertexAdding) {
-            this.renderChildren();
-            this.updatePath();
+        const { vertexAdding } = this.options;
+        if (vertexAdding) {
+            const { interactiveLinkNode = null } = vertexAdding;
+            if (interactiveLinkNode) {
+                this.delegateLinkEvents(interactiveLinkNode);
+            } else {
+                this.renderChildren();
+                this.updatePath();
+            }
         }
         this.resetHandles();
         this.renderHandles();
         return this;
+    },
+    delegateLinkEvents: function(selector) {
+        this.undelegateLinkEvents();
+        const el = this.relatedView.findNode(selector);
+        if (!el) {
+            console.warn(`Interactive link node "${selector}" not found.`);
+            return;
+        }
+        el.classList.add('joint-vertices-path');
+        this.interactiveLinkNode = el;
+        this.delegateElementEvents(el, this.linkEvents);
+    },
+    undelegateLinkEvents: function() {
+        const el = this.interactiveLinkNode;
+        if (!el) return;
+        this.undelegateElementEvents(el);
+        el.classList.remove('joint-vertices-path');
+        this.interactiveLinkNode = null;
     },
     update: function() {
         var relatedView = this.relatedView;
@@ -146,7 +177,8 @@ export const Vertices = ToolView.extend({
         }
     },
     updatePath: function() {
-        var connection = this.childNodes.connection;
+        if (this.interactiveLinkNode) return;
+        const connection = this.childNodes.connection;
         if (connection) connection.setAttribute('d', this.relatedView.getSerializedConnection());
     },
     startHandleListening: function(handle) {
@@ -245,8 +277,13 @@ export const Vertices = ToolView.extend({
         this.eventData(normalizedEvent, { vertexAdded: true });
         handle.onPointerDown(normalizedEvent);
     },
+    onLinkPointerDown: function(evt) {
+        this.relatedView.preventDefaultInteraction(evt);
+        this.onPathPointerDown(evt);
+    },
     onRemove: function() {
         this.resetHandles();
+        this.undelegateLinkEvents();
     }
 }, {
     VertexHandle: VertexHandle // keep as class property
