@@ -1932,6 +1932,11 @@ export namespace dia {
             cellView: dia.CellView
         ): T[];
 
+        static getAll<T extends HighlighterView = HighlighterView>(
+            paper: dia.Paper,
+            id?: string
+        ): T[];
+
         static update(cellView: dia.CellView, id?: string): void;
 
         static transform(cellView: dia.CellView, id?: string): void;
