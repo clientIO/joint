@@ -341,6 +341,30 @@ QUnit.module('linkTools', function(hooks) {
 
             listener.stopListening();
         });
+
+        QUnit.test('data', function(assert) {
+
+            assert.expect(3);
+
+            const arrowhead = new joint.linkTools.TargetArrowhead();
+            linkView.addTools(new joint.dia.ToolsView({ tools: [arrowhead] }));
+            const listener = new joint.mvc.Listener();
+
+            listener.listenTo(paper, {
+                'link:pointerdown': (linkView, evt) => evt.data.test = true,
+                'link:pointermove': (linkView, evt) => assert.ok(evt.data.test),
+                'link:pointerup': (linkView, evt) => assert.ok(evt.data.test),
+            });
+
+            // Make sure the link is connected to a target element
+            assert.ok(link.getTargetCell());
+
+            simulate.mousedown({ el: arrowhead.el });
+            simulate.mousemove({ el: paper.el });
+            simulate.mouseup({ el: paper.el });
+
+            listener.stopListening();
+        });
     });
 
 });
