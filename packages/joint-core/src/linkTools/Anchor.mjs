@@ -1,7 +1,7 @@
 import * as g from '../g/index.mjs';
 import * as util from '../util/index.mjs';
 import { ToolView } from '../dia/ToolView.mjs';
-import { getAnchor, snapAnchor } from './helpers.mjs';
+import { getAnchor, snapAnchor } from '../cellTools/helpers.mjs';
 
 const Anchor = ToolView.extend({
     tagName: 'g',
