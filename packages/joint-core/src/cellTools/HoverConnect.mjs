@@ -1,4 +1,4 @@
-import { Connect } from '../linkTools/Connect.mjs';
+import { Connect } from './Connect.mjs';
 import V from '../V/index.mjs';
 import $ from '../mvc/Dom/index.mjs';
 import * as util from '../util/index.mjs';

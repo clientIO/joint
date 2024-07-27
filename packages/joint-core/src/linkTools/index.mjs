@@ -1,8 +1,11 @@
 export * from './Vertices.mjs';
 export * from './Segments.mjs';
 export * from './Arrowhead.mjs';
-export * from './Boundary.mjs';
 export * from './Anchor.mjs';
-export * from './Button.mjs';
-export * from './Connect.mjs';
-export * from './HoverConnect.mjs';
+export * from './RotateLabel.mjs';
+
+export * from '../cellTools/Button.mjs';
+export * from '../cellTools/Boundary.mjs';
+export * from '../cellTools/Connect.mjs';
+export * from '../cellTools/HoverConnect.mjs';
+export * from '../cellTools/Control.mjs';

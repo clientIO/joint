@@ -1,8 +1,8 @@
-import { HoverConnect as LinkHoverConnect } from '../linkTools/HoverConnect.mjs';
+import { HoverConnect as LinkHoverConnect } from '../cellTools/HoverConnect.mjs';
 import V from '../V/index.mjs';
 import * as g from '../g/index.mjs';
-import { getViewBBox } from '../linkTools/helpers.mjs';
 import { isCalcExpression, evalCalcExpression } from '../util/calc.mjs';
+import { getViewBBox } from '../cellTools/helpers.mjs';
 
 export const HoverConnect = LinkHoverConnect.extend({
 

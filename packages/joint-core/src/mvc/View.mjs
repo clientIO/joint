@@ -1,5 +1,4 @@
 import $ from './Dom/index.mjs';
-
 import * as util from '../util/index.mjs';
 import V from '../V/index.mjs';
 import { ViewBase } from './ViewBase.mjs';
