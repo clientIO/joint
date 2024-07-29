@@ -25,7 +25,8 @@ import {
     defaultsDeep,
     has,
     sortBy,
-    defaults
+    defaults,
+    objectDifference
 } from '../util/util.mjs';
 import { Model } from '../mvc/Model.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
@@ -75,48 +76,58 @@ export const Cell = Model.extend({
         throw new Error('Must define a translate() method.');
     },
 
-    toJSON: function() {
+    toJSON: function(opt) {
 
+        const { ignoreDefaults, ignoreEmptyAttributes = false } = opt || {};
         const defaults = result(this.constructor.prototype, 'defaults');
-        const defaultAttrs = defaults.attrs || {};
-        const attrs = this.attributes.attrs;
-        const finalAttrs = {};
 
-        // Loop through all the attributes and
-        // omit the default attributes as they are implicitly reconstructible by the cell 'type'.
-        forIn(attrs, function(attr, selector) {
+        function removeEmptyAttributes(obj) {
 
-            const defaultAttr = defaultAttrs[selector];
+            for (const key in obj) {
 
-            forIn(attr, function(value, name) {
+                const objValue = obj[key];
+                const isRealObject = isObject(objValue) && !Array.isArray(objValue);
 
-                // attr is mainly flat though it might have one more level (consider the `style` attribute).
-                // Check if the `value` is object and if yes, go one level deep.
-                if (isObject(value) && !Array.isArray(value)) {
-
-                    forIn(value, function(value2, name2) {
-
-                        if (!defaultAttr || !defaultAttr[name] || !isEqual(defaultAttr[name][name2], value2)) {
-
-                            finalAttrs[selector] = finalAttrs[selector] || {};
-                            (finalAttrs[selector][name] || (finalAttrs[selector][name] = {}))[name2] = value2;
-                        }
-                    });
-
-                } else if (!defaultAttr || !isEqual(defaultAttr[name], value)) {
-                    // `value` is not an object, default attribute for such a selector does not exist
-                    // or it is different than the attribute value set on the model.
-
-                    finalAttrs[selector] = finalAttrs[selector] || {};
-                    finalAttrs[selector][name] = value;
+                if (isRealObject) {
+                    removeEmptyAttributes(objValue);
                 }
+
+                if (isEmpty(objValue) && isRealObject) {
+                    delete obj[key];
+                }
+            }
+        }
+
+        if (ignoreDefaults === false) {
+            // Return all attributes without omitting the defaults
+            const finalAttributes = cloneDeep(this.attributes);
+
+            if (!ignoreEmptyAttributes) return finalAttributes;
+
+            removeEmptyAttributes(finalAttributes);
+
+            return finalAttributes;
+        }
+
+        let defaultAttributes = {};
+        let attributes = cloneDeep(this.attributes);
+
+        if (ignoreDefaults === true) {
+            // Compare all attributes with the defaults
+            defaultAttributes = defaults;
+        } else {
+            // Compare only the specified attributes with the defaults, use `attrs` as a default if not specified
+            const differentiateKeys = Array.isArray(ignoreDefaults) ? ignoreDefaults : ['attrs'];
+
+            differentiateKeys.forEach((key) => {
+                defaultAttributes[key] = defaults[key] || {};
             });
-        });
+        }
 
-        const attributes = cloneDeep(omit(this.attributes, 'attrs'));
-        attributes.attrs = finalAttrs;
+        // Omit `type` attribute from the defaults since it should be always present
+        const finalAttributes = objectDifference(attributes, omit(defaultAttributes, 'type'), ignoreEmptyAttributes, 4);
 
-        return attributes;
+        return finalAttributes;
     },
 
     initialize: function(options) {
