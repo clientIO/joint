@@ -239,7 +239,7 @@ export namespace dia {
 
         getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-        toJSON(): any;
+        toJSON(opt?: { ignoreDefaults: boolean | string[], ignoreEmptyAttributes: boolean }): any;
 
         fromJSON(json: any, opt?: S): this;
 
@@ -351,7 +351,7 @@ export namespace dia {
 
         protected stopScheduledTransitions(path?: string, delim?: string): void;
 
-        toJSON(): Cell.JSON<any, A>;
+        toJSON(opt?: { ignoreDefaults: boolean | string[], ignoreEmptyAttributes: boolean }): Cell.JSON<any, A>;
 
         remove(opt?: Cell.DisconnectableOptions): this;
 
