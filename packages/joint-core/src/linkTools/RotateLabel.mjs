@@ -48,6 +48,7 @@ export const RotateLabel = Control.extend({
 
     getPosition(view) {
         const { offset = 0 } = this.options;
+        const { x = 0, y = 0 } = typeof offset === 'number' ? { x: 0, y: offset } : offset;
         const model = view.model;
         const index = this.options.labelIndex;
         const label = model.label(index);
@@ -71,7 +72,7 @@ export const RotateLabel = Control.extend({
         const matrix = new DOMMatrix()
             .translate(coords.x, coords.y)
             .rotate(angle)
-            .translate(0, offset);
+            .translate(x, y);
         return new g.Point(matrix.e, matrix.f);
     },
 

@@ -4443,7 +4443,7 @@ export namespace linkTools {
     namespace RotateLabel {
 
         interface Options extends Control.Options {
-            offset?: number;
+            offset?: number | dia.Point;
             buttonColor?: string;
             iconColor?: string;
             outlineColor?: string;
