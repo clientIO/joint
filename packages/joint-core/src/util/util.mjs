@@ -1708,6 +1708,47 @@ export const toggleFullScreen = function(el) {
     }
 };
 
+
+// Util function used for purposes of `dia.Cell.toJSON()` method
+export function objectDifference(object, base, ignoreEmptyObjects = false, depth = Number.POSITIVE_INFINITY) {
+
+    function findDifference(obj, baseObj, currentDepth) {
+
+        if (currentDepth === depth) {
+            return {};
+        }
+
+        const diff = {};
+
+        Object.keys(obj).forEach((key) => {
+
+            const objValue = obj[key];
+            const baseValue = baseObj[key];
+
+            if (!Array.isArray(objValue) && !Array.isArray(baseValue) && isObject(objValue) && isObject(baseValue)) {
+
+                const nestedDepth = currentDepth + 1;
+                const nestedDiff = findDifference(objValue, baseValue, nestedDepth);
+
+                if (Object.keys(nestedDiff).length > 0) {
+                    diff[key] = nestedDiff;
+                } else if ((currentDepth === 0 || nestedDepth === depth) && !ignoreEmptyObjects) {
+                    // If we are at the root level or at the maximum depth and the nested object is empty,
+                    // we still want to include it in the diff object if `ignoreEmptyObjects` is set to true
+                    diff[key] = {};
+                }
+
+            } else if (!isEqual(objValue, baseValue)) {
+                diff[key] = objValue;
+            }
+        });
+
+        return diff;
+    }
+
+    return findDifference(object, base, 0);
+}
+
 export {
     isBoolean,
     isObject,
