@@ -45,16 +45,15 @@ const attributesMerger = function(a, b) {
 
 function removeEmptyAttributes(obj) {
 
+    // Remove toplevel empty attributes
     for (const key in obj) {
 
         const objValue = obj[key];
         const isRealObject = isObject(objValue) && !Array.isArray(objValue);
 
-        if (isRealObject) {
-            removeEmptyAttributes(objValue);
-        }
+        if (!isRealObject) continue;
 
-        if (isEmpty(objValue) && isRealObject) {
+        if (isEmpty(objValue)) {
             delete obj[key];
         }
     }
@@ -124,8 +123,12 @@ export const Cell = Model.extend({
             });
         }
 
-        // Omit `type` attribute from the defaults since it should be always present
-        const finalAttributes = objectDifference(attributes, omit(defaultAttributes, 'id', 'type'), ignoreEmptyAttributes, 4);
+        // Omit `id` and `type` attribute from the defaults since it should be always present
+        const finalAttributes = objectDifference(attributes, omit(defaultAttributes, 'id', 'type'), { maxDepth: 4 });
+
+        if (ignoreEmptyAttributes) {
+            removeEmptyAttributes(finalAttributes);
+        }
 
         return finalAttributes;
     },

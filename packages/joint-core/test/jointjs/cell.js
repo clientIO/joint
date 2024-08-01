@@ -689,9 +689,7 @@ QUnit.module('cell', function(hooks) {
             });
         
             const el = new El({
-                foo: {
-                    bar: {}
-                }
+                foo: {}
             });
 
             const expected = joint.util.cloneDeep(el.attributes);

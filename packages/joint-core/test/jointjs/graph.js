@@ -1477,9 +1477,7 @@ QUnit.module('graph', function(hooks) {
             });
         
             const el = new El({
-                foo: {
-                    bar: {}
-                }
+                foo: {}
             });
 
             this.graph.resetCells([el]);

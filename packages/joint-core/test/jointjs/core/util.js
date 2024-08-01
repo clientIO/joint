@@ -1729,29 +1729,6 @@ QUnit.module('util', function(hooks) {
             assert.deepEqual(actual, expected);
         });
 
-        QUnit.test('should accept the `ignoreEmptyObjects` argument', function(assert) {
-            const expected = { foo: 'bar' };
-            const actual = joint.util.objectDifference(
-                {
-                    foo: 'bar',
-                    baz: {
-                        x: 10,
-                        y: 10
-                    }
-                },
-                {
-                    foo: '',
-                    baz: {
-                        x: 10,
-                        y: 10
-                    }
-                },
-                true
-            );
-
-            assert.deepEqual(actual, expected);
-        });
-
         QUnit.test('should use arrays from the first object', function(assert) {
             const expected = { foo: [1, 2, 3] };
             const actual = joint.util.objectDifference(
@@ -1766,7 +1743,7 @@ QUnit.module('util', function(hooks) {
             assert.deepEqual(actual, expected);
         });
 
-        QUnit.test('should respect the `depth` argument', function(assert) {
+        QUnit.test('should respect the `opt.maxDepth` argument', function(assert) {
             const expected = {
                 foo: {
                     bar: {}
@@ -1800,8 +1777,7 @@ QUnit.module('util', function(hooks) {
                         }
                     }
                 },
-                false,
-                2
+                { maxDepth: 2 }
             );
 
             assert.deepEqual(actual, expected);
@@ -1819,7 +1795,7 @@ QUnit.module('util', function(hooks) {
                 }
             };
 
-            const actual = joint.util.objectDifference(object1, object2, false, 2);
+            const actual = joint.util.objectDifference(object1, object2, { maxDepth: 2 });
 
             assert.deepEqual(actual, expected);
         });
