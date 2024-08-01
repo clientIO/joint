@@ -239,7 +239,7 @@ export namespace dia {
 
         getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-        toJSON(opt?: { ignoreDefaults: boolean | string[], ignoreEmptyAttributes: boolean }): any;
+        toJSON(opt?: dia.Cell.ExportOptions): any;
 
         fromJSON(json: any, opt?: S): this;
 
@@ -334,6 +334,11 @@ export namespace dia {
         interface ConstructorOptions extends Graph.Options {
             mergeArrays?: boolean;
         }
+
+        interface ExportOptions {
+            ignoreDefault?: boolean | string[];
+            ignoreEmptyAttributes?: boolean;
+        }
     }
 
     class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -351,7 +356,7 @@ export namespace dia {
 
         protected stopScheduledTransitions(path?: string, delim?: string): void;
 
-        toJSON(opt?: { ignoreDefaults: boolean | string[], ignoreEmptyAttributes: boolean }): Cell.JSON<any, A>;
+        toJSON(opt?: dia.Cell.ExportOptions): Cell.JSON<any, A>;
 
         remove(opt?: Cell.DisconnectableOptions): this;
 
