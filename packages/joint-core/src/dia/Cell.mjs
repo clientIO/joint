@@ -43,6 +43,23 @@ const attributesMerger = function(a, b) {
     }
 };
 
+function removeEmptyAttributes(obj) {
+
+    for (const key in obj) {
+
+        const objValue = obj[key];
+        const isRealObject = isObject(objValue) && !Array.isArray(objValue);
+
+        if (isRealObject) {
+            removeEmptyAttributes(objValue);
+        }
+
+        if (isEmpty(objValue) && isRealObject) {
+            delete obj[key];
+        }
+    }
+}
+
 export const Cell = Model.extend({
 
     // This is the same as mvc.Model with the only difference that is uses util.merge
@@ -81,23 +98,6 @@ export const Cell = Model.extend({
         const { ignoreDefaults, ignoreEmptyAttributes = false } = opt || {};
         const defaults = result(this.constructor.prototype, 'defaults');
 
-        function removeEmptyAttributes(obj) {
-
-            for (const key in obj) {
-
-                const objValue = obj[key];
-                const isRealObject = isObject(objValue) && !Array.isArray(objValue);
-
-                if (isRealObject) {
-                    removeEmptyAttributes(objValue);
-                }
-
-                if (isEmpty(objValue) && isRealObject) {
-                    delete obj[key];
-                }
-            }
-        }
-
         if (ignoreDefaults === false) {
             // Return all attributes without omitting the defaults
             const finalAttributes = cloneDeep(this.attributes);
@@ -125,7 +125,7 @@ export const Cell = Model.extend({
         }
 
         // Omit `type` attribute from the defaults since it should be always present
-        const finalAttributes = objectDifference(attributes, omit(defaultAttributes, 'type'), ignoreEmptyAttributes, 4);
+        const finalAttributes = objectDifference(attributes, omit(defaultAttributes, 'id', 'type'), ignoreEmptyAttributes, 4);
 
         return finalAttributes;
     },
