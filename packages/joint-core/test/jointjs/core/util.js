@@ -82,7 +82,7 @@ QUnit.module('util', function(hooks) {
         // For example, some browsers might have a different default font size/family.
         var styles = {
             'font-size': '12px',
-            'font-family': 'Courier New'
+            'font-family': 'sans-serif'
         };
 
         var text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
@@ -227,13 +227,13 @@ QUnit.module('util', function(hooks) {
             r = joint.util.breakText(t, { width: 2 * WIDTH }, styles);
             assert.equal(r, 'test-hyphen');
 
-            r = joint.util.breakText(t2, { width: 2 * WIDTH }, styles);
+            r = joint.util.breakText(t2, { width: 98 }, styles);
             assert.equal(r, 'asdfWETUIOPj[\nJF', 'Inserts new line character after "[" character.');
 
-            r = joint.util.breakText(t3, { width: 2 * WIDTH + 20 }, styles);
+            r = joint.util.breakText(t3, { width: 110 }, styles);
             assert.equal(r, 'as[\ndsdfgdfWETUfIOPj', 'Inserts new line character after "[" character.');
 
-            r = joint.util.breakText(t3, { width: 2 * WIDTH }, styles);
+            r = joint.util.breakText(t3, { width: 90 }, styles);
             assert.equal(r, 'as[\ndsdfgdfWETUfI\nOPj', 'Inserts two new line characters, one after "[" and one in second line when text is too long.');
 
             r = joint.util.breakText(t4, { width: 2 * WIDTH }, styles);
@@ -363,10 +363,10 @@ QUnit.module('util', function(hooks) {
             r = joint.util.breakText('   preserve\nspa   a  ', { width: WIDTH }, styles, { preserveSpaces: true });
             assert.equal(r.replace(/\n/g, ' '), '   preserve spa   a  ');
 
-            r = joint.util.breakText('                 a', { width: 7 }, styles, { preserveSpaces: true });
+            r = joint.util.breakText('                 a', { width: 6 }, styles, { preserveSpaces: true });
             assert.equal(r, '');
 
-            r = joint.util.breakText('\n                  a', { width: 7 }, styles, { preserveSpaces: true });
+            r = joint.util.breakText('\n                  a', { width: 6 }, styles, { preserveSpaces: true });
             assert.equal(r, '');
 
             r = joint.util.breakText(' a\nb\nc\nd\ne', { width: 20, height: 20 }, styles, { preserveSpaces: true });
@@ -432,17 +432,17 @@ QUnit.module('util', function(hooks) {
                 'אבגדהוזחטיכ-\nלמנסעפצ-קרשת',
                 'აბგდ-\nევზთიკ-\nლმნოპჟრსტუფქ-\nღყშჩცძწ-ჭხჯჰ',
                 'АБВГ-\nДЕЁЖЗИЙКЛМ-\nНОПР-\nСТУФХЦ-\nЧШЩЪЫ-ЬЭЮЯ',
-                'अआइई-\nउऊऋऌऍऎएऐऑऒओ\nऔक-\nखगघङचछ-\nजझञटठडढणतथदधन\n-पफबभमयरलवशषस\nह',
+                'अआइई-\nउऊऋऌऍऎएऐऑऒओ\nऔक-\nखगघङचछ-\nजझञटठडढणतथदधन-\nपफबभमयरलवशषसह',
                 'ĀāĂă-\nĄąĆćĈĉĊċ-\nČčĎďĐđĒēĔĕĖėĘ\nę',
-                'ĚěĜĝ-\nĞğĠġĢ-\nģĤĥĦħĨĩĪīĬĭĮį\nİ',
-                'ıĲĳĴ-\nĵĶķĸĹĺ-\nĻļĽľĿŀŁł',
-                'ŃńŅņ-\nŇňŉŊŋŌōŎŏŐőŒœ\nŔ',
-                'ŕŖŗŘ-\nřŚśŜŝŞ-\nşŠšŢţŤťŦŧ',
+                'ĚěĜĝ-\nĞğĠġĢ-\nģĤĥĦħĨĩĪīĬĭĮįİ',
+                'ıĲĳĴ-\nĵĶķĸĹĺ-ĻļĽľĿŀŁł',
+                'ŃńŅņ-\nŇňŉŊŋŌōŎŏŐőŒ\nœŔ',
+                'ŕŖŗŘ-\nřŚśŜŝŞ-şŠšŢţŤťŦŧ',
                 'ŨũŪū-\nŬŭŮůŰű-\nŲųŴŵŶŷŸŹźŻż',
                 'ƐƑƒƓ-\nƔƕƖƗƘƙ-ƚƛƜƝƞƟ',
                 'ƠơƢƣ-\nƤƥƦƧƨƩ-ƪƫƬƭƮƯ',
                 'ưƱƲƳ-\nƴƵƶƷƸ-ƹƺƻƼƽƾƿ',
-                'ǰǱǲǳ-\nǴǵǶǷǸǹǺǻǼǽǾǿ',
+                'ǰǱǲǳ-\nǴǵǶǷǸǹǺǻǼǽǾ\nǿ',
                 'ȀȁȂȃ-\nȄȅȆȇȈ-ȉȊȋȌȍȎȏ',
                 'ΑΒΓΔ-\nΕΖΗΘΙΚ-\nΛΜΝΞΟΠΡΣΤ-\nΥΦΧΨΩ',
                 'あい-\nうえおかきくけ-\nこさしすせそたち\nつてと-\nなにぬねのはひふ\nへほまみむめもや\nゆよらりるれろわ\nをんぁ-\nぃぅぇぉっゃゅょ\nゎ',
