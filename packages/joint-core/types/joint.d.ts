@@ -2454,6 +2454,8 @@ export namespace util {
 
     export function toggleFullScreen(el?: Element): void;
 
+    export function objectDifference(object: object, base: object, opt?: { maxDepth?: number }): object;
+
     interface DOMJSONDocument {
         fragment: DocumentFragment;
         selectors: { [key: string]: Element };
