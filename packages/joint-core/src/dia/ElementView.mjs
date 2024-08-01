@@ -265,16 +265,16 @@ export const ElementView = CellView.extend({
 
     getTranslateString: function() {
 
-        var position = this.model.attributes.position;
-        return 'translate(' + position.x + ',' + position.y + ')';
+        const { x, y } = this.model.position();
+        return `translate(${x},${y})`;
     },
 
     getRotateString: function() {
-        var attributes = this.model.attributes;
-        var angle = attributes.angle;
+
+        const angle = this.model.angle();
         if (!angle) return null;
-        var size = attributes.size;
-        return 'rotate(' + angle + ',' + (size.width / 2) + ',' + (size.height / 2) + ')';
+        const { width, height } = this.model.size();
+        return `rotate(${angle},${width / 2},${height / 2})`;
     },
 
     // Rotatable & Scalable Group
