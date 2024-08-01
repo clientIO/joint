@@ -51,7 +51,8 @@ const Arrowhead = ToolView.extend({
         var paper = relatedView.paper;
         relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
         relatedView.startArrowheadMove(this.arrowheadType);
-        this.delegateDocumentEvents();
+        const data = evt.data || (evt.data = {});
+        this.delegateDocumentEvents(null, data);
         paper.undelegateEvents();
         this.focus();
         this.el.style.pointerEvents = 'none';
