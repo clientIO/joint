@@ -1461,7 +1461,7 @@ QUnit.module('graph', function(hooks) {
             const rect = new joint.shapes.standard.Rectangle();
 
             this.graph.resetCells([rect]);
-            const json = this.graph.toJSON({ ignoreDefaults: false });
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: false }});
 
             assert.deepEqual(json.cells[0], {
                 id: rect.id,
@@ -1481,7 +1481,7 @@ QUnit.module('graph', function(hooks) {
             });
 
             this.graph.resetCells([el]);
-            const json = this.graph.toJSON({ ignoreDefaults: false, ignoreEmptyAttributes: true });
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: false, ignoreEmptyAttributes: true }});
 
             const expected = joint.util.cloneDeep(el.attributes);
             delete expected.foo;
@@ -1493,7 +1493,7 @@ QUnit.module('graph', function(hooks) {
             const rect = new joint.shapes.standard.Rectangle();
 
             this.graph.resetCells([rect]);
-            const json = this.graph.toJSON({ ignoreDefaults: true });
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: true }});
 
             assert.deepEqual(json.cells[0], {
                 type: joint.shapes.standard.Rectangle.prototype.defaults.type,
@@ -1508,7 +1508,7 @@ QUnit.module('graph', function(hooks) {
             const rect = new joint.shapes.standard.Rectangle();
 
             this.graph.resetCells([rect]);
-            const json = this.graph.toJSON({ ignoreDefaults: true, ignoreEmptyAttributes: true });
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: true, ignoreEmptyAttributes: true }});
 
             assert.deepEqual(json.cells[0], {
                 type: joint.shapes.standard.Rectangle.prototype.defaults.type,
@@ -1520,7 +1520,7 @@ QUnit.module('graph', function(hooks) {
             const rect = new joint.shapes.standard.Rectangle();
 
             this.graph.resetCells([rect]);
-            const json = this.graph.toJSON({ ignoreDefaults: ['attrs', 'size'] });
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: ['attrs', 'size'] }});
 
             assert.deepEqual(json.cells[0], {
                 id: rect.id,

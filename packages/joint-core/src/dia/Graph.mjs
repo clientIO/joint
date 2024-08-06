@@ -208,12 +208,12 @@ export const Graph = Model.extend({
         return (this._in && this._in[node]) || {};
     },
 
-    toJSON: function(opt) {
+    toJSON: function(opt = {}) {
 
         // JointJS does not recursively call `toJSON()` on attributes that are themselves models/collections.
         // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitly.
         var json = Model.prototype.toJSON.apply(this, arguments);
-        json.cells = this.get('cells').toJSON(opt);
+        json.cells = this.get('cells').toJSON(opt.cellAttributes);
         return json;
     },
 

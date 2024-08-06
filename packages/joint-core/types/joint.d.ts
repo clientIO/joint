@@ -239,7 +239,7 @@ export namespace dia {
 
         getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-        toJSON(opt?: dia.Cell.ExportOptions): any;
+        toJSON(opt?: { cellAttributes?: dia.Cell.ExportOptions }): any;
 
         fromJSON(json: any, opt?: S): this;
 
