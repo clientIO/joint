@@ -1589,4 +1589,206 @@ QUnit.module('util', function(hooks) {
         });
     });
 
+    QUnit.module('objectDifference', function(assert) {
+
+        QUnit.test('should return the difference of values', function(assert) {
+            const expected = { b: 2 };
+            const actual = joint.util.objectDifference({ a: 1, b: 2 }, { a: 1, c: 3 });
+
+            assert.deepEqual(actual, expected);
+        });
+    
+        QUnit.test('should return the difference of multiple values', function(assert) {
+            const expected = { b: 2, c: 3 };
+            const actual = joint.util.objectDifference({ a: 1, b: 2, c: 3 }, { a: 1 });
+
+            assert.deepEqual(actual, expected);
+        });
+
+        QUnit.test('should return the difference of nested values', function(assert) {
+            const expected = {
+                a: {
+                    b: {
+                        c: {
+                            d: 4
+                        }
+                    }
+                }
+            };
+            const actual = joint.util.objectDifference(
+                {
+                    a: {
+                        b: {
+                            c: {
+                                d: 4
+                            }
+                        }
+                    }
+                }, 
+                {
+                    a: {
+                        b: {
+                            c: {
+                                d: 5
+                            }
+                        }
+                    }
+                }
+            );
+
+            assert.deepEqual(actual, expected);
+        });
+
+        QUnit.test('should return the difference of multiple nested values', function(assert) {
+            const expected = {
+                a: {
+                    b: {
+                        c: {
+                            d: 4
+                        }
+                    }
+                },
+                foo: {
+                    bar: {
+                        baz: 5
+                    }
+                },
+                x: 'y'
+            };
+
+            const actual = joint.util.objectDifference(
+                {
+                    a: {
+                        b: {
+                            c: {
+                                d: 4
+                            }
+                        }
+                    },
+                    foo: {
+                        bar: {
+                            baz: 5
+                        }
+                    },
+                    x: 'y'
+                }, 
+                {
+                    a: {
+                        b: {
+                            c: {
+                                d: 5
+                            }
+                        }
+                    },
+                    foo: {
+                        bar: {
+                            baz: 6
+                        }
+                    },
+                    x: 'z'
+                }
+            );
+
+            assert.deepEqual(actual, expected);
+        });
+
+        QUnit.test('should take into account the keys of the first object', function(assert) {
+            const expected = { foo: 'bar' };
+            const actual = joint.util.objectDifference({ foo: 'bar' }, { a: 1, c: 3 });
+
+            assert.deepEqual(actual, expected);
+        });
+
+        QUnit.test('should return an empty object when the toplevel properties are the same', function(assert) {
+            const expected = { foo: {}};
+            const actual = joint.util.objectDifference(
+                {
+                    foo: {
+                        x: 10,
+                        y: 10
+                    }
+                },
+                {
+                    foo: {
+                        x: 10,
+                        y: 10
+                    }
+                }
+            );
+
+            assert.deepEqual(actual, expected);
+        });
+
+        QUnit.test('should use arrays from the first object', function(assert) {
+            const expected = { foo: [1, 2, 3] };
+            const actual = joint.util.objectDifference(
+                {
+                    foo: [1, 2, 3]
+                },
+                {
+                    foo: [1, 2, 4]
+                }
+            );
+
+            assert.deepEqual(actual, expected);
+        });
+
+        QUnit.test('should respect the `opt.maxDepth` argument', function(assert) {
+            const expected = {
+                foo: {
+                    bar: {}
+                },
+                x: {
+                    y: {}
+                }
+            };
+            const actual = joint.util.objectDifference(
+                {
+                    foo: {
+                        bar: {
+                            baz: 5
+                        }
+                    },
+                    x: {
+                        y: {
+                            z: 5
+                        }
+                    }
+                },
+                {
+                    foo: {
+                        bar: {
+                            test: 5
+                        }
+                    },
+                    x: {
+                        y: {
+                            test: 5
+                        }
+                    }
+                },
+                { maxDepth: 2 }
+            );
+
+            assert.deepEqual(actual, expected);
+        });
+
+        QUnit.test('should not throw `Maximum call stack size exceeded`', function(assert) {
+            const object1 = {};
+            const object2 = {};
+            object1.foo = object2;
+            object2.foo = object1;
+
+            const expected = {
+                foo: {
+                    foo: {}
+                }
+            };
+
+            const actual = joint.util.objectDifference(object1, object2, { maxDepth: 2 });
+
+            assert.deepEqual(actual, expected);
+        });
+    });
+
 });

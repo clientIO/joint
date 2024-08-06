@@ -1708,6 +1708,45 @@ export const toggleFullScreen = function(el) {
     }
 };
 
+function findDifference(obj, baseObj, currentDepth, maxDepth) {
+
+    if (currentDepth === maxDepth) {
+        return {};
+    }
+
+    const diff = {};
+
+    Object.keys(obj).forEach((key) => {
+
+        const objValue = obj[key];
+        const baseValue = baseObj[key];
+
+        if (!Array.isArray(objValue) && !Array.isArray(baseValue) && isObject(objValue) && isObject(baseValue)) {
+
+            const nestedDepth = currentDepth + 1;
+            const nestedDiff = findDifference(objValue, baseValue, nestedDepth, maxDepth);
+
+            if (Object.keys(nestedDiff).length > 0) {
+                diff[key] = nestedDiff;
+            } else if ((currentDepth === 0 || nestedDepth === maxDepth)) {
+                diff[key] = {};
+            }
+
+        } else if (!isEqual(objValue, baseValue)) {
+            diff[key] = objValue;
+        }
+    });
+
+    return diff;
+}
+
+export function objectDifference(object, base, opt) {
+
+    const { maxDepth = Number.POSITIVE_INFINITY } = opt || {};
+
+    return findDifference(object, base, 0, maxDepth);
+}
+
 export {
     isBoolean,
     isObject,

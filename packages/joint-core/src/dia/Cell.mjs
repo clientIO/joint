@@ -25,7 +25,8 @@ import {
     defaultsDeep,
     has,
     sortBy,
-    defaults
+    defaults,
+    objectDifference
 } from '../util/util.mjs';
 import { Model } from '../mvc/Model.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
@@ -41,6 +42,22 @@ const attributesMerger = function(a, b) {
         return b;
     }
 };
+
+function removeEmptyAttributes(obj) {
+
+    // Remove toplevel empty attributes
+    for (const key in obj) {
+
+        const objValue = obj[key];
+        const isRealObject = isObject(objValue) && !Array.isArray(objValue);
+
+        if (!isRealObject) continue;
+
+        if (isEmpty(objValue)) {
+            delete obj[key];
+        }
+    }
+}
 
 export const Cell = Model.extend({
 
@@ -75,48 +92,45 @@ export const Cell = Model.extend({
         throw new Error('Must define a translate() method.');
     },
 
-    toJSON: function() {
+    toJSON: function(opt) {
 
+        const { ignoreDefaults, ignoreEmptyAttributes = false } = opt || {};
         const defaults = result(this.constructor.prototype, 'defaults');
-        const defaultAttrs = defaults.attrs || {};
-        const attrs = this.attributes.attrs;
-        const finalAttrs = {};
 
-        // Loop through all the attributes and
-        // omit the default attributes as they are implicitly reconstructible by the cell 'type'.
-        forIn(attrs, function(attr, selector) {
+        if (ignoreDefaults === false) {
+            // Return all attributes without omitting the defaults
+            const finalAttributes = cloneDeep(this.attributes);
 
-            const defaultAttr = defaultAttrs[selector];
+            if (!ignoreEmptyAttributes) return finalAttributes;
 
-            forIn(attr, function(value, name) {
+            removeEmptyAttributes(finalAttributes);
 
-                // attr is mainly flat though it might have one more level (consider the `style` attribute).
-                // Check if the `value` is object and if yes, go one level deep.
-                if (isObject(value) && !Array.isArray(value)) {
+            return finalAttributes;
+        }
 
-                    forIn(value, function(value2, name2) {
+        let defaultAttributes = {};
+        let attributes = cloneDeep(this.attributes);
 
-                        if (!defaultAttr || !defaultAttr[name] || !isEqual(defaultAttr[name][name2], value2)) {
+        if (ignoreDefaults === true) {
+            // Compare all attributes with the defaults
+            defaultAttributes = defaults;
+        } else {
+            // Compare only the specified attributes with the defaults, use `attrs` as a default if not specified
+            const differentiateKeys = Array.isArray(ignoreDefaults) ? ignoreDefaults : ['attrs'];
 
-                            finalAttrs[selector] = finalAttrs[selector] || {};
-                            (finalAttrs[selector][name] || (finalAttrs[selector][name] = {}))[name2] = value2;
-                        }
-                    });
-
-                } else if (!defaultAttr || !isEqual(defaultAttr[name], value)) {
-                    // `value` is not an object, default attribute for such a selector does not exist
-                    // or it is different than the attribute value set on the model.
-
-                    finalAttrs[selector] = finalAttrs[selector] || {};
-                    finalAttrs[selector][name] = value;
-                }
+            differentiateKeys.forEach((key) => {
+                defaultAttributes[key] = defaults[key] || {};
             });
-        });
+        }
 
-        const attributes = cloneDeep(omit(this.attributes, 'attrs'));
-        attributes.attrs = finalAttrs;
+        // Omit `id` and `type` attribute from the defaults since it should be always present
+        const finalAttributes = objectDifference(attributes, omit(defaultAttributes, 'id', 'type'), { maxDepth: 4 });
 
-        return attributes;
+        if (ignoreEmptyAttributes) {
+            removeEmptyAttributes(finalAttributes);
+        }
+
+        return finalAttributes;
     },
 
     initialize: function(options) {
