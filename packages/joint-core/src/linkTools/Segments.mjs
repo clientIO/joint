@@ -3,7 +3,7 @@ import V from '../V/index.mjs';
 import * as util from '../util/index.mjs';
 import * as mvc from '../mvc/index.mjs';
 import { ToolView } from '../dia/ToolView.mjs';
-import { getAnchor } from './helpers.mjs';
+import { getAnchor } from '../cellTools/helpers.mjs';
 
 var SegmentHandle = mvc.View.extend({
     tagName: 'g',

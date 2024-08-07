@@ -63,7 +63,7 @@ export const LinkView = CellView.extend({
         attrs: [Flags.UPDATE],
         router: [Flags.UPDATE],
         connector: [Flags.CONNECTOR],
-        labels: [Flags.LABELS],
+        labels: [Flags.LABELS, Flags.TOOLS],
         labelMarkup: [Flags.LABELS],
         vertices: [Flags.UPDATE],
         source: [Flags.SOURCE, Flags.UPDATE],
