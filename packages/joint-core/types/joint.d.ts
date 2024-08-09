@@ -504,6 +504,10 @@ export namespace dia {
             deep?: boolean;
         }
 
+        interface ResizeOptions extends Cell.Options {
+            direction?: Direction
+        }
+
         interface BBoxOptions extends Cell.EmbeddableOptions {
             rotate?: boolean;
         }
@@ -517,10 +521,10 @@ export namespace dia {
         position(x: number, y: number, opt?: Element.PositionOptions): this;
 
         size(): Size;
-        size(size: { width?: number, height?: number }, opt?: { direction?: Direction, [key: string]: any }): this;
-        size(width: number, height: number, opt?: { direction?: Direction, [key: string]: any }): this;
+        size(size: Partial<Size>, opt?: Element.ResizeOptions): this;
+        size(width: number, height: number, opt?: Element.ResizeOptions): this;
 
-        resize(width: number, height: number, opt?: { direction?: Direction, [key: string]: any }): this;
+        resize(width: number, height: number, opt?: Element.ResizeOptions): this;
 
         rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { [key: string]: any }): this;
 
