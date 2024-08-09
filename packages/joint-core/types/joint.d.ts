@@ -517,7 +517,8 @@ export namespace dia {
         position(x: number, y: number, opt?: Element.PositionOptions): this;
 
         size(): Size;
-        size(width: number, height?: number, opt?: { direction?: Direction, [key: string]: any }): this;
+        size(size: { width?: number, height?: number }, opt?: { direction?: Direction, [key: string]: any }): this;
+        size(width: number, height: number, opt?: { direction?: Direction, [key: string]: any }): this;
 
         resize(width: number, height: number, opt?: { direction?: Direction, [key: string]: any }): this;
 
