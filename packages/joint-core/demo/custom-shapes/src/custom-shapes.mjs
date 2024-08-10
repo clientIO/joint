@@ -24,7 +24,8 @@ joint.dia.attributes['line-style'] = {
         }[lineStyle] || 'none';
 
         return { 'stroke-dasharray': dasharray };
-    }
+    },
+    unset: 'stroke-dasharray'
 };
 
 joint.dia.attributes['fit-ref'] = {
@@ -49,7 +50,8 @@ joint.dia.attributes['fit-ref'] = {
                 };
         }
         return {};
-    }
+    },
+    unset: ['rx', 'ry', 'cx', 'cy', 'width', 'height', 'd']
 };
 
 var Circle = joint.dia.Element.define('custom.Circle', {
