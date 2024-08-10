@@ -25,6 +25,7 @@ const connectionAttributesNS = {
 
     'connection': {
         qualify: isLinkView,
+        unset: 'd',
         set: function({ stubs = 0 }) {
             let d;
             if (isFinite(stubs) && stubs !== 0) {

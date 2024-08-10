@@ -559,13 +559,54 @@ export const CellView = View.extend({
             if (!rawAttrs.hasOwnProperty(attrName)) continue;
             attrVal = rawAttrs[attrName];
             def = this.getAttributeDefinition(attrName);
-            if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, rawAttrs, this))) {
-                if (isString(def.set)) {
-                    normalAttrs || (normalAttrs = {});
-                    normalAttrs[def.set] = attrVal;
-                }
-                if (attrVal !== null) {
-                    relatives.push(attrName, def);
+            if (def) {
+                if (attrVal === null) {
+                    // Assign the unset attribute name.
+                    let unsetAttrName;
+                    if (isFunction(def.unset)) {
+                        unsetAttrName = def.unset.call(this, node, rawAttrs, this);
+                    } else {
+                        unsetAttrName = def.unset;
+                    }
+                    if (!unsetAttrName && isString(def.set)) {
+                        // We unset an alias attribute.
+                        unsetAttrName = def.set;
+                    }
+                    if (!unsetAttrName) {
+                        // There is no alias for the attribute. We unset the attribute itself.
+                        unsetAttrName = attrName;
+                    }
+                    // Unset the attribute.
+                    if (isString(unsetAttrName) && unsetAttrName) {
+                        // Unset a single attribute.
+                        normalAttrs || (normalAttrs = {});
+                        // values takes precedence over unset values
+                        if (unsetAttrName in normalAttrs) continue;
+                        normalAttrs[unsetAttrName] = attrVal;
+                    } else if (Array.isArray(unsetAttrName) && unsetAttrName.length > 0) {
+                        // Unset multiple attributes.
+                        normalAttrs || (normalAttrs = {});
+                        for (i = 0, n = unsetAttrName.length; i < n; i++) {
+                            const attrName = unsetAttrName[i];
+                            // values takes precedence over unset values
+                            if (attrName in normalAttrs) continue;
+                            normalAttrs[attrName] = attrVal;
+                        }
+                    }
+                    // The unset value is neither a string nor an array.
+                    // The attribute is not unset.
+                } else {
+                    if (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, rawAttrs, this)) {
+                        if (isString(def.set)) {
+                            // An alias e.g 'xlink:href' -> 'href'
+                            normalAttrs || (normalAttrs = {});
+                            normalAttrs[def.set] = attrVal;
+                        }
+                        relatives.push(attrName, def);
+                    } else {
+                        normalAttrs || (normalAttrs = {});
+                        normalAttrs[attrName] = attrVal;
+                    }
                 }
             } else {
                 normalAttrs || (normalAttrs = {});
