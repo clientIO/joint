@@ -239,7 +239,7 @@ export namespace dia {
 
         getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-        toJSON(): any;
+        toJSON(opt?: { cellAttributes?: dia.Cell.ExportOptions }): any;
 
         fromJSON(json: any, opt?: S): this;
 
@@ -334,6 +334,11 @@ export namespace dia {
         interface ConstructorOptions extends Graph.Options {
             mergeArrays?: boolean;
         }
+
+        interface ExportOptions {
+            ignoreDefault?: boolean | string[];
+            ignoreEmptyAttributes?: boolean;
+        }
     }
 
     class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -351,7 +356,7 @@ export namespace dia {
 
         protected stopScheduledTransitions(path?: string, delim?: string): void;
 
-        toJSON(): Cell.JSON<any, A>;
+        toJSON(opt?: dia.Cell.ExportOptions): Cell.JSON<any, A>;
 
         remove(opt?: Cell.DisconnectableOptions): this;
 
@@ -2453,6 +2458,8 @@ export namespace util {
     export function template(html: string): (data: any) => string;
 
     export function toggleFullScreen(el?: Element): void;
+
+    export function objectDifference(object: object, base: object, opt?: { maxDepth?: number }): object;
 
     interface DOMJSONDocument {
         fragment: DocumentFragment;

@@ -1456,6 +1456,79 @@ QUnit.module('graph', function(hooks) {
             assert.ok(_.isArray(json.cells));
             assert.equal(json.cells.length, 3);
         });
+
+        QUnit.test('should take in account `opt.ignoreDefaults` = false', function(assert) {
+            const rect = new joint.shapes.standard.Rectangle();
+
+            this.graph.resetCells([rect]);
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: false }});
+
+            assert.deepEqual(json.cells[0], {
+                id: rect.id,
+                ...joint.shapes.standard.Rectangle.prototype.defaults,
+            });
+        });
+
+        QUnit.test('should take in account `opt.ignoreDefaults` = false, `opt.ignoreEmptyAttributes` = true', function(assert) {
+            const El = joint.dia.Element.extend({
+                defaults: {
+                    type: 'test.Element'
+                }
+            });
+        
+            const el = new El({
+                foo: {}
+            });
+
+            this.graph.resetCells([el]);
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: false, ignoreEmptyAttributes: true }});
+
+            const expected = joint.util.cloneDeep(el.attributes);
+            delete expected.foo;
+
+            assert.deepEqual(json.cells[0], expected);
+        });
+
+        QUnit.test('should take in account `opt.ignoreDefaults` = true', function(assert) {
+            const rect = new joint.shapes.standard.Rectangle();
+
+            this.graph.resetCells([rect]);
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: true }});
+
+            assert.deepEqual(json.cells[0], {
+                type: joint.shapes.standard.Rectangle.prototype.defaults.type,
+                id: rect.id,
+                size: {},
+                position: {},
+                attrs: {}
+            });
+        });
+
+        QUnit.test('should take in account `opt.ignoreDefaults` = true, `opt.ignoreEmptyAttributes` = true', function(assert) {
+            const rect = new joint.shapes.standard.Rectangle();
+
+            this.graph.resetCells([rect]);
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: true, ignoreEmptyAttributes: true }});
+
+            assert.deepEqual(json.cells[0], {
+                type: joint.shapes.standard.Rectangle.prototype.defaults.type,
+                id: rect.id
+            });
+        });
+
+        QUnit.test('`opt.ignoreDefaults` should accept an array of keys to differentiate', function(assert) {
+            const rect = new joint.shapes.standard.Rectangle();
+
+            this.graph.resetCells([rect]);
+            const json = this.graph.toJSON({ cellAttributes: { ignoreDefaults: ['attrs', 'size'] }});
+
+            assert.deepEqual(json.cells[0], {
+                id: rect.id,
+                ...joint.shapes.standard.Rectangle.prototype.defaults,
+                attrs: {},
+                size: {}
+            });
+        });
     });
 
     QUnit.module('graph.hasActiveBatch()', function() {

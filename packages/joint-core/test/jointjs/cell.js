@@ -671,6 +671,64 @@ QUnit.module('cell', function(hooks) {
 
             assert.deepEqual(el.toJSON(), { id: 'el1', attrs: { test2: { prop2: true }}});
         });
+
+        QUnit.test('should take in account `opt.ignoreDefaults` = false', function(assert) {
+            const rect = new joint.shapes.standard.Rectangle();
+
+            assert.deepEqual(rect.toJSON({ ignoreDefaults: false }), {
+                id: rect.id,
+                ...joint.shapes.standard.Rectangle.prototype.defaults,
+            });
+        });
+
+        QUnit.test('should take in account `opt.ignoreDefaults` = false, `opt.ignoreEmptyAttributes` = true', function(assert) {
+            const El = joint.dia.Element.extend({
+                defaults: {
+                    type: 'test.Element'
+                }
+            });
+        
+            const el = new El({
+                foo: {}
+            });
+
+            const expected = joint.util.cloneDeep(el.attributes);
+            delete expected.foo;
+
+            assert.deepEqual(el.toJSON({ ignoreDefaults: false, ignoreEmptyAttributes: true }), expected);
+        });
+
+        QUnit.test('should take in account `opt.ignoreDefaults` = true', function(assert) {
+            const rect = new joint.shapes.standard.Rectangle();
+
+            assert.deepEqual(rect.toJSON({ ignoreDefaults: true }), {
+                type: joint.shapes.standard.Rectangle.prototype.defaults.type,
+                id: rect.id,
+                size: {},
+                position: {},
+                attrs: {}
+            });
+        });
+
+        QUnit.test('should take in account `opt.ignoreDefaults` = true, `opt.ignoreEmptyAttributes` = true', function(assert) {
+            const rect = new joint.shapes.standard.Rectangle();
+
+            assert.deepEqual(rect.toJSON({ ignoreDefaults: true, ignoreEmptyAttributes: true }), {
+                type: joint.shapes.standard.Rectangle.prototype.defaults.type,
+                id: rect.id
+            });
+        });
+
+        QUnit.test('`opt.ignoreDefaults` should accept an array of keys to differentiate', function(assert) {
+            const rect = new joint.shapes.standard.Rectangle();
+
+            assert.deepEqual(rect.toJSON({ ignoreDefaults: ['attrs', 'size'] }), {
+                id: rect.id,
+                ...joint.shapes.standard.Rectangle.prototype.defaults,
+                attrs: {},
+                size: {}
+            });
+        });
     });
 
     QUnit.module('relative vs absolute points', function() {
