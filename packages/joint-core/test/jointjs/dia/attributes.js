@@ -604,6 +604,39 @@ QUnit.module('Attributes', function() {
             cell.attr('div/html', null);
             assert.notOk(divNode.firstChild);
         });
+
+        QUnit.test('unset transform & position callback', function(assert) {
+            joint.dia.attributes['test-transform-attribute'] = {
+                unset: 'transform',
+                set: function(value) {
+                    return { transform: `translate(${value},${value})` };
+                }
+            };
+            joint.dia.attributes['test-position-attribute'] = {
+                position(value) {
+                    return new g.Point(value, value);
+                }
+            };
+
+            // set transform attribute
+            cell.attr('body/testTransformAttribute', 7);
+            const bodyNode = cellView.findNode('body');
+            assert.ok(bodyNode.getAttribute('transform'));
+            assert.deepEqual(V(bodyNode).translate(), { tx: 7, ty: 7 });
+            // unset transform attribute
+            cell.attr('body/testTransformAttribute', null);
+            assert.notOk(bodyNode.getAttribute('transform'));
+            assert.deepEqual(V(bodyNode).translate(), { tx: 0, ty: 0 });
+            // position attribute and deleted transform
+            cell.attr('body/testPositionAttribute', 11);
+            assert.deepEqual(V(bodyNode).translate(), { tx: 11, ty: 11 });
+            // position and set transform attribute
+            cell.attr('body/testTransformAttribute', 13);
+            assert.deepEqual(V(bodyNode).translate(), { tx: 13 + 11, ty: 13 + 11 });
+
+            delete joint.dia.attributes['test-transform-attribute'];
+            delete joint.dia.attributes['test-position-attribute'];
+        });
     });
 
 

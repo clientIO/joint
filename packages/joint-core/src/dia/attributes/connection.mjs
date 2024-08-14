@@ -50,21 +50,25 @@ const connectionAttributesNS = {
 
     'at-connection-length-keep-gradient': {
         qualify: isLinkView,
+        unset: 'transform',
         set: atConnectionWrapper('getTangentAtLength', { rotate: true })
     },
 
     'at-connection-length-ignore-gradient': {
         qualify: isLinkView,
+        unset: 'transform',
         set: atConnectionWrapper('getTangentAtLength', { rotate: false })
     },
 
     'at-connection-ratio-keep-gradient': {
         qualify: isLinkView,
+        unset: 'transform',
         set: atConnectionWrapper('getTangentAtRatio', { rotate: true })
     },
 
     'at-connection-ratio-ignore-gradient': {
         qualify: isLinkView,
+        unset: 'transform',
         set: atConnectionWrapper('getTangentAtRatio', { rotate: false })
     }
 
