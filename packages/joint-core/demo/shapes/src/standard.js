@@ -10,12 +10,11 @@ V.attributeNames['placeholderURL'] = 'placeholderURL';
 
 // Custom attribute for retrieving image placeholder with specific size
 dia.attributes.placeholderURL = {
-    qualify: function(url) {
-        return typeof url === 'string';
-    },
     set: function(url, refBBox) {
+        if (typeof url !== 'string') return;
         return { 'xlink:href': util.template(url)(refBBox.round().toJSON()) };
-    }
+    },
+    unset: 'xlink:href'
 };
 
 var CylinderTiltTool = elementTools.Control.extend({
