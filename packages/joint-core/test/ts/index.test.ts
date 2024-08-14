@@ -198,3 +198,27 @@ rectangle.prop({ size: { width: 100 }});
 new joint.shapes.standard.Rectangle({
     position: { x: 100 },
 });
+
+class MyElement extends joint.dia.Element {
+
+    static attributes = {
+        'empty-attribute': {},
+        'set1-attribute': {
+            set: 'alias',
+            unset: 'alias'
+        },
+        'set2-attribute': {
+            set: () => ({ 'alias': 21 }),
+            unset: ['alias']
+        },
+        'set3-attribute': {
+            set: function() { return 21; },
+        },
+        'position-attribute': {
+            position: () => ({ x: 5, y: 7 })
+        },
+        'offset-attribute': {
+            offset: () => ({ x: 11, y: 13 })
+        },
+    };
+}
