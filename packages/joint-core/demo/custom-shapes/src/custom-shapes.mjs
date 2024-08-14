@@ -2,9 +2,9 @@ import * as joint from '../../../joint.mjs';
 import * as g from '../../../src/g/index.mjs';
 import V from '../../../src/V/index.mjs';
 
-var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
-var paper = new joint.dia.Paper({
+const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     cellViewNamespace: joint.shapes,
     width: 650,
@@ -14,11 +14,11 @@ var paper = new joint.dia.Paper({
 });
 
 // Global special attributes
-joint.dia.attributes['line-style'] = {
+const lineStyleAttribute = {
     set: function(lineStyle, refBBox, node, attrs) {
 
-        var n = attrs['stroke-width'] || 1;
-        var dasharray = {
+        const n = attrs['stroke-width'] || 1;
+        const dasharray = {
             'dashed': (4*n) + ',' + (2*n),
             'dotted': n + ',' + n
         }[lineStyle] || 'none';
@@ -28,7 +28,7 @@ joint.dia.attributes['line-style'] = {
     unset: 'stroke-dasharray'
 };
 
-joint.dia.attributes['fit-ref'] = {
+const fitRefAttribute = {
     set: function(fitRef, refBBox, node) {
         switch (node.tagName.toUpperCase()) {
             case 'ELLIPSE':
@@ -43,18 +43,96 @@ joint.dia.attributes['fit-ref'] = {
                     width: refBBox.width,
                     height: refBBox.height
                 };
-            case 'PATH':
-                var rect = joint.util.assign(refBBox.toJSON(), fitRef);
+            case 'PATH': {
+                const rect = joint.util.assign(refBBox.toJSON(), fitRef);
                 return {
                     d: V.rectToPath(rect)
                 };
+            }
         }
         return {};
     },
     unset: ['rx', 'ry', 'cx', 'cy', 'width', 'height', 'd']
 };
 
-var Circle = joint.dia.Element.define('custom.Circle', {
+const shapeAttribute = {
+    set: function(shape, refBBox, node) {
+        if (!(node instanceof SVGPathElement)) {
+            throw new Error('The shape attribute can only be set on a path element.');
+        }
+        let data;
+        switch (shape) {
+            case 'hexagon': {
+                data = [
+                    g.Line(refBBox.topMiddle(), refBBox.origin()).midpoint(),
+                    g.Line(refBBox.topMiddle(), refBBox.topRight()).midpoint(),
+                    refBBox.rightMiddle(),
+                    g.Line(refBBox.bottomMiddle(), refBBox.corner()).midpoint(),
+                    g.Line(refBBox.bottomMiddle(), refBBox.bottomLeft()).midpoint(),
+                    refBBox.leftMiddle()
+                ];
+                break;
+            }
+            case 'rhombus': {
+                data = [
+                    refBBox.topMiddle(),
+                    refBBox.rightMiddle(),
+                    refBBox.bottomMiddle(),
+                    refBBox.leftMiddle()
+                ];
+                break;
+            }
+            case 'rounded-rectangle': {
+                const rect = refBBox.toJSON();
+                rect.rx = 5;
+                rect.ry = 5;
+                return { d: V.rectToPath(rect) };
+            }
+            default:
+                throw new Error('Unknown shape: ' + shape);
+        }
+        return { d: 'M ' + data.join(' ').replace(/@/g, ' ') + ' Z' };
+    },
+    unset: 'd'
+};
+
+const progressDataAttribute = {
+    set: function(value, bbox) {
+
+        function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+            const angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+            return {
+                x: centerX + (radius * Math.cos(angleInRadians)),
+                y: centerY + (radius * Math.sin(angleInRadians))
+            };
+        }
+
+        function describeArc(x, y, radius, startAngle, endAngle){
+            const start = polarToCartesian(x, y, radius, endAngle);
+            const end = polarToCartesian(x, y, radius, startAngle);
+            const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+            const d = [
+                'M', start.x, start.y,
+                'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
+            ].join(' ');
+            return d;
+        }
+
+        const center = bbox.center();
+        return {
+            d: describeArc(
+                center.x,
+                center.y,
+                Math.min(bbox.width / 2, bbox.height / 2),
+                0,
+                Math.min(360 / 100 * value, 359.99)
+            )
+        };
+    },
+    unset: 'd'
+};
+
+const Circle = joint.dia.Element.define('custom.Circle', {
     markup: [{
         tagName: 'ellipse',
         selector: 'body'
@@ -93,9 +171,14 @@ var Circle = joint.dia.Element.define('custom.Circle', {
     setText: function(text) {
         return this.attr('label/text', text);
     }
+}, {
+    attributes: {
+        'line-style': lineStyleAttribute,
+        'fit-ref': fitRefAttribute
+    }
 });
 
-var circle = (new Circle())
+const circle = (new Circle())
     .size(100, 100)
     .position(500,200)
     .setText('Special\nAttributes')
@@ -104,7 +187,7 @@ var circle = (new Circle())
 
 circle.transition('angle', 0, { delay: 500 });
 
-var Rectangle = joint.dia.Element.define('custom.Rectangle', {
+const Rectangle = joint.dia.Element.define('custom.Rectangle', {
     markup: [{
         tagName: 'rect',
         selector: 'body'
@@ -157,7 +240,7 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
     }
 });
 
-var rectangle = (new Rectangle())
+const rectangle = (new Rectangle())
     .size(100,90)
     .position(250,50)
     .addTo(graph);
@@ -169,7 +252,7 @@ paper.on('element:delete', function(elementView, evt) {
     }
 });
 
-var Header = joint.dia.Element.define('custom.Header', {
+const Header = joint.dia.Element.define('custom.Header', {
 
     markup: [{
         tagName: 'rect',
@@ -234,9 +317,15 @@ var Header = joint.dia.Element.define('custom.Header', {
             xlinkHref: 'http://placehold.it/30x40'
         }
     }
+}, {
+    // prototype methods
+}, {
+    attributes: {
+        'fit-ref': fitRefAttribute
+    }
 });
 
-var header = (new Header())
+const header = (new Header())
     .size(200,140)
     .position(420,40)
     .addTo(graph);
@@ -309,7 +398,7 @@ new joint.shapes.standard.Link({
     }
 }).addTo(graph);
 
-var Shape = joint.dia.Element.define('custom.Shape', {
+const Shape = joint.dia.Element.define('custom.Shape', {
     markup: [{
         tagName: 'path',
         selector: 'body'
@@ -328,7 +417,7 @@ var Shape = joint.dia.Element.define('custom.Shape', {
             main: {
                 markup: [{
                     tagName: 'path',
-                    selector: 'body'
+                    selector: 'portBody'
                 }],
                 position: {
                     name: 'absolute',
@@ -338,7 +427,7 @@ var Shape = joint.dia.Element.define('custom.Shape', {
                 },
                 size: { width: 20, height: 20 },
                 attrs: {
-                    body: {
+                    portBody: {
                         fill: 'green',
                         transform: 'translate(-10,-10)',
                         magnet: true
@@ -349,83 +438,45 @@ var Shape = joint.dia.Element.define('custom.Shape', {
     }
 }, { /* no prototype methods */ }, {
     attributes: {
-
-        shape: {
-            qualify: function(value, node) {
-                return ([
-                    'hexagon',
-                    'rhombus',
-                    'rounded-rectangle'
-                ].indexOf(value) > -1) && (node instanceof SVGPathElement);
-            },
-            set: function(shape, refBBox) {
-                var data;
-                switch (shape) {
-                    case 'hexagon':
-                        data = [
-                            g.Line(refBBox.topMiddle(), refBBox.origin()).midpoint(),
-                            g.Line(refBBox.topMiddle(), refBBox.topRight()).midpoint(),
-                            refBBox.rightMiddle(),
-                            g.Line(refBBox.bottomMiddle(), refBBox.corner()).midpoint(),
-                            g.Line(refBBox.bottomMiddle(), refBBox.bottomLeft()).midpoint(),
-                            refBBox.leftMiddle()
-                        ];
-                        break;
-                    case 'rhombus':
-                        data = [
-                            refBBox.topMiddle(),
-                            refBBox.rightMiddle(),
-                            refBBox.bottomMiddle(),
-                            refBBox.leftMiddle()
-                        ];
-                        break;
-                    case 'rounded-rectangle':
-                        var rect = refBBox.toJSON();
-                        rect.rx = 5;
-                        rect.ry = 5;
-                        return { d: V.rectToPath(rect) };
-                }
-                return { d: 'M ' + data.join(' ').replace(/@/g, ' ') + ' Z' };
-            }
-        }
+        'shape': shapeAttribute
     }
 });
 
-var shape1 = (new Shape())
-    .attr('path/shape', 'hexagon')
+const shape1 = (new Shape())
+    .attr('body/shape', 'hexagon')
     .size(100, 100)
     .position(100, 50)
     .addPort({
         group: 'main',
-        attrs: { body: { shape: 'hexagon' }}
+        attrs: { portBody: { shape: 'hexagon' }}
     })
     .addPort({
         group: 'main',
         args: { x: '100%' },
-        attrs: { body: { shape: 'hexagon' }}
+        attrs: { portBody: { shape: 'hexagon' }}
     });
 
-var shape2 = (new Shape())
-    .attr('path/shape', 'rhombus')
+const shape2 = (new Shape())
+    .attr('body/shape', 'rhombus')
     .size(100, 100)
     .position(100, 170)
     .addPort({
         group: 'main',
-        attrs: { body: { shape: 'rhombus' }}
+        attrs: { portBody: { shape: 'rhombus' }}
     })
     .addPort({
         group: 'main',
         args: { x: '100%' },
-        attrs: { body: { shape: 'rhombus' }}
+        attrs: { portBody: { shape: 'rhombus' }}
     });
 
-var shape3 = (new Shape())
-    .attr('path/shape', 'rounded-rectangle')
+const shape3 = (new Shape())
+    .attr('body/shape', 'rounded-rectangle')
     .size(100, 100)
     .position(100, 290)
     .addPort({
         group: 'main',
-        attrs: { path: { shape: 'rounded-rectangle' }}
+        attrs: { portBody: { shape: 'rounded-rectangle' }}
     })
     .addPort({
         id: 'circle-port',
@@ -459,13 +510,13 @@ var shape3 = (new Shape())
 
 graph.addCells([shape1, shape2, shape3]);
 
-var portIndex = shape3.getPortIndex('circle-port');
+const portIndex = shape3.getPortIndex('circle-port');
 
 shape3.transition('ports/items/' + portIndex + '/attrs/first/r', 5, {
     delay: 2000
 });
 
-var Progress = joint.dia.Element.define('progress', {
+const Progress = joint.dia.Element.define('progress', {
     attrs: {
         progressBackground: {
             stroke: 'gray',
@@ -511,51 +562,12 @@ var Progress = joint.dia.Element.define('progress', {
     }
 }, {
     attributes: {
-        'progress-d': {
-            set: function(value, bbox) {
-
-                function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-                    var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
-                    return {
-                        x: centerX + (radius * Math.cos(angleInRadians)),
-                        y: centerY + (radius * Math.sin(angleInRadians))
-                    };
-                }
-
-                function describeArc(x, y, radius, startAngle, endAngle){
-                    var start = polarToCartesian(x, y, radius, endAngle);
-                    var end = polarToCartesian(x, y, radius, startAngle);
-                    var largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
-                    var d = [
-                        'M', start.x, start.y,
-                        'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
-                    ].join(' ');
-                    return d;
-                }
-
-                var center = bbox.center();
-                return {
-                    d: describeArc(
-                        center.x,
-                        center.y,
-                        Math.min(bbox.width / 2, bbox.height / 2),
-                        0,
-                        Math.min(360 / 100 * value, 359.99)
-                    )
-                };
-            }
-        }
-
+        'progress-d': progressDataAttribute
     }
-
-
-
 });
 
-var progress = new Progress();
+const progress = new Progress();
 progress.resize(100, 100);
 progress.position(400, 280);
 progress.setProgress(50);
 progress.addTo(graph);
-
-
