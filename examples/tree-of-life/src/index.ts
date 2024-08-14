@@ -203,15 +203,15 @@ class Branch extends dia.Link {
         // The `organicStroke` attribute is used to set the `d` attribute of the `<path>` element.
         // It works similarly to the `connection` attribute of JointJS.
         organicStroke: {
-            qualify: function () {
-                return this.model.isLink();
-            },
             set: function (
                 _value: any,
                 _refBBox: g.Rect,
                 _node: SVGElement,
                 attrs: attributes.NativeSVGAttributes
             ) {
+                if (!this.model.isLink()) {
+                    throw new Error('The `organicStroke` attribute can only be used with links.');
+                }
                 // The path of the link as returned by the `connector`.
                 const path = this.getConnection();
                 const segmentSubdivisions = this.getConnectionSubdivisions();
