@@ -202,7 +202,7 @@ class Branch extends dia.Link {
     static attributes = {
         // The `organicStroke` attribute is used to set the `d` attribute of the `<path>` element.
         // It works similarly to the `connection` attribute of JointJS.
-        organicStroke: {
+        'organic-stroke': {
             set: function (
                 _value: any,
                 _refBBox: g.Rect,
@@ -231,7 +231,7 @@ class Branch extends dia.Link {
                 // Using the `getStroke` function from the `perfect-freehand` library,
                 // we get the points that represent the outline of the stroke.
                 const outlinePoints = getStroke(points, {
-                    size: attrs.organicStrokeSize || 20,
+                    size: attrs['organic-stroke-size'] || 20,
                     thinning: 0.5,
                     simulatePressure: false,
                     last: true,
@@ -241,10 +241,11 @@ class Branch extends dia.Link {
                 // The `d` attribute is set on the `node` element.
                 return { d };
             },
+            unset: 'd'
         },
         // Empty attributes definition to prevent the attribute from being set on the element.
         // They are only meant to be used in the `organicStroke` function.
-        organicStrokeSize: {},
+        'organic-stroke-size': {},
     };
 }
 
