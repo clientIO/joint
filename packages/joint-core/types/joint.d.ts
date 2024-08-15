@@ -351,6 +351,7 @@ export namespace dia {
             this: V,
             attributeValue: any,
             refBBox: g.Rect,
+            node: Element,
             nodeAttributes: { [name: string]: any },
             cellView: V
         ) => { [key: string]: any } | string | number;
