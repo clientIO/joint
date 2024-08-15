@@ -14,8 +14,8 @@ joint.dia.Element.define('jigsaw.Piece', {
 } , {
     attributes: {
         tabs: { /* [topTab, rightTab, bottomTab, leftTab] */
-            qualify: Array.isArray,
             set: function(tabs, refBBox) {
+                if (!Array.isArray(tabs)) return;
                 var tabSize = this.model.prop('tabSize');
                 var points = [];
                 var refCenter = refBBox.center();
@@ -41,11 +41,12 @@ joint.dia.Element.define('jigsaw.Piece', {
                 return {
                     points: points.join(' ').replace(/@/g,' ')
                 };
-            }
+            },
+            unset: 'points'
         },
         image: { /* [imageId, rowIndex, columnIndex] */
-            qualify: Array.isArray,
             set: function(image) {
+                if (!Array.isArray(image)) return;
                 var paper = this.paper;
                 var model = this.model;
                 var width = model.prop('size/width');
@@ -71,7 +72,8 @@ joint.dia.Element.define('jigsaw.Piece', {
                 return {
                     fill: 'url(#' + id + ')'
                 };
-            }
+            },
+            unset: 'fill'
         }
     }
 });

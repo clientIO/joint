@@ -49,6 +49,9 @@ const attributesNS = {
     },
 
     'html': {
+        unset: function(node) {
+            $(node).empty();
+        },
         set: function(html, refBBox, node) {
             $(node).html(html + '');
         }

@@ -530,7 +530,8 @@ export const Cylinder = Element.define('standard.Cylinder', {
                     'Z'
                 ];
                 return { d: data.join(' ') };
-            }
+            },
+            unset: 'd'
         }
     }
 });
@@ -611,6 +612,12 @@ export const TextBlock = Element.define('standard.TextBlock', {
                     var wrapAttrs = assign({ 'text-vertical-anchor': 'middle' }, style);
                     attributes['text-wrap'].set.call(this, wrapValue, refBBox, node, wrapAttrs);
                     return { fill: style.color || null };
+                }
+            },
+            unset: function(node) {
+                node.textContent = '';
+                if (node instanceof SVGElement) {
+                    return 'fill';
                 }
             },
             position: function(text, refBBox, node) {

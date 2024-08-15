@@ -339,6 +339,47 @@ export namespace dia {
             ignoreDefault?: boolean | string[];
             ignoreEmptyAttributes?: boolean;
         }
+
+        type UnsetCallback<V> = (
+            this: V,
+            node: Element,
+            nodeAttributes: { [name: string]: any },
+            cellView: V
+        ) => string | Array<string> | null | void;
+
+        type SetCallback<V> = (
+            this: V,
+            attributeValue: any,
+            refBBox: g.Rect,
+            node: Element,
+            nodeAttributes: { [name: string]: any },
+            cellView: V
+        ) => { [key: string]: any } | string | number | void;
+
+        type PositionCallback<V> = (
+            this: V,
+            attributeValue: any,
+            refBBox: g.Rect,
+            node: Element,
+            nodeAttributes: { [name: string]: any },
+            cellView: V
+        ) => dia.Point | null | void;
+
+        type OffsetCallback<V> = (
+            this: V,
+            attributeValue: any,
+            nodeBBox: g.Rect,
+            node: Element,
+            nodeAttributes: { [name: string]: any },
+            cellView: V
+        ) => dia.Point | null | void;
+
+        interface PresentationAttributeDefinition<V = dia.CellView> {
+            set?: SetCallback<V> | string;
+            unset?: UnsetCallback<V> | string | Array<string>;
+            position?: PositionCallback<V>;
+            offset?: OffsetCallback<V>;
+        }
     }
 
     class Cell<A extends ObjectHash = Cell.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends mvc.Model<A, S> {
@@ -510,7 +551,7 @@ export namespace dia {
         }
 
         interface ResizeOptions extends Cell.Options {
-            direction?: Direction
+            direction?: Direction;
         }
 
         interface BBoxOptions extends Cell.EmbeddableOptions {
@@ -578,6 +619,8 @@ export namespace dia {
         protected generatePortId(): string | number;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
+
+        static attributes: { [attributeName: string]: Cell.PresentationAttributeDefinition<ElementView> };
     }
 
     // dia.Link
@@ -726,6 +769,8 @@ export namespace dia {
         translate(tx: number, ty: number, opt?: S): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Link>;
+
+        static attributes: { [attributeName: string]: Cell.PresentationAttributeDefinition<LinkView> };
     }
 
     // dia.CellView

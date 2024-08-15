@@ -247,7 +247,8 @@
                     }
                     var sets = shape.sets;
                     return { d: r.opsToPath(sets[opt.fillSketch ? 0 : 1]) };
-                }
+                },
+                unset: 'd'
             },
             'pointer-shape': {
                 set: function(type, bbox) {
@@ -271,7 +272,8 @@
                             break;
                     }
                     return { d: vel.convertToPathData() };
-                }
+                },
+                unset: 'd'
             }
         }
     });
@@ -323,7 +325,8 @@
                         bowing: opt.bowing || 1
                     };
                     return { d: r.opsToPath(r.generator.path(this.getSerializedConnection(), rOpt).sets[0]) };
-                }
+                },
+                unset: 'd'
             }
         }
     });

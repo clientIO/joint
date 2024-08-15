@@ -40,6 +40,9 @@ const textAttributesNS = {
             const textWrap = attrs['text-wrap'];
             return !textWrap || !isPlainObject(textWrap);
         },
+        unset: function(node) {
+            node.textContent = '';
+        },
         set: function(text, refBBox, node, attrs) {
             const cacheName = 'joint-text';
             const cache = $.data.get(node, cacheName);
@@ -170,6 +173,13 @@ const textAttributesNS = {
         qualify: function(title, node) {
             // HTMLElement title is specified via an attribute (i.e. not an element)
             return node instanceof SVGElement;
+        },
+        unset: function(node) {
+            $.data.remove(node, 'joint-title');
+            const titleNode = node.firstElementChild;
+            if (titleNode) {
+                titleNode.remove();
+            }
         },
         set: function(title, refBBox, node) {
             var cacheName = 'joint-title';

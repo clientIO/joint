@@ -69,18 +69,22 @@ function pointsWrapper(opt) {
 const shapeAttributesNS = {
 
     'ref-d-reset-offset': {
+        unset: 'd',
         set: dWrapper({ resetOffset: true })
     },
 
     'ref-d-keep-offset': {
+        unset: 'd',
         set: dWrapper({ resetOffset: false })
     },
 
     'ref-points-reset-offset': {
+        unset: 'points',
         set: pointsWrapper({ resetOffset: true })
     },
 
     'ref-points-keep-offset': {
+        unset: 'points',
         set: pointsWrapper({ resetOffset: false })
     },
 };

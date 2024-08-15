@@ -33,6 +33,7 @@ const defsAttributesNS = {
 
     'source-marker': {
         qualify: isPlainObject,
+        unset: 'marker-start',
         set: function(marker, refBBox, node, attrs) {
             marker = assign(contextMarker(attrs), marker);
             return { 'marker-start': 'url(#' + this.paper.defineMarker(marker) + ')' };
@@ -41,6 +42,7 @@ const defsAttributesNS = {
 
     'target-marker': {
         qualify: isPlainObject,
+        unset: 'marker-end',
         set: function(marker, refBBox, node, attrs) {
             marker = assign(contextMarker(attrs), { 'transform': 'rotate(180)' }, marker);
             return { 'marker-end': 'url(#' + this.paper.defineMarker(marker) + ')' };
@@ -49,6 +51,7 @@ const defsAttributesNS = {
 
     'vertex-marker': {
         qualify: isPlainObject,
+        unset: 'marker-mid',
         set: function(marker, refBBox, node, attrs) {
             marker = assign(contextMarker(attrs), marker);
             return { 'marker-mid': 'url(#' + this.paper.defineMarker(marker) + ')' };

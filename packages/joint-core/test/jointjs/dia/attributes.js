@@ -404,6 +404,242 @@ QUnit.module('Attributes', function() {
 
     });
 
+    QUnit.module('Unset Attributes', function(hooks) {
+
+        var paper, graph, cell, cellView;
+
+        hooks.beforeEach(function() {
+            graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            var fixtures = document.getElementById('qunit-fixture');
+            var paperEl = document.createElement('div');
+            fixtures.appendChild(paperEl);
+            paper = new joint.dia.Paper({ el: paperEl, model: graph, cellViewNamespace: joint.shapes });
+            cell = new joint.shapes.standard.Rectangle();
+            cell.addTo(graph);
+            cellView = cell.findView(paper);
+            // custom presentation attributes
+            joint.dia.attributes.test1 = { set: 'test2' };
+        });
+
+        hooks.afterEach(function() {
+            paper.remove();
+        });
+
+        QUnit.test('unset() callback', function(assert) {
+            const unsetSpy = sinon.spy();
+            joint.dia.attributes['test-attribute'] = {
+                unset: unsetSpy
+            };
+            cell.attr('body/fill', 'purple');
+            assert.ok(unsetSpy.notCalled);
+            cell.attr('body/testAttribute', 'test');
+            assert.ok(unsetSpy.notCalled);
+            cell.attr('body/testAttribute', null);
+            assert.ok(unsetSpy.calledOnce);
+            assert.ok(unsetSpy.calledWithExactly(
+                cellView.findNode('body'),
+                sinon.match({ 'test-attribute': null, fill: 'purple' }),
+                cellView
+            ));
+            delete joint.dia.attributes['test-attribute'];
+        });
+
+        QUnit.module('unset() single attribute', function() {
+            QUnit.test('string', function(assert) {
+                joint.dia.attributes['test-attribute'] = {
+                    set: 'a',
+                    unset: 'a'
+                };
+                cell.attr('body/testAttribute', 'value');
+                const bodyNode = cellView.findNode('body');
+                assert.equal(bodyNode.getAttribute('a'), 'value');
+                cell.attr('body/testAttribute', null);
+                assert.notOk(bodyNode.getAttribute('a'));
+                delete joint.dia.attributes['test-attribute'];
+            });
+            QUnit.test('function', function(assert) {
+                joint.dia.attributes['test-attribute'] = {
+                    set: function(value) {
+                        return { a: value };
+                    },
+                    unset: function() {
+                        return 'a';
+                    }
+                };
+                cell.attr('body/testAttribute', 'value');
+                const bodyNode = cellView.findNode('body');
+                assert.equal(bodyNode.getAttribute('a'), 'value');
+                cell.attr('body/testAttribute', null);
+                assert.notOk(bodyNode.getAttribute('a'));
+                delete joint.dia.attributes['test-attribute'];
+            });
+        });
+
+        QUnit.module('unset() multiple attributes', function() {
+            QUnit.test('string', function(assert) {
+                joint.dia.attributes['test-attribute'] = {
+                    set: function(value) {
+                        return { a: value, b: value };
+                    },
+                    unset: ['a', 'b']
+                };
+                cell.attr('body/testAttribute', 'value');
+                const bodyNode = cellView.findNode('body');
+                assert.equal(bodyNode.getAttribute('a'), 'value');
+                assert.equal(bodyNode.getAttribute('b'), 'value');
+                cell.attr('body/testAttribute', null);
+                assert.notOk(bodyNode.getAttribute('a'));
+                assert.notOk(bodyNode.getAttribute('b'));
+            });
+            QUnit.test('function', function(assert) {
+                joint.dia.attributes['test-attribute'] = {
+                    set: function(value) {
+                        return { a: value, b: value };
+                    },
+                    unset: function() {
+                        return ['a', 'b'];
+                    }
+                };
+                cell.attr('body/testAttribute', 'value');
+                const bodyNode = cellView.findNode('body');
+                assert.equal(bodyNode.getAttribute('a'), 'value');
+                assert.equal(bodyNode.getAttribute('b'), 'value');
+                cell.attr('body/testAttribute', null);
+                assert.notOk(bodyNode.getAttribute('a'));
+                assert.notOk(bodyNode.getAttribute('b'));
+                delete joint.dia.attributes['test-attribute'];
+            });
+        });
+
+        [{
+            attribute: 'no-def'
+        }, {
+            attribute: 'fill',
+            label: 'with-def',
+            value: 'blue',
+        }, {
+            attribute: 'test1',
+            label: 'alias',
+            svgAttribute: 'test2',
+        }, {
+            attribute: 'sourceMarker',
+            svgAttribute: 'marker-start',
+            value: { type: 'path', d: 'M 0 0 10 10' }
+        }, {
+            attribute: 'targetMarker',
+            svgAttribute: 'marker-end',
+            value: { type: 'path', d: 'M 0 0 10 10' }
+        }, {
+            attribute: 'vertexMarker',
+            svgAttribute: 'marker-mid',
+            value: { type: 'path', d: 'M 0 0 10 10' }
+        }, {
+            attribute: 'refD',
+            svgAttribute: 'd',
+            value: 'M 0 0 10 10',
+        }, {
+            attribute: 'refPoints',
+            svgAttribute: 'points',
+            value: '0,0 10,10',
+        }].forEach(function({
+            attribute,
+            label = attribute,
+            svgAttribute = attribute,
+            value = true
+        }) {
+            QUnit.test(`attribute: ${label}`, function(assert) {
+                const path = ['body', attribute];
+                const bodyNode = cellView.findNode('body');
+                // set
+                cell.attr(path, value);
+                assert.ok(bodyNode.getAttribute(svgAttribute));
+                // unset
+                cell.attr(path, null);
+                assert.notOk(bodyNode.getAttribute(svgAttribute));
+            });
+        });
+
+        [{
+            test1: null, // unset `test2`
+            test2: 'test3'
+        }, {
+            test2: 'test3',
+            test1: null, // unset `test2`
+        }].forEach(function(attributes, index) {
+            QUnit.test(`unset order: ${index + 1}`, function(assert) {
+                cell.attr('body', attributes);
+                const bodyNode = cellView.findNode('body');
+                assert.ok(bodyNode.getAttribute('test2'));
+            });
+        });
+
+        QUnit.test('attribute: title', function(assert) {
+            cell.attr('body/title', 'test');
+            const bodyNode = cellView.findNode('body');
+            assert.ok(bodyNode.querySelector('title'));
+            cell.attr('body/title', null);
+            assert.notOk(bodyNode.querySelector('title'));
+        });
+
+        QUnit.test('attribute: text', function(assert) {
+            cell.attr('label/text', 'test');
+            const textNode = cellView.findNode('label');
+            assert.ok(textNode.firstChild);
+            cell.attr('label/text', null);
+            assert.notOk(textNode.firstChild);
+            cell.attr('label/text', '');
+            assert.ok(textNode.firstChild);
+        });
+
+        QUnit.test('attribute: html', function(assert) {
+            cell.set('markup', joint.util.svg`
+                <foreignObject>
+                    <div xmlns="http://www.w3.org/1999/xhtml" @selector="div">test</div>
+                </foreignObject>
+            `);
+            const divNode = cellView.findNode('div');
+            assert.ok(divNode);
+            cell.attr('div/html', 'test');
+            assert.ok(divNode.firstChild);
+            cell.attr('div/html', null);
+            assert.notOk(divNode.firstChild);
+        });
+
+        QUnit.test('unset transform & position callback', function(assert) {
+            joint.dia.attributes['test-transform-attribute'] = {
+                unset: 'transform',
+                set: function(value) {
+                    return { transform: `translate(${value},${value})` };
+                }
+            };
+            joint.dia.attributes['test-position-attribute'] = {
+                position(value) {
+                    return new g.Point(value, value);
+                }
+            };
+
+            // set transform attribute
+            cell.attr('body/testTransformAttribute', 7);
+            const bodyNode = cellView.findNode('body');
+            assert.ok(bodyNode.getAttribute('transform'));
+            assert.deepEqual(V(bodyNode).translate(), { tx: 7, ty: 7 });
+            // unset transform attribute
+            cell.attr('body/testTransformAttribute', null);
+            assert.notOk(bodyNode.getAttribute('transform'));
+            assert.deepEqual(V(bodyNode).translate(), { tx: 0, ty: 0 });
+            // position attribute and deleted transform
+            cell.attr('body/testPositionAttribute', 11);
+            assert.deepEqual(V(bodyNode).translate(), { tx: 11, ty: 11 });
+            // position and set transform attribute
+            cell.attr('body/testTransformAttribute', 13);
+            assert.deepEqual(V(bodyNode).translate(), { tx: 13 + 11, ty: 13 + 11 });
+
+            delete joint.dia.attributes['test-transform-attribute'];
+            delete joint.dia.attributes['test-position-attribute'];
+        });
+    });
+
+
     QUnit.module('Calc()', function(hooks) {
 
         var X = 13;
