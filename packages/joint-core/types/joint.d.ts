@@ -354,7 +354,7 @@ export namespace dia {
             node: Element,
             nodeAttributes: { [name: string]: any },
             cellView: V
-        ) => { [key: string]: any } | string | number;
+        ) => { [key: string]: any } | string | number | void;
 
         type PositionCallback<V> = (
             this: V,
