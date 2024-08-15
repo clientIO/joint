@@ -373,7 +373,7 @@ export namespace dia {
             cellView: V
         ) => dia.Point | null | void;
 
-        interface SpecialAttribute<V = dia.CellView> {
+        interface PresentationAttributeDefinition<V = dia.CellView> {
             set?: SetCallback<V> | string;
             unset?: UnsetCallback<V> | string | Array<string>;
             position?: PositionCallback<V>;
@@ -619,7 +619,7 @@ export namespace dia {
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
 
-        static attributes: { [attributeName: string]: Cell.SpecialAttribute<ElementView> };
+        static attributes: { [attributeName: string]: Cell.PresentationAttributeDefinition<ElementView> };
     }
 
     // dia.Link
@@ -769,7 +769,7 @@ export namespace dia {
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Link>;
 
-        static attributes: { [attributeName: string]: Cell.SpecialAttribute<LinkView> };
+        static attributes: { [attributeName: string]: Cell.PresentationAttributeDefinition<LinkView> };
     }
 
     // dia.CellView
