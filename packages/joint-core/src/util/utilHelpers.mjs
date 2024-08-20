@@ -678,7 +678,7 @@ const equalByTag = (object, other, tag, equalFunc, stack) => {
         case stringTag:
             return object == `${other}`;
         case mapTag:
-            let convert = mapToArray;
+            var convert = mapToArray;
         // Intentional fallthrough
         // eslint-disable-next-line no-fallthrough
         case setTag:

@@ -22,7 +22,7 @@ module.exports = {
         'CDATASection': true
     },
     'parserOptions': {
-        'ecmaVersion': 6,
+        'ecmaVersion': 2022,
         'sourceType': 'module'
     }
 };
