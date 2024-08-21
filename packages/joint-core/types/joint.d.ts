@@ -4223,8 +4223,8 @@ export namespace elementTools {
         constructor(opt?: T);
 
         protected getPosition(view: dia.ElementView): dia.Point;
-        protected setPosition(view: dia.ElementView, coordinates: g.Point): void;
-        protected resetPosition(view: dia.ElementView): void;
+        protected setPosition(view: dia.ElementView, coordinates: g.Point, evt: dia.Event): void;
+        protected resetPosition(view: dia.ElementView, evt: dia.Event): void;
 
         protected updateHandle(handleNode: SVGElement): void;
         protected updateExtras(extrasNode: SVGElement): void;

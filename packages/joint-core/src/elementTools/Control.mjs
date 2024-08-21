@@ -133,7 +133,7 @@ export const Control = ToolView.extend({
         const { clientX, clientY } = util.normalizeEvent(evt);
         const coords = paper.clientToLocalPoint(clientX, clientY);
         const relativeCoords = model.getRelativePointFromAbsolute(coords);
-        this.setPosition(relatedView, relativeCoords, this);
+        this.setPosition(relatedView, relativeCoords, evt);
         this.update();
     },
     onPointerUp: function(_evt) {
@@ -144,9 +144,9 @@ export const Control = ToolView.extend({
         this.toggleExtras(false);
         relatedView.model.stopBatch('control-move', { ui: true, tool: this.cid });
     },
-    onPointerDblClick: function() {
+    onPointerDblClick: function(evt) {
         const { relatedView } = this;
-        this.resetPosition(relatedView, this);
+        this.resetPosition(relatedView, evt);
         this.update();
     }
 
