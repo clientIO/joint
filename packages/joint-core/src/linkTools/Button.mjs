@@ -57,7 +57,10 @@ export const Button = ToolView.extend({
     },
     getLinkMatrix() {
         const { relatedView: view, options } = this;
-        const { offset = 0, distance = 0, rotate, scale } = options;
+        const { offset = 0, distance: distanceOpt = 0, rotate, scale } = options;
+        const distance = (typeof distanceOpt === 'function')
+            ? distanceOpt.call(this, view, this)
+            : distanceOpt;
         let tangent, position, angle;
         if (util.isPercentage(distance)) {
             tangent = view.getTangentAtRatio(parseFloat(distance) / 100);

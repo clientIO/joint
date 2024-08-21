@@ -54,3 +54,7 @@ new elementTools.HoverConnect({
     trackWidth: 10,
     trackPath: (view) => view.model.attr(['body', 'd']),
 });
+
+new linkTools.Button({
+    distance: (view) => view.getConnectionLength() < 100 ? 20 : '50%'
+});
