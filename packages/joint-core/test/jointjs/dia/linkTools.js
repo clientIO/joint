@@ -63,6 +63,83 @@ QUnit.module('linkTools', function(hooks) {
         });
     });
 
+    QUnit.module('Visibility', function() {
+
+        QUnit.test('isVisible()', function(assert) {
+            const remove = new joint.linkTools.Remove();
+            assert.ok(remove.isVisible());
+            remove.hide();
+            assert.notOk(remove.isVisible());
+            remove.show();
+            assert.ok(remove.isVisible());
+        });
+
+        QUnit.test('updateVisibility()', function(assert) {
+            const remove = new joint.linkTools.Remove();
+            const toolsView = new joint.dia.ToolsView({ tools: [remove] });
+            linkView.addTools(toolsView);
+            assert.notEqual(getComputedStyle(remove.el).display, 'none');
+            remove.hide();
+            assert.equal(getComputedStyle(remove.el).display, 'none');
+            remove.show();
+            assert.notEqual(getComputedStyle(remove.el).display, 'none');
+        });
+
+        QUnit.test('option: visibility', function(assert) {
+            let isVisible = true;
+            const visibilitySpy = sinon.spy(() => isVisible);
+            const removeButton = new joint.linkTools.Remove({
+                visibility: visibilitySpy
+            });
+            const otherButton = new joint.linkTools.Button();
+            const toolsView = new joint.dia.ToolsView({
+                tools: [
+                    removeButton,
+                    otherButton
+                ]
+            });
+            linkView.addTools(toolsView);
+
+            // Initial state.
+            assert.notEqual(getComputedStyle(removeButton.el).display, 'none');
+            assert.ok(removeButton.isVisible());
+            assert.equal(visibilitySpy.callCount, 1);
+            assert.ok(visibilitySpy.calledWithExactly(linkView, removeButton));
+            assert.ok(visibilitySpy.calledOn(removeButton));
+
+            // Visibility function should be called on update.
+            isVisible = false;
+            toolsView.update();
+            assert.equal(getComputedStyle(removeButton.el).display, 'none');
+            assert.ok(removeButton.isVisible());
+            assert.equal(visibilitySpy.callCount, 2);
+            assert.ok(visibilitySpy.calledWithExactly(linkView, removeButton));
+            assert.ok(visibilitySpy.calledOn(removeButton));
+
+            // Other button should not be affected by the visibility function.
+            assert.notEqual(getComputedStyle(otherButton.el).display, 'none');
+            assert.ok(otherButton.isVisible());
+
+            // Focus & blur on other button should not change the visibility of
+            // the remove button.
+            toolsView.focusTool(otherButton);
+            assert.equal(getComputedStyle(removeButton.el).display, 'none');
+            assert.notOk(removeButton.isVisible());
+            toolsView.blurTool(otherButton);
+            assert.equal(getComputedStyle(removeButton.el).display, 'none');
+            assert.ok(removeButton.isVisible());
+
+            isVisible = true;
+            toolsView.update();
+            toolsView.focusTool(otherButton);
+            assert.equal(getComputedStyle(removeButton.el).display, 'none');
+            assert.notOk(removeButton.isVisible());
+            toolsView.blurTool(otherButton);
+            assert.notEqual(getComputedStyle(removeButton.el).display, 'none');
+            assert.ok(removeButton.isVisible());
+        });
+    });
+
     QUnit.module('TargetAnchor', function() {
         [{
             resetAnchor: true,
