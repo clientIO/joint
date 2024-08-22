@@ -96,37 +96,33 @@ const shapeAttribute = {
     unset: 'd'
 };
 
-const progressDataAttribute = {
-    set: function(value, bbox) {
 
-        function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-            const angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+
+const progressDataAttribute = {
+    set: function(percentage, { x, y, width, height }) {
+        const startAngle = 0;
+        const endAngle = Math.max(360 / 100 * percentage, startAngle);
+        const radius = Math.min(width / 2, height / 2);
+        const origin = new g.Point(x + width / 2, y + height / 2);
+        // Angle === 360
+        if (endAngle >= 360) {
             return {
-                x: centerX + (radius * Math.cos(angleInRadians)),
-                y: centerY + (radius * Math.sin(angleInRadians))
+                d: `
+                    M ${origin.x - radius} ${origin.y}
+                    a ${radius},${radius} 0 1,1 ${radius * 2},0
+                    a ${radius},${radius} 0 1,1 -${radius * 2},0
+                `
             };
         }
-
-        function describeArc(x, y, radius, startAngle, endAngle){
-            const start = polarToCartesian(x, y, radius, endAngle);
-            const end = polarToCartesian(x, y, radius, startAngle);
-            const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
-            const d = [
-                'M', start.x, start.y,
-                'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
-            ].join(' ');
-            return d;
-        }
-
-        const center = bbox.center();
+        // Angle <= 360
+        const p1 = g.Point.fromPolar(radius, g.toRad(-endAngle -90), origin);
+        const p2 = g.Point.fromPolar(radius, g.toRad(-startAngle -90), origin);
+        const largeArcFlag = endAngle - startAngle < 180 ? '0' : '1';
         return {
-            d: describeArc(
-                center.x,
-                center.y,
-                Math.min(bbox.width / 2, bbox.height / 2),
-                0,
-                Math.min(360 / 100 * value, 359.99)
-            )
+            d: `
+                M ${p1.x} ${p1.y}
+                A ${radius} ${radius} 0 ${largeArcFlag} 0 ${p2.x} ${p2.y}
+            `
         };
     },
     unset: 'd'
@@ -529,7 +525,7 @@ const Progress = joint.dia.Element.define('progress', {
         progressForeground: {
             stroke: 'red',
             strokeWidth: 10,
-            strokeLinecap: 'round',
+            strokeLinecap: 'butt',
             fill: 'none',
         },
         progressText: {
