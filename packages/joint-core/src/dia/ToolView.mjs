@@ -30,14 +30,29 @@ export const ToolView = mvc.View.extend({
         return this.name;
     },
 
+    updateVisibility: function() {
+        let isVisible;
+        if (this.isVisible()) {
+            const { visibility } = this.options;
+            if (typeof visibility === 'function') {
+                isVisible = !!visibility.call(this, this.relatedView, this);
+            } else {
+                isVisible = true;
+            }
+        } else {
+            isVisible = false;
+        }
+        this.el.style.display = isVisible ? '' : 'none';
+    },
+
     show: function() {
-        this.el.style.display = '';
         this._visible = true;
+        this.updateVisibility();
     },
 
     hide: function() {
-        this.el.style.display = 'none';
         this._visible = false;
+        this.updateVisibility();
     },
 
     isVisible: function() {

@@ -1871,21 +1871,25 @@ export namespace dia {
     }
 
     namespace ToolView {
-        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
+
+        type VisibilityCallback<V = dia.CellView> = (this: ToolView, view: V, tool: ToolView) => boolean;
+
+        interface Options<V = dia.CellView> extends mvc.ViewOptions<undefined, SVGElement> {
             focusOpacity?: number;
+            visibility?: VisibilityCallback<V>;
         }
     }
 
-    class ToolView extends mvc.View<undefined, SVGElement> {
+    class ToolView<V = dia.CellView> extends mvc.View<undefined, SVGElement> {
 
         name: string | null;
         parentView: ToolsView;
         relatedView: dia.CellView;
         paper: Paper;
 
-        constructor(opt?: ToolView.Options);
+        constructor(opt?: ToolView.Options<V>);
 
-        configure(opt?: ToolView.Options): this;
+        configure(opt?: ToolView.Options<V>): this;
 
         protected simulateRelatedView(el: SVGElement): void;
 
@@ -4141,9 +4145,9 @@ export namespace elementTools {
 
     namespace Button {
 
-        type ActionCallback = (evt: dia.Event, view: dia.ElementView, tool: dia.ToolView) => void;
+        type ActionCallback = (evt: dia.Event, view: dia.ElementView, tool: Button) => void;
 
-        interface Options extends dia.ToolView.Options {
+        interface Options extends dia.ToolView.Options<dia.ElementView> {
             x?: number | string;
             y?: number | string;
             offset?: { x?: number, y?: number };
@@ -4155,7 +4159,7 @@ export namespace elementTools {
         }
     }
 
-    class Button extends dia.ToolView {
+    class Button extends dia.ToolView<dia.ElementView> {
 
         constructor(opt?: Button.Options);
 
@@ -4197,20 +4201,20 @@ export namespace elementTools {
     }
 
     namespace Boundary {
-        interface Options extends dia.ToolView.Options {
+        interface Options extends dia.ToolView.Options<dia.ElementView> {
             padding?: number | dia.Sides;
             useModelGeometry?: boolean;
             rotate?: boolean;
         }
     }
 
-    class Boundary extends dia.ToolView {
+    class Boundary extends dia.ToolView<dia.ElementView> {
 
         constructor(opt?: Boundary.Options);
     }
 
     namespace Control {
-        interface Options extends dia.ToolView.Options {
+        interface Options extends dia.ToolView.Options<dia.ElementView> {
             selector?: string | null;
             padding?: number;
             handleAttributes?: Partial<attributes.NativeSVGAttributes>;
@@ -4218,7 +4222,7 @@ export namespace elementTools {
         }
     }
 
-    abstract class Control<T extends mvc.ViewOptions<undefined, SVGElement> = Control.Options> extends dia.ToolView {
+    abstract class Control<T extends mvc.ViewOptions<undefined, SVGElement> = Control.Options> extends dia.ToolView<dia.ElementView> {
         options: T;
         constructor(opt?: T);
 
@@ -4249,7 +4253,7 @@ export namespace elementTools {
         }
     }
 
-    class HoverConnect extends linkTools.Connect {
+    class HoverConnect extends Connect {
 
         constructor(opt?: HoverConnect.Options);
     }
@@ -4280,7 +4284,7 @@ export namespace linkTools {
             interactiveLineNode: string;
         }
 
-        interface Options extends dia.ToolView.Options {
+        interface Options extends dia.ToolView.Options<dia.LinkView> {
             handleClass?: typeof VertexHandle;
             snapRadius?: number;
             redundancyRemoval?: boolean;
@@ -4292,7 +4296,7 @@ export namespace linkTools {
         }
     }
 
-    class Vertices extends dia.ToolView {
+    class Vertices extends dia.ToolView<dia.LinkView> {
 
         constructor(opt?: Vertices.Options);
     }
@@ -4308,7 +4312,7 @@ export namespace linkTools {
             protected onPointerUp(evt: dia.Event): void;
         }
 
-        interface Options extends dia.ToolView.Options {
+        interface Options extends dia.ToolView.Options<dia.LinkView> {
             handleClass?: typeof SegmentHandle;
             snapRadius?: number;
             snapHandle?: boolean;
@@ -4320,19 +4324,19 @@ export namespace linkTools {
         }
     }
 
-    class Segments extends dia.ToolView {
+    class Segments extends dia.ToolView<dia.LinkView> {
 
         constructor(opt?: Segments.Options);
     }
 
     namespace Arrowhead {
 
-        interface Options extends dia.ToolView.Options {
+        interface Options extends dia.ToolView.Options<dia.LinkView> {
             scale?: number;
         }
     }
 
-    abstract class Arrowhead extends dia.ToolView {
+    abstract class Arrowhead extends dia.ToolView<dia.LinkView> {
 
         ratio: number;
         arrowheadType: string;
@@ -4357,7 +4361,7 @@ export namespace linkTools {
     }
 
     namespace Anchor {
-        interface Options extends dia.ToolView.Options {
+        interface Options extends dia.ToolView.Options<dia.LinkView> {
             snap?: AnchorCallback<dia.Point>;
             anchor?: AnchorCallback<anchors.AnchorJSON>;
             resetAnchor?: boolean | anchors.AnchorJSON;
@@ -4371,7 +4375,7 @@ export namespace linkTools {
         }
     }
 
-    abstract class Anchor extends dia.ToolView {
+    abstract class Anchor extends dia.ToolView<dia.LinkView> {
 
         type: string;
 
@@ -4392,7 +4396,7 @@ export namespace linkTools {
 
         type ActionCallback = (evt: dia.Event, view: dia.LinkView, tool: dia.ToolView) => void;
 
-        interface Options extends dia.ToolView.Options {
+        interface Options extends dia.ToolView.Options<dia.LinkView> {
             distance?: number | string;
             offset?: number;
             rotate?: boolean;
@@ -4402,7 +4406,7 @@ export namespace linkTools {
         }
     }
 
-    class Button extends dia.ToolView {
+    class Button extends dia.ToolView<dia.LinkView> {
 
         constructor(opt?: Button.Options);
 
@@ -4436,13 +4440,13 @@ export namespace linkTools {
     }
 
     namespace Boundary {
-        interface Options extends dia.ToolView.Options {
+        interface Options extends dia.ToolView.Options<dia.LinkView> {
             padding?: number | dia.Sides;
             useModelGeometry?: boolean;
         }
     }
 
-    class Boundary extends dia.ToolView {
+    class Boundary extends dia.ToolView<dia.LinkView> {
 
         constructor(opt?: Boundary.Options);
     }

@@ -55,6 +55,7 @@ export const ToolsView = mvc.View.extend({
             } else if (opt.tool !== tool.cid && tool.isVisible()) {
                 tool.update();
             }
+            tool.updateVisibility();
         }
         if (!this.isMounted()) {
             this.mount();

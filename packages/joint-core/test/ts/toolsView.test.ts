@@ -26,6 +26,14 @@ const toolsView = new dia.ToolsView({
 
 toolsView.configure({ component: false });
 
+new linkTools.Button({
+    visibility: (view) => view.getConnectionLength() > 100,
+});
+
+new elementTools.Button({
+    visibility: (view) => view.model.size().width > 100,
+});
+
 interface RadiusControlOptions extends elementTools.Control.Options {
     testOption?: number;
 }
