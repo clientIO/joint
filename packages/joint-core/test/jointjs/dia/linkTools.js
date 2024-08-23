@@ -85,58 +85,99 @@ QUnit.module('linkTools', function(hooks) {
             assert.notEqual(getComputedStyle(remove.el).display, 'none');
         });
 
-        QUnit.test('option: visibility', function(assert) {
-            let isVisible = true;
-            const visibilitySpy = sinon.spy(() => isVisible);
-            const removeButton = new joint.linkTools.Remove({
-                visibility: visibilitySpy
+        QUnit.module('option: visibility', function(assert) {
+
+            QUnit.test('is visible or hidden', function(assert) {
+                let isVisible = true;
+                const visibilitySpy = sinon.spy(() => isVisible);
+                const removeButton = new joint.linkTools.Remove({
+                    visibility: visibilitySpy
+                });
+                const otherButton = new joint.linkTools.Button();
+                const toolsView = new joint.dia.ToolsView({
+                    tools: [
+                        removeButton,
+                        otherButton
+                    ]
+                });
+                linkView.addTools(toolsView);
+
+                // Initial state.
+                assert.notEqual(getComputedStyle(removeButton.el).display, 'none');
+                assert.ok(removeButton.isVisible());
+                assert.equal(visibilitySpy.callCount, 1);
+                assert.ok(visibilitySpy.calledWithExactly(linkView, removeButton));
+                assert.ok(visibilitySpy.calledOn(removeButton));
+
+                // Visibility function should be called on update.
+                isVisible = false;
+                toolsView.update();
+                assert.equal(getComputedStyle(removeButton.el).display, 'none');
+                assert.notOk(removeButton.isVisible());
+                assert.ok(removeButton.isExplicitlyVisible());
+                assert.equal(visibilitySpy.callCount, 2);
+                assert.ok(visibilitySpy.calledWithExactly(linkView, removeButton));
+                assert.ok(visibilitySpy.calledOn(removeButton));
+
+                // Other button should not be affected by the visibility function.
+                assert.notEqual(getComputedStyle(otherButton.el).display, 'none');
+                assert.ok(otherButton.isVisible());
+
+                // Focus & blur on other button should not change the visibility of
+                // the remove button.
+                toolsView.focusTool(otherButton);
+                assert.equal(getComputedStyle(removeButton.el).display, 'none');
+                assert.notOk(removeButton.isVisible());
+                assert.notOk(removeButton.isExplicitlyVisible());
+                toolsView.blurTool(otherButton);
+                assert.equal(getComputedStyle(removeButton.el).display, 'none');
+                assert.notOk(removeButton.isVisible());
+                assert.ok(removeButton.isExplicitlyVisible());
+
+                isVisible = true;
+                toolsView.update();
+                toolsView.focusTool(otherButton);
+                assert.equal(getComputedStyle(removeButton.el).display, 'none');
+                assert.notOk(removeButton.isVisible());
+                assert.notOk(removeButton.isExplicitlyVisible());
+                toolsView.blurTool(otherButton);
+                assert.notEqual(getComputedStyle(removeButton.el).display, 'none');
+                assert.ok(removeButton.isVisible());
+                assert.ok(removeButton.isExplicitlyVisible());
             });
-            const otherButton = new joint.linkTools.Button();
-            const toolsView = new joint.dia.ToolsView({
-                tools: [
-                    removeButton,
-                    otherButton
-                ]
+
+            QUnit.test('it\'s not updated when hidden', function(assert) {
+                const button1 = new joint.linkTools.Button({
+                    visibility: () => false
+                });
+                const button2 = new joint.linkTools.Button({
+                    visibility: () => true
+                });
+                const button1UpdateSpy = sinon.spy(button1, 'update');
+                const button2UpdateSpy = sinon.spy(button2, 'update');
+                const toolsView = new joint.dia.ToolsView({
+                    tools: [button1, button2]
+                });
+                linkView.addTools(toolsView);
+                assert.equal(button1.update.callCount, 0);
+                assert.equal(button2.update.callCount, 1);
+                toolsView.update();
+                assert.equal(button1.update.callCount, 0);
+                assert.equal(button2.update.callCount, 2);
+                button1.show();
+                button2.hide();
+                toolsView.update();
+                assert.equal(button1.update.callCount, 0);
+                assert.equal(button2.update.callCount, 2);
+                toolsView.focusTool(null); // hide all
+                assert.equal(button1.update.callCount, 0);
+                assert.equal(button2.update.callCount, 2);
+                toolsView.blurTool(null); // show all
+                assert.equal(button1.update.callCount, 0);
+                assert.equal(button2.update.callCount, 3);
+                button1UpdateSpy.restore();
+                button2UpdateSpy.restore();
             });
-            linkView.addTools(toolsView);
-
-            // Initial state.
-            assert.notEqual(getComputedStyle(removeButton.el).display, 'none');
-            assert.ok(removeButton.isVisible());
-            assert.equal(visibilitySpy.callCount, 1);
-            assert.ok(visibilitySpy.calledWithExactly(linkView, removeButton));
-            assert.ok(visibilitySpy.calledOn(removeButton));
-
-            // Visibility function should be called on update.
-            isVisible = false;
-            toolsView.update();
-            assert.equal(getComputedStyle(removeButton.el).display, 'none');
-            assert.ok(removeButton.isVisible());
-            assert.equal(visibilitySpy.callCount, 2);
-            assert.ok(visibilitySpy.calledWithExactly(linkView, removeButton));
-            assert.ok(visibilitySpy.calledOn(removeButton));
-
-            // Other button should not be affected by the visibility function.
-            assert.notEqual(getComputedStyle(otherButton.el).display, 'none');
-            assert.ok(otherButton.isVisible());
-
-            // Focus & blur on other button should not change the visibility of
-            // the remove button.
-            toolsView.focusTool(otherButton);
-            assert.equal(getComputedStyle(removeButton.el).display, 'none');
-            assert.notOk(removeButton.isVisible());
-            toolsView.blurTool(otherButton);
-            assert.equal(getComputedStyle(removeButton.el).display, 'none');
-            assert.ok(removeButton.isVisible());
-
-            isVisible = true;
-            toolsView.update();
-            toolsView.focusTool(otherButton);
-            assert.equal(getComputedStyle(removeButton.el).display, 'none');
-            assert.notOk(removeButton.isVisible());
-            toolsView.blurTool(otherButton);
-            assert.notEqual(getComputedStyle(removeButton.el).display, 'none');
-            assert.ok(removeButton.isVisible());
         });
     });
 

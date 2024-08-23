@@ -1899,6 +1899,12 @@ export namespace dia {
 
         isVisible(): boolean;
 
+        isExplicitlyVisible(): boolean;
+
+        updateVisibility(): void;
+
+        protected computeVisibility(): boolean;
+
         focus(): void;
 
         blur(): void;

@@ -49,13 +49,14 @@ export const ToolsView = mvc.View.extend({
         var isRendered = this.isRendered;
         for (var i = 0, n = tools.length; i < n; i++) {
             var tool = tools[i];
+            tool.updateVisibility();
+            if (!tool.isVisible()) continue;
             if (!isRendered) {
                 // First update executes render()
                 tool.render();
-            } else if (opt.tool !== tool.cid && tool.isVisible()) {
+            } else if (opt.tool !== tool.cid) {
                 tool.update();
             }
-            tool.updateVisibility();
         }
         if (!this.isMounted()) {
             this.mount();
@@ -88,9 +89,12 @@ export const ToolsView = mvc.View.extend({
         if (!tools) return this;
         for (var i = 0, n = tools.length; i < n; i++) {
             var tool = tools[i];
-            if (tool !== blurredTool && !tool.isVisible()) {
+            if (tool !== blurredTool && !tool.isExplicitlyVisible()) {
                 tool.show();
-                tool.update();
+                // Check if the tool is conditionally visible too
+                if (tool.isVisible()) {
+                    tool.update();
+                }
             }
         }
         return this;
