@@ -678,6 +678,7 @@ const equalByTag = (object, other, tag, equalFunc, stack) => {
         case stringTag:
             return object == `${other}`;
         case mapTag:
+            // This use of 'var' is intentional. Don't remove if replacing all instances.
             var convert = mapToArray;
         // Intentional fallthrough
         // eslint-disable-next-line no-fallthrough
