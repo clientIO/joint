@@ -154,8 +154,12 @@ QUnit.module('elementTools', function(hooks) {
             QUnit.test('position (angle ' + testCase.angle + ')', function(assert) {
                 var angle = testCase.angle;
                 var position = { x: 10, y: 10 };
+                const setPositionSpy = sinon.spy();
+                const resetPositionSpy = sinon.spy();
                 var CustomControl = joint.elementTools.Control.extend({
-                    getPosition: function() { return position; }
+                    getPosition: function() { return position; },
+                    setPosition: setPositionSpy,
+                    resetPosition: resetPositionSpy
                 });
                 var control = new CustomControl;
                 element.rotate(angle);
@@ -172,6 +176,36 @@ QUnit.module('elementTools', function(hooks) {
                 resultingPosition = control.vel.getBBox({ target: paper.svg }).center();
                 expectedPosition = element.position().offset(position).rotate(bbox.center(), -angle);
                 assert.ok(resultingPosition.round().equals(expectedPosition.round()));
+                // 3. `setPosition()`
+                const clientX = 11;
+                const clientY = 13;
+                const relativePosition = element.getRelativePointFromAbsolute(
+                    paper.clientToLocalPoint(clientX, clientY)
+                );
+                simulate.mousedown({ clientX: 0, clientY: 0, el: control.el });
+                simulate.mousemove({ clientX, clientY, el: control.el });
+                simulate.mouseup({ clientX, clientY, el: control.el });
+                assert.ok(setPositionSpy.calledOnce);
+                assert.ok(
+                    setPositionSpy.calledWithExactly(
+                        elementView,
+                        sinon.match(relativePosition.toJSON()),
+                        sinon.match.instanceOf(joint.mvc.Event)
+                    )
+                );
+                assert.notOk(resetPositionSpy.called);
+                // 4. `resetPosition()`
+                setPositionSpy.resetHistory();
+                resetPositionSpy.resetHistory();
+                simulate.mouseevent({ type: 'dblclick', el: control.el });
+                assert.ok(resetPositionSpy.calledOnce);
+                assert.ok(
+                    resetPositionSpy.calledWithExactly(
+                        elementView,
+                        sinon.match.instanceOf(joint.mvc.Event)
+                    )
+                );
+                assert.notOk(setPositionSpy.called);
             });
         });
     });
