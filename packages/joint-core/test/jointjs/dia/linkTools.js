@@ -402,4 +402,32 @@ QUnit.module('linkTools', function(hooks) {
         });
     });
 
+    QUnit.module('Button', function() {
+
+        QUnit.test('distance as number', function(assert) {
+            const targetX = 333;
+            const distance = -17;
+            const button = new joint.linkTools.Button({ distance });
+            linkView.addTools(new joint.dia.ToolsView({ tools: [button] }));
+            // move the target cell to the right, to make the link horizontal
+            link.getTargetCell().position(targetX, link.getSourceCell().position().x);
+            assert.equal(button.el.getCTM().e, targetX + distance);
+        });
+
+        QUnit.test('distance as function', function(assert) {
+            const targetX = 333;
+            const distance = -17;
+            const distanceSpy = sinon.spy(() => distance);
+            const button = new joint.linkTools.Button({ distance: distanceSpy });
+            linkView.addTools(new joint.dia.ToolsView({ tools: [button] }));
+            assert.ok(distanceSpy.calledOnce);
+            assert.ok(distanceSpy.calledWithExactly(linkView, button));
+            assert.ok(distanceSpy.calledOn(button));
+            // move the target cell to the right, to make the link horizontal
+            link.getTargetCell().position(targetX, link.getSourceCell().position().x);
+            assert.ok(distanceSpy.calledTwice);
+            assert.equal(button.el.getCTM().e, targetX + distance);
+        });
+    });
+
 });

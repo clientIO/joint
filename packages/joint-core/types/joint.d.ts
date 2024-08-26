@@ -4390,10 +4390,14 @@ export namespace linkTools {
 
     namespace Button {
 
-        type ActionCallback = (evt: dia.Event, view: dia.LinkView, tool: dia.ToolView) => void;
+        type ActionCallback = (evt: dia.Event, view: dia.LinkView, tool: Button) => void;
+
+        type Distance = number | string;
+
+        type DistanceCallback = (this: Button, view: dia.LinkView, tool: Button) => Distance;
 
         interface Options extends dia.ToolView.Options {
-            distance?: number | string;
+            distance?: Distance | DistanceCallback;
             offset?: number;
             rotate?: boolean;
             action?: ActionCallback;
