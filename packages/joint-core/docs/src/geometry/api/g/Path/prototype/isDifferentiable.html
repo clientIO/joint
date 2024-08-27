@@ -1,4 +1,0 @@
-<pre class="docs-method-signature"><code>path.isDifferentiable()</code></pre>
-<p>Return <code>true</code> if a tangent line can be found for at least one segment of the path.</p>
-
-<p>Invisible segments (e.g. Moveto segments) are never differentiable. In Line-based segments (e.g. Lineto segments), tangents cannot be found both line endpoints are coincident. In Curve-based segments (e.g. Curveto segments), tangents cannot be found if all control points are coincident. If the path contains no segments, return <code>false</code>.</p>

@@ -1,6 +1,0 @@
-
-<pre class="docs-method-signature"><code>vel.animateAlongPath(attrs, path)</code></pre>
-<p>Animate the element along the <code>path</code> SVG element (or Vectorizer object). <code>attrs</code> contain <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute#Animation_timing_attributes">Animation Timing attributes</a> describing the animation. The following example shows how to send a token along a JointJS link element:</p>
-<pre><code>var c = V('circle', { r: 8, fill: 'red' });
-c.animateAlongPath({ dur: '4s', repeatCount: 'indefinite' }, paper.findViewByModel(myLink).$('.connection')[0]);
-V(paper.svg).append(c);</code></pre>

@@ -1,4 +1,0 @@
-<pre class="docs-method-signature"><code>linkView.getBBox([opt])</code></pre>
-<p>Return a bounding box of the link view.</p>
-
-<p>If <code>opt.useModelGeometry</code> option is set to <code>true</code>, the resulting bounding box is calculated based on the dimensions of the link model. (This means that a simplified polyline is used and portions of curved links may be <q>sticking out</q> of the reported bounding box.) This behavior is similar to the <code>link.getBBox</code> <a href="#dia.Link.prototype.getBBox">function</a> – but the <code>linkView</code> function transforms the bounding box to match <code>joint.dia.Paper</code> translation and scaling.</p>

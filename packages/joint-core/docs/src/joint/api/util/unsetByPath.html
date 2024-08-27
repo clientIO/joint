@@ -1,7 +1,0 @@
-<pre class="docs-method-signature"><code>util.unsetByPath(object, path, delim)</code></pre>
-
-<p>Unset (delete) a property at the <code>path</code> in a nested <code>object</code>. <code>delim</code> is the 
-        delimiter used in the <code>path</code>. Returns the augmented <code>object</code>.</p>
-
-<pre><code>joint.util.unsetByPath({ a: { aa: { aaa: 3 } } }, 'a/aa/aaa', '/');
-// { a: { aa: {} } }</code></pre>

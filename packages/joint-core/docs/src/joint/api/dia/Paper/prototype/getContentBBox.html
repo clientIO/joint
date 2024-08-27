@@ -1,4 +1,0 @@
-<pre class="docs-method-signature"><code>paper.getContentBBox(opt)</code></pre>
-<p>Return the bounding box of the content inside the paper, in client units (as it appears on the screen).</p>
-
-<p>If <code>opt.useModelGeometry</code> is set (default is <code>false</code>), the bounding box is calculated from the dimensions of component cells' models (not views). This option is useful whenever one or more of the paper cells are not in the DOM (e.g. during asynchronous calls). However, the method uses a simplified heuristic that is different from the one used by the browser; the mapping between dimensions of cell views and dimensions of cells models is not necessarily one-to-one. (Most notably, ports are not included in model-reported bounding boxes. In addition, the bounding boxes of links are constructed from link vertices, which may exclude portions of protruding Curveto and Arcto segments.)</p>
