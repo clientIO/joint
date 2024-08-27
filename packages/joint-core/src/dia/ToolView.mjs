@@ -6,6 +6,7 @@ export const ToolView = mvc.View.extend({
     className: 'tool',
     svgElement: true,
     _visible: true,
+    _visibleExplicit: true,
 
     init: function() {
         var name = this.name;
@@ -30,16 +31,40 @@ export const ToolView = mvc.View.extend({
         return this.name;
     },
 
+    // Evaluate the visibility of the tool and update the `display` CSS property
+    updateVisibility: function() {
+        const isVisible = this.computeVisibility();
+        this.el.style.display = isVisible ? '' : 'none';
+        this._visible = isVisible;
+    },
+
+    // Evaluate the visibility of the tool. The method returns `true` if the tool
+    // should be visible in the DOM.
+    computeVisibility() {
+        if (!this.isExplicitlyVisible()) return false;
+        const { visibility } = this.options;
+        if (typeof visibility !== 'function') return true;
+        return !!visibility.call(this, this.relatedView, this);
+    },
+
     show: function() {
-        this.el.style.display = '';
-        this._visible = true;
+        this._visibleExplicit = true;
+        this.updateVisibility();
     },
 
     hide: function() {
-        this.el.style.display = 'none';
-        this._visible = false;
+        this._visibleExplicit = false;
+        this.updateVisibility();
     },
 
+    // The method returns `false` if the `hide()` method was called on the tool.
+    isExplicitlyVisible: function() {
+        return !!this._visibleExplicit;
+    },
+
+    // The method returns `false` if the tool is not visible (it has `display: none`).
+    // This can happen if the `hide()` method was called or the tool is not visible
+    // because of the `visibility` option was evaluated to `false`.
     isVisible: function() {
         return !!this._visible;
     },
