@@ -1,15 +1,29 @@
 import commonjs from 'rollup-plugin-commonjs';
-import buble from 'rollup-plugin-buble';
 import path from 'path';
 import json from 'rollup-plugin-json';
 import fs from 'fs';
 import resolve from 'rollup-plugin-node-resolve';
+import babel from '@rollup/plugin-babel';
 const modules = require('./grunt/resources/esm');
 
 let plugins = [
     resolve(),
     commonjs(),
-    buble()
+    babel({
+        babelHelpers: 'bundled',
+        exclude: 'node_modules/**',
+        presets: [
+            ['@babel/preset-env', {
+                targets: '> 0.5%, last 2 versions, Firefox ESR, not dead',
+                modules: false,
+                useBuiltIns: 'usage',
+                corejs: {
+                    version: 3,
+                    proposals: false
+                }
+            }]
+        ],
+    })
 ];
 
 let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V, Vectorizer = joint.V; }';

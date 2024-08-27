@@ -4233,8 +4233,8 @@ export namespace elementTools {
         constructor(opt?: T);
 
         protected getPosition(view: dia.ElementView): dia.Point;
-        protected setPosition(view: dia.ElementView, coordinates: g.Point): void;
-        protected resetPosition(view: dia.ElementView): void;
+        protected setPosition(view: dia.ElementView, coordinates: g.Point, evt: dia.Event): void;
+        protected resetPosition(view: dia.ElementView, evt: dia.Event): void;
 
         protected updateHandle(handleNode: SVGElement): void;
         protected updateExtras(extrasNode: SVGElement): void;
@@ -4400,10 +4400,14 @@ export namespace linkTools {
 
     namespace Button {
 
-        type ActionCallback = (evt: dia.Event, view: dia.LinkView, tool: dia.ToolView) => void;
+        type ActionCallback = (evt: dia.Event, view: dia.LinkView, tool: Button) => void;
+
+        type Distance = number | string;
+
+        type DistanceCallback = (this: Button, view: dia.LinkView, tool: Button) => Distance;
 
         interface Options extends dia.ToolView.Options<dia.LinkView> {
-            distance?: number | string;
+            distance?: Distance | DistanceCallback;
             offset?: number;
             rotate?: boolean;
             action?: ActionCallback;
