@@ -49,13 +49,7 @@ export const RotateLabel = Control.extend({
     getPosition(view) {
         const { offset = 0 } = this.options;
         const { x = 0, y = 0 } = typeof offset === 'number' ? { x: 0, y: offset } : offset;
-        const model = view.model;
-        const index = this.options.labelIndex;
-        const label = model.label(index);
-        if (!label) {
-            throw new Error(`No label with index ${index} found.`);
-        }
-
+        const label = this.getLabel();
         const labelPosition = this.getLabelPosition(label);
         const coords = view.getLabelCoordinates(labelPosition);
         let { angle = 0, args = {}} = labelPosition;
@@ -76,6 +70,12 @@ export const RotateLabel = Control.extend({
         return new g.Point(matrix.e, matrix.f);
     },
 
+    // Override the default `computeVisibility` method to hide the tool if the label is not present.
+    computeVisibility() {
+        const visibility = Control.prototype.computeVisibility.apply(this, arguments);
+        return visibility && !!this.getLabel();
+    },
+
     setPosition(view, coordinates) {
         const model = view.model;
         const index = this.options.labelIndex;
@@ -93,10 +93,15 @@ export const RotateLabel = Control.extend({
         model.prop(['labels', index, 'position', 'angle'], 0);
     },
 
+    getLabel() {
+        const { relatedView, options } = this;
+        return relatedView.model.label(options.labelIndex);
+    },
+
     getLabelPosition(label) {
-        return typeof label.position === 'number'
-            ? { distance: label.position }
-            : label.position;
+        const view = this.relatedView;
+        const labelPosition = view._normalizeLabelPosition(label.position);
+        return view._mergeLabelPositionProperty(labelPosition, view._getDefaultLabelPositionProperty());
     },
 
 });
