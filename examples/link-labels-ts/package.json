@@ -1,5 +1,5 @@
 {
-  "name": "@joint/demo-link-label-rotation",
+  "name": "@joint/demo-link-labels-ts",
   "version": "4.0.4",
   "main": "src/index.ts",
   "homepage": "https://jointjs.com",
