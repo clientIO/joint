@@ -1,6 +1,0 @@
-<pre class="docs-method-signature"><code>point.changeInAngle(dx, dy, ref)</code></pre>
-<p>Return the change in angle (in degrees) that is the result of moving the point from its previous position to its current position.</p>
-
-<p>More specifically, this function computes the angle between the line from the <code>ref</code> point to the previous position of this point (i.e. current position <code>-dx</code>, <code>-dy</code>) and the line from the ref point to the current position of this point.</p>
-
-<p>The function returns a positive value between 0 and 180 when the angle (in the direction from previous position of this point to its current position) is clockwise, and a negative value between 0 and -180 when the angle is counterclockwise. The function returns 0 if the previous and current positions of this point are the same (i.e. both <code>dx</code> and <code>dy</code> are <code>0</code>).</p>

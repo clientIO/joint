@@ -6,13 +6,6 @@ module.exports = function(grunt) {
     } : {};
 
     return {
-        docs: {
-            files: [
-                'docs/**/*'
-            ],
-            options: watchOptions,
-            tasks: ['build:docs']
-        },
         joint: {
             files: [
                 './plugins/**/*.js',

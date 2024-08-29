@@ -1,5 +1,0 @@
-<pre class="docs-method-signature"><code>paper.findViewsFromPoint(point)</code></pre><p>Find views (instance of <code>joint.dia.ElementView</code>) under a certain point in the paper. <code>point</code> is an object with <code>x</code> and <code>y</code> properties. Returns an
-                array of views whose bounding box contains <code>point</code>. Note that there can be more then one views as views might overlap. Note there is a difference between
-                this method and the <a href="#dia.Graph.prototype.findModelsFromPoint">joint.dia.Graph:findModelsFromPoint</a>. A bounding box of a view can be different than the area computed by an element model <code>position</code> and <code>size</code>.
-                For example, if a <code data-lang="svg">&lt;text&gt;</code> SVG element in the shape is positioned relatively and shifted down below the normal shape area (e.g. using the <a href="#dia.attributes">JointJS special attributes</a>), the bounding box
-                of the view will be bigger than that of the model.</p>

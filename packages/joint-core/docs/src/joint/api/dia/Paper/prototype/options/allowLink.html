@@ -1,8 +1,0 @@
-<code>allowLink</code> - expects a function returning a boolean. The function is run when the user stops interacting with a linkView's arrowhead (source or target).
-If the function returns <code>false</code>, the link is either removed (for links which are created during the interaction) or reverted to the state before the interaction.
-
-<pre><code>// Return `false` if a graph cycle is detected (`graphlib` refers to a dependency of the DirectedGraph plugin).
-paper.options.allowLink = function(linkView, paper) {
-  var graph = paper.model;
-  return graphlib.alg.findCycles(graph.toGraphLib()).length === 0;
-}</code></pre>

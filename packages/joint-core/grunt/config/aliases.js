@@ -8,8 +8,7 @@ module.exports = function(grunt) {
         'install': [
             'shell:rollup-dist',
             'build',
-            'uglify:all',
-            'build:docs'
+            'uglify:all'
         ],
         'build': [
             'build:joint'
@@ -24,8 +23,7 @@ module.exports = function(grunt) {
             'clean:build',
             'build:joint',
             'shell:rollup-dist',
-            'uglify:all',
-            'build:docs'
+            'uglify:all'
         ],
         'build:joint': [
             'shell:rollup-joint',
@@ -43,11 +41,6 @@ module.exports = function(grunt) {
         'build:bundles': [
             'newer:browserify',
             'webpack'
-        ],
-        'build:docs': [
-            'compileDocs:all',
-            'syntaxHighlighting:docs',
-            'newer:copy:docs'
         ],
 
         // TESTS

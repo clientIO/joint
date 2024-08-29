@@ -1,4 +1,0 @@
-<pre class="docs-method-signature"><code>paper.getContentArea()</code></pre>
-<p>Return a rectangle representing the area occupied by paper content, in local units (without transformations).</p>
-
-<p>If <code>opt.useModelGeometry</code> is set (default is <code>false</code>), occupied area is calculated from the dimensions of component cells' models (not views). This option is useful whenever one or more of the paper cells are not in the DOM (e.g. during asynchronous calls). However, the method uses a simplified heuristic that is different from the one used by the browser; the mapping between dimensions of cell views and dimensions of cells models is not necessarily one-to-one. (Most notably, ports are not included in model-reported occupied areas. In addition, the area occupied by links is constructed from link vertices, which may exclude portions of protruding Curveto and Arcto segments.)</p>

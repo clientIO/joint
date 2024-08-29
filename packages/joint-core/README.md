@@ -147,14 +147,6 @@ yarn run test-coverage-lcov
 
 The output for all unit tests will be saved in the `packages/joint-core/coverage` directory.
 
-## Documentation
-
-The source files for the *JointJS* documentation (plus *Geometry* and *Vectorizer* libraries) are included in this repository; see the `packages/joint-core/docs` directory. The documentation can be built into stand-alone HTML documents like this:
-```bash
-yarn run build-docs
-```
-The output of the above command can be found at `packages/joint-core/build/docs`.
-
 ## Contributors
 
 <a href="https://github.com/clientIO/joint/graphs/contributors">
