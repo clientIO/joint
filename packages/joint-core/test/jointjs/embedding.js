@@ -396,4 +396,38 @@ QUnit.module('embedding', function(hooks) {
         }), 'All links were brought to front.');
     });
 
+    QUnit.test('getTargetParentView()', function(assert) {
+
+        let evt;
+
+        const r1 = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 }
+        });
+        const r2 = new joint.shapes.standard.Rectangle({
+            position: { x: 500, y: 500 },
+            size: { width: 100, height: 100 }
+        });
+
+        this.graph.addCells([r1, r2]);
+
+        const v1 = r1.findView(this.paper);
+        const v2 = r2.findView(this.paper);
+
+        evt = new $.Event({ target: v1.el });
+        assert.equal(v2.getTargetParentView(evt), null);
+        v2.pointerdown(evt, 500, 500);
+        v2.pointermove(evt, 600, 600);
+        assert.equal(v2.getTargetParentView(evt), null);
+        v2.pointerup(evt, 600, 600);
+        assert.equal(v2.getTargetParentView(evt), null);
+
+        evt = new $.Event({ target: v1.el });
+        v2.pointerdown(evt, 600, 600);
+        v2.pointermove(evt, 100, 100);
+        assert.equal(v2.getTargetParentView(evt), v1);
+        v2.pointerup(evt, 100, 100);
+        assert.equal(v2.getTargetParentView(evt), null);
+        assert.equal(r2.get('parent'), r1.id);
+    });
 });

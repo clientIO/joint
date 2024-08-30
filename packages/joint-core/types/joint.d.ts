@@ -989,6 +989,8 @@ export namespace dia {
 
         getDelegatedView(): ElementView | null;
 
+        getTargetParentView(evt: dia.Event): CellView | null;
+
         findPortNode(portId: string | number): SVGElement | null;
         findPortNode(portId: string | number, selector: string): E | null;
 
