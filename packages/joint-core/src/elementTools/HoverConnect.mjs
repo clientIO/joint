@@ -2,7 +2,7 @@ import { HoverConnect as LinkHoverConnect } from '../linkTools/HoverConnect.mjs'
 import V from '../V/index.mjs';
 import * as g from '../g/index.mjs';
 import { getViewBBox } from '../linkTools/helpers.mjs';
-import { isCalcAttribute, evalCalcAttribute } from '../dia/attributes/calc.mjs';
+import { isCalcExpression, evalCalcExpression } from '../util/calc.mjs';
 
 export const HoverConnect = LinkHoverConnect.extend({
 
@@ -15,9 +15,9 @@ export const HoverConnect = LinkHoverConnect.extend({
         if (typeof trackPath === 'function') {
             trackPath = trackPath.call(this, view);
         }
-        if (isCalcAttribute(trackPath)) {
+        if (isCalcExpression(trackPath)) {
             const bbox = getViewBBox(view, useModelGeometry);
-            trackPath = evalCalcAttribute(trackPath, bbox);
+            trackPath = evalCalcExpression(trackPath, bbox);
         }
         return new g.Path(V.normalizePathData(trackPath));
     },
