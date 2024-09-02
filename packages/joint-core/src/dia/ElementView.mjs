@@ -540,6 +540,11 @@ export const ElementView = CellView.extend({
         }
     },
 
+    getTargetParentView: function(evt) {
+        const { candidateEmbedView = null } = this.eventData(evt);
+        return candidateEmbedView;
+    },
+
     getDelegatedView: function() {
 
         var view = this;
