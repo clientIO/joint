@@ -1,4 +1,4 @@
-import { isCalcAttribute, evalCalcAttribute } from './calc.mjs';
+import { isCalcExpression, evalCalcExpression } from '../../util/calc.mjs';
 
 const calcAttributesList = [
     'transform',
@@ -53,8 +53,8 @@ export function evalAttributes(attrs, refBBox) {
 }
 
 export function evalAttribute(attrName, attrValue, refBBox) {
-    if (attrName in calcAttributes && isCalcAttribute(attrValue)) {
-        let evalAttrValue = evalCalcAttribute(attrValue, refBBox);
+    if (attrName in calcAttributes && isCalcExpression(attrValue)) {
+        let evalAttrValue = evalCalcExpression(attrValue, refBBox);
         if (attrName in positiveValueAttributes) {
             evalAttrValue = Math.max(0, evalAttrValue);
         }

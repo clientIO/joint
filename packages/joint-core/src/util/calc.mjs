@@ -10,18 +10,22 @@ const props = {
 const propsList = Object.keys(props).map(key => props[key]).join('');
 const numberPattern = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?';
 const findSpacesRegex = /\s/g;
-const parseExpressionRegExp = new RegExp(`^(${numberPattern}\\*)?([${propsList}])(/${numberPattern})?([-+]{1,2}${numberPattern})?$`, 'g');
+const parseFormulaRegExp = new RegExp(`^(${numberPattern}\\*)?([${propsList}])(/${numberPattern})?([-+]{1,2}${numberPattern})?$`, 'g');
 
 function throwInvalid(expression) {
     throw new Error(`Invalid calc() expression: ${expression}`);
 }
 
-export function evalCalcExpression(expression, bbox) {
-    const match = parseExpressionRegExp.exec(expression.replace(findSpacesRegex, ''));
-    if (!match) throwInvalid(expression);
-    parseExpressionRegExp.lastIndex = 0; // reset regex results for the next run
+/*
+* Evaluate the given calc formula.
+* e.g. 'w + 10' in a rect 100x100 -> 110
+*/
+export function evalCalcFormula(formula, rect) {
+    const match = parseFormulaRegExp.exec(formula.replace(findSpacesRegex, ''));
+    if (!match) throwInvalid(formula);
+    parseFormulaRegExp.lastIndex = 0; // reset regex results for the next run
     const [,multiply, property, divide, add] = match;
-    const { x, y, width, height } = bbox;
+    const { x, y, width, height } = rect;
     let value = 0;
     switch (property) {
         case props.width: {
@@ -81,15 +85,23 @@ function evalAddExpression(addExpression) {
     return parseFloat(addExpression);
 }
 
-export function isCalcAttribute(value) {
+/*
+* Check if the given value is a calc expression.
+* e.g. 'calc(10 + 100)' -> true
+*/
+export function isCalcExpression(value) {
     return typeof value === 'string' && value.includes('calc');
 }
 
 const calcStart = 'calc(';
 const calcStartOffset = calcStart.length;
 
-export function evalCalcAttribute(attributeValue, refBBox) {
-    let value = attributeValue;
+/*
+* Evaluate all calc formulas in the given expression.
+* e.g. 'calc(w + 10)' in rect 100x100 -> '110'
+*/
+export function evalCalcExpression(expression, rect) {
+    let value = expression;
     let startSearchIndex = 0;
     do {
         let calcIndex = value.indexOf(calcStart, startSearchIndex);
@@ -116,11 +128,11 @@ export function evalCalcAttribute(attributeValue, refBBox) {
         } while (true);
         // Get the calc() expression without nested calcs (recursion)
         let expression = value.slice(calcIndex + calcStartOffset, calcEndIndex);
-        if (isCalcAttribute(expression)) {
-            expression = evalCalcAttribute(expression, refBBox);
+        if (isCalcExpression(expression)) {
+            expression = evalCalcExpression(expression, rect);
         }
         // Eval the calc() expression without nested calcs.
-        const calcValue = String(evalCalcExpression(expression, refBBox));
+        const calcValue = String(evalCalcFormula(expression, rect));
         // Replace the calc() expression and continue search
         value = value.slice(0, calcIndex) + calcValue + value.slice(calcEndIndex + 1);
         startSearchIndex = calcIndex + calcValue.length;

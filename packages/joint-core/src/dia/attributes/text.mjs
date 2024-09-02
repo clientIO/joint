@@ -1,5 +1,5 @@
 import { assign, isPlainObject, isObject, isPercentage, breakText } from '../../util/util.mjs';
-import { isCalcAttribute, evalCalcAttribute } from './calc.mjs';
+import { isCalcExpression, evalCalcExpression } from '../../util/calc.mjs';
 import $ from '../../mvc/Dom/index.mjs';
 import V from '../../V/index.mjs';
 
@@ -94,8 +94,8 @@ const textAttributesNS = {
             var width = value.width || 0;
             if (isPercentage(width)) {
                 size.width = refBBox.width * parseFloat(width) / 100;
-            } else if (isCalcAttribute(width)) {
-                size.width = Number(evalCalcAttribute(width, refBBox));
+            } else if (isCalcExpression(width)) {
+                size.width = Number(evalCalcExpression(width, refBBox));
             } else {
                 if (value.width === null) {
                     // breakText() requires width to be specified.
@@ -110,8 +110,8 @@ const textAttributesNS = {
             var height = value.height || 0;
             if (isPercentage(height)) {
                 size.height = refBBox.height * parseFloat(height) / 100;
-            } else if (isCalcAttribute(height)) {
-                size.height = Number(evalCalcAttribute(height, refBBox));
+            } else if (isCalcExpression(height)) {
+                size.height = Number(evalCalcExpression(height, refBBox));
             } else {
                 if (value.height === null) {
                     // if height is not specified breakText() does not

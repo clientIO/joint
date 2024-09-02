@@ -2451,6 +2451,12 @@ export namespace shapes {
 
 export namespace util {
 
+    export function isCalcExpression(value: any): boolean;
+
+    export function evalCalcFormula(formula: string, rect: g.PlainRect): number;
+
+    export function evalCalcExpression(expression: string, rect: g.PlainRect): string;
+
     export function hashCode(str: string): string;
 
     export function getByPath(object: { [key: string]: any }, path: string | string[], delim?: string): any;

@@ -1,4 +1,3 @@
-import { evalCalcAttribute, isCalcAttribute } from '../../dia/attributes/calc.mjs';
 import * as g from '../../g/index.mjs';
 import * as util from '../../util/index.mjs';
 
@@ -58,13 +57,13 @@ function argTransform(bbox, args) {
     let { x, y, angle } = args;
     if (util.isPercentage(x)) {
         x = parseFloat(x) / 100 * bbox.width;
-    } else if (isCalcAttribute(x)) {
-        x = Number(evalCalcAttribute(x, bbox));
+    } else if (util.isCalcExpression(x)) {
+        x = Number(util.evalCalcExpression(x, bbox));
     }
     if (util.isPercentage(y)) {
         y = parseFloat(y) / 100 * bbox.height;
-    } else if (isCalcAttribute(y)) {
-        y = Number(evalCalcAttribute(y, bbox));
+    } else if (util.isCalcExpression(y)) {
+        y = Number(util.evalCalcExpression(y, bbox));
     }
     return { x, y, angle };
 }

@@ -1,4 +1,3 @@
-import { evalCalcAttribute, isCalcAttribute } from '../dia/attributes/calc.mjs';
 import { ToolView } from '../dia/ToolView.mjs';
 import { getViewBBox } from './helpers.mjs';
 import * as util from '../util/index.mjs';
@@ -41,13 +40,13 @@ export const Button = ToolView.extend({
         const { x: offsetX = 0, y: offsetY = 0 } = offset;
         if (util.isPercentage(x)) {
             x = parseFloat(x) / 100 * bbox.width;
-        } else if (isCalcAttribute(x)) {
-            x = Number(evalCalcAttribute(x, bbox));
+        } else if (util.isCalcExpression(x)) {
+            x = Number(util.evalCalcExpression(x, bbox));
         }
         if (util.isPercentage(y)) {
             y = parseFloat(y) / 100 * bbox.height;
-        } else if (isCalcAttribute(y)) {
-            y = Number(evalCalcAttribute(y, bbox));
+        } else if (util.isCalcExpression(y)) {
+            y = Number(util.evalCalcExpression(y, bbox));
         }
         let matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
         if (rotate) matrix = matrix.rotate(angle);
