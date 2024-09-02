@@ -1,4 +1,4 @@
-import { isCalcExpression, evalCalcExpression } from '../../util/calc';
+import { isCalcExpression, evalCalcExpression } from '../../util/calc.mjs';
 
 const calcAttributesList = [
     'transform',
