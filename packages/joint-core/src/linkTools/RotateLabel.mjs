@@ -78,24 +78,27 @@ export const RotateLabel = Control.extend({
 
     setPosition(view, coordinates) {
         const model = view.model;
-        const index = this.options.labelIndex;
-        const label = model.label(index);
+        const label = this.getLabel();
         if (!label) return;
         const labelPosition = this.getLabelPosition(label);
         const position = view.getLabelCoordinates(labelPosition);
         const angle = 90 - position.theta(coordinates);
+        const index = this.getLabelIndex();
         model.prop(['labels', index, 'position', 'angle'], angle);
     },
 
     resetPosition(view) {
         const model = view.model;
-        const index = this.options.labelIndex;
+        const index = this.getLabelIndex();
         model.prop(['labels', index, 'position', 'angle'], 0);
     },
 
+    getLabelIndex() {
+        return this.options.labelIndex || 0;
+    },
+
     getLabel() {
-        const { relatedView, options } = this;
-        return relatedView.model.label(options.labelIndex);
+        return this.relatedView.model.label(this.getLabelIndex()) || null;
     },
 
     getLabelPosition(label) {

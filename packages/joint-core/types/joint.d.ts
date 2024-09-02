@@ -4543,5 +4543,9 @@ export namespace linkTools {
         constructor(opt?: RotateLabel.Options);
 
         protected getLabelPosition(label: dia.Link.Label): dia.Link.LabelPosition;
+
+        protected getLabelIndex(): number;
+
+        protected getLabel(): dia.Link.Label | null;
     }
 }
