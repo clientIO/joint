@@ -61,6 +61,23 @@ QUnit.module('linkTools', function(hooks) {
             assert.ok(toolsView.el.parentNode);
             assert.ok(toolsView.isMounted());
         });
+
+        QUnit.test('are not mounted when none of the tools is visible', function(assert) {
+            let isVisible = false;
+            const button1 = new joint.linkTools.Button({ visibility: () => isVisible });
+            const button2 = new joint.linkTools.Button({ visibility: () => false });
+            const toolsView = new joint.dia.ToolsView({ tools: [button1, button2] });
+            linkView.addTools(toolsView);
+            assert.notOk(toolsView.el.parentNode);
+            assert.notOk(toolsView.isMounted());
+            toolsView.update();
+            assert.notOk(toolsView.el.parentNode);
+            assert.notOk(toolsView.isMounted());
+            isVisible = true;
+            toolsView.update();
+            assert.ok(toolsView.el.parentNode);
+            assert.ok(toolsView.isMounted());
+        });
     });
 
     QUnit.module('Visibility', function() {
@@ -179,6 +196,27 @@ QUnit.module('linkTools', function(hooks) {
                 button2UpdateSpy.restore();
             });
         });
+    });
+
+    QUnit.module('RotateLabel', function() {
+
+        QUnit.test('postponed rendering', function(assert) {
+            const button = new joint.linkTools.RotateLabel({ labelIndex: 0 });
+            const toolsView = new joint.dia.ToolsView({
+                tools: [button]
+            });
+            linkView.addTools(toolsView);
+            // The button should not be visible because there is no label yet.
+            assert.notOk(link.label(0));
+            assert.equal(button.el.style.display, 'none');
+            assert.notOk(toolsView.isRendered);
+            // The button should be rendered after the label is added.
+            link.appendLabel({});
+            assert.ok(link.label(0));
+            assert.notEqual(button.el.style.display, 'none');
+            assert.ok(toolsView.isRendered);
+        });
+
     });
 
     QUnit.module('TargetAnchor', function() {

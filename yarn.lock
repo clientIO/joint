@@ -2576,6 +2576,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-link-labels-ts@workspace:examples/link-labels-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-link-labels-ts@workspace:examples/link-labels-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    css-loader: 3.5.3
+    style-loader: 1.2.1
+    ts-loader: ^9.2.5
+    typescript: ^4.4.3
+    webpack: ^5.61.0
+    webpack-cli: ^4.8.0
+    webpack-dev-server: ^4.2.1
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-list@workspace:examples/list":
   version: 0.0.0-use.local
   resolution: "@joint/demo-list@workspace:examples/list"

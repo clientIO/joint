@@ -4500,4 +4500,52 @@ export namespace linkTools {
 
         protected onMouseleave(evt: dia.Event): void;
     }
+
+    namespace Control {
+        interface Options extends dia.ToolView.Options {
+            selector?: string | null;
+            padding?: number;
+            handleAttributes?: Partial<attributes.NativeSVGAttributes>;
+            scale?: number;
+        }
+    }
+
+    abstract class Control<T extends mvc.ViewOptions<undefined, SVGElement> = Control.Options> extends dia.ToolView {
+        options: T;
+        constructor(opt?: T);
+
+        protected getPosition(view: dia.LinkView): dia.Point;
+        protected setPosition(view: dia.LinkView, coordinates: g.Point): void;
+        protected resetPosition(view: dia.LinkView): void;
+
+        protected updateHandle(handleNode: SVGElement): void;
+        protected updateExtras(extrasNode: SVGElement): void;
+        protected toggleExtras(visible: boolean): void;
+
+        protected onPointerDown(evt: dia.Event): void;
+        protected onPointerMove(evt: dia.Event): void;
+        protected onPointerUp(evt: dia.Event): void;
+        protected onPointerDblClick(evt: dia.Event): void;
+    }
+
+    namespace RotateLabel {
+
+        interface Options extends Control.Options {
+            offset?: number | dia.Point;
+            buttonColor?: string;
+            iconColor?: string;
+            outlineColor?: string;
+        }
+    }
+
+    class RotateLabel extends Control<RotateLabel.Options> {
+
+        constructor(opt?: RotateLabel.Options);
+
+        protected getLabelPosition(label: dia.Link.Label): dia.Link.LabelPosition;
+
+        protected getLabelIndex(): number;
+
+        protected getLabel(): dia.Link.Label | null;
+    }
 }

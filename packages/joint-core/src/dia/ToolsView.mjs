@@ -44,27 +44,37 @@ export const ToolsView = mvc.View.extend({
     update: function(opt) {
 
         opt || (opt = {});
-        var tools = this.tools;
+        const tools = this.tools;
         if (!tools) return this;
-        var isRendered = this.isRendered;
-        for (var i = 0, n = tools.length; i < n; i++) {
-            var tool = tools[i];
+        const n = tools.length;
+        const wasRendered = this.isRendered;
+        for (let i = 0; i < n; i++) {
+            const tool = tools[i];
             tool.updateVisibility();
             if (!tool.isVisible()) continue;
-            if (!isRendered) {
+            if (!this.isRendered) {
+                // There is at least one visible tool
+                this.isRendered = Array(n).fill(false);
+            }
+            if (!this.isRendered[i]) {
                 // First update executes render()
                 tool.render();
+                this.isRendered[i] = true;
             } else if (opt.tool !== tool.cid) {
                 tool.update();
             }
         }
+        if (!this.isRendered && n > 0) {
+            // None of the tools is visible
+            // Note: ToolsView with no tools are always mounted
+            return this;
+        }
         if (!this.isMounted()) {
             this.mount();
         }
-        if (!isRendered) {
+        if (!wasRendered) {
             // Make sure tools are visible (if they were hidden and the tool removed)
             this.blurTool();
-            this.isRendered = true;
         }
         return this;
     },
