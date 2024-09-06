@@ -396,6 +396,41 @@ export const Graph = Model.extend({
         this.get('cells').remove(cell, { silent: true });
     },
 
+    transferCellHierarchy: function(sourceCell, targetCell) {
+
+        // Embed children of the source cell in the target cell.
+        const children = sourceCell.getEmbeddedCells();
+        if (children.length > 0) {
+            sourceCell.unembed(children);
+            targetCell.embed(children);
+        }
+
+        // Embed the target cell in the parent of the source cell, if any.
+        const parent = sourceCell.getParentCell();
+        if (parent) {
+            parent.unembed(sourceCell);
+            parent.embed(targetCell);
+        }
+
+        return this;
+    },
+
+    transferCellLinks: function(sourceCell, targetCell) {
+
+        // Reconnect all the links connected to the old cell to the new cell.
+        const connectedLinks = this.getConnectedLinks(sourceCell);
+        connectedLinks.forEach((link) => {
+
+            if (link.getSourceCell() === sourceCell) {
+                link.prop(['source', 'id'], targetCell.id);
+            } else {
+                link.prop(['target', 'id'], targetCell.id);
+            }
+        });
+
+        return this;
+    },
+
     // Get a cell by `id`.
     getCell: function(id) {
 

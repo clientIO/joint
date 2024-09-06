@@ -1546,4 +1546,128 @@ QUnit.module('graph', function(hooks) {
             assert.notOk(graph.hasActiveBatch());
         });
     });
+
+    QUnit.module('graph.transferCellHierarchy()', function() {
+
+        QUnit.test('should transfer hierarchy of elements', function(assert) {
+
+            const topLevelElement = new joint.shapes.standard.Rectangle();
+            const originalElement = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            const replacementElement = new joint.shapes.standard.Rectangle();
+
+            topLevelElement.embed(originalElement);
+            originalElement.embed(child);
+
+            this.graph.addCells([topLevelElement, originalElement, child, replacementElement]);
+            this.graph.transferCellHierarchy(originalElement, replacementElement);
+
+            assert.equal(replacementElement.getParentCell(), topLevelElement);
+            assert.equal(replacementElement.getEmbeddedCells()[0], child);
+        });
+
+        QUnit.test('should transfer hierarchy of links', function(assert) {
+
+            const parent = new joint.shapes.standard.Rectangle();
+            const originalLink = new joint.shapes.standard.Link();
+            const replacementLink = new joint.shapes.standard.Link();
+
+            parent.embed(originalLink);
+
+            this.graph.addCells([parent, originalLink, replacementLink]);
+            this.graph.transferCellHierarchy(originalLink, replacementLink);
+
+            assert.equal(replacementLink.getParentCell(), parent);
+        });
+
+        QUnit.test('should work when transferring hierarchy from a link to an element', function(assert) {
+
+            const parent = new joint.shapes.standard.Rectangle();
+            const link = new joint.shapes.standard.Link();
+            const element = new joint.shapes.standard.Rectangle();
+
+            parent.embed(link);
+
+            this.graph.addCells([parent, link, element]);
+            this.graph.transferCellHierarchy(link, element);
+
+            assert.equal(element.getParentCell(), parent);
+        });
+
+        QUnit.test('should work when transferring hierarchy from an element to a link', function(assert) {
+
+            const parent = new joint.shapes.standard.Rectangle();
+            const link = new joint.shapes.standard.Link();
+            const child = new joint.shapes.standard.Rectangle();
+            const element = new joint.shapes.standard.Rectangle();
+
+            element.embed(child);
+            parent.embed(element);
+
+            this.graph.addCells([parent, link, child, element]);
+            this.graph.transferCellHierarchy(element, link);
+
+            assert.equal(link.getParentCell(), parent);
+            assert.equal(link.getEmbeddedCells()[0], child);
+        });
+    });
+
+    QUnit.module('graph.transferCellLinks()', function() {
+
+        QUnit.test('should transfer links of an element', function(assert) {
+
+            const originalElement = new joint.shapes.standard.Rectangle();
+            const link1 = new joint.shapes.standard.Link({ source: { id: originalElement.id }});
+            const link2 = new joint.shapes.standard.Link({ target: { id: originalElement.id }});
+            const replacementElement = new joint.shapes.standard.Rectangle();
+
+            this.graph.addCells([originalElement, link1, link2]);
+            this.graph.transferCellLinks(originalElement, replacementElement);
+
+            assert.equal(link1.source().id, replacementElement.id);
+            assert.equal(link2.target().id, replacementElement.id);
+        });
+
+        QUnit.test('should transfer links of a link', function(assert) {
+
+            const originalLink = new joint.shapes.standard.Link();
+            const link1 = new joint.shapes.standard.Link({ source: { id: originalLink.id }});
+            const link2 = new joint.shapes.standard.Link({ target: { id: originalLink.id }});
+            const replacementLink = new joint.shapes.standard.Link();
+
+            this.graph.addCells([originalLink, link1, link2]);
+            this.graph.transferCellLinks(originalLink, replacementLink);
+
+            assert.equal(link1.source().id, replacementLink.id);
+            assert.equal(link2.target().id, replacementLink.id);
+        });
+
+        QUnit.test('should work when transferring links from a link to an element', function(assert) {
+
+            const originalLink = new joint.shapes.standard.Link();
+            const link1 = new joint.shapes.standard.Link({ source: { id: originalLink.id }});
+            const link2 = new joint.shapes.standard.Link({ target: { id: originalLink.id }});
+            const element = new joint.shapes.standard.Rectangle();
+
+            this.graph.addCells([originalLink, link1, link2, element]);
+            this.graph.transferCellLinks(originalLink, element);
+
+            assert.equal(link1.source().id, element.id);
+            assert.equal(link2.target().id, element.id);
+        });
+
+        QUnit.test('should work when transferring links from an element to a link', function(assert) {
+
+            const originalElement = new joint.shapes.standard.Rectangle();
+            const link1 = new joint.shapes.standard.Link({ source: { id: originalElement.id }});
+            const link2 = new joint.shapes.standard.Link({ target: { id: originalElement.id }});
+            const replacementLink = new joint.shapes.standard.Link();
+
+            this.graph.addCells([originalElement, link1, link2, replacementLink]);
+            this.graph.transferCellLinks(originalElement, replacementLink);
+
+            assert.equal(link1.source().id, replacementLink.id);
+            assert.equal(link2.target().id, replacementLink.id);
+        });
+    });
 });
