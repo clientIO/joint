@@ -423,7 +423,9 @@ export const Graph = Model.extend({
 
             if (link.getSourceCell() === sourceCell) {
                 link.prop(['source', 'id'], targetCell.id);
-            } else {
+            }
+
+            if (link.getTargetCell() === sourceCell) {
                 link.prop(['target', 'id'], targetCell.id);
             }
         });

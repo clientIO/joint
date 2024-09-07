@@ -1669,5 +1669,18 @@ QUnit.module('graph', function(hooks) {
             assert.equal(link1.source().id, replacementLink.id);
             assert.equal(link2.target().id, replacementLink.id);
         });
+
+        QUnit.test('should work with loop links', function(assert) {
+
+            const originalElement = new joint.shapes.standard.Rectangle();
+            const link = new joint.shapes.standard.Link({ source: { id: originalElement.id }, target: { id: originalElement.id }});
+            const replacementElement = new joint.shapes.standard.Rectangle();
+
+            this.graph.addCells([originalElement, link]);
+            this.graph.transferCellLinks(originalElement, replacementElement);
+
+            assert.equal(link.source().id, replacementElement.id);
+            assert.equal(link.target().id, replacementElement.id);
+        });
     });
 });
