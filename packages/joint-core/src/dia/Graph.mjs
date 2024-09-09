@@ -398,6 +398,8 @@ export const Graph = Model.extend({
 
     transferCellHierarchy: function(sourceCell, targetCell) {
 
+        this.startBatch('transfer-hierarchy');
+
         // Embed children of the source cell in the target cell.
         const children = sourceCell.getEmbeddedCells();
         if (children.length > 0) {
@@ -412,10 +414,14 @@ export const Graph = Model.extend({
             parent.embed(targetCell);
         }
 
+        this.stopBatch('transfer-hierarchy');
+
         return this;
     },
 
     transferCellLinks: function(sourceCell, targetCell) {
+
+        this.startBatch('transfer-links');
 
         // Reconnect all the links connected to the old cell to the new cell.
         const connectedLinks = this.getConnectedLinks(sourceCell);
@@ -429,6 +435,8 @@ export const Graph = Model.extend({
                 link.prop(['target', 'id'], targetCell.id);
             }
         });
+
+        this.stopBatch('transfer-links');
 
         return this;
     },
