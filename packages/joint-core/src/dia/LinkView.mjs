@@ -461,6 +461,13 @@ export const LinkView = CellView.extend({
 
         if (!this._V.labels) return this;
 
+        if (!this.paper.options.labelLayer) {
+            // If there is no label layer, the cache needs to be cleared
+            // of the root node because the labels are attached
+            // to it and could affect the bounding box.
+            this.cleanNodeCache(this.el);
+        }
+
         var model = this.model;
         var labels = model.get('labels') || [];
         var canLabelMove = this.can('labelMove');

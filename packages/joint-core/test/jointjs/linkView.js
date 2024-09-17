@@ -91,6 +91,26 @@ QUnit.module('linkView', function(hooks) {
             assert.equal(group[0], circleNode);
             assert.equal(group[1], rectNode);
         });
+
+        QUnit.test('change label position', function(assert) {
+
+            link.labels([{
+                position: { distance: 0.5, offset: 0 },
+                attrs: { rect: { x: -10, y: -10, width: 20, height: 20 }}
+            }]);
+
+            const Y = 3;
+
+            const linkBBoxBefore = linkView.getNodeBBox(linkView.el);
+            assert.deepEqual(linkBBoxBefore.toJSON(), { x: 100, y: 90, width: 100, height: 20 });
+
+            link.label(0, { position: { distance: 0.5, offset: Y }});
+
+            const linkBBoxAfter = linkView.getNodeBBox(linkView.el);
+            assert.deepEqual(linkBBoxAfter.toJSON(), { x: 100, y: 90 + Y, width: 100, height: 20 });
+
+            assert.notOk(linkBBoxBefore.equals(linkBBoxAfter));
+        });
     });
 
     QUnit.module('addLabel', function(hooks) {
