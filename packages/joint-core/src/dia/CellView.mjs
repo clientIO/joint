@@ -768,6 +768,12 @@ export const CellView = View.extend({
         this.metrics = {};
     },
 
+    cleanNodeCache: function(node) {
+        const id = node.id;
+        if (!id) return;
+        delete this.metrics[id];
+    },
+
     nodeCache: function(magnet) {
 
         var metrics = this.metrics;
