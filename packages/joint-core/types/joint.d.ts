@@ -263,9 +263,9 @@ export namespace dia {
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
-        transferCellHierarchy(sourceCell: Cell, targetCell: Cell): this;
+        transferCellEmbeds(sourceCell: Cell, targetCell: Cell, opt?: { [key: string]: any }): void;
 
-        transferCellLinks(sourceCell: Cell, targetCell: Cell): this;
+        transferCellConnectedLinks(sourceCell: Cell, targetCell: Cell, opt?: { [key: string]: any }): void;
 
         resize(width: number, height: number, opt?: S): this;
 

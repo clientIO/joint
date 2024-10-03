@@ -396,49 +396,39 @@ export const Graph = Model.extend({
         this.get('cells').remove(cell, { silent: true });
     },
 
-    transferCellHierarchy: function(sourceCell, targetCell) {
+    transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {
 
-        this.startBatch('transfer-hierarchy');
+        const batchName = 'transfer-embeds';
+        this.startBatch(batchName);
+
+        opt.reparent = true;
 
         // Embed children of the source cell in the target cell.
-        const children = sourceCell.getEmbeddedCells();
-        if (children.length > 0) {
-            sourceCell.unembed(children);
-            targetCell.embed(children);
-        }
+        const children = sourceCell.getEmbeddedCells(opt);
+        targetCell.embed(children, opt);
 
-        // Embed the target cell in the parent of the source cell, if any.
-        const parent = sourceCell.getParentCell();
-        if (parent) {
-            parent.unembed(sourceCell);
-            parent.embed(targetCell);
-        }
-
-        this.stopBatch('transfer-hierarchy');
-
-        return this;
+        this.stopBatch(batchName);
     },
 
-    transferCellLinks: function(sourceCell, targetCell) {
+    transferCellConnectedLinks: function(sourceCell, targetCell, opt = {}) {
 
-        this.startBatch('transfer-links');
+        const batchName = 'transfer-connected-links';
+        this.startBatch(batchName);
 
         // Reconnect all the links connected to the old cell to the new cell.
-        const connectedLinks = this.getConnectedLinks(sourceCell);
+        const connectedLinks = this.getConnectedLinks(sourceCell, opt);
         connectedLinks.forEach((link) => {
 
             if (link.getSourceCell() === sourceCell) {
-                link.prop(['source', 'id'], targetCell.id);
+                link.prop(['source', 'id'], targetCell.id, opt);
             }
 
             if (link.getTargetCell() === sourceCell) {
-                link.prop(['target', 'id'], targetCell.id);
+                link.prop(['target', 'id'], targetCell.id, opt);
             }
         });
 
-        this.stopBatch('transfer-links');
-
-        return this;
+        this.stopBatch(batchName);
     },
 
     // Get a cell by `id`.
