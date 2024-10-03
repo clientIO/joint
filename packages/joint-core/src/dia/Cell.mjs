@@ -351,6 +351,9 @@ export const Cell = Model.extend({
             parents.forEach((parent) => {
                 // Cell doesn't have to be embedded.
                 if (!parent) return;
+
+                // Pass all the `cells` since the `dia.Cell._unembedCells` method can handle cases
+                // where not all elements of `cells` are embedded in the same parent.
                 parent._unembedCells(cells, opt);
             });
 
