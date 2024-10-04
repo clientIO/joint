@@ -1079,6 +1079,10 @@ export namespace dia {
         options: LinkView.Options<L>;
         sourceAnchor: g.Point;
         targetAnchor: g.Point;
+        sourcePoint: g.Point;
+        targetPoint: g.Point;
+        sourceBBox: g.Rect;
+        targetBBox: g.Rect;
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string, connection?: string }, callback?: () => void): void;
