@@ -1083,6 +1083,7 @@ export namespace dia {
         targetPoint: g.Point;
         sourceBBox: g.Rect;
         targetBBox: g.Rect;
+        route: g.Point[];
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string, connection?: string }, callback?: () => void): void;
