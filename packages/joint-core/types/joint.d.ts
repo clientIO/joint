@@ -311,6 +311,10 @@ export namespace dia {
             [key: string]: any;
         }
 
+        interface EmbedOptions extends Options {
+            reparent?: boolean;
+        }
+
         interface EmbeddableOptions<T = boolean> extends Options {
             deep?: T;
         }
@@ -443,7 +447,7 @@ export namespace dia {
 
         stopTransitions(path?: string, delim?: string): this;
 
-        embed(cell: Cell | Cell[], opt?: Graph.Options): this;
+        embed(cell: Cell | Cell[], opt?: Cell.EmbedOptions): this;
 
         unembed(cell: Cell | Cell[], opt?: Graph.Options): this;
 
