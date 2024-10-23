@@ -396,6 +396,39 @@ export const Graph = Model.extend({
         this.get('cells').remove(cell, { silent: true });
     },
 
+    transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {
+
+        const batchName = 'transfer-embeds';
+        this.startBatch(batchName);
+
+        // Embed children of the source cell in the target cell.
+        const children = sourceCell.getEmbeddedCells();
+        targetCell.embed(children, { ...opt, reparent: true });
+
+        this.stopBatch(batchName);
+    },
+
+    transferCellConnectedLinks: function(sourceCell, targetCell, opt = {}) {
+
+        const batchName = 'transfer-connected-links';
+        this.startBatch(batchName);
+
+        // Reconnect all the links connected to the old cell to the new cell.
+        const connectedLinks = this.getConnectedLinks(sourceCell, opt);
+        connectedLinks.forEach((link) => {
+
+            if (link.getSourceCell() === sourceCell) {
+                link.prop(['source', 'id'], targetCell.id, opt);
+            }
+
+            if (link.getTargetCell() === sourceCell) {
+                link.prop(['target', 'id'], targetCell.id, opt);
+            }
+        });
+
+        this.stopBatch(batchName);
+    },
+
     // Get a cell by `id`.
     getCell: function(id) {
 

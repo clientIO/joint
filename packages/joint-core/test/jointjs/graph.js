@@ -1546,4 +1546,109 @@ QUnit.module('graph', function(hooks) {
             assert.notOk(graph.hasActiveBatch());
         });
     });
+
+    QUnit.module('graph.transferCellEmbeds()', function() {
+
+        QUnit.test('should transfer embeds from one element to another', function(assert) {
+
+            const originalElement = new joint.shapes.standard.Rectangle();
+            const child = new joint.shapes.standard.Rectangle();
+            const replacementElement = new joint.shapes.standard.Rectangle();
+
+            originalElement.embed(child);
+
+            this.graph.addCells([originalElement, child, replacementElement]);
+            this.graph.transferCellEmbeds(originalElement, replacementElement);
+
+            assert.equal(replacementElement.getEmbeddedCells()[0], child);
+            assert.equal(originalElement.getEmbeddedCells().length, 0);
+        });
+
+        QUnit.test('should transfer embeds from an element to a link', function(assert) {
+
+            const link = new joint.shapes.standard.Link();
+            const child = new joint.shapes.standard.Rectangle();
+            const element = new joint.shapes.standard.Rectangle();
+
+            element.embed(child);
+
+            this.graph.addCells([link, child, element]);
+            this.graph.transferCellEmbeds(element, link);
+
+            assert.equal(link.getEmbeddedCells()[0], child);
+            assert.equal(element.getEmbeddedCells().length, 0);
+        });
+    });
+
+    QUnit.module('graph.transferCellConnectedLinks()', function() {
+
+        QUnit.test('should transfer links of an element', function(assert) {
+
+            const originalElement = new joint.shapes.standard.Rectangle();
+            const link1 = new joint.shapes.standard.Link({ source: { id: originalElement.id }});
+            const link2 = new joint.shapes.standard.Link({ target: { id: originalElement.id }});
+            const replacementElement = new joint.shapes.standard.Rectangle();
+
+            this.graph.addCells([originalElement, link1, link2, replacementElement]);
+            this.graph.transferCellConnectedLinks(originalElement, replacementElement);
+
+            assert.equal(link1.source().id, replacementElement.id);
+            assert.equal(link2.target().id, replacementElement.id);
+        });
+
+        QUnit.test('should transfer links of a link', function(assert) {
+
+            const originalLink = new joint.shapes.standard.Link();
+            const link1 = new joint.shapes.standard.Link({ source: { id: originalLink.id }});
+            const link2 = new joint.shapes.standard.Link({ target: { id: originalLink.id }});
+            const replacementLink = new joint.shapes.standard.Link();
+
+            this.graph.addCells([originalLink, link1, link2, replacementLink]);
+            this.graph.transferCellConnectedLinks(originalLink, replacementLink);
+
+            assert.equal(link1.source().id, replacementLink.id);
+            assert.equal(link2.target().id, replacementLink.id);
+        });
+
+        QUnit.test('should work when transferring links from a link to an element', function(assert) {
+
+            const originalLink = new joint.shapes.standard.Link();
+            const link1 = new joint.shapes.standard.Link({ source: { id: originalLink.id }});
+            const link2 = new joint.shapes.standard.Link({ target: { id: originalLink.id }});
+            const element = new joint.shapes.standard.Rectangle();
+
+            this.graph.addCells([originalLink, link1, link2, element]);
+            this.graph.transferCellConnectedLinks(originalLink, element);
+
+            assert.equal(link1.source().id, element.id);
+            assert.equal(link2.target().id, element.id);
+        });
+
+        QUnit.test('should work when transferring links from an element to a link', function(assert) {
+
+            const originalElement = new joint.shapes.standard.Rectangle();
+            const link1 = new joint.shapes.standard.Link({ source: { id: originalElement.id }});
+            const link2 = new joint.shapes.standard.Link({ target: { id: originalElement.id }});
+            const replacementLink = new joint.shapes.standard.Link();
+
+            this.graph.addCells([originalElement, link1, link2, replacementLink]);
+            this.graph.transferCellConnectedLinks(originalElement, replacementLink);
+
+            assert.equal(link1.source().id, replacementLink.id);
+            assert.equal(link2.target().id, replacementLink.id);
+        });
+
+        QUnit.test('should work with loop links', function(assert) {
+
+            const originalElement = new joint.shapes.standard.Rectangle();
+            const link = new joint.shapes.standard.Link({ source: { id: originalElement.id }, target: { id: originalElement.id }});
+            const replacementElement = new joint.shapes.standard.Rectangle();
+
+            this.graph.addCells([originalElement, link, replacementElement]);
+            this.graph.transferCellConnectedLinks(originalElement, replacementElement);
+
+            assert.equal(link.source().id, replacementElement.id);
+            assert.equal(link.target().id, replacementElement.id);
+        });
+    });
 });

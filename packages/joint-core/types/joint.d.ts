@@ -263,6 +263,10 @@ export namespace dia {
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
+        transferCellEmbeds(sourceCell: Cell, targetCell: Cell, opt?: S): void;
+
+        transferCellConnectedLinks(sourceCell: Cell, targetCell: Cell, opt?: Graph.ConnectionOptions): void;
+
         resize(width: number, height: number, opt?: S): this;
 
         resizeCells(width: number, height: number, cells: Cell[], opt?: S): this;
@@ -305,6 +309,10 @@ export namespace dia {
 
         interface Options {
             [key: string]: any;
+        }
+
+        interface EmbedOptions extends Options {
+            reparent?: boolean;
         }
 
         interface EmbeddableOptions<T = boolean> extends Options {
@@ -439,7 +447,7 @@ export namespace dia {
 
         stopTransitions(path?: string, delim?: string): this;
 
-        embed(cell: Cell | Cell[], opt?: Graph.Options): this;
+        embed(cell: Cell | Cell[], opt?: Cell.EmbedOptions): this;
 
         unembed(cell: Cell | Cell[], opt?: Graph.Options): this;
 

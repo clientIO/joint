@@ -256,6 +256,36 @@ QUnit.module('cell', function(hooks) {
 
             assert.raises(() => { cell3.embed(cell2); }, /Embedding of already embedded cells is not allowed/, 'throws exception on embedding of embedded cell');
         });
+
+        QUnit.test('opt.reparent = true', function(assert) {
+
+            const cell1 = new joint.shapes.standard.Rectangle({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+            const cell2 = new joint.shapes.standard.Rectangle({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+            const cell3 = new joint.shapes.standard.Rectangle({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+            const cell4 = new joint.shapes.standard.Rectangle({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+
+            this.graph.addCells([cell1, cell2, cell3, cell4]);
+
+            cell1.embed(cell2);
+            cell3.embed([cell2, cell4], { reparent: true });
+
+            assert.equal(cell1.getEmbeddedCells().length, 0);
+            assert.equal(cell2.parent(), cell3.id);
+            assert.equal(cell3.getEmbeddedCells()[0].id, cell2.id);
+            assert.equal(cell3.getEmbeddedCells()[1].id, cell4.id);
+        });
     });
 
     QUnit.module('remove attributes', function(hooks) {

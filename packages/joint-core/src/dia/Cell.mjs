@@ -339,12 +339,25 @@ export const Cell = Model.extend({
         return this.set('parent', parent, opt);
     },
 
-    embed: function(cell, opt) {
+    embed: function(cell, opt = {}) {
         const cells = Array.isArray(cell) ? cell : [cell];
         if (!this.canEmbed(cells)) {
             throw new Error('Recursive embedding not allowed.');
         }
-        if (cells.some(c => c.isEmbedded() && this.id !== c.parent())) {
+        if (opt.reparent) {
+            const parents = uniq(cells.map(c => c.getParentCell()));
+
+            // Unembed cells from their current parents.
+            parents.forEach((parent) => {
+                // Cell doesn't have to be embedded.
+                if (!parent) return;
+
+                // Pass all the `cells` since the `dia.Cell._unembedCells` method can handle cases
+                // where not all elements of `cells` are embedded in the same parent.
+                parent._unembedCells(cells, opt);
+            });
+
+        } else if (cells.some(c => c.isEmbedded() && this.id !== c.parent())) {
             throw new Error('Embedding of already embedded cells is not allowed.');
         }
         this._embedCells(cells, opt);
