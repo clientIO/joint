@@ -155,7 +155,7 @@ Rect.prototype = {
     },
 
     // @return {bool} true if rectangle `r` is inside me.
-    containsRect: function(r, opt) {
+    containsRect: function(r) {
 
         var r0 = new Rect(this).normalize();
         var r1 = new Rect(r).normalize();
@@ -179,9 +179,7 @@ Rect.prototype = {
         h1 += y1;
         h0 += y0;
 
-        return opt && opt.strict
-            ? (x0 < x1 && w1 < w0 && y0 < y1 && h1 < h0)
-            : (x0 <= x1 && w1 <= w0 && y0 <= y1 && h1 <= h0);
+        return x0 <= x1 && w1 <= w0 && y0 <= y1 && h1 <= h0;
     },
 
     corner: function() {

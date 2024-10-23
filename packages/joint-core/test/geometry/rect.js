@@ -226,23 +226,6 @@ QUnit.module('rect', function() {
             });
         });
 
-        QUnit.module('containsRect(rect, strict=true)', function() {
-
-            QUnit.test('returns TRUE when rect is strictly inside the other rect', function(assert) {
-
-                assert.notOk((new g.Rect(50, 50, 100, 100).containsRect(new g.Rect(20, 20, 200, 200), { strict: true })), 'not inside when surround');
-                assert.notOk((new g.Rect(50, 50, 100, 100).containsRect(new g.Rect(40, 40, 100, 100), { strict: true })), 'not inside when overlap left and top');
-                assert.notOk((new g.Rect(50, 50, 100, 100).containsRect(new g.Rect(60, 60, 100, 40), { strict: true })), 'not inside when overlap left');
-                assert.notOk((new g.Rect(50, 50, 100, 100).containsRect(new g.Rect(60, 60, 100, 100), { strict: true })), 'not inside when overlap right and bottom');
-                assert.notOk((new g.Rect(50, 50, 100, 100).containsRect(new g.Rect(60, 60, 40, 100), { strict: true })), 'not inside when overlap bottom');
-                assert.notOk((new g.Rect(50, 50, 100, 100).containsRect(new g.Rect(75, 75, 0, 0), { strict: true })), 'not inside when argument rect has zero width/height');
-                assert.notOk((new g.Rect(50, 50, 0, 0).containsRect(new g.Rect(50, 50, 0, 0), { strict: true })), 'not inside when both rects have zero width/height');
-                assert.notOk((new g.Rect(50, 50, 100, 100).containsRect(new g.Rect(50, 50, 100, 100), { strict: true })), 'not inside when equal');
-                assert.notOk((new g.Rect(50, 50, 100, 100).containsRect(new g.Rect(50, 60, 20, 20), { strict: true })), 'not inside when rect is not strictly inside');
-                assert.ok((new g.Rect(50, 50, 100, 100).containsRect(new g.Rect(60, 60, 80, 80), { strict: true })), 'inside');
-            });
-        });
-
         QUnit.module('corner()', function() {
 
         });
