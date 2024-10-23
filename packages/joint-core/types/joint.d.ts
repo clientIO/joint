@@ -173,7 +173,7 @@ export namespace dia {
 
         type SearchByKey = 'bbox' | PositionName;
 
-        interface FindUnderElementOptions extends FindInAreaOptions {
+        interface FindUnderElementOptions extends FindInAreaOptions, FindAtPointOptions {
             searchBy?: SearchByKey;
         }
 

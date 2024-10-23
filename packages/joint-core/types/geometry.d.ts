@@ -649,9 +649,9 @@ export namespace g {
 
         clone(): Rect;
 
-        containsPoint(p: PlainPoint | string, opt? StrictOpt): boolean;
+        containsPoint(p: PlainPoint | string, opt?: StrictOpt): boolean;
 
-        containsRect(r: PlainRect, opt? StrictOpt): boolean;
+        containsRect(r: PlainRect, opt?: StrictOpt): boolean;
 
         corner(): Point;
 
