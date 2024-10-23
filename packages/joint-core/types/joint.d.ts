@@ -163,6 +163,20 @@ export namespace dia {
             breadthFirst?: boolean;
         }
 
+        interface FindAtPointOptions extends Options {
+            strict?: boolean;
+        }
+
+        interface FindInAreaOptions extends Options {
+            strict?: boolean;
+        }
+
+        type SearchByKey = 'bbox' | PositionName;
+
+        interface FindUnderElementOptions extends FindInAreaOptions {
+            searchBy?: SearchByKey;
+        }
+
         class Cells extends mvc.Collection<Cell> {
             graph: Graph;
             cellNamespace: any;
@@ -245,11 +259,42 @@ export namespace dia {
 
         clear(opt?: { [key: string]: any }): this;
 
+        findElementsAtPoint(p: Point, opt?: Graph.FindAtPointOptions): Element[];
+
+        findElementsInArea(rect: BBox, opt?: Graph.FindInAreaOptions): Element[];
+
+        findElementsUnderElement(element: Element, opt?: Graph.FindUnderElementOptions): Element[];
+
+        findLinksAtPoint(p: Point, opt?: Graph.FindAtPointOptions): Link[];
+
+        findLinksInArea(rect: BBox, opt?: Graph.FindInAreaOptions): Link[];
+
+        findLinksUnderElement(element: Element, opt?: Graph.FindUnderElementOptions): Link[];
+
+        findCellsAtPoint(p: Point, opt?: Graph.FindAtPointOptions): Cell[];
+
+        findCellsInArea(rect: BBox, opt?: Graph.FindInAreaOptions): Cell[];
+
+        findCellsUnderElement(element: Element, opt?: Graph.FindUnderElementOptions): Cell[];
+
+        protected _getFindUnderElementGeometry(element: Element, searchBy: Graph.SearchByKey): g.Point | g.Rect;
+
+        protected _validateCellsUnderElement<T extends Cell[]>(cells: T, element: Element): T;
+
+        protected _isValidElementUnderElement(el1: Element, el2: Element): boolean;
+
+        protected _isValidLinkUnderElement(link: Link, element: Element): boolean;
+
+        protected _filterCellsUnderElement(cells: Cell[], element: Element, opt: Graph.FindUnderElementOptions): Cell[];
+
+        /** @deprecated use `findElementsAtPoint` instead */
         findModelsFromPoint(p: Point): Element[];
 
-        findModelsInArea(rect: BBox, opt?: { strict?: boolean }): Element[];
+        /** @deprecated use `findElementsInArea` instead */
+        findModelsInArea(rect: BBox, opt?: Graph.FindInAreaOptions): Element[];
 
-        findModelsUnderElement(element: Element, opt?: { searchBy?: 'bbox' | PositionName }): Element[];
+        /** @deprecated use `findElementsUnderElement` instead */
+        findModelsUnderElement(element: Element, opt?: Graph.FindUnderElementOptions): Element[];
 
         getBBox(): g.Rect | null;
 
@@ -1120,6 +1165,8 @@ export namespace dia {
 
         getVertexIndex(x: number, y: number): number;
         getVertexIndex(point: Point): number;
+
+        isConnectionIntersecting(geometryShape: g.Shape, options?: g.SegmentSubdivisionsOpt | null): boolean;
 
         update(): this;
 

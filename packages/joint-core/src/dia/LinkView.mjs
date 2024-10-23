@@ -2,7 +2,7 @@ import { CellView } from './CellView.mjs';
 import { Link } from './Link.mjs';
 import V from '../V/index.mjs';
 import { addClassNamePrefix, merge, assign, isObject, isFunction, clone, isPercentage, result, isEqual } from '../util/index.mjs';
-import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
+import { Point, Line, Path, normalizeAngle, Rect, Polyline, intersection } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
 import { env } from '../env/index.mjs';
@@ -814,6 +814,17 @@ export const LinkView = CellView.extend({
         connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
         if (!connectionPoint) return anchor;
         return connectionPoint.round(this.decimalsRounding);
+    },
+
+    isConnectionIntersecting: function(geometryShape, options) {
+        const connection = this.getConnection();
+        if (!connection) return false;
+        return intersection.exists(
+            connection,
+            geometryShape,
+            { segmentSubdivisions: this.getConnectionSubdivisions() },
+            options
+        );
     },
 
     // combine default label position with built-in default label position
