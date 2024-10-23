@@ -651,7 +651,7 @@ export namespace g {
 
         containsPoint(p: PlainPoint | string, opt?: StrictOpt): boolean;
 
-        containsRect(r: PlainRect, opt?: StrictOpt): boolean;
+        containsRect(r: PlainRect): boolean;
 
         corner(): Point;
 
