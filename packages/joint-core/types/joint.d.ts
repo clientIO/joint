@@ -265,7 +265,7 @@ export namespace dia {
 
         transferCellEmbeds(sourceCell: Cell, targetCell: Cell, opt?: { [key: string]: any }): void;
 
-        transferCellConnectedLinks(sourceCell: Cell, targetCell: Cell, opt?: { [key: string]: any }): void;
+        transferCellConnectedLinks(sourceCell: Cell, targetCell: Cell, opt?: Graph.ConnectionOptions): void;
 
         resize(width: number, height: number, opt?: S): this;
 

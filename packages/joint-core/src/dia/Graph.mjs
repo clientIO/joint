@@ -401,11 +401,9 @@ export const Graph = Model.extend({
         const batchName = 'transfer-embeds';
         this.startBatch(batchName);
 
-        opt.reparent = true;
-
         // Embed children of the source cell in the target cell.
-        const children = sourceCell.getEmbeddedCells(opt);
-        targetCell.embed(children, opt);
+        const children = sourceCell.getEmbeddedCells();
+        targetCell.embed(children, { ...opt, reparent: true });
 
         this.stopBatch(batchName);
     },
