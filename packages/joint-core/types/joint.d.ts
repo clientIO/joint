@@ -263,7 +263,7 @@ export namespace dia {
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
-        transferCellEmbeds(sourceCell: Cell, targetCell: Cell, opt?: { [key: string]: any }): void;
+        transferCellEmbeds(sourceCell: Cell, targetCell: Cell, opt?: S): void;
 
         transferCellConnectedLinks(sourceCell: Cell, targetCell: Cell, opt?: Graph.ConnectionOptions): void;
 
