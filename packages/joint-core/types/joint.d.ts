@@ -933,6 +933,14 @@ export namespace dia {
 
         isDefaultInteractionPrevented(evt: dia.Event): boolean;
 
+        isIntersecting(geometryShape: g.Shape, geometryData?: g.SegmentSubdivisionsOpt | null): boolean;
+
+        protected isEnclosedIn(area: g.Rect): boolean;
+
+        protected isInArea(area: g.Rect, options: g.StrictOpt): boolean;
+
+        protected isAtPoint(point: g.Point, options: g.StrictOpt): boolean;
+
         protected findBySelector(selector: string, root?: SVGElement): SVGElement[];
 
         protected removeHighlighters(): void;
@@ -1165,8 +1173,6 @@ export namespace dia {
 
         getVertexIndex(x: number, y: number): number;
         getVertexIndex(point: Point): number;
-
-        isIntersecting(geometryShape: g.Shape, geometryData?: g.SegmentSubdivisionsOpt | null): boolean;
 
         update(): this;
 
