@@ -840,7 +840,7 @@ QUnit.module('graph', function(hooks) {
         });
     });
 
-    QUnit.module('graph.findModelsUnderElement()', function() {
+    QUnit.module('graph.findElementsUnderElement()', function() {
 
         QUnit.test('sanity', function(assert) {
 
@@ -854,20 +854,20 @@ QUnit.module('graph', function(hooks) {
 
             this.graph.addCells([rect, under, away]);
 
-            assert.deepEqual(this.graph.findModelsUnderElement(away), [], 'There are no models under the element.');
-            assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is a model under the element.');
+            assert.deepEqual(this.graph.findElementsUnderElement(away), [], 'There are no models under the element.');
+            assert.deepEqual(this.graph.findElementsUnderElement(rect), [under], 'There is a model under the element.');
 
             under.translate(50, 50);
 
-            assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'origin' }), [], 'There is no model under the element if searchBy origin option used.');
-            assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'corner' }), [under], 'There is a model under the element if searchBy corner options used.');
+            assert.deepEqual(this.graph.findElementsUnderElement(rect, { searchBy: 'origin' }), [], 'There is no model under the element if searchBy origin option used.');
+            assert.deepEqual(this.graph.findElementsUnderElement(rect, { searchBy: 'corner' }), [under], 'There is a model under the element if searchBy corner options used.');
 
             var embedded = rect.clone().addTo(this.graph);
             rect.embed(embedded);
 
-            assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is 1 model under the element found and 1 embedded element is omitted.');
-            assert.deepEqual(this.graph.findModelsUnderElement(under), [rect, embedded], 'There are 2 models under the element. Parent and its embed.');
-            assert.deepEqual(this.graph.findModelsUnderElement(embedded), [rect, under], 'There are 2 models under the element. The element\'s parent and one other element.');
+            assert.deepEqual(this.graph.findElementsUnderElement(rect), [under], 'There is 1 model under the element found and 1 embedded element is omitted.');
+            assert.deepEqual(this.graph.findElementsUnderElement(under), [rect, embedded], 'There are 2 models under the element. Parent and its embed.');
+            assert.deepEqual(this.graph.findElementsUnderElement(embedded), [rect, under], 'There are 2 models under the element. The element\'s parent and one other element.');
         });
 
         QUnit.test('rotated elements', function(assert) {
@@ -876,14 +876,14 @@ QUnit.module('graph', function(hooks) {
             var rect1 = new joint.shapes.standard.Rectangle({ size: { width: 10, height: 100 }});
             var rect2 = rect1.clone().translate(30, 30);
             graph.addCells([rect1, rect2]);
-            assert.deepEqual(graph.findModelsUnderElement(rect1), []);
+            assert.deepEqual(graph.findElementsUnderElement(rect1), []);
             rect1.set('angle', 90);
-            assert.deepEqual(graph.findModelsUnderElement(rect1), [rect2]);
+            assert.deepEqual(graph.findElementsUnderElement(rect1), [rect2]);
             rect2.set('angle', 90);
             // there is no intersection when both elements are rotated
-            assert.deepEqual(graph.findModelsUnderElement(rect1), []);
+            assert.deepEqual(graph.findElementsUnderElement(rect1), []);
             rect1.set('angle', 0);
-            assert.deepEqual(graph.findModelsUnderElement(rect1), [rect2]);
+            assert.deepEqual(graph.findElementsUnderElement(rect1), [rect2]);
         });
     });
 
@@ -1118,7 +1118,7 @@ QUnit.module('graph', function(hooks) {
     });
 
 
-    QUnit.module('findModelsInArea(rect[, opt])', function(hooks) {
+    QUnit.module('findElementsInArea(rect[, opt])', function(hooks) {
 
         var cells;
 
@@ -1146,19 +1146,19 @@ QUnit.module('graph', function(hooks) {
 
             var modelsInArea;
 
-            modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 10, 10));
+            modelsInArea = this.graph.findElementsInArea(new g.rect(0, 0, 10, 10));
 
             assert.equal(modelsInArea.length, 0, 'area with no elements in it');
 
-            modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 25, 25));
+            modelsInArea = this.graph.findElementsInArea(new g.rect(0, 0, 25, 25));
 
             assert.equal(modelsInArea.length, 1, 'area with 1 element in it');
 
-            modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 300, 300));
+            modelsInArea = this.graph.findElementsInArea(new g.rect(0, 0, 300, 300));
 
             assert.equal(modelsInArea.length, 3, 'area with 3 elements in it');
 
-            modelsInArea = this.graph.findModelsInArea(new g.rect(0, 0, 100, 100), { strict: true });
+            modelsInArea = this.graph.findElementsInArea(new g.rect(0, 0, 100, 100), { strict: true });
 
             assert.equal(modelsInArea.length, 1, '[opt.strict = TRUE] should require elements to be completely within rect');
         });
@@ -1167,7 +1167,7 @@ QUnit.module('graph', function(hooks) {
 
             var modelsInArea;
 
-            modelsInArea = this.graph.findModelsInArea({
+            modelsInArea = this.graph.findElementsInArea({
                 x: 0,
                 y: 0,
                 width: 10,
@@ -1475,7 +1475,7 @@ QUnit.module('graph', function(hooks) {
                     type: 'test.Element'
                 }
             });
-        
+
             const el = new El({
                 foo: {}
             });

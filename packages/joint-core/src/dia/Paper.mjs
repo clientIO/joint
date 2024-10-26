@@ -382,6 +382,11 @@ export const Paper = View.extend({
     ],
     MIN_SCALE: 1e-6,
 
+    // Default find buffer for the findViewsInArea and findViewsAtPoint methods.
+    // The find buffer is used to extend the area of the search
+    // to mitigate the differences between the model and view geometry.
+    DEFAULT_FIND_BUFFER: 200,
+
     init: function() {
 
         const { options } = this;
@@ -1856,6 +1861,85 @@ export const Paper = View.extend({
         return views.filter(function(view) {
             return view && rect[method](view.vel.getBBox({ target: this.cells }));
         }, this);
+    },
+
+    findElementViewsInArea(plainArea, opt) {
+        return this._filterViewsInArea(
+            plainArea,
+            (extArea, findOpt) => this.model.findElementsInArea(extArea, findOpt),
+            opt
+        );
+    },
+
+    findLinkViewsInArea: function(plainArea, opt) {
+        return this._filterViewsInArea(
+            plainArea,
+            (extArea, findOpt) => this.model.findLinksInArea(extArea, findOpt),
+            opt
+        );
+    },
+
+    findCellViewsInArea: function(plainArea, opt) {
+        return this._filterViewsInArea(
+            plainArea,
+            (extArea, findOpt) => this.model.findCellsInArea(extArea, findOpt),
+            opt
+        );
+    },
+
+    findElementViewsAtPoint: function(plainPoint, opt) {
+        return this._filterViewsAtPoint(
+            plainPoint,
+            (extArea) => this.model.findElementsInArea(extArea),
+            opt
+        );
+    },
+
+    findLinkViewsAtPoint: function(plainPoint, opt) {
+        return this._filterViewsAtPoint(
+            plainPoint,
+            (extArea) => this.model.findLinksInArea(extArea),
+            opt,
+        );
+    },
+
+    findCellViewsAtPoint: function(plainPoint, opt) {
+        return this._filterViewsAtPoint(
+            plainPoint,
+            // Note: we do not want to pass `opt` to `findCellsInArea`
+            // because the `strict` option works differently for querying at a point
+            (extArea) => this.model.findCellsInArea(extArea),
+            opt
+        );
+    },
+
+    _findInExtendedArea: function(area, findCellsFn, opt = {}) {
+        const {
+            buffer = this.DEFAULT_FIND_BUFFER,
+        } = opt;
+        const extendedArea = (new Rect(area)).inflate(buffer);
+        const cellsInExtendedArea = findCellsFn(extendedArea, opt);
+        return cellsInExtendedArea.map(element => this.findViewByModel(element));
+    },
+
+    _filterViewsInArea: function(plainArea, findCells, opt = {}) {
+        const area = new Rect(plainArea);
+        const viewsInExtendedArea = this._findInExtendedArea(area, findCells, opt);
+        const viewsInArea = viewsInExtendedArea.filter(view => {
+            if (!view) return false;
+            return view.isInArea(area, opt);
+        });
+        return viewsInArea;
+    },
+
+    _filterViewsAtPoint: function(plainPoint, findCells, opt = {}) {
+        const area = new Rect(plainPoint); // zero-size area
+        const viewsInExtendedArea = this._findInExtendedArea(area, findCells, opt);
+        const viewsAtPoint = viewsInExtendedArea.filter(view => {
+            if (!view) return false;
+            return view.isAtPoint(plainPoint, opt);
+        });
+        return viewsAtPoint;
     },
 
     removeTools: function() {

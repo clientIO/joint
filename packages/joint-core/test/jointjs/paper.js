@@ -152,7 +152,7 @@ QUnit.module('paper', function(hooks) {
 
         this.paper.on('render:done', function() {
             assert.equal(this.graph.getCells().length, 3);
-            assert.equal(this.paper.findViewsInArea(g.rect(-10, -10, 500, 500)).length, 3);
+            assert.equal(this.paper.findElementViewsInArea(g.rect(-10, -10, 500, 500)).length, 3);
             done();
         }, this);
 
@@ -1212,42 +1212,486 @@ QUnit.module('paper', function(hooks) {
         }, 'two rectangles + one circle (scaled by factor of 2), content bbox should be correct');
     });
 
-    QUnit.test('findViewsInArea(rect[, opt])', function(assert) {
+    function getViewsIds(views) {
+        return views.map((view) => view.model.id).sort();
+    }
 
-        var cells = [
-            new joint.shapes.standard.Rectangle({
-                position: { x: 20, y: 20 },
-                size: { width: 20, height: 20 }
-            }),
-            new joint.shapes.standard.Rectangle({
-                position: { x: 80, y: 80 },
-                size: { width: 40, height: 60 }
-            }),
-            new joint.shapes.standard.Rectangle({
-                position: { x: 120, y: 180 },
-                size: { width: 40, height: 40 }
-            })
-        ];
+    QUnit.module('findElementViewsInArea()', function() {
 
-        this.graph.addCells(cells);
+        QUnit.test('option: strict=boolean', function(assert) {
 
-        var viewsInArea;
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Rectangle({
+                    position: { x: 80, y: 80 },
+                    size: { width: 40, height: 60 }
+                }),
+                new joint.shapes.standard.Rectangle({
+                    position: { x: 120, y: 180 },
+                    size: { width: 40, height: 40 }
+                })
+            ];
 
-        viewsInArea = this.paper.findViewsInArea(new g.rect(0, 0, 10, 10));
+            this.graph.addCells(cells);
 
-        assert.equal(viewsInArea.length, 0, 'area with no elements in it');
+            let viewsInArea;
 
-        viewsInArea = this.paper.findViewsInArea(new g.rect(0, 0, 25, 25));
+            viewsInArea = this.paper.findElementViewsInArea(new g.Rect(0, 0, 10, 10));
+            assert.equal(viewsInArea.length, 0, 'area with no elements in it');
 
-        assert.equal(viewsInArea.length, 1, 'area with 1 element in it');
+            viewsInArea = this.paper.findElementViewsInArea(new g.Rect(0, 0, 25, 25));
+            assert.equal(viewsInArea.length, 1, 'area with 1 element in it');
 
-        viewsInArea = this.paper.findViewsInArea(new g.rect(0, 0, 300, 300));
+            viewsInArea = this.paper.findElementViewsInArea({ x: 0, y: 0, width: 25, height: 25 });
+            assert.equal(viewsInArea.length, 1, 'area with 1 element in it');
 
-        assert.equal(viewsInArea.length, 3, 'area with 3 elements in it');
 
-        viewsInArea = this.paper.findViewsInArea(new g.rect(0, 0, 100, 100), { strict: true });
+            viewsInArea = this.paper.findElementViewsInArea(new g.Rect(0, 0, 300, 300));
+            assert.equal(viewsInArea.length, 3, 'area with 3 elements in it');
 
-        assert.equal(viewsInArea.length, 1, '[opt.strict = TRUE] should require elements to be completely within rect');
+            viewsInArea = this.paper.findElementViewsInArea(new g.Rect(0, 0, 100, 100), { strict: true });
+            assert.equal(viewsInArea.length, 1, '[opt.strict = TRUE] should require elements to be completely within rect');
+        });
+
+        QUnit.test('option: buffer=number', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 },
+                    ports: {
+                        groups: {
+                            in: {
+                                position: 'left',
+                            }
+                        },
+                        items: [{
+                            id: 'in',
+                            group: 'in'
+                        }]
+                    }
+                })
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsInArea;
+
+            viewsInArea = this.paper.findElementViewsInArea(new g.Rect(0, 0, 25, 25), { buffer: 0 });
+            assert.equal(viewsInArea.length, 1);
+
+            // If there is no buffer, the view should not be found when we query only the
+            // area containing the port overflow
+            viewsInArea = this.paper.findElementViewsInArea(new g.Rect(0, 0, 20, 100), { buffer: 0 });
+            assert.equal(viewsInArea.length, 0);
+
+            // There is a port on the left, that should be found with enough buffer
+            viewsInArea = this.paper.findElementViewsInArea(new g.Rect(0, 0, 20, 100), { buffer: 10 });
+            assert.equal(viewsInArea.length, 1);
+
+            // No port on the top
+            viewsInArea = this.paper.findElementViewsInArea(new g.Rect(0, 0, 100, 20), { buffer: 10 });
+            assert.equal(viewsInArea.length, 0);
+
+            viewsInArea = this.paper.findElementViewsInArea(new g.Rect(0, 0, 100, 21), { buffer: 10 });
+            assert.equal(viewsInArea.length, 1);
+        });
+    });
+
+    QUnit.module('findLinkViewsInArea()', function() {
+
+        QUnit.test('option: strict=boolean', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Rectangle({
+                    id: 'r2',
+                    position: { x: 80, y: 80 },
+                    size: { width: 40, height: 60 }
+                }),
+                new joint.shapes.standard.Link({
+                    id: 'l1',
+                    source: { id: 'r1' },
+                    target: { id: 'r2' }
+                }),
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsInArea;
+
+            viewsInArea = this.paper.findLinkViewsInArea(new g.Rect(0, 0, 10, 10));
+            assert.equal(viewsInArea.length, 0);
+
+            viewsInArea = this.paper.findLinkViewsInArea(this.graph.getCell('r1').getBBox().inflate(-1));
+            assert.equal(viewsInArea.length, 0);
+
+            viewsInArea = this.paper.findLinkViewsInArea(this.graph.getCell('r1').getBBox());
+            assert.equal(viewsInArea.length, 1);
+
+            viewsInArea = this.paper.findLinkViewsInArea(new g.Rect(50, 20, 20, 60));
+            assert.equal(viewsInArea.length, 1);
+
+            viewsInArea = this.paper.findLinkViewsInArea(new g.Rect(50, 20, 20, 60), { strict: true });
+            assert.equal(viewsInArea.length, 0);
+
+            viewsInArea = this.paper.findLinkViewsInArea(new g.Rect(0, 0, 200, 200), { strict: true });
+            assert.equal(viewsInArea.length, 1);
+        });
+
+        QUnit.test('option: buffer=number', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Rectangle({
+                    id: 'r2',
+                    position: { x: 80, y: 80 },
+                    size: { width: 40, height: 60 }
+                }),
+                new joint.shapes.standard.Link({
+                    id: 'l1',
+                    source: { id: 'r1' },
+                    target: { id: 'r2' },
+                    router: {
+                        name: 'oneSide',
+                        args: {
+                            side: 'left'
+                        }
+                    }
+                }),
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsInArea;
+
+            viewsInArea = this.paper.findLinkViewsInArea(new g.Rect(0, 0, 25, 100), { buffer: 0 });
+            assert.equal(viewsInArea.length, 0);
+
+            viewsInArea = this.paper.findLinkViewsInArea(new g.Rect(0, 0, 25, 100), { buffer: 10 });
+            assert.equal(viewsInArea.length, 1);
+        });
+    });
+
+    QUnit.module('findCellViewsInArea()', function(assert) {
+
+        QUnit.test('option: strict=boolean', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Rectangle({
+                    id: 'r2',
+                    position: { x: 80, y: 80 },
+                    size: { width: 40, height: 60 }
+                }),
+                new joint.shapes.standard.Link({
+                    id: 'l1',
+                    source: { id: 'r1' },
+                    target: { id: 'r2' }
+                }),
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsInArea;
+
+            viewsInArea = this.paper.findCellViewsInArea(new g.Rect(0, 0, 10, 10));
+            assert.equal(viewsInArea.length, 0);
+
+            viewsInArea = this.paper.findCellViewsInArea(this.graph.getCell('r1').getBBox().inflate(-1));
+            assert.deepEqual(getViewsIds(viewsInArea), ['r1']);
+
+            viewsInArea = this.paper.findCellViewsInArea(this.graph.getCell('r1').getBBox());
+            assert.deepEqual(getViewsIds(viewsInArea), ['l1', 'r1']);
+
+            viewsInArea = this.paper.findCellViewsInArea(new g.Rect(50, 20, 20, 60));
+            assert.deepEqual(getViewsIds(viewsInArea), ['l1']);
+
+            viewsInArea = this.paper.findCellViewsInArea(this.graph.getBBox().inflate(-5));
+            assert.deepEqual(getViewsIds(viewsInArea), ['l1', 'r1', 'r2']);
+
+            viewsInArea = this.paper.findCellViewsInArea(this.graph.getBBox().inflate(-5), { strict: true });
+            assert.deepEqual(getViewsIds(viewsInArea), ['l1']);
+        });
+
+        QUnit.test('option: buffer=number', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 },
+                    ports: {
+                        groups: {
+                            in: {
+                                position: 'left',
+                            }
+                        },
+                        items: [{
+                            id: 'in',
+                            group: 'in'
+                        }]
+                    }
+                }),
+                new joint.shapes.standard.Link({
+                    id: 'l1',
+                    source: { id: 'r1' },
+                    target: { x: 0, y: 0 }
+                })
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsInArea;
+
+            viewsInArea = this.paper.findCellViewsInArea(new g.Rect(0, 0, 20, 100), { buffer: 0 });
+            assert.deepEqual(getViewsIds(viewsInArea), ['l1']);
+
+            viewsInArea = this.paper.findCellViewsInArea(new g.Rect(0, 0, 20, 100), { buffer: 10 });
+            assert.deepEqual(getViewsIds(viewsInArea), ['l1', 'r1']);
+        });
+    });
+
+    QUnit.module('findElementViewsAtPoint()', function() {
+
+        QUnit.test('option: strict=boolean', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Rectangle({
+                    id: 'r2',
+                    position: { x: 35, y: 35 },
+                    size: { width: 40, height: 40 }
+                }),
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsAtPoint;
+
+            viewsAtPoint = this.paper.findElementViewsAtPoint({ x: 0, y: 0 });
+            assert.equal(viewsAtPoint.length, 0);
+
+            viewsAtPoint = this.paper.findElementViewsAtPoint({ x: 25, y: 25 });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), ['r1']);
+
+            viewsAtPoint = this.paper.findElementViewsAtPoint({ x: 35, y: 35 });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), ['r1', 'r2']);
+
+            viewsAtPoint = this.paper.findElementViewsAtPoint({ x: 35, y: 35 }, { strict: true });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), ['r1']);
+        });
+
+        QUnit.test('option: buffer=number', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 },
+                    ports: {
+                        groups: {
+                            in: {
+                                position: 'left',
+                            }
+                        },
+                        items: [{
+                            id: 'in',
+                            group: 'in'
+                        }]
+                    }
+                })
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsAtPoint;
+
+            viewsAtPoint = this.paper.findElementViewsAtPoint({ x: 18, y: 30 }, { buffer: 0 });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), []);
+
+            viewsAtPoint = this.paper.findElementViewsAtPoint({ x: 18, y: 30 }, { buffer: 10 });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), ['r1']);
+        });
+    });
+
+    QUnit.module('findLinkViewsAtPoint()', function() {
+
+        QUnit.test('option: strict=boolean', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Rectangle({
+                    id: 'r2',
+                    position: { x: 80, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Link({
+                    id: 'l1',
+                    source: { id: 'r1' },
+                    target: { id: 'r2' }
+                }),
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsAtPoint;
+
+            viewsAtPoint = this.paper.findLinkViewsAtPoint({ x: 0, y: 0 });
+            assert.equal(viewsAtPoint.length, 0);
+
+            viewsAtPoint = this.paper.findLinkViewsAtPoint({ x: 35, y: 30 });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), []);
+
+            viewsAtPoint = this.paper.findLinkViewsAtPoint({ x: 40, y: 30 });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), ['l1']);
+
+            viewsAtPoint = this.paper.findLinkViewsAtPoint({ x: 40, y: 30 + 1e-10 });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), ['l1']);
+
+            viewsAtPoint = this.paper.findLinkViewsAtPoint({ x: 40, y: 30 + 1e-10 }, { strict: true });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), ['l1']);
+        });
+
+        QUnit.test('option: buffer=number', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Rectangle({
+                    id: 'r2',
+                    position: { x: 80, y: 80 },
+                    size: { width: 40, height: 60 }
+                }),
+                new joint.shapes.standard.Link({
+                    id: 'l1',
+                    source: { id: 'r1' },
+                    target: { id: 'r2' },
+                    router: {
+                        name: 'oneSide',
+                        args: {
+                            side: 'left'
+                        }
+                    }
+                }),
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsAtPoint;
+
+            viewsAtPoint = this.paper.findLinkViewsAtPoint({ x: 10, y: 30 }, { buffer: 0 });
+            assert.equal(viewsAtPoint.length, 0);
+
+            viewsAtPoint = this.paper.findLinkViewsAtPoint({ x: 10, y: 30 }, { buffer: 100 });
+            assert.deepEqual(viewsAtPoint.map(view => view.model.id).sort(), ['l1']);
+        });
+    });
+
+    QUnit.module('findCellViewsAtPoint()', function(assert) {
+
+        QUnit.test('option: strict=boolean', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Rectangle({
+                    id: 'r2',
+                    position: { x: 80, y: 20 },
+                    size: { width: 20, height: 20 }
+                }),
+                new joint.shapes.standard.Link({
+                    id: 'l1',
+                    source: {
+                        id: 'r1',
+                        connectionPoint: { name: 'anchor' },
+                        anchor: { name: 'modelCenter' }
+                    },
+                    target: { id: 'r2' },
+                    vertices: [{ x: 10, y: 30 }]
+                }),
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsAtPoint;
+
+            viewsAtPoint = this.paper.findCellViewsAtPoint({ x: 0, y: 0 });
+            assert.equal(viewsAtPoint.length, 0);
+
+            viewsAtPoint = this.paper.findCellViewsAtPoint({ x: 15, y: 30 });
+            assert.deepEqual(getViewsIds(viewsAtPoint).sort(), ['l1']);
+
+            viewsAtPoint = this.paper.findCellViewsAtPoint({ x: 25, y: 30 });
+            assert.deepEqual(getViewsIds(viewsAtPoint), ['l1', 'r1']);
+
+            viewsAtPoint = this.paper.findCellViewsAtPoint({ x: 20, y: 30 });
+            assert.deepEqual(getViewsIds(viewsAtPoint), ['l1', 'r1']);
+
+            viewsAtPoint = this.paper.findCellViewsAtPoint({ x: 20, y: 30 }, { strict: true });
+            assert.deepEqual(getViewsIds(viewsAtPoint).sort(), ['l1']);
+        });
+
+        QUnit.test('option: buffer=number', function(assert) {
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({
+                    id: 'r1',
+                    position: { x: 20, y: 20 },
+                    size: { width: 20, height: 20 },
+                    ports: {
+                        groups: {
+                            in: {
+                                position: 'left',
+                            }
+                        },
+                        items: [{
+                            id: 'in',
+                            group: 'in'
+                        }]
+                    }
+                })
+            ];
+
+            this.graph.addCells(cells);
+
+            let viewsAtPoint;
+
+            viewsAtPoint = this.paper.findCellViewsAtPoint({ x: 18, y: 30 }, { buffer: 0 });
+            assert.deepEqual(getViewsIds(viewsAtPoint), []);
+
+            viewsAtPoint = this.paper.findCellViewsAtPoint({ x: 18, y: 30 }, { buffer: 10 });
+            assert.deepEqual(getViewsIds(viewsAtPoint), ['r1']);
+        });
     });
 
     QUnit.test('linkAllowed(linkViewOrModel)', function(assert) {

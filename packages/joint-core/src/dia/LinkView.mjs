@@ -816,7 +816,7 @@ export const LinkView = CellView.extend({
         return connectionPoint.round(this.decimalsRounding);
     },
 
-    isConnectionIntersecting: function(geometryShape, options) {
+    isIntersecting: function(geometryShape, options) {
         const connection = this.getConnection();
         if (!connection) return false;
         return intersection.exists(
@@ -825,6 +825,23 @@ export const LinkView = CellView.extend({
             { segmentSubdivisions: this.getConnectionSubdivisions() },
             options
         );
+    },
+
+    isEnclosedIn: function(geometryRect) {
+        const connection = this.getConnection();
+        if (!connection) return false;
+        const bbox = connection.bbox();
+        if (!bbox) return false;
+        return geometryRect.containsRect(bbox);
+    },
+
+    isAtPoint: function(point /*, options */) {
+        // Note: `strict` option is not applicable for links.
+        // There is currently no method to determine if a path contains a point.
+        const area = new Rect(point);
+        // Intersection with a zero-size area is not possible.
+        area.inflate(1e-6);
+        return this.isIntersecting(area);
     },
 
     // combine default label position with built-in default label position
@@ -1834,7 +1851,10 @@ export const LinkView = CellView.extend({
         // checking view in close area of the pointer
 
         var r = snapLinks.radius || 50;
-        var viewsInArea = paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+        var viewsInArea = paper.findElementViewsInArea(
+            { x: x - r, y: y - r, width: 2 * r, height: 2 * r },
+            snapLinks.findInAreaOptions
+        );
 
         var prevClosestView = data.closestView || null;
         var prevClosestMagnet = data.closestMagnet || null;

@@ -2242,7 +2242,7 @@
             // checking view in close area of the pointer
 
             var r = snapLinks.radius || 50;
-            var viewsInArea = paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+            var viewsInArea = paper.findElementViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
             var prevClosestView = data.closestView || null;
             var prevClosestMagnet = data.closestMagnet || null;
