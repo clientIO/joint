@@ -73,6 +73,7 @@ export const LinkView = CellView.extend({
     initFlag: [Flags.RENDER, Flags.SOURCE, Flags.TARGET, Flags.TOOLS],
 
     UPDATE_PRIORITY: 1,
+    EPSILON: 1e-6,
 
     confirmUpdate: function(flags, opt) {
 
@@ -840,7 +841,7 @@ export const LinkView = CellView.extend({
         // There is currently no method to determine if a path contains a point.
         const area = new Rect(point);
         // Intersection with a zero-size area is not possible.
-        area.inflate(1e-6);
+        area.inflate(this.EPSILON);
         return this.isIntersecting(area);
     },
 
