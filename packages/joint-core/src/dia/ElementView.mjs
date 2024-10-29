@@ -404,9 +404,9 @@ export const ElementView = CellView.extend({
         if (isFunction(findParentBy)) {
             candidates = toArray(findParentBy.call(graph, this, evt, x, y));
         } else if (findParentBy === 'pointer') {
-            candidates = toArray(graph.findModelsFromPoint({ x, y }));
+            candidates = graph.findElementsAtPoint({ x, y });
         } else {
-            candidates = graph.findModelsUnderElement(model, { searchBy: findParentBy });
+            candidates = graph.findElementsUnderElement(model, { searchBy: findParentBy });
         }
 
         candidates = candidates.filter((el) => {

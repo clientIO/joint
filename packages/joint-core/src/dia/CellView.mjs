@@ -16,7 +16,7 @@ import {
     merge,
     uniq
 } from '../util/index.mjs';
-import { Point, Rect } from '../g/index.mjs';
+import { Point, Rect, intersection } from '../g/index.mjs';
 import V from '../V/index.mjs';
 import $ from '../mvc/Dom/index.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
@@ -1326,7 +1326,27 @@ export const CellView = View.extend({
     setInteractivity: function(value) {
 
         this.options.interactive = value;
+    },
+
+    isIntersecting: function(geometryShape, geometryData) {
+        return intersection.exists(geometryShape, this.getNodeBBox(this.el), geometryData);
+    },
+
+    isEnclosedIn: function(geometryRect) {
+        return geometryRect.containsRect(this.getNodeBBox(this.el));
+    },
+
+    isInArea: function(geometryRect, options = {}) {
+        if (options.strict) {
+            return this.isEnclosedIn(geometryRect);
+        }
+        return this.isIntersecting(geometryRect);
+    },
+
+    isAtPoint: function(point, options) {
+        return this.getNodeBBox(this.el).containsPoint(point, options);
     }
+
 }, {
 
     Flags,

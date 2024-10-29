@@ -163,6 +163,20 @@ export namespace dia {
             breadthFirst?: boolean;
         }
 
+        interface FindAtPointOptions extends Options {
+            strict?: boolean;
+        }
+
+        interface FindInAreaOptions extends Options {
+            strict?: boolean;
+        }
+
+        type SearchByKey = 'bbox' | PositionName;
+
+        interface FindUnderElementOptions extends FindInAreaOptions, FindAtPointOptions {
+            searchBy?: SearchByKey;
+        }
+
         class Cells extends mvc.Collection<Cell> {
             graph: Graph;
             cellNamespace: any;
@@ -245,11 +259,42 @@ export namespace dia {
 
         clear(opt?: { [key: string]: any }): this;
 
+        findElementsAtPoint(p: Point, opt?: Graph.FindAtPointOptions): Element[];
+
+        findElementsInArea(rect: BBox, opt?: Graph.FindInAreaOptions): Element[];
+
+        findElementsUnderElement(element: Element, opt?: Graph.FindUnderElementOptions): Element[];
+
+        findLinksAtPoint(p: Point, opt?: Graph.FindAtPointOptions): Link[];
+
+        findLinksInArea(rect: BBox, opt?: Graph.FindInAreaOptions): Link[];
+
+        findLinksUnderElement(element: Element, opt?: Graph.FindUnderElementOptions): Link[];
+
+        findCellsAtPoint(p: Point, opt?: Graph.FindAtPointOptions): Cell[];
+
+        findCellsInArea(rect: BBox, opt?: Graph.FindInAreaOptions): Cell[];
+
+        findCellsUnderElement(element: Element, opt?: Graph.FindUnderElementOptions): Cell[];
+
+        protected _getFindUnderElementGeometry(element: Element, searchBy: Graph.SearchByKey): g.Point | g.Rect;
+
+        protected _validateCellsUnderElement<T extends Cell[]>(cells: T, element: Element): T;
+
+        protected _isValidElementUnderElement(el1: Element, el2: Element): boolean;
+
+        protected _isValidLinkUnderElement(link: Link, element: Element): boolean;
+
+        protected _filterCellsUnderElement(cells: Cell[], element: Element, opt: Graph.FindUnderElementOptions): Cell[];
+
+        /** @deprecated use `findElementsAtPoint` instead */
         findModelsFromPoint(p: Point): Element[];
 
-        findModelsInArea(rect: BBox, opt?: { strict?: boolean }): Element[];
+        /** @deprecated use `findElementsInArea` instead */
+        findModelsInArea(rect: BBox, opt?: Graph.FindInAreaOptions): Element[];
 
-        findModelsUnderElement(element: Element, opt?: { searchBy?: 'bbox' | PositionName }): Element[];
+        /** @deprecated use `findElementsUnderElement` instead */
+        findModelsUnderElement(element: Element, opt?: Graph.FindUnderElementOptions): Element[];
 
         getBBox(): g.Rect | null;
 
@@ -896,6 +941,14 @@ export namespace dia {
 
         isDefaultInteractionPrevented(evt: dia.Event): boolean;
 
+        isIntersecting(geometryShape: g.Shape, geometryData?: g.SegmentSubdivisionsOpt | null): boolean;
+
+        protected isEnclosedIn(area: g.Rect): boolean;
+
+        protected isInArea(area: g.Rect, options: g.StrictOpt): boolean;
+
+        protected isAtPoint(point: g.Point, options: g.StrictOpt): boolean;
+
         protected findBySelector(selector: string, root?: SVGElement): SVGElement[];
 
         protected removeHighlighters(): void;
@@ -1293,6 +1346,11 @@ export namespace dia {
             afterRender?: AfterRenderCallback;
         }
 
+        interface SnapLinksOptions {
+            radius?: number;
+            findInAreaOptions?: FindInAreaOptions;
+        }
+
         type PointConstraintCallback = (x: number, y: number, opt: any) => Point;
         type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
         type FindParentByType = 'bbox' | 'pointer' | PositionName;
@@ -1311,7 +1369,7 @@ export namespace dia {
             highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>;
             interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions;
             snapLabels?: boolean;
-            snapLinks?: boolean | { radius: number };
+            snapLinks?: boolean | SnapLinksOptions;
             snapLinksSelf?: boolean | { distance: number };
             markAvailable?: boolean;
             // validations
@@ -1485,6 +1543,20 @@ export namespace dia {
             // custom
             [eventName: string]: mvc.EventHandler;
         }
+
+        interface BufferOptions {
+            /**
+             * A buffer around the area to extend the search to
+             * to mitigate the differences between the model and view geometry.
+             */
+            buffer?: number;
+        }
+
+        interface FindAtPointOptions extends Graph.FindAtPointOptions, BufferOptions {
+        }
+
+        interface FindInAreaOptions extends Graph.FindInAreaOptions, BufferOptions {
+        }
     }
 
     class Paper extends mvc.View<Graph> {
@@ -1578,19 +1650,52 @@ export namespace dia {
 
         findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
 
-        findViewsFromPoint(point: string | Point): ElementView[];
+        /**
+         * Finds all the element views at the specified point
+         * @param point a point in local paper coordinates
+         * @param opt options for the search
+         */
+        findElementViewsAtPoint(point: Point, opt?: Paper.FindAtPointOptions): ElementView[];
 
-        findViewsInArea(rect: BBox, opt?: { strict?: boolean }): ElementView[];
+        /**
+         * Finds all the link views at the specified point
+         * @param point a point in local paper coordinates
+         * @param opt options for the search
+         */
+        findLinkViewsAtPoint(point: Point, opt?: Paper.FindAtPointOptions): LinkView[];
+
+        /**
+         * Finds all the cell views at the specified point
+         * @param point a point in local paper coordinates
+         * @param opt options for the search
+         */
+        findCellViewsAtPoint(point: Point, opt?: Paper.FindAtPointOptions): CellView[];
+
+        /**
+         * Finds all the element views in the specified area
+         * @param area a rectangle in local paper coordinates
+         * @param opt options for the search
+         */
+        findElementViewsInArea(area: BBox, opt?: Paper.FindInAreaOptions): ElementView[];
+
+        /**
+         * Finds all the link views in the specified area
+         * @param area a rectangle in local paper coordinates
+         * @param opt options for the search
+         */
+        findLinkViewsInArea(area: BBox, opt?: Paper.FindInAreaOptions): LinkView[];
+
+        /**
+         * Finds all the cell views in the specified area
+         * @param area a rectangle in local paper coordinates
+         * @param opt options for the search
+         */
+        findCellViewsInArea(area: BBox, opt?: Paper.FindInAreaOptions): CellView[];
 
         fitToContent(opt?: Paper.FitToContentOptions): g.Rect;
         fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): g.Rect;
 
         getFitToContentArea(opt?: Paper.FitToContentOptions): g.Rect;
-
-        /**
-         * @deprecated use transformToFitContent
-         */
-        scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
 
         transformToFitContent(opt?: Paper.TransformToFitContentOptions): void;
 
@@ -1820,6 +1925,21 @@ export namespace dia {
         protected customEventTrigger(event: dia.Event, view: CellView, rootNode?: SVGElement): dia.Event | null;
 
         protected addStylesheet(stylesheet: string): void;
+
+        /**
+         * @deprecated use `findElementViewsAtPoint()
+         */
+        findViewsFromPoint(point: string | Point): ElementView[];
+
+        /**
+         *  @deprecated use `findElementViewsInArea()
+         */
+        findViewsInArea(rect: BBox, opt?: { strict?: boolean }): ElementView[];
+
+        /**
+         * @deprecated use transformToFitContent
+         */
+        scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
     }
 
     namespace PaperLayer {

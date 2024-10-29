@@ -2,7 +2,7 @@ import { CellView } from './CellView.mjs';
 import { Link } from './Link.mjs';
 import V from '../V/index.mjs';
 import { addClassNamePrefix, merge, assign, isObject, isFunction, clone, isPercentage, result, isEqual } from '../util/index.mjs';
-import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
+import { Point, Line, Path, normalizeAngle, Rect, Polyline, intersection } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
 import { env } from '../env/index.mjs';
@@ -73,6 +73,7 @@ export const LinkView = CellView.extend({
     initFlag: [Flags.RENDER, Flags.SOURCE, Flags.TARGET, Flags.TOOLS],
 
     UPDATE_PRIORITY: 1,
+    EPSILON: 1e-6,
 
     confirmUpdate: function(flags, opt) {
 
@@ -821,6 +822,34 @@ export const LinkView = CellView.extend({
         connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
         if (!connectionPoint) return anchor;
         return connectionPoint.round(this.decimalsRounding);
+    },
+
+    isIntersecting: function(geometryShape, geometryData) {
+        const connection = this.getConnection();
+        if (!connection) return false;
+        return intersection.exists(
+            geometryShape,
+            connection,
+            geometryData,
+            { segmentSubdivisions: this.getConnectionSubdivisions() },
+        );
+    },
+
+    isEnclosedIn: function(geometryRect) {
+        const connection = this.getConnection();
+        if (!connection) return false;
+        const bbox = connection.bbox();
+        if (!bbox) return false;
+        return geometryRect.containsRect(bbox);
+    },
+
+    isAtPoint: function(point /*, options */) {
+        // Note: `strict` option is not applicable for links.
+        // There is currently no method to determine if a path contains a point.
+        const area = new Rect(point);
+        // Intersection with a zero-size area is not possible.
+        area.inflate(this.EPSILON);
+        return this.isIntersecting(area);
     },
 
     // combine default label position with built-in default label position
@@ -1830,7 +1859,10 @@ export const LinkView = CellView.extend({
         // checking view in close area of the pointer
 
         var r = snapLinks.radius || 50;
-        var viewsInArea = paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+        var viewsInArea = paper.findElementViewsInArea(
+            { x: x - r, y: y - r, width: 2 * r, height: 2 * r },
+            snapLinks.findInAreaOptions
+        );
 
         var prevClosestView = data.closestView || null;
         var prevClosestMagnet = data.closestMagnet || null;

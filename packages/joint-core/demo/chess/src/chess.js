@@ -290,7 +290,7 @@ const Board = joint.dia.Paper.extend({
 
     at: function(square) {
 
-        return this.model.findModelsFromPoint(this._mid(this._n2p(square)));
+        return this.model.findElementsAtPoint(this._mid(this._n2p(square)));
     },
 
     addPiece: function(piece, square) {

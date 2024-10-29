@@ -992,28 +992,105 @@ export const Graph = Model.extend({
         util.invoke(this.getConnectedLinks(model), 'remove', opt);
     },
 
-    // Find all elements at given point
-    findModelsFromPoint: function(p) {
-        return this.getElements().filter(el => el.getBBox({ rotate: true }).containsPoint(p));
+    // Find all cells at given point
+
+    findElementsAtPoint: function(point, opt) {
+        return this._filterAtPoint(this.getElements(), point, opt);
     },
 
-    // Find all elements in given area
-    findModelsInArea: function(rect, opt = {}) {
-        const r = new g.Rect(rect);
+    findLinksAtPoint: function(point, opt) {
+        return this._filterAtPoint(this.getLinks(), point, opt);
+    },
+
+    findCellsAtPoint: function(point, opt) {
+        return this._filterAtPoint(this.getCells(), point, opt);
+    },
+
+    _filterAtPoint: function(cells, point, opt = {}) {
+        return cells.filter(el => el.getBBox({ rotate: true }).containsPoint(point, opt));
+    },
+
+    // Find all cells in given area
+
+    findElementsInArea: function(area, opt = {}) {
+        return this._filterInArea(this.getElements(), area, opt);
+    },
+
+    findLinksInArea: function(area, opt = {}) {
+        return this._filterInArea(this.getLinks(), area, opt);
+    },
+
+    findCellsInArea: function(area, opt = {}) {
+        return this._filterInArea(this.getCells(), area, opt);
+    },
+
+    _filterInArea: function(cells, area, opt = {}) {
+        const r = new g.Rect(area);
         const { strict = false } = opt;
         const method = strict ? 'containsRect' : 'intersect';
-        return this.getElements().filter(el => r[method](el.getBBox({ rotate: true })));
+        return cells.filter(el => r[method](el.getBBox({ rotate: true })));
     },
 
-    // Find all elements under the given element.
-    findModelsUnderElement: function(element, opt = {}) {
-        const { searchBy = 'bbox' } = opt;
-        const bbox = element.getBBox().rotateAroundCenter(element.angle());
-        const elements = (searchBy === 'bbox')
-            ? this.findModelsInArea(bbox)
-            : this.findModelsFromPoint(util.getRectPoint(bbox, searchBy));
-        // don't account element itself or any of its descendants
-        return elements.filter(el => element.id !== el.id && !el.isEmbeddedIn(element));
+    // Find all cells under the given element.
+
+    findElementsUnderElement: function(element, opt) {
+        return this._filterCellsUnderElement(this.getElements(), element, opt);
+    },
+
+    findLinksUnderElement: function(element, opt) {
+        return this._filterCellsUnderElement(this.getLinks(), element, opt);
+    },
+
+    findCellsUnderElement: function(element, opt) {
+        return this._filterCellsUnderElement(this.getCells(), element, opt);
+    },
+
+    _isValidElementUnderElement: function(el1, el2) {
+        return el1.id !== el2.id && !el1.isEmbeddedIn(el2);
+    },
+
+    _isValidLinkUnderElement: function(link, el) {
+        return (
+            link.source().id !== el.id &&
+            link.target().id !== el.id &&
+            !link.isEmbeddedIn(el)
+        );
+    },
+
+    _validateCellsUnderElement: function(cells, element) {
+        return cells.filter(cell => {
+            return cell.isLink()
+                ? this._isValidLinkUnderElement(cell, element)
+                : this._isValidElementUnderElement(cell, element);
+        });
+    },
+
+    _getFindUnderElementGeometry: function(element, searchBy = 'bbox') {
+        const bbox = element.getBBox({ rotate: true });
+        return (searchBy !== 'bbox') ? util.getRectPoint(bbox, searchBy) : bbox;
+    },
+
+    _filterCellsUnderElement: function(cells, element, opt = {}) {
+        const geometry = this._getFindUnderElementGeometry(element, opt.searchBy);
+        const filteredCells = (geometry.type === g.types.Point)
+            ? this._filterAtPoint(cells, geometry)
+            : this._filterInArea(cells, geometry, opt);
+        return this._validateCellsUnderElement(filteredCells, element);
+    },
+
+    // @deprecated use `findElementsInArea` instead
+    findModelsInArea: function(area, opt) {
+        return this.findElementsInArea(area, opt);
+    },
+
+    // @deprecated use `findElementsAtPoint` instead
+    findModelsFromPoint: function(point) {
+        return this.findElementsAtPoint(point);
+    },
+
+    // @deprecated use `findModelsUnderElement` instead
+    findModelsUnderElement: function(element, opt) {
+        return this.findElementsUnderElement(element, opt);
     },
 
     // Return bounding box of all elements.

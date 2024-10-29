@@ -161,7 +161,7 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('containsPoint(point)', function() {
-            
+
             QUnit.test('returns TRUE when a point is inside the rect', function(assert) {
                 assert.ok((new g.Rect(50, 50, 50, 50).containsPoint(new g.Point(75, 75))), 'inside for Point');
                 assert.ok((new g.Rect(50, 50, 50, 50).containsPoint({ x: 75, y: 75 })), 'inside for object');
@@ -176,13 +176,39 @@ QUnit.module('rect', function() {
                 assert.ok(new g.Rect(50, 50, 50, 50).containsPoint(new g.Point(100, 100)));
             });
 
-            QUnit.test('returns TRUE when a point is outside the rect', function(assert) {
+            QUnit.test('returns FALSE when a point is outside the rect', function(assert) {
                 assert.notOk((new g.Rect(50, 50, 50, 50).containsPoint(new g.Point(49, 75))), 'outside for Point');
                 assert.notOk((new g.Rect(50, 50, 50, 50).containsPoint({ x: 101, y: 75 })), 'outside for object');
                 assert.notOk((new g.Rect(50, 50, 50, 50).containsPoint('75@101')), 'outside for string coords separated by @');
                 assert.notOk((new g.Rect(50, 50, 50, 50).containsPoint('75 49')), 'outside for string coords separated by space');
             });
         });
+
+
+        QUnit.module('containsPoint(point, strict=true)', function() {
+
+            QUnit.test('returns TRUE when a point is inside the rect', function(assert) {
+                assert.ok((new g.Rect(50, 50, 50, 50).containsPoint(new g.Point(75, 75), { strict: true })), 'inside for Point');
+                assert.ok((new g.Rect(50, 50, 50, 50).containsPoint({ x: 75, y: 75 }, { strict: true })), 'inside for object');
+                assert.ok((new g.Rect(50, 50, 50, 50).containsPoint('75@75', { strict: true })), 'inside for string coords separated by @');
+                assert.ok((new g.Rect(50, 50, 50, 50).containsPoint('75 75', { strict: true })), 'inside for string coords separated by space');
+            });
+
+            QUnit.test('returns FALSE when a point is a corner of the rect', function(assert) {
+                assert.notOk(new g.Rect(50, 50, 50, 50).containsPoint(new g.Point(50, 50), { strict: true }));
+                assert.notOk(new g.Rect(50, 50, 50, 50).containsPoint(new g.Point(50, 100), { strict: true }));
+                assert.notOk(new g.Rect(50, 50, 50, 50).containsPoint(new g.Point(100, 50), { strict: true }));
+                assert.notOk(new g.Rect(50, 50, 50, 50).containsPoint(new g.Point(100, 100), { strict: true }));
+            });
+
+            QUnit.test('returns FALSE when a point is outside the rect', function(assert) {
+                assert.notOk((new g.Rect(50, 50, 50, 50).containsPoint(new g.Point(49, 75), { strict: true })), 'outside for Point');
+                assert.notOk((new g.Rect(50, 50, 50, 50).containsPoint({ x: 101, y: 75 }, { strict: true })), 'outside for object');
+                assert.notOk((new g.Rect(50, 50, 50, 50).containsPoint('75@101', { strict: true })), 'outside for string coords separated by @');
+                assert.notOk((new g.Rect(50, 50, 50, 50).containsPoint('75 49', { strict: true })), 'outside for string coords separated by space');
+            });
+        });
+
 
         QUnit.module('containsRect(rect)', function() {
 

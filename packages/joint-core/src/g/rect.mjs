@@ -138,12 +138,20 @@ Rect.prototype = {
     },
 
     // @return {bool} true if point p is inside me.
-    containsPoint: function(p) {
-        
-        if (!(p instanceof Point)) {
-            p = new Point(p);
+    // @param {bool} strict If true, the point has to be strictly inside (not on the border).
+    containsPoint: function(p, opt) {
+        let x, y;
+        if (!p || (typeof p === 'string')) {
+            // Backwards compatibility: if the point is not provided,
+            // the point is considered to be the origin [0, 0].
+            ({ x, y } = new Point(p));
+        } else {
+            // Do not create a new Point object if the point is already a Point-like object.
+            ({ x = 0, y = 0 } = p);
         }
-        return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
+        return opt && opt.strict
+            ? (x > this.x && x < this.x + this.width && y > this.y && y < this.y + this.height)
+            : x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height;
     },
 
     // @return {bool} true if rectangle `r` is inside me.

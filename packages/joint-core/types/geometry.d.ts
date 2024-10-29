@@ -37,6 +37,11 @@ export namespace g {
         precision?: number;
     }
 
+    export interface StrictOpt {
+
+        strict?: boolean;
+    }
+
     export interface SubdivisionsOpt extends PrecisionOpt {
 
         subdivisions?: Curve[];
@@ -644,7 +649,7 @@ export namespace g {
 
         clone(): Rect;
 
-        containsPoint(p: PlainPoint | string): boolean;
+        containsPoint(p: PlainPoint | string, opt?: StrictOpt): boolean;
 
         containsRect(r: PlainRect): boolean;
 
