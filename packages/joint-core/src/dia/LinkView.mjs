@@ -817,14 +817,14 @@ export const LinkView = CellView.extend({
         return connectionPoint.round(this.decimalsRounding);
     },
 
-    isIntersecting: function(geometryShape, options) {
+    isIntersecting: function(geometryShape, geometryData) {
         const connection = this.getConnection();
         if (!connection) return false;
         return intersection.exists(
-            connection,
             geometryShape,
+            connection,
+            geometryData,
             { segmentSubdivisions: this.getConnectionSubdivisions() },
-            options
         );
     },
 
