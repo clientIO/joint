@@ -16,7 +16,7 @@ export namespace DirectedGraph {
         height?: number;
     }
 
-    interface LayoutOptions {
+    interface LayoutOptions extends ImportOptions, ExportOptions {
         align?: 'UR' | 'UL' | 'DR' | 'DL';
         rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
         ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
@@ -27,17 +27,28 @@ export namespace DirectedGraph {
         marginY?: number;
         resizeClusters?: boolean;
         clusterPadding?: dia.Padding;
+        debugTiming?: boolean;
+    }
+
+    interface ImportOptions {
         setPosition?: (element: dia.Element, position: dia.BBox) => void;
         setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
         setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
-        debugTiming?: boolean;
-        exportElement?: (element: dia.Element) => Node;
-        exportLink?: (link: dia.Link) => Edge;
         // deprecated
         setLinkVertices?: boolean;
     }
 
-    interface toGraphLibOptions {
+    interface ExportOptions {
+        exportElement?: (element: dia.Element) => Node;
+        exportLink?: (link: dia.Link) => Edge;
+    }
+
+    interface toGraphLibOptions extends ExportOptions {
+        [key: string]: any;
+    }
+
+    interface fromGraphLibOptions extends ImportOptions {
+        graph?: dia.Graph;
         [key: string]: any;
     }
 
@@ -45,6 +56,8 @@ export namespace DirectedGraph {
 
     export function toGraphLib(graph: dia.Graph, opt?: toGraphLibOptions): any;
 
-    export function fromGraphLib(glGraph: any, opt?: { [key: string]: any }): dia.Graph;
+    export function fromGraphLib(glGraph: any, opt?: fromGraphLibOptions): dia.Graph;
+
+    // @deprecated pass the `graph` option instead
     export function fromGraphLib(this: dia.Graph, glGraph: any, opt?: { [key: string]: any }): dia.Graph;
 }

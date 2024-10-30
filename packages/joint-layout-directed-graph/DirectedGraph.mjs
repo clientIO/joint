@@ -34,10 +34,10 @@ export const DirectedGraph = {
         return edge;
     },
 
-    importElement: function(opt, v, gl) {
+    importElement: function(nodeId, glGraph, graph, opt) {
 
-        var element = this.getCell(v);
-        var glNode = gl.node(v);
+        var element = graph.getCell(nodeId);
+        var glNode = glGraph.node(nodeId);
 
         if (opt.setPosition) {
             opt.setPosition(element, glNode);
@@ -49,12 +49,12 @@ export const DirectedGraph = {
         }
     },
 
-    importLink: function(opt, edgeObj, gl) {
+    importLink: function(edgeObj, glGraph, graph, opt) {
 
         const SIMPLIFY_THRESHOLD = 0.001;
 
         const link = this.getCell(edgeObj.name);
-        const glEdge = gl.edge(edgeObj);
+        const glEdge = glGraph.edge(edgeObj);
         const points = glEdge.points || [];
         const polyline = new g.Polyline(points);
 
@@ -68,7 +68,7 @@ export const DirectedGraph = {
                 const polylinePoints = polyline.points.map((point) => (point.toJSON())); // JSON of points after simplification
                 const numPolylinePoints = polylinePoints.length; // number of points after simplification
                 // set simplified polyline points as link vertices
-                // remove first and last polyline points (= source/target sonnectionPoints)
+                // remove first and last polyline points (= source/target connectionPoints)
                 link.set('vertices', polylinePoints.slice(1, numPolylinePoints - 1));
             }
         }
@@ -166,15 +166,11 @@ export const DirectedGraph = {
         graph.startBatch('layout');
 
         DirectedGraph.fromGraphLib(glGraph, {
-            importNode: this.importElement.bind(graph, opt),
-            importEdge: this.importLink.bind(graph, opt)
+            importNode: this.importElement,
+            importEdge: this.importLink,
+            ...opt,
+            graph,
         });
-
-        // // Update the graph.
-        // graph.fromGraphLib(glGraph, {
-        //     importNode: this.importElement.bind(graph, opt),
-        //     importEdge: this.importLink.bind(graph, opt)
-        // });
 
         if (opt.resizeClusters) {
             // Resize and reposition cluster elements (parents of other elements)
@@ -212,7 +208,17 @@ export const DirectedGraph = {
 
         var importNode = opt.importNode || util.noop;
         var importEdge = opt.importEdge || util.noop;
-        var graph = (this instanceof dia.Graph) ? this : new dia.Graph();
+        var graph = opt.graph;
+        if (!graph) {
+            // The graph should be required as an option.
+            // @deprecated
+            if (this instanceof dia.Graph) {
+                // Backwards compatibility.
+                graph = this;
+             } else {
+                graph = new dia.Graph();
+             }
+        }
 
         // Import all nodes.
         glGraph.nodes().forEach(function(node) {
