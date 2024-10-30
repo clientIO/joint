@@ -53,7 +53,7 @@ export const DirectedGraph = {
 
         const SIMPLIFY_THRESHOLD = 0.001;
 
-        const link = this.getCell(edgeObj.name);
+        const link = graph.getCell(edgeObj.name);
         const glEdge = glGraph.edge(edgeObj);
         const points = glEdge.points || [];
         const polyline = new g.Polyline(points);
