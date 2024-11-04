@@ -43,21 +43,27 @@ export namespace DirectedGraph {
         exportLink?: (link: dia.Link) => Edge;
     }
 
-    interface toGraphLibOptions extends ExportOptions {
+    interface ToGraphLibOptions extends ExportOptions {
         [key: string]: any;
     }
 
-    interface fromGraphLibOptions extends ImportOptions {
+    interface FromGraphLibOptions extends ImportOptions {
         graph?: dia.Graph;
         [key: string]: any;
     }
 
     export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
 
-    export function toGraphLib(graph: dia.Graph, opt?: toGraphLibOptions): any;
+    export function toGraphLib(graph: dia.Graph, opt?: ToGraphLibOptions): any;
 
-    export function fromGraphLib(glGraph: any, opt?: fromGraphLibOptions): dia.Graph;
+    export function fromGraphLib(glGraph: any, opt?: FromGraphLibOptions): dia.Graph;
 
     // @deprecated pass the `graph` option instead
     export function fromGraphLib(this: dia.Graph, glGraph: any, opt?: { [key: string]: any }): dia.Graph;
+
+    // @deprecated use `FromGraphLibOptions` instead
+    type fromGraphLibOptions = FromGraphLibOptions;
+
+    // @deprecated use `ToGraphLibOptions` instead
+    type toGraphLibOptions = ToGraphLibOptions;
 }
