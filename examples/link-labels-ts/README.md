@@ -1,4 +1,7 @@
-# JointJS Link Label Rotation
+# JointJS Link Label Tools
+
+The example shows different tools for editing labels.
+
 ## Setup
 
 Use Yarn to run this demo.
