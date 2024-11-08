@@ -1,3 +1,39 @@
+08-11-2024 (v4.1.0)
+
+  @joint/core
+  * examples.link-labels-ts - add new example to show link labels functionality
+  * dia.Paper - add methods to find cell/element/link views in paper
+  * dia.ElementView - add `getTargetParentView()` method
+  * dia.ElementView - fix to prevent exception when position or size is not defined
+  * dia.LinkView - update tools when labels change
+  * dia.LinkView - fix to invalidate the root node cache when labels change
+  * dia.CellView - add `unset()` callback for special presentation attributes
+  * dia.CellView - add `isIntersecting()` method
+  * dia.Graph - accept `toJSON()` options
+  * dia.Graph - add `transferCellEmbeds()` and `transferCellConnectedLinks()` methods
+  * dia.Graph - add methods to find cells/elements/links in graph
+  * dia.Graph - fix to remove graph reference from cells after `resetCells()`
+  * dia.Element - add `getPortGroupNames()` method
+  * dia.Cell - add `ignoreDefaults` and `ignoreEmptyAttributes` options to `toJSON()`
+  * dia.Cell - add `reparent` option to `embed()`
+  * elementTools.Control - add pointer event to `setPosition()` and `resetPosition()` signature
+  * linkTools - add `Control` link tool
+  * linkTools - add `RotateLabel` link tool
+  * linkTools - fix pending batch for `TargetArrowhead` and `SourceArrowhead`
+  * linkTools.Vertices - add `vertexAdding.interactiveLinkNode` option
+  * linkTools.Button - allow `distance` to be defined via callback
+  * routers.RightAngle - fix various routing issues
+  * dia.HighlighterView - add static `getAll()` method
+  * dia.ToolsView - fix to prevent tool `update()` from being called before previous `render()` due to visibility
+  * dia.ToolView - add `visibility` option callback
+  * mvc.View - fix to allow setting `style` via options
+  * util - add `objectDifference()` method
+  * util - expose `calc()` expression API
+  * g.Rect - add `strict` option to `containsPoint()`
+
+  @joint/layout-directed-graph
+  * layout.DirectedGraph - add `graph` option to `fromGraphLib()`
+
 31-05-2024 (v4.0.4)
 
   @joint/core
