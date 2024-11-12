@@ -1,7 +1,7 @@
 08-11-2024 (v4.1.0)
 
   @joint/core
-  * examples.link-labels-ts - add new example to show link labels functionality
+  * examples.link-labels-ts - add new example to show link label tools functionality
   * dia.Paper - add methods to find cell/element/link views in paper
   * dia.ElementView - add `getTargetParentView()` method
   * dia.ElementView - fix to prevent exception when position or size is not defined
@@ -29,7 +29,7 @@
   * mvc.View - fix to allow setting `style` via options
   * util - add `objectDifference()` method
   * util - expose `calc()` expression API
-  * g.Rect - add `strict` option to `containsPoint()`
+  * Geometry - add `strict` option to `containsPoint()` of Rect
 
   @joint/layout-directed-graph
   * layout.DirectedGraph - add `graph` option to `fromGraphLib()`
