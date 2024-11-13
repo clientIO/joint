@@ -29,7 +29,7 @@
   * mvc.View - fix to allow setting `style` via options
   * util - add `objectDifference()` method
   * util - expose `calc()` expression API
-  * Geometry - add `strict` option to `containsPoint()` of Rect
+  * Geometry - add `strict` option to `containsPoint()` of `Rect`
 
   @joint/layout-directed-graph
   * layout.DirectedGraph - add `graph` option to `fromGraphLib()`
