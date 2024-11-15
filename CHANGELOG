@@ -7,7 +7,7 @@
   * dia.ElementView - fix to prevent exception when position or size is not defined
   * dia.LinkView - update tools when labels change
   * dia.LinkView - fix to invalidate the root node cache when labels change
-  * dia.CellView - add `unset()` callback for special presentation attributes
+  * dia.CellView - expose special presentation attributes API
   * dia.CellView - add `isIntersecting()` method
   * dia.Graph - accept `toJSON()` options
   * dia.Graph - add `transferCellEmbeds()` and `transferCellConnectedLinks()` methods
