@@ -2584,6 +2584,8 @@ export namespace shapes {
 
 export namespace util {
 
+    export function cloneCells(cells: dia.Cell[]): { [id: string]: dia.Cell };
+
     export function isCalcExpression(value: any): boolean;
 
     export function evalCalcFormula(formula: string, rect: g.PlainRect): number;
