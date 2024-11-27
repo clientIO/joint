@@ -28,6 +28,7 @@
   * mvc.View - fix to allow setting `style` via options
   * util - add `objectDifference()` method
   * util - expose `calc()` expression API
+  * util - expose `cloneCells()` method
   * Geometry - add `strict` option to `containsPoint()` of `Rect`
 
   @joint/layout-directed-graph
