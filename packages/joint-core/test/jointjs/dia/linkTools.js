@@ -196,6 +196,19 @@ QUnit.module('linkTools', function(hooks) {
                 button2UpdateSpy.restore();
             });
         });
+
+
+        QUnit.test('show()', function(assert) {
+            paper.freeze();
+            const remove = new joint.linkTools.Vertices();
+            const toolsView = new joint.dia.ToolsView({ tools: [remove] });
+            linkView.addTools(toolsView);
+            linkView.hideTools();
+            paper.unfreeze();
+            assert.notOk(toolsView.isRendered);
+            linkView.showTools();
+            assert.ok(toolsView.isRendered);
+        });
     });
 
     QUnit.module('RotateLabel', function() {
