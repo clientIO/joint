@@ -52,15 +52,7 @@ export const ToolsView = mvc.View.extend({
             const tool = tools[i];
             tool.updateVisibility();
             if (!tool.isVisible()) continue;
-            if (!this.isRendered) {
-                // There is at least one visible tool
-                this.isRendered = Array(n).fill(false);
-            }
-            if (!this.isRendered[i]) {
-                // First update executes render()
-                tool.render();
-                this.isRendered[i] = true;
-            } else if (opt.tool !== tool.cid) {
+            if (this.ensureToolRendered(tools, i) && opt.tool !== tool.cid) {
                 tool.update();
             }
         }
@@ -77,6 +69,20 @@ export const ToolsView = mvc.View.extend({
             this.blurTool();
         }
         return this;
+    },
+
+    ensureToolRendered(tools, i) {
+        if (!this.isRendered) {
+            // There is at least one visible tool
+            this.isRendered = Array(tools.length).fill(false);
+        }
+        if (!this.isRendered[i]) {
+            // First update executes render()
+            tools[i].render();
+            this.isRendered[i] = true;
+            return false;
+        }
+        return true;
     },
 
     focusTool: function(focusedTool) {
@@ -103,7 +109,7 @@ export const ToolsView = mvc.View.extend({
                 tool.show();
                 // Check if the tool is conditionally visible too
                 if (tool.isVisible()) {
-                    tool.update();
+                    this.ensureToolRendered(tools, i) && tool.update();
                 }
             }
         }
@@ -115,7 +121,12 @@ export const ToolsView = mvc.View.extend({
     },
 
     show: function() {
-        return this.blurTool(null);
+        this.blurTool(null);
+        // If this the first time the tools are shown, make sure they are mounted
+        if (!this.isMounted()) {
+            this.mount();
+        }
+        return this;
     },
 
     onRemove: function() {
