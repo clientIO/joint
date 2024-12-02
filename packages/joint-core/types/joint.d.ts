@@ -22,6 +22,9 @@ type _DeepPartial<T> = {
 
 type DeepPartial<T> = _DeepPartial<_DeepRequired<T>>;
 
+// We use `DOMElement` later in the code, to avoid conflicts with the `dia.Element` type.
+type DOMElement = Element;
+
 export namespace dia {
 
     type Event = mvc.TriggeredEvent;
@@ -395,7 +398,7 @@ export namespace dia {
 
         type UnsetCallback<V> = (
             this: V,
-            node: Element,
+            node: DOMElement,
             nodeAttributes: { [name: string]: any },
             cellView: V
         ) => string | Array<string> | null | void;
@@ -404,7 +407,7 @@ export namespace dia {
             this: V,
             attributeValue: any,
             refBBox: g.Rect,
-            node: Element,
+            node: DOMElement,
             nodeAttributes: { [name: string]: any },
             cellView: V
         ) => { [key: string]: any } | string | number | void;
@@ -413,7 +416,7 @@ export namespace dia {
             this: V,
             attributeValue: any,
             refBBox: g.Rect,
-            node: Element,
+            node: DOMElement,
             nodeAttributes: { [name: string]: any },
             cellView: V
         ) => dia.Point | null | void;
@@ -422,7 +425,7 @@ export namespace dia {
             this: V,
             attributeValue: any,
             nodeBBox: g.Rect,
-            node: Element,
+            node: DOMElement,
             nodeAttributes: { [name: string]: any },
             cellView: V
         ) => dia.Point | null | void;
@@ -923,7 +926,7 @@ export namespace dia {
 
         isNodeConnection(node: SVGElement): boolean;
 
-        getEventTarget(evt: dia.Event, opt?: { fromPoint?: boolean }): Element;
+        getEventTarget(evt: dia.Event, opt?: { fromPoint?: boolean }): DOMElement;
 
         checkMouseleave(evt: dia.Event): void;
 
@@ -1044,7 +1047,7 @@ export namespace dia {
 
     class ElementView<E extends Element = Element> extends CellViewGeneric<E> {
 
-        update(element?: E, renderingOnlyAttrs?: { [key: string]: any }): void;
+        update(element?: DOMElement, renderingOnlyAttrs?: { [key: string]: any }): void;
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
@@ -1053,9 +1056,9 @@ export namespace dia {
         getTargetParentView(evt: dia.Event): CellView | null;
 
         findPortNode(portId: string | number): SVGElement | null;
-        findPortNode(portId: string | number, selector: string): E | null;
+        findPortNode(portId: string | number, selector: string): DOMElement | null;
 
-        findPortNodes(portId: string | number, groupSelector: string): E[];
+        findPortNodes(portId: string | number, groupSelector: string): DOMElement[];
 
         protected renderMarkup(): void;
 
@@ -1204,9 +1207,9 @@ export namespace dia {
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
         findLabelNode(labelIndex: string | number): SVGElement | null;
-        findLabelNode(labelIndex: string | number, selector: string): Element | null;
+        findLabelNode(labelIndex: string | number, selector: string): DOMElement | null;
 
-        findLabelNodes(labelIndex: string | number, groupSelector: string): Element[];
+        findLabelNodes(labelIndex: string | number, groupSelector: string): DOMElement[];
 
         removeRedundantLinearVertices(opt?: dia.ModelSetOptions): number;
 
@@ -2647,27 +2650,27 @@ export namespace util {
 
     export function imageToDataUri(url: string, callback: (err: Error | null, dataUri: string) => void): void;
 
-    export function getElementBBox(el: Element): dia.BBox;
+    export function getElementBBox(el: DOMElement): dia.BBox;
 
     export function sortElements(
         elements: mvc.$Element,
-        comparator: (a: Element, b: Element) => number
-    ): Element[];
+        comparator: (a: DOMElement, b: DOMElement) => number
+    ): DOMElement[];
 
-    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
+    export function setAttributesBySelector(el: DOMElement, attrs: { [selector: string]: { [attribute: string]: any }}): void;
 
     export function normalizeSides(sides: dia.Sides): dia.PaddingJSON;
 
     export function template(html: string): (data: any) => string;
 
-    export function toggleFullScreen(el?: Element): void;
+    export function toggleFullScreen(el?: DOMElement): void;
 
     export function objectDifference(object: object, base: object, opt?: { maxDepth?: number }): object;
 
     interface DOMJSONDocument {
         fragment: DocumentFragment;
-        selectors: { [key: string]: Element };
-        groupSelectors: { [key: string]: Element[] };
+        selectors: { [key: string]: DOMElement };
+        groupSelectors: { [key: string]: DOMElement[] };
     }
 
     export function parseDOMJSON(json: dia.MarkupJSON): DOMJSONDocument;
@@ -2998,7 +3001,7 @@ export namespace mvc {
     type Dom = unknown;
     // The following types represent the DOM elements that can be passed to the
     // $() function.
-    type $Element<T extends Element = Element> = string | T | T[] | Dom;
+    type $Element<T extends DOMElement = DOMElement> = string | T | T[] | Dom;
     type $HTMLElement = $Element<HTMLElement>;
     type $SVGElement = $Element<SVGElement>;
 
@@ -3006,7 +3009,7 @@ export namespace mvc {
         duration?: number;
         delay?: number;
         easing?: string;
-        complete?: (this: Element) => void;
+        complete?: (this: DOMElement) => void;
     }
 
     interface Event {
@@ -3029,7 +3032,7 @@ export namespace mvc {
         screenX: number | undefined;
         screenY: number | undefined;
         /** @deprecated */
-        toElement: Element | undefined;
+        toElement: DOMElement | undefined;
         // PointerEvent
         pointerId: number | undefined;
         pointerType: string | undefined;
@@ -3394,7 +3397,7 @@ export namespace mvc {
 
     }
 
-    interface ViewBaseOptions<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> {
+    interface ViewBaseOptions<TModel extends (Model | undefined) = Model, TElement extends DOMElement = HTMLElement> {
         model?: TModel | undefined;
         // TODO: quickfix, this can't be fixed easy. The collection does not need to have the same model as the parent view.
         collection?: Collection<any> | undefined; // was: Collection<TModel>;
@@ -3408,7 +3411,7 @@ export namespace mvc {
 
     type ViewBaseEventListener = (event: mvc.Event) => void;
 
-    class ViewBase<TModel extends (Model | undefined) = Model, TElement extends Element = HTMLElement> extends EventsMixin implements Events {
+    class ViewBase<TModel extends (Model | undefined) = Model, TElement extends DOMElement = HTMLElement> extends EventsMixin implements Events {
         /**
          * Do not use, prefer TypeScript's extend functionality.
          */
@@ -3460,7 +3463,7 @@ export namespace mvc {
         protected _setAttributes(attributes: Record<string, any>): void;
     }
 
-    interface ViewOptions<T extends (mvc.Model | undefined), E extends Element = HTMLElement> extends mvc.ViewBaseOptions<T, E> {
+    interface ViewOptions<T extends (mvc.Model | undefined), E extends DOMElement = HTMLElement> extends mvc.ViewBaseOptions<T, E> {
         theme?: string;
         [key: string]: any;
     }
@@ -3469,7 +3472,7 @@ export namespace mvc {
         [key: string]: any;
     }
 
-    class View<T extends (mvc.Model | undefined), E extends Element = HTMLElement> extends mvc.ViewBase<T, E> {
+    class View<T extends (mvc.Model | undefined), E extends DOMElement = HTMLElement> extends mvc.ViewBase<T, E> {
 
         constructor(opt?: ViewOptions<T, E>);
 
@@ -3497,7 +3500,7 @@ export namespace mvc {
 
         children?: dia.MarkupJSON;
 
-        childNodes?: { [key: string]: Element } | null;
+        childNodes?: { [key: string]: DOMElement } | null;
 
         style?: { [key: string]: any };
 
@@ -3509,9 +3512,9 @@ export namespace mvc {
 
         undelegateDocumentEvents(): this;
 
-        delegateElementEvents(element: Element, events?: mvc.EventsHash, data?: viewEventData): this;
+        delegateElementEvents(element: DOMElement, events?: mvc.EventsHash, data?: viewEventData): this;
 
-        undelegateElementEvents(element: Element): this;
+        undelegateElementEvents(element: DOMElement): this;
 
         eventData(evt: dia.Event): viewEventData;
         eventData(evt: dia.Event, data: viewEventData): this;
@@ -3521,7 +3524,7 @@ export namespace mvc {
 
         renderChildren(children?: dia.MarkupJSON): this;
 
-        findAttribute(attributeName: string, node: Element): string | null;
+        findAttribute(attributeName: string, node: DOMElement): string | null;
 
         confirmUpdate(flag: number, opt: { [key: string]: any }): number;
 
@@ -3529,7 +3532,7 @@ export namespace mvc {
 
         isMounted(): boolean;
 
-        protected findAttributeNode(attributeName: string, node: Element): Element | null;
+        protected findAttributeNode(attributeName: string, node: DOMElement): DOMElement | null;
 
         protected init(): void;
 

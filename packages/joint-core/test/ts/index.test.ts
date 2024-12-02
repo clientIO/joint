@@ -104,7 +104,7 @@ const paper = new joint.dia.Paper({
 
 paper.fitToContent({ padding: { top: 10  }, allowNewOrigin: false });
 
-const cellView = graph.getCells[0].findView(paper);
+const cellView = graph.getCells()[0].findView(paper);
 cellView.vel.addClass('test-class');
 
 let isHTMLView: AssertExtends<typeof paper.vel, null> = true;
@@ -201,6 +201,10 @@ new joint.shapes.standard.Rectangle({
 
 class MyElement extends joint.dia.Element {
 
+    test() {
+        return true;
+    }
+
     static attributes = {
         'empty-attribute': {},
         'set1-attribute': {
@@ -222,3 +226,16 @@ class MyElement extends joint.dia.Element {
         },
     };
 }
+
+class CustomElementView extends joint.dia.ElementView<MyElement> {
+
+}
+
+const myElement = new MyElement();
+graph.addCell(myElement);
+const myElementView = myElement.findView(paper) as CustomElementView;
+myElementView.model.test();
+
+// TODO: Fix 'MyElement' is assignable to the constraint of type 'E', but 'E'
+// could be instantiated with a different subtype of constraint 'Element<Attributes, ModelSetOptions>'.
+// const ElementView1: typeof joint.dia.ElementView = CustomElementView;
