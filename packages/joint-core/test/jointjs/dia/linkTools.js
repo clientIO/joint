@@ -206,8 +206,10 @@ QUnit.module('linkTools', function(hooks) {
             linkView.hideTools();
             paper.unfreeze();
             assert.notOk(toolsView.isRendered);
+            assert.notOk(toolsView.el.isConnected);
             linkView.showTools();
             assert.ok(toolsView.isRendered);
+            assert.ok(toolsView.el.isConnected);
         });
     });
 

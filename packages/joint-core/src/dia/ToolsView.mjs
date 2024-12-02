@@ -121,7 +121,12 @@ export const ToolsView = mvc.View.extend({
     },
 
     show: function() {
-        return this.blurTool(null);
+        this.blurTool(null);
+        // If this the first time the tools are shown, make sure they are mounted
+        if (!this.isMounted()) {
+            this.mount();
+        }
+        return this;
     },
 
     onRemove: function() {
