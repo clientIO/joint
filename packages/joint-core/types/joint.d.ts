@@ -3530,7 +3530,7 @@ export namespace mvc {
 
         isMounted(): boolean;
 
-        protected findAttributeNode(attributeName: string, node: DOMElement): Element | null;
+        protected findAttributeNode(attributeName: string, node: DOMElement): DOMElement | null;
 
         protected init(): void;
 
