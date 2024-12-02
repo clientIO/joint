@@ -1,3 +1,9 @@
+02-12-2024 (v4.1.1)
+
+  @joint/core
+  * dia.ElementView - fix return types (DOM `Element` vs. `dia.Element`)
+  * dia.ToolsView - make sure tools are rendered before the first update
+
 27-11-2024 (v4.1.0)
 
   @joint/core

@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-layout-directed-graph",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "JointJS - Directed Graph Layout Demo",
   "main": "./index.js",
   "homepage": "https://jointjs.com",
