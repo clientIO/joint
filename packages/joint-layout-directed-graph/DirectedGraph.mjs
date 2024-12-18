@@ -180,11 +180,20 @@ export const DirectedGraph = {
         }
 
         // Executes the layout.
-        dagreUtil.layout(glGraph, {
-            debugTiming: !!opt.debugTiming,
-            disableOptimalOrderHeuristic: !!opt.disableOptimalOrderHeuristic,
-            customOrder,
-        });
+        try {
+            dagreUtil.layout(glGraph, {
+                debugTiming: !!opt.debugTiming,
+                disableOptimalOrderHeuristic: !!opt.disableOptimalOrderHeuristic,
+                customOrder,
+            });
+        } catch (err) {
+            if (err instanceof TypeError) {
+                // see https://github.com/clientIO/joint/issues/455
+                throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
+            } else {
+                throw err;
+            }
+        }
 
         // Wrap all graph changes into a batch.
         graph.startBatch('layout');
