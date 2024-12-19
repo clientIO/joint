@@ -1859,7 +1859,7 @@ export const LinkView = CellView.extend({
         // checking view in close area of the pointer
 
         var r = snapLinks.radius || 50;
-        var viewsInArea = paper.findElementViewsInArea(
+        var viewsInArea = paper.findCellViewsInArea(
             { x: x - r, y: y - r, width: 2 * r, height: 2 * r },
             snapLinks.findInAreaOptions
         );
@@ -1873,27 +1873,29 @@ export const LinkView = CellView.extend({
         var minDistance = Number.MAX_VALUE;
         var pointer = new Point(x, y);
 
-        viewsInArea.forEach(function(view) {
+        // filter out the current view
+        viewsInArea.filter((view) => view !== this).forEach(function(view) {
             const candidates = [];
+            const { model } = view;
             // skip connecting to the element in case '.': { magnet: false } attribute present
             if (view.el.getAttribute('magnet') !== 'false') {
                 candidates.push({
-                    bbox: view.model.getBBox(),
+                    center: model.isLink() ? view.getPointAtRatio(0.5) : model.getBBox().center(),
                     magnet: view.el
                 });
             }
 
             view.$('[magnet]').toArray().forEach(magnet => {
                 candidates.push({
-                    bbox: view.getNodeBBox(magnet),
+                    center: view.getNodeBBox(magnet).center(),
                     magnet
                 });
             });
 
             candidates.forEach(candidate => {
-                const { magnet, bbox } = candidate;
+                const { magnet, center } = candidate;
                 // find distance from the center of the model to pointer coordinates
-                const distance = bbox.center().squaredDistance(pointer);
+                const distance = center.squaredDistance(pointer);
                 // the connection is looked up in a circle area by `distance < r`
                 if (distance < minDistance) {
                     const isAlreadyValidated = prevClosestMagnet === magnet;
