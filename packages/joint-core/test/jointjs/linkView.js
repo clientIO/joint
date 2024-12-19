@@ -1271,6 +1271,38 @@ QUnit.module('linkView', function(hooks) {
             ));
         });
 
+        QUnit.test('with snapLinks=true - link to link snapping', function(assert) {
+
+            paper.model.resetCells([link, link2]);
+            paper.options.validateConnection = () => true;
+            const data = {};
+            const strategySpy = paper.options.connectionStrategy = sinon.spy();
+            paper.options.snapLinks = { radius: 40 };
+
+            const linkView = link.findView(paper);
+            const linkView2 = link2.findView(paper);
+
+            simulate.dragLinkView(linkView2, 'source', { data });
+            // the move
+            linkView2.pointermove({
+                target: linkView,
+                action: 'mousemove',
+                data: data
+            }, 120, 120);
+
+            assert.equal(strategySpy.callCount, 1);
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: link.id }),
+                linkView,
+                linkView.el,
+                sinon.match(function(coords) { return coords.equals(new g.Point(120, 120)); }),
+                link2,
+                'source',
+                paper
+            ));
+            assert.equal(link2.get('source').id, link.id);
+        });
+
         QUnit.test('with snapLinksSelf=true', function(assert) {
 
             var data;
