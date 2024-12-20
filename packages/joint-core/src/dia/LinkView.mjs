@@ -1880,22 +1880,22 @@ export const LinkView = CellView.extend({
             // skip connecting to the element in case '.': { magnet: false } attribute present
             if (view.el.getAttribute('magnet') !== 'false') {
                 candidates.push({
-                    center: model.isLink() ? view.getPointAtRatio(0.5) : model.getBBox().center(),
+                    distancePoint: model.isLink() ? view.getConnection().closestPoint(pointer) : model.getBBox().center(),
                     magnet: view.el
                 });
             }
 
             view.$('[magnet]').toArray().forEach(magnet => {
                 candidates.push({
-                    center: view.getNodeBBox(magnet).center(),
+                    distancePoint: view.getNodeBBox(magnet).center(),
                     magnet
                 });
             });
 
             candidates.forEach(candidate => {
-                const { magnet, center } = candidate;
+                const { magnet, distancePoint } = candidate;
                 // find distance from the center of the model to pointer coordinates
-                const distance = center.squaredDistance(pointer);
+                const distance = distancePoint.squaredDistance(pointer);
                 // the connection is looked up in a circle area by `distance < r`
                 if (distance < minDistance) {
                     const isAlreadyValidated = prevClosestMagnet === magnet;
