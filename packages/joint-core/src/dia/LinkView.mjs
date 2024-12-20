@@ -1879,23 +1879,43 @@ export const LinkView = CellView.extend({
             const { model } = view;
             // skip connecting to the element in case '.': { magnet: false } attribute present
             if (view.el.getAttribute('magnet') !== 'false') {
-                candidates.push({
-                    distancePoint: model.isLink() ? view.getConnection().closestPoint(pointer) : model.getBBox().center(),
-                    magnet: view.el
-                });
+
+                if (model.isLink()) {
+                    const connection = view.getConnection();
+                    candidates.push({
+                        // find distance from the closest point of a link to pointer coordinates
+                        distance: connection.closestPoint(pointer).squaredDistance(pointer),
+                        magnet: view.el
+                    });
+                } else {
+                    const bbox = model.getBBox();
+
+                    candidates.push({
+                        // Prioritize elements that contain the pointer.
+                        // find distance from the center of the model to pointer coordinates
+                        distance: bbox.containsPoint(pointer) ? 0 : bbox.center().squaredDistance(pointer),
+                        magnet: view.el
+                    });
+                }
             }
 
             view.$('[magnet]').toArray().forEach(magnet => {
+
+                const magnetBBox = view.getNodeBBox(magnet);
+                const rootCenter = model.isElement() ? model.getBBox().center() : view.getConnection().pointAt(0.5);
+                // Squared distance from model center to the magnet center is used as a priority.
+                const priority = magnetBBox.center().squaredDistance(rootCenter);
+
                 candidates.push({
-                    distancePoint: view.getNodeBBox(magnet).center(),
+                    // Prioritize magnets
+                    // find distance from the center of a magnet to pointer coordinates
+                    distance: magnetBBox.center().squaredDistance(pointer) - priority / 2,
                     magnet
                 });
             });
 
             candidates.forEach(candidate => {
-                const { magnet, distancePoint } = candidate;
-                // find distance from the center of the model to pointer coordinates
-                const distance = distancePoint.squaredDistance(pointer);
+                const { magnet, distance } = candidate;
                 // the connection is looked up in a circle area by `distance < r`
                 if (distance < minDistance) {
                     const isAlreadyValidated = prevClosestMagnet === magnet;
