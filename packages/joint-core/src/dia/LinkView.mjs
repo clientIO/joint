@@ -1888,12 +1888,9 @@ export const LinkView = CellView.extend({
                         magnet: view.el
                     });
                 } else {
-                    const bbox = model.getBBox();
-
                     candidates.push({
-                        // Prioritize elements that contain the pointer.
                         // find distance from the center of the model to pointer coordinates
-                        distance: bbox.containsPoint(pointer) ? 0 : bbox.center().squaredDistance(pointer),
+                        distance: model.getBBox().center().squaredDistance(pointer),
                         magnet: view.el
                     });
                 }
@@ -1904,12 +1901,12 @@ export const LinkView = CellView.extend({
                 const magnetBBox = view.getNodeBBox(magnet);
                 const rootCenter = model.isElement() ? model.getBBox().center() : view.getConnection().pointAt(0.5);
                 // Squared distance from model center to the magnet center is used as a priority.
-                const priority = magnetBBox.center().squaredDistance(rootCenter);
+                const magnetDistance = magnetBBox.center().squaredDistance(rootCenter);
 
                 candidates.push({
                     // Prioritize magnets
                     // find distance from the center of a magnet to pointer coordinates
-                    distance: magnetBBox.center().squaredDistance(pointer) - priority / 2,
+                    distance: magnetBBox.center().squaredDistance(pointer) - magnetDistance / 2,
                     magnet
                 });
             });
