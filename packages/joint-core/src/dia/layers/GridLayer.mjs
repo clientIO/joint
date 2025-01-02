@@ -177,4 +177,9 @@ export const GridLayer = PaperLayer.extend({
         return isArray ? options : [options];
     },
 
+    isEmpty() {
+        const { _gridCache: grid } = this;
+        return this.el.children.length === (grid ? 1 : 0);
+    }
+
 });

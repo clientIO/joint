@@ -2095,5 +2095,206 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
         });
     });
+
+    QUnit.module('layers', function(hooks) {
+
+        hooks.beforeEach(function() {
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                frozen: false,
+                sorting: Paper.sorting.APPROX
+            });
+        });
+
+        QUnit.test('sanity', function(assert) {
+            assert.ok(paper.getLayerNode(joint.dia.Paper.Layers.BACK));
+            assert.ok(paper.getLayerNode(joint.dia.Paper.Layers.GRID));
+            assert.ok(paper.getLayerNode(joint.dia.Paper.Layers.CELLS));
+            assert.ok(paper.getLayerNode(joint.dia.Paper.Layers.FRONT));
+            assert.ok(paper.getLayerNode(joint.dia.Paper.Layers.TOOLS));
+            assert.ok(paper.getLayerNode(joint.dia.Paper.Layers.LABELS));
+        });
+
+        QUnit.module('hasLayer()', function(assert) {
+
+            QUnit.test('returns true when layer exists', function(assert) {
+                assert.ok(paper.hasLayer(joint.dia.Paper.Layers.BACK));
+                assert.ok(paper.hasLayer(joint.dia.Paper.Layers.GRID));
+                assert.ok(paper.hasLayer(joint.dia.Paper.Layers.CELLS));
+                assert.ok(paper.hasLayer(joint.dia.Paper.Layers.FRONT));
+                assert.ok(paper.hasLayer(joint.dia.Paper.Layers.TOOLS));
+                assert.ok(paper.hasLayer(joint.dia.Paper.Layers.LABELS));
+            });
+
+            QUnit.test('returns false when layer does not exist', function(assert) {
+                assert.notOk(paper.hasLayer('test'));
+            });
+
+        });
+
+        QUnit.module('addLayer()', function() {
+
+            QUnit.test('throws error when invalid parameters are provided', function(assert) {
+                assert.throws(
+                    function() {
+                        paper.addLayer();
+                    },
+                    /dia.Paper: The layer name must be provided./,
+                    'Layer name must be provided.'
+                );
+                assert.throws(
+                    function() {
+                        paper.addLayer('test');
+                    },
+                    /dia.Paper: The layer view is not an instance of dia.PaperLayer./,
+                    'Layer view must be an instance of joint.dia.PaperLayer.'
+                );
+            });
+
+            QUnit.test('throws error when layer with the same name already exists', function(assert) {
+                assert.throws(
+                    function() {
+                        paper.addLayer(joint.dia.Paper.Layers.BACK);
+                    },
+                    /dia.Paper: The layer "back" already exists./,
+                    'Layer with the name "back" already exists.'
+                );
+            });
+
+            QUnit.test('adds a new layer at the end of the layers list', function(assert) {
+                const testLayer = new joint.dia.PaperLayer();
+                assert.equal(paper.getLayerNames().indexOf('test1'), -1);
+                assert.notOk(paper.hasLayer('test1'));
+                paper.addLayer('test1', testLayer);
+                assert.ok(paper.hasLayer('test1'));
+                assert.equal(paper.getLayers().at(-1), testLayer);
+            });
+
+            QUnit.test('adds a new layer before the specified layer', function(assert) {
+                const testLayer = new joint.dia.PaperLayer();
+                assert.equal(paper.getLayerNames().indexOf('test2'), -1);
+                assert.notOk(paper.hasLayer('test1'));
+                paper.addLayer('test2', testLayer, { insertBefore: 'cells' });
+                assert.ok(paper.hasLayer('test2'));
+                const layerNames = paper.getLayerNames();
+                assert.equal(layerNames.indexOf('test2'), layerNames.indexOf('cells') - 1);
+            });
+
+        });
+
+        QUnit.module('removeLayer()', function() {
+
+            QUnit.test('throws error when invalid parameters are provided', function(assert) {
+                assert.throws(
+                    function() {
+                        paper.removeLayer();
+                    },
+                    /dia.Paper: Unknown layer "undefined"./,
+                    'Layer name must be provided.'
+                );
+            });
+
+            QUnit.test('throws error when layer does not exist', function(assert) {
+                assert.notOk(paper.hasLayer('test'));
+                assert.throws(
+                    function() {
+                        paper.removeLayer('test');
+                    },
+                    /dia.Paper: Unknown layer "test"./,
+                    'Layer with the name "test" does not exist.'
+                );
+            });
+
+            QUnit.test('removes the specified layer', function(assert) {
+                assert.ok(paper.hasLayer(joint.dia.Paper.Layers.BACK));
+                paper.removeLayer(joint.dia.Paper.Layers.BACK);
+                assert.notOk(paper.hasLayer(joint.dia.Paper.Layers.BACK));
+            });
+
+            QUnit.test('throws error when trying to remove a layer with content', function(assert) {
+                graph.addCells([new joint.shapes.standard.Rectangle()], { async: false });
+                assert.throws(
+                    function() {
+                        paper.removeLayer(joint.dia.Paper.Layers.CELLS);
+                    },
+                    /dia.Paper: The layer is not empty./,
+                    'Layer "cells" cannot be removed because it contains views.'
+                );
+            });
+
+        });
+
+        QUnit.module('moveLayer()', function() {
+
+            QUnit.test('throws error when invalid parameters are provided', function(assert) {
+                assert.throws(
+                    function() {
+                        paper.moveLayer();
+                    },
+                    /dia.Paper: Unknown layer "undefined"./,
+                    'Layer name must be provided.'
+                );
+            });
+
+            QUnit.test('throws error when layer does not exist', function(assert) {
+                assert.notOk(paper.hasLayer('test'));
+                assert.throws(
+                    function() {
+                        paper.moveLayer('test');
+                    },
+                    /dia.Paper: Unknown layer "test"./,
+                    'Layer with the name "test" does not exist.'
+                );
+            });
+
+            QUnit.test('throws error when invalid position is provided', function(assert) {
+                assert.throws(
+                    function() {
+                        paper.moveLayer(joint.dia.Paper.Layers.BACK, 'test');
+                    },
+                    /dia.Paper: Unknown layer "test"./,
+                    'Invalid position "test".'
+                );
+            });
+
+            QUnit.test('moves the specified layer to the specified position', function(assert) {
+                const layerNames = paper.getLayerNames();
+                const [firstLayer, secondLayer] = layerNames;
+                paper.moveLayer(secondLayer, firstLayer);
+                const [newFirstLayer, newSecondLayer] = paper.getLayerNames();
+                assert.equal(newFirstLayer, secondLayer);
+                assert.equal(newSecondLayer, firstLayer);
+            });
+
+            QUnit.test('moves the specified layer to the end of the layers list', function(assert) {
+                const layerNames = paper.getLayerNames();
+                const [firstLayer, secondLayer] = layerNames;
+                paper.moveLayer(firstLayer);
+                const newLayerNames = paper.getLayerNames();
+                assert.equal(newLayerNames.at(0), secondLayer);
+                assert.equal(newLayerNames.at(-1), firstLayer);
+            });
+
+            QUnit.test('it\'s possible to move the layer to the same position', function(assert) {
+                const layerNames = paper.getLayerNames();
+                const [firstLayer, secondLayer] = layerNames;
+                paper.moveLayer(firstLayer, secondLayer);
+                const newLayerNames = paper.getLayerNames();
+                assert.equal(newLayerNames.at(0), firstLayer);
+                assert.equal(newLayerNames.at(1), secondLayer);
+            });
+
+            QUnit.test('it\'s ok to move layer before itself', function(assert) {
+                const layerNames = paper.getLayerNames();
+                const [, secondLayer] = layerNames;
+                paper.moveLayer(secondLayer, secondLayer);
+                const newLayerNames = paper.getLayerNames();
+                assert.equal(newLayerNames.at(1), secondLayer);
+            });
+
+        });
+    });
 });
 
