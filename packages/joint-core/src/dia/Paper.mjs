@@ -604,7 +604,7 @@ export const Paper = View.extend({
     getLayerView(layerName) {
         const { _layers: { viewsMap }} = this;
         if (layerName in viewsMap) return viewsMap[layerName];
-        throw new Error(`dia.Paper: Unknown layer "${layerName}"`);
+        throw new Error(`dia.Paper: Unknown layer "${layerName}".`);
     },
 
     getLayerNode(layerName) {
@@ -612,10 +612,6 @@ export const Paper = View.extend({
     },
 
     _removeLayer(layerView) {
-        const layerName = this._getLayerName(layerView);
-        if (!layerName) {
-            throw new Error('dia.Paper: The layer is not registered.');
-        }
         this._unregisterLayer(layerView);
         layerView.remove();
     },
@@ -658,8 +654,11 @@ export const Paper = View.extend({
     _requireLayerView(layer) {
         const layerView = this._getLayerView(layer);
         if (!layerView) {
-            const layerErrorName = layer instanceof PaperLayer ? 'instance' : `"${layer}"`;
-            throw new Error(`dia.Paper: Unknown layer ${layerErrorName}.`);
+            if (layer instanceof PaperLayer) {
+                throw new Error('dia.Paper: The layer is not registered.');
+            } else {
+                throw new Error(`dia.Paper: Unknown layer "${layer}".`);
+            }
         }
         return layerView;
     },
@@ -1909,9 +1908,6 @@ export const Paper = View.extend({
         const { el, model } = view;
 
         const layerName = model.get('layer') ?? this.DEFAULT_CELL_LAYER;
-        if (!this.hasLayerView(layerName)) {
-            throw new Error(`dia.Paper: layer '${layerName}' does not exist`);
-        }
         const layerView = this.getLayerView(layerName);
 
         switch (this.options.sorting) {

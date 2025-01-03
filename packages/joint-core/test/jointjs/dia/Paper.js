@@ -2224,6 +2224,25 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 );
             });
 
+            QUnit.test('removes the layer if passed as an object', function(assert) {
+                const testLayer = new joint.dia.PaperLayer();
+                paper.addLayer('test', testLayer);
+                assert.ok(paper.hasLayer('test'));
+                paper.removeLayer(testLayer);
+                assert.notOk(paper.hasLayer('test'));
+            });
+
+            QUnit.test('throws error when trying to remove a layer which is not added to the paper', function(assert) {
+                const testLayer = new joint.dia.PaperLayer();
+                assert.throws(
+                    function() {
+                        paper.removeLayer(testLayer);
+                    },
+                    /dia.Paper: The layer is not registered./,
+                    'Layer with the name "test" does not exist.'
+                );
+            });
+
         });
 
         QUnit.module('moveLayer()', function() {
@@ -2292,6 +2311,48 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 paper.moveLayer(secondLayer, secondLayer);
                 const newLayerNames = paper.getLayerNames();
                 assert.equal(newLayerNames.at(1), secondLayer);
+            });
+
+        });
+
+        QUnit.module('cell layer attribute', function() {
+
+            QUnit.test('cell view is rendered in correct layer', function(assert) {
+
+                const r1 = new joint.shapes.standard.Rectangle();
+                graph.addCell(r1, { async: false });
+                assert.notOk(r1.get('layer'));
+                assert.ok(paper.getLayerNode('cells').contains(r1.findView(paper).el));
+
+                const test1Layer = new joint.dia.PaperLayer();
+                paper.addLayer('test1', test1Layer);
+
+
+                const r2 = new joint.shapes.standard.Rectangle({ layer: 'test1' });
+                graph.addCell(r2, { async: false });
+                assert.ok(paper.getLayerNode('test1').contains(r2.findView(paper).el));
+
+                const r3 = new joint.shapes.standard.Rectangle({ layer: 'test2' });
+                assert.throws(
+                    () => {
+                        graph.addCell(r3, { async: false });
+                    },
+                    /dia.Paper: Unknown layer "test2"./,
+                    'Layer "test2" does not exist.'
+                );
+            });
+
+            QUnit.test('cell view is moved to correct layer', function(assert) {
+
+                const r1 = new joint.shapes.standard.Rectangle();
+                graph.addCell(r1, { async: false });
+                assert.ok(paper.getLayerNode('cells').contains(r1.findView(paper).el));
+
+                const test1Layer = new joint.dia.PaperLayer();
+                paper.addLayer('test1', test1Layer);
+
+                r1.set('layer', 'test1', { async: false });
+                assert.ok(paper.getLayerNode('test1').contains(r1.findView(paper).el));
             });
 
         });
