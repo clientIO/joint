@@ -588,19 +588,26 @@ QUnit.module('DirectedGraph', function(hooks) {
             const  elements = [
                 new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 300, height: 300 } }),
                 new joint.shapes.standard.Rectangle({ position: { x: 175, y: 175 }, size: {width: 50, height: 50 } }),
-                new joint.shapes.standard.Rectangle({ position: { x: 400, y: 150 }, size: { width: 100, height: 100 } }),
-                new joint.shapes.standard.Rectangle({ position: { x: 150, y: 400 }, size: { width: 100, height: 100 } })
+                new joint.shapes.standard.Rectangle({ position: { x: 400, y: 50 }, size: { width: 300, height: 300 } }),
+                new joint.shapes.standard.Rectangle({ position: { x: 525, y: 175 }, size: { width: 50, height: 50 } }),
             ];
 
             elements[0].embed(elements[1]);
+            elements[2].embed(elements[3]);
 
             const links = [
-                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}), // container -> its child
+                // this throws error:
                 new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[0].id }}), // child -> its container
-                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[2].id }}) // container -> unrelated element
-                // these are ok:
-                //new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[2].id }}), // child -> unrelated element
-                //new joint.shapes.standard.Link({ source: { id: elements[2].id }, target: { id: elements[3].id }}) // unrelated element -> unrelated element
+                new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[2].id }}), // child -> unrelated container
+                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}), // container -> its child
+                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[3].id }}), // container -> unrelated child
+                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[2].id }}), // container -> unrelated container
+                // this is ok:
+                new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[3].id }}), // child -> unrelated child
+                new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { x: 0, y: 0 }}), // child -> point
+                new joint.shapes.standard.Link({ source: { x: 0, y: 0 }, target: { id: elements[1].id }}), // point -> child
+                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { x: 0, y: 0 }}), // container -> point
+                new joint.shapes.standard.Link({ source: { x: 0, y: 0 }, target: { id: elements[0].id }}), // point -> container
             ];
 
             let cells;
@@ -623,6 +630,38 @@ QUnit.module('DirectedGraph', function(hooks) {
             assert.throws(() => {
                 DirectedGraph.layout(graph);
             }, error);
+
+            cells = elements.concat([links[3]]);
+            graph.resetCells(cells);
+            assert.throws(() => {
+                DirectedGraph.layout(graph);
+            }, error);
+
+            cells = elements.concat([links[4]]);
+            graph.resetCells(cells);
+            assert.throws(() => {
+                DirectedGraph.layout(graph);
+            }, error);
+
+            cells = elements.concat([links[5]]);
+            graph.resetCells(cells);
+            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
+
+            cells = elements.concat([links[6]]);
+            graph.resetCells(cells);
+            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
+
+            cells = elements.concat([links[7]]);
+            graph.resetCells(cells);
+            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
+
+            cells = elements.concat([links[8]]);
+            graph.resetCells(cells);
+            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
+
+            cells = elements.concat([links[9]]);
+            graph.resetCells(cells);
+            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
         })
     });
 });
