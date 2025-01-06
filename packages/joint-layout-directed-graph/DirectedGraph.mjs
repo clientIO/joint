@@ -94,17 +94,6 @@ export const DirectedGraph = {
         }
     },
 
-    tryLayout: function(glGraph, opt) {
-        try {
-            dagreUtil.layout(glGraph, opt);
-        } catch (err) {
-            // ASSUMPTION: Only one error is relevant here:
-            // - `Uncaught TypeError: Cannot set property 'rank' of undefined`
-            // - See https://github.com/clientIO/joint/issues/455
-            throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
-        }
-    },
-
     layout: function(graphOrCells, opt) {
 
         var graph;
@@ -120,6 +109,22 @@ export const DirectedGraph = {
         // This is not needed anymore.
         graphOrCells = null;
 
+        // Check that we are not trying to connect a child to a container:
+        // - child to a container
+        // - container to a child
+        // - container to a container
+        graph.getLinks().forEach((link) => {
+            const source = link.getSourceElement();
+            const target = link.getTargetElement();
+            // is container = is element && has at least one embedded element
+            const isSourceContainer = source && (source.getEmbeddedCells().filter((cell) => cell.isElement()).length !== 0);
+            const isTargetContainer = target && (target.getEmbeddedCells().filter((cell) => cell.isElement()).length !== 0);
+            if ((isSourceContainer && target) || (source && isTargetContainer)) {
+                // see https://github.com/clientIO/joint/issues/455
+                throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
+            }
+        });
+
         opt = util.defaults(opt || {}, {
             resizeClusters: true,
             clusterPadding: 10,
@@ -127,8 +132,7 @@ export const DirectedGraph = {
             exportLink: this.exportLink
         });
 
-        // create a graphlib.Graph that represents the joint.dia.Graph
-        // var glGraph = graph.toGraphLib({
+        // Create a graphlib.Graph that represents the joint.dia.Graph
         var glGraph = DirectedGraph.toGraphLib(graph, {
             directed: true,
             // We are about to use edge naming feature.
@@ -170,9 +174,8 @@ export const DirectedGraph = {
         // Set the option object for the graph label.
         glGraph.setGraph(glLabel);
 
-        // Executes the layout.
-        // - See https://stackoverflow.com/a/19728876/2263595
-        this.tryLayout(glGraph, { debugTiming: !!opt.debugTiming });
+        // Execute the layout.
+        dagreUtil.layout(glGraph, { debugTiming: !!opt.debugTiming });
 
         // Wrap all graph changes into a batch.
         graph.startBatch('layout');
