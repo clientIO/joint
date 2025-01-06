@@ -583,5 +583,46 @@ QUnit.module('DirectedGraph', function(hooks) {
                 }
             });
         });
+
+        QUnit.test('should throw an understandable error when trying to connect a child to a container', function(assert) {
+            const  elements = [
+                new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 300, height: 300 } }),
+                new joint.shapes.standard.Rectangle({ position: { x: 175, y: 175 }, size: {width: 50, height: 50 } }),
+                new joint.shapes.standard.Rectangle({ position: { x: 400, y: 150 }, size: { width: 100, height: 100 } }),
+                new joint.shapes.standard.Rectangle({ position: { x: 150, y: 400 }, size: { width: 100, height: 100 } })
+            ];
+
+            elements[0].embed(elements[1]);
+
+            const links = [
+                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}), // container -> its child
+                new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[0].id }}), // child -> its container
+                new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[2].id }}) // container -> unrelated element
+                // these are ok:
+                //new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[2].id }}), // child -> unrelated element
+                //new joint.shapes.standard.Link({ source: { id: elements[2].id }, target: { id: elements[3].id }}) // unrelated element -> unrelated element
+            ];
+
+            let cells;
+            const error = new Error('DirectedGraph: It is not possible to connect a child to a container.');
+
+            cells = elements.concat([links[0]]);
+            graph.resetCells(cells);
+            assert.throws(() => {
+                DirectedGraph.layout(graph);
+            }, error);
+
+            cells = elements.concat([links[1]]);
+            graph.resetCells(cells);
+            assert.throws(() => {
+                DirectedGraph.layout(graph);
+            }, error);
+
+            cells = elements.concat([links[2]]);
+            graph.resetCells(cells);
+            assert.throws(() => {
+                DirectedGraph.layout(graph);
+            }, error);
+        })
     });
 });
