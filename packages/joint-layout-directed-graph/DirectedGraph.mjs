@@ -94,6 +94,17 @@ export const DirectedGraph = {
         }
     },
 
+    tryLayout: function(glGraph, opt) {
+        try {
+            dagreUtil.layout(glGraph, opt);
+        } catch (err) {
+            // ASSUMPTION: Only one error is relevant here:
+            // - `Uncaught TypeError: Cannot set property 'rank' of undefined`
+            // - See https://github.com/clientIO/joint/issues/455
+            throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
+        }
+    },
+
     layout: function(graphOrCells, opt) {
 
         var graph;
@@ -160,16 +171,8 @@ export const DirectedGraph = {
         glGraph.setGraph(glLabel);
 
         // Executes the layout.
-        try {
-            dagreUtil.layout(glGraph, { debugTiming: !!opt.debugTiming });
-        } catch (err) {
-            if (err instanceof TypeError) {
-                // see https://github.com/clientIO/joint/issues/455
-                throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
-            } else {
-                throw err;
-            }
-        }
+        // - See https://stackoverflow.com/a/19728876/2263595
+        this.tryLayout(glGraph, { debugTiming: !!opt.debugTiming });
 
         // Wrap all graph changes into a batch.
         graph.startBatch('layout');
