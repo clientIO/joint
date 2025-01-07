@@ -120,29 +120,32 @@ export const DirectedGraph = {
         // This is not needed anymore.
         graphOrCells = null;
 
-        // Check that we are not trying to connect a child to a container:
-        // - child to a container
-        // - container to a child
-        // - container to a container
-        graph.getLinks().forEach((link) => {
-            const source = link.getSourceElement();
-            const target = link.getTargetElement();
-            // is container = is element && has at least one embedded element
-            const isSourceContainer = source && (source.getEmbeddedCells().filter((cell) => cell.isElement()).length !== 0);
-            const isTargetContainer = target && (target.getEmbeddedCells().filter((cell) => cell.isElement()).length !== 0);
-            if ((isSourceContainer && target) || (source && isTargetContainer)) {
-                // see https://github.com/clientIO/joint/issues/455
-                throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
-            }
-        });
-
         opt = util.defaults(opt || {}, {
+            checkContainerConnections: true,
             resizeClusters: true,
             clusterPadding: 10,
             exportElement: this.exportElement,
             exportLink: this.exportLink,
             disableOptimalOrderHeuristic: false
         });
+
+        // Check that we are not trying to connect a child to a container:
+        // - child to a container
+        // - container to a child
+        // - container to a container
+        if (opt.checkContainerConnections) {
+            graph.getLinks().forEach((link) => {
+                const source = link.getSourceElement();
+                const target = link.getTargetElement();
+                // is container = is element && has at least one embedded element
+                const isSourceContainer = source && source.getEmbeddedCells().some((cell) => cell.isElement());
+                const isTargetContainer = target && target.getEmbeddedCells().some((cell) => cell.isElement());
+                if ((isSourceContainer && target) || (source && isTargetContainer)) {
+                    // see https://github.com/clientIO/joint/issues/455
+                    throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
+                }
+            });
+        }
 
         // Create a graphlib.Graph that represents the joint.dia.Graph
         var glGraph = DirectedGraph.toGraphLib(graph, {
