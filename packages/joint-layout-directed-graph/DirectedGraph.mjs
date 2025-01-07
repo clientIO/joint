@@ -121,7 +121,7 @@ export const DirectedGraph = {
         graphOrCells = null;
 
         opt = util.defaults(opt || {}, {
-            checkContainerConnections: true,
+            validateGraph: true,
             resizeClusters: true,
             clusterPadding: 10,
             exportElement: this.exportElement,
@@ -133,7 +133,7 @@ export const DirectedGraph = {
         // - child to a container
         // - container to a child
         // - container to a container
-        if (opt.checkContainerConnections) {
+        if (opt.validateGraph) {
             graph.getLinks().forEach((link) => {
                 const source = link.getSourceElement();
                 const target = link.getTargetElement();
