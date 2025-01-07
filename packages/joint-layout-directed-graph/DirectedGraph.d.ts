@@ -25,7 +25,7 @@ export namespace DirectedGraph {
         rankSep?: number;
         marginX?: number;
         marginY?: number;
-        checkContainerConnections: boolean;
+        validateGraph?: boolean;
         resizeClusters?: boolean;
         clusterPadding?: dia.Padding;
         debugTiming?: boolean;
