@@ -105,6 +105,26 @@ export const DirectedGraph = {
         }
     },
 
+    // Validate that the graph does not have an arrangement of cells that Dagre considers invalid:
+    // - child connected to a container
+    // - container connected to a child
+    // - container connected to a container
+    // Throw an understandable error if one of the above situations is the case.
+    validateGraph: function(graph) {
+
+        graph.getLinks().forEach((link) => {
+            const source = link.getSourceElement();
+            const target = link.getTargetElement();
+            // is container = is element && has at least one embedded element
+            const isSourceContainer = source && source.getEmbeddedCells().some((cell) => cell.isElement());
+            const isTargetContainer = target && target.getEmbeddedCells().some((cell) => cell.isElement());
+            if ((isSourceContainer && target) || (source && isTargetContainer)) {
+                // see https://github.com/clientIO/joint/issues/455
+                throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
+            }
+        });
+    },
+
     layout: function(graphOrCells, opt) {
 
         var graph;
@@ -129,23 +149,8 @@ export const DirectedGraph = {
             disableOptimalOrderHeuristic: false
         });
 
-        // Check that we are not trying to connect a child to a container:
-        // - child to a container
-        // - container to a child
-        // - container to a container
-        if (opt.validateGraph) {
-            graph.getLinks().forEach((link) => {
-                const source = link.getSourceElement();
-                const target = link.getTargetElement();
-                // is container = is element && has at least one embedded element
-                const isSourceContainer = source && source.getEmbeddedCells().some((cell) => cell.isElement());
-                const isTargetContainer = target && target.getEmbeddedCells().some((cell) => cell.isElement());
-                if ((isSourceContainer && target) || (source && isTargetContainer)) {
-                    // see https://github.com/clientIO/joint/issues/455
-                    throw new Error('DirectedGraph: It is not possible to connect a child to a container.');
-                }
-            });
-        }
+        // Check that we are not trying to connect a child to a container.
+        if (opt.validateGraph) this.validateGraph(graph);
 
         // Create a graphlib.Graph that represents the joint.dia.Graph
         var glGraph = DirectedGraph.toGraphLib(graph, {
