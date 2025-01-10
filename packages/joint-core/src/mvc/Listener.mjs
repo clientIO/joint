@@ -1,4 +1,3 @@
-import V from '../V/index.mjs';
 import { Events } from './Events.mjs';
 
 export class Listener {
@@ -9,7 +8,7 @@ export class Listener {
     listenTo(object, evt, ...args) {
         const { callbackArguments } = this;
         // signature 1 - (object, eventHashMap, context)
-        if (V.isObject(evt)) {
+        if (evt && typeof evt === 'object') {
             const [context = null] = args;
             Object.entries(evt).forEach(([eventName, cb]) => {
                 if (typeof cb !== 'function') return;
