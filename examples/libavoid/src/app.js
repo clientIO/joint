@@ -74,7 +74,7 @@ export const init = async () => {
     });
 
     // create n nodes with links between each other in a chain
-    const n = 100;
+    const n = 200;
     const nodes = Array.from({ length: n }, (_, i) => {
         return new Node({
             position: { x: 100, y: i * 200},
@@ -274,9 +274,7 @@ export const init = async () => {
     });
 
     paper.on('link:snap:connect', (linkView) => {
-        linkView.model.set({
-            router: { name: 'rightAngle' }
-        });
+        linkView.model.router('rightAngle');
     });
 
     paper.on('link:snap:disconnect', (linkView) => {
