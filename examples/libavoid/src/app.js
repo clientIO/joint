@@ -73,77 +73,47 @@ export const init = async () => {
         },
     });
 
-    const c1 = new Node({
-        position: { x: 100, y: 100 },
-        size: { width: 100, height: 100 },
-        ports: {
-            items: [
-                {
-                    group: 'top',
-                    id: 'port1',
-                },
-                {
-                    group: 'top',
-                    id: 'port2',
-                },
-                {
-                    group: 'right',
-                    id: 'port3',
-                },
-                {
-                    group: 'left',
-                    id: 'port4',
-                    // TODO: we need to redefine the port on element resize
-                    // The port is currently defined proportionally to the element size.
-                    // args: {
-                    //     dy: 30
-                    // }
-                },
-            ],
-        },
+    // create n nodes with links between each other in a chain
+    const n = 100;
+    const nodes = Array.from({ length: n }, (_, i) => {
+        return new Node({
+            position: { x: 100, y: i * 200},
+            size: { width: 100, height: 100 },
+            ports: {
+                items: [
+                    {
+                        group: 'top',
+                        id: `port${i + 1}`,
+                    },
+                    {
+                        group: 'right',
+                        id: `port${i + 2}`,
+                    },
+                    {
+                        group: 'left',
+                        id: `port${i + 3}`,
+                    },
+                ],
+            },
+        });
     });
 
-    const c2 = c1.clone().set({
-        position: { x: 300, y: 300 },
-        size: { width: 100, height: 100 },
+    const links = nodes.slice(0, -1).map((node, i) => {
+        return new Edge({
+            source: { id: node.id, port: `port${i + 1}` },
+            target: { id: nodes[i + 1].id, port: `port${i + 2}` },
+            router: { name: 'rightAngle'}
+        });
     });
 
-    const c3 = c1.clone().set({
-        position: { x: 500, y: 100 },
-        size: { width: 100, height: 100 },
+    graph.addCells([...nodes, ...links]);
+
+    links.forEach((link) => {
+        highlighters.addClass.add(link.findView(paper), 'line', 'awaiting-update', {
+            className: 'awaiting-update'
+        });
     });
 
-    const c4 = new Node({
-        position: { x: 100, y: 400 },
-        size: { width: 100, height: 100 },
-    });
-
-    const c5 = c4.clone().set({
-        position: { x: 500, y: 300 },
-        size: { width: 100, height: 100 },
-    });
-
-    const l1 = new Edge({
-        source: { id: c1.id, port: 'port4' },
-        target: { id: c2.id, port: 'port4' },
-    });
-
-    const l2 = new Edge({
-        source: { id: c2.id, port: 'port2' },
-        target: { id: c3.id, port: 'port4' },
-    });
-
-    const l3 = new Edge({
-        source: { id: c4.id },
-        target: { id: c5.id },
-    });
-
-    const l4 = new Edge({
-        source: { id: c5.id },
-        target: { id: c4.id },
-    });
-
-    graph.addCells([c1, c2, c3, c4, c5, l1, l2, l3, l4]);
 
     canvasEl.appendChild(paper.el);
 
@@ -224,12 +194,96 @@ export const init = async () => {
 
     // Start the Avoid Router.
 
-    const router = new AvoidRouter(graph, {
-        shapeBufferDistance: 20,
-        idealNudgingDistance: 10,
-        portOverflow: Node.PORT_RADIUS,
+    // const router = new AvoidRouter(graph, {
+    //     shapeBufferDistance: 20,
+    //     idealNudgingDistance: 10,
+    //     portOverflow: Node.PORT_RADIUS,
+    // });
+
+    // router.addGraphListeners();
+    // router.routeAll();
+
+    const routerWorker = new Worker(new URL("./worker.js", import.meta.url));
+
+    routerWorker.onmessage = (e) => {
+        const { command, ...data } = e.data;
+        switch (command) {
+            case 'routed': {
+                const { cells } = data;
+                cells.forEach((cell) => {
+                    const model = graph.getCell(cell.id);
+                    if (model.isElement()) return;
+                    model.set({
+                        vertices: cell.vertices,
+                        source: cell.source,
+                        target: cell.target,
+                        router: null
+                    }, {
+                        fromWorker: true
+                    });
+                });
+                highlighters.addClass.removeAll(paper, 'awaiting-update');
+                break;
+            }
+            default:
+                console.log('Unknown command', command);
+                break;
+        }
+    }
+
+    routerWorker.postMessage([{
+        command: 'reset',
+        cells: graph.toJSON().cells
+    }]);
+
+    graph.on('change', (cell, opt) => {
+
+        if (opt.fromWorker) {
+            return;
+        }
+
+        routerWorker.postMessage([{
+            command: 'change',
+            cell: cell.toJSON()
+        }]);
+
+        if (cell.isElement() && (cell.hasChanged('position') || cell.hasChanged('size'))) {
+            const links = graph.getConnectedLinks(cell);
+            links.forEach((link) => {
+                link.router() || link.router('rightAngle');
+                highlighters.addClass.add(link.findView(paper), 'line', 'awaiting-update', {
+                    className: 'awaiting-update'
+                });
+            });
+        }
+
     });
 
-    router.addGraphListeners();
-    router.routeAll();
+    graph.on('remove', (cell) => {
+        routerWorker.postMessage([{
+            command: 'remove',
+            id: cell.id
+        }]);
+    });
+
+    graph.on('add', (cell) => {
+        routerWorker.postMessage([{
+            command: 'add',
+            cell: cell.toJSON()
+        }]);
+    });
+
+    paper.on('link:snap:connect', (linkView) => {
+        linkView.model.set({
+            router: { name: 'rightAngle' }
+        });
+    });
+
+    paper.on('link:snap:disconnect', (linkView) => {
+        linkView.model.set({
+            vertices: [],
+            router: null
+        });
+    });
+
 };
