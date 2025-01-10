@@ -174,6 +174,16 @@ export namespace dia {
             strict?: boolean;
         }
 
+        type BaseJSON = {
+            cells: Array<Element.BaseJSON | Link.BaseJSON>;
+            [key: string]: any;
+        }
+
+        type JSON = {
+            cells: Array<Element.JSON | Link.JSON>;
+            [key: string]: any;
+        }
+
         type SearchByKey = 'bbox' | PositionName;
 
         interface FindUnderElementOptions extends FindInAreaOptions, FindAtPointOptions {
@@ -256,9 +266,9 @@ export namespace dia {
 
         getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-        toJSON(opt?: { cellAttributes?: dia.Cell.ExportOptions }): any;
+        toJSON(opt?: { cellAttributes?: dia.Cell.ExportOptions }): Graph.JSON;
 
-        fromJSON(json: any, opt?: S): this;
+        fromJSON(json: Graph.BaseJSON, opt?: S): this;
 
         clear(opt?: { [key: string]: any }): this;
 
@@ -344,11 +354,14 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Selectors> {
         }
 
-        type JSON<K extends Selectors = Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = T & {
+        type BaseJSON<K extends Selectors = Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = T & {
             [attribute in keyof T]: T[attribute];
         } & {
-            id: ID;
             type: string;
+        };
+
+        type JSON<K extends Selectors = Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = BaseJSON<K, T> & {
+            id: ID;
         };
 
         interface Constructor<T extends mvc.Model> {
@@ -563,6 +576,10 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Cell.Selectors> {
         }
 
+        type BaseJSON<K extends Cell.Selectors = Cell.Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = Cell.BaseJSON<K, T>;
+
+        type JSON<K extends Cell.Selectors = Cell.Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = Cell.JSON<K, T>;
+
         type PortPositionCallback = (ports: Port[], bbox: g.Rect) => dia.Point[];
 
         interface PortPositionJSON {
@@ -729,11 +746,16 @@ export namespace dia {
             priority?: boolean;
         }
 
-        interface EndJSON extends EndCellArgs {
-            id?: Cell.ID;
-            x?: number;
-            y?: number;
+        interface EndCellJSON extends EndCellArgs {
+            id: Cell.ID;
         }
+
+        interface EndPointJSON extends EndCellArgs {
+            x: number;
+            y: number;
+        }
+
+        type EndJSON = EndCellJSON | EndPointJSON;
 
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
             source?: EndJSON;
@@ -757,6 +779,10 @@ export namespace dia {
 
         interface Attributes extends Cell.GenericAttributes<LinkSelectors> {
         }
+
+        type BaseJSON<K extends LinkSelectors = LinkSelectors, T extends GenericAttributes<K> = GenericAttributes<K>> = Cell.BaseJSON<K, T>;
+
+        type JSON<K extends LinkSelectors = LinkSelectors, T extends GenericAttributes<K> = GenericAttributes<K>> = Cell.JSON<K, T>;
 
         interface LabelPosition {
             distance?: number; // optional for default labels
