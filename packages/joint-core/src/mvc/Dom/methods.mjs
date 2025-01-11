@@ -65,7 +65,7 @@ export function html(html) {
     if (!el) return null;
     if (arguments.length === 0) return el.innerHTML;
     if (html === undefined) return this; // do nothing
-    cleanNodesData(dataPriv, el.getElementsByTagName('*'));
+    cleanNodesData(el.getElementsByTagName('*'));
     if (typeof html === 'string' || typeof html === 'number') {
         el.innerHTML = html;
     } else {

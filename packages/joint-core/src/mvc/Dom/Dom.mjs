@@ -109,8 +109,8 @@ $.fn.find = function(selector) {
     return ret;
 };
 
-$.fn.add = function(selector, context) {
-    const newElements = $(selector, context).toArray();
+$.fn.add = function(selector) {
+    const newElements = $(selector).toArray();
     const prevElements = this.toArray();
     const ret = this.pushStack([]);
     $.merge(ret, uniq(prevElements.concat(newElements)));
