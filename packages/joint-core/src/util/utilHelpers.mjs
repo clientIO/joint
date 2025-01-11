@@ -389,7 +389,7 @@ const initCloneByTag = (object, tag, isDeep) => {
     const Constructor = object.constructor;
     switch(tag) {
         case arrayBufferTag:
-            return cloneArrayBuffer(object, isDeep);
+            return cloneArrayBuffer(object);
         case boolTag:
         case dateTag:
             return new Constructor(+object);

@@ -106,8 +106,8 @@ var PatternLinkView = joint.dia.LegacyLinkView.extend({
 
         var angle = g.toRad(from.theta(to) - 90);
         var center = g.line(from, to).midpoint();
-        var start = new g.Point.fromPolar(width / 2, angle, center);
-        var end = new g.Point.fromPolar(width / 2, Math.PI + angle, center);
+        var start = g.Point.fromPolar(width / 2, angle, center);
+        var end = g.Point.fromPolar(width / 2, Math.PI + angle, center);
 
         return [start.x, start.y, end.x, end.y];
     },

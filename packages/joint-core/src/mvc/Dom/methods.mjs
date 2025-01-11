@@ -336,12 +336,14 @@ export function position() {
         // when a statically positioned element is identified
         doc = el.ownerDocument;
         offsetParent = el.offsetParent || doc.documentElement;
-        const $parentOffset = $(offsetParent);
-        const parentOffsetElementPosition = $parentOffset.css('position') || 'static';
-        while ( offsetParent && (offsetParent === doc.body || offsetParent === doc.documentElement) && parentOffsetElementPosition === 'static') {
-            offsetParent = offsetParent.parentNode;
+        const isStaticallyPositioned = (el) => {
+            const { position } = el.style;
+            return !position || position === 'static';
         }
-        if (offsetParent && offsetParent !== el && offsetParent.nodeType === 1) {
+        while (offsetParent && offsetParent !== doc.documentElement && isStaticallyPositioned(offsetParent)) {
+            offsetParent = offsetParent.offsetParent || doc.documentElement;
+        }
+        if (offsetParent && offsetParent !== el && offsetParent.nodeType === 1 && !isStaticallyPositioned(offsetParent)) {
             // Incorporate borders into its offset, since they are outside its content origin
             const offsetParentStyles = window.getComputedStyle(offsetParent);
             const borderTopWidth = parseFloat(offsetParentStyles.borderTopWidth) || 0;
