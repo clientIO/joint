@@ -79,9 +79,10 @@ export const parseDOMJSON = function(json, namespace) {
     const groupSelectors = {};
     const svgNamespace = V.namespace.svg;
 
+    const initialNS = namespace || svgNamespace;
     const fragment = document.createDocumentFragment();
 
-    const parseNode = function(siblingsDef, parentNode, ns) {
+    const parseNode = function(siblingsDef, parentNode, parentNS) {
         for (let i = 0; i < siblingsDef.length; i++) {
             const nodeDef = siblingsDef[i];
 
@@ -99,7 +100,7 @@ export const parseDOMJSON = function(json, namespace) {
             let node;
 
             // Namespace URI
-            if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
+            const ns = (nodeDef.hasOwnProperty('namespaceURI')) ? nodeDef.namespaceURI : parentNS;
             node = document.createElementNS(ns, tagName);
             const svg = (ns === svgNamespace);
 
@@ -151,7 +152,7 @@ export const parseDOMJSON = function(json, namespace) {
             }
         }
     };
-    parseNode(json, fragment, namespace || svgNamespace);
+    parseNode(json, fragment, initialNS);
     return {
         fragment: fragment,
         selectors: selectors,
