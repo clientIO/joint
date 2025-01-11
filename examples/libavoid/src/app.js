@@ -74,7 +74,7 @@ export const init = async () => {
     });
 
     // create n nodes with links between each other in a chain
-    const n = 200;
+    const n = 500;
     const nodes = Array.from({ length: n }, (_, i) => {
         return new Node({
             position: { x: 100, y: i * 200},
