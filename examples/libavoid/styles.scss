@@ -29,7 +29,7 @@ body {
     .awaiting-update {
         opacity: 0.3;
         stroke-dasharray: 5, 5;
-        animation: dash 20s linear;
+        animation: dash 20s linear infinite;
     }
 
       @keyframes dash {
