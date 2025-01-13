@@ -1168,7 +1168,7 @@ const baseMerge = (object, source, srcIndex, customizer, stack) => {
 
             assignMergeValue(object, key, newValue);
         }
-    }, keysIn);
+    });
 };
 
 const baseMergeDeep = (object, source, key, srcIndex, mergeFunc, customizer, stack) => {
@@ -2236,8 +2236,8 @@ export function debounce(func, wait, opt) {
 export const groupBy = (collection, iteratee) => {
     iteratee = getIteratee(iteratee, 2);
 
-    return reduce(collection, (result, value, key) => {
-        key = iteratee(value);
+    return reduce(collection, (result, value) => {
+        const key = iteratee(value);
         if (hasOwnProperty.call(result, key)) {
             result[key].push(value);
         } else {
