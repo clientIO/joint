@@ -339,7 +339,7 @@ export function position() {
         const isStaticallyPositioned = (el) => {
             const { position } = el.style;
             return !position || position === 'static';
-        }
+        };
         while (offsetParent && offsetParent !== doc.documentElement && isStaticallyPositioned(offsetParent)) {
             offsetParent = offsetParent.offsetParent || doc.documentElement;
         }
@@ -348,7 +348,7 @@ export function position() {
             const offsetParentStyles = window.getComputedStyle(offsetParent);
             const borderTopWidth = parseFloat(offsetParentStyles.borderTopWidth) || 0;
             const borderLeftWidth = parseFloat(offsetParentStyles.borderLeftWidth) || 0;
-            parentOffset = $parentOffset.offset();
+            parentOffset = $(offsetParent).offset();
             parentOffset.top += borderTopWidth;
             parentOffset.left += borderLeftWidth;
         }
