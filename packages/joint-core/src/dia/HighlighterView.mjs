@@ -42,13 +42,13 @@ export const HighlighterView = mvc.View.extend({
         // The cellView is now rendered/updated since it has a higher update priority.
         this.updateRequested = false;
         const { cellView, nodeSelector } = this;
-        if (!cellView.isMounted()) {
+        if (cellView.isMounted()) {
+            this.update(cellView, nodeSelector);
+            this.mount();
+            this.transform();
+        } else {
             this.postponedUpdate = true;
-            return 0;
         }
-        this.update(cellView, nodeSelector);
-        this.mount();
-        this.transform();
         return 0;
     },
 

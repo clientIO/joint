@@ -65,7 +65,7 @@ export function html(html) {
     if (!el) return null;
     if (arguments.length === 0) return el.innerHTML;
     if (html === undefined) return this; // do nothing
-    cleanNodesData(dataPriv, el.getElementsByTagName('*'));
+    cleanNodesData(el.getElementsByTagName('*'));
     if (typeof html === 'string' || typeof html === 'number') {
         el.innerHTML = html;
     } else {
@@ -336,17 +336,19 @@ export function position() {
         // when a statically positioned element is identified
         doc = el.ownerDocument;
         offsetParent = el.offsetParent || doc.documentElement;
-        const $parentOffset = $(offsetParent);
-        const parentOffsetElementPosition = $parentOffset.css('position') || 'static';
-        while ( offsetParent && (offsetParent === doc.body || offsetParent === doc.documentElement) && parentOffsetElementPosition === 'static') {
-            offsetParent = offsetParent.parentNode;
+        const isStaticallyPositioned = (el) => {
+            const { position } = el.style;
+            return !position || position === 'static';
+        };
+        while (offsetParent && offsetParent !== doc.documentElement && isStaticallyPositioned(offsetParent)) {
+            offsetParent = offsetParent.offsetParent || doc.documentElement;
         }
-        if (offsetParent && offsetParent !== el && offsetParent.nodeType === 1) {
+        if (offsetParent && offsetParent !== el && offsetParent.nodeType === 1 && !isStaticallyPositioned(offsetParent)) {
             // Incorporate borders into its offset, since they are outside its content origin
             const offsetParentStyles = window.getComputedStyle(offsetParent);
             const borderTopWidth = parseFloat(offsetParentStyles.borderTopWidth) || 0;
             const borderLeftWidth = parseFloat(offsetParentStyles.borderLeftWidth) || 0;
-            parentOffset = $parentOffset.offset();
+            parentOffset = $(offsetParent).offset();
             parentOffset.top += borderTopWidth;
             parentOffset.left += borderLeftWidth;
         }

@@ -996,7 +996,9 @@ QUnit.module('joint.mvc.Collection', function(hooks) {
     QUnit.test('Attach options to collection.', function(assert) {
         assert.expect(2);
         var Model = joint.mvc.Model;
-        var comparator = function(){};
+        var comparator = function(){
+            // Do nothing.
+        };
 
         var collection = new joint.mvc.Collection([], {
             model: Model,

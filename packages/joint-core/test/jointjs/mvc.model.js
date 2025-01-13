@@ -7,9 +7,9 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         url: function() { return '/collection'; }
     });
     var doc, collection;
-      
+
     QUnit.module('mvc.Model', {
-      
+
         beforeEach: function(assert) {
             doc = new ProxyModel({
                 id: '1-the-tempest',
@@ -20,9 +20,9 @@ QUnit.module('joint.mvc.Model', function(hooks) {
             collection = new Klass();
             collection.add(doc);
         }
-      
+
     });
-      
+
     QUnit.test('initialize', function(assert) {
         assert.expect(3);
         var Model = joint.mvc.Model.extend({
@@ -35,13 +35,13 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(model.one, 1);
         assert.equal(model.collection, collection);
     });
-      
+
     QUnit.test('Object.prototype properties are overridden by attributes', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model({ hasOwnProperty: true });
         assert.equal(model.get('hasOwnProperty'), true);
     });
-      
+
     QUnit.test('initialize with attributes and options', function(assert) {
         assert.expect(1);
         var Model = joint.mvc.Model.extend({
@@ -52,11 +52,11 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         var model = new Model({}, { one: 1 });
         assert.equal(model.one, 1);
     });
-      
+
     QUnit.test('preinitialize', function(assert) {
         assert.expect(2);
         var Model = joint.mvc.Model.extend({
-      
+
             preinitialize: function() {
                 this.one = 1;
             }
@@ -65,11 +65,11 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(model.one, 1);
         assert.equal(model.collection, collection);
     });
-      
+
     QUnit.test('preinitialize occurs before the model is set up', function(assert) {
         assert.expect(6);
         var Model = joint.mvc.Model.extend({
-      
+
             preinitialize: function() {
                 assert.equal(this.collection, undefined);
                 assert.equal(this.cid, undefined);
@@ -81,7 +81,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(model.id, 'foo');
         assert.notEqual(model.cid, undefined);
     });
-                              
+
     QUnit.test('clone', function(assert) {
         assert.expect(10);
         var a = new joint.mvc.Model({ foo: 1, bar: 2, baz: 3 });
@@ -95,26 +95,26 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         a.set({ foo: 100 });
         assert.equal(a.get('foo'), 100);
         assert.equal(b.get('foo'), 1, 'Changing a parent attribute does not change the clone.');
-      
+
         var foo = new joint.mvc.Model({ p: 1 });
         var bar = new joint.mvc.Model({ p: 2 });
         bar.set(foo.clone().attributes, { unset: true });
         assert.equal(foo.get('p'), 1);
         assert.equal(bar.get('p'), undefined);
     });
-      
+
     QUnit.test('get', function(assert) {
         assert.expect(2);
         assert.equal(doc.get('title'), 'The Tempest');
         assert.equal(doc.get('author'), 'Bill Shakespeare');
     });
-      
+
     QUnit.test('has', function(assert) {
         assert.expect(10);
         var model = new joint.mvc.Model();
-      
+
         assert.strictEqual(model.has('name'), false);
-      
+
         model.set({
             '0': 0,
             '1': 1,
@@ -125,21 +125,21 @@ QUnit.module('joint.mvc.Model', function(hooks) {
             'null': null,
             'undefined': undefined
         });
-      
+
         assert.strictEqual(model.has('0'), true);
         assert.strictEqual(model.has('1'), true);
         assert.strictEqual(model.has('true'), true);
         assert.strictEqual(model.has('false'), true);
         assert.strictEqual(model.has('empty'), true);
         assert.strictEqual(model.has('name'), true);
-      
+
         model.unset('name');
-      
+
         assert.strictEqual(model.has('name'), false);
         assert.strictEqual(model.has('null'), false);
         assert.strictEqual(model.has('undefined'), false);
     });
-      
+
     QUnit.test('set and unset', function(assert) {
         assert.expect(8);
         var a = new joint.mvc.Model({ id: 'id', foo: 1, bar: 2, baz: 3 });
@@ -152,7 +152,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         a.set({ foo: 2 });
         assert.equal(a.get('foo'), 2, 'Foo should NOT have changed, still 2');
         assert.equal(changeCount, 1, 'Change count should NOT have incremented.');
-      
+
         a.validate = function(attrs) {
             assert.equal(attrs.foo, void 0, 'validate:true passed while unsetting');
         };
@@ -160,11 +160,11 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(a.get('foo'), void 0, 'Foo should have changed');
         delete a.validate;
         assert.equal(changeCount, 2, 'Change count should have incremented for unset.');
-      
+
         a.unset('id');
         assert.equal(a.id, undefined, 'Unsetting the id should remove the id property.');
     });
-      
+
     QUnit.test('#2030 - set with failed validate, followed by another set triggers change', function(assert) {
         var attr = 0, main = 0, error = 0;
         var Model = joint.mvc.Model.extend({
@@ -182,7 +182,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ x: 1 }, { validate: true });
         assert.deepEqual([attr, main, error], [1, 1, 1]);
     });
-      
+
     QUnit.test('set triggers changes in the correct order', function(assert) {
         var value = null;
         var model = new joint.mvc.Model;
@@ -192,7 +192,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.trigger('last');
         assert.equal(value, 'last');
     });
-      
+
     QUnit.test('set falsy values in the correct order', function(assert) {
         assert.expect(2);
         var model = new joint.mvc.Model({ result: 'result' });
@@ -205,7 +205,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ result: false }, { silent: true });
         model.set({ result: void 0 });
     });
-      
+
     QUnit.test('nested set triggers with the correct options', function(assert) {
         var model = new joint.mvc.Model();
         var o1 = {};
@@ -225,7 +225,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         model.set('a', 1, o1);
     });
-      
+
     QUnit.test('multiple unsets', function(assert) {
         assert.expect(1);
         var i = 0;
@@ -237,7 +237,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.unset('a');
         assert.equal(i, 2, 'Unset does not fire an event for missing attributes.');
     });
-      
+
     QUnit.test('unset and changedAttributes', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model({ a: 1 });
@@ -246,24 +246,24 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         model.unset('a');
     });
-      
+
     QUnit.test('setting an alternative cid prefix', function(assert) {
         assert.expect(4);
         var Model = joint.mvc.Model.extend({
             cidPrefix: 'm'
         });
         var model = new Model();
-      
+
         assert.equal(model.cid.charAt(0), 'm');
-      
+
         model = new joint.mvc.Model();
         assert.equal(model.cid.charAt(0), 'c');
-      
+
         var Collection = joint.mvc.Collection.extend({
             model: Model
         });
         var col = new Collection([{ id: 'c5' }, { id: 'c6' }, { id: 'c7' }]);
-      
+
         assert.equal(col.get('c6').cid.charAt(0), 'm');
         col.set([{ id: 'c6', value: 'test' }], {
             merge: true,
@@ -272,14 +272,14 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         assert.ok(col.get('c6').has('value'));
     });
-      
+
     QUnit.test('set an empty string', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model({ name: 'Model' });
         model.set({ name: '' });
         assert.equal(model.get('name'), '');
     });
-      
+
     QUnit.test('setting an object', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model({
@@ -295,7 +295,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
             custom: { foo: 2 } // change event should be fired
         });
     });
-      
+
     QUnit.test('clear', function(assert) {
         assert.expect(3);
         var changed;
@@ -309,7 +309,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(changed, true);
         assert.equal(model.get('name'), undefined);
     });
-      
+
     QUnit.test('defaults', function(assert) {
         assert.expect(9);
         var Defaulted = joint.mvc.Model.extend({
@@ -345,7 +345,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model = new Defaulted({ hasOwnProperty: false });
         assert.equal(model.get('hasOwnProperty'), false);
     });
-      
+
     QUnit.test('change, hasChanged, changedAttributes, previous, previousAttributes', function(assert) {
         assert.expect(9);
         var model = new joint.mvc.Model({ name: 'Tim', age: 10 });
@@ -362,7 +362,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ name: 'Rob' });
         assert.equal(model.get('name'), 'Rob');
     });
-      
+
     QUnit.test('changedAttributes', function(assert) {
         assert.expect(3);
         var model = new joint.mvc.Model({ a: 'a', b: 'b' });
@@ -370,7 +370,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(model.changedAttributes({ a: 'a' }), false);
         assert.equal(model.changedAttributes({ a: 'b' }).a, 'b');
     });
-      
+
     QUnit.test('change with options', function(assert) {
         assert.expect(2);
         var value;
@@ -383,7 +383,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ name: 'Sue' }, { prefix: 'Ms. ' });
         assert.equal(value, 'Ms. Sue');
     });
-      
+
     QUnit.test('change after initialize', function(assert) {
         assert.expect(1);
         var changed = 0;
@@ -414,7 +414,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(result, false);
         assert.equal(model.get('a'), 100);
     });
-      
+
     QUnit.test('validate on unset and clear', function(assert) {
         assert.expect(6);
         var error;
@@ -437,7 +437,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.clear();
         assert.equal(model.get('name'), undefined);
     });
-      
+
     QUnit.test('validate with error callback', function(assert) {
         assert.expect(8);
         var lastError, boundError;
@@ -459,7 +459,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.equal(model.validationError, 'Can\'t change admin status.');
         assert.equal(boundError, true);
     });
-      
+
     QUnit.test('defaults always extend attrs (#459)', function(assert) {
         assert.expect(2);
         var Defaulted = joint.mvc.Model.extend({
@@ -471,32 +471,32 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         var providedattrs = new Defaulted({});
         var emptyattrs = new Defaulted();
     });
-      
+
     QUnit.test('Inherit class properties', function(assert) {
         assert.expect(6);
         var Parent = joint.mvc.Model.extend({
-            instancePropSame: function() {},
-            instancePropDiff: function() {}
+            instancePropSame: function() { /* no-op */ },
+            instancePropDiff: function() { /* no-op */ }
         }, {
-            classProp: function() {}
+            classProp: function() { /* no-op */ }
         });
         var Child = Parent.extend({
-            instancePropDiff: function() {}
+            instancePropDiff: function() { /* no-op */ }
         });
-      
+
         var adult = new Parent;
         var kid   = new Child;
-      
+
         assert.equal(Child.classProp, Parent.classProp);
         assert.notEqual(Child.classProp, undefined);
-      
+
         assert.equal(kid.instancePropSame, adult.instancePropSame);
         assert.notEqual(kid.instancePropSame, undefined);
-      
+
         assert.notEqual(Child.prototype.instancePropDiff, Parent.prototype.instancePropDiff);
         assert.notEqual(Child.prototype.instancePropDiff, undefined);
     });
-      
+
     QUnit.test('Nested change events don\'t clobber previous attributes', function(assert) {
         assert.expect(4);
         new joint.mvc.Model()
@@ -512,7 +512,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
             })
             .set({ state: 'hello' });
     });
-      
+
     QUnit.test('hasChanged/set should use same comparison', function(assert) {
         assert.expect(2);
         var changed = 0, model = new joint.mvc.Model({ a: null });
@@ -525,31 +525,31 @@ QUnit.module('joint.mvc.Model', function(hooks) {
             .set({ a: undefined });
         assert.equal(changed, 1);
     });
-      
+
     QUnit.test('#582, #425, change:attribute callbacks should fire after all changes have occurred', function(assert) {
         assert.expect(9);
         var model = new joint.mvc.Model;
-      
+
         var assertion = function() {
             assert.equal(model.get('a'), 'a');
             assert.equal(model.get('b'), 'b');
             assert.equal(model.get('c'), 'c');
         };
-      
+
         model.on('change:a', assertion);
         model.on('change:b', assertion);
         model.on('change:c', assertion);
-      
+
         model.set({ a: 'a', b: 'b', c: 'c' });
     });
-      
+
     QUnit.test('#871, set with attributes property', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model();
         model.set({ attributes: true });
         assert.ok(model.has('attributes'));
     });
-      
+
     QUnit.test('set value regardless of equality/change', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model({ x: [] });
@@ -557,7 +557,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ x: a });
         assert.ok(model.get('x') === a);
     });
-      
+
     QUnit.test('set same value does not trigger change', function(assert) {
         assert.expect(0);
         var model = new joint.mvc.Model({ x: 1 });
@@ -565,20 +565,20 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ x: 1 });
         model.set({ x: 1 });
     });
-      
+
     QUnit.test('unset does not fire a change for undefined attributes', function(assert) {
         assert.expect(0);
         var model = new joint.mvc.Model({ x: undefined });
         model.on('change:x', function(){ assert.ok(false); });
         model.unset('x');
     });
-      
+
     QUnit.test('set: undefined values', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model({ x: undefined });
         assert.ok('x' in model.attributes);
     });
-      
+
     QUnit.test('hasChanged works outside of change events, and true within', function(assert) {
         assert.expect(6);
         var model = new joint.mvc.Model({ x: 1 });
@@ -593,7 +593,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.ok(model.hasChanged());
         assert.equal(model.hasChanged('x'), true);
     });
-      
+
     QUnit.test('hasChanged gets cleared on the following set', function(assert) {
         assert.expect(4);
         var model = new joint.mvc.Model;
@@ -606,14 +606,14 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({});
         assert.ok(!model.hasChanged());
     });
-      
+
     QUnit.test('`hasChanged` for falsey keys', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model();
         model.set({ x: true }, { silent: true });
         assert.ok(!model.hasChanged(''));
     });
-      
+
     QUnit.test('`previous` for falsey keys', function(assert) {
         assert.expect(2);
         var model = new joint.mvc.Model({ '0': true, '': true });
@@ -639,7 +639,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ z: true });
         assert.deepEqual(events, []);
     });
-      
+
     QUnit.test('nested `change` only fires once', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model();
@@ -649,7 +649,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         model.set({ x: true });
     });
-      
+
     QUnit.test('nested `set` during `\'change\'`', function(assert) {
         assert.expect(6);
         var count = 0;
@@ -676,7 +676,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         model.set({ x: true });
     });
-      
+
     QUnit.test('nested `change` with silent', function(assert) {
         assert.expect(3);
         var count = 0;
@@ -702,7 +702,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ x: true });
         model.set({ z: false });
     });
-      
+
     QUnit.test('nested `change:attr` with silent', function(assert) {
         assert.expect(0);
         var model = new joint.mvc.Model();
@@ -713,7 +713,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         model.set({ x: true });
     });
-      
+
     QUnit.test('multiple nested changes with silent', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model();
@@ -726,7 +726,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         model.set({ x: true });
     });
-      
+
     QUnit.test('multiple nested changes with silent', function(assert) {
         assert.expect(1);
         var changes = [];
@@ -738,7 +738,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ b: 0 });
         assert.deepEqual(changes, [0, 1]);
     });
-      
+
     QUnit.test('basic silent change semantics', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model;
@@ -747,7 +747,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ x: 2 }, { silent: true });
         model.set({ x: 1 });
     });
-      
+
     QUnit.test('nested set multiple times', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model();
@@ -760,7 +760,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         model.set({ a: true });
     });
-      
+
     QUnit.test('#1122 - clear does not alter options.', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model();
@@ -768,7 +768,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.clear(options);
         assert.ok(!options.unset);
     });
-      
+
     QUnit.test('#1122 - unset does not alter options.', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model();
@@ -776,7 +776,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.unset('x', options);
         assert.ok(!options.unset);
     });
-      
+
     QUnit.test('#1545 - `undefined` can be passed to a model constructor without coersion', function(assert) {
         var Model = joint.mvc.Model.extend({
             defaults: { one: 1 },
@@ -787,7 +787,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         var emptyattrs = new Model();
         var undefinedattrs = new Model(undefined);
     });
-      
+
     QUnit.test('#1664 - Changing from one value, silently to another, back to original triggers a change.', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model({ x: 1 });
@@ -796,7 +796,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ x: 3 }, { silent: true });
         model.set({ x: 1 });
     });
-      
+
     QUnit.test('#1664 - multiple silent changes nested inside a change event', function(assert) {
         assert.expect(2);
         var changes = [];
@@ -811,7 +811,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         assert.deepEqual(changes, ['a', 1, 'item']);
         assert.deepEqual(model.attributes, { a: 'c', b: 2 });
     });
-      
+
     QUnit.test('#1791 - `attributes` is available for `parse`', function(assert) {
         var Model = joint.mvc.Model.extend({
             parse: function() { this.has('a'); } // shouldn't throw an error
@@ -819,7 +819,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         var model = new Model(null, { parse: true });
         assert.expect(0);
     });
-      
+
     QUnit.test('silent changes in last `change` event back to original triggers change', function(assert) {
         assert.expect(2);
         var changes = [];
@@ -833,13 +833,13 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.set({ a: 'a' });
         assert.deepEqual(changes, ['a', 'a']);
     });
-      
+
     QUnit.test('#1943 change calculations should use _.isEqual', function(assert) {
         var model = new joint.mvc.Model({ a: { key: 'value' }});
         model.set('a', { key: 'value' }, { silent: true });
         assert.equal(model.changedAttributes(), false);
     });
-      
+
     QUnit.test('#1964 - final `change` event is always fired, regardless of interim changes', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model();
@@ -851,7 +851,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         model.set('property', 'foo');
     });
-      
+
     QUnit.test('isValid', function(assert) {
         var model = new joint.mvc.Model({ valid: true });
         model.validate = function(attrs) {
@@ -871,7 +871,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         model.validate = null;
         assert.ok(model.isValid());
     });
-      
+
     QUnit.test('#1961 - Creating a model with {validate:true} will call validate and use the error callback', function(assert) {
         var Model = joint.mvc.Model.extend({
             validate: function(attrs) {
@@ -881,7 +881,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         var model = new Model({ id: 1 }, { validate: true });
         assert.equal(model.validationError, 'This shouldn\'t happen');
     });
-      
+
     QUnit.test('#2034 - nested set with silent only triggers one change', function(assert) {
         assert.expect(1);
         var model = new joint.mvc.Model();
@@ -891,7 +891,7 @@ QUnit.module('joint.mvc.Model', function(hooks) {
         });
         model.set({ a: true });
     });
-      
+
     QUnit.test('#3778 - id will only be updated if it is set', function(assert) {
         assert.expect(2);
         var model = new joint.mvc.Model({ id: 1 });

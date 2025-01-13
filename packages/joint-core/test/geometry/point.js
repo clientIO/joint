@@ -20,11 +20,11 @@ QUnit.module('point', function() {
     });
 
     QUnit.module('fromPolar(distance, angle, origin)', function() {
-
+        // TODO: implement
     });
 
     QUnit.module('random(x1, x2, y1, y2)', function() {
-
+        // TODO: implement
     });
 
     QUnit.module('prototype', function() {
@@ -45,19 +45,19 @@ QUnit.module('point', function() {
         });
 
         QUnit.module('adhereToRect(rect)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('bearing(point)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('changeInAngle(dx, dy, ref)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('clone()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('difference(point)', function() {
@@ -71,23 +71,23 @@ QUnit.module('point', function() {
         });
 
         QUnit.module('distance(point)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('equals(point)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('magnitude()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('manhattanDistance(point)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('move(ref, distance)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('normalize(length)', function() {
@@ -116,7 +116,7 @@ QUnit.module('point', function() {
         });
 
         QUnit.module('reflection(ref)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('rotate(origin, angle)', function() {
@@ -244,7 +244,7 @@ QUnit.module('point', function() {
         });
 
         QUnit.module('snapToGrid(gx, gy)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('theta(p)', function() {
@@ -312,7 +312,7 @@ QUnit.module('point', function() {
         });
 
         QUnit.module('toPolar(origin)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('toString()', function() {

@@ -287,7 +287,7 @@ QUnit.module('cellView', function(hooks) {
                 ));
 
                 delete cell.constructor.attributes['position-test-attribute'];
-            }),
+            });
 
             QUnit.test('Basics', function(assert) {
 
@@ -476,7 +476,7 @@ QUnit.module('cellView', function(hooks) {
                 ));
 
                 delete cell.constructor.attributes['offset-test-attribute'];
-            }),
+            });
 
             QUnit.test('Basics', function(assert) {
 

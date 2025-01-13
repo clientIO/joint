@@ -17,51 +17,51 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         obj.trigger('event');
         assert.equal(obj.counter, 5, 'counter should be incremented five times.');
     });
-  
+
     QUnit.test('binding and triggering multiple events', function(assert) {
         assert.expect(4);
         var obj = { counter: 0 };
         _.extend(obj, joint.mvc.Events);
-  
+
         obj.on('a b c', function() { obj.counter += 1; });
-  
+
         obj.trigger('a');
         assert.equal(obj.counter, 1);
-  
+
         obj.trigger('a b');
         assert.equal(obj.counter, 3);
-  
+
         obj.trigger('c');
         assert.equal(obj.counter, 4);
-  
+
         obj.off('a c');
         obj.trigger('a b c');
         assert.equal(obj.counter, 5);
     });
-  
+
     QUnit.test('binding and triggering with event maps', function(assert) {
         var obj = { counter: 0 };
         _.extend(obj, joint.mvc.Events);
-  
+
         var increment = function() {
             this.counter += 1;
         };
-  
+
         obj.on({
             a: increment,
             b: increment,
             c: increment
         }, obj);
-  
+
         obj.trigger('a');
         assert.equal(obj.counter, 1);
-  
+
         obj.trigger('a b');
         assert.equal(obj.counter, 3);
-  
+
         obj.trigger('c');
         assert.equal(obj.counter, 4);
-  
+
         obj.off({
             a: increment,
             c: increment
@@ -69,54 +69,54 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         obj.trigger('a b c');
         assert.equal(obj.counter, 5);
     });
-  
+
     QUnit.test('binding and triggering multiple event names with event maps', function(assert) {
         var obj = { counter: 0 };
         _.extend(obj, joint.mvc.Events);
-  
+
         var increment = function() {
             this.counter += 1;
         };
-  
+
         obj.on({
             'a b c': increment
         });
-  
+
         obj.trigger('a');
         assert.equal(obj.counter, 1);
-  
+
         obj.trigger('a b');
         assert.equal(obj.counter, 3);
-  
+
         obj.trigger('c');
         assert.equal(obj.counter, 4);
-  
+
         obj.off({
             'a c': increment
         });
         obj.trigger('a b c');
         assert.equal(obj.counter, 5);
     });
-  
+
     QUnit.test('binding and trigger with event maps context', function(assert) {
         assert.expect(2);
         var obj = { counter: 0 };
         var context = {};
         _.extend(obj, joint.mvc.Events);
-  
+
         obj.on({
             a: function() {
                 assert.strictEqual(this, context, 'defaults `context` to `callback` param');
             }
         }, context).trigger('a');
-  
+
         obj.off().on({
             a: function() {
                 assert.strictEqual(this, context, 'will not override explicit `context` param');
             }
         }, this, context).trigger('a');
     });
-  
+
     QUnit.test('listenTo and stopListening', function(assert) {
         assert.expect(1);
         var a = _.extend({}, joint.mvc.Events);
@@ -127,7 +127,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         a.stopListening();
         b.trigger('anything');
     });
-  
+
     QUnit.test('listenTo and stopListening with event maps', function(assert) {
         assert.expect(4);
         var a = _.extend({}, joint.mvc.Events);
@@ -142,7 +142,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         a.stopListening();
         b.trigger('event event2');
     });
-  
+
     QUnit.test('stopListening with omitted args', function(assert) {
         assert.expect(2);
         var a = _.extend({}, joint.mvc.Events);
@@ -159,7 +159,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         a.stopListening();
         b.trigger('event2');
     });
-  
+
     QUnit.test('listenToOnce', function(assert) {
         assert.expect(2);
         // Same as the previous test, but we use once rather than having to explicitly unbind
@@ -173,7 +173,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         assert.equal(obj.counterA, 1, 'counterA should have only been incremented once.');
         assert.equal(obj.counterB, 1, 'counterB should have only been incremented once.');
     });
-  
+
     QUnit.test('listenToOnce and stopListening', function(assert) {
         assert.expect(1);
         var a = _.extend({}, joint.mvc.Events);
@@ -185,7 +185,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         a.stopListening();
         b.trigger('anything');
     });
-  
+
     QUnit.test('listenTo, listenToOnce and stopListening', function(assert) {
         assert.expect(1);
         var a = _.extend({}, joint.mvc.Events);
@@ -197,7 +197,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         a.stopListening();
         b.trigger('anything');
     });
-  
+
     QUnit.test('listenTo and stopListening with event maps', function(assert) {
         assert.expect(1);
         var a = _.extend({}, joint.mvc.Events);
@@ -208,14 +208,14 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         a.stopListening();
         b.trigger('change');
     });
-  
+
     QUnit.test('listenTo yourself', function(assert) {
         assert.expect(1);
         var e = _.extend({}, joint.mvc.Events);
         e.listenTo(e, 'foo', function(){ assert.ok(true); });
         e.trigger('foo');
     });
-  
+
     QUnit.test('listenTo yourself cleans yourself up with stopListening', function(assert) {
         assert.expect(1);
         var e = _.extend({}, joint.mvc.Events);
@@ -224,12 +224,12 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         e.stopListening();
         e.trigger('foo');
     });
-  
+
     QUnit.test('stopListening cleans up references', function(assert) {
         assert.expect(12);
         var a = _.extend({}, joint.mvc.Events);
         var b = _.extend({}, joint.mvc.Events);
-        var fn = function() {};
+        var fn = function() { /* no-op */ };
         b.on('event', fn);
         a.listenTo(b, 'event', fn).stopListening();
         assert.equal(_.size(a._listeningTo), 0);
@@ -248,12 +248,12 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         assert.equal(_.size(b._events.event), 1);
         assert.equal(_.size(b._listeners), 0);
     });
-  
+
     QUnit.test('stopListening cleans up references from listenToOnce', function(assert) {
         assert.expect(12);
         var a = _.extend({}, joint.mvc.Events);
         var b = _.extend({}, joint.mvc.Events);
-        var fn = function() {};
+        var fn = function() { /* no-op */ };
         b.on('event', fn);
         a.listenToOnce(b, 'event', fn).stopListening();
         assert.equal(_.size(a._listeningTo), 0);
@@ -272,12 +272,12 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         assert.equal(_.size(b._events.event), 1);
         assert.equal(_.size(b._listeners), 0);
     });
-  
+
     QUnit.test('listenTo and off cleaning up references', function(assert) {
         assert.expect(8);
         var a = _.extend({}, joint.mvc.Events);
         var b = _.extend({}, joint.mvc.Events);
-        var fn = function() {};
+        var fn = function() { /* no-op */ };
         a.listenTo(b, 'event', fn);
         b.off();
         assert.equal(_.size(a._listeningTo), 0);
@@ -295,7 +295,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         assert.equal(_.size(a._listeningTo), 0);
         assert.equal(_.size(b._listeners), 0);
     });
-  
+
     QUnit.test('listenTo and stopListening cleaning up references', function(assert) {
         assert.expect(2);
         var a = _.extend({}, joint.mvc.Events);
@@ -307,7 +307,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         a.stopListening(b, 'all');
         assert.equal(_.size(a._listeningTo), 0);
     });
-  
+
     QUnit.test('listenToOnce without context cleans up references after the event has fired', function(assert) {
         assert.expect(2);
         var a = _.extend({}, joint.mvc.Events);
@@ -316,7 +316,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         b.trigger('anything');
         assert.equal(_.size(a._listeningTo), 0);
     });
-  
+
     QUnit.test('listenToOnce with event maps cleans up references', function(assert) {
         assert.expect(2);
         var a = _.extend({}, joint.mvc.Events);
@@ -328,7 +328,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         b.trigger('one');
         assert.equal(_.size(a._listeningTo), 1);
     });
-  
+
     QUnit.test('listenToOnce with event maps binds the correct `this`', function(assert) {
         assert.expect(1);
         var a = _.extend({}, joint.mvc.Events);
@@ -339,7 +339,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         });
         b.trigger('one');
     });
-  
+
     QUnit.test('listenTo with empty callback doesn\'t throw an error', function(assert) {
         assert.expect(1);
         var e = _.extend({}, joint.mvc.Events);
@@ -347,7 +347,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         e.trigger('foo');
         assert.ok(true);
     });
-  
+
     QUnit.test('trigger all for each event', function(assert) {
         assert.expect(3);
         var a, b, obj = { counter: 0 };
@@ -362,7 +362,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         assert.ok(b);
         assert.equal(obj.counter, 2);
     });
-  
+
     QUnit.test('on, then unbind all functions', function(assert) {
         assert.expect(1);
         var obj = { counter: 0 };
@@ -374,7 +374,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         obj.trigger('event');
         assert.equal(obj.counter, 1, 'counter should have only been incremented once.');
     });
-  
+
     QUnit.test('bind two callbacks, unbind only one', function(assert) {
         assert.expect(2);
         var obj = { counterA: 0, counterB: 0 };
@@ -388,7 +388,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         assert.equal(obj.counterA, 1, 'counterA should have only been incremented once.');
         assert.equal(obj.counterB, 2, 'counterB should have been incremented twice.');
     });
-  
+
     QUnit.test('unbind a callback in the midst of it firing', function(assert) {
         assert.expect(1);
         var obj = { counter: 0 };
@@ -403,7 +403,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         obj.trigger('event');
         assert.equal(obj.counter, 1, 'the callback should have been unbound.');
     });
-  
+
     QUnit.test('two binds that unbind themeselves', function(assert) {
         assert.expect(2);
         var obj = { counterA: 0, counterB: 0 };
@@ -418,7 +418,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         assert.equal(obj.counterA, 1, 'counterA should have only been incremented once.');
         assert.equal(obj.counterB, 1, 'counterB should have only been incremented once.');
     });
-  
+
     QUnit.test('bind a callback with a default context when none supplied', function(assert) {
         assert.expect(1);
         var obj = _.extend({
@@ -426,11 +426,11 @@ QUnit.module('joint.mvc.Events', function(hooks) {
                 assert.equal(this, obj, '`this` was bound to the callback');
             }
         }, joint.mvc.Events);
-  
+
         obj.once('event', obj.assertTrue);
         obj.trigger('event');
     });
-  
+
     QUnit.test('bind a callback with a supplied context', function(assert) {
         assert.expect(1);
         var TestClass = function() {
@@ -439,12 +439,12 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         TestClass.prototype.assertTrue = function() {
             assert.ok(true, '`this` was bound to the callback');
         };
-  
+
         var obj = _.extend({}, joint.mvc.Events);
         obj.on('event', function() { this.assertTrue(); }, new TestClass);
         obj.trigger('event');
     });
-  
+
     QUnit.test('nested trigger with unbind', function(assert) {
         assert.expect(1);
         var obj = { counter: 0 };
@@ -456,21 +456,21 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         obj.trigger('event');
         assert.equal(obj.counter, 3, 'counter should have been incremented three times');
     });
-  
+
     QUnit.test('callback list is not altered during trigger', function(assert) {
         assert.expect(2);
         var counter = 0, obj = _.extend({}, joint.mvc.Events);
         var incr = function(){ counter++; };
         var incrOn = function(){ obj.on('event all', incr); };
         var incrOff = function(){ obj.off('event all', incr); };
-  
+
         obj.on('event all', incrOn).trigger('event');
         assert.equal(counter, 0, 'on does not alter callback list');
-  
+
         obj.off().on('event', incrOff).on('event all', incr).trigger('event');
         assert.equal(counter, 2, 'off does not alter callback list');
     });
-  
+
     QUnit.test('#1282 - \'all\' callback list is retrieved after each event.', function(assert) {
         assert.expect(1);
         var counter = 0;
@@ -482,12 +482,12 @@ QUnit.module('joint.mvc.Events', function(hooks) {
             .trigger('x y');
         assert.strictEqual(counter, 2);
     });
-  
+
     QUnit.test('if no callback is provided, `on` is a noop', function(assert) {
         assert.expect(0);
         _.extend({}, joint.mvc.Events).on('test').trigger('test');
     });
-  
+
     QUnit.test('if callback is truthy but not a function, `on` should throw an error just like jQuery', function(assert) {
         assert.expect(1);
         var view = _.extend({}, joint.mvc.Events).on('test', 'noop');
@@ -495,7 +495,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
             view.trigger('test');
         });
     });
-  
+
     QUnit.test('remove all events for a specific context', function(assert) {
         assert.expect(4);
         var obj = _.extend({}, joint.mvc.Events);
@@ -504,7 +504,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         obj.off(null, null, obj);
         obj.trigger('x y');
     });
-  
+
     QUnit.test('remove all events for a specific callback', function(assert) {
         assert.expect(4);
         var obj = _.extend({}, joint.mvc.Events);
@@ -515,7 +515,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         obj.off(null, fail);
         obj.trigger('x y');
     });
-  
+
     QUnit.test('#1310 - off does not skip consecutive events', function(assert) {
         assert.expect(0);
         var obj = _.extend({}, joint.mvc.Events);
@@ -524,7 +524,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         obj.off(null, null, obj);
         obj.trigger('event');
     });
-  
+
     QUnit.test('once', function(assert) {
         assert.expect(2);
         // Same as the previous test, but we use once rather than having to explicitly unbind
@@ -538,82 +538,82 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         assert.equal(obj.counterA, 1, 'counterA should have only been incremented once.');
         assert.equal(obj.counterB, 1, 'counterB should have only been incremented once.');
     });
-  
+
     QUnit.test('once variant one', function(assert) {
         assert.expect(3);
         var f = function(){ assert.ok(true); };
-  
+
         var a = _.extend({}, joint.mvc.Events).once('event', f);
         var b = _.extend({}, joint.mvc.Events).on('event', f);
-  
+
         a.trigger('event');
-  
+
         b.trigger('event');
         b.trigger('event');
     });
-  
+
     QUnit.test('once variant two', function(assert) {
         assert.expect(3);
         var f = function(){ assert.ok(true); };
         var obj = _.extend({}, joint.mvc.Events);
-  
+
         obj
             .once('event', f)
             .on('event', f)
             .trigger('event')
             .trigger('event');
     });
-  
+
     QUnit.test('once with off', function(assert) {
         assert.expect(0);
         var f = function(){ assert.ok(true); };
         var obj = _.extend({}, joint.mvc.Events);
-  
+
         obj.once('event', f);
         obj.off('event', f);
         obj.trigger('event');
     });
-  
+
     QUnit.test('once with event maps', function(assert) {
         var obj = { counter: 0 };
         _.extend(obj, joint.mvc.Events);
-  
+
         var increment = function() {
             this.counter += 1;
         };
-  
+
         obj.once({
             a: increment,
             b: increment,
             c: increment
         }, obj);
-  
+
         obj.trigger('a');
         assert.equal(obj.counter, 1);
-  
+
         obj.trigger('a b');
         assert.equal(obj.counter, 2);
-  
+
         obj.trigger('c');
         assert.equal(obj.counter, 3);
-  
+
         obj.trigger('a b c');
         assert.equal(obj.counter, 3);
     });
-  
+
     QUnit.test('bind a callback with a supplied context using once with object notation', function(assert) {
         assert.expect(1);
         var obj = { counter: 0 };
         var context = {};
         _.extend(obj, joint.mvc.Events);
-  
+
         obj.once({
             a: function() {
                 assert.strictEqual(this, context, 'defaults `context` to `callback` param');
             }
         }, context).trigger('a');
     });
-  
+
     QUnit.test('once with off only by context', function(assert) {
         assert.expect(0);
         var context = {};
@@ -622,51 +622,51 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         obj.off(null, null, context);
         obj.trigger('event');
     });
-    
+
     QUnit.test('once with asynchronous events', function(assert) {
         var done = assert.async();
         assert.expect(1);
         var func = _.debounce(function() { assert.ok(true); done(); }, 50);
         var obj = _.extend({}, joint.mvc.Events).once('async', func);
-  
+
         obj.trigger('async');
         obj.trigger('async');
     });
-  
+
     QUnit.test('once with multiple events.', function(assert) {
         assert.expect(2);
         var obj = _.extend({}, joint.mvc.Events);
         obj.once('x y', function() { assert.ok(true); });
         obj.trigger('x y');
     });
-  
+
     QUnit.test('Off during iteration with once.', function(assert) {
         assert.expect(2);
         var obj = _.extend({}, joint.mvc.Events);
         var f = function(){ this.off('event', f); };
         obj.on('event', f);
-        obj.once('event', function(){});
+        obj.once('event', function(){ /* no-op */ });
         obj.on('event', function(){ assert.ok(true); });
-  
+
         obj.trigger('event');
         obj.trigger('event');
     });
-    
+
     QUnit.test('once without a callback is a noop', function(assert) {
         assert.expect(0);
         _.extend({}, joint.mvc.Events).once('event').trigger('event');
     });
-  
+
     QUnit.test('listenToOnce without a callback is a noop', function(assert) {
         assert.expect(0);
         var obj = _.extend({}, joint.mvc.Events);
         obj.listenToOnce(obj, 'event').trigger('event');
     });
-  
+
     QUnit.test('event functions are chainable', function(assert) {
         var obj = _.extend({}, joint.mvc.Events);
         var obj2 = _.extend({}, joint.mvc.Events);
-        var fn = function() {};
+        var fn = function() { /* no-op */ };
         assert.equal(obj, obj.trigger('noeventssetyet'));
         assert.equal(obj, obj.off('noeventssetyet'));
         assert.equal(obj, obj.stopListening('noeventssetyet'));
@@ -679,7 +679,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         assert.equal(obj, obj.stopListening(obj2, 'a'));
         assert.equal(obj, obj.stopListening());
     });
-  
+
     QUnit.test('#3448 - listenToOnce with space-separated events', function(assert) {
         assert.expect(2);
         var one = _.extend({}, joint.mvc.Events);
@@ -691,7 +691,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
         two.trigger('y', 2);
         two.trigger('y', 2);
     });
-  
+
     QUnit.test('#3611 - listenTo is compatible with non-joint.mvc event libraries', function(assert) {
         var obj = _.extend({}, joint.mvc.Events);
         var other = {
@@ -703,11 +703,11 @@ QUnit.module('joint.mvc.Events', function(hooks) {
                 this.events[name]();
             }
         };
-  
+
         obj.listenTo(other, 'test', function() { assert.ok(true); });
         other.trigger('test');
     });
-  
+
     QUnit.test('#3611 - stopListening is compatible with non-joint.mvc event libraries', function(assert) {
         var obj = _.extend({}, joint.mvc.Events);
         var other = {
@@ -723,7 +723,7 @@ QUnit.module('joint.mvc.Events', function(hooks) {
                 if (fn) fn();
             }
         };
-  
+
         obj.listenTo(other, 'test', function() { assert.ok(false); });
         obj.stopListening(other);
         other.trigger('test');

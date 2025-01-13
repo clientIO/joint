@@ -129,7 +129,7 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('bottomLeft()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('bottomLine()', function() {
@@ -149,15 +149,15 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('bottomRight()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('center()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('clone()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('containsPoint(point)', function() {
@@ -227,7 +227,7 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('corner()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('equals(rect)', function() {
@@ -269,11 +269,11 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('intersect(rect)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('intersectionWithLineFromCenterToPoint(point, angle)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('leftLine()', function() {
@@ -293,11 +293,11 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('moveAndExpand(rect)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('normalize()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('offset(dx, dy)', function() {
@@ -317,11 +317,11 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('origin()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('pointNearestToPoint(point)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('rightLine()', function() {
@@ -383,15 +383,15 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('sideNearestToPoint(point)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('snapToGrid(gx, gy)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('topLeft()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('topLine()', function() {
@@ -411,7 +411,7 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('topRight()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('toJSON()', function() {
@@ -423,7 +423,7 @@ QUnit.module('rect', function() {
         });
 
         QUnit.module('toString()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('union(rect)', function() {

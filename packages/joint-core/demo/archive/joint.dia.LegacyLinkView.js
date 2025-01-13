@@ -839,7 +839,7 @@
             if (this._V.markerSource) {
 
                 cache.sourceBBox = cache.sourceBBox || this._V.markerSource.getBBox();
-                sourceMarkerPoint = Point(sourcePoint).move(
+                sourceMarkerPoint = (new Point(sourcePoint)).move(
                     firstWaypoint || targetPoint,
                     cache.sourceBBox.width * this._V.markerSource.scale().sx * -1
                 ).round();
@@ -848,7 +848,7 @@
             if (this._V.markerTarget) {
 
                 cache.targetBBox = cache.targetBBox || this._V.markerTarget.getBBox();
-                targetMarkerPoint = Point(targetPoint).move(
+                targetMarkerPoint = (new Point(targetPoint)).move(
                     lastWaypoint || sourcePoint,
                     cache.targetBBox.width * this._V.markerTarget.scale().sx * -1
                 ).round();

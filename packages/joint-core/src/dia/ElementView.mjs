@@ -142,7 +142,7 @@ export const ElementView = CellView.extend({
      * @abstract
      */
     _initializePorts: function() {
-
+        // implemented in ports.js
     },
 
     update: function(_, renderingOnlyAttrs) {

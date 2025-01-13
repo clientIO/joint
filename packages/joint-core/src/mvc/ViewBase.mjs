@@ -52,11 +52,15 @@ assign(ViewBase.prototype, Events, {
 
     // preinitialize is an empty function by default. You can override it with a function
     // or object.  preinitialize will run before any instantiation logic is run in the View
-    preinitialize: function(){},
+    preinitialize: function(){
+        // No implementation.
+    },
 
     // Initialize is an empty function by default. Override it with your own
     // initialization logic.
-    initialize: function(){},
+    initialize: function(){
+        // No implementation.
+    },
 
     // **render** is the core function that your view should override, in order
     // to populate its element (`this.el`), with the appropriate HTML. The

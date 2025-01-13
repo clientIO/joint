@@ -86,8 +86,7 @@ export default class IsometricShape extends dia.Element<IsometricElementAttribut
             }
         });
     }
-
-};
+}
 
 export class CuboidShape extends IsometricShape {
     constructor(...args: any[]) {

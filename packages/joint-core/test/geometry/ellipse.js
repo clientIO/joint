@@ -133,19 +133,19 @@ QUnit.module('ellipse', function() {
     QUnit.module('prototype', function() {
 
         QUnit.module('bbox()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('clone()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('equals(ellipse)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('intersectionWithLineFromCenterToPoint(point, angle)', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('round()', function() {
@@ -180,7 +180,7 @@ QUnit.module('ellipse', function() {
         });
 
         QUnit.module('toString()', function() {
-
+            // TODO: implement
         });
     });
 });
