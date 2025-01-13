@@ -574,7 +574,7 @@ QUnit.module('Lodash util helpers', function() {
             this.a = 1;
         }
         Foo.prototype.b = 1;
-        Foo.c = function() {};
+        Foo.c = function() { /* no-op */ };
 
         const map = new Map();
         map.set('a', 1);
@@ -819,7 +819,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should work with prototype objects', function(assert) {
-            function Foo() {}
+            function Foo() { /* empty constructor */ }
             Foo.prototype = { 'constructor': Foo };
 
             assert.strictEqual(joint.util.isEmpty(Foo.prototype), true);
@@ -856,14 +856,14 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should not treat objects with negative lengths as array-like', function(assert) {
-            function Foo() {}
+            function Foo() { /* empty constructor */ }
             Foo.prototype.length = -1;
 
             assert.strictEqual(joint.util.isEmpty(new Foo), true);
         });
 
         QUnit.test('should not treat objects with lengths larger than `MAX_SAFE_INTEGER` as array-like', function(assert) {
-            function Foo() {}
+            function Foo() { /* empty constructor */ }
             Foo.prototype.length = Number.MAX_SAFE_INTEGER + 1;
 
             assert.strictEqual(joint.util.isEmpty(new Foo), true);
@@ -1012,7 +1012,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should compare nested objects', function(assert) {
-            function noop() {}
+            function noop() { /* no-op */ }
 
             const object1 = {
                 'a': [1, 2, 3],
@@ -1245,7 +1245,7 @@ QUnit.module('Lodash util helpers', function() {
             const object = { '0': 1, '1': 2, '2': 3 };
             const args = toArgs([1, 2, 3]);
 
-            function Foo() {}
+            function Foo() { /* empty constructor */ }
             Foo.prototype = object;
 
             assert.strictEqual(joint.util.isEqual(args, object), true);
@@ -2418,7 +2418,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should merge onto function `object` values', function(assert) {
-            function Foo() {}
+            function Foo() { /* empty constructor */ }
 
             const source = { 'a': 1 };
             const actual = joint.util.merge(Foo, source);
@@ -2428,7 +2428,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should merge first source object properties to function', function(assert) {
-            const fn = function() {};
+            const fn = function() { /* no-op */ };
             const object = { 'prop': {}};
             const actual = joint.util.merge({ 'prop': fn }, object);
 
@@ -2436,7 +2436,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should merge first and second source object properties to function', function(assert) {
-            const fn = function() {};
+            const fn = function() { /* no-op */ };
             const object = { 'prop': {}};
             const actual = joint.util.merge({ 'prop': fn }, { 'prop': fn }, object);
 
@@ -2444,7 +2444,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should not merge onto function values of sources', function(assert) {
-            const source1 = { 'a': function() {} };
+            const source1 = { 'a': function() { /* no-op */ } };
             const source2 = { 'a': { 'b': 2 }};
             const expected = { 'a': { 'b': 2 }};
             let actual = joint.util.merge({}, source1, source2);
@@ -2457,7 +2457,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should merge onto non-plain `object` values', function(assert) {
-            function Foo() {}
+            function Foo() { /* empty constructor */ }
 
             const object = new Foo;
             const actual = joint.util.merge(object, { 'a': 1 });
@@ -2505,7 +2505,7 @@ QUnit.module('Lodash util helpers', function() {
         });
 
         QUnit.test('should assign non array/buffer/typed-array/plain-object source values directly', function(assert) {
-            function Foo() {}
+            function Foo() { /* empty constructor */ }
 
             const values = [new Foo, new Boolean, new Date, Foo, new Number, new String, new RegExp];
             const expected = values.map(() => true);
@@ -2655,7 +2655,7 @@ QUnit.module('Lodash util helpers', function() {
     QUnit.module('merge with customizer (mergeWith)', function() {
 
         QUnit.test('should handle merging when `customizer` returns `undefined`', function(assert) {
-            let actual = joint.util.merge({ 'a': { 'b': [1, 1] }}, { 'a': { 'b': [0] }}, () => {});
+            let actual = joint.util.merge({ 'a': { 'b': [1, 1] }}, { 'a': { 'b': [0] }}, () => { /* no-op */ });
             assert.deepEqual(actual, { 'a': { 'b': [0, 1] }});
 
             actual = joint.util.merge([], [undefined], (val) => val);
@@ -2666,7 +2666,7 @@ QUnit.module('Lodash util helpers', function() {
             const source1 = { 'a': { 'b': { 'c': 1 }}};
             const source2 = { 'a': { 'b': { 'd': 2 }}};
 
-            joint.util.merge({}, source1, source2, () => {});
+            joint.util.merge({}, source1, source2, () => { /* no-op */ });
             assert.deepEqual(source1.a.b, { 'c': 1 });
         });
 

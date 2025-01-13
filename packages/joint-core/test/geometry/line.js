@@ -460,11 +460,11 @@ QUnit.module('line', function() {
         });
 
         QUnit.module('length()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('midpoint()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('pointAt()', function() {
@@ -773,7 +773,7 @@ QUnit.module('line', function() {
         });
 
         QUnit.module('squaredLength()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('tangentAt()', function() {
@@ -873,7 +873,7 @@ QUnit.module('line', function() {
         });
 
         QUnit.module('toString()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('serialize()', function() {

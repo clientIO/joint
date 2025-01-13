@@ -2774,7 +2774,7 @@ QUnit.module('path', function(hooks) {
         });
 
         QUnit.module('lengthAtT()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('pointAt()', function() {
@@ -3151,7 +3151,7 @@ QUnit.module('path', function(hooks) {
         });
 
         QUnit.module('pointAtT()', function() {
-
+            // TODO: implement
         });
 
         QUnit.module('removeSegment()', function() {

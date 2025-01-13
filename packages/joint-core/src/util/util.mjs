@@ -1790,4 +1790,5 @@ export {
 };
 
 export const noop = function() {
+    // Do nothing.
 };

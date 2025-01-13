@@ -39,7 +39,7 @@ QUnit.module('joint.mvc.View', function(hooks) {
         var SVGView = joint.mvc.View.extend({
             svgElement: true,
             tagName: 'g',
-            setTheme: function() {}
+            setTheme: function() { /* no-op */ }
         });
 
         var svgView = new SVGView;

@@ -1281,7 +1281,7 @@ function last(array) {
 
 const createSet = (Set && (1 / setToArray(new Set([undefined,-0]))[1]) == 1 / 0)
     ? (values) => new Set(values)
-    : () => {};
+    : () => { /* no-op */ };
 
 function customDefaultsMerge(objValue, srcValue, key, object, source, stack) {
     if (isObject(objValue) && isObject(srcValue)) {

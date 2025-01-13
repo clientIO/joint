@@ -59,11 +59,15 @@ assign(Collection.prototype, Events, {
 
     // preinitialize is an empty function by default. You can override it with a function
     // or object.  preinitialize will run before any instantiation logic is run in the Collection.
-    preinitialize: function(){},
+    preinitialize: function(){
+        // No implementation.
+    },
 
     // Initialize is an empty function by default. Override it with your own
     // initialization logic.
-    initialize: function(){},
+    initialize: function(){
+        // No implementation.
+    },
 
     // The JSON representation of a Collection is an array of the
     // models' attributes.

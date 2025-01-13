@@ -83,6 +83,17 @@ graph.addCell({
     }
 });
 
+
+graph.addCell({
+    // id: 'test-id-3',
+    type: 'standard.Circle',
+});
+
+graph.resetCells([{
+    id: 'test-id-4',
+    type: 'standard.Circle',
+}])
+
 // `cells` attribute is a collection of cells
 const cell = graph.get('cells')?.at(0);
 (<joint.dia.Element>cell).getBBox({ rotate: true }).inflate(5);

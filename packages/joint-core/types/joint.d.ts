@@ -25,6 +25,9 @@ type DeepPartial<T> = _DeepPartial<_DeepRequired<T>>;
 // We use `DOMElement` later in the code, to avoid conflicts with the `dia.Element` type.
 type DOMElement = Element;
 
+
+
+
 export namespace dia {
 
     type Event = mvc.TriggeredEvent;
@@ -195,12 +198,12 @@ export namespace dia {
 
         constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
-        addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
+        addCell(cell: Omit<Cell.JSON, 'id'>, opt?: CollectionAddOptions): this;
         addCell(cell: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
         addCells(cells: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
-        resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
+        resetCells(cells: Array<Cell.JSON>, opt?: Graph.Options): this;
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -343,12 +346,14 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Selectors> {
         }
 
-        type JSON<K extends Selectors = Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = T & {
+        type JSON2<K extends Selectors = Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = T & {
             [attribute in keyof T]: T[attribute];
         } & {
             id: ID;
             type: string;
         };
+
+        type JSON = Omit<JSON2, 'id'>;
 
         interface Constructor<T extends mvc.Model> {
             new(opt?: { id?: ID, [key: string]: any }): T;

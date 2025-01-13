@@ -259,7 +259,7 @@ QUnit.module('paper', function(hooks) {
     QUnit.module('paper.getRestrictedArea()', function() {
 
         QUnit.test('function', function(assert) {
-            var constraintPoint = function() {};
+            var constraintPoint = function() { /* no-op */ };
             var spy = sinon.spy(function() { return constraintPoint; });
             this.paper.options.restrictTranslate = spy;
             assert.equal(this.paper.getRestrictedArea(1,2,3), constraintPoint);
@@ -946,7 +946,7 @@ QUnit.module('paper', function(hooks) {
         this.paper.options.linkPinning = true;
         source.attr('.', { magnet: true });
         data = {};
-        sourceView.dragMagnetStart({ currentTarget: sourceView.el, target: sourceView.el, type: 'mousedown', data: data, stopPropagation: () => {}, isPropagationStopped: () => false }, 150, 150);
+        sourceView.dragMagnetStart({ currentTarget: sourceView.el, target: sourceView.el, type: 'mousedown', data: data, stopPropagation: joint.util.noop, isPropagationStopped: () => false }, 150, 150);
         sourceView.pointermove({ type: 'mousemove', data: data }, 150, 400);
 
         newLink = _.reject(this.graph.getLinks(), { id: 'link' })[0];

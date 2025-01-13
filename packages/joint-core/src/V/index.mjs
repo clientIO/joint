@@ -472,8 +472,8 @@ const V = (function() {
             case 'bottom':
                 dy = -(0.25 * llMaxFont) - rLineHeights;
                 break;
-            default:
             case 'top':
+            default:
                 dy = (0.8 * flMaxFont);
                 break;
         }

@@ -928,21 +928,23 @@ QUnit.module('util', function(hooks) {
             var someObject = {
 
                 someFunction: function() {
-
+                    // no-op.
                 },
 
                 someOtherFunction: function() {
-
+                    // no-op.
                 },
 
                 yetAnotherFunction: function() {
-
+                    // no-op.
                 }
             };
 
             var methods = ['someFunction', 'someOtherFunction'];
 
-            var innerWrapper = function() { };
+            var innerWrapper = function() {
+                // no-op
+            };
 
             var wrapper = function() {
 
@@ -954,10 +956,10 @@ QUnit.module('util', function(hooks) {
             _.each(someObject, function(fn, method) {
 
                 if (_.includes(methods, method)) {
-                    // Should be wrapped.
+                    // no-op.
                     assert.equal(someObject[method], innerWrapper);
                 } else {
-                    // Should not be wrapped.
+                    // no-op
                     assert.equal(someObject[method], fn);
                 }
             });
@@ -968,13 +970,13 @@ QUnit.module('util', function(hooks) {
             var someObject = {
 
                 someFunction: function() {
-
+                    // no-op.
                 }
             };
 
             var methods = ['someFunction'];
             var wrapper = 'someWrapper';
-            var innerWrapper = function() { };
+            var innerWrapper = function() { /* no-op */ };
 
             joint.util.wrappers[wrapper] = function() {
 
@@ -986,10 +988,10 @@ QUnit.module('util', function(hooks) {
             _.each(someObject, function(fn, method) {
 
                 if (_.includes(methods, method)) {
-                    // Should be wrapped.
+                    // no-op.
                     assert.equal(someObject[method], innerWrapper);
                 } else {
-                    // Should not be wrapped.
+                    // no-op
                     assert.equal(someObject[method], fn);
                 }
             });
@@ -1597,7 +1599,7 @@ QUnit.module('util', function(hooks) {
 
             assert.deepEqual(actual, expected);
         });
-    
+
         QUnit.test('should return the difference of multiple values', function(assert) {
             const expected = { b: 2, c: 3 };
             const actual = joint.util.objectDifference({ a: 1, b: 2, c: 3 }, { a: 1 });
@@ -1624,7 +1626,7 @@ QUnit.module('util', function(hooks) {
                             }
                         }
                     }
-                }, 
+                },
                 {
                     a: {
                         b: {
@@ -1671,7 +1673,7 @@ QUnit.module('util', function(hooks) {
                         }
                     },
                     x: 'y'
-                }, 
+                },
                 {
                     a: {
                         b: {
