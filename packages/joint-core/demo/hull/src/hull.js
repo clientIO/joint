@@ -1,4 +1,4 @@
-(function(joint, V) {
+(function(joint, V, g) {
 
     var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
@@ -17,14 +17,10 @@
         }
     });
 
-    function random(max, min) {
-        return Math.floor(Math.random() * (max - min)) + min;
-    }
-
     // create circles
     Array.from({ length: 10 }).forEach(function(_, n) {
-        var x = random(100, 700);
-        var y = random(100, 500);
+        var x = g.random(100, 700);
+        var y = g.random(100, 500);
         createCircle(x, y, (n % 3 === 0) ? 'inner' : 'outer').addTo(graph);
     });
 
@@ -141,4 +137,4 @@
 
     }
 
-})(joint, V);
+})(joint, V, g);
