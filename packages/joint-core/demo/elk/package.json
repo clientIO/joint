@@ -1,6 +1,6 @@
 {
   "name": "@joint/demo-elk-graph",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "JointJS - Eclipse Layout Kernel Graph Demo",
   "main": "index.html",
   "homepage": "https://jointjs.com",
