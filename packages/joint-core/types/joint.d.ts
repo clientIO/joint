@@ -1749,7 +1749,7 @@ export namespace dia {
 
         getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
-        getLayerView(layerName: Paper.Layers | string): any;
+        getLayerView(layerName: Paper.Layers | string): PaperLayer;
 
         hasLayerView(layerName: Paper.Layers | string): boolean;
 
@@ -1758,6 +1758,18 @@ export namespace dia {
         protected removeLayers(): void;
 
         protected resetLayers(): void;
+
+        addLayer(layerName: string, layerView: PaperLayer, options?: { insertBefore?: string }): void;
+
+        removeLayer(layer: string | PaperLayer): void;
+
+        moveLayer(layer: string | PaperLayer, insertBefore: string | PaperLayer | null): void;
+
+        hasLayer(layer: string | PaperLayer): boolean;
+
+        getLayerNames(): string[];
+
+        getLayers(): Array<PaperLayer>;
 
         // rendering
 
