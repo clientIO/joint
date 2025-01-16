@@ -466,9 +466,9 @@ export class AvoidRouter {
         }
         // TODO:
         // if ("ports" in cell.changed) {}
-        if (needsRerouting) {
-            this.avoidRouter.processTransaction();
-        }
+        // if (needsRerouting) {
+        //     this.avoidRouter.processTransaction();
+        // }
     }
 
     onAvoidConnectorChange(connRefPtr) {

@@ -2,7 +2,7 @@ body {
     width: 100vw;
     height: 100vh;
     margin: 0;
-    overflow: hidden;
+    overflow: scroll;
 }
 
 .canvas {
@@ -11,7 +11,6 @@ body {
     height: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
     transform: translateZ(0);
 
     .joint-paper {
@@ -26,4 +25,16 @@ body {
             stroke-dasharray: 5, 2;
         }
     }
+
+    .awaiting-update {
+        opacity: 0.3;
+        stroke-dasharray: 5, 5;
+        animation: dash 20s linear infinite;
+    }
+
+      @keyframes dash {
+        to {
+          stroke-dashoffset: 1000;
+        }
+      }
 }
