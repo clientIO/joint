@@ -1,4 +1,4 @@
-15-01-2025 (v4.1.2)
+16-01-2025 (v4.1.2)
 
   @joint/core
   * mvc.Listener - fix to support running in Web Workers
