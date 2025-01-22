@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import { externalizeDeps } from 'vite-plugin-externalize-deps'
+import { defineConfig } from 'vite';
+import { externalizeDeps } from 'vite-plugin-externalize-deps';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -30,4 +30,4 @@ export default defineConfig({
   plugins: [
     externalizeDeps(),
   ],
-})
+});
