@@ -1,0 +1,10 @@
+build/
+dist/
+node_modules/
+coverage/
+api-report/
+*.log
+demo/**/dist/**
+test/ts/*.js*
+.tscache/
+.DS_Store
