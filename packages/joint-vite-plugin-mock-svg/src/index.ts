@@ -26,6 +26,9 @@ const globalMockBanners = {
     SVGAngle: [
         `import '@joint/vite-plugin-mock-svg/mocks/SVGAngle'`,
     ],
+    SVGSVGElement: [
+        `import '@joint/vite-plugin-mock-svg/mocks/SVGSVGElement'`,
+    ],
 };
 
 export const mockSVG = (): Plugin => {
@@ -36,6 +39,7 @@ export const mockSVG = (): Plugin => {
         ...[require.resolve('@joint/vite-plugin-mock-svg/mocks/zbynek2')],
         ...[require.resolve('@joint/vite-plugin-mock-svg/mocks/SVGPathElement')],
         ...[require.resolve('@joint/vite-plugin-mock-svg/mocks/SVGAngle')],
+        ...[require.resolve('@joint/vite-plugin-mock-svg/mocks/SVGSVGElement')],
     ];
 
     const globalMocksBanner = [
@@ -43,6 +47,7 @@ export const mockSVG = (): Plugin => {
         ...globalMockBanners.zbynek2,
         ...globalMockBanners.SVGPathElement,
         ...globalMockBanners.SVGAngle,
+        ...globalMockBanners.SVGSVGElement,
         ``,
     ].join('\n');
 
@@ -58,6 +63,7 @@ export const mockSVG = (): Plugin => {
                 ...{ zbynek2: '@joint/vite-plugin-mock-svg/mocks/zbynek2' },
                 ...{ SVGPathElement: '@joint/vite-plugin-mock-svg/mocks/SVGPathElement' },
                 ...{ SVGAngle: '@joint/vite-plugin-mock-svg/mocks/SVGAngle' },
+                ...{ SVGSVGElement: '@joint/vite-plugin-mock-svg/mocks/SVGSVGElement' },
             };
 
             return {
@@ -82,6 +88,7 @@ export const mockSVG = (): Plugin => {
                             ...{ zbynek2: 'zbynek2' },
                             ...{ SVGPathElement: 'SVGPathElement' },
                             ...{ SVGAngle: 'SVGAngle' },
+                            ...{ SVGSVGElement: 'SVGSVGElement' },
                         },
                         inject: [
                             ...globalMockPaths,

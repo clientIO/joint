@@ -21,6 +21,10 @@
         "./SVGAngle": {
             "require": "./SVGAngle/dist/index.cjs",
             "import": "./SVGAngle/dist/index.js"
+        },
+        "./SVGSVGElement": {
+            "require": "./SVGSVGElement/dist/index.cjs",
+            "import": "./SVGSVGElement/dist/index.js"
         }
     },
     "main": "./dist/index.cjs",

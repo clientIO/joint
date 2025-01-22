@@ -29,11 +29,12 @@
     "dist": "yarn run build",
     "build": "yarn run build:core && yarn run build:mocks && yarn run build:types",
     "build:core": "vite build",
-    "build:mocks": "yarn run build:mocks:zbynek && yarn run build:mocks:zbynek2 && yarn run build:mocks:SVGPathElement && yarn run build:mocks:SVGAngle",
+    "build:mocks": "yarn run build:mocks:zbynek && yarn run build:mocks:zbynek2 && yarn run build:mocks:SVGPathElement && yarn run build:mocks:SVGAngle && yarn run build:mocks:SVGSVGElement",
     "build:mocks:zbynek": "vite build -c ./mocks/vite.config.ts ./mocks/zbynek",
     "build:mocks:zbynek2": "vite build -c ./mocks/vite.config.ts ./mocks/zbynek2",
     "build:mocks:SVGPathElement": "vite build -c ./mocks/vite.config.ts ./mocks/SVGPathElement",
     "build:mocks:SVGAngle": "vite build -c ./mocks/vite.config.ts ./mocks/SVGAngle",
+    "build:mocks:SVGSVGElement": "vite build -c ./mocks/vite.config.ts ./mocks/SVGSVGElement",
     "build:types": "yarn run typecheck",
     "typecheck": "yarn run typecheck:core",
     "typecheck:core": "yarn run tsc"
@@ -85,6 +86,14 @@
     "./mocks/SVGAngle/": {
       "require": "./mocks/SVGAngle/dist/index.cjs",
       "import": "./mocks/SVGAngle/dist/index.js"
+    },
+    "./mocks/SVGSVGElement": {
+      "require": "./mocks/SVGSVGElement/dist/index.cjs",
+      "import": "./mocks/SVGSVGElement/dist/index.js"
+    },
+    "./mocks/SVGSVGElement/": {
+      "require": "./mocks/SVGSVGElement/dist/index.cjs",
+      "import": "./mocks/SVGSVGElement/dist/index.js"
     }
   },
   "dependencies": {

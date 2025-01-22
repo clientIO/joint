@@ -1,10 +1,10 @@
 import { beforeEach, vi } from 'vitest';
 
 // Mock method which is not implemented in JSDOM
-//globalThis.SVGPathElement = vi.fn();
+globalThis.SVGPathElement = vi.fn();
 
 // Mock SVGAngle which is used for sanity checks in Vectorizer library
-/*Object.defineProperty(globalThis, 'SVGAngle', {
+Object.defineProperty(globalThis, 'SVGAngle', {
   writable: true,
   value: vi.fn().mockImplementation(() => ({
       new: vi.fn(),
@@ -15,7 +15,7 @@ import { beforeEach, vi } from 'vitest';
       SVG_ANGLETYPE_RAD: 3,
       SVG_ANGLETYPE_GRAD: 4
   }))
-});*/
+});
 
 beforeEach(()=>{
 
