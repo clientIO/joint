@@ -1,0 +1,16 @@
+{
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": {
+            "require": "./dist/index.cjs",
+            "import": "./dist/index.js"
+        },
+        "./zbynek": {
+            "require": "./zbynek/dist/index.cjs",
+            "import": "./zbynek/dist/index.js"
+        }
+    },
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js"
+}
