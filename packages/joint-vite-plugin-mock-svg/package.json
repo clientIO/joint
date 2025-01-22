@@ -29,8 +29,11 @@
     "dist": "yarn run build",
     "build": "yarn run build:core && yarn run build:mocks && yarn run build:types",
     "build:core": "vite build",
-    "build:mocks": "yarn run build:mocks:zbynek",
+    "build:mocks": "yarn run build:mocks:zbynek && yarn run build:mocks:zbynek2 && yarn run build:mocks:SVGPathElement && yarn run build:mocks:SVGAngle",
     "build:mocks:zbynek": "vite build -c ./mocks/vite.config.ts ./mocks/zbynek",
+    "build:mocks:zbynek2": "vite build -c ./mocks/vite.config.ts ./mocks/zbynek2",
+    "build:mocks:SVGPathElement": "vite build -c ./mocks/vite.config.ts ./mocks/SVGPathElement",
+    "build:mocks:SVGAngle": "vite build -c ./mocks/vite.config.ts ./mocks/SVGAngle",
     "build:types": "yarn run typecheck",
     "typecheck": "yarn run typecheck:core",
     "typecheck:core": "yarn run tsc"
@@ -58,6 +61,30 @@
     "./mocks/zbynek/": {
       "require": "./mocks/zbynek/dist/index.cjs",
       "import": "./mocks/zbynek/dist/index.js"
+    },
+    "./mocks/zbynek2": {
+      "require": "./mocks/zbynek2/dist/index.cjs",
+      "import": "./mocks/zbynek2/dist/index.js"
+    },
+    "./mocks/zbynek2/": {
+      "require": "./mocks/zbynek/dist/index.cjs",
+      "import": "./mocks/zbynek/dist/index.js"
+    },
+    "./mocks/SVGPathElement": {
+      "require": "./mocks/SVGPathElement/dist/index.cjs",
+      "import": "./mocks/SVGPathElement/dist/index.js"
+    },
+    "./mocks/SVGPathElement/": {
+      "require": "./mocks/SVGPathElement/dist/index.cjs",
+      "import": "./mocks/SVGPathElement/dist/index.js"
+    },
+    "./mocks/SVGAngle": {
+      "require": "./mocks/SVGAngle/dist/index.cjs",
+      "import": "./mocks/SVGAngle/dist/index.js"
+    },
+    "./mocks/SVGAngle/": {
+      "require": "./mocks/SVGAngle/dist/index.cjs",
+      "import": "./mocks/SVGAngle/dist/index.js"
     }
   },
   "dependencies": {

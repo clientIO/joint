@@ -10,7 +10,7 @@ export default defineConfig({
         },
         minify: false,
         rollupOptions: {
-            external: [/^node:.*$/],
+            external: [/^node:.*$/, 'vitest'],
             output: [
                 {
                     esModule: true,

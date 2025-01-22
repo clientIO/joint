@@ -9,6 +9,18 @@
         "./zbynek": {
             "require": "./zbynek/dist/index.cjs",
             "import": "./zbynek/dist/index.js"
+        },
+        "./zbynek2": {
+            "require": "./zbynek2/dist/index.cjs",
+            "import": "./zbynek2/dist/index.js"
+        },
+        "./SVGPathElement": {
+            "require": "./SVGPathElement/dist/index.cjs",
+            "import": "./SVGPathElement/dist/index.js"
+        },
+        "./SVGAngle": {
+            "require": "./SVGAngle/dist/index.cjs",
+            "import": "./SVGAngle/dist/index.js"
         }
     },
     "main": "./dist/index.cjs",
