@@ -17,7 +17,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "test": "vitest"
+    "test": "vitest run"
   },
   "eslintConfig": {
     "extends": [

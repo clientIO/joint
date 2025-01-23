@@ -3308,16 +3308,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/vitest-plugin-mock-svg@workspace:packages/joint-vitest-plugin-mock-svg":
-  version: 0.0.0-use.local
-  resolution: "@joint/vitest-plugin-mock-svg@workspace:packages/joint-vitest-plugin-mock-svg"
-  dependencies:
-    typescript: 4.8.3
-    vite: ^5.0.2
-    vitest: ^1.2.2
-  languageName: unknown
-  linkType: soft
-
 "@jridgewell/gen-mapping@npm:^0.3.2, @jridgewell/gen-mapping@npm:^0.3.5":
   version: 0.3.8
   resolution: "@jridgewell/gen-mapping@npm:0.3.8"
