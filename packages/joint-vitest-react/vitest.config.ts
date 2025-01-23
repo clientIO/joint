@@ -5,13 +5,6 @@ import mockSVG from '@joint/vite-plugin-mock-svg';
 
 export default defineConfig({
   plugins: [react(), mockSVG()] as ViteUserConfig["plugins"],
-  build: {
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'public/index.html'),
-      },
-    },
-  },
   test: {
     environment: 'jsdom',
     //globals: true,

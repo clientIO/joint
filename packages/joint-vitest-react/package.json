@@ -17,13 +17,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "v-dev": "vite",
-    "v-build": "vite build",
-    "v-test": "vitest",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!@clientio)/\"",
-    "eject": "react-scripts eject"
+    "test": "vitest"
   },
   "eslintConfig": {
     "extends": [

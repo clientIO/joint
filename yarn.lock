@@ -3308,6 +3308,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/vitest-plugin-mock-svg@workspace:packages/joint-vitest-plugin-mock-svg":
+  version: 0.0.0-use.local
+  resolution: "@joint/vitest-plugin-mock-svg@workspace:packages/joint-vitest-plugin-mock-svg"
+  dependencies:
+    typescript: 4.8.3
+    vite: ^5.0.2
+    vitest: ^1.2.2
+  languageName: unknown
+  linkType: soft
+
 "@jridgewell/gen-mapping@npm:^0.3.2, @jridgewell/gen-mapping@npm:^0.3.5":
   version: 0.3.8
   resolution: "@jridgewell/gen-mapping@npm:0.3.8"
@@ -4594,11 +4604,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*, @types/node@npm:>=10.0.0":
-  version: 22.10.7
-  resolution: "@types/node@npm:22.10.7"
+  version: 22.10.8
+  resolution: "@types/node@npm:22.10.8"
   dependencies:
     undici-types: ~6.20.0
-  checksum: 2dce6c75c607c6269744f1ea2b5296e8685cd71d0dd5c599c3029626f9d2dc8b037912495cf68b30d6f39f44d3fa8b025e179662ef16dc363e0658425bedfde8
+  checksum: 4f62441d18d64cd0f4c2042b5ae5267f975e3c2f51c048ea24422db5ed313a1611cf33694051640c8503da027004d085fc53cdc95ea72f15edd90c839366f5dd
   languageName: node
   linkType: hard
 
@@ -4617,18 +4627,18 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:^16.11.43":
-  version: 16.18.124
-  resolution: "@types/node@npm:16.18.124"
-  checksum: 7ef4838a6c3b7217406b85716bc1e27a6d3dfe2bbbbcc2d5317a0e55e04a7e1853deb19d32ecf642b7973000f3190f0b5e83d00fb44b87105ce4cd342a91cf62
+  version: 16.18.125
+  resolution: "@types/node@npm:16.18.125"
+  checksum: 78ca366cbcc2200548667216ec02d9350326c0ef45b924234e6abc5afa4c61961eb61691e932600ccd8637433af8e14841003b6ddd758788555281a18b6e38c0
   languageName: node
   linkType: hard
 
 "@types/node@npm:^18.18.8":
-  version: 18.19.71
-  resolution: "@types/node@npm:18.19.71"
+  version: 18.19.73
+  resolution: "@types/node@npm:18.19.73"
   dependencies:
     undici-types: ~5.26.4
-  checksum: 4539d57234550df9b919ab9592ce9231e86c60d7703b4a56f12dd7dfcf28dfe44ab5cb7a6c3900a93a3850de126ae25758a94dd27eaaccc4e8acf7158cfa3a59
+  checksum: 557e573c758b003e2cef9bde9811d16cc7a07bdb6ca3a9afb1551a9616c1e956cba0efb3199d31bed7d982def6c93af0d254d16b8662f469c8d6e42d1a22ebae
   languageName: node
   linkType: hard
 
@@ -9735,9 +9745,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.73":
-  version: 1.5.84
-  resolution: "electron-to-chromium@npm:1.5.84"
-  checksum: 4bdf445aa4fd970cef45cbeec2d20ce609f746b78a0e2e0a053ac01126b3901827877e770b2a841333458a2967017796a67a28e1c9dafc4d35002e32178e4d39
+  version: 1.5.85
+  resolution: "electron-to-chromium@npm:1.5.85"
+  checksum: 428d41d0ddeaa3928625f06529f77c12eaf1662f371f371ff04f825beab027f1bd9f821e2f371a815edbd7dccb23e0145598d3534a58f7fc53977ee1090d6d77
   languageName: node
   linkType: hard
 
