@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type UserConfig } from 'vitest/config';
 import { externalizeDeps } from 'vite-plugin-externalize-deps';
 
 // https://vitejs.dev/config/
@@ -28,6 +28,6 @@ export default defineConfig({
     target: 'esnext',
   },
   plugins: [
-    externalizeDeps(),
-  ],
+    externalizeDeps()
+  ] as UserConfig["plugins"],
 });
