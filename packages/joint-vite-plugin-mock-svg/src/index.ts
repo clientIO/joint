@@ -4,12 +4,12 @@ import type { Plugin } from 'vite';
 
 // Inspired by https://github.com/davidmyersdev/vite-plugin-node-polyfills
 
-const toRegExp = (text: string) => {
+/*const toRegExp = (text: string) => {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
     const escapedText = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     return new RegExp(`^${escapedText}$`);
-};
+};*/
 
 const globalMockBanners = {
     zbynek: [
@@ -93,7 +93,7 @@ export const mockSVG = (): Plugin => {
                         inject: [
                             ...globalMockPaths,
                         ],
-                        plugins: [
+                        /*plugins: [
                             // Suppress the 'injected path "..." cannot be marked as external' error in Vite 4 (emitted by esbuild).
                             // https://github.com/evanw/esbuild/blob/edede3c49ad6adddc6ea5b3c78c6ea7507e03020/internal/bundler/bundler.go#L1469
                             {
@@ -113,7 +113,7 @@ export const mockSVG = (): Plugin => {
                                     }
                                 },
                             },
-                        ],
+                        ],*/
                     },
                 },
             };
