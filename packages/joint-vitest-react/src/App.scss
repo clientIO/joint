@@ -1,0 +1,13 @@
+#root {
+    height: 100vh;
+    width: 100vw;
+
+    .canvas {
+        width: 100%;
+        height: 100%;
+
+        .joint-paper {
+            border: 1px solid #A0A0A0;
+        }
+    }
+}
