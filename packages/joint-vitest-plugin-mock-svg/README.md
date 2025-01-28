@@ -8,7 +8,7 @@ Import the plugin in your `vite.config.js`:
 
 ```js
 import { defineConfig } from 'vitest/config';
-import mockSVG from '@joint/vite-plugin-mock-svg'
+import mockSVG from '@joint/vitest-plugin-mock-svg'
 
 export default defineConfig({
   plugins: [mockSVG()],

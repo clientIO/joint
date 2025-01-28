@@ -1,0 +1,85 @@
+{
+  "name": "@joint/vitest-plugin-mock-svg",
+  "title": "JointJS Mock SVG",
+  "version": "0.1.0",
+  "description": "A Vite plugin to mock SVG global constants required for JointJS testing.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-vitest-plugin-mock-svg"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MPL-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
+    "dist": "yarn run build",
+    "build": "yarn run build:core && yarn run build:mocks && yarn run build:types",
+    "build:core": "vite build",
+    "build:mocks": "vite build -c ./mocks/vite.config.ts ./mocks",
+    "build:types": "yarn run typecheck",
+    "typecheck": "yarn run typecheck:core",
+    "typecheck:core": "yarn run tsc"
+  },
+  "files": [
+    "dist/",
+    "mocks/",
+    "./LICENSE",
+    "./SECURITY.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    },
+    "./mocks": {
+      "require": "./mocks/dist/index.cjs",
+      "import": "./mocks/dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@rollup/plugin-inject": "^5.0.5"
+  },
+  "devDependencies": {
+    "@joint/vitest-plugin-mock-svg": "workspace:~",
+    "@playwright/test": "^1.40.1",
+    "@types/node": "^18.18.8",
+    "buffer": "6.0.3",
+    "esbuild": "^0.19.8",
+    "eslint": "^8.54.0",
+    "eslint-config-artisan": "^0.2.1",
+    "npm-run-all": "^4.1.5",
+    "process": "^0.11.10",
+    "rollup": "^4.6.0",
+    "typescript": "4.8.3",
+    "vite": "^5.0.2",
+    "vite-node": "^0.34.6",
+    "vite-plugin-externalize-deps": "^0.1.5",
+    "vite-plugin-inspect": "^0.7.42",
+    "vitest": "^1.2.2"
+  },
+  "volta": {
+    "node": "18.18.2",
+    "npm": "9.8.1",
+    "yarn": "3.4.1"
+  },
+  "keywords": [
+    "jointjs",
+    "mock",
+    "svg"
+  ]
+}

@@ -11,11 +11,6 @@ test('renders JointJS paper', () => {
     console.log(globalThis.SVGSVGElement.prototype.createSVGMatrix);
     console.log(globalThis.SVGSVGElement.prototype.createSVGPoint);
     console.log(globalThis.SVGSVGElement.prototype.createSVGTransform);
-    console.log('--- test values ---');
-    //@ts-ignore
-    console.log(globalThis.zbynek);
-    //@ts-ignore
-    console.log(globalThis.zbynek2);
 
     const wrapper = mount(App);
     //console.log(JSON.stringify(wrapper.html()));
