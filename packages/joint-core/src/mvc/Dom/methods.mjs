@@ -337,8 +337,8 @@ export function position() {
         doc = el.ownerDocument;
         offsetParent = el.offsetParent || doc.documentElement;
         const isStaticallyPositioned = (el) => {
-            const { position } = el.style;
-            return !position || position === 'static';
+            const { position } = getComputedStyle(el);
+            return position === 'static';
         };
         while (offsetParent && offsetParent !== doc.documentElement && isStaticallyPositioned(offsetParent)) {
             offsetParent = offsetParent.offsetParent || doc.documentElement;
