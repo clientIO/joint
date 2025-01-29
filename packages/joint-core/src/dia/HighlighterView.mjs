@@ -107,7 +107,7 @@ export const HighlighterView = mvc.View.extend({
             return;
         }
         const { vel: cellViewRoot, paper } = cellView;
-        const { layer: layerName } = options;
+        const { layer: layerName, prepend } = options;
         if (layerName) {
             let vGroup;
             if (detachedTransformGroup) {
@@ -119,10 +119,14 @@ export const HighlighterView = mvc.View.extend({
             this.transformGroup = vGroup;
             paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
         } else {
-            // TODO: prepend vs append
-            if (!el.parentNode || el.nextSibling) {
-                // Not appended yet or not the last child
-                cellViewRoot.append(el);
+            const adjacentSibling = prepend ? el.previousSibling : el.nextSibling;
+            if (!el.parentNode || adjacentSibling) {
+                // Not appended yet or not the first/last child
+                if (prepend) {
+                    cellViewRoot.prepend(el);
+                } else {
+                    cellViewRoot.append(el);
+                }
             }
         }
     },
