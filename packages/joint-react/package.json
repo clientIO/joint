@@ -11,7 +11,7 @@
     "lint": "yarn eslint \"src/**/*.{ts,tsx}\" --fix",
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
     "test": "yarn jest",
-    "storybook": "start-storybook -p 6006",
+    "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
   "peerDependencies": {
