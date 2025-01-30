@@ -41,9 +41,6 @@ export const mockSVG = (): Plugin => {
                 },
             };
         },
-        configResolved: (resolvedConfig) => {
-            console.log('resolved config: '+JSON.stringify(resolvedConfig));
-        }
     };
 };
 

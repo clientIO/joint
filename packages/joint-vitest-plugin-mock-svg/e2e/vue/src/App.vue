@@ -4,9 +4,7 @@ import { dia, shapes } from '@joint/core';
 
 const canvas = ref<Element | null>(null);
 
-const graph = new dia.Graph({}, {
-  cellNamespace: shapes
-});
+const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
   model: graph,
   background: {
@@ -17,14 +15,6 @@ const paper = new dia.Paper({
   sorting: dia.Paper.sorting.APPROX,
   cellViewNamespace: shapes
 });
-
-/*const scroller = new ui.PaperScroller({
-  paper,
-  autoResizePaper: true,
-  cursor: 'grab'
-});
-
-scroller.render();*/
 
 const rect = new shapes.standard.Rectangle({
   position: { x: 100, y: 100 },
@@ -40,8 +30,6 @@ graph.addCell(rect);
 
 onMounted(() => {
   canvas.value?.appendChild(paper.el);
-  //canvas.value?.appendChild(scroller.el);
-  //scroller.center();
   paper.unfreeze();
 });
 </script>

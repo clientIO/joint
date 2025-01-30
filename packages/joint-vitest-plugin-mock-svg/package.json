@@ -26,6 +26,7 @@
   },
   "scripts": {
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
+    "test": "vitest run",
     "dist": "yarn run build",
     "build": "yarn run build:core && yarn run build:mocks && yarn run build:types",
     "build:core": "vite build",
@@ -38,6 +39,7 @@
     "dist/",
     "mocks/",
     "./LICENSE",
+    "./README.md",
     "./SECURITY.md"
   ],
   "exports": {
@@ -55,22 +57,29 @@
     "@rollup/plugin-inject": "^5.0.5"
   },
   "devDependencies": {
+    "@joint/core": "workspace:~",
     "@joint/vitest-plugin-mock-svg": "workspace:~",
-    "@playwright/test": "^1.40.1",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/vue": "^8.1.0",
+    "@tsconfig/node18": "^18.2.0",
     "@types/node": "^18.18.8",
-    "buffer": "6.0.3",
-    "esbuild": "^0.19.8",
-    "eslint": "^8.54.0",
-    "eslint-config-artisan": "^0.2.1",
-    "npm-run-all": "^4.1.5",
-    "process": "^0.11.10",
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-vue": "^4.2.3",
+    "@vue/eslint-config-typescript": "^11.0.3",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "rollup": "^4.6.0",
-    "typescript": "4.8.3",
+    "sass": "^1.66.1",
+    "typescript": "~5.1.6",
     "vite": "^5.0.2",
-    "vite-node": "^0.34.6",
     "vite-plugin-externalize-deps": "^0.1.5",
-    "vite-plugin-inspect": "^0.7.42",
-    "vitest": "^1.2.2"
+    "vitest": "^3.0.4",
+    "vue": "^3.3.4"
   },
   "volta": {
     "node": "18.18.2",

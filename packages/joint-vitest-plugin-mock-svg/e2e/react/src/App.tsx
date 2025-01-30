@@ -1,43 +1,37 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { dia, shapes } from '@joint/core';
-import './App.scss';
 
 function App() {
 
   const canvas: any = useRef(null);
 
+  const [, forceRender] = useState({}); // dummy variable for triggering a re-render
+
   useEffect(() => {
+
     const graph = new dia.Graph({}, { cellNamespace: shapes });
 
     const paper = new dia.Paper({
-        model: graph,
-        background: {
-          color: '#F8F9FA',
-        },
-        frozen: true,
-        async: true,
-        sorting: dia.Paper.sorting.APPROX,
-        cellViewNamespace: shapes
+      model: graph,
+      background: {
+        color: '#F8F9FA',
+      },
+      frozen: true,
+      async: true,
+      afterRender: () => forceRender({}), // let React know about async paper updates
+      sorting: dia.Paper.sorting.APPROX,
+      cellViewNamespace: shapes
     });
 
     canvas.current.appendChild(paper.el);
-
-    /*const scroller = new ui.PaperScroller({
-        paper,
-        autoResizePaper: true,
-        cursor: 'grab'
-    });
-
-    canvas.current.appendChild(scroller.el);
-    scroller.render().center();*/
 
     const rect = new shapes.standard.Rectangle({
       position: { x: 100, y: 100 },
       size: { width: 100, height: 50 },
       attrs: {
-          label: {
-             text: 'Hello World'
-         }
+        label: {
+            text: 'Hello World'
+        }
        }
     });
 
@@ -45,8 +39,7 @@ function App() {
     paper.unfreeze();
 
     return () => {
-        //scroller.remove();
-        paper.remove();
+      paper.remove();
     };
   }, []);
 

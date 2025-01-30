@@ -1,10 +1,10 @@
 # JointJS Mock SVG
 
-A Vite plugin to mock SVG methods not implemented in JSDOM used by *[JointJS](https://www.jointjs.com/)*.
+A Vitest plugin to mock SVG methods not implemented in JSDOM used by *[JointJS](https://www.jointjs.com/)*.
 
 ## Usage
 
-Import the plugin in your `vite.config.js`:
+Import the plugin in your `vitest.config.js`:
 
 ```js
 import { defineConfig } from 'vitest/config';
