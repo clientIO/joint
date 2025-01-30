@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`paper-provider should render children and match snapshot 1`] = `
+<div>
+  Paper Provider Content
+</div>
+`;
+
+exports[`paper-provider should render children and match snapshot 2`] = `
+<DocumentFragment>
+  <div>
+    Paper Provider Content
+  </div>
+</DocumentFragment>
+`;

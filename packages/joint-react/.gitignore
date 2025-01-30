@@ -1,0 +1,45 @@
+# Node.js
+/node_modules/
+
+# Build output
+/dist/
+
+# Yarn
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.yarn/cache/
+.yarn/install-state.gz
+.pnp.*
+
+# Vite
+.vite/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Storybook
+.storybook-out/
+
+# Editor settings
+.vscode/
+.idea/
+
+# Temporary files
+.DS_Store
+*.log
+*.gz
+
+# Eslint cache
+.eslintcache
+
+# Coverage reports
+coverage/
+
+# Environment variables
+.env
+.env.*

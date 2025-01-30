@@ -1,0 +1,119 @@
+/* eslint-disable no-console */
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import type { dia } from '@joint/core'
+
+interface CellExplorerProps {
+  cell: dia.Cell.JSON
+  onChange?: (cell: dia.Cell.JSON) => void
+}
+
+const MARGIN = '8px'
+function EditableField({
+  keyName,
+  parentKey,
+  value,
+  onChange,
+}: Readonly<{
+  keyName: string
+  parentKey?: string
+  value: unknown
+  onChange: (newValue: unknown) => void
+}>) {
+  const handleChange = (key: string, newValue: unknown) => {
+    if (typeof value === 'object' && value !== null) {
+      onChange({ ...value, [key]: newValue })
+    } else {
+      onChange(newValue)
+    }
+  }
+
+  const parseValue = (inputValue: string) => {
+    if (typeof value === 'number') {
+      return Number.isNaN(Number(inputValue)) ? value : Number(inputValue)
+    }
+    return inputValue
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return (
+      <div style={{ marginBottom: MARGIN }}>
+        <div>
+          {Object.entries(value).map(([key, value_]) => (
+            <EditableField
+              key={key}
+              keyName={key}
+              parentKey={parentKey ? `${parentKey}.${keyName}` : keyName}
+              value={value_}
+              onChange={(newValue) => handleChange(key, newValue)}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ marginBottom: MARGIN }}>
+      <label style={{ fontWeight: 'bold', marginRight: MARGIN }}>
+        {parentKey ? `${parentKey}.${keyName}` : keyName}:{' '}
+      </label>
+      <input
+        type="text"
+        value={String(value)}
+        onChange={(event) => onChange(parseValue(event.target.value))}
+        style={{ marginLeft: MARGIN }}
+      />
+    </div>
+  )
+}
+
+function CellExplorer({ cell, onChange }: Readonly<CellExplorerProps>) {
+  const handleInputChange = (key: string, value: unknown) => {
+    if (onChange) {
+      onChange({ ...cell, [key]: value })
+    }
+  }
+
+  return (
+    <div style={{ border: '1px solid #ddd', padding: MARGIN, margin: '4px' }}>
+      <h4>Cell ID: {cell.id}</h4>
+      {Object.entries(cell).map(([key, value]) => {
+        console.log('re-render EditableField', key)
+        return (
+          <EditableField
+            key={key}
+            keyName={key}
+            value={value}
+            onChange={(newValue) => handleInputChange(key, newValue)}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+interface CellsExplorerProps {
+  cells: dia.Cell.JSON[]
+  onChange: (cells: dia.Cell.JSON[]) => void
+}
+
+function CellsExplorer({ cells, onChange }: Readonly<CellsExplorerProps>) {
+  console.log('re-render CellsExplorer', cells)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+      {cells.map((cell) => (
+        <CellExplorer
+          key={cell.id}
+          cell={cell}
+          onChange={(newCell) => {
+            const updatedCells = cells.map((c) => (c.id === newCell.id ? newCell : c))
+            onChange(updatedCells)
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+export { CellExplorer, CellsExplorer }
