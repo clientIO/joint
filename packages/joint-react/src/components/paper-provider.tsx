@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { PaperOptions } from '../utils/create-paper'
 import { createPaper } from '../utils/create-paper'
 import { PaperContext } from '../context/paper-context'
@@ -23,5 +23,12 @@ export function PaperProvider({ children, ...paperOptions }: Readonly<PaperProvi
   }
 
   const [paper] = useState<dia.Paper>(() => createPaper(graph, paperOptions))
+
+  // Remove the paper when the component is unmounted.
+  useEffect(() => {
+    return () => {
+      paper.remove()
+    }
+  }, [paper])
   return <PaperContext.Provider value={paper}>{children}</PaperContext.Provider>
 }

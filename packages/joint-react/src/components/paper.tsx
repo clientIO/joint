@@ -1,9 +1,18 @@
+/* eslint-disable sonarjs/no-nested-functions */
 import { mvc, type dia } from '@joint/core'
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { usePaper } from '../hooks/use-paper'
 import { useGraph } from '../hooks/use-graph'
-
-export const PORTAL_READY_EVENT = 'portal:ready'
+import { PaperPortal } from './paper-portal'
+import { PAPER_PORTAL_RENDER_EVENT } from '../utils/create-paper'
 
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
@@ -14,7 +23,7 @@ export interface PaperProps extends dia.Paper.Options {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
-  renderElement?: (_element: dia.Element) => ReactNode
+  renderElement?: (element: dia.Cell.JSON) => ReactNode
   /**
    * A function that is called when the paper is ready.
    * @param paper The JointJS paper instance.
@@ -44,24 +53,22 @@ export interface PaperProps extends dia.Paper.Options {
   portalSelector?: string | ((view: dia.ElementView) => HTMLElement | null)
 }
 
-type ElementState = {
-  id: dia.Cell.ID // ID of the element
-  data: unknown // Data from the `model.get('data')`
-  containerEl: HTMLElement | null // Reference to the container element
+export interface PaperElement {
+  cell: dia.Cell.JSON
+  containerElement: HTMLElement
 }
 
 /**
  * Paper component that renders the JointJS paper element.
  */
-export function Paper(props: Readonly<PaperProps>) {
+function Component(props: Readonly<PaperProps>) {
   const {
-    // renderElement,
+    renderElement,
     onReady,
     onEvent,
     style,
     className,
     dataAttributes = ['data'],
-    // portalSelector = 'portal',
     ...paperOptions
   } = props
 
@@ -69,17 +76,7 @@ export function Paper(props: Readonly<PaperProps>) {
   const paper = usePaper(paperOptions)
   const graph = useGraph()
 
-  // TODO - this is not used yet
-  const [elements, setElements] = useState<Record<string, ElementState>>({})
-  const elementPortals = Object.values(elements).map((element) => {
-    return <div key={element.id}>{/* {renderElement ? renderElement(element) : null} */}</div>
-  })
-  // function resizePaperWrapper() {
-  //   if (paperWrapperElementRef.current) {
-  //     paperWrapperElementRef.current.style.width = paper.el.style.width
-  //     paperWrapperElementRef.current.style.height = paper.el.style.height
-  //   }
-  // }
+  const [elements, setElements] = useState<PaperElement[]>([])
 
   const resizePaperWrapper = useCallback(() => {
     if (paperWrapperElementRef.current) {
@@ -88,54 +85,58 @@ export function Paper(props: Readonly<PaperProps>) {
     }
   }, [paper])
 
-  function setElement(model: dia.Cell, containerElement?: HTMLElement): void {
-    setElements((previousState) => {
-      const { id } = model
-      return {
-        ...previousState,
-        [id]: {
-          id,
-          data: model.get('data'),
-          containerEl: containerElement ?? previousState[id]?.containerEl ?? null,
-        },
-      }
-    })
-  }
-
-  // const setElementData = useCallback((id: dia.Cell.ID, data: unknown) => {
-  //   setElements((previousState) => {
-  //     return {
-  //       ...previousState,
-  //       [id]: {
-  //         ...previousState[id],
-  //         data,
-  //       },
-  //     }
-  //   })
-  // }, [])
-
   const bindEvents = useCallback(() => {
     // An object to keep track of the listeners. It's not exposed, so the users
     // can't undesirably remove the listeners.
     const controller = new mvc.Listener()
 
     // Update the elements state when the graph data changes
-    const attributeChangeEvents = dataAttributes.map((attribute) => `change:${attribute}`).join(' ')
-
-    controller.listenTo(graph, attributeChangeEvents, setElement)
-    // Update the portal node reference when the element view is rendered
-    controller.listenTo(paper, PORTAL_READY_EVENT, (elementView, portalElement) =>
-      setElement(elementView.model, portalElement)
-    )
+    // const attributeChangeEvents = dataAttributes.map((attribute) => `change:${attribute}`).join(' ')
 
     controller.listenTo(paper, 'resize', resizePaperWrapper)
+
+    // We need to setup the react state for the element only when renderElement is provided
+    if (renderElement) {
+      const onChange = (model: dia.Cell) => {
+        setElements((previousState) => {
+          const { id } = model
+          const element = previousState.find((ele) => ele.cell.id === id)
+          if (element) {
+            return previousState.map((elementItem) =>
+              elementItem.cell.id === id ? { ...elementItem, cell: model.toJSON() } : elementItem
+            )
+          }
+          return previousState
+        })
+      }
+
+      controller.listenTo(graph, 'change', onChange)
+      controller.listenTo(graph, 'remove', (model: dia.Cell) => {
+        setElements((previousState) => {
+          const { id } = model
+          return previousState.filter((element) => element.cell.id !== id) // Remove the element
+        })
+      })
+
+      // Update the portal node reference when the element view is rendered
+      controller.listenTo(
+        paper,
+        PAPER_PORTAL_RENDER_EVENT,
+        ({ model }: dia.ElementView, portalElement: HTMLElement) => {
+          setElements((previousElements) => {
+            const newElements = previousElements.filter(({ cell: { id } }) => id !== model.id)
+            return [...newElements, { cell: model.toJSON(), containerElement: portalElement }]
+          })
+        }
+      )
+    }
 
     if (onEvent) {
       controller.listenTo(paper, 'all', (...args) => onEvent(paper, ...args))
     }
 
     return () => controller.stopListening()
-  }, [dataAttributes, graph, onEvent, paper, resizePaperWrapper])
+  }, [graph, onEvent, paper, renderElement, resizePaperWrapper])
 
   useEffect(() => {
     paperWrapperElementRef.current?.append(paper.el)
@@ -143,20 +144,32 @@ export function Paper(props: Readonly<PaperProps>) {
     paper.unfreeze()
 
     const unbindEvents = bindEvents()
+
     if (onReady) {
       onReady(paper)
     }
 
     return () => {
-      // I am not sure about removing the paper
-      // paper.remove()
       paper.freeze()
       unbindEvents()
     }
   }, [bindEvents, dataAttributes, graph, onEvent, onReady, paper, resizePaperWrapper]) // options, onReady, onEvent, style
+
+  const hasRenderElement = !!renderElement
+
   return (
     <div className={className} ref={paperWrapperElementRef} style={style}>
-      {elementPortals}
+      {hasRenderElement &&
+        elements.map((element) => (
+          <PaperPortal
+            key={element.cell.id}
+            cell={element.cell}
+            containerElement={element.containerElement}
+            renderElement={renderElement}
+          />
+        ))}
     </div>
   )
 }
+
+export const Paper = memo(Component)

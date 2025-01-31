@@ -1,21 +1,24 @@
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { PaperContext } from '../context/paper-context'
+import type { PaperOptions } from '../utils/create-paper'
 import { createPaper } from '../utils/create-paper'
 import type { dia } from '@joint/core'
 import { useGraph } from './use-graph'
 
 /**
- * Use paper hook, it will firstly try to get the paper from the paper context, if it's not available, it will create a new paper instance
- * Options are used only if it's used outside of the paper context, otherwise it will use the paper context options
+ * Custom hook to use a JointJS paper instance.
+ * It first tries to get the paper from the PaperContext. If not available, it creates a new paper instance.
+ * @param options Options for creating the paper, used only if the paper is not available in the context.
+ * @returns The JointJS paper instance.
  */
-export function usePaper(options?: dia.Paper.Options): dia.Paper {
+export function usePaper(options?: PaperOptions): dia.Paper {
   const graph = useGraph()
-  // try to get context paper, it can be undefined, if there is not paper context
+  // Try to get the paper from the context, it can be undefined if there is no PaperContext.
   const paperCtx = useContext(PaperContext)
   if (!graph) {
     throw new Error('usePaper must be used within a GraphProvider')
   }
-  // if paper is not inside the paper context, it will create a new paper instead
+  // If paper is not inside the PaperContext, create a new paper instance.
   const [paperState] = useState<dia.Paper | null>(() => {
     if (paperCtx) {
       return null
@@ -23,10 +26,17 @@ export function usePaper(options?: dia.Paper.Options): dia.Paper {
     return createPaper(graph, options)
   })
 
+  // Remove the paper when the component is unmounted.
+  useEffect(() => {
+    return () => {
+      paperState?.remove()
+    }
+  }, [paperState])
+
   const paper = paperCtx ?? paperState
 
   if (!paper) {
-    // this throw should never happen, it's just to make typescript happy and return a paper instance
+    // This throw should never happen, it's just to make TypeScript happy and return a paper instance.
     throw new Error('Paper not found')
   }
   return paper

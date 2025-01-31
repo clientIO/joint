@@ -1,4 +1,6 @@
-/* eslint-disable no-console */
+/**
+ * This is used only for storybook stories. Internally.
+ */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { dia } from '@joint/core'
@@ -79,7 +81,6 @@ function CellExplorer({ cell, onChange }: Readonly<CellExplorerProps>) {
     <div style={{ border: '1px solid #ddd', padding: MARGIN, margin: '4px' }}>
       <h4>Cell ID: {cell.id}</h4>
       {Object.entries(cell).map(([key, value]) => {
-        console.log('re-render EditableField', key)
         return (
           <EditableField
             key={key}
@@ -99,7 +100,6 @@ interface CellsExplorerProps {
 }
 
 function CellsExplorer({ cells, onChange }: Readonly<CellsExplorerProps>) {
-  console.log('re-render CellsExplorer', cells)
   return (
     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
       {cells.map((cell) => (

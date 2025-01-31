@@ -40,7 +40,8 @@ export interface GraphProps<T extends dia.Cell.ID> {
 }
 
 /**
- * Graph provider creates a graph instance and provides it to its children.
+ * GraphProvider component creates a graph instance and provides it to its children via context.
+ * It also handles updates to the graph when cells change via React state or JointJS events.
  */
 export function GraphProvider<T extends dia.Cell.ID>(props: GraphProps<T>) {
   const { children, cellNamespace = shapes, cellModel, cells, onCellsChange } = props
