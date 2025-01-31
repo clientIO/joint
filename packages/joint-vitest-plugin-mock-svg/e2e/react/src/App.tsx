@@ -1,11 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { dia, shapes } from '@joint/core';
 
 function App() {
 
   const canvas: any = useRef(null);
-
-  const [, forceRender] = useState({}); // dummy variable for triggering a re-render
 
   useEffect(() => {
 
@@ -18,7 +16,6 @@ function App() {
       },
       frozen: true,
       async: true,
-      afterRender: () => forceRender({}), // let React know about async paper updates
       sorting: dia.Paper.sorting.APPROX,
       cellViewNamespace: shapes
     });

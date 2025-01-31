@@ -88,6 +88,8 @@
   },
   "keywords": [
     "jointjs",
+    "vitest",
+    "plugin",
     "mock",
     "svg"
   ]

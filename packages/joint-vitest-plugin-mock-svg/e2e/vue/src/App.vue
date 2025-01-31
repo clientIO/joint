@@ -5,6 +5,7 @@ import { dia, shapes } from '@joint/core';
 const canvas = ref<Element | null>(null);
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
+
 const paper = new dia.Paper({
   model: graph,
   background: {
