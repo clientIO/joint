@@ -1,5 +1,5 @@
-import { createRequire } from 'node:module';
-import inject from '@rollup/plugin-inject';
+//import { createRequire } from 'node:module';
+//import inject from '@rollup/plugin-inject';
 import type { Plugin } from 'vite';
 
 // Inspired by https://github.com/davidmyersdev/vite-plugin-node-polyfills
@@ -7,9 +7,6 @@ import type { Plugin } from 'vite';
 export const mockSVG = (): Plugin => {
 
     const mocksPackageName = '@joint/vitest-plugin-mock-svg/mocks';
-
-    const require = createRequire(import.meta.url);
-    const mocksPath = require.resolve(mocksPackageName);
     const mocksBanner = `import '${mocksPackageName}'`;
 
     return {
@@ -17,27 +14,8 @@ export const mockSVG = (): Plugin => {
 
         config: () => {
             return {
-                build: {
-                    rollupOptions: {
-                        plugins: inject({ mocks: mocksPackageName }),
-                    },
-                },
                 esbuild: {
                     banner: mocksBanner,
-                },
-                optimizeDeps: {
-                    exclude: [
-                        mocksPath,
-                    ],
-                    esbuildOptions: {
-                        banner: { js: mocksBanner },
-                        define: {
-                            mocks: 'mocks',
-                        },
-                        inject: [
-                            mocksPath,
-                        ],
-                    },
                 },
             };
         },
