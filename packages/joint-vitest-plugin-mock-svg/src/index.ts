@@ -1,5 +1,3 @@
-//import { createRequire } from 'node:module';
-//import inject from '@rollup/plugin-inject';
 import type { Plugin } from 'vite';
 
 // Inspired by https://github.com/davidmyersdev/vite-plugin-node-polyfills
