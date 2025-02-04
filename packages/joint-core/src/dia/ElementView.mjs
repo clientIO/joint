@@ -804,17 +804,23 @@ export const ElementView = CellView.extend({
 
     // Drag Handlers
 
+    snapToGrid: function(evt, x, y) {
+        const grid = this.paper.options.gridSize;
+        return {
+            x: snapToGrid(x, grid),
+            y: snapToGrid(y, grid)
+        };
+    },
+
     drag: function(evt, x, y) {
 
         var paper = this.paper;
-        var grid = paper.options.gridSize;
         var element = this.model;
         var data = this.eventData(evt);
         var { pointerOffset, restrictedArea, embedding } = data;
 
         // Make sure the new element's position always snaps to the current grid
-        var elX = snapToGrid(x + pointerOffset.x, grid);
-        var elY = snapToGrid(y + pointerOffset.y, grid);
+        const { x: elX, y: elY } = this.snapToGrid(evt, x + pointerOffset.x, y + pointerOffset.y);
 
         element.position(elX, elY, { restrictedArea, deep: true, ui: true });
 
