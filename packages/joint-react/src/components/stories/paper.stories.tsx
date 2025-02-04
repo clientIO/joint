@@ -16,12 +16,13 @@ import { useGraph } from '../../hooks/use-graph'
 import { useGraphCells } from '../../hooks/use-graph-cells'
 import { CellsExplorer } from './cell-explorer'
 import { ReactElement } from '../../models/react-element'
+import { PaperStressTestNative, PaperStressTestReact } from './paper-stress'
 
-const paperOptions: dia.Paper.Options = {
+export const paperStoryOptions: dia.Paper.Options = {
   width: 400,
   height: 400,
   background: { color: '#f8f9fa' },
-  gridSize: 10,
+  gridSize: 2,
 }
 // json representation of the cells
 const CELLS: Array<Cell<'1' | '2'>> = [
@@ -121,9 +122,9 @@ const meta: Meta<typeof Paper> = {
 }
 
 export default meta
-type Story = StoryObj<typeof Paper>
+export type PaperStory = StoryObj<typeof Paper>
 
-export const WithCellsAsReactState: Story = {
+export const WithCellsAsReactState: PaperStory = {
   args: {
     style: { border: '1px solid #ccc' },
   },
@@ -162,7 +163,7 @@ export const WithCellsAsReactState: Story = {
         </button>
         <button onClick={() => setCells([...CELLS])}>Add all cells</button>
         <UpdateCellsViaGraphApi />
-        <PaperProvider {...paperOptions}>
+        <PaperProvider {...paperStoryOptions}>
           <Paper />
         </PaperProvider>
 
@@ -179,7 +180,7 @@ function CellsExplorerViaHook() {
   return <CellsExplorer cells={cells} onChange={setCells} />
 }
 
-export const WithHooksAPI: Story = {
+export const WithHooksAPI: PaperStory = {
   args: {
     style: { border: '1px solid #ccc' },
   },
@@ -189,7 +190,7 @@ export const WithHooksAPI: Story = {
       <GraphProvider>
         <UpdateCellsViaGraphApi />
         <div style={{ display: 'flex', flex: 1 }}>
-          <PaperProvider {...paperOptions}>
+          <PaperProvider {...paperStoryOptions}>
             <Paper />
           </PaperProvider>
           {/* <Paper {...paperOptions} /> */}
@@ -200,7 +201,7 @@ export const WithHooksAPI: Story = {
   },
 }
 
-export const WithHooksAPIAndRenderElement: Story = {
+export const WithHooksAPIAndRenderElement: PaperStory = {
   args: {
     style: { border: '1px solid #ccc' },
   },
@@ -210,7 +211,7 @@ export const WithHooksAPIAndRenderElement: Story = {
       <GraphProvider cellNamespace={{ ...shapes, ReactElement }}>
         <UpdateCellsViaGraphApi />
         <div style={{ display: 'flex', flex: 1 }}>
-          <PaperProvider {...paperOptions}>
+          <PaperProvider {...paperStoryOptions}>
             <Paper
               renderElement={(element) => (
                 <div onClick={() => console.log('CLICK')}>{JSON.stringify(element)}</div>
@@ -218,9 +219,11 @@ export const WithHooksAPIAndRenderElement: Story = {
             />
           </PaperProvider>
           {/* <Paper {...paperOptions} /> */}
-          <CellsExplorerViaHook />
+          {/* <CellsExplorerViaHook /> */}
         </div>
       </GraphProvider>
     )
   },
 }
+
+export { PaperStressTestReact, PaperStressTestNative }

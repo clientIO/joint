@@ -7,7 +7,11 @@ export interface PaperPortalProps extends PaperElement {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
-  renderElement: (element: dia.Cell.JSON) => ReactNode
+  renderElement: (element: dia.Cell) => ReactNode
+  /**
+   * Internal version of the paper element.
+   */
+  version: number
 }
 
 /**
@@ -18,6 +22,13 @@ export interface PaperPortalProps extends PaperElement {
  */
 function Component(props: Readonly<PaperPortalProps>) {
   const { renderElement, cell, containerElement } = props
+  // useEffect(() => {
+  //   cell.on('change', () => {})
+  //   return () => {
+  //     cell.off('change')
+  //   }
+  // }, [])
+
   return createPortal(renderElement(cell), containerElement)
 }
 

@@ -22,9 +22,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Storybook
-.storybook-out/
-
 # Editor settings
 .vscode/
 .idea/
@@ -43,3 +40,7 @@ coverage/
 # Environment variables
 .env
 .env.*
+
+# Storybook
+storybook-static/
+.storybook-out/

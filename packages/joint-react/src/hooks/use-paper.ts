@@ -13,11 +13,11 @@ import { useGraph } from './use-graph'
  */
 export function usePaper(options?: PaperOptions): dia.Paper {
   const graph = useGraph()
-  // Try to get the paper from the context, it can be undefined if there is no PaperContext.
-  const paperCtx = useContext(PaperContext)
   if (!graph) {
     throw new Error('usePaper must be used within a GraphProvider')
   }
+  // Try to get the paper from the context, it can be undefined if there is no PaperContext.
+  const paperCtx = useContext(PaperContext)
   // If paper is not inside the PaperContext, create a new paper instance.
   const [paperState] = useState<dia.Paper | null>(() => {
     if (paperCtx) {

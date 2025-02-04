@@ -1,9 +1,10 @@
 import type { dia } from '@joint/core'
+import { BaseCell, RequiredCell } from '../types/cell.types'
 
 /**
  * Updates the graph with new cells.
  */
-export function updateGraph(graph: dia.Graph, cells: Array<dia.Cell.JSON>) {
+export function updateGraph<T extends RequiredCell = BaseCell>(graph: dia.Graph, cells: T[]) {
   if (cells.length === 0) {
     graph.clear()
     return
