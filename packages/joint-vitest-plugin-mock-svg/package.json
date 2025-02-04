@@ -2,7 +2,7 @@
   "name": "@joint/vitest-plugin-mock-svg",
   "title": "JointJS Mock SVG",
   "version": "0.1.0",
-  "description": "A Vite plugin to mock SVG global constants required for JointJS testing.",
+  "description": "A Vitest plugin to mock SVG global constants required for JointJS testing.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
