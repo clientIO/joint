@@ -58,7 +58,6 @@
     "@joint/vitest-plugin-mock-svg": "workspace:~",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.1.0",
-    "@testing-library/vue": "^8.1.0",
     "@tsconfig/node18": "^18.2.0",
     "@types/node": "^18.18.8",
     "@types/react": "^18.0.15",

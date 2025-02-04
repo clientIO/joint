@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { dia, shapes } from '@joint/core';
+import { dia, shapes, elementTools } from '@joint/core';
 
 const canvas = ref<Element | null>(null);
 
@@ -11,8 +11,6 @@ const paper = new dia.Paper({
   background: {
     color: '#F8F9FA'
   },
-  frozen: true,
-  async: true,
   sorting: dia.Paper.sorting.APPROX,
   cellViewNamespace: shapes
 });
@@ -29,9 +27,17 @@ const rect = new shapes.standard.Rectangle({
 
 graph.addCell(rect);
 
+const toolsView = new dia.ToolsView({
+  tools: [
+    new elementTools.Boundary({ padding: 10 }),
+    new elementTools.Remove(),
+  ]
+});
+rect.findView(paper).addTools(toolsView);
+rect.findView(paper).vel.translateAndAutoOrient({ x: 10, y: 10, }, { x: 100, y: 100 }, paper.svg);
+
 onMounted(() => {
   canvas.value?.appendChild(paper.el);
-  paper.unfreeze();
 });
 </script>
 

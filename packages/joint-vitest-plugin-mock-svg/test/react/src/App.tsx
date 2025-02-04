@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { dia, shapes } from '@joint/core';
+import { dia, shapes, elementTools } from '@joint/core';
 
 function App() {
 
@@ -14,8 +14,6 @@ function App() {
       background: {
         color: '#F8F9FA',
       },
-      frozen: true,
-      async: true,
       sorting: dia.Paper.sorting.APPROX,
       cellViewNamespace: shapes
     });
@@ -27,13 +25,21 @@ function App() {
       size: { width: 100, height: 50 },
       attrs: {
         label: {
-            text: 'Hello World'
+          text: 'Hello World'
         }
        }
     });
 
     graph.addCell(rect);
-    paper.unfreeze();
+
+    const toolsView = new dia.ToolsView({
+      tools: [
+        new elementTools.Boundary({ padding: 10 }),
+        new elementTools.Remove(),
+      ]
+    });
+    rect.findView(paper).addTools(toolsView);
+    rect.findView(paper).vel.translateAndAutoOrient({ x: 10, y: 10, }, { x: 100, y: 100 }, paper.svg);
 
     return () => {
       paper.remove();
