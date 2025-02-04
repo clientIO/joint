@@ -809,7 +809,7 @@ export const ElementView = CellView.extend({
         return {
             x: snapToGrid(x, grid),
             y: snapToGrid(y, grid)
-        }
+        };
     },
 
     drag: function(evt, x, y) {
