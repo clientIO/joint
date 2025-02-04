@@ -1090,6 +1090,8 @@ export namespace dia {
 
         protected dragMagnetEnd(evt: dia.Event, x: number, y: number): void;
 
+        protected snapToGrid(evt: dia.Event, x: number, y: number): dia.Point;
+
         protected prepareEmbedding(data: any): void;
 
         protected processEmbedding(data: any, evt: dia.Event, x: number, y: number): void;
