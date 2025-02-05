@@ -95,11 +95,11 @@ function CellExplorer({ cell, onChange }: Readonly<CellExplorerProps>) {
 }
 
 interface CellsExplorerProps {
-  cells: dia.Cell.JSON[]
+  elements: dia.Cell.JSON[]
   onChange: (cells: dia.Cell.JSON[]) => void
 }
 
-function CellsExplorer({ cells, onChange }: Readonly<CellsExplorerProps>) {
+function CellsExplorer({ elements: cells, onChange }: Readonly<CellsExplorerProps>) {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
       {cells.map((cell) => {

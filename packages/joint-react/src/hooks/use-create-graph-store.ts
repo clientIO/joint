@@ -30,8 +30,11 @@ interface Options {
 }
 
 // Cached cells
-const CELLS = new Map<GraphId, dia.Cell[]>()
-const EMPTY_ARRAY: dia.Cell[] = []
+const ELEMENTS = new Map<GraphId, dia.Element[]>()
+const LINKS = new Map<GraphId, dia.Link[]>()
+
+const EMPTY_ELEMENTS: dia.Element[] = []
+const EMPTY_LINKS: dia.Link[] = []
 
 export interface GraphStore {
   /**
@@ -41,15 +44,13 @@ export interface GraphStore {
   /**
    * Subscribes to the store changes.
    */
-  readonly subscribe: (onStoreChange: () => void) => () => void
+  readonly subscribeToElements: (onStoreChange: () => void) => () => void
+  readonly subscribeToLinks: (onStoreChange: () => void) => () => void
   /**
    * Get memoized / cached snapshot of the graph cells.
    */
-  readonly getSnapshot: () => dia.Cell[]
-  /**
-   * Get the server snapshot of the graph cells.
-   */
-  readonly getServerSnapshot: () => dia.Cell[]
+  readonly getElementsSnapshot: () => dia.Element[]
+  readonly getLinksSnapshot: () => dia.Link[]
 }
 
 /**
@@ -62,7 +63,8 @@ export function useCreateGraphStore(options: Options): GraphStore {
   // Generate a unique ID for the graph, use react `useId` hook
   const graphId: GraphId = useId()
   // Store subscribers
-  const subscribers = useRef(new Set<() => void>())
+  const elementSubscribers = useRef(new Set<() => void>())
+  const linkSubscribers = useRef(new Set<() => void>())
 
   // initialize graph instance and save it in the store
   const [graph] = useState(() => {
@@ -71,37 +73,71 @@ export function useCreateGraphStore(options: Options): GraphStore {
     if (cells !== undefined) {
       graph.resetCells(cells)
     }
-    CELLS.set(graphId, newGraph.getCells())
+    ELEMENTS.set(graphId, newGraph.getElements())
+    LINKS.set(graphId, newGraph.getLinks())
     return newGraph
   })
 
   const handleCellsChange = useCallback(
     (cell: dia.Cell, eventType: ChangeEvent) => {
       // update cells
-      const oldCells = CELLS.get(graphId) ?? EMPTY_ARRAY
-      switch (eventType) {
-        case 'add': {
-          CELLS.set(graphId, [...oldCells, cell])
-          break
+      if (cell.isElement()) {
+        const previousElements = ELEMENTS.get(graphId) ?? []
+        switch (eventType) {
+          case 'add': {
+            ELEMENTS.set(graphId, [...previousElements, cell])
+            break
+          }
+          case 'remove': {
+            ELEMENTS.set(
+              graphId,
+              previousElements.filter((c) => c !== cell)
+            )
+            break
+          }
+          case 'change': {
+            ELEMENTS.set(
+              graphId,
+              previousElements.map((c) => (c.id === cell.id ? cell : c))
+            )
+            break
+          }
         }
-        case 'remove': {
-          CELLS.set(
-            graphId,
-            oldCells.filter((c) => c !== cell)
-          )
-          break
+
+        // notify subscribers
+        for (const subscriber of elementSubscribers.current) {
+          subscriber()
         }
-        case 'change': {
-          CELLS.set(
-            graphId,
-            oldCells.map((c) => (c.id === cell.id ? cell : c))
-          )
-          break
-        }
+        return
       }
-      // notify subscribers
-      for (const subscriber of subscribers.current) {
-        subscriber()
+
+      if (cell.isLink()) {
+        const previousLinks = LINKS.get(graphId) ?? []
+        switch (eventType) {
+          case 'add': {
+            LINKS.set(graphId, [...previousLinks, cell])
+            break
+          }
+          case 'remove': {
+            LINKS.set(
+              graphId,
+              previousLinks.filter((c) => c !== cell)
+            )
+            break
+          }
+          case 'change': {
+            LINKS.set(
+              graphId,
+              previousLinks.map((c) => (c.id === cell.id ? cell : c))
+            )
+            break
+          }
+        }
+
+        // notify subscribers
+        for (const subscriber of linkSubscribers.current) {
+          subscriber()
+        }
       }
     },
     [graphId]
@@ -112,25 +148,31 @@ export function useCreateGraphStore(options: Options): GraphStore {
     const unsubscribe = listenToCellChange(graph, handleCellsChange)
     return () => {
       unsubscribe()
-      CELLS.delete(graphId)
+      ELEMENTS.delete(graphId)
     }
   }, [graph, graphId, handleCellsChange])
 
   return useMemo(
     () => ({
       graph,
-      subscribe: (onStoreChange: () => void) => {
-        subscribers.current.add(onStoreChange)
+      subscribeToElements: (onStoreChange: () => void) => {
+        elementSubscribers.current.add(onStoreChange)
         return () => {
-          subscribers.current.delete(onStoreChange)
+          elementSubscribers.current.delete(onStoreChange)
         }
       },
-      getSnapshot: () => {
-        return CELLS.get(graphId) ?? EMPTY_ARRAY
+      subscribeToLinks: (onStoreChange: () => void) => {
+        linkSubscribers.current.add(onStoreChange)
+        return () => {
+          linkSubscribers.current.delete(onStoreChange)
+        }
       },
-      getServerSnapshot: () => {
-        // This should be called just once.
-        return graph.getCells()
+      getElementsSnapshot: () => {
+        return ELEMENTS.get(graphId) ?? EMPTY_ELEMENTS
+      },
+
+      getLinksSnapshot: () => {
+        return LINKS.get(graphId) ?? EMPTY_LINKS
       },
     }),
     [graph, graphId]

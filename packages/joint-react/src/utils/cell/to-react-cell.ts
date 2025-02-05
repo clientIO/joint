@@ -1,14 +1,12 @@
 import type { dia } from '@joint/core'
-import type { BaseCell, RequiredCell } from '../../types/cell.types'
+import type { BaseElement, BaseLink } from '../../types/cell.types'
 
-export function defaultCellSelector<T extends RequiredCell>(cell: dia.Cell): T {
-  const position: dia.Point | undefined = cell.get('position')
-  if (!position) {
-    return { id: cell.id } as unknown as T
-  }
+export function defaultElementSelector<T>(cell: dia.Cell): T {
+  const position: dia.Point = cell.get('position')
+
   const { x, y } = position
 
-  const size: dia.Size | undefined = cell.get('size')
+  const size: dia.Size = cell.get('size')
   return {
     id: cell.id,
     type: cell.get('type'),
@@ -20,16 +18,38 @@ export function defaultCellSelector<T extends RequiredCell>(cell: dia.Cell): T {
   } as unknown as T
 }
 
-export function toBaseCell<T extends RequiredCell = BaseCell>(
+export function toBaseElement<T = BaseElement>(
   cells: dia.Cell,
-  selector: (item: dia.Cell) => T = defaultCellSelector
+  selector: (item: dia.Cell) => T = defaultElementSelector
 ): T {
   return selector(cells)
 }
 
-export function toBaseCells<T extends RequiredCell = BaseCell>(
+export function toBaseElements<T = BaseElement>(
   cells: dia.Cell[],
-  selector: (item: dia.Cell) => T = defaultCellSelector
+  selector: (item: dia.Cell) => T = defaultElementSelector
+): T[] {
+  return cells.map(selector)
+}
+
+export function defaultLinkSelector<T>(cell: dia.Cell): T {
+  return {
+    id: cell.id,
+    target: cell.get('target'),
+    source: cell.get('source'),
+  } as unknown as T
+}
+
+export function toBaseLink<T = BaseElement>(
+  cells: dia.Cell,
+  selector: (item: dia.Cell) => T = defaultLinkSelector
+): T {
+  return selector(cells)
+}
+
+export function toBaseLinks<T = BaseLink>(
+  cells: dia.Cell[],
+  selector: (item: dia.Cell) => T = defaultLinkSelector
 ): T[] {
   return cells.map(selector)
 }

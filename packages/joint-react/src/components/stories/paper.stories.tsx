@@ -6,13 +6,12 @@
 
 import type { Meta, StoryObj } from '@storybook/react'
 import type { dia } from '@joint/core'
-
 import { shapes } from '@joint/core'
 import { GraphProvider } from '../graph-provider'
 import { PaperProvider } from '../paper-provider'
 import { Paper } from '../paper'
 import { useGraphStore } from '../../hooks/use-graph-store'
-import { useGraphCells } from '../../hooks/use-graph-cells'
+import { useElements } from '../../hooks/use-elements'
 import { CellsExplorer } from './cell-explorer'
 import { ReactElement } from '../../models/react-element'
 
@@ -93,9 +92,9 @@ export default meta
 export type PaperStory = StoryObj<typeof Paper>
 
 function CellsExplorerViaHook() {
-  const cells = useGraphCells((cell) => cell.toJSON())
+  const elements = useElements((cell) => cell.toJSON())
   const setCells = useSetGraphCells()
-  return <CellsExplorer cells={cells} onChange={setCells} />
+  return <CellsExplorer elements={elements} onChange={setCells} />
 }
 
 export const WithHooksAPI: PaperStory = {

@@ -38,13 +38,14 @@ function updateExistingCell(graph: dia.Graph, cell: dia.Cell, newCell: CellItem)
   }
 }
 
-function removeAbsentCells(originalCells: dia.Cell[], cellsMap: Record<string, dia.Cell>) {
-  for (const cell of originalCells) {
-    if (!cellsMap[cell.id]) {
-      cell.remove()
-    }
-  }
-}
+// TODO: maybe it will be needed
+// function removeAbsentCells(originalCells: dia.Cell[], cellsMap: Record<string, dia.Cell>) {
+//   for (const cell of originalCells) {
+//     if (!cellsMap[cell.id]) {
+//       cell.remove()
+//     }
+//   }
+// }
 
 /**
  * Updates the graph with new cells.
@@ -55,9 +56,9 @@ export function updateGraph(graph: dia.Graph, cells: Array<CellItem>) {
     return
   }
 
-  const originalCells = graph.getCells()
+  // const originalCells = graph.getCells()
   const cellsMap: Record<string, dia.Cell> = {}
 
   for (const newCell of cells) processNewCell(graph, newCell, cellsMap)
-  removeAbsentCells(originalCells, cellsMap)
+  // removeAbsentCells(originalCells, cellsMap)
 }

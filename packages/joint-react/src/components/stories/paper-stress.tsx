@@ -11,7 +11,7 @@ import { PaperProvider } from '../paper-provider'
 import type { PaperStory } from './paper.stories'
 import { useSetGraphCells } from '../../hooks/use-set-graph-cells'
 import { updateGraph } from '../../utils/update-graph'
-import { useGraphCells } from '../../hooks/use-graph-cells'
+import { useElements } from '../../hooks/use-elements'
 
 const paperStoryOptions: dia.Paper.Options = {
   width: 400,
@@ -53,11 +53,10 @@ function createElements(xCount: number, yCount: number) {
   return elements
 }
 
-graph.addCells(createElements(30, 30))
-notUsedGraph.addCells(createElements(30, 30))
+graph.addCells(createElements(15, 30))
+notUsedGraph.addCells(createElements(15, 30))
 function RandomChange() {
-  const cells = useGraphCells()
-  // const cells = []
+  const elements = useElements()
   const setCells = useSetGraphCells()
 
   return (
@@ -79,7 +78,7 @@ function RandomChange() {
           console.timeEnd('Random move')
         }}
       >
-        Random move {cells.length} elements
+        Random move {elements.length} elements
       </button>
 
       <button

@@ -7,7 +7,7 @@ export type CellItem = dia.Cell | dia.Cell.JSON
 export type CellSetter = (oldCells: Array<dia.Cell>) => Array<CellItem>
 
 export function useSetGraphCells() {
-  const { graph, getSnapshot } = useGraphStore()
+  const { graph, getElementsSnapshot: getSnapshot } = useGraphStore()
   return useCallback(
     (update: CellSetter | CellItem[]) => {
       if (typeof update === 'function') {

@@ -1,9 +1,9 @@
 import { type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import typedMemo from '../utils/typed-memo'
-import type { BaseCell, RequiredCell } from '../types/cell.types'
+import type { BaseElement, RequiredCell } from '../types/cell.types'
 
-export interface PaperPortalProps<T extends RequiredCell = BaseCell> {
+export interface PaperPortalProps<T extends RequiredCell = BaseElement> {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
@@ -17,7 +17,7 @@ export interface PaperPortalProps<T extends RequiredCell = BaseCell> {
  * It takes a renderElement function, a cell, and a containerElement as props.
  * The renderElement function is called with the cell as an argument and its return value is rendered inside the containerElement.
  */
-function Component<T extends RequiredCell = BaseCell>(props: PaperPortalProps<T> & T) {
+function Component<T extends RequiredCell = BaseElement>(props: PaperPortalProps<T> & T) {
   const { renderElement, portalHtmlElement, ...rest } = props
   const cell = rest as unknown as T
   return createPortal(renderElement(cell), portalHtmlElement)

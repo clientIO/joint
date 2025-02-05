@@ -2,9 +2,9 @@ import { type dia } from '@joint/core'
 import { useCallback, useState, type CSSProperties, type ReactNode } from 'react'
 import { usePaper } from '../hooks/use-paper'
 import { PaperPortal } from './paper-portal'
-import { useGraphCells } from '../hooks/use-graph-cells'
-import type { BaseCell, RequiredCell } from '../types/cell.types'
-import { defaultCellSelector } from '../utils/cell/to-react-cell'
+import { useElements } from '../hooks/use-elements'
+import type { BaseElement, RequiredCell } from '../types/cell.types'
+import { defaultElementSelector } from '../utils/cell/to-react-cell'
 import typedMemo from '../utils/typed-memo'
 
 /**
@@ -12,7 +12,7 @@ import typedMemo from '../utils/typed-memo'
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<T extends RequiredCell = BaseCell> extends dia.Paper.Options {
+export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Paper.Options {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
@@ -46,13 +46,13 @@ export interface PaperProps<T extends RequiredCell = BaseCell> extends dia.Paper
 /**
  * Paper component that renders the JointJS paper element.
  */
-function Component<T extends RequiredCell = BaseCell>(props: Readonly<PaperProps<T>>) {
+function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperProps<T>>) {
   const {
     renderElement,
     onReady,
     style,
     className,
-    elementSelector = defaultCellSelector,
+    elementSelector = defaultElementSelector,
     ...paperOptions
   } = props
 
@@ -77,13 +77,13 @@ function Component<T extends RequiredCell = BaseCell>(props: Readonly<PaperProps
     ...paperOptions,
     onRenderElement,
   })
-  const cells = useGraphCells(elementSelector)
+  const elements = useElements(elementSelector)
   const hasRenderElement = !!renderElement
 
   return (
     <div className={className} ref={paperHtmlDivRef} style={style}>
       {hasRenderElement &&
-        cells.map((cell) => {
+        elements.map((cell) => {
           if (!cell) {
             return null
           }
