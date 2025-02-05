@@ -1,6 +1,6 @@
-import { useId, useMemo, useState } from 'react'
 import { GraphContext } from '../context/graph-context'
-import { dia, shapes } from '@joint/core'
+import type { dia } from '@joint/core'
+import { useCreateGraphStore } from '../hooks/use-create-graph-store'
 
 export interface GraphProps {
   /**
@@ -25,11 +25,9 @@ export interface GraphProps {
    */
   readonly cellModel?: typeof dia.Cell
   /**
-   * Callback to handle cells change.
-   * This handle events directly from the graph instance.
-   * This event is not triggered when cells are changed via React state.
+   * Initial cells to be added to graph
    */
-  readonly onCellsChange?: (cells: Array<dia.Cell>) => void
+  readonly cells?: Array<dia.Cell | dia.Cell.JSON>
 }
 
 /**
@@ -37,12 +35,8 @@ export interface GraphProps {
  * It also handles updates to the graph when cells change via React state or JointJS events.
  */
 export function GraphProvider(props: GraphProps) {
-  const { children, cellNamespace = shapes, cellModel, onCellsChange } = props
+  const { children, ...rest } = props
+  const graphStore = useCreateGraphStore(rest)
 
-  const [graphValue] = useState(() => {
-    const graph = props.graph ?? new dia.Graph({}, { cellNamespace, cellModel })
-    return graph
-  })
-
-  return <GraphContext.Provider value={graphValue}>{children}</GraphContext.Provider>
+  return <GraphContext.Provider value={graphStore}>{children}</GraphContext.Provider>
 }

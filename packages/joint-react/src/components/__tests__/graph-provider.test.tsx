@@ -3,6 +3,7 @@ import { render } from '@testing-library/react'
 import { GraphProvider } from '../graph-provider'
 import { dia } from '@joint/core'
 import { GraphContext } from '../../context/graph-context'
+import type { GraphStore } from '../../hooks/use-create-graph-store'
 
 describe('graph-provider', () => {
   it('should render children and match snapshot', () => {
@@ -16,7 +17,7 @@ describe('graph-provider', () => {
   })
 
   it('should provide a graph instance in context', () => {
-    let contextGraph: dia.Graph | undefined
+    let contextGraph: GraphStore | undefined
     function TestComponent() {
       contextGraph = React.useContext(GraphContext)
       return null

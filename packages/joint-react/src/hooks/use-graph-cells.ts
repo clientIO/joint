@@ -1,32 +1,24 @@
-import { useEffect, useState } from 'react'
-import { useGraph } from './use-graph'
+import { useGraphStore } from './use-graph-store'
 import type { dia } from '@joint/core'
-import { listenToCellChange } from '../utils/cell/listen-to-cell-change'
-import { toBaseCells } from '../utils/cell/to-react-cell'
-import { BaseCell, RequiredCell } from '../types/cell.types'
+import type { BaseCell, RequiredCell } from '../types/cell.types'
+import { useMemo, useSyncExternalStore } from 'react'
+import { defaultCellSelector } from '../utils/cell/to-react-cell'
 
 /**
- * Custom hook to manage the state of graph cells.
+ * Custom hook to manage the state of graph cells with optional item selector.
+ * @param selector A function to select the properties of the cells.  @default BaseCell
  * @returns A tuple containing the cells in JSON format and a setter function for updating the cells.
  */
 export function useGraphCells<T extends RequiredCell = BaseCell>(
-  selector?: (item: dia.Cell) => T
-): [T[]] {
-  const graph = useGraph()
+  selector: (item: dia.Cell) => T = defaultCellSelector
+): T[] {
+  const graphStore = useGraphStore()
 
-  const [cells, setCells] = useState(() => toBaseCells(graph.getCells(), selector))
+  const cells = useSyncExternalStore(
+    graphStore.subscribe,
+    graphStore.getSnapshot,
+    graphStore.getServerSnapshot
+  )
 
-  useEffect(() => {
-    // There is a question if we want to make updates with graph.getCells()
-    // or with the cell parameter and maybe with some event info - removed, change, add.
-    const handleCellsChange = () => {
-      setCells(toBaseCells(graph.getCells(), selector))
-    }
-    return listenToCellChange(graph, handleCellsChange)
-  }, [graph])
-
-  const cells1 = graph.getCells()
-  const cells2 = graph.getCells()
-  console.log('Is same reference', cells1 === cells2)
-  return cells
+  return useMemo(() => cells.map((cell) => selector(cell)), [cells, selector])
 }

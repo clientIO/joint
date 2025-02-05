@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
+ 
 import { render, waitFor } from '@testing-library/react'
 import { GraphProvider } from '../graph-provider'
 import { PaperProvider } from '../paper-provider'
@@ -7,27 +7,7 @@ import { Paper } from '../paper'
 describe('paper', () => {
   it('should render paper component without errors', async () => {
     const { asFragment, getByText } = render(
-      <GraphProvider
-        cells={[
-          {
-            id: '1',
-            type: 'standard.Rectangle',
-            position: { x: 10, y: 100 },
-            attrs: { label: { text: 'testing-rectangle1' } },
-          },
-          {
-            id: '2',
-            type: 'standard.Rectangle',
-            position: { x: 10, y: 100 },
-            attrs: { label: { text: 'testing-rectangle2' } },
-          },
-          {
-            type: 'standard.Link',
-            source: { id: '1' },
-            target: { id: '2' },
-          },
-        ]}
-      >
+      <GraphProvider>
         <PaperProvider>
           <Paper />
         </PaperProvider>

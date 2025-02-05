@@ -1,4 +1,4 @@
-import { dia } from '@joint/core'
+import type { dia } from '@joint/core'
 export interface RequiredCell {
   readonly id: dia.Cell.ID
 }

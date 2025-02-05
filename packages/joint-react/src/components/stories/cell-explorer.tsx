@@ -102,16 +102,29 @@ interface CellsExplorerProps {
 function CellsExplorer({ cells, onChange }: Readonly<CellsExplorerProps>) {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-      {cells.map((cell) => (
-        <CellExplorer
-          key={cell.id}
-          cell={cell}
-          onChange={(newCell) => {
-            const updatedCells = cells.map((c) => (c.id === newCell.id ? newCell : c))
-            onChange(updatedCells)
-          }}
-        />
-      ))}
+      {cells.map((cell) => {
+        if (!cell) {
+          return null
+        }
+        return (
+          <CellExplorer
+            key={cell.id}
+            cell={cell}
+            onChange={(newCell) => {
+              const updatedCells = cells.map((c) => {
+                if (!c) {
+                  return c
+                }
+                if (c.id === newCell.id) {
+                  return newCell
+                }
+                return c
+              })
+              onChange(updatedCells)
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
