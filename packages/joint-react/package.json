@@ -1,0 +1,55 @@
+{
+  "name": "@joint/react",
+  "title": "JointJS React",
+  "version": "0.1.1",
+  "description": "React module for JointJS",
+  "main": "build/index.js",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-decorators"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MPL-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "build/",
+    "src/",
+    "README.md"
+  ],
+  "dependencies": {
+    "@joint/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "scripts": {
+    "build": "babel src/*.jsx -d build",
+    "dist": "yarn build",
+    "prepublish": "yarn build"
+  },
+  "volta": {
+    "node": "16.18.1",
+    "npm": "8.19.2",
+    "yarn": "3.4.1"
+  },
+  "keywords": [
+    "jointjs",
+    "react"
+  ],
+  "devDependencies": {
+    "@babel/cli": "^7.23.0",
+    "@babel/core": "^7.23.3",
+    "@babel/preset-react": "^7.23.3"
+  }
+}
