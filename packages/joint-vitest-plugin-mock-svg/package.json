@@ -1,7 +1,7 @@
 {
   "name": "@joint/vitest-plugin-mock-svg",
   "title": "JointJS Mock SVG",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Vitest plugin to mock SVG global constants required for JointJS testing.",
   "type": "module",
   "main": "./dist/index.cjs",
