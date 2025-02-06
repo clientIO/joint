@@ -93,7 +93,7 @@ export type PaperStory = StoryObj<typeof Paper>
 
 function CellsExplorerViaHook() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const elements = useElements((cell) => (cell as any).toJSON())
+  const elements = useElements((cell) => cell.map((item) => item.toJSON()))
   const setCells = useSetCells()
   return <CellsExplorer elements={elements} onChange={setCells} />
 }

@@ -97,10 +97,9 @@ export function useCreateGraphStore(options: Options): GraphStore {
           }
           case 'change': {
             // we need to create new reference for the cell.
-            const newCell = new dia.Element({ ...cell, ...cell.attributes })
             ELEMENTS.set(
               graphId,
-              previousElements.map((element) => (element.id === cell.id ? newCell : element))
+              previousElements.map((element) => (element.id === cell.id ? cell : element))
             )
             break
           }
@@ -129,10 +128,9 @@ export function useCreateGraphStore(options: Options): GraphStore {
           }
           case 'change': {
             // we need to create new reference for the cell.
-            const newCell = new dia.Link({ ...cell, ...cell.attributes })
             LINKS.set(
               graphId,
-              previousLinks.map((link) => (link.id === cell.id ? newCell : link))
+              previousLinks.map((link) => (link.id === cell.id ? cell : link))
             )
             break
           }
@@ -153,6 +151,7 @@ export function useCreateGraphStore(options: Options): GraphStore {
     return () => {
       unsubscribe()
       ELEMENTS.delete(graphId)
+      LINKS.delete(graphId)
     }
   }, [graph, graphId, handleCellsChange])
 

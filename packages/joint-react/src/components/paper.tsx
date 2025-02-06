@@ -3,17 +3,19 @@ import { useCallback, useState, type CSSProperties, type ReactNode } from 'react
 import { usePaper } from '../hooks/use-paper'
 import { PaperPortal } from './paper-portal'
 import { useElements } from '../hooks/use-elements'
-import type { RequiredCell } from '../types/cell.types'
+import type { BaseElement, RequiredCell } from '../types/cell.types'
 import typedMemo from '../utils/typed-memo'
+import { defaultElementSelector } from '../utils/cell/to-react-cell'
 
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<T extends RequiredCell = dia.Cell> extends dia.Paper.Options {
+export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Paper.Options {
   /**
    * A function that renders the element. It is called every time the element is rendered.
+   * @default (element: T) => BaseElement
    */
   renderElement?: (element: T) => ReactNode
   /**
@@ -37,7 +39,8 @@ export interface PaperProps<T extends RequiredCell = dia.Cell> extends dia.Paper
 
   /**
    * A function that selects the elements to be rendered.
-   * @default BaseCell
+   * It defaults to the `defaultElementSelector` function which return `BaseElement` because dia.Element is not a valid React element (it do not change reference after update).
+   * @default (item: dia.Cell) => BaseElement
    */
   elementSelector?: (item: dia.Cell) => T
 }
@@ -45,13 +48,13 @@ export interface PaperProps<T extends RequiredCell = dia.Cell> extends dia.Paper
 /**
  * Paper component that renders the JointJS paper element.
  */
-function Component<T extends RequiredCell = dia.Cell>(props: Readonly<PaperProps<T>>) {
+function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperProps<T>>) {
   const {
     renderElement,
     onReady,
     style,
     className,
-    elementSelector = (items) => items as unknown as T,
+    elementSelector = defaultElementSelector,
     ...paperOptions
   } = props
 

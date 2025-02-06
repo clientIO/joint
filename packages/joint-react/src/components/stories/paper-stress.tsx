@@ -46,6 +46,16 @@ function createElements(xCount: number, yCount: number) {
             target: { id: `${x}-${y}` },
           })
         )
+        // add link to next element
+        if (y > 0) {
+          elements.push(
+            new shapes.standard.Link({
+              id: `${x}-${y - 1}-${x}-${y}`,
+              source: { id: `${x}-${y - 1}` },
+              target: { id: `${x}-${y}` },
+            })
+          )
+        }
       }
     }
   }
@@ -53,9 +63,11 @@ function createElements(xCount: number, yCount: number) {
 }
 
 graph.addCells(createElements(15, 30))
+
+console.log(graph)
 notUsedGraph.addCells(createElements(15, 30))
 function RandomChange() {
-  const elementsSize = useElements((items) => items.map((item) => item.id))
+  const elementsSize = useElements((items) => items.length)
   const setCells = useSetCells()
   console.log('re-render RandomChange Component', elementsSize)
   return (
@@ -77,7 +89,7 @@ function RandomChange() {
           console.timeEnd('Random move')
         }}
       >
-        {/* Random move {elementsSize.length} elements */}
+        Random move {elementsSize} elements
       </button>
 
       <button
@@ -153,7 +165,7 @@ export const PaperStressTestReact: PaperStory = {
               console.log('re-render renderElement')
               return (
                 <div style={{ fontSize: 12 }} onClick={() => console.log('Click from React')}>
-                  {JSON.stringify(element.attributes.position)}
+                  {JSON.stringify(element.x)}
                 </div>
               )
             }}
