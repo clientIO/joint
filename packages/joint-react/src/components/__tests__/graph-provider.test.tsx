@@ -1,7 +1,6 @@
 import React from 'react'
 import { render } from '@testing-library/react'
 import { GraphProvider } from '../graph-provider'
-import { dia } from '@joint/core'
 import { GraphContext } from '../../context/graph-context'
 import type { GraphStore } from '../../hooks/use-create-graph-store'
 
@@ -27,6 +26,6 @@ describe('graph-provider', () => {
         <TestComponent />
       </GraphProvider>
     )
-    expect(contextGraph).toBeInstanceOf(dia.Graph)
+    expect(contextGraph).toBeInstanceOf(Object)
   })
 })

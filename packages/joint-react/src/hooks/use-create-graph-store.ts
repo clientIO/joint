@@ -91,14 +91,16 @@ export function useCreateGraphStore(options: Options): GraphStore {
           case 'remove': {
             ELEMENTS.set(
               graphId,
-              previousElements.filter((c) => c !== cell)
+              previousElements.filter((element) => element.id !== cell.id)
             )
             break
           }
           case 'change': {
+            // we need to create new reference for the cell.
+            const newCell = new dia.Element({ ...cell, ...cell.attributes })
             ELEMENTS.set(
               graphId,
-              previousElements.map((c) => (c.id === cell.id ? cell : c))
+              previousElements.map((element) => (element.id === cell.id ? newCell : element))
             )
             break
           }
@@ -121,14 +123,16 @@ export function useCreateGraphStore(options: Options): GraphStore {
           case 'remove': {
             LINKS.set(
               graphId,
-              previousLinks.filter((c) => c !== cell)
+              previousLinks.filter((link) => link.id !== cell.id)
             )
             break
           }
           case 'change': {
+            // we need to create new reference for the cell.
+            const newCell = new dia.Link({ ...cell, ...cell.attributes })
             LINKS.set(
               graphId,
-              previousLinks.map((c) => (c.id === cell.id ? cell : c))
+              previousLinks.map((link) => (link.id === cell.id ? newCell : link))
             )
             break
           }

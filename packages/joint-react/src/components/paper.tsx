@@ -3,8 +3,7 @@ import { useCallback, useState, type CSSProperties, type ReactNode } from 'react
 import { usePaper } from '../hooks/use-paper'
 import { PaperPortal } from './paper-portal'
 import { useElements } from '../hooks/use-elements'
-import type { BaseElement, RequiredCell } from '../types/cell.types'
-import { defaultElementSelector } from '../utils/cell/to-react-cell'
+import type { RequiredCell } from '../types/cell.types'
 import typedMemo from '../utils/typed-memo'
 
 /**
@@ -12,7 +11,7 @@ import typedMemo from '../utils/typed-memo'
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Paper.Options {
+export interface PaperProps<T extends RequiredCell = dia.Cell> extends dia.Paper.Options {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
@@ -46,13 +45,13 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
 /**
  * Paper component that renders the JointJS paper element.
  */
-function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperProps<T>>) {
+function Component<T extends RequiredCell = dia.Cell>(props: Readonly<PaperProps<T>>) {
   const {
     renderElement,
     onReady,
     style,
     className,
-    elementSelector = defaultElementSelector,
+    elementSelector = (items) => items as unknown as T,
     ...paperOptions
   } = props
 
@@ -60,9 +59,7 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
 
   const onRenderElement = useCallback(
     (element: dia.Element, portalElement: HTMLElement) => {
-      if (onReady) {
-        onReady()
-      }
+      onReady?.()
       setHtmlElements((previousState) => {
         return {
           ...previousState,
@@ -77,27 +74,27 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
     ...paperOptions,
     onRenderElement,
   })
-  const elements = useElements(elementSelector)
+
+  const elements = useElements((items) => items.map(elementSelector))
   const hasRenderElement = !!renderElement
 
   return (
     <div className={className} ref={paperHtmlDivRef} style={style}>
       {hasRenderElement &&
         elements.map((cell) => {
-          if (!cell) {
-            return null
-          }
           const portalHtmlElement = htmlElements[cell.id]
           if (!portalHtmlElement) {
             return null
           }
           return (
+            // <CellContext.Provider key={cell.id} value={cell}>
             <PaperPortal
               key={cell.id}
               {...cell}
               portalHtmlElement={portalHtmlElement}
               renderElement={renderElement}
             />
+            // </CellContext.Provider>
           )
         })}
     </div>

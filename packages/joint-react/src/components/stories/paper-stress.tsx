@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-small-switch */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable no-console */
@@ -9,7 +8,7 @@ import { GraphProvider } from '../graph-provider'
 import { Paper } from '../paper'
 import { PaperProvider } from '../paper-provider'
 import type { PaperStory } from './paper.stories'
-import { useSetGraphCells } from '../../hooks/use-set-graph-cells'
+import { useSetCells } from '../../hooks/use-set-cells'
 import { updateGraph } from '../../utils/update-graph'
 import { useElements } from '../../hooks/use-elements'
 
@@ -56,9 +55,9 @@ function createElements(xCount: number, yCount: number) {
 graph.addCells(createElements(15, 30))
 notUsedGraph.addCells(createElements(15, 30))
 function RandomChange() {
-  const elements = useElements()
-  const setCells = useSetGraphCells()
-
+  const elementsSize = useElements((items) => items.map((item) => item.id))
+  const setCells = useSetCells()
+  console.log('re-render RandomChange Component', elementsSize)
   return (
     <>
       <button
@@ -78,7 +77,7 @@ function RandomChange() {
           console.timeEnd('Random move')
         }}
       >
-        Random move {elements.length} elements
+        {/* Random move {elementsSize.length} elements */}
       </button>
 
       <button
@@ -138,23 +137,26 @@ export const PaperStressTestReact: PaperStory = {
           {/* <PaperProvider {...paperStoryOptions}> */}
           <Paper
             {...paperStoryOptions}
-            elementSelector={(cell) => {
-              switch (cell instanceof ReactElement) {
-                case true: {
-                  return { id: cell.id, xPosition: cell.attributes.position?.x }
-                }
-                default: {
-                  return {
-                    id: cell.id,
-                  }
-                }
-              }
+            // elementSelector={(cell) => {
+            //   switch (cell instanceof ReactElement) {
+            //     case true: {
+            //       return { id: cell.id, xPosition: cell.attributes.position?.x }
+            //     }
+            //     default: {
+            //       return {
+            //         id: cell.id,
+            //       }
+            //     }
+            //   }
+            // }}
+            renderElement={(element) => {
+              console.log('re-render renderElement')
+              return (
+                <div style={{ fontSize: 12 }} onClick={() => console.log('Click from React')}>
+                  {JSON.stringify(element.attributes.position)}
+                </div>
+              )
             }}
-            renderElement={(element) => (
-              <div style={{ fontSize: 12 }} onClick={() => console.log('Click from React')}>
-                {JSON.stringify(element.xPosition)}
-              </div>
-            )}
           />
           {/* </PaperProvider> */}
         </div>

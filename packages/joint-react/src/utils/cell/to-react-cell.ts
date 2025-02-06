@@ -18,6 +18,10 @@ export function defaultElementSelector<T>(cell: dia.Cell): T {
   } as unknown as T
 }
 
+export function defaultElementsSelector<T = BaseElement, R = T[]>(cell: dia.Cell[]): R {
+  return cell.map(defaultElementSelector) as unknown as R
+}
+
 export function toBaseElement<T = BaseElement>(
   cells: dia.Cell,
   selector: (item: dia.Cell) => T = defaultElementSelector
@@ -38,6 +42,10 @@ export function defaultLinkSelector<T>(cell: dia.Cell): T {
     target: cell.get('target'),
     source: cell.get('source'),
   } as unknown as T
+}
+
+export function defaultLinksSelector<T = BaseLink, R = T[]>(cell: dia.Cell[]): R {
+  return cell.map(defaultLinkSelector) as unknown as R
 }
 
 export function toBaseLink<T = BaseElement>(

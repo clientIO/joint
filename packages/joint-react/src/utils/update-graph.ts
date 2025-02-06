@@ -1,5 +1,5 @@
 import { dia, shapes } from '@joint/core'
-import type { CellItem } from '../hooks/use-set-graph-cells'
+import type { CellItem } from '../hooks/use-set-cells'
 
 function processNewCell(graph: dia.Graph, newCell: CellItem, cellsMap: Record<string, dia.Cell>) {
   if (!newCell?.id) {

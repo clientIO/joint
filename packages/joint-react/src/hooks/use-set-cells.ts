@@ -6,7 +6,7 @@ import { updateGraph } from '../utils/update-graph'
 export type CellItem = dia.Cell | dia.Cell.JSON
 export type CellSetter = (oldCells: Array<dia.Cell>) => Array<CellItem>
 
-export function useSetGraphCells() {
+export function useSetCells() {
   const { graph, getElementsSnapshot: getSnapshot } = useGraphStore()
   return useCallback(
     (update: CellSetter | CellItem[]) => {

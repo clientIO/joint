@@ -43,6 +43,7 @@
     "@types/react-test-renderer": "19.0.0",
     "@typescript-eslint/eslint-plugin": "8.21.0",
     "@typescript-eslint/parser": "8.21.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "eslint": "9.19.0",
     "eslint-plugin-depend": "0.12.0",
     "eslint-plugin-jest": "^28.8.3",
@@ -54,7 +55,6 @@
     "eslint-plugin-sonarjs": "3.0.1",
     "eslint-plugin-tailwindcss": "^3.17.5",
     "eslint-plugin-unicorn": "56.0.1",
-    "@vitejs/plugin-react": "^4.3.4",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "prettier": "3.3.3",
@@ -68,6 +68,8 @@
     "vitest": "^3.0.4"
   },
   "dependencies": {
-    "@joint/core": "*"
+    "@joint/core": "*",
+    "@types/use-sync-external-store": "^0.0.6",
+    "use-sync-external-store": "^1.4.0"
   }
 }

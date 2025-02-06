@@ -15,7 +15,7 @@ import { useElements } from '../../hooks/use-elements'
 import { CellsExplorer } from './cell-explorer'
 import { ReactElement } from '../../models/react-element'
 
-import { useSetGraphCells } from '../../hooks/use-set-graph-cells'
+import { useSetCells } from '../../hooks/use-set-cells'
 
 const paperStoryOptions: dia.Paper.Options = {
   width: 400,
@@ -92,8 +92,9 @@ export default meta
 export type PaperStory = StoryObj<typeof Paper>
 
 function CellsExplorerViaHook() {
-  const elements = useElements((cell) => cell.toJSON())
-  const setCells = useSetGraphCells()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const elements = useElements((cell) => (cell as any).toJSON())
+  const setCells = useSetCells()
   return <CellsExplorer elements={elements} onChange={setCells} />
 }
 
