@@ -1,7 +1,6 @@
 /* eslint-disable sonarjs/redundant-type-aliases */
 import { dia } from '@joint/core'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent } from '../utils/cell/listen-to-cell-change'
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change'
 
 type GraphId = string
@@ -28,13 +27,6 @@ interface Options {
    */
   readonly cells?: Array<dia.Cell | dia.Cell.JSON>
 }
-
-// Cached cells
-const ELEMENTS = new Map<GraphId, dia.Element[]>()
-const LINKS = new Map<GraphId, dia.Link[]>()
-
-const EMPTY_ELEMENTS: dia.Element[] = []
-const EMPTY_LINKS: dia.Link[] = []
 
 export interface GraphStore {
   /**
@@ -73,85 +65,33 @@ export function useCreateGraphStore(options: Options): GraphStore {
     if (cells !== undefined) {
       graph.resetCells(cells)
     }
-    ELEMENTS.set(graphId, newGraph.getElements())
-    LINKS.set(graphId, newGraph.getLinks())
+
     return newGraph
   })
 
-  const handleCellsChange = useCallback(
-    (cell: dia.Cell, eventType: ChangeEvent) => {
-      // update cells
-      if (cell.isElement()) {
-        const previousElements = ELEMENTS.get(graphId) ?? []
-        switch (eventType) {
-          case 'add': {
-            ELEMENTS.set(graphId, [...previousElements, cell])
-            break
-          }
-          case 'remove': {
-            ELEMENTS.set(
-              graphId,
-              previousElements.filter((element) => element.id !== cell.id)
-            )
-            break
-          }
-          case 'change': {
-            // we need to create new reference for the cell.
-            ELEMENTS.set(
-              graphId,
-              previousElements.map((element) => (element.id === cell.id ? cell : element))
-            )
-            break
-          }
-        }
-
-        // notify subscribers
-        for (const subscriber of elementSubscribers.current) {
-          subscriber()
-        }
-        return
+  const handleCellsChange = useCallback((cell: dia.Cell) => {
+    // update cells
+    if (cell.isElement()) {
+      // notify subscribers
+      for (const subscriber of elementSubscribers.current) {
+        subscriber()
       }
+      return
+    }
 
-      if (cell.isLink()) {
-        const previousLinks = LINKS.get(graphId) ?? []
-        switch (eventType) {
-          case 'add': {
-            LINKS.set(graphId, [...previousLinks, cell])
-            break
-          }
-          case 'remove': {
-            LINKS.set(
-              graphId,
-              previousLinks.filter((link) => link.id !== cell.id)
-            )
-            break
-          }
-          case 'change': {
-            // we need to create new reference for the cell.
-            LINKS.set(
-              graphId,
-              previousLinks.map((link) => (link.id === cell.id ? cell : link))
-            )
-            break
-          }
-        }
-
-        // notify subscribers
-        for (const subscriber of linkSubscribers.current) {
-          subscriber()
-        }
+    if (cell.isLink()) {
+      // notify subscribers
+      for (const subscriber of linkSubscribers.current) {
+        subscriber()
       }
-    },
-    [graphId]
-  )
+    }
+  }, [])
 
   // On-load effect
   useEffect(() => {
     const unsubscribe = listenToCellChange(graph, handleCellsChange)
     return () => {
       unsubscribe()
-      ELEMENTS.delete(graphId)
-      LINKS.delete(graphId)
     }
   }, [graph, graphId, handleCellsChange])
 
@@ -171,13 +111,13 @@ export function useCreateGraphStore(options: Options): GraphStore {
         }
       },
       getElementsSnapshot: () => {
-        return ELEMENTS.get(graphId) ?? EMPTY_ELEMENTS
+        return graph.getElements()
       },
 
       getLinksSnapshot: () => {
-        return LINKS.get(graphId) ?? EMPTY_LINKS
+        return graph.getLinks()
       },
     }),
-    [graph, graphId]
+    [graph]
   )
 }
