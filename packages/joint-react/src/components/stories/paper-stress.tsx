@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable no-console */
@@ -9,8 +10,8 @@ import { Paper } from '../paper'
 import { PaperProvider } from '../paper-provider'
 import type { PaperStory } from './paper.stories'
 import { useSetCells } from '../../hooks/use-set-cells'
-import { updateGraph } from '../../utils/update-graph'
 import { useElements } from '../../hooks/use-elements'
+import { useRef } from 'react'
 
 const paperStoryOptions: dia.Paper.Options = {
   width: 400,
@@ -18,8 +19,7 @@ const paperStoryOptions: dia.Paper.Options = {
   background: { color: '#f8f9fa' },
   gridSize: 2,
 }
-const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ReactElement } })
-const notUsedGraph = new dia.Graph({}, { cellNamespace: { ...shapes, ReactElement } })
+
 function createElements(xCount: number, yCount: number) {
   const elements = []
   const ELEMENT_SIZE = 50
@@ -62,66 +62,47 @@ function createElements(xCount: number, yCount: number) {
   return elements
 }
 
-graph.addCells(createElements(15, 30))
+const WIDTH_ITEMS = 15
+const HEIGHT_ITEMS = 30
 
-console.log(graph)
-notUsedGraph.addCells(createElements(15, 30))
 function RandomChange() {
   const elementsSize = useElements((items) => items.length)
   const setCells = useSetCells()
   console.log('re-render RandomChange Component', elementsSize)
   return (
-    <>
-      <button
-        onClick={() => {
-          console.time('Random move')
-          setCells((previousCells) =>
-            previousCells.map((cell) => {
-              if (cell instanceof ReactElement) {
-                cell.set({
-                  position: { x: Math.random() * 1000, y: Math.random() * 1000 },
-                })
-                return cell
-              }
+    <button
+      onClick={() => {
+        console.time('Random move')
+        setCells((previousCells) =>
+          previousCells.map((cell) => {
+            if (cell instanceof ReactElement) {
+              cell.set({
+                position: { x: Math.random() * 1000, y: Math.random() * 1000 },
+              })
               return cell
-            })
-          )
-          console.timeEnd('Random move')
-        }}
-      >
-        Random move {elementsSize} elements
-      </button>
-
-      <button
-        onClick={() => {
-          console.time('Random move with notUsedGraph')
-          const oldCells = notUsedGraph.getCells()
-          updateGraph(
-            notUsedGraph,
-            oldCells.map((cell) => {
-              if (cell instanceof ReactElement) {
-                cell.set({
-                  position: { x: Math.random() * 1000, y: Math.random() * 1000 },
-                })
-                return cell
-              }
-              return cell
-            })
-          )
-          console.timeEnd('Random move with notUsedGraph')
-        }}
-      >
-        Random move with notUsedGraph - only prints console.logs
-      </button>
-    </>
+            }
+            return cell
+          })
+        )
+        console.timeEnd('Random move')
+      }}
+    >
+      Random move {elementsSize} elements
+    </button>
   )
 }
 
+function createGraph() {
+  const graph = new dia.Graph({}, { cellNamespace: { ...shapes, ReactElement } })
+  graph.addCells(createElements(WIDTH_ITEMS, HEIGHT_ITEMS))
+  return graph
+}
 export const PaperStressTestNative: PaperStory = {
   args: {
     style: { border: '1px solid #ccc' },
   },
   render: () => {
+    const graph = useRef(createGraph()).current
     console.log('re-render WithHooksAPI')
     return (
       <GraphProvider graph={graph}>
@@ -141,6 +122,8 @@ export const PaperStressTestReact: PaperStory = {
     style: { border: '1px solid #ccc' },
   },
   render: () => {
+    console.log('re-render WithHooksAPI')
+    const graph = useRef(createGraph()).current
     console.log('re-render WithHooksAPI')
     return (
       <GraphProvider graph={graph}>
