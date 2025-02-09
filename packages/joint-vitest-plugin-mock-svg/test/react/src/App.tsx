@@ -25,9 +25,14 @@ function App() {
       size: { width: 100, height: 50 },
       attrs: {
         label: {
-          text: 'Hello World'
+          text: 'Hello World',
+          textWrap: {
+            width: 'calc(w - 20)',
+            height: 'calc(h - 20)',
+            ellipsis: true,
+          }
         }
-       }
+      }
     });
 
     graph.addCell(rect);

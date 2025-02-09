@@ -1,19 +1,16 @@
 import { vi } from 'vitest';
 
-// Mock method which is not implemented in JSDOM
+// Mocks
+// -----
 
 /**
- * @type {jest.Mocked<SVGPathElement>}
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGPathElement
  */
-
 globalThis.SVGPathElement = vi.fn();
 
 /**
- * @type {jest.Mocked<ResizeObserver>}
  * @see https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
  */
-
 globalThis.ResizeObserver = vi.fn().mockImplementation(() => ({
     observe: vi.fn(),
     unobserve: vi.fn(),
@@ -21,15 +18,61 @@ globalThis.ResizeObserver = vi.fn().mockImplementation(() => ({
 }));
 
 /**
- * @type {jest.Mocked<SVGAngle>}
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGAngle
  */
-
 Object.defineProperty(globalThis, 'SVGAngle', {
     writable: true,
     value: vi.fn().mockImplementation(() => SVGAngle),
 });
 
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGSVGElement/createSVGMatrix
+ */
+Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGMatrix', {
+    writable: true,
+    value: vi.fn().mockImplementation(() => SVGMatrix),
+});
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGTransform
+ */
+Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGTransform', {
+    writable: true,
+    value: vi.fn().mockImplementation(() => SVGTransform),
+});
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGPoint
+ */
+Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGPoint', {
+    writable: true,
+    value: vi.fn().mockImplementation(() => SVGPoint),
+});
+
+/**
+ * @description used in `util.breakText()` method
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGTextContentElement/getComputedTextLength
+ */
+Object.defineProperty(globalThis.SVGElement.prototype, 'getComputedTextLength', {
+    writable: true,
+    value: vi.fn().mockImplementation(() => 0),
+});
+
+/**
+ * @description used in `util.breakText()` method
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement/getBBox
+ */
+Object.defineProperty(globalThis.SVGElement.prototype, 'getBBox', {
+    writable: true,
+    value: vi.fn().mockImplementation(() => SVGRect)
+});
+
+// Interfaces
+// ----------
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGAngle
+ */
 const SVGAngle = ({
     SVG_ANGLETYPE_UNKNOWN: 0,
     SVG_ANGLETYPE_UNSPECIFIED: 1,
@@ -39,16 +82,9 @@ const SVGAngle = ({
 });
 
 /**
- * @type {jest.Mocked<SVGMatrix>}
+ * @description SVGMatrix is deprecated, we should use DOMMatrix instead
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGMatrix
- * @description SVGMatrix is deprecated, use DOMMatrix instead
  */
-
-Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGMatrix', {
-    writable: true,
-    value: vi.fn().mockImplementation(() => SVGMatrix),
-});
-
 const SVGMatrix = ({
     a: 0,
     b: 0,
@@ -70,15 +106,8 @@ const SVGMatrix = ({
 });
 
 /**
- * @type {jest.Mocked<SVGTransform>}
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGTransform
  */
-
-Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGTransform', {
-    writable: true,
-    value: vi.fn().mockImplementation(() => SVGTransform),
-});
-
 const SVGTransform = ({
     type: 0,
     angle: 0,
@@ -99,18 +128,20 @@ const SVGTransform = ({
 });
 
 /**
- * @type {jest.Mocked<SVGPoint>}
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGPoint
- * @description SVGPoint is deprecated, use DOMPoint instead
  */
-
-Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGPoint', {
-    writable: true,
-    value: vi.fn().mockImplementation(() => SVGPoint),
-});
-
 const SVGPoint = ({
     x: 0,
     y: 0,
     matrixTransform: vi.fn().mockImplementation(() => SVGPoint),
+});
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGRect
+ */
+const SVGRect = ({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
 });
