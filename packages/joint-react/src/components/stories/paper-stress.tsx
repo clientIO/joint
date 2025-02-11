@@ -145,7 +145,7 @@ export const PaperStressTestReact: PaperStory = {
             //   }
             // }}
             renderElement={(element) => {
-              console.log('re-render renderElement')
+              console.log('re-render renderElement', element.id)
               return (
                 <div style={{ fontSize: 12 }} onClick={() => console.log('Click from React')}>
                   {JSON.stringify(element.x)}

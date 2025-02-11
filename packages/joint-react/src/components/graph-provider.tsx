@@ -15,19 +15,28 @@ export interface GraphProps {
   readonly children: React.ReactNode
   /**
    * Namespace for cell models.
+   * It's loaded just once, so it cannot be used as React state.
    * @default shapes
    * @see https://docs.jointjs.com/api/shapes
    */
   readonly cellNamespace?: unknown
   /**
    * Custom cell model to use.
+   * It's loaded just once, so it cannot be used as React state.
    * @see https://docs.jointjs.com/api/dia/Cell
    */
   readonly cellModel?: typeof dia.Cell
   /**
-   * Initial cells to be added to graph
+   * Initial elements to be added to graph
+   * It's loaded just once, so it cannot be used as React state.
    */
-  readonly cells?: Array<dia.Cell | dia.Cell.JSON>
+  readonly defaultElements?: Array<dia.Element>
+
+  /**
+   * Initial links to be added to graph
+   * It's loaded just once, so it cannot be used as React state.
+   */
+  readonly defaultLinks?: Array<dia.Link>
 }
 
 /**

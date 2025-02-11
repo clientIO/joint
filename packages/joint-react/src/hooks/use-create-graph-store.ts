@@ -23,9 +23,16 @@ interface Options {
    */
   readonly cellModel?: typeof dia.Cell
   /**
-   * Initial cells to be added to graph
+   * Initial elements to be added to graph
+   * It's loaded just once, so it cannot be used as React state.
    */
-  readonly cells?: Array<dia.Cell | dia.Cell.JSON>
+  readonly defaultElements?: Array<dia.Element>
+
+  /**
+   * Initial links to be added to graph
+   * It's loaded just once, so it cannot be used as React state.
+   */
+  readonly defaultLinks?: Array<dia.Link>
 }
 
 export interface GraphStore {
@@ -38,11 +45,6 @@ export interface GraphStore {
    */
   readonly subscribeToElements: (onStoreChange: () => void) => () => void
   readonly subscribeToLinks: (onStoreChange: () => void) => () => void
-  /**
-   * Get memoized / cached snapshot of the graph cells.
-   */
-  readonly getElementsSnapshot: () => dia.Element[]
-  readonly getLinksSnapshot: () => dia.Link[]
 }
 
 /**
@@ -50,7 +52,7 @@ export interface GraphStore {
  * It use `useSyncExternalStore` to avoid memory leaks and cells (state) duplicates.
  */
 export function useCreateGraphStore(options: Options): GraphStore {
-  const { cellNamespace, cells, cellModel } = options
+  const { cellNamespace, defaultElements, defaultLinks, cellModel } = options
 
   // Generate a unique ID for the graph, use react `useId` hook
   const graphId: GraphId = useId()
@@ -62,8 +64,11 @@ export function useCreateGraphStore(options: Options): GraphStore {
   const [graph] = useState(() => {
     const newGraph = options.graph ?? new dia.Graph({}, { cellNamespace, cellModel })
     newGraph.id = graphId
-    if (cells !== undefined) {
-      graph.resetCells(cells)
+    if (defaultElements !== undefined) {
+      newGraph.addCells(defaultElements)
+    }
+    if (defaultLinks !== undefined) {
+      newGraph.addCells(defaultLinks)
     }
 
     return newGraph
@@ -109,13 +114,6 @@ export function useCreateGraphStore(options: Options): GraphStore {
         return () => {
           linkSubscribers.current.delete(onStoreChange)
         }
-      },
-      getElementsSnapshot: () => {
-        return graph.getElements()
-      },
-
-      getLinksSnapshot: () => {
-        return graph.getLinks()
       },
     }),
     [graph]

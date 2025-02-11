@@ -23,4 +23,4 @@ function Component<T extends RequiredCell = BaseElement>(props: PaperPortalProps
   return createPortal(renderElement(cell), portalHtmlElement)
 }
 
-export const PaperPortal = typedMemo(Component)
+export const PaperItem = typedMemo(Component)

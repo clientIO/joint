@@ -1,9 +1,8 @@
 import { useGraphStore } from './use-graph-store'
-import type { dia } from '@joint/core'
+import { util, type dia } from '@joint/core'
 import type { BaseLink } from '../types/cell.types'
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector'
 import { defaultLinksSelector } from '../utils/cell/to-react-cell'
-import { shallow } from '../utils/shallow'
 
 /**
  * A hook to access the graph store's links. This hook takes a selector function
@@ -13,8 +12,8 @@ import { shallow } from '../utils/shallow'
  * that allows you to customize the way the selected links are compared to determine
  * whether the component needs to be re-rendered.
  *
- * @param {Function} selector The selector function to select links.
- * @param {Function=} isEqual The function that will be used to determine equality.
+ * @param {Function} selector The selector function to select links. @default defaultLinksSelector
+ * @param {Function=} isEqual The function that will be used to determine equality. @default util.isEqual
  *
  * @returns {any} The selected links.
  *
@@ -30,13 +29,13 @@ import { shallow } from '../utils/shallow'
  */
 export function useLinks<T = BaseLink, R = T[]>(
   selector: (items: dia.Link[]) => R = defaultLinksSelector,
-  isEqual: (a: R, b: R) => boolean = shallow
+  isEqual: (a: R, b: R) => boolean = util.isEqual
 ): R {
-  const graphStore = useGraphStore()
+  const { subscribeToLinks, graph } = useGraphStore()
   const elements = useSyncExternalStoreWithSelector(
-    graphStore.subscribeToLinks,
-    graphStore.getLinksSnapshot,
-    graphStore.getLinksSnapshot,
+    subscribeToLinks,
+    () => graph.getLinks(),
+    () => graph.getLinks(),
     selector,
     isEqual
   )

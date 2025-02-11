@@ -7,17 +7,17 @@ export type CellItem = dia.Cell | dia.Cell.JSON
 export type CellSetter = (oldCells: Array<dia.Cell>) => Array<CellItem>
 
 export function useSetCells() {
-  const { graph, getElementsSnapshot: getSnapshot } = useGraphStore()
+  const { graph } = useGraphStore()
   return useCallback(
     (update: CellSetter | CellItem[]) => {
       if (typeof update === 'function') {
-        const oldCells = getSnapshot()
+        const oldCells = graph.getCells()
         const newCells = update(oldCells)
         updateGraph(graph, newCells)
         return
       }
       updateGraph(graph, update)
     },
-    [getSnapshot, graph]
+    [graph]
   )
 }

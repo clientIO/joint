@@ -1,9 +1,8 @@
 import { useGraphStore } from './use-graph-store'
-import type { dia } from '@joint/core'
+import { util, type dia } from '@joint/core'
 import type { BaseElement } from '../types/cell.types'
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector'
 import { defaultElementsSelector } from '../utils/cell/to-react-cell'
-import { shallow } from '../utils/shallow'
 
 /**
  * A hook to access the graph store's elements. This hook takes a selector function
@@ -13,8 +12,8 @@ import { shallow } from '../utils/shallow'
  * that allows you to customize the way the selected elements are compared to determine
  * whether the component needs to be re-rendered.
  *
- * @param {Function} selector The selector function to select elements.
- * @param {Function=} isEqual The function that will be used to determine equality.
+ * @param {Function} selector The selector function to select elements. @default defaultElementsSelector
+ * @param {Function=} isEqual The function that will be used to determine equality. @default util.isEqual
  *
  * @returns {any} The selected elements.
  *
@@ -30,13 +29,13 @@ import { shallow } from '../utils/shallow'
  */
 export function useElements<T = BaseElement, R = T[]>(
   selector: (items: dia.Element[]) => R = defaultElementsSelector,
-  isEqual: (a: R, b: R) => boolean = shallow
+  isEqual: (a: R, b: R) => boolean = util.isEqual
 ): R {
-  const graphStore = useGraphStore()
+  const { subscribeToElements, graph } = useGraphStore()
   const elements = useSyncExternalStoreWithSelector(
-    graphStore.subscribeToElements,
-    graphStore.getElementsSnapshot,
-    graphStore.getElementsSnapshot,
+    subscribeToElements,
+    () => graph.getElements(),
+    () => graph.getElements(),
     selector,
     isEqual
   )

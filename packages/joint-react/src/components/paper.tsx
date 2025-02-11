@@ -1,11 +1,12 @@
 import { type dia } from '@joint/core'
 import { useCallback, useState, type CSSProperties, type ReactNode } from 'react'
-import { usePaper } from '../hooks/use-paper'
-import { PaperPortal } from './paper-portal'
+import { useCreatePaper } from '../hooks/use-create-paper'
+import { PaperItem } from './paper-item'
 import { useElements } from '../hooks/use-elements'
 import type { BaseElement, RequiredCell } from '../types/cell.types'
 import typedMemo from '../utils/typed-memo'
 import { defaultElementSelector } from '../utils/cell/to-react-cell'
+import { PaperContext } from '../context/paper-context'
 
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
@@ -73,16 +74,17 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
     [onReady]
   )
 
-  const paperHtmlDivRef = usePaper({
+  const { paperHtmlElement, isPaperFromContext, paper } = useCreatePaper({
     ...paperOptions,
     onRenderElement,
   })
 
   const elements = useElements((items) => items.map(elementSelector))
+
   const hasRenderElement = !!renderElement
 
-  return (
-    <div className={className} ref={paperHtmlDivRef} style={style}>
+  const content = (
+    <div className={className} ref={paperHtmlElement} style={style}>
       {hasRenderElement &&
         elements.map((cell) => {
           const portalHtmlElement = htmlElements[cell.id]
@@ -90,18 +92,22 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
             return null
           }
           return (
-            // <CellContext.Provider key={cell.id} value={cell}>
-            <PaperPortal
+            <PaperItem
               key={cell.id}
               {...cell}
               portalHtmlElement={portalHtmlElement}
               renderElement={renderElement}
             />
-            // </CellContext.Provider>
           )
         })}
     </div>
   )
+
+  if (isPaperFromContext) {
+    return content
+  }
+
+  return <PaperContext.Provider value={paper}>{content}</PaperContext.Provider>
 }
 
 export const Paper = typedMemo(Component)

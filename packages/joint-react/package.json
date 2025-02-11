@@ -8,7 +8,7 @@
   "scripts": {
     "code-check": "yarn run typecheck && yarn run lint && yarn run test && yarn run format",
     "typecheck": "tsc --noEmit",
-    "lint": "yarn eslint \"src/**/*.{ts,tsx}\" --fix",
+    "lint": "yarn eslint \"**/*.{ts,tsx}\" --fix",
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
     "test": "yarn jest",
     "storybook": "storybook dev -p 6006",
@@ -68,7 +68,7 @@
     "vitest": "^3.0.4"
   },
   "dependencies": {
-    "@joint/core": "*",
+    "@joint/core": "4.1.3",
     "@types/use-sync-external-store": "^0.0.6",
     "use-sync-external-store": "^1.4.0"
   }
