@@ -12,6 +12,7 @@ import type { PaperStory } from './paper.stories'
 import { useSetCells } from '../../hooks/use-set-cells'
 import { useElements } from '../../hooks/use-elements'
 import { useRef } from 'react'
+import { useGraph } from '../../hooks/use-graph'
 
 const paperStoryOptions: dia.Paper.Options = {
   width: 400,
@@ -68,27 +69,47 @@ const HEIGHT_ITEMS = 30
 function RandomChange() {
   const elementsSize = useElements((items) => items.length)
   const setCells = useSetCells()
-  console.log('re-render RandomChange Component', elementsSize)
+  const graph = useGraph()
   return (
-    <button
-      onClick={() => {
-        console.time('Random move')
-        setCells((previousCells) =>
-          previousCells.map((cell) => {
-            if (cell instanceof ReactElement) {
-              cell.set({
+    <>
+      <button
+        onClick={() => {
+          console.time('Random move')
+          setCells((previousCells) =>
+            previousCells.map((cell) => {
+              if (cell instanceof ReactElement) {
+                cell.set({
+                  position: { x: Math.random() * 1000, y: Math.random() * 1000 },
+                })
+                return cell
+              }
+              return cell
+            })
+          )
+          console.timeEnd('Random move')
+        }}
+      >
+        Random move {elementsSize} elements - set With hook
+      </button>
+      <button
+        onClick={() => {
+          graph.startBatch('Random move')
+          const elements = graph.getElements()
+          console.time('Random move')
+          for (const element of elements) {
+            if (element instanceof ReactElement) {
+              element.set({
                 position: { x: Math.random() * 1000, y: Math.random() * 1000 },
               })
-              return cell
             }
-            return cell
-          })
-        )
-        console.timeEnd('Random move')
-      }}
-    >
-      Random move {elementsSize} elements
-    </button>
+          }
+          console.timeEnd('Random move')
+          graph.stopBatch('Random move')
+        }}
+      >
+        Random move {elementsSize} elements - set With Graph
+      </button>
+    </>
   )
 }
 
@@ -124,6 +145,7 @@ export const PaperStressTestReact: PaperStory = {
   render: () => {
     console.log('re-render WithHooksAPI')
     const graph = useRef(createGraph()).current
+
     console.log('re-render WithHooksAPI')
     return (
       <GraphProvider graph={graph}>
@@ -145,7 +167,7 @@ export const PaperStressTestReact: PaperStory = {
             //   }
             // }}
             renderElement={(element) => {
-              console.log('re-render renderElement', element.id)
+              // console.log('re-render renderElement', element.id)
               return (
                 <div style={{ fontSize: 12 }} onClick={() => console.log('Click from React')}>
                   {JSON.stringify(element.x)}

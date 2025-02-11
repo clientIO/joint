@@ -1,8 +1,9 @@
+/* eslint-disable camelcase */
 /* eslint-disable sonarjs/redundant-type-aliases */
 import { dia } from '@joint/core'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change'
-
+import { unstable_batchedUpdates } from 'react-dom'
 type GraphId = string
 interface Options {
   /**
@@ -74,23 +75,33 @@ export function useCreateGraphStore(options: Options): GraphStore {
     return newGraph
   })
 
-  const handleCellsChange = useCallback((cell: dia.Cell) => {
-    // update cells
-    if (cell.isElement()) {
-      // notify subscribers
-      for (const subscriber of elementSubscribers.current) {
-        subscriber()
-      }
-      return
-    }
+  const isScheduled = useRef(false)
 
-    if (cell.isLink()) {
-      // notify subscribers
-      for (const subscriber of linkSubscribers.current) {
-        subscriber()
-      }
+  const notifySubscribers = useCallback((subscribers: Set<() => void>) => {
+    if (!isScheduled.current) {
+      isScheduled.current = true
+      requestAnimationFrame(() => {
+        unstable_batchedUpdates(() => {
+          for (const subscriber of subscribers) {
+            subscriber()
+          }
+        })
+        isScheduled.current = false
+      })
     }
   }, [])
+
+  const handleCellsChange = useCallback(
+    (cell: dia.Cell) => {
+      if (cell.isElement()) {
+        return notifySubscribers(elementSubscribers.current)
+      }
+      if (cell.isLink()) {
+        return notifySubscribers(linkSubscribers.current)
+      }
+    },
+    [notifySubscribers]
+  )
 
   // On-load effect
   useEffect(() => {
