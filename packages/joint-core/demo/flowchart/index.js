@@ -223,8 +223,7 @@ graph.addCells([
     createFlow(addPaymentInfo, validPayment, 'bottom', 'top'),
     createFlow(validPayment, presentErrorMessage, 'right', 'left')
         .labels([{ attrs: { labelText: { text: 'No' }}}]),
-    createFlow(presentErrorMessage, addPaymentInfo, 'top', 'right')
-        .vertices([{ x: 800, y: 170 }]),
+    createFlow(presentErrorMessage, addPaymentInfo, 'top', 'right'),
     createFlow(validPayment, sendOrderToWarehouse, 'left', 'right')
         .labels([{ attrs: { labelText: { text: 'Yes' }}}]),
     createFlow(sendOrderToWarehouse, packOrder, 'bottom', 'top'),
@@ -233,7 +232,6 @@ graph.addCells([
         .labels([{ attrs: { labelText: { text: 'Ok' }}}]),
     createFlow(qualityCheck, sendOrderToWarehouse, 'left', 'left')
         .labels([{ attrs: { labelText: { text: 'Not Ok' }}}])
-        .vertices([{ x: 100, y: 490 }, { x: 100, y: 280 }])
 ]);
 
 // Automatically scale the content to fit the paper.
