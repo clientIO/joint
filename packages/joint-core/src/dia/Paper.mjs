@@ -1907,7 +1907,7 @@ export const Paper = View.extend({
     insertView: function(view, isInitialInsert) {
         const { el, model } = view;
 
-        const layerName = model.get('layer') ?? this.DEFAULT_CELL_LAYER;
+        const layerName = model.get('layer') || this.DEFAULT_CELL_LAYER;
         const layerView = this.getLayerView(layerName);
 
         switch (this.options.sorting) {
