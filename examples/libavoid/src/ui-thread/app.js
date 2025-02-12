@@ -1,7 +1,7 @@
 import { linkTools, elementTools, dia, shapes, highlighters } from '@joint/core';
-import { Node, Edge } from './shapes';
-import ResizeTool from './resize-tool';
-import { AvoidRouter } from './avoid-router';
+import { Node, Edge } from '../shared/shapes';
+import ResizeTool from '../shared/resize-tool';
+import { AvoidRouter } from '../shared/avoid-router';
 
 // Avoid Docs
 // https://www.adaptagrams.org/documentation/annotated.html
@@ -10,6 +10,9 @@ import { AvoidRouter } from './avoid-router';
 // ids that are numbers.
 
 export const init = async () => {
+
+    document.documentElement.classList.add('ui-thread');
+
     await AvoidRouter.load();
 
     const canvasEl = document.getElementById('canvas');

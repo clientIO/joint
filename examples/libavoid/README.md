@@ -17,6 +17,11 @@ Navigate to this directory, then run:
 yarn start
 ```
 
+For web workers version, run:
+```bash
+yarn run start-web-worker
+```
+
 ## License
 
 The *JointJS* library is licensed under the [Mozilla Public License 2.0](https://github.com/clientIO/joint/blob/master/LICENSE).

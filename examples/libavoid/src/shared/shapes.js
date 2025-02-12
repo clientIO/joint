@@ -34,6 +34,10 @@ export const Node = shapes.standard.Rectangle.define(
                     position: 'top',
                     attrs: portAttrs,
                 },
+                bottom: {
+                    position: 'bottom',
+                    attrs: portAttrs,
+                },
                 right: {
                     position: 'right',
                     attrs: portAttrs,

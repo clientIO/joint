@@ -14,7 +14,9 @@
   },
   "scripts": {
     "start": "webpack-dev-server",
-    "build": "webpack"
+    "build": "webpack",
+    "start-web-worker": "USE_WEB_WORKERS=1 webpack-dev-server",
+    "build-web-worker": "USE_WEB_WORKERS=1 webpack"
   },
   "dependencies": {
     "@joint/core": "workspace:^",
