@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable no-shadow */
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import typedMemo from '../utils/typed-memo'
 import type { BaseElement, RequiredCell } from '../types/cell.types'
 import { useGraphStore } from '../hooks/use-graph-store'
+import { useCell } from '../hooks/use-cell'
 
 const ITEM_STYLE: CSSProperties = { position: 'absolute' }
 export interface PaperPortalProps<T extends RequiredCell = BaseElement> {
@@ -26,12 +29,15 @@ function Component<T extends RequiredCell = BaseElement>(props: PaperPortalProps
   const { graph } = useGraphStore()
   const divElement = useRef<HTMLDivElement>(null)
 
+  const graphCell = useCell(cell.id)
+
   useEffect(() => {
     if (!divElement.current) {
       return
     }
-    const graphCell = graph.getCell(cell.id)
-    const hasSize = graphCell.attributes.size > 0
+    const { width, height } = graphCell.get('size')
+    // if size is not defined, it's automatically 1px
+    const hasSize = width > 1 && height > 1
     if (hasSize) {
       return
     }
@@ -46,7 +52,7 @@ function Component<T extends RequiredCell = BaseElement>(props: PaperPortalProps
     return () => {
       resizeObserver.disconnect()
     }
-  }, [cell.id, graph, divElement])
+  }, [cell.id, graph, divElement, graphCell])
 
   const element = (
     <div style={ITEM_STYLE} ref={divElement}>

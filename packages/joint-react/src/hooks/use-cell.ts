@@ -2,7 +2,7 @@ import type { dia } from '@joint/core'
 import { useGraphStore } from './use-graph-store'
 import { useEffect, useState } from 'react'
 
-export function useCell(cellId: dia.Cell.ID) {
+export function useCell(cellId: dia.Cell.ID): dia.Cell {
   const { graph } = useGraphStore()
   const [cell, setCell] = useState(() => graph.getCell(cellId))
 

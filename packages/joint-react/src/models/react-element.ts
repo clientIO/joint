@@ -21,7 +21,6 @@ export class ReactElement extends dia.Element {
       ...super.defaults,
       componentType: 'react',
       type: 'react',
-      size: { width: 100, height: 80 },
       data: {},
       attrs: {
         body: {
