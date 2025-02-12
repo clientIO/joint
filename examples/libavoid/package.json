@@ -13,8 +13,12 @@
     "hoistingLimits": "workspaces"
   },
   "scripts": {
-    "start": "webpack-dev-server",
-    "build": "webpack"
+    "start": "run start-ui-thread",
+    "build": "run bui-ui-thread",
+    "start-ui-thread": "webpack-dev-server",
+    "build-ui-thread": "webpack",
+    "start-web-worker": "USE_WEB_WORKERS=1 webpack-dev-server",
+    "build-web-worker": "USE_WEB_WORKERS=1 webpack"
   },
   "dependencies": {
     "@joint/core": "workspace:^",

@@ -53,6 +53,8 @@ export class AvoidRouter {
 
         this.id = 100000;
 
+        this.commitTransactions = options.commitTransactions ?? true;
+
         this.createAvoidRouter(options);
     }
 
@@ -466,9 +468,9 @@ export class AvoidRouter {
         }
         // TODO:
         // if ("ports" in cell.changed) {}
-        // if (needsRerouting) {
-        //     this.avoidRouter.processTransaction();
-        // }
+        if (this.commitTransactions && needsRerouting) {
+            this.avoidRouter.processTransaction();
+        }
     }
 
     onAvoidConnectorChange(connRefPtr) {

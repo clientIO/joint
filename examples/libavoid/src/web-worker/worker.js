@@ -1,4 +1,4 @@
-import { AvoidRouter } from './avoid-router';
+import { AvoidRouter } from '../shared/avoid-router';
 import { dia, shapes, util } from '@joint/core';
 
 const routerLoaded = AvoidRouter.load();
@@ -73,6 +73,7 @@ const router = new AvoidRouter(graph, {
     shapeBufferDistance: 20,
     idealNudgingDistance: 10,
     portOverflow: 8,
+    commitTransactions: false
 });
 
 let changed = {};
