@@ -279,6 +279,20 @@ QUnit.module('HighlighterView', function(hooks) {
 
             });
 
+            QUnit.test('prepend', function(assert) {
+
+                var highlighter;
+                var id = 'highlighter-id';
+
+                // Prepend = true
+                highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
+                    prepend: true
+                });
+
+                assert.equal(elementView.el.firstChild, highlighter.el);
+
+            });
+
             QUnit.test('z', function(assert) {
                 var layer = joint.dia.Paper.Layers.FRONT;
                 var h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1', { layer: layer, z: 2 });

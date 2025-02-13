@@ -2069,6 +2069,7 @@ export namespace dia {
 
         interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             layer?: dia.Paper.Layers | string | null;
+            prepend?: boolean;
             z?: number;
         }
     }
