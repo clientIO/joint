@@ -3,13 +3,13 @@ import { useGraphStore } from './use-graph-store'
 import type { dia } from '@joint/core'
 import { updateGraph } from '../utils/update-graph'
 
-export type CellItem = dia.Cell | dia.Cell.JSON
-export type CellSetter = (oldCells: Array<dia.Cell>) => Array<CellItem>
+export type Item = dia.Cell | dia.Cell.JSON
+export type CellsSetter = (oldCells: Array<dia.Cell>) => Array<Item>
 
 export function useSetCells() {
   const { graph } = useGraphStore()
   return useCallback(
-    (update: CellSetter | CellItem[]) => {
+    (update: CellsSetter | Item[]) => {
       if (typeof update === 'function') {
         const oldCells = graph.getCells()
         const newCells = update(oldCells)

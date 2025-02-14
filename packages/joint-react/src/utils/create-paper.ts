@@ -1,4 +1,4 @@
-import { dia } from '@joint/core'
+import { dia, shapes } from '@joint/core'
 
 // Event name for when the portal is ready
 export type PortalEvent = 'portal:ready'
@@ -9,13 +9,14 @@ export interface PaperOptions extends dia.Paper.Options {
    * The selector of the portal element.
    */
   readonly portalSelector?: string | ((view: dia.ElementView) => HTMLElement | null)
+  readonly scale?: number
 }
 
 /**
  * Function to create a new JointJS Paper
  */
 export function createPaper(graph: dia.Graph, options?: PaperOptions) {
-  const { portalSelector = 'portal', ...restOptions } = options ?? {}
+  const { portalSelector = 'portal', scale, ...restOptions } = options ?? {}
 
   const elementView = dia.ElementView.extend({
     onRender() {
@@ -42,11 +43,16 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
     // the users to trigger the PORTAL_READY_EVENT event manually
     // or find a better way to do it (e.g. trigger the event in JointJS)
     elementView,
+    defaultLink: () => new shapes.standard.Link(),
     ...restOptions,
     frozen: true,
     model: graph,
   })
+  console.log({ restOptions })
 
   // Return the created paper
+  if (scale) {
+    paper.scale(scale)
+  }
   return paper
 }

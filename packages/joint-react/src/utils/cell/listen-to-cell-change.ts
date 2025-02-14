@@ -15,5 +15,6 @@ export function listenToCellChange(
   controller.listenTo(graph, 'change', (cell: dia.Cell) => handleCellsChange(cell, 'change'))
   controller.listenTo(graph, 'add', (cell: dia.Cell) => handleCellsChange(cell, 'add'))
   controller.listenTo(graph, 'remove', (cell: dia.Cell) => handleCellsChange(cell, 'remove'))
+
   return () => controller.stopListening()
 }

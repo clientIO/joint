@@ -1,7 +1,7 @@
 import { dia, shapes } from '@joint/core'
-import type { CellItem } from '../hooks/use-set-cells'
+import type { Item } from '../hooks/use-set-cells'
 
-function processNewCell(graph: dia.Graph, newCell: CellItem, cellsMap: Record<string, dia.Cell>) {
+function processNewCell(graph: dia.Graph, newCell: Item, cellsMap: Record<string, dia.Cell>) {
   if (!newCell?.id) {
     return
   }
@@ -16,7 +16,7 @@ function processNewCell(graph: dia.Graph, newCell: CellItem, cellsMap: Record<st
   updateExistingCell(graph, cell, newCell)
 }
 
-function updateExistingCell(graph: dia.Graph, cell: dia.Cell, newCell: CellItem) {
+function updateExistingCell(graph: dia.Graph, cell: dia.Cell, newCell: Item) {
   const originalCell = graph.getCell(cell.id)
   if (originalCell) {
     if (originalCell.get('type') === cell.get('type')) {
@@ -50,7 +50,7 @@ function updateExistingCell(graph: dia.Graph, cell: dia.Cell, newCell: CellItem)
 /**
  * Updates the graph with new cells.
  */
-export function updateGraph(graph: dia.Graph, cells: Array<CellItem>) {
+export function updateGraph(graph: dia.Graph, cells: Array<Item>) {
   if (cells.length === 0) {
     graph.clear()
     return

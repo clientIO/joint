@@ -8,6 +8,7 @@ import typedMemo from '../utils/typed-memo'
 import { defaultElementSelector } from '../utils/cell/to-react-cell'
 import { PaperContext } from '../context/paper-context'
 
+export type RenderElement<T extends RequiredCell = BaseElement> = (element: T) => ReactNode
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
@@ -18,7 +19,7 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
    * A function that renders the element. It is called every time the element is rendered.
    * @default (element: T) => BaseElement
    */
-  renderElement?: (element: T) => ReactNode
+  renderElement?: RenderElement<T>
   /**
    * A function that is called when the paper is ready.
    */
@@ -44,8 +45,16 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
    * @default (item: dia.Cell) => BaseElement
    */
   elementSelector?: (item: dia.Cell) => T
+
+  scale?: number
+
+  noDataPlaceholder?: ReactNode
 }
 
+const DEFAULT_STYLE: CSSProperties = {
+  width: '100%',
+  height: '100%',
+}
 /**
  * Paper component that renders the JointJS paper element.
  */
@@ -53,9 +62,10 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
   const {
     renderElement,
     onReady,
-    style,
+    style = DEFAULT_STYLE,
     className,
     elementSelector = defaultElementSelector,
+    scale,
     ...paperOptions
   } = props
 
@@ -76,6 +86,7 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
 
   const { paperHtmlElement, isPaperFromContext, paper } = useCreatePaper({
     ...paperOptions,
+    scale,
     onRenderElement,
   })
 
@@ -110,4 +121,19 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
   return <PaperContext.Provider value={paper}>{content}</PaperContext.Provider>
 }
 
-export const Paper = typedMemo(Component)
+function PaperComponent<T extends RequiredCell = BaseElement>(props: Readonly<PaperProps<T>>) {
+  const { style = DEFAULT_STYLE, className, noDataPlaceholder, ...rest } = props
+
+  const hasNoDataPlaceholder = !!noDataPlaceholder
+  const elementsLength = useElements((items) => items.length)
+  const isEmpty = elementsLength === 0
+  if (isEmpty && hasNoDataPlaceholder) {
+    return (
+      <div style={style} className={className}>
+        {noDataPlaceholder}
+      </div>
+    )
+  }
+  return <Component {...rest} style={style} className={className} />
+}
+export const Paper = typedMemo(PaperComponent)

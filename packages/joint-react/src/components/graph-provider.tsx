@@ -12,7 +12,7 @@ export interface GraphProps {
   /**
    * Children to render.
    */
-  readonly children: React.ReactNode
+  readonly children?: React.ReactNode
   /**
    * Namespace for cell models.
    * It's loaded just once, so it cannot be used as React state.
@@ -30,13 +30,13 @@ export interface GraphProps {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: Array<dia.Element>
+  readonly defaultElements?: dia.Element[]
 
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link>
+  readonly defaultLinks?: dia.Link[]
 }
 
 /**

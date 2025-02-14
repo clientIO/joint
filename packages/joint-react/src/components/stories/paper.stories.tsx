@@ -1,5 +1,4 @@
 /* eslint-disable sonarjs/no-small-switch */
-
 /* eslint-disable no-console */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */

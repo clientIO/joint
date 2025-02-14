@@ -3,7 +3,7 @@
 import { dia } from '@joint/core'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change'
-import { unstable_batchedUpdates } from 'react-dom'
+
 type GraphId = string
 interface Options {
   /**
@@ -46,6 +46,7 @@ export interface GraphStore {
    */
   readonly subscribeToElements: (onStoreChange: () => void) => () => void
   readonly subscribeToLinks: (onStoreChange: () => void) => () => void
+  readonly refresh: () => void
 }
 
 /**
@@ -65,11 +66,11 @@ export function useCreateGraphStore(options: Options): GraphStore {
   const [graph] = useState(() => {
     const newGraph = options.graph ?? new dia.Graph({}, { cellNamespace, cellModel })
     newGraph.id = graphId
-    if (defaultElements !== undefined) {
-      newGraph.addCells(defaultElements)
-    }
     if (defaultLinks !== undefined) {
       newGraph.addCells(defaultLinks)
+    }
+    if (defaultElements !== undefined) {
+      newGraph.addCells(defaultElements)
     }
 
     return newGraph
@@ -81,11 +82,9 @@ export function useCreateGraphStore(options: Options): GraphStore {
     if (!isScheduled.current) {
       isScheduled.current = true
       requestAnimationFrame(() => {
-        unstable_batchedUpdates(() => {
-          for (const subscriber of subscribers) {
-            subscriber()
-          }
-        })
+        for (const subscriber of subscribers) {
+          subscriber()
+        }
         isScheduled.current = false
       })
     }
@@ -93,6 +92,9 @@ export function useCreateGraphStore(options: Options): GraphStore {
 
   const handleCellsChange = useCallback(
     (cell: dia.Cell) => {
+      if (graph.hasActiveBatch()) {
+        return
+      }
       if (cell.isElement()) {
         return notifySubscribers(elementSubscribers.current)
       }
@@ -100,16 +102,22 @@ export function useCreateGraphStore(options: Options): GraphStore {
         return notifySubscribers(linkSubscribers.current)
       }
     },
-    [notifySubscribers]
+    [graph, notifySubscribers]
   )
+  const handleOnBatchStop = useCallback(() => {
+    notifySubscribers(elementSubscribers.current)
+    notifySubscribers(linkSubscribers.current)
+  }, [notifySubscribers])
 
   // On-load effect
   useEffect(() => {
     const unsubscribe = listenToCellChange(graph, handleCellsChange)
+    graph.on('batch:stop', handleOnBatchStop)
     return () => {
       unsubscribe()
+      graph.off('batch:stop', handleOnBatchStop)
     }
-  }, [graph, graphId, handleCellsChange])
+  }, [graph, graphId, handleCellsChange, handleOnBatchStop])
 
   return useMemo(
     () => ({
@@ -126,7 +134,11 @@ export function useCreateGraphStore(options: Options): GraphStore {
           linkSubscribers.current.delete(onStoreChange)
         }
       },
+      refresh: () => {
+        notifySubscribers(elementSubscribers.current)
+        notifySubscribers(linkSubscribers.current)
+      },
     }),
-    [graph]
+    [graph, notifySubscribers]
   )
 }

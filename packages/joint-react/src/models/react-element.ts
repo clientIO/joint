@@ -1,5 +1,4 @@
 import { dia, util } from '@joint/core'
-import { createPortal } from 'react-dom'
 
 const elementMarkup = util.svg/* xml */ `
     <rect @selector="body"/>
@@ -11,7 +10,9 @@ const elementMarkup = util.svg/* xml */ `
 /**
  * A custom JointJS element that can render React components.
  */
-export class ReactElement extends dia.Element {
+export class ReactElement<T = dia.Element.Attributes> extends dia.Element<
+  dia.Element.Attributes & T
+> {
   /**
    * Sets the default attributes for the ReactElement.
    * @returns The default attributes.
@@ -37,7 +38,7 @@ export class ReactElement extends dia.Element {
           style: {
             height: '100%',
             width: '100%',
-            position: 'fixed',
+            position: 'absolute',
           },
         },
       },
@@ -50,18 +51,8 @@ export class ReactElement extends dia.Element {
   preinitialize() {
     this.markup = elementMarkup
   }
+}
 
-  /**
-   * Mounts a React component into the element's portal.
-   * @param paper The JointJS paper instance.
-   * @param component The React component to mount.
-   * @returns The portal containing the React component, or null if the portal element is not found.
-   */
-  mountReactComponent<T>(paper: dia.Paper, component: React.ReactElement<T>) {
-    const portalElement = this.findView(paper)?.findNode('portal')
-    if (!portalElement) {
-      return null
-    }
-    return createPortal(component, portalElement)
-  }
+export function createElement<T = dia.Element.Attributes>(options?: T & dia.Element.Attributes) {
+  return new ReactElement(options)
 }
