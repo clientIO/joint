@@ -83,19 +83,19 @@ QUnit.module('elements', function(hooks) {
 
         hooks.beforeEach(function() {
             // structure of objects:
-            // `mainGroup` has the following children:
+            // `mainGroup` (filter: true) has the following children:
             // - `group1` has the following children:
-            //   - `a`
+            //   - `a` (filter: true)
             //   - `b`
-            // - `group2` has the following children:
-            //   - `c`
+            // - `group2` (filter: true) has the following children:
+            //   - `c` (filter: true)
 
-            this.mainGroup = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 150 }, size: { width: 500, height: 400 }}); // (x: 50-550, y: 150-550)
+            this.mainGroup = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 150 }, size: { width: 500, height: 400 }, filter: true }); // (x: 50-550, y: 150-550)
             this.group1 = new joint.shapes.standard.Rectangle({ position: { x: 101, y: 101 }, size: { width: 100, height: 100 }}); // (x: 101-201, y: 101-201) = reaches over `mainGroup` at top
-            this.group2 = new joint.shapes.standard.Rectangle({ position: { x: 502, y: 202 }, size: { width: 100, height: 100 }}); // (x: 502-602, y: 202-302) = reaches over `mainGroup` at right
-            this.a = new joint.shapes.standard.Rectangle({ position: { x: 153, y: 153 }, size: { width: 100, height: 100 }}); // (x: 153-253, y: 153-253) = within `mainGroup`, reaches over `group1` at bottom and right
+            this.group2 = new joint.shapes.standard.Rectangle({ position: { x: 502, y: 202 }, size: { width: 100, height: 100 }, filter: true}); // (x: 502-602, y: 202-302) = reaches over `mainGroup` at right
+            this.a = new joint.shapes.standard.Rectangle({ position: { x: 153, y: 153 }, size: { width: 100, height: 100 }, filter: true }); // (x: 153-253, y: 153-253) = within `mainGroup`, reaches over `group1` at bottom and right
             this.b = new joint.shapes.standard.Rectangle({ position: { x: 154, y: 604 }, size: { width: 100, height: 100 }}); // (x: 154-254, y: 604-704) = outside `mainGroup`, outside `group1`
-            this.c = new joint.shapes.standard.Rectangle({ position: { x: 505, y: 355 }, size: { width: 100, height: 100 }}); // (x: 505-605, y: 355-455) = within `mainGroup`, outside `group2`
+            this.c = new joint.shapes.standard.Rectangle({ position: { x: 505, y: 355 }, size: { width: 100, height: 100 }, filter: true }); // (x: 505-605, y: 355-455) = within `mainGroup`, outside `group2`
 
             this.mainGroup.embed(this.group2.embed(this.c)).embed(this.group1.embed(this.a).embed(this.b));
 
@@ -145,6 +145,22 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(50, 150, 500, 400), 'Shallow: Using padding options is expanding the ancestors only one level above.');
             assert.deepEqual(this.group1.getBBox(), g.rect(143, 143, 121, 571), 'Shallow: Using padding options is expanding the ancestors only one level above.');
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Shallow: Using padding options is expanding the ancestors only one level above.');
+        });
+
+        QUnit.test('shallow + filter (from `a`)', function(assert) {
+
+            this.a.fitParent({ filter: (cell) => (cell.prop('filter') === true) });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: Using filter option only applies to ancestors one level above.');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(153, 153, 100, 100), 'Shallow: Using filter option only applies to ancestors one level above (group1) and takes only filtered siblings into account (a).');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: Using filter option only applies to ancestors one level above.');
+        });
+
+        QUnit.test('shallow + filter (from `c`)', function(assert) {
+
+            this.c.fitParent({ filter: (cell) => (cell.prop('filter') === true) });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: Using filter option only applies to ancestors one level above.');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(101, 101, 100, 100), 'Shallow: Using filter option only applies to ancestors one level above.');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(505, 355, 100, 100), 'Shallow: Using filter option only applies to ancestors one level above (group2) and takes only filtered siblings into account (c).');
         });
 
         QUnit.test('shallow + expandOnly', function(assert) {
@@ -274,6 +290,22 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Deep: Terminator (id) not in a graph has same result as not providing terminator.');
         });
 
+        QUnit.test('deep + filter (from `a`)', function(assert) {
+
+            this.a.fitParent({ deep: true, filter: (cell) => (cell.prop('filter') === true) });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(502, 202, 100, 100), 'Deep: Using filter option takes only filtered siblings into account (group2).');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(153, 153, 100, 100), 'Deep: Using filter option takes only filtered siblings into account (a).');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Deep: Using filter option takes only filtered siblings into account.');
+        });
+
+        QUnit.test('deep + filter (from `c`)', function(assert) {
+
+            this.c.fitParent({ deep: true, filter: (cell) => (cell.prop('filter') === true) });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(505, 355, 100, 100), 'Deep: Using filter option takes only filtered siblings into account (group2).');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(101, 101, 100, 100), 'Deep: Using filter option takes only filtered siblings into account.');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(505, 355, 100, 100), 'Deep: Using filter option takes only filtered siblings into account (c).');
+        });
+
         QUnit.test('deep + expandOnly', function(assert) {
 
             this.a.fitParent({ deep: true, expandOnly: true });
@@ -312,19 +344,19 @@ QUnit.module('elements', function(hooks) {
 
         hooks.beforeEach(function() {
             // structure of objects:
-            // `mainGroup` has the following children:
+            // `mainGroup` (filter: true) has the following children:
             // - `group1` has the following children:
-            //   - `a`
+            //   - `a` (filter: true)
             //   - `b`
-            // - `group2` has the following children:
-            //   - `c`
+            // - `group2` (filter: true) has the following children:
+            //   - `c` (filter: true)
 
-            this.mainGroup = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 150 }, size: { width: 500, height: 400 }}); // (x: 50-550, y: 150-550)
+            this.mainGroup = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 150 }, size: { width: 500, height: 400 }, filter: true }); // (x: 50-550, y: 150-550)
             this.group1 = new joint.shapes.standard.Rectangle({ position: { x: 101, y: 101 }, size: { width: 100, height: 100 }}); // (x: 101-201, y: 101-201) = reaches over `mainGroup` at top
-            this.group2 = new joint.shapes.standard.Rectangle({ position: { x: 502, y: 202 }, size: { width: 100, height: 100 }}); // (x: 502-602, y: 202-302) = reaches over `mainGroup` at right
-            this.a = new joint.shapes.standard.Rectangle({ position: { x: 153, y: 153 }, size: { width: 100, height: 100 }}); // (x: 153-253, y: 153-253) = within `mainGroup`, reaches over `group1` at bottom and right
+            this.group2 = new joint.shapes.standard.Rectangle({ position: { x: 502, y: 202 }, size: { width: 100, height: 100 }, filter: true }); // (x: 502-602, y: 202-302) = reaches over `mainGroup` at right
+            this.a = new joint.shapes.standard.Rectangle({ position: { x: 153, y: 153 }, size: { width: 100, height: 100 }, filter: true }); // (x: 153-253, y: 153-253) = within `mainGroup`, reaches over `group1` at bottom and right
             this.b = new joint.shapes.standard.Rectangle({ position: { x: 154, y: 604 }, size: { width: 100, height: 100 }}); // (x: 154-254, y: 604-704) = outside `mainGroup`, outside `group1`
-            this.c = new joint.shapes.standard.Rectangle({ position: { x: 505, y: 355 }, size: { width: 100, height: 100 }}); // (x: 505-605, y: 355-455) = within `mainGroup`, outside `group2`
+            this.c = new joint.shapes.standard.Rectangle({ position: { x: 505, y: 355 }, size: { width: 100, height: 100 }, filter: true }); // (x: 505-605, y: 355-455) = within `mainGroup`, outside `group2`
 
             this.mainGroup.embed(this.group2.embed(this.c)).embed(this.group1.embed(this.a).embed(this.b));
 
@@ -376,6 +408,22 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Shallow: Using padding options is expanding the groups only one level deep.');
         });
 
+        QUnit.test('shallow + filter (from `mainGroup`)', function(assert) {
+
+            this.mainGroup.fitToChildren({ filter: (cell) => (cell.prop('filter') === true) });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: Using filter option takes only filtered embeds one level deep into account (group2).');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(101, 101, 100, 100), 'Shallow: Using filter option takes only filtered embeds one level deep into account.');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: Using filter option takes only filtered embeds one level deep into account');
+        });
+
+        QUnit.test('shallow + filter (from `group1`)', function(assert) {
+
+            this.group1.fitToChildren({ filter: (cell) => (cell.prop('filter') === true) });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: Using filter option takes only filtered embeds one level deep into account.');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(153, 153, 100, 100), 'Shallow: Using filter option takes only filtered embeds one level deep into account (a).');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: Using filter option takes only filtered embeds one level deep into account.');
+        });
+
         QUnit.test('shallow + expandOnly', function(assert) {
 
             this.mainGroup.fitToChildren({ expandOnly: true });
@@ -424,6 +472,22 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(133, 133, 492, 591), 'Deep: Using padding options is expanding the groups.');
             assert.deepEqual(this.group1.getBBox(), g.rect(143, 143, 121, 571), 'Deep: Using padding is expanding first group.');
             assert.deepEqual(this.group2.getBBox(), g.rect(495, 345, 120, 120), 'Deep: Using padding is expanding second group.');
+        });
+
+        QUnit.test('deep + filter (from `mainGroup`)', function(assert) {
+
+            this.mainGroup.fitToChildren({ deep: true, filter: (cell) => (cell.prop('filter') === true) });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(505, 355, 100, 100), 'Deep: Using filter option takes only filtered embeds into account (group2 > c).');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(101, 101, 100, 100), 'Shallow: Using filter option takes only filtered embeds into account.');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(505, 355, 100, 100), 'Shallow: Using filter option takes only filtered embeds into account (c)');
+        });
+
+        QUnit.test('deep + filter (from `group1`)', function(assert) {
+
+            this.group1.fitToChildren({ deep: true, filter: (cell) => (cell.prop('filter') === true) });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: Using filter option takes only filtered embeds into account.');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(153, 153, 100, 100), 'Shallow: Using filter option takes only filtered embeds into account (a).');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: Using filter option takes only filtered embeds into account.');
         });
 
         QUnit.test('deep + expandOnly', function(assert) {
