@@ -344,7 +344,10 @@ export const Element = Cell.extend({
         const { graph } = this;
         if (!graph) throw new Error('Element must be part of a graph.');
 
-        const childElements = this.getEmbeddedCells().filter(cell => cell.isElement());
+        // Get filtered element children.
+        let filterFn = (cell) => (cell.isElement());
+        if (typeof opt.filter === 'function') filterFn = (cell) => (cell.isElement() && opt.filter(cell));
+        const childElements = this.getEmbeddedCells().filter(filterFn);
         if (childElements.length === 0) return this;
 
         this.startBatch('fit-embeds', opt);
@@ -357,7 +360,7 @@ export const Element = Cell.extend({
         }
 
         // Set new size and position of this element, based on:
-        // - union of bboxes of all children
+        // - union of bboxes of filtered element children
         // - inflated by given `opt.padding`
         this._fitToElements(Object.assign({ elements: childElements }, opt));
 
@@ -378,14 +381,16 @@ export const Element = Cell.extend({
         const parentElement = this.getParentCell();
         if (!parentElement || !parentElement.isElement()) return this;
 
-        // Get all children of parent element (i.e. this element + any sibling elements).
-        const siblingElements = parentElement.getEmbeddedCells().filter(cell => cell.isElement());
+        // Get filtered element children of parent element (i.e. this element + any sibling elements).
+        let filterFn = (cell) => (cell.isElement());
+        if (typeof opt.filter === 'function') filterFn = (cell) => (cell.isElement() && opt.filter(cell));
+        const siblingElements = parentElement.getEmbeddedCells().filter(filterFn);
         if (siblingElements.length === 0) return this;
 
         this.startBatch('fit-parent', opt);
 
         // Set new size and position of parent element, based on:
-        // - union of bboxes of all children of parent element (i.e. this element + any sibling elements)
+        // - union of bboxes of filtered element children of parent element (i.e. this element + any sibling elements)
         // - inflated by given `opt.padding`
         parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
 
@@ -516,4 +521,3 @@ export const Element = Cell.extend({
 });
 
 assign(Element.prototype, elementPortPrototype);
-

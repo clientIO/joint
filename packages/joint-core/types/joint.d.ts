@@ -610,6 +610,18 @@ export namespace dia {
             direction?: Direction;
         }
 
+        interface FitToChildrenOptions {
+            filter?: (cell: Cell) => boolean;
+            deep?: boolean;
+            padding?: Padding;
+            expandOnly?: boolean;
+            shrinkOnly?: boolean;
+        }
+
+        interface FitParentOptions extends FitToChildrenOptions {
+            terminator?: Cell | Cell.ID;
+        }
+
         interface BBoxOptions extends Cell.EmbeddableOptions {
             rotate?: boolean;
         }
@@ -634,10 +646,10 @@ export namespace dia {
 
         scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
-        fitEmbeds(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
-        fitToChildren(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
+        fitEmbeds(opt?: Element.FitToChildrenOptions): this;
+        fitToChildren(opt?: Element.FitToChildrenOptions): this;
 
-        fitParent(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean, terminator?: Cell | Cell.ID }): this;
+        fitParent(opt?: Element.FitParentOptions): this;
 
         getBBox(opt?: Element.BBoxOptions): g.Rect;
 
