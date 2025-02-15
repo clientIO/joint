@@ -408,6 +408,10 @@ export const LinkView = CellView.extend({
         }
     },
 
+    getSnapPoint: function() {
+        return this.getConnection().pointAt(0.5);
+    },
+
     findLabelNodes: function(labelIndex, selector) {
         const labelRoot = this._labelCache[labelIndex];
         if (!labelRoot) return [];
@@ -1899,9 +1903,9 @@ export const LinkView = CellView.extend({
             view.$('[magnet]').toArray().forEach(magnet => {
 
                 const magnetBBox = view.getNodeBBox(magnet);
-                const rootCenter = model.isElement() ? model.getBBox().center() : view.getConnection().pointAt(0.5);
+                const snapPoint = view.getSnapPoint();
                 // Squared distance from model center to the magnet center is used as a priority.
-                const magnetDistance = magnetBBox.center().squaredDistance(rootCenter);
+                const magnetDistance = magnetBBox.center().squaredDistance(snapPoint);
 
                 candidates.push({
                     // Prioritize magnets
