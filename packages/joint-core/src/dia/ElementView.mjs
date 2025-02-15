@@ -504,6 +504,10 @@ export const ElementView = CellView.extend({
         });
     },
 
+    getSnapPoint: function() {
+        return this.model.getBBox().center();
+    },
+
     _disallowUnembed: function(data) {
         const { model, whenNotAllowed = 'revert' } = data;
         const element = model || this.model;
