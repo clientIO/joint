@@ -6,8 +6,13 @@ function bboxWrapper(method) {
 
     return function(view, magnet, ref, opt) {
 
-        var rotate = !!opt.rotate;
-        var bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
+        const rotate = !!opt.rotate;
+        let bbox;
+        if (opt.useModelGeometry) {
+            bbox = view.model.getBBox();
+        } else {
+            bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
+        }
         var anchor = bbox[method]();
 
         var dx = opt.dx;
@@ -43,7 +48,7 @@ function bboxWrapper(method) {
 function _perpendicular(view, magnet, refPoint, opt) {
 
     var angle = view.model.angle();
-    var bbox = view.getNodeBBox(magnet);
+    var bbox = opt.useModelGeometry ? view.model.getBBox() : view.getNodeBBox(magnet);
     var anchor = bbox.center();
     var topLeft = bbox.origin();
     var bottomRight = bbox.corner();
@@ -69,11 +74,11 @@ function _midSide(view, magnet, refPoint, opt) {
     var rotate = !!opt.rotate;
     var bbox, angle, center;
     if (rotate) {
-        bbox = view.getNodeUnrotatedBBox(magnet);
+        bbox = opt.useModelGeometry ? view.model.getBBox() : view.getNodeUnrotatedBBox(magnet);
         center = view.model.getBBox().center();
         angle = view.model.angle();
     } else {
-        bbox = view.getNodeBBox(magnet);
+        bbox = opt.useModelGeometry ? view.model.getBBox() : view.getNodeBBox(magnet);
     }
 
     var padding = opt.padding;
