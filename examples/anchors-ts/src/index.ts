@@ -30,6 +30,11 @@ const el1 = new customShapes.Shape1({
         width: 250,
         height: 120
     },
+    attrs: {
+        extra: {
+            y: 'calc(h)',
+        }
+    }
 });
 const el2 = new customShapes.Shape1({
     position: {
@@ -46,17 +51,23 @@ const l1 = new shapes.standard.Link({
     source: {
         id: el1.id,
         anchor: {
-            name: 'bottomLeft'
+            name: 'midSide',
+            args: {
+                useModelGeometry: true
+            }
         }
     },
     target: {
         id: el2.id,
         anchor: {
-            name: 'topRight',
+            name: 'perpendicular',
             args: {
                 useModelGeometry: true
             }
         }
+    },
+    router: {
+        name: 'rightAngle'
     },
     attrs: {
         line: {
