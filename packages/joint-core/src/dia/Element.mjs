@@ -362,16 +362,14 @@ export const Element = Cell.extend({
         // Set new size and position of this element, based on:
         // - union of bboxes of filtered element children
         // - inflated by given `opt.padding`
+        // - containing at least `opt.minRect`
         this._fitToElements(Object.assign({ elements: childElements }, opt));
-
-        // Adjust size of this element to be at least `opt.minSize`:
-        const { width: minWidth, height: minHeight } = opt.minSize ?? {};
-        if (minWidth || minHeight) {
-            const { width, height } = this.getBBox();
-            const w = (minWidth && (width < minWidth)) ? minWidth : width;
-            const h = (minHeight && (height < minHeight)) ? minHeight : height;
+        if (opt.minRect) {
+            const minRect = new Rect(opt.minRect);
+            const adjustedBBox = this.getBBox().union(minRect);
             this.set({
-                size: { width: w, height: h }
+                position: { x: adjustedBBox.x, y: adjustedBBox.y },
+                size: { width: adjustedBBox.width, height: adjustedBBox.height }
             }, opt);
         }
 
@@ -403,16 +401,14 @@ export const Element = Cell.extend({
         // Set new size and position of parent element, based on:
         // - union of bboxes of filtered element children of parent element (i.e. this element + any sibling elements)
         // - inflated by given `opt.padding`
+        // - containing at least `opt.minRect`
         parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
-
-        // Adjust size of parent element to be at least `opt.minSize`:
-        const { width: minWidth, height: minHeight } = opt.minSize ?? {};
-        if (minWidth || minHeight) {
-            const { width, height } = parentElement.getBBox();
-            const w = (minWidth && (width < minWidth)) ? minWidth : width;
-            const h = (minHeight && (height < minHeight)) ? minHeight : height;
+        if (opt.minRect) {
+            const minRect = new Rect(opt.minRect);
+            const adjustedBBox = parentElement.getBBox().union(minRect);
             parentElement.set({
-                size: { width: w, height: h }
+                position: { x: adjustedBBox.x, y: adjustedBBox.y },
+                size: { width: adjustedBBox.width, height: adjustedBBox.height }
             }, opt);
         }
 

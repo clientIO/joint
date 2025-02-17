@@ -139,12 +139,22 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(50, 150, 500, 400), 'Shallow: Call takes ancestors only one level above into account.');
             assert.deepEqual(this.group1.getBBox(), g.rect(153, 153, 101, 551), 'Shallow: Call takes ancestors only one level above into account.');
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Shallow: Call takes ancestors only one level above into account.');
+        });
 
-            // padding:
+        QUnit.test('shallow + padding', function(assert) {
+
             this.a.fitParent({ padding: 10 });
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(50, 150, 500, 400), 'Shallow: Using padding options is expanding the ancestors only one level above.');
             assert.deepEqual(this.group1.getBBox(), g.rect(143, 143, 121, 571), 'Shallow: Using padding options is expanding the ancestors only one level above.');
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Shallow: Using padding options is expanding the ancestors only one level above.');
+        });
+
+        QUnit.test('shallow + padding + minRect', function(assert) {
+
+            this.a.fitParent({ padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: Using padding and minRect options is expanding the ancestors only one level above.');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(0, 0, 264, 714), 'Shallow: Using padding and minRect options is expanding the ancestors only one level above.');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: Using padding and minRect options is expanding the ancestors only one level above.');
         });
 
         QUnit.test('shallow + filter (from `a`)', function(assert) {
@@ -205,12 +215,22 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(153, 153, 449, 551), 'Deep: Call takes all embedding ancestors into account.');
             assert.deepEqual(this.group1.getBBox(), g.rect(153, 153, 101, 551), 'Deep: After the call the first group fits its embeds.');
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Deep: After the call the second group is unchanged.');
+        });
 
-            // padding:
+        QUnit.test('deep + padding', function(assert) {
+
             this.a.fitParent({ deep: true, padding: 10 });
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(133, 133, 479, 591), 'Deep: Using padding options is expanding the groups.');
             assert.deepEqual(this.group1.getBBox(), g.rect(143, 143, 121, 571), 'Deep: Using padding is expanding first group.');
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Deep: Using padding does not expand second group.');
+        });
+
+        QUnit.test('deep + padding + minRect', function(assert) {
+
+            this.a.fitParent({ deep: true, padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(-10, -10, 622, 734), 'Deep: Using padding and minRect options is expanding the groups.');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(0, 0, 264, 714), 'Deep: Using padding and minRect options is expanding first group.');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Deep: Using padding and minRect options does not expand second group.');
         });
 
         QUnit.test('deep + terminator', function(assert) {
@@ -400,12 +420,22 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(101, 101, 501, 201), 'Shallow: Call takes embeds only one level deep into account.');
             assert.deepEqual(this.group1.getBBox(), g.rect(101, 101, 100, 100), 'Shallow: Call takes embeds only one level deep into account.');
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Shallow: Call takes embeds only one level deep into account.');
+        });
 
-            // padding:
+        QUnit.test('shallow + padding', function(assert) {
+
             this.mainGroup.fitToChildren({ padding: 10 });
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(91, 91, 521, 221), 'Shallow: Using padding options is expanding the groups only one level deep.');
             assert.deepEqual(this.group1.getBBox(), g.rect(101, 101, 100, 100), 'Shallow: Using padding options is expanding the groups only one level deep.');
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Shallow: Using padding options is expanding the groups only one level deep.');
+        });
+
+        QUnit.test('shallow + padding + minRect', function(assert) {
+
+            this.mainGroup.fitToChildren({ padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(0, 0, 612, 312), 'Shallow: Using padding and minRect options is expanding the groups only one level deep.');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(101, 101, 100, 100), 'Shallow: Using padding and minRect options is expanding the groups only one level deep.');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: Using padding and minRect options is expanding the groups only one level deep.');
         });
 
         QUnit.test('shallow + filter (from `mainGroup`)', function(assert) {
@@ -466,12 +496,22 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(153, 153, 452, 551), 'Deep: Call takes all descendant embeds into account.');
             assert.deepEqual(this.group1.getBBox(), g.rect(153, 153, 101, 551), 'Deep: After the call the first group fits its embeds.');
             assert.deepEqual(this.group2.getBBox(), g.rect(505, 355, 100, 100), 'Deep: After the call the second group fits its embeds.');
+        });
 
-            // padding:
+        QUnit.test('deep + padding', function(assert) {
+
             this.mainGroup.fitToChildren({ deep: true, padding: 10 });
             assert.deepEqual(this.mainGroup.getBBox(), g.rect(133, 133, 492, 591), 'Deep: Using padding options is expanding the groups.');
             assert.deepEqual(this.group1.getBBox(), g.rect(143, 143, 121, 571), 'Deep: Using padding is expanding first group.');
             assert.deepEqual(this.group2.getBBox(), g.rect(495, 345, 120, 120), 'Deep: Using padding is expanding second group.');
+        });
+
+        QUnit.test('deep + padding + minRect', function(assert) {
+
+            this.mainGroup.fitToChildren({ deep: true, padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(-10, -10, 635, 734), 'Deep: Using padding and minRect options is expanding the groups.');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(0, 0, 264, 714), 'Deep: Using padding and minRect options is expanding first group.');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(0, 0, 615, 465), 'Deep: Using padding and minRect options is expanding second group.');
         });
 
         QUnit.test('deep + filter (from `mainGroup`)', function(assert) {
