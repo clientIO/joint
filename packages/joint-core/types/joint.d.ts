@@ -333,6 +333,7 @@ export namespace dia {
         interface GenericAttributes<T> {
             attrs?: T;
             z?: number;
+            layer?: string;
             [key: string]: any;
         }
 
