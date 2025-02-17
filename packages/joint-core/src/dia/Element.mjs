@@ -364,6 +364,17 @@ export const Element = Cell.extend({
         // - inflated by given `opt.padding`
         this._fitToElements(Object.assign({ elements: childElements }, opt));
 
+        // Adjust size of this element to be at least `opt.minSize`:
+        const { width: minWidth, height: minHeight } = opt.minSize ?? {};
+        if (minWidth || minHeight) {
+            const { width, height } = this.getBBox();
+            const w = (minWidth && (width < minWidth)) ? minWidth : width;
+            const h = (minHeight && (height < minHeight)) ? minHeight : height;
+            parentElement.set({
+                size: { width: w, height: h }
+            }, opt);
+        }
+
         this.stopBatch('fit-embeds');
 
         return this;
@@ -393,6 +404,17 @@ export const Element = Cell.extend({
         // - union of bboxes of filtered element children of parent element (i.e. this element + any sibling elements)
         // - inflated by given `opt.padding`
         parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
+
+        // Adjust size of parent element to be at least `opt.minSize`:
+        const { width: minWidth, height: minHeight } = opt.minSize ?? {};
+        if (minWidth || minHeight) {
+            const { width, height } = parentElement.getBBox();
+            const w = (minWidth && (width < minWidth)) ? minWidth : width;
+            const h = (minHeight && (height < minHeight)) ? minHeight : height;
+            parentElement.set({
+                size: { width: w, height: h }
+            }, opt);
+        }
 
         if (opt.deep) {
             // `opt.deep = true` means "fit all ancestors to their respective children".
