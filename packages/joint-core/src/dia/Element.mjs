@@ -370,7 +370,7 @@ export const Element = Cell.extend({
             const { width, height } = this.getBBox();
             const w = (minWidth && (width < minWidth)) ? minWidth : width;
             const h = (minHeight && (height < minHeight)) ? minHeight : height;
-            parentElement.set({
+            this.set({
                 size: { width: w, height: h }
             }, opt);
         }
