@@ -364,14 +364,6 @@ export const Element = Cell.extend({
         // - inflated by given `opt.padding`
         // - containing at least `opt.minRect`
         this._fitToElements(Object.assign({ elements: childElements }, opt));
-        if (opt.minRect) {
-            const minRect = new Rect(opt.minRect);
-            const adjustedBBox = this.getBBox().union(minRect);
-            this.set({
-                position: { x: adjustedBBox.x, y: adjustedBBox.y },
-                size: { width: adjustedBBox.width, height: adjustedBBox.height }
-            }, opt);
-        }
 
         this.stopBatch('fit-embeds');
 
@@ -403,14 +395,6 @@ export const Element = Cell.extend({
         // - inflated by given `opt.padding`
         // - containing at least `opt.minRect`
         parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
-        if (opt.minRect) {
-            const minRect = new Rect(opt.minRect);
-            const adjustedBBox = parentElement.getBBox().union(minRect);
-            parentElement.set({
-                position: { x: adjustedBBox.x, y: adjustedBBox.y },
-                size: { width: adjustedBBox.width, height: adjustedBBox.height }
-            }, opt);
-        }
 
         if (opt.deep) {
             // `opt.deep = true` means "fit all ancestors to their respective children".
@@ -427,42 +411,70 @@ export const Element = Cell.extend({
     // Assumption: This element is part of a graph.
     _fitToElements: function(opt = {}) {
 
+        let minBBox = null;
+        if (opt.minRect) {
+            // Coerce `opt.minRect` to g.Rect (missing properties = 0).
+            minBBox = new Rect(opt.minRect);
+        }
+
         const elementsBBox = this.graph.getCellsBBox(opt.elements);
-        // If no `opt.elements` were provided, do nothing.
-        if (!elementsBBox) return;
+        // If no `opt.elements` were provided, do nothing (but if `opt.minRect` was provided, set that as this element's bbox instead).
+        if (!elementsBBox) {
+            this._setBBox(minBBox, opt);
+            return;
+        }
 
         const { expandOnly, shrinkOnly } = opt;
-        // This combination is meaningless, do nothing.
-        if (expandOnly && shrinkOnly) return;
+        // This combination is meaningless, do nothing (but if `opt.minRect` was provided, set that as this element's bbox instead).
+        if (expandOnly && shrinkOnly) {
+            this._setBBox(minBBox, opt);
+            return;
+        }
 
         // Calculate new size and position of this element based on:
         // - union of bboxes of `opt.elements`
-        // - inflated by `opt.padding` (if not provided, all four properties = 0)
+        // - inflated by normalized `opt.padding` (missing sides = 0)
         let { x, y, width, height } = elementsBBox;
         const { left, right, top, bottom } = normalizeSides(opt.padding);
         x -= left;
         y -= top;
         width += left + right;
         height += bottom + top;
-        let resultBBox = new Rect(x, y, width, height);
+        let contentBBox = new Rect(x, y, width, height);
 
         if (expandOnly) {
             // Non-shrinking is enforced by taking union of this element's current bbox with bbox calculated from `opt.elements`.
-            resultBBox = this.getBBox().union(resultBBox);
+            contentBBox = this.getBBox().union(contentBBox);
 
         } else if (shrinkOnly) {
             // Non-expansion is enforced by taking intersection of this element's current bbox with bbox calculated from `opt.elements`.
-            const intersectionBBox = this.getBBox().intersect(resultBBox);
-            // If all children are outside this element's current bbox, then `intersectionBBox` is `null` - does not make sense, do nothing.
-            if (!intersectionBBox) return;
+            const intersectionBBox = this.getBBox().intersect(contentBBox);
+            // If all children are outside this element's current bbox, then `intersectionBBox` is `null`.
+            // That does not make sense, do nothing (but if `opt.minRect` was provided, set that as this element's bbox instead).
+            if (!intersectionBBox) {
+                this._setBBox(minBBox, opt);
+                return;
+            }
 
-            resultBBox =  intersectionBBox;
+            contentBBox = intersectionBBox;
         }
 
         // Set the new size and position of this element.
+        // - if `opt.minRect` was provided, add it via union to calculated bbox.
+        let resultBBox = contentBBox;
+        if (minBBox) {
+            resultBBox = resultBBox.union(minBBox);
+        }
+        this._setBBox(resultBBox, opt);
+    },
+
+    _setBBox: function(bbox, opt) {
+        if (!bbox) return;
+
+        const { x, y, width, height } = bbox;
         this.set({
-            position: { x: resultBBox.x, y: resultBBox.y },
-            size: { width: resultBBox.width, height: resultBBox.height }
+            position: { x, y },
+            size: { width, height }
         }, opt);
     },
 
