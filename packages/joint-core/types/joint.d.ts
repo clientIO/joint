@@ -3797,7 +3797,11 @@ export namespace connectors {
 
 export namespace anchors {
 
-    interface RotateAnchorArguments {
+    interface ElementAnchorArguments {
+        useModelGeometry?: boolean;
+    }
+
+    interface RotateAnchorArguments extends ElementAnchorArguments {
         rotate?: boolean;
     }
 
@@ -3806,7 +3810,7 @@ export namespace anchors {
         dy?: number | string;
     }
 
-    interface PaddingAnchorArguments {
+    interface PaddingAnchorArguments extends ElementAnchorArguments {
         padding?: number;
     }
 
