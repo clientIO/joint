@@ -19,6 +19,9 @@ const paper = new dia.Paper({
     cellViewNamespace: cellNamespace,
     gridSize: 10,
     async: true,
+    defaultConnectionPoint: {
+        name: 'anchor'
+    }
 });
 
 const el1 = new customShapes.Shape1({
@@ -30,10 +33,16 @@ const el1 = new customShapes.Shape1({
         width: 250,
         height: 120
     },
+    angle: 45,
     attrs: {
         extra: {
             y: 'calc(h)',
         }
+    },
+    ports: {
+        items: [{
+            id: 'port',
+        }]
     }
 });
 const el2 = new customShapes.Shape1({
@@ -45,24 +54,28 @@ const el2 = new customShapes.Shape1({
         width: 180,
         height: 350
     },
+    angle: 30
 });
 
 const l1 = new shapes.standard.Link({
     source: {
         id: el1.id,
+        port: 'port',
         anchor: {
-            name: 'midSide',
+            name: 'center',
             args: {
-                useModelGeometry: true
+                useModelGeometry: true,
+                rotate: true
             }
         }
     },
     target: {
         id: el2.id,
         anchor: {
-            name: 'perpendicular',
+            name: 'midSide',
             args: {
-                useModelGeometry: true
+                useModelGeometry: true,
+                rotate: true
             }
         }
     },
