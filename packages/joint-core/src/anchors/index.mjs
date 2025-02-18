@@ -5,6 +5,11 @@ import { resolveRef } from '../linkAnchors/index.mjs';
 function bboxWrapper(method) {
 
     return function(view, magnet, ref, opt) {
+        // use model geometry only if the view is the same as the magnet
+        // allows magnetSelector and ports to work as expected
+        if (view.el !== magnet) {
+            opt.useModelGeometry = false;
+        }
 
         const rotate = !!opt.rotate;
         let bbox;
@@ -46,9 +51,14 @@ function bboxWrapper(method) {
 }
 
 function _perpendicular(view, magnet, refPoint, opt) {
+    // use model geometry only if the view is the same as the magnet
+    // allows magnetSelector and ports to work as expected
+    if (view.el !== magnet) {
+        opt.useModelGeometry = false;
+    }
 
     var angle = view.model.angle();
-    var bbox = opt.useModelGeometry ? view.model.getBBox() : view.getNodeBBox(magnet);
+    var bbox = opt.useModelGeometry ? view.model.getBBox().rotateAroundCenter(angle) : view.getNodeBBox(magnet);
     var anchor = bbox.center();
     var topLeft = bbox.origin();
     var bottomRight = bbox.corner();
@@ -70,6 +80,11 @@ function _perpendicular(view, magnet, refPoint, opt) {
 }
 
 function _midSide(view, magnet, refPoint, opt) {
+    // use model geometry only if the view is the same as the magnet
+    // allows magnetSelector and ports to work as expected
+    if (view.el !== magnet) {
+        opt.useModelGeometry = false;
+    }
 
     var rotate = !!opt.rotate;
     var bbox, angle, center;
