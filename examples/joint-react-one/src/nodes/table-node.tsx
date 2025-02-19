@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { useElementEffect, useSetElement } from '../../../../src'
+import { useElementEffect, useSetElement } from '@joint/react'
 import { TableElement } from '../types'
 import { BaseNode, NodeProps } from './base-node'
 import { compose } from '../compose'

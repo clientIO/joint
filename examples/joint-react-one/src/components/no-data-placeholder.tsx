@@ -1,4 +1,4 @@
-import { ReactElement, useGraph } from '../../../../src'
+import { ReactElement, useGraph } from '@joint/react'
 
 export function NoDataPlaceholder({ setSelectedId }: { setSelectedId: (id: number) => void }) {
   const graph = useGraph()

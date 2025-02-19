@@ -1,5 +1,5 @@
 import { dia } from '@joint/core'
-import { useGraph } from '../../../../src'
+import { useGraph } from '@joint/react'
 import { compose } from '../compose'
 
 interface Props {

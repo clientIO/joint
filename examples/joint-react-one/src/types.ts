@@ -1,5 +1,5 @@
 import { dia } from '@joint/core'
-import { RequiredCell } from '../../../src'
+import { RequiredCell } from '@joint/react'
 
 interface BaseElement extends RequiredCell {
   componentType: string

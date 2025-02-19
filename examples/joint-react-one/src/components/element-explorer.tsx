@@ -1,7 +1,7 @@
 import { dia } from '@joint/core'
 import { compose } from '../compose'
 import { Element } from '../types'
-import { useSetElement } from '../../../../src'
+import { useSetElement } from '@joint/react'
 import { CLIP_PATH_STYLE } from '../nodes/base-node'
 import { useEffect, useMemo, useRef } from 'react'
 import { GenericDataExplorer } from './generic-data-explorer'

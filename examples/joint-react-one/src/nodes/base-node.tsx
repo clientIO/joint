@@ -1,7 +1,7 @@
 import { CSSProperties, PropsWithChildren, useCallback } from 'react'
 import { compose } from '../compose'
 import { dia } from '@joint/core'
-import { useElementAutoSize } from '../../../../src'
+import { useElementAutoSize } from '@joint/react'
 
 export interface NodeProps<T> extends PropsWithChildren {
   className?: string

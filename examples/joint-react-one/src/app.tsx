@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { GraphProvider, Paper, RenderElement, useElementEffect, useElements } from '../../../src'
+import { GraphProvider, Paper, RenderElement, useElementEffect, useElements } from '@joint/react'
 import { dia } from '@joint/core'
 import { ToolBar } from './components/toolbar'
 import { useCallback, useState } from 'react'

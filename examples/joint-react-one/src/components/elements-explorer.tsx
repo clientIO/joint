@@ -1,5 +1,5 @@
 import { dia } from '@joint/core'
-import { useElements } from '../../../../src'
+import { useElements } from '@joint/react'
 import { elementsSelector } from '../types'
 import { ElementExplorer } from './element-explorer'
 import { MiniMap } from './minimap'

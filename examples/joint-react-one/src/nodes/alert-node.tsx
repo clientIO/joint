@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
-import { useSetElement } from '../../../../src'
+import { useSetElement } from '@joint/react'
 import { AlertElement } from '../types'
 import { BaseNode, NodeProps } from './base-node'
 

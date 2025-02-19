@@ -1,5 +1,5 @@
 import { shapes, util } from '@joint/core'
-import { ReactElement } from '../../../src'
+import { ReactElement } from '@joint/react'
 import { Element } from './types'
 
 export const PRIMARY_COLOR = '#ed2637'

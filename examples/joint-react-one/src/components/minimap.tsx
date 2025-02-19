@@ -1,5 +1,5 @@
 import { dia } from '@joint/core'
-import { Paper } from '../../../../src'
+import { Paper } from '@joint/react'
 import { CLIP_PATH_STYLE } from '../nodes/base-node'
 import { compose } from '../compose'
 import { LinkModel } from '../default-data'
