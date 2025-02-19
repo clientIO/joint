@@ -47,6 +47,7 @@ function ResizableNode({ children }: Readonly<PropsWithChildren>) {
       event.stopPropagation()
     }
   }, [])
+
   return (
     <AutoSizeDiv
       ref={nodeRef}

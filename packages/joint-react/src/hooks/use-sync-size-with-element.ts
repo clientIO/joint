@@ -1,21 +1,18 @@
 import { useLayoutEffect, useRef } from 'react'
 import { useGraph } from './use-graph'
-import type { dia } from '@joint/core'
+import { useCellId } from './use-cell-id'
 
 /**
  * Custom hook to automatically update the size of a JointJS element based on the size of an HTML element.
  */
-export function useElementAutoSize<T extends HTMLElement>(id?: dia.Cell.ID) {
+export function useSyncSizeWithElement<T extends HTMLElement | SVGRectElement>() {
   // Reference to the HTML element whose size will be observed.
   const htmlRef = useRef<T>(null)
   // Get the graph instance from the custom useGraph hook.
   const graph = useGraph()
+  const id = useCellId()
 
   useLayoutEffect(() => {
-    // If no id is provided, do nothing.
-    if (id === undefined) {
-      return
-    }
     // If the HTML element reference is null, do nothing.
     if (htmlRef.current === null) {
       return
@@ -46,7 +43,7 @@ export function useElementAutoSize<T extends HTMLElement>(id?: dia.Cell.ID) {
     return () => {
       observer.disconnect()
     }
-  }, [graph, id])
+  }, [id, graph])
 
   // Return the reference to the HTML element.
   return htmlRef

@@ -38,11 +38,6 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
   className?: string
 
   /**
-   * The selector of the portal element.
-   */
-  portalSelector?: string | ((view: dia.ElementView) => HTMLElement | null)
-
-  /**
    * A function that selects the elements to be rendered.
    * It defaults to the `defaultElementSelector` function which return `BaseElement` because dia.Element is not a valid React element (it do not change reference after update).
    * @default (item: dia.Cell) => BaseElement
@@ -73,15 +68,15 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
     ...paperOptions
   } = props
 
-  const [htmlElements, setHtmlElements] = useState<Record<dia.Cell.ID, HTMLElement>>({})
+  const [svgGElements, setSvgGElements] = useState<Record<dia.Cell.ID, SVGGElement>>({})
 
   const onRenderElement = useCallback(
-    (element: dia.Element, portalElement: HTMLElement) => {
+    (element: dia.Element, nodeSvgGElement: SVGGElement) => {
       onReady?.()
-      setHtmlElements((previousState) => {
+      setSvgGElements((previousState) => {
         return {
           ...previousState,
-          [element.id]: portalElement,
+          [element.id]: nodeSvgGElement,
         }
       })
     },
@@ -102,7 +97,7 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
     <div className={className} ref={paperHtmlElement} style={style}>
       {hasRenderElement &&
         elements.map((cell) => {
-          const portalHtmlElement = htmlElements[cell.id]
+          const portalHtmlElement = svgGElements[cell.id]
           if (!portalHtmlElement) {
             return null
           }
@@ -110,7 +105,7 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
             <CellIdContext.Provider key={cell.id} value={cell.id}>
               <PaperItem
                 {...cell}
-                portalHtmlElement={portalHtmlElement}
+                nodeSvgGElement={portalHtmlElement}
                 renderElement={renderElement}
               />
             </CellIdContext.Provider>

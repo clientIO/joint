@@ -6,7 +6,7 @@ import { mvc, type dia } from '@joint/core'
 import { useGraphStore } from './use-graph-store'
 
 interface UseCreatePaperOptions extends PaperOptions {
-  readonly onRenderElement?: (element: dia.Element, portalElement: HTMLElement) => void
+  readonly onRenderElement?: (element: dia.Element, portalElement: SVGGElement) => void
   readonly onEvent?: (paper: dia.Paper, eventName: string, ...args: unknown[]) => void
 }
 /**
@@ -61,8 +61,8 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
       controller.listenTo(
         paper,
         PAPER_PORTAL_RENDER_EVENT,
-        ({ model: cell }: dia.ElementView, portalElement: HTMLElement) => {
-          onRenderElement(cell, portalElement)
+        ({ model: cell }: dia.ElementView, nodeSvgGElement: SVGGElement) => {
+          onRenderElement(cell, nodeSvgGElement)
         }
       )
     }

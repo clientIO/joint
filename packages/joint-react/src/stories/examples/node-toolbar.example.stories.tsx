@@ -20,7 +20,7 @@ const meta: Meta<typeof GraphProvider> = {
 export default meta
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
+  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, type: 'standard.Rectangle' },
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
 ])
 const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }])

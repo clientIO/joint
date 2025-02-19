@@ -1,9 +1,9 @@
 import { dia, util } from '@joint/core'
 
 const elementMarkup = util.svg/* xml */ `
-    <foreignObject @selector="fo">
-         <div @selector="portal"></div>
-    </foreignObject>
+    <rect @selector="rect">
+    </rect>
+    
 `
 
 /**
@@ -21,21 +21,13 @@ export class ReactElement<T = dia.Element.Attributes> extends dia.Element<
       ...super.defaults,
       componentType: 'react',
       type: 'react',
+      fuck: true,
       data: {},
       attrs: {
-        fo: {
+        rect: {
           width: 'calc(w)',
           height: 'calc(h)',
-          style: {
-            overflow: 'visible',
-            position: 'relative',
-          },
-        },
-        portal: {
-          style: {
-            width: '100%',
-            height: '100%',
-          },
+          fill: 'transparent',
         },
       },
     } as unknown as dia.Element.Attributes & T

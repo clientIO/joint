@@ -5,10 +5,6 @@ export type PortalEvent = 'portal:ready'
 export const PAPER_PORTAL_RENDER_EVENT: PortalEvent = 'portal:ready'
 // Interface for Paper options, extending JointJS Paper options
 export interface PaperOptions extends dia.Paper.Options {
-  /**
-   * The selector of the portal element.
-   */
-  readonly portalSelector?: string | ((view: dia.ElementView) => HTMLElement | null)
   readonly scale?: number
 }
 
@@ -16,19 +12,16 @@ export interface PaperOptions extends dia.Paper.Options {
  * Function to create a new JointJS Paper
  */
 export function createPaper(graph: dia.Graph, options?: PaperOptions) {
-  const { portalSelector = 'portal', scale, ...restOptions } = options ?? {}
+  const { scale, ...restOptions } = options ?? {}
 
   const elementView = dia.ElementView.extend({
     onRender() {
-      let portalElement =
-        typeof portalSelector === 'function' ? portalSelector(this) : portalSelector
-      if (typeof portalElement === 'string') {
-        portalElement = this.findNode(portalElement)
+      const view = paper.findViewByModel(this.model)
+      if (!view) {
+        return
       }
-
-      if (portalElement) {
-        this.notify(PAPER_PORTAL_RENDER_EVENT, portalElement)
-      }
+      const gElement = view.vel.node as SVGGElement
+      this.notify(PAPER_PORTAL_RENDER_EVENT, gElement)
     },
   })
 

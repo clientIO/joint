@@ -8,7 +8,7 @@ export interface PaperPortalProps<T extends RequiredCell = BaseElement> {
    * A function that renders the element. It is called every time the element is rendered.
    */
   readonly renderElement: (element: T) => ReactNode
-  readonly portalHtmlElement: HTMLElement
+  readonly nodeSvgGElement: SVGGElement
 }
 
 /**
@@ -18,10 +18,10 @@ export interface PaperPortalProps<T extends RequiredCell = BaseElement> {
  * The renderElement function is called with the cell as an argument and its return value is rendered inside the containerElement.
  */
 function Component<T extends RequiredCell = BaseElement>(props: PaperPortalProps<T>) {
-  const { renderElement, portalHtmlElement, ...rest } = props
+  const { renderElement, nodeSvgGElement, ...rest } = props
   const cell = rest as unknown as T
-
-  return createPortal(renderElement(cell), portalHtmlElement)
+  const element = renderElement(cell)
+  return createPortal(element, nodeSvgGElement)
 }
 
 export const PaperItem = typedMemo(Component)
