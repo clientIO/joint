@@ -7,30 +7,27 @@ import fs from 'node:fs/promises'
 import { exec } from 'node:child_process'
 import { promisify } from 'node:util'
 import packageJson from './package.json' assert { type: 'json' }
+// eslint-disable-next-line depend/ban-dependencies
+import { glob } from 'glob'
 
 /**
- * Recursively get all .ts files in a directory.
- * @param dir - The directory to search.
+ * Recursively get all .ts and .tsx files in a directory, excluding test and story files.
+ * @param directory - The directory to search.
  * @returns An array of file paths.
  */
-// eslint-disable-next-line unicorn/prevent-abbreviations
-async function getAllFiles(dir: string): Promise<string[]> {
-  // eslint-disable-next-line unicorn/prevent-abbreviations
-  const dirParents = await fs.readdir(dir, { withFileTypes: true })
-  const files = await Promise.all(
-    dirParents.map((dirent) => {
-      const response = path.resolve(dir, dirent.name)
-      if (dirent.isDirectory()) {
-        return getAllFiles(response)
-      }
-      // Skip files that include ".test." in their name
-      if (response.includes('.test.')) {
-        return []
-      }
-      return response.endsWith('.ts') || response.endsWith('.tsx') ? [response] : []
-    })
-  )
-  return files.flat()
+async function getAllFiles(directory: string): Promise<string[]> {
+  return glob(`${directory}/**/*.{ts,tsx}`, {
+    ignore: [
+      '**/__tests__/**', // Ignore test directories
+      '**/*.test.ts', // Ignore test files
+      '**/*.test.tsx',
+      '**/*.spec.ts', // Ignore spec files
+      '**/*.spec.tsx',
+      '**/stories/**', // Ignore stories directories
+      '**/*.stories.ts', // Ignore story files
+      '**/*.stories.tsx',
+    ],
+  })
 }
 const execAsync = promisify(exec)
 // eslint-disable-next-line unicorn/prevent-abbreviations
@@ -45,8 +42,16 @@ await fs.mkdir(path.join(outDir, 'esm'), { recursive: true })
 await fs.mkdir(path.join(outDir, entryDir), { recursive: true })
 
 // Copy source files for react-native compatibility
-await fs.cp(entryDir, path.join(outDir, 'src'), { recursive: true })
+// await fs.cp(entryDir, path.join(outDir, 'src'), { recursive: true })
 
+async function copySourceFiles() {
+  const files = await getAllFiles(entryDir)
+  for (const file of files) {
+    await fs.cp(file, path.join(outDir, file))
+  }
+}
+
+await copySourceFiles()
 // CommonJS build (single file)
 await esbuild.build({
   entryPoints: [entry],
