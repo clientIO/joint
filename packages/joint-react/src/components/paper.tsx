@@ -54,6 +54,8 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
   noDataPlaceholder?: ReactNode
 
   children?: ReactNode
+
+  onEvent?: (paper: dia.Paper, eventName: string, ...args: unknown[]) => void
 }
 
 /**

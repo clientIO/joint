@@ -34,7 +34,6 @@ function createElements(xCount: number, yCount: number) {
           size: { width: ELEMENT_SIZE, height: ELEMENT_SIZE },
           attrs: {
             label: { text: `${x}-${y}` },
-            body: { fill: 'blue', stroke: 'black' },
           },
         })
       )
@@ -151,31 +150,25 @@ export const PaperStressTestReact: PaperStory = {
       <GraphProvider graph={graph}>
         <RandomChange />
         <div style={{ display: 'flex', flex: 1 }}>
-          {/* <PaperProvider {...paperStoryOptions}> */}
           <Paper
             {...paperStoryOptions}
-            // elementSelector={(cell) => {
-            //   switch (cell instanceof ReactElement) {
-            //     case true: {
-            //       return { id: cell.id, xPosition: cell.attributes.position?.x }
-            //     }
-            //     default: {
-            //       return {
-            //         id: cell.id,
-            //       }
-            //     }
-            //   }
-            // }}
             renderElement={(element) => {
-              // console.log('re-render renderElement', element.id)
               return (
-                <div style={{ fontSize: 12 }} onClick={() => console.log('Click from React')}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    background: 'blue',
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'hidden',
+                  }}
+                  onClick={() => console.log('Click from React')}
+                >
                   {JSON.stringify(element.x)}
                 </div>
               )
             }}
           />
-          {/* </PaperProvider> */}
         </div>
       </GraphProvider>
     )

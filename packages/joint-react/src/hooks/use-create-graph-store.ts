@@ -1,13 +1,10 @@
-/* eslint-disable camelcase */
-/* eslint-disable sonarjs/redundant-type-aliases */
 import { dia, shapes } from '@joint/core'
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change'
 import { ReactElement } from '../models/react-element'
 import type { BaseElement, BaseLink } from '../types/cell.types'
 import { isBaseElement, isBaseLink, isReactElement } from '../types/cell.types'
 
-type GraphId = string
 interface Options {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
@@ -49,7 +46,6 @@ export interface GraphStore {
    */
   readonly subscribeToElements: (onStoreChange: () => void) => () => void
   readonly subscribeToLinks: (onStoreChange: () => void) => () => void
-  readonly refresh: () => void
 }
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement }
 
@@ -111,8 +107,6 @@ export function useCreateGraphStore(options: Options): GraphStore {
     cellModel,
   } = options
 
-  // Generate a unique ID for the graph, use react `useId` hook
-  const graphId: GraphId = useId()
   // Store subscribers
   const elementSubscribers = useRef(new Set<() => void>())
   const linkSubscribers = useRef(new Set<() => void>())
@@ -120,7 +114,6 @@ export function useCreateGraphStore(options: Options): GraphStore {
   // initialize graph instance and save it in the store
   const [graph] = useState(() => {
     const newGraph = options.graph ?? new dia.Graph({}, { cellNamespace, cellModel })
-    newGraph.id = graphId
     setGraphCells({
       graph: newGraph,
       defaultElements,
@@ -170,10 +163,10 @@ export function useCreateGraphStore(options: Options): GraphStore {
       unsubscribe()
       graph.off('batch:stop', handleOnBatchStop)
     }
-  }, [graph, graphId, handleCellsChange, handleOnBatchStop])
+  }, [graph, handleCellsChange, handleOnBatchStop])
 
   return useMemo(
-    () => ({
+    (): GraphStore => ({
       graph,
       subscribeToElements: (onStoreChange: () => void) => {
         elementSubscribers.current.add(onStoreChange)
@@ -187,11 +180,7 @@ export function useCreateGraphStore(options: Options): GraphStore {
           linkSubscribers.current.delete(onStoreChange)
         }
       },
-      refresh: () => {
-        notifySubscribers(elementSubscribers.current)
-        notifySubscribers(linkSubscribers.current)
-      },
     }),
-    [graph, notifySubscribers]
+    [graph]
   )
 }

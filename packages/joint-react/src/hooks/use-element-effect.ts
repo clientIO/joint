@@ -5,6 +5,14 @@ import { useGraph } from './use-graph'
 
 const DEFAULT_DEPENDENCIES: unknown[] = []
 
+/**
+ * Custom hook to manipulate a JointJS graph element based on React state.
+ * It works similarly to react useEffect, but it is specific to JointJS elements.
+ *
+ * @param idOrIds - The ID or array of IDs of the JointJS elements to observe.
+ * @param onChange - Callback function to execute when the element changes.
+ * @param dependencies - Array of dependencies for the useEffect hook.
+ */
 export function useElementEffect(
   idOrIds: dia.Cell.ID | Array<dia.Cell.ID> | undefined,
   onChange: (element: dia.Element) => (() => void) | void,

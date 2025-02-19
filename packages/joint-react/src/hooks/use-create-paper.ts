@@ -5,7 +5,7 @@ import { createPaper, PAPER_PORTAL_RENDER_EVENT } from '../utils/create-paper'
 import { mvc, type dia } from '@joint/core'
 import { useGraphStore } from './use-graph-store'
 
-interface UsePaperOptions extends PaperOptions {
+interface UseCreatePaperOptions extends PaperOptions {
   readonly onRenderElement?: (element: dia.Element, portalElement: HTMLElement) => void
   readonly onEvent?: (paper: dia.Paper, eventName: string, ...args: unknown[]) => void
 }
@@ -14,7 +14,7 @@ interface UsePaperOptions extends PaperOptions {
  * It retrieves the paper from the PaperContext or creates a new instance.
  * Return a reference to the paper HTML element.
  */
-export function useCreatePaper(options?: UsePaperOptions) {
+export function useCreatePaper(options?: UseCreatePaperOptions) {
   const { onRenderElement, onEvent, ...restOptions } = options ?? {}
   const hasRenderElement = !!onRenderElement
   const paperHtmlElement = useRef<HTMLDivElement | null>(null)
