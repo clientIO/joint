@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core'
-import { useCallback, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useContext, useState, type CSSProperties, type ReactNode } from 'react'
 import { useCreatePaper } from '../hooks/use-create-paper'
 import { PaperItem } from './paper-item'
 import { useElements } from '../hooks/use-elements'
@@ -7,6 +7,9 @@ import type { BaseElement, RequiredCell } from '../types/cell.types'
 import typedMemo from '../utils/typed-memo'
 import { defaultElementSelector } from '../utils/cell/to-react-cell'
 import { PaperContext } from '../context/paper-context'
+import { GraphStoreContext } from '../context/graph-store-context'
+import { GraphProvider } from './graph-provider'
+import { CellIdContext } from '../context/cell-context'
 
 export type RenderElement<T extends RequiredCell = BaseElement> = (element: T) => ReactNode
 /**
@@ -49,12 +52,10 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
   scale?: number
 
   noDataPlaceholder?: ReactNode
+
+  children?: ReactNode
 }
 
-const DEFAULT_STYLE: CSSProperties = {
-  width: '100%',
-  height: '100%',
-}
 /**
  * Paper component that renders the JointJS paper element.
  */
@@ -62,10 +63,11 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
   const {
     renderElement,
     onReady,
-    style = DEFAULT_STYLE,
+    style,
     className,
     elementSelector = defaultElementSelector,
     scale,
+    children,
     ...paperOptions
   } = props
 
@@ -103,12 +105,13 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
             return null
           }
           return (
-            <PaperItem
-              key={cell.id}
-              {...cell}
-              portalHtmlElement={portalHtmlElement}
-              renderElement={renderElement}
-            />
+            <CellIdContext.Provider key={cell.id} value={cell.id}>
+              <PaperItem
+                {...cell}
+                portalHtmlElement={portalHtmlElement}
+                renderElement={renderElement}
+              />
+            </CellIdContext.Provider>
           )
         })}
     </div>
@@ -118,15 +121,23 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
     return content
   }
 
-  return <PaperContext.Provider value={paper}>{content}</PaperContext.Provider>
+  return (
+    <PaperContext.Provider value={paper}>
+      {content}
+      {children}
+    </PaperContext.Provider>
+  )
 }
 
-function PaperComponent<T extends RequiredCell = BaseElement>(props: Readonly<PaperProps<T>>) {
-  const { style = DEFAULT_STYLE, className, noDataPlaceholder, ...rest } = props
+function PaperWithNoDataPlaceHolder<T extends RequiredCell = BaseElement>(
+  props: Readonly<PaperProps<T>>
+) {
+  const { style, className, noDataPlaceholder, ...rest } = props
 
   const hasNoDataPlaceholder = !!noDataPlaceholder
   const elementsLength = useElements((items) => items.length)
   const isEmpty = elementsLength === 0
+
   if (isEmpty && hasNoDataPlaceholder) {
     return (
       <div style={style} className={className}>
@@ -134,6 +145,20 @@ function PaperComponent<T extends RequiredCell = BaseElement>(props: Readonly<Pa
       </div>
     )
   }
+
   return <Component {...rest} style={style} className={className} />
 }
-export const Paper = typedMemo(PaperComponent)
+
+function PaperWithGraphProvider<T extends RequiredCell = BaseElement>(
+  props: Readonly<PaperProps<T>>
+) {
+  const hasStore = !!useContext(GraphStoreContext)
+  const { children, ...rest } = props
+  const paperContent = <PaperWithNoDataPlaceHolder {...rest}>{children}</PaperWithNoDataPlaceHolder>
+
+  if (hasStore) {
+    return paperContent
+  }
+  return <GraphProvider>{paperContent}</GraphProvider>
+}
+export const Paper = typedMemo(PaperWithGraphProvider)

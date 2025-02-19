@@ -6,14 +6,14 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import type { dia } from '@joint/core'
 import { shapes } from '@joint/core'
-import { GraphProvider } from '../graph-provider'
-import { PaperProvider } from '../paper-provider'
-import { Paper } from '../paper'
-import { useGraphStore } from '../../hooks/use-graph-store'
-import { useElements } from '../../hooks/use-elements'
+import { ReactElement } from '../models/react-element'
+import { useGraphStore } from '../hooks/use-graph-store'
+import { useElements } from '../hooks/use-elements'
+import { useSetCells } from '../hooks/use-set-cells'
 import { CellsExplorer } from './cell-explorer'
-import { ReactElement } from '../../models/react-element'
-import { useSetCells } from '../../hooks/use-set-cells'
+import { Paper } from '../components/paper'
+import { GraphProvider } from '../components/graph-provider'
+import { PaperProvider } from '../components/paper-provider'
 
 const paperStoryOptions: dia.Paper.Options = {
   width: 400,

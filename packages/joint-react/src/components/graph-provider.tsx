@@ -1,6 +1,7 @@
-import { GraphContext } from '../context/graph-context'
-import type { dia } from '@joint/core'
+import { GraphStoreContext } from '../context/graph-store-context'
+import { type dia } from '@joint/core'
 import { useCreateGraphStore } from '../hooks/use-create-graph-store'
+import type { BaseElement, BaseLink } from '../types/cell.types'
 
 export interface GraphProps {
   /**
@@ -16,7 +17,7 @@ export interface GraphProps {
   /**
    * Namespace for cell models.
    * It's loaded just once, so it cannot be used as React state.
-   * @default shapes
+   * @default shapes + ReactElement
    * @see https://docs.jointjs.com/api/shapes
    */
   readonly cellNamespace?: unknown
@@ -30,13 +31,13 @@ export interface GraphProps {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: dia.Element[]
+  readonly defaultElements?: (dia.Element | BaseElement)[]
 
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: dia.Link[]
+  readonly defaultLinks?: (dia.Link | BaseLink)[]
 }
 
 /**
@@ -47,5 +48,5 @@ export function GraphProvider(props: GraphProps) {
   const { children, ...rest } = props
   const graphStore = useCreateGraphStore(rest)
 
-  return <GraphContext.Provider value={graphStore}>{children}</GraphContext.Provider>
+  return <GraphStoreContext.Provider value={graphStore}>{children}</GraphStoreContext.Provider>
 }

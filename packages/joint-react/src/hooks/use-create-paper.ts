@@ -7,6 +7,7 @@ import { useGraphStore } from './use-graph-store'
 
 interface UsePaperOptions extends PaperOptions {
   readonly onRenderElement?: (element: dia.Element, portalElement: HTMLElement) => void
+  readonly onEvent?: (paper: dia.Paper, eventName: string, ...args: unknown[]) => void
 }
 /**
  * Custom hook to use a JointJS paper instance.
@@ -14,7 +15,7 @@ interface UsePaperOptions extends PaperOptions {
  * Return a reference to the paper HTML element.
  */
 export function useCreatePaper(options?: UsePaperOptions) {
-  const { onRenderElement, ...restOptions } = options ?? {}
+  const { onRenderElement, onEvent, ...restOptions } = options ?? {}
   const hasRenderElement = !!onRenderElement
   const paperHtmlElement = useRef<HTMLDivElement | null>(null)
   const graphStore = useGraphStore()
@@ -66,8 +67,17 @@ export function useCreatePaper(options?: UsePaperOptions) {
       )
     }
 
+    if (onEvent) {
+      // Listen to all events on the paper.
+      // eslint-disable-next-line sonarjs/todo-tag
+      // TODO: we do not have TS support for this now!
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      controller.listenTo(paper, 'all', (...args: unknown[]) => onEvent(paper, ...args))
+    }
+
     return () => controller.stopListening()
-  }, [paper, onRenderElement, hasRenderElement, resizePaperContainer])
+  }, [paper, resizePaperContainer, hasRenderElement, onEvent, onRenderElement])
 
   useEffect(() => {
     paperHtmlElement.current?.append(paper.el)

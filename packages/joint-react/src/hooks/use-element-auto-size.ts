@@ -17,27 +17,22 @@ export function useElementAutoSize<T extends HTMLElement>(id?: dia.Cell.ID) {
     if (!cell) {
       return
     }
-    cell.attr({
-      // ...cell.attr(),
-      portal: {
-        style: {
-          // height: 'auto',
-          // width: 'auto',
-          // position: 'fixed',
-        },
-      },
-    })
     const observer = new ResizeObserver((entries) => {
-      if (entries.length === 0) {
-        return
+      for (const entry of entries) {
+        const { borderBoxSize } = entry
+
+        if (!borderBoxSize || borderBoxSize.length === 0) continue
+
+        if (borderBoxSize.length === 0) {
+          return
+        }
+        const [size] = borderBoxSize
+        const { inlineSize, blockSize } = size
+        cell.set('size', { width: inlineSize, height: blockSize })
       }
-      const { width, height } = entries[0].contentRect
-      cell.set('size', {
-        width,
-        height,
-      })
     })
-    observer.observe(htmlRef.current)
+
+    observer.observe(htmlRef.current, { box: 'border-box' })
     return () => {
       observer.disconnect()
     }

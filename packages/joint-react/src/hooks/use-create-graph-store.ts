@@ -1,8 +1,11 @@
 /* eslint-disable camelcase */
 /* eslint-disable sonarjs/redundant-type-aliases */
-import { dia } from '@joint/core'
+import { dia, shapes } from '@joint/core'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change'
+import { ReactElement } from '../models/react-element'
+import type { BaseElement, BaseLink } from '../types/cell.types'
+import { isBaseElement, isBaseLink, isReactElement } from '../types/cell.types'
 
 type GraphId = string
 interface Options {
@@ -27,13 +30,13 @@ interface Options {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: Array<dia.Element>
+  readonly defaultElements?: (dia.Element | BaseElement)[]
 
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link>
+  readonly defaultLinks?: Array<dia.Link | BaseLink>
 }
 
 export interface GraphStore {
@@ -48,13 +51,65 @@ export interface GraphStore {
   readonly subscribeToLinks: (onStoreChange: () => void) => () => void
   readonly refresh: () => void
 }
+const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement }
 
+/**
+ * Updating of graph cells inside use graph store - helper function
+ */
+function setGraphCells(options: {
+  graph: dia.Graph
+  defaultLinks?: Array<dia.Link | BaseLink>
+  defaultElements?: (dia.Element | BaseElement)[]
+}) {
+  const { graph, defaultElements, defaultLinks } = options
+  if (defaultLinks !== undefined) {
+    graph.addCells(
+      defaultLinks.map((link) => {
+        if (isBaseLink(link)) {
+          return new shapes.standard.Link({
+            ...link,
+            source: { id: link.source },
+            target: { id: link.target },
+          })
+        }
+        return link
+      })
+    )
+  }
+  if (defaultElements !== undefined) {
+    graph.addCells(
+      defaultElements.map((element) => {
+        if (isBaseElement(element)) {
+          if (isReactElement(element)) {
+            return new ReactElement({
+              position: { x: element.x, y: element.y },
+              size: { width: element.width, height: element.height },
+              ...element,
+            })
+          }
+          return new dia.Cell({
+            type: element.type ?? 'react',
+            position: { x: element.x, y: element.y },
+            size: { width: element.width, height: element.height },
+            ...element,
+          })
+        }
+        return element
+      })
+    )
+  }
+}
 /**
  * Store for listen to cell changes and updates on the graph elements (nodes) and links (edges).
  * It use `useSyncExternalStore` to avoid memory leaks and cells (state) duplicates.
  */
 export function useCreateGraphStore(options: Options): GraphStore {
-  const { cellNamespace, defaultElements, defaultLinks, cellModel } = options
+  const {
+    cellNamespace = DEFAULT_CELL_NAMESPACE,
+    defaultElements,
+    defaultLinks,
+    cellModel,
+  } = options
 
   // Generate a unique ID for the graph, use react `useId` hook
   const graphId: GraphId = useId()
@@ -66,13 +121,11 @@ export function useCreateGraphStore(options: Options): GraphStore {
   const [graph] = useState(() => {
     const newGraph = options.graph ?? new dia.Graph({}, { cellNamespace, cellModel })
     newGraph.id = graphId
-    if (defaultLinks !== undefined) {
-      newGraph.addCells(defaultLinks)
-    }
-    if (defaultElements !== undefined) {
-      newGraph.addCells(defaultElements)
-    }
-
+    setGraphCells({
+      graph: newGraph,
+      defaultElements,
+      defaultLinks,
+    })
     return newGraph
   })
 

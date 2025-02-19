@@ -34,8 +34,6 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
 
   // Create a new JointJS Paper with the provided options
   const paper = new dia.Paper({
-    width: '100%',
-    height: '100%',
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     preventDefaultBlankAction: false,
@@ -48,7 +46,6 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
     frozen: true,
     model: graph,
   })
-  console.log({ restOptions })
 
   // Return the created paper
   if (scale) {

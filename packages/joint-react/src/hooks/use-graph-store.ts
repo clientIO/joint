@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { GraphContext } from '../context/graph-context'
+import { GraphStoreContext } from '../context/graph-store-context'
 
 /**
  * Custom hook to use a JointJS graph instance.
@@ -8,7 +8,7 @@ import { GraphContext } from '../context/graph-context'
  * @throws An error if the hook is used outside of a GraphProvider.
  */
 export function useGraphStore() {
-  const store = useContext(GraphContext)
+  const store = useContext(GraphStoreContext)
   if (!store) {
     throw new Error('useGraphStore must be used within a GraphProvider')
   }

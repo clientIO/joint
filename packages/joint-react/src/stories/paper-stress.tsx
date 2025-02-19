@@ -4,15 +4,15 @@
 /* eslint-disable no-console */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { dia, shapes } from '@joint/core'
-import { ReactElement } from '../../models/react-element'
-import { GraphProvider } from '../graph-provider'
-import { Paper } from '../paper'
-import { PaperProvider } from '../paper-provider'
+import { ReactElement } from '../models/react-element'
+import { useElements } from '../hooks/use-elements'
+import { useSetCells } from '../hooks/use-set-cells'
+import { useGraph } from '../hooks/use-graph'
 import type { PaperStory } from './paper.stories'
-import { useSetCells } from '../../hooks/use-set-cells'
-import { useElements } from '../../hooks/use-elements'
+import { GraphProvider } from '../components/graph-provider'
+import { PaperProvider } from '../components/paper-provider'
+import { Paper } from '../components/paper'
 import { useRef } from 'react'
-import { useGraph } from '../../hooks/use-graph'
 
 const paperStoryOptions: dia.Paper.Options = {
   width: 400,

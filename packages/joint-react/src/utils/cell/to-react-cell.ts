@@ -10,6 +10,7 @@ export function defaultElementSelector<T>(cell: dia.Cell): T {
   return {
     id: cell.id,
     type: cell.get('type'),
+    data: cell.attributes.data,
     x,
     y,
     angle: cell.get('angle'),

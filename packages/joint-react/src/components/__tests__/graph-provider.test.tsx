@@ -1,7 +1,7 @@
 import React from 'react'
 import { render } from '@testing-library/react'
 import { GraphProvider } from '../graph-provider'
-import { GraphContext } from '../../context/graph-context'
+import { GraphStoreContext } from '../../context/graph-store-context'
 import type { GraphStore } from '../../hooks/use-create-graph-store'
 
 describe('graph-provider', () => {
@@ -18,7 +18,7 @@ describe('graph-provider', () => {
   it('should provide a graph instance in context', () => {
     let contextGraph: GraphStore | undefined
     function TestComponent() {
-      contextGraph = React.useContext(GraphContext)
+      contextGraph = React.useContext(GraphStoreContext)
       return null
     }
     render(

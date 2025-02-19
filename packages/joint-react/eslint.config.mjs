@@ -114,6 +114,7 @@ const config = [
             ctx: false,
             db: false,
             cb: false,
+            refs: false,
           },
         },
       ],

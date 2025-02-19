@@ -3,7 +3,7 @@ import { dia, util } from '@joint/core'
 const elementMarkup = util.svg/* xml */ `
     <rect @selector="body"/>
     <foreignObject @selector="fo">
-        <div @selector="portal"></div>
+         <div @selector="portal"></div>
     </foreignObject>
 `
 
@@ -33,12 +33,15 @@ export class ReactElement<T = dia.Element.Attributes> extends dia.Element<
         fo: {
           width: 'calc(w)',
           height: 'calc(h)',
+          style: {
+            overflow: 'visible',
+          },
         },
         portal: {
           style: {
-            height: '100%',
             width: '100%',
-            position: 'absolute',
+            height: '100%',
+            position: 'fixed',
           },
         },
       },
