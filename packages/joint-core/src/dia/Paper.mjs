@@ -38,7 +38,8 @@ import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LayersNames, PaperLayer } from './PaperLayer.mjs';
+import { LayersNames, Layer } from './Layer.mjs';
+import { LayerView } from './LayerView.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
@@ -81,20 +82,6 @@ const defaultHighlighting = {
         }
     }
 };
-
-const defaultLayers = [{
-    name: LayersNames.GRID,
-}, {
-    name: LayersNames.BACK,
-}, {
-    name: LayersNames.CELLS,
-}, {
-    name: LayersNames.LABELS,
-}, {
-    name: LayersNames.FRONT
-}, {
-    name: LayersNames.TOOLS
-}];
 
 export const Paper = View.extend({
 
@@ -401,6 +388,29 @@ export const Paper = View.extend({
 
         const model = this.model = options.model || new Graph;
 
+        const graphLayers = model.get('layers');
+
+        this._layersSettings = [{
+            name: LayersNames.GRID,
+        }, {
+            name: LayersNames.BACK,
+        }];
+
+        graphLayers.forEach(layer => {
+            this._layersSettings.push({
+                name: layer.get('name'),
+                model: layer
+            });
+        });
+
+        this._layersSettings = this._layersSettings.concat([{
+            name: LayersNames.LABELS,
+        }, {
+            name: LayersNames.FRONT
+        }, {
+            name: LayersNames.TOOLS
+        }]);
+
         // Layers (SVGGroups)
         this._layers = {
             viewsMap: {},
@@ -638,7 +648,7 @@ export const Paper = View.extend({
 
     _getLayerView(layer) {
         const { _layers: { namesMap, viewsMap }} = this;
-        if (layer instanceof PaperLayer) {
+        if (layer instanceof LayerView) {
             if (layer.cid in namesMap) return layer;
             return null;
         }
@@ -654,7 +664,7 @@ export const Paper = View.extend({
     _requireLayerView(layer) {
         const layerView = this._getLayerView(layer);
         if (!layerView) {
-            if (layer instanceof PaperLayer) {
+            if (layer instanceof LayerView) {
                 throw new Error('dia.Paper: The layer is not registered.');
             } else {
                 throw new Error(`dia.Paper: Unknown layer "${layer}".`);
@@ -682,8 +692,8 @@ export const Paper = View.extend({
         if (this._getLayerView(layerName)) {
             throw new Error(`dia.Paper: The layer "${layerName}" already exists.`);
         }
-        if (!(layerView instanceof PaperLayer)) {
-            throw new Error('dia.Paper: The layer view is not an instance of dia.PaperLayer.');
+        if (!(layerView instanceof LayerView)) {
+            throw new Error('dia.Paper: The layer view is not an instance of dia.LayerView.');
         }
         const { insertBefore } = options;
         if (!insertBefore) {
@@ -749,24 +759,24 @@ export const Paper = View.extend({
         V(this.svg).prepend(V.createSVGStyle(css));
     },
 
-    createLayer(name) {
-        switch (name) {
+    createLayer(attributes) {
+        switch (attributes.name) {
             case LayersNames.GRID:
-                return new GridLayer({ name, paper: this, patterns: this.constructor.gridPatterns });
+                return new GridLayer({ ...attributes, paper: this, patterns: this.constructor.gridPatterns });
             default:
-                return new PaperLayer({ name });
+                return new LayerView(attributes);
         }
     },
 
-    renderLayer: function(name) {
-        const layerView = this.createLayer(name);
-        this.addLayer(name, layerView);
+    renderLayer: function(attributes) {
+        const layerView = this.createLayer(attributes);
+        this.addLayer(attributes.name, layerView);
         return layerView;
     },
 
     renderLayers: function(layers = defaultLayers) {
         this.removeLayers();
-        layers.forEach(({ name }) => this.renderLayer(name));
+        layers.forEach(attributes => this.renderLayer(attributes));
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(LayersNames.CELLS);
         const toolsLayerView = this.getLayerView(LayersNames.TOOLS);

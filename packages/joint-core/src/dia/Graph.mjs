@@ -1,6 +1,7 @@
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
+import { LayersNames, Layer } from './Layer.mjs';
 import { Model } from '../mvc/Model.mjs';
 import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
@@ -69,6 +70,15 @@ export const Graph = Model.extend({
     initialize: function(attrs, opt) {
 
         opt = opt || {};
+
+        const defaultLayer = new Layer({
+            name: LayersNames.CELLS,
+            displayName: 'Default'
+        });
+
+        this.set('layers', [
+            defaultLayer
+        ]);
 
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
