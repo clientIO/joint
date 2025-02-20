@@ -5,6 +5,7 @@ export * from './components/graph-provider'
 export * from './components/paper-provider'
 
 export * from './components/paper'
+export * from './components/html-element'
 
 export * from './hooks/use-graph'
 export * from './hooks/use-paper'

@@ -1,26 +1,26 @@
-import { shapes, util } from '@joint/core'
-import { ReactElement } from '@joint/react'
-import { Element } from './types'
+import { shapes, util } from "@joint/core";
+import { ReactElement } from "@joint/react";
+import { Element } from "./types";
 
-export const PRIMARY_COLOR = '#ed2637'
-export const SECONDARY_COLOR = '#2c3e50'
+export const PRIMARY_COLOR = "#ed2637";
+export const SECONDARY_COLOR = "#2c3e50";
 const LINK_ATTRIBUTES = {
   line: {
     stroke: PRIMARY_COLOR,
     strokeWidth: 2, // Set stroke width
-    strokeDasharray: '5,5', // Makes the line da
+    strokeDasharray: "5,5", // Makes the line da
   },
-}
+};
 
 export class LinkModel extends shapes.standard.Link {
   defaults() {
     return util.defaultsDeep(
       {
-        type: 'LinkModel',
+        type: "LinkModel",
         attrs: LINK_ATTRIBUTES,
       },
       super.defaults
-    )
+    );
   }
 }
 
@@ -33,12 +33,12 @@ export const defaultLinks = [
     source: { id: 2 },
     target: { id: 3 },
   }),
-]
+];
 export const defaultElements = [
   // NATIVE ELEMENT _ to show we can still use jointjs elements
   new shapes.standard.Rectangle({
     id: 1,
-    componentType: 'native',
+    componentType: "native",
     position: { x: 15, y: 5 },
     size: { width: 150, height: 40 },
     attrs: {
@@ -48,35 +48,35 @@ export const defaultElements = [
         strokeWidth: 2,
       },
       label: {
-        text: 'Native element',
+        text: "Native element",
         stroke: PRIMARY_COLOR,
         fill: PRIMARY_COLOR,
         fontSize: 18,
-        fontWeight: 'bold',
+        fontWeight: "bold",
       },
     },
   }),
   new ReactElement<Element>({
     id: 2,
     position: { x: 100, y: 100 },
-    componentType: 'alert',
+    componentType: "alert",
     // size: { width: 500, height: 200 },
     data: {
-      title: 'Warning text',
-      subtitle: 'This is a subtitle for the warning',
-      textValue: 'hello',
+      title: "Warning text",
+      subtitle: "This is a subtitle for the warning",
+      textValue: "hello",
       isError: false,
     },
   }),
   new ReactElement<Element>({
     id: 3,
     position: { x: 550, y: 300 },
-    componentType: 'alert',
+    componentType: "alert",
     // size: { width: 250, height: 200 },
     data: {
-      title: 'Error text',
-      subtitle: 'This is a subtitle for the error',
-      textValue: 'hello',
+      title: "Error text",
+      subtitle: "This is a subtitle for the error",
+      textValue: "hello",
       isError: true,
     },
   }),
@@ -84,9 +84,9 @@ export const defaultElements = [
   new ReactElement<Element>({
     id: 4,
     position: { x: 100, y: 400 },
-    componentType: 'table',
+    componentType: "table",
     data: {
-      columns: ['Column 1', 'Column 2', 'Column 3'],
+      columns: ["Column 1", "Column 2", "Column 3"],
       rows: [
         // ['Row 1', 'Row 1', 'Row 1'],
         // ['Row 2', 'Row 2', 'Row 2'],
@@ -98,9 +98,9 @@ export const defaultElements = [
   new ReactElement<Element>({
     id: 5,
     position: { x: 500, y: 0 },
-    componentType: 'table',
+    componentType: "table",
     data: {
-      columns: ['Column 1', 'Column 2', 'Column 3'],
+      columns: ["Column 1", "Column 2", "Column 3"],
       rows: [
         // ['Row 1', 'Row 1', 'Row 1'],
         // ['Row 2', 'Row 2', 'Row 2'],
@@ -108,4 +108,4 @@ export const defaultElements = [
       ],
     },
   }),
-]
+];
