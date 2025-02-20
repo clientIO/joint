@@ -345,8 +345,12 @@ export const Element = Cell.extend({
         if (!graph) throw new Error('Element must be part of a graph.');
 
         // Get filtered element children.
-        let filterFn = (cell) => (cell.isElement());
-        if (typeof opt.filter === 'function') filterFn = (cell) => (cell.isElement() && opt.filter(cell));
+        let filterFn;
+        if (typeof opt.filter === 'function') {
+            filterFn = (cell) => (cell.isElement() && opt.filter(cell));
+        } else {
+            filterFn = (cell) => (cell.isElement());
+        }
         const childElements = this.getEmbeddedCells().filter(filterFn);
         if (childElements.length === 0) return this;
 
@@ -383,8 +387,12 @@ export const Element = Cell.extend({
         if (!parentElement || !parentElement.isElement()) return this;
 
         // Get filtered element children of parent element (i.e. this element + any sibling elements).
-        let filterFn = (cell) => (cell.isElement());
-        if (typeof opt.filter === 'function') filterFn = (cell) => (cell.isElement() && opt.filter(cell));
+        let filterFn;
+        if (typeof opt.filter === 'function') {
+            filterFn = (cell) => (cell.isElement() && opt.filter(cell));
+        } else {
+            filterFn = (cell) => (cell.isElement());
+        }
         const siblingElements = parentElement.getEmbeddedCells().filter(filterFn);
         if (siblingElements.length === 0) return this;
 
