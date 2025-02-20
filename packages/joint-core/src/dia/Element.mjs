@@ -344,8 +344,8 @@ export const Element = Cell.extend({
         const { graph } = this;
         if (!graph) throw new Error('Element must be part of a graph.');
 
-        // If there are no children, there is nothing for us to do.
-        // - note: we need to do this check before filtering with `opt.filter` because we don't want to apply `minRect` in this case.
+        // If this element has no children, there is nothing for us to do.
+        // - We need to do this check before filtering with `opt.filter` because we don't want to apply `minRect` in this case.
         const childElements = this.getEmbeddedCells().filter(cell => cell.isElement());
         if (childElements.length === 0) return this;
 
@@ -386,7 +386,7 @@ export const Element = Cell.extend({
         // If the current element is `opt.terminator`, it means that this element has already been processed as parent so we can exit now.
         if (opt.deep && opt.terminator && ((opt.terminator === this) || (opt.terminator === this.id))) return this;
 
-        // If there is no parent, there is nothing for us to do.
+        // If this element has no parent, there is nothing for us to do.
         const parentElement = this.getParentCell();
         if (!parentElement || !parentElement.isElement()) return this;
 
