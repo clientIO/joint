@@ -346,7 +346,6 @@ export const Element = Cell.extend({
 
         // Get element children, optionally filtered according to `opt.filter`.
         const childElements = this._getFilteredChildren(opt.filter);
-        if (childElements.length === 0) return this;
 
         this.startBatch('fit-embeds', opt);
 
@@ -382,7 +381,6 @@ export const Element = Cell.extend({
 
         // Get element children of parent element (i.e. this element + any sibling elements), optionally filtered according to `opt.filter`.
         const siblingElements = parentElement._getFilteredChildren(opt.filter);
-        if (siblingElements.length === 0) return this;
 
         this.startBatch('fit-parent', opt);
 
