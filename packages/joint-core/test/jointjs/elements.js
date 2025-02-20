@@ -149,7 +149,13 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Shallow: Using padding options is expanding the ancestors only one level above.');
         });
 
-        QUnit.test('shallow + padding + minRect', function(assert) {
+        QUnit.test('shallow + padding + minRect (from `mainGroup`)', function(assert) {
+
+            this.mainGroup.fitParent({ padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: minRect option is not applied when there is no parent.');
+        });
+
+        QUnit.test('shallow + padding + minRect (from `a`)', function(assert) {
 
             this.a.fitParent({ padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
             assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: Using padding and minRect options is expanding the ancestors only one level above.');
@@ -171,6 +177,12 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: Using filter option only applies to ancestors one level above.');
             assert.deepEqual(this.group1.getBBox(), new g.Rect(101, 101, 100, 100), 'Shallow: Using filter option only applies to ancestors one level above.');
             assert.deepEqual(this.group2.getBBox(), new g.Rect(505, 355, 100, 100), 'Shallow: Using filter option only applies to ancestors one level above (group2) and takes only filtered siblings into account (c).');
+        });
+
+        QUnit.test('shallow + filter + padding + minRect (from `c`)', function(assert) {
+
+            this.c.fitParent({ filter: (cell) => (cell.prop('filter') !== true), padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(0, 0, 200, 300), 'Shallow: minRect option is applied for parent when all children are filtered out.');
         });
 
         QUnit.test('shallow + expandOnly', function(assert) {
@@ -225,7 +237,13 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Deep: Using padding does not expand second group.');
         });
 
-        QUnit.test('deep + padding + minRect', function(assert) {
+        QUnit.test('deep + padding + minRect (from `mainGroup`)', function(assert) {
+
+            this.mainGroup.fitParent({ deep: true, padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Deep: minRect option is not applied when there is no parent.');
+        });
+
+        QUnit.test('deep + padding + minRect (from `a`)', function(assert) {
 
             this.a.fitParent({ deep: true, padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
             assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(-10, -10, 622, 734), 'Deep: Using padding and minRect options is expanding the groups.');
@@ -324,6 +342,14 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(505, 355, 100, 100), 'Deep: Using filter option takes only filtered siblings into account (group2).');
             assert.deepEqual(this.group1.getBBox(), new g.Rect(101, 101, 100, 100), 'Deep: Using filter option takes only filtered siblings into account.');
             assert.deepEqual(this.group2.getBBox(), new g.Rect(505, 355, 100, 100), 'Deep: Using filter option takes only filtered siblings into account (c).');
+        });
+
+        QUnit.test('deep + filter + padding + minRect (from `c`)', function(assert) {
+
+            this.c.fitParent({ deep: true, filter: (cell) => (cell.prop('filter') !== true), padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(0, 0, 211, 300), 'Deep: minRect option is taken into account for parent of parent when some children are filtered out.');
+            assert.deepEqual(this.group1.getBBox(), new g.Rect(101, 101, 100, 100), 'Deep: minRect option is not applied to sibling of parent which is not filtered out.');
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(0, 0, 200, 300), 'Deep: minRect option is applied for parent when all siblings are filtered out.');
         });
 
         QUnit.test('deep + expandOnly', function(assert) {
@@ -430,7 +456,13 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Shallow: Using padding options is expanding the groups only one level deep.');
         });
 
-        QUnit.test('shallow + padding + minRect', function(assert) {
+        QUnit.test('shallow + padding + minRect (from `a`)', function(assert) {
+
+            this.a.fitToChildren({ padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.a.getBBox(), new g.Rect(153, 153, 100, 100), 'Shallow: minRect option is ignored when there are no children.');
+        });
+
+        QUnit.test('shallow + padding + minRect (from `mainGroup`)', function(assert) {
 
             this.mainGroup.fitToChildren({ padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
             assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(0, 0, 612, 312), 'Shallow: Using padding and minRect options is expanding the groups only one level deep.');
@@ -452,6 +484,12 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: Using filter option takes only filtered embeds one level deep into account.');
             assert.deepEqual(this.group1.getBBox(), new g.Rect(153, 153, 100, 100), 'Shallow: Using filter option takes only filtered embeds one level deep into account (a).');
             assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: Using filter option takes only filtered embeds one level deep into account.');
+        });
+
+        QUnit.test('shallow + filter + padding + minRect (from `group2`)', function(assert) {
+
+            this.group2.fitToChildren({ filter: (cell) => (cell.prop('filter') !== true), padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(0, 0, 200, 300), 'Shallow: minRect option is applied when all children are filtered out.');
         });
 
         QUnit.test('shallow + expandOnly', function(assert) {
@@ -506,7 +544,13 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.group2.getBBox(), g.rect(495, 345, 120, 120), 'Deep: Using padding is expanding second group.');
         });
 
-        QUnit.test('deep + padding + minRect', function(assert) {
+        QUnit.test('deep + padding + minRect (from `a`)', function(assert) {
+
+            this.a.fitToChildren({ deep: true, padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.a.getBBox(), new g.Rect(153, 153, 100, 100), 'Deep: minRect option is ignored when there are no children.');
+        });
+
+        QUnit.test('deep + padding + minRect (from `mainGroup`)', function(assert) {
 
             this.mainGroup.fitToChildren({ deep: true, padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
             assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(-10, -10, 635, 734), 'Deep: Using padding and minRect options is expanding the groups.');
@@ -528,6 +572,12 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.mainGroup.getBBox(), new g.Rect(50, 150, 500, 400), 'Shallow: Using filter option takes only filtered embeds into account.');
             assert.deepEqual(this.group1.getBBox(), new g.Rect(153, 153, 100, 100), 'Shallow: Using filter option takes only filtered embeds into account (a).');
             assert.deepEqual(this.group2.getBBox(), new g.Rect(502, 202, 100, 100), 'Shallow: Using filter option takes only filtered embeds into account.');
+        });
+
+        QUnit.test('deep + filter + padding + minRect (from `group2`)', function(assert) {
+
+            this.group2.fitToChildren({ deep: true, filter: (cell) => (cell.prop('filter') !== true), padding: 10, minRect: { x: 0, y: 0, width: 200, height: 300 } });
+            assert.deepEqual(this.group2.getBBox(), new g.Rect(0, 0, 200, 300), 'Deep: minRect option is applied when all children are filtered out.');
         });
 
         QUnit.test('deep + expandOnly', function(assert) {

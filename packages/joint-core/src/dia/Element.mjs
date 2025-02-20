@@ -344,8 +344,18 @@ export const Element = Cell.extend({
         const { graph } = this;
         if (!graph) throw new Error('Element must be part of a graph.');
 
+        // If there are no children, there is nothing for us to do.
+        // - note: we need to do this check before filtering with `opt.filter` because we don't want to apply `minRect` in this case.
+        const childElements = this.getEmbeddedCells().filter(cell => cell.isElement());
+        if (childElements.length === 0) return this;
+
         // Get element children, optionally filtered according to `opt.filter`.
-        const childElements = this._getFilteredChildren(opt.filter);
+        let filteredChildElements;
+        if (typeof opt.filter === 'function') {
+            filteredChildElements = childElements.filter(opt.filter);
+        } else {
+            filteredChildElements = childElements;
+        }
 
         this.startBatch('fit-embeds', opt);
 
@@ -353,14 +363,14 @@ export const Element = Cell.extend({
             // `opt.deep = true` means "fit to all descendants".
             // As the first action of the fitting algorithm, recursively apply `fitToChildren()` on all descendants.
             // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant, then go up (= this element).
-            invoke(childElements, 'fitToChildren', opt);
+            invoke(filteredChildElements, 'fitToChildren', opt);
         }
 
         // Set new size and position of this element, based on:
         // - union of bboxes of filtered element children
         // - inflated by given `opt.padding`
         // - containing at least `opt.minRect`
-        this._fitToElements(Object.assign({ elements: childElements }, opt));
+        this._fitToElements(Object.assign({ elements: filteredChildElements }, opt));
 
         this.stopBatch('fit-embeds');
 
@@ -376,11 +386,18 @@ export const Element = Cell.extend({
         // If the current element is `opt.terminator`, it means that this element has already been processed as parent so we can exit now.
         if (opt.deep && opt.terminator && ((opt.terminator === this) || (opt.terminator === this.id))) return this;
 
+        // If there is no parent, there is nothing for us to do.
         const parentElement = this.getParentCell();
         if (!parentElement || !parentElement.isElement()) return this;
 
         // Get element children of parent element (i.e. this element + any sibling elements), optionally filtered according to `opt.filter`.
-        const siblingElements = parentElement._getFilteredChildren(opt.filter);
+        const siblingElements = parentElement.getEmbeddedCells();
+        let filteredSiblingElements;
+        if (typeof opt.filter === 'function') {
+            filteredSiblingElements = siblingElements.filter((cell) => (cell.isElement() && opt.filter(cell)));
+        } else {
+            filteredSiblingElements = siblingElements.filter((cell) => (cell.isElement()));
+        }
 
         this.startBatch('fit-parent', opt);
 
@@ -388,7 +405,7 @@ export const Element = Cell.extend({
         // - union of bboxes of filtered element children of parent element (i.e. this element + any sibling elements)
         // - inflated by given `opt.padding`
         // - containing at least `opt.minRect`
-        parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
+        parentElement._fitToElements(Object.assign({ elements: filteredSiblingElements }, opt));
 
         if (opt.deep) {
             // `opt.deep = true` means "fit all ancestors to their respective children".
@@ -400,16 +417,6 @@ export const Element = Cell.extend({
         this.stopBatch('fit-parent');
 
         return this;
-    },
-
-    _getFilteredChildren: function(filter) {
-        let filterFn;
-        if (typeof filter === 'function') {
-            filterFn = (cell) => (cell.isElement() && filter(cell));
-        } else {
-            filterFn = (cell) => (cell.isElement());
-        }
-        return this.getEmbeddedCells().filter(filterFn);
     },
 
     // Assumption: This element is part of a graph.
