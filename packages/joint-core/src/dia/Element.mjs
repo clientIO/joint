@@ -344,14 +344,8 @@ export const Element = Cell.extend({
         const { graph } = this;
         if (!graph) throw new Error('Element must be part of a graph.');
 
-        // Get filtered element children.
-        let filterFn;
-        if (typeof opt.filter === 'function') {
-            filterFn = (cell) => (cell.isElement() && opt.filter(cell));
-        } else {
-            filterFn = (cell) => (cell.isElement());
-        }
-        const childElements = this.getEmbeddedCells().filter(filterFn);
+        // Get element children, optionally filtered according to `opt.filter`.
+        const childElements = this._getFilteredChildren(opt.filter);
         if (childElements.length === 0) return this;
 
         this.startBatch('fit-embeds', opt);
@@ -386,14 +380,8 @@ export const Element = Cell.extend({
         const parentElement = this.getParentCell();
         if (!parentElement || !parentElement.isElement()) return this;
 
-        // Get filtered element children of parent element (i.e. this element + any sibling elements).
-        let filterFn;
-        if (typeof opt.filter === 'function') {
-            filterFn = (cell) => (cell.isElement() && opt.filter(cell));
-        } else {
-            filterFn = (cell) => (cell.isElement());
-        }
-        const siblingElements = parentElement.getEmbeddedCells().filter(filterFn);
+        // Get element children of parent element (i.e. this element + any sibling elements), optionally filtered according to `opt.filter`.
+        const siblingElements = parentElement._getFilteredChildren(opt.filter);
         if (siblingElements.length === 0) return this;
 
         this.startBatch('fit-parent', opt);
@@ -414,6 +402,16 @@ export const Element = Cell.extend({
         this.stopBatch('fit-parent');
 
         return this;
+    },
+
+    _getFilteredChildren: function(filter) {
+        let filterFn;
+        if (typeof filter === 'function') {
+            filterFn = (cell) => (cell.isElement() && filter(cell));
+        } else {
+            filterFn = (cell) => (cell.isElement());
+        }
+        return this.getEmbeddedCells().filter(filterFn);
     },
 
     // Assumption: This element is part of a graph.
