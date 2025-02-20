@@ -25,13 +25,8 @@ const initialElements = createElements([
     y: 50,
     width: 100,
     height: 50,
-    ports: {
-      items: [{ id: '1', group: 'in', args: { x: 0, y: 0 } }],
-    },
   },
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 50, width: 100, height: 50 },
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 50, width: 100, height: 50 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200, width: 100, height: 50 },
+  { id: '2', data: { label: 'Node 1' }, x: 100, y: 200, width: 100, height: 50 },
 ])
 
 const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }])
