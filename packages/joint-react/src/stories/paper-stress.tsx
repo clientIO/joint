@@ -11,8 +11,10 @@ import { useGraph } from '../hooks/use-graph'
 import type { PaperStory } from './paper.stories'
 import { GraphProvider } from '../components/graph-provider'
 import { PaperProvider } from '../components/paper-provider'
+import type { RenderElement } from '../components/paper'
 import { Paper } from '../components/paper'
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
+import { HtmlElement } from '../components/html-element'
 
 const paperStoryOptions: dia.Paper.Options = {
   width: 400,
@@ -146,29 +148,30 @@ export const PaperStressTestReact: PaperStory = {
     const graph = useRef(createGraph()).current
 
     console.log('re-render WithHooksAPI')
+
+    const renderElement: RenderElement = useCallback((element) => {
+      return (
+        <HtmlElement
+          width={element.width}
+          height={element.height}
+          style={{
+            fontSize: 12,
+            background: 'blue',
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+          }}
+          onClick={() => console.log('Click from React')}
+        >
+          {JSON.stringify(element.x)}
+        </HtmlElement>
+      )
+    }, [])
     return (
       <GraphProvider graph={graph}>
         <RandomChange />
         <div style={{ display: 'flex', flex: 1 }}>
-          <Paper
-            {...paperStoryOptions}
-            renderElement={(element) => {
-              return (
-                <div
-                  style={{
-                    fontSize: 12,
-                    background: 'blue',
-                    width: '100%',
-                    height: '100%',
-                    overflow: 'hidden',
-                  }}
-                  onClick={() => console.log('Click from React')}
-                >
-                  {JSON.stringify(element.x)}
-                </div>
-              )
-            }}
-          />
+          <Paper {...paperStoryOptions} renderElement={renderElement} />
         </div>
       </GraphProvider>
     )
