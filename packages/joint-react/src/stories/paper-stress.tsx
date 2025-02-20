@@ -94,7 +94,7 @@ function RandomChange() {
       </button>
       <button
         onClick={() => {
-          graph.startBatch('Random move')
+          // graph.startBatch('Random move')
           const elements = graph.getElements()
           console.time('Random move')
           for (const element of elements) {
@@ -105,7 +105,7 @@ function RandomChange() {
             }
           }
           console.timeEnd('Random move')
-          graph.stopBatch('Random move')
+          // graph.stopBatch('Random move')
         }}
       >
         Random move {elementsSize} elements - set With Graph
@@ -152,14 +152,12 @@ export const PaperStressTestReact: PaperStory = {
     const renderElement: RenderElement = useCallback((element) => {
       return (
         <HtmlElement
-          width={element.width}
-          height={element.height}
           style={{
             fontSize: 12,
             background: 'blue',
-            width: '100%',
-            height: '100%',
             overflow: 'hidden',
+            width: element.width,
+            height: element.height,
           }}
           onClick={() => console.log('Click from React')}
         >

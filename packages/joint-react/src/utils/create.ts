@@ -1,9 +1,9 @@
 import type { BaseElement, BaseLink } from '../types/cell.types'
 
 /**
- * Sugar function to provide typing for create initial / default elements
+ * Create elements with precise types based on input
  */
-export function createElements<T>(data: BaseElement<T>[]): BaseElement<T>[] {
+export function createElements<T, E extends BaseElement<T>>(data: E[]): E[] {
   return data
 }
 

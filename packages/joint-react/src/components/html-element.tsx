@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { forwardRef, useMemo } from 'react'
+import { forwardRef } from 'react'
 import { useCombinedRefs } from '../hooks/use-combined-refs'
 import { useSyncSizeWithElement } from '../hooks/use-sync-size-with-element'
 const FO_STYLE: CSSProperties = {
@@ -8,8 +8,6 @@ const FO_STYLE: CSSProperties = {
 }
 
 interface ElementBase<T extends HTMLElement> extends React.HTMLAttributes<T> {
-  readonly width?: number
-  readonly height?: number
   /**
    * The type of the element.
    * @default 'div'
@@ -54,37 +52,13 @@ function WithAutoSize(props: HtmlElementProps, forwardedRef: React.ForwardedRef<
 const WithAutoSizeForward = forwardRef(WithAutoSize)
 
 /**
- * Component that uses props width and height to set the size of itself
- */
-function WithDefinedSize(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
-  const { width, height, ...rest } = props
-  const style: CSSProperties = useMemo(
-    () => ({
-      ...rest.style,
-      width,
-      height,
-    }),
-    [height, rest.style, width]
-  )
-  return (
-    <foreignObject style={FO_STYLE}>
-      <ElementForward {...rest} ref={forwardedRef} style={style} />
-    </foreignObject>
-  )
-}
-const WithDefinedSizeForward = forwardRef(WithDefinedSize)
-/**
  * Joint js div with auto sizing parent node based on this div.
  * When this div changes, it will automatically resize the parent node element (change width and height of parent cell).
  *
  * It uses all properties as HTMLDivElement.
  */
 function Component(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
-  const { width, height } = props
-  if (width === undefined && height === undefined) {
-    return <WithAutoSizeForward {...props} ref={forwardedRef} />
-  }
-  return <WithDefinedSizeForward {...props} ref={forwardedRef} />
+  return <WithAutoSizeForward {...props} ref={forwardedRef} />
 }
 
 export const HtmlElement = forwardRef(Component)

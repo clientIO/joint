@@ -19,7 +19,7 @@ const tsConfigPath = path.resolve('./', 'tsconfig.json')
 const config = [
   {
     ignores: ['/node_modules/', 'tsconfig.json'],
-    files: ['*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}'],
   },
   depend.configs['flat/recommended'],
   js.configs.recommended,
@@ -28,7 +28,7 @@ const config = [
   reactPerfPlugin.configs.flat.recommended,
   sonarjs.configs.recommended,
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

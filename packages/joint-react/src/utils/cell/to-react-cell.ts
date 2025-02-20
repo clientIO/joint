@@ -16,6 +16,7 @@ export function defaultElementSelector<T>(cell: dia.Cell): T {
     angle: cell.get('angle'),
     height: size?.height,
     width: size?.width,
+    ports: cell.get('ports'),
   } as unknown as T
 }
 

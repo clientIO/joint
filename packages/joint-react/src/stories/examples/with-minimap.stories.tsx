@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+ 
 import type { Meta, StoryObj } from '@storybook/react/*'
 import { GraphProvider } from '../../components/graph-provider'
 import type { RenderElement } from '../../components/paper'
@@ -18,8 +18,8 @@ const meta: Meta<typeof GraphProvider> = {
 export default meta
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
+  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },
+  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200, width: 100, height: 50 },
 ])
 const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }])
 

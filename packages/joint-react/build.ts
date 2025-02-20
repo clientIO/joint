@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
-/* eslint-disable sonarjs/no-nested-conditional */
+ 
+ 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import esbuild from 'esbuild'
 import path from 'node:path'

@@ -18,15 +18,27 @@ const meta: Meta<typeof GraphProvider> = {
 export default meta
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
+  {
+    id: '1',
+    data: { label: 'Node 1' },
+    x: 100,
+    y: 50,
+    width: 100,
+    height: 50,
+    ports: {
+      items: [{ id: '1', group: 'in', args: { x: 0, y: 0 } }],
+    },
+  },
+  { id: '1', data: { label: 'Node 1' }, x: 100, y: 50, width: 100, height: 50 },
+  { id: '1', data: { label: 'Node 1' }, x: 100, y: 50, width: 100, height: 50 },
+  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200, width: 100, height: 50 },
 ])
+
 const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }])
 
 type BaseElementWithData = InferElement<typeof initialElements>
 
 function RenderItem({ data: { label } }: Readonly<BaseElementWithData>) {
-  // return <rect joint-selector={'body'} className="node" width={100} height={100} />
   const [isHighlighted, setIsHighlighted] = useState(true)
   return (
     <HtmlElement
@@ -35,7 +47,7 @@ function RenderItem({ data: { label } }: Readonly<BaseElementWithData>) {
       className="node"
     >
       {label}
-      {isHighlighted && <MaskHighlighter />}
+      {isHighlighted && <MaskHighlighter stroke="black" />}
     </HtmlElement>
   )
 }

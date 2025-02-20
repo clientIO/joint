@@ -66,8 +66,9 @@ const initialElementsWithSize = createElements([
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200, width: 100, height: 100 },
 ])
 
+type BaseElementWithDataAndSize = InferElement<typeof initialElementsWithSize>
 function MainWithSize() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
+  const renderElement: RenderElement<BaseElementWithDataAndSize> = useCallback(
     ({ width, height }) => <rect joint-selector="fo" width={width} height={height} fill="red" />,
     []
   )

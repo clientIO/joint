@@ -3,6 +3,11 @@ import { isDiaId } from '../utils/is'
 export interface RequiredCell {
   readonly id: dia.Cell.ID
 }
+
+export interface Ports {
+  readonly groups?: Record<string, dia.Element.PortGroup>
+  readonly items?: dia.Element.Port[]
+}
 export interface BaseElement<T = unknown> extends RequiredCell {
   /**
    * @default 'react'
@@ -15,6 +20,7 @@ export interface BaseElement<T = unknown> extends RequiredCell {
   readonly angle?: number
   readonly data: T extends undefined ? undefined : T
   readonly attrs?: dia.Element.Attributes['attrs']
+  readonly ports?: Ports
 }
 
 export function isBaseElement(element: unknown): element is BaseElement {
