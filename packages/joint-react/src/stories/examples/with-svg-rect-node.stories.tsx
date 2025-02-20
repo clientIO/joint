@@ -11,7 +11,7 @@ import { useSyncSizeWithElement } from '../../hooks/use-sync-size-with-element'
 
 export type Story = StoryObj<typeof GraphProvider>
 const meta: Meta<typeof GraphProvider> = {
-  title: 'Examples/Svg node',
+  title: 'Examples/With SVG Rect node',
   component: GraphProvider,
 }
 

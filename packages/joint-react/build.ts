@@ -76,7 +76,7 @@ await esbuild.build({
 
 // TypeScript types generation using tsconfig.types.json
 await execAsync(
-  'bunx tsc --project tsconfig.types.json --module ESNext --outDir dist/types --emitDeclarationOnly true'
+  'npx tsc --project tsconfig.types.json --module ESNext --outDir dist/types --emitDeclarationOnly true'
 )
 
 // @ts-expect-error

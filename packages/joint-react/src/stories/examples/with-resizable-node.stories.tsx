@@ -2,7 +2,7 @@
 import { GraphProvider } from '../../components/graph-provider'
 import type { RenderElement } from '../../components/paper'
 import { Paper } from '../../components/paper'
-import { AutoSizeDiv } from '../../components/auto-size-div'
+import { HtmlElement } from '../../components/html-element'
 import type { PropsWithChildren } from 'react'
 import { useCallback, useRef } from 'react'
 import type { InferElement } from '../../utils/create'
@@ -13,7 +13,7 @@ import type { Meta, StoryObj } from '@storybook/react/*'
 
 export type Story = StoryObj<typeof GraphProvider>
 const meta: Meta<typeof GraphProvider> = {
-  title: 'Examples/Resizable node',
+  title: 'Examples/With Resizable node',
   component: GraphProvider,
 }
 export default meta
@@ -49,13 +49,13 @@ function ResizableNode({ children }: Readonly<PropsWithChildren>) {
   }, [])
 
   return (
-    <AutoSizeDiv
+    <HtmlElement
       ref={nodeRef}
       className="resizable-node"
       onMouseDown={handleMouseDown} // prevent drag events from propagating
     >
       {children}
-    </AutoSizeDiv>
+    </HtmlElement>
   )
 }
 
