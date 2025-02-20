@@ -3,7 +3,7 @@ import type { BaseElement, BaseLink } from '../types/cell.types'
 /**
  * Sugar function to provide typing for create initial / default elements
  */
-export function createElements<T>(data: BaseElement<T>[]) {
+export function createElements<T>(data: BaseElement<T>[]): BaseElement<T>[] {
   return data
 }
 

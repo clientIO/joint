@@ -54,3 +54,8 @@
   background-color: #f9f9f9;
   border: 1px solid #ccc;
 }
+
+.highlighted {
+  stroke: red;
+  stroke-width: 2px;
+}

@@ -1,4 +1,4 @@
-import { dia, shapes } from '@joint/core'
+import { dia } from '@joint/core'
 
 // Event name for when the portal is ready
 export type PortalEvent = 'portal:ready'
@@ -16,12 +16,7 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
 
   const elementView = dia.ElementView.extend({
     onRender() {
-      const view = paper.findViewByModel(this.model)
-      if (!view) {
-        return
-      }
-      const gElement = view.vel.node as SVGGElement
-      this.notify(PAPER_PORTAL_RENDER_EVENT, gElement)
+      this.notify(PAPER_PORTAL_RENDER_EVENT, this.el)
     },
   })
 
@@ -34,7 +29,6 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
     // the users to trigger the PORTAL_READY_EVENT event manually
     // or find a better way to do it (e.g. trigger the event in JointJS)
     elementView,
-    defaultLink: () => new shapes.standard.Link(),
     ...restOptions,
     frozen: true,
     model: graph,

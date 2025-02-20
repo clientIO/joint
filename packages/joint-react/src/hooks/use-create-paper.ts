@@ -92,6 +92,12 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     }
   }, [listener, paper, resizePaperContainer])
 
+  useEffect(() => {
+    if (options?.scale !== undefined) {
+      paper.scale(options.scale)
+    }
+  }, [options?.scale, paper])
+
   return {
     isPaperFromContext,
     paper,
