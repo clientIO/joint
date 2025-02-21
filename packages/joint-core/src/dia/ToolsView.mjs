@@ -1,7 +1,7 @@
 import * as mvc from '../mvc/index.mjs';
 import * as util from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
-import { LayersNames } from './PaperLayer.mjs';
+import { LayersNames } from './Layer.mjs';
 import { ToolView } from './ToolView.mjs';
 
 export const ToolsView = mvc.View.extend({

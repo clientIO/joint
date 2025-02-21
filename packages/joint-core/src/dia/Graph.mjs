@@ -20,7 +20,6 @@ const GraphCells = Collection.extend({
             /* eslint-enable no-undef */
         }
 
-
         this.graph = opt.graph;
     },
 
@@ -71,14 +70,18 @@ export const Graph = Model.extend({
 
         opt = opt || {};
 
+        this.defaultLayerName = LayersNames.CELLS;
+
         const defaultLayer = new Layer({
-            name: LayersNames.CELLS,
+            name: this.defaultLayerName,
             displayName: 'Default'
         });
 
-        this.set('layers', [
-            defaultLayer
-        ]);
+        this.set('layers', {
+            [defaultLayer.name]: defaultLayer
+        });
+
+        this.useLayersForEmbedding = opt.useLayersForEmbedding || false;
 
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
@@ -93,10 +96,6 @@ export const Graph = Model.extend({
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
         cells.on('all', this.trigger, this);
-
-        // JointJS automatically doesn't trigger re-sort if models attributes are changed later when
-        // they're already in the collection. Therefore, we're triggering sort manually here.
-        this.on('change:z', this._sortOnChangeZ, this);
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -130,11 +129,6 @@ export const Graph = Model.extend({
         cells.on('remove', this._removeCell, this);
     },
 
-    _sortOnChangeZ: function() {
-
-        this.get('cells').sort();
-    },
-
     _restructureOnAdd: function(cell) {
 
         if (cell.isLink()) {
@@ -149,6 +143,15 @@ export const Graph = Model.extend({
         } else {
             this._nodes[cell.id] = true;
         }
+
+        const layerName = cell.layer() || this.defaultLayerName;
+        const layer = this.get('layers')[layerName];
+
+        if (!cell.has('z')) {
+            cell.set('z', layer.maxZIndex() + 1);
+        }
+
+        layer.add(cell);
     },
 
     _restructureOnRemove: function(cell) {
@@ -165,17 +168,27 @@ export const Graph = Model.extend({
         } else {
             delete this._nodes[cell.id];
         }
+
+        const layerName = cell.layer() || this.defaultLayerName;
+        const layer = this.get('layers')[layerName];
+
+        layer.remove(cell);
     },
 
-    _restructureOnReset: function(cells) {
+    _restructureOnReset: function(collection) {
 
-        // Normalize into an array of cells. The original `cells` is GraphCells mvc collection.
-        cells = cells.models;
+        // Normalize into an array of cells. The original `collection` is GraphCells mvc collection.
+        const cells = collection.models;
 
         this._out = {};
         this._in = {};
         this._nodes = {};
         this._edges = {};
+
+        const layers = this.get('layers');
+        for (let layerName in layers) {
+            layers[layerName].clear();
+        }
 
         cells.forEach(this._restructureOnAdd, this);
     },
@@ -305,16 +318,18 @@ export const Graph = Model.extend({
         return cell;
     },
 
-    minZIndex: function() {
+    minZIndex: function(layer) {
+        const layers = this.get('layers');
+        layer = layer || this.defaultLayerName;
 
-        var firstCell = this.get('cells').first();
-        return firstCell ? (firstCell.get('z') || 0) : 0;
+        return layers[layer].minZIndex();
     },
 
-    maxZIndex: function() {
+    maxZIndex: function(layer) {
+        const layers = this.get('layers');
+        layer = layer || this.defaultLayerName;
 
-        var lastCell = this.get('cells').last();
-        return lastCell ? (lastCell.get('z') || 0) : 0;
+        return layers[layer].maxZIndex();
     },
 
     addCell: function(cell, opt) {
@@ -322,17 +337,6 @@ export const Graph = Model.extend({
         if (Array.isArray(cell)) {
 
             return this.addCells(cell, opt);
-        }
-
-        if (cell instanceof Model) {
-
-            if (!cell.has('z')) {
-                cell.set('z', this.maxZIndex() + 1);
-            }
-
-        } else if (cell.z === undefined) {
-
-            cell.z = this.maxZIndex() + 1;
         }
 
         this.get('cells').add(this._prepareCell(cell, opt), opt || {});
@@ -348,10 +352,10 @@ export const Graph = Model.extend({
         opt.maxPosition = opt.position = cells.length - 1;
 
         this.startBatch('add', opt);
-        cells.forEach(function(cell) {
+        cells.forEach((cell) => {
             this.addCell(cell, opt);
             opt.position--;
-        }, this);
+        });
         this.stopBatch('add', opt);
 
         return this;
@@ -365,6 +369,7 @@ export const Graph = Model.extend({
         var preparedCells = util.toArray(cells).map(function(cell) {
             return this._prepareCell(cell, opt);
         }, this);
+
         this.get('cells').reset(preparedCells, opt);
 
         return this;

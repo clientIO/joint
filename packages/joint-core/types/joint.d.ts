@@ -193,7 +193,11 @@ export namespace dia {
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
-        constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
+        constructor(attributes?: Graph.Attributes, opt?: {
+            cellNamespace?: any,
+            cellModel?: typeof Cell,
+            useLayersForEmbedding: boolean,
+        });
 
         addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
         addCell(cell: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;

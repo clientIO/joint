@@ -1,4 +1,4 @@
-import { Model } from '../mvc/index.mjs';
+import { Model, Collection } from '../mvc/index.mjs';
 
 export const LayersNames = {
     GRID: 'grid',
@@ -9,27 +9,52 @@ export const LayersNames = {
     LABELS: 'labels'
 };
 
+class LayerCells extends Collection {
+
+    // `comparator` makes it easy to sort cells based on their `z` index.
+    comparator(model) {
+        return model.get('z') || 0;
+    }
+}
+
 export class Layer extends Model {
 
     defaults() {
         return {
-            name: '',
             displayName: '',
         };
     }
 
-    initialize() {
-        this.models = [];
+    initialize(attrs) {
+        this.name = attrs.name;
+
+        const cells = new LayerCells();
+        this.set('cells', cells);
+
+        cells.on('change:z', () => {
+            cells.sort();
+        });
     }
 
-    addModel(item) {
-        this.models.push(item);
+    add(cell) {
+        this.get('cells').add(cell);
     }
 
-    removeModel(item) {
-        const index = this.models.indexOf(item);
-        if (index !== -1) {
-            this.models.splice(index, 1);
-        }
+    remove(cell) {
+        this.get('cells').remove(cell);
+    }
+
+    clear() {
+        this.get('cells').reset();
+    }
+
+    minZIndex() {
+        const firstCell = this.get('cells').first();
+        return firstCell ? (firstCell.get('z') || 0) : 0;
+    }
+
+    maxZIndex() {
+        const lastCell = this.get('cells').last();
+        return lastCell ? (lastCell.get('z') || 0) : 0;
     }
 }

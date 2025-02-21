@@ -2,12 +2,12 @@ import { View } from '../mvc/index.mjs';
 
 export class LayerView extends View {
 
-    pivotNodes = null;
     defaultTheme = null;
 
     preinitialize() {
         this.tagName = 'g';
         this.svgElement = true;
+        this.pivotNodes = {};
 
         this.options = {
             name: ''
@@ -18,10 +18,6 @@ export class LayerView extends View {
         const { name } = this.options;
         if (!name) return null;
         return addClassNamePrefix(`${name}-layer`);
-    }
-
-    init() {
-        this.pivotNodes = {};
     }
 
     insertSortedNode(node, z) {
@@ -61,7 +57,7 @@ export class LayerView extends View {
         return pivotNode;
     }
 
-    removePivotNodes() {
+    removePivots() {
         const { el, pivotNodes } = this;
         for (let z in pivotNodes) {
             el.removeChild(pivotNodes[z]);

@@ -396,7 +396,9 @@ export const Paper = View.extend({
             name: LayersNames.BACK,
         }];
 
-        graphLayers.forEach(layer => {
+        Object.keys(graphLayers).forEach(name => {
+            const layer = graphLayers[name];
+
             this._layersSettings.push({
                 name: layer.get('name'),
                 model: layer
@@ -737,7 +739,7 @@ export const Paper = View.extend({
         this.defs = defs;
         this.layers = layers;
 
-        this.renderLayers();
+        this.renderLayers(this._layersSettings);
 
         V.ensureId(svg);
 
@@ -774,7 +776,7 @@ export const Paper = View.extend({
         return layerView;
     },
 
-    renderLayers: function(layers = defaultLayers) {
+    renderLayers: function(layers) {
         this.removeLayers();
         layers.forEach(attributes => this.renderLayer(attributes));
         // Throws an exception if doesn't exist

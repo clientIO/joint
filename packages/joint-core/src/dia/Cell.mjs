@@ -942,6 +942,10 @@ export const Cell = Model.extend({
             .getPointRotatedAroundCenter(this.angle(), x, y)
             // Transform the absolute position into relative
             .difference(this.position());
+    },
+
+    layer() {
+        return this.get('layer') || null;
     }
 
 }, {
