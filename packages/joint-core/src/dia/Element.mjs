@@ -1,6 +1,6 @@
 import { Cell } from './Cell.mjs';
 import { Point, toRad, normalizeAngle, Rect } from '../g/index.mjs';
-import { isNumber, isObject, interpolate, assign, invoke, normalizeSides } from '../util/index.mjs';
+import { isNumber, isObject, interpolate, assign, invoke, normalizeSides, omit } from '../util/index.mjs';
 import { elementPortPrototype } from './ports.mjs';
 
 // Element base model.
@@ -344,32 +344,23 @@ export const Element = Cell.extend({
         const { graph } = this;
         if (!graph) throw new Error('Element must be part of a graph.');
 
-        // If this element has no children, there is nothing for us to do.
-        // - We need to do this check before filtering with `opt.filter` because we don't want to apply `minRect` in this case.
-        const childElements = this.getEmbeddedCells().filter(cell => cell.isElement());
-        if (childElements.length === 0) return this;
-
         // Get element children, optionally filtered according to `opt.filter`.
-        let filteredChildElements;
-        if (typeof opt.filter === 'function') {
-            filteredChildElements = childElements.filter(opt.filter);
-        } else {
-            filteredChildElements = childElements;
-        }
+        const filteredChildElements = this._getFilteredChildElements(opt.filter);
 
         this.startBatch('fit-embeds', opt);
 
         if (opt.deep) {
             // `opt.deep = true` means "fit to all descendants".
             // As the first action of the fitting algorithm, recursively apply `fitToChildren()` on all descendants.
-            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant, then go up (= this element).
-            invoke(filteredChildElements, 'fitToChildren', opt);
+            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant, then go up (= this element)
+            // - omit `opt.minRect` - it only makes sense for the first level of recursion if there are no filtered children, but in this case we do have filtered children
+            invoke(filteredChildElements, 'fitToChildren', omit(opt, 'minRect'));
         }
 
         // Set new size and position of this element, based on:
         // - union of bboxes of filtered element children
         // - inflated by given `opt.padding`
-        // - containing at least `opt.minRect`
+        // - containing at least `opt.minRect` (if this is the first level of recursion and there are no filtered children)
         this._fitToElements(Object.assign({ elements: filteredChildElements }, opt));
 
         this.stopBatch('fit-embeds');
@@ -391,32 +382,38 @@ export const Element = Cell.extend({
         if (!parentElement || !parentElement.isElement()) return this;
 
         // Get element children of parent element (i.e. this element + any sibling elements), optionally filtered according to `opt.filter`.
-        const siblingElements = parentElement.getEmbeddedCells();
-        let filteredSiblingElements;
-        if (typeof opt.filter === 'function') {
-            filteredSiblingElements = siblingElements.filter((cell) => (cell.isElement() && opt.filter(cell)));
-        } else {
-            filteredSiblingElements = siblingElements.filter((cell) => (cell.isElement()));
-        }
+        const filteredSiblingElements = parentElement._getFilteredChildElements(opt.filter);
 
         this.startBatch('fit-parent', opt);
 
         // Set new size and position of parent element, based on:
         // - union of bboxes of filtered element children of parent element (i.e. this element + any sibling elements)
         // - inflated by given `opt.padding`
-        // - containing at least `opt.minRect`
+        // - containing at least `opt.minRect` (if this is the first level of recursion and there are no filtered siblings)
         parentElement._fitToElements(Object.assign({ elements: filteredSiblingElements }, opt));
 
         if (opt.deep) {
             // `opt.deep = true` means "fit all ancestors to their respective children".
             // As the last action of the fitting algorithm, recursively apply `fitParent()` on all ancestors.
-            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant (= this element), then go up.
-            parentElement.fitParent(opt);
+            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant (= this element), then go up
+            // - omit `opt.minRect` - `minRect` is not relevant for the parent of parent element (and upwards)
+            parentElement.fitParent(omit(opt, 'minRect'));
         }
 
         this.stopBatch('fit-parent');
 
         return this;
+    },
+
+    _getFilteredChildElements: function(filter) {
+
+        let filterFn;
+        if (typeof filter === 'function') {
+            filterFn = (cell) => (cell.isElement() && filter(cell));
+        } else {
+            filterFn = (cell) => (cell.isElement());
+        }
+        return this.getEmbeddedCells().filter(filterFn);
     },
 
     // Assumption: This element is part of a graph.
@@ -471,7 +468,7 @@ export const Element = Cell.extend({
         }
 
         // Set the new size and position of this element.
-        // - if `opt.minRect` was provided, add it via union to calculated bbox.
+        // - if `opt.minRect` was provided, add it via union to calculated bbox
         let resultBBox = contentBBox;
         if (minBBox) {
             resultBBox = resultBBox.union(minBBox);
@@ -480,6 +477,7 @@ export const Element = Cell.extend({
     },
 
     _setBBox: function(bbox, opt) {
+
         if (!bbox) return;
 
         const { x, y, width, height } = bbox;
