@@ -128,11 +128,11 @@ export const HighlighterView = mvc.View.extend({
             // we need to insert the highlighter before the element on the index.
             // Otherwise, the highlighter will be appended as the last child.
             const toBeInserted = isNumber(z) && beforeChild;
-            const isElementAtTargetPosition = toBeInserted ?
+            const isElementAtTargetPosition = toBeInserted
                 // If the element is being inserted, check if it is not already at the correct position.
-                el === beforeChild :
+                ? el === beforeChild
                 // If the element is being appended, check if it is not already last child.
-                !el.nextElementSibling;
+                : !el.nextElementSibling;
 
             // If the element is already mounted and does not require repositioning, do nothing.
             if (el.parentNode && isElementAtTargetPosition) return;
