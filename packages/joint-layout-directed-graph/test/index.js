@@ -317,5 +317,42 @@ QUnit.module('DirectedGraph', function(hooks) {
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
 
         });
+
+        QUnit.test('should resize clusters', function(assert) {
+
+            const deepestSize = {
+                width: 500,
+                height: 500
+            };
+
+            const elements = [
+                new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 100, height: 300 }}),
+                new joint.shapes.standard.Rectangle({ size: deepestSize })
+            ];
+
+            elements[0].embed(elements[1]);
+            elements[1].embed(elements[2]);
+            elements[2].embed(elements[3]);
+
+            graph.resetCells(elements);
+
+            const padding = 20;
+
+            // opt.resizeClusters = `true` by default
+            DirectedGraph.layout(graph, {
+                clusterPadding: padding
+            });
+
+            const nextExpectedSize = deepestSize;
+
+            // Parents should be resized to fit all children
+            for (let i = elements.length - 1; i >= 0; i--) {
+                assert.deepEqual(elements[i].size(), nextExpectedSize);
+                nextExpectedSize.width += padding * 2;
+                nextExpectedSize.height += padding * 2;
+            }
+        });
     });
 });

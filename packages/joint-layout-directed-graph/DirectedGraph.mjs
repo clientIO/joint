@@ -173,20 +173,15 @@ export const DirectedGraph = {
         });
 
         if (opt.resizeClusters) {
-            // Resize and reposition cluster elements (parents of other elements)
-            // to fit their children.
-            // 1. filter clusters only
-            // 2. map id on cells
-            // 3. sort cells by their depth (the deepest first)
-            // 4. resize cell to fit their direct children only.
-            var clusters = glGraph.nodes()
-                .filter(function(v) { return glGraph.children(v).length > 0; })
-                .map(graph.getCell.bind(graph))
-                .sort(function(aCluster, bCluster) {
-                    return bCluster.getAncestors().length - aCluster.getAncestors().length;
-                });
+            // Resize and reposition cluster elements
+            // Filter out top-level clusters and map them to cells
+            const topLevelClusters = glGraph.nodes()
+                .filter(v => !glGraph.parent(v))
+                .map(graph.getCell.bind(graph));
 
-            util.invoke(clusters, 'fitToChildren', { padding: opt.clusterPadding });
+            // Since the `opt.deep` is set to `true`, the `fitToChildren` method is applied in reverse-depth
+            // order starting from the deepest descendant - working its way up to the top-level clusters.
+            util.invoke(topLevelClusters, 'fitToChildren', { padding: opt.clusterPadding, deep: true });
         }
 
         graph.stopBatch('layout');
@@ -215,9 +210,9 @@ export const DirectedGraph = {
             if (this instanceof dia.Graph) {
                 // Backwards compatibility.
                 graph = this;
-             } else {
+            } else {
                 graph = new dia.Graph();
-             }
+            }
         }
 
         // Import all nodes.
