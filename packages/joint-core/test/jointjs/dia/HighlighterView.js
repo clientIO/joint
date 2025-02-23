@@ -279,7 +279,22 @@ QUnit.module('HighlighterView', function(hooks) {
 
             });
 
-            QUnit.test('z', function(assert) {
+            QUnit.test('z - cell view', function(assert) {
+
+                const h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1', {
+                    z: 0
+                });
+
+                const h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2', {
+                    z: 1
+                });
+
+                assert.equal(elementView.el.children[0], h1.el);
+                assert.equal(elementView.el.children[1], h2.el);
+
+            });
+
+            QUnit.test('z - paper layer', function(assert) {
                 var layer = joint.dia.Paper.Layers.FRONT;
                 var h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1', { layer: layer, z: 2 });
                 var h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2', { layer: layer, z: 3  });
