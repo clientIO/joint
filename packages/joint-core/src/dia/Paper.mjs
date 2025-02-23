@@ -467,6 +467,10 @@ export const Paper = View.extend({
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'sort', this.onGraphSort)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
+
+        this.listenTo(model, 'embeddingLayer:insert', this.onEmbeddingLayerInsert);
+        this.listenTo(model, 'embeddingLayer:remove', this.onEmbeddingLayerRemove);
+
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
             .on('transform', this.update);
@@ -523,6 +527,13 @@ export const Paper = View.extend({
         if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
             this.sortViews();
         }
+    },
+
+    onEmbeddingLayerInsert: function(layer, opt) {
+    },
+
+    onEmbeddingLayerRemove: function(layer, opt) {
+
     },
 
     cloneOptions: function() {

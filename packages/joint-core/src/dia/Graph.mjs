@@ -176,9 +176,24 @@ export const Graph = Model.extend({
         }
 
         const layerName = cell.layer() || this.defaultLayerName;
-        const layer = this.get('layers')[layerName];
+
+        const layers = this.get('layers');
+        const embeddingLayers = this.get('embeddingLayers');
+
+        const layer = layers[layerName] || embeddingLayers[layerName];
 
         layer.remove(cell);
+
+        if (embeddingLayers[cell.id]) {
+            const embeddingLayer = embeddingLayers[cell.id];
+            const cells = embeddingLayer.get('cells').models;
+            cells.forEach((cell) => {
+                layers[this.defaultLayerName].add(cell);
+            });
+
+            this.trigger('embeddingLayers:remove', embeddingLayer, {});
+            delete embeddingLayers[cell.id];
+        }
     },
 
     _restructureOnReset: function(collection) {
