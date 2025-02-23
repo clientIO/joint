@@ -37,10 +37,12 @@ export class Layer extends Model {
     }
 
     add(cell) {
+        cell.setLayer(this.name);
         this.get('cells').add(cell);
     }
 
     remove(cell) {
+        cell.setLayer();
         this.get('cells').remove(cell);
     }
 

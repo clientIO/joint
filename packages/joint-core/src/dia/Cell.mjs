@@ -944,6 +944,14 @@ export const Cell = Model.extend({
             .difference(this.position());
     },
 
+    setLayer(layerName) {
+        if (layerName) {
+            this.set('layer', layerName);
+        } else {
+            this.unset('layer');
+        }
+    },
+
     layer() {
         return this.get('layer') || null;
     }

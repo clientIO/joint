@@ -83,6 +83,10 @@ export const Graph = Model.extend({
 
         this.useLayersForEmbedding = opt.useLayersForEmbedding || false;
 
+        if (this.useLayersForEmbedding) {
+            this.set('embeddingLayers', {});
+        }
+
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
@@ -127,6 +131,8 @@ export const Graph = Model.extend({
         cells.on('change:source', this._restructureOnChangeSource, this);
         cells.on('change:target', this._restructureOnChangeTarget, this);
         cells.on('remove', this._removeCell, this);
+
+        cells.on('change:parent', this._onCellParentChange, this);
     },
 
     _restructureOnAdd: function(cell) {
@@ -214,6 +220,35 @@ export const Graph = Model.extend({
         var target = link.get('target');
         if (target.id) {
             (this._in[target.id] || (this._in[target.id] = {}))[link.id] = true;
+        }
+    },
+
+    _onCellParentChange: function(cell, parentId, opt) {
+        if (this.useLayersForEmbedding) {
+            const embeddingLayers = this.get('embeddingLayers');
+            const layers = this.get('layers');
+
+            const currentLayer = cell.layer() || this.defaultLayerName;
+
+            if (layers[currentLayer]) {
+                layers[currentLayer].remove(cell);
+            } else if (embeddingLayers[currentLayer]) {
+                embeddingLayers[currentLayer].remove(cell);
+            }
+
+            if (parentId && !embeddingLayers[parentId]) {
+                embeddingLayers[parentId] = new Layer({
+                    name: parentId,
+                    displayName: parentId
+                });
+            }
+
+            const targetLayer = embeddingLayers[parentId] || layers[this.defaultLayerName];
+
+            targetLayer.add(cell);
+
+            console.log('embeddingLayers', embeddingLayers);
+            console.log('layers', layers);
         }
     },
 
