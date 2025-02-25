@@ -366,18 +366,26 @@ export const Graph = Model.extend({
         return cell;
     },
 
-    minZIndex: function(layer) {
-        const layers = this.get('layers');
-        layer = layer || this.defaultLayerName;
+    minZIndex: function(layerName) {
+        layerName = layerName || this.defaultLayerName;
 
-        return layers[layer].minZIndex();
+        const layers = this.get('layers');
+        const embeddingLayers = this.get('embeddingLayers');
+
+        const layer = layers[layerName] || embeddingLayers[layerName];
+
+        return layer.minZIndex();
     },
 
-    maxZIndex: function(layer) {
-        const layers = this.get('layers');
-        layer = layer || this.defaultLayerName;
+    maxZIndex: function(layerName) {
+        layerName = layerName || this.defaultLayerName;
 
-        return layers[layer].maxZIndex();
+        const layers = this.get('layers');
+        const embeddingLayers = this.get('embeddingLayers');
+
+        const layer = layers[layerName] || embeddingLayers[layerName];
+
+        return layer.maxZIndex();
     },
 
     addCell: function(cell, opt) {

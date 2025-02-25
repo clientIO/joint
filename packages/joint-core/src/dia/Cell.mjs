@@ -261,7 +261,7 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const maxZ = graph.maxZIndex();
+            const maxZ = graph.maxZIndex(this.layer());
             let z = maxZ - cells.length + 1;
 
             const collection = graph.get('cells');
@@ -304,7 +304,7 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            let z = graph.minZIndex();
+            let z = graph.minZIndex(this.layer());
 
             var collection = graph.get('cells');
 
