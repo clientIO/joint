@@ -546,7 +546,7 @@ export const Paper = View.extend({
 
     onEmbeddingLayerRemove: function(layer, opt) {
         const cellId = layer.get('name');
-        const layerView = this._embeddingLayers.viewsMap[cellId];
+        const layerView = this._embeddingLayers[cellId];
 
         delete this._embeddingLayers[cellId];
         delete this._layers.viewsMap[cellId];
