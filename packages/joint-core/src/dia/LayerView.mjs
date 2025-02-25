@@ -68,4 +68,8 @@ export class LayerView extends View {
     isEmpty() {
         return this.el.children.length === 0;
     }
+
+    get name() {
+        return this.options.name;
+    }
 }

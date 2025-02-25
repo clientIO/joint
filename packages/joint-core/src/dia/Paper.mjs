@@ -416,8 +416,10 @@ export const Paper = View.extend({
         // Layers (SVGGroups)
         this._layers = {
             viewsMap: {},
-            namesMap: {},
             order: [],
+        };
+
+        this._embeddingLayers = {
         };
 
         this.cloneOptions();
@@ -530,10 +532,26 @@ export const Paper = View.extend({
     },
 
     onEmbeddingLayerInsert: function(layer, opt) {
+        const cellId = layer.get('name');
+        const layerView = this.createLayer({ name: cellId, model: layer });
+
+        const cellView = this._views[cellId];
+        if (cellView.isMounted()) {
+            cellView.el.after(layerView.el);
+        }
+
+        this._embeddingLayers[cellId] = layerView;
+        this._layers.viewsMap[cellId] = layerView;
     },
 
     onEmbeddingLayerRemove: function(layer, opt) {
+        const cellId = layer.get('name');
+        const layerView = this._embeddingLayers.viewsMap[cellId];
 
+        delete this._embeddingLayers[cellId];
+        delete this._layers.viewsMap[cellId];
+
+        layerView.remove();
     },
 
     cloneOptions: function() {
@@ -640,39 +658,29 @@ export const Paper = View.extend({
     },
 
     _unregisterLayer(layerView) {
-        const { _layers: { viewsMap, namesMap, order }} = this;
-        const layerName = this._getLayerName(layerView);
+        const { _layers: { viewsMap, order }} = this;
+        const layerName = layerView.name;
         order.splice(order.indexOf(layerName), 1);
-        delete namesMap[layerView.cid];
         delete viewsMap[layerName];
     },
 
     _registerLayer(layerName, layerView, beforeLayerView) {
-        const { _layers: { viewsMap, namesMap, order }} = this;
+        const { _layers: { viewsMap, order }} = this;
         if (beforeLayerView) {
-            const beforeLayerName = this._getLayerName(beforeLayerView);
+            const beforeLayerName = beforeLayerView.name;
             order.splice(order.indexOf(beforeLayerName), 0, layerName);
         } else {
             order.push(layerName);
         }
         viewsMap[layerName] = layerView;
-        namesMap[layerView.cid] = layerName;
     },
 
     _getLayerView(layer) {
-        const { _layers: { namesMap, viewsMap }} = this;
-        if (layer instanceof LayerView) {
-            if (layer.cid in namesMap) return layer;
-            return null;
-        }
+        const { _layers: { viewsMap }} = this;
         if (layer in viewsMap) return viewsMap[layer];
         return null;
     },
 
-    _getLayerName(layerView) {
-        const { _layers: { namesMap }} = this;
-        return namesMap[layerView.cid];
-    },
 
     _requireLayerView(layer) {
         const layerView = this._getLayerView(layer);
@@ -722,7 +730,7 @@ export const Paper = View.extend({
     moveLayer(layer, insertBefore) {
         const layerView = this._requireLayerView(layer);
         if (layerView === this._getLayerView(insertBefore)) return;
-        const layerName = this._getLayerName(layerView);
+        const layerName = layerView.name;
         this._unregisterLayer(layerView);
         this.addLayer(layerName, layerView, { insertBefore });
     },
@@ -1942,6 +1950,12 @@ export const Paper = View.extend({
                 layerView.insertNode(el);
                 break;
         }
+
+        if (this._embeddingLayers[model.id]) {
+            const layerView = this._embeddingLayers[model.id];
+            el.after(layerView.el);
+        }
+
         view.onMount(isInitialInsert);
     },
 

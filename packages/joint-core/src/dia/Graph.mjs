@@ -191,7 +191,7 @@ export const Graph = Model.extend({
                 layers[this.defaultLayerName].add(cell);
             });
 
-            this.trigger('embeddingLayers:remove', embeddingLayer, {});
+            this.trigger('embeddingLayer:remove', embeddingLayer, {});
             delete embeddingLayers[cell.id];
         }
     },
@@ -256,14 +256,12 @@ export const Graph = Model.extend({
                     name: parentId,
                     displayName: parentId
                 });
+                this.trigger('embeddingLayer:insert', embeddingLayers[parentId], {});
             }
 
             const targetLayer = embeddingLayers[parentId] || layers[this.defaultLayerName];
 
             targetLayer.add(cell);
-
-            console.log('embeddingLayers', embeddingLayers);
-            console.log('layers', layers);
         }
     },
 
