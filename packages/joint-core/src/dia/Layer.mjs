@@ -22,10 +22,14 @@ export class Layer extends Model {
     defaults() {
         return {
             displayName: '',
+            hidden: false,
+            locked: false,
         };
     }
 
     initialize(attrs) {
+        super.initialize(attrs);
+
         this.name = attrs.name;
 
         const cells = new LayerCells();

@@ -500,6 +500,10 @@ export const Graph = Model.extend({
         this.stopBatch(batchName);
     },
 
+    getLayers() {
+        return Object.values(this.get('layers'));
+    },
+
     // Get a cell by `id`.
     getCell: function(id) {
 
