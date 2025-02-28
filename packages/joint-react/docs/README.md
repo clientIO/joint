@@ -4,10 +4,6 @@
 
 # @joint/react
 
-## Classes
-
-- [ReactElement](classes/ReactElement.md)
-
 ## Interfaces
 
 - [BaseAttributes](interfaces/BaseAttributes.md)
@@ -33,7 +29,6 @@
 - [isBaseElement](functions/isBaseElement.md)
 - [isBaseLink](functions/isBaseLink.md)
 - [isReactElement](functions/isReactElement.md)
-- [updateGraph](functions/updateGraph.md)
 
 ## Components
 
@@ -55,8 +50,13 @@
 - [useSetElement](functions/useSetElement.md)
 - [useSyncSizeWithElement](functions/useSyncSizeWithElement.md)
 
+## Models
+
+- [ReactElement](classes/ReactElement.md)
+
 ## Utils
 
 - [InferElement](type-aliases/InferElement.md)
 - [createElements](functions/createElements.md)
 - [createLinks](functions/createLinks.md)
+- [updateGraph](functions/updateGraph.md)

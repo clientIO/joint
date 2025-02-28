@@ -6,7 +6,7 @@
 
 # Class: ReactElement\<T\>
 
-Defined in: [packages/joint-react/src/models/react-element.ts:12](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/models/react-element.ts#L12)
+Defined in: [packages/joint-react/src/models/react-element.ts:13](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/models/react-element.ts#L13)
 
 A custom JointJS element that can render React components.
 
@@ -50,7 +50,7 @@ Defined in: packages/joint-react/node\_modules/@joint/core/types/joint.d.ts:443
 
 > **defaults**(): `Attributes` & `T`
 
-Defined in: [packages/joint-react/src/models/react-element.ts:19](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/models/react-element.ts#L19)
+Defined in: [packages/joint-react/src/models/react-element.ts:20](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/models/react-element.ts#L20)
 
 Sets the default attributes for the ReactElement.
 
@@ -70,7 +70,7 @@ The default attributes.
 
 > **preinitialize**(): `void`
 
-Defined in: [packages/joint-react/src/models/react-element.ts:39](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/models/react-element.ts#L39)
+Defined in: [packages/joint-react/src/models/react-element.ts:39](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/models/react-element.ts#L39)
 
 Initializes the markup for the ReactElement.
 

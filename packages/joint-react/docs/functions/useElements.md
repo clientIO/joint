@@ -8,7 +8,7 @@
 
 > **useElements**\<`T`, `R`\>(`selector`, `isEqual`): `R`
 
-Defined in: [packages/joint-react/src/hooks/use-elements.ts:32](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/hooks/use-elements.ts#L32)
+Defined in: [packages/joint-react/src/hooks/use-elements.ts:32](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/hooks/use-elements.ts#L32)
 
 A hook to access the graph store's elements. This hook takes a selector function
 as an argument. The selector is called with the store elements.

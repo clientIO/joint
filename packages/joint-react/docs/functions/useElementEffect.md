@@ -8,7 +8,7 @@
 
 > **useElementEffect**(`idOrIds`, `onChange`, `dependencies`): `void`
 
-Defined in: [packages/joint-react/src/hooks/use-element-effect.ts:18](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/hooks/use-element-effect.ts#L18)
+Defined in: [packages/joint-react/src/hooks/use-element-effect.ts:18](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/hooks/use-element-effect.ts#L18)
 
 Custom hook to manipulate a JointJS graph element based on React state.
 It works similarly to react useEffect, but it is specific to JointJS elements.

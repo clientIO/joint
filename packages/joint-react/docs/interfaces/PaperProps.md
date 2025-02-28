@@ -6,7 +6,7 @@
 
 # Interface: PaperProps\<T\>
 
-Defined in: [packages/joint-react/src/components/paper.tsx:20](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L20)
+Defined in: [packages/joint-react/src/components/paper.tsx:20](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L20)
 
 The props for the Paper component. Extend the `dia.Paper.Options` interface.
 For more information, see the JointJS documentation.
@@ -33,7 +33,7 @@ https://docs.jointjs.com/api/dia/Paper
 
 > `readonly` `optional` **children**: `ReactNode`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:59](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L59)
+Defined in: [packages/joint-react/src/components/paper.tsx:59](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L59)
 
 Children to render. Paper automatically wrap the children with the PaperContext, if there is no PaperContext in the parent tree.
 
@@ -43,7 +43,7 @@ Children to render. Paper automatically wrap the children with the PaperContext,
 
 > `readonly` `optional` **className**: `string`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:38](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L38)
+Defined in: [packages/joint-react/src/components/paper.tsx:38](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L38)
 
 Class name of the paper element.
 
@@ -57,7 +57,7 @@ Class name of the paper element.
 
 > `readonly` `optional` **elementSelector**: (`item`) => `T`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:45](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L45)
+Defined in: [packages/joint-react/src/components/paper.tsx:45](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L45)
 
 A function that selects the elements to be rendered.
 It defaults to the `defaultElementSelector` function which return `BaseElement` because dia.Element is not a valid React element (it do not change reference after update).
@@ -84,7 +84,7 @@ It defaults to the `defaultElementSelector` function which return `BaseElement` 
 
 > `readonly` `optional` **isFitContentOnLoadEnabled**: `boolean`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:73](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L73)
+Defined in: [packages/joint-react/src/components/paper.tsx:73](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L73)
 
 Function that is called when the paper is resized.
 
@@ -94,7 +94,7 @@ Function that is called when the paper is resized.
 
 > `readonly` `optional` **noDataPlaceholder**: `ReactNode`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:54](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L54)
+Defined in: [packages/joint-react/src/components/paper.tsx:54](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L54)
 
 Placeholder to be rendered when there is no data (no nodes or elements to render).
 
@@ -104,7 +104,7 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 > `readonly` `optional` **onEvent**: (`paper`, `eventName`, ...`args`) => `void`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:68](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L68)
+Defined in: [packages/joint-react/src/components/paper.tsx:68](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L68)
 
 Function that is called when an event is triggered on the paper.
 
@@ -132,7 +132,7 @@ Function that is called when an event is triggered on the paper.
 
 > `readonly` `optional` **onReady**: () => `void`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:29](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L29)
+Defined in: [packages/joint-react/src/components/paper.tsx:29](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L29)
 
 A function that is called when the paper is ready.
 
@@ -146,7 +146,7 @@ A function that is called when the paper is ready.
 
 > `readonly` `optional` **renderElement**: [`RenderElement`](../type-aliases/RenderElement.md)\<`T`\>
 
-Defined in: [packages/joint-react/src/components/paper.tsx:25](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L25)
+Defined in: [packages/joint-react/src/components/paper.tsx:25](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L25)
 
 A function that renders the element. It is called every time the element is rendered.
 
@@ -162,7 +162,7 @@ A function that renders the element. It is called every time the element is rend
 
 > `readonly` `optional` **scale**: `number`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:50](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L50)
+Defined in: [packages/joint-react/src/components/paper.tsx:50](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L50)
 
 The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
 
@@ -172,6 +172,6 @@ The scale of the paper. It's useful to create for example a zoom feature or mini
 
 > `readonly` `optional` **style**: `CSSProperties`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:34](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/paper.tsx#L34)
+Defined in: [packages/joint-react/src/components/paper.tsx:34](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper.tsx#L34)
 
 The style of the paper element.

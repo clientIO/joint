@@ -8,7 +8,7 @@
 
 > **HtmlElement**(`props`): `ReactNode`
 
-Defined in: [packages/joint-react/src/components/html-element.tsx:80](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/components/html-element.tsx#L80)
+Defined in: [packages/joint-react/src/components/html-element.tsx:99](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/html-element.tsx#L99)
 
 Joint js div with auto sizing parent node based on this div.
 When this div changes, it will automatically resize the parent node element (change width and height of parent cell).
@@ -29,6 +29,7 @@ Under the hood, it uses foreignObject to render the div
 https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject
 It uses all properties as HTMLDivElement.
 
+If there is not style provided to the element, it will use `display: inline-block` style by default.
 Element calculate automatically it size based on the content and resize the node. If you do not want to use this feature, just use `width` and `height` properties from data.
 
 ## Example

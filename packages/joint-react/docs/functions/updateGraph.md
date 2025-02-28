@@ -8,7 +8,7 @@
 
 > **updateGraph**(`graph`, `cells`): `void`
 
-Defined in: [packages/joint-react/src/utils/update-graph.ts:53](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/utils/update-graph.ts#L53)
+Defined in: [packages/joint-react/src/utils/update-graph.ts:55](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/utils/update-graph.ts#L55)
 
 Updates the graph with new cells.
 
@@ -18,10 +18,24 @@ Updates the graph with new cells.
 
 `Graph`
 
+The graph to update.
+
 ### cells
 
 [`Item`](../type-aliases/Item.md)[]
 
+The new cells to add to the graph.
+
 ## Returns
 
 `void`
+
+## Example
+
+```ts
+const graph = new dia.Graph()
+const cells = createElements([
+   { id: '1', type: 'rect', x: 10, y: 10, width: 100, height: 100 },
+])
+updateGraph(graph, cells)
+```
