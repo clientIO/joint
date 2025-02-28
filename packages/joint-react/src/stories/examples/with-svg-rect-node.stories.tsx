@@ -1,38 +1,38 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider } from '../../components/graph-provider'
-import type { RenderElement } from '../../components/paper'
-import { Paper } from '../../components/paper'
-import { useCallback } from 'react'
-import type { InferElement } from '../../utils/create'
-import { createElements, createLinks } from '../../utils/create'
-import './index.css'
-import type { Meta, StoryObj } from '@storybook/react/*'
-import { useSyncSizeWithElement } from '../../hooks/use-sync-size-with-element'
+import { GraphProvider } from '../../components/graph-provider';
+import type { RenderElement } from '../../components/paper';
+import { Paper } from '../../components/paper';
+import { useCallback } from 'react';
+import type { InferElement } from '../../utils/create';
+import { createElements, createLinks } from '../../utils/create';
+import './index.css';
+import type { Meta, StoryObj } from '@storybook/react/*';
+import { useSyncSizeWithElement } from '../../hooks/use-sync-size-with-element';
 
-export type Story = StoryObj<typeof GraphProvider>
+export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
   title: 'Examples/With SVG Rect node',
   component: GraphProvider,
-}
+};
 
-export default meta
+export default meta;
 
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }])
+const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
-])
+]);
 
-type BaseElementWithData = InferElement<typeof initialElements>
+type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderedRect() {
-  const rectRef = useSyncSizeWithElement<SVGRectElement>()
-  return <rect ref={rectRef} joint-selector="fo" width={50} height={50} fill="red" />
+  const rectRef = useSyncSizeWithElement<SVGRectElement>();
+  return <rect ref={rectRef} joint-selector="fo" width={50} height={50} fill="red" />;
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(() => <RenderedRect />, [])
+  const renderElement: RenderElement<BaseElementWithData> = useCallback(() => <RenderedRect />, []);
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper width={400} renderElement={renderElement} />
@@ -44,7 +44,7 @@ function Main() {
         }}
       ></div>
     </div>
-  )
+  );
 }
 
 export const WithSizeDefinedInRect: Story = {
@@ -57,21 +57,21 @@ export const WithSizeDefinedInRect: Story = {
       <GraphProvider {...props}>
         <Main />
       </GraphProvider>
-    )
+    );
   },
-}
+};
 
 const initialElementsWithSize = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 50, height: 50 },
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200, width: 100, height: 100 },
-])
+]);
 
-type BaseElementWithDataAndSize = InferElement<typeof initialElementsWithSize>
+type BaseElementWithDataAndSize = InferElement<typeof initialElementsWithSize>;
 function MainWithSize() {
   const renderElement: RenderElement<BaseElementWithDataAndSize> = useCallback(
     ({ width, height }) => <rect joint-selector="fo" width={width} height={height} fill="red" />,
     []
-  )
+  );
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper width={400} renderElement={renderElement} />
@@ -83,7 +83,7 @@ function MainWithSize() {
         }}
       ></div>
     </div>
-  )
+  );
 }
 
 export const WithSizeDefinedInData: Story = {
@@ -96,6 +96,6 @@ export const WithSizeDefinedInData: Story = {
       <GraphProvider {...props}>
         <MainWithSize />
       </GraphProvider>
-    )
+    );
   },
-}
+};

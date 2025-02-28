@@ -1,13 +1,13 @@
 // tsconfig.types.json
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-      "outDir": "dist/types",
-      "declaration": true,
-      "emitDeclarationOnly": false, // Generate only declaration files
-      "skipLibCheck": true
-    },
-    "include": ["src/"],
-    // exclude tests
-    "exclude": ["**/*.test.ts", "**/*.test.tsx"]
-  }
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/types",
+    "declaration": true,
+    "emitDeclarationOnly": false, // Generate only declaration files
+    "skipLibCheck": true
+  },
+  "include": ["src/"],
+  // exclude tests
+  "exclude": ["**/*.test.ts", "**/*.test.tsx"]
+}

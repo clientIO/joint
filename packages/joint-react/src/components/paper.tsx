@@ -1,17 +1,17 @@
-import { type dia } from '@joint/core'
-import { useCallback, useContext, useState, type CSSProperties, type ReactNode } from 'react'
-import { useCreatePaper } from '../hooks/use-create-paper'
-import { PaperItem } from './paper-item'
-import { useElements } from '../hooks/use-elements'
-import type { BaseElement, RequiredCell } from '../types/cell.types'
-import typedMemo from '../utils/typed-memo'
-import { defaultElementSelector } from '../utils/cell/to-react-cell'
-import { PaperContext } from '../context/paper-context'
-import { GraphStoreContext } from '../context/graph-store-context'
-import { GraphProvider } from './graph-provider'
-import { CellIdContext } from '../context/cell-context'
+import { type dia } from '@joint/core';
+import { useCallback, useContext, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCreatePaper } from '../hooks/use-create-paper';
+import { PaperItem } from './paper-item';
+import { useElements } from '../hooks/use-elements';
+import type { BaseElement, RequiredCell } from '../types/cell.types';
+import typedMemo from '../utils/typed-memo';
+import { defaultElementSelector } from '../utils/cell/to-react-cell';
+import { PaperContext } from '../context/paper-context';
+import { GraphStoreContext } from '../context/graph-store-context';
+import { GraphProvider } from './graph-provider';
+import { CellIdContext } from '../context/cell-context';
 
-export type RenderElement<T extends RequiredCell = BaseElement> = (element: T) => ReactNode
+export type RenderElement<T extends RequiredCell = BaseElement> = (element: T) => ReactNode;
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
@@ -22,35 +22,55 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
    * A function that renders the element. It is called every time the element is rendered.
    * @default (element: T) => BaseElement
    */
-  renderElement?: RenderElement<T>
+  readonly renderElement?: RenderElement<T>;
   /**
    * A function that is called when the paper is ready.
    */
-  onReady?: () => void
+  readonly onReady?: () => void;
 
   /**
    * The style of the paper element.
    */
-  style?: CSSProperties
+  readonly style?: CSSProperties;
   /**
    * Class name of the paper element.
    */
-  className?: string
+  readonly className?: string;
 
   /**
    * A function that selects the elements to be rendered.
    * It defaults to the `defaultElementSelector` function which return `BaseElement` because dia.Element is not a valid React element (it do not change reference after update).
    * @default (item: dia.Cell) => BaseElement
    */
-  elementSelector?: (item: dia.Cell) => T
+  readonly elementSelector?: (item: dia.Cell) => T;
+  /**
+   * The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
+   */
 
-  scale?: number
+  readonly scale?: number;
+  /**
+   * Placeholder to be rendered when there is no data (no nodes or elements to render).
+   */
+  readonly noDataPlaceholder?: ReactNode;
 
-  noDataPlaceholder?: ReactNode
+  /**
+   * Children to render. Paper automatically wrap the children with the PaperContext, if there is no PaperContext in the parent tree.
+   */
+  readonly children?: ReactNode;
 
-  children?: ReactNode
+  /**
+   * Function that is called when an event is triggered on the paper.
+   * @param paper
+   * @param eventName
+   * @param args
+   * @returns
+   */
+  readonly onEvent?: (paper: dia.Paper, eventName: string, ...args: unknown[]) => void;
 
-  onEvent?: (paper: dia.Paper, eventName: string, ...args: unknown[]) => void
+  /**
+   * Function that is called when the paper is resized.
+   */
+  readonly isFitContentOnLoadEnabled?: boolean;
 }
 
 /**
@@ -66,40 +86,40 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
     scale,
     children,
     ...paperOptions
-  } = props
+  } = props;
 
-  const [svgGElements, setSvgGElements] = useState<Record<dia.Cell.ID, SVGGElement>>({})
+  const [svgGElements, setSvgGElements] = useState<Record<dia.Cell.ID, SVGGElement>>({});
 
   const onRenderElement = useCallback(
     (element: dia.Element, nodeSvgGElement: SVGGElement) => {
-      onReady?.()
+      onReady?.();
       setSvgGElements((previousState) => {
         return {
           ...previousState,
           [element.id]: nodeSvgGElement,
-        }
-      })
+        };
+      });
     },
     [onReady]
-  )
+  );
 
   const { paperHtmlElement, isPaperFromContext, paper } = useCreatePaper({
     ...paperOptions,
     scale,
     onRenderElement,
-  })
+  });
 
-  const elements = useElements((items) => items.map(elementSelector))
+  const elements = useElements((items) => items.map(elementSelector));
 
-  const hasRenderElement = !!renderElement
+  const hasRenderElement = !!renderElement;
 
   const content = (
     <div className={className} ref={paperHtmlElement} style={style}>
       {hasRenderElement &&
         elements.map((cell) => {
-          const portalHtmlElement = svgGElements[cell.id]
+          const portalHtmlElement = svgGElements[cell.id];
           if (!portalHtmlElement) {
-            return null
+            return null;
           }
           return (
             <CellIdContext.Provider key={cell.id} value={cell.id}>
@@ -109,13 +129,13 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
                 renderElement={renderElement}
               />
             </CellIdContext.Provider>
-          )
+          );
         })}
     </div>
-  )
+  );
 
   if (isPaperFromContext) {
-    return content
+    return content;
   }
 
   return (
@@ -123,39 +143,89 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
       {content}
       {children}
     </PaperContext.Provider>
-  )
+  );
 }
 
 function PaperWithNoDataPlaceHolder<T extends RequiredCell = BaseElement>(
   props: Readonly<PaperProps<T>>
 ) {
-  const { style, className, noDataPlaceholder, ...rest } = props
+  const { style, className, noDataPlaceholder, ...rest } = props;
 
-  const hasNoDataPlaceholder = !!noDataPlaceholder
-  const elementsLength = useElements((items) => items.length)
-  const isEmpty = elementsLength === 0
+  const hasNoDataPlaceholder = !!noDataPlaceholder;
+  const elementsLength = useElements((items) => items.length);
+  const isEmpty = elementsLength === 0;
 
   if (isEmpty && hasNoDataPlaceholder) {
     return (
       <div style={style} className={className}>
         {noDataPlaceholder}
       </div>
-    )
+    );
   }
 
-  return <Component {...rest} style={style} className={className} />
+  return <Component {...rest} style={style} className={className} />;
 }
 
 function PaperWithGraphProvider<T extends RequiredCell = BaseElement>(
   props: Readonly<PaperProps<T>>
 ) {
-  const hasStore = !!useContext(GraphStoreContext)
-  const { children, ...rest } = props
-  const paperContent = <PaperWithNoDataPlaceHolder {...rest}>{children}</PaperWithNoDataPlaceHolder>
+  const hasStore = !!useContext(GraphStoreContext);
+  const { children, ...rest } = props;
+  const paperContent = (
+    <PaperWithNoDataPlaceHolder {...rest}>{children}</PaperWithNoDataPlaceHolder>
+  );
 
   if (hasStore) {
-    return paperContent
+    return paperContent;
   }
-  return <GraphProvider>{paperContent}</GraphProvider>
+  return <GraphProvider>{paperContent}</GraphProvider>;
 }
-export const Paper = typedMemo(PaperWithGraphProvider)
+
+/**
+ * Paper component that renders the JointJS paper element.
+ * It must be used within a `GraphProvider` context.
+ * @see GraphProvider
+ * @see PaperProps
+ * @group Components
+ *
+ * @example
+ * Example with `global item component`:
+ * ```tsx
+ * import { createElements, InferElement, GraphProvider, Paper } from '@joint/react'
+ *
+ * const initialElements = createElements([ { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 } ])
+ * type BaseElementWithData = InferElement<typeof initialElements>
+ *
+ * function RenderElement({ data }: BaseElementWithData) {
+ *  return <HtmlElement className="node">{data.label}</HtmlElement>
+ * }
+ * function MyApp() {
+ *  return <GraphProvider defaultElements={initialElements}>
+ *    <Paper renderElement={RenderElement} />
+ *  </GraphProvider>
+ * }
+ * ```
+ *
+ * @example
+ * Example with `local item component`:
+ * ```tsx
+  const initialElements = createElements([
+    { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },
+  ])
+  type BaseElementWithData = InferElement<typeof initialElements>
+
+  function MyApp() {
+    const renderElement: RenderElement<BaseElementWithData> = useCallback(
+      (element) => <HtmlElement className="node">{element.data.label}</HtmlElement>,
+      []
+    )
+
+    return (
+      <GraphProvider defaultElements={initialElements}>
+        <Paper renderElement={renderElement} />
+      </GraphProvider>
+    )
+  }
+ * ```
+ */
+export const Paper = typedMemo(PaperWithGraphProvider);

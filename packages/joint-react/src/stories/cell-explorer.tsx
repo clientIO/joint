@@ -3,39 +3,39 @@
  */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { dia } from '@joint/core'
+import type { dia } from '@joint/core';
 
 interface CellExplorerProps {
-  cell: dia.Cell.JSON
-  onChange?: (cell: dia.Cell.JSON) => void
+  cell: dia.Cell.JSON;
+  onChange?: (cell: dia.Cell.JSON) => void;
 }
 
-const MARGIN = '8px'
+const MARGIN = '8px';
 function EditableField({
   keyName,
   parentKey,
   value,
   onChange,
 }: Readonly<{
-  keyName: string
-  parentKey?: string
-  value: unknown
-  onChange: (newValue: unknown) => void
+  keyName: string;
+  parentKey?: string;
+  value: unknown;
+  onChange: (newValue: unknown) => void;
 }>) {
   const handleChange = (key: string, newValue: unknown) => {
     if (typeof value === 'object' && value !== null) {
-      onChange({ ...value, [key]: newValue })
+      onChange({ ...value, [key]: newValue });
     } else {
-      onChange(newValue)
+      onChange(newValue);
     }
-  }
+  };
 
   const parseValue = (inputValue: string) => {
     if (typeof value === 'number') {
-      return Number.isNaN(Number(inputValue)) ? value : Number(inputValue)
+      return Number.isNaN(Number(inputValue)) ? value : Number(inputValue);
     }
-    return inputValue
-  }
+    return inputValue;
+  };
 
   if (typeof value === 'object' && value !== null) {
     return (
@@ -52,7 +52,7 @@ function EditableField({
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -67,15 +67,15 @@ function EditableField({
         style={{ marginLeft: MARGIN }}
       />
     </div>
-  )
+  );
 }
 
 function CellExplorer({ cell, onChange }: Readonly<CellExplorerProps>) {
   const handleInputChange = (key: string, value: unknown) => {
     if (onChange) {
-      onChange({ ...cell, [key]: value })
+      onChange({ ...cell, [key]: value });
     }
-  }
+  };
 
   return (
     <div style={{ border: '1px solid #ddd', padding: MARGIN, margin: '4px' }}>
@@ -88,15 +88,15 @@ function CellExplorer({ cell, onChange }: Readonly<CellExplorerProps>) {
             value={value}
             onChange={(newValue) => handleInputChange(key, newValue)}
           />
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
 interface CellsExplorerProps {
-  elements: dia.Cell.JSON[]
-  onChange: (cells: dia.Cell.JSON[]) => void
+  elements: dia.Cell.JSON[];
+  onChange: (cells: dia.Cell.JSON[]) => void;
 }
 
 function CellsExplorer({ elements: cells, onChange }: Readonly<CellsExplorerProps>) {
@@ -104,7 +104,7 @@ function CellsExplorer({ elements: cells, onChange }: Readonly<CellsExplorerProp
     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
       {cells.map((cell) => {
         if (!cell) {
-          return null
+          return null;
         }
         return (
           <CellExplorer
@@ -113,20 +113,20 @@ function CellsExplorer({ elements: cells, onChange }: Readonly<CellsExplorerProp
             onChange={(newCell) => {
               const updatedCells = cells.map((c) => {
                 if (!c) {
-                  return c
+                  return c;
                 }
                 if (c.id === newCell.id) {
-                  return newCell
+                  return newCell;
                 }
-                return c
-              })
-              onChange(updatedCells)
+                return c;
+              });
+              onChange(updatedCells);
             }}
           />
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
-export { CellExplorer, CellsExplorer }
+export { CellExplorer, CellsExplorer };

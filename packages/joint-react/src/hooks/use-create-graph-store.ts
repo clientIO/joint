@@ -1,9 +1,9 @@
-import { dia, shapes } from '@joint/core'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { listenToCellChange } from '../utils/cell/listen-to-cell-change'
-import { ReactElement } from '../models/react-element'
-import type { BaseElement, BaseLink } from '../types/cell.types'
-import { isBaseElement, isBaseLink, isReactElement } from '../types/cell.types'
+import { dia, shapes } from '@joint/core';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
+import { ReactElement } from '../models/react-element';
+import type { BaseElement, BaseLink } from '../types/cell.types';
+import { isBaseElement, isBaseLink, isReactElement } from '../types/cell.types';
 
 interface Options {
   /**
@@ -11,53 +11,53 @@ interface Options {
    * @see https://docs.jointjs.com/api/dia/Graph
    * @default new dia.Graph({}, { cellNamespace: shapes })
    */
-  readonly graph?: dia.Graph
+  readonly graph?: dia.Graph;
   /**
    * Namespace for cell models.
    * @default shapes
    * @see https://docs.jointjs.com/api/shapes
    */
-  readonly cellNamespace?: unknown
+  readonly cellNamespace?: unknown;
   /**
    * Custom cell model to use.
    * @see https://docs.jointjs.com/api/dia/Cell
    */
-  readonly cellModel?: typeof dia.Cell
+  readonly cellModel?: typeof dia.Cell;
   /**
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: (dia.Element | BaseElement)[]
+  readonly defaultElements?: (dia.Element | BaseElement)[];
 
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link | BaseLink>
+  readonly defaultLinks?: Array<dia.Link | BaseLink>;
 }
 
 export interface GraphStore {
   /**
    * The JointJS graph instance.
    */
-  readonly graph: dia.Graph
+  readonly graph: dia.Graph;
   /**
    * Subscribes to the store changes.
    */
-  readonly subscribeToElements: (onStoreChange: () => void) => () => void
-  readonly subscribeToLinks: (onStoreChange: () => void) => () => void
+  readonly subscribeToElements: (onStoreChange: () => void) => () => void;
+  readonly subscribeToLinks: (onStoreChange: () => void) => () => void;
 }
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement }
+const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
 /**
  * Updating of graph cells inside use graph store - helper function
  */
 function setGraphCells(options: {
-  graph: dia.Graph
-  defaultLinks?: Array<dia.Link | BaseLink>
-  defaultElements?: (dia.Element | BaseElement)[]
+  graph: dia.Graph;
+  defaultLinks?: Array<dia.Link | BaseLink>;
+  defaultElements?: (dia.Element | BaseElement)[];
 }) {
-  const { graph, defaultElements, defaultLinks } = options
+  const { graph, defaultElements, defaultLinks } = options;
   if (defaultLinks !== undefined) {
     graph.addCells(
       defaultLinks.map((link) => {
@@ -66,11 +66,11 @@ function setGraphCells(options: {
             ...link,
             source: { id: link.source },
             target: { id: link.target },
-          })
+          });
         }
-        return link
+        return link;
       })
-    )
+    );
   }
   if (defaultElements !== undefined) {
     graph.addCells(
@@ -81,23 +81,28 @@ function setGraphCells(options: {
               position: { x: element.x, y: element.y },
               size: { width: element.width, height: element.height },
               ...element,
-            })
+            });
           }
           return new dia.Cell({
             type: element.type ?? 'react',
             position: { x: element.x, y: element.y },
             size: { width: element.width, height: element.height },
             ...element,
-          })
+          });
         }
-        return element
+        return element;
       })
-    )
+    );
   }
 }
 /**
  * Store for listen to cell changes and updates on the graph elements (nodes) and links (edges).
  * It use `useSyncExternalStore` to avoid memory leaks and cells (state) duplicates.
+ *
+ * @group Hooks
+ *
+ * @param options - Options for creating the graph store.
+ * @returns The graph store instance.
  */
 export function useCreateGraphStore(options: Options): GraphStore {
   const {
@@ -105,82 +110,82 @@ export function useCreateGraphStore(options: Options): GraphStore {
     defaultElements,
     defaultLinks,
     cellModel,
-  } = options
+  } = options;
 
   // Store subscribers
-  const elementSubscribers = useRef(new Set<() => void>())
-  const linkSubscribers = useRef(new Set<() => void>())
+  const elementSubscribers = useRef(new Set<() => void>());
+  const linkSubscribers = useRef(new Set<() => void>());
 
   // initialize graph instance and save it in the store
   const [graph] = useState(() => {
-    const newGraph = options.graph ?? new dia.Graph({}, { cellNamespace, cellModel })
+    const newGraph = options.graph ?? new dia.Graph({}, { cellNamespace, cellModel });
     setGraphCells({
       graph: newGraph,
       defaultElements,
       defaultLinks,
-    })
-    return newGraph
-  })
+    });
+    return newGraph;
+  });
 
-  const isScheduled = useRef(false)
+  const isScheduled = useRef(false);
 
   const notifySubscribers = useCallback((subscribers: Set<() => void>) => {
     if (!isScheduled.current) {
-      isScheduled.current = true
+      isScheduled.current = true;
       requestAnimationFrame(() => {
         for (const subscriber of subscribers) {
-          subscriber()
+          subscriber();
         }
-        isScheduled.current = false
-      })
+        isScheduled.current = false;
+      });
     }
-  }, [])
+  }, []);
 
   const handleCellsChange = useCallback(
     (cell: dia.Cell) => {
       if (graph.hasActiveBatch()) {
-        return
+        return;
       }
       if (cell.isElement()) {
-        return notifySubscribers(elementSubscribers.current)
+        return notifySubscribers(elementSubscribers.current);
       }
       if (cell.isLink()) {
-        return notifySubscribers(linkSubscribers.current)
+        return notifySubscribers(linkSubscribers.current);
       }
     },
     [graph, notifySubscribers]
-  )
+  );
   const handleOnBatchStop = useCallback(() => {
-    notifySubscribers(elementSubscribers.current)
-    notifySubscribers(linkSubscribers.current)
-  }, [notifySubscribers])
+    notifySubscribers(elementSubscribers.current);
+    notifySubscribers(linkSubscribers.current);
+  }, [notifySubscribers]);
 
   // On-load effect
   useEffect(() => {
-    const unsubscribe = listenToCellChange(graph, handleCellsChange)
-    graph.on('batch:stop', handleOnBatchStop)
+    const unsubscribe = listenToCellChange(graph, handleCellsChange);
+    graph.on('batch:stop', handleOnBatchStop);
     return () => {
-      unsubscribe()
-      graph.off('batch:stop', handleOnBatchStop)
-    }
-  }, [graph, handleCellsChange, handleOnBatchStop])
+      unsubscribe();
+      graph.off('batch:stop', handleOnBatchStop);
+    };
+  }, [graph, handleCellsChange, handleOnBatchStop]);
 
   return useMemo(
     (): GraphStore => ({
       graph,
       subscribeToElements: (onStoreChange: () => void) => {
-        elementSubscribers.current.add(onStoreChange)
+        elementSubscribers.current.add(onStoreChange);
         return () => {
-          elementSubscribers.current.delete(onStoreChange)
-        }
+          elementSubscribers.current.delete(onStoreChange);
+        };
       },
       subscribeToLinks: (onStoreChange: () => void) => {
-        linkSubscribers.current.add(onStoreChange)
+        linkSubscribers.current.add(onStoreChange);
         return () => {
-          linkSubscribers.current.delete(onStoreChange)
-        }
+          linkSubscribers.current.delete(onStoreChange);
+        };
       },
     }),
     [graph]
-  )
+  );
 }

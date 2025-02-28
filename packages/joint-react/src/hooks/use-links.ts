@@ -1,8 +1,8 @@
-import { useGraphStore } from './use-graph-store'
-import { util, type dia } from '@joint/core'
-import type { BaseLink } from '../types/cell.types'
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector'
-import { defaultLinksSelector } from '../utils/cell/to-react-cell'
+import { useGraphStore } from './use-graph-store';
+import { util, type dia } from '@joint/core';
+import type { BaseLink } from '../types/cell.types';
+import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+import { defaultLinksSelector } from '../utils/cell/to-react-cell';
 
 /**
  * A hook to access the graph store's links. This hook takes a selector function
@@ -14,8 +14,7 @@ import { defaultLinksSelector } from '../utils/cell/to-react-cell'
  *
  * @param {Function} selector The selector function to select links. @default defaultLinksSelector
  * @param {Function=} isEqual The function that will be used to determine equality. @default util.isEqual
- *
- * @returns {any} The selected links.
+ * @group Hooks
  *
  * @example
  *
@@ -31,13 +30,13 @@ export function useLinks<T = BaseLink, R = T[]>(
   selector: (items: dia.Link[]) => R = defaultLinksSelector,
   isEqual: (a: R, b: R) => boolean = util.isEqual
 ): R {
-  const { subscribeToLinks, graph } = useGraphStore()
+  const { subscribeToLinks, graph } = useGraphStore();
   const elements = useSyncExternalStoreWithSelector(
     subscribeToLinks,
     () => graph.getLinks(),
     () => graph.getLinks(),
     selector,
     isEqual
-  )
-  return elements
+  );
+  return elements;
 }

@@ -4,10 +4,10 @@
 // allows you to do things like:
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock method which is not implemented in JSDOM
-globalThis.SVGPathElement = jest.fn()
+globalThis.SVGPathElement = jest.fn();
 
 // Mock SVGAngle which is used for sanity checks in Vectorizer library
 Object.defineProperty(globalThis, 'SVGAngle', {
@@ -21,7 +21,7 @@ Object.defineProperty(globalThis, 'SVGAngle', {
     SVG_ANGLETYPE_RAD: 3,
     SVG_ANGLETYPE_GRAD: 4,
   })),
-})
+});
 
 beforeEach(() => {
   Object.defineProperty(globalThis, 'ResizeObserver', {
@@ -31,12 +31,12 @@ beforeEach(() => {
       unobserve: jest.fn(),
       disconnect: jest.fn(),
     })),
-  })
+  });
 
   Object.defineProperty(globalThis.SVGElement.prototype, 'getComputedTextLength', {
     writable: true,
     value: jest.fn().mockImplementation(() => 200),
-  })
+  });
 
   Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGMatrix', {
     writable: true,
@@ -68,7 +68,7 @@ beforeEach(() => {
         })),
       })),
     })),
-  })
+  });
 
   Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGPoint', {
     writable: true,
@@ -80,7 +80,7 @@ beforeEach(() => {
         y: 0,
       })),
     })),
-  })
+  });
 
   Object.defineProperty(globalThis.SVGSVGElement.prototype, 'createSVGTransform', {
     writable: true,
@@ -98,10 +98,10 @@ beforeEach(() => {
       setMatrix: jest.fn(),
       setTranslate: jest.fn(),
     })),
-  })
-})
+  });
+});
 
 jest.mock('@joint/core', () => {
-  const actual = require('@joint/core/build/joint')
-  return actual
-})
+  const actual = require('@joint/core/build/joint');
+  return actual;
+});

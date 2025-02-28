@@ -1,21 +1,20 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import type { Meta, StoryObj } from '@storybook/react/*'
-import { GraphProvider } from '../../components/graph-provider'
-import { Paper } from '../../components/paper'
-import { HtmlElement } from '../../components/html-element'
-import type { InferElement } from '../../utils/create'
-import { createElements, createLinks } from '../../utils/create'
-import './index.css'
-import { MaskHighlighter } from '../../components/mask-highlighter'
-import { useState } from 'react'
+import type { Meta, StoryObj } from '@storybook/react/*';
+import { GraphProvider } from '../../components/graph-provider';
+import { Paper } from '../../components/paper';
+import type { InferElement } from '../../utils/create';
+import { createElements, createLinks } from '../../utils/create';
+import './index.css';
+import { useState } from 'react';
+import { Highlighter } from '../../components/highlighters';
 
-export type Story = StoryObj<typeof GraphProvider>
+export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
   title: 'Examples/With highlighter',
   component: GraphProvider,
-}
-export default meta
+};
+export default meta;
 
 const initialElements = createElements([
   {
@@ -27,31 +26,36 @@ const initialElements = createElements([
     height: 50,
   },
   { id: '2', data: { label: 'Node 1' }, x: 100, y: 200, width: 100, height: 50 },
-])
+]);
 
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }])
+const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 
-type BaseElementWithData = InferElement<typeof initialElements>
+type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RenderItem({ data: { label } }: Readonly<BaseElementWithData>) {
-  const [isHighlighted, setIsHighlighted] = useState(true)
+function RenderItemWithChildren({ data: { label }, height, width }: Readonly<BaseElementWithData>) {
+  const [isHighlighted, setIsHighlighted] = useState(true);
   return (
-    <HtmlElement
+    <g
+      width={width}
+      height={height}
       onClick={() => setIsHighlighted(!isHighlighted)}
       joint-selector={'body'}
       className="node"
     >
+      <rect width={width} height={height} fill="yellow" />
       {label}
-      {isHighlighted && <MaskHighlighter stroke="black" />}
-    </HtmlElement>
-  )
+      <Highlighter.Mask opacity={0.7} strokeWidth={10} stroke={isHighlighted ? 'orange' : 'cyan'}>
+        <rect width={width / 2} height={height / 2} x={width / 4} y={height / 4} fill="pink" />
+      </Highlighter.Mask>
+    </g>
+  );
 }
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} renderElement={RenderItem} />
+      <Paper width={400} renderElement={RenderItemWithChildren} />
     </div>
-  )
+  );
 }
 export const Default: Story = {
   args: {
@@ -63,6 +67,6 @@ export const Default: Story = {
       <GraphProvider {...props}>
         <Main />
       </GraphProvider>
-    )
+    );
   },
-}
+};

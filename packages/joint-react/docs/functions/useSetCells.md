@@ -1,0 +1,29 @@
+[**@joint/react**](../README.md)
+
+***
+
+[@joint/react](../README.md) / useSetCells
+
+# Function: useSetCells()
+
+> **useSetCells**(): (`update`) => `void`
+
+Defined in: [packages/joint-react/src/hooks/use-set-cells.ts:14](https://github.com/samuelgja/joint/blob/e106840dde5e040ebb90e3a712443b6737a1bf58/packages/joint-react/src/hooks/use-set-cells.ts#L14)
+
+Custom hook to set cells in the graph.
+
+## Returns
+
+`Function`
+
+Function to set cells in the graph.
+
+### Parameters
+
+#### update
+
+[`Item`](../type-aliases/Item.md)[] | [`CellsSetter`](../type-aliases/CellsSetter.md)
+
+### Returns
+
+`void`

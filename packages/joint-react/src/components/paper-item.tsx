@@ -1,14 +1,17 @@
-import { type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
-import typedMemo from '../utils/typed-memo'
-import type { BaseElement, RequiredCell } from '../types/cell.types'
+import { type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import typedMemo from '../utils/typed-memo';
+import type { BaseElement, RequiredCell } from '../types/cell.types';
 
 export interface PaperPortalProps<T extends RequiredCell = BaseElement> {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
-  readonly renderElement: (element: T) => ReactNode
-  readonly nodeSvgGElement: SVGGElement
+  readonly renderElement: (element: T) => ReactNode;
+  /**
+   * The cell to render.
+   */
+  readonly nodeSvgGElement: SVGGElement;
 }
 
 /**
@@ -16,12 +19,16 @@ export interface PaperPortalProps<T extends RequiredCell = BaseElement> {
  * This component is used to render a paper element inside a portal.
  * It takes a renderElement function, a cell, and a containerElement as props.
  * The renderElement function is called with the cell as an argument and its return value is rendered inside the containerElement.
+ * @group Components
+ * @private
+ * It's internal component.
+ *
  */
 function Component<T extends RequiredCell = BaseElement>(props: PaperPortalProps<T>) {
-  const { renderElement, nodeSvgGElement, ...rest } = props
-  const cell = rest as unknown as T
-  const element = renderElement(cell)
-  return createPortal(element, nodeSvgGElement)
+  const { renderElement, nodeSvgGElement, ...rest } = props;
+  const cell = rest as unknown as T;
+  const element = renderElement(cell);
+  return createPortal(element, nodeSvgGElement);
 }
 
-export const PaperItem = typedMemo(Component)
+export const PaperItem = typedMemo(Component);

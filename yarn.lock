@@ -2322,6 +2322,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gerrit0/mini-shiki@npm:^1.24.0":
+  version: 1.27.2
+  resolution: "@gerrit0/mini-shiki@npm:1.27.2"
+  dependencies:
+    "@shikijs/engine-oniguruma": ^1.27.2
+    "@shikijs/types": ^1.27.2
+    "@shikijs/vscode-textmate": ^10.0.1
+  checksum: aa4a0def0c7c73f2ef49b53f4dab5bf95f8f3b3d2c895baf384d338856a082a6a0487bc87c28d550b7f52ed71cbe98dae7754a5397be52df49a18e75cdd7d087
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.1":
   version: 0.19.1
   resolution: "@humanfs/core@npm:0.19.1"
@@ -2968,10 +2979,15 @@ __metadata:
     jest-environment-jsdom: ^29.7.0
     prettier: 3.3.3
     prettier-plugin-tailwindcss: ^0.6.5
+    react-docgen-typescript-plugin: ^1.0.8
     react-test-renderer: 19.0.0
     storybook: ^8.5.3
     ts-jest: ^29.2.5
     ts-node: ^10.9.2
+    typedoc: ^0.27.9
+    typedoc-plugin-external-module-name: ^4.0.6
+    typedoc-plugin-markdown: ^4.4.2
+    typedoc-plugin-mdn-links: ^4.0.14
     typescript: 5.7.3
     typescript-eslint: 8.21.0
     use-sync-external-store: ^1.4.0
@@ -3454,6 +3470,33 @@ __metadata:
     colors: ~1.2.1
     string-argv: ~0.3.1
   checksum: fea24b2549ecb7d3409b6b485d7c58bf8af8f8d1dd19c43a6b3532c45579ffc546bc4533b5db29c91ae1716581fdee4cb725f6a81ecb300e902ef06600e59f1d
+  languageName: node
+  linkType: hard
+
+"@shikijs/engine-oniguruma@npm:^1.27.2":
+  version: 1.29.2
+  resolution: "@shikijs/engine-oniguruma@npm:1.29.2"
+  dependencies:
+    "@shikijs/types": 1.29.2
+    "@shikijs/vscode-textmate": ^10.0.1
+  checksum: 8713ada50e8875d22d928bd605d509a2c7d5e8c2c8a67b215b169f999457123082a02000182b37b9621903577dae5ac8067c614037fbf0aeb5b6dc2c195e58a2
+  languageName: node
+  linkType: hard
+
+"@shikijs/types@npm:1.29.2, @shikijs/types@npm:^1.27.2":
+  version: 1.29.2
+  resolution: "@shikijs/types@npm:1.29.2"
+  dependencies:
+    "@shikijs/vscode-textmate": ^10.0.1
+    "@types/hast": ^3.0.4
+  checksum: 3aeb2933b5ceda8afe6e4be624847de5fab392085ddf77fb785cf33014120d1afd6825e666d58895e4c489981196abc161c8a4d2e41f7da33d8f5e83b58cc606
+  languageName: node
+  linkType: hard
+
+"@shikijs/vscode-textmate@npm:^10.0.1":
+  version: 10.0.2
+  resolution: "@shikijs/vscode-textmate@npm:10.0.2"
+  checksum: e68f27a3dc1584d7414b8acafb9c177a2181eb0b06ef178d8609142f49d28d85fd10ab129affde40a45a7d9238997e457ce47931b3a3815980e2b98b2d26724c
   languageName: node
   linkType: hard
 
@@ -4287,6 +4330,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/hast@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "@types/hast@npm:3.0.4"
+  dependencies:
+    "@types/unist": "*"
+  checksum: 7a973e8d16fcdf3936090fa2280f408fb2b6a4f13b42edeb5fbd614efe042b82eac68e298e556d50f6b4ad585a3a93c353e9c826feccdc77af59de8dd400d044
+  languageName: node
+  linkType: hard
+
 "@types/http-errors@npm:*":
   version: 2.0.4
   resolution: "@types/http-errors@npm:2.0.4"
@@ -4537,6 +4589,13 @@ __metadata:
   version: 4.0.5
   resolution: "@types/tough-cookie@npm:4.0.5"
   checksum: f19409d0190b179331586365912920d192733112a195e870c7f18d20ac8adb7ad0b0ff69dad430dba8bc2be09593453a719cfea92dc3bda19748fd158fe1498d
+  languageName: node
+  linkType: hard
+
+"@types/unist@npm:*":
+  version: 3.0.3
+  resolution: "@types/unist@npm:3.0.3"
+  checksum: 96e6453da9e075aaef1dc22482463898198acdc1eeb99b465e65e34303e2ec1e3b1ed4469a9118275ec284dc98019f63c3f5d49422f0e4ac707e5ab90fb3b71a
   languageName: node
   linkType: hard
 
@@ -9121,7 +9180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"entities@npm:^4.5.0":
+"entities@npm:^4.4.0, entities@npm:^4.5.0":
   version: 4.5.0
   resolution: "entities@npm:4.5.0"
   checksum: 853f8ebd5b425d350bffa97dd6958143179a5938352ccae092c62d1267c4e392a039be1bae7d51b6e4ffad25f51f9617531fedf5237f15df302ccfb452cbf2d7
@@ -10900,6 +10959,17 @@ __metadata:
     make-dir: ^2.0.0
     pkg-dir: ^3.0.0
   checksum: 60ad475a6da9f257df4e81900f78986ab367d4f65d33cf802c5b91e969c28a8762f098693d7a571b6e4dd4c15166c2da32ae2d18b6766a18e2071079448fdce4
+  languageName: node
+  linkType: hard
+
+"find-cache-dir@npm:^3.3.1":
+  version: 3.3.2
+  resolution: "find-cache-dir@npm:3.3.2"
+  dependencies:
+    commondir: ^1.0.1
+    make-dir: ^3.0.2
+    pkg-dir: ^4.1.0
+  checksum: 1e61c2e64f5c0b1c535bd85939ae73b0e5773142713273818cc0b393ee3555fb0fd44e1a5b161b8b6c3e03e98c2fcc9c227d784850a13a90a8ab576869576817
   languageName: node
   linkType: hard
 
@@ -14513,6 +14583,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"linkify-it@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "linkify-it@npm:5.0.0"
+  dependencies:
+    uc.micro: ^2.0.0
+  checksum: b0b86cadaf816b64c947a83994ceaad1c15f9fe7e079776ab88699fb71afd7b8fc3fd3d0ae5ebec8c92c1d347be9ba257b8aef338c0ebf81b0d27dcf429a765a
+  languageName: node
+  linkType: hard
+
 "livereload-js@npm:^2.3.0":
   version: 2.4.0
   resolution: "livereload-js@npm:2.4.0"
@@ -14651,7 +14730,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.17.10, lodash@npm:^4.17.11, lodash@npm:^4.17.12, lodash@npm:^4.17.13, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:^4.3.0, lodash@npm:^4.8.0, lodash@npm:~4.17.10, lodash@npm:~4.17.15, lodash@npm:~4.17.19, lodash@npm:~4.17.21":
+"lodash@npm:^4.1.2, lodash@npm:^4.17.10, lodash@npm:^4.17.11, lodash@npm:^4.17.12, lodash@npm:^4.17.13, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:^4.3.0, lodash@npm:^4.8.0, lodash@npm:~4.17.10, lodash@npm:~4.17.15, lodash@npm:~4.17.19, lodash@npm:~4.17.21":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
@@ -14751,6 +14830,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lunr@npm:^2.3.9":
+  version: 2.3.9
+  resolution: "lunr@npm:2.3.9"
+  checksum: 176719e24fcce7d3cf1baccce9dd5633cd8bdc1f41ebe6a180112e5ee99d80373fe2454f5d4624d437e5a8319698ca6837b9950566e15d2cae5f2a543a3db4b8
+  languageName: node
+  linkType: hard
+
 "lz-string@npm:^1.5.0":
   version: 1.5.0
   resolution: "lz-string@npm:1.5.0"
@@ -14794,6 +14880,15 @@ __metadata:
     pify: ^4.0.1
     semver: ^5.6.0
   checksum: 043548886bfaf1820323c6a2997e6d2fa51ccc2586ac14e6f14634f7458b4db2daf15f8c310e2a0abd3e0cddc64df1890d8fc7263033602c47bb12cbfcf86aab
+  languageName: node
+  linkType: hard
+
+"make-dir@npm:^3.0.2":
+  version: 3.1.0
+  resolution: "make-dir@npm:3.1.0"
+  dependencies:
+    semver: ^6.0.0
+  checksum: 484200020ab5a1fdf12f393fe5f385fc8e4378824c940fba1729dcd198ae4ff24867bc7a5646331e50cead8abff5d9270c456314386e629acec6dff4b8016b78
   languageName: node
   linkType: hard
 
@@ -14873,6 +14968,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"markdown-it@npm:^14.1.0":
+  version: 14.1.0
+  resolution: "markdown-it@npm:14.1.0"
+  dependencies:
+    argparse: ^2.0.1
+    entities: ^4.4.0
+    linkify-it: ^5.0.0
+    mdurl: ^2.0.0
+    punycode.js: ^2.3.1
+    uc.micro: ^2.1.0
+  bin:
+    markdown-it: bin/markdown-it.mjs
+  checksum: 07296b45ebd0b13a55611a24d1b1ad002c6729ec54f558f597846994b0b7b1de79d13cd99ff3e7b6e9e027f36b63125cdcf69174da294ecabdd4e6b9fff39e5d
+  languageName: node
+  linkType: hard
+
 "matcher-collection@npm:^1.0.0":
   version: 1.1.2
   resolution: "matcher-collection@npm:1.1.2"
@@ -14909,6 +15020,13 @@ __metadata:
     inherits: ^2.0.1
     safe-buffer: ^5.1.2
   checksum: 098494d885684bcc4f92294b18ba61b7bd353c23147fbc4688c75b45cb8590f5a95fd4584d742415dcc52487f7a1ef6ea611cfa1543b0dc4492fe026357f3f0c
+  languageName: node
+  linkType: hard
+
+"mdurl@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "mdurl@npm:2.0.0"
+  checksum: 880bc289ef668df0bb34c5b2b5aaa7b6ea755052108cdaf4a5e5968ad01cf27e74927334acc9ebcc50a8628b65272ae6b1fd51fae1330c130e261c0466e1a3b2
   languageName: node
   linkType: hard
 
@@ -15118,7 +15236,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:9.0.5, minimatch@npm:^9.0.4":
+"minimatch@npm:9.0.5, minimatch@npm:^9.0.4, minimatch@npm:^9.0.5":
   version: 9.0.5
   resolution: "minimatch@npm:9.0.5"
   dependencies:
@@ -16534,7 +16652,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pkg-dir@npm:4.2.0, pkg-dir@npm:^4.2.0":
+"pkg-dir@npm:4.2.0, pkg-dir@npm:^4.1.0, pkg-dir@npm:^4.2.0":
   version: 4.2.0
   resolution: "pkg-dir@npm:4.2.0"
   dependencies:
@@ -17067,6 +17185,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"punycode.js@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "punycode.js@npm:2.3.1"
+  checksum: 13466d7ed5e8dacdab8c4cc03837e7dd14218a59a40eb14a837f1f53ca396e18ef2c4ee6d7766b8ed2fc391d6a3ac489eebf2de83b3596f5a54e86df4a251b72
+  languageName: node
+  linkType: hard
+
 "punycode@npm:^1.3.2, punycode@npm:^1.4.1":
   version: 1.4.1
   resolution: "punycode@npm:1.4.1"
@@ -17320,6 +17445,23 @@ __metadata:
   peerDependencies:
     react: ^16.3.0 || ^17.0.1 || ^18.0.0 || ^19.0.0
   checksum: df470c7fae00c1db6b50562469916f900f1beaf3fcd3c735146e5c55cc3e79bb142851d10b8b9b493e347a016c94156b50564ca9ec4f9864ea02d2eae5fb9559
+  languageName: node
+  linkType: hard
+
+"react-docgen-typescript-plugin@npm:^1.0.8":
+  version: 1.0.8
+  resolution: "react-docgen-typescript-plugin@npm:1.0.8"
+  dependencies:
+    debug: ^4.1.1
+    find-cache-dir: ^3.3.1
+    flat-cache: ^3.0.4
+    micromatch: ^4.0.2
+    react-docgen-typescript: ^2.2.2
+    tslib: ^2.6.2
+  peerDependencies:
+    typescript: ">= 4.x"
+    webpack: ">= 4"
+  checksum: c4fe1ae821be97270de370257747ec4f927f8ee291599f0e67b8bb13ba343da79894ac84a2836af428f877e88d1d96edbef6ee808ed23ecdb4b230fe4f268f1e
   languageName: node
   linkType: hard
 
@@ -18619,7 +18761,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^6.3.0, semver@npm:^6.3.1":
+"semver@npm:^6.0.0, semver@npm:^6.3.0, semver@npm:^6.3.1":
   version: 6.3.1
   resolution: "semver@npm:6.3.1"
   bin:
@@ -18628,7 +18770,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.2.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.2, semver@npm:^7.6.3":
+"semver@npm:^7.1.1, semver@npm:^7.2.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.2, semver@npm:^7.6.3":
   version: 7.7.1
   resolution: "semver@npm:7.7.1"
   bin:
@@ -20811,6 +20953,53 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typedoc-plugin-external-module-name@npm:^4.0.6":
+  version: 4.0.6
+  resolution: "typedoc-plugin-external-module-name@npm:4.0.6"
+  dependencies:
+    lodash: ^4.1.2
+    semver: ^7.1.1
+  peerDependencies:
+    typedoc: ">=0.7.0 <0.20.0"
+  checksum: 0d52c031a850ce0215dbe0eb8616f732139c51e0fb2e03d39ac9401358e3783827c243ba21517e6f93e1f503919dfaf2084b0a4fadb3306a69439f11e90ec2cc
+  languageName: node
+  linkType: hard
+
+"typedoc-plugin-markdown@npm:^4.4.2":
+  version: 4.4.2
+  resolution: "typedoc-plugin-markdown@npm:4.4.2"
+  peerDependencies:
+    typedoc: 0.27.x
+  checksum: 07b04e5aba3b7e1772a22f348645df9e41983f483da4315c6dedd9bdf0d19bfcf72ff088b4896c2ace38827e47efb7b1519a7636e0eead994077ed81129983a0
+  languageName: node
+  linkType: hard
+
+"typedoc-plugin-mdn-links@npm:^4.0.14":
+  version: 4.0.14
+  resolution: "typedoc-plugin-mdn-links@npm:4.0.14"
+  peerDependencies:
+    typedoc: 0.26.x || 0.27.x
+  checksum: 7fbb8233b5c2f19c8ef16332269abb72cacc537aa43dfc1249ccb253709aa34f3896150e21121b85c0431f8a80440d5041efb062dc121299eb955780875e1922
+  languageName: node
+  linkType: hard
+
+"typedoc@npm:^0.27.9":
+  version: 0.27.9
+  resolution: "typedoc@npm:0.27.9"
+  dependencies:
+    "@gerrit0/mini-shiki": ^1.24.0
+    lunr: ^2.3.9
+    markdown-it: ^14.1.0
+    minimatch: ^9.0.5
+    yaml: ^2.6.1
+  peerDependencies:
+    typescript: 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x || 5.7.x || 5.8.x
+  bin:
+    typedoc: bin/typedoc
+  checksum: 9741641cd9eca4bfa03939ab8654596176ddb96fbde690b488262089c561290477c9ad0a3c588c431d3b2593dd5fc49768cc93190f796bc62fefaba1e2106537
+  languageName: node
+  linkType: hard
+
 "typescript-eslint@npm:8.21.0":
   version: 8.21.0
   resolution: "typescript-eslint@npm:8.21.0"
@@ -20905,6 +21094,13 @@ __metadata:
   bin:
     ua-parser-js: script/cli.js
   checksum: c8f69573c336cbf0f4341e7fe93a8d7082acf39dba4e135b704f06ad240f585d4b38fb44fd3cad92c97a015128e9fe2e653b39c3b6c0919f8a8af3be02d79cc2
+  languageName: node
+  linkType: hard
+
+"uc.micro@npm:^2.0.0, uc.micro@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "uc.micro@npm:2.1.0"
+  checksum: 37197358242eb9afe367502d4638ac8c5838b78792ab218eafe48287b0ed28aaca268ec0392cc5729f6c90266744de32c06ae938549aee041fc93b0f9672d6b2
   languageName: node
   linkType: hard
 
@@ -22343,7 +22539,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.3.4":
+"yaml@npm:^2.3.4, yaml@npm:^2.6.1":
   version: 2.7.0
   resolution: "yaml@npm:2.7.0"
   bin:

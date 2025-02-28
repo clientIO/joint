@@ -1,13 +1,14 @@
-import { dia, util } from '@joint/core'
+import { dia, util } from '@joint/core';
 
 const elementMarkup = util.svg/* xml */ `
     <rect @selector="rect">
     </rect>
     
-`
+`;
 
 /**
  * A custom JointJS element that can render React components.
+ * @group Models
  */
 export class ReactElement<T = dia.Element.Attributes> extends dia.Element<
   dia.Element.Attributes & T
@@ -21,7 +22,6 @@ export class ReactElement<T = dia.Element.Attributes> extends dia.Element<
       ...super.defaults,
       componentType: 'react',
       type: 'react',
-      fuck: true,
       data: {},
       attrs: {
         rect: {
@@ -30,17 +30,17 @@ export class ReactElement<T = dia.Element.Attributes> extends dia.Element<
           fill: 'transparent',
         },
       },
-    } as unknown as dia.Element.Attributes & T
+    } as unknown as dia.Element.Attributes & T;
   }
 
   /**
    * Initializes the markup for the ReactElement.
    */
   preinitialize() {
-    this.markup = elementMarkup
+    this.markup = elementMarkup;
   }
 }
 
 export function createElement<T = dia.Element.Attributes>(options?: T & dia.Element.Attributes) {
-  return new ReactElement(options)
+  return new ReactElement(options);
 }

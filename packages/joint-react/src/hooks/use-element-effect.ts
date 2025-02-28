@@ -1,13 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import type { dia } from '@joint/core'
-import { useCallback, useEffect } from 'react'
-import { useGraph } from './use-graph'
+import type { dia } from '@joint/core';
+import { useCallback, useEffect } from 'react';
+import { useGraph } from './use-graph';
 
-const DEFAULT_DEPENDENCIES: unknown[] = []
+const DEFAULT_DEPENDENCIES: unknown[] = [];
 
 /**
  * Custom hook to manipulate a JointJS graph element based on React state.
  * It works similarly to react useEffect, but it is specific to JointJS elements.
+ *
+ * @group Hooks
  *
  * @param idOrIds - The ID or array of IDs of the JointJS elements to observe.
  * @param onChange - Callback function to execute when the element changes.
@@ -18,34 +20,34 @@ export function useElementEffect(
   onChange: (element: dia.Element) => (() => void) | void,
   dependencies: unknown[] = DEFAULT_DEPENDENCIES
 ) {
-  const graph = useGraph()
+  const graph = useGraph();
 
   const resolve = useCallback(
     (id: dia.Cell.ID) => {
-      const element = graph.getCell(id)
+      const element = graph.getCell(id);
       if (!element) {
-        return
+        return;
       }
       if (!element.isElement()) {
-        return
+        return;
       }
-      const cleanup = onChange(element)
-      return cleanup
+      const cleanup = onChange(element);
+      return cleanup;
     },
     [graph, onChange]
-  )
+  );
   useEffect(() => {
     if (idOrIds === undefined) {
-      return
+      return;
     }
-    const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds]
-    const cleanups = ids.map(resolve)
+    const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+    const cleanups = ids.map(resolve);
     return () => {
       for (const cleanup of cleanups) {
         if (typeof cleanup === 'function') {
-          cleanup()
+          cleanup();
         }
       }
-    }
-  }, [graph, idOrIds, onChange, ...dependencies])
+    };
+  }, [graph, idOrIds, onChange, ...dependencies]);
 }
