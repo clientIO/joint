@@ -43,8 +43,12 @@ function Element(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLE
     return <span {...rest} ref={forwardedRef} />;
   }
   if (element === 'button') {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     return <button {...rest} ref={forwardedRef as React.ForwardedRef<HTMLButtonElement>} />;
   }
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
   return <div {...rest} ref={forwardedRef as React.ForwardedRef<HTMLDivElement>} />;
 }
 const ElementForward = forwardRef(Element);

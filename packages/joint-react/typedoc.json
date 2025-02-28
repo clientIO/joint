@@ -1,14 +1,11 @@
 {
-    "entryPoints": ["src/index.ts"],
-    "out": "docs",
-    "plugin": [
-      "typedoc-plugin-markdown",
-      "typedoc-plugin-mdn-links",
-    ],
-    "readme": "none",
-    "name": "@joint/react",
-    "theme": "default",
-    "excludePrivate": true,
-    "excludeProtected": true,
-    "excludeExternals": true
-  }
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-mdn-links"],
+  "readme": "none",
+  "name": "@joint/react",
+  "theme": "default",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true
+}

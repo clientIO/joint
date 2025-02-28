@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+
 import { JSX, PropsWithChildren } from 'react';
 import { createElements, createLinks, GraphProvider, InferElement, Paper } from '../../src';
 

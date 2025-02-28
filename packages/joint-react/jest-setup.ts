@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-module */
 /* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable @typescript-eslint/no-require-imports */
 // jest-dom adds custom jest matchers for asserting on DOM nodes.

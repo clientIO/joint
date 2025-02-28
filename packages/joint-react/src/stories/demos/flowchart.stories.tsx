@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // Flowchart.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react';
 import { GraphProvider } from '../../components/graph-provider';

@@ -99,7 +99,7 @@ packageJson.types = 'types/index.d.ts';
 packageJson.typescript = 'src/index.ts';
 
 // Copy package.json and README.md
-await fs.writeFile(path.join(outDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+await fs.writeFile(path.join(outDir, 'package.json'), JSON.stringify(packageJson, undefined, 2));
 
 // Copy README.md
 await fs.copyFile('README.md', path.join(outDir, 'README.md'));

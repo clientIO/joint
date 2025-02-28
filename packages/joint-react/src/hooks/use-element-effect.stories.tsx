@@ -3,43 +3,20 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
 import { HtmlElement } from '../components/html-element';
-import { useSetElement } from './use-set-element';
 import { useState } from 'react';
 import { useElementEffect } from './use-element-effect';
 
-function Hook({ data: { label }, id, width, height }: SimpleElement) {
-  const set = useSetElement(id, 'data');
+function Hook({ id, width, height }: SimpleElement) {
   const [isPressed, setIsPressed] = useState(false);
-  //   useElementEffect(
-  //     nonReactElementsIds,
-  //     (element) => {
-  //       const isSelected = element.id === selectedNodeId;
-  //       const dynamicColor = isSelected ? PRIMARY_COLOR : "white";
-  //       element.attr({
-  //         body: {
-  //           fill: SECONDARY_COLOR,
-  //           stroke: dynamicColor,
-  //           strokeWidth: 2,
-  //         },
-  //         label: {
-  //           text: "Native element",
-  //           stroke: dynamicColor,
-  //           fill: dynamicColor,
-  //           fontSize: 18,
-  //           fontWeight: "bold",
-  //         },
-  //       });
-  //     },
-  //     [selectedNodeId]
-  //   );
+
   useElementEffect(
     id,
     (element) => {
       element.attr({
-        body: {
+        rect: {
           fill: 'blue',
           stroke: isPressed ? 'red' : 'black',
-          strokeWidth: 2,
+          strokeWidth: 10,
         },
       });
     },
