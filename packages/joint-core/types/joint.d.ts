@@ -196,7 +196,7 @@ export namespace dia {
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
             cellModel?: typeof Cell,
-            useLayersForEmbedding: boolean,
+            useLayersForEmbedding?: boolean,
         });
 
         addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
