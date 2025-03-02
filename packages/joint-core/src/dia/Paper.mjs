@@ -473,6 +473,9 @@ export const Paper = View.extend({
         this.listenTo(model, 'embeddingLayer:insert', this.onEmbeddingLayerInsert);
         this.listenTo(model, 'embeddingLayer:remove', this.onEmbeddingLayerRemove);
 
+        this.listenTo(model, 'layer:insert', this.onLayerInsert);
+        this.listenTo(model, 'layer:remove', this.onLayerRemove);
+
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
             .on('transform', this.update);
@@ -552,6 +555,16 @@ export const Paper = View.extend({
         delete this._layers.viewsMap[cellId];
 
         layerView.remove();
+    },
+
+    onLayerInsert: function(layer, opt) {
+        const layerView = this.createLayer({ name: layer.get('name'), model: layer });
+        this.addLayer(layer.get('name'), layerView, { insertBefore: LayersNames.LABELS });
+    },
+
+    onLayerRemove: function(layerName, opt) {
+        const { viewsMap } = this._layers;
+        this.removeLayer(viewsMap[layerName]);
     },
 
     cloneOptions: function() {
@@ -675,12 +688,11 @@ export const Paper = View.extend({
         viewsMap[layerName] = layerView;
     },
 
-    _getLayerView(layer) {
+    _getLayerView(layerName) {
         const { _layers: { viewsMap }} = this;
-        if (layer in viewsMap) return viewsMap[layer];
+        if (layerName in viewsMap) return viewsMap[layerName];
         return null;
     },
-
 
     _requireLayerView(layer) {
         const layerView = this._getLayerView(layer);
