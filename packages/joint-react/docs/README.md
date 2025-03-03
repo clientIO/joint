@@ -15,6 +15,7 @@
 
 ## Hooks
 
+- [useElement](functions/useElement.md)
 - [useElementEffect](functions/useElementEffect.md)
 - [useElements](functions/useElements.md)
 - [useGraph](functions/useGraph.md)

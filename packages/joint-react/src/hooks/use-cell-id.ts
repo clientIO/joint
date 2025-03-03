@@ -6,6 +6,7 @@ import { CellIdContext } from '../context/cell-context';
  * Return cell (currently just element) id from the paper (paper item).
  *
  * @group Hooks
+ * @internal
  */
 export function useCellId(): dia.Cell.ID {
   const id = use(CellIdContext);

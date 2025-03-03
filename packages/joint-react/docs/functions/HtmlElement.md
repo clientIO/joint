@@ -8,7 +8,7 @@
 
 > **HtmlElement**(`props`): `ReactNode`
 
-Defined in: [packages/joint-react/src/components/html-element.tsx:101](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/components/html-element.tsx#L101)
+Defined in: [packages/joint-react/src/components/html-element.tsx:101](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-element.tsx#L101)
 
 Joint js div with auto sizing parent node based on this div.
 When this div changes, it will automatically resize the parent node element (change width and height of parent cell).

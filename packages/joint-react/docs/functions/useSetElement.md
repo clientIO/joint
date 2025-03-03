@@ -10,7 +10,7 @@
 
 > **useSetElement**\<`Attributes`, `Attribute`\>(`id`, `attribute`): (`value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:59](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-set-element.ts#L59)
+Defined in: [packages/joint-react/src/hooks/use-set-element.ts:59](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L59)
 
 Use this hook to set element attributes.
 It returns a function to set the element attribute.
@@ -59,7 +59,7 @@ to be picked, it's optional
 
 > **useSetElement**\<`Attributes`\>(`id`): \<`X`\>(`attribute`, `value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:67](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-set-element.ts#L67)
+Defined in: [packages/joint-react/src/hooks/use-set-element.ts:67](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L67)
 
 Use this hook to set element attributes.
 It returns a function to set the element attribute.
@@ -108,7 +108,7 @@ element ID
 
 > **useSetElement**\<`Attributes`\>(): \<`X`\>(`id`, `attribute`, `value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:71](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-set-element.ts#L71)
+Defined in: [packages/joint-react/src/hooks/use-set-element.ts:71](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L71)
 
 Use this hook to set element attributes.
 It returns a function to set the element attribute.

@@ -1,9 +1,11 @@
 import { dia, shapes } from '@joint/core';
+import type { RefObject } from 'react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
 import type { BaseElement, BaseLink } from '../types/cell.types';
 import { setCells } from '../utils/cell/set-cells';
+import { useStore } from './use-store';
 
 interface Options {
   /**
@@ -45,10 +47,23 @@ export interface GraphStore {
    * Subscribes to the store changes.
    */
   readonly subscribeToElements: (onStoreChange: () => void) => () => void;
+  /**
+   * Subscribes to the store changes.
+   * @param onStoreChange
+   * @returns
+   */
   readonly subscribeToLinks: (onStoreChange: () => void) => () => void;
+  /**
+   * Map of elements ids to their index in the elements array.
+   */
+  readonly elementsIdsToIndexMap: RefObject<Map<dia.Cell.ID, number>>;
 }
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
+function getElementIdsIndexes(graph: dia.Graph): Map<dia.Cell.ID, number> {
+  const elements = graph.getElements();
+  return new Map(elements.map((element, index) => [element.id, index]));
+}
 /**
  * Store for listen to cell changes and updates on the graph elements (nodes) and links (edges).
  * It use `useSyncExternalStore` to avoid memory leaks and cells (state) duplicates.
@@ -66,9 +81,6 @@ export function useCreateGraphStore(options: Options): GraphStore {
     cellModel,
   } = options;
 
-  // Store subscribers
-  const elementSubscribers = useRef(new Set<() => void>());
-  const linkSubscribers = useRef(new Set<() => void>());
   const graphId = useId();
 
   // initialize graph instance and save it in the store
@@ -83,19 +95,14 @@ export function useCreateGraphStore(options: Options): GraphStore {
     return newGraph;
   });
 
-  const isScheduled = useRef(false);
+  const onElementsChange = useCallback(() => {
+    elementsIdsToIndexMap.current = getElementIdsIndexes(graph);
+  }, [graph]);
 
-  const notifySubscribers = useCallback((subscribers: Set<() => void>) => {
-    if (!isScheduled.current) {
-      isScheduled.current = true;
-      requestAnimationFrame(() => {
-        for (const subscriber of subscribers) {
-          subscriber();
-        }
-        isScheduled.current = false;
-      });
-    }
-  }, []);
+  const elementsIdsToIndexMap = useRef(getElementIdsIndexes(graph));
+
+  const elementsStore = useStore(onElementsChange);
+  const linksStore = useStore();
 
   const handleCellsChange = useCallback(
     (cell: dia.Cell) => {
@@ -103,18 +110,18 @@ export function useCreateGraphStore(options: Options): GraphStore {
         return;
       }
       if (cell.isElement()) {
-        return notifySubscribers(elementSubscribers.current);
+        return elementsStore.notifySubscribers();
       }
       if (cell.isLink()) {
-        return notifySubscribers(linkSubscribers.current);
+        return linksStore.notifySubscribers();
       }
     },
-    [graph, notifySubscribers]
+    [elementsStore, graph, linksStore]
   );
   const handleOnBatchStop = useCallback(() => {
-    notifySubscribers(elementSubscribers.current);
-    notifySubscribers(linkSubscribers.current);
-  }, [notifySubscribers]);
+    elementsStore.notifySubscribers();
+    linksStore.notifySubscribers();
+  }, [elementsStore, linksStore]);
 
   // On-load effect
   useEffect(() => {
@@ -129,19 +136,10 @@ export function useCreateGraphStore(options: Options): GraphStore {
   return useMemo(
     (): GraphStore => ({
       graph,
-      subscribeToElements: (onStoreChange: () => void) => {
-        elementSubscribers.current.add(onStoreChange);
-        return () => {
-          elementSubscribers.current.delete(onStoreChange);
-        };
-      },
-      subscribeToLinks: (onStoreChange: () => void) => {
-        linkSubscribers.current.add(onStoreChange);
-        return () => {
-          linkSubscribers.current.delete(onStoreChange);
-        };
-      },
+      subscribeToElements: elementsStore.subscribe,
+      subscribeToLinks: linksStore.subscribe,
+      elementsIdsToIndexMap,
     }),
-    [graph]
+    [elementsStore.subscribe, graph, linksStore.subscribe]
   );
 }

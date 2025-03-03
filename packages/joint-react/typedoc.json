@@ -9,5 +9,6 @@
   "excludeProtected": true,
   "excludeExternals": true,
   "excludeNotDocumented": false,
-  "groupOrder": ["Components", "Hooks", "Models", "Utils", "*"]
+  "groupOrder": ["Components", "Hooks", "Models", "Utils", "*"],
+  "gitRevision": "main"
 }

@@ -26,7 +26,7 @@ import { defaultLinksSelector } from '../utils/cell/to-react-cell';
  *   return <div>{links.length}</div>
  * }
  */
-export function useLinks<Links = BaseLink, ReturnedLinks = Links[]>(
+export function useLinks<Link = BaseLink, ReturnedLinks = Link[]>(
   selector: (items: dia.Link[]) => ReturnedLinks = defaultLinksSelector,
   isEqual: (a: ReturnedLinks, b: ReturnedLinks) => boolean = util.isEqual
 ): ReturnedLinks {

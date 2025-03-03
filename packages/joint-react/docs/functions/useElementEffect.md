@@ -8,7 +8,7 @@
 
 > **useElementEffect**(`idOrIds`, `onChange`, `dependencies`): `void`
 
-Defined in: [packages/joint-react/src/hooks/use-element-effect.ts:36](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-element-effect.ts#L36)
+Defined in: [packages/joint-react/src/hooks/use-element-effect.ts:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element-effect.ts#L36)
 
 **`Experimental`**
 

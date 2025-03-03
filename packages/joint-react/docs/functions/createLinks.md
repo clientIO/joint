@@ -8,7 +8,7 @@
 
 > **createLinks**\<`Item`\>(`data`): `Item`[]
 
-Defined in: [packages/joint-react/src/utils/create.ts:64](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/utils/create.ts#L64)
+Defined in: [packages/joint-react/src/utils/create.ts:64](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L64)
 
 Create links helper function.
 

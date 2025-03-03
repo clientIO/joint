@@ -6,9 +6,9 @@
 
 # Function: useLinks()
 
-> **useLinks**\<`Links`, `ReturnedLinks`\>(`selector`, `isEqual`): `ReturnedLinks`
+> **useLinks**\<`Link`, `ReturnedLinks`\>(`selector`, `isEqual`): `ReturnedLinks`
 
-Defined in: [packages/joint-react/src/hooks/use-links.ts:29](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-links.ts#L29)
+Defined in: [packages/joint-react/src/hooks/use-links.ts:29](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-links.ts#L29)
 
 A hook to access the graph store's links. This hook takes a selector function
 as an argument. The selector is called with the store links.
@@ -19,9 +19,9 @@ whether the component needs to be re-rendered.
 
 ## Type Parameters
 
-• **Links** = [`BaseLink`](../interfaces/BaseLink.md)
+• **Link** = [`BaseLink`](../interfaces/BaseLink.md)
 
-• **ReturnedLinks** = `Links`[]
+• **ReturnedLinks** = `Link`[]
 
 ## Parameters
 

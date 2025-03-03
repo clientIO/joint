@@ -8,7 +8,7 @@
 
 > **Paper**\<`ElementItem`\>(`props`): `Element`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:234](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/components/paper.tsx#L234)
+Defined in: [packages/joint-react/src/components/paper.tsx:234](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper.tsx#L234)
 
 Paper component that renders the JointJS paper element.
 It must be used within a `GraphProvider` context.

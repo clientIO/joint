@@ -47,7 +47,7 @@ import { defaultElementsSelector } from '../utils/cell/to-react-cell';
  * @param {Function=} isEqual The function used to decide equality. @default util.isEqual
  * @returns {ReturnedElements} The selected elements.
  */
-export function useElements<Elements = BaseElement, ReturnedElements = Elements[]>(
+export function useElements<Element = BaseElement, ReturnedElements = Element[]>(
   selector: (items: dia.Element[]) => ReturnedElements = defaultElementsSelector,
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {

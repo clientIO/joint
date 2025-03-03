@@ -6,9 +6,9 @@
 
 # Function: useElements()
 
-> **useElements**\<`Elements`, `ReturnedElements`\>(`selector`, `isEqual`): `ReturnedElements`
+> **useElements**\<`Element`, `ReturnedElements`\>(`selector`, `isEqual`): `ReturnedElements`
 
-Defined in: [packages/joint-react/src/hooks/use-elements.ts:50](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-elements.ts#L50)
+Defined in: [packages/joint-react/src/hooks/use-elements.ts:50](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-elements.ts#L50)
 
 A hook to access `dia.graph` elements
 
@@ -27,9 +27,9 @@ How it works:
 
 ## Type Parameters
 
-• **Elements** = [`BaseElement`](../interfaces/BaseElement.md)\<`unknown`\>
+• **Element** = [`BaseElement`](../interfaces/BaseElement.md)\<`unknown`\>
 
-• **ReturnedElements** = `Elements`[]
+• **ReturnedElements** = `Element`[]
 
 ## Parameters
 
