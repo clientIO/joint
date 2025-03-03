@@ -17,7 +17,7 @@ export type OnAddHighlighter<T extends dia.HighlighterView.Options = dia.Highlig
     options: T
   ) => dia.HighlighterView<T>;
 
-interface CustomHighlighterProps<
+export interface CustomHighlighterProps<
   T extends dia.HighlighterView.Options = dia.HighlighterView.Options,
 > {
   readonly children?: React.ReactNode | null | false;
@@ -29,7 +29,7 @@ interface CustomHighlighterProps<
   readonly options: T;
 }
 
-export function RawComponent<T extends dia.HighlighterView.Options = dia.HighlighterView.Options>(
+function RawComponent<T extends dia.HighlighterView.Options = dia.HighlighterView.Options>(
   props: CustomHighlighterProps<T>,
   forwardedRef: React.Ref<SVGElement>
 ) {

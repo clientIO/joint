@@ -6,22 +6,18 @@
 import type { dia } from '@joint/core';
 
 interface CellExplorerProps {
-  cell: dia.Cell.JSON;
-  onChange?: (cell: dia.Cell.JSON) => void;
+  readonly cell: dia.Cell.JSON;
+  readonly onChange?: (cell: dia.Cell.JSON) => void;
 }
 
+interface Props {
+  readonly keyName: string;
+  readonly parentKey?: string;
+  readonly value: unknown;
+  readonly onChange: (newValue: unknown) => void;
+}
 const MARGIN = '8px';
-function EditableField({
-  keyName,
-  parentKey,
-  value,
-  onChange,
-}: Readonly<{
-  keyName: string;
-  parentKey?: string;
-  value: unknown;
-  onChange: (newValue: unknown) => void;
-}>) {
+function EditableField({ keyName, parentKey, value, onChange }: Props) {
   const handleChange = (key: string, newValue: unknown) => {
     if (typeof value === 'object' && value !== null) {
       onChange({ ...value, [key]: newValue });
@@ -70,7 +66,7 @@ function EditableField({
   );
 }
 
-function CellExplorer({ cell, onChange }: Readonly<CellExplorerProps>) {
+function CellExplorer({ cell, onChange }: CellExplorerProps) {
   const handleInputChange = (key: string, value: unknown) => {
     if (onChange) {
       onChange({ ...cell, [key]: value });
@@ -95,11 +91,11 @@ function CellExplorer({ cell, onChange }: Readonly<CellExplorerProps>) {
 }
 
 interface CellsExplorerProps {
-  elements: dia.Cell.JSON[];
-  onChange: (cells: dia.Cell.JSON[]) => void;
+  readonly elements: dia.Cell.JSON[];
+  readonly onChange: (cells: dia.Cell.JSON[]) => void;
 }
 
-function CellsExplorer({ elements: cells, onChange }: Readonly<CellsExplorerProps>) {
+function CellsExplorer({ elements: cells, onChange }: CellsExplorerProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
       {cells.map((cell) => {

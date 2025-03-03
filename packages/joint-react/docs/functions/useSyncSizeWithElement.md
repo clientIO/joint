@@ -8,7 +8,7 @@
 
 > **useSyncSizeWithElement**\<`T`\>(): `RefObject`\<`null` \| `T`\>
 
-Defined in: [packages/joint-react/src/hooks/use-sync-size-with-element.ts:9](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/hooks/use-sync-size-with-element.ts#L9)
+Defined in: [packages/joint-react/src/hooks/use-sync-size-with-element.ts:9](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/hooks/use-sync-size-with-element.ts#L9)
 
 Custom hook to automatically update the size of a JointJS element based on the size of an HTML element.
 

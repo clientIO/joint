@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import type { FC, PropsWithChildren } from 'react';
 import { forwardRef, useCallback, useMemo } from 'react';
 import type { OnAddHighlighter } from './custom';
 import { Custom } from './custom';
@@ -6,11 +6,29 @@ import type { dia } from '@joint/core';
 import { highlighters } from '@joint/core';
 
 export interface StrokeHighlighterProps extends PropsWithChildren, React.SVGProps<SVGPathElement> {
+  /**
+   * The stacking order of the highlighter. See dia.HighlighterView for supported values.
+   */
   readonly layer: string;
+  /**
+   * The space between the stroke and the element
+   */
   readonly padding?: number;
+  /**
+   * The stroke's border radius on the x-axis
+   */
   readonly rx?: number;
+  /**
+   * The stroke's border radius on the y-axis
+   */
   readonly ry?: number;
+  /**
+   * Draw the stroke by using the first subpath of the target el compound path.
+   */
   readonly useFirstSubpath?: boolean;
+  /**
+   * When enabled the stroke width of the highlighter is not dependent on the transformations of the paper (e.g. zoom level). It defaults to false.
+   */
   readonly nonScalingStroke?: boolean;
 }
 
@@ -18,7 +36,7 @@ export interface StrokeHighlighterProps extends PropsWithChildren, React.SVGProp
  * Adds a stroke around an arbitrary cell view's SVG node.
  * @see https://docs.jointjs.com/api/highlighters/#stroke
  */
-export function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
+function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
   const { children, layer, padding, rx, ry, useFirstSubpath, nonScalingStroke, ...svgAttributes } =
     props;
   const options = useMemo((): dia.HighlighterView.Options => {
@@ -52,4 +70,4 @@ export function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref
  * @group Components
  
  */
-export const Stroke = forwardRef(Component);
+export const Stroke: FC<StrokeHighlighterProps> = forwardRef(Component);

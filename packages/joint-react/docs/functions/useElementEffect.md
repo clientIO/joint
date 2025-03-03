@@ -8,16 +8,15 @@
 
 > **useElementEffect**(`idOrIds`, `onChange`, `dependencies`): `void`
 
-Defined in: [packages/joint-react/src/hooks/use-element-effect.ts:18](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/hooks/use-element-effect.ts#L18)
+Defined in: [packages/joint-react/src/hooks/use-element-effect.ts:35](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/hooks/use-element-effect.ts#L35)
 
-Custom hook to manipulate a JointJS graph element based on React state.
-It works similarly to react useEffect, but it is specific to JointJS elements.
+Custom effect hook to trigger change for the elements based on the dependencies list. Similar how react useEffect works.
 
 ## Parameters
 
 ### idOrIds
 
-The ID or array of IDs of the JointJS elements to observe.
+The ID or array of IDs of the JointJS elements.
 
 `undefined` | `ID` | `ID`[]
 
@@ -25,14 +24,33 @@ The ID or array of IDs of the JointJS elements to observe.
 
 (`element`) => `void` \| () => `void`
 
-Callback function to execute when the element changes.
+Callback function to execute when the element changes with `dia.Element` as a callback parameter.
 
 ### dependencies
 
 `unknown`[] = `DEFAULT_DEPENDENCIES`
 
-Array of dependencies for the useEffect hook.
+Array of dependencies for the useEffect hook - observe for the changes, same as `useEffect`.
 
 ## Returns
 
 `void`
+
+## Example
+
+```tsx
+const [isPressed, setIsPressed] = useState(false);
+  useElementEffect(
+    id,
+    (element) => {
+      element.attr({
+        rect: {
+          fill: 'blue',
+          stroke: isPressed ? 'red' : 'black',
+          strokeWidth: 10,
+        },
+      });
+    },
+    [isPressed]
+  );
+```

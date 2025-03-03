@@ -26,7 +26,7 @@ const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ElementInput({ id, data }: Readonly<BaseElementWithData>) {
+function ElementInput({ id, data }: BaseElementWithData) {
   const { label } = data;
   const setElement = useSetElement<BaseElementWithData>(id, 'data');
   return (
@@ -34,7 +34,7 @@ function ElementInput({ id, data }: Readonly<BaseElementWithData>) {
   );
 }
 
-function RenderElement({ data: { label } }: Readonly<BaseElementWithData>) {
+function RenderElement({ data: { label } }: BaseElementWithData) {
   return <HtmlElement className="node">{label}</HtmlElement>;
 }
 
@@ -66,7 +66,7 @@ export const Basic: Story = {
   },
 };
 
-function RenderElementWithColorPicker({ data, id }: Readonly<BaseElementWithData>) {
+function RenderElementWithColorPicker({ data, id }: BaseElementWithData) {
   const setElement = useSetElement<BaseElementWithData>(id, 'data');
   return (
     <HtmlElement

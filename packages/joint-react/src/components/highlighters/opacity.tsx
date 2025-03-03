@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import type { FC, PropsWithChildren } from 'react';
 import { forwardRef, useCallback, useMemo } from 'react';
 import type { OnAddHighlighter } from './custom';
 import { Custom } from './custom';
@@ -6,6 +6,10 @@ import type { dia } from '@joint/core';
 import { highlighters } from '@joint/core';
 
 export interface OpacityHighlighterProps extends PropsWithChildren {
+  /**
+   * Opacity value between 0-1
+   * @default 1
+   */
   readonly alphaValue: number;
 }
 
@@ -13,7 +17,7 @@ export interface OpacityHighlighterProps extends PropsWithChildren {
  * Changes the opacity of an arbitrary cell view's SVG node.
  * @see https://docs.jointjs.com/api/highlighters/#opacity
  */
-export function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
+function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
   const { children, alphaValue = 1 } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
     const data: dia.HighlighterView.Options = {
@@ -40,4 +44,4 @@ export function Component(props: OpacityHighlighterProps, forwardedRef: React.Re
  * @group Components
  
  */
-export const Opacity = forwardRef(Component);
+export const Opacity: FC<OpacityHighlighterProps> = forwardRef(Component);

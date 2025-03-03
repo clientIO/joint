@@ -9,17 +9,22 @@
 - [BaseAttributes](interfaces/BaseAttributes.md)
 - [BaseElement](interfaces/BaseElement.md)
 - [BaseLink](interfaces/BaseLink.md)
+- [CustomHighlighterProps](interfaces/CustomHighlighterProps.md)
 - [GraphProps](interfaces/GraphProps.md)
+- [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
+- [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
 - [PaperProps](interfaces/PaperProps.md)
 - [PaperProviderProps](interfaces/PaperProviderProps.md)
 - [Ports](interfaces/Ports.md)
 - [RequiredCell](interfaces/RequiredCell.md)
+- [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
 
 ## Type Aliases
 
 - [CellsSetter](type-aliases/CellsSetter.md)
 - [HtmlElementProps](type-aliases/HtmlElementProps.md)
 - [Item](type-aliases/Item.md)
+- [OnAddHighlighter](type-aliases/OnAddHighlighter.md)
 - [RenderElement](type-aliases/RenderElement.md)
 - [SetCell](type-aliases/SetCell.md)
 
@@ -32,7 +37,7 @@
 
 ## Components
 
-- [Highlighter](variables/Highlighter.md)
+- [Highlighter](namespaces/Highlighter/README.md)
 - [CustomHighlighter](functions/CustomHighlighter.md)
 - [GraphProvider](functions/GraphProvider.md)
 - [HtmlElement](functions/HtmlElement.md)

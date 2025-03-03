@@ -40,7 +40,7 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
   /**
    * A function that selects the elements to be rendered.
    * It defaults to the `defaultElementSelector` function which return `BaseElement` because dia.Element is not a valid React element (it do not change reference after update).
-   * @default (item: dia.Cell) => BaseElement
+   * @default (item: dia.Cell) => `BaseElement`
    */
   readonly elementSelector?: (item: dia.Cell) => T;
   /**
@@ -76,7 +76,7 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
 /**
  * Paper component that renders the JointJS paper element.
  */
-function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperProps<T>>) {
+function Component<T extends RequiredCell = BaseElement>(props: PaperProps<T>) {
   const {
     renderElement,
     onReady,
@@ -146,9 +146,7 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
   );
 }
 
-function PaperWithNoDataPlaceHolder<T extends RequiredCell = BaseElement>(
-  props: Readonly<PaperProps<T>>
-) {
+function PaperWithNoDataPlaceHolder<T extends RequiredCell = BaseElement>(props: PaperProps<T>) {
   const { style, className, noDataPlaceholder, ...rest } = props;
 
   const hasNoDataPlaceholder = !!noDataPlaceholder;
@@ -166,9 +164,7 @@ function PaperWithNoDataPlaceHolder<T extends RequiredCell = BaseElement>(
   return <Component {...rest} style={style} className={className} />;
 }
 
-function PaperWithGraphProvider<T extends RequiredCell = BaseElement>(
-  props: Readonly<PaperProps<T>>
-) {
+function PaperWithGraphProvider<T extends RequiredCell = BaseElement>(props: PaperProps<T>) {
   const hasStore = !!use(GraphStoreContext);
   const { children, ...rest } = props;
   const paperContent = (

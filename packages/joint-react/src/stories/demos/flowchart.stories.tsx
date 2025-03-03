@@ -181,7 +181,7 @@ const flowchartLinks = createLinks([
 type FlowchartNode = InferElement<typeof flowchartNodes>;
 
 // Custom render function that maps the node type to a CSS class for styling
-function RenderFlowchartNode({ data: { label, type } }: Readonly<FlowchartNode>) {
+function RenderFlowchartNode({ data: { label, type } }: FlowchartNode) {
   let className = 'flowchart-node';
   switch (type) {
     case 'start': {

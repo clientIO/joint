@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import type { FC, PropsWithChildren } from 'react';
 import { forwardRef, useCallback, useMemo } from 'react';
 import type { OnAddHighlighter } from './custom';
 import { Custom } from './custom';
@@ -6,9 +6,21 @@ import type { dia } from '@joint/core';
 import { highlighters } from '@joint/core';
 
 export interface MaskHighlighterProps extends React.SVGProps<SVGPathElement>, PropsWithChildren {
+  /**
+   * The layer on which the mask will be rendered.
+   */
   readonly layer?: string;
+  /**
+   * A CSS selector string for targeting elements.
+   */
   readonly selector?: string;
+  /**
+   * Child elements to render inside the mask.
+   */
   readonly children?: React.ReactNode | null | false;
+  /**
+   * The space between the stroke and the element
+   */
   readonly padding?: number;
 }
 
@@ -23,7 +35,7 @@ const DEFAULT_MASK_HIGHLIGHTER_PROPS: MaskHighlighterProps = {
  * Adds a stroke around an arbitrary cell view's SVG node.
  * @see https://docs.jointjs.com/api/highlighters/#mask
  */
-export function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
+function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
   const { layer, children, padding, ...svgAttributes } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
     const data: dia.HighlighterView.Options = {
@@ -55,6 +67,5 @@ export function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<S
  * Adds a stroke around an arbitrary cell view's SVG node.
  * @see https://docs.jointjs.com/api/highlighters/#mask
  * @group Components
- 
  */
-export const Mask = forwardRef(Component);
+export const Mask: FC<MaskHighlighterProps> = forwardRef(Component);

@@ -13,9 +13,22 @@ const meta: Meta<typeof HtmlElement> = {
 
 export default meta;
 
-export const DivWithSize: Story = {
+export const DivWithAutoSize: Story = {
   args: {
     style: { width: 100, height: 50, backgroundColor: 'blue' },
+  },
+};
+
+export const DivWithAutoSizeAndPadding: Story = {
+  args: {
+    style: { width: 100, height: 50, padding: 10, backgroundColor: 'blue' },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'This story has padding applied to the div element.',
+      },
+    },
   },
 };
 

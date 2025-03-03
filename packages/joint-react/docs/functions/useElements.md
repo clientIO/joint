@@ -8,14 +8,22 @@
 
 > **useElements**\<`T`, `R`\>(`selector`, `isEqual`): `R`
 
-Defined in: [packages/joint-react/src/hooks/use-elements.ts:32](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/hooks/use-elements.ts#L32)
+Defined in: [packages/joint-react/src/hooks/use-elements.ts:50](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/hooks/use-elements.ts#L50)
 
-A hook to access the graph store's elements. This hook takes a selector function
-as an argument. The selector is called with the store elements.
+A hook to access the graph store's elements.
 
-This hook takes an optional equality comparison function as the second parameter
-that allows you to customize the way the selected elements are compared to determine
-whether the component needs to be re-rendered.
+This hook returns the selected elements from the graph store. It accepts:
+ - a selector function, which extracts the desired portion from the elements array.
+   (By default, it returns the full elements array.)
+ - an optional isEqual function, used to compare previous and new values—ensuring
+   the component only re-renders when necessary.
+
+How it works:
+1. The hook subscribes to the elements of the graph store via useSyncExternalStoreWithSelector.
+2. It fetches the elements from the store and then applies the selector.
+3. To avoid unnecessary re-renders (especially since the selector could produce new
+   references on each call), the isEqual comparator (defaulting to a deep comparison)
+   checks if the selected value really changed.
 
 ## Type Parameters
 
@@ -29,19 +37,39 @@ whether the component needs to be re-rendered.
 
 (`items`) => `R`
 
-The selector function to select elements.
+The selector function to pick elements.
 
 ### isEqual
 
 (`a`, `b`) => `boolean`
 
-The function that will be used to determine equality.
+The function used to decide equality.
 
 ## Returns
 
 `R`
 
 The selected elements.
+
+## Examples
+
+Using without a selector (returns all elements):
+```tsx
+const elements = useElements();
+```
+
+Using with a selector (extract part of each element):
+```tsx
+const elementIds = useElements((elements) => elements.map((element) => element.id));
+```
+
+Using with a custom isEqual function (e.g. comparing the length of the returned array):
+```tsx
+const elementLength = useElements(
+  (elements) => elements,
+  (prev, next) => prev.length === next.length
+);
+```
 
 ## Default
 
@@ -53,16 +81,4 @@ defaultElementsSelector
 
 ```ts
 util.isEqual
-```
-
-## Example
-
-```ts
-import React from 'react'
-import { useElements } from './use-elements'
-
-export const ElementsComponent = () => {
-  const elements = useElements(state => state.elements)
-  return <div>{elements.length}</div>
-}
 ```

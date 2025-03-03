@@ -30,7 +30,7 @@ export interface PaperProviderProps extends PaperOptions {
  * )
  * ```
  */
-export function PaperProvider({ children, ...paperOptions }: Readonly<PaperProviderProps>) {
+export function PaperProvider({ children, ...paperOptions }: PaperProviderProps) {
   const graphStore = useGraphStore();
   if (!graphStore) {
     throw new Error('PaperProvider must be used within a GraphProvider');

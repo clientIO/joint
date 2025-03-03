@@ -6,7 +6,7 @@
 
 # Interface: PaperProviderProps
 
-Defined in: [packages/joint-react/src/components/paper-provider.tsx:9](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper-provider.tsx#L9)
+Defined in: [packages/joint-react/src/components/paper-provider.tsx:9](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/components/paper-provider.tsx#L9)
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/joint-react/src/components/paper-provider.tsx:9](https://g
 
 > `readonly` **children**: `ReactNode`
 
-Defined in: [packages/joint-react/src/components/paper-provider.tsx:10](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper-provider.tsx#L10)
+Defined in: [packages/joint-react/src/components/paper-provider.tsx:10](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/components/paper-provider.tsx#L10)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/joint-react/src/components/paper-provider.tsx:10](https://
 
 > `readonly` `optional` **scale**: `number`
 
-Defined in: [packages/joint-react/src/utils/create-paper.ts:8](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/utils/create-paper.ts#L8)
+Defined in: [packages/joint-react/src/utils/create-paper.ts:8](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/utils/create-paper.ts#L8)
 
 #### Inherited from
 

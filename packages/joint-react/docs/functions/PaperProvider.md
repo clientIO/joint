@@ -8,7 +8,7 @@
 
 > **PaperProvider**(`__namedParameters`): `Element`
 
-Defined in: [packages/joint-react/src/components/paper-provider.tsx:33](https://github.com/samuelgja/joint/blob/9749094e6efe2db40c6881d5ffe1569d905db73f/packages/joint-react/src/components/paper-provider.tsx#L33)
+Defined in: [packages/joint-react/src/components/paper-provider.tsx:33](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/components/paper-provider.tsx#L33)
 
 Paper provider creates a paper instance and provides it to its children.
 It extends the paper options from the createPaper function.
@@ -18,7 +18,7 @@ For more information about paper, see the JointJS documentation.
 
 ### \_\_namedParameters
 
-[`Readonly`](https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype)\<[`PaperProviderProps`](../interfaces/PaperProviderProps.md)\>
+[`PaperProviderProps`](../interfaces/PaperProviderProps.md)
 
 ## Returns
 

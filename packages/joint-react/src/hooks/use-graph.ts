@@ -6,6 +6,11 @@ import { useGraphStore } from './use-graph-store';
  * @group Hooks
  *
  * @returns The JointJS graph instance.
+ *
+ * @example
+ * ```tsx
+ * const graph = useGraph()
+ * ```
  */
 export function useGraph() {
   const { graph } = useGraphStore();

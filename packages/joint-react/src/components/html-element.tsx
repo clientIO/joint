@@ -1,10 +1,11 @@
 import type { CSSProperties } from 'react';
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useMemo, useRef } from 'react';
 import { useCombinedRefs } from '../hooks/use-combined-refs';
 import { useSyncSizeWithElement } from '../hooks/use-sync-size-with-element';
 const FO_STYLE: CSSProperties = {
   overflow: 'visible',
   position: 'relative',
+  display: 'inline-block',
 };
 
 interface ElementBase<T extends HTMLElement> extends React.HTMLAttributes<T> {
@@ -57,12 +58,13 @@ const ElementForward = forwardRef(Element);
  * Component that automatically resizes the parent node element based on the size of the div.
  */
 function WithAutoSize(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
+  const foreignRef = useRef<SVGForeignObjectElement>(null);
   const divElement = useSyncSizeWithElement<HTMLDivElement>();
   const combinedRef = useCombinedRefs(divElement, forwardedRef);
   const style = useMemo(() => ({ display: 'inline-block', ...props.style }), [props.style]);
 
   return (
-    <foreignObject style={FO_STYLE}>
+    <foreignObject ref={foreignRef} style={FO_STYLE}>
       <ElementForward {...props} style={style} ref={combinedRef} />
     </foreignObject>
   );

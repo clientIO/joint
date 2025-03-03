@@ -32,7 +32,7 @@ const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RenderItemWithChildren({ data: { label }, height, width }: Readonly<BaseElementWithData>) {
+function RenderItemWithChildren({ data: { label }, height, width }: BaseElementWithData) {
   const [isHighlighted, setIsHighlighted] = useState(true);
   return (
     <g
