@@ -7,32 +7,32 @@ import { useSvgChildren } from '../../hooks/use-svg-children';
 import { useHighlighter } from '../../hooks/use-highlighter';
 import typedMemo from '../../utils/typed-memo';
 
-export type OnAddHighlighter<T extends dia.HighlighterView.Options = dia.HighlighterView.Options> =
-  (
-    cellView:
-      | dia.ElementView<dia.Element<dia.Element.Attributes, dia.ModelSetOptions>>
-      | dia.LinkView<dia.Link<dia.Link.Attributes, dia.ModelSetOptions>>,
-    element: SVGElement | Record<string, unknown>,
-    highlighterId: string,
-    options: T
-  ) => dia.HighlighterView<T>;
+export type OnAddHighlighter<
+  Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
+> = (
+  cellView:
+    | dia.ElementView<dia.Element<dia.Element.Attributes, dia.ModelSetOptions>>
+    | dia.LinkView<dia.Link<dia.Link.Attributes, dia.ModelSetOptions>>,
+  element: SVGElement | Record<string, unknown>,
+  highlighterId: string,
+  options: Highlighter
+) => dia.HighlighterView<Highlighter>;
 
 export interface CustomHighlighterProps<
-  T extends dia.HighlighterView.Options = dia.HighlighterView.Options,
+  Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
 > {
   readonly children?: React.ReactNode | null | false;
-  readonly onAdd: OnAddHighlighter<T>;
+  readonly onAdd: OnAddHighlighter<Highlighter>;
 
   /**
    * This should be memoized
    */
-  readonly options: T;
+  readonly options: Highlighter;
 }
 
-function RawComponent<T extends dia.HighlighterView.Options = dia.HighlighterView.Options>(
-  props: CustomHighlighterProps<T>,
-  forwardedRef: React.Ref<SVGElement>
-) {
+function RawComponent<
+  Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
+>(props: CustomHighlighterProps<Highlighter>, forwardedRef: React.Ref<SVGElement>) {
   const { children, options, onAdd } = props;
   const id = useCellId();
   const paper = usePaper();
@@ -40,7 +40,7 @@ function RawComponent<T extends dia.HighlighterView.Options = dia.HighlighterVie
   const { elementRef, svgChildren } = useSvgChildren(children, forwardedRef);
 
   const create = useCallback(
-    (hOptions: T) => {
+    (hOptions: Highlighter) => {
       const cellView = paper.findViewByModel(id);
       if (!cellView) {
         return;
@@ -50,7 +50,7 @@ function RawComponent<T extends dia.HighlighterView.Options = dia.HighlighterVie
     [onAdd, elementRef, highlighterId, id, paper]
   );
 
-  const update = useCallback((instance: ReturnType<typeof create>, hOptions: T) => {
+  const update = useCallback((instance: ReturnType<typeof create>, hOptions: Highlighter) => {
     const oldOptions = instance?.options ?? {};
     if (!instance?.options) {
       return;

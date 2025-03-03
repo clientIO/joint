@@ -3,11 +3,11 @@ import { createPortal } from 'react-dom';
 import typedMemo from '../utils/typed-memo';
 import type { BaseElement, RequiredCell } from '../types/cell.types';
 
-export interface PaperPortalProps<T extends RequiredCell = BaseElement> {
+export interface PaperPortalProps<Data extends RequiredCell = BaseElement> {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
-  readonly renderElement: (element: T) => ReactNode;
+  readonly renderElement: (element: Data) => ReactNode;
   /**
    * The cell to render.
    */
@@ -24,9 +24,9 @@ export interface PaperPortalProps<T extends RequiredCell = BaseElement> {
  * It's internal component.
  *
  */
-function Component<T extends RequiredCell = BaseElement>(props: PaperPortalProps<T>) {
+function Component<Data extends RequiredCell = BaseElement>(props: PaperPortalProps<Data>) {
   const { renderElement, nodeSvgGElement, ...rest } = props;
-  const cell = rest as unknown as T;
+  const cell = rest as unknown as Data;
   const element = renderElement(cell);
   return createPortal(element, nodeSvgGElement);
 }

@@ -6,7 +6,7 @@ import type { BaseElement, BaseLink } from '../types/cell.types';
  * @param elements - Array of BaseElement objects to validate.
  * @throws Will throw an error if duplicate 'id's are found.
  */
-function validateUniqueIds<T>(elements: BaseElement<T>[]): void {
+function validateUniqueIds<Data>(elements: BaseElement<Data>[]): void {
   const seenIds = new Set<dia.Cell.ID>();
   for (const element of elements) {
     if (seenIds.has(element.id)) {
@@ -28,7 +28,7 @@ function validateUniqueIds<T>(elements: BaseElement<T>[]): void {
  *  { id: '2', type: 'circle', x: 200, y: 200, width: 100, height: 100 },
  * ]);
  */
-export function createElements<T, E extends BaseElement<T>>(data: E[]): E[] {
+export function createElements<Data, E extends BaseElement<Data>>(data: E[]): E[] {
   validateUniqueIds(data);
   return data;
 }

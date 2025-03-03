@@ -6,9 +6,9 @@ import { useCellId } from './use-cell-id';
  * Custom hook to automatically update the size of a JointJS element based on the size of an HTML element.
  * @group Hooks
  */
-export function useSyncSizeWithElement<T extends HTMLElement | SVGRectElement>() {
+export function useSyncSizeWithElement<AnyHtmlOrSvgElement extends HTMLElement | SVGRectElement>() {
   // Reference to the HTML element whose size will be observed.
-  const htmlRef = useRef<T>(null);
+  const htmlRef = useRef<AnyHtmlOrSvgElement>(null);
   // Get the graph instance from the custom useGraph hook.
   const graph = useGraph();
   const id = useCellId();

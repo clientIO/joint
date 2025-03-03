@@ -11,18 +11,21 @@ import { GraphStoreContext } from '../context/graph-store-context';
 import { GraphProvider } from './graph-provider';
 import { CellIdContext } from '../context/cell-context';
 
-export type RenderElement<T extends RequiredCell = BaseElement> = (element: T) => ReactNode;
+export type RenderElement<ElementItem extends RequiredCell = BaseElement> = (
+  element: ElementItem
+) => ReactNode;
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Paper.Options {
+export interface PaperProps<ElementItem extends RequiredCell = BaseElement>
+  extends dia.Paper.Options {
   /**
    * A function that renders the element. It is called every time the element is rendered.
-   * @default (element: T) => BaseElement
+   * @default (element: ElementItem) => BaseElement
    */
-  readonly renderElement?: RenderElement<T>;
+  readonly renderElement?: RenderElement<ElementItem>;
   /**
    * A function that is called when the paper is ready.
    */
@@ -42,7 +45,7 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
    * It defaults to the `defaultElementSelector` function which return `BaseElement` because dia.Element is not a valid React element (it do not change reference after update).
    * @default (item: dia.Cell) => `BaseElement`
    */
-  readonly elementSelector?: (item: dia.Cell) => T;
+  readonly elementSelector?: (item: dia.Cell) => ElementItem;
   /**
    * The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
    */
@@ -76,7 +79,7 @@ export interface PaperProps<T extends RequiredCell = BaseElement> extends dia.Pa
 /**
  * Paper component that renders the JointJS paper element.
  */
-function Component<T extends RequiredCell = BaseElement>(props: PaperProps<T>) {
+function Component<ElementItem extends RequiredCell = BaseElement>(props: PaperProps<ElementItem>) {
   const {
     renderElement,
     onReady,
@@ -146,7 +149,9 @@ function Component<T extends RequiredCell = BaseElement>(props: PaperProps<T>) {
   );
 }
 
-function PaperWithNoDataPlaceHolder<T extends RequiredCell = BaseElement>(props: PaperProps<T>) {
+function PaperWithNoDataPlaceHolder<ElementItem extends RequiredCell = BaseElement>(
+  props: PaperProps<ElementItem>
+) {
   const { style, className, noDataPlaceholder, ...rest } = props;
 
   const hasNoDataPlaceholder = !!noDataPlaceholder;
@@ -164,7 +169,9 @@ function PaperWithNoDataPlaceHolder<T extends RequiredCell = BaseElement>(props:
   return <Component {...rest} style={style} className={className} />;
 }
 
-function PaperWithGraphProvider<T extends RequiredCell = BaseElement>(props: PaperProps<T>) {
+function PaperWithGraphProvider<ElementItem extends RequiredCell = BaseElement>(
+  props: PaperProps<ElementItem>
+) {
   const hasStore = !!use(GraphStoreContext);
   const { children, ...rest } = props;
   const paperContent = (
