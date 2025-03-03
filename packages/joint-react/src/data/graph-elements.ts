@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import type { Attributes, Ports } from '../utils/cell/get-cell';
-import { ExtendedMap } from '../utils/extended-map';
+import { CellMap } from '../utils/cell/cell-map';
 
 /**
  * Base interface for graph element.
@@ -77,4 +77,4 @@ export interface GraphElement<Data = unknown> extends GraphElementItem<Data> {
  *
  * @group Graph
  */
-export class GraphElements<Data = unknown> extends ExtendedMap<GraphElement<Data>> {}
+export class GraphElements<Data = unknown> extends CellMap<GraphElement<Data>> {}

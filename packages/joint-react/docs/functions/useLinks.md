@@ -24,7 +24,7 @@ How it works:
 
 ## Type Parameters
 
-• **Link** = `GraphLinks`
+• **Link** = [`GraphLinks`](../classes/GraphLinks.md)
 
 • **ReturnedLinks** = `Link`
 

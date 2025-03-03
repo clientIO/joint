@@ -26,7 +26,7 @@ How it works:
 
 • **Data** = `unknown`
 
-• **Element** = `GraphElement`\<`unknown`\>
+• **Element** = [`GraphElement`](../interfaces/GraphElement.md)\<`unknown`\>
 
 • **ReturnedElements** = `Element`
 

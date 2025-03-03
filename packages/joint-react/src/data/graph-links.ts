@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { ExtendedMap } from '../utils/extended-map';
+import { CellMap } from '../utils/cell/cell-map';
 
 /**
  * Base interface for graph link.
@@ -62,4 +62,4 @@ export interface GraphLink extends GraphLinkBase {
  * @group Graph
  * @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
-export class GraphLinks extends ExtendedMap<GraphLink> {}
+export class GraphLinks extends CellMap<GraphLink> {}

@@ -27,7 +27,7 @@ How it works:
 
 ## Type Parameters
 
-• **T** = `GraphElements`\<`unknown`\>
+• **T** = [`GraphElements`](../classes/GraphElements.md)\<`unknown`\>
 
 • **R** = `T`[]
 

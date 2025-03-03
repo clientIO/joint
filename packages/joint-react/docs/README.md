@@ -29,6 +29,7 @@
 
 ## Utils
 
+- [CellMap](classes/CellMap.md)
 - [InferElement](type-aliases/InferElement.md)
 - [createElements](functions/createElements.md)
 - [createLinks](functions/createLinks.md)
@@ -40,6 +41,16 @@
 - [isReactElement](functions/isReactElement.md)
 - [useElement](functions/useElement.md)
 - [useLinks](functions/useLinks.md)
+
+## Graph
+
+- [GraphElements](classes/GraphElements.md)
+- [GraphLinks](classes/GraphLinks.md)
+- [GraphElement](interfaces/GraphElement.md)
+- [GraphElementBase](interfaces/GraphElementBase.md)
+- [GraphElementItem](interfaces/GraphElementItem.md)
+- [GraphLink](interfaces/GraphLink.md)
+- [GraphLinkBase](interfaces/GraphLinkBase.md)
 
 ## Interfaces
 

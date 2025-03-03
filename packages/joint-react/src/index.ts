@@ -8,6 +8,9 @@ export * from './components/paper';
 export * from './components/html-element';
 export * from './components/highlighters';
 
+export * from './data/graph-elements';
+export * from './data/graph-links';
+
 export * from './hooks/use-graph';
 export * from './hooks/use-paper';
 export * from './hooks/use-links';
@@ -20,6 +23,7 @@ export * from './hooks/use-element-effect';
 
 export * from './utils/update-graph';
 export * from './utils/create';
+export * from './utils/cell/cell-map';
 
 export * from './models/react-element';
 

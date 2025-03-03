@@ -4,7 +4,13 @@ interface ItemBase {
   readonly id: dia.Cell.ID;
 }
 
-export class ExtendedMap<V extends ItemBase> extends Map<dia.Cell.ID, V> {
+/**
+ * CellMap is a custom Map implementation that extends the native Map class.
+ * It provides additional utility methods for working with working with nodes & edges.
+ * @group Utils
+ */
+
+export class CellMap<V extends ItemBase> extends Map<dia.Cell.ID, V> {
   constructor(items?: V[]) {
     super();
     if (!items) {

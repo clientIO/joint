@@ -15,7 +15,7 @@ It must be used within a `GraphProvider` context.
 
 ## Type Parameters
 
-• **ElementItem** *extends* `GraphElementBase` = `GraphElementBase`
+• **ElementItem** *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md) = [`GraphElementBase`](../interfaces/GraphElementBase.md)
 
 ## Parameters
 

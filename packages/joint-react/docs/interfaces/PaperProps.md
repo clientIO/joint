@@ -21,7 +21,7 @@ https://docs.jointjs.com/api/dia/Paper
 
 ## Type Parameters
 
-• **ElementItem** *extends* `GraphElementBase` = `GraphElementBase`
+• **ElementItem** *extends* [`GraphElementBase`](GraphElementBase.md) = [`GraphElementBase`](GraphElementBase.md)
 
 ## Indexable
 
@@ -66,7 +66,7 @@ It defaults to the `defaultElementSelector` function which return `BaseElement` 
 
 ##### item
 
-`GraphElement`
+[`GraphElement`](GraphElement.md)
 
 #### Returns
 

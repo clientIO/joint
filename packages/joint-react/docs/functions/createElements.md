@@ -14,7 +14,7 @@ Create elements helper function.
 
 ## Type Parameters
 
-• **E** *extends* `GraphElementBase`
+• **E** *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md)
 
 ## Parameters
 
