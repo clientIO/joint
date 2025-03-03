@@ -2,7 +2,6 @@ import { useGraphStore } from './use-graph-store';
 import { util, type dia } from '@joint/core';
 import type { BaseLink } from '../types/cell.types';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { defaultLinksSelector } from '../utils/cell/to-react-cell';
 
 /**
  * A hook to access the graph store's links. This hook takes a selector function
@@ -27,14 +26,14 @@ import { defaultLinksSelector } from '../utils/cell/to-react-cell';
  * }
  */
 export function useLinks<Link = BaseLink, ReturnedLinks = Link[]>(
-  selector: (items: dia.Link[]) => ReturnedLinks = defaultLinksSelector,
+  selector: (items: dia.Link[]) => ReturnedLinks = (items) => items as unknown as ReturnedLinks,
   isEqual: (a: ReturnedLinks, b: ReturnedLinks) => boolean = util.isEqual
 ): ReturnedLinks {
-  const { subscribeToLinks, graph } = useGraphStore();
+  const { subscribeToLinks, getLinks } = useGraphStore();
   const elements = useSyncExternalStoreWithSelector(
     subscribeToLinks,
-    () => graph.getLinks(),
-    () => graph.getLinks(),
+    getLinks,
+    getLinks,
     selector,
     isEqual
   );

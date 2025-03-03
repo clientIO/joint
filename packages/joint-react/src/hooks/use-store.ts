@@ -10,7 +10,7 @@ export interface Store {
  * @internal
  * @returns The store instance.
  */
-export function useStore(onChange?: () => void): Store {
+export function useStore(beforeSubscribe: () => void): Store {
   const isScheduled = useRef(false);
   const subscribers = useRef(new Set<() => void>());
 
@@ -26,15 +26,15 @@ export function useStore(onChange?: () => void): Store {
         if (!isScheduled.current) {
           isScheduled.current = true;
           requestAnimationFrame(() => {
+            beforeSubscribe?.();
             for (const subscriber of subscribers.current) {
               subscriber();
             }
-            onChange?.();
             isScheduled.current = false;
           });
         }
       },
     }),
-    [onChange]
+    [beforeSubscribe]
   );
 }

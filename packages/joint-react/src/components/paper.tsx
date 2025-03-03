@@ -5,22 +5,20 @@ import { PaperItem } from './paper-item';
 import { useElements } from '../hooks/use-elements';
 import type { BaseElement, RequiredCell } from '../types/cell.types';
 import typedMemo from '../utils/typed-memo';
-import { defaultElementSelector } from '../utils/cell/to-react-cell';
+
 import { PaperContext } from '../context/paper-context';
 import { GraphStoreContext } from '../context/graph-store-context';
 import { GraphProvider } from './graph-provider';
 import { CellIdContext } from '../context/cell-context';
+import type { GraphElement } from '../utils/cell/get-cell';
 
-export type RenderElement<ElementItem extends RequiredCell = BaseElement> = (
-  element: ElementItem
-) => ReactNode;
+export type RenderElement<ElementItem = GraphElement> = (element: ElementItem) => ReactNode;
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<ElementItem extends RequiredCell = BaseElement>
-  extends dia.Paper.Options {
+export interface PaperProps<ElementItem = GraphElement> extends dia.Paper.Options {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    * @default (element: ElementItem) => BaseElement
@@ -85,7 +83,7 @@ function Component<ElementItem extends RequiredCell = BaseElement>(props: PaperP
     onReady,
     style,
     className,
-    elementSelector = defaultElementSelector,
+    elementSelector = (item) => item,
     scale,
     children,
     ...paperOptions

@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "yarn eslint \"**/*.{ts,tsx}\" --fix",
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
-    "test": "yarn jest",
+    "test": "bun test",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build": "node --experimental-json-modules --loader ts-node/esm build.ts",

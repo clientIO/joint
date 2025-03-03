@@ -1,10 +1,20 @@
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import type { Meta, StoryObj } from '@storybook/react';
 import { SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useElements } from './use-elements';
+import { Paper } from '../components/paper';
 
 function Hook() {
   const elements = useElements(); // Using the hook inside a component
-  return <span>All elements are: {JSON.stringify(elements, null, 2)}</span>;
+  console.log('re-render');
+  return (
+    <>
+      <span>All elements are: {elements.map((item) => JSON.stringify(item))}</span>
+      <Paper
+        renderElement={({ width, height }) => <rect width={width} height={height} fill="blue" />}
+      />
+    </>
+  );
 }
 export type Story = StoryObj<typeof Hook>;
 

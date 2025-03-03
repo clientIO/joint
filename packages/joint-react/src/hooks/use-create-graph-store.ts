@@ -1,11 +1,13 @@
 import { dia, shapes } from '@joint/core';
-import type { RefObject } from 'react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
 import type { BaseElement, BaseLink } from '../types/cell.types';
 import { setCells } from '../utils/cell/set-cells';
 import { useStore } from './use-store';
+import type { GraphElement, GraphLink } from '../utils/cell/get-cell';
+import type { GraphElements, GraphLinks } from '../utils/cell/cell-map';
+import { GraphData } from '../utils/cell/cell-map';
 
 interface Options {
   /**
@@ -38,7 +40,7 @@ interface Options {
   readonly defaultLinks?: Array<dia.Link | BaseLink>;
 }
 
-export interface GraphStore {
+export interface GraphStore<Data = undefined> {
   /**
    * The JointJS graph instance.
    */
@@ -46,24 +48,27 @@ export interface GraphStore {
   /**
    * Subscribes to the store changes.
    */
-  readonly subscribeToElements: (onStoreChange: () => void) => () => void;
+  readonly subscribe: (onStoreChange: () => void) => () => void;
   /**
-   * Subscribes to the store changes.
-   * @param onStoreChange
-   * @returns
+   * Get elements
    */
-  readonly subscribeToLinks: (onStoreChange: () => void) => () => void;
+  readonly getElements: () => GraphElements<Data>;
   /**
-   * Map of elements ids to their index in the elements array.
+   * Get element by id
    */
-  readonly elementsIdsToIndexMap: RefObject<Map<dia.Cell.ID, number>>;
+  readonly getElement: (id: dia.Cell.ID) => GraphElement<Data>;
+  /**
+   *  Get links
+   */
+  readonly getLinks: () => GraphLinks;
+  /**
+   * Get link by id
+   */
+  readonly getLink: (id: dia.Cell.ID) => GraphLink;
 }
+
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
-function getElementIdsIndexes(graph: dia.Graph): Map<dia.Cell.ID, number> {
-  const elements = graph.getElements();
-  return new Map(elements.map((element, index) => [element.id, index]));
-}
 /**
  * Store for listen to cell changes and updates on the graph elements (nodes) and links (edges).
  * It use `useSyncExternalStore` to avoid memory leaks and cells (state) duplicates.
@@ -95,33 +100,24 @@ export function useCreateGraphStore(options: Options): GraphStore {
     return newGraph;
   });
 
-  const onElementsChange = useCallback(() => {
-    elementsIdsToIndexMap.current = getElementIdsIndexes(graph);
+  const data = useRef(new GraphData(graph));
+
+  const update = useCallback(() => {
+    data.current.update(graph);
   }, [graph]);
 
-  const elementsIdsToIndexMap = useRef(getElementIdsIndexes(graph));
+  const store = useStore(update);
 
-  const elementsStore = useStore(onElementsChange);
-  const linksStore = useStore();
+  const handleCellsChange = useCallback(() => {
+    if (graph.hasActiveBatch()) {
+      return;
+    }
+    return store.notifySubscribers();
+  }, [store, graph]);
 
-  const handleCellsChange = useCallback(
-    (cell: dia.Cell) => {
-      if (graph.hasActiveBatch()) {
-        return;
-      }
-      if (cell.isElement()) {
-        return elementsStore.notifySubscribers();
-      }
-      if (cell.isLink()) {
-        return linksStore.notifySubscribers();
-      }
-    },
-    [elementsStore, graph, linksStore]
-  );
   const handleOnBatchStop = useCallback(() => {
-    elementsStore.notifySubscribers();
-    linksStore.notifySubscribers();
-  }, [elementsStore, linksStore]);
+    store.notifySubscribers();
+  }, [store]);
 
   // On-load effect
   useEffect(() => {
@@ -136,10 +132,20 @@ export function useCreateGraphStore(options: Options): GraphStore {
   return useMemo(
     (): GraphStore => ({
       graph,
-      subscribeToElements: elementsStore.subscribe,
-      subscribeToLinks: linksStore.subscribe,
-      elementsIdsToIndexMap,
+      subscribe: store.subscribe,
+      getElements() {
+        return data.current.elements;
+      },
+      getLinks() {
+        return data.current.links;
+      },
+      getElement(id) {
+        return data.current.elements.get(id)!;
+      },
+      getLink(id) {
+        return data.current.links.get(id)!;
+      },
     }),
-    [elementsStore.subscribe, graph, linksStore.subscribe]
+    [graph, store.subscribe]
   );
 }

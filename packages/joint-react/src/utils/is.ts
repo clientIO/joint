@@ -18,3 +18,6 @@ export function isDefined<Value>(value: Value | undefined): value is Value {
 export function isAttribute<Value>(value: unknown): value is keyof Value {
   return util.isString(value);
 }
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return util.isObject(value);
+}
