@@ -1,7 +1,7 @@
-03-03-2025 (v4.1.3)
+04-03-2025 (v4.1.3)
 
   @joint/layout-directed-graph
-  * layout.DirectedGraph - fix to accept `0` value for `nodesep`, `edgesep`, `ranksep` options
+  * layout.DirectedGraph - fix to accept `0` value for `nodesep`, `edgesep`, `ranksep` options of `layout()`
 
 04-02-2025 (v4.1.3)
 
