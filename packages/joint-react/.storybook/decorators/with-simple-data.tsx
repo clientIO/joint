@@ -41,12 +41,7 @@ export function RenderItemDecorator(properties: {
   return (
     <div style={{ width: '100%', height: '100vh' }}>
       <SimpleGraphProviderDecorator>
-        <Paper
-          interactive={false}
-          width={'100%'}
-          height={'100%'}
-          renderElement={properties.renderElement}
-        />
+        <Paper width={'100%'} height={'100%'} renderElement={properties.renderElement} />
       </SimpleGraphProviderDecorator>
     </div>
   );

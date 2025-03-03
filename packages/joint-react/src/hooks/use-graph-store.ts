@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { use } from 'react';
 import { GraphStoreContext } from '../context/graph-store-context';
 
 /**
@@ -11,7 +11,7 @@ import { GraphStoreContext } from '../context/graph-store-context';
  * @throws An error if the hook is used outside of a GraphProvider.
  */
 export function useGraphStore() {
-  const store = useContext(GraphStoreContext);
+  const store = use(GraphStoreContext);
   if (!store) {
     throw new Error('useGraphStore must be used within a GraphProvider');
   }

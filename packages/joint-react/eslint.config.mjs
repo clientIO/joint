@@ -1,34 +1,36 @@
-import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
-import stylisticJsx from '@stylistic/eslint-plugin-jsx'
-import stylisticTs from '@stylistic/eslint-plugin-ts'
-import unicorn from 'eslint-plugin-unicorn'
-import jest from 'eslint-plugin-jest'
-import stylistic from '@stylistic/eslint-plugin'
-import sonarjs from 'eslint-plugin-sonarjs'
-import * as depend from 'eslint-plugin-depend'
-import reactHooks from 'eslint-plugin-react-hooks'
-import { fixupPluginRules } from '@eslint/compat'
-import tsParser from '@typescript-eslint/parser'
-import reactPerfPlugin from 'eslint-plugin-react-perf'
-import path from 'node:path'
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import stylisticJsx from '@stylistic/eslint-plugin-jsx';
+import stylisticTs from '@stylistic/eslint-plugin-ts';
+import unicorn from 'eslint-plugin-unicorn';
+import jest from 'eslint-plugin-jest';
+import stylistic from '@stylistic/eslint-plugin';
+import sonarjs from 'eslint-plugin-sonarjs';
+import * as depend from 'eslint-plugin-depend';
+import reactHooks from 'eslint-plugin-react-hooks';
+import { fixupPluginRules } from '@eslint/compat';
+import tsParser from '@typescript-eslint/parser';
+import reactPerfPlugin from 'eslint-plugin-react-perf';
+import path from 'node:path';
+import eslintReact from '@eslint-react/eslint-plugin';
 
-const tsConfigPath = path.resolve('./', 'tsconfig.json')
+const tsConfigPath = path.resolve('./', 'tsconfig.json');
 
 /** @type {import('eslint').Linter.Config} */
 const config = [
   {
     ignores: ['/node_modules/', 'tsconfig.json'],
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', ".storybook/**/*.{ts,tsx}'"],
   },
   depend.configs['flat/recommended'],
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  eslintReact.configs.recommended,
   unicorn.configs['flat/recommended'],
   reactPerfPlugin.configs.flat.recommended,
   sonarjs.configs.recommended,
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', ".storybook/**/*.{ts,tsx}'"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -125,6 +127,6 @@ const config = [
       },
     },
   },
-]
+];
 
-export default config
+export default config;

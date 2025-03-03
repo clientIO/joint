@@ -21,7 +21,7 @@ describe('paper-provider', () => {
   it('should provide a paper instance in context', () => {
     let contextPaper: dia.Paper | undefined;
     function TestComponent() {
-      contextPaper = React.useContext(PaperContext);
+      contextPaper = React.use(PaperContext);
       return null;
     }
     render(

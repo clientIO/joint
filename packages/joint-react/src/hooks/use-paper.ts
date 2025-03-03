@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { use } from 'react';
 import { PaperContext } from '../context/paper-context';
 import type { dia } from '@joint/core';
 
@@ -8,7 +8,7 @@ import type { dia } from '@joint/core';
  * @group Hooks
  */
 export function usePaper(): dia.Paper {
-  const paper = useContext(PaperContext);
+  const paper = use(PaperContext);
   if (!paper) {
     throw new Error('usePaper must be used within a `PaperProvider` or `Paper` component');
   }

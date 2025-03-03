@@ -44,5 +44,5 @@ export function PaperProvider({ children, ...paperOptions }: Readonly<PaperProvi
       paper.remove();
     };
   }, [paper]);
-  return <PaperContext.Provider value={paper}>{children}</PaperContext.Provider>;
+  return <PaperContext value={paper}>{children}</PaperContext>;
 }

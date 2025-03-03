@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, use, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PaperContext } from '../context/paper-context';
 import type { PaperOptions } from '../utils/create-paper';
 import { createPaper, PAPER_PORTAL_RENDER_EVENT } from '../utils/create-paper';
@@ -32,7 +32,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     throw new Error('usePaper must be used within a GraphProvider');
   }
   // Try to get the paper from the context, it can be undefined if there is no PaperContext.
-  const paperCtx = useContext(PaperContext);
+  const paperCtx = use(PaperContext);
   // If paper is not inside the PaperContext, create a new paper instance.
   const [paperState] = useState<dia.Paper | null>(() => {
     if (paperCtx) {

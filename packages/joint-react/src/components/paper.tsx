@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import { useCallback, useContext, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, use, useState, type CSSProperties, type ReactNode } from 'react';
 import { useCreatePaper } from '../hooks/use-create-paper';
 import { PaperItem } from './paper-item';
 import { useElements } from '../hooks/use-elements';
@@ -122,13 +122,13 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
             return null;
           }
           return (
-            <CellIdContext.Provider key={cell.id} value={cell.id}>
+            <CellIdContext key={cell.id} value={cell.id}>
               <PaperItem
                 {...cell}
                 nodeSvgGElement={portalHtmlElement}
                 renderElement={renderElement}
               />
-            </CellIdContext.Provider>
+            </CellIdContext>
           );
         })}
     </div>
@@ -139,10 +139,10 @@ function Component<T extends RequiredCell = BaseElement>(props: Readonly<PaperPr
   }
 
   return (
-    <PaperContext.Provider value={paper}>
+    <PaperContext value={paper}>
       {content}
       {children}
-    </PaperContext.Provider>
+    </PaperContext>
   );
 }
 
@@ -169,7 +169,7 @@ function PaperWithNoDataPlaceHolder<T extends RequiredCell = BaseElement>(
 function PaperWithGraphProvider<T extends RequiredCell = BaseElement>(
   props: Readonly<PaperProps<T>>
 ) {
-  const hasStore = !!useContext(GraphStoreContext);
+  const hasStore = !!use(GraphStoreContext);
   const { children, ...rest } = props;
   const paperContent = (
     <PaperWithNoDataPlaceHolder {...rest}>{children}</PaperWithNoDataPlaceHolder>

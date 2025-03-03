@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { useContext } from 'react';
+import { use } from 'react';
 import { CellIdContext } from '../context/cell-context';
 
 /**
@@ -8,7 +8,7 @@ import { CellIdContext } from '../context/cell-context';
  * @group Hooks
  */
 export function useCellId(): dia.Cell.ID {
-  const id = useContext(CellIdContext);
+  const id = use(CellIdContext);
   if (id === undefined) {
     throw new Error('useCellId is not used inside paper context');
   }

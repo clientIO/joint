@@ -76,5 +76,5 @@ export function GraphProvider(props: GraphProps) {
   const { children, ...rest } = props;
   const graphStore = useCreateGraphStore(rest);
 
-  return <GraphStoreContext.Provider value={graphStore}>{children}</GraphStoreContext.Provider>;
+  return <GraphStoreContext value={graphStore}>{children}</GraphStoreContext>;
 }
