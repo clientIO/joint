@@ -1,7 +1,7 @@
 import { useGraphStore } from './use-graph-store';
-import { util, type dia } from '@joint/core';
-import type { BaseLink } from '../types/cell.types';
+import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
+import type { GraphLinks } from '../data/graph-links';
 
 /**
  * A hook to access the graph store's links. This hook takes a selector function
@@ -25,13 +25,13 @@ import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-s
  *   return <div>{links.length}</div>
  * }
  */
-export function useLinks<Link = BaseLink, ReturnedLinks = Link[]>(
-  selector: (items: dia.Link[]) => ReturnedLinks = (items) => items as unknown as ReturnedLinks,
+export function useLinks<Link = GraphLinks, ReturnedLinks = Link>(
+  selector: (items: GraphLinks) => ReturnedLinks = (items) => items as unknown as ReturnedLinks,
   isEqual: (a: ReturnedLinks, b: ReturnedLinks) => boolean = util.isEqual
 ): ReturnedLinks {
-  const { subscribeToLinks, getLinks } = useGraphStore();
+  const { subscribe, getLinks } = useGraphStore();
   const elements = useSyncExternalStoreWithSelector(
-    subscribeToLinks,
+    subscribe,
     getLinks,
     getLinks,
     selector,

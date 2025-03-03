@@ -1,4 +1,7 @@
 import { util, type dia } from '@joint/core';
+import type { GraphCell } from './cell/get-cell';
+import type { GraphLink } from '../data/graph-links';
+import type { GraphElement } from '../data/graph-elements';
 
 export type Setter<Value> = (item: Value) => Value;
 
@@ -20,4 +23,16 @@ export function isAttribute<Value>(value: unknown): value is keyof Value {
 }
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return util.isObject(value);
+}
+
+export function isGraphCell<Data = unknown>(value: unknown): value is GraphCell<Data> {
+  return isRecord(value) && 'isElement' in value && 'isLink' in value;
+}
+
+export function isGraphElement(value: unknown): value is GraphElement {
+  return isGraphCell(value) && value.isElement;
+}
+
+export function isGraphLink(value: unknown): value is GraphLink {
+  return isGraphCell(value) && value.isLink;
 }

@@ -1,9 +1,8 @@
 import { util } from '@joint/core';
-import type { BaseElement } from '../types/cell.types';
 import { useCellId } from './use-cell-id';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import { type GraphElement } from '../utils/cell/get-cell';
+import type { GraphElement } from '../data/graph-elements';
 
 /**
  * A hook to access `dia.graph` element inside the Paper context (`renderElement`).
@@ -26,19 +25,19 @@ import { type GraphElement } from '../utils/cell/get-cell';
  * const elementId = useElement((element) => element.id);
  * ```
  */
-export function useElement<Data = undefined, Element = BaseElement, ReturnedElements = Element>(
+export function useElement<Data = unknown, Element = GraphElement, ReturnedElements = Element>(
   selector: (items: GraphElement<Data>) => ReturnedElements = (item) =>
     item as unknown as ReturnedElements,
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {
   const id = useCellId();
-  const { subscribe: subscribeToElements, getElement } = useGraphStore<Data>();
+  const { subscribe: subscribeToElements, getElement } = useGraphStore();
 
   const element = useSyncExternalStoreWithSelector(
     subscribeToElements,
-    () => getElement(id),
-    () => getElement(id),
-    selector, // Use the provided selector here
+    () => getElement(id) as GraphElement<Data>,
+    () => getElement(id) as GraphElement<Data>,
+    selector,
     isEqual
   );
   return element;

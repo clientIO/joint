@@ -4,7 +4,7 @@ import type { dia } from '@joint/core';
 import { updateGraph } from '../utils/update-graph';
 
 export type Item = dia.Cell | dia.Cell.JSON;
-export type CellsSetter = (oldCells: Array<dia.Cell>) => Array<Item>;
+export type CellsSetter = (oldCells: dia.Cell[]) => Item[];
 
 /**
  * Custom hook to set cells in the graph.

@@ -1,8 +1,7 @@
 import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import type { GraphElements } from '../utils/cell/cell-map';
-import type { GraphElement } from '../utils/cell/get-cell';
+import type { GraphElements } from '../data/graph-elements';
 
 /**
  * A hook to access `dia.graph` elements
@@ -45,18 +44,17 @@ import type { GraphElement } from '../utils/cell/get-cell';
  *
  * @param {Function} selector The selector function to pick elements. @default defaultElementsSelector
  * @param {Function=} isEqual The function used to decide equality. @default util.isEqual
- * @returns {ReturnedElements} The selected elements.
+ * @returns {R} The selected elements.
  */
-export function useElements<Data = undefined, Element = GraphElement, ReturnedElements = Element[]>(
-  selector: (items: GraphElements<Data>) => ReturnedElements = (items) =>
-    items as unknown as ReturnedElements,
-  isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
-): ReturnedElements {
-  const { subscribe: subscribeToElements, getElements } = useGraphStore<Data>();
+export function useElements<T = GraphElements, R = T[]>(
+  selector: (items: GraphElements) => R = (items) => items as unknown as R,
+  isEqual: (a: R, b: R) => boolean = util.isEqual
+): R {
+  const { subscribe, getElements } = useGraphStore();
   const elements = useSyncExternalStoreWithSelector(
-    subscribeToElements,
+    subscribe,
     getElements,
-    getElements, // Assuming server snapshot is the same
+    getElements,
     selector,
     isEqual
   );

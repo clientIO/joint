@@ -5,16 +5,16 @@ import { useElement } from './use-element';
 import { memo } from 'react';
 
 function HookWithId() {
-  const cellId = useElement((element) => element.id); // Using the hook inside a component
+  const cellId = useElement((element) => element.id);
   return <HtmlElement>cellId is: {cellId}</HtmlElement>;
 }
 const HookWithIdMemo = memo(HookWithId);
 
 function HookWithJson() {
   const element = useElement((item) => ({
-    x: item.attributes.position?.x,
-    y: item.attributes.position?.y,
-  })); // Using the hook inside a component
+    x: item.x,
+    y: item.y,
+  }));
   return <HtmlElement>cellId is: {JSON.stringify(element)}</HtmlElement>;
 }
 

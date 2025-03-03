@@ -1,7 +1,8 @@
 import { GraphStoreContext } from '../context/graph-store-context';
 import { type dia } from '@joint/core';
 import { useCreateGraphStore } from '../hooks/use-create-graph-store';
-import type { BaseElement, BaseLink } from '../types/cell.types';
+import type { GraphLink } from '../data/graph-links';
+import type { GraphElementBase } from '../data/graph-elements';
 
 export interface GraphProps {
   /**
@@ -31,13 +32,12 @@ export interface GraphProps {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: (dia.Element | BaseElement)[];
-
+  readonly defaultElements?: Array<dia.Element | GraphElementBase>;
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: (dia.Link | BaseLink)[];
+  readonly defaultLinks?: Array<dia.Link | GraphLink>;
 }
 
 /**

@@ -1,66 +1,13 @@
-import type { dia, shapes } from '@joint/core';
-import { isDiaId } from '../utils/is';
+import type { dia } from '@joint/core';
+import { REACT_TYPE } from '../models/react-element';
+import { isGraphElement } from '../utils/is';
 export interface RequiredCell {
   readonly id: dia.Cell.ID;
 }
 
-export interface Ports {
-  readonly groups?: Record<string, dia.Element.PortGroup>;
-  readonly items?: dia.Element.Port[];
-}
-export interface BaseElement<Element = unknown> extends RequiredCell {
-  /**
-   * @default 'react'
-   */
-  readonly type?: string;
-  readonly x: number;
-  readonly y: number;
-  readonly width?: number;
-  readonly height?: number;
-  readonly angle?: number;
-  readonly data: Element extends undefined ? undefined : Element;
-  readonly attrs?: dia.Element.Attributes['attrs'];
-  readonly ports?: Ports;
-}
-
-export function isBaseElement(element: unknown): element is BaseElement {
-  return (
-    typeof element === 'object' &&
-    element !== null &&
-    'id' in element &&
-    'x' in element &&
-    'y' in element &&
-    isDiaId(element.id) &&
-    typeof element.x === 'number' &&
-    typeof element.y === 'number'
-  );
-}
-
 export function isReactElement(element: unknown): boolean {
-  if (!isBaseElement(element)) {
+  if (!isGraphElement(element)) {
     return false;
   }
-  return element.type === 'react' || element.type === undefined;
-}
-
-export interface BaseLink extends dia.Link.EndJSON {
-  readonly source: dia.Cell.ID;
-  readonly target: dia.Cell.ID;
-  readonly attrs?: shapes.standard.LinkAttributes['attrs'];
-  readonly z?: number;
-  readonly markup?: dia.MarkupJSON;
-  readonly defaultLabel?: dia.Link.Label;
-}
-
-export function isBaseLink(link: unknown): link is BaseLink {
-  return (
-    typeof link === 'object' &&
-    link !== null &&
-    'id' in link &&
-    'source' in link &&
-    'target' in link &&
-    isDiaId(link.id) &&
-    typeof link.source === 'string' &&
-    typeof link.target === 'string'
-  );
+  return element.type === REACT_TYPE || element.type == undefined;
 }

@@ -3,22 +3,24 @@ import { useCallback, use, useState, type CSSProperties, type ReactNode } from '
 import { useCreatePaper } from '../hooks/use-create-paper';
 import { PaperItem } from './paper-item';
 import { useElements } from '../hooks/use-elements';
-import type { BaseElement, RequiredCell } from '../types/cell.types';
 import typedMemo from '../utils/typed-memo';
-
 import { PaperContext } from '../context/paper-context';
 import { GraphStoreContext } from '../context/graph-store-context';
 import { GraphProvider } from './graph-provider';
 import { CellIdContext } from '../context/cell-context';
-import type { GraphElement } from '../utils/cell/get-cell';
+import { noopSelector } from '../utils/noop-selector';
+import type { GraphElement, GraphElementBase } from '../data/graph-elements';
 
-export type RenderElement<ElementItem = GraphElement> = (element: ElementItem) => ReactNode;
+export type RenderElement<ElementItem extends GraphElementBase = GraphElementBase> = (
+  element: ElementItem
+) => ReactNode;
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<ElementItem = GraphElement> extends dia.Paper.Options {
+export interface PaperProps<ElementItem extends GraphElementBase = GraphElementBase>
+  extends dia.Paper.Options {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    * @default (element: ElementItem) => BaseElement
@@ -43,7 +45,7 @@ export interface PaperProps<ElementItem = GraphElement> extends dia.Paper.Option
    * It defaults to the `defaultElementSelector` function which return `BaseElement` because dia.Element is not a valid React element (it do not change reference after update).
    * @default (item: dia.Cell) => `BaseElement`
    */
-  readonly elementSelector?: (item: dia.Cell) => ElementItem;
+  readonly elementSelector?: (item: GraphElement) => ElementItem;
   /**
    * The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
    */
@@ -77,13 +79,15 @@ export interface PaperProps<ElementItem = GraphElement> extends dia.Paper.Option
 /**
  * Paper component that renders the JointJS paper element.
  */
-function Component<ElementItem extends RequiredCell = BaseElement>(props: PaperProps<ElementItem>) {
+function Component<ElementItem extends GraphElementBase = GraphElementBase>(
+  props: PaperProps<ElementItem>
+) {
   const {
     renderElement,
     onReady,
     style,
     className,
-    elementSelector = (item) => item,
+    elementSelector = noopSelector as (item: GraphElement) => ElementItem,
     scale,
     children,
     ...paperOptions
@@ -147,13 +151,13 @@ function Component<ElementItem extends RequiredCell = BaseElement>(props: PaperP
   );
 }
 
-function PaperWithNoDataPlaceHolder<ElementItem extends RequiredCell = BaseElement>(
+function PaperWithNoDataPlaceHolder<ElementItem extends GraphElementBase = GraphElementBase>(
   props: PaperProps<ElementItem>
 ) {
   const { style, className, noDataPlaceholder, ...rest } = props;
 
   const hasNoDataPlaceholder = !!noDataPlaceholder;
-  const elementsLength = useElements((items) => items.length);
+  const elementsLength = useElements((items) => items.size);
   const isEmpty = elementsLength === 0;
 
   if (isEmpty && hasNoDataPlaceholder) {
@@ -167,7 +171,7 @@ function PaperWithNoDataPlaceHolder<ElementItem extends RequiredCell = BaseEleme
   return <Component {...rest} style={style} className={className} />;
 }
 
-function PaperWithGraphProvider<ElementItem extends RequiredCell = BaseElement>(
+function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElementBase>(
   props: PaperProps<ElementItem>
 ) {
   const hasStore = !!use(GraphStoreContext);

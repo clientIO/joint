@@ -59,6 +59,7 @@ const config = [
       'no-unneeded-ternary': 'error',
 
       // TypeScript rules
+      '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
       '@typescript-eslint/no-shadow': 2,
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/strict-boolean-expressions': 'off',

@@ -6,7 +6,7 @@ import { useCallback } from 'react';
  * @group Hooks
  */
 export function useCombinedRefs<AnyT>(
-  ...refs: (React.Ref<AnyT> | undefined)[]
+  ...refs: Array<React.Ref<AnyT> | undefined>
 ): React.RefCallback<AnyT> {
   return useCallback(
     (element: AnyT) => {

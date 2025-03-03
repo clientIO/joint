@@ -1,20 +1,5 @@
-import type { dia } from '@joint/core';
-import type { BaseElement, BaseLink } from '../types/cell.types';
-
-/**
- * Validates that all elements have unique 'id's.
- * @param elements - Array of BaseElement objects to validate.
- * @throws Will throw an error if duplicate 'id's are found.
- */
-function validateUniqueIds<Data>(elements: BaseElement<Data>[]): void {
-  const seenIds = new Set<dia.Cell.ID>();
-  for (const element of elements) {
-    if (seenIds.has(element.id)) {
-      throw new Error(`Duplicate id found: ${element.id}`);
-    }
-    seenIds.add(element.id);
-  }
-}
+import type { GraphElementBase } from '../data/graph-elements';
+import type { GraphLink, GraphLinkBase } from '../data/graph-links';
 
 /**
  * Create elements helper function.
@@ -28,9 +13,10 @@ function validateUniqueIds<Data>(elements: BaseElement<Data>[]): void {
  *  { id: '2', type: 'circle', x: 200, y: 200, width: 100, height: 100 },
  * ]);
  */
-export function createElements<Data, E extends BaseElement<Data>>(data: E[]): E[] {
-  validateUniqueIds(data);
-  return data;
+export function createElements<E extends GraphElementBase>(
+  data: E[]
+): Array<E & { isElement: true; isLink: false }> {
+  return data.map((element) => ({ ...element, isElement: true, isLink: false }));
 }
 
 /**
@@ -46,7 +32,7 @@ export function createElements<Data, E extends BaseElement<Data>>(data: E[]): E[
  * type BaseElementWithData = InferElement<typeof elements>;
  * ```
  */
-export type InferElement<Item extends BaseElement[]> = Readonly<Item[0]>;
+export type InferElement<T> = T extends Array<infer U> ? Readonly<U> : never;
 
 /**
  * Create links helper function.
@@ -61,6 +47,8 @@ export type InferElement<Item extends BaseElement[]> = Readonly<Item[0]>;
  * ]);
  * ```
  */
-export function createLinks<Item extends BaseLink = BaseLink>(data: Item[]) {
-  return data;
+export function createLinks<Item extends GraphLinkBase = GraphLinkBase>(
+  data: Item[]
+): Array<Item & GraphLink> {
+  return data.map((link) => ({ ...link, isElement: false, isLink: true }));
 }

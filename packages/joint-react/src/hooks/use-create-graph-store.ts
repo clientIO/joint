@@ -2,13 +2,13 @@ import { dia, shapes } from '@joint/core';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
-import type { BaseElement, BaseLink } from '../types/cell.types';
-import { setCells } from '../utils/cell/set-cells';
 import { useStore } from './use-store';
-import type { GraphElement, GraphLink } from '../utils/cell/get-cell';
-import type { GraphElements, GraphLinks } from '../utils/cell/cell-map';
-import { GraphData } from '../utils/cell/cell-map';
+import { GraphStoreData } from '../data/graph-store-data';
+import { setCells } from '../utils/cell/set-cells';
+import type { GraphElementBase, GraphElements } from '../data/graph-elements';
+import type { GraphLink, GraphLinks } from '../data/graph-links';
 
+const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 interface Options {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
@@ -31,16 +31,16 @@ interface Options {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: (dia.Element | BaseElement)[];
+  readonly defaultElements?: Array<dia.Element | GraphElementBase>;
 
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link | BaseLink>;
+  readonly defaultLinks?: Array<dia.Link | GraphLink>;
 }
 
-export interface GraphStore<Data = undefined> {
+export interface GraphStore {
   /**
    * The JointJS graph instance.
    */
@@ -52,11 +52,11 @@ export interface GraphStore<Data = undefined> {
   /**
    * Get elements
    */
-  readonly getElements: () => GraphElements<Data>;
+  readonly getElements: () => GraphElements;
   /**
    * Get element by id
    */
-  readonly getElement: (id: dia.Cell.ID) => GraphElement<Data>;
+  readonly getElement: (id: dia.Cell.ID) => GraphElementBase;
   /**
    *  Get links
    */
@@ -66,8 +66,6 @@ export interface GraphStore<Data = undefined> {
    */
   readonly getLink: (id: dia.Cell.ID) => GraphLink;
 }
-
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
 /**
  * Store for listen to cell changes and updates on the graph elements (nodes) and links (edges).
@@ -100,8 +98,7 @@ export function useCreateGraphStore(options: Options): GraphStore {
     return newGraph;
   });
 
-  const data = useRef(new GraphData(graph));
-
+  const data = useRef(new GraphStoreData(graph));
   const update = useCallback(() => {
     data.current.update(graph);
   }, [graph]);
@@ -140,10 +137,18 @@ export function useCreateGraphStore(options: Options): GraphStore {
         return data.current.links;
       },
       getElement(id) {
-        return data.current.elements.get(id)!;
+        const item = data.current.elements.get(id);
+        if (!item) {
+          throw new Error(`Element with id ${id} not found`);
+        }
+        return item;
       },
       getLink(id) {
-        return data.current.links.get(id)!;
+        const item = data.current.links.get(id);
+        if (!item) {
+          throw new Error(`Link with id ${id} not found`);
+        }
+        return item;
       },
     }),
     [graph, store.subscribe]

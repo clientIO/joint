@@ -1,51 +1,32 @@
 import { type dia } from '@joint/core';
-import { isRecord } from '../is';
+import type { GraphElement } from '../../data/graph-elements';
+import type { GraphLink } from '../../data/graph-links';
 
-export interface GraphElement<Data = undefined> extends dia.Element.Attributes {
-  readonly id: dia.Cell.ID;
-  readonly isElement: true;
-  readonly isLink: false;
-  readonly data: Data;
-  readonly type: string;
+export interface Ports {
+  readonly groups?: Record<string, dia.Element.PortGroup>;
+  readonly items?: dia.Element.Port[];
 }
 
-export interface GraphLink extends dia.Link.EndJSON {
-  readonly target: dia.Cell.ID;
-  readonly source: dia.Cell.ID;
-  readonly id: dia.Cell.ID;
-  readonly isElement: false;
-  readonly isLink: true;
-  readonly type: string;
-}
+export type Attributes = Omit<dia.Element.Attributes, 'size' | 'position'>;
 
-export type GraphCell<Data = undefined> = GraphElement<Data> | GraphLink;
+export type GraphCell<Data = unknown> = GraphElement<Data> | GraphLink;
 
-export function isGraphCell<Data = undefined>(value: unknown): value is GraphCell<Data> {
-  return isRecord(value) && 'isElement' in value && 'isLink' in value;
-}
-
-export function isGraphElement(value: unknown): value is GraphElement {
-  return isGraphCell(value) && value.isElement;
-}
-
-export function isGraphLink(value: unknown): value is GraphLink {
-  return isGraphCell(value) && value.isLink;
-}
-
-export function getElement<Data = undefined>(
-  cell: dia.Cell<dia.Cell.Attributes, dia.ModelSetOptions>
-): GraphElement<Data> {
+export function getElement<Data = unknown>(cell: dia.Cell<Attributes>): GraphElement<Data> {
+  const { size, position, ...attributes } = cell.attributes;
   return {
-    ...cell.attributes,
+    ...attributes,
+    ...position,
+    ...size,
     id: cell.id,
     isElement: true,
     isLink: false,
     data: cell.attributes.data,
     type: cell.attributes.type,
+    ports: cell.get('ports'),
   };
 }
 
-export function getLink(cell: dia.Cell<dia.Cell.Attributes, dia.ModelSetOptions>): GraphLink {
+export function getLink(cell: dia.Cell<dia.Cell.Attributes>): GraphLink {
   return {
     ...cell.attributes,
     id: cell.id,
@@ -54,28 +35,14 @@ export function getLink(cell: dia.Cell<dia.Cell.Attributes, dia.ModelSetOptions>
     source: cell.get('source') as dia.Cell.ID,
     target: cell.get('target') as dia.Cell.ID,
     type: cell.attributes.type,
+    z: cell.get('z'),
+    markup: cell.get('markup'),
+    defaultLabel: cell.get('defaultLabel'),
   };
 }
-export function getCell<Data = undefined>(
-  cell: dia.Cell<dia.Cell.Attributes, dia.ModelSetOptions>
-): GraphCell<Data> {
+export function getCell<Data = unknown>(cell: dia.Cell<dia.Cell.Attributes>): GraphCell<Data> {
   if (cell.isElement()) {
-    return {
-      ...cell.attributes,
-      id: cell.id,
-      isElement: true,
-      isLink: false,
-      data: cell.attributes.data,
-      type: cell.attributes.type,
-    };
+    return getElement<Data>(cell);
   }
-  return {
-    ...cell.attributes,
-    id: cell.id,
-    isElement: false,
-    isLink: true,
-    source: cell.get('source') as dia.Cell.ID,
-    target: cell.get('target') as dia.Cell.ID,
-    type: cell.attributes.type,
-  };
+  return getLink(cell);
 }

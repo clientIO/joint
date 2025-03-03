@@ -76,7 +76,7 @@ const WIDTH_ITEMS = 15;
 const HEIGHT_ITEMS = 30;
 
 function RandomChange() {
-  const elementsSize = useElements((items) => items.length);
+  const elementsSize = useElements((items) => items.size);
   const setCells = useSetCells();
   const graph = useGraph();
   return (

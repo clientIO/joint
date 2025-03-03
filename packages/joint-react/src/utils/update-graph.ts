@@ -52,7 +52,7 @@ function updateExistingCell(graph: dia.Graph, cell: dia.Cell, newCell: Item) {
  * updateGraph(graph, cells)
  * ```
  */
-export function updateGraph(graph: dia.Graph, cells: Array<Item>) {
+export function updateGraph(graph: dia.Graph, cells: Item[]) {
   if (cells.length === 0) {
     graph.clear();
     return;

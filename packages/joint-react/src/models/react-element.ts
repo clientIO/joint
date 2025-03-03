@@ -1,5 +1,5 @@
 import { dia, util } from '@joint/core';
-
+export const REACT_TYPE = 'react';
 const elementMarkup = util.svg/* xml */ `
     <rect @selector="rect">
     </rect>
@@ -20,8 +20,7 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
   defaults() {
     return {
       ...super.defaults,
-      componentType: 'react',
-      type: 'react',
+      type: REACT_TYPE,
       data: {},
       attrs: {
         rect: {

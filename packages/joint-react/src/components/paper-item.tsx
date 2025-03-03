@@ -1,9 +1,10 @@
 import { type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import typedMemo from '../utils/typed-memo';
-import type { BaseElement, RequiredCell } from '../types/cell.types';
+import type { RequiredCell } from '../types/cell.types';
+import type { GraphElement } from '../data/graph-elements';
 
-export interface PaperPortalProps<Data extends RequiredCell = BaseElement> {
+export interface PaperPortalProps<Data extends RequiredCell = GraphElement> {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
@@ -24,7 +25,7 @@ export interface PaperPortalProps<Data extends RequiredCell = BaseElement> {
  * It's internal component.
  *
  */
-function Component<Data extends RequiredCell = BaseElement>(props: PaperPortalProps<Data>) {
+function Component<Data extends RequiredCell = GraphElement>(props: PaperPortalProps<Data>) {
   const { renderElement, nodeSvgGElement, ...rest } = props;
   const cell = rest as unknown as Data;
   const element = renderElement(cell);

@@ -5,17 +5,19 @@ import { useElements } from './use-elements';
 import { Paper } from '../components/paper';
 
 function Hook() {
-  const elements = useElements(); // Using the hook inside a component
-  console.log('re-render');
+  const data = useElements((elements) => elements); // Using the hook inside a component
   return (
     <>
-      <span>All elements are: {elements.map((item) => JSON.stringify(item))}</span>
+      <span>All elements are: {data.toJSON()}</span>
       <Paper
-        renderElement={({ width, height }) => <rect width={width} height={height} fill="blue" />}
+        renderElement={({ width, height }) => {
+          return <rect width={width} height={height} fill="blue" />;
+        }}
       />
     </>
   );
 }
+
 export type Story = StoryObj<typeof Hook>;
 
 const meta: Meta<typeof Hook> = {

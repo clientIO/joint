@@ -34,7 +34,7 @@ const DEFAULT_DEPENDENCIES: unknown[] = [];
  * ```
  */
 export function useElementEffect(
-  idOrIds: dia.Cell.ID | Array<dia.Cell.ID> | undefined,
+  idOrIds: dia.Cell.ID | dia.Cell.ID[] | undefined,
   onChange: (element: dia.Element) => (() => void) | void,
   dependencies: unknown[] = DEFAULT_DEPENDENCIES
 ) {

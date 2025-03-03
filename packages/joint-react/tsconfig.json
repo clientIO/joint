@@ -19,7 +19,9 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "downlevelIteration": true,
-    "sourceMap": false
+    "sourceMap": false,
+
+    
   },
   "include": ["**/*.ts", "**/*.tsx", ".storybook/**/*"]
 }

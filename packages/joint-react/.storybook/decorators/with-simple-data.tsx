@@ -4,19 +4,26 @@
 import { JSX, PropsWithChildren } from 'react';
 import { createElements, createLinks, GraphProvider, InferElement, Paper } from '../../src';
 
-export type SimpleElement = InferElement<typeof initialElements>;
-
 const initialElements = createElements([
   {
     id: '1',
     data: { label: 'Node 1' },
     x: 100,
-    y: 50,
+    y: 20,
     width: 100,
     height: 50,
   },
-  { id: '2', data: { label: 'Node 1' }, x: 100, y: 200, width: 100, height: 50 },
+  {
+    id: '2',
+    data: { label: 'Node 2' },
+    x: 200,
+    y: 250,
+    width: 100,
+    height: 50,
+  },
 ]);
+
+export type SimpleElement = InferElement<typeof initialElements>;
 const defaultLinks = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 
 function SimpleGraphProviderDecorator({ children }: PropsWithChildren) {
