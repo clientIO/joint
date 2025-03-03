@@ -143,11 +143,11 @@ export const DirectedGraph = {
         // Alignment for rank nodes. Can be UL, UR, DL, or DR
         if (opt.align) glLabel.align = opt.align;
         // Number of pixels that separate nodes horizontally in the layout.
-        if (opt.nodeSep != null) glLabel.nodesep = opt.nodeSep;
+        if (util.isNumber(opt.nodeSep)) glLabel.nodesep = opt.nodeSep;
         // Number of pixels that separate edges horizontally in the layout.
-        if (opt.edgeSep != null) glLabel.edgesep = opt.edgeSep;
+        if (util.isNumber(opt.edgeSep)) glLabel.edgesep = opt.edgeSep;
         // Number of pixels between each rank in the layout.
-        if (opt.rankSep != null) glLabel.ranksep = opt.rankSep;
+        if (util.isNumber(opt.rankSep)) glLabel.ranksep = opt.rankSep;
         // Type of algorithm to assign a rank to each node in the input graph.
         // Possible values: network-simplex, tight-tree or longest-path
         if (opt.ranker) glLabel.ranker = opt.ranker;
