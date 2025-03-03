@@ -6,7 +6,7 @@
 
 # Interface: BaseLink
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:46](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/types/cell.types.ts#L46)
+Defined in: [packages/joint-react/src/types/cell.types.ts:46](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L46)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:46](https://github.com
 
 > `readonly` `optional` **attrs**: `LinkSelectors`
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:49](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/types/cell.types.ts#L49)
+Defined in: [packages/joint-react/src/types/cell.types.ts:49](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L49)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:49](https://github.com
 
 > `readonly` `optional` **defaultLabel**: `Label`
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:52](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/types/cell.types.ts#L52)
+Defined in: [packages/joint-react/src/types/cell.types.ts:52](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L52)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:52](https://github.com
 
 > `readonly` `optional` **markup**: `MarkupJSON`
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:51](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/types/cell.types.ts#L51)
+Defined in: [packages/joint-react/src/types/cell.types.ts:51](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L51)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:51](https://github.com
 
 > `readonly` **source**: `ID`
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:47](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/types/cell.types.ts#L47)
+Defined in: [packages/joint-react/src/types/cell.types.ts:47](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L47)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:47](https://github.com
 
 > `readonly` **target**: `ID`
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:48](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/types/cell.types.ts#L48)
+Defined in: [packages/joint-react/src/types/cell.types.ts:48](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L48)
 
 ***
 
@@ -58,4 +58,4 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:48](https://github.com
 
 > `readonly` `optional` **z**: `number`
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:50](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/types/cell.types.ts#L50)
+Defined in: [packages/joint-react/src/types/cell.types.ts:50](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L50)

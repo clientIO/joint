@@ -8,6 +8,7 @@ const DEFAULT_DEPENDENCIES: unknown[] = [];
 /**
  * Custom effect hook to trigger change for the elements based on the dependencies list. Similar how react useEffect works.
  *
+ * @experimental This may be removed or changed in the future as we are not sure if this is the best approach.
  * @group Hooks
  *
  * @param idOrIds - The ID or array of IDs of the JointJS elements.

@@ -4,37 +4,6 @@
 
 # @joint/react
 
-## Interfaces
-
-- [BaseAttributes](interfaces/BaseAttributes.md)
-- [BaseElement](interfaces/BaseElement.md)
-- [BaseLink](interfaces/BaseLink.md)
-- [CustomHighlighterProps](interfaces/CustomHighlighterProps.md)
-- [GraphProps](interfaces/GraphProps.md)
-- [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
-- [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
-- [PaperProps](interfaces/PaperProps.md)
-- [PaperProviderProps](interfaces/PaperProviderProps.md)
-- [Ports](interfaces/Ports.md)
-- [RequiredCell](interfaces/RequiredCell.md)
-- [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
-
-## Type Aliases
-
-- [CellsSetter](type-aliases/CellsSetter.md)
-- [HtmlElementProps](type-aliases/HtmlElementProps.md)
-- [Item](type-aliases/Item.md)
-- [OnAddHighlighter](type-aliases/OnAddHighlighter.md)
-- [RenderElement](type-aliases/RenderElement.md)
-- [SetCell](type-aliases/SetCell.md)
-
-## Functions
-
-- [createElement](functions/createElement.md)
-- [isBaseElement](functions/isBaseElement.md)
-- [isBaseLink](functions/isBaseLink.md)
-- [isReactElement](functions/isReactElement.md)
-
 ## Components
 
 - [Highlighter](namespaces/Highlighter/README.md)
@@ -65,3 +34,34 @@
 - [createElements](functions/createElements.md)
 - [createLinks](functions/createLinks.md)
 - [updateGraph](functions/updateGraph.md)
+
+## Functions
+
+- [createElement](functions/createElement.md)
+- [isBaseElement](functions/isBaseElement.md)
+- [isBaseLink](functions/isBaseLink.md)
+- [isReactElement](functions/isReactElement.md)
+
+## Interfaces
+
+- [BaseAttributes](interfaces/BaseAttributes.md)
+- [BaseElement](interfaces/BaseElement.md)
+- [BaseLink](interfaces/BaseLink.md)
+- [CustomHighlighterProps](interfaces/CustomHighlighterProps.md)
+- [GraphProps](interfaces/GraphProps.md)
+- [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
+- [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
+- [PaperProps](interfaces/PaperProps.md)
+- [PaperProviderProps](interfaces/PaperProviderProps.md)
+- [Ports](interfaces/Ports.md)
+- [RequiredCell](interfaces/RequiredCell.md)
+- [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
+
+## Type Aliases
+
+- [CellsSetter](type-aliases/CellsSetter.md)
+- [HtmlElementProps](type-aliases/HtmlElementProps.md)
+- [Item](type-aliases/Item.md)
+- [OnAddHighlighter](type-aliases/OnAddHighlighter.md)
+- [RenderElement](type-aliases/RenderElement.md)
+- [SetCell](type-aliases/SetCell.md)

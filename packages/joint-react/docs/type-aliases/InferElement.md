@@ -8,7 +8,7 @@
 
 > **InferElement**\<`T`\>: [`Readonly`](https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype)\<`T`\[`0`\]\>
 
-Defined in: [packages/joint-react/src/utils/create.ts:49](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/utils/create.ts#L49)
+Defined in: [packages/joint-react/src/utils/create.ts:49](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/utils/create.ts#L49)
 
 Infer element based on typeof createElements
 

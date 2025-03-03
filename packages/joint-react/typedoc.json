@@ -7,5 +7,7 @@
   "theme": "default",
   "excludePrivate": true,
   "excludeProtected": true,
-  "excludeExternals": true
+  "excludeExternals": true,
+  "excludeNotDocumented": false,
+  "groupOrder": ["Components", "Hooks", "Models", "Utils", "*"]
 }

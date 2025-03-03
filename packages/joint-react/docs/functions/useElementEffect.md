@@ -8,9 +8,13 @@
 
 > **useElementEffect**(`idOrIds`, `onChange`, `dependencies`): `void`
 
-Defined in: [packages/joint-react/src/hooks/use-element-effect.ts:35](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/hooks/use-element-effect.ts#L35)
+Defined in: [packages/joint-react/src/hooks/use-element-effect.ts:36](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/hooks/use-element-effect.ts#L36)
+
+**`Experimental`**
 
 Custom effect hook to trigger change for the elements based on the dependencies list. Similar how react useEffect works.
+
+ This may be removed or changed in the future as we are not sure if this is the best approach.
 
 ## Parameters
 
@@ -51,6 +55,6 @@ const [isPressed, setIsPressed] = useState(false);
         },
       });
     },
-    [isPressed]
+    [isPressed] // listen to react changes
   );
 ```

@@ -8,7 +8,7 @@
 
 > **useLinks**\<`T`, `R`\>(`selector`, `isEqual`): `R`
 
-Defined in: [packages/joint-react/src/hooks/use-links.ts:29](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/hooks/use-links.ts#L29)
+Defined in: [packages/joint-react/src/hooks/use-links.ts:29](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/hooks/use-links.ts#L29)
 
 A hook to access the graph store's links. This hook takes a selector function
 as an argument. The selector is called with the store links.

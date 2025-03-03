@@ -8,9 +8,9 @@
 
 > **useElements**\<`T`, `R`\>(`selector`, `isEqual`): `R`
 
-Defined in: [packages/joint-react/src/hooks/use-elements.ts:50](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/hooks/use-elements.ts#L50)
+Defined in: [packages/joint-react/src/hooks/use-elements.ts:50](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/hooks/use-elements.ts#L50)
 
-A hook to access the graph store's elements.
+A hook to access `dia.graph` elements
 
 This hook returns the selected elements from the graph store. It accepts:
  - a selector function, which extracts the desired portion from the elements array.

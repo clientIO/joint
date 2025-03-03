@@ -8,7 +8,7 @@
 
 > **PaperProvider**(`__namedParameters`): `Element`
 
-Defined in: [packages/joint-react/src/components/paper-provider.tsx:33](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/components/paper-provider.tsx#L33)
+Defined in: [packages/joint-react/src/components/paper-provider.tsx:33](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/components/paper-provider.tsx#L33)
 
 Paper provider creates a paper instance and provides it to its children.
 It extends the paper options from the createPaper function.

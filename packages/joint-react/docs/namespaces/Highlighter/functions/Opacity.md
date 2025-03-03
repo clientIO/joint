@@ -8,7 +8,7 @@
 
 > **Opacity**(`props`): `ReactNode` \| [`Promise`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)\<`ReactNode`\>
 
-Defined in: [packages/joint-react/src/components/highlighters/index.tsx:43](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/components/highlighters/index.tsx#L43)
+Defined in: [packages/joint-react/src/components/highlighters/index.tsx:43](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/components/highlighters/index.tsx#L43)
 
 ## Parameters
 

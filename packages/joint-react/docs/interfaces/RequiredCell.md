@@ -6,7 +6,7 @@
 
 # Interface: RequiredCell
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:3](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/types/cell.types.ts#L3)
+Defined in: [packages/joint-react/src/types/cell.types.ts:3](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L3)
 
 ## Extended by
 
@@ -18,4 +18,4 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:3](https://github.com/
 
 > `readonly` **id**: `ID`
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:4](https://github.com/samuelgja/joint/blob/5100bfa1707e62a58cc3b7833d30969c8c4b52ed/packages/joint-react/src/types/cell.types.ts#L4)
+Defined in: [packages/joint-react/src/types/cell.types.ts:4](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L4)

@@ -5,7 +5,7 @@ import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-s
 import { defaultElementsSelector } from '../utils/cell/to-react-cell';
 
 /**
- * A hook to access the graph store's elements.
+ * A hook to access `dia.graph` elements
  *
  * This hook returns the selected elements from the graph store. It accepts:
  *  - a selector function, which extracts the desired portion from the elements array.
