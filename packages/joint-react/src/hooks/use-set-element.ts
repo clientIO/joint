@@ -3,12 +3,12 @@ import type { dia } from '@joint/core';
 import { isAttribute, isDefined, isDiaId, isSetter, type Setter } from '../utils/is';
 import { useGraphStore } from './use-graph-store';
 
-export interface BaseAttributes {
-  markup?: string | dia.MarkupJSON;
-  position?: dia.Point;
-  size?: dia.Size;
-  angle?: number;
-  data?: Record<string, unknown> | unknown;
+export interface BaseAttributes extends dia.Cell.Attributes {
+  readonly markup?: string | dia.MarkupJSON;
+  readonly position?: dia.Point;
+  readonly size?: dia.Size;
+  readonly angle?: number;
+  readonly data?: Record<string, unknown> | unknown;
 }
 
 /**
@@ -47,14 +47,32 @@ function setCellHelper<Attributes, Attribute extends keyof Attributes>(
  * It returns a function to set the element attribute.
  *
  * It must be used inside the GraphProvider.
- * It can be used in three ways:
- * 1. Provide ID, attribute, and value
- * 2. Provide ID and attribute, and use the returned function to set the value
- * 3. Provide ID, and use the returned function to set attribute and value
- *
  * @group Hooks
- * @param id element ID
- * @param attribute to be picked, it's optional
+ * @param {dia.Cell.ID=} id The ID of the element.
+ * @param {Attribute=} attribute The attribute to set.
+ * @returns {Function} The function to set the element attribute. It can be reactive.
+ *
+ * It can be used in three ways:
+ * @example
+ * 1. Use empty hook and define ID, attribute, and value inside the set function
+ * ```tsx
+ * const setElement = useSetElement();
+ * setElement('element-id', 'position', { x: 100, y: 100 });
+ * ```
+ *
+ * @example
+ * 2. Provide ID and attribute, and use the returned function to set value
+ * ```tsx
+ * const setElement = useSetElement('element-id', 'position');
+ * setElement({ x: 100, y: 100 });
+ * ```
+ *
+ * @example
+ * 3. Provide ID and use the returned function to set attribute and value
+ * ```tsx
+ * const setElement = useSetElement('element-id');
+ * setElement('position', { x: 100, y: 100 });
+ * ```
  */
 export function useSetElement<
   Attributes = BaseAttributes,

@@ -34,7 +34,7 @@ https://docs.jointjs.com/learn/features/shapes/links/#dialink
 
 > **new GraphLinks**(`items`?): [`GraphLinks`](GraphLinks.md)
 
-Defined in: packages/joint-react/src/utils/cell/cell-map.ts:14
+Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
 
 #### Parameters
 
@@ -56,7 +56,7 @@ Defined in: packages/joint-react/src/utils/cell/cell-map.ts:14
 
 > **filter**(`predicate`): [`GraphLink`](../interfaces/GraphLink.md)[]
 
-Defined in: packages/joint-react/src/utils/cell/cell-map.ts:28
+Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L28)
 
 #### Parameters
 
@@ -78,7 +78,7 @@ Defined in: packages/joint-react/src/utils/cell/cell-map.ts:28
 
 > **map**\<`Item`\>(`selector`): `Item`[]
 
-Defined in: packages/joint-react/src/utils/cell/cell-map.ts:24
+Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:24](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L24)
 
 #### Type Parameters
 
@@ -104,7 +104,7 @@ Defined in: packages/joint-react/src/utils/cell/cell-map.ts:24
 
 > **toJSON**(): `string`
 
-Defined in: packages/joint-react/src/utils/cell/cell-map.ts:32
+Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:32](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L32)
 
 #### Returns
 

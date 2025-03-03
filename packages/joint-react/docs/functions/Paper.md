@@ -8,9 +8,10 @@
 
 > **Paper**\<`ElementItem`\>(`props`): `Element`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:236](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper.tsx#L236)
+Defined in: [packages/joint-react/src/components/paper.tsx:257](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper.tsx#L257)
 
-Paper component that renders the JointJS paper element.
+Paper component that renders the JointJS paper elements inside HTML.
+It uses `renderElement` to render the elements.
 It must be used within a `GraphProvider` context.
 
 ## Type Parameters
@@ -34,7 +35,7 @@ It must be used within a `GraphProvider` context.
 
 ## Examples
 
-Example with `global item component`:
+Example with `global renderElement component`:
 ```tsx
 import { createElements, InferElement, GraphProvider, Paper } from '@joint/react'
 
@@ -51,7 +52,7 @@ function MyApp() {
 }
 ```
 
-Example with `local item component`:
+Example with `local renderElement component`:
 ```tsx
  const initialElements = createElements([
    { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },

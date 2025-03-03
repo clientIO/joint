@@ -7,7 +7,6 @@
 ## Components
 
 - [Highlighter](namespaces/Highlighter/README.md)
-- [CustomHighlighter](functions/CustomHighlighter.md)
 - [GraphProvider](functions/GraphProvider.md)
 - [HtmlElement](functions/HtmlElement.md)
 - [Paper](functions/Paper.md)

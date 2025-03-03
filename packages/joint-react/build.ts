@@ -33,7 +33,8 @@ const entryDir = 'src';
 const entry = path.join(entryDir, 'index.ts');
 // eslint-disable-next-line unicorn/prevent-abbreviations
 const outDir = 'dist';
-const external = ['react', 'use-sync-external-store', '@joint/core'];
+const external = ['react', 'react-dom', 'use-sync-external-store', '@joint/core'];
+
 // Ensure output directories
 await fs.mkdir(path.join(outDir, 'cjs'), { recursive: true });
 await fs.mkdir(path.join(outDir, 'esm'), { recursive: true });
@@ -57,6 +58,8 @@ await esbuild.build({
   format: 'cjs',
   outfile: path.join(outDir, 'cjs/index.js'),
   minify: true,
+  treeShaking: true, // Enable tree shaking
+  pure: ['console.log'], // Remove console logs
   preserveSymlinks: true,
   external,
 });
@@ -68,13 +71,14 @@ await esbuild.build({
   format: 'esm',
   outdir: path.join(outDir, 'esm'),
   minify: true,
+  treeShaking: true,
   preserveSymlinks: true,
   // external,
 });
 
 // TypeScript types generation using tsconfig.types.json
 await execAsync(
-  'npx tsc --project tsconfig.types.json --module ESNext --outDir dist/types --emitDeclarationOnly true'
+  'npx tsc --project tsconfig.types.json --declaration --emitDeclarationOnly --outDir dist/types'
 );
 
 // @ts-expect-error

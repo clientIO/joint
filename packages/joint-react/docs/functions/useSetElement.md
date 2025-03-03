@@ -10,16 +10,12 @@
 
 > **useSetElement**\<`Attributes`, `Attribute`\>(`id`, `attribute`): (`value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:59](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L59)
+Defined in: [packages/joint-react/src/hooks/use-set-element.ts:77](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L77)
 
 Use this hook to set element attributes.
 It returns a function to set the element attribute.
 
 It must be used inside the GraphProvider.
-It can be used in three ways:
-1. Provide ID, attribute, and value
-2. Provide ID and attribute, and use the returned function to set the value
-3. Provide ID, and use the returned function to set attribute and value
 
 ### Type Parameters
 
@@ -33,17 +29,21 @@ It can be used in three ways:
 
 `ID`
 
-element ID
+The ID of the element.
 
 #### attribute
 
 `Attribute`
 
-to be picked, it's optional
+The attribute to set.
 
 ### Returns
 
 `Function`
+
+The function to set the element attribute. It can be reactive.
+
+It can be used in three ways:
 
 #### Parameters
 
@@ -55,20 +55,36 @@ to be picked, it's optional
 
 `void`
 
+### Examples
+
+1. Use empty hook and define ID, attribute, and value inside the set function
+```tsx
+const setElement = useSetElement();
+setElement('element-id', 'position', { x: 100, y: 100 });
+```
+
+2. Provide ID and attribute, and use the returned function to set value
+```tsx
+const setElement = useSetElement('element-id', 'position');
+setElement({ x: 100, y: 100 });
+```
+
+3. Provide ID and use the returned function to set attribute and value
+```tsx
+const setElement = useSetElement('element-id');
+setElement('position', { x: 100, y: 100 });
+```
+
 ## Call Signature
 
 > **useSetElement**\<`Attributes`\>(`id`): \<`X`\>(`attribute`, `value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:67](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L67)
+Defined in: [packages/joint-react/src/hooks/use-set-element.ts:85](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L85)
 
 Use this hook to set element attributes.
 It returns a function to set the element attribute.
 
 It must be used inside the GraphProvider.
-It can be used in three ways:
-1. Provide ID, attribute, and value
-2. Provide ID and attribute, and use the returned function to set the value
-3. Provide ID, and use the returned function to set attribute and value
 
 ### Type Parameters
 
@@ -80,11 +96,15 @@ It can be used in three ways:
 
 `ID`
 
-element ID
+The ID of the element.
 
 ### Returns
 
 `Function`
+
+The function to set the element attribute. It can be reactive.
+
+It can be used in three ways:
 
 #### Type Parameters
 
@@ -104,20 +124,36 @@ element ID
 
 `void`
 
+### Examples
+
+1. Use empty hook and define ID, attribute, and value inside the set function
+```tsx
+const setElement = useSetElement();
+setElement('element-id', 'position', { x: 100, y: 100 });
+```
+
+2. Provide ID and attribute, and use the returned function to set value
+```tsx
+const setElement = useSetElement('element-id', 'position');
+setElement({ x: 100, y: 100 });
+```
+
+3. Provide ID and use the returned function to set attribute and value
+```tsx
+const setElement = useSetElement('element-id');
+setElement('position', { x: 100, y: 100 });
+```
+
 ## Call Signature
 
 > **useSetElement**\<`Attributes`\>(): \<`X`\>(`id`, `attribute`, `value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:71](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L71)
+Defined in: [packages/joint-react/src/hooks/use-set-element.ts:89](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L89)
 
 Use this hook to set element attributes.
 It returns a function to set the element attribute.
 
 It must be used inside the GraphProvider.
-It can be used in three ways:
-1. Provide ID, attribute, and value
-2. Provide ID and attribute, and use the returned function to set the value
-3. Provide ID, and use the returned function to set attribute and value
 
 ### Type Parameters
 
@@ -126,6 +162,10 @@ It can be used in three ways:
 ### Returns
 
 `Function`
+
+The function to set the element attribute. It can be reactive.
+
+It can be used in three ways:
 
 #### Type Parameters
 
@@ -148,3 +188,23 @@ It can be used in three ways:
 #### Returns
 
 `void`
+
+### Examples
+
+1. Use empty hook and define ID, attribute, and value inside the set function
+```tsx
+const setElement = useSetElement();
+setElement('element-id', 'position', { x: 100, y: 100 });
+```
+
+2. Provide ID and attribute, and use the returned function to set value
+```tsx
+const setElement = useSetElement('element-id', 'position');
+setElement({ x: 100, y: 100 });
+```
+
+3. Provide ID and use the returned function to set attribute and value
+```tsx
+const setElement = useSetElement('element-id');
+setElement('position', { x: 100, y: 100 });
+```

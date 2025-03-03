@@ -7,7 +7,7 @@ import typedMemo from '../utils/typed-memo';
 import { PaperContext } from '../context/paper-context';
 import { GraphStoreContext } from '../context/graph-store-context';
 import { GraphProvider } from './graph-provider';
-import { CellIdContext } from '../context/cell-context';
+import { CellIdContext } from '../context/cell-id.context';
 import { noopSelector } from '../utils/noop-selector';
 import type { GraphElement, GraphElementBase } from '../data/graph-elements';
 
@@ -24,7 +24,26 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
   /**
    * A function that renders the element. It is called every time the element is rendered.
    * @default (element: ElementItem) => BaseElement
-   */
+    * @example
+ * Example with `global component`:
+ * ```tsx
+ * type BaseElementWithData = InferElement<typeof initialElements>
+ * function RenderElement({ data }: BaseElementWithData) {
+ *  return <HtmlElement className="node">{data.label}</HtmlElement>
+ * }
+ * ```
+ *
+ * @example
+ * Example with `local component`:
+ * ```tsx
+ * 
+  type BaseElementWithData = InferElement<typeof initialElements>
+  const renderElement: RenderElement<BaseElementWithData> = useCallback(
+      (element) => <HtmlElement className="node">{element.data.label}</HtmlElement>,
+      []
+  )
+  * ```
+  */
   readonly renderElement?: RenderElement<ElementItem>;
   /**
    * A function that is called when the paper is ready.
@@ -42,8 +61,9 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
 
   /**
    * A function that selects the elements to be rendered.
-   * It defaults to the `defaultElementSelector` function which return `BaseElement` because dia.Element is not a valid React element (it do not change reference after update).
+   * It defaults to the `GraphElement` elements because `dia.Element` is not a valid React element (it do not change reference after update).
    * @default (item: dia.Cell) => `BaseElement`
+   * @see GraphElement<Data>
    */
   readonly elementSelector?: (item: GraphElement) => ElementItem;
   /**
@@ -127,13 +147,13 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
             return null;
           }
           return (
-            <CellIdContext key={cell.id} value={cell.id}>
+            <CellIdContext.Provider key={cell.id} value={cell.id}>
               <PaperItem
                 {...cell}
                 nodeSvgGElement={portalHtmlElement}
                 renderElement={renderElement}
               />
-            </CellIdContext>
+            </CellIdContext.Provider>
           );
         })}
     </div>
@@ -144,10 +164,10 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   }
 
   return (
-    <PaperContext value={paper}>
+    <PaperContext.Provider value={paper}>
       {content}
       {children}
-    </PaperContext>
+    </PaperContext.Provider>
   );
 }
 
@@ -187,14 +207,15 @@ function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElem
 }
 
 /**
- * Paper component that renders the JointJS paper element.
+ * Paper component that renders the JointJS paper elements inside HTML.
+ * It uses `renderElement` to render the elements.
  * It must be used within a `GraphProvider` context.
  * @see GraphProvider
  * @see PaperProps
  * @group Components
  *
  * @example
- * Example with `global item component`:
+ * Example with `global renderElement component`:
  * ```tsx
  * import { createElements, InferElement, GraphProvider, Paper } from '@joint/react'
  *
@@ -212,7 +233,7 @@ function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElem
  * ```
  *
  * @example
- * Example with `local item component`:
+ * Example with `local renderElement component`:
  * ```tsx
   const initialElements = createElements([
     { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },

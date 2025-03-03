@@ -41,10 +41,11 @@ export interface GraphProps {
 }
 
 /**
- * GraphProvider component creates a graph instance and provides it to its children via context.
- * It also handles updates to the graph when cells change via React state or JointJS events.
- * For using many hooks provided by this library, you need to wrap your app with this provider.
  *
+ * GraphProvider component creates a graph instance and provide `dia.graph` to it's children.
+ * It relies on @see useCreateGraphStore hook to create the graph instance.
+ *
+ * Without this provider, the library will not work.
  * @example
  * Using provider:
  * ```tsx
@@ -76,5 +77,5 @@ export function GraphProvider(props: GraphProps) {
   const { children, ...rest } = props;
   const graphStore = useCreateGraphStore(rest);
 
-  return <GraphStoreContext value={graphStore}>{children}</GraphStoreContext>;
+  return <GraphStoreContext.Provider value={graphStore}>{children}</GraphStoreContext.Provider>;
 }

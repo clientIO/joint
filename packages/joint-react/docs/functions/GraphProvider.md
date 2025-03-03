@@ -8,11 +8,10 @@
 
 > **GraphProvider**(`props`): `Element`
 
-Defined in: [packages/joint-react/src/components/graph-provider.tsx:75](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider.tsx#L75)
+Defined in: [packages/joint-react/src/components/graph-provider.tsx:76](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider.tsx#L76)
 
-GraphProvider component creates a graph instance and provides it to its children via context.
-It also handles updates to the graph when cells change via React state or JointJS events.
-For using many hooks provided by this library, you need to wrap your app with this provider.
+GraphProvider component creates a graph instance and provide `dia.graph` to it's children.
+It relies on
 
 ## Parameters
 
@@ -23,6 +22,12 @@ For using many hooks provided by this library, you need to wrap your app with th
 ## Returns
 
 `Element`
+
+## See
+
+useCreateGraphStore hook to create the graph instance.
+
+Without this provider, the library will not work.
 
 ## Examples
 

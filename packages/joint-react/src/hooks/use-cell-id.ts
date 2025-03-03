@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { use } from 'react';
-import { CellIdContext } from '../context/cell-context';
+import { CellIdContext } from '../context/cell-id.context';
 
 /**
  * Return cell (currently just element) id from the paper (paper item).

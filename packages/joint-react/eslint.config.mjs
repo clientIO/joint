@@ -59,6 +59,7 @@ const config = [
       'no-unneeded-ternary': 'error',
 
       // TypeScript rules
+
       '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
       '@typescript-eslint/no-shadow': 2,
       '@typescript-eslint/no-non-null-assertion': 'off',
@@ -85,6 +86,8 @@ const config = [
       'react/react-in-jsx-scope': 'off',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
+
+      '@eslint-react/no-context-provider': 'off',
 
       // SonarJS
       'sonarjs/new-cap': 'off',
