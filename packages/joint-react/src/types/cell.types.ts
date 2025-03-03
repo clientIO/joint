@@ -8,7 +8,7 @@ export interface Ports {
   readonly groups?: Record<string, dia.Element.PortGroup>;
   readonly items?: dia.Element.Port[];
 }
-export interface BaseElement<T = unknown> extends RequiredCell {
+export interface BaseElement<Element = unknown> extends RequiredCell {
   /**
    * @default 'react'
    */
@@ -18,7 +18,7 @@ export interface BaseElement<T = unknown> extends RequiredCell {
   readonly width?: number;
   readonly height?: number;
   readonly angle?: number;
-  readonly data: T extends undefined ? undefined : T;
+  readonly data: Element extends undefined ? undefined : Element;
   readonly attrs?: dia.Element.Attributes['attrs'];
   readonly ports?: Ports;
 }

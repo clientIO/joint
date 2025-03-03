@@ -8,7 +8,7 @@
 
 > **useGraph**(): `Graph`\<`Attributes`, `ModelSetOptions`\>
 
-Defined in: [packages/joint-react/src/hooks/use-graph.ts:15](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/hooks/use-graph.ts#L15)
+Defined in: [packages/joint-react/src/hooks/use-graph.ts:15](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-graph.ts#L15)
 
 Custom hook to retrieve the graph instance from the graph store.
 

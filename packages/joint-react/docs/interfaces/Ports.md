@@ -6,7 +6,7 @@
 
 # Interface: Ports
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:7](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L7)
+Defined in: [packages/joint-react/src/types/cell.types.ts:7](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/types/cell.types.ts#L7)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:7](https://github.com/
 
 > `readonly` `optional` **groups**: [`Record`](https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type)\<`string`, `PortGroup`\>
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:8](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L8)
+Defined in: [packages/joint-react/src/types/cell.types.ts:8](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/types/cell.types.ts#L8)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:8](https://github.com/
 
 > `readonly` `optional` **items**: `Port`[]
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:9](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/types/cell.types.ts#L9)
+Defined in: [packages/joint-react/src/types/cell.types.ts:9](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/types/cell.types.ts#L9)

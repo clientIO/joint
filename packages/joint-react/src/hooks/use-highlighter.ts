@@ -15,14 +15,18 @@ interface HighlighterBase {
  * @param create - Function to create a highlighter instance.
  * @param update - Function to update the highlighter instance.
  * @param options - Options for creating/updating the highlighter.
+ * @internal
  */
-export function useHighlighter<H extends HighlighterBase, T extends dia.HighlighterView.Options>(
-  create: (options: T) => H | undefined,
-  update: (instance: H, options: T) => void,
-  options: T
+export function useHighlighter<
+  Highlighter extends HighlighterBase,
+  HighlighterOptions extends dia.HighlighterView.Options,
+>(
+  create: (options: HighlighterOptions) => Highlighter | undefined,
+  update: (instance: Highlighter, options: HighlighterOptions) => void,
+  options: HighlighterOptions
 ) {
-  const highlighter = useRef<H | null>(null);
-  const previousOptions = useRef<T | null>(null);
+  const highlighter = useRef<Highlighter | null>(null);
+  const previousOptions = useRef<HighlighterOptions | null>(null);
 
   // This effect is called only on mount and un-mount of the component itself
   useEffect(() => {

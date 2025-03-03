@@ -15,7 +15,7 @@ export interface BaseAttributes {
  * Helper function.
  * Parameters - [graph, id, attribute, value]
  */
-function setCellHelper<T, Attribute extends keyof T>(
+function setCellHelper<Attributes, Attribute extends keyof Attributes>(
   graph: dia.Graph,
   id: dia.Cell.ID,
   attribute: Attribute,
@@ -28,7 +28,7 @@ function setCellHelper<T, Attribute extends keyof T>(
     return;
   }
   if (isSetter(value)) {
-    const previousValue: T[Attribute] = element.get(stringAttribute);
+    const previousValue: Attributes[Attribute] = element.get(stringAttribute);
     const nextValue = value(previousValue);
     if (nextValue === previousValue) {
       // skip if the reference is same, same as react state does
@@ -56,25 +56,28 @@ function setCellHelper<T, Attribute extends keyof T>(
  * @param id element ID
  * @param attribute to be picked, it's optional
  */
-export function useSetElement<T = BaseAttributes, Attribute extends keyof T = keyof T>(
+export function useSetElement<
+  Attributes = BaseAttributes,
+  Attribute extends keyof Attributes = keyof Attributes,
+>(
   id: dia.Cell.ID,
   attribute: Attribute
-): (value: T[Attribute] | Setter<T[Attribute]>) => void;
+): (value: Attributes[Attribute] | Setter<Attributes[Attribute]>) => void;
 
-export function useSetElement<T = BaseAttributes>(
+export function useSetElement<Attributes = BaseAttributes>(
   id: dia.Cell.ID
-): <X extends keyof T>(attribute: X, value: T[X] | Setter<T[X]>) => void;
+): <X extends keyof Attributes>(attribute: X, value: Attributes[X] | Setter<Attributes[X]>) => void;
 
-export function useSetElement<T = BaseAttributes>(): <X extends keyof T>(
+export function useSetElement<Attributes = BaseAttributes>(): <X extends keyof Attributes>(
   id: dia.Cell.ID,
   attribute: X,
-  value: T[X] | Setter<T[X]>
+  value: Attributes[X] | Setter<Attributes[X]>
 ) => void;
 
-export function useSetElement<T = BaseAttributes, Attribute extends keyof T = keyof T>(
-  id?: dia.Cell.ID,
-  attributeParameter?: Attribute
-) {
+export function useSetElement<
+  Attributes = BaseAttributes,
+  Attribute extends keyof Attributes = keyof Attributes,
+>(id?: dia.Cell.ID, attributeParameter?: Attribute) {
   const { graph } = useGraphStore();
   const setElement = useCallback(
     (idOrAttributeOrValue: unknown, attributeOrValue?: unknown, value?: unknown) => {

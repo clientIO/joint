@@ -6,22 +6,22 @@
 
 # Function: Paper()
 
-> **Paper**\<`T`\>(`props`): `Element`
+> **Paper**\<`ElementItem`\>(`props`): `Element`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:227](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/components/paper.tsx#L227)
+Defined in: [packages/joint-react/src/components/paper.tsx:234](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/components/paper.tsx#L234)
 
 Paper component that renders the JointJS paper element.
 It must be used within a `GraphProvider` context.
 
 ## Type Parameters
 
-• **T** *extends* [`RequiredCell`](../interfaces/RequiredCell.md) = [`BaseElement`](../interfaces/BaseElement.md)\<`unknown`\>
+• **ElementItem** *extends* [`RequiredCell`](../interfaces/RequiredCell.md) = [`BaseElement`](../interfaces/BaseElement.md)\<`unknown`\>
 
 ## Parameters
 
 ### props
 
-[`PaperProps`](../interfaces/PaperProps.md)\<`T`\>
+[`PaperProps`](../interfaces/PaperProps.md)\<`ElementItem`\>
 
 ## Returns
 

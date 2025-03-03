@@ -45,12 +45,12 @@ import { defaultElementsSelector } from '../utils/cell/to-react-cell';
  *
  * @param {Function} selector The selector function to pick elements. @default defaultElementsSelector
  * @param {Function=} isEqual The function used to decide equality. @default util.isEqual
- * @returns {R} The selected elements.
+ * @returns {ReturnedElements} The selected elements.
  */
-export function useElements<T = BaseElement, R = T[]>(
-  selector: (items: dia.Element[]) => R = defaultElementsSelector,
-  isEqual: (a: R, b: R) => boolean = util.isEqual
-): R {
+export function useElements<Elements = BaseElement, ReturnedElements = Elements[]>(
+  selector: (items: dia.Element[]) => ReturnedElements = defaultElementsSelector,
+  isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
+): ReturnedElements {
   const { subscribeToElements, graph } = useGraphStore();
   const elements = useSyncExternalStoreWithSelector(
     subscribeToElements,

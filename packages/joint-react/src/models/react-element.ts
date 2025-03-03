@@ -10,8 +10,8 @@ const elementMarkup = util.svg/* xml */ `
  * A custom JointJS element that can render React components.
  * @group Models
  */
-export class ReactElement<T = dia.Element.Attributes> extends dia.Element<
-  dia.Element.Attributes & T
+export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Element<
+  dia.Element.Attributes & Attributes
 > {
   /**
    * Sets the default attributes for the ReactElement.
@@ -30,7 +30,7 @@ export class ReactElement<T = dia.Element.Attributes> extends dia.Element<
           fill: 'transparent',
         },
       },
-    } as unknown as dia.Element.Attributes & T;
+    } as unknown as dia.Element.Attributes & Attributes;
   }
 
   /**
@@ -41,6 +41,8 @@ export class ReactElement<T = dia.Element.Attributes> extends dia.Element<
   }
 }
 
-export function createElement<T = dia.Element.Attributes>(options?: T & dia.Element.Attributes) {
+export function createElement<Attributes = dia.Element.Attributes>(
+  options?: Attributes & dia.Element.Attributes
+) {
   return new ReactElement(options);
 }

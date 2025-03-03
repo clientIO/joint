@@ -20,7 +20,7 @@ export interface PaperPortalProps<Data extends RequiredCell = BaseElement> {
  * It takes a renderElement function, a cell, and a containerElement as props.
  * The renderElement function is called with the cell as an argument and its return value is rendered inside the containerElement.
  * @group Components
- * @private
+ * @internal
  * It's internal component.
  *
  */

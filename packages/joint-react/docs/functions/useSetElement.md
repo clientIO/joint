@@ -8,9 +8,9 @@
 
 ## Call Signature
 
-> **useSetElement**\<`T`, `Attribute`\>(`id`, `attribute`): (`value`) => `void`
+> **useSetElement**\<`Attributes`, `Attribute`\>(`id`, `attribute`): (`value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:59](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/hooks/use-set-element.ts#L59)
+Defined in: [packages/joint-react/src/hooks/use-set-element.ts:59](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-set-element.ts#L59)
 
 Use this hook to set element attributes.
 It returns a function to set the element attribute.
@@ -23,9 +23,9 @@ It can be used in three ways:
 
 ### Type Parameters
 
-• **T** = [`BaseAttributes`](../interfaces/BaseAttributes.md)
+• **Attributes** = [`BaseAttributes`](../interfaces/BaseAttributes.md)
 
-• **Attribute** *extends* `string` \| `number` \| `symbol` = keyof `T`
+• **Attribute** *extends* `string` \| `number` \| `symbol` = keyof `Attributes`
 
 ### Parameters
 
@@ -49,7 +49,7 @@ to be picked, it's optional
 
 ##### value
 
-`T`\[`Attribute`\] | `Setter`\<`T`\[`Attribute`\]\>
+`Attributes`\[`Attribute`\] | `Setter`\<`Attributes`\[`Attribute`\]\>
 
 #### Returns
 
@@ -57,9 +57,9 @@ to be picked, it's optional
 
 ## Call Signature
 
-> **useSetElement**\<`T`\>(`id`): \<`X`\>(`attribute`, `value`) => `void`
+> **useSetElement**\<`Attributes`\>(`id`): \<`X`\>(`attribute`, `value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:64](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/hooks/use-set-element.ts#L64)
+Defined in: [packages/joint-react/src/hooks/use-set-element.ts:67](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-set-element.ts#L67)
 
 Use this hook to set element attributes.
 It returns a function to set the element attribute.
@@ -72,7 +72,7 @@ It can be used in three ways:
 
 ### Type Parameters
 
-• **T** = [`BaseAttributes`](../interfaces/BaseAttributes.md)
+• **Attributes** = [`BaseAttributes`](../interfaces/BaseAttributes.md)
 
 ### Parameters
 
@@ -98,7 +98,7 @@ element ID
 
 ##### value
 
-`T`\[`X`\] | `Setter`\<`T`\[`X`\]\>
+`Attributes`\[`X`\] | `Setter`\<`Attributes`\[`X`\]\>
 
 #### Returns
 
@@ -106,9 +106,9 @@ element ID
 
 ## Call Signature
 
-> **useSetElement**\<`T`\>(): \<`X`\>(`id`, `attribute`, `value`) => `void`
+> **useSetElement**\<`Attributes`\>(): \<`X`\>(`id`, `attribute`, `value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:68](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/hooks/use-set-element.ts#L68)
+Defined in: [packages/joint-react/src/hooks/use-set-element.ts:71](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-set-element.ts#L71)
 
 Use this hook to set element attributes.
 It returns a function to set the element attribute.
@@ -121,7 +121,7 @@ It can be used in three ways:
 
 ### Type Parameters
 
-• **T** = [`BaseAttributes`](../interfaces/BaseAttributes.md)
+• **Attributes** = [`BaseAttributes`](../interfaces/BaseAttributes.md)
 
 ### Returns
 
@@ -143,7 +143,7 @@ It can be used in three ways:
 
 ##### value
 
-`T`\[`X`\] | `Setter`\<`T`\[`X`\]\>
+`Attributes`\[`X`\] | `Setter`\<`Attributes`\[`X`\]\>
 
 #### Returns
 

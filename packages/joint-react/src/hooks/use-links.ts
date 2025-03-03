@@ -26,10 +26,10 @@ import { defaultLinksSelector } from '../utils/cell/to-react-cell';
  *   return <div>{links.length}</div>
  * }
  */
-export function useLinks<T = BaseLink, R = T[]>(
-  selector: (items: dia.Link[]) => R = defaultLinksSelector,
-  isEqual: (a: R, b: R) => boolean = util.isEqual
-): R {
+export function useLinks<Links = BaseLink, ReturnedLinks = Links[]>(
+  selector: (items: dia.Link[]) => ReturnedLinks = defaultLinksSelector,
+  isEqual: (a: ReturnedLinks, b: ReturnedLinks) => boolean = util.isEqual
+): ReturnedLinks {
   const { subscribeToLinks, graph } = useGraphStore();
   const elements = useSyncExternalStoreWithSelector(
     subscribeToLinks,

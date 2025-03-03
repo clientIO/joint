@@ -1,9 +1,9 @@
 import { dia, shapes } from '@joint/core';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
 import type { BaseElement, BaseLink } from '../types/cell.types';
-import { isBaseElement, isBaseLink, isReactElement } from '../types/cell.types';
+import { setCells } from '../utils/cell/set-cells';
 
 interface Options {
   /**
@@ -50,52 +50,6 @@ export interface GraphStore {
 const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
 /**
- * Updating of graph cells inside use graph store - helper function
- */
-function setGraphCells(options: {
-  graph: dia.Graph;
-  defaultLinks?: Array<dia.Link | BaseLink>;
-  defaultElements?: (dia.Element | BaseElement)[];
-}) {
-  const { graph, defaultElements, defaultLinks } = options;
-  if (defaultLinks !== undefined) {
-    graph.addCells(
-      defaultLinks.map((link) => {
-        if (isBaseLink(link)) {
-          return new shapes.standard.Link({
-            ...link,
-            source: { id: link.source },
-            target: { id: link.target },
-          });
-        }
-        return link;
-      })
-    );
-  }
-  if (defaultElements !== undefined) {
-    graph.addCells(
-      defaultElements.map((element) => {
-        if (isBaseElement(element)) {
-          if (isReactElement(element)) {
-            return new ReactElement({
-              position: { x: element.x, y: element.y },
-              size: { width: element.width, height: element.height },
-              ...element,
-            });
-          }
-          return new dia.Cell({
-            type: element.type ?? 'react',
-            position: { x: element.x, y: element.y },
-            size: { width: element.width, height: element.height },
-            ...element,
-          });
-        }
-        return element;
-      })
-    );
-  }
-}
-/**
  * Store for listen to cell changes and updates on the graph elements (nodes) and links (edges).
  * It use `useSyncExternalStore` to avoid memory leaks and cells (state) duplicates.
  *
@@ -115,11 +69,13 @@ export function useCreateGraphStore(options: Options): GraphStore {
   // Store subscribers
   const elementSubscribers = useRef(new Set<() => void>());
   const linkSubscribers = useRef(new Set<() => void>());
+  const graphId = useId();
 
   // initialize graph instance and save it in the store
   const [graph] = useState(() => {
     const newGraph = options.graph ?? new dia.Graph({}, { cellNamespace, cellModel });
-    setGraphCells({
+    newGraph.id = graphId;
+    setCells({
       graph: newGraph,
       defaultElements,
       defaultLinks,

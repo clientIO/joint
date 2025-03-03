@@ -8,7 +8,7 @@
 
 > **GraphProvider**(`props`): `Element`
 
-Defined in: [packages/joint-react/src/components/graph-provider.tsx:75](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/components/graph-provider.tsx#L75)
+Defined in: [packages/joint-react/src/components/graph-provider.tsx:75](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/components/graph-provider.tsx#L75)
 
 GraphProvider component creates a graph instance and provides it to its children via context.
 It also handles updates to the graph when cells change via React state or JointJS events.

@@ -6,9 +6,9 @@
 
 # Function: useLinks()
 
-> **useLinks**\<`T`, `R`\>(`selector`, `isEqual`): `R`
+> **useLinks**\<`Links`, `ReturnedLinks`\>(`selector`, `isEqual`): `ReturnedLinks`
 
-Defined in: [packages/joint-react/src/hooks/use-links.ts:29](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/hooks/use-links.ts#L29)
+Defined in: [packages/joint-react/src/hooks/use-links.ts:29](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/hooks/use-links.ts#L29)
 
 A hook to access the graph store's links. This hook takes a selector function
 as an argument. The selector is called with the store links.
@@ -19,15 +19,15 @@ whether the component needs to be re-rendered.
 
 ## Type Parameters
 
-• **T** = [`BaseLink`](../interfaces/BaseLink.md)
+• **Links** = [`BaseLink`](../interfaces/BaseLink.md)
 
-• **R** = `T`[]
+• **ReturnedLinks** = `Links`[]
 
 ## Parameters
 
 ### selector
 
-(`items`) => `R`
+(`items`) => `ReturnedLinks`
 
 The selector function to select links.
 
@@ -39,7 +39,7 @@ The function that will be used to determine equality.
 
 ## Returns
 
-`R`
+`ReturnedLinks`
 
 ## Default
 

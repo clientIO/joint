@@ -6,19 +6,19 @@
 
 # Function: createElement()
 
-> **createElement**\<`T`\>(`options`?): [`ReactElement`](../classes/ReactElement.md)\<\{\}\>
+> **createElement**\<`Attributes`\>(`options`?): [`ReactElement`](../classes/ReactElement.md)\<\{\}\>
 
-Defined in: [packages/joint-react/src/models/react-element.ts:44](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/models/react-element.ts#L44)
+Defined in: [packages/joint-react/src/models/react-element.ts:44](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/models/react-element.ts#L44)
 
 ## Type Parameters
 
-• **T** = `Attributes`
+• **Attributes** = `Attributes`
 
 ## Parameters
 
 ### options?
 
-`T` & `Attributes`
+`Attributes` & `Attributes`
 
 ## Returns
 

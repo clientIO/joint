@@ -6,27 +6,27 @@
 
 # Function: createLinks()
 
-> **createLinks**\<`T`\>(`data`): `T`[]
+> **createLinks**\<`Item`\>(`data`): `Item`[]
 
-Defined in: [packages/joint-react/src/utils/create.ts:64](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/utils/create.ts#L64)
+Defined in: [packages/joint-react/src/utils/create.ts:64](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/utils/create.ts#L64)
 
 Create links helper function.
 
 ## Type Parameters
 
-• **T** *extends* [`BaseLink`](../interfaces/BaseLink.md) = [`BaseLink`](../interfaces/BaseLink.md)
+• **Item** *extends* [`BaseLink`](../interfaces/BaseLink.md) = [`BaseLink`](../interfaces/BaseLink.md)
 
 ## Parameters
 
 ### data
 
-`T`[]
+`Item`[]
 
 Array of links to create.
 
 ## Returns
 
-`T`[]
+`Item`[]
 
 Array of links. (Edges)
 

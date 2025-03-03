@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import type { BaseElement, BaseLink } from '../../types/cell.types';
 
-export function defaultElementSelector<T>(cell: dia.Cell): T {
+export function defaultElementSelector<Element>(cell: dia.Cell): Element {
   const position: dia.Point = cell.get('position');
 
   const { x, y } = position;
@@ -17,49 +17,49 @@ export function defaultElementSelector<T>(cell: dia.Cell): T {
     height: size?.height,
     width: size?.width,
     ports: cell.get('ports'),
-  } as unknown as T;
+  } as unknown as Element;
 }
 
-export function defaultElementsSelector<T = BaseElement, R = T[]>(cell: dia.Cell[]): R {
+export function defaultElementsSelector<Element = BaseElement, R = Element[]>(cell: dia.Cell[]): R {
   return cell.map(defaultElementSelector) as unknown as R;
 }
 
-export function toBaseElement<T = BaseElement>(
+export function toBaseElement<Element = BaseElement>(
   cells: dia.Cell,
-  selector: (item: dia.Cell) => T = defaultElementSelector
-): T {
+  selector: (item: dia.Cell) => Element = defaultElementSelector
+): Element {
   return selector(cells);
 }
 
-export function toBaseElements<T = BaseElement>(
+export function toBaseElements<Element = BaseElement>(
   cells: dia.Cell[],
-  selector: (item: dia.Cell) => T = defaultElementSelector
-): T[] {
+  selector: (item: dia.Cell) => Element = defaultElementSelector
+): Element[] {
   return cells.map(selector);
 }
 
-export function defaultLinkSelector<T>(cell: dia.Cell): T {
+export function defaultLinkSelector<Link>(cell: dia.Cell): Link {
   return {
     id: cell.id,
     target: cell.get('target'),
     source: cell.get('source'),
-  } as unknown as T;
+  } as unknown as Link;
 }
 
-export function defaultLinksSelector<T = BaseLink, R = T[]>(cell: dia.Cell[]): R {
+export function defaultLinksSelector<Link = BaseLink, R = Link[]>(cell: dia.Cell[]): R {
   return cell.map(defaultLinkSelector) as unknown as R;
 }
 
-export function toBaseLink<T = BaseElement>(
+export function toBaseLink<Link = BaseElement>(
   cells: dia.Cell,
-  selector: (item: dia.Cell) => T = defaultLinkSelector
-): T {
+  selector: (item: dia.Cell) => Link = defaultLinkSelector
+): Link {
   return selector(cells);
 }
 
-export function toBaseLinks<T = BaseLink>(
+export function toBaseLinks<Link = BaseLink>(
   cells: dia.Cell[],
-  selector: (item: dia.Cell) => T = defaultLinkSelector
-): T[] {
+  selector: (item: dia.Cell) => Link = defaultLinkSelector
+): Link[] {
   return cells.map(selector);
 }

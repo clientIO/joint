@@ -4,13 +4,13 @@
 
 [@joint/react](../README.md) / CustomHighlighterProps
 
-# Interface: CustomHighlighterProps\<T\>
+# Interface: CustomHighlighterProps\<Highlighter\>
 
-Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:20](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/components/highlighters/custom.tsx#L20)
+Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:21](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/components/highlighters/custom.tsx#L21)
 
 ## Type Parameters
 
-• **T** *extends* `dia.HighlighterView.Options` = `dia.HighlighterView.Options`
+• **Highlighter** *extends* `dia.HighlighterView.Options` = `dia.HighlighterView.Options`
 
 ## Properties
 
@@ -18,22 +18,22 @@ Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:20](htt
 
 > `readonly` `optional` **children**: `ReactNode`
 
-Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:23](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/components/highlighters/custom.tsx#L23)
+Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:24](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/components/highlighters/custom.tsx#L24)
 
 ***
 
 ### onAdd
 
-> `readonly` **onAdd**: [`OnAddHighlighter`](../type-aliases/OnAddHighlighter.md)\<`T`\>
+> `readonly` **onAdd**: [`OnAddHighlighter`](../type-aliases/OnAddHighlighter.md)\<`Highlighter`\>
 
-Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:24](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/components/highlighters/custom.tsx#L24)
+Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:25](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/components/highlighters/custom.tsx#L25)
 
 ***
 
 ### options
 
-> `readonly` **options**: `T`
+> `readonly` **options**: `Highlighter`
 
-Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:29](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/components/highlighters/custom.tsx#L29)
+Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:30](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/components/highlighters/custom.tsx#L30)
 
 This should be memoized

@@ -5,16 +5,18 @@ import { useCallback } from 'react';
  * It's used currently just internally by the library.
  * @group Hooks
  */
-export function useCombinedRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
+export function useCombinedRefs<AnyT>(
+  ...refs: (React.Ref<AnyT> | undefined)[]
+): React.RefCallback<AnyT> {
   return useCallback(
-    (element: T) => {
+    (element: AnyT) => {
       for (const ref of refs) {
         if (!ref) continue;
         if (typeof ref === 'function') {
           ref(element);
         } else {
           // Assumes ref is a MutableRefObject
-          (ref as React.RefObject<T | null>).current = element;
+          (ref as React.RefObject<AnyT | null>).current = element;
         }
       }
     },

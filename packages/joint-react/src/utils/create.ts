@@ -46,7 +46,7 @@ export function createElements<Data, E extends BaseElement<Data>>(data: E[]): E[
  * type BaseElementWithData = InferElement<typeof elements>;
  * ```
  */
-export type InferElement<T extends BaseElement[]> = Readonly<T[0]>;
+export type InferElement<Item extends BaseElement[]> = Readonly<Item[0]>;
 
 /**
  * Create links helper function.
@@ -61,6 +61,6 @@ export type InferElement<T extends BaseElement[]> = Readonly<T[0]>;
  * ]);
  * ```
  */
-export function createLinks<T extends BaseLink = BaseLink>(data: T[]) {
+export function createLinks<Item extends BaseLink = BaseLink>(data: Item[]) {
   return data;
 }

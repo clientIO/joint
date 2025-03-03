@@ -4,21 +4,21 @@
 
 [@joint/react](../README.md) / RenderElement
 
-# Type Alias: RenderElement()\<T\>
+# Type Alias: RenderElement()\<ElementItem\>
 
-> **RenderElement**\<`T`\>: (`element`) => `ReactNode`
+> **RenderElement**\<`ElementItem`\>: (`element`) => `ReactNode`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:14](https://github.com/samuelgja/joint/blob/a91832ea2262342cf7ec1914cdb61c5629371a80/packages/joint-react/src/components/paper.tsx#L14)
+Defined in: [packages/joint-react/src/components/paper.tsx:14](https://github.com/samuelgja/joint/blob/ba33b9b8c40870ffb787d62832f1ac6786fe7e98/packages/joint-react/src/components/paper.tsx#L14)
 
 ## Type Parameters
 
-• **T** *extends* [`RequiredCell`](../interfaces/RequiredCell.md) = [`BaseElement`](../interfaces/BaseElement.md)
+• **ElementItem** *extends* [`RequiredCell`](../interfaces/RequiredCell.md) = [`BaseElement`](../interfaces/BaseElement.md)
 
 ## Parameters
 
 ### element
 
-`T`
+`ElementItem`
 
 ## Returns
 
