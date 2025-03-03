@@ -4,17 +4,17 @@
 
 [@joint/react](../README.md) / InferElement
 
-# Type Alias: InferElement\<Item\>
+# Type Alias: InferElement\<T\>
 
-> **InferElement**\<`Item`\>: [`Readonly`](https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype)\<`Item`\[`0`\]\>
+> **InferElement**\<`T`\>: `T` *extends* infer U[] ? [`Readonly`](https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype)\<`U`\> : `never`
 
-Defined in: [packages/joint-react/src/utils/create.ts:49](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L49)
+Defined in: [packages/joint-react/src/utils/create.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L35)
 
 Infer element based on typeof createElements
 
 ## Type Parameters
 
-• **Item** *extends* [`BaseElement`](../interfaces/BaseElement.md)[]
+• **T**
 
 ## Example
 

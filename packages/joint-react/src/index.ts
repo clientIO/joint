@@ -11,7 +11,6 @@ export * from './components/highlighters';
 export * from './hooks/use-graph';
 export * from './hooks/use-paper';
 export * from './hooks/use-links';
-// export * from './hooks/use-link';
 export * from './hooks/use-elements';
 export * from './hooks/use-element';
 export * from './hooks/use-set-cells';

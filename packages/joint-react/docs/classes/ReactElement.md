@@ -70,7 +70,7 @@ The default attributes.
 
 > **preinitialize**(): `void`
 
-Defined in: [packages/joint-react/src/models/react-element.ts:39](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.ts#L39)
+Defined in: [packages/joint-react/src/models/react-element.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.ts#L38)
 
 Initializes the markup for the ReactElement.
 

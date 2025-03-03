@@ -21,7 +21,7 @@ https://docs.jointjs.com/api/dia/Paper
 
 ## Type Parameters
 
-• **ElementItem** *extends* [`RequiredCell`](RequiredCell.md) = [`BaseElement`](BaseElement.md)
+• **ElementItem** *extends* `GraphElementBase` = `GraphElementBase`
 
 ## Indexable
 
@@ -66,7 +66,7 @@ It defaults to the `defaultElementSelector` function which return `BaseElement` 
 
 ##### item
 
-`Cell`
+`GraphElement`
 
 #### Returns
 

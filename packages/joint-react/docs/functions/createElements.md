@@ -6,17 +6,15 @@
 
 # Function: createElements()
 
-> **createElements**\<`Data`, `E`\>(`data`): `E`[]
+> **createElements**\<`E`\>(`data`): `E` & `object`[]
 
-Defined in: [packages/joint-react/src/utils/create.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L31)
+Defined in: [packages/joint-react/src/utils/create.ts:16](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L16)
 
 Create elements helper function.
 
 ## Type Parameters
 
-• **Data**
-
-• **E** *extends* [`BaseElement`](../interfaces/BaseElement.md)\<`Data`\>
+• **E** *extends* `GraphElementBase`
 
 ## Parameters
 
@@ -28,7 +26,7 @@ Array of elements to create.
 
 ## Returns
 
-`E`[]
+`E` & `object`[]
 
 Array of elements. (Nodes)
 

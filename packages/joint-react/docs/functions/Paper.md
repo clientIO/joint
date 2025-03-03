@@ -8,14 +8,14 @@
 
 > **Paper**\<`ElementItem`\>(`props`): `Element`
 
-Defined in: [packages/joint-react/src/components/paper.tsx:234](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper.tsx#L234)
+Defined in: [packages/joint-react/src/components/paper.tsx:236](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper.tsx#L236)
 
 Paper component that renders the JointJS paper element.
 It must be used within a `GraphProvider` context.
 
 ## Type Parameters
 
-• **ElementItem** *extends* [`RequiredCell`](../interfaces/RequiredCell.md) = [`BaseElement`](../interfaces/BaseElement.md)\<`unknown`\>
+• **ElementItem** *extends* `GraphElementBase` = `GraphElementBase`
 
 ## Parameters
 

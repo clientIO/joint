@@ -12,7 +12,7 @@ Defined in: [packages/joint-react/src/components/paper.tsx:14](https://github.co
 
 ## Type Parameters
 
-• **ElementItem** *extends* [`RequiredCell`](../interfaces/RequiredCell.md) = [`BaseElement`](../interfaces/BaseElement.md)
+• **ElementItem** *extends* `GraphElementBase` = `GraphElementBase`
 
 ## Parameters
 

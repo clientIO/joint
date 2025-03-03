@@ -5,28 +5,39 @@ import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-s
 import type { GraphElement } from '../data/graph-elements';
 
 /**
- * A hook to access `dia.graph` element inside the Paper context (`renderElement`).
- * It throw error if it's not used inside the `<Paper renderElement />`.
+ * A hook to access a specific graph element from the Paper context.
+ * It must be used inside a PaperProvider.
+ * This hook returns the selected element based on its cell id. It accepts:
+ *  - a selector function, which extracts the desired part from the element.
+ *    (By default, it returns the entire element.)
+ *  - an optional `isEqual` function, used to determine if the selected value has changed.
+ *
+ * How it works:
+ * 1. The hook retrieves the cell id using `useCellId`.
+ * 2. It subscribes to the graph store and fetches the element associated with the cell id.
+ * 3. The selector is applied to the fetched element and `isEqual` ensures proper re-rendering behavior.
+ *
  * @example
- * Using without a selector (returns all elements):
- * ```tsx
+ * // Using without a selector (returns the full element):
  * const element = useElement();
- * ```
- *
- * @group Hooks
- *
- * @param {Function} selector The selector function to pick elements. @default defaultElementSelector
- * @param {Function=} isEqual The function used to decide equality.
- * @returns {ReturnedElements} The selected element.
  *
  * @example
- * Using with a selector (extract part of each element):
- * ```tsx
+ * // Using with a selector (extract a property from the element):
  * const elementId = useElement((element) => element.id);
- * ```
+ *
+ * @example
+ * // Using with a custom isEqual function:
+ * const refinedElement = useElement(
+ *   (element) => element,
+ *   (prev, next) => prev.width === next.width
+ * );
+ *
+ * @param {Function} selector The selector function to pick part of the element. @default defaultElementSelector
+ * @param {Function=} isEqual The function used to check equality. @default util.isEqual
+ * @returns The selected element based on the current cell id.
  */
 export function useElement<Data = unknown, Element = GraphElement, ReturnedElements = Element>(
-  selector: (items: GraphElement<Data>) => ReturnedElements = (item) =>
+  selector: (item: GraphElement<Data>) => ReturnedElements = (item) =>
     item as unknown as ReturnedElements,
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {
