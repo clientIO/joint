@@ -2,7 +2,7 @@
 
 import type { JSX } from 'react';
 import type { StoryObj } from '@storybook/react/*';
-import { HTMLNode } from '../components/html-node/html-node';
+import { HTMLNode } from '../../components/html-node/html-node';
 type AnyFunction = (...args: any[]) => any;
 interface HookTesterProps<T extends AnyFunction> {
   useHook: T;

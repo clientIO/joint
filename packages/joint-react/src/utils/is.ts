@@ -1,4 +1,4 @@
-import { util, type dia } from '@joint/core';
+import { dia, util } from '@joint/core';
 import type { GraphCell } from './cell/get-cell';
 import type { GraphLink } from '../data/graph-links';
 import type { GraphElement } from '../data/graph-elements';
@@ -35,4 +35,12 @@ export function isGraphElement(value: unknown): value is GraphElement {
 
 export function isGraphLink(value: unknown): value is GraphLink {
   return isGraphCell(value) && value.isLink;
+}
+
+export function isLinkInstance(value: unknown): value is dia.Link {
+  return value instanceof dia.Link;
+}
+
+export function isCellInstance(value: unknown): value is dia.Cell {
+  return value instanceof dia.Cell;
 }

@@ -1,20 +1,10 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-
-import type { Meta, StoryObj } from '@storybook/react/*';
+import '../index.css';
 import { useCallback } from 'react';
-import type { InferElement } from '../../utils/create';
-import { createElements, createLinks } from '../../utils/create';
-import './index.css';
-import { HTMLNode } from '../../components/html-node/html-node';
-import { Paper, type RenderElement } from '../../components/paper/paper';
-import { GraphProvider } from '../../components/graph-provider/graph-provider';
-
-export type Story = StoryObj<typeof GraphProvider>;
-const meta: Meta<typeof GraphProvider> = {
-  title: 'Examples/With minimap',
-  component: GraphProvider,
-};
-export default meta;
+import { createElements, createLinks, type InferElement } from '../../../utils/create';
+import { GraphProvider } from '../../../components/graph-provider/graph-provider';
+import { HTMLNode } from '../../../components/html-node/html-node';
+import { Paper, type RenderElement } from '../../../components/paper/paper';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },
@@ -24,9 +14,6 @@ const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RenderElement(props: BaseElementWithData) {
-  return <HTMLNode className="node">{props.data.label}</HTMLNode>;
-}
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
     (element) => <rect width={element.width} height={element.height} fill="gray" radius={10} />,
@@ -56,16 +43,11 @@ function Main() {
     </div>
   );
 }
-export const Basic: Story = {
-  args: {
-    defaultElements: initialElements,
-    defaultLinks: initialEdges,
-  },
-  render: (props) => {
-    return (
-      <GraphProvider {...props}>
-        <Main />
-      </GraphProvider>
-    );
-  },
-};
+
+export default function App() {
+  return (
+    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+      <Main />
+    </GraphProvider>
+  );
+}

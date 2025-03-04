@@ -1,20 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import type { Meta, StoryObj } from '@storybook/react/*';
-import type { InferElement } from '../../utils/create';
-import { createElements, createLinks } from '../../utils/create';
-import './index.css';
+import '../index.css';
 import { useState } from 'react';
-import { Highlighter } from '../../components/highlighters';
-import { GraphProvider } from '../../components/graph-provider/graph-provider';
-import { Paper } from '../../components/paper/paper';
-
-export type Story = StoryObj<typeof GraphProvider>;
-const meta: Meta<typeof GraphProvider> = {
-  title: 'Examples/With highlighter',
-  component: GraphProvider,
-};
-export default meta;
+import { GraphProvider } from '../../../components/graph-provider/graph-provider';
+import { createElements, createLinks, type InferElement } from '../../../utils/create';
+import { Highlighter } from '../../../components/highlighters';
+import { Paper } from '../../../components/paper/paper';
 
 const initialElements = createElements([
   {
@@ -57,16 +48,10 @@ function Main() {
     </div>
   );
 }
-export const Default: Story = {
-  args: {
-    defaultElements: initialElements,
-    defaultLinks: initialEdges,
-  },
-  render: (props) => {
-    return (
-      <GraphProvider {...props}>
-        <Main />
-      </GraphProvider>
-    );
-  },
-};
+export default function App() {
+  return (
+    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+      <Main />
+    </GraphProvider>
+  );
+}

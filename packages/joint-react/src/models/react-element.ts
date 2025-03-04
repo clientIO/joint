@@ -1,5 +1,5 @@
 import { dia, util } from '@joint/core';
-export const REACT_TYPE = 'react';
+export const REACT_TYPE = 'ReactElement';
 const elementMarkup = util.svg/* xml */ `
     <rect @selector="rect">
     </rect>

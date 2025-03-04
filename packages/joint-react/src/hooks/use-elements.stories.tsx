@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import type { Meta } from '@storybook/react/*';
-import { HookTester, type TesterHookStory } from '../stories/hook-tester';
+import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
 import { Paper } from '../components/paper/paper';
 

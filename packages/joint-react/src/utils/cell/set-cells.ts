@@ -1,42 +1,35 @@
-import { dia, shapes } from '@joint/core';
-import { REACT_TYPE, ReactElement } from '../../models/react-element';
-import { isReactElement } from '../../types/cell.types';
+import type { dia } from '@joint/core';
+import { REACT_TYPE } from '../../models/react-element';
 import type { GraphLink } from '../../data/graph-links';
 import type { GraphElementBase } from '../../data/graph-elements';
-import { isGraphLink } from '../is';
+import { isCellInstance, isLinkInstance } from '../is';
 
 // Process a link: convert GraphLink to a standard JointJS link if needed.
-function processLink(link: dia.Link | GraphLink): dia.Link {
-  if (isGraphLink(link)) {
-    return new shapes.standard.Link({
-      ...link,
-      source: { id: link.source },
-      target: { id: link.target },
-    });
+function processLink(link: dia.Link | GraphLink) {
+  if (isLinkInstance(link)) {
+    return link;
   }
-  return link;
+
+  return {
+    ...link,
+    type: link.type ?? 'standard.Link',
+    source: { id: link.source },
+    target: { id: link.target },
+  };
 }
 
 // Process an element: create a ReactElement if applicable, otherwise a standard Cell.
-function processElement(element: dia.Element | GraphElementBase): dia.Cell {
-  if (element instanceof dia.Cell) {
+function processElement(element: dia.Element | GraphElementBase) {
+  if (isCellInstance(element)) {
     return element;
   }
   const { type = REACT_TYPE, x, y, width, height } = element;
-  if (isReactElement(element)) {
-    return new ReactElement({
-      type,
-      position: { x, y },
-      size: { width, height },
-      ...element,
-    });
-  }
-  return new dia.Cell({
+  return {
     type,
     position: { x, y },
     size: { width, height },
     ...element,
-  });
+  };
 }
 
 /**

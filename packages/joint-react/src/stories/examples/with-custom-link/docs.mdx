@@ -1,0 +1,22 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+<Meta of={Stories} />
+
+# Render nodes with custom link
+
+Render element with custom link.
+Custom link defined via [namespace](https://resources.jointjs.com/tutorial/cell-namespace).
+
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+Custom link is defined inside the `cellNamespace` property of the `GraphProvider` component.
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+

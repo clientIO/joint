@@ -8,7 +8,8 @@ import { setCells } from '../utils/cell/set-cells';
 import type { GraphElementBase, GraphElements } from '../data/graph-elements';
 import type { GraphLink, GraphLinks } from '../data/graph-links';
 
-const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
+export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
+
 interface Options {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
@@ -88,7 +89,14 @@ export function useCreateGraphStore(options: Options): GraphStore {
 
   // initialize graph instance and save it in the store
   const [graph] = useState(() => {
-    const newGraph = options.graph ?? new dia.Graph({}, { cellNamespace, cellModel });
+    const newGraph =
+      options.graph ??
+      new dia.Graph(
+        {},
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        { cellNamespace: { ...DEFAULT_CELL_NAMESPACE, ...cellNamespace }, cellModel }
+      );
     newGraph.id = graphId;
     setCells({
       graph: newGraph,

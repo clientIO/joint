@@ -1,0 +1,42 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+import CodeWithColorPicker from './code-with-color?raw';
+
+
+<Meta of={Stories} />
+
+# Example showing updating a node. 
+Updating a elements or nodes can be done via `useSetElement` hook.
+
+### Demo
+Simple example of updating a node with `useSetElement` hook.
+<Canvas of={Stories.Default} />
+
+### Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+### Demo with color picker
+Example of updating a node with `useSetElement` hook and color picker.
+<Canvas of={Stories.WithColorPicker} />
+
+### Code with color picker
+
+<Markdown>
+{`\`\`\`tsx
+${CodeWithColorPicker}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
+
+

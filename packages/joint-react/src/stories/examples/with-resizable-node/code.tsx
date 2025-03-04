@@ -1,21 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import type { PropsWithChildren } from 'react';
+import '../index.css';
 import { useCallback, useRef } from 'react';
-import type { InferElement } from '../../utils/create';
-import { createElements, createLinks } from '../../utils/create';
-import './index.css';
-import { useElements } from '../../hooks/use-elements';
-import type { Meta, StoryObj } from '@storybook/react/*';
-import { GraphProvider } from '../../components/graph-provider/graph-provider';
-import { HTMLNode } from '../../components/html-node/html-node';
-import { Paper, type RenderElement } from '../../components/paper/paper';
-
-export type Story = StoryObj<typeof GraphProvider>;
-const meta: Meta<typeof GraphProvider> = {
-  title: 'Examples/With Resizable node',
-  component: GraphProvider,
-};
-export default meta;
+import type { InferElement } from '../../../utils/create';
+import { createElements, createLinks } from '../../../utils/create';
+import { useElements } from '../../../hooks/use-elements';
+import { GraphProvider } from '../../../components/graph-provider/graph-provider';
+import { HTMLNode } from '../../../components/html-node/html-node';
+import { Paper } from '../../../components/paper/paper';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -26,7 +17,7 @@ const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ResizableNode({ children }: Readonly<PropsWithChildren>) {
+function ResizableNode({ data }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     const node = nodeRef.current;
@@ -53,22 +44,19 @@ function ResizableNode({ children }: Readonly<PropsWithChildren>) {
       className="resizable-node"
       onMouseDown={handleMouseDown} // prevent drag events from propagating
     >
-      {children}
+      {data.label}
     </HTMLNode>
   );
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <ResizableNode>{element.data.label}</ResizableNode>,
-    []
-  );
   const elementsSize = useElements((items) =>
-    items.map((item) => `${item.attributes.size?.width},${item.attributes.size?.height}`)
+    items.map(({ width, height }) => `${width},${height}`)
   );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} renderElement={renderElement} />
+      <Paper width={400} renderElement={ResizableNode} />
       <div
         style={{
           position: 'absolute',
@@ -76,10 +64,11 @@ function Main() {
           right: 0,
         }}
       >
-        Sizes:
+        NodeID,Width, Height:
         {elementsSize.map((position, index) => (
+          // eslint-disable-next-line @eslint-react/no-array-index-key
           <div key={`${index}-${position}`} style={{ marginLeft: 10 }}>
-            Node {index}: {position}
+            {index}, {position}
           </div>
         ))}
       </div>
@@ -87,16 +76,10 @@ function Main() {
   );
 }
 
-export const Basic: Story = {
-  args: {
-    defaultElements: initialElements,
-    defaultLinks: initialEdges,
-  },
-  render: (props) => {
-    return (
-      <GraphProvider {...props}>
-        <Main />
-      </GraphProvider>
-    );
-  },
-};
+export default function App() {
+  return (
+    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+      <Main />
+    </GraphProvider>
+  );
+}
