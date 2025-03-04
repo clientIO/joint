@@ -44,7 +44,7 @@ function RenderItemWithChildren({ data: { label }, height, width }: BaseElementW
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} renderElement={RenderItemWithChildren} />
+      <Paper width={400} height={280} renderElement={RenderItemWithChildren} />
     </div>
   );
 }

@@ -8,7 +8,7 @@
 
 - [Highlighter](namespaces/Highlighter/README.md)
 - [GraphProvider](functions/GraphProvider.md)
-- [HtmlElement](functions/HtmlElement.md)
+- [HTMLNode](functions/HTMLNode.md)
 - [Paper](functions/Paper.md)
 - [PaperProvider](functions/PaperProvider.md)
 
@@ -20,7 +20,7 @@
 - [usePaper](functions/usePaper.md)
 - [useSetCells](functions/useSetCells.md)
 - [useSetElement](functions/useSetElement.md)
-- [useSyncSizeWithElement](functions/useSyncSizeWithElement.md)
+- [useUpdateNodeSize](functions/useUpdateNodeSize.md)
 
 ## Models
 
@@ -54,13 +54,13 @@
 ## Interfaces
 
 - [BaseAttributes](interfaces/BaseAttributes.md)
+- [CellWithId](interfaces/CellWithId.md)
 - [CustomHighlighterProps](interfaces/CustomHighlighterProps.md)
 - [GraphProps](interfaces/GraphProps.md)
 - [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
 - [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
 - [PaperProps](interfaces/PaperProps.md)
 - [PaperProviderProps](interfaces/PaperProviderProps.md)
-- [RequiredCell](interfaces/RequiredCell.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
 
 ## Type Aliases

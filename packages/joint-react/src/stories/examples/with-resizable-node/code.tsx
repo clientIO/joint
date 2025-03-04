@@ -56,7 +56,7 @@ function Main() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} renderElement={ResizableNode} />
+      <Paper width={400} height={280} renderElement={ResizableNode} />
       <div
         style={{
           position: 'absolute',

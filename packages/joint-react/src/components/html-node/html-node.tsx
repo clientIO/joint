@@ -82,6 +82,7 @@ function Component(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTM
  * Element calculate automatically it size based on the content and resize the node. If you do not want to use this feature, just use `width` and `height` properties from data.
  *
  * @group Components
+ * @experimental
  *
  * @example
  * Example with `global item component`:

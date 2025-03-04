@@ -33,7 +33,7 @@ function Main() {
   const elements = useElements<BaseElementWithData>();
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} renderElement={RenderElement} />
+      <Paper width={400} height={280} renderElement={RenderElement} />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {elements.map((item) => {
           return <ElementInput key={item.id} {...item} />;

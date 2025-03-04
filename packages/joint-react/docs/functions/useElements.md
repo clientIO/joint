@@ -27,7 +27,7 @@ How it works:
 
 ## Type Parameters
 
-• **T** = [`GraphElements`](../classes/GraphElements.md)\<`unknown`\>
+• **T** *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md) = [`GraphElement`](../interfaces/GraphElement.md)\<`unknown`\>
 
 • **R** = `T`[]
 
@@ -79,7 +79,7 @@ const elementLength = useElements(
 ## Default
 
 ```ts
-defaultElementsSelector
+(items) => items.map((item) => item)
 ```
 
 ## Default

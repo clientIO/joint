@@ -37,7 +37,12 @@ function Main() {
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper defaultLink={() => new LinkModel()} width={400} renderElement={renderElement} />
+      <Paper
+        defaultLink={() => new LinkModel()}
+        width={400}
+        height={280}
+        renderElement={renderElement}
+      />
     </div>
   );
 }

@@ -24,7 +24,7 @@ function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(() => <RenderedRect />, []);
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} renderElement={renderElement} />
+      <Paper width={400} height={280} renderElement={renderElement} />
       <div
         style={{
           position: 'absolute',

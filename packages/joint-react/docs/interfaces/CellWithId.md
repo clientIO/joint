@@ -2,9 +2,9 @@
 
 ***
 
-[@joint/react](../README.md) / RequiredCell
+[@joint/react](../README.md) / CellWithId
 
-# Interface: RequiredCell
+# Interface: CellWithId
 
 Defined in: [packages/joint-react/src/types/cell.types.ts:4](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/cell.types.ts#L4)
 

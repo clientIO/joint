@@ -6,6 +6,6 @@
 
 # Variable: REACT\_TYPE
 
-> `const` **REACT\_TYPE**: `"react"` = `'react'`
+> `const` **REACT\_TYPE**: `"ReactElement"` = `'ReactElement'`
 
 Defined in: [packages/joint-react/src/models/react-element.ts:2](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.ts#L2)

@@ -38,7 +38,7 @@ function Main() {
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} renderElement={renderElement} />
+      <Paper width={400} height={280} renderElement={renderElement} />
       <MiniMap />
     </div>
   );
