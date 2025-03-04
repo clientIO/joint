@@ -206,7 +206,15 @@ export namespace dia {
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
-        getLayers(): Layer[];
+        addLayer(layer: Layer): void;
+
+        removeLayer(layerName: string): void;
+
+        getActiveLayer(): Layer;
+
+        setActiveLayer(layerName: string): Layer;
+
+        getDefaultLayer(): Layer;
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -1995,6 +2003,9 @@ export namespace dia {
     }
 
     class Layer extends mvc.Model {
+
+        name: string;
+
         add(cell: Cell): void;
 
         remove(cell: Cell): void;

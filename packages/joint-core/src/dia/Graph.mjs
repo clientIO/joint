@@ -78,14 +78,18 @@ export const Graph = Model.extend({
             displayName: 'Default'
         });
 
-        this.set('layers', {
+        this.set('layers', [
+            defaultLayer
+        ]);
+
+        this.layersMap = {
             [defaultLayer.name]: defaultLayer
-        });
+        }
 
         this.useLayersForEmbedding = opt.useLayersForEmbedding || false;
 
         if (this.useLayersForEmbedding) {
-            this.set('embeddingLayers', {});
+            this.embeddingLayers = {};
         }
 
         // Passing `cellModel` function in the options object to graph allows for
@@ -152,7 +156,7 @@ export const Graph = Model.extend({
         }
 
         const layerName = cell.layer() || this.activeLayerName;
-        const layer = this.get('layers')[layerName];
+        const layer = this.layersMap[layerName];
 
         if (!cell.has('z')) {
             cell.set('z', layer.maxZIndex() + 1);
@@ -176,13 +180,12 @@ export const Graph = Model.extend({
             delete this._nodes[cell.id];
         }
 
+        const { layersMap, embeddingLayers, defaultLayerName, activeLayerName } = this;
+
         // should be defined at any time ideally
-        const layerName = cell.layer() || this.defaultLayerName;
+        const layerName = cell.layer() || defaultLayerName;
 
-        const layers = this.get('layers');
-        const embeddingLayers = this.get('embeddingLayers');
-
-        const layer = layers[layerName] || embeddingLayers[layerName];
+        const layer = layersMap[layerName] || embeddingLayers[layerName];
 
         layer.remove(cell);
 
@@ -190,7 +193,7 @@ export const Graph = Model.extend({
             const embeddingLayer = embeddingLayers[cell.id];
             const cells = embeddingLayer.get('cells').models;
             cells.forEach((cell) => {
-                layers[this.activeLayerName].add(cell);
+                layersMap[activeLayerName].add(cell);
             });
 
             this.trigger('embeddingLayer:remove', embeddingLayer, {});
@@ -242,13 +245,12 @@ export const Graph = Model.extend({
 
     _onCellParentChange: function(cell, parentId, opt) {
         if (this.useLayersForEmbedding) {
-            const embeddingLayers = this.get('embeddingLayers');
-            const layers = this.get('layers');
+            const { layersMap, embeddingLayers, defaultLayerName, activeLayerName } = this;
 
-            const currentLayer = cell.layer() || this.defaultLayerName;
+            const currentLayer = cell.layer() || defaultLayerName;
 
-            if (layers[currentLayer]) {
-                layers[currentLayer].remove(cell);
+            if (layersMap[currentLayer]) {
+                layersMap[currentLayer].remove(cell);
             } else if (embeddingLayers[currentLayer]) {
                 embeddingLayers[currentLayer].remove(cell);
             }
@@ -261,7 +263,7 @@ export const Graph = Model.extend({
                 this.trigger('embeddingLayer:insert', embeddingLayers[parentId], {});
             }
 
-            const targetLayer = embeddingLayers[parentId] || layers[this.activeLayerName];
+            const targetLayer = embeddingLayers[parentId] || layersMap[activeLayerName];
 
             targetLayer.add(cell);
         }
@@ -369,23 +371,21 @@ export const Graph = Model.extend({
     },
 
     minZIndex: function(layerName) {
-        layerName = layerName || this.defaultLayerName;
+        const { layersMap, embeddingLayers, defaultLayerName } = this;
 
-        const layers = this.get('layers');
-        const embeddingLayers = this.get('embeddingLayers');
+        layerName = layerName || defaultLayerName;
 
-        const layer = layers[layerName] || embeddingLayers[layerName];
+        const layer = layersMap[layerName] || embeddingLayers[layerName];
 
         return layer.minZIndex();
     },
 
     maxZIndex: function(layerName) {
-        layerName = layerName || this.defaultLayerName;
+        const { layersMap, embeddingLayers, defaultLayerName } = this;
 
-        const layers = this.get('layers');
-        const embeddingLayers = this.get('embeddingLayers');
+        layerName = layerName || defaultLayerName;
 
-        const layer = layers[layerName] || embeddingLayers[layerName];
+        const layer = layersMap[layerName] || embeddingLayers[layerName];
 
         return layer.maxZIndex();
     },
@@ -502,39 +502,48 @@ export const Graph = Model.extend({
         this.stopBatch(batchName);
     },
 
-    getActiveLayer() {
-        return this.get('layers')[this.activeLayerName];
-    },
-
     addLayer(layer, opt) {
-        const layers = this.get('layers');
-        if (layers[layer.name]) {
-            throw new Exception(`dia.Graph: Layer with name '${layer.name}' already exists.`);
+        if (this.layersMap[layer.name]) {
+            throw new Error(`dia.Graph: Layer with name '${layer.name}' already exists.`);
         }
 
-        layers[layer.name] = layer;
+        const layers = this.get('layers');
+
+        layers.push(layer);
+
+        this.layersMap[layer.name] = layer;
+        this.set('layers', layers);
     },
 
     removeLayer(layerName, opt) {
-        const layers = this.get('layers');
-        if (!layers[layerName]) {
-            throw new Exception(`dia.Graph: Layer with name '${layerName}' does not exist.`);
+        if (layerName === this.defaultLayerName || layerName === this.activeLayerName) {
+            throw new Error(`dia.Graph: default or active layer cannot be removed.`);
         }
 
-        delete layers[layerName];
-    },
+        if (!this.layersMap[layerName]) {
+            throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
+        }
 
-    getLayers() {
-        return Object.values(this.get('layers'));
+        const layers = this.get('layers');
+
+        delete this.layersMap[layerName];
+        this.set('layers', layers.filter(l => l.name !== layerName));
     },
 
     setActiveLayer(layerName) {
-        const layers = this.get('layers');
-        if (!layers[layerName]) {
-            throw new Exception(`dia.Graph: Layer with name '${layerName}' does not exist.`);
+        if (!this.layersMap[layerName]) {
+            throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
         }
 
         this.activeLayerName = layerName;
+    },
+
+    getActiveLayer() {
+        return this.layersMap[this.activeLayerName];
+    },
+
+    getDefaultLayer() {
+        return this.layersMap[this.defaultLayerName];
     },
 
     // Get a cell by `id`.

@@ -390,6 +390,10 @@ export const Paper = View.extend({
 
         const graphLayers = model.get('layers');
 
+        this._graphLayers = {
+
+        };
+
         this._layersSettings = [{
             name: LayersNames.GRID,
         }, {
@@ -473,8 +477,7 @@ export const Paper = View.extend({
         this.listenTo(model, 'embeddingLayer:insert', this.onEmbeddingLayerInsert);
         this.listenTo(model, 'embeddingLayer:remove', this.onEmbeddingLayerRemove);
 
-        this.listenTo(model, 'layer:insert', this.onLayerInsert);
-        this.listenTo(model, 'layer:remove', this.onLayerRemove);
+        this.listenTo(model, 'change:layers', this.onLayersChange);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -557,9 +560,9 @@ export const Paper = View.extend({
         layerView.remove();
     },
 
-    onLayerInsert: function(layer, opt) {
-        const layerView = this.createLayer({ name: layer.get('name'), model: layer });
-        this.addLayer(layer.get('name'), layerView, { insertBefore: LayersNames.LABELS });
+    onLayersChange: function(layer, opt) {
+        /*const layerView = this.createLayer({ name: layer.get('name'), model: layer });
+        this.addLayer(layer.get('name'), layerView, { insertBefore: LayersNames.LABELS });*/
     },
 
     onLayerRemove: function(layerName, opt) {
