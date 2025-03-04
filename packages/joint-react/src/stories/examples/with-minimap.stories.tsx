@@ -1,14 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import type { Meta, StoryObj } from '@storybook/react/*';
-import { GraphProvider } from '../../components/graph-provider';
-import type { RenderElement } from '../../components/paper';
-import { Paper } from '../../components/paper';
-import { HtmlElement } from '../../components/html-element';
 import { useCallback } from 'react';
 import type { InferElement } from '../../utils/create';
 import { createElements, createLinks } from '../../utils/create';
 import './index.css';
+import { HTMLNode } from '../../components/html-node/html-node';
+import { Paper, type RenderElement } from '../../components/paper/paper';
+import { GraphProvider } from '../../components/graph-provider/graph-provider';
 
 export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
@@ -26,7 +25,7 @@ const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderElement(props: BaseElementWithData) {
-  return <HtmlElement className="node">{props.data.label}</HtmlElement>;
+  return <HTMLNode className="node">{props.data.label}</HTMLNode>;
 }
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
@@ -47,7 +46,7 @@ function MiniMap() {
 }
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <HtmlElement className="node">{element.data.label}</HtmlElement>,
+    (element) => <HTMLNode className="node">{element.data.label}</HTMLNode>,
     []
   );
   return (

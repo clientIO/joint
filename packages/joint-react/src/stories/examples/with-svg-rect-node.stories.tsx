@@ -1,13 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider } from '../../components/graph-provider';
-import type { RenderElement } from '../../components/paper';
-import { Paper } from '../../components/paper';
 import { useCallback } from 'react';
 import type { InferElement } from '../../utils/create';
 import { createElements, createLinks } from '../../utils/create';
 import './index.css';
 import type { Meta, StoryObj } from '@storybook/react/*';
-import { useSyncSizeWithElement } from '../../hooks/use-sync-size-with-element';
+import { useUpdateNodeSize } from '../../hooks/use-update-node-size';
+import { GraphProvider, Paper, type RenderElement } from '../../../src';
 
 export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
@@ -27,7 +25,7 @@ const initialElements = createElements([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderedRect() {
-  const rectRef = useSyncSizeWithElement<SVGRectElement>();
+  const rectRef = useUpdateNodeSize<SVGRectElement>();
   return <rect ref={rectRef} joint-selector="fo" width={50} height={50} fill="red" />;
 }
 

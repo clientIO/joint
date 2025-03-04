@@ -1,9 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { PaperContext } from '../../context/paper-context';
-import { GraphProvider } from '../graph-provider';
 import { dia } from '@joint/core';
-import { PaperProvider } from '../paper-provider';
+import { PaperProvider } from './paper-provider';
+import { GraphProvider } from '../graph-provider/graph-provider';
 
 describe('paper-provider', () => {
   it('should render children and match snapshot', () => {

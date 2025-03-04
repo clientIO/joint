@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { REACT_TYPE } from '../models/react-element';
 import { isGraphElement } from '../utils/is';
-export interface RequiredCell {
+export interface CellWithId {
   readonly id: dia.Cell.ID;
 }
 

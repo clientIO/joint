@@ -1,13 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import type { Meta, StoryObj } from '@storybook/react/*';
-import { SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
-import { HtmlElement } from './html-element';
+import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
+import { HTMLNode } from './html-node';
 
-export type Story = StoryObj<typeof HtmlElement>;
-const meta: Meta<typeof HtmlElement> = {
-  title: 'Components/HtmlElement',
-  component: HtmlElement,
+export type Story = StoryObj<typeof HTMLNode>;
+const meta: Meta<typeof HTMLNode> = {
+  title: 'Components/HTMLNode',
+  component: HTMLNode,
   decorators: [SimpleRenderItemDecorator],
 };
 

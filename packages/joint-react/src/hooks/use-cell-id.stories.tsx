@@ -2,11 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useCellId } from './use-cell-id'; // Adjust path accordingly
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
-import { HtmlElement } from '../components/html-element';
+import { HTMLNode } from '../components/html-node/html-node';
 
 function Hook(_: SimpleElement) {
   const cellId = useCellId(); // Using the hook inside a component
-  return <HtmlElement>cellId is: {cellId}</HtmlElement>;
+  return <HTMLNode>cellId is: {cellId}</HTMLNode>;
 }
 export type Story = StoryObj<typeof Hook>;
 

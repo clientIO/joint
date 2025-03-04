@@ -1,15 +1,15 @@
 import { type dia } from '@joint/core';
 import { useCallback, use, useState, type CSSProperties, type ReactNode } from 'react';
-import { useCreatePaper } from '../hooks/use-create-paper';
+import type { GraphElement, GraphElementBase } from '../../data/graph-elements';
+import { noopSelector } from '../../utils/noop-selector';
+import { useCreatePaper } from '../../hooks/use-create-paper';
+import { useElements } from '../../hooks/use-elements';
+import { CellIdContext } from '../../context/cell-id.context';
 import { PaperItem } from './paper-item';
-import { useElements } from '../hooks/use-elements';
-import typedMemo from '../utils/typed-memo';
-import { PaperContext } from '../context/paper-context';
-import { GraphStoreContext } from '../context/graph-store-context';
-import { GraphProvider } from './graph-provider';
-import { CellIdContext } from '../context/cell-id.context';
-import { noopSelector } from '../utils/noop-selector';
-import type { GraphElement, GraphElementBase } from '../data/graph-elements';
+import { PaperContext } from '../../context/paper-context';
+import { GraphStoreContext } from '../../context/graph-store-context';
+import { GraphProvider } from '../graph-provider/graph-provider';
+import typedMemo from '../../utils/typed-memo';
 
 export type RenderElement<ElementItem extends GraphElementBase = GraphElementBase> = (
   element: ElementItem

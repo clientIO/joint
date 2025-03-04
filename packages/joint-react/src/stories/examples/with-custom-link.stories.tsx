@@ -1,15 +1,14 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import type { Meta, StoryObj } from '@storybook/react/*';
-import { GraphProvider } from '../../components/graph-provider';
-import type { RenderElement } from '../../components/paper';
-import { Paper } from '../../components/paper';
-import { HtmlElement } from '../../components/html-element';
 import { useCallback } from 'react';
 import type { InferElement } from '../../utils/create';
 import { createElements, createLinks } from '../../utils/create';
 import './index.css';
 import { shapes, util } from '@joint/core';
+import { GraphProvider } from '../../components/graph-provider/graph-provider';
+import { Paper, type RenderElement } from '../../components/paper/paper';
+import { HTMLNode } from '../../components/html-node/html-node';
 
 export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
@@ -45,7 +44,7 @@ class LinkModel extends shapes.standard.Link {
 }
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <HtmlElement className="node">{element.data.label}</HtmlElement>,
+    (element) => <HTMLNode className="node">{element.data.label}</HTMLNode>,
     []
   );
   return (

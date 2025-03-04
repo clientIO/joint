@@ -2,9 +2,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
-import { HtmlElement } from '../components/html-element';
 import { useState } from 'react';
 import { useElementEffect } from './use-element-effect';
+import { HTMLNode } from '../components/html-node/html-node';
 
 function Hook({ id, width, height }: SimpleElement) {
   const [isPressed, setIsPressed] = useState(false);
@@ -23,14 +23,14 @@ function Hook({ id, width, height }: SimpleElement) {
     [isPressed]
   );
   return (
-    <HtmlElement
+    <HTMLNode
       // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
       style={{ width, height }}
       element="button"
       onClick={() => setIsPressed(!isPressed)}
     >
       Border is {isPressed ? 'on' : 'off'}
-    </HtmlElement>
+    </HTMLNode>
   );
 }
 export type Story = StoryObj<typeof Hook>;

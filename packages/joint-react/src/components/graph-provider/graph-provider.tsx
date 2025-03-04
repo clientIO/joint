@@ -1,8 +1,8 @@
-import { GraphStoreContext } from '../context/graph-store-context';
-import { type dia } from '@joint/core';
-import { useCreateGraphStore } from '../hooks/use-create-graph-store';
-import type { GraphLink } from '../data/graph-links';
-import type { GraphElementBase } from '../data/graph-elements';
+import type { dia } from '@joint/core';
+import type { GraphLink } from '../../data/graph-links';
+import type { GraphElementBase } from '../../data/graph-elements';
+import { useCreateGraphStore } from '../../hooks/use-create-graph-store';
+import { GraphStoreContext } from '../../context/graph-store-context';
 
 export interface GraphProps {
   /**

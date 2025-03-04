@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
-import type { PaperOptions } from '../utils/create-paper';
-import { createPaper } from '../utils/create-paper';
-import { PaperContext } from '../context/paper-context';
+import type { PaperOptions } from '../../utils/create-paper';
+import { createPaper } from '../../utils/create-paper';
+import { PaperContext } from '../../context/paper-context';
 import type { dia } from '@joint/core';
-import { useGraphStore } from '../hooks/use-graph-store';
+import { useGraphStore } from '../../hooks/use-graph-store';
 
 export interface PaperProviderProps extends PaperOptions {
   readonly children: ReactNode;

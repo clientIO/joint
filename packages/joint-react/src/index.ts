@@ -1,11 +1,11 @@
 /**
  * Exporting of public API
  */
-export * from './components/graph-provider';
-export * from './components/paper-provider';
+export * from './components/graph-provider/graph-provider';
+export * from './components/paper-provider/paper-provider';
 
-export * from './components/paper';
-export * from './components/html-element';
+export * from './components/paper/paper';
+export * from './components/html-node/html-node';
 export * from './components/highlighters';
 
 export * from './data/graph-elements';
@@ -17,7 +17,7 @@ export * from './hooks/use-links';
 export * from './hooks/use-elements';
 export * from './hooks/use-element';
 export * from './hooks/use-set-cells';
-export * from './hooks/use-sync-size-with-element';
+export * from './hooks/use-update-node-size';
 export * from './hooks/use-set-element';
 export * from './hooks/use-element-effect';
 

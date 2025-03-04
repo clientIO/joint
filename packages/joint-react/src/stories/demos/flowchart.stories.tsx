@@ -1,11 +1,11 @@
 // Flowchart.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react';
-import { GraphProvider } from '../../components/graph-provider';
-import { Paper } from '../../components/paper';
-import { HtmlElement } from '../../components/html-element';
 import type { InferElement } from '../../utils/create';
 import { createElements, createLinks } from '../../utils/create';
 import './flowchart.css';
+import { GraphProvider } from '../../components/graph-provider/graph-provider';
+import { HTMLNode } from '../../components/html-node/html-node';
+import { Paper } from '../../components/paper/paper';
 
 export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
@@ -198,7 +198,7 @@ function RenderFlowchartNode({ data: { label, type } }: FlowchartNode) {
     }
     // No default
   }
-  return <HtmlElement className={`flowchart-node ${className}`}>{label}</HtmlElement>;
+  return <HTMLNode className={`flowchart-node ${className}`}>{label}</HTMLNode>;
 }
 
 function FlowchartMain() {

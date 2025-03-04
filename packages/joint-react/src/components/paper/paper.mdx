@@ -1,0 +1,15 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './paper.stories';
+
+<Meta of={Stories} />
+
+# Paper Component
+
+Paper component that renders the JointJS elements (nodes) inside HTML.
+It uses `renderElement` to render the elements.
+
+For more about native paper component, see [paper](https://docs.jointjs.com/learn/quickstart/paper).
+
+    <Canvas of={Stories.WithRectElement} />
+    <Canvas of={Stories.WithHtmlElement} />
+<Controls/>

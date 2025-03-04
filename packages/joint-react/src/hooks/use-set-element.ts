@@ -51,6 +51,7 @@ function setCellHelper<Attributes, Attribute extends keyof Attributes>(
  * @param {dia.Cell.ID=} id The ID of the element.
  * @param {Attribute=} attribute The attribute to set.
  * @returns {Function} The function to set the element attribute. It can be reactive.
+ * @experimental
  *
  * It can be used in three ways:
  * @example

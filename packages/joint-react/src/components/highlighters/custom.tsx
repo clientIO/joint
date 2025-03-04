@@ -3,7 +3,7 @@ import { forwardRef, useCallback, useId } from 'react';
 import { useCellId } from '../../hooks/use-cell-id';
 import { usePaper } from '../../hooks/use-paper';
 import type { dia } from '@joint/core';
-import { useSvgChildren } from '../../hooks/use-svg-children';
+import { useChildrenRef } from '../../hooks/use-children-ref';
 import { useHighlighter } from '../../hooks/use-highlighter';
 import typedMemo from '../../utils/typed-memo';
 
@@ -37,7 +37,7 @@ function RawComponent<
   const id = useCellId();
   const paper = usePaper();
   const highlighterId = useId();
-  const { elementRef, svgChildren } = useSvgChildren(children, forwardedRef);
+  const { elementRef, svgChildren } = useChildrenRef(children, forwardedRef);
 
   const create = useCallback(
     (hOptions: Highlighter) => {

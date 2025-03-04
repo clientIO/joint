@@ -2,17 +2,17 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
-import { HtmlElement } from '../components/html-element';
 import { useSetElement } from './use-set-element';
+import { HTMLNode } from '../components/html-node/html-node';
 
 function Hook({ data: { label }, id }: SimpleElement) {
   const set = useSetElement(id, 'data');
 
   return (
-    <HtmlElement>
+    <HTMLNode>
       <button onClick={() => set({ label: 'hello' })}>Set new data</button>
       label: {label}
-    </HtmlElement>
+    </HTMLNode>
   );
 }
 export type Story = StoryObj<typeof Hook>;

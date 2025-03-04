@@ -1,38 +1,28 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
-import { HtmlElement } from '../components/html-element';
 import { useElement } from './use-element';
-import { memo } from 'react';
+import { SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
+import type { Meta } from '@storybook/react/*';
+import { HookTester, type TesterHookStory } from '../stories/hook-tester';
 
-function HookWithId() {
-  const cellId = useElement((element) => element.id);
-  return <HtmlElement>cellId is: {cellId}</HtmlElement>;
-}
-const HookWithIdMemo = memo(HookWithId);
-
-function HookWithJson() {
-  const element = useElement((item) => ({
-    x: item.x,
-    y: item.y,
-  }));
-  return <HtmlElement>cellId is: {JSON.stringify(element)}</HtmlElement>;
-}
-
-const HookWithJsonMemo = memo(HookWithJson);
-export type Story = StoryObj<typeof HookWithId>;
-
-const meta: Meta<typeof HookWithId> = {
+const meta: Meta<typeof HookTester> = {
   title: 'Hooks/useElement',
-  component: HookWithId,
+  component: HookTester,
   decorators: [SimpleRenderItemDecorator],
 };
 
 export default meta;
 
+type Story = TesterHookStory<typeof useElement>;
+
 export const WithId: Story = {
-  render: () => <HookWithIdMemo />,
+  args: {
+    useHook: useElement,
+    hookArgs: [(element) => element.id],
+  },
 };
 
-export const WithJson: Story = {
-  render: () => <HookWithJsonMemo />,
+export const WithCoordinates: Story = {
+  args: {
+    useHook: useElement,
+    hookArgs: [(element) => ({ x: element.x, y: element.y })],
+  },
 };

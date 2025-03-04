@@ -2,15 +2,20 @@
 
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { Paper } from './paper';
-import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
-import { SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
-import { HtmlElement } from './html-element';
+import {
+  SimpleGraphDecorator,
+  type SimpleElement,
+} from '../../../.storybook/decorators/with-simple-data';
+import { HTMLNode } from '../html-node/html-node';
 
 export type Story = StoryObj<typeof Paper>;
 const meta: Meta<typeof Paper> = {
   title: 'Components/Paper',
   component: Paper,
   decorators: [SimpleGraphDecorator],
+  parameters: {
+    controls: { hideNoControlsWarning: true },
+  },
 };
 
 export default meta;
@@ -21,7 +26,7 @@ function RenderRectElement({ width, height }: SimpleElement) {
 
 function RenderHtmlElement({ width, height }: SimpleElement) {
   return (
-    <HtmlElement
+    <HTMLNode
       element="div"
       style={{
         width,
@@ -35,7 +40,7 @@ function RenderHtmlElement({ width, height }: SimpleElement) {
       }}
     >
       Hello
-    </HtmlElement>
+    </HTMLNode>
   );
 }
 

@@ -1,8 +1,4 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { GraphProvider } from '../../components/graph-provider';
-import type { RenderElement } from '../../components/paper';
-import { Paper } from '../../components/paper';
-import { HtmlElement } from '../../components/html-element';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useRef } from 'react';
 import type { InferElement } from '../../utils/create';
@@ -10,6 +6,9 @@ import { createElements, createLinks } from '../../utils/create';
 import './index.css';
 import { useElements } from '../../hooks/use-elements';
 import type { Meta, StoryObj } from '@storybook/react/*';
+import { GraphProvider } from '../../components/graph-provider/graph-provider';
+import { HTMLNode } from '../../components/html-node/html-node';
+import { Paper, type RenderElement } from '../../components/paper/paper';
 
 export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
@@ -49,13 +48,13 @@ function ResizableNode({ children }: Readonly<PropsWithChildren>) {
   }, []);
 
   return (
-    <HtmlElement
+    <HTMLNode
       ref={nodeRef}
       className="resizable-node"
       onMouseDown={handleMouseDown} // prevent drag events from propagating
     >
       {children}
-    </HtmlElement>
+    </HTMLNode>
   );
 }
 
@@ -79,7 +78,7 @@ function Main() {
       >
         Sizes:
         {elementsSize.map((position, index) => (
-          <div key={index} style={{ marginLeft: 10 }}>
+          <div key={`${index}-${position}`} style={{ marginLeft: 10 }}>
             Node {index}: {position}
           </div>
         ))}

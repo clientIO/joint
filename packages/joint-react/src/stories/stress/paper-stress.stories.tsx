@@ -8,13 +8,13 @@ import { ReactElement } from '../../models/react-element';
 import { useElements } from '../../hooks/use-elements';
 import { useSetCells } from '../../hooks/use-set-cells';
 import { useGraph } from '../../hooks/use-graph';
-import { GraphProvider } from '../../components/graph-provider';
-import { PaperProvider } from '../../components/paper-provider';
-import type { RenderElement } from '../../components/paper';
-import { Paper } from '../../components/paper';
+import { GraphProvider } from '../../components/graph-provider/graph-provider';
+import { PaperProvider } from '../../components/paper-provider/paper-provider';
+import type { RenderElement } from '../../components/paper/paper';
+import { Paper } from '../../components/paper/paper';
 import { useCallback, useRef } from 'react';
-import { HtmlElement } from '../../components/html-element';
 import type { Meta, StoryObj } from '@storybook/react/*';
+import { HTMLNode } from '../../components/html-node/html-node';
 
 export type Story = StoryObj<typeof Paper>;
 const meta: Meta<typeof Paper> = {
@@ -159,7 +159,7 @@ export const WithReactElements: Story = {
 
     const renderElement: RenderElement = useCallback((element) => {
       return (
-        <HtmlElement
+        <HTMLNode
           style={{
             fontSize: 12,
             background: 'blue',
@@ -170,7 +170,7 @@ export const WithReactElements: Story = {
           onClick={() => console.log('Click from React')}
         >
           {JSON.stringify(element.x)}
-        </HtmlElement>
+        </HTMLNode>
       );
     }, []);
     return (

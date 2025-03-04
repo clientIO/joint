@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react';
 import { forwardRef, useMemo, useRef } from 'react';
-import { useCombinedRefs } from '../hooks/use-combined-refs';
-import { useSyncSizeWithElement } from '../hooks/use-sync-size-with-element';
+import { useUpdateNodeSize } from '../../hooks/use-update-node-size';
 const FO_STYLE: CSSProperties = {
   overflow: 'visible',
   position: 'relative',
@@ -59,13 +58,11 @@ const ElementForward = forwardRef(Element);
  */
 function WithAutoSize(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
   const foreignRef = useRef<SVGForeignObjectElement>(null);
-  const divElement = useSyncSizeWithElement<HTMLDivElement>();
-  const combinedRef = useCombinedRefs(divElement, forwardedRef);
+  const divElement = useUpdateNodeSize(forwardedRef);
   const style = useMemo(() => ({ display: 'inline-block', ...props.style }), [props.style]);
-
   return (
     <foreignObject ref={foreignRef} style={FO_STYLE}>
-      <ElementForward {...props} style={style} ref={combinedRef} />
+      <ElementForward {...props} style={style} ref={divElement} />
     </foreignObject>
   );
 }
@@ -98,4 +95,4 @@ function Component(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTM
  *  return <HtmlElement className="node">{data.label}</HtmlElement>
  * }
  */
-export const HtmlElement = forwardRef(Component);
+export const HTMLNode = forwardRef(Component);

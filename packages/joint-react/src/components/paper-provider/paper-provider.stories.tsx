@@ -1,11 +1,11 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import type { Meta, StoryObj } from '@storybook/react/*';
-import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
-import { SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
-import { HtmlElement } from './html-element';
+import type { SimpleElement } from '../../../.storybook/decorators/with-simple-data';
+import { SimpleGraphDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { PaperProvider } from './paper-provider';
-import { Paper } from './paper';
+import { Paper } from '../paper/paper';
+import { HTMLNode } from '../html-node/html-node';
 
 export type Story = StoryObj<typeof Paper>;
 const meta: Meta<typeof Paper> = {
@@ -27,7 +27,7 @@ function RenderRectElement({ width, height }: SimpleElement) {
 
 function RenderHtmlElement({ width, height }: SimpleElement) {
   return (
-    <HtmlElement
+    <HTMLNode
       element="div"
       style={{
         width,
@@ -41,7 +41,7 @@ function RenderHtmlElement({ width, height }: SimpleElement) {
       }}
     >
       Hello
-    </HtmlElement>
+    </HTMLNode>
   );
 }
 
