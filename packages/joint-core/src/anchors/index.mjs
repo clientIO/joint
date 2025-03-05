@@ -1,28 +1,58 @@
 import * as util from '../util/index.mjs';
-import { toRad } from '../g/index.mjs';
+import { toRad, Rect } from '../g/index.mjs';
 import { resolveRef } from '../linkAnchors/index.mjs';
+
+
+function getModelBBox(element, link, endType, rotate) {
+
+    let bbox;
+    const center = element.getPointFromConnectedLink(link, endType);
+
+    const portId = link.get(endType).port;
+    // TODO: we can not use `getPort()` API here, because we need
+    // to get the port object with the size information
+    // (the `size` can be stored on the port or on the group)
+    const port = element._portSettingsData.getPorts().find(p => p.id === portId);
+    if (port) {
+        bbox = new Rect(port.size);
+        bbox.x = center.x - bbox.width / 2;
+        bbox.y = center.y - bbox.height / 2;
+    } else {
+        bbox = element.getBBox();
+    }
+
+    if (!rotate) {
+        bbox.rotateAroundCenter(-element.angle());
+    }
+
+    return bbox;
+}
 
 function bboxWrapper(method) {
 
-    return function(view, magnet, ref, opt) {
-        // use model geometry only if the view is the same as the magnet
-        // allows magnetSelector and ports to work as expected
-        if (view.el !== magnet) {
-            opt.useModelGeometry = false;
-        }
+    return function(elementView, magnet, ref, opt, endType, linkView) {
 
         const rotate = !!opt.rotate;
-        let bbox;
-        if (opt.useModelGeometry) {
-            bbox = view.model.getBBox();
-        } else {
-            bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
-        }
-        var anchor = bbox[method]();
+        const element = elementView.model;
+        const link = linkView.model;
+        const angle = element.angle();
 
-        var dx = opt.dx;
+        let bbox, center
+        if (opt.useModelGeometry) {
+
+            bbox = getModelBBox(element, link, endType, rotate);
+            center = bbox.center();
+
+        } else {
+            center = element.getBBox().center();
+            bbox = (rotate) ? elementView.getNodeUnrotatedBBox(magnet) : elementView.getNodeBBox(magnet);
+        }
+
+        const anchor = bbox[method]();
+
+        let dx = opt.dx;
         if (dx) {
-            var dxPercentage = util.isPercentage(dx);
+            const dxPercentage = util.isPercentage(dx);
             dx = parseFloat(dx);
             if (isFinite(dx)) {
                 if (dxPercentage) {
@@ -33,9 +63,9 @@ function bboxWrapper(method) {
             }
         }
 
-        var dy = opt.dy;
+        let dy = opt.dy;
         if (dy) {
-            var dyPercentage = util.isPercentage(dy);
+            const dyPercentage = util.isPercentage(dy);
             dy = parseFloat(dy);
             if (isFinite(dy)) {
                 if (dyPercentage) {
@@ -46,24 +76,27 @@ function bboxWrapper(method) {
             }
         }
 
-        return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
+        return (rotate) ? anchor.rotate(center, -angle) : anchor;
     };
 }
 
-function _perpendicular(view, magnet, refPoint, opt) {
-    // use model geometry only if the view is the same as the magnet
-    // allows magnetSelector and ports to work as expected
-    if (view.el !== magnet) {
-        opt.useModelGeometry = false;
+function _perpendicular(elementView, magnet, refPoint, opt, endType, linkView) {
+
+    const element = elementView.model;
+    const angle = element.angle();
+
+    let bbox;
+    if (opt.useModelGeometry) {
+        bbox = getModelBBox(element, linkView.model, endType, false);
+    } else {
+        bbox = elementView.getNodeBBox(magnet);
     }
 
-    var angle = view.model.angle();
-    var bbox = opt.useModelGeometry ? view.model.getBBox().rotateAroundCenter(angle) : view.getNodeBBox(magnet);
-    var anchor = bbox.center();
-    var topLeft = bbox.origin();
-    var bottomRight = bbox.corner();
+    const anchor = bbox.center();
+    const topLeft = bbox.origin();
+    const bottomRight = bbox.corner();
 
-    var padding = opt.padding;
+    let padding = opt.padding;
     if (!isFinite(padding)) padding = 0;
 
     if ((topLeft.y + padding) <= refPoint.y && refPoint.y <= (bottomRight.y - padding)) {
@@ -79,21 +112,17 @@ function _perpendicular(view, magnet, refPoint, opt) {
     return anchor;
 }
 
-function _midSide(view, magnet, refPoint, opt) {
-    // use model geometry only if the view is the same as the magnet
-    // allows magnetSelector and ports to work as expected
-    if (view.el !== magnet) {
-        opt.useModelGeometry = false;
-    }
-
+function _midSide(view, magnet, refPoint, opt, endType, linkView) {
     var rotate = !!opt.rotate;
-    var bbox, angle, center;
-    if (rotate) {
-        bbox = opt.useModelGeometry ? view.model.getBBox() : view.getNodeUnrotatedBBox(magnet);
-        center = view.model.getBBox().center();
-        angle = view.model.angle();
+    var angle = view.model.angle();
+    var center = view.model.getBBox().center();
+
+    var bbox;
+    if (opt.useModelGeometry) {
+        bbox = getModelBBox(view.model, linkView.model, endType, rotate);
+        center = bbox.center();
     } else {
-        bbox = opt.useModelGeometry ? view.model.getBBox() : view.getNodeBBox(magnet);
+        bbox =  rotate ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
     }
 
     var padding = opt.padding;

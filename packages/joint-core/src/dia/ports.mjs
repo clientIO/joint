@@ -274,10 +274,8 @@ export const elementPortPrototype = {
      * @returns {object}
      */
     getPort: function(id) {
-
-        return util.cloneDeep(util.toArray(this.prop('ports/items')).find(function(port) {
-            return port.id && port.id === id;
-        }));
+        const port = util.toArray(this.prop('ports/items')).find(port => port.id && port.id === id);
+        return util.cloneDeep(port);
     },
 
     getPortGroupNames: function() {
