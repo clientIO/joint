@@ -8,6 +8,7 @@ import CodeHTML from './code-html?raw';
 # Basic example
 
 ### How it works
+
 1. **Define default elements (nodes) and default links (edges)**
    - You can define elements and links using helper functions like `createElements` and `createLinks`. Alternatively, you can define them manually as `Array<GraphElement | dia.Element>` or `Array<GraphLink | dia.Link>`.
    - Example:
@@ -43,19 +44,8 @@ import CodeHTML from './code-html?raw';
 4. **Create a `RenderElement` function and render an SVG rect component**
    - The `RenderElement` function defines how each node should be rendered. In this example, we render a rectangle (`rect`) SVG component.
 
-
-
-### Demo with SVG node
-<Canvas of={Stories.SVG} />
-
-### Code
-<Markdown>
-{`\`\`\`tsx
-${CodeSVG}
-\`\`\``}
-</Markdown>
-
 ### Using HTML elements inside SVG
+
 - By default, this library works with SVG elements. If you want to use HTML elements, you need to use the `foreignObject` element.
 - The `foreignObject` element allows for the inclusion of HTML within an SVG. Note that `foreignObject` has a default `overflow` property set to `hidden`, so you might need to adjust it.
 - Reference: [MDN foreignObject](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject)
@@ -69,6 +59,16 @@ ${CodeSVG}
     );
   }
   ```
+
+### Demo with SVG node
+<Canvas of={Stories.SVG} />
+
+### Code
+<Markdown>
+{`\`\`\`tsx
+${CodeSVG}
+\`\`\``}
+</Markdown>
 
 ### Demo with HTML node
 <Canvas of={Stories.HTML} />

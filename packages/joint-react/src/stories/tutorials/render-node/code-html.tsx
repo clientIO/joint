@@ -2,7 +2,7 @@
 import { Paper } from '../../../components/paper/paper';
 import { createElements, createLinks, type InferElement } from '../../../utils/create';
 import { GraphProvider, type GraphProps } from '../../../components/graph-provider/graph-provider';
-import '../index.css';
+import '../../examples/index.css';
 // define initial elements
 const initialElements = createElements([
   { id: '1', data: { label: 'hello' }, x: 100, y: 0, width: 100, height: 25 },
