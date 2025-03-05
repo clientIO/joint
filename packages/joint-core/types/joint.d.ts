@@ -574,6 +574,7 @@ export namespace dia {
             position?: PositionType;
             markup?: string | MarkupJSON;
             attrs?: Cell.Selectors;
+            size?: Size;
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
@@ -586,6 +587,7 @@ export namespace dia {
             group?: string;
             attrs?: Cell.Selectors;
             args?: { [key: string]: any };
+            size?: Size;
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
