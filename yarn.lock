@@ -2103,6 +2103,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-bezier-js@workspace:examples/bezier-js":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-bezier-js@workspace:examples/bezier-js"
+  dependencies:
+    "@joint/core": "workspace:^"
+    bezier-js: ^6.1.4
+    css-loader: 3.5.3
+    style-loader: 1.2.1
+    webpack: ^5.61.0
+    webpack-cli: ^4.8.0
+    webpack-dev-server: ^4.2.1
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-decorators@workspace:examples/decorators":
   version: 0.0.0-use.local
   resolution: "@joint/demo-decorators@workspace:examples/decorators"
@@ -4943,6 +4957,13 @@ __metadata:
   dependencies:
     tweetnacl: ^0.14.3
   checksum: 4edfc9fe7d07019609ccf797a2af28351736e9d012c8402a07120c4453a3b789a15f2ee1530dc49eee8f7eb9379331a8dd4b3766042b9e502f74a68e7f662291
+  languageName: node
+  linkType: hard
+
+"bezier-js@npm:^6.1.4":
+  version: 6.1.4
+  resolution: "bezier-js@npm:6.1.4"
+  checksum: bd0d38cb33709db1f8f9f232ebf967b8ed68e3970bc2965165fcab5fc4554c02720234328e336eda140a28e4fe64dedf968e8f8172e483e55a5175e49b00c72b
   languageName: node
   linkType: hard
 
