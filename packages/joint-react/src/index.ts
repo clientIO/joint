@@ -7,6 +7,7 @@ export * from './components/paper-provider/paper-provider';
 export * from './components/paper/paper';
 export * from './components/html-node/html-node';
 export * from './components/highlighters';
+export * from './components/measured-node/measured-node';
 
 export * from './data/graph-elements';
 export * from './data/graph-links';

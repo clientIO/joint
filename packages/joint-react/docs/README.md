@@ -38,6 +38,7 @@
 
 - [createElement](functions/createElement.md)
 - [isReactElement](functions/isReactElement.md)
+- [MeasuredNode](functions/MeasuredNode.md)
 - [useElement](functions/useElement.md)
 - [useLinks](functions/useLinks.md)
 
@@ -58,9 +59,11 @@
 - [CustomHighlighterProps](interfaces/CustomHighlighterProps.md)
 - [GraphProps](interfaces/GraphProps.md)
 - [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
+- [MeasuredNodeProps](interfaces/MeasuredNodeProps.md)
 - [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
 - [PaperProps](interfaces/PaperProps.md)
 - [PaperProviderProps](interfaces/PaperProviderProps.md)
+- [SizeObserverOptions](interfaces/SizeObserverOptions.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
 
 ## Type Aliases

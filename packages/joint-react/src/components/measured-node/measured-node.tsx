@@ -28,7 +28,7 @@ export interface MeasuredNodeProps {
    */
   readonly heightPadding: number;
 }
-export function Component(props: MeasuredNodeProps) {
+function Component(props: MeasuredNodeProps) {
   const { children, onSizeChange, widthPadding = 0, heightPadding = 0 } = props;
   const { elementRef, elementChildren } = useChildrenRef(children);
 

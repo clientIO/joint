@@ -32,9 +32,9 @@ It's a subset of `dia.Element` with some additional properties.
 
 ## Properties
 
-### data
+### data?
 
-> `readonly` **data**: `unknown`
+> `readonly` `optional` **data**: `unknown`
 
 Defined in: [packages/joint-react/src/data/graph-elements.ts:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-elements.ts#L28)
 

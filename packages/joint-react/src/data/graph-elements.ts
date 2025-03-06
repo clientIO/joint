@@ -25,7 +25,7 @@ export interface GraphElementBase extends Attributes {
   /**
    * Generic data for the element.
    */
-  readonly data: unknown;
+  readonly data?: unknown;
   /**
    * X position of the element.
    */
