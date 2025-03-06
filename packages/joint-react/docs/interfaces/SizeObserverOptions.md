@@ -28,15 +28,15 @@ The padding to add to the height of the element.
 
 ### onChange()?
 
-> `readonly` `optional` **onChange**: (`position`) => `void`
+> `readonly` `optional` **onChange**: (`size`) => `void`
 
 Defined in: [packages/joint-react/src/hooks/use-update-node-size.ts:21](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-update-node-size.ts#L21)
 
 #### Parameters
 
-##### position
+##### size
 
-`PositionObserver`
+`SizeObserver`
 
 #### Returns
 

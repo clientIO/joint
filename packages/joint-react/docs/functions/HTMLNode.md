@@ -8,7 +8,7 @@
 
 > **HTMLNode**(`props`): `ReactNode`
 
-Defined in: [packages/joint-react/src/components/html-node/html-node.tsx:99](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L99)
+Defined in: [packages/joint-react/src/components/html-node/html-node.tsx:100](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L100)
 
 **`Experimental`**
 
@@ -46,3 +46,4 @@ type BaseElementWithData = InferElement<typeof initialElements>
 function RenderElement({ data }: BaseElementWithData) {
  return <HtmlElement className="node">{data.label}</HtmlElement>
 }
+```

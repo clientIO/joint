@@ -4,9 +4,10 @@ import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
 import { useStore } from './use-store';
 import { GraphStoreData } from '../data/graph-store-data';
-import { setCells } from '../utils/cell/set-cells';
+import { processLink, setCells } from '../utils/cell/set-cells';
 import type { GraphElementBase, GraphElements } from '../data/graph-elements';
 import type { GraphLink, GraphLinks } from '../data/graph-links';
+import { getLinkTargetAndSourceIds } from 'src/utils/cell/get-link-targe-and-source-ids';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
@@ -86,6 +87,9 @@ export function useCreateGraphStore(options: Options): GraphStore {
   } = options;
 
   const graphId = useId();
+  // Track of element ids with not defined width and height
+  // Its used to render links later, when they are defined.
+  const unsizedLinks = useRef<Map<dia.Cell.ID, dia.Link | GraphLink>>(new Map());
 
   // initialize graph instance and save it in the store
   const [graph] = useState(() => {
@@ -98,7 +102,7 @@ export function useCreateGraphStore(options: Options): GraphStore {
         { cellNamespace: { ...DEFAULT_CELL_NAMESPACE, ...cellNamespace }, cellModel }
       );
     newGraph.id = graphId;
-    setCells({
+    unsizedLinks.current = setCells({
       graph: newGraph,
       defaultElements,
       defaultLinks,
@@ -107,32 +111,59 @@ export function useCreateGraphStore(options: Options): GraphStore {
   });
 
   const data = useRef(new GraphStoreData(graph));
+
+  const hasSize = useCallback(
+    (id?: dia.Cell.ID) => {
+      if (!id) {
+        return false;
+      }
+      const sourceElement = graph.getCell(id) as dia.Element;
+      const { width, height } = sourceElement.size();
+      return !!(width > 1 && height > 1);
+    },
+    [graph]
+  );
   const update = useCallback(() => {
     data.current.update(graph);
-  }, [graph]);
+
+    if (unsizedLinks.current.size === 0) {
+      return;
+    }
+
+    for (const [id, link] of unsizedLinks.current) {
+      const { source, target } = getLinkTargetAndSourceIds(link);
+      if (!hasSize(source)) {
+        continue;
+      }
+      if (hasSize(target)) {
+        graph.addCell(processLink(link));
+        unsizedLinks.current.delete(id);
+      }
+    }
+  }, [graph, hasSize]);
 
   const store = useStore(update);
 
-  const handleCellsChange = useCallback(() => {
+  const onCellChange = useCallback(() => {
     if (graph.hasActiveBatch()) {
       return;
     }
     return store.notifySubscribers();
   }, [store, graph]);
 
-  const handleOnBatchStop = useCallback(() => {
+  const onBatchStop = useCallback(() => {
     store.notifySubscribers();
   }, [store]);
 
   // On-load effect
   useEffect(() => {
-    const unsubscribe = listenToCellChange(graph, handleCellsChange);
-    graph.on('batch:stop', handleOnBatchStop);
+    const unsubscribe = listenToCellChange(graph, onCellChange);
+    graph.on('batch:stop', onBatchStop);
     return () => {
       unsubscribe();
-      graph.off('batch:stop', handleOnBatchStop);
+      graph.off('batch:stop', onBatchStop);
     };
-  }, [graph, handleCellsChange, handleOnBatchStop]);
+  }, [graph, onCellChange, onBatchStop]);
 
   return useMemo(
     (): GraphStore => ({

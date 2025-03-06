@@ -4,6 +4,7 @@ import { useCallback } from 'react';
  * Merges multiple refs into a single callback ref.
  * It's used currently just internally by the library.
  * @group Hooks
+ * @internal
  */
 export function useCombinedRefs<AnyT>(
   ...refs: Array<React.Ref<AnyT> | undefined>

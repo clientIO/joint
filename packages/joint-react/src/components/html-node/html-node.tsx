@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
-import { forwardRef, useMemo, useRef } from 'react';
-import { useUpdateNodeSize } from '../../hooks/use-update-node-size';
+import { forwardRef, useMemo } from 'react';
+import { useElement } from 'src/hooks/use-element';
+import { MeasuredNode } from '../measured-node/measured-node';
 const FO_STYLE: CSSProperties = {
   overflow: 'visible',
   position: 'relative',
@@ -57,12 +58,14 @@ const ElementForward = forwardRef(Element);
  * Component that automatically resizes the parent node element based on the size of the div.
  */
 function WithAutoSize(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
-  const foreignRef = useRef<SVGForeignObjectElement>(null);
-  const divElement = useUpdateNodeSize(forwardedRef);
   const style = useMemo(() => ({ display: 'inline-block', ...props.style }), [props.style]);
+  const { width, height } = useElement();
+
   return (
-    <foreignObject ref={foreignRef} style={FO_STYLE}>
-      <ElementForward {...props} style={style} ref={divElement} />
+    <foreignObject width={width} height={height} style={FO_STYLE}>
+      <MeasuredNode ref={forwardedRef}>
+        <ElementForward {...props} style={style} />
+      </MeasuredNode>
     </foreignObject>
   );
 }
@@ -95,5 +98,6 @@ function Component(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTM
  * function RenderElement({ data }: BaseElementWithData) {
  *  return <HtmlElement className="node">{data.label}</HtmlElement>
  * }
+ * ```
  */
 export const HTMLNode = forwardRef(Component);

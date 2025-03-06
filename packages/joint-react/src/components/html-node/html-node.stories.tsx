@@ -17,6 +17,13 @@ export const DivWithAutoSize: Story = {
   args: {
     style: { width: 100, height: 50, backgroundColor: 'blue' },
   },
+  parameters: {
+    docs: {
+      description: {
+        story: 'This story has no padding applied to the div element.',
+      },
+    },
+  },
 };
 
 export const DivWithAutoSizeAndPadding: Story = {
@@ -36,10 +43,11 @@ export const DivWithSizedChildren: Story = {
   args: {
     children: <div style={{ width: 50, height: 25, backgroundColor: 'blue' }} />,
   },
-};
-
-export const WithInvalidChildren: Story = {
-  args: {
-    children: <>Hello</>,
+  parameters: {
+    docs: {
+      description: {
+        story: 'This story has a child div element with a specific size.',
+      },
+    },
   },
 };

@@ -1,75 +1,26 @@
-import { memo, useLayoutEffect } from 'react';
+import { forwardRef, memo } from 'react';
 import { useChildrenRef } from '../../hooks/use-children-ref';
-import {
-  createElementSizeObserver,
-  type SizeObserver,
-} from '../../utils/create-element-size-observer';
-import { useGraph } from 'src/hooks/use-graph';
-import { useCellId } from 'src/hooks/use-cell-id';
-import type { dia } from '@joint/core';
+import { useMeasureNodeSize, type MeasureNodeOptions } from 'src/hooks/use-measure-node-size';
 
-export interface MeasuredNodeProps {
+export interface MeasuredNodeProps extends MeasureNodeOptions {
   /**
    * The child element to measure.
    * It can be only HTML or SVG element.
    */
   readonly children: React.ReactNode | null;
-  /**
-   * Overwrite default node set function with custom handling.
-   * Useful for adding another padding, or just check element size.
-   * @default it set element via `cell.set('size', {width, height})`
-   */
-  readonly onSetSize?: (element: dia.Cell, size: SizeObserver) => void;
-  /**
-   * The padding to add to the width of the element.
-   * @default 0
-   */
-  readonly widthPadding: number;
-  /**
-   * The padding to add to the height of the element.
-   * @default 0
-   */
-  readonly heightPadding: number;
 }
 
-function Component(props: MeasuredNodeProps) {
-  const { children, onSetSize: onSizeChange, widthPadding = 0, heightPadding = 0 } = props;
-  const { elementRef, elementChildren } = useChildrenRef(children);
-
-  const graph = useGraph();
-  const cellID = useCellId();
-
-  useLayoutEffect(() => {
-    if (!elementRef.current) {
-      throw new Error('MeasuredNode must have a child element');
-    }
-
-    // verify element is instance of HTML element
-    const isHTMLElement = elementRef.current instanceof HTMLElement;
-    const isSVGElement = elementRef.current instanceof SVGElement;
-    if (!isHTMLElement && !isSVGElement) {
-      throw new Error('Element must be an instance of HTML or SVG element');
-    }
-
-    const cell = graph.getCell(cellID);
-    if (!cell) {
-      throw new Error(`Cell with id ${cellID} not found`);
-    }
-
-    return createElementSizeObserver(elementRef.current, ({ height, width }) => {
-      const newSize: SizeObserver = {
-        height: height + heightPadding,
-        width: width + widthPadding,
-      };
-      if (onSizeChange) {
-        return onSizeChange(cell, newSize);
-      }
-      cell.set('size', newSize);
-    });
-  }, [cellID, elementRef, graph, heightPadding, onSizeChange, widthPadding]);
-
+function Component(
+  props: MeasuredNodeProps,
+  forwardedRef: React.ForwardedRef<HTMLElement | SVGAElement>
+) {
+  const { children, ...options } = props;
+  const { elementRef, elementChildren } = useChildrenRef(children, forwardedRef);
+  useMeasureNodeSize(elementRef, options);
   return elementChildren;
 }
+
+const ForwardedRefComponent = forwardRef(Component);
 
 /**
  * Measured node component automatically detects the size of its `children` and updates the graph element (node) width and height automatically when elements resize.
@@ -126,4 +77,4 @@ function Component(props: MeasuredNodeProps) {
  * }
  * ```
  */
-export const MeasuredNode = memo(Component);
+export const MeasuredNode = memo(ForwardedRefComponent);

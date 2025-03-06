@@ -5,11 +5,11 @@ import {
   createLinks,
   GraphProvider,
   Paper,
-  useUpdateNodeSize,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
+import { useMeasureNodeSize } from 'src/hooks/use-measure-node-size';
 
 const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 
@@ -21,7 +21,8 @@ const initialElements = createElements([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderedRect() {
-  const rectRef = useUpdateNodeSize<SVGRectElement>();
+  const rectRef = useRef<SVGRectElement>(null);
+  useMeasureNodeSize<SVGRectElement>(rectRef);
   return <rect ref={rectRef} joint-selector="fo" width={50} height={50} fill="red" />;
 }
 

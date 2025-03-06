@@ -9,6 +9,7 @@
 - [Highlighter](namespaces/Highlighter/README.md)
 - [GraphProvider](functions/GraphProvider.md)
 - [HTMLNode](functions/HTMLNode.md)
+- [MeasuredNode](functions/MeasuredNode.md)
 - [Paper](functions/Paper.md)
 - [PaperProvider](functions/PaperProvider.md)
 
@@ -38,7 +39,6 @@
 
 - [createElement](functions/createElement.md)
 - [isReactElement](functions/isReactElement.md)
-- [MeasuredNode](functions/MeasuredNode.md)
 - [useElement](functions/useElement.md)
 - [useLinks](functions/useLinks.md)
 

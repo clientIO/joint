@@ -2,7 +2,7 @@
 import { cloneElement, useCallback, useMemo, useRef, type Ref } from 'react';
 
 /**
- * Custom hook to return children reference. Children must be a `HTML` or `SVG` element.
+ * Custom hook to return children and children ref. Children must be a `HTML` or `SVG` element.
  *
  * It automatically merges internal and external refs.
  * @param {React.ReactNode} children The children elements.

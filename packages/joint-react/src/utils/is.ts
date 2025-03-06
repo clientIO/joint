@@ -2,6 +2,7 @@ import { dia, util } from '@joint/core';
 import type { GraphCell } from './cell/get-cell';
 import type { GraphLink } from '../data/graph-links';
 import type { GraphElement } from '../data/graph-elements';
+import { ReactElement } from 'src/models/react-element';
 
 export type Setter<Value> = (item: Value) => Value;
 
@@ -43,4 +44,12 @@ export function isLinkInstance(value: unknown): value is dia.Link {
 
 export function isCellInstance(value: unknown): value is dia.Cell {
   return value instanceof dia.Cell;
+}
+
+export function isReactElement(value: unknown): value is dia.Cell {
+  return value instanceof ReactElement;
+}
+
+export function isUnsized(width: number | undefined, height: number | undefined) {
+  return width === undefined || height === undefined;
 }

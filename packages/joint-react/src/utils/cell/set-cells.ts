@@ -2,10 +2,17 @@ import type { dia } from '@joint/core';
 import { REACT_TYPE } from '../../models/react-element';
 import type { GraphLink } from '../../data/graph-links';
 import type { GraphElementBase } from '../../data/graph-elements';
-import { isCellInstance, isLinkInstance } from '../is';
+import { isCellInstance, isLinkInstance, isReactElement, isUnsized } from '../is';
+import { getLinkTargetAndSourceIds } from './get-link-targe-and-source-ids';
+
+interface Options {
+  readonly graph: dia.Graph;
+  readonly defaultLinks?: Array<dia.Link | GraphLink>;
+  readonly defaultElements?: Array<dia.Element | GraphElementBase>;
+}
 
 // Process a link: convert GraphLink to a standard JointJS link if needed.
-function processLink(link: dia.Link | GraphLink) {
+export function processLink(link: dia.Link | GraphLink) {
   if (isLinkInstance(link)) {
     return link;
   }
@@ -18,35 +25,75 @@ function processLink(link: dia.Link | GraphLink) {
   };
 }
 
-// Process an element: create a ReactElement if applicable, otherwise a standard Cell.
-function processElement(element: dia.Element | GraphElementBase) {
-  if (isCellInstance(element)) {
-    return element;
+export function setLinks(options: Options) {
+  const { graph, defaultLinks } = options;
+  if (defaultLinks === undefined) {
+    return;
   }
-  const { type = REACT_TYPE, x, y, width, height } = element;
-  return {
-    type,
-    position: { x, y },
-    size: { width, height },
-    ...element,
-  };
+
+  // Process links if provided.
+  graph.addCells(defaultLinks.map(processLink));
+}
+
+/**
+ * Set elements and return unsized elements ids (means that the element is react type and has not size).
+ */
+function setElements(options: Options) {
+  const { graph, defaultElements } = options;
+  if (defaultElements === undefined) {
+    return new Set<string>();
+  }
+  const unsizedIds = new Set<string>();
+
+  // Process an element: create a ReactElement if applicable, otherwise a standard Cell.
+  function processElement(element: dia.Element | GraphElementBase) {
+    const stringId = String(element.id);
+    if (isCellInstance(element)) {
+      const size = element.size();
+      if (isReactElement(element) && isUnsized(size.width, size.height)) {
+        unsizedIds.add(stringId);
+      }
+      return element;
+    }
+    const { type = REACT_TYPE, x, y, width, height } = element;
+    if (isUnsized(width, height)) {
+      unsizedIds.add(stringId);
+    }
+    return {
+      type,
+      position: { x, y },
+      size: { width, height },
+      ...element,
+    };
+  }
+  // Process elements if provided.
+  graph.addCells(defaultElements.map(processElement));
+  return unsizedIds;
 }
 
 /**
  * Updating of graph cells inside use graph store - helper function
+ *
+ * It also check for the react unsized elements, if the element has not size, it will not render the link immanently.
+ * It return callback to set unsized links later.
  */
-export function setCells(options: {
-  graph: dia.Graph;
-  defaultLinks?: Array<dia.Link | GraphLink>;
-  defaultElements?: Array<dia.Element | GraphElementBase>;
-}) {
-  const { graph, defaultElements, defaultLinks } = options;
-  // Process links if provided.
-  if (defaultLinks !== undefined) {
-    graph.addCells(defaultLinks.map(processLink));
+export function setCells(options: Options) {
+  const { defaultLinks = [] } = options;
+
+  // React elements without explicitly defined size.
+  const unsizedIds = setElements(options);
+
+  const sizedLinks: Array<dia.Link | GraphLink> = [];
+  const unsizedLinks: Map<dia.Cell.ID, dia.Link | GraphLink> = new Map();
+
+  for (const link of defaultLinks) {
+    const { source, target } = getLinkTargetAndSourceIds(link);
+    if (unsizedIds.has(String(source)) || unsizedIds.has(String(target))) {
+      unsizedLinks.set(link.id, link);
+      continue;
+    }
+    sizedLinks.push(link);
   }
-  // Process elements if provided.
-  if (defaultElements !== undefined) {
-    graph.addCells(defaultElements.map(processElement));
-  }
+  setLinks({ ...options, defaultLinks: sizedLinks });
+  return unsizedLinks;
 }

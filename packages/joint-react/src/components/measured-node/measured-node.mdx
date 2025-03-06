@@ -1,0 +1,18 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './measured-node.stories';
+
+<Meta of={Stories} />
+
+# MeasuredNode Component
+Measured node component automatically detects the size of its `children` and 
+updates the graph element (`node`) **width and height** automatically when elements resize.
+It must be used inside `renderElement` context - inside `Paper` component.
+
+### Measuring div with exact size defined in the div style.
+<Canvas of={Stories.DivWithExactSize} />
+
+### Measuring div with padding and text inside (without explicit size).
+<Canvas of={Stories.DivWithPaddingAndText} />
+
+It support also `onSetSize` callback that can be used to update the size of the node (it turn off default functionality to change the size of the node).
+<Controls/>

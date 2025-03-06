@@ -27,7 +27,6 @@ function RenderRectElement({ width, height }: SimpleElement) {
 function RenderHtmlElement({ width, height }: SimpleElement) {
   return (
     <HTMLNode
-      element="div"
       style={{
         width,
         height,
