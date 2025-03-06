@@ -37,7 +37,7 @@ function RawComponent<
   const id = useCellId();
   const paper = usePaper();
   const highlighterId = useId();
-  const { elementRef, svgChildren } = useChildrenRef(children, forwardedRef);
+  const { elementRef, elementChildren } = useChildrenRef(children, forwardedRef);
 
   const create = useCallback(
     (hOptions: Highlighter) => {
@@ -65,7 +65,7 @@ function RawComponent<
     instance.update();
   }, []);
   useHighlighter(create, update, options);
-  return svgChildren;
+  return elementChildren;
 }
 
 const ForwardedComponent = forwardRef(RawComponent);

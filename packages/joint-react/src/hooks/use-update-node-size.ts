@@ -1,7 +1,30 @@
 import { useLayoutEffect, useRef, useCallback, type Ref } from 'react';
 import { useGraph } from './use-graph';
 import { useCellId } from './use-cell-id';
-import { createElementSizeObserver } from '../utils/create-element-size-observer';
+import {
+  createElementSizeObserver,
+  type PositionObserver,
+} from '../utils/create-element-size-observer';
+
+export interface SizeObserverOptions {
+  /**
+   * The padding to add to the width of the element.
+   * @default 0
+   */
+  readonly widthPadding: number;
+  /**
+   * The padding to add to the height of the element.
+   * @default 0
+   */
+  readonly heightPadding: number;
+
+  readonly onChange?: (position: PositionObserver) => void;
+}
+const DEFAULT_OPTIONS: SizeObserverOptions = {
+  widthPadding: 0,
+  heightPadding: 0,
+};
+
 /**
  * Function to update node (element) `width` and `height` based on the provided element ref.
  * Returns new created function to set the ref.
@@ -14,8 +37,10 @@ import { createElementSizeObserver } from '../utils/create-element-size-observer
  * @group Hooks
  */
 export function useUpdateNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVGRectElement>(
-  ref?: Ref<AnyHtmlOrSvgElement | null>
+  ref?: Ref<AnyHtmlOrSvgElement | null>,
+  options: SizeObserverOptions = DEFAULT_OPTIONS
 ) {
+  const { widthPadding, heightPadding, onChange } = options;
   const graph = useGraph();
   const id = useCellId();
   const elementRef = useRef<AnyHtmlOrSvgElement | null>(null);
@@ -43,10 +68,13 @@ export function useUpdateNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVGR
       return;
     }
 
-    return createElementSizeObserver(elementRef.current, (position) => {
-      cell.set('size', position);
+    return createElementSizeObserver(elementRef.current, ({ height, width }) => {
+      const newWidth = width + widthPadding;
+      const newHeight = height + heightPadding;
+      cell.set('size', { width: newWidth, height: newHeight });
+      onChange?.({ width: newWidth, height: newHeight });
     });
-  }, [id, graph]);
+  }, [id, graph, widthPadding, heightPadding, onChange]);
 
   return setRefs;
 }

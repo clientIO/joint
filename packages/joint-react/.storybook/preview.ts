@@ -6,6 +6,13 @@ export const decorators = [withPerformance];
 
 const preview: Preview = {
   parameters: {
+    options: {
+      storySort: {
+        method: '',
+        order: ['Tutorials', 'Examples', 'Components', 'Hooks'],
+        locales: '',
+      },
+    },
     controls: {
       matchers: {
         color: /(background|color)$/i,
@@ -13,6 +20,7 @@ const preview: Preview = {
       },
     },
   },
+
   tags: ['autodocs'],
 };
 

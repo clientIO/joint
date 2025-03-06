@@ -1,10 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { shapes, util } from '@joint/core';
-import { HTMLNode } from '../../../components/html-node/html-node';
-import { Paper, type RenderElement } from '../../../components/paper/paper';
-import { createElements, createLinks, type InferElement } from '../../../utils/create';
-import { GraphProvider, type GraphProps } from '../../../components/graph-provider/graph-provider';
+import {
+  createElements,
+  createLinks,
+  GraphProvider,
+  HTMLNode,
+  Paper,
+  type GraphProps,
+  type InferElement,
+  type RenderElement,
+} from '@joint/react';
 import { useCallback } from 'react';
 
 const initialElements = createElements([

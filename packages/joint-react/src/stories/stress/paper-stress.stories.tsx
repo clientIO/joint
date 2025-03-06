@@ -4,17 +4,19 @@
 /* eslint-disable no-console */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { dia, shapes } from '@joint/core';
-import { ReactElement } from '../../models/react-element';
-import { useElements } from '../../hooks/use-elements';
-import { useSetCells } from '../../hooks/use-set-cells';
-import { useGraph } from '../../hooks/use-graph';
-import { GraphProvider } from '../../components/graph-provider/graph-provider';
-import { PaperProvider } from '../../components/paper-provider/paper-provider';
-import type { RenderElement } from '../../components/paper/paper';
-import { Paper } from '../../components/paper/paper';
-import { useCallback, useRef } from 'react';
+import {
+  GraphProvider,
+  HTMLNode,
+  Paper,
+  PaperProvider,
+  ReactElement,
+  useElements,
+  useGraph,
+  useSetCells,
+  type RenderElement,
+} from '@joint/react';
 import type { Meta, StoryObj } from '@storybook/react/*';
-import { HTMLNode } from '../../components/html-node/html-node';
+import { useCallback, useRef } from 'react';
 
 export type Story = StoryObj<typeof Paper>;
 const meta: Meta<typeof Paper> = {

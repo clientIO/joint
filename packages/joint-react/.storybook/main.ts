@@ -13,6 +13,7 @@ const config: StorybookConfig = {
     '@storybook/addon-docs',
     '@storybook/addon-a11y',
     '@storybook/addon-storysource',
+    '@storybook/addon-links',
   ],
 
   framework: {

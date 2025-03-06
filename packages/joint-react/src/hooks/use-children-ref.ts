@@ -42,7 +42,7 @@ export function useChildrenRef<HTMLOrSVG extends HTMLElement | SVGElement>(
     };
   }
 
-  const svgChildren = cloneElement(children as never, props);
+  const elementChildren = cloneElement(children as never, props);
 
-  return { elementRef, svgChildren };
+  return { elementRef, elementChildren };
 }

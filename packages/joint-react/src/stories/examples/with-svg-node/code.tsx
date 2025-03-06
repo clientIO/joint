@@ -1,10 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
+import {
+  createElements,
+  createLinks,
+  GraphProvider,
+  Paper,
+  useUpdateNodeSize,
+  type InferElement,
+  type RenderElement,
+} from '@joint/react';
 import { useCallback } from 'react';
-import type { InferElement } from '../../../utils/create';
-import { createElements, createLinks } from '../../../utils/create';
-import { useUpdateNodeSize } from '../../../hooks/use-update-node-size';
-import { GraphProvider, Paper, type RenderElement } from '../../..';
 
 const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 

@@ -32,6 +32,7 @@
     "@storybook/addon-docs": "8.6.3",
     "@storybook/addon-essentials": "8.6.3",
     "@storybook/addon-interactions": "8.6.3",
+    "@storybook/addon-links": "^8.6.3",
     "@storybook/addon-onboarding": "8.6.3",
     "@storybook/addon-storysource": "^8.6.3",
     "@storybook/blocks": "8.6.3",
@@ -80,6 +81,7 @@
     "typescript": "5.7.3",
     "typescript-eslint": "8.21.0",
     "vite-plugin-md": "^0.21.5",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.0.4"
   },
   "dependencies": {

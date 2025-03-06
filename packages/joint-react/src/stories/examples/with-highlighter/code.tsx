@@ -1,11 +1,15 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+import {
+  createElements,
+  createLinks,
+  GraphProvider,
+  Highlighter,
+  Paper,
+  type InferElement,
+} from '@joint/react';
 import '../index.css';
 import { useState } from 'react';
-import { GraphProvider } from '../../../components/graph-provider/graph-provider';
-import { createElements, createLinks, type InferElement } from '../../../utils/create';
-import { Highlighter } from '../../../components/highlighters';
-import { Paper } from '../../../components/paper/paper';
 
 const initialElements = createElements([
   {

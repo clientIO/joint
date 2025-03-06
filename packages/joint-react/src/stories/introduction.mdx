@@ -1,0 +1,57 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# Introduction to @jointjs/react
+
+The **@jointjs/react** library is a React wrapper around [JointJS](https://www.jointjs.com/), designed to simplify working with diagrams, graphs, and interactive UI elements. It provides a structured way to manage nodes, edges, and interactions within a React application.
+
+## 📌 Core Components
+
+### 1. **GraphProvider**
+   - The **GraphProvider** component is the foundation of the library.
+   - It creates an internal **store** and provides it via React Context.
+   - All components that need access to the graph should be wrapped inside this provider.
+
+### 2. **Paper**
+   - The **Paper** component is responsible for rendering **nodes (elements) and edges (links)**.
+   - The core prop of `Paper` is:
+     ```tsx
+     renderElement: (element: ElementType) => JSX.Element
+     ```
+     - This prop takes a React component and renders it inside the diagram.
+
+### 3. **Rendering HTML Elements**
+   - Since **JointJS** primarily works with **SVG**, rendering **HTML elements** requires a workaround.
+   - To display an HTML element inside the diagram, use a **foreignObject** inside the `renderElement` function:
+     ```tsx
+     const renderElement = (element) => (
+       <foreignObject width="100" height="50">
+         <div className="my-html-node">My HTML Content</div>
+       </foreignObject>
+     );
+     ```
+   - This allows embedding standard HTML elements within the SVG-based diagram.
+
+## 🛠️ Hooks and Utilities
+
+### 🔹 Getting Elements
+- `useElements()`: Retrieves all elements from `dia.graph`. *(Must be used inside GraphProvider context.)*
+- `useElement()`: Retrieves a single element. *(Must be used inside `renderElement` context.)*
+
+### 🔹 Modifying Elements
+- `useSetElement()`: Used to modify or update existing elements.
+
+### 🔹 Accessing Graph and Paper
+- `useGraph()`: Provides direct access to the **dia.graph** instance.
+- `usePaper()`: Provides access to the **dia.paper** instance.
+
+### 🔹 Creating Nodes and Links
+- `createElements()`: Utility function to create **nodes**.
+- `createLinks()`: Utility function to create **edges**.
+
+---
+
+This documentation should help both **new and experienced users** understand how @jointjs/react works, making it easier to build diagrams with React! 🚀
+
+

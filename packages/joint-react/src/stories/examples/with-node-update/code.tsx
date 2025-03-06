@@ -1,13 +1,16 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+import {
+  createElements,
+  createLinks,
+  GraphProvider,
+  HTMLNode,
+  Paper,
+  useElements,
+  useSetElement,
+  type InferElement,
+} from '@joint/react';
 import '../index.css';
-import { useSetElement } from '../../../hooks/use-set-element';
-import { useElements } from '../../../hooks/use-elements';
-import type { InferElement } from '../../../utils/create';
-import { createElements, createLinks } from '../../../utils/create';
-import { GraphProvider } from '../../../components/graph-provider/graph-provider';
-import { HTMLNode } from '../../../components/html-node/html-node';
-import { Paper } from '../../../components/paper/paper';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1', color: '#ffffff' }, x: 100, y: 0 },

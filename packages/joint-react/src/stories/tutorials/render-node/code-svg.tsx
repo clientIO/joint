@@ -1,7 +1,13 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { Paper } from '../../../components/paper/paper';
-import { createElements, createLinks, type InferElement } from '../../../utils/create';
-import { GraphProvider, type GraphProps } from '../../../components/graph-provider/graph-provider';
+
+import {
+  createElements,
+  createLinks,
+  GraphProvider,
+  Paper,
+  type GraphProps,
+  type InferElement,
+} from '@joint/react';
 
 // define initial elements
 const initialElements = createElements([

@@ -37,3 +37,9 @@ export const DivWithSizedChildren: Story = {
     children: <div style={{ width: 50, height: 25, backgroundColor: 'blue' }} />,
   },
 };
+
+export const WithInvalidChildren: Story = {
+  args: {
+    children: <>Hello</>,
+  },
+};
