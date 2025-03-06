@@ -2,10 +2,11 @@ import { memo, useLayoutEffect } from 'react';
 import { useChildrenRef } from '../../hooks/use-children-ref';
 import {
   createElementSizeObserver,
-  type PositionObserver,
+  type SizeObserver,
 } from '../../utils/create-element-size-observer';
 import { useGraph } from 'src/hooks/use-graph';
 import { useCellId } from 'src/hooks/use-cell-id';
+import type { dia } from '@joint/core';
 
 export interface MeasuredNodeProps {
   /**
@@ -14,9 +15,11 @@ export interface MeasuredNodeProps {
    */
   readonly children: React.ReactNode | null;
   /**
-   * Observer function that is called when the size of the element changes.
+   * Overwrite default node set function with custom handling.
+   * Useful for adding another padding, or just check element size.
+   * @default it set element via `cell.set('size', {width, height})`
    */
-  readonly onSizeChange?: (position: PositionObserver) => void;
+  readonly onSetSize?: (element: dia.Cell, size: SizeObserver) => void;
   /**
    * The padding to add to the width of the element.
    * @default 0
@@ -28,8 +31,9 @@ export interface MeasuredNodeProps {
    */
   readonly heightPadding: number;
 }
+
 function Component(props: MeasuredNodeProps) {
-  const { children, onSizeChange, widthPadding = 0, heightPadding = 0 } = props;
+  const { children, onSetSize: onSizeChange, widthPadding = 0, heightPadding = 0 } = props;
   const { elementRef, elementChildren } = useChildrenRef(children);
 
   const graph = useGraph();
@@ -53,10 +57,14 @@ function Component(props: MeasuredNodeProps) {
     }
 
     return createElementSizeObserver(elementRef.current, ({ height, width }) => {
-      const newWidth = width + widthPadding;
-      const newHeight = height + heightPadding;
-      cell.set('size', { width: newWidth, height: newHeight });
-      onSizeChange?.({ width: newWidth, height: newHeight });
+      const newSize: SizeObserver = {
+        height: height + heightPadding,
+        width: width + widthPadding,
+      };
+      if (onSizeChange) {
+        return onSizeChange(cell, newSize);
+      }
+      cell.set('size', newSize);
     });
   }, [cellID, elementRef, graph, heightPadding, onSizeChange, widthPadding]);
 
@@ -64,6 +72,58 @@ function Component(props: MeasuredNodeProps) {
 }
 
 /**
+ * Measured node component automatically detects the size of its `children` and updates the graph element (node) width and height automatically when elements resize.
  *
+ * It must be used inside `renderElement` context
+ *
+ * @see Paper
+ * @see PaperProps
+ * @group Components
+ * @example
+ * Example with a simple div:
+ * ```tsx
+ * import { MeasuredNode } from '@joint/react';
+ *
+ * function RenderElement() {
+ *   return (
+ *     <MeasuredNode>
+ *       <div style={{ width: 100, height: 50 }}>Content</div>
+ *     </MeasuredNode>
+ *   );
+ * }
+ * ```
+ *
+ * Example with a simple div without explicit size defined:
+ * ```tsx
+ * import { MeasuredNode } from '@joint/react';
+ *
+ * function RenderElement() {
+ *   return (
+ *     <MeasuredNode>
+ *       <div style={{ padding: 10 }}>Content</div>
+ *     </MeasuredNode>
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * Example with custom size handling:
+ * ```tsx
+ * import { MeasuredNode } from '@joint/react';
+ * import type { dia } from '@joint/core';
+ *
+ * function RenderElement() {
+ *   const handleSizeChange = (element: dia.Cell, size: { width: number; height: number }) => {
+ *     console.log('New size:', size);
+ *     element.set('size', { width: size.width + 10, height: size.height + 10 });
+ *   };
+ *
+ *   return (
+ *     <MeasuredNode onSetSize={handleSizeChange}>
+ *       <div style={{ width: 100, height: 50 }}>Content</div>
+ *     </MeasuredNode>
+ *   );
+ * }
+ * ```
  */
 export const MeasuredNode = memo(Component);

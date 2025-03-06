@@ -3,7 +3,7 @@ import { useGraph } from './use-graph';
 import { useCellId } from './use-cell-id';
 import {
   createElementSizeObserver,
-  type PositionObserver,
+  type SizeObserver,
 } from '../utils/create-element-size-observer';
 
 export interface SizeObserverOptions {
@@ -18,7 +18,7 @@ export interface SizeObserverOptions {
    */
   readonly heightPadding: number;
 
-  readonly onChange?: (position: PositionObserver) => void;
+  readonly onChange?: (size: SizeObserver) => void;
 }
 const DEFAULT_OPTIONS: SizeObserverOptions = {
   widthPadding: 0,

@@ -1,4 +1,4 @@
-export interface PositionObserver {
+export interface SizeObserver {
   readonly width: number;
   readonly height: number;
 }
@@ -7,7 +7,7 @@ export interface PositionObserver {
  * Create element size observer with cleanup function.
  * It uses ResizeObserver to observe changes in the size of the HTML element.
  * @param {HTMLElement | SVGElement} element The HTML element to observe.
- * @param {(position: PositionObserver) => void} onResize The callback function to call when the size of the element changes.
+ * @param {(position: SizeObserver) => void} onResize The callback function to call when the size of the element changes.
  * @group Utils
  *
  * @example
@@ -21,7 +21,7 @@ export interface PositionObserver {
  */
 export function createElementSizeObserver<AnyHtmlOrSvgElement extends HTMLElement | SVGElement>(
   element: AnyHtmlOrSvgElement,
-  onResize: (position: PositionObserver) => void
+  onResize: (position: SizeObserver) => void
 ) {
   // Create a ResizeObserver to observe changes in the size of the HTML element.
   const observer = new ResizeObserver((entries) => {
