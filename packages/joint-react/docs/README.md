@@ -18,10 +18,10 @@
 - [useElementEffect](functions/useElementEffect.md)
 - [useElements](functions/useElements.md)
 - [useGraph](functions/useGraph.md)
+- [useMeasureNodeSize](functions/useMeasureNodeSize.md)
 - [usePaper](functions/usePaper.md)
 - [useSetCells](functions/useSetCells.md)
 - [useSetElement](functions/useSetElement.md)
-- [useUpdateNodeSize](functions/useUpdateNodeSize.md)
 
 ## Models
 
@@ -60,10 +60,10 @@
 - [GraphProps](interfaces/GraphProps.md)
 - [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
 - [MeasuredNodeProps](interfaces/MeasuredNodeProps.md)
+- [MeasureNodeOptions](interfaces/MeasureNodeOptions.md)
 - [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
 - [PaperProps](interfaces/PaperProps.md)
 - [PaperProviderProps](interfaces/PaperProviderProps.md)
-- [SizeObserverOptions](interfaces/SizeObserverOptions.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
 
 ## Type Aliases

@@ -8,7 +8,7 @@
 
 > **MeasuredNode**(`props`): `ReactNode`
 
-Defined in: [packages/joint-react/src/components/measured-node/measured-node.tsx:134](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L134)
+Defined in: [packages/joint-react/src/components/measured-node/measured-node.tsx:80](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L80)
 
 Measured node component automatically detects the size of its `children` and updates the graph element (node) width and height automatically when elements resize.
 

@@ -18,7 +18,7 @@ export * from './hooks/use-links';
 export * from './hooks/use-elements';
 export * from './hooks/use-element';
 export * from './hooks/use-set-cells';
-export * from './hooks/use-update-node-size';
+export * from './hooks/use-measure-node-size';
 export * from './hooks/use-set-element';
 export * from './hooks/use-element-effect';
 

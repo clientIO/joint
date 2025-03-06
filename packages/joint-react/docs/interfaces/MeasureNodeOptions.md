@@ -2,28 +2,17 @@
 
 ***
 
-[@joint/react](../README.md) / MeasuredNodeProps
+[@joint/react](../README.md) / MeasureNodeOptions
 
-# Interface: MeasuredNodeProps
+# Interface: MeasureNodeOptions
 
-Defined in: [packages/joint-react/src/components/measured-node/measured-node.tsx:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L5)
+Defined in: [packages/joint-react/src/hooks/use-measure-node-size.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L10)
 
-## Extends
+## Extended by
 
-- [`MeasureNodeOptions`](MeasureNodeOptions.md)
+- [`MeasuredNodeProps`](MeasuredNodeProps.md)
 
 ## Properties
-
-### children
-
-> `readonly` **children**: `ReactNode`
-
-Defined in: [packages/joint-react/src/components/measured-node/measured-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L10)
-
-The child element to measure.
-It can be only HTML or SVG element.
-
-***
 
 ### heightPadding?
 
@@ -38,10 +27,6 @@ The padding to add to the height of the element.
 ```ts
 0
 ```
-
-#### Inherited from
-
-[`MeasureNodeOptions`](MeasureNodeOptions.md).[`heightPadding`](MeasureNodeOptions.md#heightpadding)
 
 ***
 
@@ -72,10 +57,6 @@ Useful for adding another padding, or just check element size.
 
 it set element via `cell.set('size', {width, height})`
 
-#### Inherited from
-
-[`MeasureNodeOptions`](MeasureNodeOptions.md).[`onSetSize`](MeasureNodeOptions.md#onsetsize)
-
 ***
 
 ### widthPadding?
@@ -91,7 +72,3 @@ The padding to add to the width of the element.
 ```ts
 0
 ```
-
-#### Inherited from
-
-[`MeasureNodeOptions`](MeasureNodeOptions.md).[`widthPadding`](MeasureNodeOptions.md#widthpadding)

@@ -8,7 +8,7 @@
 
 > **HTMLNode**(`props`): `ReactNode`
 
-Defined in: [packages/joint-react/src/components/html-node/html-node.tsx:100](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L100)
+Defined in: [packages/joint-react/src/components/html-node/html-node.tsx:103](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L103)
 
 **`Experimental`**
 
