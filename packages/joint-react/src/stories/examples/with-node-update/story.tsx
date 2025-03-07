@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react/*';
 import '../index.css';
 import Code from './code';
 import CodeWithColor from './code-with-color';
+import CodeWithSVG from './code-with-svg';
 export type Story = StoryObj<typeof Code>;
 
 export default {
@@ -15,4 +16,8 @@ export const Default: Story = {};
 
 export const WithColorPicker: Story = {
   render: CodeWithColor,
+};
+
+export const WithSVG: Story = {
+  render: CodeWithSVG,
 };

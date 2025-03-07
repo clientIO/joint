@@ -2,7 +2,7 @@ import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
 import CodeWithColorPicker from './code-with-color?raw';
-
+import CodeWithSVG from './code-with-svg?raw';
 
 <Meta of={Stories} />
 
@@ -34,6 +34,17 @@ ${CodeWithColorPicker}
 </Markdown>
 
 
+### Demo with SVG
+Example of updating a node with `useSetElement` hook and color picker.
+<Canvas of={Stories.WithSVG} />
+
+### Code with SVG
+
+<Markdown>
+{`\`\`\`tsx
+${CodeWithSVG}
+\`\`\``}
+</Markdown>
 
 
 
