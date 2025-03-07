@@ -301,6 +301,27 @@ export const elementPortPrototype = {
         }, {});
     },
 
+    getPortsRects: function(groupName) {
+
+        var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, Rect(this.size()));
+
+        return portsMetrics.reduce(function(rects, metrics) {
+            const {
+                portId,
+                portTransformation: { x, y, angle },
+                portSize: { width, height }
+            } = metrics;
+            rects[portId] = {
+                x: x - width / 2,
+                y: y - height / 2,
+                width,
+                height,
+                angle
+            };
+            return rects;
+        }, {});
+    },
+
     /**
      * @param {string|Port} port port id or port
      * @returns {number} port index
