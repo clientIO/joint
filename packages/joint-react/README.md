@@ -72,7 +72,7 @@ import { GraphProvider } from '@joint/react';
 ```
 
 ### 2. **Paper**
-- Wraps [dia.Paper]https://docs.jointjs.com/learn/quickstart/paper/) for rendering diagram elements and links.
+- Wraps [dia.Paper](https://docs.jointjs.com/learn/quickstart/paper) for rendering diagram elements and links.
 - Key prop `renderElement` accepts a function to render each diagram node:
 
 ```tsx
