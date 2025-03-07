@@ -599,6 +599,10 @@ export namespace dia {
             angle: number;
         }
 
+        interface PortRect extends BBox {
+            angle: number;
+        }
+
         interface TranslateOptions extends Cell.Options {
             restrictedArea?: BBox | Paper.PointConstraintCallback;
             transition?: Cell.TransitionOptions;
@@ -679,6 +683,8 @@ export namespace dia {
         getPort(id: string): Element.Port;
 
         getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
+
+        getPortsRects(groupName: string): { [id: string]: Element.PortRect };
 
         getPortIndex(port: string | Element.Port): number;
 

@@ -3,26 +3,26 @@ import { toRad, Rect } from '../g/index.mjs';
 import { resolveRef } from '../linkAnchors/index.mjs';
 
 
-function getModelBBox(element, link, endType, rotate) {
+function getModelBBoxFromConnectedLink(element, link, endType, rotate) {
 
     let bbox;
-    const center = element.getPointFromConnectedLink(link, endType);
 
+    const elementBBox = element.getBBox();
+    const angle = element.angle();
     const portId = link.get(endType).port;
-    // TODO: we can not use `getPort()` API here, because we need
-    // to get the port object with the size information
-    // (the `size` can be stored on the port or on the group)
-    const port = element._portSettingsData.getPorts().find(p => p.id === portId);
-    if (port) {
-        bbox = new Rect(port.size);
-        bbox.x = center.x - bbox.width / 2;
-        bbox.y = center.y - bbox.height / 2;
+
+    if (element.hasPort(portId)) {
+        const port = element.getPort(portId);
+        // Note: the `angle` property of the `port` is ignore here for now
+        bbox = new Rect(element.getPortsRects(port.group)[portId]);
+        bbox.offset(elementBBox.x, elementBBox.y);
+        bbox.moveAroundPoint(elementBBox.center(), -angle);
     } else {
-        bbox = element.getBBox();
+        bbox = elementBBox;
     }
 
     if (!rotate) {
-        bbox.rotateAroundCenter(-element.angle());
+        bbox.rotateAroundCenter(-angle);
     }
 
     return bbox;
@@ -40,7 +40,7 @@ function bboxWrapper(method) {
         let bbox, center
         if (opt.useModelGeometry) {
 
-            bbox = getModelBBox(element, link, endType, rotate);
+            bbox = getModelBBoxFromConnectedLink(element, link, endType, rotate);
             center = bbox.center();
 
         } else {
@@ -87,7 +87,7 @@ function _perpendicular(elementView, magnet, refPoint, opt, endType, linkView) {
 
     let bbox;
     if (opt.useModelGeometry) {
-        bbox = getModelBBox(element, linkView.model, endType, false);
+        bbox = getModelBBoxFromConnectedLink(element, linkView.model, endType, false);
     } else {
         bbox = elementView.getNodeBBox(magnet);
     }
@@ -119,7 +119,7 @@ function _midSide(view, magnet, refPoint, opt, endType, linkView) {
 
     var bbox;
     if (opt.useModelGeometry) {
-        bbox = getModelBBox(view.model, linkView.model, endType, rotate);
+        bbox = getModelBBoxFromConnectedLink(view.model, linkView.model, endType, rotate);
         center = bbox.center();
     } else {
         bbox =  rotate ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
