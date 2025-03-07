@@ -21,6 +21,8 @@ export interface Options {
 
 export { LayerDirectionEnum } from '@msagl/core';
 
+const LAYOUT_BATCH_NAME = 'layout';
+
 export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options): g.Rect {
 
     let jjGraph: dia.Graph;
@@ -108,9 +110,13 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     geomGraph.layoutSettings = layoutSettings;
 
     layoutGeomGraph(geomGraph);
+
     // Apply the layout result to the JointJS graph
     // while traversing the geomGraph
+    // wrap the changes in a batch
+    jjGraph.startBatch(LAYOUT_BATCH_NAME);
     applyLayoutResult(jjGraph, geomGraph);
+    jjGraph.stopBatch(LAYOUT_BATCH_NAME);
 
     const bbox = geomGraph.boundingBox;
 
