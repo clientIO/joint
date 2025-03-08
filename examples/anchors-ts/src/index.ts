@@ -1,9 +1,7 @@
-import { dia, shapes } from '@joint/core';
-import * as customShapes from './shapes';
+import { connectionPoints, dia, shapes } from '@joint/core';
 
 const cellNamespace = {
     ...shapes,
-    custom: customShapes
 }
 
 const graph = new dia.Graph({}, {
@@ -19,27 +17,21 @@ const paper = new dia.Paper({
     cellViewNamespace: cellNamespace,
     gridSize: 1,
     async: true,
-    // defaultConnectionPoint: {
-    //     name: 'anchor'
-    // }
     defaultConnectionPoint: {
-        name: 'boundary',
-        args: {
-            extrapolate: true
-        }
+        name: 'anchor'
     }
 });
 
-const el1 = new customShapes.Shape1({
+const el1 = new shapes.standard.Rectangle({
     position: {
-        x: 100,
+        x: 400,
         y: 270
     },
     size: {
         width: 250,
         height: 120
     },
-    // angle: 45,
+    angle: 45,
     attrs: {
         extra: {
             y: 'calc(h)',
@@ -76,9 +68,9 @@ const el1 = new customShapes.Shape1({
         }
     }
 });
-const el2 = new customShapes.Shape1({
+const el2 = new shapes.standard.Rectangle({
     position: {
-        x: 600,
+        x: 100,
         y: 170
     },
     size: {
@@ -91,11 +83,12 @@ const el2 = new customShapes.Shape1({
 const l1 = new shapes.standard.Link({
     source: {
         id: el1.id,
-        // port: 'port',
+        port: 'port',
         anchor: {
-            name: 'perpendicular',
+            name: 'topLeft',
             args: {
                 useModelGeometry: true,
+                // rotate: tru  e
             }
         }
     },
