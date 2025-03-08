@@ -3099,6 +3099,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-layout-msagl@workspace:examples/layout-msagl":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-layout-msagl@workspace:examples/layout-msagl"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-msagl": "workspace:^"
+    css-loader: ^6.8.1
+    style-loader: ^3.3.3
+    ts-loader: ^9.2.5
+    typescript: ^5.7.3
+    webpack: ^5.53.0
+    webpack-cli: ^4.8.0
+    webpack-dev-server: ^4.2.1
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-libavoid-js@workspace:examples/libavoid":
   version: 0.0.0-use.local
   resolution: "@joint/demo-libavoid-js@workspace:examples/libavoid"
@@ -3582,6 +3598,18 @@ __metadata:
   version: 0.15.1
   resolution: "@microsoft/tsdoc@npm:0.15.1"
   checksum: 10/1a92612883088fe184dba596e7ba7a0daef0e6981caeca22bad6ad551d2247294f12e368537d0d8192525cf5743f7f15fcc2ad7b3b849f26a09a15ffdd89fd0c
+  languageName: node
+  linkType: hard
+
+"@msagl/core@npm:^1.1.23":
+  version: 1.1.23
+  resolution: "@msagl/core@npm:1.1.23"
+  dependencies:
+    queue-typescript: ^1.0.1
+    reliable-random: ^0.0.1
+    stack-typescript: ^1.0.4
+    typescript-string-operations: ^1.4.1
+  checksum: 26d682141e3f2d09c7f643bb1796c5d2c3e680eeac43f17cf744a5ecc19fbdf9c4392fb8e28f1496725d0008655cfbcdfa740877c07f0fa5db665454279b39de
   languageName: node
   linkType: hard
 
@@ -20045,6 +20073,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"reliable-random@npm:^0.0.1":
+  version: 0.0.1
+  resolution: "reliable-random@npm:0.0.1"
+  checksum: 4dd98857fa19536262aebe5545f4e6611681e58b6fc817abe2897ccdb44f1c3a14ac99db6b524cfcede292e2a7341781d74bf10418e2f470c7381e4516793592
+  languageName: node
+  linkType: hard
+
 "remove-trailing-separator@npm:^1.0.1":
   version: 1.1.0
   resolution: "remove-trailing-separator@npm:1.1.0"
@@ -24751,6 +24786,42 @@ __metadata:
   bin:
     webpack: bin/webpack.js
   checksum: 10/eb16a58b3eb02bfb538c7716e28d7f601a03922e975c74007b41ba5926071ae70302d9acae9800fbd7ddd0c66a675b1069fc6ebb88123b87895a52882e2dc06a
+  languageName: node
+  linkType: hard
+
+"webpack@npm:^5.53.0":
+  version: 5.98.0
+  resolution: "webpack@npm:5.98.0"
+  dependencies:
+    "@types/eslint-scope": ^3.7.7
+    "@types/estree": ^1.0.6
+    "@webassemblyjs/ast": ^1.14.1
+    "@webassemblyjs/wasm-edit": ^1.14.1
+    "@webassemblyjs/wasm-parser": ^1.14.1
+    acorn: ^8.14.0
+    browserslist: ^4.24.0
+    chrome-trace-event: ^1.0.2
+    enhanced-resolve: ^5.17.1
+    es-module-lexer: ^1.2.1
+    eslint-scope: 5.1.1
+    events: ^3.2.0
+    glob-to-regexp: ^0.4.1
+    graceful-fs: ^4.2.11
+    json-parse-even-better-errors: ^2.3.1
+    loader-runner: ^4.2.0
+    mime-types: ^2.1.27
+    neo-async: ^2.6.2
+    schema-utils: ^4.3.0
+    tapable: ^2.1.1
+    terser-webpack-plugin: ^5.3.11
+    watchpack: ^2.4.1
+    webpack-sources: ^3.2.3
+  peerDependenciesMeta:
+    webpack-cli:
+      optional: true
+  bin:
+    webpack: bin/webpack.js
+  checksum: 0de353c694bc4d5af810e4f4d4fd356271b21b2253583a9f618416b5fcbaf8db5a5487c12cc1379778d2a07d56382293334153af6e2ce59ded59488f08015fd1
   languageName: node
   linkType: hard
 

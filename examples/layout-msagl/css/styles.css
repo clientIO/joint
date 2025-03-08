@@ -1,0 +1,36 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    height: 100vh;
+}
+
+#controls {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    bottom: 50px;
+    right: 50px;
+    width: 275px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+#controls > div {
+    display: flex;
+    gap: 20px;
+}
+
+#controls > div > input, #controls > div > select {
+    flex: 1;
+}
+
+
