@@ -1,5 +1,5 @@
 import { dia, g, util } from "@joint/core";
-import { Graph, GeomGraph, Edge, EdgeRoutingMode, SugiyamaLayoutSettings, layoutGeomGraph, LayerDirectionEnum, Label, GeomLabel, Size } from '@msagl/core';
+import { Graph, GeomGraph, Edge, EdgeRoutingMode, SugiyamaLayoutSettings, layoutGraphWithSugiayma, LayerDirectionEnum, Label, GeomLabel, Size, CancelToken } from '@msagl/core';
 import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge";
 import { constructNode, applyLayoutResult } from "./utils";
 
@@ -109,7 +109,7 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     layoutSettings.edgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.Rectilinear;
     geomGraph.layoutSettings = layoutSettings;
 
-    layoutGeomGraph(geomGraph);
+    layoutGraphWithSugiayma(geomGraph, new CancelToken(), true);
 
     // Apply the layout result to the JointJS graph
     // while traversing the geomGraph
