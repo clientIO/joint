@@ -1,0 +1,34 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Layout MSAGL | JointJS</title>
+    <link rel="stylesheet" href="dist/styles.css"/>
+  </head>
+  <body>
+    <div id="paper"></div>
+    <div id="controls">
+      <div>
+        <label>
+        Layout direction:
+      </label>
+      <select id="layout-direction">
+        <option value="0" selected>Top to Bottom</option>
+        <option value="1">Left to Right</option>
+        <option value="2">Bottom to Top</option>
+        <option value="3">Right to Left</option>
+      </select>
+      </div>
+      <div>
+        <label>Node separation:</label>
+        <input type="range" id="node-separation" min="50" max="200" step="1" value="50"/>
+      </div>
+      <div>
+        <label>Layer separation:</label>
+        <input type="range" id="layer-separation" min="50" max="200" step="1" value="50"/>
+      </div>
+    </div>
+    <script src="dist/bundle.js"></script>
+  </body>
+</html>
