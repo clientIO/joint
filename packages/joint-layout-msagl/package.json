@@ -1,0 +1,52 @@
+{
+  "name": "@joint/layout-msagl",
+  "title": "JointJS LayoutMSAGL",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "version": "4.1.3",
+  "description": "LayoutMSAGL module for JointJS",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "contributors": [
+    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
+    "Martin Kanera <martin@jointjs.com> (https://github.com/MartinKanera)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-layout-msagl"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MPL-2.0",
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dist": "tsc",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "@joint/core": "workspace:~",
+    "@msagl/core": "^1.1.23"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "volta": {
+    "node": "18.18.2",
+    "npm": "9.8.1",
+    "yarn": "3.4.1"
+  },
+  "keywords": [
+    "jointjs",
+    "layout",
+    "msagl"
+  ]
+}
