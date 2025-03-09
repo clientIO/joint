@@ -1,4 +1,5 @@
 import { View } from '../mvc/index.mjs';
+import { addClassNamePrefix } from '../util/util.mjs';
 
 export class LayerView extends View {
 
@@ -8,10 +9,6 @@ export class LayerView extends View {
         this.tagName = 'g';
         this.svgElement = true;
         this.pivotNodes = {};
-
-        this.options = {
-            name: ''
-        }
     }
 
     className() {

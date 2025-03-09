@@ -388,34 +388,21 @@ export const Paper = View.extend({
 
         const model = this.model = options.model || new Graph;
 
-        const graphLayers = model.get('layers');
-
-        this._graphLayers = {
-
-        };
-
+        // Paper layers
         this._layersSettings = [{
             name: LayersNames.GRID,
         }, {
             name: LayersNames.BACK,
-        }];
-
-        Object.keys(graphLayers).forEach(name => {
-            const layer = graphLayers[name];
-
-            this._layersSettings.push({
-                name: layer.get('name'),
-                model: layer
-            });
-        });
-
-        this._layersSettings = this._layersSettings.concat([{
+        }, {
             name: LayersNames.LABELS,
+        }, {
+            name: LayersNames.CELLS,
+            model: this.model.getDefaultLayer()
         }, {
             name: LayersNames.FRONT
         }, {
             name: LayersNames.TOOLS
-        }]);
+        }];
 
         // Layers (SVGGroups)
         this._layers = {
@@ -423,13 +410,17 @@ export const Paper = View.extend({
             order: [],
         };
 
-        this._embeddingLayers = {
-        };
+        this._embeddingLayers = {};
+
+        this._graphLayers = model.get('layers');
 
         this.cloneOptions();
         this.render();
         this._setDimensions();
         this.startListening();
+
+        this._graphLayers = [];
+        this.updateGraphLayers(this.model.get('layers'));
 
         // Hash of all cell views.
         this._views = {};
@@ -560,14 +551,25 @@ export const Paper = View.extend({
         layerView.remove();
     },
 
-    onLayersChange: function(layer, opt) {
-        /*const layerView = this.createLayer({ name: layer.get('name'), model: layer });
-        this.addLayer(layer.get('name'), layerView, { insertBefore: LayersNames.LABELS });*/
+    onLayersChange: function(model, layers) {
+        this.updateGraphLayers(layers)
     },
 
-    onLayerRemove: function(layerName, opt) {
-        const { viewsMap } = this._layers;
-        this.removeLayer(viewsMap[layerName]);
+    updateGraphLayers: function(layers) {
+        const removedLayerNames = this._graphLayers.filter(layer => !layers.some(l => l.name === layer.name)).map(layer => layer.name);
+        removedLayerNames.forEach(layerName => this.removeLayer(layerName));
+
+        this._graphLayers = this.model.get('layers');
+
+        this._graphLayers.forEach(layer => {
+            if (!this.hasLayerView(layer.name)) {
+                this.renderLayer({
+                    name: layer.name,
+                    model: layer
+                });
+            }
+            this.moveLayer(layer.name, LayersNames.FRONT);
+        });
     },
 
     cloneOptions: function() {

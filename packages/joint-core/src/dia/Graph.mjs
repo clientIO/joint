@@ -509,10 +509,8 @@ export const Graph = Model.extend({
 
         const layers = this.get('layers');
 
-        layers.push(layer);
-
         this.layersMap[layer.name] = layer;
-        this.set('layers', layers);
+        this.set('layers', layers.concat([layer]));
     },
 
     removeLayer(layerName, opt) {
