@@ -1805,19 +1805,23 @@ export const Paper = View.extend({
         });
     },
 
-    hideView: function(cell) {
+    hideView: function(cell, opt) {
         const view = this.findViewByModel(cell);
         if (!view) return null;
+        // first, update the hidden views hash:
         this._hiddenViews[cell.id] = view;
-        this.updateViews();
+        // then, request update (refers to hidden views hash):
+        this.requestViewUpdate(view, view.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
         return view;
     },
 
-    showView: function(cell) {
-        const view = this.findViewByModel(cell);
+    showView: function(cell, opt) {
+        const view = this.renderView(cell);
         if (!view) return null;
+        // first, update the hidden views hash:
         delete this._hiddenViews[cell.id];
-        this.updateViews();
+        // then, request update (refers to hidden views hash):
+        this.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
         return view;
     },
 
