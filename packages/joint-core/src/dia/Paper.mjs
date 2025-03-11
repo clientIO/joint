@@ -1246,7 +1246,7 @@ export const Paper = View.extend({
                 if ((currentFlag & view.FLAG_REMOVE) === 0) {
                     // We should never check a view for viewport if we are about to remove the view
                     var isDetached = cid in updates.unmounted;
-                    if (view.DETACHABLE && view.model && !this.isViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
+                    if (view.DETACHABLE && !this.isViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
                         // Unmount View
                         if (!isDetached) {
                             this.registerUnmountedView(view);
@@ -1324,7 +1324,7 @@ export const Paper = View.extend({
             if (!(cid in unmounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (view.DETACHABLE && view.model && !this.isViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, false, this)) {
+            if (view.DETACHABLE && !this.isViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, false, this)) {
                 // Push at the end of all unmounted ids, so this can be check later again
                 unmountedCids.push(cid);
                 continue;
@@ -1351,8 +1351,8 @@ export const Paper = View.extend({
             if (!(cid in mounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            // reverse boolean logic so that short-circuiting can make it more efficient (a && b && !c && d && !e <=> !a || !b || c || !d || e):
-            if (!view.DETACHABLE || !view.model || this.isViewHidden(view.model) || !viewportFn || viewportFn.call(this, view, true, this)) {
+            // reverse boolean logic so that short-circuiting can make it more efficient (a && !b && c && !d <=> !a || b || !c || d):
+            if (!view.DETACHABLE || this.isViewHidden(view.model) || !viewportFn || viewportFn.call(this, view, true, this)) {
                 // Push at the end of all mounted ids, so this can be check later again
                 mountedCids.push(cid);
                 continue;
@@ -1371,8 +1371,8 @@ export const Paper = View.extend({
         if (typeof viewportFn !== 'function') viewportFn = null;
         const updates = this._updates;
         const { mounted, unmounted } = updates;
-        // reverse boolean logic so that short-circuiting can make it more efficient (a && b && !c && d && !e <=> !a || !b || c || !d || e):
-        const visible = (!cellView.DETACHABLE || !cellView.model || this.isViewHidden(cellView.model) || !viewportFn || viewportFn.call(this, cellView, true, this));
+        // reverse boolean logic so that short-circuiting can make it more efficient (a && !b && c && !d <=> !a || b || !c || d):
+        const visible = (!cellView.DETACHABLE || this.isViewHidden(cellView.model) || !viewportFn || viewportFn.call(this, cellView, true, this));
 
         let isUnmounted = false;
         let isMounted = false;
@@ -1826,6 +1826,7 @@ export const Paper = View.extend({
     },
 
     isViewHidden: function(cell) {
+        if (!cell) return false;
         return (cell.id in this._hiddenViews);
     },
 
