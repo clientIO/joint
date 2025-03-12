@@ -1,6 +1,6 @@
-import { type dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import { useCallback, use, useState, type CSSProperties, type ReactNode } from 'react';
-import type { GraphElement, GraphElementBase } from '../../data/graph-elements';
+import type { GraphElement, GraphElementBase } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
 import { useElements } from '../../hooks/use-elements';
@@ -10,6 +10,7 @@ import { PaperContext } from '../../context/paper-context';
 import { GraphStoreContext } from '../../context/graph-store-context';
 import { GraphProvider } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
+import type { PaperEvents } from 'src/types/event.types';
 
 export type RenderElement<ElementItem extends GraphElementBase = GraphElementBase> = (
   element: ElementItem
@@ -20,11 +21,16 @@ export type RenderElement<ElementItem extends GraphElementBase = GraphElementBas
  * @see https://docs.jointjs.com/api/dia/Paper
  */
 export interface PaperProps<ElementItem extends GraphElementBase = GraphElementBase>
-  extends dia.Paper.Options {
+  extends dia.Paper.Options,
+    PaperEvents {
   /**
-   * A function that renders the element. It is called every time the element is rendered.
-   * @default (element: ElementItem) => BaseElement
-    * @example
+ * A function that renders the element.
+ * 
+ * Note: Jointjs works by default with SVG's so by default renderElement is append inside the SVGElement node.
+ * To use HTML elements, you need to use the `HtmlNode` component or `foreignObject` element.
+ * 
+ * This is called when the data from `elementSelector` changes.
+ * @example
  * Example with `global component`:
  * ```tsx
  * type BaseElementWithData = InferElement<typeof initialElements>
@@ -80,15 +86,6 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * Children to render. Paper automatically wrap the children with the PaperContext, if there is no PaperContext in the parent tree.
    */
   readonly children?: ReactNode;
-
-  /**
-   * Function that is called when an event is triggered on the paper.
-   * @param paper
-   * @param eventName
-   * @param args
-   * @returns
-   */
-  readonly onEvent?: (paper: dia.Paper, eventName: string, ...args: unknown[]) => void;
 
   /**
    * Function that is called when the paper is resized.
@@ -212,6 +209,9 @@ function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElem
  * It must be used within a `GraphProvider` context.
  * @see GraphProvider
  * @see PaperProps
+ * 
+ * Props also extends `dia.Paper.Options` interface.
+ * @see dia.Paper.Options 
  * @group Components
  *
  * @example

@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { REACT_TYPE } from '../../models/react-element';
-import type { GraphLink } from '../../data/graph-links';
-import type { GraphElementBase } from '../../data/graph-elements';
+import type { GraphLink } from '../../types/link-types';
+import type { GraphElementBase } from '../../types/element-types';
 import { isCellInstance, isLinkInstance, isReactElement, isUnsized } from '../is';
 import { getLinkTargetAndSourceIds } from './get-link-targe-and-source-ids';
 
@@ -14,7 +14,12 @@ interface Options {
 // Process a link: convert GraphLink to a standard JointJS link if needed.
 export function processLink(link: dia.Link | GraphLink) {
   if (isLinkInstance(link)) {
-    return link;
+    const json = link.toJSON();
+    return {
+      ...json,
+      source: { id: json.source },
+      target: { id: json.target },
+    };
   }
 
   return {
@@ -46,7 +51,7 @@ function setElements(options: Options) {
   const unsizedIds = new Set<string>();
 
   // Process an element: create a ReactElement if applicable, otherwise a standard Cell.
-  function processElement(element: dia.Element | GraphElementBase) {
+  function processElement(element: dia.Element | GraphElementBase): dia.Element | dia.Cell.JSON {
     const stringId = String(element.id);
     if (isCellInstance(element)) {
       const size = element.size();
@@ -59,12 +64,13 @@ function setElements(options: Options) {
     if (isUnsized(width, height)) {
       unsizedIds.add(stringId);
     }
+
     return {
       type,
       position: { x, y },
       size: { width, height },
       ...element,
-    };
+    } as dia.Cell.JSON;
   }
   // Process elements if provided.
   graph.addCells(defaultElements.map(processElement));
@@ -88,6 +94,7 @@ export function setCells(options: Options) {
 
   for (const link of defaultLinks) {
     const { source, target } = getLinkTargetAndSourceIds(link);
+
     if (unsizedIds.has(String(source)) || unsizedIds.has(String(target))) {
       unsizedLinks.set(link.id, link);
       continue;

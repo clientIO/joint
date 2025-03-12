@@ -1,7 +1,7 @@
 import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import type { GraphLinks } from '../data/graph-links';
+import type { GraphLinks } from '../types/link-types';
 
 /**
  * A hook to access the graph store's links.

@@ -1,14 +1,15 @@
-import { useCallback, use, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, use, useEffect, useRef, useState } from 'react';
 import { PaperContext } from '../context/paper-context';
 import type { PaperOptions } from '../utils/create-paper';
 import { createPaper, PAPER_PORTAL_RENDER_EVENT } from '../utils/create-paper';
 import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { useGraph } from './use-graph';
+import type { PaperEvents, PaperEventType } from 'src/types/event.types';
+import { handleEvent } from 'src/utils/handle-paper-events';
 
-interface UseCreatePaperOptions extends PaperOptions {
+interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
   readonly onRenderElement?: (element: dia.Element, portalElement: SVGGElement) => void;
-  readonly onEvent?: (paper: dia.Paper, eventName: string, ...args: unknown[]) => void;
   readonly isFitContentOnLoadEnabled?: boolean;
 }
 
@@ -23,7 +24,7 @@ interface UseCreatePaperOptions extends PaperOptions {
  * @returns An object containing the paper instance and a reference to the paper HTML element.
  */
 export function useCreatePaper(options?: UseCreatePaperOptions) {
-  const { onRenderElement, isFitContentOnLoadEnabled, onEvent, ...restOptions } = options ?? {};
+  const { onRenderElement, isFitContentOnLoadEnabled, ...restOptions } = options ?? {};
   const graph = useGraph();
   const hasRenderElement = !!onRenderElement;
   const paperHtmlElement = useRef<HTMLDivElement | null>(null);
@@ -75,17 +76,14 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
         }
       );
     }
-
-    if (onEvent) {
-      // Listen to all events on the paper.
-      // TODO: we do not have TS support for this now!
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      controller.listenTo(paper, 'all', (...args: unknown[]) => onEvent(paper, ...args));
+    if (restOptions) {
+      controller.listenTo(paper, 'all', (type: PaperEventType, ...args: unknown[]) =>
+        handleEvent(type, restOptions, ...args)
+      );
     }
 
     return () => controller.stopListening();
-  }, [paper, resizePaperContainer, hasRenderElement, onEvent, onRenderElement]);
+  }, [hasRenderElement, onRenderElement, paper, resizePaperContainer, restOptions]);
 
   useEffect(() => {
     paperHtmlElement.current?.append(paper.el);
@@ -106,7 +104,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     }
   }, [options?.scale, paper]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!isFitContentOnLoadEnabled) {
       return;
     }

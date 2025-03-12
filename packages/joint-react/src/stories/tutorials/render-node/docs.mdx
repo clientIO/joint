@@ -53,7 +53,7 @@ import CodeHTML from './code-html?raw';
   ```tsx
   function RenderItem({ width, height, data: { label } }) {
     return (
-      <foreignObject style={{ overflow: 'unset' }} width={width} height={height}>
+      <foreignObject style={{ overflow: 'visible' }} width={width} height={height}>
         <div className="node">{label}</div>
       </foreignObject>
     );

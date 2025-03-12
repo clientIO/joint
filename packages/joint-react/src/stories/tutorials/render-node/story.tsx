@@ -1,5 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import type { Meta, StoryObj } from '@storybook/react/*';
 import '../../examples/index.css';
 import CodeSVG from './code-svg';

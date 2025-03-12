@@ -31,13 +31,7 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
       },
     } as unknown as dia.Element.Attributes & Attributes;
   }
-
-  /**
-   * Initializes the markup for the ReactElement.
-   */
-  preinitialize() {
-    this.markup = elementMarkup;
-  }
+  markup: string | dia.MarkupJSON = elementMarkup;
 }
 
 export function createElement<Attributes = dia.Element.Attributes>(

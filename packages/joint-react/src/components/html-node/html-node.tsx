@@ -34,7 +34,7 @@ interface SpanElementProps extends ElementBase<HTMLSpanElement> {
 }
 
 /**
- * Special html element, when width and height are set, we will not automatically resize the parent node element.
+ * Special HTML element, when width and height are set, we will not automatically resize the parent node element.
  */
 export type HtmlElementProps = DivElementProps | SpanElementProps | ButtonElementProps;
 
@@ -76,7 +76,7 @@ function Component(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTM
 }
 
 /**
- * Joint js div with auto sizing parent node based on this div.
+ * HTMlNode is component wrapper around `foreignObject` and `measuredNode` element with `HTML` element inside.
  * When this div changes, it will automatically resize the parent node element (change width and height of parent cell).
  * Under the hood, it uses foreignObject to render the div @see https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject
  * It uses all properties as HTMLDivElement.

@@ -1,4 +1,4 @@
-import { useLayoutEffect, type RefObject } from 'react';
+import { useEffect, type RefObject } from 'react';
 import { useGraph } from './use-graph';
 import { useCellId } from './use-cell-id';
 import {
@@ -51,7 +51,7 @@ export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVG
   const graph = useGraph();
   const cellID = useCellId();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!elementRef.current) {
       throw new Error('MeasuredNode must have a child element');
     }

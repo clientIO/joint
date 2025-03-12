@@ -4,6 +4,7 @@ import {
   createElements,
   createLinks,
   GraphProvider,
+  MeasuredNode,
   Paper,
   type GraphProps,
   type InferElement,
@@ -23,8 +24,10 @@ type CustomElement = InferElement<typeof initialElements>;
 
 function RenderItem({ width, height, data: { label } }: CustomElement) {
   return (
-    <foreignObject style={{ overflow: 'unset' }} width={width} height={height}>
-      <div className="node">{label}</div>
+    <foreignObject style={{ overflow: 'visible' }} width={width} height={height}>
+      <MeasuredNode>
+        <div className="node">{label}</div>
+      </MeasuredNode>
     </foreignObject>
   );
 }

@@ -1,7 +1,7 @@
 import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import type { GraphElement, GraphElementBase, GraphElements } from '../data/graph-elements';
+import type { GraphElement, GraphElementBase, GraphElements } from '../types/element-types';
 
 /**
  * A hook to access `dia.graph` elements

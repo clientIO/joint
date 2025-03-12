@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
-import type { GraphElement } from '../../data/graph-elements';
-import type { GraphLink } from '../../data/graph-links';
+import type { GraphElement } from '../../types/element-types';
+import type { GraphLink } from '../../types/link-types';
 
 export interface Ports {
   readonly groups?: Record<string, dia.Element.PortGroup>;

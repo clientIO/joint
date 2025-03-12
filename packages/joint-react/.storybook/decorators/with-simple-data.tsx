@@ -7,7 +7,7 @@ import { createElements, createLinks, GraphProvider, InferElement, Paper } from 
 const initialElements = createElements([
   {
     id: '1',
-    data: { label: 'Node 1' },
+    data: { label: 'Node 1', color: 'cyan' },
     x: 100,
     y: 20,
     width: 100,
@@ -15,7 +15,7 @@ const initialElements = createElements([
   },
   {
     id: '2',
-    data: { label: 'Node 2' },
+    data: { label: 'Node 2', color: 'magenta' },
     x: 200,
     y: 250,
     width: 100,
@@ -54,6 +54,31 @@ export function RenderItemDecorator(properties: {
   );
 }
 
+function RenderSimpleRectElement(properties: SimpleElement) {
+  const {
+    width,
+    data: { color },
+    height,
+  } = properties;
+  return <rect width={width} height={height} fill={color} />;
+}
+
+export function RenderPaperWithChildren(properties: { children: JSX.Element }) {
+  return (
+    <div style={{ width: '100%', height: 350 }}>
+      <SimpleGraphProviderDecorator>
+        <Paper width={'100%'} height={350} renderElement={RenderSimpleRectElement}>
+          {properties.children}
+        </Paper>
+      </SimpleGraphProviderDecorator>
+    </div>
+  );
+}
+
 export function SimpleRenderItemDecorator(Story: any) {
   return <RenderItemDecorator renderElement={Story} />;
+}
+
+export function SimpleRenderPaperDecorator(Story: any) {
+  return <RenderPaperWithChildren>{Story}</RenderPaperWithChildren>;
 }

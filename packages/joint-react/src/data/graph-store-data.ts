@@ -1,7 +1,7 @@
 import { util, type dia } from '@joint/core';
 import { getElement, getLink } from '../utils/cell/get-cell';
-import { GraphElements } from './graph-elements';
-import { GraphLinks } from './graph-links';
+import { GraphElements } from '../types/element-types';
+import { GraphLinks } from '../types/link-types';
 
 /**
  * Main data structure for the graph store.

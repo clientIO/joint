@@ -1,13 +1,22 @@
-import type { dia } from '@joint/core';
+import type { dia, shapes } from '@joint/core';
 import { CellMap } from '../utils/cell/cell-map';
 
+interface StandardLinkShapesTypeMapper {
+  'standard.DoubleLink': shapes.standard.DoubleLinkSelectors;
+  'standard.ShadowLink': shapes.standard.ShadowLinkSelectors;
+  'standard.Link': shapes.standard.LinkSelectors;
+}
+
+export type StandardLinkShapesType = keyof StandardLinkShapesTypeMapper;
 /**
  * Base interface for graph link.
  * It's a subset of `dia.Link` with some additional properties.
  * @group Graph
  * @see @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
-export interface GraphLinkBase extends dia.Link.EndJSON, Record<string, unknown> {
+export interface GraphLinkBase<Type extends StandardLinkShapesType | string = string>
+  extends dia.Link.EndJSON,
+    Record<string, unknown> {
   /**
    * Unique identifier of the link.
    */
@@ -23,7 +32,7 @@ export interface GraphLinkBase extends dia.Link.EndJSON, Record<string, unknown>
   /**
    * Optional link type.
    */
-  readonly type?: string;
+  readonly type?: Type;
   /**
    * Z index of the link.
    */
@@ -36,6 +45,13 @@ export interface GraphLinkBase extends dia.Link.EndJSON, Record<string, unknown>
    * Optional link attrs.
    */
   readonly defaultLabel?: dia.Link.Label;
+
+  /**
+   * Attributes of the element.
+   */
+  readonly attrs?: Type extends StandardLinkShapesType
+    ? StandardLinkShapesTypeMapper[Type]
+    : unknown;
 }
 export interface GraphLink extends GraphLinkBase {
   /**

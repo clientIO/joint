@@ -1,6 +1,7 @@
 import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
-import Code from './code?raw';
+import CodeWithLinks from './code-with-create-links?raw';
+import CodeWithDiaLinks from './code-with-dia-links?raw'
 
 <Meta of={Stories} />
 
@@ -9,14 +10,29 @@ import Code from './code?raw';
 Render element with custom link.
 Custom link defined via [namespace](https://resources.jointjs.com/tutorial/cell-namespace).
 
-### Demo
+### Demo using `createLinks` util
 <Canvas of={Stories.Default} />
 
 ### Code
 Custom link is defined inside the `cellNamespace` property of the `GraphProvider` component.
 <Markdown>
 {`\`\`\`tsx
-${Code}
+${CodeWithLinks}
 \`\`\``}
 </Markdown>
+
+
+
+### Demo using `dia.Link` elements (`new LinkModel`)
+<Canvas of={Stories.WithDiaLinks} />
+
+### Code
+Custom link is defined inside the `cellNamespace` property of the `GraphProvider` component.
+<Markdown>
+{`\`\`\`tsx
+${CodeWithDiaLinks}
+\`\`\``}
+</Markdown>
+
+
 

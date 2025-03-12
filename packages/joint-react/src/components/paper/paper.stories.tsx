@@ -7,6 +7,9 @@ import {
   type SimpleElement,
 } from '../../../.storybook/decorators/with-simple-data';
 import { HTMLNode } from '../html-node/html-node';
+import { action } from '@storybook/addon-actions';
+import { dia, linkTools } from '@joint/core';
+import { jsx } from 'src/utils/joint-jsx/jsx-to-markup';
 
 export type Story = StoryObj<typeof Paper>;
 const meta: Meta<typeof Paper> = {
@@ -74,7 +77,64 @@ export const WithScaleDown: Story = {
 
 export const WithAutoFitContent: Story = {
   args: {
-    isFitContentOnLoadEnabled: true,
     renderElement: RenderHtmlElement as never,
+  },
+};
+
+export const WithEvent: Story = {
+  args: {
+    renderElement: RenderHtmlElement as never,
+    onLinkMouseenter: action('onLinkMouseenter'),
+    onCellMouseenter: action('onCellMouseenter'),
+    onBlankContextmenu: action('onBlankContextmenu'),
+    onBlankMouseenter: action('onBlankMouseenter'),
+    onBlankMouseleave: action('onBlankMouseleave'),
+    onCellMouseleave: action('onCellMouseleave'),
+    onBlankMouseout: action('onBlankMouseout'),
+    onBlankMouseover: action('onBlankMouseover'),
+    onBlankMousewheel: action('onBlankMousewheel'),
+    onBlankPointerClick: action('onBlankPointerClick'),
+    onBlankPointerdblClick: action('onBlankPointerdblClick'),
+    onBlankPointerdown: action('onBlankPointerdown'),
+    onBlankPointermove: action('onBlankPointermove'),
+    onBlankPointerup: action('onBlankPointerup'),
+    onCellContextmenu: action('onCellContextmenu'),
+    onCellHighlight: action('onCellHighlight'),
+    onCellHighlightInvalid: action('onCellHighlightInvalid'),
+    onCustom: action('onCustom'),
+  },
+};
+
+const infoButton = new linkTools.Button({
+  markup: jsx(
+    <>
+      <circle joint-selector="button" r={7} fill="#001DFF" cursor="pointer" />
+      <path
+        joint-selector="icon"
+        d="M -2 4 2 4 M 0 3 0 0 M -2 -1 1 -1 M -1 -4 1 -4"
+        fill="none"
+        stroke="#FFFFFF"
+        stroke-width={2}
+        pointer-events="none"
+      />
+    </>
+  ),
+  distance: 60,
+  offset: 0,
+});
+
+const toolsView = new dia.ToolsView({
+  tools: [infoButton],
+});
+
+export const WithLinkTools: Story = {
+  args: {
+    renderElement: RenderHtmlElement as never,
+    onLinkMouseenter: (linkView) => {
+      linkView.addTools(toolsView);
+    },
+    onLinkMouseleave: (linkView) => {
+      linkView.removeTools();
+    },
   },
 };

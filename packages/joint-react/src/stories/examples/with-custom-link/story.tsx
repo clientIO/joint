@@ -1,14 +1,17 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import type { Meta, StoryObj } from '@storybook/react/*';
 import '../index.css';
-import Code from './code';
+import CodeWithCreateLinks from './code-with-create-links';
+import CodeWithDiaLinks from './code-with-dia-links';
 
-export type Story = StoryObj<typeof Code>;
+export type Story = StoryObj<typeof CodeWithCreateLinks>;
 
 export default {
   title: 'Examples/With custom link',
-  component: Code,
-} satisfies Meta<typeof Code>;
+  component: CodeWithCreateLinks,
+} satisfies Meta<typeof CodeWithCreateLinks>;
 
 export const Default: Story = {};
+
+export const WithDiaLinks: Story = {
+  render: CodeWithDiaLinks,
+};

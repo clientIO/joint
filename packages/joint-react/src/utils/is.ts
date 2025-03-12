@@ -1,7 +1,7 @@
 import { dia, util } from '@joint/core';
 import type { GraphCell } from './cell/get-cell';
-import type { GraphLink } from '../data/graph-links';
-import type { GraphElement } from '../data/graph-elements';
+import type { GraphLink } from '../types/link-types';
+import type { GraphElement } from '../types/element-types';
 import { ReactElement } from 'src/models/react-element';
 
 export type Setter<Value> = (item: Value) => Value;

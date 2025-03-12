@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { isLinkInstance } from '../is';
-import type { GraphLink } from 'src/data/graph-links';
+import type { GraphLink } from 'src/types/link-types';
 
 export function getLinkTargetAndSourceIds(link: dia.Link | GraphLink): {
   source?: dia.Cell.ID;
@@ -8,8 +8,8 @@ export function getLinkTargetAndSourceIds(link: dia.Link | GraphLink): {
 } {
   if (isLinkInstance(link)) {
     return {
-      source: link.source().id,
-      target: link.target().id,
+      source: link.attributes.source,
+      target: link.attributes.target,
     };
   }
   return {

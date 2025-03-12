@@ -9,8 +9,8 @@ export * from './components/html-node/html-node';
 export * from './components/highlighters';
 export * from './components/measured-node/measured-node';
 
-export * from './data/graph-elements';
-export * from './data/graph-links';
+export * from './types/element-types';
+export * from './types/link-types';
 
 export * from './hooks/use-graph';
 export * from './hooks/use-paper';

@@ -2,7 +2,7 @@ import { util } from '@joint/core';
 import { useCellId } from './use-cell-id';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import type { GraphElement } from '../data/graph-elements';
+import type { GraphElement } from '../types/element-types';
 
 /**
  * A hook to access a specific graph element from the Paper context.

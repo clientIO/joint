@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { CellWithId } from '../../types/cell.types';
-import type { GraphElement } from '../../data/graph-elements';
+import type { GraphElement } from '../../types/element-types';
 import typedMemo from '../../utils/typed-memo';
 
 export interface PaperPortalProps<Data extends CellWithId = GraphElement> {

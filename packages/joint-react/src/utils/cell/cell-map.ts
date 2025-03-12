@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 
 interface ItemBase {
-  readonly id: dia.Cell.ID;
+  readonly id?: dia.Cell.ID;
 }
 
 /**
@@ -17,6 +17,9 @@ export class CellMap<V extends ItemBase> extends Map<dia.Cell.ID, V> {
       return;
     }
     for (const item of items) {
+      if (item.id === undefined) {
+        continue;
+      }
       this.set(item.id, item);
     }
   }

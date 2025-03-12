@@ -53,6 +53,8 @@
     "@typescript-eslint/eslint-plugin": "8.21.0",
     "@typescript-eslint/parser": "8.21.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "d3-drag": "^3.0.0",
+    "d3-selection": "^3.0.0",
     "eslint": "9.19.0",
     "eslint-plugin-depend": "0.12.0",
     "eslint-plugin-jest": "^28.8.3",
