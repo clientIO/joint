@@ -413,8 +413,11 @@ export const Paper = View.extend({
         this._setDimensions();
         this.startListening();
 
-        // Hash of all cell views.
+        // Hash of all cell views
         this._views = {};
+
+        // Hash of hidden cell views
+        this._hiddenViews = {};
 
         // Mouse wheel events buffer
         this._mw_evt_buffer = {
@@ -1243,7 +1246,7 @@ export const Paper = View.extend({
                 if ((currentFlag & view.FLAG_REMOVE) === 0) {
                     // We should never check a view for viewport if we are about to remove the view
                     var isDetached = cid in updates.unmounted;
-                    if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
+                    if (view.DETACHABLE && !this.isViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
                         // Unmount View
                         if (!isDetached) {
                             this.registerUnmountedView(view);
@@ -1321,7 +1324,7 @@ export const Paper = View.extend({
             if (!(cid in unmounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, false, this)) {
+            if (view.DETACHABLE && !this.isViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, false, this)) {
                 // Push at the end of all unmounted ids, so this can be check later again
                 unmountedCids.push(cid);
                 continue;
@@ -1348,7 +1351,8 @@ export const Paper = View.extend({
             if (!(cid in mounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (!view.DETACHABLE || viewportFn.call(this, view, true, this)) {
+            // reverse boolean logic so that short-circuiting can make it more efficient (a && !b && c && !d <=> !a || b || !c || d):
+            if (!view.DETACHABLE || this.isViewHidden(view.model) || !viewportFn || viewportFn.call(this, view, true, this)) {
                 // Push at the end of all mounted ids, so this can be check later again
                 mountedCids.push(cid);
                 continue;
@@ -1367,7 +1371,8 @@ export const Paper = View.extend({
         if (typeof viewportFn !== 'function') viewportFn = null;
         const updates = this._updates;
         const { mounted, unmounted } = updates;
-        const visible = !cellView.DETACHABLE || !viewportFn || viewportFn.call(this, cellView, false, this);
+        // reverse boolean logic so that short-circuiting can make it more efficient (a && !b && c && !d <=> !a || b || !c || d):
+        const visible = (!cellView.DETACHABLE || this.isViewHidden(cellView.model) || !viewportFn || viewportFn.call(this, cellView, true, this));
 
         let isUnmounted = false;
         let isMounted = false;
@@ -1800,6 +1805,31 @@ export const Paper = View.extend({
         });
     },
 
+    hideView: function(cell, opt) {
+        const view = this.findViewByModel(cell);
+        if (!view) return null;
+        // first, update the hidden views hash:
+        this._hiddenViews[cell.id] = view;
+        // then, request update (refers to hidden views hash):
+        this.requestViewUpdate(view, view.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
+        return view;
+    },
+
+    showView: function(cell, opt) {
+        const view = this.renderView(cell);
+        if (!view) return null;
+        // first, update the hidden views hash:
+        delete this._hiddenViews[cell.id];
+        // then, request update (refers to hidden views hash):
+        this.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+        return view;
+    },
+
+    isViewHidden: function(cell) {
+        if (!cell) return false;
+        return (cell.id in this._hiddenViews);
+    },
+
     removeView: function(cell) {
 
         const { id } = cell;
@@ -1871,6 +1901,7 @@ export const Paper = View.extend({
         invoke(this._views, 'remove');
 
         this._views = {};
+        this._hiddenViews = {};
     },
 
     sortViews: function() {
@@ -3366,4 +3397,3 @@ export const Paper = View.extend({
         }]
     }
 });
-
