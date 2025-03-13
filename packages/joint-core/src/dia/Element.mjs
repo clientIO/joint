@@ -557,6 +557,7 @@ export const Element = Cell.extend({
         if (angle) portCenter.rotate(center, -angle);
         return portCenter;
     }
+
 });
 
 assign(Element.prototype, elementPortPrototype);

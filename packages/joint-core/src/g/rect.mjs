@@ -369,6 +369,13 @@ Rect.prototype = {
         return this;
     },
 
+    moveAroundPoint: function(origin, angle) {
+        const newCenter = this.center().rotate(origin, angle);
+        this.x = newCenter.x - this.width / 2;
+        this.y = newCenter.y - this.height / 2;
+        return this;
+    },
+
     // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
     // If width < 0 the function swaps the left and right corners,
     // and it swaps the top and bottom corners if height < 0

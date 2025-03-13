@@ -274,10 +274,8 @@ export const elementPortPrototype = {
      * @returns {object}
      */
     getPort: function(id) {
-
-        return util.cloneDeep(util.toArray(this.prop('ports/items')).find(function(port) {
-            return port.id && port.id === id;
-        }));
+        const port = util.toArray(this.prop('ports/items')).find(port => port.id && port.id === id);
+        return util.cloneDeep(port);
     },
 
     getPortGroupNames: function() {
@@ -300,6 +298,27 @@ export const elementPortPrototype = {
                 angle: transformation.angle
             };
             return positions;
+        }, {});
+    },
+
+    getPortsRects: function(groupName) {
+
+        var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, Rect(this.size()));
+
+        return portsMetrics.reduce(function(rects, metrics) {
+            const {
+                portId,
+                portTransformation: { x, y, angle },
+                portSize: { width, height }
+            } = metrics;
+            rects[portId] = {
+                x: x - width / 2,
+                y: y - height / 2,
+                width,
+                height,
+                angle
+            };
+            return rects;
         }, {});
     },
 
