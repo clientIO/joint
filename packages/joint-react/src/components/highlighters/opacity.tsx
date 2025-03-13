@@ -11,6 +11,10 @@ export interface OpacityHighlighterProps extends PropsWithChildren {
    * @default 1
    */
   readonly alphaValue: number;
+  /**
+   * If the highlighter is disabled or not.
+   */
+  readonly isDisabled?: boolean;
 }
 
 /**
@@ -18,7 +22,7 @@ export interface OpacityHighlighterProps extends PropsWithChildren {
  * @see https://docs.jointjs.com/api/highlighters/#opacity
  */
 function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
-  const { children, alphaValue = 1 } = props;
+  const { children, alphaValue = 1, isDisabled } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
     const data: dia.HighlighterView.Options = {
       alphaValue,
@@ -31,7 +35,7 @@ function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGEl
   }, []);
 
   return (
-    <Custom options={options} ref={forwardedRef} onAdd={onAdd}>
+    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isDisabled={isDisabled}>
       {children}
     </Custom>
   );

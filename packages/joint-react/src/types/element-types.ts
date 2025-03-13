@@ -102,4 +102,6 @@ export interface GraphElement<Data = unknown> extends GraphElementItem<Data> {
  *
  * @group Graph
  */
-export class GraphElements<Data = unknown> extends CellMap<GraphElement<Data>> {}
+export class GraphElements<
+  Element extends GraphElementBase = GraphElement,
+> extends CellMap<Element> {}

@@ -23,13 +23,20 @@ export function useHighlighter<
 >(
   create: (options: HighlighterOptions) => Highlighter | undefined,
   update: (instance: Highlighter, options: HighlighterOptions) => void,
-  options: HighlighterOptions
+  options: HighlighterOptions,
+  isDisabled?: boolean
 ) {
   const highlighter = useRef<Highlighter | null>(null);
   const previousOptions = useRef<HighlighterOptions | null>(null);
 
   // This effect is called only on mount and un-mount of the component itself
   useEffect(() => {
+    if (isDisabled) {
+      highlighter.current?.remove();
+      highlighter.current = null;
+      previousOptions.current = null;
+      return;
+    }
     const instance = create(options);
     if (!instance) {
       return;
@@ -40,8 +47,9 @@ export function useHighlighter<
       highlighter.current = null;
       previousOptions.current = null;
     };
+    // listen only to isDisabled change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isDisabled]);
 
   // This effect is called on every options change
   useEffect(() => {

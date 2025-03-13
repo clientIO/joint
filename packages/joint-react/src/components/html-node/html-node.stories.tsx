@@ -15,7 +15,7 @@ export default meta;
 
 export const DivWithAutoSize: Story = {
   args: {
-    style: { width: 100, height: 50, backgroundColor: 'blue' },
+    style: { width: 100, height: 50, backgroundColor: 'cyan' },
   },
   parameters: {
     docs: {
@@ -28,7 +28,7 @@ export const DivWithAutoSize: Story = {
 
 export const DivWithAutoSizeAndPadding: Story = {
   args: {
-    style: { width: 100, height: 50, padding: 10, backgroundColor: 'blue' },
+    style: { width: 100, height: 50, padding: 10, backgroundColor: 'cyan' },
   },
   parameters: {
     docs: {
@@ -41,7 +41,7 @@ export const DivWithAutoSizeAndPadding: Story = {
 
 export const DivWithSizedChildren: Story = {
   args: {
-    children: <div style={{ width: 50, height: 25, backgroundColor: 'blue' }} />,
+    children: <div style={{ width: 50, height: 25, backgroundColor: 'cyan' }} />,
   },
   parameters: {
     docs: {

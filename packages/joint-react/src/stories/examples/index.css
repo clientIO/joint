@@ -10,10 +10,18 @@
   cursor: move;
   box-shadow: 8px 12px 26px -10px rgba(133, 123, 123, 0.75);
 }
-
 .node:hover {
   background-color: #f9f9f9;
   border: 1px solid #ccc;
+}
+
+.intersected {
+  background-color: #f57dbd;
+  border: 1px solid black;
+}
+.intersected:hover {
+  background-color: #f57dbd;
+  border: 1px solid black;
 }
 
 .minimap {
@@ -58,4 +66,27 @@
 .highlighted {
   stroke: red;
   stroke-width: 2px;
+}
+
+.rotatable-node__handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #3367d9;
+  left: 50%;
+  top: -30px;
+  border-radius: 100%;
+  transform: translate(-50%, -50%);
+  cursor: alias;
+}
+
+.rotatable-node__handle:after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 2px;
+  height: 30px;
+  background: #3367d9;
+  left: 4px;
+  top: 5px;
 }

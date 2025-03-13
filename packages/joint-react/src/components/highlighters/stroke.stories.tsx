@@ -19,6 +19,6 @@ export const Default: Story = {
     useFirstSubpath: true,
     strokeWidth: 3,
     stroke: '#FF0000',
-    children: <rect width={100} height={50} fill="blue" />,
+    children: <rect width={100} height={50} fill="cyan" />,
   },
 };

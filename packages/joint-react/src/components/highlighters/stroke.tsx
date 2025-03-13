@@ -30,6 +30,10 @@ export interface StrokeHighlighterProps extends PropsWithChildren, React.SVGProp
    * When enabled the stroke width of the highlighter is not dependent on the transformations of the paper (e.g. zoom level). It defaults to false.
    */
   readonly nonScalingStroke?: boolean;
+  /**
+   * If the highlighter is disabled or not.
+   */
+  readonly isDisabled?: boolean;
 }
 
 /**
@@ -37,8 +41,17 @@ export interface StrokeHighlighterProps extends PropsWithChildren, React.SVGProp
  * @see https://docs.jointjs.com/api/highlighters/#stroke
  */
 function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
-  const { children, layer, padding, rx, ry, useFirstSubpath, nonScalingStroke, ...svgAttributes } =
-    props;
+  const {
+    children,
+    layer,
+    padding,
+    rx,
+    ry,
+    useFirstSubpath,
+    nonScalingStroke,
+    isDisabled,
+    ...svgAttributes
+  } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
     const data: dia.HighlighterView.Options = {
       padding,
@@ -57,7 +70,7 @@ function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGEle
   }, []);
 
   return (
-    <Custom options={options} ref={forwardedRef} onAdd={onAdd}>
+    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isDisabled={isDisabled}>
       {children}
     </Custom>
   );

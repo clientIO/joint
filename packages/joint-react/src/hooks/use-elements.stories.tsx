@@ -23,7 +23,7 @@ export const Default: Story = {
         All elements are: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="blue" />;
+            return <rect width={width} height={height} fill="cyan" />;
           }}
         />
       </span>
@@ -40,7 +40,7 @@ export const WithSelectedJustIds: Story = {
         Element ids are: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="blue" />;
+            return <rect width={width} height={height} fill="cyan" />;
           }}
         />
       </span>
@@ -57,7 +57,7 @@ export const WithGetJustSize: Story = {
         Size of elements is: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="blue" />;
+            return <rect width={width} height={height} fill="cyan" />;
           }}
         />
       </span>
@@ -80,7 +80,7 @@ export const WithJustPosition: Story = {
         Position is: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="blue" />;
+            return <rect width={width} height={height} fill="cyan" />;
           }}
         />
       </span>
@@ -104,7 +104,7 @@ export const WithJustPositionButNotReRenderBecauseCompareFN: Story = {
         Position is: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="blue" />;
+            return <rect width={width} height={height} fill="cyan" />;
           }}
         />
       </span>
@@ -124,7 +124,7 @@ export const WithAdditionalData: Story = {
         Element with new data are: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="blue" />;
+            return <rect width={width} height={height} fill="cyan" />;
           }}
         />
       </span>

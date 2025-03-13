@@ -46,7 +46,7 @@ const initialEdges = createLinks([
     type: 'standard.ShadowLink',
     attrs: {
       line: {
-        fill: 'blue',
+        fill: 'cyan',
         stroke: 'magenta',
       },
     },

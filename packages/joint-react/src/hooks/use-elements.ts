@@ -52,15 +52,17 @@ import type { GraphElement, GraphElementBase, GraphElements } from '../types/ele
  * @param {Function=} isEqual The function used to decide equality. @default util.isEqual
  * @returns {R} The selected elements.
  */
+
 export function useElements<T extends GraphElementBase = GraphElement, R = T[]>(
-  selector: (items: GraphElements) => R = (items) => items.map((item) => item) as R,
+  selector: (items: GraphElements<T>) => R = (items) => items.map((item) => item) as R,
   isEqual: (a: R, b: R) => boolean = util.isEqual
 ): R {
   const { subscribe, getElements } = useGraphStore();
+  const typedGetElements = getElements as () => GraphElements<T>;
   const elements = useSyncExternalStoreWithSelector(
     subscribe,
-    getElements,
-    getElements,
+    typedGetElements,
+    typedGetElements,
     selector,
     isEqual
   );

@@ -23,7 +23,7 @@ const DEFAULT_DEPENDENCIES: unknown[] = [];
      (element) => {
        element.attr({
          rect: {
-           fill: 'blue',
+           fill: 'cyan',
            stroke: isPressed ? 'red' : 'black',
            strokeWidth: 10,
          },

@@ -25,7 +25,7 @@ class LinkModel extends shapes.standard.Link {
       type: 'asd',
       attrs: {
         line: {
-          stroke: 'blue', // Set stroke color
+          stroke: 'cyan', // Set stroke color
           strokeWidth: 10, // Set stroke width
           strokeDasharray: '5,5', // Makes the line da
         },

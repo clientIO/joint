@@ -21,19 +21,29 @@ export type OnAddHighlighter<
 export interface CustomHighlighterProps<
   Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
 > {
+  /**
+   * Child elements to render inside the highlighter.
+   */
   readonly children?: React.ReactNode | null | false;
+  /**
+   * Callback to add the highlighter.
+   */
   readonly onAdd: OnAddHighlighter<Highlighter>;
 
   /**
    * This should be memoized
    */
   readonly options: Highlighter;
+  /**
+   * If the highlighter is disabled or not.
+   */
+  readonly isDisabled?: boolean;
 }
 
 function RawComponent<
   Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
 >(props: CustomHighlighterProps<Highlighter>, forwardedRef: React.Ref<SVGElement>) {
-  const { children, options, onAdd } = props;
+  const { children, options, onAdd, isDisabled } = props;
   const id = useCellId();
   const paper = usePaper();
   const highlighterId = useId();
@@ -64,7 +74,7 @@ function RawComponent<
     // @ts-expect-error
     instance.update();
   }, []);
-  useHighlighter(create, update, options);
+  useHighlighter(create, update, options, isDisabled);
   return elementChildren;
 }
 

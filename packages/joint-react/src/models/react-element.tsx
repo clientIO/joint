@@ -1,11 +1,8 @@
-import { dia, util } from '@joint/core';
+import { dia } from '@joint/core';
+import { jsx } from 'src/utils/joint-jsx/jsx-to-markup';
 export const REACT_TYPE = 'ReactElement';
-const elementMarkup = util.svg/* xml */ `
-    <rect @selector="rect">
-    </rect>
-    
-`;
 
+const elementMarkup = jsx(<rect joint-selector="rect" />);
 /**
  * A custom JointJS element that can render React components.
  * @group Models

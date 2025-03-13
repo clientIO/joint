@@ -6,55 +6,60 @@ import {
   HTMLNode,
   Paper,
   useElements,
+  useSetElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { useCallback, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { drag } from 'd3-drag';
+import { select } from 'd3-selection';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
+  { id: '1', data: { label: 'Node 1' }, x: 20, y: 100 },
+  { id: '2', data: { label: 'Node 2' }, x: 200, y: 100 },
 ]);
 
 const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ResizableNode({ data }: Readonly<BaseElementWithData>) {
+function ResizableNode({ data, id }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
-  const handleMouseDown = useCallback((event: React.MouseEvent) => {
-    const node = nodeRef.current;
-    if (!node) return;
 
-    // Get the node’s bounding rectangle
-    const rect = node.getBoundingClientRect();
-    const threshold = 20; // pixels from the bottom-right corner considered as resize area
-
-    // Calculate how far from the left/top the click was
-    const offsetX = event.clientX - rect.left;
-    const offsetY = event.clientY - rect.top;
-
-    // If the click is within the bottom-right "resize" zone,
-    // stop propagation so that JointJS doesn't start dragging the node.
-    if (rect.width - offsetX < threshold && rect.height - offsetY < threshold) {
-      event.stopPropagation();
+  const setRotation = useSetElement(id, 'angle');
+  useEffect(() => {
+    if (!nodeRef.current) {
+      return;
     }
-  }, []);
+
+    const selection = select(nodeRef.current);
+    const dragHandler = drag().on('drag', (event) => {
+      const offset = 60;
+      const dx = event.x - offset;
+      const dy = event.y - offset;
+      const rad = Math.atan2(dx, dy);
+      const deg = rad * (180 / Math.PI);
+
+      setRotation(180 - deg);
+    });
+
+    selection.call(dragHandler as never);
+  }, [setRotation]);
 
   return (
     <HTMLNode
-      ref={nodeRef}
       className="resizable-node"
-      onMouseDown={handleMouseDown} // prevent drag events from propagating
+      // onMouseDown={handleMouseDown} // prevent drag events from propagating
     >
+      <div className="rotatable-node__handle" ref={nodeRef} />
       {data.label}
     </HTMLNode>
   );
 }
 
 function Main() {
-  const elementsSize = useElements((items) =>
-    items.map(({ width, height }) => `${width},${height}`)
+  const elementRotation = useElements((items) =>
+    items.map(({ angle }) => `${angle?.toFixed(2)} deg`)
   );
 
   return (
@@ -68,7 +73,7 @@ function Main() {
         }}
       >
         NodeID,Width, Height:
-        {elementsSize.map((position, index) => (
+        {elementRotation.map((position, index) => (
           // eslint-disable-next-line @eslint-react/no-array-index-key
           <div key={`${index}-${position}`} style={{ marginLeft: 10 }}>
             {index}, {position}

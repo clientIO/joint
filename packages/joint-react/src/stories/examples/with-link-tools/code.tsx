@@ -42,7 +42,7 @@ const infoButton = new linkTools.Button({
       />
     </>
   ),
-  distance: 60,
+  distance: 20,
   offset: 0,
 });
 

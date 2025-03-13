@@ -14,7 +14,7 @@ function Hook({ id, width, height }: SimpleElement) {
     (element) => {
       element.attr({
         rect: {
-          fill: 'blue',
+          fill: 'cyan',
           stroke: isPressed ? 'red' : 'black',
           strokeWidth: 10,
         },

@@ -5,17 +5,9 @@ import Code from './code?raw';
 
 <Meta of={Stories} />
 
-# Example showing rotatable node.
-User can rotate node to any direction.
-For handling rotation and anchor points we leverage external libraries:
-```tsx
-import { drag } from 'd3-drag';
-import { select } from 'd3-selection';
-```
-You can use anything other.
-
-
-
+# Example showing proximity link creation between nodes.
+Move nodes around and it will dynamically connect to nodes,
+when click is released, links are removed.
 ### Demo
 <Canvas of={Stories.Default} />
 

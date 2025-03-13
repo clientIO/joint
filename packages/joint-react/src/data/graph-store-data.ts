@@ -1,6 +1,6 @@
 import { util, type dia } from '@joint/core';
 import { getElement, getLink } from '../utils/cell/get-cell';
-import { GraphElements } from '../types/element-types';
+import { GraphElements, type GraphElement, type GraphElementBase } from '../types/element-types';
 import { GraphLinks } from '../types/link-types';
 
 /**
@@ -18,8 +18,8 @@ import { GraphLinks } from '../types/link-types';
  * const storeData = new GraphStoreData(graph);
  * storeData.update(graph);
  */
-export class GraphStoreData<Data = unknown> {
-  elements = new GraphElements<Data>();
+export class GraphStoreData<Element extends GraphElementBase = GraphElement> {
+  elements = new GraphElements<Element>();
   links = new GraphLinks();
 
   constructor(graph: dia.Graph) {
@@ -30,7 +30,7 @@ export class GraphStoreData<Data = unknown> {
    * Update element in the store. It also compare previous and new element.
    */
   updateElement(cell: dia.Cell<dia.Cell.Attributes>): boolean {
-    const newElement = getElement<Data>(cell);
+    const newElement = getElement<Element>(cell);
     if (util.isEqual(newElement, this.elements.get(cell.id))) {
       return false;
     }
@@ -68,7 +68,7 @@ export class GraphStoreData<Data = unknown> {
       }
     }
     if (areElementsChanged) {
-      this.elements = new GraphElements<Data>([...this.elements.values()]);
+      this.elements = new GraphElements<Element>([...this.elements.values()]);
     }
     if (areLinksChanged) {
       this.links = new GraphLinks([...this.links.values()]);

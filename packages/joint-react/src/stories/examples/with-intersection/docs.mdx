@@ -5,16 +5,9 @@ import Code from './code?raw';
 
 <Meta of={Stories} />
 
-# Example showing rotatable node.
-User can rotate node to any direction.
-For handling rotation and anchor points we leverage external libraries:
-```tsx
-import { drag } from 'd3-drag';
-import { select } from 'd3-selection';
-```
-You can use anything other.
-
-
+# Example showing intersection between nodes.
+Intersection is derived from the x and y and width and height of the nodes.
+To play with demo, just move nodes around and see the intersection between them.
 
 ### Demo
 <Canvas of={Stories.Default} />

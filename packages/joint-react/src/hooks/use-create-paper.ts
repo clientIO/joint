@@ -76,14 +76,13 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
         }
       );
     }
-    if (restOptions) {
-      controller.listenTo(paper, 'all', (type: PaperEventType, ...args: unknown[]) =>
-        handleEvent(type, restOptions, ...args)
-      );
-    }
+
+    controller.listenTo(paper, 'all', (type: PaperEventType, ...args: unknown[]) =>
+      handleEvent(type, restOptions, ...args)
+    );
 
     return () => controller.stopListening();
-  }, [hasRenderElement, onRenderElement, paper, resizePaperContainer, restOptions]);
+  }, [hasRenderElement, onRenderElement, paper, resizePaperContainer]);
 
   useEffect(() => {
     paperHtmlElement.current?.append(paper.el);

@@ -22,6 +22,10 @@ export interface MaskHighlighterProps extends React.SVGProps<SVGPathElement>, Pr
    * The space between the stroke and the element
    */
   readonly padding?: number;
+  /**
+   * If the highlighter is disabled or not.
+   */
+  readonly isDisabled?: boolean;
 }
 
 const DEFAULT_MASK_HIGHLIGHTER_PROPS: MaskHighlighterProps = {
@@ -36,7 +40,7 @@ const DEFAULT_MASK_HIGHLIGHTER_PROPS: MaskHighlighterProps = {
  * @see https://docs.jointjs.com/api/highlighters/#mask
  */
 function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
-  const { layer, children, padding, ...svgAttributes } = props;
+  const { layer, children, padding, isDisabled, ...svgAttributes } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
     const data: dia.HighlighterView.Options = {
       layer,
@@ -56,7 +60,7 @@ function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGEleme
   }, []);
 
   return (
-    <Custom options={options} ref={forwardedRef} onAdd={onAdd}>
+    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isDisabled={isDisabled}>
       {children}
     </Custom>
   );

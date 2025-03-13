@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { GraphElement } from '../../types/element-types';
+import type { GraphElement, GraphElementBase } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 
 export interface Ports {
@@ -9,9 +9,11 @@ export interface Ports {
 
 export type Attributes = Omit<dia.Element.Attributes, 'size' | 'position'>;
 
-export type GraphCell<Data = unknown> = GraphElement<Data> | GraphLink;
+export type GraphCell<Element extends GraphElementBase = GraphElement> = Element | GraphLink;
 
-export function getElement<Data = unknown>(cell: dia.Cell<Attributes>): GraphElement<Data> {
+export function getElement<Element extends GraphElementBase = GraphElement>(
+  cell: dia.Cell<Attributes>
+): Element {
   const { size, position, ...attributes } = cell.attributes;
   return {
     ...attributes,
@@ -40,9 +42,11 @@ export function getLink(cell: dia.Cell<dia.Cell.Attributes>): GraphLink {
     defaultLabel: cell.get('defaultLabel'),
   };
 }
-export function getCell<Data = unknown>(cell: dia.Cell<dia.Cell.Attributes>): GraphCell<Data> {
+export function getCell<Element extends GraphElementBase = GraphElement>(
+  cell: dia.Cell<dia.Cell.Attributes>
+): GraphCell<Element> {
   if (cell.isElement()) {
-    return getElement<Data>(cell);
+    return getElement<Element>(cell);
   }
   return getLink(cell);
 }

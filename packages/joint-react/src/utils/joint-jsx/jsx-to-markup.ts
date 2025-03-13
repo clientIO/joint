@@ -30,6 +30,25 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function isWithChildren(value: unknown): value is { children: JSX.Element[] } {
   return isRecord(value) && hasChildren(value);
 }
+function extractJointAttributes(
+  props: unknown
+): [Record<string, unknown>, Record<string, unknown>] {
+  // extract all attributes starting with 'joint-'
+  const newProps: Record<string, unknown> = {};
+  const jointProps: Record<string, unknown> = {};
+  if (!isRecord(props)) {
+    return [newProps, jointProps];
+  }
+  for (const key in props) {
+    if (key.startsWith('joint-')) {
+      const keyWithoutPrefix = key.slice(6);
+      jointProps[keyWithoutPrefix] = props[key];
+    } else {
+      newProps[key] = props[key];
+    }
+  }
+  return [newProps, jointProps];
+}
 
 function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []) {
   if (!isValidElement(element)) {
@@ -55,13 +74,20 @@ function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []
   }
 
   if (!isWithChildren(props)) {
-    markups.push({ tagName: type, children: [], attributes: props });
+    const [newProps, jointProps] = extractJointAttributes(props);
+    markups.push({ tagName: type, children: [], attributes: newProps, ...jointProps });
     return markups;
   }
 
   const { children, ...attributes } = props;
   if (isString(children)) {
-    markups.push({ tagName: type, children: [children], attributes });
+    const [newProps, jointProps] = extractJointAttributes(attributes);
+    markups.push({
+      tagName: type,
+      children: [children],
+      attributes: newProps,
+      ...jointProps,
+    });
     return markups;
   }
 
@@ -78,7 +104,8 @@ function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []
   if (!isString(type)) {
     return childrenMarkup;
   }
-  markups.push({ tagName: type, children: childrenMarkup, attributes });
+  const [newProps, jointProps] = extractJointAttributes(attributes);
+  markups.push({ tagName: type, children: childrenMarkup, attributes: newProps, ...jointProps });
   return markups;
 }
 

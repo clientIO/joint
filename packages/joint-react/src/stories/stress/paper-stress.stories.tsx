@@ -164,7 +164,7 @@ export const WithReactElements: Story = {
         <HTMLNode
           style={{
             fontSize: 12,
-            background: 'blue',
+            background: 'cyan',
             overflow: 'hidden',
             width: element.width,
             height: element.height,

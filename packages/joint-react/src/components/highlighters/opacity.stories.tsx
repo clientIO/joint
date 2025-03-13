@@ -13,13 +13,13 @@ export default meta;
 
 export const Default: Story = {
   args: {
-    children: <rect width={100} height={50} fill="blue" />,
+    children: <rect width={100} height={50} fill="cyan" />,
   },
 };
 
 export const WithAlphaValue: Story = {
   args: {
     alphaValue: 0.5,
-    children: <rect width={100} height={50} fill="blue" />,
+    children: <rect width={100} height={50} fill="cyan" />,
   },
 };

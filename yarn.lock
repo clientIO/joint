@@ -3231,7 +3231,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/layout-directed-graph@workspace:^, @joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph":
+"@joint/layout-directed-graph@*, @joint/layout-directed-graph@workspace:^, @joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph":
   version: 0.0.0-use.local
   resolution: "@joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph"
   dependencies:
@@ -3263,6 +3263,7 @@ __metadata:
     "@eslint/compat": ^1.1.1
     "@eslint/js": 9.19.0
     "@joint/core": 4.1.3
+    "@joint/layout-directed-graph": "*"
     "@storybook/addon-a11y": ^8.6.3
     "@storybook/addon-docs": 8.6.3
     "@storybook/addon-essentials": 8.6.3
@@ -3280,6 +3281,8 @@ __metadata:
     "@testing-library/jest-dom": ^6.6.3
     "@testing-library/react": ^16.0.1
     "@testing-library/react-hooks": ^8.0.1
+    "@types/d3-drag": ^3.0.7
+    "@types/d3-selection": ^3.0.11
     "@types/eslint": 9.6.1
     "@types/jest": 29.5.14
     "@types/react": 19.0.8
@@ -4735,6 +4738,22 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: 469bd85e29a35977099a3745c78e489916011169a664e97c4c3d6538143b0a16e4cc72b05b407dc008df3892ed7bf595f9b7c0f1f4680e169565ee9d64966bde
+  languageName: node
+  linkType: hard
+
+"@types/d3-drag@npm:^3.0.7":
+  version: 3.0.7
+  resolution: "@types/d3-drag@npm:3.0.7"
+  dependencies:
+    "@types/d3-selection": "*"
+  checksum: 1107cb1667ead79073741c06ea4a9e8e4551698f6c9c60821e327a6aa30ca2ba0b31a6fe767af85a2e38a22d2305f6c45b714df15c2bba68adf58978223a5fc5
+  languageName: node
+  linkType: hard
+
+"@types/d3-selection@npm:*, @types/d3-selection@npm:^3.0.11":
+  version: 3.0.11
+  resolution: "@types/d3-selection@npm:3.0.11"
+  checksum: 4b76630f76dffdafc73cdc786d73e7b4c96f40546483074b3da0e7fe83fd7f5ed9bc6c50f79bcef83595f943dcc9ed6986953350f39371047af644cc39c41b43
   languageName: node
   linkType: hard
 

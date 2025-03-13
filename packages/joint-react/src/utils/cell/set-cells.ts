@@ -12,7 +12,7 @@ interface Options {
 }
 
 // Process a link: convert GraphLink to a standard JointJS link if needed.
-export function processLink(link: dia.Link | GraphLink) {
+export function processLink(link: dia.Link | GraphLink): dia.Link | dia.Cell.JSON {
   if (isLinkInstance(link)) {
     const json = link.toJSON();
     return {
@@ -27,7 +27,7 @@ export function processLink(link: dia.Link | GraphLink) {
     type: link.type ?? 'standard.Link',
     source: { id: link.source },
     target: { id: link.target },
-  };
+  } as dia.Cell.JSON;
 }
 
 export function setLinks(options: Options) {

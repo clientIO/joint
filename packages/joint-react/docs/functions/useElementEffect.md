@@ -49,7 +49,7 @@ const [isPressed, setIsPressed] = useState(false);
     (element) => {
       element.attr({
         rect: {
-          fill: 'blue',
+          fill: 'cyan',
           stroke: isPressed ? 'red' : 'black',
           strokeWidth: 10,
         },

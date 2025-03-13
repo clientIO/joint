@@ -4,7 +4,6 @@ import {
   createLinks,
   GraphProvider,
   HTMLNode,
-  MeasuredNode,
   Paper,
   useElements,
   type InferElement,
@@ -43,24 +42,13 @@ function ResizableNode({ data }: Readonly<BaseElementWithData>) {
   }, []);
 
   return (
-    <foreignObject overflow={'visible'}>
-      <MeasuredNode
-        ref={nodeRef}
-        onSetSize={(element, size) => {
-          element.set({
-            size,
-          });
-        }}
-      >
-        <div
-          ref={nodeRef}
-          className="resizable-node"
-          onMouseDown={handleMouseDown} // prevent drag events from propagating
-        >
-          {data.label}
-        </div>
-      </MeasuredNode>
-    </foreignObject>
+    <HTMLNode
+      ref={nodeRef}
+      className="resizable-node"
+      onMouseDown={handleMouseDown} // prevent drag events from propagating
+    >
+      {data.label}
+    </HTMLNode>
   );
 }
 

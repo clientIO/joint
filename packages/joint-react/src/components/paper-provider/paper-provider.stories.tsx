@@ -22,7 +22,7 @@ const meta: Meta<typeof Paper> = {
 export default meta;
 
 function RenderRectElement({ width, height }: SimpleElement) {
-  return <rect width={width} height={height} fill="blue" />;
+  return <rect width={width} height={height} fill="cyan" />;
 }
 
 function RenderHtmlElement({ width, height }: SimpleElement) {
