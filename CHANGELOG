@@ -1,3 +1,8 @@
+13-03-2025 (v4.1.4)
+
+  @joint/layout-directed-graph
+  * layout.DirectedGraph - fix `resizeClusters` option logic to only resize top-level clusters whose children were provided to the `layout()` function
+
 04-03-2025 (v4.1.3)
 
   @joint/layout-directed-graph
