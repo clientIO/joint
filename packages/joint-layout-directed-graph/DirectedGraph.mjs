@@ -174,9 +174,9 @@ export const DirectedGraph = {
 
         if (opt.resizeClusters) {
             // Resize and reposition cluster elements
-            // Filter out top-level clusters and map them to cells
+            // Filter out top-level clusters (nodes without a parent and with children) and map them to cells
             const topLevelClusters = glGraph.nodes()
-                .filter(v => !glGraph.parent(v))
+                .filter(v => !glGraph.parent(v) && glGraph.children(v).length > 0)
                 .map(graph.getCell.bind(graph));
 
             // Since the `opt.deep` is set to `true`, the `fitToChildren` method is applied in reverse-depth

@@ -354,5 +354,33 @@ QUnit.module('DirectedGraph', function(hooks) {
                 nextExpectedSize.height += padding * 2;
             }
         });
+
+        QUnit.test('should not resize clusters if `glGraph` does not hold reference to their children', function(assert) {
+
+            const containerSize = {
+                width: 500,
+                height: 500
+            };
+
+            const container1 = new joint.shapes.standard.Rectangle({ size: containerSize });
+            const container2 = new joint.shapes.standard.Rectangle({ size: containerSize });
+
+            const rect1 = new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }});
+            const rect2 = new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }});
+
+            container1.embed(rect1);
+            container2.embed(rect2);
+
+            graph.resetCells([container1, container2, rect1, rect2]);
+
+            // Do not pass the children to the layout function
+            DirectedGraph.layout([container1, container2], {
+                resizeClusters: true
+            });
+
+            // Size remains unchanged
+            assert.deepEqual(container1.size(), containerSize);
+            assert.deepEqual(container2.size(), containerSize);
+        });
     });
 });
