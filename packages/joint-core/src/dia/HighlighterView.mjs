@@ -71,7 +71,7 @@ export const HighlighterView = mvc.View.extend({
             }
         } else if (nodeSelector) {
             el = V.toNode(nodeSelector);
-            if (!(el instanceof SVGElement)) el = null;
+            if (!(el instanceof SVGElement) || !cellView.el.contains(el)) el = null;
         }
         return el ? el : null;
     },
