@@ -1808,20 +1808,52 @@ export const Paper = View.extend({
     hideView: function(cell, opt) {
         const view = this.findViewByModel(cell);
         if (!view) return null;
+
+        if (this.isViewHidden(cell)) return view;
+
+        // before hiding the cell, hide connected links (if any):
+        if (cell.isElement()) {
+            const { graph } = cell;
+            const connectedLinks = graph.getConnectedLinks(cell, { indirect: true });
+            connectedLinks.forEach((link) => {
+                // simple logic because we hide the link if any end cell is hidden
+                this.hideView(link)
+            });
+        }
+
         // first, update the hidden views hash:
         this._hiddenViews[cell.id] = view;
         // then, request update (refers to hidden views hash):
         this.requestViewUpdate(view, view.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
+
         return view;
     },
 
     showView: function(cell, opt) {
         const view = this.renderView(cell);
         if (!view) return null;
+
+        if (!this.isViewHidden(cell)) return view;
+
         // first, update the hidden views hash:
         delete this._hiddenViews[cell.id];
         // then, request update (refers to hidden views hash):
         this.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+
+        // after showing the cell, show connected links (if any):
+        if (cell.isElement()) {
+            const { graph } = cell;
+            const connectedLinks = graph.getConnectedLinks(cell, { indirect: true });
+            connectedLinks.forEach((link) => {
+                // additional logic necessary because we can only show the link if both end cells are visible
+                const sourceCell = link.getSourceCell();
+                const targetCell = link.getTargetCell();
+                if (sourceCell && this.isViewHidden(sourceCell)) return;
+                if (targetCell && this.isViewHidden(targetCell)) return;
+                this.showView(link)
+            });
+        }
+
         return view;
     },
 
