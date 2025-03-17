@@ -1246,7 +1246,7 @@ export const Paper = View.extend({
                 if ((currentFlag & view.FLAG_REMOVE) === 0) {
                     // We should never check a view for viewport if we are about to remove the view
                     var isDetached = cid in updates.unmounted;
-                    if (view.DETACHABLE && !this.isViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
+                    if (view.DETACHABLE && !this.isCellViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
                         // Unmount View
                         if (!isDetached) {
                             this.registerUnmountedView(view);
@@ -1324,7 +1324,7 @@ export const Paper = View.extend({
             if (!(cid in unmounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (view.DETACHABLE && !this.isViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, false, this)) {
+            if (view.DETACHABLE && !this.isCellViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, false, this)) {
                 // Push at the end of all unmounted ids, so this can be check later again
                 unmountedCids.push(cid);
                 continue;
@@ -1352,7 +1352,7 @@ export const Paper = View.extend({
             var view = views[cid];
             if (!view) continue;
             // reverse boolean logic so that short-circuiting can make it more efficient (a && !b && c && !d <=> !a || b || !c || d):
-            if (!view.DETACHABLE || this.isViewHidden(view.model) || !viewportFn || viewportFn.call(this, view, true, this)) {
+            if (!view.DETACHABLE || this.isCellViewHidden(view.model) || !viewportFn || viewportFn.call(this, view, true, this)) {
                 // Push at the end of all mounted ids, so this can be check later again
                 mountedCids.push(cid);
                 continue;
@@ -1372,7 +1372,7 @@ export const Paper = View.extend({
         const updates = this._updates;
         const { mounted, unmounted } = updates;
         // reverse boolean logic so that short-circuiting can make it more efficient (a && !b && c && !d <=> !a || b || !c || d):
-        const visible = (!cellView.DETACHABLE || this.isViewHidden(cellView.model) || !viewportFn || viewportFn.call(this, cellView, true, this));
+        const visible = (!cellView.DETACHABLE || this.isCellViewHidden(cellView.model) || !viewportFn || viewportFn.call(this, cellView, true, this));
 
         let isUnmounted = false;
         let isMounted = false;
@@ -1805,11 +1805,11 @@ export const Paper = View.extend({
         });
     },
 
-    hideView: function(cell, opt) {
+    hideCellView: function(cell, opt) {
         const view = this.findViewByModel(cell);
         if (!view) return null;
 
-        if (this.isViewHidden(cell)) return view;
+        if (this.isCellViewHidden(cell)) return view;
 
         // before hiding the cell, hide connected links (if any):
         if (cell.isElement()) {
@@ -1817,7 +1817,7 @@ export const Paper = View.extend({
             const connectedLinks = graph.getConnectedLinks(cell, { indirect: true });
             connectedLinks.forEach((link) => {
                 // simple logic because we hide the link if any end cell is hidden
-                this.hideView(link)
+                this.hideCellView(link)
             });
         }
 
@@ -1829,11 +1829,11 @@ export const Paper = View.extend({
         return view;
     },
 
-    showView: function(cell, opt) {
+    showCellView: function(cell, opt) {
         const view = this.renderView(cell);
         if (!view) return null;
 
-        if (!this.isViewHidden(cell)) return view;
+        if (!this.isCellViewHidden(cell)) return view;
 
         // first, update the hidden views hash:
         delete this._hiddenViews[cell.id];
@@ -1848,16 +1848,16 @@ export const Paper = View.extend({
                 // additional logic necessary because we can only show the link if both end cells are visible
                 const sourceCell = link.getSourceCell();
                 const targetCell = link.getTargetCell();
-                if (sourceCell && this.isViewHidden(sourceCell)) return;
-                if (targetCell && this.isViewHidden(targetCell)) return;
-                this.showView(link)
+                if (sourceCell && this.isCellViewHidden(sourceCell)) return;
+                if (targetCell && this.isCellViewHidden(targetCell)) return;
+                this.showCellView(link)
             });
         }
 
         return view;
     },
 
-    isViewHidden: function(cell) {
+    isCellViewHidden: function(cell) {
         if (!cell) return false;
         return (cell.id in this._hiddenViews);
     },
