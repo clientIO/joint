@@ -1811,20 +1811,24 @@ export const Paper = View.extend({
 
         if (this.isCellViewHidden(cell)) return view;
 
-        // before hiding the cell, hide connected links (if any):
-        if (cell.isElement()) {
-            const { graph } = cell;
-            const connectedLinks = graph.getConnectedLinks(cell, { indirect: true });
-            connectedLinks.forEach((link) => {
-                // simple logic because we hide the link if any end cell is hidden
-                this.hideCellView(link)
-            });
-        }
-
         // first, update the hidden views hash:
         this._hiddenViews[cell.id] = view;
         // then, request update (refers to hidden views hash):
         this.requestViewUpdate(view, view.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
+
+        // after hiding the cell, hide connected links (if any):
+        if (cell.isElement()) {
+            const { graph } = cell;
+            const connectedLinks = graph.getConnectedLinks(cell, { indirect: true });
+            connectedLinks.forEach((link) => {
+                // hide the link if any end cell is invisible
+                const sourceCell = link.getSourceCell();
+                const hasHiddenSourceCell = (sourceCell && this.isCellViewHidden(sourceCell));
+                const targetCell = link.getTargetCell();
+                const hasHiddenTargetCell = (targetCell && this.isCellViewHidden(targetCell));
+                if (hasHiddenSourceCell || hasHiddenTargetCell) this.hideCellView(link);
+            });
+        }
 
         return view;
     },
@@ -1845,12 +1849,12 @@ export const Paper = View.extend({
             const { graph } = cell;
             const connectedLinks = graph.getConnectedLinks(cell, { indirect: true });
             connectedLinks.forEach((link) => {
-                // additional logic necessary because we can only show the link if both end cells are visible
+                // only show the link if both end cells are visible
                 const sourceCell = link.getSourceCell();
+                const hasHiddenSourceCell = (sourceCell && this.isCellViewHidden(sourceCell));
                 const targetCell = link.getTargetCell();
-                if (sourceCell && this.isCellViewHidden(sourceCell)) return;
-                if (targetCell && this.isCellViewHidden(targetCell)) return;
-                this.showCellView(link)
+                const hasHiddenTargetCell = (targetCell && this.isCellViewHidden(targetCell));
+                if (!hasHiddenSourceCell && !hasHiddenTargetCell) this.showCellView(link);
             });
         }
 
