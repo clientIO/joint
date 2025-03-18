@@ -1818,7 +1818,7 @@ export const Paper = View.extend({
     showCellView: function(cell, opt) {
         if (!cell) return null;
 
-        // only elements can be explicitly hidden
+        // only elements can be explicitly shown
         // - links are handled by `isCellViewHidden()` (see below)
         if (!cell.isElement()) return null;
 
@@ -1827,7 +1827,6 @@ export const Paper = View.extend({
 
     isCellViewExplicitlyHidden: function(cell) {
         if (!cell) return false;
-
         return (cell.id in this._hiddenViews);
     },
 
