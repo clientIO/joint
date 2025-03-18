@@ -38,7 +38,7 @@ import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LayersNames, Layer } from './Layer.mjs';
+import { LayersNames } from './Layer.mjs';
 import { LayerView } from './LayerView.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
@@ -47,6 +47,8 @@ import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayer } from './layers/GridLayer.mjs';
+import { EmbeddingLayersController } from './controllers/EmbeddingLayersController';
+import { CellLayersController } from './controllers/CellLayersController';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -292,7 +294,9 @@ export const Paper = View.extend({
 
         connectionPointNamespace: connectionPoints,
 
-        overflow: false
+        overflow: false,
+
+        useLayersForEmbedding: false
     },
 
     events: {
@@ -410,17 +414,18 @@ export const Paper = View.extend({
             order: [],
         };
 
-        this._embeddingLayers = {};
-
-        this._graphLayers = model.get('layers');
-
         this.cloneOptions();
         this.render();
         this._setDimensions();
         this.startListening();
 
-        this._graphLayers = [];
-        this.updateGraphLayers(this.model.get('layers'));
+        if (options.useLayersForEmbedding) {
+            this.embeddingLayersController = new EmbeddingLayersController({ graph: model, paper: this });
+        }
+
+        if (options.enableCellLayers) {
+            this.cellLayersController = new CellLayersController({ graph: model, paper: this });
+        }
 
         // Hash of all cell views.
         this._views = {};
@@ -464,11 +469,6 @@ export const Paper = View.extend({
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'sort', this.onGraphSort)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
-
-        this.listenTo(model, 'embeddingLayer:insert', this.onEmbeddingLayerInsert);
-        this.listenTo(model, 'embeddingLayer:remove', this.onEmbeddingLayerRemove);
-
-        this.listenTo(model, 'change:layers', this.onLayersChange);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -526,50 +526,6 @@ export const Paper = View.extend({
         if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
             this.sortViews();
         }
-    },
-
-    onEmbeddingLayerInsert: function(layer, opt) {
-        const cellId = layer.get('name');
-        const layerView = this.createLayer({ name: cellId, model: layer });
-
-        const cellView = this._views[cellId];
-        if (cellView.isMounted()) {
-            cellView.el.after(layerView.el);
-        }
-
-        this._embeddingLayers[cellId] = layerView;
-        this._layers.viewsMap[cellId] = layerView;
-    },
-
-    onEmbeddingLayerRemove: function(layer, opt) {
-        const cellId = layer.get('name');
-        const layerView = this._embeddingLayers[cellId];
-
-        delete this._embeddingLayers[cellId];
-        delete this._layers.viewsMap[cellId];
-
-        layerView.remove();
-    },
-
-    onLayersChange: function(model, layers) {
-        this.updateGraphLayers(layers)
-    },
-
-    updateGraphLayers: function(layers) {
-        const removedLayerNames = this._graphLayers.filter(layer => !layers.some(l => l.name === layer.name)).map(layer => layer.name);
-        removedLayerNames.forEach(layerName => this.removeLayer(layerName));
-
-        this._graphLayers = this.model.get('layers');
-
-        this._graphLayers.forEach(layer => {
-            if (!this.hasLayerView(layer.name)) {
-                this.renderLayer({
-                    name: layer.name,
-                    model: layer
-                });
-            }
-            this.moveLayer(layer.name, LayersNames.FRONT);
-        });
     },
 
     cloneOptions: function() {
@@ -1521,6 +1477,9 @@ export const Paper = View.extend({
         //clean up all DOM elements/views to prevent memory leaks
         this.removeLayers();
         this.removeViews();
+
+        this.embeddingLayersController.stopListening();
+        this.cellLayersController.stopListening();
     },
 
     getComputedSize: function() {

@@ -6,6 +6,7 @@ import { Model } from '../mvc/Model.mjs';
 import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
+import { GraphLayersController } from './controllers/GraphLayersController';
 
 const GraphCells = Collection.extend({
 
@@ -71,26 +72,16 @@ export const Graph = Model.extend({
         opt = opt || {};
 
         this.defaultLayerName = LayersNames.CELLS;
-        this.activeLayerName = this.defaultLayerName;
 
         const defaultLayer = new Layer({
-            name: this.defaultLayerName,
-            displayName: 'Default'
+            name: this.defaultLayerName
         });
 
         this.set('layers', [
             defaultLayer
         ]);
 
-        this.layersMap = {
-            [defaultLayer.name]: defaultLayer
-        }
-
-        this.useLayersForEmbedding = opt.useLayersForEmbedding || false;
-
-        if (this.useLayersForEmbedding) {
-            this.embeddingLayers = {};
-        }
+        this.layersController = new GraphLayersController({ graph: this });
 
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
@@ -136,8 +127,6 @@ export const Graph = Model.extend({
         cells.on('change:source', this._restructureOnChangeSource, this);
         cells.on('change:target', this._restructureOnChangeTarget, this);
         cells.on('remove', this._removeCell, this);
-
-        cells.on('change:parent', this._onCellParentChange, this);
     },
 
     _restructureOnAdd: function(cell) {
@@ -154,15 +143,6 @@ export const Graph = Model.extend({
         } else {
             this._nodes[cell.id] = true;
         }
-
-        const layerName = cell.layer() || this.activeLayerName;
-        const layer = this.layersMap[layerName];
-
-        if (!cell.has('z')) {
-            cell.set('z', layer.maxZIndex() + 1);
-        }
-
-        layer.add(cell);
     },
 
     _restructureOnRemove: function(cell) {
@@ -179,26 +159,6 @@ export const Graph = Model.extend({
         } else {
             delete this._nodes[cell.id];
         }
-
-        const { layersMap, embeddingLayers, defaultLayerName, activeLayerName } = this;
-
-        // should be defined at any time ideally
-        const layerName = cell.layer() || defaultLayerName;
-
-        const layer = layersMap[layerName] || embeddingLayers[layerName];
-
-        layer.remove(cell);
-
-        if (embeddingLayers[cell.id]) {
-            const embeddingLayer = embeddingLayers[cell.id];
-            const cells = embeddingLayer.get('cells').models;
-            cells.forEach((cell) => {
-                layersMap[activeLayerName].add(cell);
-            });
-
-            this.trigger('embeddingLayer:remove', embeddingLayer, {});
-            delete embeddingLayers[cell.id];
-        }
     },
 
     _restructureOnReset: function(collection) {
@@ -210,11 +170,6 @@ export const Graph = Model.extend({
         this._in = {};
         this._nodes = {};
         this._edges = {};
-
-        const layers = this.get('layers');
-        for (let layerName in layers) {
-            layers[layerName].clear();
-        }
 
         cells.forEach(this._restructureOnAdd, this);
     },
@@ -240,32 +195,6 @@ export const Graph = Model.extend({
         var target = link.get('target');
         if (target.id) {
             (this._in[target.id] || (this._in[target.id] = {}))[link.id] = true;
-        }
-    },
-
-    _onCellParentChange: function(cell, parentId, opt) {
-        if (this.useLayersForEmbedding) {
-            const { layersMap, embeddingLayers, defaultLayerName, activeLayerName } = this;
-
-            const currentLayer = cell.layer() || defaultLayerName;
-
-            if (layersMap[currentLayer]) {
-                layersMap[currentLayer].remove(cell);
-            } else if (embeddingLayers[currentLayer]) {
-                embeddingLayers[currentLayer].remove(cell);
-            }
-
-            if (parentId && !embeddingLayers[parentId]) {
-                embeddingLayers[parentId] = new Layer({
-                    name: parentId,
-                    displayName: parentId
-                });
-                this.trigger('embeddingLayer:insert', embeddingLayers[parentId], {});
-            }
-
-            const targetLayer = embeddingLayers[parentId] || layersMap[activeLayerName];
-
-            targetLayer.add(cell);
         }
     },
 
@@ -515,7 +444,7 @@ export const Graph = Model.extend({
 
     removeLayer(layerName, opt) {
         if (layerName === this.defaultLayerName || layerName === this.activeLayerName) {
-            throw new Error(`dia.Graph: default or active layer cannot be removed.`);
+            throw new Error('dia.Graph: default or active layer cannot be removed.');
         }
 
         if (!this.layersMap[layerName]) {

@@ -195,8 +195,7 @@ export namespace dia {
 
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
-            cellModel?: typeof Cell,
-            useLayersForEmbedding?: boolean,
+            cellModel?: typeof Cell
         });
 
         addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
@@ -1448,6 +1447,9 @@ export namespace dia {
             beforeRender?: Paper.BeforeRenderCallback;
             afterRender?: Paper.AfterRenderCallback;
             overflow?: boolean;
+
+            useLayersForEmbedding?: boolean;
+            enableCellLayers?: boolean;
         }
 
         interface TransformToFitContentOptions {
