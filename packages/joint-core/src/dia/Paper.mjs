@@ -1806,64 +1806,93 @@ export const Paper = View.extend({
     },
 
     hideCellView: function(cell, opt) {
-        const view = this.findViewByModel(cell);
-        if (!view) return null;
+        if (!cell) return null;
 
-        if (this.isCellViewHidden(cell)) return view;
+        // only elements can be explicitly hidden
+        // - links are handled by `isCellViewHidden()` (see below)
+        if (!cell.isElement()) return null;
 
-        // first, update the hidden views hash:
-        this._hiddenViews[cell.id] = view;
-        // then, request update (refers to hidden views hash):
-        this.requestViewUpdate(view, view.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
-
-        // after hiding the cell, hide connected links (if any):
-        if (cell.isElement()) {
-            const { graph } = cell;
-            const connectedLinks = graph.getConnectedLinks(cell, { indirect: true });
-            connectedLinks.forEach((link) => {
-                // hide the link if any end cell is invisible
-                const sourceCell = link.getSourceCell();
-                const hasHiddenSourceCell = (sourceCell && this.isCellViewHidden(sourceCell));
-                const targetCell = link.getTargetCell();
-                const hasHiddenTargetCell = (targetCell && this.isCellViewHidden(targetCell));
-                if (hasHiddenSourceCell || hasHiddenTargetCell) this.hideCellView(link);
-            });
-        }
-
-        return view;
+        return this._requestViewHide(cell, { explicit: true, ...opt });
     },
 
     showCellView: function(cell, opt) {
-        const view = this.renderView(cell);
-        if (!view) return null;
+        if (!cell) return null;
 
-        if (!this.isCellViewHidden(cell)) return view;
+        // only elements can be explicitly hidden
+        // - links are handled by `isCellViewHidden()` (see below)
+        if (!cell.isElement()) return null;
 
-        // first, update the hidden views hash:
-        delete this._hiddenViews[cell.id];
-        // then, request update (refers to hidden views hash):
-        this.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
-
-        // after showing the cell, show connected links (if any):
-        if (cell.isElement()) {
-            const { graph } = cell;
-            const connectedLinks = graph.getConnectedLinks(cell, { indirect: true });
-            connectedLinks.forEach((link) => {
-                // only show the link if both end cells are visible
-                const sourceCell = link.getSourceCell();
-                const hasHiddenSourceCell = (sourceCell && this.isCellViewHidden(sourceCell));
-                const targetCell = link.getTargetCell();
-                const hasHiddenTargetCell = (targetCell && this.isCellViewHidden(targetCell));
-                if (!hasHiddenSourceCell && !hasHiddenTargetCell) this.showCellView(link);
-            });
-        }
-
-        return view;
+        return this._requestViewShow(cell, { explicit: true, ...opt });
     },
 
-    isCellViewHidden: function(cell) {
+    isCellViewExplicitlyHidden: function(cell) {
         if (!cell) return false;
+
         return (cell.id in this._hiddenViews);
+    },
+
+    isCellViewHidden: function(cell, opt) {
+        if (!cell) return false;
+
+        // visibility of elements is explicitly stored by `showCellView()` and `hideCellView()`
+        if (cell.isElement()) {
+            return this.isCellViewExplicitlyHidden(cell);
+        }
+
+        // else: visibility of links is determined by explicit visibility of elements
+        // - we can only show a link if both ends are currently visible - there are three types of link ends:
+        //   1) point end (= pinned link) - always considered visible (i.e. visibility of the link completely depends on the visibility of other end)
+        //   2) element end - visible unless the element is explicitly hidden (see above)
+        //   3) link end - recursive, but ultimately we get to a link with only ends of type 1 and 2
+        const isSourceCellViewHidden = this.isCellViewHidden(cell.getSourceCell());
+        const isTargetCellViewHidden = this.isCellViewHidden(cell.getTargetCell());
+        const isLinkViewHidden = (isSourceCellViewHidden || isTargetCellViewHidden);
+        if (isLinkViewHidden) {
+            this._requestViewHide(cell, { explicit: false, ...opt });
+            return true;
+        } else {
+            this._requestViewShow(cell, { explicit: false, ...opt });
+            return false;
+        }
+    },
+
+    _requestViewHide: function(cell, requestOpt) {
+        const prevView = this.findViewByModel(cell);
+        if (!prevView) return null; // cell is already hidden
+
+        // if explicit, start by updating the hidden views hash:
+        const { explicit, ...opt } = requestOpt;
+        if (explicit) this._hiddenViews[cell.id] = prevView;
+        // then, request update and recheck visibility of all connected links (if any):
+        // - both require up-to-date hidden views hash (see above)
+        this.requestViewUpdate(prevView, prevView.FLAG_REMOVE, prevView.UPDATE_PRIORITY, opt);
+        this._updateConnectedLinksVisibility(cell);
+
+        return prevView;
+    },
+
+    _requestViewShow: function(cell, requestOpt) {
+        const prevView = this.findViewByModel(cell);
+        if (prevView) return prevView; // cell is already shown
+
+        const newView = this.renderView(cell);
+        if (!newView) return null;
+
+        // if explicit, start by updating the hidden views hash:
+        const { explicit, ...opt } = requestOpt;
+        if (explicit) delete this._hiddenViews[cell.id];
+        // then, request update and recheck visibility of all connected links (if any):
+        // - both require up-to-date hidden views hash (see above)
+        this.requestViewUpdate(newView, newView.FLAG_INSERT, newView.UPDATE_PRIORITY, opt);
+        this._updateConnectedLinksVisibility(cell);
+
+        return newView;
+    },
+
+    _updateConnectedLinksVisibility: function(cell) {
+        const { graph } = cell;
+        const connectedLinks = graph.getConnectedLinks(cell);
+        connectedLinks.forEach((link) => this.isCellViewHidden(link));
     },
 
     removeView: function(cell) {
