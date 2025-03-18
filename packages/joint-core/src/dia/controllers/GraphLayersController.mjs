@@ -1,4 +1,4 @@
-import { Listener } from '../mvc/Listener.mjs';
+import { Listener } from '../../mvc/Listener.mjs';
 
 export class GraphLayersController extends Listener {
 
@@ -35,7 +35,7 @@ export class GraphLayersController extends Listener {
             const { layersMap } = this;
 
             for (let layerName in layersMap) {
-                layers[layerName].clear();
+                layersMap[layerName].clear();
             }
 
             cells.forEach(cell => {

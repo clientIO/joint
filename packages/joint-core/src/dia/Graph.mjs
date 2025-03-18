@@ -6,7 +6,7 @@ import { Model } from '../mvc/Model.mjs';
 import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
-import { GraphLayersController } from './controllers/GraphLayersController';
+import { GraphLayersController } from './controllers/GraphLayersController.mjs';
 
 const GraphCells = Collection.extend({
 
@@ -71,7 +71,7 @@ export const Graph = Model.extend({
 
         opt = opt || {};
 
-        this.useEmbeddingLayers = opt.useEmbeddingLayers || false;
+        this.useLayersForEmbedding = opt.useLayersForEmbedding || false;
         this.enableCellLayers = opt.enableCellLayers || false;
 
         this.defaultLayerName = LayersNames.CELLS;

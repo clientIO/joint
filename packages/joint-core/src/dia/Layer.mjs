@@ -38,6 +38,10 @@ export class Layer extends Model {
         cells.on('change:z', () => {
             cells.sort();
         });
+
+        // Make all the events fired in the `cells` collection available.
+        // to the outside world.
+        cells.on('all', this.trigger, this);
     }
 
     add(cell) {

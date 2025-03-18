@@ -47,7 +47,7 @@ import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayer } from './layers/GridLayer.mjs';
-import { EmbeddingLayersController } from './controllers/EmbeddingLayersController';
+import { EmbeddingLayersController } from './controllers/EmbeddingLayersController.mjs';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -755,9 +755,10 @@ export const Paper = View.extend({
     },
 
     createLayer(attributes) {
+        attributes.paper = this;
         switch (attributes.name) {
             case LayersNames.GRID:
-                return new GridLayer({ ...attributes, paper: this, patterns: this.constructor.gridPatterns });
+                return new GridLayer({ ...attributes, patterns: this.constructor.gridPatterns });
             default:
                 return new LayerView(attributes);
         }

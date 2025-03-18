@@ -1,4 +1,4 @@
-import { Listener } from '../mvc/Listener.mjs';
+import { Listener } from '../../mvc/Listener.mjs';
 import { Layer } from '../Layer.mjs';
 
 export class EmbeddingLayersController extends Listener {
@@ -49,7 +49,7 @@ export class EmbeddingLayersController extends Listener {
                 this.insertEmbeddingLayer(layer);
             }
 
-            const targetLayer = layer || activeLayer;
+            const targetLayer = layersMap[parentId] || activeLayer;
 
             targetLayer.add(cell);
         });
@@ -57,8 +57,8 @@ export class EmbeddingLayersController extends Listener {
         this.listenTo(paper, 'cell:inserted', (_appContext, cellView) => {
             const cellId = cellView.model.id;
             if (paper.hasLayerView(cellId)) {
-                const layerView = paper.getLayerView(cellView);
-                el.after(layerView.el);
+                const layerView = paper.getLayerView(cellId);
+                cellView.el.after(layerView.el);
             }
         });
     }

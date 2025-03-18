@@ -11,6 +11,10 @@ export class LayerView extends View {
         this.pivotNodes = {};
     }
 
+    init(...args) {
+        super.init(...args);
+    }
+
     className() {
         const { name } = this.options;
         if (!name) return null;
