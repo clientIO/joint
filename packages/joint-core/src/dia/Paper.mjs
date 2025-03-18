@@ -48,7 +48,6 @@ import * as anchors from '../anchors/index.mjs';
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayer } from './layers/GridLayer.mjs';
 import { EmbeddingLayersController } from './controllers/EmbeddingLayersController';
-import { CellLayersController } from './controllers/CellLayersController';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -295,8 +294,6 @@ export const Paper = View.extend({
         connectionPointNamespace: connectionPoints,
 
         overflow: false,
-
-        useLayersForEmbedding: false
     },
 
     events: {
@@ -419,12 +416,8 @@ export const Paper = View.extend({
         this._setDimensions();
         this.startListening();
 
-        if (options.useLayersForEmbedding) {
+        if (model.useLayersForEmbedding) {
             this.embeddingLayersController = new EmbeddingLayersController({ graph: model, paper: this });
-        }
-
-        if (options.enableCellLayers) {
-            this.cellLayersController = new CellLayersController({ graph: model, paper: this });
         }
 
         // Hash of all cell views.
@@ -634,17 +627,21 @@ export const Paper = View.extend({
     _unregisterLayer(layerView) {
         const { _layers: { viewsMap, order }} = this;
         const layerName = layerView.name;
-        order.splice(order.indexOf(layerName), 1);
+        if (order.indexOf(layerName) !== -1) {
+            order.splice(order.indexOf(layerName), 1);
+        }
         delete viewsMap[layerName];
     },
 
-    _registerLayer(layerName, layerView, beforeLayerView) {
+    _registerLayer(layerName, layerView, beforeLayerView, ignoreOrder) {
         const { _layers: { viewsMap, order }} = this;
-        if (beforeLayerView) {
-            const beforeLayerName = beforeLayerView.name;
-            order.splice(order.indexOf(beforeLayerName), 0, layerName);
-        } else {
-            order.push(layerName);
+        if (!ignoreOrder) {
+            if (beforeLayerView) {
+                const beforeLayerName = beforeLayerView.name;
+                order.splice(order.indexOf(beforeLayerName), 0, layerName);
+            } else {
+                order.push(layerName);
+            }
         }
         viewsMap[layerName] = layerView;
     },
@@ -689,14 +686,18 @@ export const Paper = View.extend({
         if (!(layerView instanceof LayerView)) {
             throw new Error('dia.Paper: The layer view is not an instance of dia.LayerView.');
         }
-        const { insertBefore } = options;
-        if (!insertBefore) {
-            this._registerLayer(layerName, layerView, null);
-            this.layers.appendChild(layerView.el);
+        const { insertBefore, doNotAppend } = options;
+        if (doNotAppend) {
+            this._registerLayer(layerName, layerView, null, true);
         } else {
-            const beforeLayerView = this._requireLayerView(insertBefore);
-            this._registerLayer(layerName, layerView, beforeLayerView);
-            this.layers.insertBefore(layerView.el, beforeLayerView.el);
+            if (!insertBefore) {
+                this._registerLayer(layerName, layerView, null);
+                this.layers.appendChild(layerView.el);
+            } else {
+                const beforeLayerView = this._requireLayerView(insertBefore);
+                this._registerLayer(layerName, layerView, beforeLayerView);
+                this.layers.insertBefore(layerView.el, beforeLayerView.el);
+            }
         }
     },
 
@@ -1927,10 +1928,7 @@ export const Paper = View.extend({
                 break;
         }
 
-        if (this._embeddingLayers[model.id]) {
-            const layerView = this._embeddingLayers[model.id];
-            el.after(layerView.el);
-        }
+        this.trigger('cell:inserted', view, isInitialInsert);
 
         view.onMount(isInitialInsert);
     },

@@ -14,9 +14,8 @@ export class GraphLayersController extends Listener {
             this.layersMap[layer.name] = layer;
         });
 
+        this.defaultLayerName = this.graph.defaultLayerName;
         this.activeLayerName = this.defaultLayerName;
-
-        //this.updateGraphLayers(layers);
 
         this.startListening();
     }
@@ -33,8 +32,9 @@ export class GraphLayersController extends Listener {
         });
 
         this.listenTo(graph, 'reset', (_appContext, { models: cells }) => {
-            const layers = this.get('layers');
-            for (let layerName in layers) {
+            const { layersMap } = this;
+
+            for (let layerName in layersMap) {
                 layers[layerName].clear();
             }
 
@@ -54,6 +54,8 @@ export class GraphLayersController extends Listener {
             cell.set('z', layer.maxZIndex() + 1);
         }
 
+        // mandatory add to the layer
+        // so every cell now will have a layer specified
         layer.add(cell);
     }
 
@@ -69,4 +71,103 @@ export class GraphLayersController extends Listener {
         }
     }
 
+    setActiveLayer(layerName) {
+        const { layersMap } = this;
+
+        if (!layersMap[layerName]) {
+            throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
+        }
+
+        this.activeLayerName = layerName;
+    }
+
+    getActiveLayer() {
+        return this.layersMap[this.activeLayerName];
+    }
+
+    getDefaultLayer() {
+        return this.layersMap[this.defaultLayerName];
+    }
+
+    addLayer(layer, opt) {
+        const { layersMap } = this;
+
+        if (layersMap[layer.name]) {
+            throw new Error(`dia.Graph: Layer with name '${layer.name}' already exists.`);
+        }
+
+        this.layers = this.layers.concat([layer]);
+
+        layersMap[layer.name] = layer;
+        this.graph.set('layers', this.layers);
+    }
+
+    removeLayer(layerName, opt) {
+        const { layersMap, defaultLayerName, activeLayerName } = this;
+
+        if (layerName === defaultLayerName || layerName === activeLayerName) {
+            throw new Error('dia.Graph: default or active layer cannot be removed.');
+        }
+
+        if (!layersMap[layerName]) {
+            throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
+        }
+
+        this.layers = this.layers.filter(l => l.name !== layerName);
+
+        delete this.layersMap[layerName];
+        this.set('layers', this.layers);
+    }
+
+    moveToLayer(cell, layerName, opt) {
+        const { layersMap, activeLayerName } = this;
+
+        layerName = layerName || activeLayerName;
+
+        if (!layersMap[layerName]) {
+            throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
+        }
+
+        const layer = layersMap[layerName];
+
+        if (!cell.has('z')) {
+            cell.set('z', layer.maxZIndex() + 1);
+        }
+
+        const currentLayer = cell.layer();
+
+        if (currentLayer === layerName) {
+            return;
+        }
+
+        if (currentLayer) {
+            layersMap[currentLayer].remove(cell);
+        }
+
+        layer.add(cell);
+    }
+
+    minZIndex(layerName) {
+        const { layersMap, defaultLayerName } = this;
+
+        layerName = layerName || defaultLayerName;
+
+        const layer = layersMap[layerName];
+
+        return layer.minZIndex();
+    }
+
+    maxZIndex(layerName) {
+        const { layersMap, defaultLayerName } = this;
+
+        layerName = layerName || defaultLayerName;
+
+        const layer = layersMap[layerName];
+
+        return layer.maxZIndex();
+    }
+
+    getLayersMap() {
+        return this.layersMap;
+    }
 }
