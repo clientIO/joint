@@ -17,12 +17,13 @@ export class EmbeddingLayersController extends Listener {
 
         this.listenTo(graph, 'remove', (_appContext, cell) => {
             const layersMap = graph.getLayersMap();
+            const activeLayer = graph.getActiveLayer();
 
             if (layersMap[cell.id]) {
                 const layer = layersMap[cell.id];
                 const cells = layer.get('cells').models;
                 cells.forEach((cell) => {
-                    graph.moveToLayer(cell);
+                    activeLayer.add(cell);
                 });
 
                 graph.removeLayer(layer);

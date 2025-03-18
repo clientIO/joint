@@ -119,34 +119,6 @@ export class GraphLayersController extends Listener {
         this.set('layers', this.layers);
     }
 
-    moveToLayer(cell, layerName, opt) {
-        const { layersMap, activeLayerName } = this;
-
-        layerName = layerName || activeLayerName;
-
-        if (!layersMap[layerName]) {
-            throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
-        }
-
-        const layer = layersMap[layerName];
-
-        if (!cell.has('z')) {
-            cell.set('z', layer.maxZIndex() + 1);
-        }
-
-        const currentLayer = cell.layer();
-
-        if (currentLayer === layerName) {
-            return;
-        }
-
-        if (currentLayer) {
-            layersMap[currentLayer].remove(cell);
-        }
-
-        layer.add(cell);
-    }
-
     minZIndex(layerName) {
         const { layersMap, defaultLayerName } = this;
 

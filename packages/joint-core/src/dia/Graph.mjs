@@ -303,11 +303,11 @@ export const Graph = Model.extend({
     },
 
     minZIndex: function(layerName) {
-        this.layersController.minZIndex(layerName);
+        return this.layersController.minZIndex(layerName);
     },
 
     maxZIndex: function(layerName) {
-        this.layersController.maxZIndex(layerName);
+        return this.layersController.maxZIndex(layerName);
     },
 
     addCell: function(cell, opt) {
@@ -440,10 +440,6 @@ export const Graph = Model.extend({
 
     setActiveLayer(layerName) {
         this.layersController.setActiveLayer(layerName);
-    },
-
-    moveToLayer(cell, layerName, opt) {
-        this.layersController.moveToLayer(cell, layerName, opt);
     },
 
     getLayersMap() {
