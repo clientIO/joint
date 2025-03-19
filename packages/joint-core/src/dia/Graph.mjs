@@ -446,6 +446,10 @@ export const Graph = Model.extend({
         return this.layersController.getLayersMap();
     },
 
+    getLayerCells(layerName) {
+        return this.layersController.getLayerCells(layerName);
+    },
+
     // Get a cell by `id`.
     getCell: function(id) {
 

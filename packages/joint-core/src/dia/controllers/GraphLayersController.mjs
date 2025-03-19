@@ -142,4 +142,8 @@ export class GraphLayersController extends Listener {
     getLayersMap() {
         return this.layersMap;
     }
+
+    getLayerCells(layerName) {
+        return this.layersMap[layerName].get('cells');
+    }
 }

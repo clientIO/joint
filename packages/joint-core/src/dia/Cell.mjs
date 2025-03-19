@@ -261,10 +261,12 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const maxZ = graph.maxZIndex(this.layer());
+            const layerName = this.layer();
+
+            const maxZ = graph.maxZIndex(layerName);
             let z = maxZ - cells.length + 1;
 
-            const collection = graph.get('cells');
+            const collection = graph.getLayerCells(layerName);
 
             let shouldUpdate = (collection.toArray().indexOf(sortedCells[0]) !== (collection.length - cells.length));
             if (!shouldUpdate) {
@@ -304,9 +306,11 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            let z = graph.minZIndex(this.layer());
+            const layerName = this.layer();
 
-            var collection = graph.get('cells');
+            let z = graph.minZIndex(layerName);
+
+            var collection = graph.getLayerCells(layerName);
 
             let shouldUpdate = (collection.toArray().indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {
