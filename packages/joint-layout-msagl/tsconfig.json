@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "outDir": "dist",
     "target": "es2018",
     "declaration": true,
@@ -29,6 +29,6 @@
     "**/dist"
   ],
   "include": [
-    "./src"
+    "./src/**/*.mts"
   ]
 }
