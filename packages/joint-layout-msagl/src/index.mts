@@ -1,7 +1,7 @@
 import { dia, g, util } from "@joint/core";
 import { Graph, GeomGraph, Edge, EdgeRoutingMode, SugiyamaLayoutSettings, layoutGraphWithSugiayma, LayerDirectionEnum, Label, GeomLabel, Size, CancelToken } from '@msagl/core';
-import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge";
-import { constructNode, applyLayoutResult } from "./utils";
+import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
+import { constructNode, applyLayoutResult } from "./utils.mjs";
 
 export interface Options {
     layoutOptions?: {
