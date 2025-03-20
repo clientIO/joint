@@ -1,7 +1,8 @@
-import { dia, g, util } from "@joint/core";
-import { Graph, GeomGraph, Edge, EdgeRoutingMode, SugiyamaLayoutSettings, layoutGraphWithSugiayma, LayerDirectionEnum, Label, GeomLabel, Size, CancelToken } from '@msagl/core';
-import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
-import { constructNode, applyLayoutResult } from "./utils.mjs";
+import { dia, g } from "@joint/core";
+import { Graph, GeomGraph, layoutGraphWithSugiayma, LayerDirectionEnum, CancelToken } from '@msagl/core';
+import { applyLayoutResult, buildLayoutSettings, processJointGraph } from "./utils.mjs";
+
+const LAYOUT_BATCH_NAME = 'layout';
 
 export interface Options {
     layoutOptions?: {
@@ -19,8 +20,6 @@ export interface Options {
 }
 
 export { LayerDirectionEnum } from '@msagl/core';
-
-const LAYOUT_BATCH_NAME = 'layout';
 
 export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options): g.Rect {
 
@@ -41,75 +40,13 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     const margins = options?.margins || { left: 10, right: 10, top: 10, bottom: 10 };
     geomGraph.margins = margins;
 
-    // Start constructing nodes recursively
-    // starting from top-level elements
-    graph.getElements()
-        .filter((element) => !element.parent())
-        .forEach((topLevelEl) => {
-            constructNode(topLevelEl, msGraph);
-        });
+    // Process the JointJS graph and convert it to a MSAGL graph
+    processJointGraph(graph, msGraph);
 
-    graph.getLinks()
-        .forEach((link) => {
-            const sourceNode = msGraph.findNodeRecursive(String(link.source().id));
-            const targetNode = msGraph.findNodeRecursive(String(link.target().id));
-
-            // Link either ended at a point or at an another link
-            // ignore layout for such links
-            if (!sourceNode || !targetNode) {
-                return;
-            }
-
-            const edge = new Edge(sourceNode, targetNode);
-            const geomEdge = new IdentifiableGeomEdge(edge, link.id);
-
-            const linkLabelSize = link.get('labelSize') as { width: number, height: number } | undefined;
-
-            // No `labelSize` provided, do not account for the link label in the layout
-            if (!linkLabelSize) return;
-
-            const label = new Label(edge);
-            edge.label = label;
-
-            const { width, height } = linkLabelSize;
-
-            geomEdge.label = new GeomLabel(label, new Size(width, height));
-        });
-
-    const layoutSettings = new SugiyamaLayoutSettings();
-
-    // Setup layout options
-    if (options?.layoutOptions) {
-        const { layerSeparation, nodeSeparation, layerDirection, gridSize } = options.layoutOptions;
-
-        if (util.isNumber(layerSeparation)) {
-            layoutSettings.LayerSeparation = layerSeparation!;
-        }
-
-        if (util.isNumber(nodeSeparation)) {
-            layoutSettings.commonSettings.NodeSeparation = nodeSeparation!;
-        }
-
-        if (layerDirection) {
-            layoutSettings.layerDirection = layerDirection;
-        }
-
-        if (util.isNumber(gridSize)) {
-            layoutSettings.GridSizeByX = gridSize!;
-            layoutSettings.GridSizeByY = gridSize!;
-        }
-
-    }
-
-    layoutSettings.edgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.Rectilinear;
-    geomGraph.layoutSettings = layoutSettings;
+    geomGraph.layoutSettings = buildLayoutSettings(options);
 
     for (const geomNode of geomGraph.subgraphsDepthFirst) {
-        const subgraphLayoutSettings = new SugiyamaLayoutSettings();
-        // Hard-code layer direction to `TB` for subgraphs, since anything else breaks the layout
-        subgraphLayoutSettings.layerDirection = LayerDirectionEnum.TB;
-        subgraphLayoutSettings.edgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.Rectilinear;
-        (geomNode as GeomGraph).layoutSettings = subgraphLayoutSettings;
+        (geomNode as GeomGraph).layoutSettings = buildLayoutSettings();
     }
 
     layoutGraphWithSugiayma(geomGraph, new CancelToken(), true);
