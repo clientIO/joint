@@ -1,6 +1,6 @@
 import { dia, g } from '@joint/core';
 import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Rectangle, Size } from '@msagl/core';
-import type { IdentifiableGeomEdge } from "./IdentifiableGeomEdge";
+import type { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
 
 export function constructNode(element: dia.Element, parent: Graph): Node {
 
@@ -115,7 +115,7 @@ function curveToVertices(curve: Curve): dia.Point[] {
 
     // Ellipses are the corners of links, JointJS will handle connecting the generated
     // vertices with straight lines
-    const ellipses = curve.segs.filter((seg) => seg instanceof Ellipse) as Ellipse[];
+    const ellipses = curve.segs.filter((seg: any) => seg instanceof Ellipse) as Ellipse[];
 
     // Replace all ellipses along the curve with the sum of the start and the bAxis
     for (const ellipse of ellipses) {
