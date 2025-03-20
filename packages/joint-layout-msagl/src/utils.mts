@@ -1,6 +1,45 @@
-import { dia, g } from '@joint/core';
-import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Rectangle, Size } from '@msagl/core';
-import type { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
+import { dia, util, g } from '@joint/core';
+import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Rectangle, Size, Edge, Label, GeomLabel, SugiyamaLayoutSettings, EdgeRoutingMode } from '@msagl/core';
+import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
+import type { Options } from './index.mjs';
+
+export function processJointGraph(graph: dia.Graph, msGraph: Graph) {
+
+    // Start constructing nodes recursively
+    // starting from top-level elements
+    graph.getElements()
+        .filter((element) => !element.parent())
+        .forEach((topLevelEl) => {
+            constructNode(topLevelEl, msGraph);
+        });
+
+    graph.getLinks()
+        .forEach((link) => {
+            const sourceNode = msGraph.findNodeRecursive(String(link.source().id));
+            const targetNode = msGraph.findNodeRecursive(String(link.target().id));
+
+            // Link either ended at a point or at an another link
+            // ignore layout for such links
+            if (!sourceNode || !targetNode) {
+                return;
+            }
+
+            const edge = new Edge(sourceNode, targetNode);
+            const geomEdge = new IdentifiableGeomEdge(edge, link.id);
+
+            const linkLabelSize = link.get('labelSize') as { width: number, height: number } | undefined;
+
+            // No `labelSize` provided, do not account for the link label in the layout
+            if (!linkLabelSize) return;
+
+            const label = new Label(edge);
+            edge.label = label;
+
+            const { width, height } = linkLabelSize;
+
+            geomEdge.label = new GeomLabel(label, new Size(width, height));
+        });
+}
 
 export function constructNode(element: dia.Element, parent: Graph): Node {
 
@@ -32,6 +71,37 @@ export function constructNode(element: dia.Element, parent: Graph): Node {
     });
 
     return subgraph;
+}
+
+export function getAnchor(point: Point, bbox: Rectangle) {
+
+    const { x, y } = point;
+    const { left: elX, bottom: elY } = bbox;
+
+    return {
+        name: 'modelCenter',
+        args: {
+            dx: x - elX - bbox.width / 2,
+            dy: y - elY - bbox.height / 2,
+        },
+    }
+}
+
+export function setLinkLabel(link: dia.Link, polyline: g.Polyline, label: GeomLabel) {
+
+    const { x, y } = label.boundingBox.center;
+    const point = new g.Point(x, y);
+
+    const distance = polyline.closestPointLength(point);
+    // Get the tangent at the closest point to calculate the offset
+    const tangent = polyline.tangentAtLength(distance);
+
+    link.label(0, {
+        position: {
+            distance,
+            offset: tangent?.pointOffset(point) || 0
+        }
+    })
 }
 
 export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph) {
@@ -66,21 +136,8 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph) {
 
             // If label exists, set its position
             if (label) {
-                const { x, y } = label.boundingBox.center;
-                const point = new g.Point(x, y);
-
-                // Convert the curve to a polyline to find the closest point along the curve
                 const polyline = new g.Polyline([curve.start, ...vertices, curve.end]);
-                const distance = polyline.closestPointLength(point);
-                // Get the tangent at the closest point to calculate the offset
-                const tangent = polyline.tangentAtLength(distance);
-
-                link.label(0, {
-                    position: {
-                        distance,
-                        offset: tangent?.pointOffset(point) || 0
-                    }
-                })
+                setLinkLabel(link, polyline, label);
             }
 
             // Source Anchor
@@ -97,25 +154,44 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph) {
     }
 }
 
-export function getAnchor(point: Point, bbox: Rectangle) {
-    const { x, y } = point;
-    const { left: elX, bottom: elY } = bbox;
+export function buildLayoutSettings(options?: Options): SugiyamaLayoutSettings {
 
-    return {
-        name: 'modelCenter',
-        args: {
-            dx: x - elX - bbox.width / 2,
-            dy: y - elY - bbox.height / 2,
-        },
+    const layoutSettings = new SugiyamaLayoutSettings();
+
+    // Setup layout options
+    if (options?.layoutOptions) {
+        const { layerSeparation, nodeSeparation, layerDirection, gridSize } = options.layoutOptions;
+
+        if (util.isNumber(layerSeparation)) {
+            layoutSettings.LayerSeparation = layerSeparation!;
+        }
+
+        if (util.isNumber(nodeSeparation)) {
+            layoutSettings.commonSettings.NodeSeparation = nodeSeparation!;
+        }
+
+        if (layerDirection) {
+            layoutSettings.layerDirection = layerDirection;
+        }
+
+        if (util.isNumber(gridSize)) {
+            layoutSettings.GridSizeByX = gridSize!;
+            layoutSettings.GridSizeByY = gridSize!;
+        }
     }
+
+    layoutSettings.edgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.Rectilinear;
+
+    return layoutSettings;
 }
 
 function curveToVertices(curve: Curve): dia.Point[] {
+
     const vertices = [];
 
     // Ellipses are the corners of links, JointJS will handle connecting the generated
     // vertices with straight lines
-    const ellipses = curve.segs.filter((seg: any) => seg instanceof Ellipse) as Ellipse[];
+    const ellipses = curve.segs.filter((seg) => seg instanceof Ellipse) as Ellipse[];
 
     // Replace all ellipses along the curve with the sum of the start and the bAxis
     for (const ellipse of ellipses) {
