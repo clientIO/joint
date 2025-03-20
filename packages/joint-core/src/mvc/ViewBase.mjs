@@ -24,7 +24,7 @@ import {
 // Creating a ViewBase creates its initial element outside of the DOM,
 // if an existing element is not provided...
 export var ViewBase = function(options) {
-    this.cid = uniqueId('view');
+    this.cid = (options && options.cid) || uniqueId('view');
     this.preinitialize.apply(this, arguments);
     assign(this, pick(options, viewOptions));
     this._ensureElement();
