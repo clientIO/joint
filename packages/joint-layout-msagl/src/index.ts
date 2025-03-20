@@ -15,8 +15,7 @@ export interface Options {
         right: number,
         top: number,
         bottom: number
-    },
-    measureLinkLabel?: (link: dia.Link, canvasContext: CanvasRenderingContext2D) => { width: number, height: number }
+    }
 }
 
 export { LayerDirectionEnum } from '@msagl/core';
@@ -25,38 +24,35 @@ const LAYOUT_BATCH_NAME = 'layout';
 
 export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options): g.Rect {
 
-    let jjGraph: dia.Graph;
+    let graph: dia.Graph;
 
     if (graphOrCells instanceof dia.Graph) {
-        jjGraph = graphOrCells;
+        graph = graphOrCells;
     } else {
-        jjGraph = new dia.Graph();
+        graph = new dia.Graph();
         // Reset cells in dry mode so the graph reference is not stored on the cells.
         // `sort: false` to prevent elements to change their order based on the z-index
-        jjGraph.resetCells(graphOrCells, { dry: true, sort: false });
+        graph.resetCells(graphOrCells, { dry: true, sort: false });
     }
 
-    const graph = new Graph();
-    const geomGraph = new GeomGraph(graph);
+    const msGraph = new Graph();
+    const geomGraph = new GeomGraph(msGraph);
 
     const margins = options?.margins || { left: 10, right: 10, top: 10, bottom: 10 };
     geomGraph.margins = margins;
 
     // Start constructing nodes recursively
     // starting from top-level elements
-    jjGraph.getElements()
+    graph.getElements()
         .filter((element) => !element.parent())
         .forEach((topLevelEl) => {
-            constructNode(topLevelEl, graph);
+            constructNode(topLevelEl, msGraph);
         });
 
-    // Prepapare canvas for measuring link labels
-    const canvas = document.createElement('canvas');
-
-    jjGraph.getLinks()
+    graph.getLinks()
         .forEach((link) => {
-            const sourceNode = graph.findNodeRecursive(String(link.source().id));
-            const targetNode = graph.findNodeRecursive(String(link.target().id));
+            const sourceNode = msGraph.findNodeRecursive(String(link.source().id));
+            const targetNode = msGraph.findNodeRecursive(String(link.target().id));
 
             // Link either ended at a point or at an another link
             // ignore layout for such links
@@ -67,16 +63,15 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
             const edge = new Edge(sourceNode, targetNode);
             const geomEdge = new IdentifiableGeomEdge(edge, link.id);
 
-            const { measureLinkLabel } = options || {};
+            const linkLabelSize = link.get('labelSize') as { width: number, height: number } | undefined;
 
-            const jjLabel = link.label(0);
-            // Label does not exist or callback to measure label is not provided
-            if (!jjLabel || !measureLinkLabel) return;
+            // No `labelSize` provided, do not account for the link label in the layout
+            if (!linkLabelSize) return;
 
             const label = new Label(edge);
             edge.label = label;
 
-            const { width, height } = measureLinkLabel(link, canvas.getContext('2d')!);
+            const { width, height } = linkLabelSize;
 
             geomEdge.label = new GeomLabel(label, new Size(width, height));
         });
@@ -109,14 +104,22 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     layoutSettings.edgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.Rectilinear;
     geomGraph.layoutSettings = layoutSettings;
 
+    for (const geomNode of geomGraph.subgraphsDepthFirst) {
+        const subgraphLayoutSettings = new SugiyamaLayoutSettings();
+        // Hard-code layer direction to `TB` for subgraphs, since anything else breaks the layout
+        subgraphLayoutSettings.layerDirection = LayerDirectionEnum.TB;
+        subgraphLayoutSettings.edgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.Rectilinear;
+        (geomNode as GeomGraph).layoutSettings = subgraphLayoutSettings;
+    }
+
     layoutGraphWithSugiayma(geomGraph, new CancelToken(), true);
 
     // Apply the layout result to the JointJS graph
     // while traversing the geomGraph
     // wrap the changes in a batch
-    jjGraph.startBatch(LAYOUT_BATCH_NAME);
-    applyLayoutResult(jjGraph, geomGraph);
-    jjGraph.stopBatch(LAYOUT_BATCH_NAME);
+    graph.startBatch(LAYOUT_BATCH_NAME);
+    applyLayoutResult(graph, geomGraph);
+    graph.stopBatch(LAYOUT_BATCH_NAME);
 
     const bbox = geomGraph.boundingBox;
 
