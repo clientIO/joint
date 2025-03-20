@@ -1369,7 +1369,7 @@ export const Paper = View.extend({
         if (typeof viewportFn !== 'function') viewportFn = null;
         const updates = this._updates;
         const { mounted, unmounted } = updates;
-        const visible = (!cellView.DETACHABLE || (!this.isCellViewExplicitlyHidden(cellView.model) && (!viewportFn || viewportFn.call(this, cellView, true, this))));
+        const visible = (!cellView.DETACHABLE || (!this.isCellViewExplicitlyHidden(cellView.model) && (!viewportFn || viewportFn.call(this, cellView, false, this))));
 
         let isUnmounted = false;
         let isMounted = false;
