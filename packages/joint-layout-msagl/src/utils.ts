@@ -1,5 +1,5 @@
 import { dia, g } from '@joint/core';
-import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Rectangle } from '@msagl/core';
+import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Rectangle, Size } from '@msagl/core';
 import type { IdentifiableGeomEdge } from "./IdentifiableGeomEdge";
 
 export function constructNode(element: dia.Element, parent: Graph): Node {
@@ -18,8 +18,14 @@ export function constructNode(element: dia.Element, parent: Graph): Node {
 
     // Element has children therefore it is a subgraph
     const subgraph = new Graph(String(element.id));
+    const geomGraph = new GeomGraph(subgraph)
+
+    const labelSize = element.get('labelSize') as { width: number, height: number } | undefined;
+    if (labelSize) {
+        geomGraph.labelSize = new Size(labelSize.width, labelSize.height);
+    }
+
     parent.addNode(subgraph);
-    new GeomGraph(subgraph);
 
     embeds.filter((cell) => cell.isElement()).forEach((child) => {
         constructNode(child as dia.Element, subgraph);
@@ -28,20 +34,20 @@ export function constructNode(element: dia.Element, parent: Graph): Node {
     return subgraph;
 }
 
-export function applyLayoutResult(jjGraph: dia.Graph, geomGraph: GeomGraph) {
+export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph) {
 
     for (const geomNode of geomGraph.shallowNodes) {
         const { id } = geomNode;
         const { left: x, bottom: y } = geomNode.boundingBox;
 
-        const jjElement = jjGraph.getCell(id) as dia.Element;
+        const element = graph.getCell(id) as dia.Element;
 
-        jjElement.position(x, y);
+        element.position(x, y);
 
         // If the node is a subgraph, its size has been modified
         // when packing its children, so we need to set it explicitly
         if (geomNode.node instanceof Graph) {
-            jjElement.size(geomNode.boundingBox.width, geomNode.boundingBox.height);
+            element.size(geomNode.boundingBox.width, geomNode.boundingBox.height);
         }
 
         for (const geomEdge of geomNode.outEdges()) {
@@ -54,13 +60,12 @@ export function applyLayoutResult(jjGraph: dia.Graph, geomGraph: GeomGraph) {
                 vertices.push(...curveToVertices(curve));
             }
 
-            const jjLink = jjGraph.getCell(id) as dia.Link;
+            const link = graph.getCell(id) as dia.Link;
 
-            jjLink.vertices(vertices);
+            link.vertices(vertices);
 
             // If label exists, set its position
             if (label) {
-
                 const { x, y } = label.boundingBox.center;
                 const point = new g.Point(x, y);
 
@@ -70,7 +75,7 @@ export function applyLayoutResult(jjGraph: dia.Graph, geomGraph: GeomGraph) {
                 // Get the tangent at the closest point to calculate the offset
                 const tangent = polyline.tangentAtLength(distance);
 
-                jjLink.label(0, {
+                link.label(0, {
                     position: {
                         distance,
                         offset: tangent?.pointOffset(point) || 0
@@ -79,16 +84,16 @@ export function applyLayoutResult(jjGraph: dia.Graph, geomGraph: GeomGraph) {
             }
 
             // Source Anchor
-            jjLink.prop('source/anchor', getAnchor(curve.start, sourceGeomNode.boundingBox));
+            link.prop('source/anchor', getAnchor(curve.start, sourceGeomNode.boundingBox));
 
             // Target Anchor
-            jjLink.prop('target/anchor', getAnchor(curve.end, targetGeomNode.boundingBox));
+            link.prop('target/anchor', getAnchor(curve.end, targetGeomNode.boundingBox));
         }
     }
 
     // Recursively apply layout to subgraphs
     for (const cluster of geomGraph.Clusters) {
-        applyLayoutResult(jjGraph, cluster as GeomGraph);
+        applyLayoutResult(graph, cluster as GeomGraph);
     }
 }
 
