@@ -417,7 +417,7 @@ export const Paper = View.extend({
         this._views = {};
 
         // Hash of hidden cell views
-        this._hiddenViews = {};
+        this._hiddenViews = new Set();
 
         // Mouse wheel events buffer
         this._mw_evt_buffer = {
@@ -1246,7 +1246,7 @@ export const Paper = View.extend({
                 if ((currentFlag & view.FLAG_REMOVE) === 0) {
                     // We should never check a view for viewport if we are about to remove the view
                     var isDetached = cid in updates.unmounted;
-                    if (view.DETACHABLE && !this.isCellViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
+                    if (view.DETACHABLE && (this.isCellViewExplicitlyHidden(view.model) || (viewportFn && !viewportFn.call(this, view, !isDetached, this)))) {
                         // Unmount View
                         if (!isDetached) {
                             this.registerUnmountedView(view);
@@ -1324,7 +1324,7 @@ export const Paper = View.extend({
             if (!(cid in unmounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (view.DETACHABLE && !this.isCellViewHidden(view.model) && viewportFn && !viewportFn.call(this, view, false, this)) {
+            if (view.DETACHABLE && (this.isCellViewExplicitlyHidden(view.model) || (viewportFn && !viewportFn.call(this, view, false, this)))) {
                 // Push at the end of all unmounted ids, so this can be check later again
                 unmountedCids.push(cid);
                 continue;
@@ -1341,7 +1341,6 @@ export const Paper = View.extend({
     checkMountedViews: function(viewportFn, opt) {
         opt || (opt = {});
         var unmountCount = 0;
-        if (typeof viewportFn !== 'function') return unmountCount;
         var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : Infinity;
         var updates = this._updates;
         var mountedCids = updates.mountedCids;
@@ -1351,8 +1350,7 @@ export const Paper = View.extend({
             if (!(cid in mounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            // reverse boolean logic so that short-circuiting can make it more efficient (a && !b && c && !d <=> !a || b || !c || d):
-            if (!view.DETACHABLE || this.isCellViewHidden(view.model) || !viewportFn || viewportFn.call(this, view, true, this)) {
+            if (!view.DETACHABLE || (!this.isCellViewExplicitlyHidden(view.model) && (!viewportFn || viewportFn.call(this, view, true, this)))) {
                 // Push at the end of all mounted ids, so this can be check later again
                 mountedCids.push(cid);
                 continue;
@@ -1371,8 +1369,7 @@ export const Paper = View.extend({
         if (typeof viewportFn !== 'function') viewportFn = null;
         const updates = this._updates;
         const { mounted, unmounted } = updates;
-        // reverse boolean logic so that short-circuiting can make it more efficient (a && !b && c && !d <=> !a || b || !c || d):
-        const visible = (!cellView.DETACHABLE || this.isCellViewHidden(cellView.model) || !viewportFn || viewportFn.call(this, cellView, true, this));
+        const visible = (!cellView.DETACHABLE || (!this.isCellViewExplicitlyHidden(cellView.model) && (!viewportFn || viewportFn.call(this, cellView, true, this))));
 
         let isUnmounted = false;
         let isMounted = false;
@@ -1805,93 +1802,28 @@ export const Paper = View.extend({
         });
     },
 
-    hideCellView: function(cell, opt) {
-        if (!cell) return null;
-
-        // only elements can be explicitly hidden
-        // - links are handled by `isCellViewHidden()` (see below)
-        if (!cell.isElement()) return null;
-
-        return this._requestViewHide(cell, { explicit: true, ...opt });
-    },
-
-    showCellView: function(cell, opt) {
-        if (!cell) return null;
-
-        // only elements can be explicitly shown
-        // - links are handled by `isCellViewHidden()` (see below)
-        if (!cell.isElement()) return null;
-
-        return this._requestViewShow(cell, { explicit: true, ...opt });
+    requestCellViewVisibility(cell, toggle) {
+        // true = "show view", false = "hide view"
+        if (toggle) {
+            this._hiddenViews.delete(cell.id);
+            if (!this.options.async) nextFrame(() => this.checkUnmountedViews(this.options.viewport));
+        } else {
+            this._hiddenViews.add(cell.id);
+            if (!this.options.async) nextFrame(() => this.checkMountedViews(this.options.viewport));
+        }
     },
 
     isCellViewExplicitlyHidden: function(cell) {
         if (!cell) return false;
-        return (cell.id in this._hiddenViews);
-    },
 
-    isCellViewHidden: function(cell, opt) {
-        if (!cell) return false;
+        if (cell.isElement()) return (this._hiddenViews.has(cell.id));
 
-        // visibility of elements is explicitly stored by `showCellView()` and `hideCellView()`
-        if (cell.isElement()) {
-            return this.isCellViewExplicitlyHidden(cell);
-        }
-
-        // else: visibility of links is determined by explicit visibility of elements
-        // - we can only show a link if both ends are currently visible - there are three types of link ends:
-        //   1) point end (= pinned link) - always considered visible (i.e. visibility of the link completely depends on the visibility of other end)
-        //   2) element end - visible unless the element is explicitly hidden (see above)
-        //   3) link end - recursive, but ultimately we get to a link with only ends of type 1 and 2
-        const isSourceCellViewHidden = this.isCellViewHidden(cell.getSourceCell());
-        const isTargetCellViewHidden = this.isCellViewHidden(cell.getTargetCell());
-        const isLinkViewHidden = (isSourceCellViewHidden || isTargetCellViewHidden);
-        if (isLinkViewHidden) {
-            this._requestViewHide(cell, { explicit: false, ...opt });
-            return true;
-        } else {
-            this._requestViewShow(cell, { explicit: false, ...opt });
-            return false;
-        }
-    },
-
-    _requestViewHide: function(cell, requestOpt) {
-        const prevView = this.findViewByModel(cell);
-        if (!prevView) return null; // cell is already hidden
-
-        // if explicit, start by updating the hidden views hash:
-        const { explicit, ...opt } = requestOpt;
-        if (explicit) this._hiddenViews[cell.id] = prevView;
-        // then, request update and recheck visibility of all connected links (if any):
-        // - both require up-to-date hidden views hash (see above)
-        this.requestViewUpdate(prevView, prevView.FLAG_REMOVE, prevView.UPDATE_PRIORITY, opt);
-        this._updateConnectedLinksVisibility(cell);
-
-        return prevView;
-    },
-
-    _requestViewShow: function(cell, requestOpt) {
-        const prevView = this.findViewByModel(cell);
-        if (prevView) return prevView; // cell is already shown
-
-        const newView = this.renderView(cell);
-        if (!newView) return null;
-
-        // if explicit, start by updating the hidden views hash:
-        const { explicit, ...opt } = requestOpt;
-        if (explicit) delete this._hiddenViews[cell.id];
-        // then, request update and recheck visibility of all connected links (if any):
-        // - both require up-to-date hidden views hash (see above)
-        this.requestViewUpdate(newView, newView.FLAG_INSERT, newView.UPDATE_PRIORITY, opt);
-        this._updateConnectedLinksVisibility(cell);
-
-        return newView;
-    },
-
-    _updateConnectedLinksVisibility: function(cell) {
-        const { graph } = cell;
-        const connectedLinks = graph.getConnectedLinks(cell);
-        connectedLinks.forEach((link) => this.isCellViewHidden(link));
+        // else: cell is a link
+        // - hide the link if any end element is hidden
+        // - TODO: currently does not hide links which are connected to a link that gets hidden due to source element being hidden
+        const hasHiddenSourceCell = (this.isCellViewExplicitlyHidden(cell.getSourceElement()));
+        const hasHiddenTargetCell = (this.isCellViewExplicitlyHidden(cell.getTargetElement()));
+        return (hasHiddenSourceCell || hasHiddenTargetCell);
     },
 
     removeView: function(cell) {
@@ -1965,7 +1897,7 @@ export const Paper = View.extend({
         invoke(this._views, 'remove');
 
         this._views = {};
-        this._hiddenViews = {};
+        this._hiddenViews.clear();
     },
 
     sortViews: function() {
