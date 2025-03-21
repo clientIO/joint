@@ -9,6 +9,7 @@
   font-family: Ppfraktionsans, sans-serif;
   cursor: move;
   color: #dde6ed;
+  flex-direction: column;
 }
 body {
   font-family: Ppfraktionsans, sans-serif;

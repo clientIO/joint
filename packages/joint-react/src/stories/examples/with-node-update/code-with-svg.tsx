@@ -33,7 +33,7 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function ElementInput({ id, data }: BaseElementWithData) {
   const { color } = data;
-  const setElement = useSetElement<BaseElementWithData>(id, 'data');
+  const setElement = useSetElement(id, 'data');
   return (
     <input
       className="nodrag"

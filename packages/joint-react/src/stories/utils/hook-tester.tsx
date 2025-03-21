@@ -3,6 +3,7 @@
 import type { JSX } from 'react';
 import type { StoryObj } from '@storybook/react/*';
 import { HTMLNode } from '@joint/react';
+import '../examples/index.css';
 
 type AnyFunction = (...args: any[]) => any;
 interface HookTesterProps<T extends AnyFunction> {
@@ -20,7 +21,7 @@ export function HookTester<T extends AnyFunction>({
   if (render) {
     return render(result);
   }
-  return <HTMLNode>{JSON.stringify(result)}</HTMLNode>;
+  return <HTMLNode className="node">{JSON.stringify(result)}</HTMLNode>;
 }
 
 export type TesterHookStory<T extends AnyFunction> = StoryObj<typeof HookTester> & {
