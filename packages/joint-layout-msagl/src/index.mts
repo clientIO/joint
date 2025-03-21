@@ -4,13 +4,21 @@ import { applyLayoutResult, buildLayoutSettings, processJointGraph } from "./uti
 
 const LAYOUT_BATCH_NAME = 'layout';
 
+export enum EdgeRoutingMode {
+    SplineBundling = 1,
+    Rectilinear = 4
+}
+
 export interface Options {
     layoutOptions?: {
         layerSeparation?: number,
         nodeSeparation?: number,
         layerDirection?: LayerDirectionEnum,
         gridSize?: number
-    }
+    },
+    edgeRoutingSettings?: {
+        edgeRoutingMode?: EdgeRoutingMode
+    },
     margins?: {
         left: number,
         right: number,
@@ -18,6 +26,8 @@ export interface Options {
         bottom: number
     }
 }
+
+
 
 export { LayerDirectionEnum } from '@msagl/core';
 
@@ -43,10 +53,19 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     // Process the JointJS graph and convert it to a MSAGL graph
     processJointGraph(graph, msGraph);
 
+    // Top-level layout settings
     geomGraph.layoutSettings = buildLayoutSettings(options);
 
+    // Subgraphs layout settings
     for (const geomNode of geomGraph.subgraphsDepthFirst) {
-        (geomNode as GeomGraph).layoutSettings = buildLayoutSettings();
+        const geomSubgraph = geomNode as GeomGraph;
+        const layoutSettings = buildLayoutSettings(options);
+        // Set the layer direction to top to bottom for subgraphs
+        // Since anything else will cause the layout to break
+        layoutSettings.layerDirection = LayerDirectionEnum.TB;
+        geomSubgraph.layoutSettings = layoutSettings;
+        // Propagate the margins to the subgraph
+        geomSubgraph.margins = margins;
     }
 
     layoutGraphWithSugiayma(geomGraph, new CancelToken(), true);
@@ -55,7 +74,8 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     // while traversing the geomGraph
     // wrap the changes in a batch
     graph.startBatch(LAYOUT_BATCH_NAME);
-    applyLayoutResult(graph, geomGraph);
+    const edgeRoutingMode = options?.edgeRoutingSettings?.edgeRoutingMode || EdgeRoutingMode.Rectilinear;
+    applyLayoutResult(graph, geomGraph, edgeRoutingMode);
     graph.stopBatch(LAYOUT_BATCH_NAME);
 
     const bbox = geomGraph.boundingBox;

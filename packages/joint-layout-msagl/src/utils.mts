@@ -1,7 +1,7 @@
 import { dia, util, g } from '@joint/core';
-import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Rectangle, Size, Edge, Label, GeomLabel, SugiyamaLayoutSettings, EdgeRoutingMode } from '@msagl/core';
+import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Rectangle, Size, Edge, Label, GeomLabel, SugiyamaLayoutSettings } from '@msagl/core';
 import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
-import type { Options } from './index.mjs';
+import { type Options, EdgeRoutingMode } from './index.mjs';
 
 export function processJointGraph(graph: dia.Graph, msGraph: Graph) {
 
@@ -104,7 +104,7 @@ export function setLinkLabel(link: dia.Link, polyline: g.Polyline, label: GeomLa
     })
 }
 
-export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph) {
+export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph, edgeRoutingMode: EdgeRoutingMode) {
 
     for (const geomNode of geomGraph.shallowNodes) {
         const { id } = geomNode;
@@ -127,7 +127,7 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph) {
             const vertices = [];
             // `curve` doesn't have to be a Curve instance, it can be a straight line etc.
             if (curve instanceof Curve) {
-                vertices.push(...curveToVertices(curve));
+                vertices.push(...curveToVertices(curve, edgeRoutingMode));
             }
 
             const link = graph.getCell(id) as dia.Link;
@@ -150,7 +150,7 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph) {
 
     // Recursively apply layout to subgraphs
     for (const cluster of geomGraph.Clusters) {
-        applyLayoutResult(graph, cluster as GeomGraph);
+        applyLayoutResult(graph, cluster as GeomGraph, edgeRoutingMode);
     }
 }
 
@@ -180,23 +180,35 @@ export function buildLayoutSettings(options?: Options): SugiyamaLayoutSettings {
         }
     }
 
-    layoutSettings.edgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.Rectilinear;
+    const { edgeRoutingMode = EdgeRoutingMode.Rectilinear } = options?.edgeRoutingSettings || {};
+
+    layoutSettings.edgeRoutingSettings.EdgeRoutingMode = edgeRoutingMode;
 
     return layoutSettings;
 }
 
-function curveToVertices(curve: Curve): dia.Point[] {
-
+function curveToVertices(curve: Curve, edgeRoutingMode: EdgeRoutingMode): dia.Point[] {
     const vertices = [];
 
     // Ellipses are the corners of links, JointJS will handle connecting the generated
     // vertices with straight lines
     const ellipses = curve.segs.filter((seg) => seg instanceof Ellipse) as Ellipse[];
 
-    // Replace all ellipses along the curve with the sum of the start and the bAxis
+    const iterateeFunction = edgeRoutingMode === EdgeRoutingMode.Rectilinear ? rectilinearRouteMapper : splineBundlingRouteMapper;
+
     for (const ellipse of ellipses) {
-        vertices.push(ellipse.start.add(ellipse.bAxis));
+        vertices.push(...iterateeFunction(ellipse));
     }
 
-    return vertices;
+    return new g.Polyline(vertices).simplify().points;
+}
+
+function rectilinearRouteMapper(ellipse: Ellipse): dia.Point[] {
+    // Replace all ellipses along the curve with the sum of the start and the bAxis
+    return [ellipse.start.add(ellipse.bAxis)];
+}
+
+function splineBundlingRouteMapper(ellipse: Ellipse): dia.Point[] {
+    const middleParameter = (ellipse.parStart + ellipse.parEnd) / 2;
+    return [ellipse.start, ellipse.value(middleParameter), ellipse.end];
 }
