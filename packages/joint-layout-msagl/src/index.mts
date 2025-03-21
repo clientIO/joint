@@ -27,8 +27,6 @@ export interface Options {
     }
 }
 
-
-
 export { LayerDirectionEnum } from '@msagl/core';
 
 export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options): g.Rect {
