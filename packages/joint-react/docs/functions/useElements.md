@@ -6,9 +6,9 @@
 
 # Function: useElements()
 
-> **useElements**\<`T`, `R`\>(`selector`, `isEqual`): `R`
+> **useElements**\<`Elements`, `SelectorReturnType`\>(`selector`, `isEqual`): `SelectorReturnType`
 
-Defined in: [src/hooks/use-elements.ts:56](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-elements.ts#L56)
+Defined in: [src/hooks/use-elements.ts:60](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-elements.ts#L60)
 
 A hook to access `dia.graph` elements
 
@@ -27,19 +27,19 @@ How it works:
 
 ## Type Parameters
 
-### T
+### Elements
 
-`T` *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md)\<`string`\> = [`GraphElement`](../interfaces/GraphElement.md)\<`unknown`\>
+`Elements` *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md)\<`string`\> = [`GraphElement`](../interfaces/GraphElement.md)\<`unknown`\>
 
-### R
+### SelectorReturnType
 
-`R` = `T`[]
+`SelectorReturnType` = `Elements`[]
 
 ## Parameters
 
 ### selector
 
-(`items`) => `R`
+(`items`) => `SelectorReturnType`
 
 The selector function to pick elements.
 
@@ -51,7 +51,7 @@ The function used to decide equality.
 
 ## Returns
 
-`R`
+`SelectorReturnType`
 
 The selected elements.
 

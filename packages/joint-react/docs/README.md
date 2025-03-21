@@ -20,7 +20,7 @@
 - [useGraph](functions/useGraph.md)
 - [useMeasureNodeSize](functions/useMeasureNodeSize.md)
 - [usePaper](functions/usePaper.md)
-- [useSetCells](functions/useSetCells.md)
+- [~~useSetCells~~](functions/useSetCells.md)
 - [useSetElement](functions/useSetElement.md)
 
 ## Models
@@ -39,6 +39,7 @@
 
 - [createElement](functions/createElement.md)
 - [isReactElement](functions/isReactElement.md)
+- [jsx](functions/jsx.md)
 - [useElement](functions/useElement.md)
 - [useLinks](functions/useLinks.md)
 

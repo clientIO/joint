@@ -4,9 +4,9 @@
 
 [@joint/react](../README.md) / GraphLinks
 
-# Class: GraphLinks
+# Class: GraphLinks\<Link\>
 
-Defined in: [src/types/link-types.ts:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L81)
+Defined in: [src/types/link-types.ts:82](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L82)
 
 Collection of graph links.
 It's main data structure for links (edges) in the graph.
@@ -26,13 +26,19 @@ https://docs.jointjs.com/learn/features/shapes/links/#dialink
 
 ## Extends
 
-- [`CellMap`](CellMap.md)\<[`GraphLink`](../interfaces/GraphLink.md)\>
+- [`CellMap`](CellMap.md)\<`Link`\>
+
+## Type Parameters
+
+### Link
+
+`Link` *extends* [`GraphLinkBase`](../interfaces/GraphLinkBase.md) = [`GraphLink`](../interfaces/GraphLink.md)
 
 ## Constructors
 
 ### new GraphLinks()
 
-> **new GraphLinks**(`items`?): `GraphLinks`
+> **new GraphLinks**\<`Link`\>(`items`?): `GraphLinks`\<`Link`\>
 
 Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
 
@@ -40,11 +46,11 @@ Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/b
 
 ##### items?
 
-[`GraphLink`](../interfaces/GraphLink.md)[]
+`Link`[]
 
 #### Returns
 
-`GraphLinks`
+`GraphLinks`\<`Link`\>
 
 #### Inherited from
 
@@ -54,7 +60,7 @@ Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/b
 
 ### filter()
 
-> **filter**(`predicate`): [`GraphLink`](../interfaces/GraphLink.md)[]
+> **filter**(`predicate`): `Link`[]
 
 Defined in: [src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L31)
 
@@ -66,7 +72,7 @@ Defined in: [src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/b
 
 #### Returns
 
-[`GraphLink`](../interfaces/GraphLink.md)[]
+`Link`[]
 
 #### Inherited from
 
@@ -84,7 +90,7 @@ Defined in: [src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/b
 
 ##### Item
 
-`Item` = [`GraphLink`](../interfaces/GraphLink.md)
+`Item` = `Link`
 
 #### Parameters
 

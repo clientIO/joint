@@ -6,9 +6,9 @@
 
 # Function: useLinks()
 
-> **useLinks**\<`Link`, `ReturnedLinks`\>(`selector`, `isEqual`): `ReturnedLinks`
+> **useLinks**\<`Link`, `SelectorReturnType`\>(`selector`, `isEqual`): `SelectorReturnType`
 
-Defined in: [src/hooks/use-links.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-links.ts#L38)
+Defined in: [src/hooks/use-links.ts:42](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-links.ts#L42)
 
 A hook to access the graph store's links.
 
@@ -26,17 +26,17 @@ How it works:
 
 ### Link
 
-`Link` = [`GraphLinks`](../classes/GraphLinks.md)
+`Link` *extends* [`GraphLinkBase`](../interfaces/GraphLinkBase.md)\<`string`\> = [`GraphLink`](../interfaces/GraphLink.md)
 
-### ReturnedLinks
+### SelectorReturnType
 
-`ReturnedLinks` = `Link`
+`SelectorReturnType` = `Link`[]
 
 ## Parameters
 
 ### selector
 
-(`items`) => `ReturnedLinks`
+(`items`) => `SelectorReturnType`
 
 The selector function to pick links.
 
@@ -48,7 +48,7 @@ The function to compare equality.
 
 ## Returns
 
-`ReturnedLinks`
+`SelectorReturnType`
 
 The selected links.
 
