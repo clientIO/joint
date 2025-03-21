@@ -1,5 +1,4 @@
 import type { Preview } from '@storybook/react';
-
 import { withPerformance } from 'storybook-addon-performance';
 import { theme } from './theme';
 
@@ -11,10 +10,7 @@ const preview: Preview = {
       theme: theme,
     },
     backgrounds: {
-      values: [
-        // 👇 Default values
-        { name: 'Dark', value: theme.appBg },
-      ],
+      values: [{ name: 'Dark', value: theme.appBg }],
       default: 'Dark',
     },
     options: {

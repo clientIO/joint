@@ -2,7 +2,11 @@ import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { GraphElement, GraphElementBase, GraphElements } from '../types/element-types';
-
+function defaultSelector<Elements extends GraphElementBase = GraphElement>(
+  items: GraphElements<Elements>
+): Elements[] {
+  return items.map((item) => item) as Elements[];
+}
 /**
  * A hook to access `dia.graph` elements
  *
@@ -50,15 +54,20 @@ import type { GraphElement, GraphElementBase, GraphElements } from '../types/ele
  *
  * @param {Function} selector The selector function to pick elements. @default (items) => items.map((item) => item)
  * @param {Function=} isEqual The function used to decide equality. @default util.isEqual
- * @returns {R} The selected elements.
+ * @returns {SelectorReturnType} The selected elements.
  */
 
-export function useElements<T extends GraphElementBase = GraphElement, R = T[]>(
-  selector: (items: GraphElements<T>) => R = (items) => items.map((item) => item) as R,
-  isEqual: (a: R, b: R) => boolean = util.isEqual
-): R {
+export function useElements<
+  Elements extends GraphElementBase = GraphElement,
+  SelectorReturnType = Elements[],
+>(
+  selector: (
+    items: GraphElements<Elements>
+  ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
+): SelectorReturnType {
   const { subscribe, getElements } = useGraphStore();
-  const typedGetElements = getElements as () => GraphElements<T>;
+  const typedGetElements = getElements as () => GraphElements<Elements>;
   const elements = useSyncExternalStoreWithSelector(
     subscribe,
     typedGetElements,

@@ -1,35 +1,16 @@
-import { util, type dia } from '@joint/core';
-import type { FunctionComponent, JSX } from 'react';
+import { type dia } from '@joint/core';
+import type { JSX } from 'react';
 import { isValidElement } from 'react';
+import {
+  isBoolean,
+  isNull,
+  isNumber,
+  isReactComponentFunction,
+  isRecord,
+  isString,
+  isWithChildren,
+} from '../is';
 
-function hasChildren(props: Record<string, unknown>) {
-  return 'children' in props;
-}
-function isString(value: unknown): value is string {
-  return util.isString(value);
-}
-
-function isNumber(value: unknown): value is number {
-  return util.isNumber(value);
-}
-function isBoolean(value: unknown): value is boolean {
-  return util.isBoolean(value);
-}
-
-function isNull(value: unknown): value is null {
-  return value === null;
-}
-
-function isReactComponentFunction(value: unknown): value is FunctionComponent {
-  return value instanceof Function;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return util.isObject(value);
-}
-function isWithChildren(value: unknown): value is { children: JSX.Element[] } {
-  return isRecord(value) && hasChildren(value);
-}
 function extractJointAttributes(
   props: unknown
 ): [Record<string, unknown>, Record<string, unknown>] {

@@ -78,4 +78,5 @@ export interface GraphLink extends GraphLinkBase {
  * @group Graph
  * @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
  */
-export class GraphLinks extends CellMap<GraphLink> {}
+
+export class GraphLinks<Link extends GraphLinkBase = GraphLink> extends CellMap<Link> {}

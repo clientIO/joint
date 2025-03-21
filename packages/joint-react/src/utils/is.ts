@@ -3,6 +3,7 @@ import type { GraphCell } from './cell/get-cell';
 import type { GraphLink } from '../types/link-types';
 import type { GraphElement, GraphElementBase } from '../types/element-types';
 import { ReactElement } from 'src/models/react-element';
+import type { FunctionComponent, JSX } from 'react';
 
 export type Setter<Value> = (item: Value) => Value;
 
@@ -54,4 +55,30 @@ export function isReactElement(value: unknown): value is dia.Cell {
 
 export function isUnsized(width: number | undefined, height: number | undefined) {
   return width === undefined || height === undefined;
+}
+
+export function hasChildren(props: Record<string, unknown>) {
+  return 'children' in props;
+}
+export function isString(value: unknown): value is string {
+  return util.isString(value);
+}
+
+export function isNumber(value: unknown): value is number {
+  return util.isNumber(value);
+}
+export function isBoolean(value: unknown): value is boolean {
+  return util.isBoolean(value);
+}
+
+export function isNull(value: unknown): value is null {
+  return value === null;
+}
+
+export function isReactComponentFunction(value: unknown): value is FunctionComponent {
+  return value instanceof Function;
+}
+
+export function isWithChildren(value: unknown): value is { children: JSX.Element[] } {
+  return isRecord(value) && hasChildren(value);
 }

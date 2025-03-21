@@ -67,6 +67,7 @@ export class GraphStoreData<Element extends GraphElementBase = GraphElement> {
         areLinksChanged = true;
       }
     }
+
     if (areElementsChanged) {
       this.elements = new GraphElements<Element>([...this.elements.values()]);
     }

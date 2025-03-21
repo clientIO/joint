@@ -1,8 +1,11 @@
 import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import type { GraphLinks } from '../types/link-types';
+import type { GraphLink, GraphLinkBase, GraphLinks } from '../types/link-types';
 
+function defaultSelector<Link extends GraphLinkBase = GraphLink>(items: GraphLinks<Link>): Link[] {
+  return items.map((item) => item) as Link[];
+}
 /**
  * A hook to access the graph store's links.
  *
@@ -35,15 +38,19 @@ import type { GraphLinks } from '../types/link-types';
  * @param {Function=} isEqual The function to compare equality. @default util.isEqual
  * @returns {T} The selected links.
  */
-export function useLinks<Link = GraphLinks, ReturnedLinks = Link>(
-  selector: (items: GraphLinks) => ReturnedLinks = (items) => items as unknown as ReturnedLinks,
-  isEqual: (a: ReturnedLinks, b: ReturnedLinks) => boolean = util.isEqual
-): ReturnedLinks {
+
+export function useLinks<Link extends GraphLinkBase = GraphLink, SelectorReturnType = Link[]>(
+  selector: (
+    items: GraphLinks<Link>
+  ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
+  isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
+): SelectorReturnType {
   const { subscribe, getLinks } = useGraphStore();
+  const typedGetLinks = getLinks as unknown as () => GraphLinks<Link>;
   const elements = useSyncExternalStoreWithSelector(
     subscribe,
-    getLinks,
-    getLinks,
+    typedGetLinks,
+    typedGetLinks,
     selector,
     isEqual
   );
