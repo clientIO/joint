@@ -3,12 +3,12 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable no-console */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+import { BG, PRIMARY } from '.storybook/theme';
 import { dia, shapes } from '@joint/core';
 import {
   GraphProvider,
   HTMLNode,
   Paper,
-  PaperProvider,
   ReactElement,
   useElements,
   useGraph,
@@ -29,7 +29,7 @@ export default meta;
 const paperStoryOptions: dia.Paper.Options = {
   width: 400,
   height: 400,
-  background: { color: '#f8f9fa' },
+  background: { color: BG },
   gridSize: 2,
 };
 
@@ -56,6 +56,12 @@ function createElements(xCount: number, yCount: number) {
             id: `${x - 1}-${y}-${x}-${y}`,
             source: { id: `${x - 1}-${y}` },
             target: { id: `${x}-${y}` },
+            attrs: {
+              line: {
+                stroke: PRIMARY,
+                strokeDasharray: '5,5',
+              },
+            },
           })
         );
         // add link to next element
@@ -65,6 +71,12 @@ function createElements(xCount: number, yCount: number) {
               id: `${x}-${y - 1}-${x}-${y}`,
               source: { id: `${x}-${y - 1}` },
               target: { id: `${x}-${y}` },
+              attrs: {
+                line: {
+                  stroke: PRIMARY,
+                  strokeDasharray: '5,5',
+                },
+              },
             })
           );
         }
@@ -129,25 +141,6 @@ function createGraph() {
   graph.addCells(createElements(WIDTH_ITEMS, HEIGHT_ITEMS));
   return graph;
 }
-export const WithoutReact: Story = {
-  args: {
-    style: { border: '1px solid #ccc' },
-  },
-  render: () => {
-    const graph = useRef(createGraph()).current;
-    console.log('re-render WithHooksAPI');
-    return (
-      <GraphProvider graph={graph}>
-        <RandomChange />
-        <div style={{ display: 'flex', flex: 1 }}>
-          <PaperProvider {...paperStoryOptions}>
-            <Paper />
-          </PaperProvider>
-        </div>
-      </GraphProvider>
-    );
-  },
-};
 
 export const WithReactElements: Story = {
   args: {
@@ -164,7 +157,7 @@ export const WithReactElements: Story = {
         <HTMLNode
           style={{
             fontSize: 12,
-            background: 'cyan',
+            background: PRIMARY,
             overflow: 'hidden',
             width: element.width,
             height: element.height,

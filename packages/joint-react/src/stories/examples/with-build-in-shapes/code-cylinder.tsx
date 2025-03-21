@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PRIMARY } from '.storybook/theme';
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 
@@ -11,14 +12,8 @@ const initialElements = createElements([
     height: 50,
     type: 'standard.Cylinder',
     attrs: {
-      top: {
-        fill: 'lightblue',
-      },
       body: {
-        fill: 'cyan',
-      },
-      root: {
-        fill: 'magenta',
+        fill: PRIMARY,
       },
     },
   },

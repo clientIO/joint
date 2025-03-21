@@ -12,6 +12,8 @@ import {
 import '../index.css';
 import { useEffect, useRef } from 'react';
 import { shapes, util } from '@joint/core';
+import { PRIMARY } from '.storybook/theme';
+import type { dia } from '../../../../../joint-core/types';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -25,10 +27,10 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 class DashedLink extends shapes.standard.Link {
   defaults() {
     return util.defaultsDeep(super.defaults, {
-      type: 'asd',
+      type: 'link',
       attrs: {
         line: {
-          stroke: 'cyan', // Set stroke color
+          stroke: PRIMARY, // Set stroke color
           strokeWidth: 10, // Set stroke width
           strokeDasharray: '5,5', // Makes the line da
         },
@@ -37,49 +39,31 @@ class DashedLink extends shapes.standard.Link {
   }
 }
 
-function areTwoElementsClose(
-  element1: BaseElementWithData,
-  element2: BaseElementWithData,
-  closeDistance = 10
-) {
-  const x1 = element1.x;
-  const y1 = element1.y;
-  const x2 = element2.x;
-  const y2 = element2.y;
-  const width1 = element1.width ?? 0;
-  const height1 = element1.height ?? 0;
-  const width2 = element2.width ?? 0;
-  const height2 = element2.height ?? 0;
-
-  return (
-    x1 < x2 + width2 + closeDistance &&
-    x1 + width1 + closeDistance > x2 &&
-    y1 < y2 + height2 + closeDistance &&
-    y1 + height1 + closeDistance > y2
-  );
-}
-
-const BE_CLOSE_DISTANCE = 25;
-function getLinkId(id: string, closeId: string | null) {
+const BE_CLOSE_DISTANCE = 100;
+function getLinkId(id: dia.Cell.ID | null, closeId: dia.Cell.ID | null) {
   return `${id}-${closeId}`;
 }
+
 function ResizableNode({ id, data: { label } }: Readonly<BaseElementWithData>) {
+  const graph = useGraph();
   const nodeRef = useRef<HTMLDivElement>(null);
 
-  const closeId = useElements<BaseElementWithData, string | null>((elements) => {
-    const element = elements.get(id);
+  const closeId = useElements<BaseElementWithData, dia.Cell.ID | null>((elements) => {
+    const element = graph.getCell(id);
     if (!element) {
       return null;
     }
-    for (const [, value] of elements) {
-      if (value.id !== id && areTwoElementsClose(element, value, BE_CLOSE_DISTANCE)) {
+    for (const [otherId, value] of elements) {
+      const otherElement = graph.getCell(otherId);
+      const box1 = element.getBBox();
+      const box2 = otherElement.getBBox();
+      const isClose = box1.center().distance(box2.center()) <= BE_CLOSE_DISTANCE;
+      if (otherElement.id !== element.id && isClose) {
         return value.id;
       }
     }
     return null;
   });
-
-  const graph = useGraph();
 
   useEffect(() => {
     if (!closeId) {
@@ -90,6 +74,12 @@ function ResizableNode({ id, data: { label } }: Readonly<BaseElementWithData>) {
       id: linkId,
       source: { id },
       target: { id: closeId },
+      attrs: {
+        line: {
+          stroke: PRIMARY,
+          strokeDasharray: '5,5',
+        },
+      },
     });
     graph?.addCell(link);
   }, [closeId, graph, id]);

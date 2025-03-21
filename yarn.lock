@@ -2644,14 +2644,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gerrit0/mini-shiki@npm:^1.24.0":
-  version: 1.27.2
-  resolution: "@gerrit0/mini-shiki@npm:1.27.2"
+"@gerrit0/mini-shiki@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "@gerrit0/mini-shiki@npm:3.2.1"
   dependencies:
-    "@shikijs/engine-oniguruma": ^1.27.2
-    "@shikijs/types": ^1.27.2
-    "@shikijs/vscode-textmate": ^10.0.1
-  checksum: aa4a0def0c7c73f2ef49b53f4dab5bf95f8f3b3d2c895baf384d338856a082a6a0487bc87c28d550b7f52ed71cbe98dae7754a5397be52df49a18e75cdd7d087
+    "@shikijs/engine-oniguruma": ^3.2.1
+    "@shikijs/types": ^3.2.1
+    "@shikijs/vscode-textmate": ^10.0.2
+  checksum: 33a8475eed25542aa5e407d09599bea8038f7537d218efe8057409e13ae3d4ee0b6c80f561a1afe31b33f6f258adeb77fad7eacb72c26d2b94de87b735e78e09
   languageName: node
   linkType: hard
 
@@ -3316,10 +3316,11 @@ __metadata:
     storybook-addon-performance: ^0.17.3
     ts-jest: ^29.2.5
     ts-node: ^10.9.2
-    typedoc: ^0.27.9
+    typedoc: 0.28.0
+    typedoc-github-theme: ^0.2.1
     typedoc-plugin-external-module-name: ^4.0.6
-    typedoc-plugin-markdown: ^4.4.2
-    typedoc-plugin-mdn-links: ^4.0.14
+    typedoc-plugin-markdown: "4.5.2 "
+    typedoc-plugin-mdn-links: 5.0.1
     typescript: 5.7.3
     typescript-eslint: 8.21.0
     use-sync-external-store: ^1.4.0
@@ -3819,27 +3820,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shikijs/engine-oniguruma@npm:^1.27.2":
-  version: 1.29.2
-  resolution: "@shikijs/engine-oniguruma@npm:1.29.2"
+"@shikijs/engine-oniguruma@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "@shikijs/engine-oniguruma@npm:3.2.1"
   dependencies:
-    "@shikijs/types": 1.29.2
-    "@shikijs/vscode-textmate": ^10.0.1
-  checksum: 8713ada50e8875d22d928bd605d509a2c7d5e8c2c8a67b215b169f999457123082a02000182b37b9621903577dae5ac8067c614037fbf0aeb5b6dc2c195e58a2
+    "@shikijs/types": 3.2.1
+    "@shikijs/vscode-textmate": ^10.0.2
+  checksum: 7be39f6cb89e83173c634a9135a40a046addbfd9c01e98163ea8fd14e3fefef33fd617600863ac2c8518b29ab2b2836c98e21bd67788c642599d3f75b22606e5
   languageName: node
   linkType: hard
 
-"@shikijs/types@npm:1.29.2, @shikijs/types@npm:^1.27.2":
-  version: 1.29.2
-  resolution: "@shikijs/types@npm:1.29.2"
+"@shikijs/types@npm:3.2.1, @shikijs/types@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "@shikijs/types@npm:3.2.1"
   dependencies:
-    "@shikijs/vscode-textmate": ^10.0.1
+    "@shikijs/vscode-textmate": ^10.0.2
     "@types/hast": ^3.0.4
-  checksum: 3aeb2933b5ceda8afe6e4be624847de5fab392085ddf77fb785cf33014120d1afd6825e666d58895e4c489981196abc161c8a4d2e41f7da33d8f5e83b58cc606
+  checksum: 3eaf77b6e21fed1ec3e96cb93c5fa4f9f7b72bc24d9e21db13f7fa1a168091af7bf8e27286c79c8ebf22f1108a6d3b9b59052e797b8698aff7602478aa3cef96
   languageName: node
   linkType: hard
 
-"@shikijs/vscode-textmate@npm:^10.0.1":
+"@shikijs/vscode-textmate@npm:^10.0.2":
   version: 10.0.2
   resolution: "@shikijs/vscode-textmate@npm:10.0.2"
   checksum: e68f27a3dc1584d7414b8acafb9c177a2181eb0b06ef178d8609142f49d28d85fd10ab129affde40a45a7d9238997e457ce47931b3a3815980e2b98b2d26724c
@@ -22193,6 +22194,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typedoc-github-theme@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "typedoc-github-theme@npm:0.2.1"
+  peerDependencies:
+    typedoc: ^0.27.6
+  checksum: 64d4125e264f066e6d19d100e88d1dffd12bd2c72e8632b89c7ea267ae6204537c56e727453f7f2dab12d670e72373aee51e571a70f82e7b97dda18b60178537
+  languageName: node
+  linkType: hard
+
 "typedoc-plugin-external-module-name@npm:^4.0.6":
   version: 4.0.6
   resolution: "typedoc-plugin-external-module-name@npm:4.0.6"
@@ -22205,38 +22215,38 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-markdown@npm:^4.4.2":
-  version: 4.4.2
-  resolution: "typedoc-plugin-markdown@npm:4.4.2"
+"typedoc-plugin-markdown@npm:4.5.2 ":
+  version: 4.5.2
+  resolution: "typedoc-plugin-markdown@npm:4.5.2"
   peerDependencies:
-    typedoc: 0.27.x
-  checksum: 07b04e5aba3b7e1772a22f348645df9e41983f483da4315c6dedd9bdf0d19bfcf72ff088b4896c2ace38827e47efb7b1519a7636e0eead994077ed81129983a0
+    typedoc: 0.28.x
+  checksum: e5bc2d90392a3ff17f09fa19f42e9dbb5cc6e2feb52ac19292d4ea52d7146b996859c2e8950ffeb5888a1005f637f98779e05c715907679bfbdbc3a650ba752f
   languageName: node
   linkType: hard
 
-"typedoc-plugin-mdn-links@npm:^4.0.14":
-  version: 4.0.14
-  resolution: "typedoc-plugin-mdn-links@npm:4.0.14"
+"typedoc-plugin-mdn-links@npm:5.0.1":
+  version: 5.0.1
+  resolution: "typedoc-plugin-mdn-links@npm:5.0.1"
   peerDependencies:
-    typedoc: 0.26.x || 0.27.x
-  checksum: 7fbb8233b5c2f19c8ef16332269abb72cacc537aa43dfc1249ccb253709aa34f3896150e21121b85c0431f8a80440d5041efb062dc121299eb955780875e1922
+    typedoc: 0.27.x || 0.28.x
+  checksum: 9abfebead542fb91a1916116bf166741462ebfdcb112adc56497461cd79a2372e165cdb9041d61856c8ed272e2b804b24d48dfa34373af3ee36dddca15fb3015
   languageName: node
   linkType: hard
 
-"typedoc@npm:^0.27.9":
-  version: 0.27.9
-  resolution: "typedoc@npm:0.27.9"
+"typedoc@npm:0.28.0":
+  version: 0.28.0
+  resolution: "typedoc@npm:0.28.0"
   dependencies:
-    "@gerrit0/mini-shiki": ^1.24.0
+    "@gerrit0/mini-shiki": ^3.2.1
     lunr: ^2.3.9
     markdown-it: ^14.1.0
     minimatch: ^9.0.5
-    yaml: ^2.6.1
+    yaml: "^2.7.0 "
   peerDependencies:
     typescript: 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x || 5.7.x || 5.8.x
   bin:
     typedoc: bin/typedoc
-  checksum: 9741641cd9eca4bfa03939ab8654596176ddb96fbde690b488262089c561290477c9ad0a3c588c431d3b2593dd5fc49768cc93190f796bc62fefaba1e2106537
+  checksum: 3d61d6c913b11696d19bf06a73a59b9089577d514e82db20982a2229f2b06e944c9d95775a092032f8f59c0d25e766d84661f0c96bb3613a9fc0d805571986d2
   languageName: node
   linkType: hard
 
@@ -23933,7 +23943,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.3.4, yaml@npm:^2.6.1":
+"yaml@npm:^2.3.4, yaml@npm:^2.7.0 ":
   version: 2.7.0
   resolution: "yaml@npm:2.7.0"
   bin:

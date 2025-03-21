@@ -10,12 +10,24 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
+import { PRIMARY } from '.storybook/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { color: '#cccccc' }, x: 100, y: 0, width: 100, height: 50 },
-  { id: '2', data: { color: '#cccccc' }, x: 100, y: 200, width: 100, height: 50 },
+  { id: '1', data: { color: PRIMARY }, x: 100, y: 0, width: 130, height: 35 },
+  { id: '2', data: { color: PRIMARY }, x: 100, y: 200, width: 130, height: 35 },
 ]);
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
+const initialEdges = createLinks([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+      },
+    },
+  },
+]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
@@ -33,7 +45,7 @@ function ElementInput({ id, data }: BaseElementWithData) {
 }
 
 function RenderElement({ data: { color }, width, height }: BaseElementWithData) {
-  return <rect className="node" width={width} height={height} fill={color} />;
+  return <rect rx={10} ry={10} className="node" width={width} height={height} fill={color} />;
 }
 
 function Main() {

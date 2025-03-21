@@ -4,9 +4,9 @@
 
 [@joint/react](../README.md) / GraphLinkBase
 
-# Interface: GraphLinkBase
+# Interface: GraphLinkBase\<Type\>
 
-Defined in: [packages/joint-react/src/data/graph-links.ts:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-links.ts#L10)
+Defined in: [src/types/link-types.ts:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L17)
 
 Base interface for graph link.
 It's a subset of `dia.Link` with some additional properties.
@@ -24,17 +24,33 @@ It's a subset of `dia.Link` with some additional properties.
 
 - [`GraphLink`](GraphLink.md)
 
+## Type Parameters
+
+### Type
+
+`Type` *extends* [`StandardLinkShapesType`](../type-aliases/StandardLinkShapesType.md) \| `string` = `string`
+
 ## Indexable
 
 \[`key`: `string`\]: `unknown`
 
 ## Properties
 
+### attrs?
+
+> `readonly` `optional` **attrs**: `Type` *extends* keyof `StandardLinkShapesTypeMapper` ? `StandardLinkShapesTypeMapper`\[`Type`\<`Type`\>\] : `unknown`
+
+Defined in: [src/types/link-types.ts:52](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L52)
+
+Attributes of the element.
+
+***
+
 ### defaultLabel?
 
 > `readonly` `optional` **defaultLabel**: `Label`
 
-Defined in: [packages/joint-react/src/data/graph-links.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-links.ts#L38)
+Defined in: [src/types/link-types.ts:47](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L47)
 
 Optional link attrs.
 
@@ -44,7 +60,7 @@ Optional link attrs.
 
 > `readonly` **id**: `ID`
 
-Defined in: [packages/joint-react/src/data/graph-links.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-links.ts#L14)
+Defined in: [src/types/link-types.ts:23](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L23)
 
 Unique identifier of the link.
 
@@ -58,7 +74,7 @@ Unique identifier of the link.
 
 > `readonly` `optional` **markup**: `MarkupJSON`
 
-Defined in: [packages/joint-react/src/data/graph-links.ts:34](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-links.ts#L34)
+Defined in: [src/types/link-types.ts:43](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L43)
 
 Optional link markup.
 
@@ -68,7 +84,7 @@ Optional link markup.
 
 > `readonly` **source**: `ID`
 
-Defined in: [packages/joint-react/src/data/graph-links.ts:18](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-links.ts#L18)
+Defined in: [src/types/link-types.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L27)
 
 Source element id.
 
@@ -78,7 +94,7 @@ Source element id.
 
 > `readonly` **target**: `ID`
 
-Defined in: [packages/joint-react/src/data/graph-links.ts:22](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-links.ts#L22)
+Defined in: [src/types/link-types.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L31)
 
 Target element id.
 
@@ -86,9 +102,9 @@ Target element id.
 
 ### type?
 
-> `readonly` `optional` **type**: `string`
+> `readonly` `optional` **type**: `Type`
 
-Defined in: [packages/joint-react/src/data/graph-links.ts:26](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-links.ts#L26)
+Defined in: [src/types/link-types.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L35)
 
 Optional link type.
 
@@ -98,6 +114,6 @@ Optional link type.
 
 > `readonly` `optional` **z**: `number`
 
-Defined in: [packages/joint-react/src/data/graph-links.ts:30](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-links.ts#L30)
+Defined in: [src/types/link-types.ts:39](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L39)
 
 Z index of the link.

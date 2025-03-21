@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PRIMARY } from '.storybook/theme';
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 
@@ -12,15 +13,12 @@ const initialElements = createElements([
     type: 'standard.EmbeddedImage',
     attrs: {
       body: {
-        fill: 'lightblue',
+        fill: PRIMARY,
       },
       image: {
         xlinkHref: 'https://picsum.photos/100/100',
         width: 100,
         height: 100,
-      },
-      label: {
-        text: 'Embedded Image',
       },
     },
   },

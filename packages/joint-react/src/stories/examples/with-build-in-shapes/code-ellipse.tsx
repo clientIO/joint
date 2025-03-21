@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PRIMARY } from '.storybook/theme';
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 
@@ -12,13 +13,7 @@ const initialElements = createElements([
     type: 'standard.Ellipse',
     attrs: {
       body: {
-        fill: 'lightblue',
-      },
-      label: {
-        text: 'Ellipse',
-      },
-      root: {
-        fill: 'magenta',
+        fill: PRIMARY,
       },
     },
   },

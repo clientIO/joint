@@ -2,6 +2,7 @@ import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import CodeSVG from './code-svg?raw';
 import CodeHTML from './code-html?raw';
+import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-documentation-link'
 
 <Meta of={Stories} />
 
@@ -10,17 +11,17 @@ import CodeHTML from './code-html?raw';
 ### How it works
 
 1. **Define default elements (nodes) and default links (edges)**
-   - You can define elements and links using helper functions like `createElements` and `createLinks`. Alternatively, you can define them manually as `Array<GraphElement | dia.Element>` or `Array<GraphLink | dia.Link>`.
+   - You can define elements and links using helper functions like {getAPIDocumentationLink("createElements")} and {getAPIDocumentationLink("createLinks")}. Alternatively, you can define them manually as `Array<GraphElement | dia.Element>` or `Array<GraphLink | dia.Link>`.
    - Example:
      ```ts
      const elements = createElements([
-       { id: '1', data: { color: 'cyan' }, x: 100, y: 0, width: 100, height: 25 },
-       { id: '2', data: { color: 'magenta' }, x: 100, y: 200, width: 100, height: 25 },
+       { id: '1', data: { color: 'blue' }, x: 100, y: 0, width: 100, height: 25 },
+       { id: '2', data: { color: 'blue' }, x: 100, y: 200, width: 100, height: 25 },
      ]);
      const links = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
      ```
 
-2. **Wrap your app inside `GraphProvider`**
+2. **Wrap your app inside {getAPIDocumentationLink('GraphProvider')}**
    - The `GraphProvider` component wraps all its children within a [jointjs/graph](https://docs.jointjs.com/api/dia/Graph) instance and manages the React state for elements and links.
    - Example:
      ```tsx
@@ -29,9 +30,9 @@ import CodeHTML from './code-html?raw';
      </GraphProvider>
      ```
 
-3. **Render nodes using the `Paper` component**
+3. **Render nodes using the {getAPIDocumentationLink('Paper', 'variables')} component**
    - The `Paper` component is a wrapper around [jointjs/paper](https://docs.jointjs.com/learn/quickstart/paper/). It is responsible for rendering nodes.
-   - The `Paper` component has an important prop called `renderElement`, which is responsible for rendering a node inside the paper. The `Paper` component accepts any `dia.paper.Options` and HTML attributes.
+   - The `Paper` component has an important prop called {getAPIPropsLink('Paper', 'renderElement')}, which is responsible for rendering a node inside the paper. The `Paper` component accepts any `dia.paper.Options` and HTML attributes.
    - Example:
      ```tsx
      function RenderItem({ width, height, data: { color } }) {
@@ -42,7 +43,7 @@ import CodeHTML from './code-html?raw';
      ```
 
 4. **Create a `RenderElement` function and render an SVG rect component**
-   - The `RenderElement` function defines how each node should be rendered. In this example, we render a rectangle (`rect`) SVG component.
+   - The {getAPIPropsLink('Paper', 'renderElement')} function defines how each node should be rendered. In this example, we render a rectangle (`rect`) SVG component.
 
 ### Using HTML elements inside SVG
 
@@ -51,13 +52,10 @@ import CodeHTML from './code-html?raw';
 - Reference: [MDN foreignObject](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject)
 - Example:
   ```tsx
-  function RenderItem({ width, height, data: { label } }) {
-    return (
-      <foreignObject style={{ overflow: 'visible' }} width={width} height={height}>
-        <div className="node">{label}</div>
-      </foreignObject>
-    );
+  function RenderItem({ data: { label } }: CustomElement) {
+    return <HTMLNode className="node">{label}</HTMLNode>;
   }
+
   ```
 
 ### Demo with SVG node

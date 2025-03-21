@@ -6,9 +6,9 @@
 
 # Type Alias: CellsSetter()
 
-> **CellsSetter**: (`oldCells`) => [`Item`](Item.md)[]
+> **CellsSetter** = (`oldCells`) => [`Item`](Item.md)[]
 
-Defined in: [packages/joint-react/src/hooks/use-set-cells.ts:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-cells.ts#L7)
+Defined in: [src/hooks/use-set-cells.ts:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-cells.ts#L7)
 
 ## Parameters
 

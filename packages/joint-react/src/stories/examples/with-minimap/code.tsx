@@ -10,18 +10,32 @@ import {
   type InferElement,
   type RenderElement,
 } from '@joint/react';
+import { PRIMARY } from '.storybook/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200, width: 100, height: 50 },
 ]);
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
+const initialEdges = createLinks([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+      },
+    },
+  },
+]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <rect width={element.width} height={element.height} fill="gray" radius={10} />,
+    (element) => (
+      <rect width={element.width} height={element.height} className="minimap-node" radius={10} />
+    ),
     []
   );
   return (

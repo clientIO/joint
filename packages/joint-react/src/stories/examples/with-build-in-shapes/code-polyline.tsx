@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PRIMARY } from '.storybook/theme';
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 
@@ -12,7 +13,7 @@ const initialElements = createElements([
     type: 'standard.Polyline',
     attrs: {
       body: {
-        fill: 'lightblue',
+        fill: PRIMARY,
         refPoints: '0,0 100,0 100,100 0,100',
       },
       label: {

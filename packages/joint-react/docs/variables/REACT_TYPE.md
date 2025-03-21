@@ -8,4 +8,4 @@
 
 > `const` **REACT\_TYPE**: `"ReactElement"` = `'ReactElement'`
 
-Defined in: [packages/joint-react/src/models/react-element.ts:2](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.ts#L2)
+Defined in: [src/models/react-element.tsx:3](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L3)

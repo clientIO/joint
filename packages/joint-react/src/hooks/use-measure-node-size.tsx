@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { useGraph } from './use-graph';
 import { useCellId } from './use-cell-id';
 import {
@@ -7,30 +7,20 @@ import {
 } from '../utils/create-element-size-observer';
 import type { dia } from '@joint/core';
 
+export interface OnSetOptions {
+  readonly element: dia.Cell;
+  readonly size: SizeObserver;
+}
+export type OnSetSize = (options: OnSetOptions) => void;
 export interface MeasureNodeOptions {
-  /**
-   * The padding to add to the width of the element.
-   * @default 0
-   */
-  readonly widthPadding?: number;
-  /**
-   * The padding to add to the height of the element.
-   * @default 0
-   */
-  readonly heightPadding?: number;
-
   /**
    * Overwrite default node set function with custom handling.
    * Useful for adding another padding, or just check element size.
    * @default it set element via `cell.set('size', {width, height})`
    */
-  readonly onSetSize?: (element: dia.Cell, size: SizeObserver) => void;
+  readonly setSize?: OnSetSize;
 }
-const DEFAULT_OPTIONS: MeasureNodeOptions = {
-  widthPadding: 0,
-  heightPadding: 0,
-};
-
+const EMPTY_OBJECT: MeasureNodeOptions = {};
 /**
  * Function to measure (update) node (element) `width` and `height` based on the provided element ref.
  * Returns new created function to set the ref.
@@ -45,11 +35,16 @@ const DEFAULT_OPTIONS: MeasureNodeOptions = {
  */
 export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVGElement>(
   elementRef: RefObject<AnyHtmlOrSvgElement | null>,
-  options: MeasureNodeOptions = DEFAULT_OPTIONS
+  options?: MeasureNodeOptions
 ) {
-  const { widthPadding = 0, heightPadding = 0, onSetSize } = options;
+  const { setSize } = options ?? EMPTY_OBJECT;
   const graph = useGraph();
   const cellID = useCellId();
+
+  const onSetSizeRef = useRef(setSize);
+  useEffect(() => {
+    onSetSizeRef.current = setSize;
+  }, [setSize]);
 
   useEffect(() => {
     if (!elementRef.current) {
@@ -69,14 +64,13 @@ export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVG
     }
 
     return createElementSizeObserver(elementRef.current, ({ height, width }) => {
-      const newSize: SizeObserver = {
-        height: height + heightPadding,
-        width: width + widthPadding,
-      };
-      if (onSetSize) {
-        return onSetSize(cell, newSize);
+      if (onSetSizeRef.current) {
+        return onSetSizeRef.current({
+          element: cell,
+          size: { height, width },
+        });
       }
-      cell.set('size', newSize);
+      cell.set('size', { height, width });
     });
-  }, [cellID, elementRef, graph, heightPadding, onSetSize, widthPadding]);
+  }, [cellID, elementRef, graph]);
 }

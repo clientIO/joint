@@ -6,8 +6,8 @@
 
 # Type Alias: HtmlElementProps
 
-> **HtmlElementProps**: `DivElementProps` \| `SpanElementProps` \| `ButtonElementProps`
+> **HtmlElementProps** = `DivElementProps` \| `SpanElementProps` \| `ButtonElementProps`
 
-Defined in: [packages/joint-react/src/components/html-node/html-node.tsx:39](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L39)
+Defined in: [src/components/html-node/html-node.tsx:40](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L40)
 
-Special html element, when width and height are set, we will not automatically resize the parent node element.
+Special HTML element, when width and height are set, we will not automatically resize the parent node element.

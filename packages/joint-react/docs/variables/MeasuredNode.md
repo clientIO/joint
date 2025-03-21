@@ -4,25 +4,15 @@
 
 [@joint/react](../README.md) / MeasuredNode
 
-# Function: MeasuredNode()
+# Variable: MeasuredNode
 
-> **MeasuredNode**(`props`): `ReactNode`
+> `const` **MeasuredNode**: `NamedExoticComponent`\<[`MeasuredNodeProps`](../interfaces/MeasuredNodeProps.md) & `RefAttributes`\<[`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement) \| [`SVGAElement`](https://developer.mozilla.org/docs/Web/API/SVGAElement)\>\>
 
-Defined in: [packages/joint-react/src/components/measured-node/measured-node.tsx:80](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L80)
+Defined in: [src/components/measured-node/measured-node.tsx:80](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L80)
 
 Measured node component automatically detects the size of its `children` and updates the graph element (node) width and height automatically when elements resize.
 
 It must be used inside `renderElement` context
-
-## Parameters
-
-### props
-
-[`MeasuredNodeProps`](../interfaces/MeasuredNodeProps.md) & `RefAttributes`\<[`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement) \| [`SVGAElement`](https://developer.mozilla.org/docs/Web/API/SVGAElement)\>
-
-## Returns
-
-`ReactNode`
 
 ## See
 
@@ -69,7 +59,7 @@ function RenderElement() {
   };
 
   return (
-    <MeasuredNode onSetSize={handleSizeChange}>
+    <MeasuredNode setSize={handleSizeChange}>
       <div style={{ width: 100, height: 50 }}>Content</div>
     </MeasuredNode>
   );

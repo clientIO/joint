@@ -6,7 +6,7 @@
 
 # Class: GraphLinks
 
-Defined in: [packages/joint-react/src/data/graph-links.ts:65](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-links.ts#L65)
+Defined in: [src/types/link-types.ts:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L81)
 
 Collection of graph links.
 It's main data structure for links (edges) in the graph.
@@ -32,9 +32,9 @@ https://docs.jointjs.com/learn/features/shapes/links/#dialink
 
 ### new GraphLinks()
 
-> **new GraphLinks**(`items`?): [`GraphLinks`](GraphLinks.md)
+> **new GraphLinks**(`items`?): `GraphLinks`
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
+Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
 
 #### Parameters
 
@@ -44,11 +44,11 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:14](https://github.
 
 #### Returns
 
-[`GraphLinks`](GraphLinks.md)
+`GraphLinks`
 
 #### Inherited from
 
-[`CellMap`](CellMap.md).[`constructor`](CellMap.md#constructors)
+[`CellMap`](CellMap.md).[`constructor`](CellMap.md#constructor)
 
 ## Methods
 
@@ -56,7 +56,7 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:14](https://github.
 
 > **filter**(`predicate`): [`GraphLink`](../interfaces/GraphLink.md)[]
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L28)
+Defined in: [src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L31)
 
 #### Parameters
 
@@ -78,11 +78,13 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:28](https://github.
 
 > **map**\<`Item`\>(`selector`): `Item`[]
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:24](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L24)
+Defined in: [src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L27)
 
 #### Type Parameters
 
-• **Item** = [`GraphLink`](../interfaces/GraphLink.md)
+##### Item
+
+`Item` = [`GraphLink`](../interfaces/GraphLink.md)
 
 #### Parameters
 
@@ -104,7 +106,7 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:24](https://github.
 
 > **toJSON**(): `string`
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:32](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L32)
+Defined in: [src/utils/cell/cell-map.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L35)
 
 #### Returns
 

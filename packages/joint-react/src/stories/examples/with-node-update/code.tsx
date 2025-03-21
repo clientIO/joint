@@ -11,12 +11,24 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
+import { PRIMARY } from '.storybook/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1', color: '#ffffff' }, x: 100, y: 0 },
   { id: '2', data: { label: 'Node 2', color: '#ffffff' }, x: 100, y: 200 },
 ]);
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
+const initialEdges = createLinks([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+      },
+    },
+  },
+]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
@@ -24,7 +36,11 @@ function ElementInput({ id, data }: BaseElementWithData) {
   const { label } = data;
   const setElement = useSetElement<BaseElementWithData>(id, 'data');
   return (
-    <input value={label} onChange={(event) => setElement({ ...data, label: event.target.value })} />
+    <input
+      style={{ padding: 5, marginTop: 4 }}
+      value={label}
+      onChange={(event) => setElement({ ...data, label: event.target.value })}
+    />
   );
 }
 

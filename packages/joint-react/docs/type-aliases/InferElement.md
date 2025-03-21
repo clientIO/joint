@@ -6,15 +6,17 @@
 
 # Type Alias: InferElement\<T\>
 
-> **InferElement**\<`T`\>: `T` *extends* infer U[] ? [`Readonly`](https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype)\<`U`\> : `never`
+> **InferElement**\<`T`\> = `T` *extends* infer U[] ? [`Readonly`](https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype)\<`U`\> : `never`
 
-Defined in: [packages/joint-react/src/utils/create.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L35)
+Defined in: [src/utils/create.ts:49](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L49)
 
 Infer element based on typeof createElements
 
 ## Type Parameters
 
-• **T**
+### T
+
+`T`
 
 ## Example
 

@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PRIMARY, SECONDARY } from '.storybook/theme';
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 
@@ -7,18 +8,18 @@ const initialElements = createElements([
     id: '1',
     x: 20,
     y: 25,
-    width: 50,
-    height: 50,
+    width: 180,
+    height: 75,
     type: 'standard.HeaderedRectangle',
     attrs: {
       body: {
-        fill: 'lightblue',
+        fill: PRIMARY,
       },
       bodyText: {
         text: 'Headered Rectangle',
       },
       header: {
-        fill: 'cyan',
+        fill: SECONDARY,
       },
       headerText: {
         text: 'Header text',

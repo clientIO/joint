@@ -1,5 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+import { PRIMARY } from '.storybook/theme';
 import { shapes, util } from '@joint/core';
 import {
   createElements,
@@ -17,7 +18,19 @@ const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
 ]);
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2', type: 'LinkModel' }]);
+const initialEdges = createLinks([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'LinkModel',
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+      },
+    },
+  },
+]);
 
 class LinkModel extends shapes.standard.Link {
   defaults() {
@@ -25,7 +38,7 @@ class LinkModel extends shapes.standard.Link {
       type: 'asd',
       attrs: {
         line: {
-          stroke: 'cyan', // Set stroke color
+          stroke: PRIMARY, // Set stroke color
           strokeWidth: 10, // Set stroke width
           strokeDasharray: '5,5', // Makes the line da
         },

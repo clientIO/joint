@@ -10,21 +10,32 @@ import { HTMLNode } from '../html-node/html-node';
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
 import { jsx } from 'src/utils/joint-jsx/jsx-to-markup';
+import { PRIMARY } from '.storybook/theme';
+import { makeRootDocs } from 'src/stories/utils/make-story';
+import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
 
 export type Story = StoryObj<typeof Paper>;
+
+const API_URL = getAPILink('Paper', 'variables');
 const meta: Meta<typeof Paper> = {
   title: 'Components/Paper',
   component: Paper,
   decorators: [SimpleGraphDecorator],
-  parameters: {
-    controls: { hideNoControlsWarning: true },
-  },
+  parameters: makeRootDocs({
+    description: `
+Paper is a component that renders graph elements. It is used to display and interact with graph elements.
+    `,
+    apiURL: API_URL,
+    code: `import { Paper } from '@joint/react'
+<Paper renderElement={() => <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />} />
+    `,
+  }),
 };
 
 export default meta;
 
 function RenderRectElement({ width, height }: SimpleElement) {
-  return <rect width={width} height={height} fill="cyan" />;
+  return <rect rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
 }
 
 function RenderHtmlElement({ width, height }: SimpleElement) {
@@ -37,7 +48,7 @@ function RenderHtmlElement({ width, height }: SimpleElement) {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: PRIMARY,
         borderRadius: 10,
       }}
     >

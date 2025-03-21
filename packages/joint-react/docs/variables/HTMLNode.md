@@ -4,27 +4,17 @@
 
 [@joint/react](../README.md) / HTMLNode
 
-# Function: HTMLNode()
+# Variable: HTMLNode
 
-> **HTMLNode**(`props`): `ReactNode`
+> `const` **HTMLNode**: `ForwardRefExoticComponent`\<[`HtmlElementProps`](../type-aliases/HtmlElementProps.md) & `RefAttributes`\<[`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)\>\>
 
-Defined in: [packages/joint-react/src/components/html-node/html-node.tsx:103](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L103)
+Defined in: [src/components/html-node/html-node.tsx:104](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L104)
 
 **`Experimental`**
 
-Joint js div with auto sizing parent node based on this div.
+HTMlNode is component wrapper around `foreignObject` and `measuredNode` element with `HTML` element inside.
 When this div changes, it will automatically resize the parent node element (change width and height of parent cell).
 Under the hood, it uses foreignObject to render the div
-
-## Parameters
-
-### props
-
-[`HtmlElementProps`](../type-aliases/HtmlElementProps.md) & `RefAttributes`\<[`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)\>
-
-## Returns
-
-`ReactNode`
 
 ## See
 

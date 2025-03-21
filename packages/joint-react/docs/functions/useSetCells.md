@@ -8,7 +8,7 @@
 
 > **useSetCells**(): (`update`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-cells.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-cells.ts#L14)
+Defined in: [src/hooks/use-set-cells.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-cells.ts#L14)
 
 Custom hook to set cells in the graph.
 

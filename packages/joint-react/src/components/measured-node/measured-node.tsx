@@ -70,7 +70,7 @@ const ForwardedRefComponent = forwardRef(Component);
  *   };
  *
  *   return (
- *     <MeasuredNode onSetSize={handleSizeChange}>
+ *     <MeasuredNode setSize={handleSizeChange}>
  *       <div style={{ width: 100, height: 50 }}>Content</div>
  *     </MeasuredNode>
  *   );

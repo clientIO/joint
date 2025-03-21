@@ -23,7 +23,7 @@ const DEFAULT_DEPENDENCIES: unknown[] = [];
      (element) => {
        element.attr({
          rect: {
-           fill: 'cyan',
+           fill: 'blue',
            stroke: isPressed ? 'red' : 'black',
            strokeWidth: 10,
          },
@@ -35,6 +35,7 @@ const DEFAULT_DEPENDENCIES: unknown[] = [];
  */
 export function useElementEffect(
   idOrIds: dia.Cell.ID | dia.Cell.ID[] | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   onChange: (element: dia.Element) => (() => void) | void,
   dependencies: unknown[] = DEFAULT_DEPENDENCIES
 ) {

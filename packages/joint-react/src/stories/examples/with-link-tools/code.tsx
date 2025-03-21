@@ -6,15 +6,28 @@ import {
   createElements,
   createLinks,
   GraphProvider,
+  MeasuredNode,
   Paper,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
-import { useCallback, useRef } from 'react';
-import { useMeasureNodeSize } from 'src/hooks/use-measure-node-size';
+import { useCallback } from 'react';
 import { jsx } from 'src/utils/joint-jsx/jsx-to-markup';
+import { PRIMARY } from '.storybook/theme';
 
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
+const initialEdges = createLinks([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+        strokeDasharray: '5 5',
+      },
+    },
+  },
+]);
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -55,9 +68,11 @@ const toolsView = new dia.ToolsView({
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderedRect() {
-  const rectRef = useRef<SVGRectElement>(null);
-  useMeasureNodeSize<SVGRectElement>(rectRef);
-  return <rect ref={rectRef} joint-selector="fo" width={50} height={50} fill="red" />;
+  return (
+    <MeasuredNode>
+      <rect rx={10} ry={10} joint-selector="fo" width={150} height={35} fill={PRIMARY} />
+    </MeasuredNode>
+  );
 }
 
 function Main() {

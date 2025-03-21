@@ -1,6 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
+import { PRIMARY } from '.storybook/theme';
 import { shapes, util } from '@joint/core';
 import {
   createElements,
@@ -21,10 +22,10 @@ const initialElements = createElements([
 class LinkModel extends shapes.standard.Link {
   defaults() {
     return util.defaultsDeep(super.defaults, {
-      type: 'asd',
+      type: 'LinkModel',
       attrs: {
         line: {
-          stroke: 'cyan', // Set stroke color
+          stroke: PRIMARY,
           strokeWidth: 10, // Set stroke width
           strokeDasharray: '5,5', // Makes the line da
         },

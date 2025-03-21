@@ -8,7 +8,7 @@
 
 > **useElements**\<`T`, `R`\>(`selector`, `isEqual`): `R`
 
-Defined in: [packages/joint-react/src/hooks/use-elements.ts:55](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-elements.ts#L55)
+Defined in: [src/hooks/use-elements.ts:56](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-elements.ts#L56)
 
 A hook to access `dia.graph` elements
 
@@ -27,9 +27,13 @@ How it works:
 
 ## Type Parameters
 
-• **T** *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md) = [`GraphElement`](../interfaces/GraphElement.md)\<`unknown`\>
+### T
 
-• **R** = `T`[]
+`T` *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md)\<`string`\> = [`GraphElement`](../interfaces/GraphElement.md)\<`unknown`\>
+
+### R
+
+`R` = `T`[]
 
 ## Parameters
 

@@ -12,76 +12,113 @@ import { dia } from '@joint/core';
 import { ReactElement } from 'src/models/react-element';
 import { HTMLNode } from '../html-node/html-node';
 import { DirectedGraph } from '@joint/layout-directed-graph';
+import { PRIMARY } from '.storybook/theme';
+import { makeRootDocs, makeStory } from 'src/stories/utils/make-story';
+import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+
+const API_URL = getAPILink('GraphProvider');
 
 export type Story = StoryObj<typeof GraphProvider>;
-export default {
+const meta: Meta<typeof GraphProvider> = {
   title: 'Components/GraphProvider',
   component: GraphProvider,
-  parameters: {
-    controls: { hideNoControlsWarning: true },
-  },
-} satisfies Meta<typeof GraphProvider>;
+  parameters: makeRootDocs({
+    description: `
+GraphProvider is a component that provides a graph context to its children. It is used to manage and render graph elements.
+    `,
+    apiURL: API_URL,
+    code: `import { GraphProvider } from '@joint/react'
+<GraphProvider>
+  <Paper renderElement={() => <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />} />
+</GraphProvider>
+    `,
+  }),
+};
+
+export default meta;
+
+const STYLE = { padding: 10, backgroundColor: PRIMARY, borderRadius: 10 };
 
 const defaultElementsWithSize = createElements([
-  { id: 1, width: 100, height: 50, x: 20, y: 200, data: { color: 'magenta' } },
-  { id: 2, width: 100, height: 50, x: 200, y: 200, data: { color: 'cyan' } },
+  { id: 1, width: 100, height: 50, x: 20, y: 200, data: { color: PRIMARY } },
+  { id: 2, width: 100, height: 50, x: 200, y: 200, data: { color: PRIMARY } },
 ]);
 const defaultElementsWithoutSize = createElements([
-  { id: 1, x: 20, y: 200, data: { color: 'magenta' } },
-  { id: 2, x: 200, y: 200, data: { color: 'cyan' } },
+  { id: 1, x: 20, y: 200, data: { color: PRIMARY } },
+  { id: 2, x: 200, y: 200, data: { color: PRIMARY } },
 ]);
-const defaultLinks = createLinks([{ id: '1-1', source: 2, target: 1 }]);
+const defaultLinks = createLinks([
+  {
+    id: '1-1',
+    source: 2,
+    target: 1,
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+      },
+    },
+  },
+]);
 
 type ElementType = InferElement<typeof defaultElementsWithSize>;
 
 function PaperChildren(props: Readonly<{ renderElement?: RenderElement<ElementType> }>) {
   const {
     renderElement = ({ width, height, data: { color } }: ElementType) => (
-      <rect width={width} height={height} fill={color} />
+      <rect rx={10} ry={10} width={width} height={height} fill={color} />
     ),
   } = props;
   return <Paper renderElement={renderElement} />;
 }
-export const Default: Story = {
+
+export const Default = makeStory<Story>({
   args: {
     defaultElements: defaultElementsWithSize,
     children: <PaperChildren />,
   },
-};
 
-export const WithExternalGraph: Story = {
+  apiURL: API_URL,
+  description: 'Default graph provider with rectangle children.',
+});
+
+export const WithExternalGraph = makeStory<Story>({
   args: {
     defaultElements: defaultElementsWithSize,
     children: <PaperChildren />,
     graph: new dia.Graph({}, { cellNamespace: { ReactElement } }),
   },
-};
 
-export const WithLink: Story = {
+  apiURL: API_URL,
+  description: 'Graph provider with external graph.',
+});
+
+export const WithLink = makeStory<Story>({
   args: {
     defaultLinks,
     defaultElements: defaultElementsWithSize,
     children: <PaperChildren />,
   },
-};
 
-export const WithoutSizeDefinedInElements: Story = {
+  apiURL: API_URL,
+  description: 'Graph provider with links.',
+});
+
+export const WithoutSizeDefinedInElements = makeStory<Story>({
   args: {
     defaultLinks,
     defaultElements: defaultElementsWithoutSize,
     children: (
-      <PaperChildren
-        renderElement={() => (
-          <HTMLNode style={{ padding: 10, backgroundColor: 'cyan' }}>Hello world!</HTMLNode>
-        )}
-      />
+      <PaperChildren renderElement={() => <HTMLNode style={STYLE}>Hello world!</HTMLNode>} />
     ),
   },
-};
+
+  apiURL: API_URL,
+  description: 'Graph provider without size defined in elements.',
+});
 
 const graph = new dia.Graph({}, { cellNamespace: { ReactElement } });
 
-function generateaRandomElements(length: number) {
+function generateRandomElements(length: number) {
   return createElements(
     Array.from({ length }, (_, index) => ({
       id: `node-${index}`,
@@ -93,10 +130,11 @@ function generateaRandomElements(length: number) {
     }))
   );
 }
-export const WithExternalGraphAndLayout: Story = {
+
+export const WithExternalGraphAndLayout = makeStory<Story>({
   args: {
     graph,
-    defaultElements: generateaRandomElements(5),
+    defaultElements: generateRandomElements(20),
     children: (
       <>
         <button
@@ -113,12 +151,11 @@ export const WithExternalGraphAndLayout: Story = {
         >
           Layout
         </button>
-        <PaperChildren
-          renderElement={() => (
-            <HTMLNode style={{ padding: 10, backgroundColor: 'cyan' }}>Hello world!</HTMLNode>
-          )}
-        />
+        <PaperChildren renderElement={() => <HTMLNode style={STYLE}>Hello world!</HTMLNode>} />
       </>
     ),
   },
-};
+
+  apiURL: API_URL,
+  description: 'Graph provider with external graph and layout.',
+});

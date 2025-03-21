@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PRIMARY } from '.storybook/theme';
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 
@@ -13,7 +14,7 @@ const initialElements = createElements([
     attrs: {
       body: {
         d: 'M 0 0 L 100 0 L 100 100 L 0 100 Z',
-        fill: 'lightblue',
+        fill: PRIMARY,
       },
       label: {
         text: 'Path',

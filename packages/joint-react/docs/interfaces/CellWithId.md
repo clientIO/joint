@@ -6,7 +6,7 @@
 
 # Interface: CellWithId
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:4](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/cell.types.ts#L4)
+Defined in: [src/types/cell.types.ts:4](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/cell.types.ts#L4)
 
 ## Properties
 
@@ -14,4 +14,4 @@ Defined in: [packages/joint-react/src/types/cell.types.ts:4](https://github.com/
 
 > `readonly` **id**: `ID`
 
-Defined in: [packages/joint-react/src/types/cell.types.ts:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/cell.types.ts#L5)
+Defined in: [src/types/cell.types.ts:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/cell.types.ts#L5)

@@ -5,6 +5,7 @@ import { RenderItemDecorator } from '../../.storybook/decorators/with-simple-dat
 import { useState } from 'react';
 import { useElementEffect } from './use-element-effect';
 import { HTMLNode } from '../components/html-node/html-node';
+import { PRIMARY } from '.storybook/theme';
 
 function Hook({ id, width, height }: SimpleElement) {
   const [isPressed, setIsPressed] = useState(false);
@@ -14,7 +15,7 @@ function Hook({ id, width, height }: SimpleElement) {
     (element) => {
       element.attr({
         rect: {
-          fill: 'cyan',
+          fill: PRIMARY,
           stroke: isPressed ? 'red' : 'black',
           strokeWidth: 10,
         },

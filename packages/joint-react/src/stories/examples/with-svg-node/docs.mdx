@@ -1,12 +1,20 @@
 import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
+import {getAPIPropsLink} from '../../utils/get-api-documentation-link'
 
 
 <Meta of={Stories} />
 
 # Example showing node as SVG element. 
-Jointjs work by default with SVG, so this just illustrate, that `renderElement` should be any SVG element.
+JointJS works with SVG by default, so this simply illustrates that {getAPIPropsLink('Paper', 'renderElement')} can be any SVG element.
+
+
+
+
+
+
+
 
 ### Demo
 <Canvas of={Stories.Default} />

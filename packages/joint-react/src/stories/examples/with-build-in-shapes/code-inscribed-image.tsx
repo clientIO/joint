@@ -14,9 +14,6 @@ const initialElements = createElements([
       image: {
         xlinkHref: 'https://picsum.photos/100/100',
       },
-      label: {
-        text: 'Image',
-      },
     },
   },
 ]);

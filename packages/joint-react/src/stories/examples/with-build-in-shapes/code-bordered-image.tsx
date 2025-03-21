@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 
@@ -26,6 +25,7 @@ const initialElements = createElements([
 
 function Main() {
   return (
+    // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper width={400} height={100} />
     </div>

@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/no-array-reduce */
+ 
 import type { dia, mvc } from '@joint/core';
 
 export interface EventMap {

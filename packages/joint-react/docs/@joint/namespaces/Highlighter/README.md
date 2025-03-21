@@ -1,8 +1,8 @@
-[**@joint/react**](../../README.md)
+[**@joint/react**](../../../README.md)
 
 ***
 
-[@joint/react](../../README.md) / Highlighter
+[@joint/react](../../../README.md) / Highlighter
 
 # Highlighter
 
@@ -32,9 +32,9 @@ import { Highlighter } from '@joint/react'
 return <Highlighter.Custom />
 ```
 
-## Functions
+## Variables
 
-- [Custom](functions/Custom.md)
-- [Mask](functions/Mask.md)
-- [Opacity](functions/Opacity.md)
-- [Stroke](functions/Stroke.md)
+- [Custom](variables/Custom.md)
+- [Mask](variables/Mask.md)
+- [Opacity](variables/Opacity.md)
+- [Stroke](variables/Stroke.md)

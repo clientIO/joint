@@ -6,13 +6,15 @@
 
 # Type Alias: OnAddHighlighter()\<Highlighter\>
 
-> **OnAddHighlighter**\<`Highlighter`\>: (`cellView`, `element`, `highlighterId`, `options`) => `dia.HighlighterView`\<`Highlighter`\>
+> **OnAddHighlighter**\<`Highlighter`\> = (`cellView`, `element`, `highlighterId`, `options`) => `dia.HighlighterView`\<`Highlighter`\>
 
-Defined in: [packages/joint-react/src/components/highlighters/custom.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L10)
+Defined in: [src/components/highlighters/custom.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L10)
 
 ## Type Parameters
 
-• **Highlighter** *extends* `dia.HighlighterView.Options` = `dia.HighlighterView.Options`
+### Highlighter
+
+`Highlighter` *extends* `dia.HighlighterView.Options` = `dia.HighlighterView.Options`
 
 ## Parameters
 

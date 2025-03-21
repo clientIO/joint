@@ -6,13 +6,15 @@
 
 # Type Alias: RenderElement()\<ElementItem\>
 
-> **RenderElement**\<`ElementItem`\>: (`element`) => `ReactNode`
+> **RenderElement**\<`ElementItem`\> = (`element`) => `ReactNode`
 
-Defined in: [packages/joint-react/src/components/paper/paper.tsx:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L14)
+Defined in: [src/components/paper/paper.tsx:15](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L15)
 
 ## Type Parameters
 
-• **ElementItem** *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md) = [`GraphElementBase`](../interfaces/GraphElementBase.md)
+### ElementItem
+
+`ElementItem` *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md) = [`GraphElementBase`](../interfaces/GraphElementBase.md)
 
 ## Parameters
 

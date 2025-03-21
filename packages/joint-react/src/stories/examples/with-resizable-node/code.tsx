@@ -10,13 +10,25 @@ import {
 } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
+import { PRIMARY } from '.storybook/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
 ]);
 
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
+const initialEdges = createLinks([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+      },
+    },
+  },
+]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
@@ -70,7 +82,7 @@ function Main() {
         NodeID,Width, Height:
         {elementsSize.map((position, index) => (
           // eslint-disable-next-line @eslint-react/no-array-index-key
-          <div key={`${index}-${position}`} style={{ marginLeft: 10 }}>
+          <div className="text" key={`${index}-${position}`} style={{ marginLeft: 10 }}>
             {index}, {position}
           </div>
         ))}

@@ -6,7 +6,7 @@
 
 # Interface: MeasuredNodeProps
 
-Defined in: [packages/joint-react/src/components/measured-node/measured-node.tsx:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L5)
+Defined in: [src/components/measured-node/measured-node.tsx:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L5)
 
 ## Extends
 
@@ -18,55 +18,21 @@ Defined in: [packages/joint-react/src/components/measured-node/measured-node.tsx
 
 > `readonly` **children**: `ReactNode`
 
-Defined in: [packages/joint-react/src/components/measured-node/measured-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L10)
+Defined in: [src/components/measured-node/measured-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L10)
 
 The child element to measure.
 It can be only HTML or SVG element.
 
 ***
 
-### heightPadding?
+### setSize?
 
-> `readonly` `optional` **heightPadding**: `number`
+> `readonly` `optional` **setSize**: [`OnSetSize`](../type-aliases/OnSetSize.md)
 
-Defined in: [packages/joint-react/src/hooks/use-measure-node-size.tsx:20](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L20)
-
-The padding to add to the height of the element.
-
-#### Default
-
-```ts
-0
-```
-
-#### Inherited from
-
-[`MeasureNodeOptions`](MeasureNodeOptions.md).[`heightPadding`](MeasureNodeOptions.md#heightpadding)
-
-***
-
-### onSetSize()?
-
-> `readonly` `optional` **onSetSize**: (`element`, `size`) => `void`
-
-Defined in: [packages/joint-react/src/hooks/use-measure-node-size.tsx:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L27)
+Defined in: [src/hooks/use-measure-node-size.tsx:21](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L21)
 
 Overwrite default node set function with custom handling.
 Useful for adding another padding, or just check element size.
-
-#### Parameters
-
-##### element
-
-`Cell`
-
-##### size
-
-`SizeObserver`
-
-#### Returns
-
-`void`
 
 #### Default
 
@@ -74,24 +40,4 @@ it set element via `cell.set('size', {width, height})`
 
 #### Inherited from
 
-[`MeasureNodeOptions`](MeasureNodeOptions.md).[`onSetSize`](MeasureNodeOptions.md#onsetsize)
-
-***
-
-### widthPadding?
-
-> `readonly` `optional` **widthPadding**: `number`
-
-Defined in: [packages/joint-react/src/hooks/use-measure-node-size.tsx:15](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L15)
-
-The padding to add to the width of the element.
-
-#### Default
-
-```ts
-0
-```
-
-#### Inherited from
-
-[`MeasureNodeOptions`](MeasureNodeOptions.md).[`widthPadding`](MeasureNodeOptions.md#widthpadding)
+[`MeasureNodeOptions`](MeasureNodeOptions.md).[`setSize`](MeasureNodeOptions.md#setsize)

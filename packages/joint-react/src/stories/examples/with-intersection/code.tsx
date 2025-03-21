@@ -5,10 +5,12 @@ import {
   HTMLNode,
   Paper,
   useElements,
+  useGraph,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
+import { g } from '@joint/core';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -19,28 +21,22 @@ const initialElements = createElements([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function areTwoElementIntersected(element1: BaseElementWithData, element2: BaseElementWithData) {
-  const x1 = element1.x;
-  const y1 = element1.y;
-  const x2 = element2.x;
-  const y2 = element2.y;
-  const width1 = element1.width ?? 0;
-  const height1 = element1.height ?? 0;
-  const width2 = element2.width ?? 0;
-  const height2 = element2.height ?? 0;
-
-  return x1 < x2 + width2 && x1 + width1 > x2 && y1 < y2 + height2 && y1 + height1 > y2;
-}
 function ResizableNode({ id, data: { label } }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
-
+  const graph = useGraph();
   const isIntersected = useElements<BaseElementWithData, boolean>((elements) => {
-    const element = elements.get(id);
+    const element = graph.getCell(id);
     if (!element) {
       return false;
     }
-    for (const [, value] of elements) {
-      if (value.id !== id && areTwoElementIntersected(element, value)) {
+
+    // g.intersection.exists(el1.getBBox, el2.getBBox())
+    for (const [otherId, value] of elements) {
+      const otherElement = graph.getCell(otherId);
+      const box1 = element.getBBox();
+      const box2 = otherElement.getBBox();
+      const isIntersect = g.intersection.exists(box1, box2);
+      if (value.id !== id && isIntersect) {
         return true;
       }
     }

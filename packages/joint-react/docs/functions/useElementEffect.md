@@ -8,7 +8,7 @@
 
 > **useElementEffect**(`idOrIds`, `onChange`, `dependencies`): `void`
 
-Defined in: [packages/joint-react/src/hooks/use-element-effect.ts:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element-effect.ts#L36)
+Defined in: [src/hooks/use-element-effect.ts:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element-effect.ts#L36)
 
 **`Experimental`**
 
@@ -49,7 +49,7 @@ const [isPressed, setIsPressed] = useState(false);
     (element) => {
       element.attr({
         rect: {
-          fill: 'cyan',
+          fill: 'blue',
           stroke: isPressed ? 'red' : 'black',
           strokeWidth: 10,
         },

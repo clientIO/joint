@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { forwardRef, useMemo } from 'react';
 import { useElement } from 'src/hooks/use-element';
 import { MeasuredNode } from '../measured-node/measured-node';
+
 const FO_STYLE: CSSProperties = {
   overflow: 'visible',
   position: 'relative',
@@ -58,7 +59,7 @@ const ElementForward = forwardRef(Element);
  * Component that automatically resizes the parent node element based on the size of the div.
  */
 function WithAutoSize(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
-  const style = useMemo(() => ({ display: 'inline-block', ...props.style }), [props.style]);
+  const style = useMemo(() => ({ ...props.style }), [props.style]);
   const { width, height } = useElement();
 
   return (

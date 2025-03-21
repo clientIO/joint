@@ -6,7 +6,7 @@
 
 # Class: ReactElement\<Attributes\>
 
-Defined in: [packages/joint-react/src/models/react-element.ts:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.ts#L13)
+Defined in: [src/models/react-element.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L10)
 
 A custom JointJS element that can render React components.
 
@@ -16,15 +16,17 @@ A custom JointJS element that can render React components.
 
 ## Type Parameters
 
-• **Attributes** = `dia.Element.Attributes`
+### Attributes
+
+`Attributes` = `dia.Element.Attributes`
 
 ## Constructors
 
 ### new ReactElement()
 
-> **new ReactElement**\<`Attributes`\>(`attributes`?, `opt`?): [`ReactElement`](ReactElement.md)\<`Attributes`\>
+> **new ReactElement**\<`Attributes`\>(`attributes`?, `opt`?): `ReactElement`\<`Attributes`\>
 
-Defined in: packages/joint-react/node\_modules/@joint/core/types/joint.d.ts:443
+Defined in: node\_modules/@joint/core/types/joint.d.ts:443
 
 #### Parameters
 
@@ -38,7 +40,7 @@ Defined in: packages/joint-react/node\_modules/@joint/core/types/joint.d.ts:443
 
 #### Returns
 
-[`ReactElement`](ReactElement.md)\<`Attributes`\>
+`ReactElement`\<`Attributes`\>
 
 #### Inherited from
 
@@ -50,7 +52,7 @@ Defined in: packages/joint-react/node\_modules/@joint/core/types/joint.d.ts:443
 
 > **defaults**(): `Attributes` & `Attributes`
 
-Defined in: [packages/joint-react/src/models/react-element.ts:20](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.ts#L20)
+Defined in: [src/models/react-element.tsx:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L17)
 
 Sets the default attributes for the ReactElement.
 
@@ -64,20 +66,14 @@ The default attributes.
 
 `dia.Element.defaults`
 
-***
+## Properties
 
-### preinitialize()
+### markup
 
-> **preinitialize**(): `void`
+> **markup**: `string` \| `MarkupJSON` = `elementMarkup`
 
-Defined in: [packages/joint-react/src/models/react-element.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.ts#L38)
-
-Initializes the markup for the ReactElement.
-
-#### Returns
-
-`void`
+Defined in: [src/models/react-element.tsx:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L31)
 
 #### Overrides
 
-`dia.Element.preinitialize`
+`dia.Element.markup`

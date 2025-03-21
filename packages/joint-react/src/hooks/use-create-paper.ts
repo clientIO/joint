@@ -10,7 +10,7 @@ import { handleEvent } from 'src/utils/handle-paper-events';
 
 interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
   readonly onRenderElement?: (element: dia.Element, portalElement: SVGGElement) => void;
-  readonly isFitContentOnLoadEnabled?: boolean;
+  readonly isTransformToFitContentEnabled?: boolean;
 }
 
 /**
@@ -24,7 +24,7 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
  * @returns An object containing the paper instance and a reference to the paper HTML element.
  */
 export function useCreatePaper(options?: UseCreatePaperOptions) {
-  const { onRenderElement, isFitContentOnLoadEnabled, ...restOptions } = options ?? {};
+  const { onRenderElement, isTransformToFitContentEnabled, ...restOptions } = options ?? {};
   const graph = useGraph();
   const hasRenderElement = !!onRenderElement;
   const paperHtmlElement = useRef<HTMLDivElement | null>(null);
@@ -82,6 +82,8 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     );
 
     return () => controller.stopListening();
+    // TODO: We need to somehow exclusively add restOptions events manually to dependencies, otherwise it will be not memoized.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasRenderElement, onRenderElement, paper, resizePaperContainer]);
 
   useEffect(() => {
@@ -104,7 +106,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
   }, [options?.scale, paper]);
 
   useEffect(() => {
-    if (!isFitContentOnLoadEnabled) {
+    if (!isTransformToFitContentEnabled) {
       return;
     }
 
@@ -114,12 +116,12 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
       return;
     }
     paper.transformToFitContent({
-      padding: 100,
+      padding: 0,
       contentArea: graphBBox,
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
     });
-  }, [graph, isFitContentOnLoadEnabled, paper]);
+  }, [graph, isTransformToFitContentEnabled, paper]);
 
   return {
     isPaperFromContext,

@@ -1,17 +1,29 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PRIMARY } from '.storybook/theme';
 import '../index.css';
 import {
   createElements,
   createLinks,
   GraphProvider,
+  MeasuredNode,
   Paper,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
-import { useCallback, useRef } from 'react';
-import { useMeasureNodeSize } from 'src/hooks/use-measure-node-size';
+import { useCallback } from 'react';
 
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
+const initialEdges = createLinks([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+      },
+    },
+  },
+]);
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -21,9 +33,11 @@ const initialElements = createElements([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderedRect() {
-  const rectRef = useRef<SVGRectElement>(null);
-  useMeasureNodeSize<SVGRectElement>(rectRef);
-  return <rect ref={rectRef} joint-selector="fo" width={50} height={50} fill="red" />;
+  return (
+    <MeasuredNode>
+      <rect rx={10} ry={10} width={120} height={32} fill={PRIMARY} />
+    </MeasuredNode>
+  );
 }
 
 function Main() {

@@ -10,7 +10,7 @@
 
 > **useSetElement**\<`Attributes`, `Attribute`\>(`id`, `attribute`): (`value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:78](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L78)
+Defined in: [src/hooks/use-set-element.ts:78](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L78)
 
 **`Experimental`**
 
@@ -21,9 +21,13 @@ It must be used inside the GraphProvider.
 
 ### Type Parameters
 
-• **Attributes** = [`BaseAttributes`](../interfaces/BaseAttributes.md)
+#### Attributes
 
-• **Attribute** *extends* `string` \| `number` \| `symbol` = keyof `Attributes`
+`Attributes` = [`BaseAttributes`](../interfaces/BaseAttributes.md)
+
+#### Attribute
+
+`Attribute` *extends* `string` \| `number` \| `symbol` = keyof `Attributes`
 
 ### Parameters
 
@@ -81,7 +85,7 @@ setElement('position', { x: 100, y: 100 });
 
 > **useSetElement**\<`Attributes`\>(`id`): \<`X`\>(`attribute`, `value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:86](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L86)
+Defined in: [src/hooks/use-set-element.ts:86](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L86)
 
 **`Experimental`**
 
@@ -92,7 +96,9 @@ It must be used inside the GraphProvider.
 
 ### Type Parameters
 
-• **Attributes** = [`BaseAttributes`](../interfaces/BaseAttributes.md)
+#### Attributes
+
+`Attributes` = [`BaseAttributes`](../interfaces/BaseAttributes.md)
 
 ### Parameters
 
@@ -112,7 +118,9 @@ It can be used in three ways:
 
 #### Type Parameters
 
-• **X** *extends* `string` \| `number` \| `symbol`
+##### X
+
+`X` *extends* `string` \| `number` \| `symbol`
 
 #### Parameters
 
@@ -152,7 +160,7 @@ setElement('position', { x: 100, y: 100 });
 
 > **useSetElement**\<`Attributes`\>(): \<`X`\>(`id`, `attribute`, `value`) => `void`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L90)
+Defined in: [src/hooks/use-set-element.ts:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L90)
 
 **`Experimental`**
 
@@ -163,7 +171,9 @@ It must be used inside the GraphProvider.
 
 ### Type Parameters
 
-• **Attributes** = [`BaseAttributes`](../interfaces/BaseAttributes.md)
+#### Attributes
+
+`Attributes` = [`BaseAttributes`](../interfaces/BaseAttributes.md)
 
 ### Returns
 
@@ -175,7 +185,9 @@ It can be used in three ways:
 
 #### Type Parameters
 
-• **X** *extends* `string` \| `number` \| `symbol`
+##### X
+
+`X` *extends* `string` \| `number` \| `symbol`
 
 #### Parameters
 

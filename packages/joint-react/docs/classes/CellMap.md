@@ -6,7 +6,7 @@
 
 # Class: CellMap\<V\>
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L13)
+Defined in: [src/utils/cell/cell-map.ts:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L13)
 
 CellMap is a custom Map implementation that extends the native Map class.
 It provides additional utility methods for working with working with nodes & edges.
@@ -22,15 +22,17 @@ It provides additional utility methods for working with working with nodes & edg
 
 ## Type Parameters
 
-• **V** *extends* `ItemBase`
+### V
+
+`V` *extends* `ItemBase`
 
 ## Constructors
 
 ### new CellMap()
 
-> **new CellMap**\<`V`\>(`items`?): [`CellMap`](CellMap.md)\<`V`\>
+> **new CellMap**\<`V`\>(`items`?): `CellMap`\<`V`\>
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
+Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
 
 #### Parameters
 
@@ -40,7 +42,7 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:14](https://github.
 
 #### Returns
 
-[`CellMap`](CellMap.md)\<`V`\>
+`CellMap`\<`V`\>
 
 #### Overrides
 
@@ -52,7 +54,7 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:14](https://github.
 
 > **filter**(`predicate`): `V`[]
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L28)
+Defined in: [src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L31)
 
 #### Parameters
 
@@ -70,11 +72,13 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:28](https://github.
 
 > **map**\<`Item`\>(`selector`): `Item`[]
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:24](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L24)
+Defined in: [src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L27)
 
 #### Type Parameters
 
-• **Item** = `V`
+##### Item
+
+`Item` = `V`
 
 #### Parameters
 
@@ -92,7 +96,7 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:24](https://github.
 
 > **toJSON**(): `string`
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:32](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L32)
+Defined in: [src/utils/cell/cell-map.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L35)
 
 #### Returns
 

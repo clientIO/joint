@@ -4,6 +4,7 @@ import type { Meta } from '@storybook/react/*';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
 import { Paper } from '../components/paper/paper';
+import { PRIMARY } from '.storybook/theme';
 
 type Story = TesterHookStory<typeof useElements>;
 const meta: Meta<typeof HookTester> = {
@@ -23,7 +24,7 @@ export const Default: Story = {
         All elements are: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="cyan" />;
+            return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
       </span>
@@ -40,7 +41,7 @@ export const WithSelectedJustIds: Story = {
         Element ids are: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="cyan" />;
+            return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
       </span>
@@ -57,7 +58,7 @@ export const WithGetJustSize: Story = {
         Size of elements is: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="cyan" />;
+            return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
       </span>
@@ -80,7 +81,7 @@ export const WithJustPosition: Story = {
         Position is: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="cyan" />;
+            return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
       </span>
@@ -104,7 +105,7 @@ export const WithJustPositionButNotReRenderBecauseCompareFN: Story = {
         Position is: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="cyan" />;
+            return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
       </span>
@@ -124,7 +125,7 @@ export const WithAdditionalData: Story = {
         Element with new data are: {JSON.stringify(result)}
         <Paper
           renderElement={({ width, height }) => {
-            return <rect width={width} height={height} fill="cyan" />;
+            return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
       </span>

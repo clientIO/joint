@@ -4,9 +4,9 @@
 
 [@joint/react](../README.md) / GraphElements
 
-# Class: GraphElements\<Data\>
+# Class: GraphElements\<Element\>
 
-Defined in: [packages/joint-react/src/data/graph-elements.ts:80](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/graph-elements.ts#L80)
+Defined in: [src/types/element-types.ts:105](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L105)
 
 Collection of graph elements.
 It's main data structure for elements (nodes) in the graph.
@@ -25,41 +25,43 @@ elements.set('element-2', { id: 'element-2', x: 200, y: 200 });
 
 ## Extends
 
-- [`CellMap`](CellMap.md)\<[`GraphElement`](../interfaces/GraphElement.md)\<`Data`\>\>
+- [`CellMap`](CellMap.md)\<`Element`\>
 
 ## Type Parameters
 
-• **Data** = `unknown`
+### Element
+
+`Element` *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md) = [`GraphElement`](../interfaces/GraphElement.md)
 
 ## Constructors
 
 ### new GraphElements()
 
-> **new GraphElements**\<`Data`\>(`items`?): [`GraphElements`](GraphElements.md)\<`Data`\>
+> **new GraphElements**\<`Element`\>(`items`?): `GraphElements`\<`Element`\>
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
+Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
 
 #### Parameters
 
 ##### items?
 
-[`GraphElement`](../interfaces/GraphElement.md)\<`Data`\>[]
+`Element`[]
 
 #### Returns
 
-[`GraphElements`](GraphElements.md)\<`Data`\>
+`GraphElements`\<`Element`\>
 
 #### Inherited from
 
-[`CellMap`](CellMap.md).[`constructor`](CellMap.md#constructors)
+[`CellMap`](CellMap.md).[`constructor`](CellMap.md#constructor)
 
 ## Methods
 
 ### filter()
 
-> **filter**(`predicate`): [`GraphElement`](../interfaces/GraphElement.md)\<`Data`\>[]
+> **filter**(`predicate`): `Element`[]
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L28)
+Defined in: [src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L31)
 
 #### Parameters
 
@@ -69,7 +71,7 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:28](https://github.
 
 #### Returns
 
-[`GraphElement`](../interfaces/GraphElement.md)\<`Data`\>[]
+`Element`[]
 
 #### Inherited from
 
@@ -81,11 +83,13 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:28](https://github.
 
 > **map**\<`Item`\>(`selector`): `Item`[]
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:24](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L24)
+Defined in: [src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L27)
 
 #### Type Parameters
 
-• **Item** = [`GraphElement`](../interfaces/GraphElement.md)\<`Data`\>
+##### Item
+
+`Item` = `Element`
 
 #### Parameters
 
@@ -107,7 +111,7 @@ Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:24](https://github.
 
 > **toJSON**(): `string`
 
-Defined in: [packages/joint-react/src/utils/cell/cell-map.ts:32](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L32)
+Defined in: [src/utils/cell/cell-map.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L35)
 
 #### Returns
 

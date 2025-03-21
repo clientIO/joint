@@ -6,7 +6,7 @@
 
 # Interface: StrokeHighlighterProps
 
-Defined in: [packages/joint-react/src/components/highlighters/stroke.tsx:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L8)
+Defined in: [src/components/highlighters/stroke.tsx:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L8)
 
 ## Extends
 
@@ -14,11 +14,21 @@ Defined in: [packages/joint-react/src/components/highlighters/stroke.tsx:8](http
 
 ## Properties
 
+### isDisabled?
+
+> `readonly` `optional` **isDisabled**: `boolean`
+
+Defined in: [src/components/highlighters/stroke.tsx:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L36)
+
+If the highlighter is disabled or not.
+
+***
+
 ### layer
 
 > `readonly` **layer**: `string`
 
-Defined in: [packages/joint-react/src/components/highlighters/stroke.tsx:12](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L12)
+Defined in: [src/components/highlighters/stroke.tsx:12](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L12)
 
 The stacking order of the highlighter. See dia.HighlighterView for supported values.
 
@@ -28,7 +38,7 @@ The stacking order of the highlighter. See dia.HighlighterView for supported val
 
 > `readonly` `optional` **nonScalingStroke**: `boolean`
 
-Defined in: [packages/joint-react/src/components/highlighters/stroke.tsx:32](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L32)
+Defined in: [src/components/highlighters/stroke.tsx:32](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L32)
 
 When enabled the stroke width of the highlighter is not dependent on the transformations of the paper (e.g. zoom level). It defaults to false.
 
@@ -38,7 +48,7 @@ When enabled the stroke width of the highlighter is not dependent on the transfo
 
 > `readonly` `optional` **padding**: `number`
 
-Defined in: [packages/joint-react/src/components/highlighters/stroke.tsx:16](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L16)
+Defined in: [src/components/highlighters/stroke.tsx:16](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L16)
 
 The space between the stroke and the element
 
@@ -48,7 +58,7 @@ The space between the stroke and the element
 
 > `readonly` `optional` **rx**: `number`
 
-Defined in: [packages/joint-react/src/components/highlighters/stroke.tsx:20](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L20)
+Defined in: [src/components/highlighters/stroke.tsx:20](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L20)
 
 The stroke's border radius on the x-axis
 
@@ -62,7 +72,7 @@ The stroke's border radius on the x-axis
 
 > `readonly` `optional` **ry**: `number`
 
-Defined in: [packages/joint-react/src/components/highlighters/stroke.tsx:24](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L24)
+Defined in: [src/components/highlighters/stroke.tsx:24](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L24)
 
 The stroke's border radius on the y-axis
 
@@ -76,6 +86,6 @@ The stroke's border radius on the y-axis
 
 > `readonly` `optional` **useFirstSubpath**: `boolean`
 
-Defined in: [packages/joint-react/src/components/highlighters/stroke.tsx:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L28)
+Defined in: [src/components/highlighters/stroke.tsx:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L28)
 
 Draw the stroke by using the first subpath of the target el compound path.

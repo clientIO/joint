@@ -8,7 +8,7 @@
 
 > **useLinks**\<`Link`, `ReturnedLinks`\>(`selector`, `isEqual`): `ReturnedLinks`
 
-Defined in: [packages/joint-react/src/hooks/use-links.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-links.ts#L38)
+Defined in: [src/hooks/use-links.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-links.ts#L38)
 
 A hook to access the graph store's links.
 
@@ -24,9 +24,13 @@ How it works:
 
 ## Type Parameters
 
-• **Link** = [`GraphLinks`](../classes/GraphLinks.md)
+### Link
 
-• **ReturnedLinks** = `Link`
+`Link` = [`GraphLinks`](../classes/GraphLinks.md)
+
+### ReturnedLinks
+
+`ReturnedLinks` = `Link`
 
 ## Parameters
 

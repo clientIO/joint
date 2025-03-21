@@ -24,7 +24,7 @@ const config = [
   },
   depend.configs['flat/recommended'],
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.strict,
   eslintReact.configs.recommended,
   unicorn.configs['flat/recommended'],
   reactPerfPlugin.configs.flat.recommended,

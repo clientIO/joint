@@ -1,11 +1,22 @@
 import type { Preview } from '@storybook/react';
 
 import { withPerformance } from 'storybook-addon-performance';
+import { theme } from './theme';
 
 export const decorators = [withPerformance];
 
 const preview: Preview = {
   parameters: {
+    docs: {
+      theme: theme,
+    },
+    backgrounds: {
+      values: [
+        // 👇 Default values
+        { name: 'Dark', value: theme.appBg },
+      ],
+      default: 'Dark',
+    },
     options: {
       storySort: {
         method: '',

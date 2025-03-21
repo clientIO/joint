@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PRIMARY } from '.storybook/theme';
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 
@@ -13,7 +14,7 @@ const initialElements = createElements([
     attrs: {
       body: {
         points: '0,0 100,0 100,100 0,100',
-        fill: 'lightblue',
+        fill: PRIMARY,
       },
       label: {
         text: 'Polygon',

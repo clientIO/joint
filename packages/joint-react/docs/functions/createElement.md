@@ -8,11 +8,13 @@
 
 > **createElement**\<`Attributes`\>(`options`?): [`ReactElement`](../classes/ReactElement.md)\<\{\}\>
 
-Defined in: [packages/joint-react/src/models/react-element.ts:43](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.ts#L43)
+Defined in: [src/models/react-element.tsx:34](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L34)
 
 ## Type Parameters
 
-• **Attributes** = `Attributes`
+### Attributes
+
+`Attributes` = `Attributes`
 
 ## Parameters
 

@@ -4,8 +4,11 @@ import type { InferElement } from '../../utils/create';
 import { createElements, createLinks } from '../../utils/create';
 import './flowchart.css';
 import { GraphProvider } from '../../components/graph-provider/graph-provider';
-import { HTMLNode } from '../../components/html-node/html-node';
 import { Paper } from '../../components/paper/paper';
+import { MeasuredNode } from 'src/components/measured-node/measured-node';
+import { useCallback } from 'react';
+import type { OnSetSize } from 'src/hooks/use-measure-node-size';
+import { PRIMARY } from '.storybook/theme';
 
 export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
@@ -85,7 +88,7 @@ const LINK_OPTIONS = {
   attrs: {
     line: {
       class: 'jj-flow-line',
-      stroke: '#E74C3C', // Adjust to match the red stroke
+      stroke: PRIMARY,
       strokeWidth: 2,
       targetMarker: {
         class: 'jj-flow-arrowhead',
@@ -181,7 +184,7 @@ const flowchartLinks = createLinks([
 type FlowchartNode = InferElement<typeof flowchartNodes>;
 
 // Custom render function that maps the node type to a CSS class for styling
-function RenderFlowchartNode({ data: { label, type } }: FlowchartNode) {
+function RenderFlowchartNode({ data: { label, type }, width, height, x, y }: FlowchartNode) {
   let className = 'flowchart-node';
   switch (type) {
     case 'start': {
@@ -198,16 +201,39 @@ function RenderFlowchartNode({ data: { label, type } }: FlowchartNode) {
     }
     // No default
   }
-  return <HTMLNode className={`flowchart-node ${className}`}>{label}</HTMLNode>;
+
+  const setSize: OnSetSize = useCallback(
+    ({ element, size }) => {
+      element.set({
+        size,
+        position: { x: size.width / 2 + x, y: size.height / 2 + y },
+      });
+    },
+    [x, y]
+  );
+
+  const NORMAL_SIZE = { width: 120, height: 50 };
+  const START_SIZE = { width: 50, height: 50 };
+  const sizeStyle = type === 'start' ? START_SIZE : NORMAL_SIZE;
+  return (
+    // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
+    <foreignObject style={{ overflow: 'visible' }} width={width} height={height}>
+      <MeasuredNode setSize={setSize}>
+        <div style={sizeStyle} className={className}>
+          {label}
+        </div>
+      </MeasuredNode>
+    </foreignObject>
+  );
 }
 
 function FlowchartMain() {
   return (
     <Paper
-      gridSize={10}
-      isFitContentOnLoadEnabled
+      gridSize={1}
+      isTransformToFitContentEnabled
       height={600}
-      width={700}
+      width={900}
       renderElement={RenderFlowchartNode}
     />
   );

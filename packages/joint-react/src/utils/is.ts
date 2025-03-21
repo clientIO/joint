@@ -1,7 +1,7 @@
 import { dia, util } from '@joint/core';
 import type { GraphCell } from './cell/get-cell';
 import type { GraphLink } from '../types/link-types';
-import type { GraphElement } from '../types/element-types';
+import type { GraphElement, GraphElementBase } from '../types/element-types';
 import { ReactElement } from 'src/models/react-element';
 
 export type Setter<Value> = (item: Value) => Value;
@@ -26,7 +26,9 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return util.isObject(value);
 }
 
-export function isGraphCell<Data = unknown>(value: unknown): value is GraphCell<Data> {
+export function isGraphCell<Element extends GraphElementBase = GraphElement>(
+  value: unknown
+): value is GraphCell<Element> {
   return isRecord(value) && 'isElement' in value && 'isLink' in value;
 }
 

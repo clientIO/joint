@@ -90,7 +90,7 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
   /**
    * Function that is called when the paper is resized.
    */
-  readonly isFitContentOnLoadEnabled?: boolean;
+  readonly isTransformToFitContentEnabled?: boolean;
 }
 
 /**

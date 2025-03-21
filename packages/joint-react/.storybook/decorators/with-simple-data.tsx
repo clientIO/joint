@@ -3,11 +3,12 @@
 
 import { JSX, PropsWithChildren } from 'react';
 import { createElements, createLinks, GraphProvider, InferElement, Paper } from '../../src';
+import { PRIMARY } from '.storybook/theme';
 
 const initialElements = createElements([
   {
     id: '1',
-    data: { label: 'Node 1', color: 'cyan' },
+    data: { label: 'Node 1', color: PRIMARY },
     x: 100,
     y: 20,
     width: 100,
@@ -15,7 +16,7 @@ const initialElements = createElements([
   },
   {
     id: '2',
-    data: { label: 'Node 2', color: 'magenta' },
+    data: { label: 'Node 2', color: PRIMARY },
     x: 200,
     y: 250,
     width: 100,
@@ -24,7 +25,18 @@ const initialElements = createElements([
 ]);
 
 export type SimpleElement = InferElement<typeof initialElements>;
-const defaultLinks = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
+const defaultLinks = createLinks([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+      },
+    },
+  },
+]);
 
 function SimpleGraphProviderDecorator({ children }: PropsWithChildren) {
   return (

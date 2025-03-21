@@ -1,4 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+import { PRIMARY, SECONDARY } from '.storybook/theme';
 import '../index.css';
 import { createElements, createLinks, GraphProvider, Paper } from '@joint/react';
 
@@ -12,7 +13,7 @@ const initialElements = createElements([
     type: 'standard.Rectangle',
     attrs: {
       body: {
-        fill: 'magenta',
+        fill: PRIMARY,
       },
       label: {
         text: 'Rectangle1',
@@ -29,7 +30,7 @@ const initialElements = createElements([
     type: 'standard.Rectangle',
     attrs: {
       body: {
-        fill: 'magenta',
+        fill: PRIMARY,
       },
       label: {
         text: 'Rectangle2',
@@ -46,8 +47,7 @@ const initialEdges = createLinks([
     type: 'standard.DoubleLink',
     attrs: {
       line: {
-        fill: 'cyan',
-        stroke: 'magenta',
+        stroke: PRIMARY,
       },
     },
   },

@@ -6,7 +6,7 @@
 
 # Interface: BaseAttributes
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:6](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L6)
+Defined in: [src/hooks/use-set-element.ts:6](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L6)
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [packages/joint-react/src/hooks/use-set-element.ts:6](https://github
 
 > `readonly` `optional` **angle**: `number`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L10)
+Defined in: [src/hooks/use-set-element.ts:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L10)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/joint-react/src/hooks/use-set-element.ts:10](https://githu
 
 > `readonly` `optional` **data**: `unknown`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L11)
+Defined in: [src/hooks/use-set-element.ts:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L11)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [packages/joint-react/src/hooks/use-set-element.ts:11](https://githu
 
 > `readonly` `optional` **markup**: `string` \| `MarkupJSON`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L7)
+Defined in: [src/hooks/use-set-element.ts:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L7)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [packages/joint-react/src/hooks/use-set-element.ts:7](https://github
 
 > `readonly` `optional` **position**: `PlainPoint`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L8)
+Defined in: [src/hooks/use-set-element.ts:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L8)
 
 ***
 
@@ -54,4 +54,4 @@ Defined in: [packages/joint-react/src/hooks/use-set-element.ts:8](https://github
 
 > `readonly` `optional` **size**: `Size`
 
-Defined in: [packages/joint-react/src/hooks/use-set-element.ts:9](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L9)
+Defined in: [src/hooks/use-set-element.ts:9](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L9)

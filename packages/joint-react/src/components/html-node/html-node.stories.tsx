@@ -3,51 +3,63 @@
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { HTMLNode } from './html-node';
+import { PRIMARY } from '.storybook/theme';
+import type { CSSProperties } from 'react';
+import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs, makeStory } from 'src/stories/utils/make-story';
+
+const API_URL = getAPILink('HTMLNode', 'variables');
 
 export type Story = StoryObj<typeof HTMLNode>;
 const meta: Meta<typeof HTMLNode> = {
   title: 'Components/HTMLNode',
   component: HTMLNode,
   decorators: [SimpleRenderItemDecorator],
+  parameters: makeRootDocs({
+    description: `
+HTMLNode is a component wrapper around \`foreignObject\` and \`measuredNode\` element with \`HTML\` element inside.
+    `,
+    apiURL: API_URL,
+    code: `import { HTMLNode } from '@joint/react'
+// This will automatically measure component size and set the HTMLElement size
+<HTMLNode>
+  Content of div
+</HTMLNode>
+    `,
+  }),
 };
 
+const STYLE: CSSProperties = {
+  width: 100,
+  height: 35,
+  backgroundColor: PRIMARY,
+  borderRadius: 10,
+};
 export default meta;
 
-export const DivWithAutoSize: Story = {
+export const DivWithAutoSize = makeStory<Story>({
   args: {
-    style: { width: 100, height: 50, backgroundColor: 'cyan' },
+    style: STYLE,
   },
-  parameters: {
-    docs: {
-      description: {
-        story: 'This story has no padding applied to the div element.',
-      },
-    },
-  },
-};
+  name: 'Rectangle',
+  apiURL: API_URL,
+  description: 'A rectangle with a label.',
+});
 
-export const DivWithAutoSizeAndPadding: Story = {
+export const DivWithAutoSizeAndPadding = makeStory<Story>({
   args: {
-    style: { width: 100, height: 50, padding: 10, backgroundColor: 'cyan' },
+    style: { ...STYLE, padding: 10 },
   },
-  parameters: {
-    docs: {
-      description: {
-        story: 'This story has padding applied to the div element.',
-      },
-    },
-  },
-};
+  name: 'Div with auto size and padding',
+  apiURL: API_URL,
+  description: 'Div with automatic measured size and padding.',
+});
 
-export const DivWithSizedChildren: Story = {
+export const DivWithSizedChildren = makeStory<Story>({
   args: {
-    children: <div style={{ width: 50, height: 25, backgroundColor: 'cyan' }} />,
+    children: <div style={STYLE} />,
   },
-  parameters: {
-    docs: {
-      description: {
-        story: 'This story has a child div element with a specific size.',
-      },
-    },
-  },
-};
+  name: 'Div with sized children',
+  apiURL: API_URL,
+  description: 'Div with a child div element with a specific size.',
+});

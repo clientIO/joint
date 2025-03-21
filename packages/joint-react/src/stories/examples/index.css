@@ -1,27 +1,30 @@
 .node {
-  background-color: white;
+  background-color: #ed2637;
   border-radius: 8px;
-  border: 1px solid #ccc;
   min-width: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 10px;
+  font-family: Ppfraktionsans, sans-serif;
   cursor: move;
-  box-shadow: 8px 12px 26px -10px rgba(133, 123, 123, 0.75);
+  color: #dde6ed;
 }
+body {
+  font-family: Ppfraktionsans, sans-serif;
+  color: #dde6ed;
+}
+
 .node:hover {
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
+  color: #131e29;
+  background-color: #dde6ed;
 }
 
 .intersected {
-  background-color: #f57dbd;
-  border: 1px solid black;
+  background-color: #ff9505;
 }
 .intersected:hover {
-  background-color: #f57dbd;
-  border: 1px solid black;
+  background-color: #ff9505;
 }
 
 .minimap {
@@ -30,41 +33,38 @@
   right: 10px;
   width: 200px;
   height: 150px;
-  border: 1px solid #ccc;
+  border: 1px solid #dde6ed;
   border-radius: 8px;
   overflow: hidden;
 }
 .minimap-node {
-  width: 100%;
-  height: 100%;
-  background-color: #ccc;
+  background-color: #ed2637;
   border-radius: 10px;
+  fill: #ed2637;
 }
 
 .resizable-node {
-  box-shadow: 8px 12px 26px -10px rgba(133, 123, 123, 0.75);
-  min-height: 30px;
-  min-width: 30px;
-  resize: both;
-  overflow: auto;
-  background-color: white;
+  background-color: #ed2637;
   border-radius: 8px;
-  border: 1px solid #ccc;
   min-width: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 10px;
+  font-family: Ppfraktionsans, sans-serif;
   cursor: move;
+  color: #dde6ed;
+
+  resize: both;
+  overflow: auto;
 }
 
 .resizable-node:hover {
   background-color: #f9f9f9;
-  border: 1px solid #ccc;
 }
 
 .highlighted {
-  stroke: red;
+  stroke: #ed2637;
   stroke-width: 2px;
 }
 
@@ -72,7 +72,7 @@
   position: absolute;
   width: 10px;
   height: 10px;
-  background: #3367d9;
+  background: #ed2637;
   left: 50%;
   top: -30px;
   border-radius: 100%;
@@ -86,7 +86,7 @@
   position: absolute;
   width: 2px;
   height: 30px;
-  background: #3367d9;
+  background: #ed2637;
   left: 4px;
   top: 5px;
 }

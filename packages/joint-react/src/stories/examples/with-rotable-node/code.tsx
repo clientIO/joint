@@ -13,13 +13,25 @@ import '../index.css';
 import { useEffect, useRef } from 'react';
 import { drag } from 'd3-drag';
 import { select } from 'd3-selection';
+import { PRIMARY } from '.storybook/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 20, y: 100 },
   { id: '2', data: { label: 'Node 2' }, x: 200, y: 100 },
 ]);
 
-const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
+const initialEdges = createLinks([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    attrs: {
+      line: {
+        stroke: PRIMARY,
+      },
+    },
+  },
+]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
@@ -47,10 +59,7 @@ function ResizableNode({ data, id }: Readonly<BaseElementWithData>) {
   }, [setRotation]);
 
   return (
-    <HTMLNode
-      className="resizable-node"
-      // onMouseDown={handleMouseDown} // prevent drag events from propagating
-    >
+    <HTMLNode className="node">
       <div className="rotatable-node__handle" ref={nodeRef} />
       {data.label}
     </HTMLNode>

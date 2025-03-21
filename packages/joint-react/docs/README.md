@@ -6,11 +6,11 @@
 
 ## Components
 
-- [Highlighter](namespaces/Highlighter/README.md)
+- [Highlighter](@joint/namespaces/Highlighter/README.md)
+- [HTMLNode](variables/HTMLNode.md)
+- [MeasuredNode](variables/MeasuredNode.md)
+- [Paper](variables/Paper.md)
 - [GraphProvider](functions/GraphProvider.md)
-- [HTMLNode](functions/HTMLNode.md)
-- [MeasuredNode](functions/MeasuredNode.md)
-- [Paper](functions/Paper.md)
 - [PaperProvider](functions/PaperProvider.md)
 
 ## Hooks
@@ -61,6 +61,7 @@
 - [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
 - [MeasuredNodeProps](interfaces/MeasuredNodeProps.md)
 - [MeasureNodeOptions](interfaces/MeasureNodeOptions.md)
+- [OnSetOptions](interfaces/OnSetOptions.md)
 - [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
 - [PaperProps](interfaces/PaperProps.md)
 - [PaperProviderProps](interfaces/PaperProviderProps.md)
@@ -72,8 +73,11 @@
 - [HtmlElementProps](type-aliases/HtmlElementProps.md)
 - [Item](type-aliases/Item.md)
 - [OnAddHighlighter](type-aliases/OnAddHighlighter.md)
+- [OnSetSize](type-aliases/OnSetSize.md)
 - [RenderElement](type-aliases/RenderElement.md)
 - [SetCell](type-aliases/SetCell.md)
+- [StandardLinkShapesType](type-aliases/StandardLinkShapesType.md)
+- [StandardShapesType](type-aliases/StandardShapesType.md)
 
 ## Variables
 
