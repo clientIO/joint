@@ -1,5 +1,5 @@
 import { dia, util, g } from '@joint/core';
-import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Rectangle, Size, Edge, Label, GeomLabel, SugiyamaLayoutSettings } from '@msagl/core';
+import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Rectangle, Size, Edge, Label, GeomLabel, SugiyamaLayoutSettings, type ICurve } from '@msagl/core';
 import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
 import { type Options, EdgeRoutingMode } from './index.mjs';
 
@@ -104,6 +104,30 @@ export function setLinkLabel(link: dia.Link, polyline: g.Polyline, label: GeomLa
     })
 }
 
+export function applyLinkLayout(
+    link: dia.Link,
+    vertices: dia.Point[],
+    curve: ICurve,
+    label: GeomLabel | undefined,
+    sourceGeomNode: GeomNode,
+    targetGeomNode: GeomNode
+) {
+    // Apply vertices to the link
+    link.vertices(vertices);
+
+    // If label exists, set its position
+    if (label) {
+        const polyline = new g.Polyline([curve.start, ...vertices, curve.end]);
+        setLinkLabel(link, polyline, label);
+    }
+
+    // Source Anchor
+    link.prop('source/anchor', getAnchor(curve.start, sourceGeomNode.boundingBox));
+
+    // Target Anchor
+    link.prop('target/anchor', getAnchor(curve.end, targetGeomNode.boundingBox));
+}
+
 export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph, edgeRoutingMode: EdgeRoutingMode) {
 
     for (const geomNode of geomGraph.shallowNodes) {
@@ -120,6 +144,32 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph, edgeRo
             element.size(geomNode.boundingBox.width, geomNode.boundingBox.height);
         }
 
+        // Get all self edges and convert to array
+        const selfEdges = Array.from(geomNode.selfEdges());
+        for (let i = 0; i < selfEdges.length; i++) {
+            const geomEdge = selfEdges[i];
+            const { id, curve, source: sourceGeomNode, target: targetGeomNode, label } = geomEdge as IdentifiableGeomEdge;
+
+            const link = graph.getCell(id) as dia.Link;
+
+            const vertices = [];
+            // `curve` doesn't have to be a Curve instance, it can be a straight line etc.
+            if (curve instanceof Curve) {
+                const { start, end } = curve;
+
+                // artificially create a loop
+                const loopSize = 10;
+                const loopOffset = loopSize * (i + 1);
+
+                const loopStart = new Point(start.x, start.y + loopOffset);
+                const loopEnd = new Point(end.x, end.y + loopOffset);
+
+                vertices.push(loopStart, loopEnd);
+            }
+
+            applyLinkLayout(link, vertices, curve, label, sourceGeomNode, targetGeomNode);
+        }
+
         for (const geomEdge of geomNode.outEdges()) {
 
             const { id, curve, source: sourceGeomNode, target: targetGeomNode, label } = geomEdge as IdentifiableGeomEdge;
@@ -132,19 +182,7 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph, edgeRo
 
             const link = graph.getCell(id) as dia.Link;
 
-            link.vertices(vertices);
-
-            // If label exists, set its position
-            if (label) {
-                const polyline = new g.Polyline([curve.start, ...vertices, curve.end]);
-                setLinkLabel(link, polyline, label);
-            }
-
-            // Source Anchor
-            link.prop('source/anchor', getAnchor(curve.start, sourceGeomNode.boundingBox));
-
-            // Target Anchor
-            link.prop('target/anchor', getAnchor(curve.end, targetGeomNode.boundingBox));
+            applyLinkLayout(link, vertices, curve, label, sourceGeomNode, targetGeomNode);
         }
     }
 
