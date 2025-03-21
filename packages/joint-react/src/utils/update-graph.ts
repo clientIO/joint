@@ -58,9 +58,7 @@ export function updateGraph(graph: dia.Graph, cells: Item[]) {
     return;
   }
 
-  // const originalCells = graph.getCells()
   const cellsMap: Record<string, dia.Cell> = {};
 
   for (const newCell of cells) processNewCell(graph, newCell, cellsMap);
-  // removeAbsentCells(originalCells, cellsMap)
 }

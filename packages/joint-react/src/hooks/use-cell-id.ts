@@ -3,10 +3,12 @@ import { use } from 'react';
 import { CellIdContext } from '../context/cell-id.context';
 
 /**
- * Return cell (currently just element) id from the paper (paper item).
+ * Return cell id from the paper (paper item).
+ * It must be used inside `renderElement` function.
+ *
+ * @see `Paper`
  *
  * @group Hooks
- * @internal
  */
 export function useCellId(): dia.Cell.ID {
   const id = use(CellIdContext);

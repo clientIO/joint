@@ -75,6 +75,7 @@ export interface GraphStore {
  * It use `useSyncExternalStore` to avoid memory leaks and cells (state) duplicates.
  *
  * @group Hooks
+ * @internal
  *
  * @param options - Options for creating the graph store.
  * @returns The graph store instance.
@@ -124,6 +125,7 @@ export function useCreateGraphStore(options: Options): GraphStore {
     },
     [graph]
   );
+
   const update = useCallback(() => {
     data.current.update(graph);
 

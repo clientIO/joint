@@ -19,6 +19,7 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
  * Returns a reference to the paper HTML element.
  *
  * @group Hooks
+ * @internal
  *
  * @param options - Options for creating the paper instance.
  * @returns An object containing the paper instance and a reference to the paper HTML element.

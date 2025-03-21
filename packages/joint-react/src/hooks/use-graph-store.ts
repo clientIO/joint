@@ -7,6 +7,7 @@ import type { GraphStore } from './use-create-graph-store';
  * It retrieves the graph from the GraphContext.
  *
  * @group Hooks
+ * @internal
  *
  * @returns The JointJS graph store.
  * @throws An error if the hook is used outside of a GraphProvider.
