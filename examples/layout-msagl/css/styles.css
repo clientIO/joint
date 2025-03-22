@@ -9,6 +9,10 @@ body {
     height: 100vh;
 }
 
+* {
+    font-family: sans-serif;
+}
+
 #controls {
     position: absolute;
     display: flex;
@@ -33,4 +37,51 @@ body {
     flex: 1;
 }
 
+#connections-list {
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    max-width: 180px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
 
+#connections-list .connection-list-item, #connections-list > h3 {
+    padding: 4px;
+}
+
+#connections-list .element-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 4px;
+    width: auto;
+}
+
+#connections-list .connection-list-item {
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+#connections-list .connection-list-item:hover {
+    background-color: #f0f0f0;
+}
+
+#connections-list .connection-list-item > svg {
+    pointer-events: none;
+}
+
+#connections-list > h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: normal;
+}
