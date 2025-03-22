@@ -1,82 +1,9 @@
 import { dia, shapes } from "@joint/core";
-import { layout, type Options, LayerDirectionEnum } from "@joint/layout-msagl";
-import data from './data';
+import { constructGraphLayer, runLayout, fitContent } from "./utils";
+import { Button, isButton } from "./shapes";
 
 import '../css/styles.css';
-
-const layoutDirectionSelect = document.querySelector('select#layout-direction') as HTMLSelectElement;
-const layerSeparationRange = document.querySelector('input#layer-separation') as HTMLInputElement;
-const nodeSeparationRange = document.querySelector('input#node-separation') as HTMLInputElement;
-
-function runLayout() {
-    paper.freeze();
-    const options = getLayoutOptions();
-    layout(graph, options);
-    fitContent();
-    paper.unfreeze();
-}
-
-function fitContent() {
-    paper.transformToFitContent({
-        padding: 50,
-        verticalAlign: 'middle',
-        horizontalAlign: 'middle',
-        contentArea: graph.getBBox()
-    });
-}
-
-function getLayoutOptions(): Options {
-
-    return {
-        layoutOptions: {
-            layerDirection: Number(layoutDirectionSelect.value) as LayerDirectionEnum,
-            layerSeparation: Number(layerSeparationRange.value),
-            nodeSeparation: Number(nodeSeparationRange.value)
-        },
-        margins: {
-            left: 30,
-            right: 30,
-            top: 30,
-            bottom: 30
-        },
-        measureLinkLabel: (link: dia.Link, context: CanvasRenderingContext2D) => {
-            const labelAttrs = link.label(0).attrs;
-
-            const textWrap = labelAttrs.text.textWrap;
-
-            if (textWrap) {
-                return {
-                    width: Number(textWrap.width),
-                    height: Number(textWrap.height)
-                }
-            }
-
-            const fontWeight = labelAttrs.text.fontWeight || 'normal';
-            const fontSize = labelAttrs.text.fontSize || 14;
-            const fontFamily = labelAttrs.text.fontFamily || 'Arial';
-            const lineHeight = Number(labelAttrs.text.lineHeight) || 1.5;
-
-            context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-
-            const rowHeight = fontSize * 1.2;
-            const rowSpacing = fontSize * (lineHeight - 1);
-
-            const lines = labelAttrs.text.text.split('\n');
-
-            let width = 0;
-
-            for (const line of lines) {
-                const lineWidth = context.measureText(line).width;
-                width = Math.max(width, lineWidth);
-            }
-
-            return {
-                width,
-                height: lines.length * rowHeight + (lines.length - 1) * rowSpacing
-            };
-        }
-    }
-}
+import { ElementController } from "./ElementController";
 
 const graph = new dia.Graph({}, { cellNamespace: shapes });
 const paper = new dia.Paper({
@@ -85,18 +12,84 @@ const paper = new dia.Paper({
     el: document.querySelector('#paper'),
     width: '100%',
     height: '100%',
+    magnetThreshold: 'onleave',
+    defaultConnector: {
+        name: 'rounded',
+        args: {
+            radius: 4
+        }
+    },
+    allowLink: (linkView) => {
+        const { model } = linkView;
+
+        if (!model.source().id || !model.target().id) return false;
+
+        const target = model.getTargetElement();
+        const source = model.getSourceElement();
+        const [parent] = graph.getNeighbors(source, { inbound: true });
+        // Forbid immediate parent-child connections
+        if (parent === target) return false;
+
+        return target.isElement() && !isButton(target);
+    },
+    validateConnection: (_cellViewS, _magnetS, cellViewT, _magnetT, _end, _linkView) => {
+        const { model } = cellViewT;
+
+        const source = _cellViewS.model as dia.Element;
+        const [parent] = graph.getNeighbors(source, { inbound: true });
+        // Forbid immediate parent-child connections
+        if (parent === model) return false;
+
+        return !isButton(model) && model.isElement();
+    },
     async: true,
     frozen: true,
-    interactive: false
+    // Enable interaction only for buttons
+    interactive: (cellView: dia.CellView) => {
+        if (!isButton(cellView.model)) return false;
+
+        return {
+            addLinkFromMagnet: true,
+            elementMove: false
+        }
+    },
+    highlighting: {
+        [dia.CellView.Highlighting.CONNECTING]: false
+    }
 });
 
-graph.fromJSON(data);
-runLayout();
+// graph.getLinks().forEach(setLinkLabelSize);
 
-window.addEventListener('resize', fitContent);
+constructGraphLayer('E1', ['E2', 'E3', 'E8'], graph);
+constructGraphLayer('E2', ['E4', 'E5'], graph);
+constructGraphLayer('E3', ['E7'], graph);
+constructGraphLayer('E4', ['E8', 'E9'], graph);
+constructGraphLayer('E5', ['E10', 'E11'], graph);
+constructGraphLayer('E8', ['E12', 'E13'], graph);
+
+const elementController = new ElementController({
+    graph,
+    paper
+});
+
+elementController.startListening();
+
+graph.getElements().forEach((source) => {
+    const target = new Button();
+
+    const link = new shapes.standard.Link({
+        source: { id: source.id },
+        target: { id: target.id }
+    });
+
+    graph.addCells([link, target]);
+});
+
+runLayout(paper);
+window.addEventListener('resize', () => fitContent(paper));
 
 [
-    layoutDirectionSelect,
-    layerSeparationRange,
-    nodeSeparationRange
-].forEach(el => el.addEventListener('change', runLayout));
+    document.querySelector('select#layout-direction') as HTMLSelectElement,
+    document.querySelector('input#layer-separation') as HTMLInputElement,
+    document.querySelector('input#node-separation') as HTMLInputElement
+].forEach(el => el.addEventListener('change', () => runLayout(paper)));
