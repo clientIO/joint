@@ -24,5 +24,11 @@ module.exports = {
     'parserOptions': {
         'ecmaVersion': 2022,
         'sourceType': 'module'
-    }
+    },
+    'ignorePatterns': [
+        '**/node_modules',
+        '/scripts',
+        '/dist',
+        '/build'
+    ]
 };
