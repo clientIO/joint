@@ -23,7 +23,7 @@ export function addEffect(elementView: dia.CellView, effect: typeof effects[keyo
                 attrs: {
                     stroke: '#004DFF',
                     strokeWidth: 2,
-                    strokeDasharray: 4,
+                    strokeDasharray: '5,3',
                 }
             });
             break;
