@@ -250,7 +250,7 @@ const V = (function() {
 
             box = node.getBBox();
 
-        } catch (e) {
+        } catch {
 
             // Fallback for IE.
             box = {
@@ -303,7 +303,7 @@ const V = (function() {
         if (!options.recursive) {
             try {
                 outputBBox = node.getBBox();
-            } catch (e) {
+            } catch {
                 // Fallback for IE.
                 outputBBox = {
                     x: node.clientLeft,
@@ -924,7 +924,7 @@ const V = (function() {
             var globalPoint = p.matrixTransform(svg.getScreenCTM().inverse());
             var globalToLocalMatrix = this.getTransformToElement(svg).inverse();
 
-        } catch (e) {
+        } catch {
             // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
             // We have to make do with the original coordianates.
             return p;
@@ -1004,7 +1004,7 @@ const V = (function() {
         this.append(animateMotion);
         try {
             animateMotion.node.beginElement();
-        } catch (e) {
+        } catch {
             // Fallback for IE 9.
             // Run the animation programmatically if FakeSmile (`http://leunen.me/fakesmile/`) present
             if (document.documentElement.getAttribute('smiling') === 'fake') {
@@ -1370,7 +1370,7 @@ const V = (function() {
             }
 
             xml = parser.parseFromString(data, 'text/xml');
-        } catch (error) {
+        } catch {
             xml = undefined;
         }
 

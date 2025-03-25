@@ -337,7 +337,7 @@ function buildRoundedSegment(offset, path, curr, prev, next) {
  * @property {number} size optional size of a jump arc
  * @return {string} created `D` attribute of SVG path
  */
-export const jumpover = function(sourcePoint, targetPoint, route, opt) { // eslint-disable-line max-params
+export const jumpover = function(sourcePoint, targetPoint, route, opt) {
 
     setupUpdating(this);
 
