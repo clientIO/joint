@@ -1,4 +1,4 @@
-import * as modules from './rollup.resources';
+import * as modules from './rollup.resources.mjs';
 
 const JOINT = [
     modules.version,

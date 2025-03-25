@@ -10,15 +10,15 @@ describe('Sanity check', function() {
     describe('require', function() {
 
         it('should return an object', function() {
-            joint.should.have.type('object');
-            joint.should.not.be.empty;
+            (typeof joint).should.equal('object');
+            Object.keys(joint).length.should.be.greaterThan(0);
         });
 
         it('should contain Graph constructor', function() {
-
-            joint.should.have.property('dia');
-            joint.dia.should.have.property('Graph');
-            joint.dia.Graph.should.have.type('function');
+            should.exist(joint);
+            should.exist(joint.dia, 'joint.dia is undefined');
+            should.exist(joint.dia.Graph, 'joint.dia.Graph is undefined');
+            (typeof joint.dia.Graph).should.equal('function');
         });
     });
 });

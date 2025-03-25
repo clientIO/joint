@@ -4,7 +4,7 @@ import json from 'rollup-plugin-json';
 import fs from 'fs';
 import resolve from 'rollup-plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
-const modules = require('./grunt/resources/esm');
+import modules from './grunt/resources/esm.js';
 
 let plugins = [
     resolve(),

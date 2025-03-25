@@ -1,7 +1,9 @@
-import pkg from "./package.json" assert { type: "json" };
+import { readFileSync } from 'fs';
 import banner from 'rollup-plugin-banner2';
 import { uglify } from 'rollup-plugin-uglify';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+
+const pkg = JSON.parse(readFileSync('./package.json'));
 
 const today = new Date();
 const formattedDate = today.toLocaleDateString("en-US", { year: 'numeric' }) + "-" + today.toLocaleDateString("en-US", { month: '2-digit' }) + "-" + today.toLocaleDateString("en-US", { day: '2-digit' });

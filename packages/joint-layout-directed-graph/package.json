@@ -57,14 +57,14 @@
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",
     "karma-qunit": "^4.1.2",
-    "mocha": "5.2.0",
-    "puppeteer": "10.2.0",
+    "mocha": "11.1.0",
+    "puppeteer": "^24.4.0",
     "qunit": "^2.20.0",
     "requirejs": "2.3.6",
-    "rollup": "^4.4.0",
+    "rollup": "^4.36.0",
     "rollup-plugin-banner2": "^1.2.2",
     "rollup-plugin-uglify": "^6.0.4",
-    "should": "13.2.3"
+    "should": "^13.2.3"
   },
   "volta": {
     "node": "22.14.0",
