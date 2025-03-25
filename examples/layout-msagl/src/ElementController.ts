@@ -1,6 +1,6 @@
 import { dia, linkTools, mvc } from '@joint/core';
 import { Ellipse, Rectangle, Triangle, isButton } from './shapes';
-import { runLayout, createListItem, ShapeType, createBlankThumbnail, makeConnection, addButtonToElement, createExistingElementListItem, isBridge } from './utils';
+import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem } from './utils';
 import { addEffect, effects, removeEffect } from './effects';
 import { RemoveTool } from './RemoveTool';
 
@@ -23,6 +23,7 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
         const { paper, graph } = this.context;
 
         this.listenTo(graph, {
+            'add': onAdd,
             'remove': onRemove
         })
 
@@ -35,6 +36,13 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
             'cell:unhighlight': onCellUnhighlight
         })
     }
+}
+
+function onAdd({ paper }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, opt: any) {
+    if (cell.isLink() || isButton(cell) || opt.preview) return;
+
+    closeConnectionsList(paper);
+    openConnectionsList(paper, cell as dia.Element);
 }
 
 function onRemove({ paper }: ElementControllerArgs, _cell: dia.Cell, _: any, opt: any) {
@@ -97,8 +105,6 @@ function onElementPointerClick({ paper, graph }: ElementControllerArgs, elementV
 
     const [parent] = graph.getNeighbors(model, { inbound: true });
     openConnectionsList(paper, parent);
-
-    addEffect(parent.findView(paper), effects.CONNECTION_SOURCE);
 }
 
 function onCellHighlight(_context: ElementControllerArgs, cellView: dia.CellView, _node: SVGElement, { type }: { type: dia.CellView.Highlighting }) {
@@ -118,9 +124,9 @@ const connectionsList = document.querySelector<HTMLDivElement>('#connections-lis
 function openConnectionsList(paper: dia.Paper, parent: dia.Element) {
     connectionsList.style.display = 'block';
 
-    const graph = paper.model;
+    addEffect(parent.findView(paper), effects.CONNECTION_SOURCE);
 
-    const elements = graph.getElements().filter((element) => !isButton(element) || element.id === parent.id);
+    const graph = paper.model;
 
     // New Connections
     const addElementSubtitle = document.createElement('h3');
@@ -130,37 +136,13 @@ function openConnectionsList(paper: dia.Paper, parent: dia.Element) {
     const addElementList = document.createElement('div');
     addElementList.classList.add('element-list');
 
-    const newRectItem = createListItem(createBlankThumbnail(ShapeType.Rectangle));
-    const newEllipseItem = createListItem(createBlankThumbnail(ShapeType.Ellipse));
-    const newTriangleItem = createListItem(createBlankThumbnail(ShapeType.Triangle));
+    const newRectItem = createNewElementListItem(Rectangle.create(), parent, paper);
+    const newEllipseItem = createNewElementListItem(Ellipse.create(), parent, paper);
+    const newTriangleItem = createNewElementListItem(Triangle.create(), parent, paper);
 
     addElementList.appendChild(newRectItem);
     addElementList.appendChild(newEllipseItem);
     addElementList.appendChild(newTriangleItem);
-
-    newRectItem.addEventListener('click', () => {
-        const rect = Rectangle.create()
-        graph.addCell(rect);
-        makeConnection(parent, rect, paper);
-        addButtonToElement(rect, paper);
-        runLayout(paper);
-    });
-
-    newEllipseItem.addEventListener('click', () => {
-        const ellipse = Ellipse.create();
-        graph.addCell(ellipse);
-        makeConnection(parent, ellipse, paper);
-        addButtonToElement(ellipse, paper);
-        runLayout(paper);
-    });
-
-    newTriangleItem.addEventListener('click', () => {
-        const triangle = Triangle.create();
-        graph.addCell(triangle);
-        makeConnection(parent, triangle, paper);
-        addButtonToElement(triangle, paper);
-        runLayout(paper);
-    });
 
     connectionsList.appendChild(addElementList);
 
@@ -171,6 +153,8 @@ function openConnectionsList(paper: dia.Paper, parent: dia.Element) {
 
     const availableConnections = document.createElement('div');
     availableConnections.classList.add('element-list');
+
+    const elements = graph.getElements().filter((element) => !isButton(element) && element.id !== parent.id);
 
     elements.forEach((element) => {
         availableConnections.appendChild(createExistingElementListItem(parent, element, paper));

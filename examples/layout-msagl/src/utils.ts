@@ -1,4 +1,4 @@
-import { dia, shapes } from "@joint/core";
+import { dia, shapes, util } from "@joint/core";
 import { Button, Rectangle } from "./shapes";
 import { layout, Options, LayerDirectionEnum } from "@joint/layout-msagl";
 import { addEffect, effects, removeEffect } from "./effects";
@@ -55,19 +55,20 @@ export function constructGraphLayer(parent: string | dia.Element, children: stri
     });
 }
 
-export function makeConnection(source: dia.Element, target: dia.Element, paper: dia.Paper) {
+export function makeConnection(source: dia.Element, target: dia.Element, paper: dia.Paper, opt: any = {}) {
     const link = new shapes.standard.Link({
         source: { id: source.id },
         target: { id: target.id }
     });
-    paper.model.addCell(link);
+    paper.model.addCell(link, opt);
     return link;
 }
 
-export function addButtonToElement(element: dia.Element, paper: dia.Paper) {
+export function addButtonToElement(element: dia.Element, paper: dia.Paper, opt: any = {}) {
     const button = new Button();
-    paper.model.addCell(button);
-    makeConnection(element, button, paper);
+    paper.model.addCell(button, opt);
+    const link = makeConnection(element, button, paper, opt);
+    return [link, button];
 }
 
 export function createListItem(thumbnail: SVGSVGElement) {
@@ -75,6 +76,45 @@ export function createListItem(thumbnail: SVGSVGElement) {
     const item = document.createElement('div');
     item.classList.add('connection-list-item');
     item.appendChild(thumbnail);
+
+    return item;
+}
+
+export function createNewElementListItem(shape: dia.Element, parent: dia.Element, paper: dia.Paper) {
+    const item = createListItem(createBlankThumbnail(shape.get('type') satisfies ShapeType));
+
+    const graph = paper.model;
+    const previewShape = shape.clone();
+    previewShape.attr('label/text', null);
+
+    let previewButton: dia.Element;
+    let previewLink: dia.Link;
+
+    const debouncedRunLayout = util.debounce(runLayout, 100);
+
+    item.addEventListener('click', () => {
+        graph.removeCells([previewShape, previewLink, previewButton]);
+        graph.addCell(shape);
+        makeConnection(parent, shape, paper);
+        addButtonToElement(shape, paper);
+        runLayout(paper);
+    });
+
+    item.addEventListener('mouseenter', () => {
+        graph.addCell(previewShape, { preview: true });
+        makeConnection(parent, previewShape, paper, { preview: true });
+        const [link, button] = addButtonToElement(previewShape, paper, { preview: true });
+        previewLink = link as dia.Link;
+        previewButton = button as dia.Element;
+        runLayout(paper);
+        addEffect(previewShape.findView(paper) as dia.ElementView, effects.CONNECTION_TARGET);
+    });
+
+    item.addEventListener('mouseleave', () => {
+        removeEffect(paper, effects.CONNECTION_TARGET);
+        graph.removeCells([previewShape, previewLink, previewButton]);
+        debouncedRunLayout(paper);
+    });
 
     return item;
 }
@@ -129,6 +169,7 @@ function getShapePath(shapeType: ShapeType): Element {
     path.setAttribute('d', 'M 15 0 L 30 30 L 0 30 Z');
     return path;
 }
+
 export function createBlankThumbnail(shapeType: ShapeType): SVGSVGElement {
     const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svgContainer.setAttribute('width', '30');
