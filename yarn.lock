@@ -2191,6 +2191,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-layout-msagl@workspace:examples/layout-msagl":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-layout-msagl@workspace:examples/layout-msagl"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-msagl": "workspace:^"
+    css-loader: ^6.8.1
+    style-loader: ^3.3.3
+    ts-loader: ^9.2.5
+    typescript: ^5.7.3
+    webpack: ^5.53.0
+    webpack-cli: ^4.8.0
+    webpack-dev-server: ^4.2.1
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-libavoid-js@workspace:examples/libavoid":
   version: 0.0.0-use.local
   resolution: "@joint/demo-libavoid-js@workspace:examples/libavoid"
@@ -2293,6 +2309,16 @@ __metadata:
     rollup-plugin-banner2: ^1.2.2
     rollup-plugin-uglify: ^6.0.4
     should: 13.2.3
+  languageName: unknown
+  linkType: soft
+
+"@joint/layout-msagl@workspace:^, @joint/layout-msagl@workspace:packages/joint-layout-msagl":
+  version: 0.0.0-use.local
+  resolution: "@joint/layout-msagl@workspace:packages/joint-layout-msagl"
+  dependencies:
+    "@joint/core": "workspace:~"
+    "@msagl/core": ^1.1.23
+    typescript: ^5.7.3
   languageName: unknown
   linkType: soft
 
@@ -2454,6 +2480,18 @@ __metadata:
   version: 0.14.2
   resolution: "@microsoft/tsdoc@npm:0.14.2"
   checksum: b167c89e916ba73ee20b9c9d5dba6aa3a0de25ed3d50050e8a344dca7cd43cb2e1059bd515c820369b6e708901dd3fda476a42bc643ca74a35671ce77f724a3a
+  languageName: node
+  linkType: hard
+
+"@msagl/core@npm:^1.1.23":
+  version: 1.1.23
+  resolution: "@msagl/core@npm:1.1.23"
+  dependencies:
+    queue-typescript: ^1.0.1
+    reliable-random: ^0.0.1
+    stack-typescript: ^1.0.4
+    typescript-string-operations: ^1.4.1
+  checksum: 26d682141e3f2d09c7f643bb1796c5d2c3e680eeac43f17cf744a5ecc19fbdf9c4392fb8e28f1496725d0008655cfbcdfa740877c07f0fa5db665454279b39de
   languageName: node
   linkType: hard
 
@@ -11068,6 +11106,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"linked-list-typescript@npm:^1.0.11":
+  version: 1.0.15
+  resolution: "linked-list-typescript@npm:1.0.15"
+  checksum: c88488f3b27ae2cb26b6aedd9cc4ffa4a07f3e97957f96c99e312ce825dc095b41f3d9e5a2e5f0ac324c13ae2053b3003589e4cac62cdeb4cc12be0dc10515aa
+  languageName: node
+  linkType: hard
+
 "livereload-js@npm:^2.3.0":
   version: 2.4.0
   resolution: "livereload-js@npm:2.4.0"
@@ -13379,6 +13424,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"queue-typescript@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "queue-typescript@npm:1.0.1"
+  dependencies:
+    linked-list-typescript: ^1.0.11
+  checksum: 52db58a1e5b29927f94e97aaac1ae2951fa089571021250e728a209da8160c9471b86239cc7e277d6a85fd6a2bcb1f89cc2f8e0962816692e3cd98e86504eb3e
+  languageName: node
+  linkType: hard
+
 "qunit@npm:2.8.0":
   version: 2.8.0
   resolution: "qunit@npm:2.8.0"
@@ -13695,6 +13749,13 @@ __metadata:
   bin:
     regjsparser: bin/parser
   checksum: 094b55b0ab3e1fd58f8ce5132a1d44dab08d91f7b0eea4132b0157b303ebb8ded20a9cbd893d25402d2aeddb23fac1f428ab4947b295d6fa51dd1c334a9e76f0
+  languageName: node
+  linkType: hard
+
+"reliable-random@npm:^0.0.1":
+  version: 0.0.1
+  resolution: "reliable-random@npm:0.0.1"
+  checksum: 4dd98857fa19536262aebe5545f4e6611681e58b6fc817abe2897ccdb44f1c3a14ac99db6b524cfcede292e2a7341781d74bf10418e2f470c7381e4516793592
   languageName: node
   linkType: hard
 
@@ -15254,6 +15315,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stack-typescript@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "stack-typescript@npm:1.0.4"
+  dependencies:
+    linked-list-typescript: ^1.0.11
+  checksum: e78b0f3d88a1831c1283907b0391dfce694dab4000615cd2b0dba9ad211673e2f3f5732014dc33648caa8a955c6195e969ab9d92cf20b6249943859320cd2102
+  languageName: node
+  linkType: hard
+
 "stackback@npm:0.0.2":
   version: 0.0.2
   resolution: "stackback@npm:0.0.2"
@@ -15759,7 +15829,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"terser-webpack-plugin@npm:^5.1.3, terser-webpack-plugin@npm:^5.3.10, terser-webpack-plugin@npm:^5.3.7":
+"terser-webpack-plugin@npm:^5.1.3, terser-webpack-plugin@npm:^5.3.10, terser-webpack-plugin@npm:^5.3.11, terser-webpack-plugin@npm:^5.3.7":
   version: 5.3.11
   resolution: "terser-webpack-plugin@npm:5.3.11"
   dependencies:
@@ -16185,6 +16255,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript-string-operations@npm:^1.4.1":
+  version: 1.5.1
+  resolution: "typescript-string-operations@npm:1.5.1"
+  checksum: 30fc1ce9e1985535fb4805a001fae33383c8f5428a8a556b8037f6eadc1f3a6bebaef905203355fb0b3938f459dd40d765e8dd7472e55fee5ff3b217efa5e5ae
+  languageName: node
+  linkType: hard
+
 "typescript@npm:4.8.4, typescript@npm:~4.8.4":
   version: 4.8.4
   resolution: "typescript@npm:4.8.4"
@@ -16202,6 +16279,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: ee000bc26848147ad423b581bd250075662a354d84f0e06eb76d3b892328d8d4440b7487b5a83e851b12b255f55d71835b008a66cbf8f255a11e4400159237db
+  languageName: node
+  linkType: hard
+
+"typescript@npm:^5.7.3":
+  version: 5.7.3
+  resolution: "typescript@npm:5.7.3"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 6c38b1e989918e576f0307e6ee013522ea480dfce5f3ca85c9b2d8adb1edeffd37f4f30cd68de0c38a44563d12ba922bdb7e36aa2dac9c51de5d561e6e9a2e9c
   languageName: node
   linkType: hard
 
@@ -16232,6 +16319,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@^5.7.3#~builtin<compat/typescript>":
+  version: 5.7.3
+  resolution: "typescript@patch:typescript@npm%3A5.7.3#~builtin<compat/typescript>::version=5.7.3&hash=1f5320"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 633cd749d6cd7bc842c6b6245847173bba99742a60776fae3c0fbcc0d1733cd51a733995e5f4dadd8afb0e64e57d3c7dbbeae953a072ee303940eca69e22f311
   languageName: node
   linkType: hard
 
@@ -17240,6 +17337,42 @@ __metadata:
   bin:
     webpack: bin/webpack.js
   checksum: 43fe0dbc30e168a685ef5a86759d5016a705f6563b39a240aa00826a80637d4a3deeb8062e709d6a4b05c63e796278244c84b04174704dc4a37bedb0f565c5ed
+  languageName: node
+  linkType: hard
+
+"webpack@npm:^5.53.0":
+  version: 5.98.0
+  resolution: "webpack@npm:5.98.0"
+  dependencies:
+    "@types/eslint-scope": ^3.7.7
+    "@types/estree": ^1.0.6
+    "@webassemblyjs/ast": ^1.14.1
+    "@webassemblyjs/wasm-edit": ^1.14.1
+    "@webassemblyjs/wasm-parser": ^1.14.1
+    acorn: ^8.14.0
+    browserslist: ^4.24.0
+    chrome-trace-event: ^1.0.2
+    enhanced-resolve: ^5.17.1
+    es-module-lexer: ^1.2.1
+    eslint-scope: 5.1.1
+    events: ^3.2.0
+    glob-to-regexp: ^0.4.1
+    graceful-fs: ^4.2.11
+    json-parse-even-better-errors: ^2.3.1
+    loader-runner: ^4.2.0
+    mime-types: ^2.1.27
+    neo-async: ^2.6.2
+    schema-utils: ^4.3.0
+    tapable: ^2.1.1
+    terser-webpack-plugin: ^5.3.11
+    watchpack: ^2.4.1
+    webpack-sources: ^3.2.3
+  peerDependenciesMeta:
+    webpack-cli:
+      optional: true
+  bin:
+    webpack: bin/webpack.js
+  checksum: 0de353c694bc4d5af810e4f4d4fd356271b21b2253583a9f618416b5fcbaf8db5a5487c12cc1379778d2a07d56382293334153af6e2ce59ded59488f08015fd1
   languageName: node
   linkType: hard
 
