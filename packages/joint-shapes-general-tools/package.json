@@ -41,7 +41,7 @@
     "@joint/shapes-general": "workspace:~"
   },
   "devDependencies": {
-    "typescript": "^5.8.2"
+    "typescript": "5.8.2"
   },
   "volta": {
     "node": "22.14.0",
