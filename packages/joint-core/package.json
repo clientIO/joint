@@ -50,7 +50,7 @@
     "build-bundles": "grunt build:bundles",
     "test-e2e": "grunt test:e2e",
     "test-e2e-all": "grunt test:e2e:all",
-    "lint": "eslint types/**/*.d.ts src",
+    "lint": "eslint src --ext .mjs,.js",
     "lint-fix": "yarn run lint --fix",
     "dist": "grunt dist"
   },
