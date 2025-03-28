@@ -7,3 +7,7 @@ root = true
 [*.js]
 indent_style = space
 indent_size = 4
+
+# Insert final newline
+[*]
+insert_final_newline = true
