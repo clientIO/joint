@@ -3310,7 +3310,9 @@ __metadata:
     jest-environment-jsdom: ^29.7.0
     prettier: 3.3.3
     prettier-plugin-tailwindcss: ^0.6.5
+    react: ^19.0.0
     react-docgen-typescript-plugin: ^1.0.8
+    react-dom: ^19.0.0
     react-test-renderer: 19.0.0
     storybook: ^8.6.3
     storybook-addon-performance: ^0.17.3

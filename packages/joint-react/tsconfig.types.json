@@ -6,6 +6,10 @@
     "emitDeclarationOnly": true,   // Only emit .d.ts files
     "skipLibCheck": true,
     "rootDir": "./src",
+    "baseUrl": "./",
+    "paths": {
+      "@joint/react": ["./src/index.ts"]
+    }
   },
   "include": [
     "src/**/*.ts",                 // Include all .ts files in src

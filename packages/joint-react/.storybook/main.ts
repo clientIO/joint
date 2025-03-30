@@ -15,6 +15,7 @@ const config: StorybookConfig = {
     '@storybook/addon-storysource',
     '@storybook/addon-links',
     'storybook-addon-performance',
+    '@codesandbox/storybook-addon',
   ],
 
   framework: {
