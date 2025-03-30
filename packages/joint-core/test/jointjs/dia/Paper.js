@@ -237,6 +237,981 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
     });
 
+    QUnit.module('show/hide API', function(hooks) {
+        let testGraph;
+        //let a, b, c, d, l1, l2, l3, l11, l12, l13, l14, l21, l22, l23, l24, l211, l221, l231, l241, l31, l32, l33, l34;
+        hooks.beforeEach(function() {
+            testGraph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            testGraph.addCells([
+                {
+                    'type': 'standard.Rectangle',
+                    'id': 'A',
+                    'position': {
+                        'x': 100,
+                        'y': 100
+                    },
+                    'size': {
+                        'width': 100,
+                        'height': 100
+                    },
+                },
+                {
+                    'type': 'standard.Rectangle',
+                    'id': 'B',
+                    'position': {
+                        'x': 400,
+                        'y': 400
+                    },
+                    'size': {
+                        'width': 100,
+                        'height': 100
+                    }
+                },
+                {
+                    'type': 'standard.Rectangle',
+                    'id': 'C',
+                    'position': {
+                        'x': 400,
+                        'y': 100
+                    },
+                    'size': {
+                        'width': 100,
+                        'height': 100
+                    }
+                },
+                {
+                    'type': 'standard.Circle',
+                    'id': 'D',
+                    'position': {
+                        'x': 100,
+                        'y': 400
+                    },
+                    'size': {
+                        'width': 100,
+                        'height': 100
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l1',
+                    'source': {
+                        'x': 0,
+                        'y': 0
+                    },
+                    'target': {
+                        'id': 'A'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l2',
+                    'source': {
+                        'id': 'A'
+                    },
+                    'target': {
+                        'id': 'B'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l3',
+                    'source': {
+                        'id': 'B'
+                    },
+                    'target': {
+                        'x': 600,
+                        'y': 600
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l11',
+                    'source': {
+                        'x': 100,
+                        'y': 0
+                    },
+                    'target': {
+                        'id': 'l1'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l12',
+                    'source': {
+                        'id': 'C'
+                    },
+                    'target': {
+                        'id': 'l1'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l13',
+                    'source': {
+                        'id': 'l1'
+                    },
+                    'target': {
+                        'id': 'D'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l14',
+                    'source': {
+                        'id': 'l1'
+                    },
+                    'target': {
+                        'x': 0,
+                        'y': 100
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l21',
+                    'source': {
+                        'x': 300,
+                        'y': 200
+                    },
+                    'target': {
+                        'id': 'l2'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l22',
+                    'source': {
+                        'id': 'C'
+                    },
+                    'target': {
+                        'id': 'l2'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l23',
+                    'source': {
+                        'id': 'l2'
+                    },
+                    'target': {
+                        'id': 'D'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l24',
+                    'source': {
+                        'id': 'l2'
+                    },
+                    'target': {
+                        'x': 300,
+                        'y': 400
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l211',
+                    'source': {
+                        'id': 'A'
+                    },
+                    'target': {
+                        'id': 'l21'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l221',
+                    'source': {
+                        'id': 'A'
+                    },
+                    'target': {
+                        'id': 'l22'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l231',
+                    'source': {
+                        'id': 'l23'
+                    },
+                    'target': {
+                        'id': 'B'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l241',
+                    'source': {
+                        'id': 'l24'
+                    },
+                    'target': {
+                        'id': 'B'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l31',
+                    'source': {
+                        'x': 600,
+                        'y': 500
+                    },
+                    'target': {
+                        'id': 'l3'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l32',
+                    'source': {
+                        'id': 'C'
+                    },
+                    'target': {
+                        'id': 'l3'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l33',
+                    'source': {
+                        'id': 'l3'
+                    },
+                    'target': {
+                        'id': 'D'
+                    }
+                },
+                {
+                    'type': 'standard.Link',
+                    'id': 'l34',
+                    'source': {
+                        'id': 'l3'
+                    },
+                    'target': {
+                        'x': 500,
+                        'y': 600
+                    }
+                },
+            ]);
+        });
+
+        let paper, cells, hiddenIds;
+
+        function isInDOM(cell) {
+            const cellView = paper.findViewByModel(cell);
+            const domId = cellView.id;
+            const domElement = paper.el.querySelector(`#${domId}`);
+            return (domElement !== null);
+        }
+
+        QUnit.module('async = FALSE, viewport = UNDEFINED', function(hooks) {
+            hooks.beforeEach(function() {
+                paper = new Paper({
+                    el: paperEl,
+                    model: testGraph,
+                    async: false
+                });
+            });
+            hooks.afterEach(function() {
+                if (paper) paper.remove();
+                paper = null;
+            });
+
+            QUnit.module('requestCellViewVisibility()', function() {
+
+                QUnit.test('sanity', function(assert) {
+                    // sanity check - all elements are in dom
+                    paper.checkViewport();
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `during sanity check, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `during sanity check, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element A', function(assert) {
+                    const a = paper.model.getCell('A');
+                    paper.requestCellViewVisibility(a, false);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['A', 'l1', 'l2', 'l11', 'l12', 'l23', 'l24', 'l211', 'l221', 'l231', 'l241'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element A, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after hiding element A, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('show element A', function(assert) {
+                    const a = paper.model.getCell('A');
+                    paper.requestCellViewVisibility(a, false); // hide first
+                    paper.requestCellViewVisibility(a, true);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element A, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after showing element A, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element B', function(assert) {
+                    const b = paper.model.getCell('B');
+                    paper.requestCellViewVisibility(b, false);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['B', 'l2', 'l3', 'l21', 'l22', 'l211', 'l221', 'l231', 'l241', 'l33', 'l34'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element B, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after hiding element B, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('show element B', function(assert) {
+                    const b = paper.model.getCell('B');
+                    paper.requestCellViewVisibility(b, false); // hide first
+                    paper.requestCellViewVisibility(b, true);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element B, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after showing element B, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element C', function(assert) {
+                    const c = paper.model.getCell('C');
+                    paper.requestCellViewVisibility(c, false);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['C', 'l12', 'l22', 'l32'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element C, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after hiding element C, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('show element C', function(assert) {
+                    const c = paper.model.getCell('C');
+                    paper.requestCellViewVisibility(c, false); // hide first
+                    paper.requestCellViewVisibility(c, true);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element C, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after showing element C, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element D', function(assert) {
+                    const d = paper.model.getCell('D');
+                    paper.requestCellViewVisibility(d, false);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['D', 'l13', 'l23', 'l33'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element D, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after hiding element D, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('show element D', function(assert) {
+                    const d = paper.model.getCell('D');
+                    paper.requestCellViewVisibility(d, false); // hide first
+                    paper.requestCellViewVisibility(d, true);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element D, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after showing element D, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+            });
+        });
+
+        QUnit.module('async = FALSE, viewport = FUNCTION', function(hooks) {
+            hooks.beforeEach(function() {
+                paper = new Paper({
+                    el: paperEl,
+                    model: testGraph,
+                    async: false,
+                    viewport: function(view) {
+                        return (view.model.prop('type') !== 'standard.Circle');
+                    }
+                });
+            });
+            hooks.afterEach(function() {
+                if (paper) paper.remove();
+                paper = null;
+            });
+
+            QUnit.module('requestCellViewVisibility()', function() {
+
+                QUnit.test('sanity', function(assert) {
+                    // sanity check - all elements are in dom, except for 'D' hidden by `viewport` option
+                    paper.checkViewport();
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `during sanity check, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `during sanity check, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element A', function(assert) {
+                    const a = paper.model.getCell('A');
+                    paper.requestCellViewVisibility(a, false);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['D', 'A', 'l1', 'l2', 'l11', 'l12', 'l23', 'l24', 'l211', 'l221', 'l231', 'l241'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element A, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after hiding element A, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('show element A', function(assert) {
+                    const a = paper.model.getCell('A');
+                    paper.requestCellViewVisibility(a, false); // hide first
+                    paper.requestCellViewVisibility(a, true);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element A, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after showing element A, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element B', function(assert) {
+                    const b = paper.model.getCell('B');
+                    paper.requestCellViewVisibility(b, false);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['D', 'B', 'l2', 'l3', 'l21', 'l22', 'l211', 'l221', 'l231', 'l241', 'l33', 'l34'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element B, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after hiding element B, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('show element B', function(assert) {
+                    const b = paper.model.getCell('B');
+                    paper.requestCellViewVisibility(b, false); // hide first
+                    paper.requestCellViewVisibility(b, true);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element B, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after showing element B, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element C', function(assert) {
+                    const c = paper.model.getCell('C');
+                    paper.requestCellViewVisibility(c, false);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['D', 'C', 'l12', 'l22', 'l32'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element C, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after hiding element C, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('show element C', function(assert) {
+                    const c = paper.model.getCell('C');
+                    paper.requestCellViewVisibility(c, false); // hide first
+                    paper.requestCellViewVisibility(c, true);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element C, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after showing element C, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element D', function(assert) {
+                    const d = paper.model.getCell('D');
+                    paper.requestCellViewVisibility(d, false);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['D', 'l13', 'l23', 'l33'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element D, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after hiding element D, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('show element D', function(assert) {
+                    const d = paper.model.getCell('D');
+                    paper.requestCellViewVisibility(d, false); // hide first
+                    paper.requestCellViewVisibility(d, true);
+                    paper.checkViewport();
+                    paper.updateViews();
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element D, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `after showing element D, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+            });
+        });
+
+        QUnit.module('async = TRUE, viewport = UNDEFINED', function(hooks) {
+            hooks.beforeEach(function() {
+                paper = new Paper({
+                    el: paperEl,
+                    model: testGraph,
+                    async: true
+                });
+            });
+            hooks.afterEach(function() {
+                if (paper) paper.remove();
+                paper = null;
+            });
+
+            QUnit.module('requestCellViewVisibility()', function() {
+
+                QUnit.test('sanity', function(assert) {
+                    // sanity check - all elements are in dom
+                    paper.checkViewport();
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `during sanity check, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `during sanity check, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element A', function(assert) {
+                    const a = paper.model.getCell('A');
+                    paper.requestCellViewVisibility(a, false);
+                    // async updates have not happened yet
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before hiding element A, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before hiding element A, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['A', 'l1', 'l2', 'l11', 'l12', 'l23', 'l24', 'l211', 'l221', 'l231', 'l241'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element A, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after hiding element A, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('show element A', function(assert) {
+                    const a = paper.model.getCell('A');
+                    paper.requestCellViewVisibility(a, false); // hide first
+                    paper.requestCellViewVisibility(a, true);
+                    // async updates have not happened yet
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before showing element A, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before showing element A, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = [];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element A, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after showing element A, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('hide element B', function(assert) {
+                    const b = paper.model.getCell('B');
+                    paper.requestCellViewVisibility(b, false);
+                    // async updates have not happened yet
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before hiding element B, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before hiding element B, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['B', 'l2', 'l3', 'l21', 'l22', 'l211', 'l221', 'l231', 'l241', 'l33', 'l34'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element B, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after hiding element B, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('show element B', function(assert) {
+                    const b = paper.model.getCell('B');
+                    paper.requestCellViewVisibility(b, false); // hide first
+                    paper.requestCellViewVisibility(b, true);
+                    // async updates have not happened yet
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before showing element B, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before showing element B, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = [];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element B, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after showing element B, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('hide element C', function(assert) {
+                    const c = paper.model.getCell('C');
+                    paper.requestCellViewVisibility(c, false);
+                    // async updates have not happened yet
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before hiding element C, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before hiding element C, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['C', 'l12', 'l22', 'l32'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element C, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after hiding element C, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('show element C', function(assert) {
+                    const c = paper.model.getCell('C');
+                    paper.requestCellViewVisibility(c, false); // hide first
+                    paper.requestCellViewVisibility(c, true);
+                    // async updates have not happened yet
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before showing element C, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before showing element C, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = [];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element C, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after showing element C, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('hide element D', function(assert) {
+                    const d = paper.model.getCell('D');
+                    paper.requestCellViewVisibility(d, false);
+                    // async updates have not happened yet
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before hiding element D, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before hiding element D, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['D', 'l13', 'l23', 'l33'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element D, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after hiding element D, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('show element D', function(assert) {
+                    const d = paper.model.getCell('D');
+                    paper.requestCellViewVisibility(d, false); // hide first
+                    paper.requestCellViewVisibility(d, true);
+                    // async updates have not happened yet
+                    hiddenIds = [];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before showing element D, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before showing element D, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = [];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element D, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after showing element D, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+            });
+        });
+
+        QUnit.module('async = TRUE, viewport = FUNCTION', function(hooks) {
+            hooks.beforeEach(function() {
+                paper = new Paper({
+                    el: paperEl,
+                    model: testGraph,
+                    async: true,
+                    viewport: function(view) {
+                        return (view.model.prop('type') !== 'standard.Circle');
+                    }
+                });
+            });
+            hooks.afterEach(function() {
+                if (paper) paper.remove();
+                paper = null;
+            });
+
+            QUnit.module('requestCellViewVisibility()', function() {
+
+                QUnit.test('sanity', function(assert) {
+                    // sanity check - all elements are in dom, except for 'D' hidden by `viewport` option
+                    paper.checkViewport();
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `during sanity check, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `during sanity check, expected ${cell.id} to be visible - was hidden`);
+                    });
+                });
+
+                QUnit.test('hide element A', function(assert) {
+                    const a = paper.model.getCell('A');
+                    paper.requestCellViewVisibility(a, false);
+                    // async updates have not happened yet
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before hiding element A, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before hiding element A, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['D', 'A', 'l1', 'l2', 'l11', 'l12', 'l23', 'l24', 'l211', 'l221', 'l231', 'l241'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element A, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after hiding element A, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('show element A', function(assert) {
+                    const a = paper.model.getCell('A');
+                    paper.requestCellViewVisibility(a, false); // hide first
+                    paper.requestCellViewVisibility(a, true);
+                    // async updates have not happened yet
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before showing element A, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before showing element A, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['D'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element A, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after showing element A, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('hide element B', function(assert) {
+                    const b = paper.model.getCell('B');
+                    paper.requestCellViewVisibility(b, false);
+                    // async updates have not happened yet
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before hiding element B, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before hiding element B, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['D', 'B', 'l2', 'l3', 'l21', 'l22', 'l211', 'l221', 'l231', 'l241', 'l33', 'l34'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element B, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after hiding element B, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('show element B', function(assert) {
+                    const b = paper.model.getCell('B');
+                    paper.requestCellViewVisibility(b, false); // hide first
+                    paper.requestCellViewVisibility(b, true);
+                    // async updates have not happened yet
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before showing element B, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before showing element B, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['D'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element B, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after showing element B, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('hide element C', function(assert) {
+                    const c = paper.model.getCell('C');
+                    paper.requestCellViewVisibility(c, false);
+                    // async updates have not happened yet
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before hiding element C, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before hiding element C, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['D', 'C', 'l12', 'l22', 'l32'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element C, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after hiding element C, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('show element C', function(assert) {
+                    const c = paper.model.getCell('C');
+                    paper.requestCellViewVisibility(c, false); // hide first
+                    paper.requestCellViewVisibility(c, true);
+                    // async updates have not happened yet
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before showing element C, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before showing element C, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['D'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element C, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after showing element C, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('hide element D', function(assert) {
+                    const d = paper.model.getCell('D');
+                    paper.requestCellViewVisibility(d, false);
+                    // async updates have not happened yet
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before hiding element D, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before hiding element D, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['D', 'l13', 'l23', 'l33'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after hiding element D, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after hiding element D, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+
+                QUnit.test('show element D', function(assert) {
+                    const d = paper.model.getCell('D');
+                    paper.requestCellViewVisibility(d, false); // hide first
+                    paper.requestCellViewVisibility(d, true);
+                    // async updates have not happened yet
+                    hiddenIds = ['D'];
+                    cells = paper.model.getCells();
+                    cells.forEach((cell) => {
+                        if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `before showing element D, expected ${cell.id} to be hidden - was visible`);
+                        else assert.ok(isInDOM(cell), `before showing element D, expected ${cell.id} to be visible - was hidden`);
+                    });
+                    // async updates will happen on next animation frame
+                    const done = assert.async();
+                    requestAnimationFrame(function() {
+                        hiddenIds = ['D'];
+                        cells = paper.model.getCells();
+                        cells.forEach((cell) => {
+                            if (hiddenIds.indexOf(cell.id) !== -1) assert.notOk(isInDOM(cell), `after showing element D, expected ${cell.id} to be hidden - was visible`);
+                            else assert.ok(isInDOM(cell), `after showing element D, expected ${cell.id} to be visible - was hidden`);
+                        });
+                        done();
+                    });
+                });
+            });
+        });
+    });
+
     QUnit.module('async = FALSE', function(hooks) {
 
         hooks.beforeEach(function() {
@@ -2358,4 +3333,3 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
     });
 });
-
