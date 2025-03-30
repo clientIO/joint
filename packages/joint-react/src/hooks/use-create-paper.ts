@@ -1,7 +1,7 @@
 import { useCallback, use, useEffect, useRef, useState } from 'react';
 import { PaperContext } from '../context/paper-context';
 import type { PaperOptions } from '../utils/create-paper';
-import { createPaper, PAPER_PORTAL_RENDER_EVENT } from '../utils/create-paper';
+import { createPaper } from '../utils/create-paper';
 import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { useGraph } from './use-graph';
@@ -40,14 +40,10 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
  * @returns An object containing the paper instance and a reference to the paper HTML element.
  */
 export function useCreatePaper(options?: UseCreatePaperOptions) {
-  const {
-    onRenderElement,
-    overwriteDefaultPaperElement,
-    isTransformToFitContentEnabled,
-    ...restOptions
-  } = options ?? {};
+  const { overwriteDefaultPaperElement, isTransformToFitContentEnabled, ...restOptions } =
+    options ?? {};
   const graph = useGraph();
-  const hasRenderElement = !!onRenderElement;
+
   const paperHtmlElement = useRef<HTMLDivElement | null>(null);
   const graphStore = useGraphStore();
   if (!graphStore) {
@@ -79,25 +75,8 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
 
   const listener = useCallback(() => {
     // An object to keep track of the listeners. It's not exposed, so the users
-    // can't undesirably remove the listeners.
     const controller = new mvc.Listener();
-
-    // Update the elements state when the graph data changes
-
     controller.listenTo(paper, 'resize', resizePaperContainer);
-
-    // We need to setup the react state for the element only when renderElement is provided
-    if (hasRenderElement) {
-      // Update the portal node reference when the element view is rendered
-      controller.listenTo(
-        paper,
-        PAPER_PORTAL_RENDER_EVENT,
-        ({ model: cell }: dia.ElementView, nodeSvgGElement: SVGGElement) => {
-          onRenderElement(cell, nodeSvgGElement);
-        }
-      );
-    }
-
     controller.listenTo(paper, 'all', (type: PaperEventType, ...args: unknown[]) =>
       handleEvent(type, restOptions, ...args)
     );
@@ -105,7 +84,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     return () => controller.stopListening();
     // TODO: We need to somehow exclusively add restOptions events manually to dependencies, otherwise it will be not memoized.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasRenderElement, onRenderElement, paper, resizePaperContainer]);
+  }, [paper, resizePaperContainer]);
 
   useEffect(() => {
     if (overwriteDefaultPaperElement) {

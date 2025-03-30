@@ -2,10 +2,10 @@ import { dia } from '@joint/core';
 
 // Event name for when the portal is ready
 export type PortalEvent = 'portal:ready';
-export const PAPER_PORTAL_RENDER_EVENT: PortalEvent = 'portal:ready';
 // Interface for Paper options, extending JointJS Paper options
 export interface PaperOptions extends dia.Paper.Options {
   readonly scale?: number;
+  readonly onRenderElement?: (element: dia.Element, portalElement: SVGGElement) => void;
 }
 
 /**
@@ -23,11 +23,14 @@ export interface PaperOptions extends dia.Paper.Options {
  * ```
  */
 export function createPaper(graph: dia.Graph, options?: PaperOptions) {
-  const { scale, ...restOptions } = options ?? {};
+  const { scale, onRenderElement, ...restOptions } = options ?? {};
 
   const elementView = dia.ElementView.extend({
     onRender() {
-      this.notify(PAPER_PORTAL_RENDER_EVENT, this.el);
+      if (onRenderElement) {
+        const elementView: dia.ElementView = this;
+        onRenderElement(elementView.model, elementView.el as SVGGElement);
+      }
     },
   });
 
