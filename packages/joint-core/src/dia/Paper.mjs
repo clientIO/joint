@@ -1341,7 +1341,6 @@ export const Paper = View.extend({
     checkMountedViews: function(viewportFn, opt) {
         opt || (opt = {});
         var unmountCount = 0;
-        if ((typeof viewportFn !== 'function') && !this._hiddenViews.size) return unmountCount;
         var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : Infinity;
         var updates = this._updates;
         var mountedCids = updates.mountedCids;
