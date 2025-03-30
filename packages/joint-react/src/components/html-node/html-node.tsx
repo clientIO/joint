@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import { forwardRef, useMemo } from 'react';
-import { useElement } from 'src/hooks/use-element';
+import { useElement } from '@joint/react/src/hooks/use-element';
 import { MeasuredNode } from '../measured-node/measured-node';
 
 const FO_STYLE: CSSProperties = {

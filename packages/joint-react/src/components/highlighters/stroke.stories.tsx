@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { Stroke } from './stroke';
 import { PRIMARY, SECONDARY } from '.storybook/theme';
-import { makeRootDocs } from 'src/stories/utils/make-story';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('Highlighter/variables/Stroke', 'namespaces');
 

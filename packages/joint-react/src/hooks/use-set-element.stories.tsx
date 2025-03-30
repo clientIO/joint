@@ -5,8 +5,8 @@ import type { SimpleElement } from '../../.storybook/decorators/with-simple-data
 import { RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useSetElement } from './use-set-element';
 import { HTMLNode } from '../components/html-node/html-node';
-import { makeRootDocs, makeStory } from 'src/stories/utils/make-story';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../stories/examples/index.css';
 
 const API_URL = getAPILink('useSetElement');

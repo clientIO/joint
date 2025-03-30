@@ -1,6 +1,7 @@
+import { isValidElement } from 'react';
 import { type dia } from '@joint/core';
 import type { JSX } from 'react';
-import { isValidElement } from 'react';
+
 import {
   isBoolean,
   isNull,

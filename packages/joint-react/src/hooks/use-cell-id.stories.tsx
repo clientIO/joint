@@ -3,8 +3,8 @@ import { useCellId } from './use-cell-id'; // Adjust path accordingly
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
 import { HTMLNode } from '../components/html-node/html-node';
-import { makeRootDocs } from 'src/stories/utils/make-story';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../stories/examples/index.css';
 
 function Hook(_: SimpleElement) {

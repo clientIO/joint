@@ -2,8 +2,8 @@ import { useElement } from './use-element';
 import { SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
 import type { Meta } from '@storybook/react/*';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
-import { makeRootDocs, makeStory } from 'src/stories/utils/make-story';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('useElement');
 

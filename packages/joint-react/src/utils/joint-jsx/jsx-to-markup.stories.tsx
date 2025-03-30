@@ -16,8 +16,8 @@ import { useCallback } from 'react';
 import { PRIMARY } from '.storybook/theme';
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleGraphDecorator } from '.storybook/decorators/with-simple-data';
-import { makeRootDocs } from 'src/stories/utils/make-story';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('jsx');
 

@@ -66,7 +66,7 @@ import ShadowLinkRawCode from './code-shadow-link?raw';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-expect-error
 import TextBlockRawCode from './code-text-block?raw';
-import { makeStory } from 'src/stories/utils/make-story';
+import { makeStory } from '@joint/react/src/stories/utils/make-story';
 
 export type Story = StoryObj<typeof Rectangle>;
 

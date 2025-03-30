@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react/*';
 import '../index.css';
 import CodeWithCreateLinks from './code-with-create-links';
 import CodeWithDiaLinks from './code-with-dia-links';
-import { makeRootDocs, makeStory } from 'src/stories/utils/make-story';
+import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 
 // @ts-expect-error
 import CodeWithCreateLinksCode from './code-with-create-links?raw';

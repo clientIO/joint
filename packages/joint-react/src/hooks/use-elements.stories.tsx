@@ -6,8 +6,8 @@ import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
 import { Paper } from '../components/paper/paper';
 import { PRIMARY } from '.storybook/theme';
-import { makeRootDocs, makeStory } from 'src/stories/utils/make-story';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('useElements');
 

@@ -5,8 +5,8 @@ import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-s
 import { HTMLNode } from './html-node';
 import { PRIMARY } from '.storybook/theme';
 import type { CSSProperties } from 'react';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
-import { makeRootDocs, makeStory } from 'src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 
 const API_URL = getAPILink('HTMLNode', 'variables');
 

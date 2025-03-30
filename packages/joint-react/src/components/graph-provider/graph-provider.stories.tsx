@@ -6,15 +6,14 @@
 
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { GraphProvider } from './graph-provider';
-import { createElements, createLinks, type InferElement } from 'src/utils/create';
+import { createElements, createLinks, type InferElement, ReactElement } from '@joint/react';
 import { Paper, type RenderElement } from '../paper/paper';
 import { dia } from '@joint/core';
-import { ReactElement } from 'src/models/react-element';
 import { HTMLNode } from '../html-node/html-node';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 import { PRIMARY } from '.storybook/theme';
-import { makeRootDocs, makeStory } from 'src/stories/utils/make-story';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('GraphProvider');
 

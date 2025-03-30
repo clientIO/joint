@@ -1,4 +1,4 @@
-import type { GraphElementBase, StandardShapesType } from 'src/types/element-types';
+import type { GraphElementBase, StandardShapesType } from '@joint/react/src/types/element-types';
 import type { GraphLink, GraphLinkBase, StandardLinkShapesType } from '../types/link-types';
 
 /**

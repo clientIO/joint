@@ -8,11 +8,11 @@ import {
   GraphProvider,
   MeasuredNode,
   Paper,
+  jsx,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
-import { jsx } from 'src/utils/joint-jsx/jsx-to-markup';
 import { PRIMARY } from '.storybook/theme';
 
 const initialEdges = createLinks([

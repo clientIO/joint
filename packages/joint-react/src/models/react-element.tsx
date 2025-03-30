@@ -1,5 +1,5 @@
 import { dia } from '@joint/core';
-import { jsx } from 'src/utils/joint-jsx/jsx-to-markup';
+import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
 export const REACT_TYPE = 'ReactElement';
 
 const elementMarkup = jsx(<rect joint-selector="rect" />);

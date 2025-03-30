@@ -9,10 +9,10 @@ import {
 import { HTMLNode } from '../html-node/html-node';
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
-import { jsx } from 'src/utils/joint-jsx/jsx-to-markup';
+import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
 import { PRIMARY } from '.storybook/theme';
-import { makeRootDocs } from 'src/stories/utils/make-story';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 export type Story = StoryObj<typeof Paper>;
 

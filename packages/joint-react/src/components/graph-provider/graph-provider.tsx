@@ -2,7 +2,7 @@ import type { dia } from '@joint/core';
 import type { GraphLink } from '../../types/link-types';
 import { useCreateGraphStore } from '../../hooks/use-create-graph-store';
 import { GraphStoreContext } from '../../context/graph-store-context';
-import type { GraphElementBase } from 'src/types/element-types';
+import type { GraphElementBase } from '@joint/react/src/types/element-types';
 
 export interface GraphProps {
   /**

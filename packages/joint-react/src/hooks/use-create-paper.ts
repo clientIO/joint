@@ -5,8 +5,8 @@ import { createPaper, PAPER_PORTAL_RENDER_EVENT } from '../utils/create-paper';
 import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { useGraph } from './use-graph';
-import type { PaperEvents, PaperEventType } from 'src/types/event.types';
-import { handleEvent } from 'src/utils/handle-paper-events';
+import type { PaperEvents, PaperEventType } from '@joint/react/src/types/event.types';
+import { handleEvent } from '@joint/react/src/utils/handle-paper-events';
 
 interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
   /**

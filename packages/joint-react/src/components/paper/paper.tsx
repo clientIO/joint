@@ -10,7 +10,7 @@ import { PaperContext } from '../../context/paper-context';
 import { GraphStoreContext } from '../../context/graph-store-context';
 import { GraphProvider } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
-import type { PaperEvents } from 'src/types/event.types';
+import type { PaperEvents } from '@joint/react/src/types/event.types';
 
 export type RenderElement<ElementItem extends GraphElementBase = GraphElementBase> = (
   element: ElementItem

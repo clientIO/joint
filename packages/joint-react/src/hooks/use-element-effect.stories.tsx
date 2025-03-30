@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { useElementEffect } from './use-element-effect';
 import { HTMLNode } from '../components/html-node/html-node';
 import { PRIMARY } from '.storybook/theme';
-import { makeRootDocs } from 'src/stories/utils/make-story';
-import { getAPILink } from 'src/stories/utils/get-api-documentation-link';
+import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 function Hook({ id, width, height }: SimpleElement) {
   const [isPressed, setIsPressed] = useState(false);
