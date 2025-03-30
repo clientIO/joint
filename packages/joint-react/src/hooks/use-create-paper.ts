@@ -9,8 +9,23 @@ import type { PaperEvents, PaperEventType } from 'src/types/event.types';
 import { handleEvent } from 'src/utils/handle-paper-events';
 
 interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
+  /**
+   * A function that is called when the paper is ready.
+   * @param element - The element that is being rendered
+   * @param portalElement  - The portal element that is being rendered
+   * @returns
+   */
   readonly onRenderElement?: (element: dia.Element, portalElement: SVGGElement) => void;
   readonly isTransformToFitContentEnabled?: boolean;
+  /**
+   * On load custom element.
+   * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
+   * So it overwrite default paper rendering.
+   * It is used internally for example to render `PaperScroller` from [joint plus](https://www.jointjs.com/jointjs-plus) package.
+   * @param paper - The paper instance
+   * @returns
+   */
+  readonly overwriteDefaultPaperElement?: (paper: dia.Paper) => HTMLElement | SVGElement;
 }
 
 /**
@@ -25,7 +40,12 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
  * @returns An object containing the paper instance and a reference to the paper HTML element.
  */
 export function useCreatePaper(options?: UseCreatePaperOptions) {
-  const { onRenderElement, isTransformToFitContentEnabled, ...restOptions } = options ?? {};
+  const {
+    onRenderElement,
+    overwriteDefaultPaperElement,
+    isTransformToFitContentEnabled,
+    ...restOptions
+  } = options ?? {};
   const graph = useGraph();
   const hasRenderElement = !!onRenderElement;
   const paperHtmlElement = useRef<HTMLDivElement | null>(null);
@@ -88,7 +108,12 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
   }, [hasRenderElement, onRenderElement, paper, resizePaperContainer]);
 
   useEffect(() => {
-    paperHtmlElement.current?.append(paper.el);
+    if (overwriteDefaultPaperElement) {
+      paperHtmlElement.current?.append(overwriteDefaultPaperElement(paper));
+    } else {
+      paperHtmlElement.current?.append(paper.el);
+    }
+
     resizePaperContainer();
     paper.unfreeze();
 

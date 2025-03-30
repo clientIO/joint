@@ -91,6 +91,16 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * Function that is called when the paper is resized.
    */
   readonly isTransformToFitContentEnabled?: boolean;
+
+  /**
+   * On load custom element.
+   * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
+   * So it overwrite default paper rendering.
+   * It is used internally for example to render `PaperScroller` from [joint plus](https://www.jointjs.com/jointjs-plus) package.
+   * @param paper - The paper instance
+   * @returns
+   */
+  readonly overwriteDefaultPaperElement?: (paper: dia.Paper) => HTMLElement | SVGElement;
 }
 
 /**

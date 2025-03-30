@@ -17,7 +17,7 @@ interface MakeStoryOptions<T extends StoryObj> {
 }
 
 // @ts-expect-error
-export function makeStory<T extends any>(options: MakeStoryOptions<T>): T {
+export function makeStory<T>(options: MakeStoryOptions<T>): T {
   const { component, code, name, apiURL, description = '', args, decorators } = options;
   return {
     args,

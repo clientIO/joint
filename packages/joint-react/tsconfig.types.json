@@ -1,13 +1,22 @@
-// tsconfig.types.json
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist/types",
-    "declaration": true,
-    "emitDeclarationOnly": false, // Generate only declaration files
-    "skipLibCheck": true
+    "outDir": "dist/types",        // Output directory for compiled files
+    "declaration": true,           // Generate declaration files
+    "emitDeclarationOnly": true,   // Only emit .d.ts files
+    "skipLibCheck": true,
+    "rootDir": "./src",
   },
-  "include": ["src/"],
-  // exclude tests
-  "exclude": ["**/*.test.ts", "**/*.test.tsx"]
+  "include": [
+    "src/**/*.ts",                 // Include all .ts files in src
+    "src/**/*.tsx"                 // Include all .tsx files in src
+  ],
+  "exclude": [
+    "node_modules",            
+    "**/*.test.ts", 
+    "**/*.test.tsx", 
+    "**/*.stories.ts",
+    "**/*.stories.tsx",
+    "**/stories/**"               
+  ]
 }

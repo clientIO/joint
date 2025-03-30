@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
 import { JSX, PropsWithChildren } from 'react';
-import { createElements, createLinks, GraphProvider, InferElement, Paper } from '../../src';
+import { createElements, createLinks, GraphProvider, InferElement, Paper } from '@joint/react';
 import { PRIMARY } from '.storybook/theme';
 
 const initialElements = createElements([
