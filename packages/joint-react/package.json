@@ -87,14 +87,14 @@
     "vitest": "^3.0.4"
   },
   "dependencies": {
-    "@joint/core": "4.1.3",
+    "@joint/core": "*",
     "@types/use-sync-external-store": "^0.0.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "use-sync-external-store": "^1.4.0"
   },
   "peerDependencies": {
-    "@joint/core": "4.1.3",
+    "@joint/core": "*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   }

@@ -138,8 +138,6 @@ export const WithExternalGraphAndLayout = makeStory<Story>({
       <>
         <button
           onClick={() => {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             DirectedGraph.layout(graph, {
               setLinkVertices: true,
               marginX: 5,
