@@ -9,13 +9,6 @@ import type { PaperEvents, PaperEventType } from '@joint/react/src/types/event.t
 import { handleEvent } from '@joint/react/src/utils/handle-paper-events';
 
 interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
-  /**
-   * A function that is called when the paper is ready.
-   * @param element - The element that is being rendered
-   * @param portalElement  - The portal element that is being rendered
-   * @returns
-   */
-  readonly onRenderElement?: (element: dia.Element, portalElement: SVGGElement) => void;
   readonly isTransformToFitContentEnabled?: boolean;
   /**
    * On load custom element.

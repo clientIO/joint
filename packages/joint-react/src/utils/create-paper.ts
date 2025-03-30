@@ -2,10 +2,18 @@ import { dia } from '@joint/core';
 
 // Event name for when the portal is ready
 export type PortalEvent = 'portal:ready';
+
+export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGGElement) => void;
 // Interface for Paper options, extending JointJS Paper options
 export interface PaperOptions extends dia.Paper.Options {
   readonly scale?: number;
-  readonly onRenderElement?: (element: dia.Element, portalElement: SVGGElement) => void;
+  /**
+   * A function that is called when the paper is ready.
+   * @param element - The element that is being rendered
+   * @param portalElement  - The portal element that is being rendered
+   * @returns
+   */
+  readonly onRenderElement?: OnPaperRenderElement;
 }
 
 /**

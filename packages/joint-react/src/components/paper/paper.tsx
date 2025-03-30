@@ -11,6 +11,8 @@ import { GraphStoreContext } from '../../context/graph-store-context';
 import { GraphProvider } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
 import type { PaperEvents } from '@joint/react/src/types/event.types';
+import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
+import { REACT_TYPE } from '@joint/react';
 
 export type RenderElement<ElementItem extends GraphElementBase = GraphElementBase> = (
   element: ElementItem
@@ -120,20 +122,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     ...paperOptions
   } = props;
 
-  const [svgGElements, setSvgGElements] = useState<Record<dia.Cell.ID, SVGGElement>>({});
-
-  const onRenderElement = useCallback(
-    (element: dia.Element, nodeSvgGElement: SVGGElement) => {
-      onReady?.();
-      setSvgGElements((previousState) => {
-        return {
-          ...previousState,
-          [element.id]: nodeSvgGElement,
-        };
-      });
-    },
-    [onReady]
-  );
+  const { onRenderElement, svgGElements } = usePaperElementRenderer(onReady);
 
   const { paperHtmlElement, isPaperFromContext, paper } = useCreatePaper({
     ...paperOptions,
@@ -149,8 +138,14 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     <div className={className} ref={paperHtmlElement} style={style}>
       {hasRenderElement &&
         elements.map((cell) => {
+          if (!cell.id) {
+            return null;
+          }
           const portalHtmlElement = svgGElements[cell.id];
           if (!portalHtmlElement) {
+            return null;
+          }
+          if (cell.type !== REACT_TYPE) {
             return null;
           }
           return (
@@ -170,8 +165,10 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     return content;
   }
 
+  const paperContext: PaperContext = paper as PaperContext;
+  paperContext.renderElement = renderElement as RenderElement<GraphElementBase>;
   return (
-    <PaperContext.Provider value={paper}>
+    <PaperContext.Provider value={paperContext}>
       {content}
       {children}
     </PaperContext.Provider>

@@ -1,6 +1,5 @@
 import { use } from 'react';
 import { PaperContext } from '../context/paper-context';
-import type { dia } from '@joint/core';
 
 /**
  * Return jointjs paper instance from the paper context.
@@ -11,7 +10,7 @@ import type { dia } from '@joint/core';
  * const paper = usePaper();
  * ```
  */
-export function usePaper(): dia.Paper {
+export function usePaper(): PaperContext {
   const paper = use(PaperContext);
   if (!paper) {
     throw new Error('usePaper must be used within a `PaperProvider` or `Paper` component');
