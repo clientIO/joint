@@ -15,3 +15,5 @@ export * from './models/react-element';
 export * from './types/element-types';
 export * from './types/link-types';
 export * from './types/cell.types';
+
+export * from './context';
