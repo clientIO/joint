@@ -3287,6 +3287,7 @@ __metadata:
     "@vitejs/plugin-react": ^4.3.4
     d3-drag: ^3.0.0
     d3-selection: ^3.0.0
+    esbuild-plugin-alias: ^0.2.1
     eslint: 9.19.0
     eslint-plugin-depend: 0.12.0
     eslint-plugin-jest: ^28.8.3
@@ -10228,6 +10229,13 @@ __metadata:
   dependencies:
     es6-promise: ^4.0.3
   checksum: fbed9d791598831413be84a5374eca8c24800ec71a16c1c528c43a98e2dadfb99331483d83ae6094ddb9b87e6f799a15d1553cebf756047e0865c753bc346b92
+  languageName: node
+  linkType: hard
+
+"esbuild-plugin-alias@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "esbuild-plugin-alias@npm:0.2.1"
+  checksum: afe2d2c8b5f09d5321cb8d9c0825e8a9f6e03c2d50df92f953a291d4620cc29eddb3da9e33b238f6d8f77738e0277bdcb831f127399449fecf78fb84c04e5da9
   languageName: node
   linkType: hard
 

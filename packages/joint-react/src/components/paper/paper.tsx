@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { useCallback, use, useState, type CSSProperties, type ReactNode } from 'react';
+import { use, type CSSProperties, type ReactNode } from 'react';
 import type { GraphElement, GraphElementBase } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
@@ -10,9 +10,9 @@ import { PaperContext } from '../../context/paper-context';
 import { GraphStoreContext } from '../../context/graph-store-context';
 import { GraphProvider } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
-import type { PaperEvents } from '@joint/react/src/types/event.types';
+import type { PaperEvents } from '../../types/event.types';
 import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
-import { REACT_TYPE } from '@joint/react';
+import { REACT_TYPE } from '../../models/react-element';
 
 export type RenderElement<ElementItem extends GraphElementBase = GraphElementBase> = (
   element: ElementItem
