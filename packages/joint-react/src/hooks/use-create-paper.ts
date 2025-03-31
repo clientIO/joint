@@ -1,12 +1,12 @@
-import { useCallback, use, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useContext } from 'react';
 import { PaperContext } from '../context/paper-context';
 import type { PaperOptions } from '../utils/create-paper';
 import { createPaper } from '../utils/create-paper';
 import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import { useGraph } from './use-graph';
-import type { PaperEvents, PaperEventType } from '@joint/react/src/types/event.types';
-import { handleEvent } from '@joint/react/src/utils/handle-paper-events';
+import type { PaperEvents, PaperEventType } from '../types/event.types';
+import { handleEvent } from '../utils/handle-paper-events';
 
 interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
   readonly isTransformToFitContentEnabled?: boolean;
@@ -43,7 +43,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     throw new Error('usePaper must be used within a GraphProvider');
   }
   // Try to get the paper from the context, it can be undefined if there is no PaperContext.
-  const paperCtx = use(PaperContext);
+  const paperCtx = useContext(PaperContext);
   // If paper is not inside the PaperContext, create a new paper instance.
   const [paperState] = useState<dia.Paper | null>(() => {
     if (paperCtx) {
@@ -95,7 +95,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
       paper.freeze();
       unsubscribe();
     };
-  }, [listener, paper, resizePaperContainer]);
+  }, [listener, overwriteDefaultPaperElement, paper, resizePaperContainer]);
 
   useEffect(() => {
     if (options?.scale !== undefined) {

@@ -21,7 +21,7 @@
     "sourceMap": false,
     "baseUrl": "./",
     "paths": {
-      "@joint/react": ["./src/index.ts"]
+      "@joint/react": ["./src/index.ts"],
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".storybook/**/*"]

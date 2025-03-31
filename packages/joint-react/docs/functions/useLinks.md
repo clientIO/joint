@@ -8,7 +8,7 @@
 
 > **useLinks**\<`Link`, `SelectorReturnType`\>(`selector`, `isEqual`): `SelectorReturnType`
 
-Defined in: [src/hooks/use-links.ts:42](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-links.ts#L42)
+Defined in: [joint-react/src/hooks/use-links.ts:42](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-links.ts#L42)
 
 A hook to access the graph store's links.
 

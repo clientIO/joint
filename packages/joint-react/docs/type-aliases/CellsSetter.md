@@ -8,7 +8,7 @@
 
 > **CellsSetter** = (`oldCells`) => [`Item`](Item.md)[]
 
-Defined in: [src/hooks/use-set-cells.ts:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-cells.ts#L7)
+Defined in: [joint-react/src/hooks/use-set-cells.ts:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-cells.ts#L7)
 
 ## Parameters
 

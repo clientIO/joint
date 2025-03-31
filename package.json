@@ -35,5 +35,8 @@
     "npm": "9.8.1",
     "yarn": "3.4.1"
   },
-  "packageManager": "yarn@3.4.1"
+  "packageManager": "yarn@3.4.1",
+  "devDependencies": {
+    "eslint": "^9.23.0"
+  }
 }

@@ -1,8 +1,4 @@
-import {
-  typeToReactType,
-  type PaperEvents,
-  type PaperEventType,
-} from '@joint/react/src/types/event.types';
+import { typeToReactType, type PaperEvents, type PaperEventType } from '../types/event.types';
 
 export function handleEvent(type: PaperEventType, events: PaperEvents, ...args: unknown[]) {
   const reactType = typeToReactType(type);

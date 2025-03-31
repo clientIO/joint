@@ -2,7 +2,7 @@
 /* eslint-disable @eslint-react/dom/no-missing-button-type */
 /* eslint-disable @eslint-react/no-unstable-default-props */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+ 
 
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { GraphProvider } from './graph-provider';

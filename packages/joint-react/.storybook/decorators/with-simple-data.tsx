@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import { JSX, PropsWithChildren } from 'react';
-import { createElements, createLinks, GraphProvider, InferElement, Paper } from '@joint/react';
+import type { JSX, PropsWithChildren } from 'react';
+import type { InferElement } from '@joint/react';
+import { createElements, createLinks, GraphProvider, Paper } from '@joint/react';
 import { PRIMARY } from '.storybook/theme';
 
 const initialElements = createElements([
@@ -38,7 +39,7 @@ const defaultLinks = createLinks([
   },
 ]);
 
-function SimpleGraphProviderDecorator({ children }: PropsWithChildren) {
+function SimpleGraphProviderDecorator({ children }: Readonly<PropsWithChildren>) {
   return (
     <GraphProvider defaultElements={initialElements} defaultLinks={defaultLinks}>
       {children}
@@ -54,9 +55,11 @@ export function SimpleGraphDecorator(Story: any) {
   );
 }
 
-export function RenderItemDecorator(properties: {
-  renderElement: (element: SimpleElement) => JSX.Element;
-}) {
+export function RenderItemDecorator(
+  properties: Readonly<{
+    renderElement: (element: SimpleElement) => JSX.Element;
+  }>
+) {
   return (
     <div style={{ width: '100%', height: 350 }}>
       <SimpleGraphProviderDecorator>
@@ -75,7 +78,7 @@ function RenderSimpleRectElement(properties: SimpleElement) {
   return <rect width={width} height={height} fill={color} />;
 }
 
-export function RenderPaperWithChildren(properties: { children: JSX.Element }) {
+export function RenderPaperWithChildren(properties: Readonly<{ children: JSX.Element }>) {
   return (
     <div style={{ width: '100%', height: 350 }}>
       <SimpleGraphProviderDecorator>

@@ -36,6 +36,7 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
   const elementView = dia.ElementView.extend({
     onRender() {
       if (onRenderElement) {
+        // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
         const elementView: dia.ElementView = this;
         onRenderElement(elementView.model, elementView.el as SVGGElement);
       }

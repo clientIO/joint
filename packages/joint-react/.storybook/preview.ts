@@ -7,7 +7,7 @@ export const decorators = [withPerformance];
 const preview: Preview = {
   parameters: {
     docs: {
-      theme: theme,
+      theme,
     },
     backgrounds: {
       values: [{ name: 'Dark', value: theme.appBg }],

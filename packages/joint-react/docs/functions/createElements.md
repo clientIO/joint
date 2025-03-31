@@ -8,7 +8,7 @@
 
 > **createElements**\<`Element`, `Type`\>(`data`): `Element` & `object`[]
 
-Defined in: [src/utils/create.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L27)
+Defined in: [joint-react/src/utils/create.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L27)
 
 Create elements helper function.
 

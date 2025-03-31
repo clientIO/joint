@@ -6,7 +6,7 @@
 
 # Class: GraphElements\<Element\>
 
-Defined in: [src/types/element-types.ts:105](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L105)
+Defined in: [joint-react/src/types/element-types.ts:105](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L105)
 
 Collection of graph elements.
 It's main data structure for elements (nodes) in the graph.
@@ -39,7 +39,7 @@ elements.set('element-2', { id: 'element-2', x: 200, y: 200 });
 
 > **new GraphElements**\<`Element`\>(`items`?): `GraphElements`\<`Element`\>
 
-Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
 
 #### Parameters
 
@@ -61,7 +61,7 @@ Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/b
 
 > **filter**(`predicate`): `Element`[]
 
-Defined in: [src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L31)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L31)
 
 #### Parameters
 
@@ -83,7 +83,7 @@ Defined in: [src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/b
 
 > **map**\<`Item`\>(`selector`): `Item`[]
 
-Defined in: [src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L27)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L27)
 
 #### Type Parameters
 
@@ -111,7 +111,7 @@ Defined in: [src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/b
 
 > **toJSON**(): `string`
 
-Defined in: [src/utils/cell/cell-map.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L35)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L35)
 
 #### Returns
 

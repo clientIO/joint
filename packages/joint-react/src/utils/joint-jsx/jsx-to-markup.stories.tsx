@@ -1,4 +1,4 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
+ 
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia } from '@joint/core';
 import '../../stories/examples/index.css';
@@ -37,7 +37,7 @@ const customLink = dia.Link.define(
         strokeLinejoin="round"
         joint-selector="line"
         fill="none"
-        pointer-events="none"
+        pointerEvents="none"
         d="M 10 -5 0 0 10 5 z"
       />
     ),

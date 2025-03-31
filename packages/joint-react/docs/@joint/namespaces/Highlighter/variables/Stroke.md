@@ -8,4 +8,4 @@
 
 > `const` **Stroke**: `FC`\<[`StrokeHighlighterProps`](../../../../interfaces/StrokeHighlighterProps.md)\> = `Component.Stroke`
 
-Defined in: [src/components/highlighters/index.tsx:51](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/index.tsx#L51)
+Defined in: [joint-react/src/components/highlighters/index.tsx:51](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/index.tsx#L51)

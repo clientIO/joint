@@ -15,11 +15,12 @@
 
 ## Hooks
 
+- [useCellId](functions/useCellId.md)
+- [useCreateGraphStore](functions/useCreateGraphStore.md)
 - [useElementEffect](functions/useElementEffect.md)
 - [useElements](functions/useElements.md)
 - [useGraph](functions/useGraph.md)
 - [useMeasureNodeSize](functions/useMeasureNodeSize.md)
-- [usePaper](functions/usePaper.md)
 - [~~useSetCells~~](functions/useSetCells.md)
 - [useSetElement](functions/useSetElement.md)
 
@@ -42,6 +43,7 @@
 - [jsx](functions/jsx.md)
 - [useElement](functions/useElement.md)
 - [useLinks](functions/useLinks.md)
+- [useStore](functions/useStore.md)
 
 ## Graph
 
@@ -53,12 +55,21 @@
 - [GraphLink](interfaces/GraphLink.md)
 - [GraphLinkBase](interfaces/GraphLinkBase.md)
 
+## Hooks
+```tsx
+import { usePaper } from '@joint/react';
+const paper = usePaper();
+```
+
+- [usePaper](functions/usePaper.md)
+
 ## Interfaces
 
 - [BaseAttributes](interfaces/BaseAttributes.md)
 - [CellWithId](interfaces/CellWithId.md)
 - [CustomHighlighterProps](interfaces/CustomHighlighterProps.md)
 - [GraphProps](interfaces/GraphProps.md)
+- [GraphStore](interfaces/GraphStore.md)
 - [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
 - [MeasuredNodeProps](interfaces/MeasuredNodeProps.md)
 - [MeasureNodeOptions](interfaces/MeasureNodeOptions.md)
@@ -66,12 +77,13 @@
 - [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
 - [PaperProps](interfaces/PaperProps.md)
 - [PaperProviderProps](interfaces/PaperProviderProps.md)
+- [Store](interfaces/Store.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
 
 ## Type Aliases
 
 - [CellsSetter](type-aliases/CellsSetter.md)
-- [HtmlElementProps](type-aliases/HtmlElementProps.md)
+- [HTMLElementProps](type-aliases/HTMLElementProps.md)
 - [Item](type-aliases/Item.md)
 - [OnAddHighlighter](type-aliases/OnAddHighlighter.md)
 - [OnSetSize](type-aliases/OnSetSize.md)
@@ -82,4 +94,5 @@
 
 ## Variables
 
+- [DEFAULT\_CELL\_NAMESPACE](variables/DEFAULT_CELL_NAMESPACE.md)
 - [REACT\_TYPE](variables/REACT_TYPE.md)

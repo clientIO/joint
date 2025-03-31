@@ -6,7 +6,7 @@
 
 # Interface: OnSetOptions
 
-Defined in: [src/hooks/use-measure-node-size.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L10)
+Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L10)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [src/hooks/use-measure-node-size.tsx:10](https://github.com/samuelgj
 
 > `readonly` **element**: `Cell`
 
-Defined in: [src/hooks/use-measure-node-size.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L11)
+Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L11)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [src/hooks/use-measure-node-size.tsx:11](https://github.com/samuelgj
 
 > `readonly` **size**: `SizeObserver`
 
-Defined in: [src/hooks/use-measure-node-size.tsx:12](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L12)
+Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:12](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L12)

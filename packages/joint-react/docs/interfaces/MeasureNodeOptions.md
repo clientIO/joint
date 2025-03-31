@@ -6,7 +6,7 @@
 
 # Interface: MeasureNodeOptions
 
-Defined in: [src/hooks/use-measure-node-size.tsx:15](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L15)
+Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:15](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L15)
 
 ## Extended by
 
@@ -18,7 +18,7 @@ Defined in: [src/hooks/use-measure-node-size.tsx:15](https://github.com/samuelgj
 
 > `readonly` `optional` **setSize**: [`OnSetSize`](../type-aliases/OnSetSize.md)
 
-Defined in: [src/hooks/use-measure-node-size.tsx:21](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L21)
+Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:21](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L21)
 
 Overwrite default node set function with custom handling.
 Useful for adding another padding, or just check element size.

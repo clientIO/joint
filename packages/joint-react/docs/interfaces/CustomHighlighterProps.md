@@ -6,7 +6,7 @@
 
 # Interface: CustomHighlighterProps\<Highlighter\>
 
-Defined in: [src/components/highlighters/custom.tsx:21](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L21)
+Defined in: [joint-react/src/components/highlighters/custom.tsx:21](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L21)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [src/components/highlighters/custom.tsx:21](https://github.com/samue
 
 > `readonly` `optional` **children**: `ReactNode`
 
-Defined in: [src/components/highlighters/custom.tsx:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L27)
+Defined in: [joint-react/src/components/highlighters/custom.tsx:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L27)
 
 Child elements to render inside the highlighter.
 
@@ -30,7 +30,7 @@ Child elements to render inside the highlighter.
 
 > `readonly` `optional` **isDisabled**: `boolean`
 
-Defined in: [src/components/highlighters/custom.tsx:40](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L40)
+Defined in: [joint-react/src/components/highlighters/custom.tsx:40](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L40)
 
 If the highlighter is disabled or not.
 
@@ -40,7 +40,7 @@ If the highlighter is disabled or not.
 
 > `readonly` **onAdd**: [`OnAddHighlighter`](../type-aliases/OnAddHighlighter.md)\<`Highlighter`\>
 
-Defined in: [src/components/highlighters/custom.tsx:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L31)
+Defined in: [joint-react/src/components/highlighters/custom.tsx:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L31)
 
 Callback to add the highlighter.
 
@@ -50,6 +50,6 @@ Callback to add the highlighter.
 
 > `readonly` **options**: `Highlighter`
 
-Defined in: [src/components/highlighters/custom.tsx:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L36)
+Defined in: [joint-react/src/components/highlighters/custom.tsx:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L36)
 
 This should be memoized

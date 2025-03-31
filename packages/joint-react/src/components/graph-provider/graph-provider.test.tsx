@@ -18,7 +18,7 @@ describe('graph-provider', () => {
   it('should provide a graph instance in context', () => {
     let contextGraph: GraphStore | undefined;
     function TestComponent() {
-      contextGraph = React.use(GraphStoreContext);
+      contextGraph = React.useContext(GraphStoreContext);
       return null;
     }
     render(

@@ -8,7 +8,7 @@
 
 > **jsx**(`element`): `MarkupJSON`
 
-Defined in: [src/utils/joint-jsx/jsx-to-markup.ts:112](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/joint-jsx/jsx-to-markup.ts#L112)
+Defined in: [joint-react/src/utils/joint-jsx/jsx-to-markup.ts:112](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/joint-jsx/jsx-to-markup.ts#L112)
 
 Convert JSX element to JointJS markup.
 

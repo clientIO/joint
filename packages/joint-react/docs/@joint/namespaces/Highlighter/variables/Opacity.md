@@ -8,4 +8,4 @@
 
 > `const` **Opacity**: `FC`\<[`OpacityHighlighterProps`](../../../../interfaces/OpacityHighlighterProps.md)\> = `Component.Opacity`
 
-Defined in: [src/components/highlighters/index.tsx:50](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/index.tsx#L50)
+Defined in: [joint-react/src/components/highlighters/index.tsx:50](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/index.tsx#L50)

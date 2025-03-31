@@ -6,7 +6,7 @@
 
 # Interface: MeasuredNodeProps
 
-Defined in: [src/components/measured-node/measured-node.tsx:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L5)
+Defined in: [joint-react/src/components/measured-node/measured-node.tsx:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L5)
 
 ## Extends
 
@@ -18,7 +18,7 @@ Defined in: [src/components/measured-node/measured-node.tsx:5](https://github.co
 
 > `readonly` **children**: `ReactNode`
 
-Defined in: [src/components/measured-node/measured-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L10)
+Defined in: [joint-react/src/components/measured-node/measured-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L10)
 
 The child element to measure.
 It can be only HTML or SVG element.
@@ -29,7 +29,7 @@ It can be only HTML or SVG element.
 
 > `readonly` `optional` **setSize**: [`OnSetSize`](../type-aliases/OnSetSize.md)
 
-Defined in: [src/hooks/use-measure-node-size.tsx:21](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L21)
+Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:21](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L21)
 
 Overwrite default node set function with custom handling.
 Useful for adding another padding, or just check element size.

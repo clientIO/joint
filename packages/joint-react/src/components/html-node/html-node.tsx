@@ -37,9 +37,9 @@ interface SpanElementProps extends ElementBase<HTMLSpanElement> {
 /**
  * Special HTML element, when width and height are set, we will not automatically resize the parent node element.
  */
-export type HtmlElementProps = DivElementProps | SpanElementProps | ButtonElementProps;
+export type HTMLElementProps = DivElementProps | SpanElementProps | ButtonElementProps;
 
-function Element(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
+function Element(props: HTMLElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
   const { element, ...rest } = props;
   if (element === 'span') {
     return <span {...rest} ref={forwardedRef} />;
@@ -58,7 +58,7 @@ const ElementForward = forwardRef(Element);
 /**
  * Component that automatically resizes the parent node element based on the size of the div.
  */
-function WithAutoSize(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
+function WithAutoSize(props: HTMLElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
   const style = useMemo(() => ({ ...props.style }), [props.style]);
   const { width, height } = useElement();
 
@@ -72,7 +72,7 @@ function WithAutoSize(props: HtmlElementProps, forwardedRef: React.ForwardedRef<
 }
 const WithAutoSizeForward = forwardRef(WithAutoSize);
 
-function Component(props: HtmlElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
+function Component(props: HTMLElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
   return <WithAutoSizeForward {...props} ref={forwardedRef} />;
 }
 

@@ -8,7 +8,7 @@
 
 > **useElements**\<`Elements`, `SelectorReturnType`\>(`selector`, `isEqual`): `SelectorReturnType`
 
-Defined in: [src/hooks/use-elements.ts:60](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-elements.ts#L60)
+Defined in: [joint-react/src/hooks/use-elements.ts:60](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-elements.ts#L60)
 
 A hook to access `dia.graph` elements
 

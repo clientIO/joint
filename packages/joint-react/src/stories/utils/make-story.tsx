@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/prevent-abbreviations */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-constraint */
+ 
+ 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import type { StoryObj } from '@storybook/react/*';
 import type React from 'react';

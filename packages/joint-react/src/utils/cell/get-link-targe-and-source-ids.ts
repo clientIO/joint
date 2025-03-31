@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { isLinkInstance } from '../is';
-import type { GraphLink } from '@joint/react/src/types/link-types';
+import type { GraphLink } from '../../types/link-types';
 
 export function getLinkTargetAndSourceIds(link: dia.Link | GraphLink): {
   source?: dia.Cell.ID;

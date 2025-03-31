@@ -6,7 +6,7 @@
 
 # Class: CellMap\<V\>
 
-Defined in: [src/utils/cell/cell-map.ts:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L13)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L13)
 
 CellMap is a custom Map implementation that extends the native Map class.
 It provides additional utility methods for working with working with nodes & edges.
@@ -32,7 +32,7 @@ It provides additional utility methods for working with working with nodes & edg
 
 > **new CellMap**\<`V`\>(`items`?): `CellMap`\<`V`\>
 
-Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: [src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/b
 
 > **filter**(`predicate`): `V`[]
 
-Defined in: [src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L31)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L31)
 
 #### Parameters
 
@@ -72,7 +72,7 @@ Defined in: [src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/b
 
 > **map**\<`Item`\>(`selector`): `Item`[]
 
-Defined in: [src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L27)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L27)
 
 #### Type Parameters
 
@@ -96,7 +96,7 @@ Defined in: [src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/b
 
 > **toJSON**(): `string`
 
-Defined in: [src/utils/cell/cell-map.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L35)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L35)
 
 #### Returns
 

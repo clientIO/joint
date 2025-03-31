@@ -8,7 +8,7 @@
 
 > **OnAddHighlighter**\<`Highlighter`\> = (`cellView`, `element`, `highlighterId`, `options`) => `dia.HighlighterView`\<`Highlighter`\>
 
-Defined in: [src/components/highlighters/custom.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L10)
+Defined in: [joint-react/src/components/highlighters/custom.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L10)
 
 ## Type Parameters
 

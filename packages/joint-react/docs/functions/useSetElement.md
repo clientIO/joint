@@ -10,7 +10,7 @@
 
 > **useSetElement**\<`Attributes`, `Attribute`\>(`id`, `attribute`): (`value`) => `void`
 
-Defined in: [src/hooks/use-set-element.ts:78](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L78)
+Defined in: [joint-react/src/hooks/use-set-element.ts:78](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L78)
 
 **`Experimental`**
 
@@ -85,7 +85,7 @@ setElement('position', { x: 100, y: 100 });
 
 > **useSetElement**\<`Attributes`\>(`id`): \<`X`\>(`attribute`, `value`) => `void`
 
-Defined in: [src/hooks/use-set-element.ts:86](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L86)
+Defined in: [joint-react/src/hooks/use-set-element.ts:86](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L86)
 
 **`Experimental`**
 
@@ -160,7 +160,7 @@ setElement('position', { x: 100, y: 100 });
 
 > **useSetElement**\<`Attributes`\>(): \<`X`\>(`id`, `attribute`, `value`) => `void`
 
-Defined in: [src/hooks/use-set-element.ts:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L90)
+Defined in: [joint-react/src/hooks/use-set-element.ts:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L90)
 
 **`Experimental`**
 

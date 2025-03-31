@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { use, type CSSProperties, type ReactNode } from 'react';
+import { useContext, type CSSProperties, type ReactNode } from 'react';
 import type { GraphElement, GraphElementBase } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
@@ -198,7 +198,7 @@ function PaperWithNoDataPlaceHolder<ElementItem extends GraphElementBase = Graph
 function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElementBase>(
   props: PaperProps<ElementItem>
 ) {
-  const hasStore = !!use(GraphStoreContext);
+  const hasStore = !!useContext(GraphStoreContext);
   const { children, ...rest } = props;
   const paperContent = (
     <PaperWithNoDataPlaceHolder {...rest}>{children}</PaperWithNoDataPlaceHolder>

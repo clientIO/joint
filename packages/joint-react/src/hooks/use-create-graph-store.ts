@@ -5,9 +5,9 @@ import { ReactElement } from '../models/react-element';
 import { useStore } from './use-store';
 import { GraphStoreData } from '../data/graph-store-data';
 import { processLink, setCells } from '../utils/cell/set-cells';
-import { getLinkTargetAndSourceIds } from '@joint/react/src/utils/cell/get-link-targe-and-source-ids';
-import type { GraphElementBase, GraphElements } from '@joint/react/src/types/element-types';
-import type { GraphLink, GraphLinks } from '@joint/react/src/types/link-types';
+import { getLinkTargetAndSourceIds } from '../utils/cell/get-link-targe-and-source-ids';
+import type { GraphElementBase, GraphElements } from '../types/element-types';
+import type { GraphLink, GraphLinks } from '../types/link-types';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 

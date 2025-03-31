@@ -8,7 +8,7 @@
 
 > **updateGraph**(`graph`, `cells`): `void`
 
-Defined in: [src/utils/update-graph.ts:55](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/update-graph.ts#L55)
+Defined in: [joint-react/src/utils/update-graph.ts:55](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/update-graph.ts#L55)
 
 Updates the graph with new cells.
 

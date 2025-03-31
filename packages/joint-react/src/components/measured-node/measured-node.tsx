@@ -1,9 +1,6 @@
 import { forwardRef, memo } from 'react';
 import { useChildrenRef } from '../../hooks/use-children-ref';
-import {
-  useMeasureNodeSize,
-  type MeasureNodeOptions,
-} from '@joint/react/src/hooks/use-measure-node-size';
+import { useMeasureNodeSize, type MeasureNodeOptions } from '../../hooks/use-measure-node-size';
 
 export interface MeasuredNodeProps extends MeasureNodeOptions {
   /**

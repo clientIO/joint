@@ -6,9 +6,9 @@
 
 # Variable: HTMLNode
 
-> `const` **HTMLNode**: `ForwardRefExoticComponent`\<[`HtmlElementProps`](../type-aliases/HtmlElementProps.md) & `RefAttributes`\<[`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)\>\>
+> `const` **HTMLNode**: `ForwardRefExoticComponent`\<[`HTMLElementProps`](../type-aliases/HTMLElementProps.md) & `RefAttributes`\<[`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)\>\>
 
-Defined in: [src/components/html-node/html-node.tsx:104](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L104)
+Defined in: [joint-react/src/components/html-node/html-node.tsx:104](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L104)
 
 **`Experimental`**
 

@@ -1,4 +1,4 @@
-import { use } from 'react';
+import { useContext } from 'react';
 import { PaperContext } from '../context/paper-context';
 
 /**
@@ -11,7 +11,7 @@ import { PaperContext } from '../context/paper-context';
  * ```
  */
 export function usePaper(): PaperContext {
-  const paper = use(PaperContext);
+  const paper = useContext(PaperContext);
   if (!paper) {
     throw new Error('usePaper must be used within a `PaperProvider` or `Paper` component');
   }

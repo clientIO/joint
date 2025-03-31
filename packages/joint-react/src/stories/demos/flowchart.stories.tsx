@@ -5,7 +5,8 @@ import { createElements, createLinks } from '../../utils/create';
 import './flowchart.css';
 import { GraphProvider } from '../../components/graph-provider/graph-provider';
 import { Paper } from '../../components/paper/paper';
-import { MeasuredNode, OnSetSize } from '@joint/react';
+import type { OnSetSize } from '@joint/react';
+import { MeasuredNode } from '@joint/react';
 import { useCallback } from 'react';
 import { PRIMARY } from '.storybook/theme';
 
