@@ -269,6 +269,8 @@ export const Paper = View.extend({
 
         autoFreeze: false,
 
+        delayedCellViewInitialization: true,
+
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
             // Do not update connected links when:
@@ -1388,12 +1390,14 @@ export const Paper = View.extend({
             unmountCount++;
             var flag = this.registerUnmountedView(view);
             if (flag) {
-                // this.detachView(view);
 
-                view.remove();
-                delete this._views[view.model.id];
-
-                this.createCellViewPlaceholder(view.model, view.cid);
+                if (this.options.delayedCellViewInitialization) {
+                    view.remove();
+                    delete this._views[view.model.id];
+                    this.createCellViewPlaceholder(view.model, view.cid);
+                } else {
+                    this.detachView(view);
+                }
             }
         }
         // Get rid of views, that have been unmounted
@@ -1901,8 +1905,15 @@ export const Paper = View.extend({
             }
         }
         if (create) {
-            view = this.createCellViewPlaceholder(cell);
-            flag = this.registerUnmountedView(view) | this.FLAG_INIT;
+            if (this.options.delayedCellViewInitialization) {
+                view = this.createCellViewPlaceholder(cell);
+                flag = this.registerUnmountedView(view) | this.FLAG_INIT;
+            } else {
+                view = this.createViewForModel(cell);
+                view.paper = this;
+                this._views[cell.id] = view;
+                flag = this.registerUnmountedView(view) | this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
+            }
         }
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
         return view;
