@@ -530,8 +530,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 QUnit.test('hide element A', function(assert) {
                     const a = paper.model.getCell('A');
                     paper.requestCellViewVisibility(a, false);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['A', 'l1', 'l2', 'l11', 'l12', 'l23', 'l24', 'l211', 'l221', 'l231', 'l241'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -544,8 +543,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const a = paper.model.getCell('A');
                     paper.requestCellViewVisibility(a, false); // hide first
                     paper.requestCellViewVisibility(a, true);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = [];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -557,8 +555,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 QUnit.test('hide element B', function(assert) {
                     const b = paper.model.getCell('B');
                     paper.requestCellViewVisibility(b, false);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['B', 'l2', 'l3', 'l21', 'l22', 'l211', 'l221', 'l231', 'l241', 'l33', 'l34'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -571,8 +568,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const b = paper.model.getCell('B');
                     paper.requestCellViewVisibility(b, false); // hide first
                     paper.requestCellViewVisibility(b, true);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = [];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -584,8 +580,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 QUnit.test('hide element C', function(assert) {
                     const c = paper.model.getCell('C');
                     paper.requestCellViewVisibility(c, false);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['C', 'l12', 'l22', 'l32'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -598,8 +593,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const c = paper.model.getCell('C');
                     paper.requestCellViewVisibility(c, false); // hide first
                     paper.requestCellViewVisibility(c, true);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = [];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -611,8 +605,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 QUnit.test('hide element D', function(assert) {
                     const d = paper.model.getCell('D');
                     paper.requestCellViewVisibility(d, false);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['D', 'l13', 'l23', 'l33'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -625,8 +618,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const d = paper.model.getCell('D');
                     paper.requestCellViewVisibility(d, false); // hide first
                     paper.requestCellViewVisibility(d, true);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = [];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -669,8 +661,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 QUnit.test('hide element A', function(assert) {
                     const a = paper.model.getCell('A');
                     paper.requestCellViewVisibility(a, false);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['D', 'A', 'l1', 'l2', 'l11', 'l12', 'l23', 'l24', 'l211', 'l221', 'l231', 'l241'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -683,8 +674,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const a = paper.model.getCell('A');
                     paper.requestCellViewVisibility(a, false); // hide first
                     paper.requestCellViewVisibility(a, true);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['D'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -696,8 +686,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 QUnit.test('hide element B', function(assert) {
                     const b = paper.model.getCell('B');
                     paper.requestCellViewVisibility(b, false);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['D', 'B', 'l2', 'l3', 'l21', 'l22', 'l211', 'l221', 'l231', 'l241', 'l33', 'l34'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -710,8 +699,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const b = paper.model.getCell('B');
                     paper.requestCellViewVisibility(b, false); // hide first
                     paper.requestCellViewVisibility(b, true);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['D'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -723,8 +711,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 QUnit.test('hide element C', function(assert) {
                     const c = paper.model.getCell('C');
                     paper.requestCellViewVisibility(c, false);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['D', 'C', 'l12', 'l22', 'l32'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -737,8 +724,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const c = paper.model.getCell('C');
                     paper.requestCellViewVisibility(c, false); // hide first
                     paper.requestCellViewVisibility(c, true);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['D'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -750,8 +736,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 QUnit.test('hide element D', function(assert) {
                     const d = paper.model.getCell('D');
                     paper.requestCellViewVisibility(d, false);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['D', 'l13', 'l23', 'l33'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {
@@ -764,8 +749,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     const d = paper.model.getCell('D');
                     paper.requestCellViewVisibility(d, false); // hide first
                     paper.requestCellViewVisibility(d, true);
-                    paper.checkViewport();
-                    paper.updateViews();
+                    paper.checkViewport(); // force updates to happen on this frame
                     hiddenIds = ['D'];
                     cells = paper.model.getCells();
                     cells.forEach((cell) => {

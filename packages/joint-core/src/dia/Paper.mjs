@@ -1806,10 +1806,14 @@ export const Paper = View.extend({
         // true = "show view", false = "hide view"
         if (toggle) {
             this._hiddenViews.delete(cell.id);
-            if (!this.options.async) nextFrame(() => this.checkUnmountedViews(this.options.viewport));
+            if (!this.options.async) {
+                nextFrame(() => this.checkUnmountedViews(this.options.viewport));
+            }
         } else {
             this._hiddenViews.add(cell.id);
-            if (!this.options.async) nextFrame(() => this.checkMountedViews(this.options.viewport));
+            if (!this.options.async) {
+                nextFrame(() => this.checkMountedViews(this.options.viewport));
+            }
         }
     },
 
