@@ -1,6 +1,10 @@
 import type { ComponentType, ComponentProps } from 'react';
 import React from 'react';
 
+/**
+ * Sugar around React.memo to avoid the need to specify the type of the component.
+ * @group utils
+ */
 // There is an issue with Typescript when Component has generic Props
 // see: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/37087
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

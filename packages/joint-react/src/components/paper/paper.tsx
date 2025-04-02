@@ -1,5 +1,5 @@
 import type { dia } from '@joint/core';
-import { useContext, type CSSProperties, type ReactNode } from 'react';
+import { useContext, useMemo, type CSSProperties, type ReactNode } from 'react';
 import type { GraphElement, GraphElementBase } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
@@ -124,7 +124,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
 
   const { onRenderElement, svgGElements } = usePaperElementRenderer(onReady);
 
-  const { paperHtmlElement, isPaperFromContext, paper } = useCreatePaper({
+  const { paperHtmlElement, isPaperFromContext, paper, isLoaded } = useCreatePaper({
     ...paperOptions,
     scale,
     onRenderElement,
@@ -134,8 +134,17 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
 
   const hasRenderElement = !!renderElement;
 
+  const paperContainerStyle = useMemo(
+    (): CSSProperties => ({
+      opacity: isLoaded ? 1 : 0,
+      pointerEvents: isLoaded ? 'auto' : 'none',
+      ...style,
+    }),
+    [isLoaded, style]
+  );
+
   const content = (
-    <div className={className} ref={paperHtmlElement} style={style}>
+    <div className={className} ref={paperHtmlElement} style={paperContainerStyle}>
       {hasRenderElement &&
         elements.map((cell) => {
           if (!cell.id) {

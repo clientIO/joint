@@ -1,8 +1,9 @@
 import type { dia } from '@joint/core';
 import type { GraphLink } from '../../types/link-types';
-import { useCreateGraphStore } from '../../hooks/use-create-graph-store';
-import { GraphStoreContext } from '../../context/graph-store-context';
+import { GraphStoreContext, type StoreContext } from '../../context/graph-store-context';
 import type { GraphElementBase } from '../../types/element-types';
+import { useEffect, useMemo, useState } from 'react';
+import { createStore, type Store } from '../../data/create-store';
 
 export interface GraphProps {
   /**
@@ -38,6 +39,12 @@ export interface GraphProps {
    * It's loaded just once, so it cannot be used as React state.
    */
   readonly defaultLinks?: Array<dia.Link | GraphLink>;
+
+  /**
+   * Store is build around graph, it handles react updates and states, it can be created separately and passed to the provider via `createStore` function.
+   * @see `createStore`
+   */
+  readonly store?: Store;
 }
 
 /**
@@ -74,8 +81,27 @@ export interface GraphProps {
  * @group Components
  */
 export function GraphProvider(props: GraphProps) {
-  const { children, ...rest } = props;
-  const graphStore = useCreateGraphStore(rest);
+  const { children, store, ...rest } = props;
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [graphStore] = useState(() => {
+    if (store) {
+      return store;
+    }
+    return createStore({ ...rest, onLoad: setIsLoaded });
+  });
 
-  return <GraphStoreContext.Provider value={graphStore}>{children}</GraphStoreContext.Provider>;
+  useEffect(() => {
+    graphStore.forceUpdate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const graphContext = useMemo(
+    (): StoreContext => ({
+      ...graphStore,
+      isLoaded,
+    }),
+    [graphStore, isLoaded]
+  );
+
+  return <GraphStoreContext.Provider value={graphContext}>{children}</GraphStoreContext.Provider>;
 }

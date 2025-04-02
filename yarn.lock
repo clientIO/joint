@@ -3387,6 +3387,7 @@ __metadata:
     glob: ^11.0.1
     jest: ^29.7.0
     jest-environment-jsdom: ^29.7.0
+    mutative: ^1.1.0
     prettier: 3.3.3
     prettier-plugin-tailwindcss: ^0.6.5
     react: 18.x
@@ -3410,6 +3411,7 @@ __metadata:
   peerDependencies:
     react: ">=18 <20"
     react-dom: ">=18 <20"
+    use-sync-external-store: ^1.4.0
   languageName: unknown
   linkType: soft
 
@@ -16801,6 +16803,13 @@ __metadata:
     arrify: ^1.0.0
     minimatch: ^3.0.0
   checksum: 19259848ec28e5b3ee150ef3ac4a7d3d4afd0c285556e58f349e393b6b4cb6d99abe14415aa2183f4e6309c42d4d3cf941da7ad1b088753024c41ad8b280b03b
+  languageName: node
+  linkType: hard
+
+"mutative@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "mutative@npm:1.1.0"
+  checksum: 5eaf505a97c713ecb45bdadfe905045692414ff6f08e35d9cad0e6e27d9005a06e9696350c23bff70d39488973841384ed01d800d67f8b2957c7a1daf3d24d3c
   languageName: node
   linkType: hard
 

@@ -70,7 +70,7 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 function RenderedRect() {
   return (
     <MeasuredNode>
-      <rect rx={10} ry={10} joint-selector="fo" width={150} height={35} fill={PRIMARY} />
+      <rect rx={10} ry={10} width={150} height={35} fill={PRIMARY} />
     </MeasuredNode>
   );
 }

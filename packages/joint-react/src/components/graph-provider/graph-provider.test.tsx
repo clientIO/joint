@@ -1,8 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { GraphStoreContext } from '../../context/graph-store-context';
-import type { GraphStore } from '../../hooks/use-create-graph-store';
 import { GraphProvider } from './graph-provider';
+import type { Store } from '../../data/create-store';
 
 describe('graph-provider', () => {
   it('should render children and match snapshot', () => {
@@ -16,7 +16,7 @@ describe('graph-provider', () => {
   });
 
   it('should provide a graph instance in context', () => {
-    let contextGraph: GraphStore | undefined;
+    let contextGraph: Store | undefined;
     function TestComponent() {
       contextGraph = React.useContext(GraphStoreContext);
       return null;

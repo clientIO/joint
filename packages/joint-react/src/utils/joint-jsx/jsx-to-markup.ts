@@ -11,6 +11,9 @@ import {
   isWithChildren,
 } from '../is';
 
+/**
+ * Extract attributes from props.
+ */
 function extractJointAttributes(
   props: unknown
 ): [Record<string, unknown>, Record<string, unknown>] {
@@ -31,6 +34,9 @@ function extractJointAttributes(
   return [newProps, jointProps];
 }
 
+/**
+ * Convert JSX element to JointJS markup.
+ */
 function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []) {
   if (!isValidElement(element)) {
     return markups;

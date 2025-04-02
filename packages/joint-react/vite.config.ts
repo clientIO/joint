@@ -13,7 +13,13 @@ export default defineConfig({
       fileName: (format) => `joint-react.${format}.js`,
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime'],
+      external: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        'use-sync-external-store',
+        '@joint/core',
+      ],
       output: {
         globals: {
           react: 'React',

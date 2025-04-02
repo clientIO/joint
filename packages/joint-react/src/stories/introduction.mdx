@@ -86,3 +86,10 @@ const defaultLinks = createLinks([
 
 This introduction provides essential information to quickly integrate and effectively utilize **@joint/react** for interactive diagramming in React applications. Refer to the official [JointJS documentation](https://docs.jointjs.com/) for more in-depth details and advanced usage examples. 🚀
 
+
+## How does it work?
+Under the hood, @joint/react works by listening to changes in the `dia.Graph`. The graph is the single source of truth. 
+When you update something—like adding or modifying cells—you do it directly through the `dia.Graph` API, just like in a standard JointJS app. 
+React components automatically observe and react to changes in the graph, keeping the UI in sync via `useSyncExternalStore` API.
+Hooks like `useSetElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes. 
+You can also access the graph yourself using `useGraph()` and call methods like `graph.setCells()` or any other JointJS method as needed and react will update it accordingly.

@@ -1,18 +1,7 @@
- 
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia } from '@joint/core';
 import '../../stories/examples/index.css';
-import {
-  createElements,
-  createLinks,
-  GraphProvider,
-  jsx,
-  MeasuredNode,
-  Paper,
-  type InferElement,
-  type RenderElement,
-} from '@joint/react';
-import { useCallback } from 'react';
+import { createElements, createLinks, GraphProvider, jsx, MeasuredNode, Paper } from '@joint/react';
 import { PRIMARY } from '.storybook/theme';
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleGraphDecorator } from '.storybook/decorators/with-simple-data';
@@ -63,24 +52,21 @@ const initialElements = createElements([
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
 ]);
 
-type BaseElementWithData = InferElement<typeof initialElements>;
-
 function RenderedRect() {
   return (
     <MeasuredNode>
-      <rect rx={10} ry={10} joint-selector="fo" width={150} height={35} fill={PRIMARY} />
+      <rect rx={10} ry={10} width={150} height={35} fill={PRIMARY} />
     </MeasuredNode>
   );
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(() => <RenderedRect />, []);
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper
         width={400}
         height={280}
-        renderElement={renderElement}
+        renderElement={RenderedRect}
         // add listeners when show and hide tools
       />
       <div

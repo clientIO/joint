@@ -4,7 +4,6 @@ import type { PaperOptions } from '../utils/create-paper';
 import { createPaper } from '../utils/create-paper';
 import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
-import { useGraph } from './use-graph';
 import type { PaperEvents, PaperEventType } from '../types/event.types';
 import { handleEvent } from '../utils/handle-paper-events';
 
@@ -35,13 +34,10 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
 export function useCreatePaper(options?: UseCreatePaperOptions) {
   const { overwriteDefaultPaperElement, isTransformToFitContentEnabled, ...restOptions } =
     options ?? {};
-  const graph = useGraph();
 
   const paperHtmlElement = useRef<HTMLDivElement | null>(null);
-  const graphStore = useGraphStore();
-  if (!graphStore) {
-    throw new Error('usePaper must be used within a GraphProvider');
-  }
+  const { graph, isLoaded } = useGraphStore();
+
   // Try to get the paper from the context, it can be undefined if there is no PaperContext.
   const paperCtx = useContext(PaperContext);
   // If paper is not inside the PaperContext, create a new paper instance.
@@ -49,7 +45,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     if (paperCtx) {
       return null;
     }
-    return createPaper(graphStore.graph, restOptions);
+    return createPaper(graph, restOptions);
   });
   const isPaperFromContext = paperCtx !== undefined;
   const paper = paperCtx ?? paperState;
@@ -104,6 +100,11 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
   }, [options?.scale, paper]);
 
   useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    paper.update();
     if (!isTransformToFitContentEnabled) {
       return;
     }
@@ -114,16 +115,17 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
       return;
     }
     paper.transformToFitContent({
-      padding: 0,
+      padding: 40,
       contentArea: graphBBox,
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
     });
-  }, [graph, isTransformToFitContentEnabled, paper]);
+  }, [graph, isTransformToFitContentEnabled, paper, isLoaded]);
 
   return {
     isPaperFromContext,
     paper,
     paperHtmlElement,
+    isLoaded,
   };
 }

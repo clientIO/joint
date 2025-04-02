@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // Flowchart.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react';
 import type { InferElement } from '../../utils/create';
@@ -6,9 +7,10 @@ import './flowchart.css';
 import { GraphProvider } from '../../components/graph-provider/graph-provider';
 import { Paper } from '../../components/paper/paper';
 import type { OnSetSize } from '@joint/react';
-import { MeasuredNode } from '@joint/react';
+import { HTMLNode, MeasuredNode } from '@joint/react';
 import { useCallback } from 'react';
 import { PRIMARY } from '.storybook/theme';
+import { dia } from '@joint/core';
 
 export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
@@ -17,7 +19,10 @@ const meta: Meta<typeof GraphProvider> = {
 };
 export default meta;
 
-const unit = 10;
+const unit = 4;
+const bevel = 2 * unit;
+const spacing = 2 * unit;
+const flowSpacing = unit / 2;
 
 // Define flowchart nodes with position, dimensions, and type
 const flowchartNodes = createElements([
@@ -183,8 +188,43 @@ const flowchartLinks = createLinks([
 
 type FlowchartNode = InferElement<typeof flowchartNodes>;
 
+const DecisionBoxSVG = ({ data: { label } }: FlowchartNode) => {
+  const size = 100;
+  const half = size / 2;
+  return (
+    <MeasuredNode>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {/* Diamond shape using a rotated square (polygon) */}
+        <polygon
+          points={`${half},0 ${size},${half} ${half},${size} 0,${half}`}
+          fill="transparent"
+          stroke={PRIMARY}
+          strokeWidth="2"
+        />
+        {/* Centered horizontal text */}
+        <text
+          x="50%"
+          y="50%"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="10"
+          fill={'white'}
+        >
+          {label}
+        </text>
+      </svg>
+    </MeasuredNode>
+  );
+};
 // Custom render function that maps the node type to a CSS class for styling
-function RenderFlowchartNode({ data: { label, type }, width, height, x, y }: FlowchartNode) {
+function RenderFlowchartNode(props: FlowchartNode) {
+  const {
+    data: { label, type },
+    width,
+    height,
+    x,
+    y,
+  } = props;
   let className = 'flowchart-node';
   switch (type) {
     case 'start': {
@@ -215,26 +255,41 @@ function RenderFlowchartNode({ data: { label, type }, width, height, x, y }: Flo
   const NORMAL_SIZE = { width: 120, height: 50 };
   const START_SIZE = { width: 50, height: 50 };
   const sizeStyle = type === 'start' ? START_SIZE : NORMAL_SIZE;
+  if (type === 'decision') {
+    return <DecisionBoxSVG {...props} />;
+  }
   return (
-    // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
-    <foreignObject style={{ overflow: 'visible' }} width={width} height={height}>
-      <MeasuredNode setSize={setSize}>
-        <div style={sizeStyle} className={className}>
-          {label}
-        </div>
-      </MeasuredNode>
-    </foreignObject>
+    <HTMLNode style={sizeStyle} className={className}>
+      {label}
+    </HTMLNode>
   );
 }
 
 function FlowchartMain() {
   return (
     <Paper
-      gridSize={1}
+      gridSize={5}
       isTransformToFitContentEnabled
       height={600}
       width={900}
       renderElement={RenderFlowchartNode}
+      scrollWhileDragging
+      sorting={dia.Paper.sorting.APPROX}
+      snapLabels
+      clickThreshold={10}
+      interactive={{ linkMove: false }}
+      defaultConnectionPoint={{
+        name: 'boundary',
+        args: {
+          offset: spacing,
+          extrapolate: true,
+        },
+      }}
+      defaultRouter={{ name: 'rightAngle', args: { margin: unit * 7 } }}
+      defaultConnector={{
+        name: 'straight',
+        args: { cornerType: 'line', cornerPreserveAspectRatio: true },
+      }}
     />
   );
 }

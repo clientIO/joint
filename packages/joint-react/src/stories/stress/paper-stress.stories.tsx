@@ -147,10 +147,7 @@ export const WithReactElements: Story = {
     style: { border: '1px solid #ccc' },
   },
   render: () => {
-    console.log('re-render WithHooksAPI');
     const graph = useRef(createGraph()).current;
-
-    console.log('re-render WithHooksAPI');
 
     const renderElement: RenderElement = useCallback((element) => {
       return (
