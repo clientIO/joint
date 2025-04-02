@@ -1313,7 +1313,10 @@ export const Paper = View.extend({
         const n = unmountedCids.length;
         const unmountedViews = new Array(n);
         for (var i = 0; i < n; i++) {
-            unmountedViews[i] = this._views[unmountedCids[i]] || views[unmountedCids[i]];
+            const cid = unmountedCids[i];
+            // If the view is a placeholder, it won't be in the global views map
+            // If the view is not a cell view, it won't be in the viewPlaceholders map
+            unmountedViews[i] = views[cid] || this._viewPlaceholders[cid];
         }
         return unmountedViews;
     },
@@ -1324,7 +1327,7 @@ export const Paper = View.extend({
         const n = mountedCids.length;
         const mountedViews = new Array(n);
         for (var i = 0; i < n; i++) {
-            mountedViews[i] = this._views[unmountedCids[i]] || views[mountedCids[i]];
+            mountedViews[i] = views[mountedCids[i]];
         }
         return mountedViews;
     },
@@ -1340,14 +1343,10 @@ export const Paper = View.extend({
         for (var i = 0, n = Math.min(unmountedCids.length, batchSize); i < n; i++) {
             var cid = unmountedCids[i];
             if (!(cid in unmounted)) continue;
-            var view = views[cid];
+            var view = views[cid] || this._viewPlaceholders[cid];
             if (!view) {
-                if (this._viewPlaceholders[cid]) {
-                    view = this._viewPlaceholders[cid];
-                } else {
-                    // This should not occur
-                    continue;
-                }
+                // This should not occur
+                continue;
             }
             if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, false, this)) {
                 // Push at the end of all unmounted ids, so this can be check later again
@@ -1850,7 +1849,7 @@ export const Paper = View.extend({
         // b) the paper options view is a function
         //  1. call the function from the paper options
         //  2. if no view was return, search the namespace for a view
-        //  3. if no view was fou   nd, use the default
+        //  3. if no view was found, use the default
         var ViewClass = (optionalViewClass.prototype instanceof ViewBase)
             ? namespaceViewClass || optionalViewClass
             : optionalViewClass.call(this, cell) || namespaceViewClass || defaultViewClass;
@@ -2001,9 +2000,7 @@ export const Paper = View.extend({
             : $el instanceof $ ? $el[0] : $el;
 
         var id = this.findAttribute('model-id', el);
-        if (id) {
-            return this._views[id];
-        }
+        if (id) return this._views[id];
 
         return undefined;
     },
