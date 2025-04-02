@@ -296,6 +296,17 @@ QUnit.module('rect', function() {
             // TODO: implement
         });
 
+        QUnit.module('moveAroundPoint(point, angle)', function() {
+            QUnit.test('moves the rect around the given point', function(assert) {
+                const r = new g.Rect(10, 20, 30, 40);
+                const c = r.center();
+                r.moveAroundPoint(new g.Point(0, 0), 90);
+                r.round();
+                assert.ok(r.equals(new g.Rect(25, -45, 30, 40)));
+                assert.ok(c.rotate(new g.Point(0, 0), 90).round().equals(r.center()));
+            });
+        });
+
         QUnit.module('normalize()', function() {
             // TODO: implement
         });
