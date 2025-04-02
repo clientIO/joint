@@ -418,6 +418,7 @@ export const Paper = View.extend({
         // Hash of all cell views.
         this._views = {};
         this._viewPlaceholders = {};
+        this._viewPlaceholdersById = {};
 
         // Mouse wheel events buffer
         this._mw_evt_buffer = {
@@ -1803,6 +1804,7 @@ export const Paper = View.extend({
         view.paper = this;
         this._views[view.model.id] = view;
         delete this._viewPlaceholders[placeholder.cid];
+        delete this._viewPlaceholdersById[view.model.id];
         return view;
     },
 
@@ -1817,6 +1819,7 @@ export const Paper = View.extend({
         };
 
         this._viewPlaceholders[cid] = placeholder;
+        this._viewPlaceholdersById[cell.id] = placeholder;
         return placeholder;
     },
 
@@ -2010,7 +2013,7 @@ export const Paper = View.extend({
 
         var id = (isString(cell) || isNumber(cell)) ? cell : (cell && cell.id);
 
-        let view = this._views[id];
+        let view = this._views[id] || this._viewPlaceholdersById[id];
         if (view && view.placeholder) {
             view = this.resolveCellViewPlaceholder(view);
             this.requestViewUpdate(view, view.getFlag(result(view, 'initFlag')), view.UPDATE_PRIORITY);
