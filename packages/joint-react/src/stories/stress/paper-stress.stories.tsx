@@ -1,3 +1,4 @@
+/* eslint-disable @eslint-react/dom/no-missing-button-type */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable sonarjs/pseudo-random */

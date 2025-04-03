@@ -1,28 +1,19 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-// Flowchart.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react';
-import type { InferElement } from '../../utils/create';
-import { createElements, createLinks } from '../../utils/create';
-import './flowchart.css';
-import { GraphProvider } from '../../components/graph-provider/graph-provider';
-import { Paper } from '../../components/paper/paper';
-import type { OnSetSize } from '@joint/react';
-import { HTMLNode, MeasuredNode } from '@joint/react';
-import { useCallback } from 'react';
+import './index.css';
+import {
+  createElements,
+  createLinks,
+  GraphProvider,
+  HTMLNode,
+  MeasuredNode,
+  Paper,
+  type InferElement,
+} from '@joint/react';
 import { PRIMARY } from '.storybook/theme';
 import { dia } from '@joint/core';
 
-export type Story = StoryObj<typeof GraphProvider>;
-const meta: Meta<typeof GraphProvider> = {
-  title: 'Demos/Flowchart',
-  component: GraphProvider,
-};
-export default meta;
-
 const unit = 4;
-const bevel = 2 * unit;
 const spacing = 2 * unit;
-const flowSpacing = unit / 2;
 
 // Define flowchart nodes with position, dimensions, and type
 const flowchartNodes = createElements([
@@ -189,6 +180,7 @@ const flowchartLinks = createLinks([
 type FlowchartNode = InferElement<typeof flowchartNodes>;
 
 const DecisionBoxSVG = ({ data: { label } }: FlowchartNode) => {
+  // If we define custom size, not defined in initial nodes, we have to use measure node
   const size = 100;
   const half = size / 2;
   return (
@@ -220,10 +212,6 @@ const DecisionBoxSVG = ({ data: { label } }: FlowchartNode) => {
 function RenderFlowchartNode(props: FlowchartNode) {
   const {
     data: { label, type },
-    width,
-    height,
-    x,
-    y,
   } = props;
   let className = 'flowchart-node';
   switch (type) {
@@ -242,16 +230,6 @@ function RenderFlowchartNode(props: FlowchartNode) {
     // No default
   }
 
-  const setSize: OnSetSize = useCallback(
-    ({ element, size }) => {
-      element.set({
-        size,
-        position: { x: size.width / 2 + x, y: size.height / 2 + y },
-      });
-    },
-    [x, y]
-  );
-
   const NORMAL_SIZE = { width: 120, height: 50 };
   const START_SIZE = { width: 50, height: 50 };
   const sizeStyle = type === 'start' ? START_SIZE : NORMAL_SIZE;
@@ -265,7 +243,7 @@ function RenderFlowchartNode(props: FlowchartNode) {
   );
 }
 
-function FlowchartMain() {
+function Main() {
   return (
     <Paper
       gridSize={5}
@@ -294,14 +272,10 @@ function FlowchartMain() {
   );
 }
 
-export const Flowchart: Story = {
-  args: {
-    defaultElements: flowchartNodes,
-    defaultLinks: flowchartLinks,
-  },
-  render: (props) => (
-    <GraphProvider {...props}>
-      <FlowchartMain />
+export default function App() {
+  return (
+    <GraphProvider defaultElements={flowchartNodes} defaultLinks={flowchartLinks}>
+      <Main />
     </GraphProvider>
-  ),
-};
+  );
+}

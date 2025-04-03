@@ -64,6 +64,7 @@ export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVG
     }
 
     return createElementSizeObserver(elementRef.current, ({ height, width }) => {
+      console.log('Element size changed:', { height, width });
       if (onSetSizeRef.current) {
         return onSetSizeRef.current({
           element: cell,

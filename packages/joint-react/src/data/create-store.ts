@@ -3,10 +3,11 @@ import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
 import { processLink, setCells } from '../utils/cell/set-cells';
 import { getLinkTargetAndSourceIds } from '../utils/cell/get-link-targe-and-source-ids';
-import type { GraphElementBase, GraphElements } from '../types/element-types';
-import type { GraphLink, GraphLinks } from '../types/link-types';
-import { subscribeHandler } from '../utils/subsribe-handler';
+import type { GraphElementBase } from '../types/element-types';
+import type { GraphLink, GraphLinkBase } from '../types/link-types';
+import { subscribeHandler } from '../utils/subscriber-handler';
 import { createStoreData } from './create-store-data';
+import type { CellMap } from 'src/utils/cell/cell-map';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
@@ -59,7 +60,7 @@ export interface Store {
   /**
    * Get elements
    */
-  readonly getElements: () => GraphElements<GraphElementBase>;
+  readonly getElements: () => CellMap<GraphElementBase>;
   /**
    * Get element by id
    */
@@ -67,11 +68,11 @@ export interface Store {
   /**
    *  Get links
    */
-  readonly getLinks: () => GraphLinks;
+  readonly getLinks: () => CellMap<GraphLinkBase>;
   /**
    * Get link by id
    */
-  readonly getLink: (id: dia.Cell.ID) => GraphLink;
+  readonly getLink: (id: dia.Cell.ID) => GraphLinkBase;
   /**
    *  Remove all listeners and cleanup the graph.
    */

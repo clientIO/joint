@@ -1,9 +1,11 @@
 import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import type { GraphElement, GraphElementBase, GraphElements } from '../types/element-types';
+import type { GraphElement, GraphElementBase } from '../types/element-types';
+import type { CellMap } from 'src/utils/cell/cell-map';
+
 function defaultSelector<Elements extends GraphElementBase = GraphElement>(
-  items: GraphElements<Elements>
+  items: CellMap<Elements>
 ): Elements[] {
   return items.map((item) => item) as Elements[];
 }
@@ -12,7 +14,6 @@ function defaultSelector<Elements extends GraphElementBase = GraphElement>(
  *
  * This hook returns the selected elements from the graph store. It accepts:
  *  - a selector function, which extracts the desired portion from the elements map.
- *    (By default, it returns the `GraphElements` map.)
  *  - an optional `isEqual` function, used to compare previous and new values—ensuring
  *    the component only re-renders when necessary.
  *
@@ -62,12 +63,12 @@ export function useElements<
   SelectorReturnType = Elements[],
 >(
   selector: (
-    items: GraphElements<Elements>
+    items: CellMap<Elements>
   ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
 ): SelectorReturnType {
   const { subscribe, getElements } = useGraphStore();
-  const typedGetElements = getElements as () => GraphElements<Elements>;
+  const typedGetElements = getElements as () => CellMap<Elements>;
   const elements = useSyncExternalStoreWithSelector(
     subscribe,
     typedGetElements,

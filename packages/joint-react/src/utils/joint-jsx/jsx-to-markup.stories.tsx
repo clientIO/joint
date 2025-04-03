@@ -24,7 +24,6 @@ const customLink = dia.Link.define(
       <path
         strokeWidth={10}
         strokeLinejoin="round"
-        joint-selector="line"
         fill="none"
         pointerEvents="none"
         d="M 10 -5 0 0 10 5 z"

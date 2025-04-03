@@ -27,7 +27,7 @@ export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
  */
 function Component<Data extends CellWithId = GraphElement>(props: PaperPortalProps<Data>) {
   const { renderElement, nodeSvgGElement, ...rest } = props;
-  const cell = rest as unknown as Data;
+  const cell = rest as Data;
   const element = renderElement(cell);
   return createPortal(element, nodeSvgGElement);
 }

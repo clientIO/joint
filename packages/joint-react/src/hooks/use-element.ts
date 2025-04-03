@@ -37,8 +37,7 @@ import type { GraphElement } from '../types/element-types';
  * @returns The selected element based on the current cell id.
  */
 export function useElement<Data = unknown, Element = GraphElement, ReturnedElements = Element>(
-  selector: (item: GraphElement<Data>) => ReturnedElements = (item) =>
-    item as unknown as ReturnedElements,
+  selector: (item: GraphElement<Data>) => ReturnedElements = (item) => item as ReturnedElements,
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {
   const id = useCellId();

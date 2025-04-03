@@ -44,9 +44,8 @@ const infoButton = new linkTools.Button({
   // using jsx utility by joint-jsx, convert jsx to markup
   markup: jsx(
     <>
-      <circle joint-selector="button" r={7} fill="#001DFF" cursor="pointer" />
+      <circle r={7} fill="#001DFF" cursor="pointer" />
       <path
-        joint-selector="icon"
         d="M -2 4 2 4 M 0 3 0 0 M -2 -1 1 -1 M -1 -4 1 -4"
         fill="none"
         stroke="#FFFFFF"

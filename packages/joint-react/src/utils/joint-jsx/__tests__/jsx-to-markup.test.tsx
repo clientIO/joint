@@ -147,9 +147,8 @@ describe('jsx-to-markup', () => {
   it('should convert with fragment', () => {
     const markup = jsx(
       <>
-        <circle joint-selector="button" r={7} fill="#001DFF" cursor="pointer" />
+        <circle r={7} fill="#001DFF" cursor="pointer" />
         <path
-          joint-selector="icon"
           d="M -2 4 2 4 M 0 3 0 0 M -2 -1 1 -1 M -1 -4 1 -4"
           fill="none"
           stroke="#FFFFFF"
@@ -164,7 +163,6 @@ describe('jsx-to-markup', () => {
         tagName: 'circle',
         children: [],
         attributes: {
-          'joint-selector': 'button',
           r: 7,
           fill: '#001DFF',
           cursor: 'pointer',
@@ -174,7 +172,6 @@ describe('jsx-to-markup', () => {
         tagName: 'path',
         children: [],
         attributes: {
-          'joint-selector': 'icon',
           d: 'M -2 4 2 4 M 0 3 0 0 M -2 -1 1 -1 M -1 -4 1 -4',
           fill: 'none',
           stroke: '#FFFFFF',

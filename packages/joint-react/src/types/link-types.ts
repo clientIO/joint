@@ -1,5 +1,4 @@
 import type { dia, shapes } from '@joint/core';
-import { CellMap } from '../utils/cell/cell-map';
 
 interface StandardLinkShapesTypeMapper {
   'standard.DoubleLink': shapes.standard.DoubleLinkSelectors;
@@ -63,20 +62,3 @@ export interface GraphLink extends GraphLinkBase {
    */
   readonly isLink: true;
 }
-
-/**
- * Collection of graph links.
- * It's main data structure for links (edges) in the graph.
- * It's a wrapper around `Map<dia.Cell.ID, GraphLink>` with some sugar.
- * @example
- * ```ts
- * const links = new GraphLinks();
- * links.set('link-1', { id: 'link-1', source: 'element-1', target: 'element-2' });
- * links.set('link-2', { id: 'link-2', source: 'element-2', target: 'element-3' });
- * ```
- *
- * @group Graph
- * @see https://docs.jointjs.com/learn/features/shapes/links/#dialink
- */
-
-export class GraphLinks<Link extends GraphLinkBase = GraphLink> extends CellMap<Link> {}

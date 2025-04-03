@@ -1,6 +1,5 @@
 import type { dia, shapes } from '@joint/core';
 import type { Attributes, Ports } from '../utils/cell/get-cell';
-import { CellMap } from '../utils/cell/cell-map';
 
 interface StandardShapesTypeMapper {
   'standard.Rectangle': shapes.standard.RectangleSelectors;
@@ -85,23 +84,3 @@ export interface GraphElement<Data = unknown> extends GraphElementItem<Data> {
    */
   readonly isLink: false;
 }
-
-/**
- * Collection of graph elements.
- * It's main data structure for elements (nodes) in the graph.
- *
- * Why? It's not recommended to props drill mutable classes(`dia.element`) in React components.
- *
- * It's a wrapper around `Map<dia.Cell.ID, GraphElement>` with some sugar.
- * @example
- * ```ts
- * const elements = new GraphElements();
- * elements.set('element-1', { id: 'element-1', x: 100, y: 100 });
- * elements.set('element-2', { id: 'element-2', x: 200, y: 200 });
- * ```
- *
- * @group Graph
- */
-export class GraphElements<
-  Element extends GraphElementBase = GraphElement,
-> extends CellMap<Element> {}

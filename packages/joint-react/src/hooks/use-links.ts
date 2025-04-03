@@ -1,9 +1,10 @@
 import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import type { GraphLink, GraphLinkBase, GraphLinks } from '../types/link-types';
+import type { GraphLink, GraphLinkBase } from '../types/link-types';
+import type { CellMap } from 'src/utils/cell/cell-map';
 
-function defaultSelector<Link extends GraphLinkBase = GraphLink>(items: GraphLinks<Link>): Link[] {
+function defaultSelector<Link extends GraphLinkBase = GraphLink>(items: CellMap<Link>): Link[] {
   return items.map((item) => item) as Link[];
 }
 /**
@@ -41,12 +42,12 @@ function defaultSelector<Link extends GraphLinkBase = GraphLink>(items: GraphLin
 
 export function useLinks<Link extends GraphLinkBase = GraphLink, SelectorReturnType = Link[]>(
   selector: (
-    items: GraphLinks<Link>
+    items: CellMap<Link>
   ) => SelectorReturnType = defaultSelector as () => SelectorReturnType,
   isEqual: (a: SelectorReturnType, b: SelectorReturnType) => boolean = util.isEqual
 ): SelectorReturnType {
   const { subscribe, getLinks } = useGraphStore();
-  const typedGetLinks = getLinks as unknown as () => GraphLinks<Link>;
+  const typedGetLinks = getLinks as () => CellMap<Link>;
   const elements = useSyncExternalStoreWithSelector(
     subscribe,
     typedGetLinks,

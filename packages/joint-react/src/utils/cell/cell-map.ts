@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 
-interface ItemBase {
+export interface CellBase {
   readonly id?: dia.Cell.ID;
 }
 
@@ -10,20 +10,7 @@ interface ItemBase {
  * @group Utils
  */
 
-export class CellMap<V extends ItemBase> extends Map<dia.Cell.ID, V> {
-  constructor(items?: V[]) {
-    super();
-    if (!items) {
-      return;
-    }
-    for (const item of items) {
-      if (item.id === undefined) {
-        continue;
-      }
-      this.set(item.id, item);
-    }
-  }
-
+export class CellMap<V extends CellBase> extends Map<dia.Cell.ID, V> {
   map<Item = V>(selector: (item: V) => Item): Item[] {
     return [...this.values()].map(selector);
   }

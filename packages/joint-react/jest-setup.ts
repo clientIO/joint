@@ -1,10 +1,8 @@
-/* eslint-disable unicorn/prefer-module */
-/* eslint-disable sonarjs/no-nested-functions */
-/* eslint-disable @typescript-eslint/no-require-imports */
 // jest-dom adds custom jest matchers for asserting on DOM nodes.
 // allows you to do things like:
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
+
 import '@testing-library/jest-dom';
 
 // Mock method which is not implemented in JSDOM
@@ -65,6 +63,7 @@ beforeEach(() => {
       skewY: jest.fn().mockImplementation(() => globalThis.SVGSVGElement),
       translate: jest.fn().mockImplementation(() => ({
         multiply: jest.fn().mockImplementation(() => ({
+          // eslint-disable-next-line sonarjs/no-nested-functions
           multiply: jest.fn().mockImplementation(() => globalThis.SVGSVGElement),
         })),
       })),
@@ -100,9 +99,4 @@ beforeEach(() => {
       setTranslate: jest.fn(),
     })),
   });
-});
-
-jest.mock('@joint/core', () => {
-  const actual = require('@joint/core/build/joint');
-  return actual;
 });
