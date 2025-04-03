@@ -47,8 +47,8 @@
     "dist/"
   ],
   "dependencies": {
-    "@dagrejs/dagre": "~1.0.4",
-    "@dagrejs/graphlib": "~2.1.13",
+    "@dagrejs/dagre": "~1.1.4",
+    "@dagrejs/graphlib": "~2.2.4",
     "@joint/core": "workspace:~"
   },
   "devDependencies": {
