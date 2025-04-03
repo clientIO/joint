@@ -2103,6 +2103,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-controlled-layout@workspace:examples/controlled-layout":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-controlled-layout@workspace:examples/controlled-layout"
+  dependencies:
+    "@joint/core": "workspace:^"
+    "@joint/layout-directed-graph": "workspace:^"
+    css-loader: ^6.8.1
+    style-loader: ^3.3.3
+    ts-loader: ^9.2.5
+    typescript: ^5.7.3
+    webpack: ^5.53.0
+    webpack-cli: ^4.8.0
+    webpack-dev-server: ^4.2.1
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-decorators@workspace:examples/decorators":
   version: 0.0.0-use.local
   resolution: "@joint/demo-decorators@workspace:examples/decorators"
@@ -2144,22 +2160,6 @@ __metadata:
     css-loader: 3.5.3
     style-loader: 1.2.1
     webpack: ^5.61.0
-    webpack-cli: ^4.8.0
-    webpack-dev-server: ^4.2.1
-  languageName: unknown
-  linkType: soft
-
-"@joint/demo-guided-tree@workspace:examples/guided-tree":
-  version: 0.0.0-use.local
-  resolution: "@joint/demo-guided-tree@workspace:examples/guided-tree"
-  dependencies:
-    "@joint/core": "workspace:^"
-    "@joint/layout-directed-graph": "workspace:^"
-    css-loader: ^6.8.1
-    style-loader: ^3.3.3
-    ts-loader: ^9.2.5
-    typescript: ^5.7.3
-    webpack: ^5.53.0
     webpack-cli: ^4.8.0
     webpack-dev-server: ^4.2.1
   languageName: unknown

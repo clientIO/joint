@@ -1,5 +1,5 @@
 {
-    "name": "@joint/demo-guided-tree",
+    "name": "@joint/demo-controlled-layout",
     "version": "4.1.3",
     "main": "src/index.ts",
     "homepage": "https://jointjs.com",

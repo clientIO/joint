@@ -1,4 +1,4 @@
-# JointJS Guided Tree Demo
+# JointJS Controlled Layout Demo
 
 ## Setup
 
