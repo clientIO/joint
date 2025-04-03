@@ -2,10 +2,16 @@ import { dia, elementTools, linkTools } from "@joint/core";
 import { IElement, isButton } from "./shapes";
 import { addButtonToElement, runLayout } from "./utils";
 
+interface ElementRemoveToolOptions extends elementTools.Button.Options {
+    disabled?: boolean;
+}
+
 export class ElementRemoveTool extends elementTools.Remove {
 
-    constructor(opt: elementTools.Button.Options = {}) {
+    constructor(opt: ElementRemoveToolOptions = { disabled: false }) {
         opt.action = (_evt: dia.Event, view: dia.ElementView, tool: elementTools.Button) => {
+            if (opt.disabled) return;
+
             const { model } = view;
 
             const paper = view.paper;
@@ -35,13 +41,22 @@ export class ElementRemoveTool extends elementTools.Remove {
 
             runLayout(paper);
         }
+
         super(opt);
+        this.el.classList.toggle('disabled', opt.disabled);
     }
 }
 
+interface LinkRemoveToolOptions extends linkTools.Button.Options {
+    disabled?: boolean;
+}
+
 export class LinkRemoveTool extends linkTools.Remove {
-    constructor(opt: linkTools.Button.Options = {}) {
+    constructor(opt: LinkRemoveToolOptions = { disabled: false }) {
+
         opt.action = (_evt: dia.Event, view: dia.LinkView, tool: linkTools.Remove) => {
+            if (opt.disabled) return;
+
             const paper = view.paper;
             const graph = paper.model;
             const parent = view.model.getSourceElement();
@@ -62,6 +77,8 @@ export class LinkRemoveTool extends linkTools.Remove {
 
             runLayout(paper);
         }
+
         super(opt);
+        this.el.classList.toggle('disabled', opt.disabled);
     }
 }

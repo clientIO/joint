@@ -61,3 +61,7 @@ body {
     font-size: 14px;
     font-weight: normal;
 }
+
+.joint-tool.disabled {
+    opacity: 0.5;
+}

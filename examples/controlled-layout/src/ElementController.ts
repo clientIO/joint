@@ -78,13 +78,18 @@ function onLinkConnect({ paper, graph }: ElementControllerArgs, linkView: dia.Li
 function onLinkPointerClick({ paper, graph }: ElementControllerArgs, linkView: dia.LinkView) {
     paper.removeTools();
 
-    // Only show remove tool if removing the link won't break the graph
-    if (!isBridge(graph, linkView.model)) {
-        const removeTool = new LinkRemoveTool();
-        linkView.addTools(new dia.ToolsView({
-            tools: [removeTool]
-        }));
-    }
+    const target = linkView.model.getTargetElement();
+
+    // Don't show remove tool if the target is a button
+    if (isButton(target)) return;
+
+    const removeTool = new LinkRemoveTool({
+        distance: '50%',
+        disabled: isBridge(graph, linkView.model)
+    });
+    linkView.addTools(new dia.ToolsView({
+        tools: [removeTool]
+    }));
 }
 
 function onBlankPointerClick({ paper }: ElementControllerArgs) {
@@ -101,25 +106,30 @@ function onElementPointerClick({ paper, graph }: ElementControllerArgs, elementV
 
     if (!isButton(model)) {
         // Add remove button if the element can be removed
-        if (!parent) return;
 
-        const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
-        const currentChildren = graph.getNeighbors(parent, { outbound: true }).reduce((acc, child) => {
-            if (isButton(child)) return acc;
-            return acc + 1;
-        }, 0) - 1;
-        const possibleChildren = graph.getNeighbors(model, { outbound: true }).reduce((acc, child) => {
-            if (isButton(child)) return acc;
-            return acc + 1;
-        }, 0);
+        let canBeRemoved = true;
 
-        const canBeRemoved = currentChildren + possibleChildren <= maxChildren;
-        if (!canBeRemoved) return;
+        if (!parent) {
+            canBeRemoved = false;
+        } else {
+            const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
+            const currentChildren = graph.getNeighbors(parent, { outbound: true }).reduce((acc, child) => {
+                if (isButton(child)) return acc;
+                return acc + 1;
+            }, 0) - 1;
+            const possibleChildren = graph.getNeighbors(model, { outbound: true }).reduce((acc, child) => {
+                if (isButton(child)) return acc;
+                return acc + 1;
+            }, 0);
+
+            canBeRemoved = currentChildren + possibleChildren <= maxChildren;
+        }
 
         const removeButton = new ElementRemoveTool({
             x: '100%',
             y: '50%',
-            offset: { x: 10 }
+            offset: { x: 10 },
+            disabled: !canBeRemoved
         });
 
         const elementsTools = new dia.ToolsView({
