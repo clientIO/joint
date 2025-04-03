@@ -164,10 +164,9 @@ export function createNewElementListItem(shape: dia.Element, parent: dia.Element
         graph.removeCells([previewShape, previewLink, previewButton]);
 
         if (currentChildren < maxChildren) {
-            graph.addCells([rankButton, ...rankButtonConnection]);
+            graph.addCells([rankButton, ...rankButtonConnection], { preview: true });
         }
 
-        // debouncedRunLayout(paper);
         runLayout(paper);
     });
 

@@ -38,9 +38,11 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
 }
 
 function onAdd({ graph, paper }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, opt: any) {
-    if (cell.isLink() || isButton(cell) || opt.preview) return;
+    if (isButton(cell) || opt.preview) return;
 
     closeConnectionsList(paper);
+    if (cell.isLink()) return;
+
     const maxChildren = (cell as IElement).getMaxNumberOfChildren();
 
     if (maxChildren === 0) return;
