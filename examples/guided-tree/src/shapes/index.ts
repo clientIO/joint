@@ -8,3 +8,7 @@ export * from './Triangle';
 export function isButton(el: dia.Cell) {
     return el.get('type') === 'app.Button';
 }
+
+export interface IElement extends dia.Element {
+    getMaxNumberOfChildren(): number;
+}

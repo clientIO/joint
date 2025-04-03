@@ -1,8 +1,8 @@
-import { dia, linkTools, mvc } from '@joint/core';
-import { Ellipse, Rectangle, Triangle, isButton } from './shapes';
-import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem } from './utils';
+import { dia, mvc } from '@joint/core';
+import { Ellipse, Rectangle, Triangle, isButton, IElement } from './shapes';
+import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem, addButtonToElement } from './utils';
 import { addEffect, effects, removeEffect } from './effects';
-import { RemoveTool } from './RemoveTool';
+import { LinkRemoveTool, ElementRemoveTool } from './RemoveTool';
 
 interface ElementControllerArgs {
     graph: dia.Graph;
@@ -23,8 +23,7 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
         const { paper, graph } = this.context;
 
         this.listenTo(graph, {
-            'add': onAdd,
-            'remove': onRemove
+            'add': onAdd
         })
 
         this.listenTo(paper, {
@@ -38,16 +37,15 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
     }
 }
 
-function onAdd({ paper }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, opt: any) {
+function onAdd({ graph, paper }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, opt: any) {
     if (cell.isLink() || isButton(cell) || opt.preview) return;
 
     closeConnectionsList(paper);
-    openConnectionsList(paper, cell as dia.Element);
-}
+    const maxChildren = (cell as IElement).getMaxNumberOfChildren();
 
-function onRemove({ paper }: ElementControllerArgs, _cell: dia.Cell, _: any, opt: any) {
-    if (!opt.ui) return;
-    runLayout(paper);
+    if (maxChildren === 0) return;
+
+    addButtonToElement(cell as dia.Element, graph);
 }
 
 function onLinkConnect({ paper, graph }: ElementControllerArgs, linkView: dia.LinkView) {
@@ -59,6 +57,18 @@ function onLinkConnect({ paper, graph }: ElementControllerArgs, linkView: dia.Li
     const [parent] = graph.getNeighbors(button, { inbound: true });
     model.source({ id: parent.id });
 
+    const children = graph.getNeighbors(parent, { outbound: true });
+
+    const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
+    const currentChildren = children.reduce((acc, child) => {
+        if (isButton(child)) return acc;
+        return acc + 1;
+    }, 0);
+
+    if (currentChildren >= maxChildren) {
+        button.remove();
+    }
+
     runLayout(paper);
 }
 
@@ -68,7 +78,7 @@ function onLinkPointerClick({ paper, graph }: ElementControllerArgs, linkView: d
 
     // Only show remove tool if removing the link won't break the graph
     if (!isBridge(graph, linkView.model)) {
-        const removeTool = new linkTools.Remove();
+        const removeTool = new LinkRemoveTool();
         linkView.addTools(new dia.ToolsView({
             tools: [removeTool]
         }));
@@ -85,11 +95,26 @@ function onElementPointerClick({ paper, graph }: ElementControllerArgs, elementV
     closeConnectionsList(paper);
     paper.removeTools();
     const { model } = elementView;
+    const [parent] = graph.getNeighbors(model, { inbound: true });
 
     if (!isButton(model)) {
-        // Add remove button
-        if (graph.isSource(model)) return;
-        const removeButton = new RemoveTool({
+        // Add remove button if the element can be removed
+        if (!parent) return;
+
+        const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
+        const currentChildren = graph.getNeighbors(parent, { outbound: true }).reduce((acc, child) => {
+            if (isButton(child)) return acc;
+            return acc + 1;
+        }, 0) - 1;
+        const possibleChildren = graph.getNeighbors(model, { outbound: true }).reduce((acc, child) => {
+            if (isButton(child)) return acc;
+            return acc + 1;
+        }, 0);
+
+        const canBeRemoved = currentChildren + possibleChildren <= maxChildren;
+        if (!canBeRemoved) return;
+
+        const removeButton = new ElementRemoveTool({
             x: '100%',
             y: '50%',
             offset: { x: 10 }
@@ -103,7 +128,6 @@ function onElementPointerClick({ paper, graph }: ElementControllerArgs, elementV
         return;
     }
 
-    const [parent] = graph.getNeighbors(model, { inbound: true });
     openConnectionsList(paper, parent);
 }
 

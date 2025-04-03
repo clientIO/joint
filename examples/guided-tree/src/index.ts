@@ -1,6 +1,6 @@
 import { dia, shapes } from "@joint/core";
-import { constructGraphLayer, runLayout, fitContent } from "./utils";
-import { isButton, Button } from "./shapes";
+import { constructGraphLayer, runLayout, fitContent, addButtonToElement } from "./utils";
+import { isButton } from "./shapes";
 
 import '../css/styles.css';
 import { ElementController } from "./ElementController";
@@ -59,9 +59,6 @@ const paper = new dia.Paper({
 });
 
 constructGraphLayer('E1', ['E2', 'E3'], graph);
-constructGraphLayer('E2', ['E4', 'E5'], graph);
-constructGraphLayer('E3', ['E7'], graph);
-constructGraphLayer('E5', ['E10', 'E11'], graph);
 
 const elementController = new ElementController({
     graph,
@@ -71,14 +68,7 @@ const elementController = new ElementController({
 elementController.startListening();
 
 graph.getElements().forEach((source) => {
-    const target = new Button();
-
-    const link = new shapes.standard.Link({
-        source: { id: source.id },
-        target: { id: target.id }
-    });
-
-    graph.addCells([link, target]);
+    addButtonToElement(source, graph);
 });
 
 runLayout(paper);

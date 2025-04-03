@@ -1,5 +1,5 @@
-import { dia, shapes, util } from "@joint/core";
-import { Button, Rectangle, isButton } from "./shapes";
+import { dia, shapes } from "@joint/core";
+import { Button, IElement, Rectangle, Triangle, isButton } from "./shapes";
 import { addEffect, effects, removeEffect } from "./effects";
 import { DirectedGraph } from "@joint/layout-directed-graph";
 
@@ -39,12 +39,22 @@ export function runLayout(paper: dia.Paper) {
 
         if (isButton(target)) {
             buttonLinks.push(link);
+            link.set('z', -1);
+            link.attr('line', {
+                stroke: '#999',
+                strokeWidth: 2,
+                strokeDasharray: '5, 5',
+                targetMarker: null
+            });
         } else {
             otherLinks.push(link);
         }
     });
 
-    DirectedGraph.layout([...otherElements, ...otherLinks, ...buttonLinks, ...buttons], { disableOptimalOrderHeuristic: true });
+    DirectedGraph.layout([...otherElements, ...otherLinks, ...buttonLinks, ...buttons], {
+        disableOptimalOrderHeuristic: true,
+        setVertices: true
+    });
     fitContent(paper);
     paper.unfreeze();
 }
@@ -54,7 +64,7 @@ export function constructGraphLayer(parent: string | dia.Element, children: stri
     let parentElement = typeof parent === 'string' ? graph.getCell(parent) as dia.Element : parent;
 
     if (!parentElement) {
-        parentElement = Rectangle.create(parent as string);
+        parentElement = children.length > 1 ? Triangle.create(parent as string) : Rectangle.create(parent as string);
         graph.addCell(parentElement);
     }
 
@@ -62,27 +72,44 @@ export function constructGraphLayer(parent: string | dia.Element, children: stri
         const childElement = graph.getCell(child) as dia.Element ?? Rectangle.create(child);
         graph.addCell(childElement);
 
-        const link = new shapes.standard.Link({
-            source: { id: parentElement.id },
-            target: { id: childElement.id }
-        });
+        const link = makeConnection(parentElement, childElement, graph);
         graph.addCell(link);
     });
 }
 
-export function makeConnection(source: dia.Element, target: dia.Element, paper: dia.Paper, opt: any = {}) {
+export function makeConnection(source: dia.Element, target: dia.Element, graph: dia.Graph, opt: any = {}) {
     const link = new shapes.standard.Link({
         source: { id: source.id },
         target: { id: target.id }
     });
-    paper.model.addCell(link, opt);
+
+    link.prop({
+        source: {
+            anchor: {
+                name: 'bottom'
+            }
+        },
+        target: {
+            anchor: {
+                name: 'top'
+            }
+        }
+    });
+
+    graph.addCell(link, opt);
     return link;
 }
 
-export function addButtonToElement(element: dia.Element, paper: dia.Paper, opt: any = {}) {
+export function addButtonToElement(element: dia.Element, graph: dia.Graph, opt: any = {}) {
+
+    const maxChildren = (element as IElement).getMaxNumberOfChildren();
+    const currentChildren = graph.getNeighbors(element, { outbound: true }).length;
+
+    if (currentChildren >= maxChildren) return [null, null];
+
     const button = new Button();
-    paper.model.addCell(button, opt);
-    const link = makeConnection(element, button, paper, opt);
+    graph.addCell(button, opt);
+    const link = makeConnection(element, button, graph, opt);
     return [link, button];
 }
 
@@ -105,22 +132,29 @@ export function createNewElementListItem(shape: dia.Element, parent: dia.Element
     let previewButton: dia.Element;
     let previewLink: dia.Link;
 
-    const debouncedRunLayout = util.debounce(runLayout, 100);
+    const rankButton = graph.getNeighbors(parent, { outbound: true }).find(isButton);
+    const rankButtonConnection = graph.getConnectedLinks(rankButton);
+    const maxChildren = (parent as IElement).getMaxNumberOfChildren();
+    const currentChildren = graph.getNeighbors(parent, { outbound: true }).length - 1;
 
     item.addEventListener('click', () => {
         graph.removeCells([previewShape, previewLink, previewButton]);
         graph.addCell(shape);
-        makeConnection(parent, shape, paper);
-        addButtonToElement(shape, paper);
+        makeConnection(parent, shape, graph);
         runLayout(paper);
     });
 
     item.addEventListener('mouseenter', () => {
         graph.addCell(previewShape, { preview: true });
-        makeConnection(parent, previewShape, paper, { preview: true });
-        const [link, button] = addButtonToElement(previewShape, paper, { preview: true });
+        makeConnection(parent, previewShape, graph, { preview: true });
+        const [link, button] = addButtonToElement(previewShape, graph, { preview: true });
         previewLink = link as dia.Link;
         previewButton = button as dia.Element;
+
+        if (currentChildren + 1 >= maxChildren) {
+            rankButton?.remove();
+        }
+
         runLayout(paper);
         addEffect(previewShape.findView(paper) as dia.ElementView, effects.CONNECTION_TARGET);
     });
@@ -128,7 +162,13 @@ export function createNewElementListItem(shape: dia.Element, parent: dia.Element
     item.addEventListener('mouseleave', () => {
         removeEffect(paper, effects.CONNECTION_TARGET);
         graph.removeCells([previewShape, previewLink, previewButton]);
-        debouncedRunLayout(paper);
+
+        if (currentChildren < maxChildren) {
+            graph.addCells([rankButton, ...rankButtonConnection]);
+        }
+
+        // debouncedRunLayout(paper);
+        runLayout(paper);
     });
 
     return item;
@@ -148,7 +188,7 @@ export function createExistingElementListItem(parent: dia.Element, element: dia.
     });
 
     item.addEventListener('click', () => {
-        makeConnection(parent, element, paper);
+        makeConnection(parent, element, paper.model);
         runLayout(paper);
     });
 

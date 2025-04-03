@@ -4,7 +4,7 @@ export class Button extends shapes.standard.Circle {
     defaults(): Partial<shapes.standard.CircleAttributes> {
         return util.defaultsDeep({
             type: 'app.Button',
-            size: { width: 20, height: 20 },
+            size: { width: 20, height: 30 },
             attrs: {
                 root: {
                     style: { cursor: 'pointer' }
@@ -18,7 +18,8 @@ export class Button extends shapes.standard.Circle {
                 label: {
                     pointerEvents: 'none',
                     fontWeight: 'bold',
-                    text: '+'
+                    text: '+',
+                    y: 10
                 }
             }
         }, super.defaults);

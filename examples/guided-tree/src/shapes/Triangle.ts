@@ -1,6 +1,7 @@
 import { shapes, util } from "@joint/core";
+import { IElement } from ".";
 
-export class Triangle extends shapes.standard.Polygon {
+export class Triangle extends shapes.standard.Polygon implements IElement {
     defaults(): Partial<shapes.standard.PolygonAttributes> {
         return util.defaultsDeep({
             type: 'app.Triangle',
@@ -35,6 +36,10 @@ export class Triangle extends shapes.standard.Polygon {
                 }
             }
         });
+    }
+
+    getMaxNumberOfChildren() {
+        return Infinity;
     }
 }
 

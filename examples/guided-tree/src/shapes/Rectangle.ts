@@ -1,6 +1,7 @@
 import { shapes, util } from '@joint/core';
+import { IElement } from ".";
 
-export class Rectangle extends shapes.standard.Rectangle {
+export class Rectangle extends shapes.standard.Rectangle implements IElement {
 
     defaults(): Partial<shapes.standard.RectangleAttributes> {
         return util.defaultsDeep({
@@ -37,6 +38,10 @@ export class Rectangle extends shapes.standard.Rectangle {
                 }
             }
         });
+    }
+
+    getMaxNumberOfChildren() {
+        return 1;
     }
 }
 

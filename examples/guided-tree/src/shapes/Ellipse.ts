@@ -1,6 +1,7 @@
 import { shapes, util } from "@joint/core";
+import { IElement } from ".";
 
-export class Ellipse extends shapes.standard.Ellipse {
+export class Ellipse extends shapes.standard.Ellipse implements IElement {
     defaults(): Partial<shapes.standard.EllipseAttributes> {
         return util.defaultsDeep({
             type: 'app.Ellipse',
@@ -38,6 +39,10 @@ export class Ellipse extends shapes.standard.Ellipse {
                 }
             }
         });
+    }
+
+    getMaxNumberOfChildren() {
+        return 0;
     }
 }
 
