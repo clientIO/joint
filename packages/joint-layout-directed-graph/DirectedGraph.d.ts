@@ -28,6 +28,7 @@ export namespace DirectedGraph {
         resizeClusters?: boolean;
         clusterPadding?: dia.Padding;
         debugTiming?: boolean;
+        disableOptimalOrderHeuristic?: boolean;
     }
 
     interface ImportOptions {
