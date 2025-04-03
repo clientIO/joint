@@ -1,22 +1,22 @@
-import { defineConfig, globalIgnores } from 'eslint/config';
+import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
-});
+import globals from 'globals';
 
 export default defineConfig([
-    globalIgnores(['**/node_modules', 'scripts', 'dist', 'build']),
     {
+        ignores: ['**/node_modules', 'scripts', 'dist', 'build'],
         files: ['**/*.js', '**/*.mjs'],
-        extends: compat.extends('eslint:recommended'),
+        extends: [js.configs.recommended],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'module',
+            globals: {
+                ...globals.browser,
+                ...globals.node,
+                Uint8Array: 'readonly',
+                CDATASection: 'readonly'
+            }
+        },
         rules: {
             'indent': ['error', 4, { 'SwitchCase': 1 }],
             'space-before-function-paren': ['error', 'never'],
@@ -28,17 +28,6 @@ export default defineConfig([
             'quotes': ['error', 'single'],
             'semi': ['error', 'always'],
             'no-prototype-builtins': ['off']
-        },
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'module',
-            globals: {
-                'Uint8Array': 'readonly',
-                'CDATASection': 'readonly',
-                'browser': true,
-                'node': true,
-                'es6': true
-            }
         }
     }
 ]);

@@ -1,63 +1,34 @@
-import { defineConfig, globalIgnores } from 'eslint/config';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
-});
-
-export default defineConfig([globalIgnores(['**/node_modules', 'scripts', 'dist', 'build']), {
-    files: ['**/*.js', '**/*.mjs'],
-    extends: compat.extends('../../../eslint.config.mjs'),
-
-    languageOptions: {
-        globals: {
-            joint: true,
-            g: true,
-            V: true,
-            $: true,
-            Vue: true,
-            d3: true,
+export default defineConfig([
+    {
+        ignores: ['**/node_modules', 'scripts', 'dist', 'build'],
+        files: ['**/*.js', '**/*.mjs'],
+        extends: [js.configs.recommended],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'script',
+            globals: {
+                'joint': 'readonly',
+                'g': 'readonly',
+                'V': 'readonly',
+                '$': 'readonly',
+                'Vue': 'readonly',
+                'd3': 'readonly'
+            }
         },
-
-        ecmaVersion: '2022',
-        sourceType: 'script',
-    },
-}, {
-    files: [
-        'rough/src/rough.js',
-        'ports/port-z-index.js',
-        'ports/port-layouts-defaults.js',
-        'expand/expand.paper.js',
-        'chess/src/garbochess.js',
-        'vuejs/demo.js',
-        'petri-nets/src/pn.js',
-        'org/src/org.js',
-        '**/custom-router.js',
-        'archive/links.js',
-        'embedding/nested-clone.js',
-        'expand/index.js',
-        'expand/shapes.js',
-        'vectorizer/vectorizer.js',
-    ],
-
-    languageOptions: {
-        globals: {
-            rough: true,
-            createPaper: true,
-            paper: true,
-        },
-    },
-
-    rules: {
-        'no-redeclare': ['off'],
-        'no-unused-vars': ['off'],
-        'no-console': ['off'],
-    },
-}]);
+        rules: {
+            'indent': ['error', 4, { 'SwitchCase': 1 }],
+            'space-before-function-paren': ['error', 'never'],
+            'no-console': ['error', { 'allow': ['warn'] }],
+            'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
+            'no-constant-condition': ['off'],
+            'no-undef': ['error'],
+            'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
+            'quotes': ['error', 'single'],
+            'semi': ['error', 'always'],
+            'no-prototype-builtins': ['off']
+        }
+    }
+]);
