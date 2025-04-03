@@ -6,7 +6,7 @@ import { getLinkTargetAndSourceIds } from '../utils/cell/get-link-targe-and-sour
 import type { GraphElementBase, GraphElements } from '../types/element-types';
 import type { GraphLink, GraphLinks } from '../types/link-types';
 import { subscribeHandler } from '../utils/subsribe-handler';
-import { createStoreData } from './store-data';
+import { createStoreData } from './create-store-data';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
