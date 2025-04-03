@@ -187,7 +187,8 @@ export function createExistingElementListItem(parent: dia.Element, element: dia.
     });
 
     item.addEventListener('click', () => {
-        makeConnection(parent, element, paper.model);
+        makeConnection(parent, element, paper.model, { uiConnection: true });
+        removeEffect(paper, effects.CONNECTION_TARGET);
         runLayout(paper);
     });
 
@@ -284,4 +285,12 @@ export function isBridge(graph: dia.Graph, linkToTest: dia.Link): boolean {
     linkToTest.target(targetData);
 
     return !targetVisited;
+}
+
+export function validChildrenCount(element: dia.Element, graph: dia.Graph) {
+    const children = graph.getNeighbors(element, { outbound: true });
+    return children.reduce((acc, child) => {
+        if (isButton(child)) return acc;
+        return acc + 1;
+    }, 0);
 }

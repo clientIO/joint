@@ -1,6 +1,6 @@
 import { dia, mvc } from '@joint/core';
 import { Ellipse, Rectangle, Triangle, isButton, IElement } from './shapes';
-import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem, addButtonToElement } from './utils';
+import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem, addButtonToElement, validChildrenCount } from './utils';
 import { addEffect, effects, removeEffect } from './effects';
 import { LinkRemoveTool, ElementRemoveTool } from './RemoveTool';
 
@@ -41,7 +41,24 @@ function onAdd({ graph, paper }: ElementControllerArgs, cell: dia.Cell, _collect
     if (isButton(cell) || opt.preview) return;
 
     closeConnectionsList(paper);
-    if (cell.isLink()) return;
+    if (cell.isLink()) {
+
+        // If the link is created from the UI, check if the source element has reached the max number of children
+        if (opt.uiConnection) {
+            const source = cell.getSourceElement();
+
+            const maxChildren = (source as IElement).getMaxNumberOfChildren();
+            const children = graph.getNeighbors(source, { outbound: true });
+            const currentChildren = validChildrenCount(source, graph);
+
+            if (currentChildren >= maxChildren) {
+                const button = children.find(child => isButton(child));
+                button?.remove();
+            }
+        }
+
+        return;
+    }
 
     const maxChildren = (cell as IElement).getMaxNumberOfChildren();
 
@@ -59,13 +76,8 @@ function onLinkConnect({ paper, graph }: ElementControllerArgs, linkView: dia.Li
     const [parent] = graph.getNeighbors(button, { inbound: true });
     model.source({ id: parent.id });
 
-    const children = graph.getNeighbors(parent, { outbound: true });
-
     const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
-    const currentChildren = children.reduce((acc, child) => {
-        if (isButton(child)) return acc;
-        return acc + 1;
-    }, 0);
+    const currentChildren = validChildrenCount(parent, graph);
 
     if (currentChildren >= maxChildren) {
         button.remove();
@@ -113,14 +125,8 @@ function onElementPointerClick({ paper, graph }: ElementControllerArgs, elementV
             canBeRemoved = false;
         } else {
             const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
-            const currentChildren = graph.getNeighbors(parent, { outbound: true }).reduce((acc, child) => {
-                if (isButton(child)) return acc;
-                return acc + 1;
-            }, 0) - 1;
-            const possibleChildren = graph.getNeighbors(model, { outbound: true }).reduce((acc, child) => {
-                if (isButton(child)) return acc;
-                return acc + 1;
-            }, 0);
+            const currentChildren = validChildrenCount(parent, graph) - 1;
+            const possibleChildren = validChildrenCount(model, graph);
 
             canBeRemoved = currentChildren + possibleChildren <= maxChildren;
         }
@@ -183,14 +189,22 @@ function openConnectionsList(paper: dia.Paper, parent: dia.Element) {
     connectionsList.appendChild(addElementList);
 
     // Existing Connections
+
+    const intermediateChildren = graph.getNeighbors(parent, { outbound: true });
+
+    const elements = graph
+        .getElements()
+        .filter((element) => !isButton(element) && element.id !== parent.id)
+        .filter((element) => !intermediateChildren.some(child => child.id === element.id));
+
+    if (elements.length === 0) return;
+
     const connectionsSubtitle = document.createElement('h3');
     connectionsSubtitle.textContent = 'Make connection to:';
     connectionsList.appendChild(connectionsSubtitle);
 
     const availableConnections = document.createElement('div');
     availableConnections.classList.add('element-list');
-
-    const elements = graph.getElements().filter((element) => !isButton(element) && element.id !== parent.id);
 
     elements.forEach((element) => {
         availableConnections.appendChild(createExistingElementListItem(parent, element, paper));

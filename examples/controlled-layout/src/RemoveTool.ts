@@ -1,6 +1,6 @@
 import { dia, elementTools, linkTools } from "@joint/core";
 import { IElement, isButton } from "./shapes";
-import { addButtonToElement, runLayout } from "./utils";
+import { addButtonToElement, runLayout, validChildrenCount } from "./utils";
 
 interface ElementRemoveToolOptions extends elementTools.Button.Options {
     disabled?: boolean;
@@ -63,11 +63,7 @@ export class LinkRemoveTool extends linkTools.Remove {
 
             view.model.remove({ ui: true, cid: tool.cid });
 
-            const children = graph.getNeighbors(parent, { outbound: true });
-            const currentChildren = children.reduce((acc, child) => {
-                if (isButton(child)) return acc;
-                return acc + 1;
-            }, 0);
+            const currentChildren = validChildrenCount(parent, graph);
 
             const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
 

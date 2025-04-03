@@ -13,6 +13,7 @@ const paper = new dia.Paper({
     width: '100%',
     height: '100%',
     magnetThreshold: 'onleave',
+    clickThreshold: 10,
     defaultConnector: {
         name: 'rounded',
         args: {
@@ -39,6 +40,10 @@ const paper = new dia.Paper({
         const [parent] = graph.getNeighbors(source, { inbound: true });
         // Forbid immediate parent-child connections
         if (parent === model) return false;
+
+        const links = graph.getConnectedLinks(parent, { outbound: true });
+        // Forbid connections to elements that are already connected
+        if (links.some(link => link.getTargetCell() === model)) return false;
 
         return !isButton(model) && model.isElement();
     },
