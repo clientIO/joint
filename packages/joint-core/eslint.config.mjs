@@ -1,9 +1,9 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import globals from "globals";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from 'eslint/config';
+import globals from 'globals';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import js from '@eslint/js';
+import { FlatCompat } from '@eslint/eslintrc';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,9 +13,9 @@ const compat = new FlatCompat({
     allConfig: js.configs.all
 });
 
-export default defineConfig([globalIgnores(["**/node_modules", "scripts", "dist", "build"]), {
-    files: ["**/*.js", "**/*.mjs"],
-    extends: compat.extends("eslint:recommended"),
+export default defineConfig([globalIgnores(['**/node_modules', 'scripts', 'dist', 'build']), {
+    files: ['**/*.js', '**/*.mjs'],
+    extends: compat.extends('eslint:recommended'),
 
     languageOptions: {
         globals: {
@@ -26,34 +26,34 @@ export default defineConfig([globalIgnores(["**/node_modules", "scripts", "dist"
         },
 
         ecmaVersion: 2022,
-        sourceType: "module",
+        sourceType: 'module',
     },
 
     rules: {
-        indent: ["error", 4, {
+        indent: ['error', 4, {
             SwitchCase: 1,
         }],
 
-        "space-before-function-paren": ["error", "never"],
+        'space-before-function-paren': ['error', 'never'],
 
-        "no-console": ["error", {
-            allow: ["warn"],
+        'no-console': ['error', {
+            allow: ['warn'],
         }],
 
-        "object-curly-spacing": ["error", "always", {
+        'object-curly-spacing': ['error', 'always', {
             objectsInObjects: false,
         }],
 
-        "no-constant-condition": ["off"],
-        "no-undef": ["error"],
+        'no-constant-condition': ['off'],
+        'no-undef': ['error'],
 
-        "no-unused-vars": ["error", {
-            vars: "local",
-            args: "none",
+        'no-unused-vars': ['error', {
+            vars: 'local',
+            args: 'none',
         }],
 
-        quotes: ["error", "single"],
-        semi: ["error", "always"],
-        "no-prototype-builtins": ["off"],
+        quotes: ['error', 'single'],
+        semi: ['error', 'always'],
+        'no-prototype-builtins': ['off'],
     },
 }]);

@@ -1,11 +1,11 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
-import globals from "globals";
-import tsParser from "@typescript-eslint/parser";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from 'eslint/config';
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import globals from 'globals';
+import tsParser from '@typescript-eslint/parser';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import js from '@eslint/js';
+import { FlatCompat } from '@eslint/eslintrc';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,12 +15,12 @@ const compat = new FlatCompat({
     allConfig: js.configs.all
 });
 
-export default defineConfig([globalIgnores(["**/node_modules", "scripts", "dist", "build"]), {
-    files: ["**/*.js", "**/*.mjs"],
-    extends: compat.extends("../.eslintrc.js"),
+export default defineConfig([globalIgnores(['**/node_modules', 'scripts', 'dist', 'build']), {
+    files: ['**/*.js', '**/*.mjs'],
+    extends: compat.extends('../../../eslint.config.mjs'),
 
     plugins: {
-        "@typescript-eslint": typescriptEslint,
+        '@typescript-eslint': typescriptEslint,
     },
 
     languageOptions: {
@@ -41,12 +41,12 @@ export default defineConfig([globalIgnores(["**/node_modules", "scripts", "dist"
         parser: tsParser,
     },
 }, {
-    files: ["ts/*.ts"],
-    extends: compat.extends("plugin:@typescript-eslint/recommended"),
+    files: ['ts/*.ts'],
+    extends: compat.extends('plugin:@typescript-eslint/recommended'),
 
     rules: {
-        "prefer-const": "off",
-        "no-unused-vars": "off",
-        "@typescript-eslint/no-unused-vars": "off",
+        'prefer-const': 'off',
+        'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
     },
 }]);
