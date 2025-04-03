@@ -37,12 +37,10 @@ function bboxWrapper(method) {
         const link = linkView.model;
         const angle = element.angle();
 
-        let bbox, center
+        let bbox, center;
         if (opt.useModelGeometry) {
-
             bbox = getModelBBoxFromConnectedLink(element, link, endType, rotate);
             center = bbox.center();
-
         } else {
             center = element.getBBox().center();
             bbox = (rotate) ? elementView.getNodeUnrotatedBBox(magnet) : elementView.getNodeBBox(magnet);
