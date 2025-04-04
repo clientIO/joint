@@ -1,21 +1,23 @@
-import { shapes, util } from '@joint/core';
+import { shapes, util } from "@joint/core";
 import { IElement } from ".";
 
-export class Rectangle extends shapes.standard.Rectangle implements IElement {
-
-    defaults(): Partial<shapes.standard.RectangleAttributes> {
+export class End extends shapes.standard.Ellipse implements IElement {
+    defaults(): Partial<shapes.standard.EllipseAttributes> {
         return util.defaultsDeep({
-            type: 'app.Rectangle',
-            size: { width: 30, height: 30 },
+            type: 'app.End',
+            size: {
+                width: 30,
+                height: 30
+            },
             attrs: {
                 body: {
-                    rx: 5,
-                    ry: 5,
+                    rx: 15,
+                    ry: 15,
                     stroke: '#333',
                     strokeWidth: 2
                 },
                 label: {
-                    fill: "#333",
+                    fill: "#666666",
                     fontSize: 13,
                     fontFamily: "sans-serif",
                     style: {
@@ -23,14 +25,13 @@ export class Rectangle extends shapes.standard.Rectangle implements IElement {
                     }
                 }
             }
-        }, super.defaults)
+        }, super.defaults);
     }
 
     static create(id?: string) {
-
         id = id ?? util.uniqueId();
 
-        return new Rectangle({
+        return new End({
             id,
             attrs: {
                 label: {
@@ -41,12 +42,12 @@ export class Rectangle extends shapes.standard.Rectangle implements IElement {
     }
 
     getMaxNumberOfChildren() {
-        return 1;
+        return 0;
     }
 }
 
 Object.assign(shapes, {
     app: {
-        Rectangle
+        End
     }
 });

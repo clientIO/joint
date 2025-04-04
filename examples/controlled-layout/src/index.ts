@@ -15,37 +15,39 @@ const paper = new dia.Paper({
     magnetThreshold: 'onleave',
     clickThreshold: 10,
     defaultConnector: {
-        name: 'rounded',
+        name: 'straight',
         args: {
-            radius: 4
+            cornerType: 'cubic',
+            cornerRadius: 5,
         }
     },
     allowLink: (linkView) => {
         const { model } = linkView;
 
-        if (!model.source().id || !model.target().id) return false;
-
         const target = model.getTargetElement();
         const source = model.getSourceElement();
-        const [parent] = graph.getNeighbors(source, { inbound: true });
+
+        if (!source || !target) return false;
+
         // Forbid immediate parent-child connections
-        if (parent === target) return false;
+        if (source === target) return false;
 
         return target.isElement() && !isButton(target);
     },
-    validateConnection: (_cellViewS, _magnetS, cellViewT, _magnetT, _end, _linkView) => {
-        const { model } = cellViewT;
+    validateConnection: (cellViewS, _magnetS, cellViewT, _magnetT, _end, _linkView) => {
+        const source = cellViewS.model;
+        const target = cellViewT.model;
 
-        const source = _cellViewS.model as dia.Element;
-        const [parent] = graph.getNeighbors(source, { inbound: true });
+        if (source.isLink() || target.isLink()) return false;
+
         // Forbid immediate parent-child connections
-        if (parent === model) return false;
+        if (source === target) return false;
 
-        const links = graph.getConnectedLinks(parent, { outbound: true });
+        const links = graph.getConnectedLinks(source, { outbound: true });
         // Forbid connections to elements that are already connected
-        if (links.some(link => link.getTargetCell() === model)) return false;
+        if (links.some(link => link.getTargetCell() === target)) return false;
 
-        return !isButton(model) && model.isElement();
+        return !isButton(target);
     },
     async: true,
     frozen: true,
@@ -60,6 +62,50 @@ const paper = new dia.Paper({
     },
     highlighting: {
         [dia.CellView.Highlighting.CONNECTING]: false
+    },
+    connectionStrategy: (end, _endView, _endMagnet, _coords, _link, endType) => {
+
+        if (endType === 'target') return end;
+
+        const button = graph.getCell(end.id);
+        const [el] = graph.getNeighbors(button as dia.Element, { inbound: true });
+        // Reconnect the link dragged from the button to the parent element
+        end.id = el.id;
+
+        return end;
+    },
+    defaultAnchor: (endView, _endMagnet, _anchorReference, _args, endType, linkView) => {
+        const endBBox = endView.model.getBBox();
+
+        const sourceCell = linkView.model.getSourceCell();
+        const targetCell = linkView.model.getTargetCell();
+
+        // Only apply relative logic if both ends are connected to elements
+        if (sourceCell && targetCell) {
+
+            const sourceBBox = sourceCell.getBBox();
+            const targetBBox = targetCell.getBBox();
+
+            // Check if the source element is visually above the target element
+            if (sourceBBox.y < targetBBox.y) {
+                // Source is above Target
+                if (endType === 'source') {
+                    return sourceBBox.bottomMiddle(); // Source anchor: Bottom Middle
+                } else { // endType === 'target'
+                    return targetBBox.topMiddle();    // Target anchor: Top Middle
+                }
+            } else {
+                // Source is below or level with Target
+                if (endType === 'source') {
+                    return sourceBBox.topMiddle();    // Source anchor: Top Middle
+                } else { // endType === 'target'
+                    return targetBBox.bottomMiddle(); // Target anchor: Bottom Middle
+                }
+            }
+        }
+
+        // Fallback if one end is a point or views not found
+        return endBBox.center();
     }
 });
 

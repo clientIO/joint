@@ -1,5 +1,5 @@
 import { dia, shapes } from "@joint/core";
-import { Button, IElement, Rectangle, Triangle, isButton } from "./shapes";
+import { Button, IElement, Step, Decision, isButton } from "./shapes";
 import { addEffect, effects, removeEffect } from "./effects";
 import { DirectedGraph } from "@joint/layout-directed-graph";
 
@@ -81,19 +81,6 @@ export function makeConnection(source: dia.Element, target: dia.Element, graph: 
     const link = new shapes.standard.Link({
         source: { id: source.id },
         target: { id: target.id }
-    });
-
-    link.prop({
-        source: {
-            anchor: {
-                name: 'bottom'
-            }
-        },
-        target: {
-            anchor: {
-                name: 'top'
-            }
-        }
     });
 
     graph.addCell(link, opt);
@@ -196,13 +183,14 @@ export function createExistingElementListItem(parent: dia.Element, element: dia.
 }
 
 export enum ShapeType {
-    Rectangle = 'app.Rectangle',
-    Ellipse = 'app.Ellipse',
-    Triangle = 'app.Triangle'
+    Step = 'app.Step',
+    End = 'app.End',
+    Decision = 'app.Decision'
 }
 
 function getShapePath(shapeType: ShapeType): Element {
-    if (shapeType === ShapeType.Rectangle) {
+
+    if (shapeType === ShapeType.Step) {
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('x', '0');
         rect.setAttribute('y', '0');
@@ -211,7 +199,7 @@ function getShapePath(shapeType: ShapeType): Element {
         rect.setAttribute('width', '30');
         rect.setAttribute('height', '30');
         return rect;
-    } else if (shapeType === ShapeType.Ellipse) {
+    } else if (shapeType === ShapeType.End) {
         const ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
         ellipse.setAttribute('cx', '15');
         ellipse.setAttribute('cy', '15');
@@ -221,7 +209,7 @@ function getShapePath(shapeType: ShapeType): Element {
     }
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', 'M 15 0 L 30 30 L 0 30 Z');
+    path.setAttribute('d', 'M 5 0 H 25 L 30 15 L 25 30 H 5 L 0 15 Z');
     return path;
 }
 

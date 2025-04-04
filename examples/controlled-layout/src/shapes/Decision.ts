@@ -1,20 +1,19 @@
 import { shapes, util } from "@joint/core";
 import { IElement } from ".";
 
-export class Triangle extends shapes.standard.Polygon implements IElement {
-    defaults(): Partial<shapes.standard.PolygonAttributes> {
+export class Decision extends shapes.standard.Path implements IElement {
+    defaults(): Partial<shapes.standard.PathAttributes> {
         return util.defaultsDeep({
-            type: 'app.Triangle',
-            size: { width: 30, height: 30 },
+            type: 'app.Decision',
+            size: { width: 100, height: 30 },
             attrs: {
                 body: {
-                    points: [[15, 0], [30, 30], [0, 30]],
+                    d: 'M 20 0 H calc(w - 20) L calc(w) calc(h / 2) calc(w - 20) calc(h) H 20 L 0 calc(h / 2) Z',
                     stroke: '#333',
                     strokeWidth: 2
                 },
                 label: {
                     fill: "#333",
-                    y: 'calc(h - 5)',
                     fontSize: 10,
                     fontFamily: "sans-serif",
                     style: {
@@ -28,7 +27,7 @@ export class Triangle extends shapes.standard.Polygon implements IElement {
     static create(id?: string) {
         id = id ?? util.uniqueId();
 
-        return new Triangle({
+        return new Decision({
             id,
             attrs: {
                 label: {
@@ -45,6 +44,6 @@ export class Triangle extends shapes.standard.Polygon implements IElement {
 
 Object.assign(shapes, {
     app: {
-        Triangle
+        Decision
     }
 });
