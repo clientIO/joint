@@ -1,6 +1,6 @@
 import { dia, g, mvc } from '@joint/core';
 import { End, Step, Decision, isButton, IElement } from './shapes';
-import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem, addButtonToElement, validChildrenCount } from './utils';
+import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem, validChildrenCount, validateButtons } from './utils';
 import { addEffect, effects, removeEffect } from './effects';
 import { LinkRemoveTool, ElementRemoveTool } from './RemoveTool';
 
@@ -23,7 +23,8 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
         const { paper, graph } = this.context;
 
         this.listenTo(graph, {
-            'add': onAdd
+            'add': onAdd,
+            'remove': onRemove
         })
 
         this.listenTo(paper, {
@@ -37,50 +38,21 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
     }
 }
 
-function onAdd({ graph, paper }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, opt: any) {
-    if (isButton(cell) || opt.preview) return;
+function onAdd({ graph, paper }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, _opt: any) {
+    if (isButton(cell)) return;
 
     closeConnectionsList(paper);
-    if (cell.isLink()) {
-
-        // If the link is created from the UI, check if the source element has reached the max number of children
-        if (opt.uiConnection) {
-            const source = cell.getSourceElement();
-
-            const maxChildren = (source as IElement).getMaxNumberOfChildren();
-            const children = graph.getNeighbors(source, { outbound: true });
-            const currentChildren = validChildrenCount(source, graph);
-
-            if (currentChildren >= maxChildren) {
-                const button = children.find(child => isButton(child));
-                button?.remove();
-            }
-        }
-
-        return;
-    }
-
-    const maxChildren = (cell as IElement).getMaxNumberOfChildren();
-
-    if (maxChildren === 0) return;
-
-    addButtonToElement(cell as dia.Element, graph);
+    validateButtons(graph);
 }
 
-function onLinkConnect({ paper, graph }: ElementControllerArgs, linkView: dia.LinkView) {
-    const { model } = linkView;
+function onRemove({ graph }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, _opt: any) {
+    if (isButton(cell)) return;
 
-    const parent = model.getSourceElement();
+    validateButtons(graph);
+}
 
-    const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
-    const currentChildren = validChildrenCount(parent, graph);
-
-    const button = graph.getNeighbors(parent, { outbound: true }).find(child => isButton(child));
-
-    if (currentChildren >= maxChildren) {
-        button?.remove();
-    }
-
+function onLinkConnect({ paper, graph }: ElementControllerArgs, _linkView: dia.LinkView) {
+    validateButtons(graph);
     runLayout(paper);
 }
 

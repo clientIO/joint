@@ -245,3 +245,22 @@ export function validChildrenCount(element: dia.Element, graph: dia.Graph) {
         return acc + 1;
     }, 0);
 }
+
+export function validateButtons(graph: dia.Graph) {
+
+    for (const element of graph.getElements()) {
+
+        if (isButton(element)) continue;
+
+        const button = graph.getNeighbors(element, { outbound: true }).find(isButton);
+
+        const maxChildren = (element as IElement).getMaxNumberOfChildren();
+        const currentChildren = validChildrenCount(element, graph);
+
+        if (currentChildren < maxChildren && !button) {
+            addButtonToElement(element, graph);
+        } else if (currentChildren >= maxChildren && button) {
+            button.remove();
+        }
+    }
+}

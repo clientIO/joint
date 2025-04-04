@@ -1,6 +1,6 @@
 import { dia, elementTools, linkTools } from "@joint/core";
-import { IElement, isButton } from "./shapes";
-import { addButtonToElement, runLayout, validChildrenCount } from "./utils";
+import { isButton } from "./shapes";
+import { runLayout } from "./utils";
 
 interface ElementRemoveToolOptions extends elementTools.Button.Options {
     disabled?: boolean;
@@ -22,20 +22,15 @@ export class ElementRemoveTool extends elementTools.Remove {
             button?.remove();
 
             const predecessors = graph.getNeighbors(model, { inbound: true });
+            const parent = predecessors[0];
 
             const inboundLinks = graph.getConnectedLinks(model, { inbound: true });
             inboundLinks.forEach((link) => link.remove());
 
-            graph.transferCellConnectedLinks(model, predecessors[0]);
+            const possibleSelfLinks = graph.getConnectedLinks(model, { outbound: true }).filter(link => link.getTargetCell() === parent);
+            possibleSelfLinks.forEach((link) => link.remove());
 
-            predecessors.forEach((predecessor) => {
-                const maxChildren = (predecessor as IElement).getMaxNumberOfChildren();
-                const currentChildren = graph.getNeighbors(predecessor, { outbound: true });
-
-                if (currentChildren.length < maxChildren && !currentChildren.some(isButton)) {
-                    addButtonToElement(predecessor, graph);
-                }
-            });
+            graph.transferCellConnectedLinks(model, parent);
 
             view.model.remove({ ui: true, tool: tool.cid });
 
@@ -58,18 +53,7 @@ export class LinkRemoveTool extends linkTools.Remove {
             if (opt.disabled) return;
 
             const paper = view.paper;
-            const graph = paper.model;
-            const parent = view.model.getSourceElement();
-
             view.model.remove({ ui: true, cid: tool.cid });
-
-            const currentChildren = validChildrenCount(parent, graph);
-
-            const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
-
-            if (currentChildren < maxChildren) {
-                addButtonToElement(parent, graph);
-            }
 
             runLayout(paper);
         }
