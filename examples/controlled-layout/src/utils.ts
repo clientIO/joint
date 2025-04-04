@@ -51,9 +51,21 @@ export function runLayout(paper: dia.Paper) {
         }
     });
 
+    const rankSep = 100;
+
     DirectedGraph.layout([...otherElements, ...otherLinks, ...buttonLinks, ...buttons], {
         disableOptimalOrderHeuristic: true,
-        setVertices: true
+        setVertices: true,
+        align: 'UL',
+        rankSep,
+        setPosition: (el, position) => {
+            let x = position.x - position.width / 2;
+            let y = position.y - position.height / 2;
+            if (isButton(el)) {
+                y -= rankSep / 2 - 10;
+            }
+            el.position(x, y);
+        },
     });
     fitContent(paper);
     paper.unfreeze();
@@ -64,12 +76,12 @@ export function constructGraphLayer(parent: string | dia.Element, children: stri
     let parentElement = typeof parent === 'string' ? graph.getCell(parent) as dia.Element : parent;
 
     if (!parentElement) {
-        parentElement = children.length > 1 ? Triangle.create(parent as string) : Rectangle.create(parent as string);
+        parentElement = children.length > 1 ? Decision.create(parent as string) : Step.create(parent as string);
         graph.addCell(parentElement);
     }
 
     children.forEach(child => {
-        const childElement = graph.getCell(child) as dia.Element ?? Rectangle.create(child);
+        const childElement = graph.getCell(child) as dia.Element ?? Step.create(child);
         graph.addCell(childElement);
 
         const link = makeConnection(parentElement, childElement, graph);
@@ -117,47 +129,10 @@ export function createNewElementListItem(shape: dia.Element, parent: dia.Element
     const item = createListItem(createBlankThumbnail(shape.get('type') satisfies ShapeType));
 
     const graph = paper.model;
-    const previewShape = shape.clone();
-    previewShape.attr('label/text', null);
-
-    let previewButton: dia.Element;
-    let previewLink: dia.Link;
-
-    const rankButton = graph.getNeighbors(parent, { outbound: true }).find(isButton);
-    const rankButtonConnection = graph.getConnectedLinks(rankButton);
-    const maxChildren = (parent as IElement).getMaxNumberOfChildren();
-    const currentChildren = graph.getNeighbors(parent, { outbound: true }).length - 1;
 
     item.addEventListener('click', () => {
-        graph.removeCells([previewShape, previewLink, previewButton]);
         graph.addCell(shape);
         makeConnection(parent, shape, graph);
-        runLayout(paper);
-    });
-
-    item.addEventListener('mouseenter', () => {
-        graph.addCell(previewShape, { preview: true });
-        makeConnection(parent, previewShape, graph, { preview: true });
-        const [link, button] = addButtonToElement(previewShape, graph, { preview: true });
-        previewLink = link as dia.Link;
-        previewButton = button as dia.Element;
-
-        if (currentChildren + 1 >= maxChildren) {
-            rankButton?.remove();
-        }
-
-        runLayout(paper);
-        addEffect(previewShape.findView(paper) as dia.ElementView, effects.CONNECTION_TARGET);
-    });
-
-    item.addEventListener('mouseleave', () => {
-        removeEffect(paper, effects.CONNECTION_TARGET);
-        graph.removeCells([previewShape, previewLink, previewButton]);
-
-        if (currentChildren < maxChildren) {
-            graph.addCells([rankButton, ...rankButtonConnection], { preview: true });
-        }
-
         runLayout(paper);
     });
 
