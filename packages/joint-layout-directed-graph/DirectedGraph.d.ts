@@ -1,4 +1,5 @@
 import { dia, g } from '@joint/core';
+import type { graphlib, configUnion } from '@dagrejs/dagre';
 
 export namespace DirectedGraph {
 
@@ -16,6 +17,11 @@ export namespace DirectedGraph {
         height?: number;
     }
 
+    interface DagreNodeProperties {
+        order?: number;
+        rank?: number;
+    }
+
     interface LayoutOptions extends ImportOptions, ExportOptions {
         align?: 'UR' | 'UL' | 'DR' | 'DL';
         rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
@@ -29,6 +35,7 @@ export namespace DirectedGraph {
         clusterPadding?: dia.Padding;
         debugTiming?: boolean;
         disableOptimalOrderHeuristic?: boolean;
+        customOrder?: (dagreGraph: graphlib.Graph<DagreNodeProperties>, graph: dia.Graph, order: (graph: graphlib.Graph<DagreNodeProperties>, opts?: configUnion) => void) => void;
     }
 
     interface ImportOptions {

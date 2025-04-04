@@ -163,7 +163,10 @@ export const DirectedGraph = {
         // Executes the layout.
         dagreUtil.layout(glGraph, { 
             debugTiming: !!opt.debugTiming,
-            disableOptimalOrderHeuristic: opt.disableOptimalOrderHeuristic
+            disableOptimalOrderHeuristic: opt.disableOptimalOrderHeuristic,
+            customOrder: opt.customOrder ? (dagreGraph, order) => {
+                opt.customOrder(dagreGraph, graph, order);
+            } : undefined
         });
 
         // Wrap all graph changes into a batch.
