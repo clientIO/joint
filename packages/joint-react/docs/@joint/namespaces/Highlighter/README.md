@@ -20,8 +20,6 @@ import { Highlighter } from '@joint/react'
 return <Highlighter.Opacity />
 ```
 
-*
-
 ```tsx
 import { Highlighter } from '@joint/react'
 return <Highlighter.Stroke />
@@ -32,7 +30,7 @@ import { Highlighter } from '@joint/react'
 return <Highlighter.Custom />
 ```
 
-## Variables
+## Components
 
 - [Custom](variables/Custom.md)
 - [Mask](variables/Mask.md)

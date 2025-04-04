@@ -6,7 +6,7 @@
 
 # Class: ReactElement\<Attributes\>
 
-Defined in: [joint-react/src/models/react-element.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L10)
+Defined in: [joint-react/src/models/react-element.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L11)
 
 A custom JointJS element that can render React components.
 
@@ -409,7 +409,7 @@ Defined in: [joint-core/types/joint.d.ts:488](https://github.com/samuelgja/joint
 
 > **defaults**(): `Attributes` & `Attributes`
 
-Defined in: [joint-react/src/models/react-element.tsx:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L17)
+Defined in: [joint-react/src/models/react-element.tsx:18](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L18)
 
 Sets the default attributes for the ReactElement.
 
@@ -2809,7 +2809,7 @@ Defined in: [joint-core/types/joint.d.ts:3249](https://github.com/samuelgja/join
 
 > **markup**: `string` \| `MarkupJSON` = `elementMarkup`
 
-Defined in: [joint-react/src/models/react-element.tsx:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L31)
+Defined in: [joint-react/src/models/react-element.tsx:32](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L32)
 
 #### Overrides
 

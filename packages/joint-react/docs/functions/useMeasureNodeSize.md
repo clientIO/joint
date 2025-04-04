@@ -8,7 +8,7 @@
 
 > **useMeasureNodeSize**\<`AnyHtmlOrSvgElement`\>(`elementRef`, `options`?): `void`
 
-Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L36)
+Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:37](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L37)
 
 Function to measure (update) node (element) `width` and `height` based on the provided element ref.
 Returns new created function to set the ref.
@@ -28,9 +28,13 @@ Ref must be just a reference to the HTML or SVG element.
 
 `RefObject`\<`null` \| `AnyHtmlOrSvgElement`\>
 
+The ref to the element to measure.
+
 ### options?
 
 [`MeasureNodeOptions`](../interfaces/MeasureNodeOptions.md)
+
+The options for the hook.
 
 ## Returns
 

@@ -68,5 +68,10 @@ function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGEleme
  * Adds a stroke around an arbitrary cell view's SVG node.
  * @see https://docs.jointjs.com/api/highlighters/#mask
  * @group Components
+ * @example
+ * ```tsx
+ * import { Highlighter } from '@joint/react'
+ * return <Highlighter.Mask />
+ * ```
  */
 export const Mask: FC<MaskHighlighterProps> = forwardRef(Component);

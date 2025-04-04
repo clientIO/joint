@@ -78,5 +78,10 @@ function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGEle
  * Adds a stroke around an arbitrary cell view's SVG node.
  * @see https://docs.jointjs.com/api/highlighters/#stroke
  * @group Components
+ * @example
+ * ```tsx
+ * import { Highlighter } from '@joint/react'
+ * return <Highlighter.Stroke />
+ * ```
  */
 export const Stroke: FC<StrokeHighlighterProps> = forwardRef(Component);

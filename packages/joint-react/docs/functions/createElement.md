@@ -8,7 +8,9 @@
 
 > **createElement**\<`Attributes`\>(`options`?): [`ReactElement`](../classes/ReactElement.md)\<\{ `angle`: `number`; `attrs`: `Selectors`; `markup`: `string` \| `MarkupJSON`; `ports`: \{ `groups`: \{\}; `items`: `Port`[]; \}; `position`: `PlainPoint`; `size`: `Size`; `z`: `number`; \}\>
 
-Defined in: [joint-react/src/models/react-element.tsx:34](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L34)
+Defined in: [joint-react/src/models/react-element.tsx:41](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/models/react-element.tsx#L41)
+
+Creates a new ReactElement instance.
 
 ## Type Parameters
 
@@ -22,6 +24,10 @@ Defined in: [joint-react/src/models/react-element.tsx:34](https://github.com/sam
 
 `Attributes` & `Attributes`
 
+The attributes for the ReactElement.
+
 ## Returns
 
 [`ReactElement`](../classes/ReactElement.md)\<\{ `angle`: `number`; `attrs`: `Selectors`; `markup`: `string` \| `MarkupJSON`; `ports`: \{ `groups`: \{\}; `items`: `Port`[]; \}; `position`: `PlainPoint`; `size`: `Size`; `z`: `number`; \}\>
+
+A new ReactElement instance.

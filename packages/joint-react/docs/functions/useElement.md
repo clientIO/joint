@@ -8,14 +8,14 @@
 
 > **useElement**\<`Data`, `Element`, `ReturnedElements`\>(`selector`, `isEqual`): `ReturnedElements`
 
-Defined in: [joint-react/src/hooks/use-element.ts:39](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element.ts#L39)
+Defined in: [joint-react/src/hooks/use-element.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element.ts#L35)
 
 A hook to access a specific graph element from the Paper context.
 It must be used inside a PaperProvider.
 This hook returns the selected element based on its cell id. It accepts:
- - a selector function, which extracts the desired part from the element.
-   (By default, it returns the entire element.)
- - an optional `isEqual` function, used to determine if the selected value has changed.
+- a selector function, which extracts the desired part from the element.
+(By default, it returns the entire element.)
+- an optional `isEqual` function, used to determine if the selected value has changed.
 
 How it works:
 1. The hook retrieves the cell id using `useCellId`.

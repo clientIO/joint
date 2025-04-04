@@ -43,5 +43,10 @@ function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGEl
  * Changes the opacity of an arbitrary cell view's SVG node.
  * @see https://docs.jointjs.com/api/highlighters/#opacity
  * @group Components
+ * @example
+ * ```tsx
+ * import { Highlighter } from '@joint/react'
+ * return <Highlighter.Opacity />
+ * ```
  */
 export const Opacity: FC<OpacityHighlighterProps> = forwardRef(Component);

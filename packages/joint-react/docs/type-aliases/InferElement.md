@@ -8,7 +8,7 @@
 
 > **InferElement**\<`T`\> = `T` *extends* infer U[] ? [`Readonly`](https://www.typescriptlang.org/docs/handbook/utility-types.html#readonlytype)\<`U`\> : `never`
 
-Defined in: [joint-react/src/utils/create.ts:49](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L49)
+Defined in: [joint-react/src/utils/create.ts:48](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L48)
 
 Infer element based on typeof createElements
 

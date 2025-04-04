@@ -15,36 +15,51 @@ It provides additional utility methods for working with working with nodes & edg
 
 - [`Map`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map)\<`dia.Cell.ID`, `V`\>
 
-## Extended by
-
-- [`GraphElements`](GraphElements.md)
-- [`GraphLinks`](GraphLinks.md)
-
 ## Type Parameters
 
 ### V
 
-`V` *extends* `ItemBase`
+`V` *extends* [`CellBase`](../interfaces/CellBase.md)
 
 ## Constructors
 
 ### new CellMap()
 
-> **new CellMap**\<`V`\>(`items`?): `CellMap`\<`V`\>
+> **new CellMap**\<`V`\>(`entries`?): `CellMap`\<`V`\>
 
-Defined in: [joint-react/src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
+Defined in: joint-react/node\_modules/typescript/lib/lib.es2015.collection.d.ts:50
 
 #### Parameters
 
-##### items?
+##### entries?
 
-`V`[]
+`null` | readonly readonly \[`ID`, `V`\][]
 
 #### Returns
 
 `CellMap`\<`V`\>
 
-#### Overrides
+#### Inherited from
+
+`Map<dia.Cell.ID, V>.constructor`
+
+### new CellMap()
+
+> **new CellMap**\<`V`\>(`iterable`?): `CellMap`\<`V`\>
+
+Defined in: joint-react/node\_modules/typescript/lib/lib.es2015.collection.d.ts:49
+
+#### Parameters
+
+##### iterable?
+
+`null` | [`Iterable`](https://www.typescriptlang.org/docs/handbook/iterators-and-generators.html#iterable-interface)\<readonly \[`ID`, `V`\], `any`, `any`\>
+
+#### Returns
+
+`CellMap`\<`V`\>
+
+#### Inherited from
 
 `Map<dia.Cell.ID, V>.constructor`
 
@@ -54,7 +69,7 @@ Defined in: [joint-react/src/utils/cell/cell-map.ts:14](https://github.com/samue
 
 > **filter**(`predicate`): `V`[]
 
-Defined in: [joint-react/src/utils/cell/cell-map.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L31)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:18](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L18)
 
 #### Parameters
 
@@ -72,7 +87,7 @@ Defined in: [joint-react/src/utils/cell/cell-map.ts:31](https://github.com/samue
 
 > **map**\<`Item`\>(`selector`): `Item`[]
 
-Defined in: [joint-react/src/utils/cell/cell-map.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L27)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L14)
 
 #### Type Parameters
 
@@ -96,7 +111,7 @@ Defined in: [joint-react/src/utils/cell/cell-map.ts:27](https://github.com/samue
 
 > **toJSON**(): `string`
 
-Defined in: [joint-react/src/utils/cell/cell-map.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L35)
+Defined in: [joint-react/src/utils/cell/cell-map.ts:22](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/cell/cell-map.ts#L22)
 
 #### Returns
 

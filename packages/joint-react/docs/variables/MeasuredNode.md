@@ -8,7 +8,7 @@
 
 > `const` **MeasuredNode**: `NamedExoticComponent`\<[`MeasuredNodeProps`](../interfaces/MeasuredNodeProps.md) & `RefAttributes`\<[`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement) \| [`SVGAElement`](https://developer.mozilla.org/docs/Web/API/SVGAElement)\>\>
 
-Defined in: [joint-react/src/components/measured-node/measured-node.tsx:80](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L80)
+Defined in: [joint-react/src/components/measured-node/measured-node.tsx:79](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/measured-node/measured-node.tsx#L79)
 
 Measured node component automatically detects the size of its `children` and updates the graph element (node) width and height automatically when elements resize.
 

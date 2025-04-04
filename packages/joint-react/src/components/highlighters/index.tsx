@@ -44,8 +44,53 @@ const Component = {
  * ```
  */
 export namespace Highlighter {
+  /**
+   * Mask highlighter component.
+   * Adds a stroke around an arbitrary cell view's SVG node.
+   * @see https://docs.jointjs.com/api/highlighters/#mask
+   * @group Components
+   * @example
+   * ```tsx
+   * import { Highlighter } from '@joint/react'
+   * return <Highlighter.Mask />
+   * ```
+   */
   export const Mask = Component.Mask;
+  /**
+   * Opacity highlighter component.
+   * Changes the opacity of an arbitrary cell view's SVG node.
+   * @see https://docs.jointjs.com/api/highlighters/#opacity
+   * @group Components
+   * @example
+   * ```tsx
+   * import { Highlighter } from '@joint/react'
+   * return <Highlighter.Opacity />
+   * ```
+   */
   export const Opacity = Component.Opacity;
+  /**
+   * Stroke highlighter component.
+   * Adds a stroke around an arbitrary cell view's SVG node.
+   * @see https://docs.jointjs.com/api/highlighters/#stroke
+   * @group Components
+   * @example
+   * ```tsx
+   * import { Highlighter } from '@joint/react'
+   * return <Highlighter.Stroke />
+   * ```
+   */
   export const Stroke = Component.Stroke;
+
+  /**
+   * Custom highlighter component.
+   * Allows to create a custom highlighter.
+   * @group Components
+   * @example
+   * ```tsx
+   * import { Highlighter } from '@joint/react'
+   * return <Highlighter.Custom />
+   * ```
+   */
+
   export const Custom = Component.Custom;
 }

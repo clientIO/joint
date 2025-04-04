@@ -8,12 +8,11 @@
 
 > **useElementEffect**(`idOrIds`, `onChange`, `dependencies`): `void`
 
-Defined in: [joint-react/src/hooks/use-element-effect.ts:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element-effect.ts#L36)
+Defined in: [joint-react/src/hooks/use-element-effect.ts:33](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element-effect.ts#L33)
 
 **`Experimental`**
 
 Custom effect hook to trigger change for the elements based on the dependencies list. Similar how react useEffect works.
-
  This may be removed or changed in the future as we are not sure if this is the best approach.
 
 ## Parameters

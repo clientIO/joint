@@ -6,7 +6,7 @@
 
 # Interface: GraphLink
 
-Defined in: [joint-react/src/types/link-types.ts:56](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L56)
+Defined in: [joint-react/src/types/link-types.ts:55](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L55)
 
 Base interface for graph link.
 It's a subset of `dia.Link` with some additional properties.
@@ -42,7 +42,7 @@ Defined in: [joint-core/types/joint.d.ts:690](https://github.com/samuelgja/joint
 
 > `readonly` `optional` **attrs**: `unknown`
 
-Defined in: [joint-react/src/types/link-types.ts:52](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L52)
+Defined in: [joint-react/src/types/link-types.ts:51](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L51)
 
 Attributes of the element.
 
@@ -68,7 +68,7 @@ Defined in: [joint-core/types/joint.d.ts:691](https://github.com/samuelgja/joint
 
 > `readonly` `optional` **defaultLabel**: `Label`
 
-Defined in: [joint-react/src/types/link-types.ts:47](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L47)
+Defined in: [joint-react/src/types/link-types.ts:46](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L46)
 
 Optional link attrs.
 
@@ -82,7 +82,7 @@ Optional link attrs.
 
 > `readonly` **id**: `ID`
 
-Defined in: [joint-react/src/types/link-types.ts:23](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L23)
+Defined in: [joint-react/src/types/link-types.ts:22](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L22)
 
 Unique identifier of the link.
 
@@ -96,7 +96,7 @@ Unique identifier of the link.
 
 > `readonly` **isElement**: `false`
 
-Defined in: [joint-react/src/types/link-types.ts:60](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L60)
+Defined in: [joint-react/src/types/link-types.ts:59](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L59)
 
 Flag to distinguish between elements and links.
 
@@ -106,7 +106,7 @@ Flag to distinguish between elements and links.
 
 > `readonly` **isLink**: `true`
 
-Defined in: [joint-react/src/types/link-types.ts:64](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L64)
+Defined in: [joint-react/src/types/link-types.ts:63](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L63)
 
 Flag to distinguish between elements and links.
 
@@ -128,7 +128,7 @@ Defined in: [joint-core/types/joint.d.ts:687](https://github.com/samuelgja/joint
 
 > `readonly` `optional` **markup**: `MarkupJSON`
 
-Defined in: [joint-react/src/types/link-types.ts:43](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L43)
+Defined in: [joint-react/src/types/link-types.ts:42](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L42)
 
 Optional link markup.
 
@@ -176,9 +176,9 @@ Defined in: [joint-core/types/joint.d.ts:688](https://github.com/samuelgja/joint
 
 ### source
 
-> `readonly` **source**: `ID`
+> `readonly` **source**: `EndJSON` \| `ID`
 
-Defined in: [joint-react/src/types/link-types.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L27)
+Defined in: [joint-react/src/types/link-types.ts:26](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L26)
 
 Source element id.
 
@@ -190,9 +190,9 @@ Source element id.
 
 ### target
 
-> `readonly` **target**: `ID`
+> `readonly` **target**: `EndJSON` \| `ID`
 
-Defined in: [joint-react/src/types/link-types.ts:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L31)
+Defined in: [joint-react/src/types/link-types.ts:30](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L30)
 
 Target element id.
 
@@ -206,7 +206,7 @@ Target element id.
 
 > `readonly` `optional` **type**: `string`
 
-Defined in: [joint-react/src/types/link-types.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L35)
+Defined in: [joint-react/src/types/link-types.ts:34](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L34)
 
 Optional link type.
 
@@ -244,7 +244,7 @@ Defined in: [joint-core/types/joint.d.ts:698](https://github.com/samuelgja/joint
 
 > `readonly` `optional` **z**: `number`
 
-Defined in: [joint-react/src/types/link-types.ts:39](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L39)
+Defined in: [joint-react/src/types/link-types.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L38)
 
 Z index of the link.
 

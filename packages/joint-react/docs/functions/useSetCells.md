@@ -32,3 +32,5 @@ Function to set cells in the graph.
 `void`
 
 ## Deprecated
+
+use graph directly instead or `useSetElement` for a specific element.

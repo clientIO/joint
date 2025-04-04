@@ -11,15 +11,13 @@
 - [MeasuredNode](variables/MeasuredNode.md)
 - [Paper](variables/Paper.md)
 - [GraphProvider](functions/GraphProvider.md)
-- [PaperProvider](functions/PaperProvider.md)
 
 ## Hooks
 
-- [useCellId](functions/useCellId.md)
-- [useCreateGraphStore](functions/useCreateGraphStore.md)
 - [useElementEffect](functions/useElementEffect.md)
 - [useElements](functions/useElements.md)
 - [useGraph](functions/useGraph.md)
+- [useLinks](functions/useLinks.md)
 - [useMeasureNodeSize](functions/useMeasureNodeSize.md)
 - [~~useSetCells~~](functions/useSetCells.md)
 - [useSetElement](functions/useSetElement.md)
@@ -27,6 +25,7 @@
 ## Models
 
 - [ReactElement](classes/ReactElement.md)
+- [createElement](functions/createElement.md)
 
 ## Utils
 
@@ -36,19 +35,18 @@
 - [createLinks](functions/createLinks.md)
 - [updateGraph](functions/updateGraph.md)
 
+## Components
+ This feature is experimental and may change in the future.
+
+- [Port](@joint/namespaces/Port/README.md)
+
 ## Functions
 
-- [createElement](functions/createElement.md)
-- [isReactElement](functions/isReactElement.md)
 - [jsx](functions/jsx.md)
 - [useElement](functions/useElement.md)
-- [useLinks](functions/useLinks.md)
-- [useStore](functions/useStore.md)
 
 ## Graph
 
-- [GraphElements](classes/GraphElements.md)
-- [GraphLinks](classes/GraphLinks.md)
 - [GraphElement](interfaces/GraphElement.md)
 - [GraphElementBase](interfaces/GraphElementBase.md)
 - [GraphElementItem](interfaces/GraphElementItem.md)
@@ -66,18 +64,20 @@ const paper = usePaper();
 ## Interfaces
 
 - [BaseAttributes](interfaces/BaseAttributes.md)
+- [CellBase](interfaces/CellBase.md)
 - [CellWithId](interfaces/CellWithId.md)
 - [CustomHighlighterProps](interfaces/CustomHighlighterProps.md)
 - [GraphProps](interfaces/GraphProps.md)
-- [GraphStore](interfaces/GraphStore.md)
 - [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
 - [MeasuredNodeProps](interfaces/MeasuredNodeProps.md)
 - [MeasureNodeOptions](interfaces/MeasureNodeOptions.md)
 - [OnSetOptions](interfaces/OnSetOptions.md)
 - [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
+- [PaperContext](interfaces/PaperContext.md)
 - [PaperProps](interfaces/PaperProps.md)
-- [PaperProviderProps](interfaces/PaperProviderProps.md)
-- [Store](interfaces/Store.md)
+- [PortGroupProps](interfaces/PortGroupProps.md)
+- [PortProps](interfaces/PortProps.md)
+- [StoreContext](interfaces/StoreContext.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
 
 ## Type Aliases
@@ -94,5 +94,15 @@ const paper = usePaper();
 
 ## Variables
 
-- [DEFAULT\_CELL\_NAMESPACE](variables/DEFAULT_CELL_NAMESPACE.md)
 - [REACT\_TYPE](variables/REACT_TYPE.md)
+
+## context
+
+- [CellIdContext](variables/CellIdContext.md)
+- [GraphStoreContext](variables/GraphStoreContext.md)
+- [PaperContext](variables/PaperContext.md)
+- [ToolsViewContext](variables/ToolsViewContext.md)
+
+## hooks
+
+- [useCellId](functions/useCellId.md)

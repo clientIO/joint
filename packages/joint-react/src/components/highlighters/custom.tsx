@@ -85,5 +85,10 @@ const ForwardedComponent = forwardRef(RawComponent);
  * Custom highlighter component.
  * Allows to create a custom highlighter.
  * @group Components
+ * @example
+ * ```tsx
+ * import { Highlighter } from '@joint/react'
+ * return <Highlighter.Custom />
+ * ```
  */
 export const Custom = typedMemo(ForwardedComponent);

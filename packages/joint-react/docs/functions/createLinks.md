@@ -8,7 +8,7 @@
 
 > **createLinks**\<`Link`, `Type`\>(`data`): `Link` & [`GraphLink`](../interfaces/GraphLink.md)[]
 
-Defined in: [joint-react/src/utils/create.ts:64](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L64)
+Defined in: [joint-react/src/utils/create.ts:63](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L63)
 
 Create links helper function.
 

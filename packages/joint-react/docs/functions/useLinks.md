@@ -8,14 +8,14 @@
 
 > **useLinks**\<`Link`, `SelectorReturnType`\>(`selector`, `isEqual`): `SelectorReturnType`
 
-Defined in: [joint-react/src/hooks/use-links.ts:42](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-links.ts#L42)
+Defined in: [joint-react/src/hooks/use-links.ts:54](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-links.ts#L54)
 
 A hook to access the graph store's links.
 
 This hook returns the selected links from the graph store. It accepts:
- - a selector function, which extracts the desired portion from the links map.
-   (By default, it returns all links.)
- - an optional `isEqual` function, used to compare previous and new values to prevent unnecessary re-renders.
+- a selector function, which extracts the desired portion from the links map.
+(By default, it returns all links.)
+- an optional `isEqual` function, used to compare previous and new values to prevent unnecessary re-renders.
 
 How it works:
 1. The hook subscribes to the links of the graph store.
@@ -38,19 +38,19 @@ How it works:
 
 (`items`) => `SelectorReturnType`
 
-The selector function to pick links.
+A function to select a portion of the links.
 
 ### isEqual
 
 (`a`, `b`) => `boolean`
 
-The function to compare equality.
+A function to compare the previous and new values.
 
 ## Returns
 
 `SelectorReturnType`
 
-The selected links.
+- The selected links.
 
 ## Examples
 
@@ -64,22 +64,10 @@ const links = useLinks();
 const linkIds = useLinks((links) => links.map(link => link.id));
 ```
 
-```ts
 // Using with a custom isEqual function:
+```ts
 const filteredLinks = useLinks(
   (links) => links,
   (prev, next) => prev.length === next.length
 );
-```
-
-## Default
-
-```ts
-defaultLinksSelector
-```
-
-## Default
-
-```ts
-util.isEqual
 ```

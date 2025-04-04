@@ -8,22 +8,21 @@
 
 > **useElements**\<`Elements`, `SelectorReturnType`\>(`selector`, `isEqual`): `SelectorReturnType`
 
-Defined in: [joint-react/src/hooks/use-elements.ts:60](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-elements.ts#L60)
+Defined in: [joint-react/src/hooks/use-elements.ts:59](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-elements.ts#L59)
 
 A hook to access `dia.graph` elements
 
 This hook returns the selected elements from the graph store. It accepts:
- - a selector function, which extracts the desired portion from the elements map.
-   (By default, it returns the `GraphElements` map.)
- - an optional `isEqual` function, used to compare previous and new values—ensuring
-   the component only re-renders when necessary.
+- a selector function, which extracts the desired portion from the elements map.
+- an optional `isEqual` function, used to compare previous and new values—ensuring
+the component only re-renders when necessary.
 
 How it works:
 1. The hook subscribes to the elements of the graph store.
 2. It fetches the elements from the store and then applies the selector.
 3. To avoid unnecessary re-renders (especially since the selector could produce new
-   references on each call), the `isEqual` comparator (defaulting to a deep comparison)
-   checks if the selected value really changed.
+references on each call), the `isEqual` comparator (defaulting to a deep comparison)
+checks if the selected value really changed.
 
 ## Type Parameters
 
@@ -41,19 +40,19 @@ How it works:
 
 (`items`) => `SelectorReturnType`
 
-The selector function to pick elements.
+A function to select a portion of the elements.
 
 ### isEqual
 
 (`a`, `b`) => `boolean`
 
-The function used to decide equality.
+A function to compare the previous and new values.
 
 ## Returns
 
 `SelectorReturnType`
 
-The selected elements.
+- The selected elements.
 
 ## Examples
 
@@ -78,16 +77,4 @@ const elementLength = useElements(
   (elements) => elements,
   (prev, next) => prev.size === next.size
 );
-```
-
-## Default
-
-```ts
-(items) => items.map((item) => item)
-```
-
-## Default
-
-```ts
-util.isEqual
 ```
