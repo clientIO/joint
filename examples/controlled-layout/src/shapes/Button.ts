@@ -17,6 +17,7 @@ export class Button extends shapes.standard.Circle {
                 },
                 label: {
                     pointerEvents: 'none',
+                    fill: 'gray',
                     fontWeight: 'bold',
                     text: '+',
                     y: 10

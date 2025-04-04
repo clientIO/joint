@@ -1,6 +1,6 @@
-import { dia, g, mvc } from '@joint/core';
+import { dia, linkTools, util, mvc } from '@joint/core';
 import { End, Step, Decision, isButton, IElement } from './shapes';
-import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem, validChildrenCount, validateButtons } from './utils';
+import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem, validChildrenCount } from './utils';
 import { addEffect, effects, removeEffect } from './effects';
 import { LinkRemoveTool, ElementRemoveTool } from './RemoveTool';
 
@@ -23,8 +23,7 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
         const { paper, graph } = this.context;
 
         this.listenTo(graph, {
-            'add': onAdd,
-            'remove': onRemove
+            'add': onAdd
         })
 
         this.listenTo(paper, {
@@ -38,21 +37,13 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
     }
 }
 
-function onAdd({ graph, paper }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, _opt: any) {
+function onAdd({ paper }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, _opt: any) {
     if (isButton(cell)) return;
 
     closeConnectionsList(paper);
-    validateButtons(graph);
 }
 
-function onRemove({ graph }: ElementControllerArgs, cell: dia.Cell, _collection: mvc.Collection, _opt: any) {
-    if (isButton(cell)) return;
-
-    validateButtons(graph);
-}
-
-function onLinkConnect({ paper, graph }: ElementControllerArgs, _linkView: dia.LinkView) {
-    validateButtons(graph);
+function onLinkConnect({ paper }: ElementControllerArgs, _linkView: dia.LinkView) {
     runLayout(paper);
 }
 
@@ -60,6 +51,7 @@ function onLinkConnect({ paper, graph }: ElementControllerArgs, _linkView: dia.L
 function onLinkPointerClick({ paper, graph }: ElementControllerArgs, linkView: dia.LinkView) {
     paper.removeTools();
 
+    const source = linkView.model.getSourceElement();
     const target = linkView.model.getTargetElement();
 
     // Don't show remove tool if the target is a button
@@ -67,10 +59,34 @@ function onLinkPointerClick({ paper, graph }: ElementControllerArgs, linkView: d
 
     const removeTool = new LinkRemoveTool({
         distance: '50%',
+        offset: 20,
         disabled: isBridge(graph, linkView.model)
     });
+
+    const intermediateChildTool = new linkTools.Button({
+        attributes: {
+            cursor: 'pointer'
+        },
+        markup: util.svg/* xml */`
+            <circle r="10" fill="#fff" stroke="gray"  />
+            <path d="M -4 0 4 0 M 0 -4 0 4" stroke="gray" stroke-width="2" />
+        `,
+        distance: '50%',
+        action: (_evt, view) => {
+
+            const { x, y } = paper.localToPagePoint(view.getPointAtRatio(0.5));
+            // Open the connections list at the buttons's position
+            connectionsList.style.left = `${x}px`;
+            connectionsList.style.top = `${y}px`;
+            const scale = paper.scale().sx;
+            const clampedScale = Math.max(0.75, Math.min(scale, 1.25));
+            connectionsList.style.transform = `scale(${clampedScale}) translate(-50%, -50%)`;
+            openConnectionsList(paper, source, target);
+        },
+    });
+
     linkView.addTools(new dia.ToolsView({
-        tools: [removeTool]
+        tools: [removeTool, intermediateChildTool]
     }));
 }
 
@@ -116,7 +132,17 @@ function onElementPointerClick({ paper, graph }: ElementControllerArgs, elementV
         return;
     }
 
-    openConnectionsList(paper, parent, model.getBBox());
+    // Open the connections list at the buttons's position
+    const { x } = paper.localToPagePoint(model.getBBox().center());
+    const { y } = paper.localToPagePoint(model.getBBox().topLeft());
+    connectionsList.style.left = `${x}px`;
+    connectionsList.style.top = `${y}px`;
+    const scale = paper.scale().sx;
+    const clampedScale = Math.max(0.75, Math.min(scale, 1.25));
+    connectionsList.style.transform = `scale(${clampedScale}) translate(-50%, 0)`;
+
+    addEffect(parent.findView(paper), effects.CONNECTION_SOURCE);
+    openConnectionsList(paper, parent);
 }
 
 function onCellHighlight(_context: ElementControllerArgs, cellView: dia.CellView, _node: SVGElement, { type }: { type: dia.CellView.Highlighting }) {
@@ -133,19 +159,10 @@ function onCellUnhighlight({ paper }: ElementControllerArgs, _cellView: dia.Cell
 
 const connectionsList = document.querySelector<HTMLDivElement>('#connections-list')!;
 
-function openConnectionsList(paper: dia.Paper, parent: dia.Element, buttonBBox: g.Rect) {
+function openConnectionsList(paper: dia.Paper, parent: dia.Element, insertBefore?: dia.Element) {
 
-    // Open the connections list at the buttons's position
-    const { x } = paper.localToPagePoint(buttonBBox.center());
-    const { y } = paper.localToPagePoint(buttonBBox.topLeft());
-    connectionsList.style.left = `${x}px`;
-    connectionsList.style.top = `${y}px`;
-    const scale = paper.scale().sx;
-    const clampedScale = Math.max(0.75, Math.min(scale, 1.25));
-    connectionsList.style.transform = `scale(${clampedScale}) translate(-50%, 0)`;
+    closeConnectionsList(paper);
     connectionsList.style.display = 'block';
-
-    addEffect(parent.findView(paper), effects.CONNECTION_SOURCE);
 
     const graph = paper.model;
 
@@ -157,13 +174,16 @@ function openConnectionsList(paper: dia.Paper, parent: dia.Element, buttonBBox: 
     const addElementList = document.createElement('div');
     addElementList.classList.add('element-list');
 
-    const newStepItem = createNewElementListItem(Step.create(), parent, paper);
-    const newEndItem = createNewElementListItem(End.create(), parent, paper);
-    const newDecisionItem = createNewElementListItem(Decision.create(), parent, paper);
+    const newStepItem = createNewElementListItem(Step.create(), parent, paper, insertBefore);
+    const newDecisionItem = createNewElementListItem(Decision.create(), parent, paper, insertBefore);
 
     addElementList.appendChild(newStepItem);
-    addElementList.appendChild(newEndItem);
     addElementList.appendChild(newDecisionItem);
+
+    if (!insertBefore) {
+        const newEndItem = createNewElementListItem(End.create(), parent, paper, insertBefore);
+        addElementList.appendChild(newEndItem);
+    }
 
     connectionsList.appendChild(addElementList);
 
@@ -176,7 +196,8 @@ function openConnectionsList(paper: dia.Paper, parent: dia.Element, buttonBBox: 
         .filter((element) => !isButton(element) && element.id !== parent.id)
         .filter((element) => !intermediateChildren.some(child => child.id === element.id));
 
-    if (elements.length === 0) return;
+    // No elements to connect to or element is being inserted between two elements
+    if (elements.length === 0 || insertBefore) return;
 
     const connectionsSubtitle = document.createElement('h3');
     connectionsSubtitle.textContent = 'Make connection to:';

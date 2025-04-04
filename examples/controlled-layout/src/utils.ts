@@ -19,6 +19,7 @@ export function fitContent(paper: dia.Paper) {
 
 export function runLayout(paper: dia.Paper) {
     paper.freeze();
+    validateButtons(paper.model);
     const elements = paper.model.getElements();
 
     const otherElements: dia.Element[] = [];
@@ -102,12 +103,6 @@ export function makeConnection(source: dia.Element, target: dia.Element, graph: 
 }
 
 export function addButtonToElement(element: dia.Element, graph: dia.Graph, opt: any = {}) {
-
-    const maxChildren = (element as IElement).getMaxNumberOfChildren();
-    const currentChildren = graph.getNeighbors(element, { outbound: true }).length;
-
-    if (currentChildren >= maxChildren) return [null, null];
-
     const button = new Button();
     graph.addCell(button, opt);
     const link = makeConnection(element, button, graph, opt);
@@ -115,7 +110,6 @@ export function addButtonToElement(element: dia.Element, graph: dia.Graph, opt: 
 }
 
 export function createListItem(thumbnail: SVGSVGElement, label: string) {
-
     const item = document.createElement('div');
     item.classList.add('connection-list-item');
     item.appendChild(thumbnail);
@@ -126,7 +120,7 @@ export function createListItem(thumbnail: SVGSVGElement, label: string) {
     return item;
 }
 
-export function createNewElementListItem(shape: dia.Element, parent: dia.Element, paper: dia.Paper) {
+export function createNewElementListItem(shape: dia.Element, parent: dia.Element, paper: dia.Paper, insertBefore?: dia.Element) {
     const label = shape.get('type').split('.').pop();
     const item = createListItem(createBlankThumbnail(shape.get('type') satisfies ShapeType), label);
 
@@ -134,6 +128,11 @@ export function createNewElementListItem(shape: dia.Element, parent: dia.Element
 
     item.addEventListener('click', () => {
         graph.addCell(shape);
+        if (insertBefore) {
+            const link = graph.getConnectedLinks(parent, { outbound: true }).find(el => el.getTargetCell() === insertBefore);
+            link?.remove();
+            makeConnection(shape, insertBefore, graph);
+        }
         makeConnection(parent, shape, graph);
         runLayout(paper);
     });
@@ -250,17 +249,16 @@ export function validateButtons(graph: dia.Graph) {
 
     for (const element of graph.getElements()) {
 
-        if (isButton(element)) continue;
-
-        const button = graph.getNeighbors(element, { outbound: true }).find(isButton);
+        if (isButton(element)) {
+            element.remove();
+            continue;
+        }
 
         const maxChildren = (element as IElement).getMaxNumberOfChildren();
         const currentChildren = validChildrenCount(element, graph);
 
-        if (currentChildren < maxChildren && !button) {
+        if (currentChildren < maxChildren) {
             addButtonToElement(element, graph);
-        } else if (currentChildren >= maxChildren && button) {
-            button.remove();
         }
     }
 }
