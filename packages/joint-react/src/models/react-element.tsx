@@ -32,6 +32,12 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
   markup: string | dia.MarkupJSON = elementMarkup;
 }
 
+/**
+ * Creates a new ReactElement instance.
+ * @param options - The attributes for the ReactElement.
+ * @returns A new ReactElement instance.
+ * @group Models
+ */
 export function createElement<Attributes = dia.Element.Attributes>(
   options?: Attributes & dia.Element.Attributes
 ) {

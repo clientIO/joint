@@ -10,7 +10,7 @@
   "scripts": {
     "code-check": "yarn run typecheck && yarn run lint && yarn run test && yarn run format",
     "typecheck": "tsc --noEmit",
-    "lint": "yarn eslint \"**/*.{ts,tsx}\" --fix",
+    "lint": "yarn eslint \"**/*.{ts,tsx}\"",
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
     "test": "yarn jest",
     "storybook": "storybook dev -p 6006",

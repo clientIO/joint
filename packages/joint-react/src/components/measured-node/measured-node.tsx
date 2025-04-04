@@ -10,6 +10,7 @@ export interface MeasuredNodeProps extends MeasureNodeOptions {
   readonly children: React.ReactNode | null;
 }
 
+// eslint-disable-next-line jsdoc/require-jsdoc
 function Component(
   props: MeasuredNodeProps,
   forwardedRef: React.ForwardedRef<HTMLElement | SVGAElement>
@@ -26,7 +27,6 @@ const ForwardedRefComponent = forwardRef(Component);
  * Measured node component automatically detects the size of its `children` and updates the graph element (node) width and height automatically when elements resize.
  *
  * It must be used inside `renderElement` context
- *
  * @see Paper
  * @see PaperProps
  * @group Components
@@ -56,7 +56,6 @@ const ForwardedRefComponent = forwardRef(Component);
  *   );
  * }
  * ```
- *
  * @example
  * Example with custom size handling:
  * ```tsx

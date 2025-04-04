@@ -23,7 +23,6 @@ import type { GraphLink, GraphLinkBase, StandardLinkShapesType } from '../types/
  * ]);
  * ```
  */
-
 export function createElements<
   Element extends GraphElementBase<Type>,
   Type extends StandardShapesType | string = string,

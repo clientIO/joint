@@ -11,6 +11,22 @@ export type Attributes = Omit<dia.Element.Attributes, 'size' | 'position'>;
 
 export type GraphCell<Element extends GraphElementBase = GraphElement> = Element | GraphLink;
 
+/**
+ * Get element via cell
+ * @param cell - The cell to get the element from.
+ * @returns - The element.
+ * @group utils
+ * @private
+ * @description
+ * This function is used to get an element from a cell.
+ * It extracts the size, position, and attributes from the cell and returns them as an element.
+ * It also adds the id, isElement, isLink, data, type, and ports to the element.
+ * @example
+ * ```ts
+ * const element = getElement(cell);
+ * console.log(element);
+ * ```
+ */
 export function getElement<Element extends GraphElementBase = GraphElement>(
   cell: dia.Cell<Attributes>
 ): Element {
@@ -28,6 +44,22 @@ export function getElement<Element extends GraphElementBase = GraphElement>(
   };
 }
 
+/**
+ * Get link via cell
+ * @param cell - The cell to get the link from.
+ * @returns - The link.
+ * @group utils
+ * @private
+ * @description
+ * This function is used to get a link from a cell.
+ * It extracts the source, target, and attributes from the cell and returns them as a link.
+ * It also adds the id, isElement, isLink, type, z, markup, and defaultLabel to the link.
+ * @example
+ * ```ts
+ * const link = getLink(cell);
+ * console.log(link);
+ * ```
+ */
 export function getLink(cell: dia.Cell<dia.Cell.Attributes>): GraphLink {
   return {
     ...cell.attributes,
@@ -42,6 +74,22 @@ export function getLink(cell: dia.Cell<dia.Cell.Attributes>): GraphLink {
     defaultLabel: cell.get('defaultLabel'),
   };
 }
+
+/**
+ * Get cell via cell
+ * @param cell - The cell to get the cell from.
+ * @returns - The cell.
+ * @group utils
+ * @private
+ * @description
+ * This function is used to get a cell from a cell.
+ * It checks if the cell is an element or a link and returns the appropriate value.
+ * @example
+ * ```ts
+ * const cell = getCell(cell);
+ * console.log(cell);
+ * ```
+ */
 export function getCell<Element extends GraphElementBase = GraphElement>(
   cell: dia.Cell<dia.Cell.Attributes>
 ): GraphCell<Element> {

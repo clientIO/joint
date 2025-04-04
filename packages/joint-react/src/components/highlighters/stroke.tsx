@@ -36,10 +36,7 @@ export interface StrokeHighlighterProps extends PropsWithChildren, React.SVGProp
   readonly isDisabled?: boolean;
 }
 
-/**
- * Adds a stroke around an arbitrary cell view's SVG node.
- * @see https://docs.jointjs.com/api/highlighters/#stroke
- */
+// eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
   const {
     children,
@@ -81,6 +78,5 @@ function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGEle
  * Adds a stroke around an arbitrary cell view's SVG node.
  * @see https://docs.jointjs.com/api/highlighters/#stroke
  * @group Components
- 
  */
 export const Stroke: FC<StrokeHighlighterProps> = forwardRef(Component);

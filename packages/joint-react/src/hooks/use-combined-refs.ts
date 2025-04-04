@@ -3,8 +3,20 @@ import { useCallback } from 'react';
 /**
  * Merges multiple refs into a single callback ref.
  * It's used currently just internally by the library.
+ * @param refs
  * @group Hooks
  * @internal
+ * @description
+ * This function is used to merge multiple refs into a single callback ref.
+ * @returns A callback ref that can be used to set multiple refs.
+ * @private
+ * @example
+ * ```ts
+ * const ref1 = useRef(null);
+ * const ref2 = useRef(null);
+ * const combinedRef = useCombinedRefs(ref1, ref2);
+ * <div ref={combinedRef} />
+ * ```
  */
 export function useCombinedRefs<AnyT>(
   ...refs: Array<React.Ref<AnyT> | undefined>

@@ -1,4 +1,3 @@
- 
 import type { dia, mvc } from '@joint/core';
 
 export interface EventMap {
@@ -221,6 +220,11 @@ export type PaperEvents = {
   [Type in PaperEventType as ReactPaperEventType<Type>]?: PaperEventHandler<Type>;
 };
 
+/**
+ * Converts a Paper event type to a React event type.
+ * @param type - The Paper event type.
+ * @returns The corresponding React event type.
+ */
 export function typeToReactType(type: PaperEventType): ReactPaperEventType {
   return ('on' +
     type

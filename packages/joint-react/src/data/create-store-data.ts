@@ -6,6 +6,7 @@ import { type CellBase, CellMap } from 'src/utils/cell/cell-map';
 
 interface StoreData<Element extends GraphElementBase = GraphElement> {
   readonly updateStore: (graph: dia.Graph) => void;
+  readonly destroy: () => void;
   elements: CellMap<Element>;
   links: CellMap<GraphLinkBase>;
 }
@@ -18,6 +19,28 @@ interface StoreData<Element extends GraphElementBase = GraphElement> {
  *
  * Then re-create new map - because react need new reference, if there is some change.
  * If there is not change, it will return original reference.
+ * @param cells - The cells to update.
+ * @param original - The original map of cells.
+ * @param diff - The diff map of cells.
+ * @returns - The updated map of cells.
+ * @group Graph
+ * @internal
+ * @example
+ * ```ts
+ * const cells = graph.get('cells');
+ * const original = new CellMap();
+ * const diff = new CellMap();
+ * const updated = diffUpdater(cells, original, diff);
+ * console.log(updated);
+ * ```
+ * @example
+ * ```ts
+ * const cells = graph.get('cells');
+ * const original = new CellMap();
+ * const diff = new CellMap();
+ * const updated = diffUpdater(cells, original, diff);
+ * console.log(updated);
+ * ```
  */
 function diffUpdater<Value extends CellBase>(
   cells: dia.Graph.Cells,
@@ -54,20 +77,27 @@ function diffUpdater<Value extends CellBase>(
 /**
  * Main data structure for the graph store data.
  * We avoid using dia.elements and dia.link due to their mutable state.
- *
- *
  * @group Graph
- *
- * @internal Used internally by `useCreateGraphStore` hook.
+ * @returns - The store data.
+ * @description
+ * This function is used to create a store data for the graph.
+ * @internal
  * @example
  * ```ts
  * const graph = new joint.dia.Graph();
  * const storeData = new GraphStoreData(graph);
  * storeData.update(graph);
+ * ```
+ *
  */
 export function createStoreData<
   Element extends GraphElementBase = GraphElement,
 >(): StoreData<Element> {
+  /**
+   * Update the store data with the graph data.
+   * @param graph - The graph to update the store data with..
+   * @description
+   */
   function updateStore(graph: dia.Graph): void {
     const cells = graph.get('cells');
     if (!cells) throw new Error('Graph cells are not initialized');
@@ -98,18 +128,11 @@ export function createStoreData<
     updateStore,
     elements: new CellMap(),
     links: new CellMap(),
+    destroy: () => {
+      data.elements.clear();
+      data.links.clear();
+    },
   };
 
   return data;
-}
-
-export function mapToArray<Key, Value>(
-  map: Map<Key, Value>,
-  selector: (value: Value) => Value = (value) => value
-): Value[] {
-  const result = [];
-  for (const value of map.values()) {
-    result.push(selector(value));
-  }
-  return result;
 }

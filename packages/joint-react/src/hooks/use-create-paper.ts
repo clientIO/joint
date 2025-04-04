@@ -24,10 +24,8 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
  * Custom hook to use a JointJS paper instance.
  * It retrieves the paper from the PaperContext or creates a new instance.
  * Returns a reference to the paper HTML element.
- *
  * @group Hooks
  * @internal
- *
  * @param options - Options for creating the paper instance.
  * @returns An object containing the paper instance and a reference to the paper HTML element.
  */
@@ -36,7 +34,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     options ?? {};
 
   const paperHtmlElement = useRef<HTMLDivElement | null>(null);
-  const { graph, isLoaded } = useGraphStore();
+  const { graph, isLoaded, onRenderPort } = useGraphStore();
 
   // Try to get the paper from the context, it can be undefined if there is no PaperContext.
   const paperCtx = useContext(PaperContext);
@@ -45,7 +43,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     if (paperCtx) {
       return null;
     }
-    return createPaper(graph, restOptions);
+    return createPaper(graph, { ...restOptions, onRenderPort });
   });
   const isPaperFromContext = paperCtx !== undefined;
   const paper = paperCtx ?? paperState;

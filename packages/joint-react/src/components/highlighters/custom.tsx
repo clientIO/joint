@@ -40,6 +40,7 @@ export interface CustomHighlighterProps<
   readonly isDisabled?: boolean;
 }
 
+// eslint-disable-next-line jsdoc/require-jsdoc
 function RawComponent<
   Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
 >(props: CustomHighlighterProps<Highlighter>, forwardedRef: React.Ref<SVGElement>) {
@@ -84,6 +85,5 @@ const ForwardedComponent = forwardRef(RawComponent);
  * Custom highlighter component.
  * Allows to create a custom highlighter.
  * @group Components
- 
  */
 export const Custom = typedMemo(ForwardedComponent);

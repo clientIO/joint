@@ -81,8 +81,33 @@ export interface Store {
    * Force update the graph.
    */
   readonly forceUpdate: () => void;
+
+  /**
+   * Get port element
+   */
+  readonly getPortElement: (portId: string) => SVGElement | undefined;
+  /**
+   * Set port element
+   */
+  readonly onRenderPort: (portId: string, portElement: SVGElement) => void;
+  /**
+   * Subscribes to port element changes.
+   */
+  readonly subscribeToPorts: (onPortChange: () => void) => () => void;
 }
 
+/**
+ * Create a new graph instance.
+ * @param options - Options for creating the graph.
+ * @returns The created graph instance.
+ * @group Graph
+ * @internal
+ * @example
+ * ```ts
+ * const graph = createGraph();
+ * console.log(graph);
+ * ```
+ */
 function createGraph(options: StoreOptions = {}): dia.Graph {
   const { cellModel, cellNamespace = DEFAULT_CELL_NAMESPACE, graph } = options;
   const newGraph =
@@ -111,28 +136,45 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * React components automatically observe and react to changes in the graph, keeping the UI in sync via `useSyncExternalStore` API.
  * Hooks like `useSetElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes.
  * You can also access the graph yourself using `useGraph()` and call methods like `graph.setCells()` or any other JointJS method as needed and react will update it accordingly.
- *
  * @group Hooks
  * @internal
- *
  * @param options - Options for creating the graph store.
  * @returns The graph store instance.
+ * @example
+ * ```ts
+ * const { graph, forceUpdate, subscribe } = createStore();
+ * const unsubscribe = subscribe(() => {
+ *   console.log('Graph changed');
+ * });
+ * graph.addCell(new joint.shapes.standard.Rectangle());
+ * forceUpdate();
+ * unsubscribe();
+ * ```
  */
 export function createStore(options?: StoreOptions): Store {
   const { defaultElements, defaultLinks, onLoad } = options || {};
 
   const graph = createGraph(options);
-  const unsizedLinks = setCells({
+  const notAssignedLinks = setCells({
     graph,
     defaultElements,
     defaultLinks,
   });
   const data = createStoreData();
-  data.updateStore(graph);
-  const listeners = subscribeHandler(forceUpdate);
+  const elementsEvents = subscribeHandler(forceUpdate);
+
+  const portElements = new Map<string, SVGElement>();
+  const portEvents = subscribeHandler();
   const unsubscribe = listenToCellChange(graph, onCellChange);
+
+  data.updateStore(graph);
   graph.on('batch:stop', onBatchStop);
 
+  /**
+   * Detects if the node has a size greater than 1.
+   * @param id - The ID of the node to check.
+   * @returns True if the node has a size greater than 1, false otherwise.
+   */
   function hasNodeSize(id?: dia.Cell.ID) {
     if (!id) {
       return false;
@@ -142,51 +184,70 @@ export function createStore(options?: StoreOptions): Store {
     return !!(width > 1 && height > 1);
   }
 
+  /**
+   * Force update the graph.
+   * This function is called when the graph is updated.
+   * It checks if there are any unsized links and processes them.
+   */
   function forceUpdate() {
     data.updateStore(graph);
-    if (unsizedLinks.size === 0) {
+    if (notAssignedLinks.size === 0) {
       onLoad?.(true);
       return;
     }
 
-    for (const [id, link] of unsizedLinks) {
+    for (const [id, link] of notAssignedLinks) {
       const { source, target } = getLinkTargetAndSourceIds(link);
       if (!hasNodeSize(source)) {
         continue;
       }
       if (hasNodeSize(target)) {
         graph.addCell(processLink(link));
-        unsizedLinks.delete(id);
+        notAssignedLinks.delete(id);
       }
     }
 
-    if (unsizedLinks.size === 0) {
+    if (notAssignedLinks.size === 0) {
       onLoad?.(true);
     }
   }
-
+  /**
+   * This function is called when a cell changes.
+   * It checks if the graph has an active batch and returns if it does.
+   * Otherwise, it notifies the subscribers of the elements events.
+   * @returns - The result of the elements events notification.
+   */
   function onCellChange() {
     if (graph.hasActiveBatch()) {
       return;
     }
-    return listeners.notifySubscribers();
+    return elementsEvents.notifySubscribers();
   }
 
+  /**
+   * This function is called when the batch stops.
+   */
   function onBatchStop() {
-    listeners.notifySubscribers();
+    elementsEvents.notifySubscribers();
   }
 
+  /**
+   * Cleanup the store.
+   */
   function destroy() {
     unsubscribe();
     graph.off('batch:stop', onBatchStop);
     graph.clear();
+    data.destroy();
+    portElements.clear();
   }
 
   const store: Store = {
     forceUpdate,
     destroy,
     graph,
-    subscribe: listeners.subscribe,
+    subscribe: elementsEvents.subscribe,
+    subscribeToPorts: portEvents.subscribe,
     getElements() {
       return data.elements;
     },
@@ -206,6 +267,17 @@ export function createStore(options?: StoreOptions): Store {
         throw new Error(`Link with id ${id} not found`);
       }
       return item;
+    },
+    getPortElement(portId) {
+      const portElement = portElements.get(portId);
+      if (!portElement) {
+        return;
+      }
+      return portElement;
+    },
+    onRenderPort(portId, portElement) {
+      portElements.set(portId, portElement);
+      portEvents.notifySubscribers();
     },
   };
   return store;

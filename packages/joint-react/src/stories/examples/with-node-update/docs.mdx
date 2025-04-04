@@ -3,6 +3,7 @@ import * as Stories from './story';
 import Code from './code?raw';
 import CodeWithColorPicker from './code-with-color?raw';
 import CodeWithSVG from './code-with-svg?raw';
+import CodeNodeRemove from './code-add-remove-node?raw';
 
 <Meta of={Stories} />
 
@@ -47,6 +48,15 @@ ${CodeWithSVG}
 </Markdown>
 
 
+### Demo with add/remove node
+Example of updating a node with `useSetElement` hook and color picker.
+<Canvas of={Stories.WithNodeRemove} />
+### Code with add/remove node
+<Markdown>
+{`\`\`\`tsx
+${CodeNodeRemove}
+\`\`\``}
+</Markdown>
 
 
 

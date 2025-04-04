@@ -11,7 +11,7 @@ export type CellsSetter = (oldCells: dia.Cell[]) => Item[];
  * @group Hooks
  * @returns Function to set cells in the graph.
  * @experimental - this should change in the future, use `useSetElement` instead. Or `dia.graph `directly.
- * @deprecated
+ * @deprecated use graph directly instead or `useSetElement` for a specific element.
  */
 export function useSetCells() {
   const { graph } = useGraphStore();

@@ -53,6 +53,8 @@ export interface GraphProps {
  * It relies on @see useCreateGraphStore hook to create the graph instance.
  *
  * Without this provider, the library will not work.
+ * @param props - {GraphProvider} props
+ * @returns GraphProvider component
  * @example
  * Using provider:
  * ```tsx
@@ -77,7 +79,6 @@ export interface GraphProps {
  *  </GraphProvider>
  * )
  * ```
- *
  * @group Components
  */
 export function GraphProvider(props: GraphProps) {
@@ -90,8 +91,12 @@ export function GraphProvider(props: GraphProps) {
     return createStore({ ...rest, onLoad: setIsLoaded });
   });
 
+  // Initialize and cleanup
   useEffect(() => {
     graphStore.forceUpdate();
+    return () => {
+      graphStore.destroy();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

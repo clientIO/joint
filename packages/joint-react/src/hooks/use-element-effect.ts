@@ -7,14 +7,11 @@ const DEFAULT_DEPENDENCIES: unknown[] = [];
 
 /**
  * Custom effect hook to trigger change for the elements based on the dependencies list. Similar how react useEffect works.
- *
  * @experimental This may be removed or changed in the future as we are not sure if this is the best approach.
  * @group Hooks
- *
  * @param idOrIds - The ID or array of IDs of the JointJS elements.
  * @param onChange - Callback function to execute when the element changes with `dia.Element` as a callback parameter.
  * @param dependencies - Array of dependencies for the useEffect hook - observe for the changes, same as `useEffect`.
- *
  * @example
  * ```tsx
  * const [isPressed, setIsPressed] = useState(false);

@@ -27,10 +27,11 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * It must be used inside the paper `renderElement` function.
  *
  * Ref must be just a reference to the HTML or SVG element.
+ * @param elementRef - The ref to the element to measure.
+ * @param options - The options for the hook.
  * @see Paper
  * @see `useGraph`
  * @see `useCellId`
- *
  * @group Hooks
  */
 export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVGElement>(
@@ -64,7 +65,6 @@ export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVG
     }
 
     return createElementSizeObserver(elementRef.current, ({ height, width }) => {
-      console.log('Element size changed:', { height, width });
       if (onSetSizeRef.current) {
         return onSetSizeRef.current({
           element: cell,

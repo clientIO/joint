@@ -26,32 +26,31 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
   extends dia.Paper.Options,
     PaperEvents {
   /**
- * A function that renders the element.
- * 
- * Note: Jointjs works by default with SVG's so by default renderElement is append inside the SVGElement node.
- * To use HTML elements, you need to use the `HtmlNode` component or `foreignObject` element.
- * 
- * This is called when the data from `elementSelector` changes.
- * @example
- * Example with `global component`:
- * ```tsx
- * type BaseElementWithData = InferElement<typeof initialElements>
- * function RenderElement({ data }: BaseElementWithData) {
- *  return <HtmlElement className="node">{data.label}</HtmlElement>
- * }
- * ```
- *
- * @example
- * Example with `local component`:
- * ```tsx
- * 
+   * A function that renders the element.
+   * 
+   * Note: Jointjs works by default with SVG's so by default renderElement is append inside the SVGElement node.
+   * To use HTML elements, you need to use the `HtmlNode` component or `foreignObject` element.
+   * 
+   * This is called when the data from `elementSelector` changes.
+   * @example
+   * Example with `global component`:
+   * ```tsx
+   * type BaseElementWithData = InferElement<typeof initialElements>
+   * function RenderElement({ data }: BaseElementWithData) {
+   *  return <HtmlElement className="node">{data.label}</HtmlElement>
+   * }
+   * ```
+   * @example
+   * Example with `local component`:
+   * ```tsx
+   * 
   type BaseElementWithData = InferElement<typeof initialElements>
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
       (element) => <HtmlElement className="node">{element.data.label}</HtmlElement>,
       []
   )
-  * ```
-  */
+   * ```
+   */
   readonly renderElement?: RenderElement<ElementItem>;
   /**
    * A function that is called when the paper is ready.
@@ -105,9 +104,7 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
   readonly overwriteDefaultPaperElement?: (paper: dia.Paper) => HTMLElement | SVGElement;
 }
 
-/**
- * Paper component that renders the JointJS paper element.
- */
+// eslint-disable-next-line jsdoc/require-jsdoc
 function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   props: PaperProps<ElementItem>
 ) {
@@ -184,6 +181,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   );
 }
 
+// eslint-disable-next-line jsdoc/require-jsdoc
 function PaperWithNoDataPlaceHolder<ElementItem extends GraphElementBase = GraphElementBase>(
   props: PaperProps<ElementItem>
 ) {
@@ -204,6 +202,7 @@ function PaperWithNoDataPlaceHolder<ElementItem extends GraphElementBase = Graph
   return <Component {...rest} style={style} className={className} />;
 }
 
+// eslint-disable-next-line jsdoc/require-jsdoc
 function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElementBase>(
   props: PaperProps<ElementItem>
 ) {
@@ -229,7 +228,6 @@ function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElem
  * Props also extends `dia.Paper.Options` interface.
  * @see dia.Paper.Options 
  * @group Components
- *
  * @example
  * Example with `global renderElement component`:
  * ```tsx
@@ -247,7 +245,6 @@ function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElem
  *  </GraphProvider>
  * }
  * ```
- *
  * @example
  * Example with `local renderElement component`:
  * ```tsx
@@ -255,13 +252,13 @@ function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElem
     { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },
   ])
   type BaseElementWithData = InferElement<typeof initialElements>
-
+ 
   function MyApp() {
     const renderElement: RenderElement<BaseElementWithData> = useCallback(
       (element) => <HtmlElement className="node">{element.data.label}</HtmlElement>,
       []
     )
-
+ 
     return (
       <GraphProvider defaultElements={initialElements}>
         <Paper renderElement={renderElement} />

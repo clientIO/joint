@@ -17,10 +17,7 @@ export interface OpacityHighlighterProps extends PropsWithChildren {
   readonly isDisabled?: boolean;
 }
 
-/**
- * Changes the opacity of an arbitrary cell view's SVG node.
- * @see https://docs.jointjs.com/api/highlighters/#opacity
- */
+// eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
   const { children, alphaValue = 1, isDisabled } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
@@ -46,6 +43,5 @@ function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGEl
  * Changes the opacity of an arbitrary cell view's SVG node.
  * @see https://docs.jointjs.com/api/highlighters/#opacity
  * @group Components
- 
  */
 export const Opacity: FC<OpacityHighlighterProps> = forwardRef(Component);

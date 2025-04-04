@@ -13,6 +13,10 @@ import {
 
 /**
  * Extract attributes from props.
+ * @param props
+ * @description
+ * This function extracts all attributes from props that start with 'joint-'
+ * @returns [Record<string, unknown>, Record<string, unknown>]
  */
 function extractJointAttributes(
   props: unknown
@@ -36,6 +40,9 @@ function extractJointAttributes(
 
 /**
  * Convert JSX element to JointJS markup.
+ * @param element JSX element.
+ * @param markups JointJS markup.
+ * @returns JointJS markup.
  */
 function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []) {
   if (!isValidElement(element)) {
@@ -102,7 +109,6 @@ function jsxToMarkupWithArray(element: JSX.Element, markups: dia.MarkupJSON = []
  * @returns JointJS markup.
  *
  * This generate just static markup from JSX, it doesn't support dynamic components and hooks.
- *
  * @example
  * ```tsx
  * function CustomComponent(props: Readonly<PropsWithChildren>) {

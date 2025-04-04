@@ -39,6 +39,7 @@ interface SpanElementProps extends ElementBase<HTMLSpanElement> {
  */
 export type HTMLElementProps = DivElementProps | SpanElementProps | ButtonElementProps;
 
+// eslint-disable-next-line jsdoc/require-jsdoc
 function Element(props: HTMLElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
   const { element, ...rest } = props;
   if (element === 'span') {
@@ -56,9 +57,7 @@ function Element(props: HTMLElementProps, forwardedRef: React.ForwardedRef<HTMLE
 }
 const ElementForward = forwardRef(Element);
 
-/**
- * Component that automatically resizes the parent node element based on the size of the div.
- */
+// eslint-disable-next-line jsdoc/require-jsdoc
 function WithAutoSize(props: HTMLElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
   const style = useMemo(() => ({ ...props.style }), [props.style]);
   const { width, height } = useElement();
@@ -73,6 +72,7 @@ function WithAutoSize(props: HTMLElementProps, forwardedRef: React.ForwardedRef<
 }
 const WithAutoSizeForward = forwardRef(WithAutoSize);
 
+// eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: HTMLElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
   return <WithAutoSizeForward {...props} ref={forwardedRef} />;
 }
@@ -85,10 +85,8 @@ function Component(props: HTMLElementProps, forwardedRef: React.ForwardedRef<HTM
  *
  * If there is not style provided to the element, it will use `display: inline-block` style by default.
  * Element calculate automatically it size based on the content and resize the node. If you do not want to use this feature, just use `width` and `height` properties from data.
- *
  * @group Components
  * @experimental
- *
  * @example
  * Example with `global item component`:
  * ```tsx

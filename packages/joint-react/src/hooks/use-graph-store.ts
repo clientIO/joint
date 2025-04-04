@@ -4,10 +4,8 @@ import { GraphStoreContext, type StoreContext } from '../context/graph-store-con
 /**
  * Custom hook to use a JointJS graph store.
  * It retrieves the graph from the GraphContext.
- *
  * @group Hooks
  * @internal
- *
  * @returns The JointJS graph store.
  * @throws An error if the hook is used outside of a GraphProvider.
  */

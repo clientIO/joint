@@ -1,9 +1,8 @@
-import { dia } from '@joint/core';
+import { dia, type Vectorizer } from '@joint/core';
+import { PORTAL_SELECTOR } from 'src/components/port/port-item';
 
-// Event name for when the portal is ready
-export type PortalEvent = 'portal:ready';
-
-export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGGElement) => void;
+export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
+export type OnPaperRenderPort = (portId: string, portalElement: SVGElement) => void;
 // Interface for Paper options, extending JointJS Paper options
 export interface PaperOptions extends dia.Paper.Options {
   readonly scale?: number;
@@ -14,6 +13,16 @@ export interface PaperOptions extends dia.Paper.Options {
    * @returns
    */
   readonly onRenderElement?: OnPaperRenderElement;
+  readonly onRenderPort?: OnPaperRenderPort;
+}
+
+interface PortElementsCacheEntry {
+  portElement: Vectorizer;
+  portLabelElement?: Vectorizer | null;
+  portSelectors: Record<string, SVGElement | SVGElement[]>;
+  portLabelSelectors?: Record<string, SVGElement | SVGElement[]>;
+  portContentElement: Vectorizer;
+  portContentSelectors?: Record<string, SVGElement | SVGElement[]>;
 }
 
 /**
@@ -30,15 +39,31 @@ export interface PaperOptions extends dia.Paper.Options {
  * const paper = createPaper(graph, options);
  * ```
  */
+
 export function createPaper(graph: dia.Graph, options?: PaperOptions) {
-  const { scale, onRenderElement, ...restOptions } = options ?? {};
+  const { scale, onRenderElement, onRenderPort, ...restOptions } = options ?? {};
 
   const elementView = dia.ElementView.extend({
+    // Render element using react, `elementView.el` is used as portal gate for react (createPortal)
     onRender() {
       if (onRenderElement) {
         // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
         const elementView: dia.ElementView = this;
         onRenderElement(elementView.model, elementView.el as SVGGElement);
+      }
+    },
+    // Render port using react, `portData.portElement.node` is used as portal gate for react (createPortal)
+    _renderPorts() {
+      // @ts-expect-error we use private jointjs api method, it throw error here.
+      dia.ElementView.prototype._renderPorts.call(this);
+      const portElementsCache: Record<string, PortElementsCacheEntry> = this._portElementsCache;
+      // Example: log all rendered port elements
+      for (const portId in portElementsCache) {
+        const { portSelectors } = portElementsCache[portId];
+        const portalElement = portSelectors[PORTAL_SELECTOR];
+        if (onRenderPort && portalElement) {
+          onRenderPort(portId, Array.isArray(portalElement) ? portalElement[0] : portalElement);
+        }
       }
     },
   });

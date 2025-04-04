@@ -63,7 +63,13 @@ export function RenderItemDecorator(
   return (
     <div style={{ width: '100%', height: 350 }}>
       <SimpleGraphProviderDecorator>
-        <Paper width={'100%'} height={350} renderElement={properties.renderElement} />
+        <Paper
+          width={'100%'}
+          height={350}
+          renderElement={properties.renderElement}
+          linkPinning={false}
+          // snapLinks={{ radius: 20 }}
+        />
       </SimpleGraphProviderDecorator>
     </div>
   );

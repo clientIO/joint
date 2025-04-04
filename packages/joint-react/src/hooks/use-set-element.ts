@@ -14,6 +14,10 @@ export interface BaseAttributes extends dia.Cell.Attributes {
 /**
  * Helper function.
  * Parameters - [graph, id, attribute, value]
+ * @param graph - The graph to set the element in.
+ * @param id - The ID of the element to set.
+ * @param attribute - The attribute to set.
+ * @param value - The value to set.
  */
 function setCellHelper<Attributes, Attribute extends keyof Attributes>(
   graph: dia.Graph,
@@ -48,9 +52,9 @@ function setCellHelper<Attributes, Attribute extends keyof Attributes>(
  *
  * It must be used inside the GraphProvider.
  * @group Hooks
- * @param {dia.Cell.ID=} id The ID of the element.
- * @param {Attribute=} attribute The attribute to set.
- * @returns {Function} The function to set the element attribute. It can be reactive.
+ * @param id The ID of the element.
+ * @param attribute The attribute to set.
+ * @returns The function to set the element attribute. It can be reactive.
  * @experimental
  *
  * It can be used in three ways:
@@ -60,14 +64,12 @@ function setCellHelper<Attributes, Attribute extends keyof Attributes>(
  * const setElement = useSetElement();
  * setElement('element-id', 'position', { x: 100, y: 100 });
  * ```
- *
  * @example
  * 2. Provide ID and attribute, and use the returned function to set value
  * ```tsx
  * const setElement = useSetElement('element-id', 'position');
  * setElement({ x: 100, y: 100 });
  * ```
- *
  * @example
  * 3. Provide ID and use the returned function to set attribute and value
  * ```tsx
@@ -93,6 +95,7 @@ export function useSetElement<Attributes = BaseAttributes>(): <X extends keyof A
   value: Attributes[X] | Setter<Attributes[X]>
 ) => void;
 
+// eslint-disable-next-line jsdoc/require-jsdoc
 export function useSetElement<
   Attributes = BaseAttributes,
   Attribute extends keyof Attributes = keyof Attributes,

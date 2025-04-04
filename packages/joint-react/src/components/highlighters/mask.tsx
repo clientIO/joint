@@ -35,10 +35,7 @@ const DEFAULT_MASK_HIGHLIGHTER_PROPS: MaskHighlighterProps = {
   fill: 'none',
 };
 
-/**
- * Adds a stroke around an arbitrary cell view's SVG node.
- * @see https://docs.jointjs.com/api/highlighters/#mask
- */
+// eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
   const { layer, children, padding, isDisabled, ...svgAttributes } = props;
   const options = useMemo((): dia.HighlighterView.Options => {

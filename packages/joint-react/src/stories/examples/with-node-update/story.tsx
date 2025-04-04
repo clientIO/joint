@@ -3,6 +3,7 @@ import '../index.css';
 import Code from './code';
 import CodeWithColor from './code-with-color';
 import CodeWithSVG from './code-with-svg';
+import CodeWithAddRemoveNode from './code-add-remove-node';
 export type Story = StoryObj<typeof Code>;
 
 export default {
@@ -18,4 +19,8 @@ export const WithColorPicker: Story = {
 
 export const WithSVG: Story = {
   render: CodeWithSVG,
+};
+
+export const WithNodeRemove: Story = {
+  render: CodeWithAddRemoveNode,
 };

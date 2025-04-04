@@ -12,7 +12,7 @@ export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
   /**
    * The cell to render.
    */
-  readonly nodeSvgGElement: SVGGElement;
+  readonly nodeSvgGElement: SVGElement;
 }
 
 /**
@@ -20,10 +20,12 @@ export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
  * This component is used to render a paper element inside a portal.
  * It takes a renderElement function, a cell, and a containerElement as props.
  * The renderElement function is called with the cell as an argument and its return value is rendered inside the containerElement.
+ * @param props - The props for the component.
  * @group Components
+ * @description
+ * This component is used to render a paper element inside a portal.
+ * @returns The rendered element inside the portal.
  * @internal
- * It's internal component.
- *
  */
 function Component<Data extends CellWithId = GraphElement>(props: PaperPortalProps<Data>) {
   const { renderElement, nodeSvgGElement, ...rest } = props;

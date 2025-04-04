@@ -22,7 +22,6 @@ const Component = {
 /**
  * Highlighter components.
  * @group Components
- *
  * @example
  * ```tsx
  * import { Highlighter } from '@joint/react'
@@ -33,8 +32,7 @@ const Component = {
  * import { Highlighter } from '@joint/react'
  * return <Highlighter.Opacity />
  * ```
- *
- * * @example
+ * @example
  * ```tsx
  * import { Highlighter } from '@joint/react'
  * return <Highlighter.Stroke />

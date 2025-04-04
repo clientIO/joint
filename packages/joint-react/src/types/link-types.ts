@@ -23,11 +23,11 @@ export interface GraphLinkBase<Type extends StandardLinkShapesType | string = st
   /**
    * Source element id.
    */
-  readonly source: dia.Cell.ID;
+  readonly source: dia.Cell.ID | dia.Link.EndJSON;
   /**
    * Target element id.
    */
-  readonly target: dia.Cell.ID;
+  readonly target: dia.Cell.ID | dia.Link.EndJSON;
   /**
    * Optional link type.
    */

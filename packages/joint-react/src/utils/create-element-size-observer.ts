@@ -6,10 +6,10 @@ export interface SizeObserver {
 /**
  * Create element size observer with cleanup function.
  * It uses ResizeObserver to observe changes in the size of the HTML element.
- * @param {HTMLElement | SVGElement} element The HTML element to observe.
- * @param {(position: SizeObserver) => void} onResize The callback function to call when the size of the element changes.
+ * @param element The HTML element to observe.
+ * @param onResize The callback function to call when the size of the element changes.
  * @group Utils
- *
+ * @returns A cleanup function to disconnect the observer.
  * @example
  * ```tsx
  * const element = document.getElementById('element-id');
