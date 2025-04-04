@@ -33,7 +33,30 @@ const config = [
   unicorn.configs["flat/recommended"],
   reactPerfPlugin.configs.flat.recommended,
   sonarjs.configs.recommended,
-
+  {
+    files: [
+      "**/*.stories.*",
+      "**/*.test.*",
+      "**/stories/**/*.{ts,tsx}",
+      ".storybook/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "jsdoc/require-jsdoc": "off",
+      "jsdoc/check-alignment": "off",
+      "jsdoc/check-indentation": "off",
+      "jsdoc/check-param-names": "off",
+      "jsdoc/check-tag-names": "off",
+      "jsdoc/check-types": "off",
+      "jsdoc/implements-on-classes": "off",
+      "jsdoc/match-description": "off",
+      "jsdoc/newline-after-description": "off",
+      "jsdoc/no-types": "off",
+      "jsdoc/require-description": "off",
+      "jsdoc/require-param": "off",
+      "jsdoc/require-returns": "off",
+      "jsdoc/valid-types": "off",
+    },
+  },
   // Main rules for project files
   {
     files: ["src/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}"],
@@ -139,6 +162,7 @@ const config = [
         "error",
         {
           replacements: {
+            doc: false,
             Props: false,
             props: false,
             param: false,

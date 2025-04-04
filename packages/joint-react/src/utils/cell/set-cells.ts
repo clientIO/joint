@@ -122,7 +122,7 @@ function setElements(options: Options) {
  * @description
  * It also check for the react unsized elements, if the element has not size, it will not render the link immanently.
  * It return callback to set unsized links later.
- * @param options
+ * @param options - The options for setting cells.
  * @returns
  * A map of unsized link IDs to their corresponding GraphLink objects.
  * @group utils

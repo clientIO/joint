@@ -39,7 +39,6 @@ interface PortElementsCacheEntry {
  * const paper = createPaper(graph, options);
  * ```
  */
-
 export function createPaper(graph: dia.Graph, options?: PaperOptions) {
   const { scale, onRenderElement, onRenderPort, ...restOptions } = options ?? {};
 

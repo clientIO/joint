@@ -9,6 +9,8 @@ import { PaperContext } from '../context/paper-context';
  * import { usePaper } from '@joint/react';
  * const paper = usePaper();
  * ```
+ * @returns - The jointjs paper instance.
+ * @throws - If the hook is not used inside the paper context.
  */
 export function usePaper(): PaperContext {
   const paper = useContext(PaperContext);

@@ -30,10 +30,7 @@ function getGroupBody(props: PortGroupBase): dia.Element.PortGroup {
       };
 }
 
-/**
- *
- * @param props
- */
+// eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: PortGroupProps) {
   const { id, children } = props;
   const cellId = useCellId();

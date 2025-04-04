@@ -13,7 +13,7 @@ import {
 
 /**
  * Extract attributes from props.
- * @param props
+ * @param props - The props to extract attributes from.
  * @description
  * This function extracts all attributes from props that start with 'joint-'
  * @returns [Record<string, unknown>, Record<string, unknown>]

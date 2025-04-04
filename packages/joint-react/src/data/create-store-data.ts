@@ -88,7 +88,6 @@ function diffUpdater<Value extends CellBase>(
  * const storeData = new GraphStoreData(graph);
  * storeData.update(graph);
  * ```
- *
  */
 export function createStoreData<
   Element extends GraphElementBase = GraphElement,

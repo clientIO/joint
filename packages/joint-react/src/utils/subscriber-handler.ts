@@ -4,9 +4,11 @@ export interface SubscribeHandler {
 }
 
 /**
- * Utility to handle subscriptions and notify subscribers.
+ * Subscribe handler for managing subscribers and notifying them.
+ * This handler allows you to subscribe to changes and notify subscribers when changes occur.
+ * @param beforeSubscribe - Optional callback to be called before notifying subscribers.
+ * @returns - An object with subscribe and notifySubscribers methods.
  * @group utils
- * @internal
  */
 export function subscribeHandler(beforeSubscribe?: () => void): SubscribeHandler {
   let isScheduled = false;

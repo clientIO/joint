@@ -9,7 +9,11 @@ interface Options<StorybookOptions> {
 }
 
 /**
- * Utility function to create automatic jest unit test snapshots from storybook stories.
+ * Runs a snapshot test for each story in the provided options.
+ * @param options - The options for the snapshot test.
+ * @param options.Component - The component to render.
+ * @param options.name - The name of the test suite.
+ * @param options.stories - The stories to test.
  */
 export function runStorybookSnapshot<StorybookOptions>(options: Options<StorybookOptions>) {
   const { stories, Component, name } = options;

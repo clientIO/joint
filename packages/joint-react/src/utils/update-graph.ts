@@ -1,6 +1,7 @@
 import { dia, shapes } from '@joint/core';
 import type { Item } from '../hooks/use-set-cells';
 
+// eslint-disable-next-line jsdoc/require-jsdoc
 function processNewCell(graph: dia.Graph, newCell: Item, cellsMap: Record<string, dia.Cell>) {
   if (!newCell?.id) {
     return;
@@ -15,7 +16,7 @@ function processNewCell(graph: dia.Graph, newCell: Item, cellsMap: Record<string
   cellsMap[cell.id] = cell;
   updateExistingCell(graph, cell, newCell);
 }
-
+// eslint-disable-next-line jsdoc/require-jsdoc
 function updateExistingCell(graph: dia.Graph, cell: dia.Cell, newCell: Item) {
   const originalCell = graph.getCell(cell.id);
   if (originalCell) {

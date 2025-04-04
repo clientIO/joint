@@ -11,10 +11,9 @@ interface HighlighterBase {
  * Just internal util hook to manage highlighter lifecycle with automatic remove and update.
  * @group Hooks
  * @param create - Function to create a highlighter instance.
- * @param isDisabled - Flag to disable the highlighter.
  * @param update - Function to update the highlighter instance.
- * @param options - Options for creating/updating the highlighter.
- * @internal
+ * @param options - Options to create the highlighter instance.
+ * @param isDisabled - Flag to disable the highlighter.
  */
 export function useHighlighter<
   Highlighter extends HighlighterBase,

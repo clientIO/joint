@@ -3,8 +3,8 @@ import { isLinkInstance } from '../is';
 import type { GraphLink } from '../../types/link-types';
 /**
  * Get the target or source of a link.
- * @param id
- * @returns { dia.Link.EndJSON } - The target or source of the link.
+ * @param id - The id of the link.
+ * @returns - The target or source of the link.
  * @group utils
  * @description
  * This function is used to get the target or source of a link.

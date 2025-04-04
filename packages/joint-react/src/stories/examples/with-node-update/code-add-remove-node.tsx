@@ -102,10 +102,6 @@ function Main() {
   );
 }
 
-function AddNode() {
-  const setElement = useSetElement<BaseElementWithData>('newNode', 'data');
-}
-
 export default function App() {
   return (
     <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>

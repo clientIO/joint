@@ -1,7 +1,3 @@
-/* eslint-disable unicorn/prevent-abbreviations */
- 
- 
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type { StoryObj } from '@storybook/react/*';
 import type React from 'react';
 
@@ -16,7 +12,17 @@ interface MakeStoryOptions<T extends StoryObj> {
   readonly decorators?: T['decorators'];
 }
 
-// @ts-expect-error
+/**
+ * Creates a story object for Storybook.
+ * @param options - The options for the story.
+ * @group utils
+ * @internal
+ * @description
+ * This function is used to create a story object for Storybook.
+ * @returns
+ * A story object that can be used in Storybook.
+ */
+//@ts-expect-error T is not assignable to type StoryObj
 export function makeStory<T>(options: MakeStoryOptions<T>): T {
   const { component, code, name, apiURL, description = '', args, decorators } = options;
   return {
@@ -37,12 +43,24 @@ export function makeStory<T>(options: MakeStoryOptions<T>): T {
   } as unknown as T;
 }
 
+// eslint-disable-next-line unicorn/prevent-abbreviations
 interface MakeRootDocsOptions {
   readonly code?: string;
   readonly apiURL: string;
   readonly description?: string;
 }
 
+/**
+ * Creates root docs for Storybook.
+ * @param options - The options for the root docs.
+ * @group utils
+ * @internal
+ * @description
+ * This function is used to create root docs for Storybook.
+ * @returns
+ * An object containing the docs and source code.
+ */
+// eslint-disable-next-line unicorn/prevent-abbreviations
 export function makeRootDocs(options: MakeRootDocsOptions) {
   const { code, apiURL, description = '' } = options;
 

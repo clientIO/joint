@@ -5,7 +5,8 @@ import { CellIdContext } from '../context/cell-id.context';
 /**
  * Return cell id from the paper (paper item).
  * It must be used inside `renderElement` function.
- * @returns { dia.Cell.ID } - The cell id.
+ * @returns - The cell id.
+ * @throws - If the hook is not used inside the paper context.
  * @group hooks
  * @description
  * This hook is used to get the cell id from the paper `RenderElement`.

@@ -40,9 +40,10 @@ await fs.mkdir(path.join(outDir, 'cjs'), { recursive: true });
 await fs.mkdir(path.join(outDir, 'esm'), { recursive: true });
 await fs.mkdir(path.join(outDir, entryDir), { recursive: true });
 
-// Copy source files for react-native compatibility
-// await fs.cp(entryDir, path.join(outDir, 'src'), { recursive: true })
-
+/**
+ * Copy source files to the output directory.
+ * @returns - Promise that resolves when the copy is complete.
+ */
 async function copySourceFiles() {
   const files = await getAllFiles(entryDir);
   for (const file of files) {

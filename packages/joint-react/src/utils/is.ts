@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-jsdoc */
 import { dia, util } from '@joint/core';
 import type { GraphCell } from './cell/get-cell';
 import type { GraphLink } from '../types/link-types';
