@@ -1,5 +1,5 @@
 import { dia, shapes } from "@joint/core";
-import { Button, IElement, Step, Decision, isButton } from "./shapes";
+import { Button, IElement, Step, Decision, isButton, ButtonLink } from "./shapes";
 import { addEffect, effects, removeEffect } from "./effects";
 import { DirectedGraph } from "@joint/layout-directed-graph";
 
@@ -78,7 +78,11 @@ export function constructGraphLayer(parent: string | dia.Element, children: stri
 }
 
 export function makeConnection(source: dia.Element, target: dia.Element, graph: dia.Graph, opt: any = {}) {
-    const link = new shapes.standard.Link({
+
+    const isButtonLink = isButton(source) || isButton(target);
+    const Ctor = isButtonLink ? ButtonLink : shapes.standard.Link;
+
+    const link = new Ctor({
         source: { id: source.id },
         target: { id: target.id }
     });
