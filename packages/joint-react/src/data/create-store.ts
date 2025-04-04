@@ -8,6 +8,8 @@ import type { GraphLink, GraphLinkBase } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
 import { createStoreData } from './create-store-data';
 import type { CellMap } from 'src/utils/cell/cell-map';
+import { createPortsData } from './create-ports-data';
+import type { OnPaperRenderPorts } from 'src/utils/create-paper';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
@@ -85,11 +87,11 @@ export interface Store {
   /**
    * Get port element
    */
-  readonly getPortElement: (portId: string) => SVGElement | undefined;
+  readonly getPortElement: (cellId: dia.Cell.ID, portId: string) => SVGElement | undefined;
   /**
    * Set port element
    */
-  readonly onRenderPort: (portId: string, portElement: SVGElement) => void;
+  readonly onRenderPorts: OnPaperRenderPorts;
   /**
    * Subscribes to port element changes.
    */
@@ -136,7 +138,7 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * React components automatically observe and react to changes in the graph, keeping the UI in sync via `useSyncExternalStore` API.
  * Hooks like `useSetElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes.
  * You can also access the graph yourself using `useGraph()` and call methods like `graph.setCells()` or any other JointJS method as needed and react will update it accordingly.
- * @group Hooks
+ * @group Data
  * @internal
  * @param options - Options for creating the graph store.
  * @returns The graph store instance.
@@ -162,8 +164,7 @@ export function createStore(options?: StoreOptions): Store {
   });
   const data = createStoreData();
   const elementsEvents = subscribeHandler(forceUpdate);
-
-  const portElements = new Map<string, SVGElement>();
+  const portElements = createPortsData();
   const portEvents = subscribeHandler();
   const unsubscribe = listenToCellChange(graph, onCellChange);
 
@@ -268,14 +269,14 @@ export function createStore(options?: StoreOptions): Store {
       }
       return item;
     },
-    getPortElement(portId) {
-      const portElement = portElements.get(portId);
+    getPortElement(cellId, portId) {
+      const portElement = portElements.get(cellId, portId);
       if (!portElement) {
         return;
       }
       return portElement;
     },
-    onRenderPort(portId, portElement) {
+    onRenderPorts(portId, portElement) {
       portElements.set(portId, portElement);
       portEvents.notifySubscribers();
     },

@@ -34,7 +34,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     options ?? {};
 
   const paperHtmlElement = useRef<HTMLDivElement | null>(null);
-  const { graph, isLoaded, onRenderPort } = useGraphStore();
+  const { graph, isLoaded, onRenderPorts } = useGraphStore();
 
   // Try to get the paper from the context, it can be undefined if there is no PaperContext.
   const paperCtx = useContext(PaperContext);
@@ -43,7 +43,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     if (paperCtx) {
       return null;
     }
-    return createPaper(graph, { ...restOptions, onRenderPort });
+    return createPaper(graph, { ...restOptions, onRenderPorts });
   });
   const isPaperFromContext = paperCtx !== undefined;
   const paper = paperCtx ?? paperState;

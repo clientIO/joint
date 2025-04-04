@@ -32,8 +32,15 @@ const initialElements = createElements([
 const defaultLinks = createLinks([
   {
     id: 'e1-2',
-    source: '1',
-    target: '2',
+
+    target: {
+      id: '2',
+      port: 'port-one',
+    },
+    source: {
+      id: '1',
+      port: 'port-one',
+    },
     attrs: {
       line: {
         stroke: PRIMARY,
@@ -89,7 +96,7 @@ export default meta;
 export const Default = makeStory<Story>({
   args: {
     children: (
-      <Port.Item id="port-two">
+      <Port.Item id="port-one">
         <foreignObject className="size-5 bg-sky-200 rounded-full" />
       </Port.Item>
     ),

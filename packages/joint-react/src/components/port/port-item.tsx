@@ -2,12 +2,12 @@ import { dia } from '@joint/core';
 import { memo, useContext, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { PortGroupContext } from 'src/context/port-group-context';
+import { PORTAL_SELECTOR } from 'src/data/create-ports-data';
 import { useCellId, usePaper } from 'src/hooks';
 import { useGraphStore } from 'src/hooks/use-graph-store';
 import { jsx } from 'src/utils/joint-jsx/jsx-to-markup';
 import { useSyncExternalStore } from 'use-sync-external-store';
 
-export const PORTAL_SELECTOR = 'portalis';
 // eslint-disable-next-line @eslint-react/dom/no-unknown-property
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
 export interface PortItemProps {
@@ -19,23 +19,11 @@ export interface PortItemProps {
   readonly x?: number | string;
   readonly y?: number | string;
 }
-/**
- * Generate a unique port id based on the cell id and the port id.
- * @param id - The port id.
- * @returns The unique port id.
- * @group Hooks
- */
-export function usePortId(id: string) {
-  const cellId = useCellId();
-  return `${cellId}-${id}`;
-}
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: PortItemProps) {
-  const { isPassive, children, groupId, z, x, y } = props;
+  const { isPassive, id, children, groupId, z, x, y } = props;
   const cellId = useCellId();
-
-  const id = usePortId(props.id);
   const paper = usePaper();
   const { graph, subscribeToPorts, getPortElement } = useGraphStore();
 
@@ -88,14 +76,13 @@ function Component(props: PortItemProps) {
 
   const portalNode = useSyncExternalStore(
     subscribeToPorts,
-    () => getPortElement(id),
-    () => getPortElement(id)
+    () => getPortElement(cellId, id),
+    () => getPortElement(cellId, id)
   );
 
   if (!portalNode) {
     return null;
   }
-
   return createPortal(children, portalNode);
 }
 
