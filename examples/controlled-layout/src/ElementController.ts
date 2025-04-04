@@ -1,5 +1,5 @@
-import { dia, mvc } from '@joint/core';
-import { Ellipse, Rectangle, Triangle, isButton, IElement } from './shapes';
+import { dia, g, mvc } from '@joint/core';
+import { End, Step, Decision, isButton, IElement } from './shapes';
 import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem, addButtonToElement, validChildrenCount } from './utils';
 import { addEffect, effects, removeEffect } from './effects';
 import { LinkRemoveTool, ElementRemoveTool } from './RemoveTool';
@@ -70,17 +70,15 @@ function onAdd({ graph, paper }: ElementControllerArgs, cell: dia.Cell, _collect
 function onLinkConnect({ paper, graph }: ElementControllerArgs, linkView: dia.LinkView) {
     const { model } = linkView;
 
-    const button = model.getSourceElement();
-
-    // Button has only one neighbor
-    const [parent] = graph.getNeighbors(button, { inbound: true });
-    model.source({ id: parent.id });
+    const parent = model.getSourceElement();
 
     const maxChildren = (parent as IElement)?.getMaxNumberOfChildren();
     const currentChildren = validChildrenCount(parent, graph);
 
+    const button = graph.getNeighbors(parent, { outbound: true }).find(child => isButton(child));
+
     if (currentChildren >= maxChildren) {
-        button.remove();
+        button?.remove();
     }
 
     runLayout(paper);
@@ -146,7 +144,7 @@ function onElementPointerClick({ paper, graph }: ElementControllerArgs, elementV
         return;
     }
 
-    openConnectionsList(paper, parent);
+    openConnectionsList(paper, parent, model.getBBox());
 }
 
 function onCellHighlight(_context: ElementControllerArgs, cellView: dia.CellView, _node: SVGElement, { type }: { type: dia.CellView.Highlighting }) {
@@ -163,7 +161,16 @@ function onCellUnhighlight({ paper }: ElementControllerArgs, _cellView: dia.Cell
 
 const connectionsList = document.querySelector<HTMLDivElement>('#connections-list')!;
 
-function openConnectionsList(paper: dia.Paper, parent: dia.Element) {
+function openConnectionsList(paper: dia.Paper, parent: dia.Element, buttonBBox: g.Rect) {
+
+    // Open the connections list at the buttons's position
+    const { x } = paper.localToPagePoint(buttonBBox.center());
+    const { y } = paper.localToPagePoint(buttonBBox.topLeft());
+    connectionsList.style.left = `${x}px`;
+    connectionsList.style.top = `${y}px`;
+    const scale = paper.scale().sx;
+    const clampedScale = Math.max(0.75, Math.min(scale, 1.25));
+    connectionsList.style.transform = `scale(${clampedScale}) translate(-50%, 0)`;
     connectionsList.style.display = 'block';
 
     addEffect(parent.findView(paper), effects.CONNECTION_SOURCE);
@@ -178,13 +185,13 @@ function openConnectionsList(paper: dia.Paper, parent: dia.Element) {
     const addElementList = document.createElement('div');
     addElementList.classList.add('element-list');
 
-    const newRectItem = createNewElementListItem(Rectangle.create(), parent, paper);
-    const newEllipseItem = createNewElementListItem(Ellipse.create(), parent, paper);
-    const newTriangleItem = createNewElementListItem(Triangle.create(), parent, paper);
+    const newStepItem = createNewElementListItem(Step.create(), parent, paper);
+    const newEndItem = createNewElementListItem(End.create(), parent, paper);
+    const newDecisionItem = createNewElementListItem(Decision.create(), parent, paper);
 
-    addElementList.appendChild(newRectItem);
-    addElementList.appendChild(newEllipseItem);
-    addElementList.appendChild(newTriangleItem);
+    addElementList.appendChild(newStepItem);
+    addElementList.appendChild(newEndItem);
+    addElementList.appendChild(newDecisionItem);
 
     connectionsList.appendChild(addElementList);
 

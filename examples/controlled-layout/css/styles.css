@@ -15,16 +15,17 @@ body {
 
 #connections-list {
     position: absolute;
-    bottom: 50px;
-    left: 50px;
-    max-width: 180px;
-    max-height: 150px;
+    max-width: 200px;
+    max-height: 225px;
+    height: auto;
     overflow-y: auto;
-    padding: 16px;
-    border-radius: 8px;
+    padding: 10px;
+    border-radius: 6px;
     background-color: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    transform-origin: top left;
     z-index: 1000;
+    box-sizing: border-box;
 }
 
 #connections-list .connection-list-item, #connections-list > h3 {
@@ -32,34 +33,47 @@ body {
 }
 
 #connections-list .element-list {
-    display: inline-flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    gap: 4px;
-    width: auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 5px;
 }
 
 #connections-list .connection-list-item {
+    padding: 6px 8px;
     cursor: pointer;
     font-size: 13px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 8px;
+    justify-content: flex-start;
+    border-radius: 4px;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease;
 }
 
 #connections-list .connection-list-item:hover {
-    background-color: #f0f0f0;
+    background-color: #eee;
 }
 
 #connections-list .connection-list-item > svg {
     pointer-events: none;
+    flex-shrink: 0;
 }
 
 #connections-list > h3 {
-    margin: 0;
-    font-size: 14px;
-    font-weight: normal;
+    margin: 6px 0;
+    padding: 0 2px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+}
+
+#connections-list .element-list + h3 {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
 }
 
 .joint-tool.disabled {

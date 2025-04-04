@@ -5,7 +5,12 @@ import { DirectedGraph } from "@joint/layout-directed-graph";
 
 export function fitContent(paper: dia.Paper) {
     paper.transformToFitContent({
-        padding: 200,
+        padding: {
+            top: 100,
+            left: 100,
+            bottom: 250,
+            right: 100
+        },
         verticalAlign: 'middle',
         horizontalAlign: 'middle',
         contentArea: paper.model.getBBox()
@@ -39,13 +44,6 @@ export function runLayout(paper: dia.Paper) {
 
         if (isButton(target)) {
             buttonLinks.push(link);
-            link.set('z', -1);
-            link.attr('line', {
-                stroke: '#999',
-                strokeWidth: 2,
-                strokeDasharray: '5, 5',
-                targetMarker: null
-            });
         } else {
             otherLinks.push(link);
         }
@@ -116,17 +114,21 @@ export function addButtonToElement(element: dia.Element, graph: dia.Graph, opt: 
     return [link, button];
 }
 
-export function createListItem(thumbnail: SVGSVGElement) {
+export function createListItem(thumbnail: SVGSVGElement, label: string) {
 
     const item = document.createElement('div');
     item.classList.add('connection-list-item');
     item.appendChild(thumbnail);
+    const span = document.createElement('span');
+    span.textContent = label;
+    item.appendChild(span);
 
     return item;
 }
 
 export function createNewElementListItem(shape: dia.Element, parent: dia.Element, paper: dia.Paper) {
-    const item = createListItem(createBlankThumbnail(shape.get('type') satisfies ShapeType));
+    const label = shape.get('type').split('.').pop();
+    const item = createListItem(createBlankThumbnail(shape.get('type') satisfies ShapeType), label);
 
     const graph = paper.model;
 
@@ -142,7 +144,7 @@ export function createNewElementListItem(shape: dia.Element, parent: dia.Element
 export function createExistingElementListItem(parent: dia.Element, element: dia.Element, paper: dia.Paper) {
     const elementView = element.findView(paper) as dia.ElementView;
 
-    const item = createListItem(createElementThumbnail(elementView));
+    const item = createListItem(createBlankThumbnail(element.get('type') satisfies ShapeType), String(element.id));
 
     item.addEventListener('mouseenter', () => {
         addEffect(elementView, effects.CONNECTION_TARGET);
@@ -203,24 +205,6 @@ export function createBlankThumbnail(shapeType: ShapeType): SVGSVGElement {
     shape.setAttribute('stroke', '#333');
     shape.setAttribute('stroke-width', '2');
     svgContainer.appendChild(shape);
-
-    return svgContainer;
-}
-
-export function createElementThumbnail(elementView: dia.ElementView): SVGSVGElement {
-    // Clone the SVG element to use as a thumbnail
-    const svgGroup = elementView.el as SVGGElement;
-    const svgClone = svgGroup.cloneNode(true) as SVGGElement;
-
-    // Create a small SVG container for the thumbnail
-    const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svgContainer.setAttribute('width', '30');
-    svgContainer.setAttribute('height', '30');
-    const bbox = elementView.model.getBBox().inflate(4);
-    svgContainer.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-
-    // Add the cloned element to the container
-    svgContainer.appendChild(svgClone);
 
     return svgContainer;
 }
