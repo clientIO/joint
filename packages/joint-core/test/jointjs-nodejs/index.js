@@ -1,52 +1,51 @@
 'use strict';
 
-require('should');
+const { expect } = require('chai');
+const joint = require('../../build/joint');
 
-// Test against the latest JointJS build file.
-var joint = require('../../build/joint');
-
-describe('Sanity check', function() {
-
-    describe('require', function() {
-
-        it('should return an object', function() {
-            joint.should.have.type('object');
-            joint.should.not.be.empty;
+describe('Sanity check', () => {
+    describe('require', () => {
+        it('should return a non-empty object', () => {
+            expect(joint).to.be.an('object');
+            expect(joint).to.not.be.empty;
         });
 
-        it('should contain Graph constructor', function() {
-
-            joint.should.have.property('dia');
-            joint.dia.should.have.property('Graph');
-            joint.dia.Graph.should.have.type('function');
+        it('should contain Graph constructor', () => {
+            expect(joint).to.exist;
+            expect(joint.dia).to.exist;
+            expect(joint.dia.Graph).to.exist;
+            expect(joint.dia.Graph).to.be.a('function');
         });
     });
 });
 
-describe('Graph', function() {
-
-    describe('#addCell()', function() {
-
-        it('should add a cell to the graph cells collection', function() {
-
-            var g = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
-            var c = new joint.shapes.standard.Rectangle({ attrs: { label: { fill: 'yellow' }}});
-            g.addCell(c);
-            g.get('cells').length.should.be.exactly(1);
-            g.get('cells').at(0).should.be.an.instanceOf(joint.shapes.standard.Rectangle);
+describe('Graph', () => {
+    describe('#addCell()', () => {
+        it('should add a cell to the graph cells collection', () => {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const cell = new joint.shapes.standard.Rectangle({ 
+                attrs: { label: { fill: 'yellow' } }
+            });
+            
+            graph.addCell(cell);
+            
+            expect(graph.get('cells')).to.have.lengthOf(1);
+            expect(graph.get('cells').at(0)).to.be.an.instanceOf(joint.shapes.standard.Rectangle);
         });
     });
 
-    describe('events', function() {
-
-        it('should trigger add event when new cell has been added', function() {
-
-            var g = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
-            var c = new joint.shapes.standard.Rectangle({ attrs: { label: { fill: 'yellow' }}});
-            var called = false;
-            g.on('add', function() { called = true; });
-            g.addCell(c);
-            called.should.be.true;
+    describe('events', () => {
+        it('should trigger add event when new cell has been added', () => {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const cell = new joint.shapes.standard.Rectangle({ 
+                attrs: { label: { fill: 'yellow' } }
+            });
+            let eventTriggered = false;
+            
+            graph.on('add', () => { eventTriggered = true; });
+            graph.addCell(cell);
+            
+            expect(eventTriggered).to.be.true;
         });
     });
 });
