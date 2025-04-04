@@ -1,18 +1,56 @@
 import * as util from '../util/index.mjs';
-import { toRad } from '../g/index.mjs';
+import { toRad, Rect } from '../g/index.mjs';
 import { resolveRef } from '../linkAnchors/index.mjs';
+
+
+function getModelBBoxFromConnectedLink(element, link, endType, rotate) {
+
+    let bbox;
+
+    const elementBBox = element.getBBox();
+    const angle = element.angle();
+    const portId = link.get(endType).port;
+
+    if (element.hasPort(portId)) {
+        const port = element.getPort(portId);
+        // Note: the `angle` property of the `port` is ignore here for now
+        bbox = new Rect(element.getPortsRects(port.group)[portId]);
+        bbox.offset(elementBBox.x, elementBBox.y);
+        bbox.moveAroundPoint(elementBBox.center(), -angle);
+    } else {
+        bbox = elementBBox;
+    }
+
+    if (!rotate) {
+        bbox.rotateAroundCenter(-angle);
+    }
+
+    return bbox;
+}
 
 function bboxWrapper(method) {
 
-    return function(view, magnet, ref, opt) {
+    return function(elementView, magnet, ref, opt, endType, linkView) {
 
-        var rotate = !!opt.rotate;
-        var bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
-        var anchor = bbox[method]();
+        const rotate = !!opt.rotate;
+        const element = elementView.model;
+        const link = linkView.model;
+        const angle = element.angle();
 
-        var dx = opt.dx;
+        let bbox, center;
+        if (opt.useModelGeometry) {
+            bbox = getModelBBoxFromConnectedLink(element, link, endType, rotate);
+            center = bbox.center();
+        } else {
+            center = element.getBBox().center();
+            bbox = (rotate) ? elementView.getNodeUnrotatedBBox(magnet) : elementView.getNodeBBox(magnet);
+        }
+
+        const anchor = bbox[method]();
+
+        let dx = opt.dx;
         if (dx) {
-            var dxPercentage = util.isPercentage(dx);
+            const dxPercentage = util.isPercentage(dx);
             dx = parseFloat(dx);
             if (isFinite(dx)) {
                 if (dxPercentage) {
@@ -23,9 +61,9 @@ function bboxWrapper(method) {
             }
         }
 
-        var dy = opt.dy;
+        let dy = opt.dy;
         if (dy) {
-            var dyPercentage = util.isPercentage(dy);
+            const dyPercentage = util.isPercentage(dy);
             dy = parseFloat(dy);
             if (isFinite(dy)) {
                 if (dyPercentage) {
@@ -36,19 +74,27 @@ function bboxWrapper(method) {
             }
         }
 
-        return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
+        return (rotate) ? anchor.rotate(center, -angle) : anchor;
     };
 }
 
-function _perpendicular(view, magnet, refPoint, opt) {
+function _perpendicular(elementView, magnet, refPoint, opt, endType, linkView) {
 
-    var angle = view.model.angle();
-    var bbox = view.getNodeBBox(magnet);
-    var anchor = bbox.center();
-    var topLeft = bbox.origin();
-    var bottomRight = bbox.corner();
+    const element = elementView.model;
+    const angle = element.angle();
 
-    var padding = opt.padding;
+    let bbox;
+    if (opt.useModelGeometry) {
+        bbox = getModelBBoxFromConnectedLink(element, linkView.model, endType, false);
+    } else {
+        bbox = elementView.getNodeBBox(magnet);
+    }
+
+    const anchor = bbox.center();
+    const topLeft = bbox.origin();
+    const bottomRight = bbox.corner();
+
+    let padding = opt.padding;
     if (!isFinite(padding)) padding = 0;
 
     if ((topLeft.y + padding) <= refPoint.y && refPoint.y <= (bottomRight.y - padding)) {
@@ -64,16 +110,17 @@ function _perpendicular(view, magnet, refPoint, opt) {
     return anchor;
 }
 
-function _midSide(view, magnet, refPoint, opt) {
-
+function _midSide(view, magnet, refPoint, opt, endType, linkView) {
     var rotate = !!opt.rotate;
-    var bbox, angle, center;
-    if (rotate) {
-        bbox = view.getNodeUnrotatedBBox(magnet);
-        center = view.model.getBBox().center();
-        angle = view.model.angle();
+    var angle = view.model.angle();
+    var center = view.model.getBBox().center();
+
+    var bbox;
+    if (opt.useModelGeometry) {
+        bbox = getModelBBoxFromConnectedLink(view.model, linkView.model, endType, rotate);
+        center = bbox.center();
     } else {
-        bbox = view.getNodeBBox(magnet);
+        bbox =  rotate ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
     }
 
     var padding = opt.padding;

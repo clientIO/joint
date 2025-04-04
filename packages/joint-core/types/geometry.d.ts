@@ -675,6 +675,8 @@ export namespace g {
 
         moveAndExpand(r: PlainRect): this;
 
+        moveAroundPoint(origin: PlainPoint | string, angle: number): this;
+
         normalize(): this;
 
         offset(dx?: number, dy?: number): this;

@@ -574,6 +574,7 @@ export namespace dia {
             position?: PositionType;
             markup?: string | MarkupJSON;
             attrs?: Cell.Selectors;
+            size?: Size;
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
@@ -586,6 +587,7 @@ export namespace dia {
             group?: string;
             attrs?: Cell.Selectors;
             args?: { [key: string]: any };
+            size?: Size;
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
@@ -594,6 +596,10 @@ export namespace dia {
         }
 
         interface PortPosition extends Point {
+            angle: number;
+        }
+
+        interface PortRect extends BBox {
             angle: number;
         }
 
@@ -677,6 +683,8 @@ export namespace dia {
         getPort(id: string): Element.Port;
 
         getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
+
+        getPortsRects(groupName: string): { [id: string]: Element.PortRect };
 
         getPortIndex(port: string | Element.Port): number;
 
@@ -3810,7 +3818,11 @@ export namespace connectors {
 
 export namespace anchors {
 
-    interface RotateAnchorArguments {
+    interface ElementAnchorArguments {
+        useModelGeometry?: boolean;
+    }
+
+    interface RotateAnchorArguments extends ElementAnchorArguments {
         rotate?: boolean;
     }
 
@@ -3819,7 +3831,7 @@ export namespace anchors {
         dy?: number | string;
     }
 
-    interface PaddingAnchorArguments {
+    interface PaddingAnchorArguments extends ElementAnchorArguments {
         padding?: number;
     }
 
