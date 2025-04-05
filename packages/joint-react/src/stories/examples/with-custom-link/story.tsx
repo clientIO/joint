@@ -22,7 +22,6 @@ export default {
   }),
 } satisfies Meta<typeof CodeWithCreateLinks>;
 
-// export const Default: Story = {};
 export const WithCreateLinks = makeStory({
   code: CodeWithCreateLinksCode,
   description: 'Code with create links.',
