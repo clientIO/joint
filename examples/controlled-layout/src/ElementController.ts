@@ -29,6 +29,8 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
         this.listenTo(paper, {
             'link:connect': onLinkConnect,
             'link:pointerclick': onLinkPointerClick,
+            'link:mouseenter': onLinkMouseEnter,
+            'link:mouseleave': onLinkMouseLeave,
             'blank:pointerclick': onBlankPointerClick,
             'element:pointerclick': onElementPointerClick,
             'cell:highlight': onCellHighlight,
@@ -49,9 +51,9 @@ function onLinkConnect({ paper }: ElementControllerArgs, _linkView: dia.LinkView
 
 // Add a function to handle link clicks
 function onLinkPointerClick({ paper, graph }: ElementControllerArgs, linkView: dia.LinkView) {
-    paper.removeTools();
 
-    const source = linkView.model.getSourceElement();
+    closeConnectionsList(paper);
+
     const target = linkView.model.getTargetElement();
 
     // Don't show remove tool if the target is a button
@@ -59,9 +61,21 @@ function onLinkPointerClick({ paper, graph }: ElementControllerArgs, linkView: d
 
     const removeTool = new LinkRemoveTool({
         distance: '50%',
-        offset: 20,
         disabled: isBridge(graph, linkView.model)
     });
+
+    linkView.addTools(new dia.ToolsView({
+        tools: [removeTool]
+    }));
+}
+
+function onLinkMouseEnter({ paper }: ElementControllerArgs, linkView: dia.LinkView) {
+
+    const source = linkView.model.getSourceElement();
+    const target = linkView.model.getTargetElement();
+
+    // Don't show intermediate child tool if the target is a button
+    if (isButton(target)) return;
 
     const intermediateChildTool = new linkTools.Button({
         attributes: {
@@ -86,8 +100,12 @@ function onLinkPointerClick({ paper, graph }: ElementControllerArgs, linkView: d
     });
 
     linkView.addTools(new dia.ToolsView({
-        tools: [removeTool, intermediateChildTool]
+        tools: [intermediateChildTool]
     }));
+}
+
+function onLinkMouseLeave(_context: ElementControllerArgs, linkView: dia.LinkView) {
+    linkView.removeTools();
 }
 
 function onBlankPointerClick({ paper }: ElementControllerArgs) {
