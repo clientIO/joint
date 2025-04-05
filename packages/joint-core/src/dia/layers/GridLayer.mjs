@@ -1,4 +1,4 @@
-import { PaperLayer } from '../PaperLayer.mjs';
+import { LayerView } from '../LayerView.mjs';
 import {
     isFunction,
     isString,
@@ -9,27 +9,32 @@ import {
 } from '../../util/index.mjs';
 import V from '../../V/index.mjs';
 
-export const GridLayer = PaperLayer.extend({
+export class GridLayer extends LayerView {
 
-    style: {
-        'pointer-events': 'none'
-    },
+    _gridCache = null;
+    _gridSettings = null;
 
-    _gridCache: null,
-    _gridSettings: null,
+    preinitialize() {
+        super.preinitialize();
 
-    init() {
-        PaperLayer.prototype.init.apply(this, arguments);
+        this.style = {
+            'pointer-events': 'none'
+        }
+
+    }
+
+    init(...args) {
+        super.init(...args);
         const { options: { paper }} = this;
         this._gridCache = null;
         this._gridSettings = [];
         this.listenTo(paper, 'transform resize', this.updateGrid);
-    },
+    }
 
     setGrid(drawGrid) {
         this._gridSettings = this.getGridSettings(drawGrid);
         this.renderGrid();
-    },
+    }
 
     getGridSettings(drawGrid) {
         const gridSettings = [];
@@ -40,14 +45,14 @@ export const GridLayer = PaperLayer.extend({
             });
         }
         return gridSettings;
-    },
+    }
 
     removeGrid() {
         const { _gridCache: grid } = this;
         if (!grid) return;
         grid.root.remove();
         this._gridCache = null;
-    },
+    }
 
     renderGrid() {
 
@@ -92,7 +97,7 @@ export const GridLayer = PaperLayer.extend({
 
         refs.root.appendTo(this.el);
         this.updateGrid();
-    },
+    }
 
     updateGrid() {
 
@@ -111,11 +116,11 @@ export const GridLayer = PaperLayer.extend({
                 options.update(vPattern.node.firstChild, options, paper);
             }
         });
-    },
+    }
 
     _getPatternId(index) {
         return `pattern_${this.options.paper.cid}_${index}`;
-    },
+    }
 
     _getGridRefs() {
         let { _gridCache: grid } = this;
@@ -139,34 +144,34 @@ export const GridLayer = PaperLayer.extend({
             }
         };
         return grid;
-    },
+    }
 
     _resolveDrawGridOption(opt) {
 
-        var namespace = this.options.patterns;
+        const namespace = this.options.patterns;
         if (isString(opt) && Array.isArray(namespace[opt])) {
             return namespace[opt].map(function(item) {
                 return assign({}, item);
             });
         }
 
-        var options = opt || { args: [{}] };
-        var isArray = Array.isArray(options);
-        var name = options.name;
+        const options = opt || { args: [{}] };
+        const isArray = Array.isArray(options);
+        const name = options.name;
 
         if (!isArray && !name && !options.markup) {
             name = 'dot';
         }
 
         if (name && Array.isArray(namespace[name])) {
-            var pattern = namespace[name].map(function(item) {
+            const pattern = namespace[name].map(function(item) {
                 return assign({}, item);
             });
 
-            var args = Array.isArray(options.args) ? options.args : [options.args || {}];
+            const args = Array.isArray(options.args) ? options.args : [options.args || {}];
 
             defaults(args[0], omit(opt, 'args'));
-            for (var i = 0; i < args.length; i++) {
+            for (let i = 0; i < args.length; i++) {
                 if (pattern[i]) {
                     assign(pattern[i], args[i]);
                 }
@@ -175,11 +180,11 @@ export const GridLayer = PaperLayer.extend({
         }
 
         return isArray ? options : [options];
-    },
+    }
 
     isEmpty() {
         const { _gridCache: grid } = this;
         return this.el.children.length === (grid ? 1 : 0);
     }
 
-});
+}
