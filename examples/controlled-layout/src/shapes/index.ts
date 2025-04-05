@@ -6,8 +6,8 @@ export * from './End';
 export * from './Decision';
 export * from './ButtonLink';
 
-export function isButton(el: dia.Cell) {
-    return el.get('type') === 'app.Button';
+export function isButton(el?: dia.Cell) {
+    return el?.get('type') === 'app.Button';
 }
 
 export interface IElement extends dia.Element {

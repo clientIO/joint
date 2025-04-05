@@ -1,9 +1,9 @@
-import { dia, linkTools, util, mvc } from '@joint/core';
+import { dia, linkTools, util, mvc, g } from '@joint/core';
 import { End, Step, Decision, isButton, IElement } from './shapes';
 import { runLayout, createExistingElementListItem, isBridge, createNewElementListItem, validChildrenCount } from './utils';
 import { addEffect, effects, removeEffect } from './effects';
 import { LinkRemoveTool, ElementRemoveTool } from './RemoveTool';
-
+import { showGhostOnNextInteraction } from './ghost-preview';
 interface ElementControllerArgs {
     graph: dia.Graph;
     paper: dia.Paper;
@@ -34,7 +34,11 @@ export class ElementController extends mvc.Listener<[ElementControllerArgs]> {
             'blank:pointerclick': onBlankPointerClick,
             'element:pointerclick': onElementPointerClick,
             'cell:highlight': onCellHighlight,
-            'cell:unhighlight': onCellUnhighlight
+            'cell:unhighlight': onCellUnhighlight,
+            'element:pointerdown': (_context, elementView: dia.ElementView, evt: dia.Event) => {
+                showGhostOnNextInteraction(paper);
+                elementView.preventDefaultInteraction(evt);
+            }
         })
     }
 }
@@ -95,7 +99,7 @@ function onLinkMouseEnter({ paper }: ElementControllerArgs, linkView: dia.LinkVi
             const scale = paper.scale().sx;
             const clampedScale = Math.max(0.75, Math.min(scale, 1.25));
             connectionsList.style.transform = `scale(${clampedScale}) translate(-50%, -50%)`;
-            openConnectionsList(paper, source, target);
+            openConnectionsList(paper, source, view.getPointAtRatio(0.5), target);
         },
     });
 
@@ -160,7 +164,7 @@ function onElementPointerClick({ paper, graph }: ElementControllerArgs, elementV
     connectionsList.style.transform = `scale(${clampedScale}) translate(-50%, 0)`;
 
     addEffect(parent.findView(paper), effects.CONNECTION_SOURCE);
-    openConnectionsList(paper, parent);
+    openConnectionsList(paper, parent, model.position());
 }
 
 function onCellHighlight(_context: ElementControllerArgs, cellView: dia.CellView, _node: SVGElement, { type }: { type: dia.CellView.Highlighting }) {
@@ -177,7 +181,7 @@ function onCellUnhighlight({ paper }: ElementControllerArgs, _cellView: dia.Cell
 
 const connectionsList = document.querySelector<HTMLDivElement>('#connections-list')!;
 
-function openConnectionsList(paper: dia.Paper, parent: dia.Element, insertBefore?: dia.Element) {
+function openConnectionsList(paper: dia.Paper, parent: dia.Element, buttonPosition: g.Point, insertBefore?: dia.Element) {
 
     closeConnectionsList(paper);
     connectionsList.style.display = 'block';
@@ -192,14 +196,16 @@ function openConnectionsList(paper: dia.Paper, parent: dia.Element, insertBefore
     const addElementList = document.createElement('div');
     addElementList.classList.add('element-list');
 
-    const newStepItem = createNewElementListItem(Step.create(), parent, paper, insertBefore);
-    const newDecisionItem = createNewElementListItem(Decision.create(), parent, paper, insertBefore);
+    const { x, y } = buttonPosition;
+
+    const newStepItem = createNewElementListItem(Step.create().position(x, y), parent, paper, insertBefore);
+    const newDecisionItem = createNewElementListItem(Decision.create().position(x, y), parent, paper, insertBefore);
 
     addElementList.appendChild(newStepItem);
     addElementList.appendChild(newDecisionItem);
 
     if (!insertBefore) {
-        const newEndItem = createNewElementListItem(End.create(), parent, paper, insertBefore);
+        const newEndItem = createNewElementListItem(End.create().position(x, y), parent, paper, insertBefore);
         addElementList.appendChild(newEndItem);
     }
 

@@ -33,10 +33,9 @@ export function runLayout(paper: dia.Paper) {
         }
     });
 
-
     const links = paper.model.getLinks();
 
-    const otherLinks: dia.Link[] = [];
+    let otherLinks: dia.Link[] = [];
     const buttonLinks: dia.Link[] = [];
 
     links.forEach(link => {
@@ -48,6 +47,13 @@ export function runLayout(paper: dia.Paper) {
         } else {
             otherLinks.push(link);
         }
+    });
+
+    // Sort `otherLinks` by target's x position for the sibling reordering
+    otherLinks = otherLinks.sort((a, b) => {
+        const aPos = a.getTargetCell().position();
+        const bPos = b.getTargetCell().position();
+        return aPos.x - bPos.x;
     });
 
     const rankSep = 100;
