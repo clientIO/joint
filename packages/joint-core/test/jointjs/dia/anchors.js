@@ -245,6 +245,79 @@ QUnit.module('anchors', function(hooks) {
                 );
             });
 
+            QUnit.module(`${name}: dx,dy`, function() {
+
+                QUnit.test('number', function(assert) {
+                    const dx = 23;
+                    const dy = -47;
+                    const anchor = {
+                        name,
+                        args: {
+                            useModelGeometry: true,
+                            dx,
+                            dy
+                        }
+                    };
+
+                    link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                    const expectedPoint = link.getSourceElement().getBBox()[method]().offset(dx, dy).round();
+
+                    assert.ok(
+                        expectedPoint.equals(linkView.sourceAnchor)
+                    );
+
+                });
+
+                QUnit.test('percentage', function(assert) {
+                    const dx = '23%';
+                    const dy = '-47%';
+                    const anchor = {
+                        name,
+                        args: {
+                            useModelGeometry: true,
+                            dx,
+                            dy
+                        }
+                    };
+
+                    link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                    const sourceBBox = link.getSourceElement().getBBox();
+                    const dxValue = parseFloat(dx) / 100 * sourceBBox.width;
+                    const dyValue = parseFloat(dy) / 100 * sourceBBox.height;
+                    const expectedPoint = sourceBBox[method]().offset(dxValue, dyValue).round();
+
+                    assert.ok(
+                        expectedPoint.equals(linkView.sourceAnchor)
+                    );
+                });
+
+                QUnit.test('calc expression', function(assert) {
+                    const dx = 'calc(w + 23)';
+                    const dy = 'calc(h - 47)';
+                    const anchor = {
+                        name,
+                        args: {
+                            useModelGeometry: true,
+                            dx,
+                            dy
+                        }
+                    };
+
+                    link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                    const sourceBBox = link.getSourceElement().getBBox();
+                    const dxValue = Number(joint.util.evalCalcExpression(dx, sourceBBox));
+                    const dyValue = Number(joint.util.evalCalcExpression(dy, sourceBBox));
+                    const expectedPoint = sourceBBox[method]().offset(dxValue, dyValue).round();
+
+                    assert.ok(
+                        expectedPoint.equals(linkView.sourceAnchor)
+                    );
+                });
+            });
+
         });
 
     });

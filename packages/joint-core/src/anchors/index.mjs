@@ -50,10 +50,16 @@ function bboxWrapper(method) {
 
         let dx = opt.dx;
         if (dx) {
-            const dxPercentage = util.isPercentage(dx);
-            dx = parseFloat(dx);
+            const isDxPercentage = util.isPercentage(dx);
+            if (!isDxPercentage && util.isCalcExpression(dx)) {
+                // calc expression
+                dx = Number(util.evalCalcExpression(dx, bbox));
+            } else {
+                // percentage or a number
+                dx = parseFloat(dx);
+            }
             if (isFinite(dx)) {
-                if (dxPercentage) {
+                if (isDxPercentage) {
                     dx /= 100;
                     dx *= bbox.width;
                 }
@@ -63,10 +69,16 @@ function bboxWrapper(method) {
 
         let dy = opt.dy;
         if (dy) {
-            const dyPercentage = util.isPercentage(dy);
-            dy = parseFloat(dy);
+            const isDyPercentage = util.isPercentage(dy);
+            if (!isDyPercentage && util.isCalcExpression(dy)) {
+                // calc expression
+                dy = Number(util.evalCalcExpression(dy, bbox));
+            } else {
+                // percentage or a number
+                dy = parseFloat(dy);
+            }
             if (isFinite(dy)) {
-                if (dyPercentage) {
+                if (isDyPercentage) {
                     dy /= 100;
                     dy *= bbox.height;
                 }
