@@ -9,9 +9,12 @@ const Side = {
     BOTTOM: 'bottom',
 };
 
-const Preference = {
+const SideMode = {
+    PREFER_HORIZONTAL: 'prefer-horizontal',
+    PREFER_VERTICAL: 'prefer-vertical',
     HORIZONTAL: 'horizontal',
     VERTICAL: 'vertical',
+    AUTO: 'auto',
 };
 
 function getModelBBoxFromConnectedLink(element, link, endType, rotate) {
@@ -40,36 +43,52 @@ function getModelBBoxFromConnectedLink(element, link, endType, rotate) {
 }
 
 function getMiddleSide(rect, point, opt) {
-    let { threshold = 0, preference } = opt;
+
+    const { preferenceThreshold = 0, mode } = opt;
     const { x, y } = point;
     const { x: left , y: top, width, height } = rect;
-    const { top: tt, left: tl, right: tr, bottom: tb } = util.normalizeSides(threshold);
 
-    switch (preference) {
-        case Preference.VERTICAL: {
+    switch (mode) {
+
+        case SideMode.PREFER_VERTICAL: {
+            const {
+                top: topThreshold,
+                bottom: bottomThreshold
+            } = util.normalizeSides(preferenceThreshold);
             const bottom = top + height;
-            if (y > top - tt && y < bottom + tb) {
+            if (y > top - topThreshold && y < bottom + bottomThreshold) {
                 const cx = left + width / 2;
-                if (x < cx) return Side.LEFT;
-                if (x > cx) return Side.RIGHT;
+                return (x < cx) ? Side.LEFT : Side.RIGHT;
             }
+        }
+        // eslint-disable-next-line no-fallthrough
+        case SideMode.VERTICAL: {
             const cy = top + height / 2;
             return (y < cy) ? Side.TOP : Side.BOTTOM;
         }
-        case Preference.HORIZONTAL: {
+
+        case SideMode.PREFER_HORIZONTAL: {
+            const {
+                left: leftThreshold,
+                right: rightThreshold
+            } = util.normalizeSides(preferenceThreshold);
             const right = left + width;
-            if (x > left - tl && x < right + tr) {
+            if (x > left - leftThreshold && x < right + rightThreshold) {
                 const cy = top + height / 2;
-                if (y < cy) return Side.TOP;
-                if (y > cy) return Side.BOTTOM;
+                return (y < cy) ? Side.TOP : Side.BOTTOM;
             }
+        }
+        // eslint-disable-next-line no-fallthrough
+        case SideMode.HORIZONTAL: {
             const cx = left + width / 2;
             return (x < cx) ? Side.LEFT : Side.RIGHT;
         }
-    }
 
-    // angle based preference
-    return rect.sideNearestToPoint(point);
+        case SideMode.AUTO:
+        default: {
+            return rect.sideNearestToPoint(point);
+        }
+    }
 }
 
 function bboxWrapper(method) {

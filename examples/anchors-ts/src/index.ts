@@ -149,18 +149,18 @@ createPair(graph, {
         name: 'midSide',
         args: {
             useModelGeometry: true,
-            preference: 'vertical'
+            mode: 'vertical'
         }
     },
-    sourceLabel: 'midSide\npreference=vertical',
+    sourceLabel: 'midSide\nmode=vertical',
     targetAnchor: {
         name: 'midSide',
         args: {
             useModelGeometry: true,
-            preference: 'horizontal'
+            mode: 'horizontal'
         }
     },
-    targetLabel: 'midSide\npreference=horizontal',
+    targetLabel: 'midSide\nmode=horizontal',
 });
 
 createPair(graph, {
