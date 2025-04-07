@@ -47,7 +47,7 @@ PortData.prototype = {
     var groupPortTransformations = namespace[groupPositionName](
       portsArgs,
       elBBox,
-      groupArgs
+      groupArgs,
     );
 
     var accumulator = {
@@ -64,7 +64,7 @@ PortData.prototype = {
           labelTransformation: this._getPortLabelLayout(
             port,
             Point(portTransformation),
-            elBBox
+            elBBox,
           ),
           portAttrs: port.attrs,
           portSize: port.size,
@@ -72,7 +72,7 @@ PortData.prototype = {
         });
         return res;
       }.bind(this),
-      accumulator
+      accumulator,
     );
 
     return accumulator.result;
@@ -86,7 +86,7 @@ PortData.prototype = {
       return namespace[labelPosition](
         portPosition,
         elBBox,
-        port.label.position.args
+        port.label.position.args,
       );
     }
 
@@ -149,7 +149,7 @@ PortData.prototype = {
         args: {},
       },
       group.position,
-      { args: port.args }
+      { args: port.args },
     );
   },
 
@@ -200,7 +200,7 @@ export const elementPortPrototype = {
         this._processRemovedPort();
         this._createPortData();
       },
-      this
+      this,
     );
   },
 
@@ -277,11 +277,10 @@ export const elementPortPrototype = {
    * @returns {object}
    */
   getPort: function (id) {
-    return util.cloneDeep(
-      util.toArray(this.prop("ports/items")).find(function (port) {
-        return port.id && port.id === id;
-      })
-    );
+    const port = util
+      .toArray(this.prop("ports/items"))
+      .find((port) => port.id && port.id === id);
+    return util.cloneDeep(port);
   },
 
   getPortGroupNames: function () {
@@ -295,7 +294,7 @@ export const elementPortPrototype = {
   getPortsPositions: function (groupName) {
     var portsMetrics = this._portSettingsData.getGroupPortsMetrics(
       groupName,
-      Rect(this.size())
+      Rect(this.size()),
     );
 
     return portsMetrics.reduce(function (positions, metrics) {
@@ -306,6 +305,29 @@ export const elementPortPrototype = {
         angle: transformation.angle,
       };
       return positions;
+    }, {});
+  },
+
+  getPortsRects: function (groupName) {
+    var portsMetrics = this._portSettingsData.getGroupPortsMetrics(
+      groupName,
+      Rect(this.size()),
+    );
+
+    return portsMetrics.reduce(function (rects, metrics) {
+      const {
+        portId,
+        portTransformation: { x, y, angle },
+        portSize: { width, height },
+      } = metrics;
+      rects[portId] = {
+        x: x - width / 2,
+        y: y - height / 2,
+        width,
+        height,
+        angle,
+      };
+      return rects;
     }, {});
   },
 
@@ -437,7 +459,7 @@ export const elementPortPrototype = {
       this.prop(
         "ports/items",
         util.assign([], this.prop("ports/items")).concat(ports),
-        opt
+        opt,
       );
     }
 
@@ -604,7 +626,7 @@ export const elementViewPortPrototype = {
 
     var portsGropsByZ = util.groupBy(
       this.model._portSettingsData.getPorts(),
-      "z"
+      "z",
     );
     var withoutZKey = "auto";
 
@@ -709,7 +731,7 @@ export const elementViewPortPrototype = {
     let portSelectors;
 
     var portContainerElement = V(this.portContainerMarkup).addClass(
-      "joint-port"
+      "joint-port",
     );
 
     var portMarkup = this._getPortMarkup(port);
@@ -750,7 +772,7 @@ export const elementViewPortPrototype = {
       // JSON Markup
       const { fragment, selectors } = this.parseDOMJSON(
         labelMarkupDef,
-        portContainerElement.node
+        portContainerElement.node,
       );
       const childCount = fragment.childNodes.length;
       if (childCount > 0) {
@@ -833,7 +855,7 @@ export const elementViewPortPrototype = {
     var elementBBox = Rect(this.model.size());
     var portsMetrics = this.model._portSettingsData.getGroupPortsMetrics(
       groupName,
-      elementBBox
+      elementBBox,
     );
 
     for (var i = 0, n = portsMetrics.length; i < n; i++) {
@@ -849,12 +871,12 @@ export const elementViewPortPrototype = {
           {
             rootBBox: new Rect(metrics.labelSize),
             selectors: cached.portLabelSelectors,
-          }
+          },
         );
         this.applyPortTransform(
           cached.portLabelElement,
           labelTransformation,
-          -portTransformation.angle || 0
+          -portTransformation.angle || 0,
         );
       }
       this.updateDOMSubtreeAttributes(
@@ -863,7 +885,7 @@ export const elementViewPortPrototype = {
         {
           rootBBox: new Rect(metrics.portSize),
           selectors: cached.portSelectors,
-        }
+        },
       );
       this.applyPortTransform(cached.portElement, portTransformation);
     }
