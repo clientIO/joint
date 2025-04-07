@@ -69,7 +69,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     );
 
     return () => controller.stopListening();
-    // TODO: We need to somehow exclusively add restOptions events manually to dependencies, otherwise it will be not memoized.
+    // TODO: We need to find out some mechanism to add events to the paper, now i think memoized events will not works properly.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paper, resizePaperContainer]);
 

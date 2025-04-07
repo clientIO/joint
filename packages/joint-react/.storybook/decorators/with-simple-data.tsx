@@ -28,7 +28,7 @@ const initialElements = createElements([
 export type SimpleElement = InferElement<typeof initialElements>;
 const defaultLinks = createLinks([
   {
-    id: 'e1-2',
+    id: 'l-1',
     source: '1',
     target: '2',
     attrs: {

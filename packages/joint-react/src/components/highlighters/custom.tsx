@@ -70,9 +70,8 @@ function RawComponent<
       ...oldOptions,
       ...hOptions,
     };
-    // TODO: METHOD IS protected by TS, so it need to be fixed in core
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+
+    // @ts-expect-error Internal API
     instance.update();
   }, []);
   useHighlighter(create, update, options, isDisabled);

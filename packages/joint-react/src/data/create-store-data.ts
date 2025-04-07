@@ -36,6 +36,7 @@ export function createStoreData<
    */
   function updateStore(graph: dia.Graph): void {
     const cells = graph.get('cells');
+
     if (!cells) throw new Error('Graph cells are not initialized');
 
     // New updates, if cell is inserted or updated, we track it inside this diff.

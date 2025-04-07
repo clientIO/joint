@@ -77,7 +77,7 @@ export function isNull(value: unknown): value is null {
 }
 
 export function isReactComponentFunction(value: unknown): value is FunctionComponent {
-  return value instanceof Function;
+  return typeof value === 'function';
 }
 
 export function isWithChildren(value: unknown): value is { children: JSX.Element[] } {

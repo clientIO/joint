@@ -10,6 +10,7 @@ interface MakeStoryOptions<T extends StoryObj> {
   readonly description?: string;
   readonly args?: T['args'];
   readonly decorators?: T['decorators'];
+  readonly play?: T['play'];
 }
 
 /**
@@ -24,8 +25,9 @@ interface MakeStoryOptions<T extends StoryObj> {
  */
 //@ts-expect-error T is not assignable to type StoryObj
 export function makeStory<T>(options: MakeStoryOptions<T>): T {
-  const { component, code, name, apiURL, description = '', args, decorators } = options;
+  const { component, code, name, apiURL, description = '', args, decorators, play } = options;
   return {
+    play,
     args,
     render: component as unknown,
     decorators,

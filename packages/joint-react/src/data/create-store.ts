@@ -180,7 +180,13 @@ export function createStore(options?: StoreOptions): Store {
     if (!id) {
       return false;
     }
-    const sourceElement = graph.getCell(id) as dia.Element;
+    const sourceElement = graph.getCell(id);
+    if (!sourceElement) {
+      return false;
+    }
+    if (!sourceElement.isElement()) {
+      return false;
+    }
     const { width, height } = sourceElement.size();
     return !!(width > 1 && height > 1);
   }
@@ -242,6 +248,8 @@ export function createStore(options?: StoreOptions): Store {
     data.destroy();
     portElements.clear();
   }
+  // Force update the graph to ensure it's in sync with the store.
+  forceUpdate();
 
   const store: Store = {
     forceUpdate,

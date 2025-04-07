@@ -75,3 +75,16 @@ export const DivWithPaddingAndText = makeStory<Story>({
   name: 'Measured div with padding and text',
   description: 'Div with padding and text content.',
 });
+
+export const TailwindSizing = makeStory<Story>({
+  args: {
+    children: (
+      <div className="flex items-center justify-center text-center bg-primary rounded-lg p-2 bg-red-500">
+        Hello world!
+      </div>
+    ),
+  },
+  apiURL: API_URL,
+  name: 'Tailwind sizing',
+  description: 'Div with tailwind classes.',
+});

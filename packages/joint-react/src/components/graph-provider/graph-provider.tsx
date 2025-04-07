@@ -82,31 +82,44 @@ export interface GraphProps {
  * @group Components
  */
 export function GraphProvider(props: GraphProps) {
-  const { children, store, ...rest } = props;
+  const { children, ...rest } = props;
   const [isLoaded, setIsLoaded] = useState(false);
-  const [graphStore] = useState(() => {
-    if (store) {
-      return store;
-    }
-    return createStore({ ...rest, onLoad: setIsLoaded });
-  });
 
-  // Initialize and cleanup
+  /**
+   * Graph store instance.
+   * @returns - The graph store instance.
+   */
+
+  const [graphStore, setGraphStore] = useState<null | Store>(null);
+
   useEffect(() => {
-    graphStore.forceUpdate();
+    const newStore = createStore({ ...rest, onLoad: setIsLoaded });
+    // We must use state initialization for the store, because it can be used in the same component.
+    // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
+    setGraphStore(newStore);
     return () => {
-      graphStore.destroy();
+      if (newStore) {
+        newStore.destroy();
+      }
     };
+    // On load initialization
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const graphContext = useMemo(
-    (): StoreContext => ({
+  const graphContext = useMemo((): StoreContext | null => {
+    if (!graphStore) {
+      return null;
+    }
+
+    return {
       ...graphStore,
       isLoaded,
-    }),
-    [graphStore, isLoaded]
-  );
+    };
+  }, [graphStore, isLoaded]);
+
+  if (!graphContext) {
+    return null;
+  }
 
   return <GraphStoreContext.Provider value={graphContext}>{children}</GraphStoreContext.Provider>;
 }

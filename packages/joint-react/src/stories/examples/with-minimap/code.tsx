@@ -51,10 +51,9 @@ function MiniMap() {
   );
 }
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <HTMLNode className="node">{element.data.label}</HTMLNode>,
-    []
-  );
+  const renderElement: RenderElement<BaseElementWithData> = useCallback((element) => {
+    return <HTMLNode className="node">{element.data.label}</HTMLNode>;
+  }, []);
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper width={400} height={280} renderElement={renderElement} />

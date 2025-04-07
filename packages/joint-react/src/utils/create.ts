@@ -1,4 +1,8 @@
-import type { GraphElementBase, StandardShapesType } from '../types/element-types';
+import type {
+  GraphElementBase,
+  GraphElementItem,
+  StandardShapesType,
+} from '../types/element-types';
 import type { GraphLink, GraphLinkBase, StandardLinkShapesType } from '../types/link-types';
 
 /**
@@ -24,8 +28,9 @@ import type { GraphLink, GraphLinkBase, StandardLinkShapesType } from '../types/
  * ```
  */
 export function createElements<
-  Element extends GraphElementBase<Type>,
+  Data,
   Type extends StandardShapesType | string = string,
+  Element extends GraphElementBase<Type> = GraphElementItem<Data, Type>,
 >(
   data: Array<Element & GraphElementBase<Type>>
 ): Array<Element & { isElement: true; isLink: false; width?: number; height?: number }> {

@@ -1,8 +1,10 @@
+import './wdyr';
 import type { Preview } from '@storybook/react';
 import { withPerformance } from 'storybook-addon-performance';
 import { theme } from './theme';
+import { withStringMode } from './decorators/with-strict-mode';
 
-export const decorators = [withPerformance];
+export const decorators = [withPerformance, withStringMode];
 
 const preview: Preview = {
   parameters: {

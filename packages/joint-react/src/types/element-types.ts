@@ -68,13 +68,15 @@ export interface GraphElementBase<Type extends StandardShapesType | string = str
   readonly attrs?: Type extends StandardShapesType ? StandardShapesTypeMapper[Type] : unknown;
 }
 
-export interface GraphElementItem<Data = unknown> extends GraphElementBase {
+export interface GraphElementItem<Data = unknown, Type extends StandardShapesType | string = string>
+  extends GraphElementBase<Type> {
   /**
    * Generic data for the element.
    */
   readonly data: Data;
 }
-export interface GraphElement<Data = unknown> extends GraphElementItem<Data> {
+export interface GraphElement<Data = unknown, Type extends StandardShapesType | string = string>
+  extends GraphElementItem<Data, Type> {
   /**
    * Flag to distinguish between elements and links.
    */

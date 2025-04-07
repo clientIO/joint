@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-shadow */
 import type { dia } from '@joint/core';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useEffect } from 'react';
 import { PortGroupContext } from 'src/context/port-group-context';
 import { useCellId, useGraph } from 'src/hooks';
 import type { PortGroupBase } from './port.types';
@@ -9,7 +9,6 @@ export interface PortGroupProps extends PortGroupBase {
   readonly id: string;
   readonly children?: React.ReactNode;
 }
-
 /**
  * Get the group body for the port group.
  * @param props - The properties of the port group.
@@ -29,14 +28,25 @@ function getGroupBody(props: PortGroupBase): dia.Element.PortGroup {
         },
       };
 }
-
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: PortGroupProps) {
-  const { id, children } = props;
+  const {
+    id,
+    children,
+    angle,
+    compensateRotation,
+    dx,
+    dy,
+    end,
+    position,
+    start,
+    startAngle,
+    step,
+    x,
+    y,
+  } = props;
   const cellId = useCellId();
   const graph = useGraph();
-
-  const newGroup = useMemo(() => getGroupBody(props), [props]);
 
   useEffect(() => {
     const cell = graph.getCell(cellId);
@@ -44,7 +54,19 @@ function Component(props: PortGroupProps) {
 
     const ports = cell.get('ports') || {};
     const groups = ports.groups || {};
-
+    const newGroup = getGroupBody({
+      angle,
+      compensateRotation,
+      dx,
+      dy,
+      end,
+      position,
+      start,
+      startAngle,
+      step,
+      x,
+      y,
+    });
     cell.set('ports', {
       ...ports,
       groups: {
@@ -60,7 +82,22 @@ function Component(props: PortGroupProps) {
       delete groups[id];
       cell.set('ports', { ...ports, groups });
     };
-  }, [cellId, graph, id, newGroup]);
+  }, [
+    angle,
+    cellId,
+    compensateRotation,
+    dx,
+    dy,
+    end,
+    graph,
+    id,
+    position,
+    start,
+    startAngle,
+    step,
+    x,
+    y,
+  ]);
 
   return <PortGroupContext.Provider value={id}>{children}</PortGroupContext.Provider>;
 }
