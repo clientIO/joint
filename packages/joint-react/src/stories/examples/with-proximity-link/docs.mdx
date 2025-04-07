@@ -1,0 +1,29 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+
+<Meta of={Stories} />
+
+# Example showing proximity link creation between nodes.
+Move nodes around and it will dynamically connect to nodes,
+when click is released, links are removed.
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
+
+
+

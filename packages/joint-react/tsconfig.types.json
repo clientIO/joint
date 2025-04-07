@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/types",        // Output directory for compiled files
+    "declaration": true,           // Generate declaration files
+    "emitDeclarationOnly": true,   // Only emit .d.ts files
+    "skipLibCheck": true,
+    "paths": {
+      "@joint/react": ["./src/index.ts"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",                 // Include all .ts files in src
+    "src/**/*.tsx"                 // Include all .tsx files in src
+  ],
+  "exclude": [
+    "node_modules",            
+    "**/*.test.ts", 
+    "**/*.test.tsx", 
+    "**/*.stories.ts",
+    "**/*.stories.tsx",
+    "**/stories/**"               
+  ]
+}

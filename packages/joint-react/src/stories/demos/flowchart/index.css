@@ -1,0 +1,42 @@
+/* Base styles for all HTML-based flowchart nodes */
+.flowchart-node {
+  position: absolute;
+  font-family: 'PPFraktionSans', sans-serif;
+  font-size: 14px;
+  line-height: 18px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  padding: 8px;
+  box-sizing: border-box;
+  cursor: move;
+  border: 2px solid #ed2637;
+  transform: scale(0.9);
+  color: #dde6ed;
+}
+
+.flowchart-node:hover {
+  background-color: #ff9505;
+  border: 2px solid #ff9505;
+  color: var(--step-text-color);
+}
+/* Start node styling (mimics .jj-start-body & .jj-start-text) */
+.flowchart-start {
+  border-radius: 25px;
+}
+
+/* Step node styling (mimics .jj-step-body & .jj-step-text) */
+.flowchart-step {
+  border-radius: 5px;
+}
+.jj-flow-outline {
+  stroke: var(--background-color);
+  stroke-width: 1px;
+}
+
+.jj-flow-line {
+  stroke: #ed2637;
+  stroke-width: 1;
+}

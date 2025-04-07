@@ -1,0 +1,18 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "outputs": [
+        {
+            "name": "markdown",
+            "path": "./docs"
+        }
+    ],
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-mdn-links"],
+  "readme": "none",
+  "name": "@joint/react",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "excludeNotDocumented": false,
+  "groupOrder": ["Components", "Hooks", "Models", "Utils", "*"],
+  "gitRevision": "main",
+  }

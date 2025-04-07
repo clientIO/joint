@@ -1,0 +1,32 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+import {getAPIDocumentationLink} from '../../utils/get-api-documentation-link'
+
+
+<Meta of={Stories} />
+
+# Example showing resizable node.
+{/* User can resize a node by dragging the resize handle.
+In this example we used: {getAPIDocumentationLink('HTMLNode')} */}
+In this example we dynamically resize element with help of {getAPIDocumentationLink('HTMLNode')} Element.
+
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
+
+
+
