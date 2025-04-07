@@ -134,8 +134,8 @@ export const DirectedGraph = {
         });
 
         var glLabel = {};
-        var marginX = opt.marginX || 0;
-        var marginY = opt.marginY || 0;
+        var marginX = (util.isNumber(opt.marginX)) ? opt.marginX : 0;
+        var marginY = (util.isNumber(opt.marginY)) ? opt.marginY : 0;
 
         // Dagre layout accepts options as lower case.
         // Direction for rank nodes. Can be TB, BT, LR, or RL
@@ -143,18 +143,18 @@ export const DirectedGraph = {
         // Alignment for rank nodes. Can be UL, UR, DL, or DR
         if (opt.align) glLabel.align = opt.align;
         // Number of pixels that separate nodes horizontally in the layout.
-        if (opt.nodeSep) glLabel.nodesep = opt.nodeSep;
+        if (util.isNumber(opt.nodeSep)) glLabel.nodesep = opt.nodeSep;
         // Number of pixels that separate edges horizontally in the layout.
-        if (opt.edgeSep) glLabel.edgesep = opt.edgeSep;
+        if (util.isNumber(opt.edgeSep)) glLabel.edgesep = opt.edgeSep;
         // Number of pixels between each rank in the layout.
-        if (opt.rankSep) glLabel.ranksep = opt.rankSep;
+        if (util.isNumber(opt.rankSep)) glLabel.ranksep = opt.rankSep;
         // Type of algorithm to assign a rank to each node in the input graph.
         // Possible values: network-simplex, tight-tree or longest-path
         if (opt.ranker) glLabel.ranker = opt.ranker;
         // Number of pixels to use as a margin around the left and right of the graph.
-        if (marginX) glLabel.marginx = marginX;
+        glLabel.marginx = marginX;
         // Number of pixels to use as a margin around the top and bottom of the graph.
-        if (marginY) glLabel.marginy = marginY;
+        glLabel.marginy = marginY;
 
         // Set the option object for the graph label.
         glGraph.setGraph(glLabel);
@@ -173,20 +173,15 @@ export const DirectedGraph = {
         });
 
         if (opt.resizeClusters) {
-            // Resize and reposition cluster elements (parents of other elements)
-            // to fit their children.
-            // 1. filter clusters only
-            // 2. map id on cells
-            // 3. sort cells by their depth (the deepest first)
-            // 4. resize cell to fit their direct children only.
-            var clusters = glGraph.nodes()
-                .filter(function(v) { return glGraph.children(v).length > 0; })
-                .map(graph.getCell.bind(graph))
-                .sort(function(aCluster, bCluster) {
-                    return bCluster.getAncestors().length - aCluster.getAncestors().length;
-                });
+            // Resize and reposition cluster elements
+            // Filter out top-level clusters (nodes without a parent and with children) and map them to cells
+            const topLevelClusters = glGraph.nodes()
+                .filter(v => !glGraph.parent(v) && glGraph.children(v).length > 0)
+                .map(graph.getCell.bind(graph));
 
-            util.invoke(clusters, 'fitToChildren', { padding: opt.clusterPadding });
+            // Since the `opt.deep` is set to `true`, the `fitToChildren` method is applied in reverse-depth
+            // order starting from the deepest descendant - working its way up to the top-level clusters.
+            util.invoke(topLevelClusters, 'fitToChildren', { padding: opt.clusterPadding, deep: true });
         }
 
         graph.stopBatch('layout');
@@ -215,9 +210,9 @@ export const DirectedGraph = {
             if (this instanceof dia.Graph) {
                 // Backwards compatibility.
                 graph = this;
-             } else {
+            } else {
                 graph = new dia.Graph();
-             }
+            }
         }
 
         // Import all nodes.

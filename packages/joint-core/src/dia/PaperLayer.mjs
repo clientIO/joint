@@ -22,7 +22,9 @@ export const PaperLayer = View.extend({
     },
 
     className: function() {
-        return addClassNamePrefix(`${this.options.name}-layer`);
+        const { name } = this.options;
+        if (!name) return null;
+        return addClassNamePrefix(`${name}-layer`);
     },
 
     init: function() {
@@ -70,6 +72,11 @@ export const PaperLayer = View.extend({
         const { el, pivotNodes } = this;
         for (let z in pivotNodes) el.removeChild(pivotNodes[z]);
         this.pivotNodes = {};
-    }
+    },
+
+    isEmpty: function() {
+        // Check if the layer has any child elements (pivot comments are not counted).
+        return this.el.children.length === 0;
+    },
 
 });

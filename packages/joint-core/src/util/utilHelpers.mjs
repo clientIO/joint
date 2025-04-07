@@ -105,6 +105,7 @@ const rsOrdUpper = '\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])';
 const rsSeq = rsOptVar + reOptMod + rsOptJoin;
 const rsEmoji = `(?:${[rsDingbat, rsRegional, rsSurrPair].join('|')})${rsSeq}`;
 
+// eslint-disable-next-line no-misleading-character-class
 const reUnicodeWords = RegExp([
     `${rsUpper}?${rsLower}+${rsOptContrLower}(?=${[rsBreak, rsUpper, '$'].join('|')})`,
     `${rsMiscUpper}+${rsOptContrUpper}(?=${[rsBreak, rsUpper + rsMiscLower, '$'].join('|')})`,
@@ -130,6 +131,7 @@ const rsNonAstralCombo = `${rsNonAstral}${rsCombo}?`;
 const rsSymbol = `(?:${[rsNonAstralCombo, rsCombo, rsRegional, rsSurrPair, rsAstral].join('|')})`;
 
 // Used to match [string symbols](https://mathiasbynens.be/notes/javascript-unicode)
+// eslint-disable-next-line no-misleading-character-class
 const reUnicode = RegExp(`${rsFitz}(?=${rsFitz})|${rsSymbol + rsSeq}`, 'g');
 
 const reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/;

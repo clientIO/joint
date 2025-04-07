@@ -1,0 +1,92 @@
+{
+  "name": "@joint/vitest-plugin-mock-svg",
+  "title": "JointJS Mock SVG",
+  "version": "0.2.0",
+  "description": "A Vitest plugin to mock SVG global constants required for JointJS testing.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git",
+    "directory": "packages/joint-vitest-plugin-mock-svg"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
+    "test": "vitest run",
+    "dist": "yarn run build",
+    "build": "yarn run build:core && yarn run build:mocks && yarn run build:types",
+    "build:core": "vite build",
+    "build:mocks": "vite build -c ./mocks/vite.config.ts ./mocks",
+    "build:types": "yarn run typecheck",
+    "typecheck": "yarn run typecheck:core",
+    "typecheck:core": "yarn run tsc"
+  },
+  "files": [
+    "dist/",
+    "mocks/",
+    "./LICENSE",
+    "./README.md",
+    "./SECURITY.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    },
+    "./mocks": {
+      "require": "./mocks/dist/index.cjs",
+      "import": "./mocks/dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "@joint/core": "workspace:~",
+    "@joint/vitest-plugin-mock-svg": "workspace:~",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.1.0",
+    "@tsconfig/node18": "^18.2.0",
+    "@types/node": "^18.18.8",
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-vue": "^4.2.3",
+    "@vue/eslint-config-typescript": "^11.0.3",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "rollup": "4.36.0",
+    "sass": "^1.66.1",
+    "typescript": "5.8.2",
+    "vite": "^5.0.2",
+    "vite-plugin-externalize-deps": "^0.1.5",
+    "vitest": "^3.0.4",
+    "vue": "^3.3.4"
+  },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
+  },
+  "keywords": [
+    "jointjs",
+    "vitest",
+    "plugin",
+    "mock",
+    "svg"
+  ]
+}

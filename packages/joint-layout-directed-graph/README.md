@@ -20,4 +20,4 @@ yarn run test
 
 [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)
 
-Copyright © 2013-2024 client IO
+Copyright © 2013-2025 client IO

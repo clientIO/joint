@@ -36,7 +36,7 @@ export const env = {
 
         try {
             result = fn();
-        } catch (error) {
+        } catch {
             result = false;
         }
 

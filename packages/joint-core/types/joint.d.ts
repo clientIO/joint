@@ -333,6 +333,7 @@ export namespace dia {
         interface GenericAttributes<T> {
             attrs?: T;
             z?: number;
+            layer?: string;
             [key: string]: any;
         }
 
@@ -573,6 +574,7 @@ export namespace dia {
             position?: PositionType;
             markup?: string | MarkupJSON;
             attrs?: Cell.Selectors;
+            size?: Size;
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
@@ -585,6 +587,7 @@ export namespace dia {
             group?: string;
             attrs?: Cell.Selectors;
             args?: { [key: string]: any };
+            size?: Size;
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
@@ -593,6 +596,10 @@ export namespace dia {
         }
 
         interface PortPosition extends Point {
+            angle: number;
+        }
+
+        interface PortRect extends BBox {
             angle: number;
         }
 
@@ -608,6 +615,19 @@ export namespace dia {
 
         interface ResizeOptions extends Cell.Options {
             direction?: Direction;
+        }
+
+        interface FitToChildrenOptions {
+            filter?: (cell: Cell) => boolean;
+            deep?: boolean;
+            padding?: Padding;
+            minRect?: g.Rect;
+            expandOnly?: boolean;
+            shrinkOnly?: boolean;
+        }
+
+        interface FitParentOptions extends FitToChildrenOptions {
+            terminator?: Cell | Cell.ID;
         }
 
         interface BBoxOptions extends Cell.EmbeddableOptions {
@@ -634,10 +654,10 @@ export namespace dia {
 
         scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
-        fitEmbeds(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
-        fitToChildren(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
+        fitEmbeds(opt?: Element.FitToChildrenOptions): this;
+        fitToChildren(opt?: Element.FitToChildrenOptions): this;
 
-        fitParent(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean, terminator?: Cell | Cell.ID }): this;
+        fitParent(opt?: Element.FitParentOptions): this;
 
         getBBox(opt?: Element.BBoxOptions): g.Rect;
 
@@ -663,6 +683,8 @@ export namespace dia {
         getPort(id: string): Element.Port;
 
         getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
+
+        getPortsRects(groupName: string): { [id: string]: Element.PortRect };
 
         getPortIndex(port: string | Element.Port): number;
 
@@ -1089,6 +1111,8 @@ export namespace dia {
         protected dragEnd(evt: dia.Event, x: number, y: number): void;
 
         protected dragMagnetEnd(evt: dia.Event, x: number, y: number): void;
+
+        protected snapToGrid(evt: dia.Event, x: number, y: number): dia.Point;
 
         protected prepareEmbedding(data: any): void;
 
@@ -1749,7 +1773,7 @@ export namespace dia {
 
         getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
-        getLayerView(layerName: Paper.Layers | string): any;
+        getLayerView(layerName: Paper.Layers | string): PaperLayer;
 
         hasLayerView(layerName: Paper.Layers | string): boolean;
 
@@ -1758,6 +1782,18 @@ export namespace dia {
         protected removeLayers(): void;
 
         protected resetLayers(): void;
+
+        addLayer(layerName: string, layerView: PaperLayer, options?: { insertBefore?: string }): void;
+
+        removeLayer(layer: string | PaperLayer): void;
+
+        moveLayer(layer: string | PaperLayer, insertBefore: string | PaperLayer | null): void;
+
+        hasLayer(layer: string | PaperLayer): boolean;
+
+        getLayerNames(): string[];
+
+        getLayers(): Array<PaperLayer>;
 
         // rendering
 
@@ -3782,7 +3818,11 @@ export namespace connectors {
 
 export namespace anchors {
 
-    interface RotateAnchorArguments {
+    interface ElementAnchorArguments {
+        useModelGeometry?: boolean;
+    }
+
+    interface RotateAnchorArguments extends ElementAnchorArguments {
         rotate?: boolean;
     }
 
@@ -3791,7 +3831,7 @@ export namespace anchors {
         dy?: number | string;
     }
 
-    interface PaddingAnchorArguments {
+    interface PaddingAnchorArguments extends ElementAnchorArguments {
         padding?: number;
     }
 

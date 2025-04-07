@@ -199,43 +199,365 @@ export const elementPortPrototype = {
       function () {
         this._processRemovedPort();
         this._createPortData();
-      },
-      this,
-    );
-  },
+        this.on('change:ports', function() {
 
-  /**
-   * remove links tied wiht just removed element
-   * @private
-   */
-  _processRemovedPort: function () {
-    var current = this.get("ports") || {};
-    var currentItemsMap = {};
+            this._processRemovedPort();
+            this._createPortData();
+        }, this);
+    },
 
-    util.toArray(current.items).forEach(function (item) {
-      currentItemsMap[item.id] = true;
-    });
+    /**
+     * remove links tied wiht just removed element
+     * @private
+     */
+    _processRemovedPort: function() {
 
-    var previous = this.previous("ports") || {};
-    var removed = {};
+        var current = this.get('ports') || {};
+        var currentItemsMap = {};
 
-    util.toArray(previous.items).forEach(function (item) {
-      if (!currentItemsMap[item.id]) {
-        removed[item.id] = true;
-      }
-    });
+        util.toArray(current.items).forEach(function(item) {
+            currentItemsMap[item.id] = true;
+        });
 
-    var graph = this.graph;
-    if (graph && !util.isEmpty(removed)) {
-      var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
-      inboundLinks.forEach(function (link) {
-        if (removed[link.get("target").port]) link.remove();
-      });
+        var previous = this.previous('ports') || {};
+        var removed = {};
 
-      var outboundLinks = graph.getConnectedLinks(this, { outbound: true });
-      outboundLinks.forEach(function (link) {
-        if (removed[link.get("source").port]) link.remove();
-      });
+        util.toArray(previous.items).forEach(function(item) {
+            if (!currentItemsMap[item.id]) {
+                removed[item.id] = true;
+            }
+        });
+
+        var graph = this.graph;
+        if (graph && !util.isEmpty(removed)) {
+
+            var inboundLinks = graph.getConnectedLinks(this, { inbound: true });
+            inboundLinks.forEach(function(link) {
+
+                if (removed[link.get('target').port]) link.remove();
+            });
+
+            var outboundLinks = graph.getConnectedLinks(this, { outbound: true });
+            outboundLinks.forEach(function(link) {
+
+                if (removed[link.get('source').port]) link.remove();
+            });
+        }
+    },
+
+    /**
+     * @returns {boolean}
+     */
+    hasPorts: function() {
+
+        var ports = this.prop('ports/items');
+        return Array.isArray(ports) && ports.length > 0;
+    },
+
+    /**
+     * @param {string} id
+     * @returns {boolean}
+     */
+    hasPort: function(id) {
+
+        return this.getPortIndex(id) !== -1;
+    },
+
+    /**
+     * @returns {Array<object>}
+     */
+    getPorts: function() {
+
+        return util.cloneDeep(this.prop('ports/items')) || [];
+    },
+
+    /**
+     * @returns {Array<object>}
+     */
+    getGroupPorts: function(groupName) {
+        const groupPorts = util.toArray(this.prop(['ports','items'])).filter(port => port.group === groupName);
+        return util.cloneDeep(groupPorts);
+    },
+
+    /**
+     * @param {string} id
+     * @returns {object}
+     */
+    getPort: function(id) {
+        const port = util.toArray(this.prop('ports/items')).find(port => port.id && port.id === id);
+        return util.cloneDeep(port);
+    },
+
+    getPortGroupNames: function() {
+        return Object.keys(this._portSettingsData.groups);
+    },
+
+    /**
+     * @param {string} groupName
+     * @returns {Object<portId, {x: number, y: number, angle: number}>}
+     */
+    getPortsPositions: function(groupName) {
+
+        var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, Rect(this.size()));
+
+        return portsMetrics.reduce(function(positions, metrics) {
+            var transformation = metrics.portTransformation;
+            positions[metrics.portId] = {
+                x: transformation.x,
+                y: transformation.y,
+                angle: transformation.angle
+            };
+            return positions;
+        }, {});
+    },
+
+    getPortsRects: function(groupName) {
+
+        var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, Rect(this.size()));
+
+        return portsMetrics.reduce(function(rects, metrics) {
+            const {
+                portId,
+                portTransformation: { x, y, angle },
+                portSize: { width, height }
+            } = metrics;
+            rects[portId] = {
+                x: x - width / 2,
+                y: y - height / 2,
+                width,
+                height,
+                angle
+            };
+            return rects;
+        }, {});
+    },
+
+    /**
+     * @param {string|Port} port port id or port
+     * @returns {number} port index
+     */
+    getPortIndex: function(port) {
+
+        var id = util.isObject(port) ? port.id : port;
+
+        if (!this._isValidPortId(id)) {
+            return -1;
+        }
+
+        return util.toArray(this.prop('ports/items')).findIndex(function(item) {
+            return item.id === id;
+        });
+    },
+
+    /**
+     * @param {object} port
+     * @param {object} [opt]
+     * @returns {joint.dia.Element}
+     */
+    addPort: function(port, opt) {
+
+        if (!util.isObject(port) || Array.isArray(port)) {
+            throw new Error('Element: addPort requires an object.');
+        }
+
+        var ports = util.assign([], this.prop('ports/items'));
+        ports.push(port);
+        this.prop('ports/items', ports, opt);
+
+        return this;
+    },
+
+    /**
+     * @param {string|Port|number} before
+     * @param {object} port
+     * @param {object} [opt]
+     * @returns {joint.dia.Element}
+     */
+    insertPort: function(before, port, opt) {
+        const index = (typeof before === 'number') ? before : this.getPortIndex(before);
+
+        if (!util.isObject(port) || Array.isArray(port)) {
+            throw new Error('dia.Element: insertPort requires an object.');
+        }
+
+        const ports = util.assign([], this.prop('ports/items'));
+        ports.splice(index, 0, port);
+        this.prop('ports/items', ports, opt);
+
+        return this;
+    },
+
+    /**
+     * @param {string} portId
+     * @param {string|object=} path
+     * @param {*=} value
+     * @param {object=} opt
+     * @returns {joint.dia.Element}
+     */
+    portProp: function(portId, path, value, opt) {
+
+        var index = this.getPortIndex(portId);
+
+        if (index === -1) {
+            throw new Error('Element: unable to find port with id ' + portId);
+        }
+
+        var args = Array.prototype.slice.call(arguments, 1);
+        if (Array.isArray(path)) {
+            args[0] = ['ports', 'items', index].concat(path);
+        } else if (util.isString(path)) {
+
+            // Get/set an attribute by a special path syntax that delimits
+            // nested objects by the colon character.
+            args[0] = ['ports/items/', index, '/', path].join('');
+
+        } else {
+
+            args = ['ports/items/' + index];
+            if (util.isPlainObject(path)) {
+                args.push(path);
+                args.push(value);
+            }
+        }
+
+        return this.prop.apply(this, args);
+    },
+
+    _validatePorts: function() {
+
+        var portsAttr = this.get('ports') || {};
+
+        var errorMessages = [];
+        portsAttr = portsAttr || {};
+        var ports = util.toArray(portsAttr.items);
+
+        ports.forEach(function(p) {
+
+            if (typeof p !== 'object') {
+                errorMessages.push('Element: invalid port ', p);
+            }
+
+            if (!this._isValidPortId(p.id)) {
+                p.id = this.generatePortId();
+            }
+        }, this);
+
+        if (util.uniq(ports, 'id').length !== ports.length) {
+            errorMessages.push('Element: found id duplicities in ports.');
+        }
+
+        return errorMessages;
+    },
+
+    generatePortId: function() {
+        return this.generateId();
+    },
+
+    /**
+     * @param {string} id port id
+     * @returns {boolean}
+     * @private
+     */
+    _isValidPortId: function(id) {
+
+        return id !== null && id !== undefined && !util.isObject(id);
+    },
+
+    addPorts: function(ports, opt) {
+
+        if (ports.length) {
+            this.prop('ports/items', util.assign([], this.prop('ports/items')).concat(ports), opt);
+        }
+
+        return this;
+    },
+
+    removePort: function(port, opt) {
+        const options = opt || {};
+        const index = this.getPortIndex(port);
+        if (index !== -1) {
+            const ports = util.assign([], this.prop(['ports', 'items']));
+            ports.splice(index, 1);
+            options.rewrite = true;
+            this.startBatch('port-remove');
+            this.prop(['ports', 'items'], ports, options);
+            this.stopBatch('port-remove');
+        }
+        return this;
+    },
+
+    removePorts: function(portsForRemoval, opt) {
+        let options, newPorts;
+        if (Array.isArray(portsForRemoval)) {
+            options = opt || {};
+            if (portsForRemoval.length === 0) return this.this;
+            const currentPorts = util.assign([], this.prop(['ports', 'items']));
+            newPorts = currentPorts.filter(function(cp) {
+                return !portsForRemoval.some(function(rp) {
+                    const rpId = util.isObject(rp) ? rp.id : rp;
+                    return cp.id === rpId;
+                });
+            });
+        } else {
+            options = portsForRemoval || {};
+            newPorts = [];
+        }
+        this.startBatch('port-remove');
+        options.rewrite = true;
+        this.prop(['ports', 'items'], newPorts, options);
+        this.stopBatch('port-remove');
+        return this;
+    },
+
+    /**
+     * @private
+     */
+    _createPortData: function() {
+
+        var err = this._validatePorts();
+
+        if (err.length > 0) {
+            this.set('ports', this.previous('ports'));
+            throw new Error(err.join(' '));
+        }
+
+        var prevPortData;
+
+        if (this._portSettingsData) {
+
+            prevPortData = this._portSettingsData.getPorts();
+        }
+
+        this._portSettingsData = new PortData(this.get('ports'));
+
+        var curPortData = this._portSettingsData.getPorts();
+
+        if (prevPortData) {
+
+            var added = curPortData.filter(function(item) {
+                if (!prevPortData.find(function(prevPort) {
+                    return prevPort.id === item.id;
+                })) {
+                    return item;
+                }
+            });
+
+            var removed = prevPortData.filter(function(item) {
+                if (!curPortData.find(function(curPort) {
+                    return curPort.id === item.id;
+                })) {
+                    return item;
+                }
+            });
+
+            if (removed.length > 0) {
+                this.trigger('ports:remove', this, removed);
+            }
+
+            if (added.length > 0) {
+                this.trigger('ports:add', this, added);
+            }
+        }
     }
   },
 

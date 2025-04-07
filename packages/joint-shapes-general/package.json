@@ -1,7 +1,7 @@
 {
   "name": "@joint/shapes-general",
   "title": "JointJS General Shapes",
-  "version": "4.1.1",
+  "version": "4.1.3",
   "description": "General Shapes module for JointJS",
   "main": "src/index.ts",
   "homepage": "https://jointjs.com",
@@ -39,12 +39,12 @@
     "@joint/decorators": "workspace:~"
   },
   "devDependencies": {
-    "typescript": "4.8.4"
+    "typescript": "5.8.2"
   },
   "volta": {
-    "node": "18.18.2",
-    "npm": "9.8.1",
-    "yarn": "3.4.1"
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
   },
   "keywords": [
     "jointjs",

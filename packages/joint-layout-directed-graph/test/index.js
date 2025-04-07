@@ -317,5 +317,70 @@ QUnit.module('DirectedGraph', function(hooks) {
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
 
         });
+
+        QUnit.test('should resize clusters', function(assert) {
+
+            const deepestSize = {
+                width: 500,
+                height: 500
+            };
+
+            const elements = [
+                new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 100, height: 300 }}),
+                new joint.shapes.standard.Rectangle({ size: deepestSize })
+            ];
+
+            elements[0].embed(elements[1]);
+            elements[1].embed(elements[2]);
+            elements[2].embed(elements[3]);
+
+            graph.resetCells(elements);
+
+            const padding = 20;
+
+            // opt.resizeClusters = `true` by default
+            DirectedGraph.layout(graph, {
+                clusterPadding: padding
+            });
+
+            const nextExpectedSize = deepestSize;
+
+            // Parents should be resized to fit all children
+            for (let i = elements.length - 1; i >= 0; i--) {
+                assert.deepEqual(elements[i].size(), nextExpectedSize);
+                nextExpectedSize.width += padding * 2;
+                nextExpectedSize.height += padding * 2;
+            }
+        });
+
+        QUnit.test('should not resize clusters if `glGraph` does not hold reference to their children', function(assert) {
+
+            const containerSize = {
+                width: 500,
+                height: 500
+            };
+
+            const container1 = new joint.shapes.standard.Rectangle({ size: containerSize });
+            const container2 = new joint.shapes.standard.Rectangle({ size: containerSize });
+
+            const rect1 = new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }});
+            const rect2 = new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }});
+
+            container1.embed(rect1);
+            container2.embed(rect2);
+
+            graph.resetCells([container1, container2, rect1, rect2]);
+
+            // Do not pass the children to the layout function
+            DirectedGraph.layout([container1, container2], {
+                resizeClusters: true
+            });
+
+            // Size remains unchanged
+            assert.deepEqual(container1.size(), containerSize);
+            assert.deepEqual(container2.size(), containerSize);
+        });
     });
 });

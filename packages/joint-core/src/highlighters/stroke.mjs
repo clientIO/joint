@@ -35,7 +35,7 @@ export const stroke = HighlighterView.extend({
                     d = d.substr(0, secondSubpathIndex);
                 }
             }
-        } catch (error) {
+        } catch {
             // Failed to get path data from magnet element.
             // Draw a rectangle around the node instead.
             const nodeBBox = cellView.getNodeBoundingRect(node);

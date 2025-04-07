@@ -21,4 +21,4 @@ yarn start
 
 The *JointJS* library is licensed under the [Mozilla Public License 2.0](https://github.com/clientIO/joint/blob/master/LICENSE).
 
-Copyright © 2013-2024 client IO
+Copyright © 2013-2025 client IO

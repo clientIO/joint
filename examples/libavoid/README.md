@@ -17,10 +17,15 @@ Navigate to this directory, then run:
 yarn start
 ```
 
+For web workers version, run:
+```bash
+yarn run start-web-worker
+```
+
 ## License
 
 The *JointJS* library is licensed under the [Mozilla Public License 2.0](https://github.com/clientIO/joint/blob/master/LICENSE).
 
-Copyright © 2013-2024 client IO
+Copyright © 2013-2025 client IO
 
 The *Libavoid-js* library is licensed under the [LGPL-2.1 license](https://github.com/Aksem/libavoid-js?tab=LGPL-2.1-1-ov-file#readme).
