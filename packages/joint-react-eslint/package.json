@@ -25,5 +25,9 @@
     "eslint-plugin-sonarjs": "3.0.2",
     "eslint-plugin-unicorn": "58.0.0",
     "typescript-eslint": "8.29.0"
+  },
+  "peerDependencies": {
+    "eslint": "9.24.0",
+    "typescript": "^5.0.0"
   }
 }
