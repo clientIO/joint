@@ -13,7 +13,8 @@ interface HighlighterBase {
  * @param create - Function to create a highlighter instance.
  * @param update - Function to update the highlighter instance.
  * @param options - Options to create the highlighter instance.
- * @param isDisabled - Flag to disable the highlighter.
+ * @param isDisabled - Flag to disable the highlighter
+ * @internal
  */
 export function useHighlighter<
   Highlighter extends HighlighterBase,

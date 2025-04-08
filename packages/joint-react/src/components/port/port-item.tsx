@@ -1,11 +1,11 @@
 import { dia } from '@joint/core';
 import { memo, useContext, useEffect, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import { PortGroupContext } from 'src/context/port-group-context';
-import { PORTAL_SELECTOR } from 'src/data/create-ports-data';
-import { useCellId, usePaper } from 'src/hooks';
-import { useGraphStore } from 'src/hooks/use-graph-store';
-import { jsx } from 'src/utils/joint-jsx/jsx-to-markup';
+import { useCellId, usePaper } from '../../hooks';
+import { PortGroupContext } from '../../context/port-group-context';
+import { useGraphStore } from '../../hooks/use-graph-store';
+import { PORTAL_SELECTOR } from '../../data/create-ports-data';
+import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 
 // eslint-disable-next-line @eslint-react/dom/no-unknown-property
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);

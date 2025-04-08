@@ -10,7 +10,7 @@ import {
 } from '@joint/react';
 import '../index.css';
 import { useState } from 'react';
-import { PRIMARY, SECONDARY } from '.storybook/theme';
+import { PRIMARY, SECONDARY } from 'storybook/theme';
 
 const initialElements = createElements([
   {

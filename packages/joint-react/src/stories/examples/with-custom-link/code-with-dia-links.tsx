@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { PRIMARY } from '.storybook/theme';
+import { PRIMARY } from 'storybook/theme';
 import { shapes, util } from '@joint/core';
 import {
   createElements,

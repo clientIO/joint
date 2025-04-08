@@ -10,7 +10,7 @@ import {
 } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import { PRIMARY } from '.storybook/theme';
+import { PRIMARY } from 'storybook/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },

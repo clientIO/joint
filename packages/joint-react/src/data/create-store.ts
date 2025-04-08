@@ -7,9 +7,9 @@ import type { GraphElementBase } from '../types/element-types';
 import type { GraphLink, GraphLinkBase } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
 import { createStoreData } from './create-store-data';
-import type { CellMap } from 'src/utils/cell/cell-map';
+import type { CellMap } from '../utils/cell/cell-map';
+import type { OnPaperRenderPorts } from '../utils/create-paper';
 import { createPortsData } from './create-ports-data';
-import type { OnPaperRenderPorts } from 'src/utils/create-paper';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 

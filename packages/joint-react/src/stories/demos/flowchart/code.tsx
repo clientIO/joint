@@ -9,7 +9,7 @@ import {
   Paper,
   type InferElement,
 } from '@joint/react';
-import { PRIMARY } from '.storybook/theme';
+import { PRIMARY } from 'storybook/theme';
 import { dia } from '@joint/core';
 
 const unit = 4;

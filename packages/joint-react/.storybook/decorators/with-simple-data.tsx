@@ -4,7 +4,7 @@
 import type { JSX, PropsWithChildren } from 'react';
 import type { InferElement } from '@joint/react';
 import { createElements, createLinks, GraphProvider, Paper } from '@joint/react';
-import { PRIMARY } from '.storybook/theme';
+import { PRIMARY } from '../theme';
 
 const initialElements = createElements([
   {

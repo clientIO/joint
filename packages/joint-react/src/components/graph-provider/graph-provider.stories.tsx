@@ -10,7 +10,7 @@ import { Paper, type RenderElement } from '../paper/paper';
 import { dia } from '@joint/core';
 import { HTMLNode } from '../html-node/html-node';
 import { DirectedGraph } from '@joint/layout-directed-graph';
-import { PRIMARY } from '.storybook/theme';
+import { PRIMARY } from 'storybook/theme';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 

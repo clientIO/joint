@@ -2,9 +2,9 @@
 /* eslint-disable no-shadow */
 import type { dia } from '@joint/core';
 import { memo, useEffect } from 'react';
-import { PortGroupContext } from 'src/context/port-group-context';
-import { useCellId, useGraph } from 'src/hooks';
 import type { PortGroupBase } from './port.types';
+import { useCellId, useGraph } from '../../hooks';
+import { PortGroupContext } from '../../context/port-group-context';
 export interface PortGroupProps extends PortGroupBase {
   readonly id: string;
   readonly children?: React.ReactNode;

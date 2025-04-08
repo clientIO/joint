@@ -7,7 +7,7 @@ import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation
 import '../../stories/examples/index.css';
 import { HTMLNode } from '../html-node/html-node';
 import { createElements, createLinks, GraphProvider, Paper, Port } from '@joint/react';
-import { PRIMARY } from '.storybook/theme';
+import { PRIMARY } from 'storybook/theme';
 
 const initialElements = createElements([
   {

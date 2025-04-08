@@ -3,7 +3,6 @@ export * from './use-paper';
 export * from './use-links';
 export * from './use-elements';
 export * from './use-element';
-export * from './use-set-cells';
 export * from './use-measure-node-size';
 export * from './use-set-element';
 export * from './use-element-effect';

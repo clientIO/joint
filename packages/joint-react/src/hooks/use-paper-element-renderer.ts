@@ -12,6 +12,7 @@ import type { OnPaperRenderElement } from '../utils/create-paper';
  * It provides a function to handle the rendering of elements and a state to store the rendered SVG elements.
  * It can be used to trigger a callback when the SVG element is ready.
  * @private
+ * @internal
  */
 export function usePaperElementRenderer(onReady?: () => void) {
   const [svgGElements, setSvgGElements] = useState<Record<dia.Cell.ID, SVGElement>>({});

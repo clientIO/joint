@@ -1,5 +1,5 @@
 import { dia } from '@joint/core';
-import type { PortElementsCacheEntry } from 'src/data/create-ports-data';
+import type { PortElementsCacheEntry } from '../data/create-ports-data';
 
 export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
 export type OnPaperRenderPorts = (

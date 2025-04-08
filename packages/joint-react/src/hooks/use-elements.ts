@@ -2,7 +2,7 @@ import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { GraphElement, GraphElementBase } from '../types/element-types';
-import type { CellMap } from 'src/utils/cell/cell-map';
+import type { CellMap } from '../utils/cell/cell-map';
 
 /**
  * Default selector function to return all elements.

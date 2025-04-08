@@ -10,7 +10,7 @@ import {
   type InferElement,
   type RenderElement,
 } from '@joint/react';
-import { PRIMARY } from '.storybook/theme';
+import { PRIMARY } from 'storybook/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },

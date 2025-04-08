@@ -19,9 +19,9 @@
     "jsx": "react-jsx",
     "downlevelIteration": true,
     "sourceMap": false,
-    "baseUrl": "./",
     "paths": {
       "@joint/react": ["./src/index.ts"],
+      "storybook/*": ["./.storybook/*"],
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".storybook/**/*"]

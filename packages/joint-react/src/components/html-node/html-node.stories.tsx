@@ -3,7 +3,7 @@
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { HTMLNode } from './html-node';
-import { PRIMARY } from '.storybook/theme';
+import { PRIMARY } from 'storybook/theme';
 import type { CSSProperties } from 'react';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';

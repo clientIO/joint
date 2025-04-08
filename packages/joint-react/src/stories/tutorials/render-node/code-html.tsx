@@ -10,7 +10,7 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../../examples/index.css';
-import { PRIMARY } from '.storybook/theme';
+import { PRIMARY } from 'storybook/theme';
 // define initial elements
 const initialElements = createElements([
   { id: '1', data: { label: 'Hello' }, x: 100, y: 0, width: 100, height: 25 },

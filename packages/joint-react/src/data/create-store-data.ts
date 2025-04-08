@@ -1,10 +1,9 @@
 import { util, type dia } from '@joint/core';
 import { getElement, getLink } from '../utils/cell/get-cell';
-import type { GraphElement, GraphElementBase } from 'src/types/element-types';
-import type { GraphLinkBase } from 'src/types/link-types';
-import { CellMap } from 'src/utils/cell/cell-map';
-import { diffUpdate } from 'src/utils/diff-update';
-
+import { CellMap } from '../utils/cell/cell-map';
+import type { GraphLinkBase } from '../types/link-types';
+import type { GraphElement, GraphElementBase } from '../types/element-types';
+import { diffUpdate } from '../utils/diff-update';
 interface StoreData<Element extends GraphElementBase = GraphElement> {
   readonly updateStore: (graph: dia.Graph) => void;
   readonly destroy: () => void;

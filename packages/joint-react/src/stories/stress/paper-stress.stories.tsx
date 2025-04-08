@@ -4,7 +4,7 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable no-console */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { BG, PRIMARY } from '.storybook/theme';
+import { BG, PRIMARY } from 'storybook/theme';
 import { dia, shapes } from '@joint/core';
 import {
   GraphProvider,
@@ -13,7 +13,6 @@ import {
   ReactElement,
   useElements,
   useGraph,
-  useSetCells,
   type RenderElement,
 } from '@joint/react';
 import type { Meta, StoryObj } from '@storybook/react/*';
@@ -92,29 +91,9 @@ const HEIGHT_ITEMS = 30;
 
 function RandomChange() {
   const elementsSize = useElements((items) => items.size);
-  const setCells = useSetCells();
   const graph = useGraph();
   return (
     <>
-      <button
-        onClick={() => {
-          console.time('Random move');
-          setCells((previousCells) =>
-            previousCells.map((cell) => {
-              if (cell instanceof ReactElement) {
-                cell.set({
-                  position: { x: Math.random() * 1000, y: Math.random() * 1000 },
-                });
-                return cell;
-              }
-              return cell;
-            })
-          );
-          console.timeEnd('Random move');
-        }}
-      >
-        Random move {elementsSize} elements - set With hook
-      </button>
       <button
         onClick={() => {
           // graph.startBatch('Random move')
