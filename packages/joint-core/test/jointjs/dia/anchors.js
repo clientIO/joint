@@ -328,6 +328,557 @@ QUnit.module('anchors', function(hooks) {
 
     QUnit.module('midSide', function() {
 
+        QUnit.module('option: mode', function() {
+
+            QUnit.test('auto', function(assert) {
+
+                const anchor = {
+                    name: 'midSide',
+                    args: {
+                        mode: 'auto'
+                    }
+                };
+                link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                const sourceBBox = link.getSourceElement().getBBox();
+
+                link.target(sourceBBox.leftMiddle().offset(-100, 0));
+                assert.ok(
+                    sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                );
+
+                link.target(sourceBBox.topMiddle().offset(0, -100));
+                assert.ok(
+                    sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                );
+
+                link.target(sourceBBox.rightMiddle().offset(100, 0));
+                assert.ok(
+                    sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                );
+
+                link.target(sourceBBox.bottomMiddle().offset(0, 100));
+                assert.ok(
+                    sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                );
+            });
+
+            QUnit.test('horizontal', function(assert) {
+                const anchor = {
+                    name: 'midSide',
+                    args: {
+                        mode: 'horizontal'
+                    }
+                };
+                link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                const sourceBBox = link.getSourceElement().getBBox();
+
+                link.target(sourceBBox.leftMiddle().offset(-100, 0));
+                assert.ok(
+                    sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                );
+
+                link.target(sourceBBox.topMiddle().offset(10, -100));
+                assert.ok(
+                    sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                );
+
+                link.target(sourceBBox.rightMiddle().offset(100, 0));
+                assert.ok(
+                    sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                );
+
+                link.target(sourceBBox.bottomMiddle().offset(-10, 100));
+                assert.ok(
+                    sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                );
+            });
+
+            QUnit.test('vertical', function(assert) {
+                const anchor = {
+                    name: 'midSide',
+                    args: {
+                        mode: 'vertical'
+                    }
+                };
+                link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                const sourceBBox = link.getSourceElement().getBBox();
+
+                link.target(sourceBBox.leftMiddle().offset(-100, 10));
+                assert.ok(
+                    sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                );
+
+                link.target(sourceBBox.topMiddle().offset(0, -100));
+                assert.ok(
+                    sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                );
+
+                link.target(sourceBBox.rightMiddle().offset(100, -10));
+                assert.ok(
+                    sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                );
+
+                link.target(sourceBBox.bottomMiddle().offset(0, 100));
+                assert.ok(
+                    sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                );
+            });
+
+            QUnit.module('prefer-vertical', function() {
+
+                [undefined, 0].forEach(function (anchorPreferenceThreshold) {
+                    QUnit.test(`preferenceThreshold=${anchorPreferenceThreshold}`, function(assert) {
+                        const anchor = {
+                            name: 'midSide',
+                            args: {
+                                mode: 'prefer-vertical',
+                                preferenceThreshold: anchorPreferenceThreshold
+                            }
+                        };
+                        link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                        const sourceBBox = link.getSourceElement().getBBox();
+
+                        link.target(sourceBBox.leftMiddle().offset(-100, 0));
+                        assert.ok(
+                            sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.topMiddle().offset(0, -100));
+                        assert.ok(
+                            sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.rightMiddle().offset(100, 0));
+                        assert.ok(
+                            sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.bottomMiddle().offset(0, 100));
+                        assert.ok(
+                            sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.topLeft().offset(-100, -100));
+                        assert.ok(
+                            sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.topRight().offset(100, -100));
+                        assert.ok(
+                            sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.bottomLeft().offset(-100, 100));
+                        assert.ok(
+                            sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.bottomRight().offset(100, 100));
+                        assert.ok(
+                            sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.topLeft().offset(-100, 1));
+                        assert.ok(
+                            sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.topRight().offset(100, 1));
+                        assert.ok(
+                            sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.bottomLeft().offset(-100, -1));
+                        assert.ok(
+                            sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                        );
+
+                        link.target(sourceBBox.bottomRight().offset(100, -1));
+                        assert.ok(
+                            sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                        );
+                    });
+                });
+
+                QUnit.test('preferenceThreshold=13', function(assert) {
+                    const preferenceThreshold = 13;
+                    const anchor = {
+                        name: 'midSide',
+                        args: {
+                            mode: 'prefer-vertical',
+                            preferenceThreshold
+                        }
+                    };
+                    link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                    const sourceBBox = link.getSourceElement().getBBox();
+
+                    link.target(sourceBBox.leftMiddle().offset(-100, 0));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topMiddle().offset(0, -100));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.rightMiddle().offset(100, 0));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomMiddle().offset(0, 100));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topLeft().offset(-100, -preferenceThreshold));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topRight().offset(100, -preferenceThreshold));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomLeft().offset(-100, preferenceThreshold));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomRight().offset(100, preferenceThreshold));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topLeft().offset(-100, -preferenceThreshold + 1));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topRight().offset(100, -preferenceThreshold + 1));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomLeft().offset(-100, preferenceThreshold - 1));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomRight().offset(100, preferenceThreshold - 1));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+                });
+
+                QUnit.test('preferenceThreshold={ top: 13, bottom: 23 }', function(assert) {
+                    const preferenceThreshold = { top: 13, bottom: 23 };
+                    const anchor = {
+                        name: 'midSide',
+                        args: {
+                            mode: 'prefer-vertical',
+                            preferenceThreshold
+                        }
+                    };
+                    link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                    const sourceBBox = link.getSourceElement().getBBox();
+
+                    link.target(sourceBBox.leftMiddle().offset(-100, 0));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topMiddle().offset(0, -100));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.rightMiddle().offset(100, 0));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomMiddle().offset(0, 100));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topLeft().offset(-100, -preferenceThreshold.top));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topRight().offset(100, -preferenceThreshold.top));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomLeft().offset(-100, preferenceThreshold.bottom));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomRight().offset(100, preferenceThreshold.bottom));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topLeft().offset(-100, -preferenceThreshold.top + 1));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topRight().offset(100, -preferenceThreshold.top + 1));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomLeft().offset(-100, preferenceThreshold.bottom - 1));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomRight().offset(100, preferenceThreshold.bottom - 1));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+                });
+
+            });
+
+            QUnit.module('prefer-horizontal', function() {
+
+                [undefined, 0].forEach(function (anchorPreferenceThreshold) {
+                    QUnit.test(
+                        `preferenceThreshold=${anchorPreferenceThreshold}`,
+                        function (assert) {
+                            const anchor = {
+                                name: "midSide",
+                                args: {
+                                    mode: "prefer-horizontal",
+                                    preferenceThreshold:
+                                        anchorPreferenceThreshold,
+                                },
+                            };
+                            link.prop(["source", "anchor"], anchor, {
+                                rewrite: true,
+                            });
+
+                            const sourceBBox = link
+                                .getSourceElement()
+                                .getBBox();
+
+                            link.target(
+                                sourceBBox.leftMiddle().offset(-100, 0)
+                            );
+                            assert.ok(
+                                sourceBBox
+                                    .leftMiddle()
+                                    .equals(linkView.sourceAnchor)
+                            );
+
+                            link.target(sourceBBox.topMiddle().offset(0, -100));
+                            assert.ok(
+                                sourceBBox
+                                    .topMiddle()
+                                    .equals(linkView.sourceAnchor)
+                            );
+
+                            link.target(
+                                sourceBBox.rightMiddle().offset(100, 0)
+                            );
+                            assert.ok(
+                                sourceBBox
+                                    .rightMiddle()
+                                    .equals(linkView.sourceAnchor)
+                            );
+
+                            link.target(
+                                sourceBBox.bottomMiddle().offset(0, 100)
+                            );
+                            assert.ok(
+                                sourceBBox
+                                    .bottomMiddle()
+                                    .equals(linkView.sourceAnchor)
+                            );
+
+                            link.target(
+                                sourceBBox.topLeft().offset(-100, -100)
+                            );
+                            assert.ok(
+                                sourceBBox
+                                    .leftMiddle()
+                                    .equals(linkView.sourceAnchor)
+                            );
+
+                            link.target(
+                                sourceBBox.topRight().offset(100, -100)
+                            );
+                            assert.ok(
+                                sourceBBox
+                                    .rightMiddle()
+                                    .equals(linkView.sourceAnchor)
+                            );
+
+                            link.target(
+                                sourceBBox.bottomLeft().offset(-100, 100)
+                            );
+                            assert.ok(
+                                sourceBBox
+                                    .leftMiddle()
+                                    .equals(linkView.sourceAnchor)
+                            );
+
+                            link.target(
+                                sourceBBox.bottomRight().offset(100, 100)
+                            );
+                            assert.ok(
+                                sourceBBox
+                                    .rightMiddle()
+                                    .equals(linkView.sourceAnchor)
+                            );
+                        }
+                    );
+                });
+
+                QUnit.test('preferenceThreshold=13', function(assert) {
+                    const preferenceThreshold = 13;
+                    const anchor = {
+                        name: 'midSide',
+                        args: {
+                            mode: 'prefer-horizontal',
+                            preferenceThreshold
+                        }
+                    };
+                    link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                    const sourceBBox = link.getSourceElement().getBBox();
+
+                    link.target(sourceBBox.leftMiddle().offset(-100, 0));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topMiddle().offset(0, -100));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.rightMiddle().offset(100, 0));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomMiddle().offset(0, 100));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topLeft().offset(-preferenceThreshold, -100));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topRight().offset(preferenceThreshold, -100));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomLeft().offset(-preferenceThreshold, 100));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomRight().offset(preferenceThreshold, 100));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topLeft().offset(-preferenceThreshold + 1, -100));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topRight().offset(preferenceThreshold - 1, -100));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomLeft().offset(-preferenceThreshold + 1, 100));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomRight().offset(preferenceThreshold - 1, 100));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+                });
+
+                QUnit.test('preferenceThreshold={ left: 13, right: 23 }', function(assert) {
+                    const preferenceThreshold = { left: 13, right: 23 };
+                    const anchor = {
+                        name: 'midSide',
+                        args: {
+                            mode: 'prefer-horizontal',
+                            preferenceThreshold
+                        }
+                    };
+                    link.prop(['source', 'anchor'], anchor, { rewrite: true });
+
+                    const sourceBBox = link.getSourceElement().getBBox();
+
+                    link.target(sourceBBox.leftMiddle().offset(-100, 0));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topMiddle().offset(0, -100));
+                    assert.ok(
+                        sourceBBox.topMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.rightMiddle().offset(100, 0));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomMiddle().offset(0, 100));
+                    assert.ok(
+                        sourceBBox.bottomMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topLeft().offset(-preferenceThreshold.left, -100));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.topRight().offset(preferenceThreshold.right, -100));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomLeft().offset(-preferenceThreshold.left, 100));
+                    assert.ok(
+                        sourceBBox.leftMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                    link.target(sourceBBox.bottomRight().offset(preferenceThreshold.right, 100));
+                    assert.ok(
+                        sourceBBox.rightMiddle().equals(linkView.sourceAnchor)
+                    );
+
+                });
+            });
+        });
     });
 
 });
