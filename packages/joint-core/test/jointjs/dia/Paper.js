@@ -242,12 +242,12 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         //let a, b, c, d, l1, l2, l3, l11, l12, l13, l14, l21, l22, l23, l24, l211, l221, l231, l241, l31, l32, l33, l34;
         hooks.beforeEach(function() {
             testGraph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
-            testGraph.addCells([
+            testGraph.resetCells([
                 {
                     'type': 'standard.Rectangle',
                     'id': 'A',
                     'position': {
-                        'x': 100,
+                        'x': 90,
                         'y': 100
                     },
                     'size': {
@@ -259,7 +259,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'type': 'standard.Rectangle',
                     'id': 'B',
                     'position': {
-                        'x': 400,
+                        'x': 410,
                         'y': 400
                     },
                     'size': {
@@ -272,7 +272,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'id': 'C',
                     'position': {
                         'x': 400,
-                        'y': 100
+                        'y': 90
                     },
                     'size': {
                         'width': 100,
@@ -284,7 +284,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     'id': 'D',
                     'position': {
                         'x': 100,
-                        'y': 400
+                        'y': 410
                     },
                     'size': {
                         'width': 100,
