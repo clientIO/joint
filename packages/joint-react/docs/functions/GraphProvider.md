@@ -6,7 +6,7 @@
 
 # Function: GraphProvider()
 
-> **GraphProvider**(`props`): `Element`
+> **GraphProvider**(`props`): `null` \| `Element`
 
 Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:84](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L84)
 
@@ -23,7 +23,7 @@ It relies on
 
 ## Returns
 
-`Element`
+`null` \| `Element`
 
 GraphProvider component
 

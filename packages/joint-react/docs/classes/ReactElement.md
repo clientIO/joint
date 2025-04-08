@@ -26,7 +26,7 @@ A custom JointJS element that can render React components.
 
 > **new ReactElement**\<`Attributes`\>(`attributes`?, `opt`?): `ReactElement`\<`Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:443](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L443)
+Defined in: [joint-core/types/joint.d.ts:444](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L444)
 
 #### Parameters
 
@@ -52,7 +52,7 @@ Defined in: [joint-core/types/joint.d.ts:443](https://github.com/samuelgja/joint
 
 > **addPort**(`port`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:644](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L644)
+Defined in: [joint-core/types/joint.d.ts:664](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L664)
 
 #### Parameters
 
@@ -78,7 +78,7 @@ Defined in: [joint-core/types/joint.d.ts:644](https://github.com/samuelgja/joint
 
 > **addPorts**(`ports`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:646](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L646)
+Defined in: [joint-core/types/joint.d.ts:666](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L666)
 
 #### Parameters
 
@@ -104,7 +104,7 @@ Defined in: [joint-core/types/joint.d.ts:646](https://github.com/samuelgja/joint
 
 > **addTo**(`graph`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:504](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L504)
+Defined in: [joint-core/types/joint.d.ts:505](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L505)
 
 #### Parameters
 
@@ -130,7 +130,7 @@ Defined in: [joint-core/types/joint.d.ts:504](https://github.com/samuelgja/joint
 
 > **angle**(): `number`
 
-Defined in: [joint-core/types/joint.d.ts:633](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L633)
+Defined in: [joint-core/types/joint.d.ts:653](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L653)
 
 #### Returns
 
@@ -148,7 +148,7 @@ Defined in: [joint-core/types/joint.d.ts:633](https://github.com/samuelgja/joint
 
 > **attr**(`key`?): `any`
 
-Defined in: [joint-core/types/joint.d.ts:482](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L482)
+Defined in: [joint-core/types/joint.d.ts:483](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L483)
 
 ##### Parameters
 
@@ -168,7 +168,7 @@ Defined in: [joint-core/types/joint.d.ts:482](https://github.com/samuelgja/joint
 
 > **attr**(`object`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:483](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L483)
+Defined in: [joint-core/types/joint.d.ts:484](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L484)
 
 ##### Parameters
 
@@ -192,7 +192,7 @@ Defined in: [joint-core/types/joint.d.ts:483](https://github.com/samuelgja/joint
 
 > **attr**(`key`, `value`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:484](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L484)
+Defined in: [joint-core/types/joint.d.ts:485](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L485)
 
 ##### Parameters
 
@@ -224,7 +224,7 @@ Defined in: [joint-core/types/joint.d.ts:484](https://github.com/samuelgja/joint
 
 > **bind**(`eventName`, `callback`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3205](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3205)
+Defined in: [joint-core/types/joint.d.ts:3241](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3241)
 
 ##### Parameters
 
@@ -252,7 +252,7 @@ Defined in: [joint-core/types/joint.d.ts:3205](https://github.com/samuelgja/join
 
 > **bind**(`eventMap`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3206](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3206)
+Defined in: [joint-core/types/joint.d.ts:3242](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3242)
 
 ##### Parameters
 
@@ -278,7 +278,7 @@ Defined in: [joint-core/types/joint.d.ts:3206](https://github.com/samuelgja/join
 
 > **canEmbed**(`cell`): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:502](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L502)
+Defined in: [joint-core/types/joint.d.ts:503](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L503)
 
 #### Parameters
 
@@ -300,7 +300,7 @@ Defined in: [joint-core/types/joint.d.ts:502](https://github.com/samuelgja/joint
 
 > **changedAttributes**(`attributes`?): `false` \| [`Partial`](https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype)\<`Attributes` & `Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:3291](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3291)
+Defined in: [joint-core/types/joint.d.ts:3327](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3327)
 
 Return an object containing all the attributes that have changed, or
 false if there are no changed attributes. Useful for determining what
@@ -329,7 +329,7 @@ determining if there *would be* a change.
 
 > **clear**(`options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3292](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3292)
+Defined in: [joint-core/types/joint.d.ts:3328](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3328)
 
 #### Parameters
 
@@ -353,7 +353,7 @@ Defined in: [joint-core/types/joint.d.ts:3292](https://github.com/samuelgja/join
 
 > **clone**(): `this`
 
-Defined in: [joint-core/types/joint.d.ts:486](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L486)
+Defined in: [joint-core/types/joint.d.ts:487](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L487)
 
 ##### Returns
 
@@ -367,7 +367,7 @@ Defined in: [joint-core/types/joint.d.ts:486](https://github.com/samuelgja/joint
 
 > **clone**(`opt`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:487](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L487)
+Defined in: [joint-core/types/joint.d.ts:488](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L488)
 
 ##### Parameters
 
@@ -387,7 +387,7 @@ Defined in: [joint-core/types/joint.d.ts:487](https://github.com/samuelgja/joint
 
 > **clone**(`opt`): `Cell`\<`Attributes`, `ModelSetOptions`\>[]
 
-Defined in: [joint-core/types/joint.d.ts:488](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L488)
+Defined in: [joint-core/types/joint.d.ts:489](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L489)
 
 ##### Parameters
 
@@ -429,7 +429,7 @@ The default attributes.
 
 > **embed**(`cell`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:498](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L498)
+Defined in: [joint-core/types/joint.d.ts:499](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L499)
 
 #### Parameters
 
@@ -455,7 +455,7 @@ Defined in: [joint-core/types/joint.d.ts:498](https://github.com/samuelgja/joint
 
 > **escape**(`attribute`): `string`
 
-Defined in: [joint-core/types/joint.d.ts:3294](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3294)
+Defined in: [joint-core/types/joint.d.ts:3330](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3330)
 
 #### Parameters
 
@@ -477,7 +477,7 @@ Defined in: [joint-core/types/joint.d.ts:3294](https://github.com/samuelgja/join
 
 > **findView**(`paper`): `CellView`
 
-Defined in: [joint-core/types/joint.d.ts:506](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L506)
+Defined in: [joint-core/types/joint.d.ts:507](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L507)
 
 #### Parameters
 
@@ -499,27 +499,13 @@ Defined in: [joint-core/types/joint.d.ts:506](https://github.com/samuelgja/joint
 
 > **fitEmbeds**(`opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:637](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L637)
+Defined in: [joint-core/types/joint.d.ts:657](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L657)
 
 #### Parameters
 
 ##### opt?
 
-###### deep?
-
-`boolean`
-
-###### expandOnly?
-
-`boolean`
-
-###### padding?
-
-`Padding`
-
-###### shrinkOnly?
-
-`boolean`
+`FitToChildrenOptions`
 
 #### Returns
 
@@ -535,31 +521,13 @@ Defined in: [joint-core/types/joint.d.ts:637](https://github.com/samuelgja/joint
 
 > **fitParent**(`opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:640](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L640)
+Defined in: [joint-core/types/joint.d.ts:660](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L660)
 
 #### Parameters
 
 ##### opt?
 
-###### deep?
-
-`boolean`
-
-###### expandOnly?
-
-`boolean`
-
-###### padding?
-
-`Padding`
-
-###### shrinkOnly?
-
-`boolean`
-
-###### terminator?
-
-`ID` \| `Cell`\<`Attributes`, `ModelSetOptions`\>
+`FitParentOptions`
 
 #### Returns
 
@@ -575,27 +543,13 @@ Defined in: [joint-core/types/joint.d.ts:640](https://github.com/samuelgja/joint
 
 > **fitToChildren**(`opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:638](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L638)
+Defined in: [joint-core/types/joint.d.ts:658](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L658)
 
 #### Parameters
 
 ##### opt?
 
-###### deep?
-
-`boolean`
-
-###### expandOnly?
-
-`boolean`
-
-###### padding?
-
-`Padding`
-
-###### shrinkOnly?
-
-`boolean`
+`FitToChildrenOptions`
 
 #### Returns
 
@@ -611,7 +565,7 @@ Defined in: [joint-core/types/joint.d.ts:638](https://github.com/samuelgja/joint
 
 > **get**\<`A`\>(`attributeName`): `undefined` \| `Attributes` & `Attributes`\[`A`\]
 
-Defined in: [joint-core/types/joint.d.ts:3270](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3270)
+Defined in: [joint-core/types/joint.d.ts:3306](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3306)
 
 For strongly-typed access to attributes, use the `get` method only privately in public getter properties.
 
@@ -651,7 +605,7 @@ get name(): string {
 
 > **getAbsolutePointFromRelative**(`x`, `y`): `Point`
 
-Defined in: [joint-core/types/joint.d.ts:532](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L532)
+Defined in: [joint-core/types/joint.d.ts:533](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L533)
 
 ##### Parameters
 
@@ -675,7 +629,7 @@ Defined in: [joint-core/types/joint.d.ts:532](https://github.com/samuelgja/joint
 
 > **getAbsolutePointFromRelative**(`relativePoint`): `Point`
 
-Defined in: [joint-core/types/joint.d.ts:533](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L533)
+Defined in: [joint-core/types/joint.d.ts:534](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L534)
 
 ##### Parameters
 
@@ -697,7 +651,7 @@ Defined in: [joint-core/types/joint.d.ts:533](https://github.com/samuelgja/joint
 
 > **getAncestors**(): `Cell`\<`Attributes`, `ModelSetOptions`\>[]
 
-Defined in: [joint-core/types/joint.d.ts:468](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L468)
+Defined in: [joint-core/types/joint.d.ts:469](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L469)
 
 #### Returns
 
@@ -713,7 +667,7 @@ Defined in: [joint-core/types/joint.d.ts:468](https://github.com/samuelgja/joint
 
 > **getBBox**(`opt`?): `Rect`
 
-Defined in: [joint-core/types/joint.d.ts:642](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L642)
+Defined in: [joint-core/types/joint.d.ts:662](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L662)
 
 #### Parameters
 
@@ -735,7 +689,7 @@ Defined in: [joint-core/types/joint.d.ts:642](https://github.com/samuelgja/joint
 
 > **getChangeFlag**(`attributes`): `number`
 
-Defined in: [joint-core/types/joint.d.ts:535](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L535)
+Defined in: [joint-core/types/joint.d.ts:536](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L536)
 
 #### Parameters
 
@@ -755,7 +709,7 @@ Defined in: [joint-core/types/joint.d.ts:535](https://github.com/samuelgja/joint
 
 > **getEmbeddedCells**(`opt`?): `Cell`\<`Attributes`, `ModelSetOptions`\>[]
 
-Defined in: [joint-core/types/joint.d.ts:470](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L470)
+Defined in: [joint-core/types/joint.d.ts:471](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L471)
 
 #### Parameters
 
@@ -777,7 +731,7 @@ Defined in: [joint-core/types/joint.d.ts:470](https://github.com/samuelgja/joint
 
 > **getGroupPorts**(`groupName`): `Port`[]
 
-Defined in: [joint-core/types/joint.d.ts:661](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L661)
+Defined in: [joint-core/types/joint.d.ts:681](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L681)
 
 #### Parameters
 
@@ -799,7 +753,7 @@ Defined in: [joint-core/types/joint.d.ts:661](https://github.com/samuelgja/joint
 
 > **getParentCell**(): `null` \| `Cell`\<`Attributes`, `ModelSetOptions`\>
 
-Defined in: [joint-core/types/joint.d.ts:466](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L466)
+Defined in: [joint-core/types/joint.d.ts:467](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L467)
 
 #### Returns
 
@@ -815,7 +769,7 @@ Defined in: [joint-core/types/joint.d.ts:466](https://github.com/samuelgja/joint
 
 > **getPointFromConnectedLink**(`link`, `endType`): `Point`
 
-Defined in: [joint-core/types/joint.d.ts:524](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L524)
+Defined in: [joint-core/types/joint.d.ts:525](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L525)
 
 #### Parameters
 
@@ -843,7 +797,7 @@ Defined in: [joint-core/types/joint.d.ts:524](https://github.com/samuelgja/joint
 
 > **getPointRotatedAroundCenter**(`angle`, `x`, `y`): `Point`
 
-Defined in: [joint-core/types/joint.d.ts:526](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L526)
+Defined in: [joint-core/types/joint.d.ts:527](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L527)
 
 ##### Parameters
 
@@ -871,7 +825,7 @@ Defined in: [joint-core/types/joint.d.ts:526](https://github.com/samuelgja/joint
 
 > **getPointRotatedAroundCenter**(`angle`, `point`): `Point`
 
-Defined in: [joint-core/types/joint.d.ts:527](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L527)
+Defined in: [joint-core/types/joint.d.ts:528](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L528)
 
 ##### Parameters
 
@@ -897,7 +851,7 @@ Defined in: [joint-core/types/joint.d.ts:527](https://github.com/samuelgja/joint
 
 > **getPort**(`id`): `Port`
 
-Defined in: [joint-core/types/joint.d.ts:663](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L663)
+Defined in: [joint-core/types/joint.d.ts:683](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L683)
 
 #### Parameters
 
@@ -919,7 +873,7 @@ Defined in: [joint-core/types/joint.d.ts:663](https://github.com/samuelgja/joint
 
 > **getPortGroupNames**(): `string`[]
 
-Defined in: [joint-core/types/joint.d.ts:669](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L669)
+Defined in: [joint-core/types/joint.d.ts:691](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L691)
 
 #### Returns
 
@@ -935,7 +889,7 @@ Defined in: [joint-core/types/joint.d.ts:669](https://github.com/samuelgja/joint
 
 > **getPortIndex**(`port`): `number`
 
-Defined in: [joint-core/types/joint.d.ts:667](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L667)
+Defined in: [joint-core/types/joint.d.ts:689](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L689)
 
 #### Parameters
 
@@ -957,7 +911,7 @@ Defined in: [joint-core/types/joint.d.ts:667](https://github.com/samuelgja/joint
 
 > **getPorts**(): `Port`[]
 
-Defined in: [joint-core/types/joint.d.ts:659](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L659)
+Defined in: [joint-core/types/joint.d.ts:679](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L679)
 
 #### Returns
 
@@ -973,7 +927,7 @@ Defined in: [joint-core/types/joint.d.ts:659](https://github.com/samuelgja/joint
 
 > **getPortsPositions**(`groupName`): `object`
 
-Defined in: [joint-core/types/joint.d.ts:665](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L665)
+Defined in: [joint-core/types/joint.d.ts:685](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L685)
 
 #### Parameters
 
@@ -991,13 +945,35 @@ Defined in: [joint-core/types/joint.d.ts:665](https://github.com/samuelgja/joint
 
 ***
 
+### getPortsRects()
+
+> **getPortsRects**(`groupName`): `object`
+
+Defined in: [joint-core/types/joint.d.ts:687](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L687)
+
+#### Parameters
+
+##### groupName
+
+`string`
+
+#### Returns
+
+`object`
+
+#### Inherited from
+
+`dia.Element.getPortsRects`
+
+***
+
 ### getRelativePointFromAbsolute()
 
 #### Call Signature
 
 > **getRelativePointFromAbsolute**(`x`, `y`): `Point`
 
-Defined in: [joint-core/types/joint.d.ts:529](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L529)
+Defined in: [joint-core/types/joint.d.ts:530](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L530)
 
 ##### Parameters
 
@@ -1021,7 +997,7 @@ Defined in: [joint-core/types/joint.d.ts:529](https://github.com/samuelgja/joint
 
 > **getRelativePointFromAbsolute**(`absolutePoint`): `Point`
 
-Defined in: [joint-core/types/joint.d.ts:530](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L530)
+Defined in: [joint-core/types/joint.d.ts:531](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L531)
 
 ##### Parameters
 
@@ -1043,7 +1019,7 @@ Defined in: [joint-core/types/joint.d.ts:530](https://github.com/samuelgja/joint
 
 > **getTransitions**(): `string`[]
 
-Defined in: [joint-core/types/joint.d.ts:494](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L494)
+Defined in: [joint-core/types/joint.d.ts:495](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L495)
 
 #### Returns
 
@@ -1059,7 +1035,7 @@ Defined in: [joint-core/types/joint.d.ts:494](https://github.com/samuelgja/joint
 
 > **has**(`attribute`): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:3295](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3295)
+Defined in: [joint-core/types/joint.d.ts:3331](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3331)
 
 #### Parameters
 
@@ -1081,7 +1057,7 @@ Defined in: [joint-core/types/joint.d.ts:3295](https://github.com/samuelgja/join
 
 > **hasChanged**(`attribute`?): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:3296](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3296)
+Defined in: [joint-core/types/joint.d.ts:3332](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3332)
 
 #### Parameters
 
@@ -1103,7 +1079,7 @@ Defined in: [joint-core/types/joint.d.ts:3296](https://github.com/samuelgja/join
 
 > **hasPort**(`id`): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:657](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L657)
+Defined in: [joint-core/types/joint.d.ts:677](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L677)
 
 #### Parameters
 
@@ -1125,7 +1101,7 @@ Defined in: [joint-core/types/joint.d.ts:657](https://github.com/samuelgja/joint
 
 > **hasPorts**(): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:655](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L655)
+Defined in: [joint-core/types/joint.d.ts:675](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L675)
 
 #### Returns
 
@@ -1141,7 +1117,7 @@ Defined in: [joint-core/types/joint.d.ts:655](https://github.com/samuelgja/joint
 
 > **initialize**(`attributes`?, `options`?): `void`
 
-Defined in: [joint-core/types/joint.d.ts:3260](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3260)
+Defined in: [joint-core/types/joint.d.ts:3296](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3296)
 
 #### Parameters
 
@@ -1167,7 +1143,7 @@ Defined in: [joint-core/types/joint.d.ts:3260](https://github.com/samuelgja/join
 
 > **insertPort**(`before`, `port`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:648](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L648)
+Defined in: [joint-core/types/joint.d.ts:668](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L668)
 
 #### Parameters
 
@@ -1197,7 +1173,7 @@ Defined in: [joint-core/types/joint.d.ts:648](https://github.com/samuelgja/joint
 
 > **isElement**(): `this is Element<Attributes, ModelSetOptions>`
 
-Defined in: [joint-core/types/joint.d.ts:510](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L510)
+Defined in: [joint-core/types/joint.d.ts:511](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L511)
 
 #### Returns
 
@@ -1213,7 +1189,7 @@ Defined in: [joint-core/types/joint.d.ts:510](https://github.com/samuelgja/joint
 
 > **isEmbedded**(): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:474](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L474)
+Defined in: [joint-core/types/joint.d.ts:475](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L475)
 
 #### Returns
 
@@ -1229,7 +1205,7 @@ Defined in: [joint-core/types/joint.d.ts:474](https://github.com/samuelgja/joint
 
 > **isEmbeddedIn**(`cell`, `opt`?): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:472](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L472)
+Defined in: [joint-core/types/joint.d.ts:473](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L473)
 
 #### Parameters
 
@@ -1255,7 +1231,7 @@ Defined in: [joint-core/types/joint.d.ts:472](https://github.com/samuelgja/joint
 
 > **isLink**(): `this is Link<Attributes, ModelSetOptions>`
 
-Defined in: [joint-core/types/joint.d.ts:508](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L508)
+Defined in: [joint-core/types/joint.d.ts:509](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L509)
 
 #### Returns
 
@@ -1271,7 +1247,7 @@ Defined in: [joint-core/types/joint.d.ts:508](https://github.com/samuelgja/joint
 
 > **isValid**(`options`?): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:3297](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3297)
+Defined in: [joint-core/types/joint.d.ts:3333](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3333)
 
 #### Parameters
 
@@ -1295,7 +1271,7 @@ Defined in: [joint-core/types/joint.d.ts:3297](https://github.com/samuelgja/join
 
 > **listenTo**(`object`, `events`, `callback`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3211](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3211)
+Defined in: [joint-core/types/joint.d.ts:3247](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3247)
 
 ##### Parameters
 
@@ -1323,7 +1299,7 @@ Defined in: [joint-core/types/joint.d.ts:3211](https://github.com/samuelgja/join
 
 > **listenTo**(`object`, `eventMap`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3212](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3212)
+Defined in: [joint-core/types/joint.d.ts:3248](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3248)
 
 ##### Parameters
 
@@ -1351,7 +1327,7 @@ Defined in: [joint-core/types/joint.d.ts:3212](https://github.com/samuelgja/join
 
 > **listenToOnce**(`object`, `events`, `callback`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3213](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3213)
+Defined in: [joint-core/types/joint.d.ts:3249](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3249)
 
 ##### Parameters
 
@@ -1379,7 +1355,7 @@ Defined in: [joint-core/types/joint.d.ts:3213](https://github.com/samuelgja/join
 
 > **listenToOnce**(`object`, `eventMap`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3214](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3214)
+Defined in: [joint-core/types/joint.d.ts:3250](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3250)
 
 ##### Parameters
 
@@ -1405,7 +1381,7 @@ Defined in: [joint-core/types/joint.d.ts:3214](https://github.com/samuelgja/join
 
 > **off**(`eventName`?, `callback`?, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3203](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3203)
+Defined in: [joint-core/types/joint.d.ts:3239](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3239)
 
 #### Parameters
 
@@ -1437,7 +1413,7 @@ Defined in: [joint-core/types/joint.d.ts:3203](https://github.com/samuelgja/join
 
 > **on**(`eventName`, `callback`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3201](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3201)
+Defined in: [joint-core/types/joint.d.ts:3237](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3237)
 
 ##### Parameters
 
@@ -1465,7 +1441,7 @@ Defined in: [joint-core/types/joint.d.ts:3201](https://github.com/samuelgja/join
 
 > **on**(`eventMap`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3202](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3202)
+Defined in: [joint-core/types/joint.d.ts:3238](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3238)
 
 ##### Parameters
 
@@ -1493,7 +1469,7 @@ Defined in: [joint-core/types/joint.d.ts:3202](https://github.com/samuelgja/join
 
 > **once**(`events`, `callback`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3209](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3209)
+Defined in: [joint-core/types/joint.d.ts:3245](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3245)
 
 ##### Parameters
 
@@ -1521,7 +1497,7 @@ Defined in: [joint-core/types/joint.d.ts:3209](https://github.com/samuelgja/join
 
 > **once**(`eventMap`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3210](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3210)
+Defined in: [joint-core/types/joint.d.ts:3246](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3246)
 
 ##### Parameters
 
@@ -1547,7 +1523,7 @@ Defined in: [joint-core/types/joint.d.ts:3210](https://github.com/samuelgja/join
 
 > **parent**(): `string`
 
-Defined in: [joint-core/types/joint.d.ts:464](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L464)
+Defined in: [joint-core/types/joint.d.ts:465](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L465)
 
 #### Returns
 
@@ -1565,7 +1541,7 @@ Defined in: [joint-core/types/joint.d.ts:464](https://github.com/samuelgja/joint
 
 > **portProp**(`portId`, `path`): `any`
 
-Defined in: [joint-core/types/joint.d.ts:671](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L671)
+Defined in: [joint-core/types/joint.d.ts:693](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L693)
 
 ##### Parameters
 
@@ -1589,7 +1565,7 @@ Defined in: [joint-core/types/joint.d.ts:671](https://github.com/samuelgja/joint
 
 > **portProp**(`portId`, `path`, `value`?, `opt`?): `Element`
 
-Defined in: [joint-core/types/joint.d.ts:673](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L673)
+Defined in: [joint-core/types/joint.d.ts:695](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L695)
 
 ##### Parameters
 
@@ -1625,7 +1601,7 @@ Defined in: [joint-core/types/joint.d.ts:673](https://github.com/samuelgja/joint
 
 > **position**(`opt`?): `Point`
 
-Defined in: [joint-core/types/joint.d.ts:622](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L622)
+Defined in: [joint-core/types/joint.d.ts:642](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L642)
 
 ##### Parameters
 
@@ -1645,7 +1621,7 @@ Defined in: [joint-core/types/joint.d.ts:622](https://github.com/samuelgja/joint
 
 > **position**(`x`, `y`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:623](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L623)
+Defined in: [joint-core/types/joint.d.ts:643](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L643)
 
 ##### Parameters
 
@@ -1675,7 +1651,7 @@ Defined in: [joint-core/types/joint.d.ts:623](https://github.com/samuelgja/joint
 
 > **preinitialize**(`attributes`?, `options`?): `void`
 
-Defined in: [joint-core/types/joint.d.ts:3257](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3257)
+Defined in: [joint-core/types/joint.d.ts:3293](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3293)
 
 For use with models as ES classes. If you define a preinitialize
 method, it will be invoked when the Model is first created, before
@@ -1705,7 +1681,7 @@ any instantiation logic is run for the Model.
 
 > **previous**\<`A`\>(`attribute`): `undefined` \| `null` \| `Attributes` & `Attributes`\[`A`\]
 
-Defined in: [joint-core/types/joint.d.ts:3298](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3298)
+Defined in: [joint-core/types/joint.d.ts:3334](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3334)
 
 #### Type Parameters
 
@@ -1733,7 +1709,7 @@ Defined in: [joint-core/types/joint.d.ts:3298](https://github.com/samuelgja/join
 
 > **previousAttributes**(): [`Partial`](https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype)\<`Attributes` & `Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:3299](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3299)
+Defined in: [joint-core/types/joint.d.ts:3335](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3335)
 
 #### Returns
 
@@ -1751,7 +1727,7 @@ Defined in: [joint-core/types/joint.d.ts:3299](https://github.com/samuelgja/join
 
 > **prop**(`key`): `any`
 
-Defined in: [joint-core/types/joint.d.ts:476](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L476)
+Defined in: [joint-core/types/joint.d.ts:477](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L477)
 
 ##### Parameters
 
@@ -1771,7 +1747,7 @@ Defined in: [joint-core/types/joint.d.ts:476](https://github.com/samuelgja/joint
 
 > **prop**(`object`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:477](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L477)
+Defined in: [joint-core/types/joint.d.ts:478](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L478)
 
 ##### Parameters
 
@@ -1795,7 +1771,7 @@ Defined in: [joint-core/types/joint.d.ts:477](https://github.com/samuelgja/joint
 
 > **prop**(`key`, `value`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:478](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L478)
+Defined in: [joint-core/types/joint.d.ts:479](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L479)
 
 ##### Parameters
 
@@ -1825,7 +1801,7 @@ Defined in: [joint-core/types/joint.d.ts:478](https://github.com/samuelgja/joint
 
 > **remove**(`opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:458](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L458)
+Defined in: [joint-core/types/joint.d.ts:459](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L459)
 
 #### Parameters
 
@@ -1847,7 +1823,7 @@ Defined in: [joint-core/types/joint.d.ts:458](https://github.com/samuelgja/joint
 
 > **removeAttr**(`path`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:490](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L490)
+Defined in: [joint-core/types/joint.d.ts:491](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L491)
 
 #### Parameters
 
@@ -1873,7 +1849,7 @@ Defined in: [joint-core/types/joint.d.ts:490](https://github.com/samuelgja/joint
 
 > **removePort**(`port`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:650](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L650)
+Defined in: [joint-core/types/joint.d.ts:670](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L670)
 
 #### Parameters
 
@@ -1901,7 +1877,7 @@ Defined in: [joint-core/types/joint.d.ts:650](https://github.com/samuelgja/joint
 
 > **removePorts**(`opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:652](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L652)
+Defined in: [joint-core/types/joint.d.ts:672](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L672)
 
 ##### Parameters
 
@@ -1921,7 +1897,7 @@ Defined in: [joint-core/types/joint.d.ts:652](https://github.com/samuelgja/joint
 
 > **removePorts**(`ports`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:653](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L653)
+Defined in: [joint-core/types/joint.d.ts:673](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L673)
 
 ##### Parameters
 
@@ -1947,7 +1923,7 @@ Defined in: [joint-core/types/joint.d.ts:653](https://github.com/samuelgja/joint
 
 > **removeProp**(`path`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:480](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L480)
+Defined in: [joint-core/types/joint.d.ts:481](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L481)
 
 #### Parameters
 
@@ -1973,7 +1949,7 @@ Defined in: [joint-core/types/joint.d.ts:480](https://github.com/samuelgja/joint
 
 > **resize**(`width`, `height`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:629](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L629)
+Defined in: [joint-core/types/joint.d.ts:649](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L649)
 
 #### Parameters
 
@@ -2003,7 +1979,7 @@ Defined in: [joint-core/types/joint.d.ts:629](https://github.com/samuelgja/joint
 
 > **rotate**(`deg`, `absolute`?, `origin`?, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:631](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L631)
+Defined in: [joint-core/types/joint.d.ts:651](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L651)
 
 #### Parameters
 
@@ -2035,7 +2011,7 @@ Defined in: [joint-core/types/joint.d.ts:631](https://github.com/samuelgja/joint
 
 > **scale**(`scaleX`, `scaleY`, `origin`?, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:635](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L635)
+Defined in: [joint-core/types/joint.d.ts:655](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L655)
 
 #### Parameters
 
@@ -2069,7 +2045,7 @@ Defined in: [joint-core/types/joint.d.ts:635](https://github.com/samuelgja/joint
 
 > **set**\<`A`\>(`attributeName`, `value`?, `options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3279](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3279)
+Defined in: [joint-core/types/joint.d.ts:3315](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3315)
 
 For strongly-typed assignment of attributes, use the `set` method only privately in public setter properties.
 
@@ -2113,7 +2089,7 @@ set name(value: string) {
 
 > **set**(`attributeName`, `options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3280](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3280)
+Defined in: [joint-core/types/joint.d.ts:3316](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3316)
 
 For strongly-typed assignment of attributes, use the `set` method only privately in public setter properties.
 
@@ -2147,7 +2123,7 @@ set name(value: string) {
 
 > **set**\<`A`\>(`attributeName`, `value`?, `options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3281](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3281)
+Defined in: [joint-core/types/joint.d.ts:3317](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3317)
 
 For strongly-typed assignment of attributes, use the `set` method only privately in public setter properties.
 
@@ -2195,7 +2171,7 @@ set name(value: string) {
 
 > **size**(): `Size`
 
-Defined in: [joint-core/types/joint.d.ts:625](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L625)
+Defined in: [joint-core/types/joint.d.ts:645](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L645)
 
 ##### Returns
 
@@ -2209,7 +2185,7 @@ Defined in: [joint-core/types/joint.d.ts:625](https://github.com/samuelgja/joint
 
 > **size**(`size`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:626](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L626)
+Defined in: [joint-core/types/joint.d.ts:646](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L646)
 
 ##### Parameters
 
@@ -2233,7 +2209,7 @@ Defined in: [joint-core/types/joint.d.ts:626](https://github.com/samuelgja/joint
 
 > **size**(`width`, `height`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:627](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L627)
+Defined in: [joint-core/types/joint.d.ts:647](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L647)
 
 ##### Parameters
 
@@ -2263,7 +2239,7 @@ Defined in: [joint-core/types/joint.d.ts:627](https://github.com/samuelgja/joint
 
 > **startBatch**(`name`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:512](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L512)
+Defined in: [joint-core/types/joint.d.ts:513](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L513)
 
 #### Parameters
 
@@ -2289,7 +2265,7 @@ Defined in: [joint-core/types/joint.d.ts:512](https://github.com/samuelgja/joint
 
 > **stopBatch**(`name`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:514](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L514)
+Defined in: [joint-core/types/joint.d.ts:515](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L515)
 
 #### Parameters
 
@@ -2315,7 +2291,7 @@ Defined in: [joint-core/types/joint.d.ts:514](https://github.com/samuelgja/joint
 
 > **stopListening**(`object`?, `events`?, `callback`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3215](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3215)
+Defined in: [joint-core/types/joint.d.ts:3251](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3251)
 
 #### Parameters
 
@@ -2345,7 +2321,7 @@ Defined in: [joint-core/types/joint.d.ts:3215](https://github.com/samuelgja/join
 
 > **stopTransitions**(`path`?, `delim`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:496](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L496)
+Defined in: [joint-core/types/joint.d.ts:497](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L497)
 
 #### Parameters
 
@@ -2371,7 +2347,7 @@ Defined in: [joint-core/types/joint.d.ts:496](https://github.com/samuelgja/joint
 
 > **toBack**(`opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:462](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L462)
+Defined in: [joint-core/types/joint.d.ts:463](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L463)
 
 #### Parameters
 
@@ -2393,7 +2369,7 @@ Defined in: [joint-core/types/joint.d.ts:462](https://github.com/samuelgja/joint
 
 > **toFront**(`opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:460](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L460)
+Defined in: [joint-core/types/joint.d.ts:461](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L461)
 
 #### Parameters
 
@@ -2415,7 +2391,7 @@ Defined in: [joint-core/types/joint.d.ts:460](https://github.com/samuelgja/joint
 
 > **toJSON**(`opt`?): `JSON`\<`any`, `Attributes` & `Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:456](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L456)
+Defined in: [joint-core/types/joint.d.ts:457](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L457)
 
 #### Parameters
 
@@ -2437,7 +2413,7 @@ Defined in: [joint-core/types/joint.d.ts:456](https://github.com/samuelgja/joint
 
 > **transition**(`path`, `value`?, `opt`?, `delim`?): `number`
 
-Defined in: [joint-core/types/joint.d.ts:492](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L492)
+Defined in: [joint-core/types/joint.d.ts:493](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L493)
 
 #### Parameters
 
@@ -2471,7 +2447,7 @@ Defined in: [joint-core/types/joint.d.ts:492](https://github.com/samuelgja/joint
 
 > **translate**(`tx`, `ty`?, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:620](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L620)
+Defined in: [joint-core/types/joint.d.ts:640](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L640)
 
 #### Parameters
 
@@ -2501,7 +2477,7 @@ Defined in: [joint-core/types/joint.d.ts:620](https://github.com/samuelgja/joint
 
 > **trigger**(`eventName`, ...`args`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3204](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3204)
+Defined in: [joint-core/types/joint.d.ts:3240](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3240)
 
 #### Parameters
 
@@ -2527,7 +2503,7 @@ Defined in: [joint-core/types/joint.d.ts:3204](https://github.com/samuelgja/join
 
 > **unbind**(`eventName`?, `callback`?, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3207](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3207)
+Defined in: [joint-core/types/joint.d.ts:3243](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3243)
 
 #### Parameters
 
@@ -2557,7 +2533,7 @@ Defined in: [joint-core/types/joint.d.ts:3207](https://github.com/samuelgja/join
 
 > **unembed**(`cell`, `opt`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:500](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L500)
+Defined in: [joint-core/types/joint.d.ts:501](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L501)
 
 #### Parameters
 
@@ -2583,7 +2559,7 @@ Defined in: [joint-core/types/joint.d.ts:500](https://github.com/samuelgja/joint
 
 > **unset**(`attribute`, `options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3300](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3300)
+Defined in: [joint-core/types/joint.d.ts:3336](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3336)
 
 #### Parameters
 
@@ -2609,7 +2585,7 @@ Defined in: [joint-core/types/joint.d.ts:3300](https://github.com/samuelgja/join
 
 > **validate**(`attributes`, `options`?): `any`
 
-Defined in: [joint-core/types/joint.d.ts:3301](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3301)
+Defined in: [joint-core/types/joint.d.ts:3337](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3337)
 
 #### Parameters
 
@@ -2635,7 +2611,7 @@ Defined in: [joint-core/types/joint.d.ts:3301](https://github.com/samuelgja/join
 
 > **z**(): `number`
 
-Defined in: [joint-core/types/joint.d.ts:518](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L518)
+Defined in: [joint-core/types/joint.d.ts:519](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L519)
 
 #### Returns
 
@@ -2651,7 +2627,7 @@ Defined in: [joint-core/types/joint.d.ts:518](https://github.com/samuelgja/joint
 
 > `static` **define**(`type`, `defaults`?, `protoProps`?, `staticProps`?): `Constructor`\<`Element`\<`Attributes`, `ModelSetOptions`\>\>
 
-Defined in: [joint-core/types/joint.d.ts:677](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L677)
+Defined in: [joint-core/types/joint.d.ts:699](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L699)
 
 #### Parameters
 
@@ -2685,7 +2661,7 @@ Defined in: [joint-core/types/joint.d.ts:677](https://github.com/samuelgja/joint
 
 > `static` **extend**(`properties`, `classProperties`?): `any`
 
-Defined in: [joint-core/types/joint.d.ts:3230](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3230)
+Defined in: [joint-core/types/joint.d.ts:3266](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3266)
 
 Do not use, prefer TypeScript's extend functionality.
 
@@ -2713,7 +2689,7 @@ Do not use, prefer TypeScript's extend functionality.
 
 > **attributes**: [`Partial`](https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype)\<`Attributes` & `Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:3232](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3232)
+Defined in: [joint-core/types/joint.d.ts:3268](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3268)
 
 #### Inherited from
 
@@ -2725,7 +2701,7 @@ Defined in: [joint-core/types/joint.d.ts:3232](https://github.com/samuelgja/join
 
 > **changed**: [`Partial`](https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype)\<`Attributes` & `Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:3233](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3233)
+Defined in: [joint-core/types/joint.d.ts:3269](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3269)
 
 #### Inherited from
 
@@ -2737,7 +2713,7 @@ Defined in: [joint-core/types/joint.d.ts:3233](https://github.com/samuelgja/join
 
 > **cid**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3235](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3235)
+Defined in: [joint-core/types/joint.d.ts:3271](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3271)
 
 #### Inherited from
 
@@ -2749,7 +2725,7 @@ Defined in: [joint-core/types/joint.d.ts:3235](https://github.com/samuelgja/join
 
 > **cidPrefix**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3234](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3234)
+Defined in: [joint-core/types/joint.d.ts:3270](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3270)
 
 #### Inherited from
 
@@ -2761,7 +2737,7 @@ Defined in: [joint-core/types/joint.d.ts:3234](https://github.com/samuelgja/join
 
 > **collection**: `Collection`\<`ReactElement`\<`Attributes`\>\>
 
-Defined in: [joint-core/types/joint.d.ts:3236](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3236)
+Defined in: [joint-core/types/joint.d.ts:3272](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3272)
 
 #### Inherited from
 
@@ -2773,7 +2749,7 @@ Defined in: [joint-core/types/joint.d.ts:3236](https://github.com/samuelgja/join
 
 > **graph**: `Graph`
 
-Defined in: [joint-core/types/joint.d.ts:446](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L446)
+Defined in: [joint-core/types/joint.d.ts:447](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L447)
 
 #### Inherited from
 
@@ -2785,7 +2761,7 @@ Defined in: [joint-core/types/joint.d.ts:446](https://github.com/samuelgja/joint
 
 > **id**: `ID`
 
-Defined in: [joint-core/types/joint.d.ts:445](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L445)
+Defined in: [joint-core/types/joint.d.ts:446](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L446)
 
 #### Inherited from
 
@@ -2797,7 +2773,7 @@ Defined in: [joint-core/types/joint.d.ts:445](https://github.com/samuelgja/joint
 
 > **idAttribute**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3249](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3249)
+Defined in: [joint-core/types/joint.d.ts:3285](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3285)
 
 #### Inherited from
 
@@ -2821,7 +2797,7 @@ Defined in: [joint-react/src/models/react-element.tsx:32](https://github.com/sam
 
 > **useCSSSelectors**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:448](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L448)
+Defined in: [joint-core/types/joint.d.ts:449](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L449)
 
 #### Inherited from
 
@@ -2833,7 +2809,7 @@ Defined in: [joint-core/types/joint.d.ts:448](https://github.com/samuelgja/joint
 
 > **validationError**: `any`
 
-Defined in: [joint-core/types/joint.d.ts:3250](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3250)
+Defined in: [joint-core/types/joint.d.ts:3286](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3286)
 
 #### Inherited from
 
@@ -2845,7 +2821,7 @@ Defined in: [joint-core/types/joint.d.ts:3250](https://github.com/samuelgja/join
 
 > `static` **attributes**: `object`
 
-Defined in: [joint-core/types/joint.d.ts:679](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L679)
+Defined in: [joint-core/types/joint.d.ts:701](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L701)
 
 #### Index Signature
 

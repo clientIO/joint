@@ -1,3 +1,4 @@
+/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
 import {
@@ -247,8 +248,20 @@ function Main() {
   return (
     <Paper
       gridSize={5}
-      isTransformToFitContentEnabled
       height={600}
+      onLoad={({ paper, graph }) => {
+        const graphBBox = graph.getBBox();
+
+        if (graphBBox === null) {
+          return;
+        }
+        paper.transformToFitContent({
+          padding: 40,
+          contentArea: graphBBox,
+          verticalAlign: 'middle',
+          horizontalAlign: 'middle',
+        });
+      }}
       width={900}
       renderElement={RenderFlowchartNode}
       scrollWhileDragging

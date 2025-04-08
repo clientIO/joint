@@ -30,7 +30,7 @@ How it works:
 
 ### Element
 
-`Element` = [`GraphElement`](../interfaces/GraphElement.md)\<`unknown`\>
+`Element` = [`GraphElement`](../interfaces/GraphElement.md)\<`unknown`, `string`\>
 
 ### ReturnedElements
 

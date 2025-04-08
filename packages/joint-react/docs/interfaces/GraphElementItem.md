@@ -4,7 +4,7 @@
 
 [@joint/react](../README.md) / GraphElementItem
 
-# Interface: GraphElementItem\<Data\>
+# Interface: GraphElementItem\<Data, Type\>
 
 Defined in: [joint-react/src/types/element-types.ts:71](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L71)
 
@@ -18,7 +18,7 @@ It's a subset of `dia.Element` with some additional properties.
 
 ## Extends
 
-- [`GraphElementBase`](GraphElementBase.md)
+- [`GraphElementBase`](GraphElementBase.md)\<`Type`\>
 
 ## Extended by
 
@@ -30,6 +30,10 @@ It's a subset of `dia.Element` with some additional properties.
 
 `Data` = `unknown`
 
+### Type
+
+`Type` *extends* [`StandardShapesType`](../type-aliases/StandardShapesType.md) \| `string` = `string`
+
 ## Indexable
 
 \[`key`: `string`\]: `any`
@@ -40,7 +44,7 @@ It's a subset of `dia.Element` with some additional properties.
 
 ### attrs?
 
-> `readonly` `optional` **attrs**: `unknown`
+> `readonly` `optional` **attrs**: `Type` *extends* keyof `StandardShapesTypeMapper` ? `StandardShapesTypeMapper`\[`Type`\<`Type`\>\] : `unknown`
 
 Defined in: [joint-react/src/types/element-types.ts:68](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L68)
 
@@ -56,7 +60,7 @@ Attributes of the element.
 
 > `readonly` **data**: `Data`
 
-Defined in: [joint-react/src/types/element-types.ts:75](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L75)
+Defined in: [joint-react/src/types/element-types.ts:76](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L76)
 
 Generic data for the element.
 
@@ -122,7 +126,7 @@ Ports of the element.
 
 ### type?
 
-> `readonly` `optional` **type**: `string`
+> `readonly` `optional` **type**: `Type`
 
 Defined in: [joint-react/src/types/element-types.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L38)
 

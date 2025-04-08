@@ -14,12 +14,10 @@
 
 ## Hooks
 
-- [useElementEffect](functions/useElementEffect.md)
 - [useElements](functions/useElements.md)
 - [useGraph](functions/useGraph.md)
 - [useLinks](functions/useLinks.md)
 - [useMeasureNodeSize](functions/useMeasureNodeSize.md)
-- [~~useSetCells~~](functions/useSetCells.md)
 - [useSetElement](functions/useSetElement.md)
 
 ## Models
@@ -33,7 +31,6 @@
 - [InferElement](type-aliases/InferElement.md)
 - [createElements](functions/createElements.md)
 - [createLinks](functions/createLinks.md)
-- [updateGraph](functions/updateGraph.md)
 
 ## Components
  This feature is experimental and may change in the future.
@@ -71,6 +68,7 @@ const paper = usePaper();
 - [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
 - [MeasuredNodeProps](interfaces/MeasuredNodeProps.md)
 - [MeasureNodeOptions](interfaces/MeasureNodeOptions.md)
+- [OnLoadOptions](interfaces/OnLoadOptions.md)
 - [OnSetOptions](interfaces/OnSetOptions.md)
 - [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
 - [PaperContext](interfaces/PaperContext.md)
@@ -82,9 +80,7 @@ const paper = usePaper();
 
 ## Type Aliases
 
-- [CellsSetter](type-aliases/CellsSetter.md)
 - [HTMLElementProps](type-aliases/HTMLElementProps.md)
-- [Item](type-aliases/Item.md)
 - [OnAddHighlighter](type-aliases/OnAddHighlighter.md)
 - [OnSetSize](type-aliases/OnSetSize.md)
 - [RenderElement](type-aliases/RenderElement.md)

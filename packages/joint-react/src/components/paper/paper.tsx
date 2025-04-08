@@ -13,7 +13,10 @@ import typedMemo from '../../utils/typed-memo';
 import type { PaperEvents } from '../../types/event.types';
 import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
 import { REACT_TYPE } from '../../models/react-element';
-
+export interface OnLoadOptions {
+  readonly paper: dia.Paper;
+  readonly graph: dia.Graph;
+}
 export type RenderElement<ElementItem extends GraphElementBase = GraphElementBase> = (
   element: ElementItem
 ) => ReactNode;
@@ -53,9 +56,9 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    */
   readonly renderElement?: RenderElement<ElementItem>;
   /**
-   * A function that is called when the paper is ready.
+   * A function that is called when the paper is ready and all elements are rendered.
    */
-  readonly onReady?: () => void;
+  readonly onLoad?: (options: OnLoadOptions) => void;
 
   /**
    * The style of the paper element.
@@ -89,11 +92,6 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
   readonly children?: ReactNode;
 
   /**
-   * Function that is called when the paper is resized.
-   */
-  readonly isTransformToFitContentEnabled?: boolean;
-
-  /**
    * On load custom element.
    * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
    * So it overwrite default paper rendering.
@@ -110,7 +108,6 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
 ) {
   const {
     renderElement,
-    onReady,
     style,
     className,
     elementSelector = noopSelector as (item: GraphElement) => ElementItem,
@@ -119,7 +116,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     ...paperOptions
   } = props;
 
-  const { onRenderElement, svgGElements } = usePaperElementRenderer(onReady);
+  const { onRenderElement, svgGElements } = usePaperElementRenderer();
 
   const { paperHtmlElement, isPaperFromContext, paper, isLoaded } = useCreatePaper({
     ...paperOptions,

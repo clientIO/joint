@@ -6,9 +6,9 @@ import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import type { PaperEvents, PaperEventType } from '../types/event.types';
 import { handleEvent } from '../utils/handle-paper-events';
+import type { OnLoadOptions } from '../components';
 
 interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
-  readonly isTransformToFitContentEnabled?: boolean;
   /**
    * On load custom element.
    * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
@@ -18,6 +18,10 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
    * @returns
    */
   readonly overwriteDefaultPaperElement?: (paper: dia.Paper) => HTMLElement | SVGElement;
+  /**
+   * A function that is called when the paper is ready and all elements are rendered.
+   */
+  readonly onLoad?: (options: OnLoadOptions) => void;
 }
 
 /**
@@ -30,8 +34,7 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
  * @returns An object containing the paper instance and a reference to the paper HTML element.
  */
 export function useCreatePaper(options?: UseCreatePaperOptions) {
-  const { overwriteDefaultPaperElement, isTransformToFitContentEnabled, ...restOptions } =
-    options ?? {};
+  const { overwriteDefaultPaperElement, onLoad, ...restOptions } = options ?? {};
 
   const paperHtmlElement = useRef<HTMLDivElement | null>(null);
   const { graph, isLoaded, onRenderPorts } = useGraphStore();
@@ -102,23 +105,10 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
       return;
     }
 
-    paper.update();
-    if (!isTransformToFitContentEnabled) {
-      return;
+    if (onLoad) {
+      onLoad({ graph, paper });
     }
-
-    const graphBBox = graph.getBBox();
-
-    if (graphBBox === null) {
-      return;
-    }
-    paper.transformToFitContent({
-      padding: 40,
-      contentArea: graphBBox,
-      verticalAlign: 'middle',
-      horizontalAlign: 'middle',
-    });
-  }, [graph, isTransformToFitContentEnabled, paper, isLoaded]);
+  }, [graph, isLoaded, onLoad, paper]);
 
   return {
     isPaperFromContext,

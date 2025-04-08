@@ -18,7 +18,7 @@ Defined in: [joint-react/src/context/graph-store-context.tsx:3](https://github.c
 
 > `readonly` **destroy**: () => `void`
 
-Defined in: [joint-react/src/data/create-store.ts:79](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L79)
+Defined in: [joint-react/src/data/create-store.ts:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L81)
 
 Remove all listeners and cleanup the graph.
 
@@ -36,7 +36,7 @@ Remove all listeners and cleanup the graph.
 
 > `readonly` **forceUpdate**: () => `void`
 
-Defined in: [joint-react/src/data/create-store.ts:83](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L83)
+Defined in: [joint-react/src/data/create-store.ts:85](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L85)
 
 Force update the graph.
 
@@ -54,7 +54,7 @@ Force update the graph.
 
 > `readonly` **getElement**: (`id`) => [`GraphElementBase`](GraphElementBase.md)
 
-Defined in: [joint-react/src/data/create-store.ts:67](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L67)
+Defined in: [joint-react/src/data/create-store.ts:69](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L69)
 
 Get element by id
 
@@ -78,7 +78,7 @@ Get element by id
 
 > `readonly` **getElements**: () => [`CellMap`](../classes/CellMap.md)\<[`GraphElementBase`](GraphElementBase.md)\<`string`\>\>
 
-Defined in: [joint-react/src/data/create-store.ts:63](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L63)
+Defined in: [joint-react/src/data/create-store.ts:65](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L65)
 
 Get elements
 
@@ -96,7 +96,7 @@ Get elements
 
 > `readonly` **getLink**: (`id`) => [`GraphLinkBase`](GraphLinkBase.md)
 
-Defined in: [joint-react/src/data/create-store.ts:75](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L75)
+Defined in: [joint-react/src/data/create-store.ts:77](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L77)
 
 Get link by id
 
@@ -120,7 +120,7 @@ Get link by id
 
 > `readonly` **getLinks**: () => [`CellMap`](../classes/CellMap.md)\<[`GraphLinkBase`](GraphLinkBase.md)\<`string`\>\>
 
-Defined in: [joint-react/src/data/create-store.ts:71](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L71)
+Defined in: [joint-react/src/data/create-store.ts:73](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L73)
 
 Get links
 
@@ -136,13 +136,17 @@ Get links
 
 ### getPortElement()
 
-> `readonly` **getPortElement**: (`portId`) => `undefined` \| [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
+> `readonly` **getPortElement**: (`cellId`, `portId`) => `undefined` \| [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
 
-Defined in: [joint-react/src/data/create-store.ts:88](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L88)
+Defined in: [joint-react/src/data/create-store.ts:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L90)
 
 Get port element
 
 #### Parameters
+
+##### cellId
+
+`ID`
 
 ##### portId
 
@@ -162,7 +166,7 @@ Get port element
 
 > `readonly` **graph**: `Graph`
 
-Defined in: [joint-react/src/data/create-store.ts:55](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L55)
+Defined in: [joint-react/src/data/create-store.ts:57](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L57)
 
 The JointJS graph instance.
 
@@ -180,31 +184,17 @@ Defined in: [joint-react/src/context/graph-store-context.tsx:4](https://github.c
 
 ***
 
-### onRenderPort()
+### onRenderPorts
 
-> `readonly` **onRenderPort**: (`portId`, `portElement`) => `void`
+> `readonly` **onRenderPorts**: `OnPaperRenderPorts`
 
-Defined in: [joint-react/src/data/create-store.ts:92](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L92)
+Defined in: [joint-react/src/data/create-store.ts:94](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L94)
 
 Set port element
 
-#### Parameters
-
-##### portId
-
-`string`
-
-##### portElement
-
-[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
-
-#### Returns
-
-`void`
-
 #### Inherited from
 
-`Store.onRenderPort`
+`Store.onRenderPorts`
 
 ***
 
@@ -212,7 +202,7 @@ Set port element
 
 > `readonly` **subscribe**: (`onStoreChange`) => () => `void`
 
-Defined in: [joint-react/src/data/create-store.ts:59](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L59)
+Defined in: [joint-react/src/data/create-store.ts:61](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L61)
 
 Subscribes to the store changes.
 
@@ -240,7 +230,7 @@ Subscribes to the store changes.
 
 > `readonly` **subscribeToPorts**: (`onPortChange`) => () => `void`
 
-Defined in: [joint-react/src/data/create-store.ts:96](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L96)
+Defined in: [joint-react/src/data/create-store.ts:98](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/data/create-store.ts#L98)
 
 Subscribes to port element changes.
 

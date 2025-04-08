@@ -46,6 +46,18 @@ Defined in: [joint-react/src/hooks/use-set-element.ts:11](https://github.com/sam
 
 ***
 
+### layer?
+
+> `optional` **layer**: `string`
+
+Defined in: [joint-core/types/joint.d.ts:336](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L336)
+
+#### Inherited from
+
+`dia.Cell.Attributes.layer`
+
+***
+
 ### markup?
 
 > `readonly` `optional` **markup**: `string` \| `MarkupJSON`

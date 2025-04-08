@@ -30,7 +30,7 @@ It's a subset of `dia.Link` with some additional properties.
 
 > `optional` **anchor**: `AnchorJSON`
 
-Defined in: [joint-core/types/joint.d.ts:690](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L690)
+Defined in: [joint-core/types/joint.d.ts:712](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L712)
 
 #### Inherited from
 
@@ -56,7 +56,7 @@ Attributes of the element.
 
 > `optional` **connectionPoint**: `ConnectionPointJSON`
 
-Defined in: [joint-core/types/joint.d.ts:691](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L691)
+Defined in: [joint-core/types/joint.d.ts:713](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L713)
 
 #### Inherited from
 
@@ -116,7 +116,7 @@ Flag to distinguish between elements and links.
 
 > `optional` **magnet**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:687](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L687)
+Defined in: [joint-core/types/joint.d.ts:709](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L709)
 
 #### Inherited from
 
@@ -142,7 +142,7 @@ Optional link markup.
 
 > `optional` **port**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:689](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L689)
+Defined in: [joint-core/types/joint.d.ts:711](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L711)
 
 #### Inherited from
 
@@ -154,7 +154,7 @@ Defined in: [joint-core/types/joint.d.ts:689](https://github.com/samuelgja/joint
 
 > `optional` **priority**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:692](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L692)
+Defined in: [joint-core/types/joint.d.ts:714](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L714)
 
 #### Inherited from
 
@@ -166,7 +166,7 @@ Defined in: [joint-core/types/joint.d.ts:692](https://github.com/samuelgja/joint
 
 > `optional` **selector**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:688](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L688)
+Defined in: [joint-core/types/joint.d.ts:710](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L710)
 
 #### Inherited from
 
@@ -220,7 +220,7 @@ Optional link type.
 
 > `optional` **x**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:697](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L697)
+Defined in: [joint-core/types/joint.d.ts:719](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L719)
 
 #### Inherited from
 
@@ -232,7 +232,7 @@ Defined in: [joint-core/types/joint.d.ts:697](https://github.com/samuelgja/joint
 
 > `optional` **y**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:698](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L698)
+Defined in: [joint-core/types/joint.d.ts:720](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L720)
 
 #### Inherited from
 

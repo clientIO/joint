@@ -6,7 +6,7 @@
 
 # Interface: PortProps
 
-Defined in: [joint-react/src/components/port/port-item.tsx:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L13)
+Defined in: [joint-react/src/components/port/port-item.tsx:12](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L12)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [joint-react/src/components/port/port-item.tsx:13](https://github.co
 
 > `readonly` `optional` **children**: `ReactNode`
 
-Defined in: [joint-react/src/components/port/port-item.tsx:18](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L18)
+Defined in: [joint-react/src/components/port/port-item.tsx:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L17)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [joint-react/src/components/port/port-item.tsx:18](https://github.co
 
 > `readonly` `optional` **groupId**: `string`
 
-Defined in: [joint-react/src/components/port/port-item.tsx:16](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L16)
+Defined in: [joint-react/src/components/port/port-item.tsx:15](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L15)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [joint-react/src/components/port/port-item.tsx:16](https://github.co
 
 > `readonly` **id**: `string`
 
-Defined in: [joint-react/src/components/port/port-item.tsx:15](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L15)
+Defined in: [joint-react/src/components/port/port-item.tsx:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L14)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [joint-react/src/components/port/port-item.tsx:15](https://github.co
 
 > `readonly` `optional` **isPassive**: `boolean`
 
-Defined in: [joint-react/src/components/port/port-item.tsx:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L14)
+Defined in: [joint-react/src/components/port/port-item.tsx:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L13)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [joint-react/src/components/port/port-item.tsx:14](https://github.co
 
 > `readonly` `optional` **x**: `string` \| `number`
 
-Defined in: [joint-react/src/components/port/port-item.tsx:19](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L19)
+Defined in: [joint-react/src/components/port/port-item.tsx:18](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L18)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: [joint-react/src/components/port/port-item.tsx:19](https://github.co
 
 > `readonly` `optional` **y**: `string` \| `number`
 
-Defined in: [joint-react/src/components/port/port-item.tsx:20](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L20)
+Defined in: [joint-react/src/components/port/port-item.tsx:19](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L19)
 
 ***
 
@@ -62,4 +62,4 @@ Defined in: [joint-react/src/components/port/port-item.tsx:20](https://github.co
 
 > `readonly` `optional` **z**: `number` \| `"auto"`
 
-Defined in: [joint-react/src/components/port/port-item.tsx:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L17)
+Defined in: [joint-react/src/components/port/port-item.tsx:16](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-item.tsx#L16)

@@ -4,9 +4,9 @@
 
 [@joint/react](../README.md) / GraphElement
 
-# Interface: GraphElement\<Data\>
+# Interface: GraphElement\<Data, Type\>
 
-Defined in: [joint-react/src/types/element-types.ts:77](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L77)
+Defined in: [joint-react/src/types/element-types.ts:78](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L78)
 
 Base interface for graph element.
 It's a subset of `dia.Element` with some additional properties.
@@ -18,13 +18,17 @@ It's a subset of `dia.Element` with some additional properties.
 
 ## Extends
 
-- [`GraphElementItem`](GraphElementItem.md)\<`Data`\>
+- [`GraphElementItem`](GraphElementItem.md)\<`Data`, `Type`\>
 
 ## Type Parameters
 
 ### Data
 
 `Data` = `unknown`
+
+### Type
+
+`Type` *extends* [`StandardShapesType`](../type-aliases/StandardShapesType.md) \| `string` = `string`
 
 ## Indexable
 
@@ -36,7 +40,7 @@ It's a subset of `dia.Element` with some additional properties.
 
 ### attrs?
 
-> `readonly` `optional` **attrs**: `unknown`
+> `readonly` `optional` **attrs**: `Type` *extends* keyof `StandardShapesTypeMapper` ? `StandardShapesTypeMapper`\[`Type`\<`Type`\>\] : `unknown`
 
 Defined in: [joint-react/src/types/element-types.ts:68](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L68)
 
@@ -52,7 +56,7 @@ Attributes of the element.
 
 > `readonly` **data**: `Data`
 
-Defined in: [joint-react/src/types/element-types.ts:75](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L75)
+Defined in: [joint-react/src/types/element-types.ts:76](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L76)
 
 Generic data for the element.
 
@@ -94,7 +98,7 @@ Unique identifier of the element.
 
 > `readonly` **isElement**: `true`
 
-Defined in: [joint-react/src/types/element-types.ts:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L81)
+Defined in: [joint-react/src/types/element-types.ts:83](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L83)
 
 Flag to distinguish between elements and links.
 
@@ -104,7 +108,7 @@ Flag to distinguish between elements and links.
 
 > `readonly` **isLink**: `false`
 
-Defined in: [joint-react/src/types/element-types.ts:85](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L85)
+Defined in: [joint-react/src/types/element-types.ts:87](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L87)
 
 Flag to distinguish between elements and links.
 
@@ -138,7 +142,7 @@ Ports of the element.
 
 ### type?
 
-> `readonly` `optional` **type**: `string`
+> `readonly` `optional` **type**: `Type`
 
 Defined in: [joint-react/src/types/element-types.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L38)
 
@@ -150,7 +154,7 @@ Optional element type.
 
 #### Inherited from
 
-[`GraphElementItem`](GraphElementItem.md).[`type`](GraphElementItem.md#type)
+[`GraphElementItem`](GraphElementItem.md).[`type`](GraphElementItem.md#type-1)
 
 ***
 

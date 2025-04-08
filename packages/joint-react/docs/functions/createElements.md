@@ -6,21 +6,25 @@
 
 # Function: createElements()
 
-> **createElements**\<`Element`, `Type`\>(`data`): `Element` & `object`[]
+> **createElements**\<`Data`, `Type`, `Element`\>(`data`): `Element` & `object`[]
 
-Defined in: [joint-react/src/utils/create.ts:26](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L26)
+Defined in: [joint-react/src/utils/create.ts:30](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L30)
 
 Create elements helper function.
 
 ## Type Parameters
 
-### Element
+### Data
 
-`Element` *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md)\<`Type`\>
+`Data`
 
 ### Type
 
 `Type` *extends* `string` = `string`
+
+### Element
+
+`Element` *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md)\<`Type`\> = [`GraphElementItem`](../interfaces/GraphElementItem.md)\<`Data`, `Type`\>
 
 ## Parameters
 

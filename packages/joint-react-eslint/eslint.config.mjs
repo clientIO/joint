@@ -121,7 +121,12 @@ const config = [
 
       // React Hooks
       "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "error",
+      "react-hooks/exhaustive-deps": [
+        "error",
+        {
+          additionalHooks: "useInitAndSync",
+        },
+      ],
 
       // ESLint React Plugin
       "@eslint-react/no-context-provider": "off",

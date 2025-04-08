@@ -220,7 +220,6 @@ function Main() {
     <Paper
       className="bg-gray-100"
       gridSize={5}
-      // isTransformToFitContentEnabled
       height={600}
       width={900}
       renderElement={RenderElement}
