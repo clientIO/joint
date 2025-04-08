@@ -2,6 +2,20 @@ import * as util from '../util/index.mjs';
 import { toRad, Rect } from '../g/index.mjs';
 import { resolveRef } from '../linkAnchors/index.mjs';
 
+const Side = {
+    LEFT: 'left',
+    RIGHT: 'right',
+    TOP: 'top',
+    BOTTOM: 'bottom',
+};
+
+const SideMode = {
+    PREFER_HORIZONTAL: 'prefer-horizontal',
+    PREFER_VERTICAL: 'prefer-vertical',
+    HORIZONTAL: 'horizontal',
+    VERTICAL: 'vertical',
+    AUTO: 'auto',
+};
 
 function getModelBBoxFromConnectedLink(element, link, endType, rotate) {
 
@@ -26,6 +40,55 @@ function getModelBBoxFromConnectedLink(element, link, endType, rotate) {
     }
 
     return bbox;
+}
+
+function getMiddleSide(rect, point, opt) {
+
+    const { preferenceThreshold = 0, mode } = opt;
+    const { x, y } = point;
+    const { x: left , y: top, width, height } = rect;
+
+    switch (mode) {
+
+        case SideMode.PREFER_VERTICAL: {
+            const {
+                top: topThreshold,
+                bottom: bottomThreshold
+            } = util.normalizeSides(preferenceThreshold);
+            const bottom = top + height;
+            if (y > top - topThreshold && y < bottom + bottomThreshold) {
+                const cx = left + width / 2;
+                return (x < cx) ? Side.LEFT : Side.RIGHT;
+            }
+        }
+        // eslint-disable-next-line no-fallthrough
+        case SideMode.VERTICAL: {
+            const cy = top + height / 2;
+            return (y < cy) ? Side.TOP : Side.BOTTOM;
+        }
+
+        case SideMode.PREFER_HORIZONTAL: {
+            const {
+                left: leftThreshold,
+                right: rightThreshold
+            } = util.normalizeSides(preferenceThreshold);
+            const right = left + width;
+            if (x > left - leftThreshold && x < right + rightThreshold) {
+                const cy = top + height / 2;
+                return (y < cy) ? Side.TOP : Side.BOTTOM;
+            }
+        }
+        // eslint-disable-next-line no-fallthrough
+        case SideMode.HORIZONTAL: {
+            const cx = left + width / 2;
+            return (x < cx) ? Side.LEFT : Side.RIGHT;
+        }
+
+        case SideMode.AUTO:
+        default: {
+            return rect.sideNearestToPoint(point);
+        }
+    }
 }
 
 function bboxWrapper(method) {
@@ -140,19 +203,19 @@ function _midSide(view, magnet, refPoint, opt, endType, linkView) {
 
     if (rotate) refPoint.rotate(center, angle);
 
-    var side = bbox.sideNearestToPoint(refPoint);
+    var side = getMiddleSide(bbox, refPoint, opt);
     var anchor;
     switch (side) {
-        case 'left':
+        case Side.LEFT:
             anchor = bbox.leftMiddle();
             break;
-        case 'right':
+        case Side.RIGHT:
             anchor = bbox.rightMiddle();
             break;
-        case 'top':
+        case Side.TOP:
             anchor = bbox.topMiddle();
             break;
-        case 'bottom':
+        case Side.BOTTOM:
             anchor = bbox.bottomMiddle();
             break;
     }

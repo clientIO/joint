@@ -145,6 +145,25 @@ createPair(graph, {
 });
 
 createPair(graph, {
+    sourceAnchor: {
+        name: 'midSide',
+        args: {
+            useModelGeometry: true,
+            mode: 'vertical'
+        }
+    },
+    sourceLabel: 'midSide\nmode=vertical',
+    targetAnchor: {
+        name: 'midSide',
+        args: {
+            useModelGeometry: true,
+            mode: 'horizontal'
+        }
+    },
+    targetLabel: 'midSide\nmode=horizontal',
+});
+
+createPair(graph, {
     sourceAttributes: {
         angle: 45
     },
