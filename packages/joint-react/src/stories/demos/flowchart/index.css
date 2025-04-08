@@ -1,6 +1,4 @@
-/* Base styles for all HTML-based flowchart nodes */
 .flowchart-node {
-  position: absolute;
   font-family: 'PPFraktionSans', sans-serif;
   font-size: 14px;
   line-height: 18px;
@@ -13,7 +11,6 @@
   box-sizing: border-box;
   cursor: move;
   border: 2px solid #ed2637;
-  transform: scale(0.9);
   color: #dde6ed;
 }
 
