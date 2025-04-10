@@ -1,6 +1,4 @@
-import type { JSX } from 'react';
-import { type dia } from '@joint/core';
-import { isValidElement } from 'react';
+import { isValidElement, type JSX } from 'react';
 import {
   isBoolean,
   isNull,
@@ -10,6 +8,7 @@ import {
   isString,
   isWithChildren,
 } from '../is';
+import type { dia } from '@joint/core';
 
 /**
  * Extract attributes from props.

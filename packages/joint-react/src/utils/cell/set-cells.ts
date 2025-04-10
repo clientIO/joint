@@ -2,8 +2,9 @@ import type { dia } from '@joint/core';
 import { REACT_TYPE } from '../../models/react-element';
 import type { GraphLink } from '../../types/link-types';
 import type { GraphElementBase } from '../../types/element-types';
-import { isCellInstance, isLinkInstance, isReactElement, isUnsized } from '../is';
+import { isCellInstance, isLinkInstance, isUnsized } from '../is';
 import { getLinkTargetAndSourceIds, getTargetOrSource } from './get-link-targe-and-source-ids';
+import { isReactElement } from '../is-react-element';
 
 interface Options {
   readonly graph: dia.Graph;

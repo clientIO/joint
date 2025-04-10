@@ -21,7 +21,7 @@
     "sourceMap": false,
     "paths": {
       "@joint/react": ["./src/index.ts"],
-      "storybook/*": ["./.storybook/*"],
+      "storybook/*": ["./.storybook/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".storybook/**/*"]

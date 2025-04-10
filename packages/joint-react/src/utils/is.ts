@@ -4,7 +4,6 @@ import type { GraphCell } from './cell/get-cell';
 import type { GraphLink } from '../types/link-types';
 import type { GraphElement, GraphElementBase } from '../types/element-types';
 import type { FunctionComponent, JSX } from 'react';
-import { ReactElement } from '../models/react-element';
 
 export type Setter<Value> = (item: Value) => Value;
 
@@ -48,10 +47,6 @@ export function isLinkInstance(value: unknown): value is dia.Link {
 
 export function isCellInstance(value: unknown): value is dia.Cell {
   return value instanceof dia.Cell;
-}
-
-export function isReactElement(value: unknown): value is dia.Cell {
-  return value instanceof ReactElement;
 }
 
 export function isUnsized(width: number | undefined, height: number | undefined) {
