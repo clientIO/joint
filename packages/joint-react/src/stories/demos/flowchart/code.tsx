@@ -71,7 +71,7 @@ const flowchartNodes = createElements<NodeData>([
   {
     id: 'packOrder',
     data: { label: 'Pack Order', type: 'step' },
-    cx: 0,
+    cx: 40,
     cy: 350,
   },
   {
