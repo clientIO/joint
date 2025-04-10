@@ -47,11 +47,11 @@ export interface GraphElementBase<Type extends StandardShapesType | string = str
   /**
    * X position of the element.
    */
-  readonly x: number;
+  readonly x?: number;
   /**
    * Y position of the element.
    */
-  readonly y: number;
+  readonly y?: number;
   /**
    * Optional width of the element.
    */

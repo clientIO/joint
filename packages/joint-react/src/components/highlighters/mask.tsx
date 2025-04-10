@@ -25,7 +25,7 @@ export interface MaskHighlighterProps extends React.SVGProps<SVGPathElement>, Pr
   /**
    * If the highlighter is disabled or not.
    */
-  readonly isDisabled?: boolean;
+  readonly isHidden?: boolean;
 }
 
 const DEFAULT_MASK_HIGHLIGHTER_PROPS: MaskHighlighterProps = {
@@ -37,7 +37,7 @@ const DEFAULT_MASK_HIGHLIGHTER_PROPS: MaskHighlighterProps = {
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
-  const { layer, children, padding, isDisabled, ...svgAttributes } = props;
+  const { layer, children, padding, isHidden, ...svgAttributes } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
     const data: dia.HighlighterView.Options = {
       layer,
@@ -57,7 +57,7 @@ function Component(props: MaskHighlighterProps, forwardedRef: React.Ref<SVGEleme
   }, []);
 
   return (
-    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isDisabled={isDisabled}>
+    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isHidden={isHidden}>
       {children}
     </Custom>
   );

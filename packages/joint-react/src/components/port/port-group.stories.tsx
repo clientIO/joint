@@ -84,7 +84,7 @@ const meta: Meta<typeof PortGroup> = {
           compensateRotation={false}
           dx={0}>
             <Port.Item id="port-one" x={0} y={0}>
-                <foreignObject className="size-5 bg-sky-200 rounded-full" />
+                <foreignObject  width={20} height={20} className="size-5 bg-sky-200 rounded-full" />
             </Port.Item>
         </Port.Group>
     `,
@@ -97,7 +97,7 @@ export const Default = makeStory<Story>({
   args: {
     children: (
       <Port.Item id="port-one">
-        <foreignObject className="size-5 bg-sky-200 rounded-full" />
+        <foreignObject width={20} height={20} className="size-5 bg-sky-200 rounded-full" />
       </Port.Item>
     ),
     id: 'group-one',

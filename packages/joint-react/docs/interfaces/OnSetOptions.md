@@ -12,7 +12,7 @@ Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:10](https://github.
 
 ### element
 
-> `readonly` **element**: `Cell`
+> `readonly` **element**: `Element`
 
 Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L11)
 

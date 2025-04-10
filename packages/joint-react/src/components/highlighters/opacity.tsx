@@ -14,12 +14,12 @@ export interface OpacityHighlighterProps extends PropsWithChildren {
   /**
    * If the highlighter is disabled or not.
    */
-  readonly isDisabled?: boolean;
+  readonly isHidden?: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGElement>) {
-  const { children, alphaValue = 1, isDisabled } = props;
+  const { children, alphaValue = 1, isHidden } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
     const data: dia.HighlighterView.Options = {
       alphaValue,
@@ -32,7 +32,7 @@ function Component(props: OpacityHighlighterProps, forwardedRef: React.Ref<SVGEl
   }, []);
 
   return (
-    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isDisabled={isDisabled}>
+    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isHidden={isHidden}>
       {children}
     </Custom>
   );

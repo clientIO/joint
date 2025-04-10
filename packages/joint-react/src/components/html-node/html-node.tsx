@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { forwardRef, useMemo } from 'react';
 import { useElement } from '../../hooks/use-element';
 import { MeasuredNode } from '../measured-node/measured-node';
+import type { MeasureNodeOptions } from '../../hooks';
 
 const FO_STYLE: CSSProperties = {
   overflow: 'visible',
@@ -9,7 +10,7 @@ const FO_STYLE: CSSProperties = {
   display: 'inline-block',
 };
 
-interface ElementBase<T extends HTMLElement> extends React.HTMLAttributes<T> {
+interface ElementBase<T extends HTMLElement> extends React.HTMLAttributes<T>, MeasureNodeOptions {
   /**
    * The type of the element.
    * @default 'div'
@@ -59,12 +60,13 @@ const ElementForward = forwardRef(Element);
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function WithAutoSize(props: HTMLElementProps, forwardedRef: React.ForwardedRef<HTMLElement>) {
+  const { setSize } = props;
   const style = useMemo(() => ({ ...props.style }), [props.style]);
   const { width, height } = useElement();
 
   return (
     <foreignObject width={width} height={height} style={FO_STYLE}>
-      <MeasuredNode ref={forwardedRef}>
+      <MeasuredNode ref={forwardedRef} setSize={setSize}>
         <ElementForward {...props} style={style} />
       </MeasuredNode>
     </foreignObject>

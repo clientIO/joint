@@ -30,9 +30,9 @@ Opacity value between 0-1
 
 ***
 
-### isDisabled?
+### isHidden?
 
-> `readonly` `optional` **isDisabled**: `boolean`
+> `readonly` `optional` **isHidden**: `boolean`
 
 Defined in: [joint-react/src/components/highlighters/opacity.tsx:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/opacity.tsx#L17)
 

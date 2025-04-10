@@ -1,83 +1,90 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable no-shadow */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
+import type { OnSetSize } from '@joint/react';
 import {
   createElements,
   createLinks,
   GraphProvider,
-  HTMLNode,
+  Highlighter,
   MeasuredNode,
   Paper,
   type InferElement,
 } from '@joint/react';
-import { PRIMARY } from 'storybook/theme';
-import { dia } from '@joint/core';
+import { PRIMARY, SECONDARY } from 'storybook/theme';
+import { dia, linkTools } from '@joint/core';
+import { forwardRef, useState } from 'react';
 
 const unit = 4;
-const spacing = 2 * unit;
 
-// Define flowchart nodes with position, dimensions, and type
-const flowchartNodes = createElements([
-  { id: 'start', data: { label: 'Start', type: 'start' }, x: 50, y: 40 },
+interface NodeData {
+  label: string;
+  type: 'start' | 'step' | 'decision';
+}
+
+const flowchartNodes = createElements<NodeData>([
+  { id: 'start', data: { label: 'Start', type: 'start' }, cx: 50, cy: 40 },
   {
     id: 'addToCart',
     data: { label: 'Add to Cart', type: 'step' },
-    x: 200,
-    y: 40,
+    cx: 200,
+    cy: 40,
   },
   {
     id: 'checkoutItems',
     data: { label: 'Checkout Items', type: 'step' },
-    x: 350,
-    y: 40,
+    cx: 350,
+    cy: 40,
   },
   {
     id: 'addShippingInfo',
     data: { label: 'Add Shipping Info', type: 'step' },
-    x: 500,
-    y: 40,
+    cx: 500,
+    cy: 40,
   },
   {
     id: 'addPaymentInfo',
     data: { label: 'Add Payment Info', type: 'step' },
-    x: 500,
-    y: 140,
+    cx: 500,
+    cy: 140,
   },
   {
     id: 'validPayment',
     data: { label: 'Valid Payment?', type: 'decision' },
-    x: 500,
-    y: 250,
+    cx: 500,
+    cy: 250,
   },
   {
     id: 'presentErrorMessage',
     data: { label: 'Present Error Message', type: 'step' },
-    x: 750,
-    y: 250,
+    cx: 750,
+    cy: 350,
   },
   {
     id: 'sendOrder',
     data: { label: 'Send Order to Warehouse', type: 'step' },
-    x: 200,
-    y: 250,
+    cx: 200,
+    cy: 250,
   },
   {
     id: 'packOrder',
     data: { label: 'Pack Order', type: 'step' },
-    x: 50,
-    y: 350,
+    cx: 0,
+    cy: 350,
   },
   {
     id: 'qualityCheck',
     data: { label: 'Quality Check?', type: 'decision' },
-    x: 200,
-    y: 460,
+    cx: 200,
+    cy: 460,
   },
   {
     id: 'shipItems',
     data: { label: 'Ship Items to Customer', type: 'step' },
-    x: 500,
-    y: 460,
+    cx: 500,
+    cy: 460,
   },
 ]);
 const LINK_OPTIONS = {
@@ -141,14 +148,14 @@ const flowchartLinks = createLinks([
     source: 'validPayment',
     target: 'presentErrorMessage',
     label: 'No',
-    router: { name: 'manhattan' }, // Use right-angle routing
+    // router: { name: 'manhattan' }, // Use right-angle routing
   },
   {
     ...LINK_OPTIONS,
     id: 'flow7',
     source: 'presentErrorMessage',
     target: 'addPaymentInfo',
-    router: { name: 'manhattan' },
+    // router: { name: 'manhattan' },
   },
   {
     ...LINK_OPTIONS,
@@ -156,7 +163,7 @@ const flowchartLinks = createLinks([
     source: 'validPayment',
     target: 'sendOrder',
     label: 'Yes',
-    router: { name: 'manhattan' },
+    // router: { name: 'manhattan' },
   },
   { ...LINK_OPTIONS, id: 'flow9', source: 'sendOrder', target: 'packOrder' },
   { ...LINK_OPTIONS, id: 'flow10', source: 'packOrder', target: 'qualityCheck' },
@@ -166,7 +173,7 @@ const flowchartLinks = createLinks([
     source: 'qualityCheck',
     target: 'shipItems',
     label: 'Ok',
-    router: { name: 'manhattan' },
+    // router: { name: 'manhattan' },
   },
   {
     ...LINK_OPTIONS,
@@ -174,30 +181,50 @@ const flowchartLinks = createLinks([
     source: 'qualityCheck',
     target: 'sendOrder',
     label: 'Not Ok',
-    router: { name: 'manhattan' },
+    // router: { name: 'manhattan' },
   },
 ]);
 
-type FlowchartNode = InferElement<typeof flowchartNodes>;
+interface PropsWithClick {
+  readonly onMouseEnter?: () => void;
+  readonly onMouseLeave?: () => void;
+}
+type FlowchartNodeProps = InferElement<typeof flowchartNodes> & PropsWithClick;
 
-const DecisionBoxSVG = ({ data: { label } }: FlowchartNode) => {
+function DecisionNodeRaw(
+  { data: { label }, width, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+  ref: React.ForwardedRef<SVGPolygonElement>
+) {
   // If we define custom size, not defined in initial nodes, we have to use measure node
-  const size = 100;
+  const size = width;
   const half = size / 2;
+  const padding = 20;
+
+  const setSize: OnSetSize = ({ element, size }) => {
+    const dimension = Math.max(size.width, size.height) + 2 * padding;
+    element.set({
+      size: { width: dimension, height: dimension },
+      position: { x: cx - dimension / 2, y: cy - dimension / 2 },
+    });
+  };
+
   return (
-    <MeasuredNode>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Diamond shape using a rotated square (polygon) */}
-        <polygon
-          points={`${half},0 ${size},${half} ${half},${size} 0,${half}`}
-          fill="transparent"
-          stroke={PRIMARY}
-          strokeWidth="2"
-        />
-        {/* Centered horizontal text */}
+    <>
+      <polygon
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        ref={ref}
+        points={`${half},0 ${size},${half} ${half},${size} 0,${half}`}
+        fill="transparent"
+        stroke={PRIMARY}
+        strokeWidth="2"
+      />
+      <MeasuredNode setSize={setSize}>
         <text
-          x="50%"
-          y="50%"
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          x={half}
+          y={half}
           textAnchor="middle"
           dominantBaseline="middle"
           fontSize="10"
@@ -205,59 +232,119 @@ const DecisionBoxSVG = ({ data: { label } }: FlowchartNode) => {
         >
           {label}
         </text>
-      </svg>
-    </MeasuredNode>
-  );
-};
-// Custom render function that maps the node type to a CSS class for styling
-function RenderFlowchartNode(props: FlowchartNode) {
-  const {
-    data: { label, type },
-  } = props;
-  let className = 'flowchart-node';
-  switch (type) {
-    case 'start': {
-      className += ' flowchart-start';
-      break;
-    }
-    case 'step': {
-      className += ' flowchart-step';
-      break;
-    }
-    case 'decision': {
-      className += ' flowchart-decision';
-      break;
-    }
-    // No default
-  }
-
-  const NORMAL_SIZE = { width: 120, height: 50 };
-  const START_SIZE = { width: 50, height: 50 };
-  const sizeStyle = type === 'start' ? START_SIZE : NORMAL_SIZE;
-  if (type === 'decision') {
-    return <DecisionBoxSVG {...props} />;
-  }
-  return (
-    <HTMLNode style={sizeStyle} className={className}>
-      {label}
-    </HTMLNode>
+      </MeasuredNode>
+    </>
   );
 }
+
+function StepNodeRaw(
+  { data: { label }, width, height, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+  ref: React.ForwardedRef<SVGRectElement>
+) {
+  const padding = 20;
+
+  const setSize: OnSetSize = ({ element, size }) => {
+    const w = size.width + 2 * padding;
+    const h = size.height + 2 * padding;
+    element.set({
+      size: { width: w, height: h },
+      position: { x: cx - w / 2, y: cy - h / 2 },
+    });
+  };
+
+  // discuss
+  if (!width || !height) {
+    return null;
+  }
+
+  return (
+    <>
+      <rect
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        ref={ref}
+        width={width}
+        height={height}
+        fill="transparent"
+        stroke="red"
+        strokeWidth="2"
+        strokeLinejoin="bevel"
+        rx={unit}
+        ry={unit}
+      />
+      <MeasuredNode setSize={setSize}>
+        <text
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          x={width / 2}
+          y={height / 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="10"
+          fill={'white'}
+        >
+          {label}
+        </text>
+      </MeasuredNode>
+    </>
+  );
+}
+// We need to forward ref, so highlighter can access the element
+const DecisionNode = forwardRef(DecisionNodeRaw);
+const StepNode = forwardRef(StepNodeRaw);
+
+// Custom render function that maps the node type to a CSS class for styling
+function RenderFlowchartNode(props: FlowchartNodeProps) {
+  const {
+    data: { type },
+  } = props;
+
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const content =
+    type === 'decision' ? (
+      <DecisionNode
+        {...props}
+        onMouseEnter={() => setIsHighlighted(true)}
+        onMouseLeave={() => setIsHighlighted(false)}
+      />
+    ) : (
+      <StepNode
+        {...props}
+        onMouseEnter={() => setIsHighlighted(true)}
+        onMouseLeave={() => setIsHighlighted(false)}
+      />
+    );
+  return (
+    <Highlighter.Mask isHidden={!isHighlighted} stroke={SECONDARY} padding={2} strokeWidth={2}>
+      {content}
+    </Highlighter.Mask>
+  );
+}
+
+// Create link tools
+
+// 1) creating link tools
+const verticesTool = new linkTools.Vertices();
+const boundaryTool = new linkTools.Boundary();
+// 2) create custom link tool
+
+// 3) creating a tools view
+const toolsView = new dia.ToolsView({
+  name: 'basic-tools',
+  tools: [verticesTool, boundaryTool],
+});
 
 function Main() {
   return (
     <Paper
+      onLinkMouseenter={(linkView) => linkView.addTools(toolsView)}
+      onLinkMouseleave={(linkView) => linkView.removeTools()}
       gridSize={5}
       height={600}
-      onLoad={({ paper, graph }) => {
-        const graphBBox = graph.getBBox();
-
-        if (graphBBox === null) {
-          return;
-        }
+      onLoad={({ paper }) => {
         paper.transformToFitContent({
           padding: 40,
-          contentArea: graphBBox,
+          useModelGeometry: true,
           verticalAlign: 'middle',
           horizontalAlign: 'middle',
         });
@@ -267,16 +354,24 @@ function Main() {
       scrollWhileDragging
       sorting={dia.Paper.sorting.APPROX}
       snapLabels
-      clickThreshold={10}
       interactive={{ linkMove: false }}
       defaultConnectionPoint={{
-        name: 'boundary',
+        name: 'anchor',
         args: {
-          offset: spacing,
+          offset: 6,
           extrapolate: true,
         },
       }}
-      defaultRouter={{ name: 'rightAngle', args: { margin: unit * 7 } }}
+      defaultAnchor={{
+        name: 'midSide',
+        args: { useModelGeometry: true },
+      }}
+      defaultRouter={{
+        name: 'rightAngle',
+        args: {
+          margin: unit * 7,
+        },
+      }}
       defaultConnector={{
         name: 'straight',
         args: { cornerType: 'line', cornerPreserveAspectRatio: true },

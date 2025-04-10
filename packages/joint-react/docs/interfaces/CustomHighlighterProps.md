@@ -26,9 +26,9 @@ Child elements to render inside the highlighter.
 
 ***
 
-### isDisabled?
+### isHidden?
 
-> `readonly` `optional` **isDisabled**: `boolean`
+> `readonly` `optional` **isHidden**: `boolean`
 
 Defined in: [joint-react/src/components/highlighters/custom.tsx:40](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L40)
 

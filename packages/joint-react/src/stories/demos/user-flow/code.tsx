@@ -38,8 +38,8 @@ const nodes = createElements<Data>([
       description: 'Transfer funds',
       type: 'entity',
     },
-    x: 100,
-    y: 150,
+    x: 120,
+    y: 160,
   },
   {
     id: '3',
@@ -48,8 +48,8 @@ const nodes = createElements<Data>([
       description: 'Get account balance',
       type: 'user-action',
     },
-    x: 150,
-    y: 250,
+    x: 190,
+    y: 270,
   },
 
   {
@@ -59,8 +59,8 @@ const nodes = createElements<Data>([
       description: 'Balance information',
       type: 'confirm',
     },
-    x: 200,
-    y: 350,
+    x: 260,
+    y: 380,
   },
   {
     id: '5',
@@ -69,8 +69,8 @@ const nodes = createElements<Data>([
       description: 'Information about the transfer',
       type: 'message',
     },
-    x: 250,
-    y: 450,
+    x: 330,
+    y: 490,
   },
 
   {
@@ -80,8 +80,8 @@ const nodes = createElements<Data>([
       description: 'Some transfer information',
       type: 'entity',
     },
-    x: 500,
-    y: 250,
+    x: 450,
+    y: 50,
   },
   {
     id: '7',
@@ -90,8 +90,8 @@ const nodes = createElements<Data>([
       description: 'Verifying transfer information',
       type: 'entity',
     },
-    x: 550,
-    y: 350,
+    x: 500,
+    y: 160,
   },
 
   {
@@ -101,11 +101,47 @@ const nodes = createElements<Data>([
       description: 'Message about the transfer',
       type: 'message',
     },
-    x: 600,
-    y: 450,
+    x: 550,
+    y: 290,
   },
 ]);
-const links = createLinks([]);
+const links = createLinks([
+  {
+    id: 'link1',
+    source: { id: '1', port: '1' },
+    target: { id: '2', port: '1' },
+  },
+  {
+    id: 'link2',
+    source: { id: '2', port: '1' },
+    target: { id: '3', port: '1' },
+  },
+  {
+    id: 'link3',
+    source: { id: '3', port: '1' },
+    target: { id: '4', port: '1' },
+  },
+  {
+    id: 'link4',
+    source: { id: '4', port: '1' },
+    target: { id: '5', port: '1' },
+  },
+  {
+    id: 'link5',
+    source: { id: '5', port: '1' },
+    target: { id: '8', port: '1' },
+  },
+  {
+    id: 'link6',
+    source: { id: '6', port: '1' },
+    target: { id: '7', port: '1' },
+  },
+  {
+    id: 'link7',
+    source: { id: '7', port: '1' },
+    target: { id: '8', port: '1' },
+  },
+]);
 
 type NodeType = InferElement<typeof nodes>;
 
@@ -125,7 +161,7 @@ function PortIem({ id, label, onRemove, x }: Readonly<PortProps>) {
   );
   return (
     <Port.Item x={10 + x} id={id}>
-      <foreignObject className="w-20 h-6 overflow-visible">
+      <foreignObject width={100} height={20} className="w-20 h-6 overflow-visible">
         <div className="w-full h-full bg-black rounded-full flex flex-row items-center justify-center px-1 shadow-xl">
           <div className="flex flex-1 text-white text-xs ml-2">{label}</div>
           <button
@@ -166,11 +202,19 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
     }
   }
 
-  const [ports, setPorts] = useState([{ id: '1', label: 'Port 1' }]);
+  const [ports, setPorts] = useState([
+    { id: '1', label: 'Port 1' },
+    { id: '2', label: 'Port 2' },
+  ]);
 
-  const isDisabled = ports.length >= 3;
   return (
-    <HTMLNode className="cursor-move text-white w-75 bg-white rounded-lg shadow-lg text-black px-4 py-2 flex flex-col border border-gray-100">
+    <HTMLNode
+      style={{
+        width: ports.length * 85 + 55,
+        minWidth: 250,
+      }}
+      className="cursor-move text-white w-75 bg-white rounded-lg shadow-lg text-black px-4 py-2 flex flex-col border border-gray-100"
+    >
       <div className="flex flex-1 flex-row items-center px-2 py-2  mb-2">
         <i className={`fas fa-${icon} text-black`}></i>
         <div className="flex flex-col flex-1 ml-4">
@@ -192,7 +236,6 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
         ))}
       </Port.Group>
       <button
-        disabled={isDisabled}
         onClick={() => {
           setPorts((previous) => [
             ...previous,
@@ -220,7 +263,7 @@ function Main() {
     <Paper
       className="bg-gray-100"
       gridSize={5}
-      height={600}
+      height={670}
       width={900}
       renderElement={RenderElement}
       scrollWhileDragging

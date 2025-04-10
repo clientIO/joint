@@ -28,9 +28,9 @@ Child elements to render inside the mask.
 
 ***
 
-### isDisabled?
+### isHidden?
 
-> `readonly` `optional` **isDisabled**: `boolean`
+> `readonly` `optional` **isHidden**: `boolean`
 
 Defined in: [joint-react/src/components/highlighters/mask.tsx:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/mask.tsx#L28)
 

@@ -8,7 +8,7 @@
 
 > `const` **HTMLNode**: `ForwardRefExoticComponent`\<[`HTMLElementProps`](../type-aliases/HTMLElementProps.md) & `RefAttributes`\<[`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)\>\>
 
-Defined in: [joint-react/src/components/html-node/html-node.tsx:103](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L103)
+Defined in: [joint-react/src/components/html-node/html-node.tsx:105](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/html-node/html-node.tsx#L105)
 
 **`Experimental`**
 

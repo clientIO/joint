@@ -33,7 +33,7 @@ export interface StrokeHighlighterProps extends PropsWithChildren, React.SVGProp
   /**
    * If the highlighter is disabled or not.
    */
-  readonly isDisabled?: boolean;
+  readonly isHidden?: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -46,7 +46,7 @@ function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGEle
     ry,
     useFirstSubpath,
     nonScalingStroke,
-    isDisabled,
+    isHidden,
     ...svgAttributes
   } = props;
   const options = useMemo((): dia.HighlighterView.Options => {
@@ -67,7 +67,7 @@ function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGEle
   }, []);
 
   return (
-    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isDisabled={isDisabled}>
+    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isHidden={isHidden}>
       {children}
     </Custom>
   );

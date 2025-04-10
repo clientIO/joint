@@ -8,7 +8,7 @@ import {
 import type { dia } from '@joint/core';
 
 export interface OnSetOptions {
-  readonly element: dia.Cell;
+  readonly element: dia.Element;
   readonly size: SizeObserver;
 }
 export type OnSetSize = (options: OnSetOptions) => void;
@@ -62,6 +62,9 @@ export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVG
     const cell = graph.getCell(cellID);
     if (!cell) {
       throw new Error(`Cell with id ${cellID} not found`);
+    }
+    if (!cell.isElement()) {
+      throw new Error(`Cell is not element`);
     }
 
     return createElementSizeObserver(elementRef.current, ({ height, width }) => {

@@ -49,7 +49,7 @@ function RenderItemWithChildren({ height, width }: BaseElementWithData) {
       onMouseLeave={() => setIsHighlighted(false)}
       className="node"
     >
-      <Highlighter.Mask isDisabled={!isHighlighted} padding={5} strokeWidth={2} stroke={SECONDARY}>
+      <Highlighter.Mask isHidden={!isHighlighted} padding={5} strokeWidth={2} stroke={SECONDARY}>
         <rect
           rx={10}
           ry={10}
@@ -66,7 +66,24 @@ function RenderItemWithChildren({ height, width }: BaseElementWithData) {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={RenderItemWithChildren} />
+      <Paper
+        // clickThreshold={10}
+        // interactive={{ linkMove: false }}
+        // defaultConnectionPoint={{
+        //   name: 'anchor',
+        // }}
+        // defaultAnchor={{
+        //   name: 'midSide',
+        //   args: { useModelGeometry: true },
+        // }}
+        // defaultConnector={{
+        //   name: 'straight',
+        //   args: { cornerType: 'line', cornerPreserveAspectRatio: true },
+        // }}
+        width={400}
+        height={280}
+        renderElement={RenderItemWithChildren}
+      />
     </div>
   );
 }

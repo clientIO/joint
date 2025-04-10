@@ -1,5 +1,5 @@
 import type React from 'react';
-import { forwardRef, useCallback, useId } from 'react';
+import { forwardRef, useCallback, useEffect, useId } from 'react';
 import { useCellId } from '../../hooks/use-cell-id';
 import { usePaper } from '../../hooks/use-paper';
 import type { dia } from '@joint/core';
@@ -37,19 +37,26 @@ export interface CustomHighlighterProps<
   /**
    * If the highlighter is disabled or not.
    */
-  readonly isDisabled?: boolean;
+  readonly isHidden?: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function RawComponent<
   Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
 >(props: CustomHighlighterProps<Highlighter>, forwardedRef: React.Ref<SVGElement>) {
-  const { children, options, onAdd, isDisabled } = props;
+  const { children, options, onAdd, isHidden } = props;
   const id = useCellId();
   const paper = usePaper();
   const highlighterId = useId();
   const { elementRef, elementChildren } = useChildrenRef(children, forwardedRef);
 
+  // ERROR HANDLING
+  useEffect(() => {
+    if (!elementRef.current) {
+      throw new Error('Highlighter children component must have accessible ref');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const create = useCallback(
     (hOptions: Highlighter) => {
       const cellView = paper.findViewByModel(id);
@@ -74,7 +81,7 @@ function RawComponent<
     // @ts-expect-error Internal API
     instance.update();
   }, []);
-  useHighlighter(create, update, options, isDisabled);
+  useHighlighter(create, update, options, isHidden);
   return elementChildren;
 }
 

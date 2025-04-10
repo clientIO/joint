@@ -33,8 +33,10 @@ export function createElements<
   Element extends GraphElementBase<Type> = GraphElementItem<Data, Type>,
 >(
   data: Array<Element & GraphElementBase<Type>>
-): Array<Element & { isElement: true; isLink: false; width?: number; height?: number }> {
-  return data.map((element) => ({ ...element, isElement: true, isLink: false }));
+): Array<Element & { isElement: true; isLink: false; width: number; height: number }> {
+  return data.map((element) => ({ ...element, isElement: true, isLink: false })) as Array<
+    Element & { isElement: true; isLink: false; width: number; height: number }
+  >;
 }
 
 /**
@@ -50,7 +52,7 @@ export function createElements<
  * type BaseElementWithData = InferElement<typeof elements>;
  * ```
  */
-export type InferElement<T> = T extends Array<infer U> ? Readonly<U> : never;
+export type InferElement<T> = T extends Array<infer U> ? Readonly<Omit<U, 'ref'>> : never;
 
 /**
  * Create links helper function.

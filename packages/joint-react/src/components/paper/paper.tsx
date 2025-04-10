@@ -100,6 +100,13 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * @returns
    */
   readonly overwriteDefaultPaperElement?: (paper: dia.Paper) => HTMLElement | SVGElement;
+
+  /**
+   * The threshold for click events in pixels.
+   * If the mouse moves more than this distance, it will be considered a drag event.
+   * @default 10
+   */
+  readonly clickThreshold?: number;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc

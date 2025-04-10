@@ -71,6 +71,7 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
     // or find a better way to do it (e.g. trigger the event in JointJS)
     elementView,
     ...restOptions,
+    clickThreshold: restOptions?.clickThreshold ?? 10,
     frozen: true,
     model: graph,
   });

@@ -14,9 +14,9 @@ Defined in: [joint-react/src/components/highlighters/stroke.tsx:8](https://githu
 
 ## Properties
 
-### isDisabled?
+### isHidden?
 
-> `readonly` `optional` **isDisabled**: `boolean`
+> `readonly` `optional` **isHidden**: `boolean`
 
 Defined in: [joint-react/src/components/highlighters/stroke.tsx:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L36)
 

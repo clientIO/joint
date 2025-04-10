@@ -120,9 +120,9 @@ Optional width of the element.
 
 ***
 
-### x
+### x?
 
-> `readonly` **x**: `number`
+> `readonly` `optional` **x**: `number`
 
 Defined in: [joint-react/src/types/element-types.ts:50](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L50)
 
@@ -130,9 +130,9 @@ X position of the element.
 
 ***
 
-### y
+### y?
 
-> `readonly` **y**: `number`
+> `readonly` `optional` **y**: `number`
 
 Defined in: [joint-react/src/types/element-types.ts:54](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L54)
 

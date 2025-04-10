@@ -138,3 +138,25 @@ More examples and documentation can be found in the [API Reference](docs/README.
 
 ### Missing docs:
 1. use links
+
+
+
+## Avoid Certain CSS Properties in `<foreignObject>`
+
+Developers have observed that some CSS properties can cause rendering issues in Safari when used inside an SVG `<foreignObject>`. To improve compatibility, it's recommended to **avoid** the following properties within `<foreignObject>` elements:
+
+- `position` (other than `static`)
+- `-webkit-transform-style`
+- `-webkit-backface-visibility`
+- `transition`
+- `transform`
+
+These styles can lead to unpredictable behavior, layout issues, or elements not being rendered at all in Safari and other WebKit-based browsers.
+
+### Recommended Workaround
+
+If you must use HTML inside an SVG and need cross-browser support:
+
+- Use only minimal, simple CSS inside `<foreignObject>`.
+- Favor static positioning and avoid CSS transforms.
+- Consider overlaying HTML outside the SVG using absolute positioning (see previous examples).

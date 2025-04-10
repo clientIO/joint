@@ -165,11 +165,20 @@ Class name of the paper element.
 
 ### clickThreshold?
 
-> `optional` **clickThreshold**: `number`
+> `readonly` `optional` **clickThreshold**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:1419](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1419)
+Defined in: [joint-react/src/components/paper/paper.tsx:109](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L109)
 
-#### Inherited from
+The threshold for click events in pixels.
+If the mouse moves more than this distance, it will be considered a drag event.
+
+#### Default
+
+```ts
+10
+```
+
+#### Overrides
 
 `dia.Paper.Options.clickThreshold`
 
