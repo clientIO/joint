@@ -145,7 +145,7 @@ PortData.prototype = {
             },
             group.position,
             {
-                // TODO: deprecate `port.args`
+                // TODO: remove `port.args`
                 args: (port.position?.args ?? port.args)
             }
         );
