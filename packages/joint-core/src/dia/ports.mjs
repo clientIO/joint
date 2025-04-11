@@ -138,10 +138,17 @@ PortData.prototype = {
 
     _createPositionNode: function(group, port) {
 
-        return util.merge({
-            name: 'left',
-            args: {}
-        }, group.position, { args: port.args });
+        return util.merge(
+            {
+                name: 'left',
+                args: {}
+            },
+            group.position,
+            {
+                // TODO: deprecate `port.args`
+                args: (port.position?.args ?? port.args)
+            }
+        );
     },
 
     _getPosition: function(position, setDefault) {
@@ -901,4 +908,3 @@ export const elementViewPortPrototype = {
         return label.markup || this.model.get('portLabelMarkup') || this.model.portLabelMarkup || this.portLabelMarkup;
     }
 };
-
