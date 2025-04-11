@@ -221,18 +221,16 @@ export const Vertices = ToolView.extend({
     onHandleChanged: function(_handle, evt) {
         const { options, relatedView: linkView } = this;
         if (options.vertexAdding) this.updatePath();
-        if (!options.redundancyRemoval) {
-            linkView.checkMouseleave(util.normalizeEvent(evt));
-            return;
+        if (options.redundancyRemoval) {
+            const verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+            if (verticesRemoved) this.render();
         }
-        var verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
-        if (verticesRemoved) this.render();
         this.blur();
         linkView.model.stopBatch('vertex-move', { ui: true, tool: this.cid });
         if (this.eventData(evt).vertexAdded) {
             linkView.model.stopBatch('vertex-add', { ui: true, tool: this.cid });
         }
-        var [normalizedEvt, x, y] = linkView.paper.getPointerArgs(evt);
+        const [normalizedEvt, x, y] = linkView.paper.getPointerArgs(evt);
         if (!options.stopPropagation) linkView.notifyPointerup(normalizedEvt, x, y);
         linkView.checkMouseleave(normalizedEvt);
     },
