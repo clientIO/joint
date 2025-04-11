@@ -83,8 +83,8 @@ function Main() {
         height={280}
         renderElement={renderElement}
         // add listeners when show and hide tools
-        onLinkMouseenter={(linkView) => linkView.addTools(toolsView)}
-        onLinkMouseleave={(linkView) => linkView.removeTools()}
+        onLinkMouseEnter={({ linkView }) => linkView.addTools(toolsView)}
+        onLinkMouseLeave={({ linkView }) => linkView.removeTools()}
       />
       <div
         style={{

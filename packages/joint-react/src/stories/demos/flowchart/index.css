@@ -1,3 +1,35 @@
+:root {
+  /* JointJS Palette */
+  --jj-color1: #ed2637;
+  --jj-color2: #131e29;
+  --jj-color3: #dde6ed;
+  --jj-color4: #f6f740;
+  --jj-color5: #0075f2;
+  --jj-color6: #1a2938;
+  --jj-color7: #cad8e3;
+
+  /* Dark Theme */
+  --step-stroke-color: var(--jj-color1);
+  --step-fill-color: var(--jj-color2);
+  --step-text-color: var(--jj-color3);
+  --decision-stroke-color: var(--jj-color3);
+  --decision-fill-color: var(--jj-color2);
+  --decision-text-color: var(--jj-color3);
+  --start-stroke-color: var(--jj-color1);
+  --start-fill-color: var(--jj-color2);
+  --start-text-color: var(--jj-color1);
+  --flow-stroke-color: var(--jj-color1);
+  --flow-label-stroke-color: var(--jj-color2);
+  --flow-label-fill-color: var(--jj-color1);
+  --flow-label-text-color: var(--jj-color3);
+  --flow-selection-color: var(--jj-color6);
+  --frame-color: var(--jj-color4);
+  --background-color: var(--jj-color2);
+  --switch-color: var(--jj-color3);
+  --switch-background-color: var(--jj-color1);
+  --logo-color: var(--jj-color3);
+}
+
 .flowchart-node {
   font-family: 'PPFraktionSans', sans-serif;
   font-size: 14px;
@@ -36,4 +68,14 @@
 .jj-flow-line {
   stroke: #ed2637;
   stroke-width: 1;
+}
+
+.jj-flow-tools circle {
+  stroke: var(--frame-color);
+  fill: var(--background-color);
+  stroke-width: 2;
+}
+
+.jj-flow-tools rect {
+  stroke: var(--frame-color);
 }

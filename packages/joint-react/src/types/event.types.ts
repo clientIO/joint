@@ -190,49 +190,263 @@ export interface EventMap {
 export type PaperEventType = keyof EventMap;
 
 /**
- * Paper event handler.
- * List of all events can be found here:
- * @see https://resources.jointjs.com/docs/jointjs#dia.Paper.events
- */
-type PaperEventHandler<EventType extends PaperEventType> = (
-  ...args: Parameters<EventMap[EventType]>
-) => void;
-
-// Paper Event Options with Type Information
-
-type TransformEvent<T extends string> = T extends `${infer First}:${infer Rest}`
-  ? `${Capitalize<First>}${TransformEvent<Rest>}`
-  : Capitalize<T>;
-
-// Correcting camelCase transformations for React events
-// Ensuring "dblclick" becomes "DblClick"
-type FixReactEventCase<T extends string> = T extends `${infer Prefix}click` ? `${Prefix}Click` : T;
-
-type TransformReactEvent<T extends string> = FixReactEventCase<TransformEvent<T>>;
-
-export type ReactPaperEventType<T extends string = PaperEventType> = `on${TransformReactEvent<T>}`;
-
-/**
  * Paper event handlers.
  * @see https://resources.jointjs.com/docs/jointjs#dia.Paper.events
  */
-export type PaperEvents = {
-  [Type in PaperEventType as ReactPaperEventType<Type>]?: PaperEventHandler<Type>;
-};
+export interface PaperEvents {
+  // Click events
+  onCellPointerClick?: (args: {
+    cellView: dia.CellView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onElementPointerClick?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onLinkPointerClick?: (args: {
+    linkView: dia.LinkView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onBlankPointerClick?: (args: {
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
 
-/**
- * Converts a Paper event type to a React event type.
- * @param type - The Paper event type.
- * @returns The corresponding React event type.
- */
-export function typeToReactType(type: PaperEventType): ReactPaperEventType {
-  return ('on' +
-    type
-      .split(':') // Split by ":"
-      .map((word, index) =>
-        index === 1 && word === 'dblclick'
-          ? 'DblClick'
-          : word.charAt(0).toUpperCase() + word.slice(1)
-      ) // Capitalize first letter, fix "dblclick"
-      .join('')) as ReactPaperEventType;
+  // Double click
+  onCellPointerDblClick?: (args: {
+    cellView: dia.CellView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onElementPointerDblClick?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onLinkPointerDblClick?: (args: {
+    linkView: dia.LinkView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onBlankPointerDblClick?: (args: {
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+
+  // Context menu
+  onCellContextMenu?: (args: {
+    cellView: dia.CellView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onElementContextMenu?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onLinkContextMenu?: (args: {
+    linkView: dia.LinkView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onBlankContextMenu?: (args: { event: dia.Event; x: number; y: number; paper: dia.Paper }) => void;
+
+  // Pointer events
+  onPointerDown?: (args: {
+    view: dia.CellView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onPointerMove?: (args: {
+    view: dia.CellView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onPointerUp?: (args: {
+    view: dia.CellView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+
+  // Mouse enter/leave
+  onCellMouseEnter?: (args: { cellView: dia.CellView; event: dia.Event; paper: dia.Paper }) => void;
+  onElementMouseEnter?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    paper: dia.Paper;
+  }) => void;
+  onLinkMouseEnter?: (args: { linkView: dia.LinkView; event: dia.Event; paper: dia.Paper }) => void;
+  onBlankMouseEnter?: (args: { event: dia.Event; paper: dia.Paper }) => void;
+  onCellMouseLeave?: (args: { cellView: dia.CellView; event: dia.Event; paper: dia.Paper }) => void;
+  onElementMouseLeave?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    paper: dia.Paper;
+  }) => void;
+  onLinkMouseLeave?: (args: { linkView: dia.LinkView; event: dia.Event; paper: dia.Paper }) => void;
+  onBlankMouseLeave?: (args: { event: dia.Event; paper: dia.Paper }) => void;
+  // Mouse over/out
+  onCellMouseOver?: (args: { cellView: dia.CellView; event: dia.Event; paper: dia.Paper }) => void;
+  onElementMouseOver?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    paper: dia.Paper;
+  }) => void;
+  onLinkMouseOver?: (args: { linkView: dia.LinkView; event: dia.Event; paper: dia.Paper }) => void;
+  onBlankMouseOver?: (args: { event: dia.Event; paper: dia.Paper }) => void;
+  onCellMouseOut?: (args: { cellView: dia.CellView; event: dia.Event; paper: dia.Paper }) => void;
+  onElementMouseOut?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    paper: dia.Paper;
+  }) => void;
+  onLinkMouseOut?: (args: { linkView: dia.LinkView; event: dia.Event; paper: dia.Paper }) => void;
+  onBlankMouseOut?: (args: { event: dia.Event; paper: dia.Paper }) => void;
+
+  // Mouse wheel
+  onMouseWheel?: (args: {
+    view: dia.CellView;
+    event: dia.Event;
+    x: number;
+    y: number;
+    delta: number;
+    paper: dia.Paper;
+  }) => void;
+
+  // Paper gestures
+  onPan?: (args: { event: dia.Event; deltaX: number; deltaY: number; paper: dia.Paper }) => void;
+  onPinch?: (args: {
+    event: dia.Event;
+    x: number;
+    y: number;
+    scale: number;
+    paper: dia.Paper;
+  }) => void;
+
+  // Magnet events
+  onElementMagnetPointerClick?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    magnetNode: SVGElement;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onElementMagnetPointerDblClick?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    magnetNode: SVGElement;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+  onElementMagnetContextMenu?: (args: {
+    elementView: dia.ElementView;
+    event: dia.Event;
+    magnetNode: SVGElement;
+    x: number;
+    y: number;
+    paper: dia.Paper;
+  }) => void;
+
+  // Highlight
+  onCellHighlight?: (args: {
+    cellView: dia.CellView;
+    node: SVGElement;
+    options: dia.CellView.EventHighlightOptions;
+    paper: dia.Paper;
+  }) => void;
+  onCellUnhighlight?: (args: {
+    cellView: dia.CellView;
+    node: SVGElement;
+    options: dia.CellView.EventHighlightOptions;
+    paper: dia.Paper;
+  }) => void;
+  onCellHighlightInvalid?: (args: {
+    cellView: dia.CellView;
+    highlighterId: string;
+    highlighter: dia.HighlighterView;
+    paper: dia.Paper;
+  }) => void;
+
+  // Connection
+  onLinkConnect?: (args: {
+    linkView: dia.LinkView;
+    event: dia.Event;
+    newCellView: dia.CellView;
+    newCellViewMagnet: SVGElement;
+    arrowhead: dia.LinkEnd;
+    paper: dia.Paper;
+  }) => void;
+  onLinkDisconnect?: (args: {
+    linkView: dia.LinkView;
+    event: dia.Event;
+    previousCellView: dia.CellView;
+    previousCellViewMagnet: SVGElement;
+    arrowhead: dia.LinkEnd;
+    paper: dia.Paper;
+  }) => void;
+  onLinkSnapConnect?: (args: {
+    linkView: dia.LinkView;
+    event: dia.Event;
+    newCellView: dia.CellView;
+    newCellViewMagnet: SVGElement;
+    arrowhead: dia.LinkEnd;
+    paper: dia.Paper;
+  }) => void;
+  onLinkSnapDisconnect?: (args: {
+    linkView: dia.LinkView;
+    event: dia.Event;
+    previousCellView: dia.CellView;
+    previousCellViewMagnet: SVGElement;
+    arrowhead: dia.LinkEnd;
+    paper: dia.Paper;
+  }) => void;
+
+  // Render
+  onRenderDone?: (args: { stats: dia.Paper.UpdateStats; opt: unknown; paper: dia.Paper }) => void;
+
+  // Transformations
+  onTranslate?: (args: { tx: number; ty: number; data: unknown; paper: dia.Paper }) => void;
+  onScale?: (args: { sx: number; sy: number; data: unknown; paper: dia.Paper }) => void;
+  onResize?: (args: { width: number; height: number; data: unknown; paper: dia.Paper }) => void;
+  onTransform?: (args: { matrix: SVGMatrix; data: unknown; paper: dia.Paper }) => void;
+
+  // Custom
+  onCustom?: (args: {
+    eventName: string;
+    args: Parameters<mvc.EventHandler>;
+    paper: dia.Paper;
+  }) => void;
 }

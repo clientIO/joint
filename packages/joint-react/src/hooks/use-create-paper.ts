@@ -4,7 +4,7 @@ import type { PaperOptions } from '../utils/create-paper';
 import { createPaper } from '../utils/create-paper';
 import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
-import type { PaperEvents, PaperEventType } from '../types/event.types';
+import type { PaperEventType, PaperEvents } from '../types/event.types';
 import { handleEvent } from '../utils/handle-paper-events';
 import type { OnLoadOptions } from '../components';
 
@@ -68,7 +68,7 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     const controller = new mvc.Listener();
     controller.listenTo(paper, 'resize', resizePaperContainer);
     controller.listenTo(paper, 'all', (type: PaperEventType, ...args: unknown[]) =>
-      handleEvent(type, restOptions, ...args)
+      handleEvent(type, restOptions, paper, ...args)
     );
 
     return () => controller.stopListening();

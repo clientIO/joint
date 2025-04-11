@@ -140,10 +140,10 @@ const toolsView = new dia.ToolsView({
 export const WithLinkTools: Story = {
   args: {
     renderElement: RenderHtmlElement as never,
-    onLinkMouseenter: (linkView) => {
+    onLinkMouseEnter: ({ linkView }) => {
       linkView.addTools(toolsView);
     },
-    onLinkMouseleave: (linkView) => {
+    onLinkMouseLeave: ({ linkView }) => {
       linkView.removeTools();
     },
   },

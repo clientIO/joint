@@ -1,3 +1,4 @@
+/* eslint-disable @eslint-react/no-nested-component-definitions */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-shadow */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
@@ -15,7 +16,7 @@ import {
 } from '@joint/react';
 import { PRIMARY, SECONDARY } from 'storybook/theme';
 import { dia, linkTools } from '@joint/core';
-import { forwardRef, useState } from 'react';
+import { forwardRef, useCallback, useState } from 'react';
 
 const unit = 4;
 
@@ -293,52 +294,105 @@ function StepNodeRaw(
 const DecisionNode = forwardRef(DecisionNodeRaw);
 const StepNode = forwardRef(StepNodeRaw);
 
-// Custom render function that maps the node type to a CSS class for styling
-function RenderFlowchartNode(props: FlowchartNodeProps) {
-  const {
-    data: { type },
-  } = props;
-
-  const [isHighlighted, setIsHighlighted] = useState(false);
-  const content =
-    type === 'decision' ? (
-      <DecisionNode
-        {...props}
-        onMouseEnter={() => setIsHighlighted(true)}
-        onMouseLeave={() => setIsHighlighted(false)}
-      />
-    ) : (
-      <StepNode
-        {...props}
-        onMouseEnter={() => setIsHighlighted(true)}
-        onMouseLeave={() => setIsHighlighted(false)}
-      />
-    );
-  return (
-    <Highlighter.Mask isHidden={!isHighlighted} stroke={SECONDARY} padding={2} strokeWidth={2}>
-      {content}
-    </Highlighter.Mask>
-  );
-}
-
 // Create link tools
 
-// 1) creating link tools
-const verticesTool = new linkTools.Vertices();
-const boundaryTool = new linkTools.Boundary();
-// 2) create custom link tool
-
-// 3) creating a tools view
-const toolsView = new dia.ToolsView({
-  name: 'basic-tools',
-  tools: [verticesTool, boundaryTool],
-});
-
 function Main() {
+  const [highlightedId, setHighlightedId] = useState<dia.Cell.ID | null>(null);
+  const [toolHighlightedId, setToolHighlightedId] = useState<dia.Cell.ID | null>(null);
+
+  const renderElement = useCallback(
+    (options: FlowchartNodeProps) => {
+      const {
+        id,
+        data: { type },
+      } = options;
+
+      const content =
+        type === 'decision' ? (
+          <DecisionNode
+            {...options}
+            onMouseEnter={() => setHighlightedId(id)}
+            onMouseLeave={() => setHighlightedId(null)}
+          />
+        ) : (
+          <StepNode
+            {...options}
+            onMouseEnter={() => setHighlightedId(id)}
+            onMouseLeave={() => setHighlightedId(null)}
+          />
+        );
+      const isHidden = highlightedId !== id;
+      const isHiddenTool = toolHighlightedId !== id;
+
+      return (
+        <Highlighter.Mask
+          isHidden={isHiddenTool}
+          stroke={SECONDARY}
+          padding={2}
+          strokeWidth={2}
+          // layer="back"
+        >
+          <Highlighter.Mask isHidden={isHidden} stroke={SECONDARY} padding={2} strokeWidth={2}>
+            {content}
+          </Highlighter.Mask>
+        </Highlighter.Mask>
+      );
+    },
+    [highlightedId, toolHighlightedId]
+  );
+
   return (
     <Paper
-      onLinkMouseenter={(linkView) => linkView.addTools(toolsView)}
-      onLinkMouseleave={(linkView) => linkView.removeTools()}
+      onLinkPointerClick={({ linkView, paper }) => {
+        paper.removeTools();
+        dia.HighlighterView.removeAll(paper);
+        // eslint-disable-next-line unicorn/consistent-function-scoping
+        const snapAnchor = function (coords: dia.Point, endView: dia.LinkView): dia.Point {
+          const bbox = endView.model.getBBox();
+          // Find the closest point on the bbox border.
+          const point = bbox.pointNearestToPoint(coords);
+          const center = bbox.center();
+          // Snap the point to the center of the bbox if it's close enough.
+          const snapRadius = 10;
+          if (Math.abs(point.x - center.x) < snapRadius) {
+            point.x = center.x;
+          }
+          if (Math.abs(point.y - center.y) < snapRadius) {
+            point.y = center.y;
+          }
+          return point;
+        };
+        const toolsView = new dia.ToolsView({
+          tools: [
+            new linkTools.TargetAnchor({
+              snap: snapAnchor as never,
+              resetAnchor: linkView.model.prop(['target', 'anchor']),
+            }),
+            new linkTools.SourceAnchor({
+              snap: snapAnchor as never,
+              resetAnchor: linkView.model.prop(['source', 'anchor']),
+            }),
+          ],
+        });
+        toolsView.el.classList.add('jj-flow-tools');
+        linkView.addTools(toolsView);
+        setToolHighlightedId(linkView.model.id);
+        // Add copy of the link <path> element behind the link.
+        // The selection link frame should be behind all elements and links.
+        // const strokeHighlighter = StrokeHighlighter.add(
+        //   linkView,
+        //   "root",
+        //   "selection",
+        //   {
+        //     layer: dia.Paper.Layers.BACK
+        //   }
+        // );
+        // strokeHighlighter.el.classList.add("jj-flow-selection");
+      }}
+      onLinkMouseLeave={({ linkView }) => {
+        linkView.removeTools();
+        setToolHighlightedId(null);
+      }}
       gridSize={5}
       height={600}
       onLoad={({ paper }) => {
@@ -350,7 +404,7 @@ function Main() {
         });
       }}
       width={900}
-      renderElement={RenderFlowchartNode}
+      renderElement={renderElement}
       scrollWhileDragging
       sorting={dia.Paper.sorting.APPROX}
       snapLabels
