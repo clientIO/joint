@@ -81,6 +81,11 @@
     "react-dom": ">=18 <20",
     "use-sync-external-store": "^1.4.0"
   },
+  "volta": {
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
+  },
   "resolutions": {
     "react": "18.x",
     "react-dom": "18.x"
