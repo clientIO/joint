@@ -1447,7 +1447,11 @@ QUnit.module('basic', function(hooks) {
                     { id: '1', group: 'in' },
                     { id: '2', group: 'in' },
                     { id: '3', group: 'out' },
-                    { id: '4', group: 'out' }
+                    { id: '4', group: 'out' },
+                    { id: 'left0' },
+                    { id: 'left1', args: { dx: 10 }},
+                    { id: 'left2', position: { args: { dx: 10 }}},
+                    { id: 'left3', position: { args: { dx: 10 }}, args: { dx: 20 }}
                 ]
             }
         });
@@ -1477,6 +1481,28 @@ QUnit.module('basic', function(hooks) {
                 assert.equal(foundEl, true, 'port DOM element should exist ("' + port + '")');
             }
         });
+
+        allPorts.forEach((port) => {
+            if (!port.startsWith('left')) return;
+
+            const $portEl = view.$el.find('[port="' + port + '"]');
+            const portParentEl = $portEl[0].parentElement;
+            const { translateX } = V.decomposeMatrix(V.transformStringToMatrix(portParentEl.attributes.transform.value));
+            switch (port) {
+                case 'left0':
+                    assert.equal(translateX, 0, 'no position arguments = no translation');
+                    break;
+                case 'left1':
+                    assert.equal(translateX, 10, '`args.dx: 10` provided = translation of 10px');
+                    break;
+                case 'left2':
+                    assert.equal(translateX, 10, '`position.args.dx: 10` provided = translation of 10px');
+                    break;
+                case 'left3':
+                    assert.equal(translateX, 10, '`position.args.dx: 10` has priority over `args.dx: 10` = translation of 10px');
+                    break;
+            }
+        })
     });
 
     QUnit.test('ref-x, ref-y, ref', function(assert) {
