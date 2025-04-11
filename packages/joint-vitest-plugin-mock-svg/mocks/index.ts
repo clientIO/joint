@@ -59,6 +59,16 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'getComputedTextLength', 
 });
 
 /**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement/getScreenCTM
+ * Note: JSDOM SVGGraphicsElement does not encompass all SVG elements that might be needed,
+ * whereas SVGElement provides broader compatibility.
+ */
+Object.defineProperty(globalThis.SVGElement.prototype, 'getScreenCTM', {
+    writable: true,
+    value: vi.fn().mockImplementation(() => SVGMatrix),
+});
+
+/**
  * @description used in `util.breakText()` method
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement/getBBox
  */
