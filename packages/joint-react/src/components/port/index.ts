@@ -73,7 +73,7 @@ export namespace Port {
    *   id="group-one"
    *   angle={0}>
    *     <Port.Item id="port-one" x={0} y={0}>
-   *       <foreignObject className="size-5 bg-sky-200 rounded-full" />
+   *       <rect width={10} height={10} fill="red" />
    *     </Port.Item>
    * </Port.Group>
    * ```

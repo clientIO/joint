@@ -83,7 +83,11 @@ const meta: Meta<typeof Port.Item> = {
 export default meta;
 export const Default = makeStory<Story>({
   args: {
-    children: <foreignObject width={20} height={20} className="size-5 bg-sky-200 rounded-full" />,
+    children: (
+      <foreignObject width={20} height={20}>
+        <div className="size-5 bg-sky-200 rounded-full" />
+      </foreignObject>
+    ),
     id: 'port-one',
     x: 0,
     y: 0,
