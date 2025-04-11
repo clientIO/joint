@@ -1,0 +1,28 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+import Css from './index.css?raw';
+
+<Meta of={Stories} />
+
+## Demo of flowchart
+<Canvas of={Stories.Default} />
+
+### Code
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+### CSS
+<Markdown>
+{`\`\`\`css
+${Css}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+

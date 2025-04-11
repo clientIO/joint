@@ -1,0 +1,30 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+
+<Meta of={Stories} />
+
+# Example showing intersection between nodes.
+Intersection is derived from the x and y and width and height of the nodes.
+To play with demo, just move nodes around and see the intersection between them.
+
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
+
+
+

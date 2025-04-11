@@ -1,0 +1,24 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+
+<Meta of={Stories} />
+
+# Example showing card with children render 
+Example showing card component with custom `onSetSize` method which override default behavior of measuredNode
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+

@@ -1,0 +1,31 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+
+<Meta of={Stories} />
+
+# Example showing link tools. 
+For more information on link tools, see the [Link Tools](https://resources.jointjs.com/tutorial/link-tools).
+
+We can leverage also joint `jsx` utility which convert `jsx` to `joint` markups.
+
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
+
+
+

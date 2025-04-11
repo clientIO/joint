@@ -1,0 +1,48 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+
+<Meta of={Stories} />
+
+# Render nodes with highlighter
+
+Render element with [highlighters](https://docs.jointjs.com/api/highlighters) around the element.
+
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+Highlighter is defined inside the `highlighters` property of the `GraphProvider` component.
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+### Available highlighters:
+
+```tsx
+import { Highlighter } from '@joint/react'
+return <Highlighter.Mask />
+```
+
+```tsx
+import { Highlighter } from '@joint/react'
+return <Highlighter.Opacity />
+```
+
+```tsx
+import { Highlighter } from '@joint/react'
+return <Highlighter.Stroke />
+```
+
+```tsx
+import { Highlighter } from '@joint/react'
+return <Highlighter.Custom />
+```
+
+
+
