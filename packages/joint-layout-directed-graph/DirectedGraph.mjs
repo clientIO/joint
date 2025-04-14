@@ -36,16 +36,17 @@ export const DirectedGraph = {
 
     importElement: function(nodeId, glGraph, graph, opt) {
 
-        var element = graph.getCell(nodeId);
-        var glNode = glGraph.node(nodeId);
+        const element = graph.getCell(nodeId);
+        const glNode = glGraph.node(nodeId);
 
-        if (opt.setPosition) {
+        if (util.isFunction(opt.setPosition)) {
             opt.setPosition(element, glNode);
         } else {
-            element.set('position', {
-                x: glNode.x - glNode.width / 2,
-                y: glNode.y - glNode.height / 2
-            });
+            element.position(glNode.x - glNode.width / 2, glNode.y - glNode.height / 2);
+            if ((opt.clusterPadding === 'default') && (glNode.rank === undefined)) {
+                // we want to use Dagre's default cluster padding, and this is a cluster
+                element.size(glNode.width, glNode.height);
+            } // else: rely on `opt.resizeClusters` and `opt.clusterPadding` (see `layout()` function)
         }
     },
 
@@ -172,7 +173,7 @@ export const DirectedGraph = {
             graph,
         });
 
-        if (opt.resizeClusters) {
+        if (opt.resizeClusters && (typeof opt.clusterPadding === 'number')) {
             // Resize and reposition cluster elements
             // Filter out top-level clusters (nodes without a parent and with children) and map them to cells
             const topLevelClusters = glGraph.nodes()
