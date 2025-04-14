@@ -116,6 +116,20 @@ export const DirectedGraph = {
             exportLink: this.exportLink
         });
 
+        if (opt.clusterPadding === 'default') {
+            opt.resizeClusters = false;
+            // use default dagre approach
+            opt.setPosition = (e, position) => {
+                if (e.getEmbeddedCells().length > 0) {
+                    e.position(position.x - position.width / 2, position.y - position.height / 2);
+                    e.size(position.width, position.height);
+                } else {
+                    const size = e.size();
+                    e.position(position.x - size.width / 2, position.y - size.height / 2);
+                }
+            }
+        }
+
         // create a graphlib.Graph that represents the joint.dia.Graph
         // var glGraph = graph.toGraphLib({
         var glGraph = DirectedGraph.toGraphLib(graph, {
