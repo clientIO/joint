@@ -43,8 +43,8 @@ export const DirectedGraph = {
             opt.setPosition(element, glNode);
         } else {
             element.position(glNode.x - glNode.width / 2, glNode.y - glNode.height / 2);
-            if ((opt.clusterPadding === 'default') && (element.getEmbeddedCells().length > 0)) {
-                // apply cluster padding according to Dagre's calculation
+            if ((opt.clusterPadding === 'default') && (glNode.rank === undefined)) {
+                // we want to use Dagre's default cluster padding, and this is a cluster
                 element.size(glNode.width, glNode.height);
             } // else: rely on `opt.resizeClusters` and `opt.clusterPadding` (see `layout()` function)
         }
