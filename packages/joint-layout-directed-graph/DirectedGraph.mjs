@@ -117,7 +117,6 @@ export const DirectedGraph = {
         });
 
         if (opt.clusterPadding === 'default') {
-            opt.resizeClusters = false;
             // use default dagre approach
             opt.setPosition = (e, position) => {
                 if (e.getEmbeddedCells().length > 0) {
@@ -186,7 +185,7 @@ export const DirectedGraph = {
             graph,
         });
 
-        if (opt.resizeClusters) {
+        if (opt.resizeClusters && (typeof opt.clusterPadding === 'number')) {
             // Resize and reposition cluster elements
             // Filter out top-level clusters (nodes without a parent and with children) and map them to cells
             const topLevelClusters = glGraph.nodes()
