@@ -36,16 +36,17 @@ export const DirectedGraph = {
 
     importElement: function(nodeId, glGraph, graph, opt) {
 
-        var element = graph.getCell(nodeId);
-        var glNode = glGraph.node(nodeId);
+        const element = graph.getCell(nodeId);
+        const glNode = glGraph.node(nodeId);
 
-        if (opt.setPosition) {
+        if (util.isFunction(opt.setPosition)) {
             opt.setPosition(element, glNode);
         } else {
-            element.set('position', {
-                x: glNode.x - glNode.width / 2,
-                y: glNode.y - glNode.height / 2
-            });
+            element.position(glNode.x - glNode.width / 2, glNode.y - glNode.height / 2);
+            if ((opt.clusterPadding === 'default') && (element.getEmbeddedCells().length > 0)) {
+                // apply cluster padding according to Dagre's calculation
+                element.size(glNode.width, glNode.height);
+            } // else: rely on `opt.resizeClusters` and `opt.clusterPadding` (see `layout()` function)
         }
     },
 
@@ -115,19 +116,6 @@ export const DirectedGraph = {
             exportElement: this.exportElement,
             exportLink: this.exportLink
         });
-
-        if (opt.clusterPadding === 'default') {
-            // use default dagre approach
-            opt.setPosition = (e, position) => {
-                if (e.getEmbeddedCells().length > 0) {
-                    e.position(position.x - position.width / 2, position.y - position.height / 2);
-                    e.size(position.width, position.height);
-                } else {
-                    const size = e.size();
-                    e.position(position.x - size.width / 2, position.y - size.height / 2);
-                }
-            }
-        }
 
         // create a graphlib.Graph that represents the joint.dia.Graph
         // var glGraph = graph.toGraphLib({
