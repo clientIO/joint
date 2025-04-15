@@ -15,7 +15,7 @@ import {
 } from '@joint/react';
 import { PRIMARY, SECONDARY } from 'storybook/theme';
 import { dia, linkTools } from '@joint/core';
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, type FC } from 'react';
 
 const unit = 4;
 
@@ -291,8 +291,8 @@ function StepNodeRaw(
   );
 }
 // We need to forward ref, so highlighter can access the element
-const DecisionNode = forwardRef(DecisionNodeRaw);
-const StepNode = forwardRef(StepNodeRaw);
+const DecisionNode: FC<FlowchartNodeProps> = forwardRef(DecisionNodeRaw as never);
+const StepNode: FC<FlowchartNodeProps> = forwardRef(StepNodeRaw as never);
 
 // Custom render function that maps the node type to a CSS class for styling
 function RenderFlowchartNode(props: FlowchartNodeProps) {

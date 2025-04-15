@@ -6,8 +6,6 @@
 
 # Variable: GraphStoreContext
 
-> `const` **GraphStoreContext**: `Context`\<`undefined` \| [`StoreContext`](../interfaces/StoreContext.md)\>
+> `const` **GraphStoreContext**: `Context`\<`undefined` \| `Store`\>
 
-Defined in: [joint-react/src/context/graph-store-context.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/context/graph-store-context.tsx#L10)
-
-Graph context provides a graph instance to its children.
+Defined in: [joint-react/src/context/graph-store-context.tsx:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/context/graph-store-context.tsx#L5)

@@ -8,13 +8,10 @@
 
 > **useMeasureNodeSize**\<`AnyHtmlOrSvgElement`\>(`elementRef`, `options`?): `void`
 
-Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:37](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L37)
+Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:32](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L32)
 
-Function to measure (update) node (element) `width` and `height` based on the provided element ref.
-Returns new created function to set the ref.
-It must be used inside the paper `renderElement` function.
-
-Ref must be just a reference to the HTML or SVG element.
+Custom hook to measure the size of a node and update its size in the graph.
+It uses the `createElementSizeObserver` utility to observe size changes.
 
 ## Type Parameters
 
@@ -28,20 +25,14 @@ Ref must be just a reference to the HTML or SVG element.
 
 `RefObject`\<`null` \| `AnyHtmlOrSvgElement`\>
 
-The ref to the element to measure.
+A reference to the HTML or SVG element to measure.
 
 ### options?
 
 [`MeasureNodeOptions`](../interfaces/MeasureNodeOptions.md)
 
-The options for the hook.
+Options for measuring the node size.
 
 ## Returns
 
 `void`
-
-## See
-
- - Paper
- - `useGraph`
- - `useCellId`

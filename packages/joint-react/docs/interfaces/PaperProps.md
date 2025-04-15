@@ -6,7 +6,7 @@
 
 # Interface: PaperProps\<ElementItem\>
 
-Defined in: [joint-react/src/components/paper/paper.tsx:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L28)
+Defined in: [joint-react/src/components/paper/paper.tsx:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L35)
 
 The props for the Paper component. Extend the `dia.Paper.Options` interface.
 For more information, see the JointJS documentation.
@@ -143,7 +143,7 @@ Defined in: [joint-core/types/joint.d.ts:1432](https://github.com/samuelgja/join
 
 > `readonly` `optional` **children**: `ReactNode`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:92](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L92)
+Defined in: [joint-react/src/components/paper/paper.tsx:99](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L99)
 
 Children to render. Paper automatically wrap the children with the PaperContext, if there is no PaperContext in the parent tree.
 
@@ -153,7 +153,7 @@ Children to render. Paper automatically wrap the children with the PaperContext,
 
 > `readonly` `optional` **className**: `string`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:70](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L70)
+Defined in: [joint-react/src/components/paper/paper.tsx:77](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L77)
 
 Class name of the paper element.
 
@@ -167,7 +167,7 @@ Class name of the paper element.
 
 > `readonly` `optional` **clickThreshold**: `number`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:109](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L109)
+Defined in: [joint-react/src/components/paper/paper.tsx:116](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L116)
 
 The threshold for click events in pixels.
 If the mouse moves more than this distance, it will be considered a drag event.
@@ -344,7 +344,7 @@ Defined in: [joint-core/types/joint.d.ts:3440](https://github.com/samuelgja/join
 
 > `readonly` `optional` **elementSelector**: (`item`) => `ElementItem`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:78](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L78)
+Defined in: [joint-react/src/components/paper/paper.tsx:85](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L85)
 
 A function that selects the elements to be rendered.
 It defaults to the `GraphElement` elements because `dia.Element` is not a valid React element (it do not change reference after update).
@@ -651,75 +651,189 @@ Defined in: [joint-core/types/joint.d.ts:1411](https://github.com/samuelgja/join
 
 > `readonly` `optional` **noDataPlaceholder**: `ReactNode`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:87](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L87)
+Defined in: [joint-react/src/components/paper/paper.tsx:94](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L94)
 
 Placeholder to be rendered when there is no data (no nodes or elements to render).
 
 ***
 
-### onBlankContextmenu?
+### onBlankContextMenu()?
 
-> `optional` **onBlankContextmenu**: `PaperEventHandler`\<`"blank:contextmenu"`\>
+> `optional` **onBlankContextMenu**: (`args`) => `void`
 
-#### Inherited from
+Defined in: [joint-react/src/types/event.types.ts:277](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L277)
 
-`PaperEvents.onBlankContextmenu`
+#### Parameters
 
-***
+##### args
 
-### onBlankMouseenter?
+###### event
 
-> `optional` **onBlankMouseenter**: `PaperEventHandler`\<`"blank:mouseenter"`\>
+`Event`
 
-#### Inherited from
+###### paper
 
-`PaperEvents.onBlankMouseenter`
+`Paper`
 
-***
+###### x
 
-### onBlankMouseleave?
+`number`
 
-> `optional` **onBlankMouseleave**: `PaperEventHandler`\<`"blank:mouseleave"`\>
+###### y
 
-#### Inherited from
+`number`
 
-`PaperEvents.onBlankMouseleave`
+#### Returns
 
-***
-
-### onBlankMouseout?
-
-> `optional` **onBlankMouseout**: `PaperEventHandler`\<`"blank:mouseout"`\>
+`void`
 
 #### Inherited from
 
-`PaperEvents.onBlankMouseout`
+`PaperEvents.onBlankContextMenu`
 
 ***
 
-### onBlankMouseover?
+### onBlankMouseEnter()?
 
-> `optional` **onBlankMouseover**: `PaperEventHandler`\<`"blank:mouseover"`\>
+> `optional` **onBlankMouseEnter**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:310](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L310)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onBlankMouseover`
+`PaperEvents.onBlankMouseEnter`
 
 ***
 
-### onBlankMousewheel?
+### onBlankMouseLeave()?
 
-> `optional` **onBlankMousewheel**: `PaperEventHandler`\<`"blank:mousewheel"`\>
+> `optional` **onBlankMouseLeave**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:318](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L318)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onBlankMousewheel`
+`PaperEvents.onBlankMouseLeave`
 
 ***
 
-### onBlankPointerClick?
+### onBlankMouseOut()?
 
-> `optional` **onBlankPointerClick**: `PaperEventHandler`\<`"blank:pointerclick"`\>
+> `optional` **onBlankMouseOut**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:335](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L335)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onBlankMouseOut`
+
+***
+
+### onBlankMouseOver()?
+
+> `optional` **onBlankMouseOver**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:327](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L327)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onBlankMouseOver`
+
+***
+
+### onBlankPointerClick()?
+
+> `optional` **onBlankPointerClick**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:219](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L219)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -727,59 +841,111 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onBlankPointerdblClick?
+### onBlankPointerDblClick()?
 
-> `optional` **onBlankPointerdblClick**: `PaperEventHandler`\<`"blank:pointerdblclick"`\>
+> `optional` **onBlankPointerDblClick**: (`args`) => `void`
 
-#### Inherited from
+Defined in: [joint-react/src/types/event.types.ts:248](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L248)
 
-`PaperEvents.onBlankPointerdblClick`
+#### Parameters
 
-***
+##### args
 
-### onBlankPointerdown?
+###### event
 
-> `optional` **onBlankPointerdown**: `PaperEventHandler`\<`"blank:pointerdown"`\>
+`Event`
 
-#### Inherited from
+###### paper
 
-`PaperEvents.onBlankPointerdown`
+`Paper`
 
-***
+###### x
 
-### onBlankPointermove?
+`number`
 
-> `optional` **onBlankPointermove**: `PaperEventHandler`\<`"blank:pointermove"`\>
+###### y
 
-#### Inherited from
+`number`
 
-`PaperEvents.onBlankPointermove`
+#### Returns
 
-***
-
-### onBlankPointerup?
-
-> `optional` **onBlankPointerup**: `PaperEventHandler`\<`"blank:pointerup"`\>
+`void`
 
 #### Inherited from
 
-`PaperEvents.onBlankPointerup`
+`PaperEvents.onBlankPointerDblClick`
 
 ***
 
-### onCellContextmenu?
+### onCellContextMenu()?
 
-> `optional` **onCellContextmenu**: `PaperEventHandler`\<`"cell:contextmenu"`\>
+> `optional` **onCellContextMenu**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:256](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L256)
+
+#### Parameters
+
+##### args
+
+###### cellView
+
+`CellView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onCellContextmenu`
+`PaperEvents.onCellContextMenu`
 
 ***
 
-### onCellHighlight?
+### onCellHighlight()?
 
-> `optional` **onCellHighlight**: `PaperEventHandler`\<`"cell:highlight"`\>
+> `optional` **onCellHighlight**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:384](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L384)
+
+#### Parameters
+
+##### args
+
+###### cellView
+
+`CellView`
+
+###### node
+
+[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
+
+###### options
+
+`EventHighlightOptions`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -787,9 +953,35 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onCellHighlightInvalid?
+### onCellHighlightInvalid()?
 
-> `optional` **onCellHighlightInvalid**: `PaperEventHandler`\<`"cell:highlight:invalid"`\>
+> `optional` **onCellHighlightInvalid**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:396](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L396)
+
+#### Parameters
+
+##### args
+
+###### cellView
+
+`CellView`
+
+###### highlighter
+
+`HighlighterView`
+
+###### highlighterId
+
+`string`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -797,59 +989,167 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onCellMouseenter?
+### onCellMouseEnter()?
 
-> `optional` **onCellMouseenter**: `PaperEventHandler`\<`"cell:mouseenter"`\>
+> `optional` **onCellMouseEnter**: (`args`) => `void`
 
-#### Inherited from
+Defined in: [joint-react/src/types/event.types.ts:303](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L303)
 
-`PaperEvents.onCellMouseenter`
+#### Parameters
 
-***
+##### args
 
-### onCellMouseleave?
+###### cellView
 
-> `optional` **onCellMouseleave**: `PaperEventHandler`\<`"cell:mouseleave"`\>
+`CellView`
 
-#### Inherited from
+###### event
 
-`PaperEvents.onCellMouseleave`
+`Event`
 
-***
+###### paper
 
-### onCellMouseout?
+`Paper`
 
-> `optional` **onCellMouseout**: `PaperEventHandler`\<`"cell:mouseout"`\>
+#### Returns
 
-#### Inherited from
-
-`PaperEvents.onCellMouseout`
-
-***
-
-### onCellMouseover?
-
-> `optional` **onCellMouseover**: `PaperEventHandler`\<`"cell:mouseover"`\>
+`void`
 
 #### Inherited from
 
-`PaperEvents.onCellMouseover`
+`PaperEvents.onCellMouseEnter`
 
 ***
 
-### onCellMousewheel?
+### onCellMouseLeave()?
 
-> `optional` **onCellMousewheel**: `PaperEventHandler`\<`"cell:mousewheel"`\>
+> `optional` **onCellMouseLeave**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:311](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L311)
+
+#### Parameters
+
+##### args
+
+###### cellView
+
+`CellView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onCellMousewheel`
+`PaperEvents.onCellMouseLeave`
 
 ***
 
-### onCellPointerClick?
+### onCellMouseOut()?
 
-> `optional` **onCellPointerClick**: `PaperEventHandler`\<`"cell:pointerclick"`\>
+> `optional` **onCellMouseOut**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:328](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L328)
+
+#### Parameters
+
+##### args
+
+###### cellView
+
+`CellView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onCellMouseOut`
+
+***
+
+### onCellMouseOver()?
+
+> `optional` **onCellMouseOver**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:320](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L320)
+
+#### Parameters
+
+##### args
+
+###### cellView
+
+`CellView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onCellMouseOver`
+
+***
+
+### onCellPointerClick()?
+
+> `optional` **onCellPointerClick**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:198](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L198)
+
+#### Parameters
+
+##### args
+
+###### cellView
+
+`CellView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -857,49 +1157,75 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onCellPointerdblClick?
+### onCellPointerDblClick()?
 
-> `optional` **onCellPointerdblClick**: `PaperEventHandler`\<`"cell:pointerdblclick"`\>
+> `optional` **onCellPointerDblClick**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:227](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L227)
+
+#### Parameters
+
+##### args
+
+###### cellView
+
+`CellView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onCellPointerdblClick`
+`PaperEvents.onCellPointerDblClick`
 
 ***
 
-### onCellPointerdown?
+### onCellUnhighlight()?
 
-> `optional` **onCellPointerdown**: `PaperEventHandler`\<`"cell:pointerdown"`\>
+> `optional` **onCellUnhighlight**: (`args`) => `void`
 
-#### Inherited from
+Defined in: [joint-react/src/types/event.types.ts:390](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L390)
 
-`PaperEvents.onCellPointerdown`
+#### Parameters
 
-***
+##### args
 
-### onCellPointermove?
+###### cellView
 
-> `optional` **onCellPointermove**: `PaperEventHandler`\<`"cell:pointermove"`\>
+`CellView`
 
-#### Inherited from
+###### node
 
-`PaperEvents.onCellPointermove`
+[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
 
-***
+###### options
 
-### onCellPointerup?
+`EventHighlightOptions`
 
-> `optional` **onCellPointerup**: `PaperEventHandler`\<`"cell:pointerup"`\>
+###### paper
 
-#### Inherited from
+`Paper`
 
-`PaperEvents.onCellPointerup`
+#### Returns
 
-***
-
-### onCellUnhighlight?
-
-> `optional` **onCellUnhighlight**: `PaperEventHandler`\<`"cell:unhighlight"`\>
+`void`
 
 #### Inherited from
 
@@ -907,9 +1233,31 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onCustom?
+### onCustom()?
 
-> `optional` **onCustom**: `PaperEventHandler`\<`"custom"`\>
+> `optional` **onCustom**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:447](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L447)
+
+#### Parameters
+
+##### args
+
+###### args
+
+`any`[]
+
+###### eventName
+
+`string`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -917,29 +1265,127 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onElementContextmenu?
+### onElementContextMenu()?
 
-> `optional` **onElementContextmenu**: `PaperEventHandler`\<`"element:contextmenu"`\>
+> `optional` **onElementContextMenu**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:263](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L263)
+
+#### Parameters
+
+##### args
+
+###### elementView
+
+`ElementView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onElementContextmenu`
+`PaperEvents.onElementContextMenu`
 
 ***
 
-### onElementMagnetContextmenu?
+### onElementMagnetContextMenu()?
 
-> `optional` **onElementMagnetContextmenu**: `PaperEventHandler`\<`"element:magnet:contextmenu"`\>
+> `optional` **onElementMagnetContextMenu**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:374](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L374)
+
+#### Parameters
+
+##### args
+
+###### elementView
+
+`ElementView`
+
+###### event
+
+`Event`
+
+###### magnetNode
+
+[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onElementMagnetContextmenu`
+`PaperEvents.onElementMagnetContextMenu`
 
 ***
 
-### onElementMagnetPointerClick?
+### onElementMagnetPointerClick()?
 
-> `optional` **onElementMagnetPointerClick**: `PaperEventHandler`\<`"element:magnet:pointerclick"`\>
+> `optional` **onElementMagnetPointerClick**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:358](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L358)
+
+#### Parameters
+
+##### args
+
+###### elementView
+
+`ElementView`
+
+###### event
+
+`Event`
+
+###### magnetNode
+
+[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -947,69 +1393,211 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onElementMagnetPointerdblClick?
+### onElementMagnetPointerDblClick()?
 
-> `optional` **onElementMagnetPointerdblClick**: `PaperEventHandler`\<`"element:magnet:pointerdblclick"`\>
+> `optional` **onElementMagnetPointerDblClick**: (`args`) => `void`
 
-#### Inherited from
+Defined in: [joint-react/src/types/event.types.ts:366](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L366)
 
-`PaperEvents.onElementMagnetPointerdblClick`
+#### Parameters
 
-***
+##### args
 
-### onElementMouseenter?
+###### elementView
 
-> `optional` **onElementMouseenter**: `PaperEventHandler`\<`"element:mouseenter"`\>
+`ElementView`
 
-#### Inherited from
+###### event
 
-`PaperEvents.onElementMouseenter`
+`Event`
 
-***
+###### magnetNode
 
-### onElementMouseleave?
+[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
 
-> `optional` **onElementMouseleave**: `PaperEventHandler`\<`"element:mouseleave"`\>
+###### paper
 
-#### Inherited from
+`Paper`
 
-`PaperEvents.onElementMouseleave`
+###### x
 
-***
+`number`
 
-### onElementMouseout?
+###### y
 
-> `optional` **onElementMouseout**: `PaperEventHandler`\<`"element:mouseout"`\>
+`number`
 
-#### Inherited from
+#### Returns
 
-`PaperEvents.onElementMouseout`
-
-***
-
-### onElementMouseover?
-
-> `optional` **onElementMouseover**: `PaperEventHandler`\<`"element:mouseover"`\>
+`void`
 
 #### Inherited from
 
-`PaperEvents.onElementMouseover`
+`PaperEvents.onElementMagnetPointerDblClick`
 
 ***
 
-### onElementMousewheel?
+### onElementMouseEnter()?
 
-> `optional` **onElementMousewheel**: `PaperEventHandler`\<`"element:mousewheel"`\>
+> `optional` **onElementMouseEnter**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:304](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L304)
+
+#### Parameters
+
+##### args
+
+###### elementView
+
+`ElementView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onElementMousewheel`
+`PaperEvents.onElementMouseEnter`
 
 ***
 
-### onElementPointerClick?
+### onElementMouseLeave()?
 
-> `optional` **onElementPointerClick**: `PaperEventHandler`\<`"element:pointerclick"`\>
+> `optional` **onElementMouseLeave**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:312](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L312)
+
+#### Parameters
+
+##### args
+
+###### elementView
+
+`ElementView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onElementMouseLeave`
+
+***
+
+### onElementMouseOut()?
+
+> `optional` **onElementMouseOut**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:329](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L329)
+
+#### Parameters
+
+##### args
+
+###### elementView
+
+`ElementView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onElementMouseOut`
+
+***
+
+### onElementMouseOver()?
+
+> `optional` **onElementMouseOver**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:321](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L321)
+
+#### Parameters
+
+##### args
+
+###### elementView
+
+`ElementView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onElementMouseOver`
+
+***
+
+### onElementPointerClick()?
+
+> `optional` **onElementPointerClick**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:205](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L205)
+
+#### Parameters
+
+##### args
+
+###### elementView
+
+`ElementView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1017,49 +1605,83 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onElementPointerdblClick?
+### onElementPointerDblClick()?
 
-> `optional` **onElementPointerdblClick**: `PaperEventHandler`\<`"element:pointerdblclick"`\>
+> `optional` **onElementPointerDblClick**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:234](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L234)
+
+#### Parameters
+
+##### args
+
+###### elementView
+
+`ElementView`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onElementPointerdblClick`
+`PaperEvents.onElementPointerDblClick`
 
 ***
 
-### onElementPointerdown?
+### onLinkConnect()?
 
-> `optional` **onElementPointerdown**: `PaperEventHandler`\<`"element:pointerdown"`\>
+> `optional` **onLinkConnect**: (`args`) => `void`
 
-#### Inherited from
+Defined in: [joint-react/src/types/event.types.ts:404](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L404)
 
-`PaperEvents.onElementPointerdown`
+#### Parameters
 
-***
+##### args
 
-### onElementPointermove?
+###### arrowhead
 
-> `optional` **onElementPointermove**: `PaperEventHandler`\<`"element:pointermove"`\>
+`LinkEnd`
 
-#### Inherited from
+###### event
 
-`PaperEvents.onElementPointermove`
+`Event`
 
-***
+###### linkView
 
-### onElementPointerup?
+`LinkView`
 
-> `optional` **onElementPointerup**: `PaperEventHandler`\<`"element:pointerup"`\>
+###### newCellView
 
-#### Inherited from
+`CellView`
 
-`PaperEvents.onElementPointerup`
+###### newCellViewMagnet
 
-***
+[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
 
-### onLinkConnect?
+###### paper
 
-> `optional` **onLinkConnect**: `PaperEventHandler`\<`"link:connect"`\>
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1067,19 +1689,83 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onLinkContextmenu?
+### onLinkContextMenu()?
 
-> `optional` **onLinkContextmenu**: `PaperEventHandler`\<`"link:contextmenu"`\>
+> `optional` **onLinkContextMenu**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:270](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L270)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### linkView
+
+`LinkView`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onLinkContextmenu`
+`PaperEvents.onLinkContextMenu`
 
 ***
 
-### onLinkDisconnect?
+### onLinkDisconnect()?
 
-> `optional` **onLinkDisconnect**: `PaperEventHandler`\<`"link:disconnect"`\>
+> `optional` **onLinkDisconnect**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:412](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L412)
+
+#### Parameters
+
+##### args
+
+###### arrowhead
+
+`LinkEnd`
+
+###### event
+
+`Event`
+
+###### linkView
+
+`LinkView`
+
+###### paper
+
+`Paper`
+
+###### previousCellView
+
+`CellView`
+
+###### previousCellViewMagnet
+
+[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1087,59 +1773,167 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onLinkMouseenter?
+### onLinkMouseEnter()?
 
-> `optional` **onLinkMouseenter**: `PaperEventHandler`\<`"link:mouseenter"`\>
+> `optional` **onLinkMouseEnter**: (`args`) => `void`
 
-#### Inherited from
+Defined in: [joint-react/src/types/event.types.ts:309](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L309)
 
-`PaperEvents.onLinkMouseenter`
+#### Parameters
 
-***
+##### args
 
-### onLinkMouseleave?
+###### event
 
-> `optional` **onLinkMouseleave**: `PaperEventHandler`\<`"link:mouseleave"`\>
+`Event`
 
-#### Inherited from
+###### linkView
 
-`PaperEvents.onLinkMouseleave`
+`LinkView`
 
-***
+###### paper
 
-### onLinkMouseout?
+`Paper`
 
-> `optional` **onLinkMouseout**: `PaperEventHandler`\<`"link:mouseout"`\>
+#### Returns
 
-#### Inherited from
-
-`PaperEvents.onLinkMouseout`
-
-***
-
-### onLinkMouseover?
-
-> `optional` **onLinkMouseover**: `PaperEventHandler`\<`"link:mouseover"`\>
+`void`
 
 #### Inherited from
 
-`PaperEvents.onLinkMouseover`
+`PaperEvents.onLinkMouseEnter`
 
 ***
 
-### onLinkMousewheel?
+### onLinkMouseLeave()?
 
-> `optional` **onLinkMousewheel**: `PaperEventHandler`\<`"link:mousewheel"`\>
+> `optional` **onLinkMouseLeave**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:317](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L317)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### linkView
+
+`LinkView`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onLinkMousewheel`
+`PaperEvents.onLinkMouseLeave`
 
 ***
 
-### onLinkPointerClick?
+### onLinkMouseOut()?
 
-> `optional` **onLinkPointerClick**: `PaperEventHandler`\<`"link:pointerclick"`\>
+> `optional` **onLinkMouseOut**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:334](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L334)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### linkView
+
+`LinkView`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onLinkMouseOut`
+
+***
+
+### onLinkMouseOver()?
+
+> `optional` **onLinkMouseOver**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:326](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L326)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### linkView
+
+`LinkView`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onLinkMouseOver`
+
+***
+
+### onLinkPointerClick()?
+
+> `optional` **onLinkPointerClick**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:212](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L212)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### linkView
+
+`LinkView`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1147,49 +1941,83 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onLinkPointerdblClick?
+### onLinkPointerDblClick()?
 
-> `optional` **onLinkPointerdblClick**: `PaperEventHandler`\<`"link:pointerdblclick"`\>
+> `optional` **onLinkPointerDblClick**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:241](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L241)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### linkView
+
+`LinkView`
+
+###### paper
+
+`Paper`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onLinkPointerdblClick`
+`PaperEvents.onLinkPointerDblClick`
 
 ***
 
-### onLinkPointerdown?
+### onLinkSnapConnect()?
 
-> `optional` **onLinkPointerdown**: `PaperEventHandler`\<`"link:pointerdown"`\>
+> `optional` **onLinkSnapConnect**: (`args`) => `void`
 
-#### Inherited from
+Defined in: [joint-react/src/types/event.types.ts:420](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L420)
 
-`PaperEvents.onLinkPointerdown`
+#### Parameters
 
-***
+##### args
 
-### onLinkPointermove?
+###### arrowhead
 
-> `optional` **onLinkPointermove**: `PaperEventHandler`\<`"link:pointermove"`\>
+`LinkEnd`
 
-#### Inherited from
+###### event
 
-`PaperEvents.onLinkPointermove`
+`Event`
 
-***
+###### linkView
 
-### onLinkPointerup?
+`LinkView`
 
-> `optional` **onLinkPointerup**: `PaperEventHandler`\<`"link:pointerup"`\>
+###### newCellView
 
-#### Inherited from
+`CellView`
 
-`PaperEvents.onLinkPointerup`
+###### newCellViewMagnet
 
-***
+[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
 
-### onLinkSnapConnect?
+###### paper
 
-> `optional` **onLinkSnapConnect**: `PaperEventHandler`\<`"link:snap:connect"`\>
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1197,9 +2025,43 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 ***
 
-### onLinkSnapDisconnect?
+### onLinkSnapDisconnect()?
 
-> `optional` **onLinkSnapDisconnect**: `PaperEventHandler`\<`"link:snap:disconnect"`\>
+> `optional` **onLinkSnapDisconnect**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:428](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L428)
+
+#### Parameters
+
+##### args
+
+###### arrowhead
+
+`LinkEnd`
+
+###### event
+
+`Event`
+
+###### linkView
+
+`LinkView`
+
+###### paper
+
+`Paper`
+
+###### previousCellView
+
+`CellView`
+
+###### previousCellViewMagnet
+
+[`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1211,7 +2073,7 @@ Placeholder to be rendered when there is no data (no nodes or elements to render
 
 > `readonly` `optional` **onLoad**: (`options`) => `void`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:61](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L61)
+Defined in: [joint-react/src/components/paper/paper.tsx:68](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L68)
 
 A function that is called when the paper is ready and all elements are rendered.
 
@@ -1227,29 +2089,271 @@ A function that is called when the paper is ready and all elements are rendered.
 
 ***
 
-### onPaperPan?
+### onMouseWheel()?
 
-> `optional` **onPaperPan**: `PaperEventHandler`\<`"paper:pan"`\>
+> `optional` **onMouseWheel**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:338](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L338)
+
+#### Parameters
+
+##### args
+
+###### delta
+
+`number`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### view
+
+`CellView`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onPaperPan`
+`PaperEvents.onMouseWheel`
 
 ***
 
-### onPaperPinch?
+### onPan()?
 
-> `optional` **onPaperPinch**: `PaperEventHandler`\<`"paper:pinch"`\>
+> `optional` **onPan**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:348](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L348)
+
+#### Parameters
+
+##### args
+
+###### deltaX
+
+`number`
+
+###### deltaY
+
+`number`
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
-`PaperEvents.onPaperPinch`
+`PaperEvents.onPan`
 
 ***
 
-### onRenderDone?
+### onPinch()?
 
-> `optional` **onRenderDone**: `PaperEventHandler`\<`"render:done"`\>
+> `optional` **onPinch**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:349](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L349)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### scale
+
+`number`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onPinch`
+
+***
+
+### onPointerDown()?
+
+> `optional` **onPointerDown**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:280](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L280)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### view
+
+`CellView`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onPointerDown`
+
+***
+
+### onPointerMove()?
+
+> `optional` **onPointerMove**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:287](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L287)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### view
+
+`CellView`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onPointerMove`
+
+***
+
+### onPointerUp()?
+
+> `optional` **onPointerUp**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:294](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L294)
+
+#### Parameters
+
+##### args
+
+###### event
+
+`Event`
+
+###### paper
+
+`Paper`
+
+###### view
+
+`CellView`
+
+###### x
+
+`number`
+
+###### y
+
+`number`
+
+#### Returns
+
+`void`
+
+#### Inherited from
+
+`PaperEvents.onPointerUp`
+
+***
+
+### onRenderDone()?
+
+> `optional` **onRenderDone**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:438](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L438)
+
+#### Parameters
+
+##### args
+
+###### opt
+
+`unknown`
+
+###### paper
+
+`Paper`
+
+###### stats
+
+`UpdateStats`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1257,9 +2361,35 @@ A function that is called when the paper is ready and all elements are rendered.
 
 ***
 
-### onResize?
+### onResize()?
 
-> `optional` **onResize**: `PaperEventHandler`\<`"resize"`\>
+> `optional` **onResize**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:443](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L443)
+
+#### Parameters
+
+##### args
+
+###### data
+
+`unknown`
+
+###### height
+
+`number`
+
+###### paper
+
+`Paper`
+
+###### width
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1267,9 +2397,35 @@ A function that is called when the paper is ready and all elements are rendered.
 
 ***
 
-### onScale?
+### onScale()?
 
-> `optional` **onScale**: `PaperEventHandler`\<`"scale"`\>
+> `optional` **onScale**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:442](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L442)
+
+#### Parameters
+
+##### args
+
+###### data
+
+`unknown`
+
+###### paper
+
+`Paper`
+
+###### sx
+
+`number`
+
+###### sy
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1277,9 +2433,31 @@ A function that is called when the paper is ready and all elements are rendered.
 
 ***
 
-### onTransform?
+### onTransform()?
 
-> `optional` **onTransform**: `PaperEventHandler`\<`"transform"`\>
+> `optional` **onTransform**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:444](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L444)
+
+#### Parameters
+
+##### args
+
+###### data
+
+`unknown`
+
+###### matrix
+
+[`DOMMatrix`](https://developer.mozilla.org/docs/Web/API/DOMMatrix)
+
+###### paper
+
+`Paper`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1287,9 +2465,35 @@ A function that is called when the paper is ready and all elements are rendered.
 
 ***
 
-### onTranslate?
+### onTranslate()?
 
-> `optional` **onTranslate**: `PaperEventHandler`\<`"translate"`\>
+> `optional` **onTranslate**: (`args`) => `void`
+
+Defined in: [joint-react/src/types/event.types.ts:441](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/event.types.ts#L441)
+
+#### Parameters
+
+##### args
+
+###### data
+
+`unknown`
+
+###### paper
+
+`Paper`
+
+###### tx
+
+`number`
+
+###### ty
+
+`number`
+
+#### Returns
+
+`void`
 
 #### Inherited from
 
@@ -1379,7 +2583,7 @@ Defined in: [joint-core/types/joint.d.ts:1457](https://github.com/samuelgja/join
 
 > `readonly` `optional` **overwriteDefaultPaperElement**: (`paper`) => [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement) \| [`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)
 
-Defined in: [joint-react/src/components/paper/paper.tsx:102](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L102)
+Defined in: [joint-react/src/components/paper/paper.tsx:109](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L109)
 
 On load custom element.
 If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
@@ -1440,7 +2644,7 @@ Defined in: [joint-core/types/joint.d.ts:1417](https://github.com/samuelgja/join
 
 > `readonly` `optional` **renderElement**: [`RenderElement`](../type-aliases/RenderElement.md)\<`ElementItem`\>
 
-Defined in: [joint-react/src/components/paper/paper.tsx:57](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L57)
+Defined in: [joint-react/src/components/paper/paper.tsx:64](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L64)
 
 A function that renders the element.
 
@@ -1499,7 +2703,7 @@ Defined in: [joint-core/types/joint.d.ts:1433](https://github.com/samuelgja/join
 
 > `readonly` `optional` **scale**: `number`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:83](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L83)
+Defined in: [joint-react/src/components/paper/paper.tsx:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L90)
 
 The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
 
@@ -1557,7 +2761,7 @@ Defined in: [joint-core/types/joint.d.ts:1449](https://github.com/samuelgja/join
 
 > `readonly` `optional` **style**: `CSSProperties`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:66](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L66)
+Defined in: [joint-react/src/components/paper/paper.tsx:73](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L73)
 
 The style of the paper element.
 

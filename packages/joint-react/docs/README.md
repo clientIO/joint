@@ -7,7 +7,6 @@
 ## Components
 
 - [Highlighter](@joint/namespaces/Highlighter/README.md)
-- [HTMLNode](variables/HTMLNode.md)
 - [MeasuredNode](variables/MeasuredNode.md)
 - [Paper](variables/Paper.md)
 - [GraphProvider](functions/GraphProvider.md)
@@ -17,7 +16,6 @@
 - [useElements](functions/useElements.md)
 - [useGraph](functions/useGraph.md)
 - [useLinks](functions/useLinks.md)
-- [useMeasureNodeSize](functions/useMeasureNodeSize.md)
 - [useSetElement](functions/useSetElement.md)
 
 ## Models
@@ -41,6 +39,7 @@
 
 - [jsx](functions/jsx.md)
 - [useElement](functions/useElement.md)
+- [useMeasureNodeSize](functions/useMeasureNodeSize.md)
 
 ## Graph
 
@@ -75,27 +74,26 @@ const paper = usePaper();
 - [PaperProps](interfaces/PaperProps.md)
 - [PortGroupProps](interfaces/PortGroupProps.md)
 - [PortProps](interfaces/PortProps.md)
-- [StoreContext](interfaces/StoreContext.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
 
 ## Type Aliases
 
-- [HTMLElementProps](type-aliases/HTMLElementProps.md)
 - [OnAddHighlighter](type-aliases/OnAddHighlighter.md)
 - [OnSetSize](type-aliases/OnSetSize.md)
 - [RenderElement](type-aliases/RenderElement.md)
 - [SetCell](type-aliases/SetCell.md)
 - [StandardLinkShapesType](type-aliases/StandardLinkShapesType.md)
 - [StandardShapesType](type-aliases/StandardShapesType.md)
+- [StoreContext](type-aliases/StoreContext.md)
 
 ## Variables
 
+- [GraphStoreContext](variables/GraphStoreContext.md)
 - [REACT\_TYPE](variables/REACT_TYPE.md)
 
 ## context
 
 - [CellIdContext](variables/CellIdContext.md)
-- [GraphStoreContext](variables/GraphStoreContext.md)
 - [PaperContext](variables/PaperContext.md)
 - [ToolsViewContext](variables/ToolsViewContext.md)
 

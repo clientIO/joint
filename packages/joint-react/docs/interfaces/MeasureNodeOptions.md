@@ -25,4 +25,6 @@ Useful for adding another padding, or just check element size.
 
 #### Default
 
-it set element via `cell.set('size', {width, height})`
+```ts
+it sets element via cell.set('size', {width, height})
+```
