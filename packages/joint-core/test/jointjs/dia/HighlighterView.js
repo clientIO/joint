@@ -415,13 +415,13 @@ QUnit.module('HighlighterView', function(hooks) {
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
 
-            // Update (Default will unhighlight and highlight)
+            // Re-render (will not highlight the node, because
+            // it's not in the DOM anymore)
             element.attr(['body', 'fill'], 'red', { dirty: true });
             var node2 = elementView.el.querySelector('[joint-selector="body"]');
+            assert.ok(!node.isConnected);
             assert.notEqual(node, node2);
-            assert.ok(highlightSpy.calledOnce);
-            assert.ok(highlightSpy.calledOnceWithExactly(elementView, node));
-            assert.ok(highlightSpy.calledOn(highlighter));
+            assert.notOk(highlightSpy.called);
             assert.ok(unhighlightSpy.calledOnce);
             assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node));
             assert.ok(unhighlightSpy.calledOn(highlighter));
@@ -431,9 +431,37 @@ QUnit.module('HighlighterView', function(hooks) {
             // Unhighlight
             joint.dia.HighlighterView.remove(elementView, id);
             assert.equal(joint.dia.HighlighterView.get(elementView, id), null);
+            assert.notOk(unhighlightSpy.called);
+            assert.ok(highlightSpy.notCalled);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+
+            // Highlight
+            var id2 = 'highlighter-id-2';
+            var node3 = elementView.el.querySelector('[joint-selector="label"]');
+            var highlighter2 = joint.dia.HighlighterView.add(elementView, node3, id2);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+
+            // Update (Default will unhighlight and highlight)
+            element.attr(['body', 'fill'], 'blue', { dirty: false });
+            var node4 = elementView.el.querySelector('[joint-selector="label"]');
+            assert.equal(node3, node4);
+            assert.ok(highlightSpy.calledOnce);
+            assert.ok(highlightSpy.calledOnceWithExactly(elementView, node3));
+            assert.ok(highlightSpy.calledOn(highlighter2));
             assert.ok(unhighlightSpy.calledOnce);
-            assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node));
-            assert.ok(unhighlightSpy.calledOn(highlighter));
+            assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node3));
+            assert.ok(unhighlightSpy.calledOn(highlighter2));
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+
+            // Unhighlight
+            joint.dia.HighlighterView.remove(elementView, id2);
+            assert.equal(joint.dia.HighlighterView.get(elementView, id2), null);
+            assert.ok(unhighlightSpy.calledOnce);
+            assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node3));
+            assert.ok(unhighlightSpy.calledOn(highlighter2));
             assert.ok(highlightSpy.notCalled);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
@@ -607,9 +635,9 @@ QUnit.module('HighlighterView', function(hooks) {
             unhighlightSpy.resetHistory();
 
             // Update (Default will unhighlight and highlight)
-            link.attr(['line', 'stroke'], 'red', { dirty: true });
+            link.attr(['line', 'stroke'], 'red', { dirty: false });
             var node2 = linkView.el.querySelector('[joint-selector="line"]');
-            assert.notEqual(node, node2);
+            assert.equal(node, node2);
             assert.ok(highlightSpy.calledOnce);
             assert.ok(highlightSpy.calledOnceWithExactly(linkView, node));
             assert.ok(highlightSpy.calledOn(highlighter));
@@ -625,6 +653,33 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.ok(unhighlightSpy.calledOnce);
             assert.ok(unhighlightSpy.calledOnceWithExactly(linkView, node));
             assert.ok(unhighlightSpy.calledOn(highlighter));
+            assert.ok(highlightSpy.notCalled);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+
+            var id2 = 'highlighter-id-2';
+            var node3 = linkView.el.querySelector('[joint-selector="wrapper"]');
+            var highlighter2 = joint.dia.HighlighterView.add(linkView, node3, id2);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+
+            // Re-render (will not highlight the node, because
+            // it's not in the DOM anymore)
+            link.attr(['line', 'stroke'], 'blue', { dirty: true });
+            var node4 = linkView.el.querySelector('[joint-selector="wrapper"]');
+            assert.ok(!node3.isConnected);
+            assert.notEqual(node3, node4);
+            assert.notOk(highlightSpy.calledOnce);
+            assert.ok(unhighlightSpy.calledOnce);
+            assert.ok(unhighlightSpy.calledOnceWithExactly(linkView, node3));
+            assert.ok(unhighlightSpy.calledOn(highlighter2));
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+
+            // Unhighlight
+            joint.dia.HighlighterView.remove(linkView, id2);
+            assert.equal(joint.dia.HighlighterView.get(linkView, id2), null);
+            assert.notOk(unhighlightSpy.called);
             assert.ok(highlightSpy.notCalled);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
