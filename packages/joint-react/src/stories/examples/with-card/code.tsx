@@ -15,8 +15,8 @@ import {
 import { PRIMARY } from 'storybook/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200, width: 100, height: 50 },
+  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
+  { id: '2', data: { label: 'Node 2 with longer text' }, x: 250, y: 150 },
 ]);
 const initialEdges = createLinks([
   {

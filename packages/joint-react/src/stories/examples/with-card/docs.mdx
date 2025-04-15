@@ -6,7 +6,9 @@ import Code from './code?raw';
 <Meta of={Stories} />
 
 # Example showing card with children render 
-Example showing card component with custom `onSetSize` method which override default behavior of measuredNode
+Example showing card component with custom `onSetSize` method which override default behavior of measuredNode.
+
+When measured node is used, its recommended to not define `width` and `height` in the node data itself.
 ### Demo
 <Canvas of={Stories.Default} />
 

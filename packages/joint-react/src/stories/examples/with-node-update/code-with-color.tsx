@@ -4,13 +4,13 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  HTMLNode,
   Paper,
   useSetElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
 import { PRIMARY } from 'storybook/theme';
+import { HTMLNode } from 'storybook/decorators/with-simple-data';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1', color: PRIMARY }, x: 100, y: 0 },

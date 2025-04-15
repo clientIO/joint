@@ -1,5 +1,12 @@
-import type { dia } from '@joint/core';
-import { useContext, useMemo, type CSSProperties, type ReactNode } from 'react';
+import { mvc, type dia } from '@joint/core';
+import {
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import type { GraphElement, GraphElementBase } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
@@ -120,12 +127,15 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     elementSelector = noopSelector as (item: GraphElement) => ElementItem,
     scale,
     children,
+    onLoad,
     ...paperOptions
   } = props;
 
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
 
-  const { paperHtmlElement, isPaperFromContext, paper, isLoaded } = useCreatePaper({
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const { paperHtmlElement, isPaperFromContext, paper } = useCreatePaper({
     ...paperOptions,
     scale,
     onRenderElement,
@@ -138,11 +148,31 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({
       opacity: isLoaded ? 1 : 0,
-      pointerEvents: isLoaded ? 'auto' : 'none',
+      pointerEvents: isLoaded ? 'all' : 'none',
       ...style,
     }),
     [isLoaded, style]
   );
+
+  useEffect(() => {
+    const controller = new mvc.Listener();
+    controller.listenTo(paper, 'render:done', () => {
+      const hasSizedElements = paper.model.getElements().some((element) => {
+        const { width = 0, height = 0 } = element.get('size') ?? {};
+        return width > 1 && height > 1;
+      });
+      if (!hasSizedElements) {
+        return;
+      }
+
+      controller.stopListening();
+      setIsLoaded(true);
+      onLoad?.({ paper, graph: paper.model });
+    });
+    return () => {
+      controller.stopListening();
+    };
+  }, [onLoad, paper]);
 
   const content = (
     <div className={className} ref={paperHtmlElement} style={paperContainerStyle}>

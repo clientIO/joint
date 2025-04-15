@@ -5,7 +5,7 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  HTMLNode,
+  MeasuredNode,
   Paper,
   type InferElement,
   type RenderElement,
@@ -50,13 +50,28 @@ function MiniMap() {
     </div>
   );
 }
+
+function RenderElement(props: Readonly<BaseElementWithData>) {
+  const {
+    width,
+    height,
+    data: { label },
+  } = props;
+  return (
+    <foreignObject width={width} height={height}>
+      <MeasuredNode>
+        <div className="node flex flex-col">
+          Test
+          <div>{label}</div>
+        </div>
+      </MeasuredNode>
+    </foreignObject>
+  );
+}
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback((element) => {
-    return <HTMLNode className="node">{element.data.label}</HTMLNode>;
-  }, []);
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={renderElement} />
+      <Paper width={400} height={280} renderElement={RenderElement} />
       <MiniMap />
     </div>
   );

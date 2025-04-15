@@ -6,13 +6,13 @@ import {
   SimpleGraphDecorator,
   type SimpleElement,
 } from '../../../.storybook/decorators/with-simple-data';
-import { HTMLNode } from '../html-node/html-node';
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
 import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
 import { PRIMARY } from 'storybook/theme';
 import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { MeasuredNode } from '../measured-node/measured-node';
 
 export type Story = StoryObj<typeof Paper>;
 
@@ -40,20 +40,24 @@ function RenderRectElement({ width, height }: SimpleElement) {
 
 function RenderHtmlElement({ width, height }: SimpleElement) {
   return (
-    <HTMLNode
-      style={{
-        width,
-        height,
-        boxShadow: '0 0 10px rgba(0,0,0,0.5)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: PRIMARY,
-        borderRadius: 10,
-      }}
-    >
-      Hello
-    </HTMLNode>
+    <foreignObject width={width} height={height}>
+      <MeasuredNode>
+        <div
+          style={{
+            width,
+            height,
+            boxShadow: '0 0 10px rgba(0,0,0,0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: PRIMARY,
+            borderRadius: 10,
+          }}
+        >
+          Hello
+        </div>
+      </MeasuredNode>
+    </foreignObject>
   );
 }
 
@@ -81,7 +85,7 @@ export const WithGrid: Story = {
 
 export const WithScaleDown: Story = {
   args: {
-    scale: 0.2,
+    scale: 0.7,
     renderElement: RenderHtmlElement as never,
   },
 };

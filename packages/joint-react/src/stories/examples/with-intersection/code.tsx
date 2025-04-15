@@ -2,7 +2,7 @@
 import {
   createElements,
   GraphProvider,
-  HTMLNode,
+  MeasuredNode,
   Paper,
   useElements,
   useGraph,
@@ -21,7 +21,7 @@ const initialElements = createElements([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ResizableNode({ id, data: { label } }: Readonly<BaseElementWithData>) {
+function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const graph = useGraph();
   const isIntersected = useElements<BaseElementWithData, boolean>((elements) => {
@@ -44,9 +44,13 @@ function ResizableNode({ id, data: { label } }: Readonly<BaseElementWithData>) {
   });
 
   return (
-    <HTMLNode ref={nodeRef} className={`node ${isIntersected ? 'intersected' : ''}`}>
-      {label}
-    </HTMLNode>
+    <foreignObject width={width} height={height}>
+      <MeasuredNode>
+        <div ref={nodeRef} className={`node ${isIntersected ? 'intersected' : ''}`}>
+          {label}
+        </div>
+      </MeasuredNode>
+    </foreignObject>
   );
 }
 

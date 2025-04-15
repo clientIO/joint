@@ -3,7 +3,7 @@
 import {
   createElements,
   GraphProvider,
-  HTMLNode,
+  MeasuredNode,
   Paper,
   useElements,
   useGraph,
@@ -44,7 +44,7 @@ function getLinkId(id: dia.Cell.ID | null, closeId: dia.Cell.ID | null) {
   return `${id}-${closeId}`;
 }
 
-function ResizableNode({ id, data: { label } }: Readonly<BaseElementWithData>) {
+function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElementWithData>) {
   const graph = useGraph();
   const nodeRef = useRef<HTMLDivElement>(null);
 
@@ -85,15 +85,18 @@ function ResizableNode({ id, data: { label } }: Readonly<BaseElementWithData>) {
   }, [closeId, graph, id]);
 
   return (
-    <HTMLNode
-      onMouseUp={() => {
-        graph.removeCells(graph.getLinks());
-      }}
-      ref={nodeRef}
-      className="node"
-    >
-      {label}
-    </HTMLNode>
+    <foreignObject width={width} height={height}>
+      <MeasuredNode ref={nodeRef}>
+        <div
+          onMouseUp={() => {
+            graph.removeCells(graph.getLinks());
+          }}
+          className="node"
+        >
+          {label}
+        </div>
+      </MeasuredNode>
+    </foreignObject>
   );
 }
 

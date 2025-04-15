@@ -2,9 +2,8 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
-import { RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
+import { HTMLNode, RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useSetElement } from './use-set-element';
-import { HTMLNode } from '../components/html-node/html-node';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../stories/examples/index.css';

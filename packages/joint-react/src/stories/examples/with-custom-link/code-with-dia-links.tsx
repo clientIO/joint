@@ -6,13 +6,13 @@ import { shapes, util } from '@joint/core';
 import {
   createElements,
   GraphProvider,
-  HTMLNode,
   Paper,
   type GraphProps,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
+import { HTMLNode } from 'storybook/decorators/with-simple-data';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },

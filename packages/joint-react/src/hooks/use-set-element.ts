@@ -77,6 +77,7 @@ function setCellHelper<Attributes, Attribute extends keyof Attributes>(
  * setElement('position', { x: 100, y: 100 });
  * ```
  */
+
 export function useSetElement<
   Attributes = BaseAttributes,
   Attribute extends keyof Attributes = keyof Attributes,

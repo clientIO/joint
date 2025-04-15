@@ -1,8 +1,8 @@
 import type { dia } from '@joint/core';
 import type { GraphLink } from '../../types/link-types';
-import { GraphStoreContext, type StoreContext } from '../../context/graph-store-context';
+import { GraphStoreContext } from '../../context/graph-store-context';
 import type { GraphElementBase } from '../../types/element-types';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createStore, type Store } from '../../data/create-store';
 
 export interface GraphProps {
@@ -83,7 +83,6 @@ export interface GraphProps {
  */
 export function GraphProvider(props: GraphProps) {
   const { children, ...rest } = props;
-  const [isLoaded, setIsLoaded] = useState(false);
 
   /**
    * Graph store instance.
@@ -93,7 +92,7 @@ export function GraphProvider(props: GraphProps) {
   const [graphStore, setGraphStore] = useState<null | Store>(null);
 
   useEffect(() => {
-    const newStore = createStore({ ...rest, onLoad: setIsLoaded });
+    const newStore = createStore({ ...rest });
     // We must use state initialization for the store, because it can be used in the same component.
     // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
     setGraphStore(newStore);
@@ -105,21 +104,9 @@ export function GraphProvider(props: GraphProps) {
     // On load initialization
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const graphContext = useMemo((): StoreContext | null => {
-    if (!graphStore) {
-      return null;
-    }
-
-    return {
-      ...graphStore,
-      isLoaded,
-    };
-  }, [graphStore, isLoaded]);
-
-  if (!graphContext) {
+  if (graphStore === null) {
     return null;
   }
 
-  return <GraphStoreContext.Provider value={graphContext}>{children}</GraphStoreContext.Provider>;
+  return <GraphStoreContext.Provider value={graphStore}>{children}</GraphStoreContext.Provider>;
 }

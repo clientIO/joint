@@ -1,8 +1,7 @@
 import { dia, shapes } from '@joint/core';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
-import { processLink, setCells } from '../utils/cell/set-cells';
-import { getLinkTargetAndSourceIds } from '../utils/cell/get-link-targe-and-source-ids';
+import { setCells } from '../utils/cell/set-cells';
 import type { GraphElementBase } from '../types/element-types';
 import type { GraphLink, GraphLinkBase } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
@@ -42,12 +41,6 @@ export interface StoreOptions {
    * It's loaded just once, so it cannot be used as React state.
    */
   readonly defaultLinks?: Array<dia.Link | GraphLink>;
-  /**
-   * Callback function to be called when the graph is loaded.
-   * @param isLoaded
-   * @returns
-   */
-  readonly onLoad?: (isLoaded: boolean) => void;
 }
 
 export interface Store {
@@ -79,10 +72,6 @@ export interface Store {
    *  Remove all listeners and cleanup the graph.
    */
   readonly destroy: () => void;
-  /**
-   * Force update the graph.
-   */
-  readonly forceUpdate: () => void;
 
   /**
    * Get port element
@@ -154,10 +143,10 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * ```
  */
 export function createStore(options?: StoreOptions): Store {
-  const { defaultElements, defaultLinks, onLoad } = options || {};
+  const { defaultElements, defaultLinks } = options || {};
 
   const graph = createGraph(options);
-  const notAssignedLinks = setCells({
+  setCells({
     graph,
     defaultElements,
     defaultLinks,
@@ -172,51 +161,12 @@ export function createStore(options?: StoreOptions): Store {
   graph.on('batch:stop', onBatchStop);
 
   /**
-   * Detects if the node has a size greater than 1.
-   * @param id - The ID of the node to check.
-   * @returns True if the node has a size greater than 1, false otherwise.
-   */
-  function hasNodeSize(id?: dia.Cell.ID) {
-    if (!id) {
-      return false;
-    }
-    const sourceElement = graph.getCell(id);
-    if (!sourceElement) {
-      return false;
-    }
-    if (!sourceElement.isElement()) {
-      return false;
-    }
-    const { width, height } = sourceElement.size();
-    return !!(width > 1 && height > 1);
-  }
-
-  /**
    * Force update the graph.
    * This function is called when the graph is updated.
    * It checks if there are any unsized links and processes them.
    */
   function forceUpdate() {
     data.updateStore(graph);
-    if (notAssignedLinks.size === 0) {
-      onLoad?.(true);
-      return;
-    }
-
-    for (const [id, link] of notAssignedLinks) {
-      const { source, target } = getLinkTargetAndSourceIds(link);
-      if (!hasNodeSize(source)) {
-        continue;
-      }
-      if (hasNodeSize(target)) {
-        graph.addCell(processLink(link));
-        notAssignedLinks.delete(id);
-      }
-    }
-
-    if (notAssignedLinks.size === 0) {
-      onLoad?.(true);
-    }
   }
   /**
    * This function is called when a cell changes.
@@ -252,7 +202,6 @@ export function createStore(options?: StoreOptions): Store {
   forceUpdate();
 
   const store: Store = {
-    forceUpdate,
     destroy,
     graph,
     subscribe: elementsEvents.subscribe,

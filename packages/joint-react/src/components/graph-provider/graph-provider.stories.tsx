@@ -8,11 +8,11 @@ import { GraphProvider } from './graph-provider';
 import { createElements, createLinks, type InferElement, ReactElement } from '@joint/react';
 import { Paper, type RenderElement } from '../paper/paper';
 import { dia } from '@joint/core';
-import { HTMLNode } from '../html-node/html-node';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 import { PRIMARY } from 'storybook/theme';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { HTMLNode } from 'storybook/decorators/with-simple-data';
 
 const API_URL = getAPILink('GraphProvider');
 

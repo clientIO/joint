@@ -52,7 +52,7 @@ export function createElements<
  * type BaseElementWithData = InferElement<typeof elements>;
  * ```
  */
-export type InferElement<T> = T extends Array<infer U> ? Readonly<Omit<U, 'ref'>> : never;
+export type InferElement<T extends Array<Record<string, unknown>>> = T[number];
 
 /**
  * Create links helper function.

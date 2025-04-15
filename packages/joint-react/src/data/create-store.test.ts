@@ -69,18 +69,9 @@ describe('createStore', () => {
       defaultLinks: [link],
     });
 
-    store.forceUpdate();
     await waitFor(() => {
       expect(store.getLinks().size).toBe(1);
     });
-  });
-
-  it('should call onLoad callback when graph is loaded', () => {
-    const onLoad = jest.fn();
-    const store = createStore({ onLoad });
-
-    store.forceUpdate();
-    expect(onLoad).toHaveBeenCalledWith(true);
   });
 
   it('should clean up properly on destroy', () => {

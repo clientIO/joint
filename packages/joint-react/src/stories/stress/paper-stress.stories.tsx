@@ -8,7 +8,6 @@ import { BG, PRIMARY } from 'storybook/theme';
 import { dia, shapes } from '@joint/core';
 import {
   GraphProvider,
-  HTMLNode,
   Paper,
   ReactElement,
   useElements,
@@ -17,6 +16,7 @@ import {
 } from '@joint/react';
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { useCallback, useRef } from 'react';
+import { HTMLNode } from 'storybook/decorators/with-simple-data';
 
 export type Story = StoryObj<typeof Paper>;
 const meta: Meta<typeof Paper> = {

@@ -31,6 +31,7 @@ function Component<Data extends CellWithId = GraphElement>(props: PaperPortalPro
   const { renderElement, nodeSvgGElement, ...rest } = props;
   const cell = rest as Data;
   const element = renderElement(cell);
+
   return createPortal(element, nodeSvgGElement);
 }
 

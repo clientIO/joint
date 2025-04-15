@@ -4,7 +4,7 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  HTMLNode,
+  MeasuredNode,
   Paper,
   useElements,
   useSetElement,
@@ -45,8 +45,14 @@ function ElementInput({ id, data }: BaseElementWithData) {
   );
 }
 
-function RenderElement({ data: { label } }: BaseElementWithData) {
-  return <HTMLNode className="node">{label}</HTMLNode>;
+function RenderElement({ data: { label }, width, height }: BaseElementWithData) {
+  return (
+    <foreignObject width={width} height={height}>
+      <MeasuredNode>
+        <div className="node">{label}</div>
+      </MeasuredNode>
+    </foreignObject>
+  );
 }
 
 function Main() {

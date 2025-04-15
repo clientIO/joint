@@ -1,9 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import type { JSX, PropsWithChildren } from 'react';
+import type { HTMLProps, JSX, PropsWithChildren } from 'react';
 import type { InferElement } from '@joint/react';
-import { createElements, createLinks, GraphProvider, Paper } from '@joint/react';
+import {
+  createElements,
+  createLinks,
+  GraphProvider,
+  MeasuredNode,
+  Paper,
+  useElement,
+} from '@joint/react';
 import { PRIMARY } from '../theme';
 
 const initialElements = createElements([
@@ -102,4 +109,15 @@ export function SimpleRenderItemDecorator(Story: any) {
 
 export function SimpleRenderPaperDecorator(Story: any) {
   return <RenderPaperWithChildren>{Story}</RenderPaperWithChildren>;
+}
+
+export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
+  const { width, height } = useElement();
+  return (
+    <foreignObject width={width} height={height} overflow="visible">
+      <MeasuredNode>
+        <div {...props} />
+      </MeasuredNode>
+    </foreignObject>
+  );
 }

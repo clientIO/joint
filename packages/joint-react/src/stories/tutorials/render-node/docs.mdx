@@ -52,8 +52,14 @@ import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-do
 - Reference: [MDN foreignObject](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject)
 - Example:
   ```tsx
-  function RenderItem({ data: { label } }: CustomElement) {
-    return <HTMLNode className="node">{label}</HTMLNode>;
+  function RenderItem({ data: { label }, width, height }: CustomElement) {
+    return (
+      <foreignObject width={width} height={height}>
+        <MeasuredNode>
+          <div className="node">{label}</div>
+        </MeasuredNode>
+      </foreignObject>
+    );
   }
 
   ```

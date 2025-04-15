@@ -3,7 +3,7 @@ import { REACT_TYPE } from '../../models/react-element';
 import type { GraphLink } from '../../types/link-types';
 import type { GraphElementBase } from '../../types/element-types';
 import { isCellInstance, isLinkInstance, isUnsized } from '../is';
-import { getLinkTargetAndSourceIds, getTargetOrSource } from './get-link-targe-and-source-ids';
+import { getTargetOrSource } from './get-link-targe-and-source-ids';
 import { isReactElement } from '../is-react-element';
 
 interface Options {
@@ -124,33 +124,10 @@ function setElements(options: Options) {
  * It also check for the react unsized elements, if the element has not size, it will not render the link immanently.
  * It return callback to set unsized links later.
  * @param options - The options for setting cells.
- * @returns
- * A map of unsized link IDs to their corresponding GraphLink objects.
  * @group utils
  * @private
  */
 export function setCells(options: Options) {
-  const { defaultLinks = [] } = options;
-
-  // React elements without explicitly defined size.
-  const unsizedIds = setElements(options);
-
-  const assignedLinks: Array<dia.Link | GraphLink> = [];
-  // Some links are not assigned, because react work in async way, that mean:
-  // User do not have to define width and height of node, and its computed by react renderer,
-  // so we need to wait for the react to render component, then we add size to the graph and then we can assign the link.
-  // this will prevent flickering of the link at the start.
-  const notAssignedLinks: Map<dia.Cell.ID, dia.Link | GraphLink> = new Map();
-
-  for (const link of defaultLinks) {
-    const { source, target } = getLinkTargetAndSourceIds(link);
-
-    if (unsizedIds.has(String(source)) || unsizedIds.has(String(target))) {
-      notAssignedLinks.set(link.id, link);
-      continue;
-    }
-    assignedLinks.push(link);
-  }
-  setLinks({ ...options, defaultLinks: assignedLinks });
-  return notAssignedLinks;
+  setElements(options);
+  setLinks(options);
 }

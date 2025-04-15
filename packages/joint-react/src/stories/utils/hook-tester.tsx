@@ -2,8 +2,8 @@
 
 import type { JSX } from 'react';
 import type { StoryObj } from '@storybook/react/*';
-import { HTMLNode } from '@joint/react';
 import '../examples/index.css';
+import { HTMLNode } from 'storybook/decorators/with-simple-data';
 
 type AnyFunction = (...args: any[]) => any;
 interface HookTesterProps<T extends AnyFunction> {

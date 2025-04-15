@@ -3,7 +3,7 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  HTMLNode,
+  MeasuredNode,
   Paper,
   useElements,
   useSetElement,
@@ -35,7 +35,7 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ResizableNode({ data, id }: Readonly<BaseElementWithData>) {
+function ResizableNode({ data, id, width, height }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
 
   const setRotation = useSetElement(id, 'angle');
@@ -59,10 +59,14 @@ function ResizableNode({ data, id }: Readonly<BaseElementWithData>) {
   }, [setRotation]);
 
   return (
-    <HTMLNode className="node">
-      <div className="rotatable-node__handle" ref={nodeRef} />
-      {data.label}
-    </HTMLNode>
+    <foreignObject width={width} height={height} overflow="visible">
+      <MeasuredNode>
+        <div className="node">
+          <div className="rotatable-node__handle" ref={nodeRef} />
+          {data.label}
+        </div>
+      </MeasuredNode>
+    </foreignObject>
   );
 }
 

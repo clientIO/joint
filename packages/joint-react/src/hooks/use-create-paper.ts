@@ -6,7 +6,6 @@ import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import type { PaperEventType, PaperEvents } from '../types/event.types';
 import { handleEvent } from '../utils/handle-paper-events';
-import type { OnLoadOptions } from '../components';
 
 interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
   /**
@@ -18,10 +17,6 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
    * @returns
    */
   readonly overwriteDefaultPaperElement?: (paper: dia.Paper) => HTMLElement | SVGElement;
-  /**
-   * A function that is called when the paper is ready and all elements are rendered.
-   */
-  readonly onLoad?: (options: OnLoadOptions) => void;
 }
 
 /**
@@ -34,10 +29,10 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
  * @returns An object containing the paper instance and a reference to the paper HTML element.
  */
 export function useCreatePaper(options?: UseCreatePaperOptions) {
-  const { overwriteDefaultPaperElement, onLoad, ...restOptions } = options ?? {};
+  const { overwriteDefaultPaperElement, ...restOptions } = options ?? {};
 
   const paperHtmlElement = useRef<HTMLDivElement | null>(null);
-  const { graph, isLoaded, onRenderPorts } = useGraphStore();
+  const { graph, onRenderPorts } = useGraphStore();
 
   // Try to get the paper from the context, it can be undefined if there is no PaperContext.
   const paperCtx = useContext(PaperContext);
@@ -100,20 +95,9 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
     }
   }, [options?.scale, paper]);
 
-  useEffect(() => {
-    if (!isLoaded) {
-      return;
-    }
-
-    if (onLoad) {
-      onLoad({ graph, paper });
-    }
-  }, [graph, isLoaded, onLoad, paper]);
-
   return {
     isPaperFromContext,
     paper,
     paperHtmlElement,
-    isLoaded,
   };
 }

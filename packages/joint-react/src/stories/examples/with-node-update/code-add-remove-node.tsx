@@ -4,7 +4,7 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  HTMLNode,
+  MeasuredNode,
   Paper,
   useCellId,
   useElements,
@@ -48,25 +48,29 @@ function ElementInput({ id, data }: BaseElementWithData) {
   );
 }
 
-function RenderElement({ data: { label } }: BaseElementWithData) {
+function RenderElement({ data: { label }, width, height }: BaseElementWithData) {
   const graph = useGraph();
   const id = useCellId();
   return (
-    <HTMLNode className="node flex flex-1 justify-center items-center w-30">
-      <div className="flex flex-1 justify-center items-center py-2 flex-col mx-4">
-        <span className="mb-1 text-sm">{label}</span>
-        <button
-          onClick={() => {
-            const cell = graph.getCell(id);
-            graph.removeCells([cell]);
-          }}
-          type="button"
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-        >
-          Remove
-        </button>
-      </div>
-    </HTMLNode>
+    <foreignObject width={width} height={height}>
+      <MeasuredNode>
+        <div className="node flex flex-1 justify-center items-center w-30">
+          <div className="flex flex-1 justify-center items-center py-2 flex-col mx-4">
+            <span className="mb-1 text-sm">{label}</span>
+            <button
+              onClick={() => {
+                const cell = graph.getCell(id);
+                graph.removeCells([cell]);
+              }}
+              type="button"
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      </MeasuredNode>
+    </foreignObject>
   );
 }
 

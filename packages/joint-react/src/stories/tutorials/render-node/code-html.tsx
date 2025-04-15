@@ -4,7 +4,7 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  HTMLNode,
+  MeasuredNode,
   Paper,
   type GraphProps,
   type InferElement,
@@ -36,8 +36,14 @@ const initialEdges = createLinks([
 // infer element type from the initial elements (this type can be used for later usage like RenderItem props)
 type CustomElement = InferElement<typeof initialElements>;
 
-function RenderItem({ data: { label } }: CustomElement) {
-  return <HTMLNode className="node">{label}</HTMLNode>;
+function RenderItem({ data: { label }, width, height }: CustomElement) {
+  return (
+    <foreignObject width={width} height={height}>
+      <MeasuredNode>
+        <div className="node">{label}</div>
+      </MeasuredNode>
+    </foreignObject>
+  );
 }
 
 function Main() {

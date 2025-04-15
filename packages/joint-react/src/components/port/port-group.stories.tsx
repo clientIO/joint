@@ -5,8 +5,15 @@ import type { Meta, StoryObj } from '@storybook/react/*';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../../stories/examples/index.css';
-import { HTMLNode } from '../html-node/html-node';
-import { createElements, createLinks, GraphProvider, Paper, Port } from '@joint/react';
+import {
+  createElements,
+  createLinks,
+  GraphProvider,
+  MeasuredNode,
+  Paper,
+  Port,
+  useElement,
+} from '@joint/react';
 import { PRIMARY } from 'storybook/theme';
 import { PortGroup } from './port-group';
 
@@ -53,11 +60,16 @@ export type Story = StoryObj<typeof PortGroup>;
 const API_URL = getAPILink('Port/variables/Group', 'namespaces');
 
 function RenderItem(Story: React.FC) {
+  const { width, height } = useElement();
   return (
-    <HTMLNode className="node flex flex-col">
-      Test
-      <Story />
-    </HTMLNode>
+    <foreignObject width={width} height={height}>
+      <MeasuredNode>
+        <div className="node flex flex-col">
+          Test
+          <Story />
+        </div>
+      </MeasuredNode>
+    </foreignObject>
   );
 }
 function PaperDecorator(Story: React.FC) {

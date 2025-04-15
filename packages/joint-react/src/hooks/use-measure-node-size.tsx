@@ -16,23 +16,18 @@ export interface MeasureNodeOptions {
   /**
    * Overwrite default node set function with custom handling.
    * Useful for adding another padding, or just check element size.
-   * @default it set element via `cell.set('size', {width, height})`
+   * @default it sets element via cell.set('size', {width, height})
    */
   readonly setSize?: OnSetSize;
 }
+
 const EMPTY_OBJECT: MeasureNodeOptions = {};
+
 /**
- * Function to measure (update) node (element) `width` and `height` based on the provided element ref.
- * Returns new created function to set the ref.
- * It must be used inside the paper `renderElement` function.
- *
- * Ref must be just a reference to the HTML or SVG element.
- * @param elementRef - The ref to the element to measure.
- * @param options - The options for the hook.
- * @see Paper
- * @see `useGraph`
- * @see `useCellId`
- * @group Hooks
+ * Custom hook to measure the size of a node and update its size in the graph.
+ * It uses the `createElementSizeObserver` utility to observe size changes.
+ * @param elementRef - A reference to the HTML or SVG element to measure.
+ * @param options - Options for measuring the node size.
  */
 export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVGElement>(
   elementRef: RefObject<AnyHtmlOrSvgElement | null>,
@@ -43,38 +38,42 @@ export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVG
   const cellID = useCellId();
 
   const onSetSizeRef = useRef(setSize);
+
   useEffect(() => {
     onSetSizeRef.current = setSize;
   }, [setSize]);
 
   useEffect(() => {
-    if (!elementRef.current) {
-      throw new Error('MeasuredNode must have a child element');
-    }
-
-    // verify element is instance of HTML element
-    const isHTMLElement = elementRef.current instanceof HTMLElement;
-    const isSVGElement = elementRef.current instanceof SVGElement;
-    if (!isHTMLElement && !isSVGElement) {
-      throw new Error('Element must be an instance of HTML or SVG element');
-    }
+    const element = elementRef.current;
+    if (!element) throw new Error('MeasuredNode must have a child element');
 
     const cell = graph.getCell(cellID);
-    if (!cell) {
-      throw new Error(`Cell with id ${cellID} not found`);
-    }
-    if (!cell.isElement()) {
-      throw new Error(`Cell is not element`);
-    }
+    if (!cell?.isElement()) throw new Error('Cell not valid');
 
-    return createElementSizeObserver(elementRef.current, ({ height, width }) => {
+    const previous = { width: 0, height: 0 };
+
+    // elementRef.current?.getBoundingClientRect
+
+    // Create the observer that calls back on measurement changes
+    const stop = createElementSizeObserver(element, ({ width, height }) => {
+      // Only update when dimensions actually change
+      if (previous.width === width && previous.height === height) return;
+      previous.width = width;
+      previous.height = height;
+
+      // Always update the size (whether via the user-defined setSize or the default)
       if (onSetSizeRef.current) {
-        return onSetSizeRef.current({
-          element: cell,
-          size: { height, width },
-        });
+        onSetSizeRef.current({ element: cell, size: { width, height } });
+      } else {
+        cell.set('size', { width, height }, { async: false });
       }
-      cell.set('size', { height, width });
     });
+
+    // Cleanup on unmount or when dependencies change.
+    return () => {
+      stop();
+    };
   }, [cellID, elementRef, graph]);
+
+  // This hook itself does not return anything.
 }

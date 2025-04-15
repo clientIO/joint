@@ -3,7 +3,7 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  HTMLNode,
+  MeasuredNode,
   Paper,
   useElements,
   type InferElement,
@@ -32,7 +32,7 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ResizableNode({ data }: Readonly<BaseElementWithData>) {
+function ResizableNode({ data, width, height }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     const node = nodeRef.current;
@@ -54,13 +54,16 @@ function ResizableNode({ data }: Readonly<BaseElementWithData>) {
   }, []);
 
   return (
-    <HTMLNode
-      ref={nodeRef}
-      className="resizable-node"
-      onMouseDown={handleMouseDown} // prevent drag events from propagating
-    >
-      {data.label}
-    </HTMLNode>
+    <foreignObject width={width} height={height} overflow="visible">
+      <MeasuredNode ref={nodeRef}>
+        <div
+          className="resizable-node"
+          onMouseDown={handleMouseDown} // prevent drag events from propagating
+        >
+          {data.label}
+        </div>
+      </MeasuredNode>
+    </foreignObject>
   );
 }
 

@@ -38,6 +38,10 @@ export function createElementSizeObserver<AnyHtmlOrSvgElement extends HTMLElemen
     }
   });
 
+  // trigger the observer immediately
+  const { width, height } = element.getBoundingClientRect();
+  onResize({ width, height });
+
   // Start observing the HTML element.
   observer.observe(element, { box: 'border-box' });
   // Cleanup function to disconnect the observer when the component unmounts or dependencies change.
