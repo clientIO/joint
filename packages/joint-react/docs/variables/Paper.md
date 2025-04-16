@@ -8,7 +8,7 @@
 
 > `const` **Paper**: \<`ElementItem`\>(`props`) => `Element`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:304](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L304)
+Defined in: [joint-react/src/components/paper/paper.tsx:306](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L306)
 
 Paper component that renders the JointJS paper elements inside HTML.
 It uses `renderElement` to render the elements.

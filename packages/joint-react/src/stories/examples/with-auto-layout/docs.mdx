@@ -1,0 +1,47 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+import CodeWithBuildInShapes from './code-with-build-in-shapes?raw';
+import {getAPIPropsLink} from '../../utils/get-api-documentation-link'
+
+
+<Meta of={Stories} />
+
+# Example with automatic layout. 
+This is triggered when all react elements are rendered and properly sized.
+
+
+
+
+
+
+
+
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+### Demo with build-in shapes
+<Canvas of={Stories.WithBuildInShapes} />
+### Code with build-in shapes
+<Markdown>
+{`\`\`\`tsx
+${CodeWithBuildInShapes}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
+
+
+

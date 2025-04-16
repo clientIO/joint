@@ -365,7 +365,7 @@ function Main() {
       }}
       gridSize={5}
       height={600}
-      onLoad={({ paper }) => {
+      onElementsMeasured={({ paper }) => {
         paper.transformToFitContent({
           padding: 40,
           useModelGeometry: true,

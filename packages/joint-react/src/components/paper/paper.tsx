@@ -1,12 +1,5 @@
-import { mvc, type dia } from '@joint/core';
-import {
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from 'react';
+import { type dia } from '@joint/core';
+import { useContext, useEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
 import type { GraphElement, GraphElementBase } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
@@ -63,9 +56,11 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    */
   readonly renderElement?: RenderElement<ElementItem>;
   /**
-   * A function that is called when the paper is ready and all elements are rendered.
+   * Event called when all elements are properly measured (has all elements width and height greater than 1 - default).
+   * In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
+   * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
    */
-  readonly onLoad?: (options: OnLoadOptions) => void;
+  readonly onElementsMeasured?: (options: OnLoadOptions) => void;
 
   /**
    * The style of the paper element.
@@ -127,14 +122,10 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     elementSelector = noopSelector as (item: GraphElement) => ElementItem,
     scale,
     children,
-    onLoad,
+    onElementsMeasured,
     ...paperOptions
   } = props;
-
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
-
-  const [isLoaded, setIsLoaded] = useState(false);
-
   const { paperHtmlElement, isPaperFromContext, paper } = useCreatePaper({
     ...paperOptions,
     scale,
@@ -142,37 +133,48 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   });
 
   const elements = useElements((items) => items.map(elementSelector));
+  const areElementsMeasured = useElements((items) => {
+    let areMeasured = true;
+    for (const [, { width = 0, height = 0 }] of items) {
+      if (width <= 1 || height <= 1) {
+        areMeasured = false;
+        break;
+      }
+    }
+    return areMeasured;
+  });
 
   const hasRenderElement = !!renderElement;
 
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({
-      opacity: isLoaded ? 1 : 0,
-      pointerEvents: isLoaded ? 'all' : 'none',
+      opacity: areElementsMeasured ? 1 : 0,
+      pointerEvents: areElementsMeasured ? 'all' : 'none',
       ...style,
     }),
-    [isLoaded, style]
+    [areElementsMeasured, style]
   );
 
   useEffect(() => {
-    const controller = new mvc.Listener();
-    controller.listenTo(paper, 'render:done', () => {
-      const hasSizedElements = paper.model.getElements().some((element) => {
-        const { width = 0, height = 0 } = element.get('size') ?? {};
-        return width > 1 && height > 1;
-      });
-      if (!hasSizedElements) {
-        return;
-      }
+    if (areElementsMeasured) {
+      return onElementsMeasured?.({ paper, graph: paper.model });
+    }
 
-      controller.stopListening();
-      setIsLoaded(true);
-      onLoad?.({ paper, graph: paper.model });
-    });
-    return () => {
-      controller.stopListening();
-    };
-  }, [onLoad, paper]);
+    // Handling dev warning check
+    if (process.env.NODE_ENV !== 'production') {
+      const timeout = setTimeout(() => {
+        if (!areElementsMeasured) {
+          // eslint-disable-next-line no-console
+          console.error(
+            'The elements are not measured yet, please check if elements has defined width and height inside the nodes or using `MeasuredNode` component.'
+          );
+        }
+      }, 1000);
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [areElementsMeasured, onElementsMeasured, paper]);
 
   const content = (
     <div className={className} ref={paperHtmlElement} style={paperContainerStyle}>
