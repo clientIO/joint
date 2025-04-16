@@ -8,26 +8,57 @@
   </head>
   <body>
     <div id="paper"></div>
-    <div id="connections-list" style="display: none;"></div>
     <div id="controls">
-      <div>
-        <label>
-        Layout direction:
-      </label>
-      <select id="layout-direction">
-        <option value="0" selected>Top to Bottom</option>
-        <option value="1">Left to Right</option>
-        <option value="2">Bottom to Top</option>
-        <option value="3">Right to Left</option>
-      </select>
+      <div class="control-group">
+        <label for="layout-direction">Layout Direction:</label>
+        <select id="layout-direction">
+          <option value="0">Top to Bottom</option>
+          <option value="1">Left to Right</option>
+          <option value="2">Bottom to Top</option>
+          <option value="3">Right to Left</option>
+        </select>
       </div>
-      <div>
-        <label>Node separation:</label>
-        <input type="range" id="node-separation" min="50" max="200" step="1" value="50"/>
+
+      <div class="control-group">
+        <label for="edge-routing">Edge Routing:</label>
+        <select id="edge-routing">
+          <option value="4">Rectilinear</option>
+          <option value="1">Spline Bundling</option>
+        </select>
       </div>
-      <div>
-        <label>Layer separation:</label>
-        <input type="range" id="layer-separation" min="50" max="200" step="1" value="50"/>
+
+      <div class="control-group">
+        <label for="layer-separation">Layer Separation:</label>
+        <input type="range" id="layer-separation" min="20" max="200" step="10" value="50">
+        <span id="layer-separation-value">50</span>
+      </div>
+
+      <div class="control-group">
+        <label for="node-separation">Node Separation:</label>
+        <input type="range" id="node-separation" min="20" max="200" step="10" value="50">
+        <span id="node-separation-value">50</span>
+      </div>
+
+      <div class="control-group">
+        <label for="margin">Margin:</label>
+        <input type="range" id="margin" min="0" max="100" step="5" value="20">
+        <span id="margin-value">20</span>
+      </div>
+
+      <div class="control-group">
+        <label for="graph-type">Graph Type:</label>
+        <select id="graph-type">
+          <option value="tree">Tree</option>
+          <option value="dag">Directed Acyclic Graph</option>
+          <option value="network">Network</option>
+          <option value="cycle">Cycle</option>
+          <option value="complete">Complete Graph</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="use-vertices">Use Vertices:</label>
+        <input type="checkbox" id="use-vertices" checked>
       </div>
     </div>
     <script src="dist/bundle.js"></script>
