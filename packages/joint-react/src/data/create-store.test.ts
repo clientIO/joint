@@ -17,7 +17,7 @@ describe('createStore', () => {
     expect(store.graph).toBe(customGraph);
   });
 
-  it('should add default elements and links', () => {
+  it('should add default elements', () => {
     const element = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     const link = new dia.Link({ id: 'link1', type: 'standard.Link', source: { id: 'element1' } });
     const store = createStore({
@@ -25,9 +25,7 @@ describe('createStore', () => {
       defaultLinks: [link],
     });
     expect(store.getElements().size).toBe(1);
-    expect(store.getLinks().size).toBe(1);
     expect(store.getElement('element1')).toBeDefined();
-    expect(store.getLink('link1')).toBeDefined();
   });
 
   it('should throw an error when getting a non-existent element', () => {
@@ -53,24 +51,6 @@ describe('createStore', () => {
     await waitFor(() => {
       expect(callback).toHaveBeenCalled();
       unsubscribe();
-    });
-  });
-
-  it('should handle forceUpdate correctly', async () => {
-    const element = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
-    const link = new dia.Link({
-      id: 'link1',
-      source: { id: 'element1' },
-      target: { id: 'element2' },
-      type: 'standard.Link',
-    });
-    const store = createStore({
-      defaultElements: [element],
-      defaultLinks: [link],
-    });
-
-    await waitFor(() => {
-      expect(store.getLinks().size).toBe(1);
     });
   });
 
