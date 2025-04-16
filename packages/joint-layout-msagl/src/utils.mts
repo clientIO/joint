@@ -17,14 +17,21 @@ export function setLabels(link: dia.Link, labelPosition: dia.Point, points: dia.
 
     const polyline = new g.Polyline(points);
 
-    const length = polyline.closestPointLength(labelPosition);
-    const closestPoint = polyline.pointAtLength(length);
-    const distance = (length / polyline.length());
-    const offset = new g.Point(labelPosition).difference(closestPoint!);
+    const linkSize = link.get('labelSize') as { width: number, height: number };
+
+    const cx = labelPosition.x + linkSize.width / 2;
+    const cy = labelPosition.y + linkSize.height / 2;
+
+    const center = new g.Point(cx, cy);
+
+    const distance = polyline.closestPointLength(center);
+    // Get the tangent at the closest point to calculate the offset
+    const tangent = polyline.tangentAtLength(distance);
+
     link.label(0, {
         position: {
             distance,
-            offset
+            offset: tangent?.pointOffset(center) || 0
         }
     });
 }
@@ -115,10 +122,10 @@ function applyLinkLayout(
     options: Required<Options>
 ) {
     const { curve, source: sourceGeomNode, target: targetGeomNode, label } = geomEdge;
+    const vertices: g.Point[] = [];
 
     if (options.setVertices) {
 
-        const vertices: g.Point[] = [];
         if (curve instanceof Curve) {
             vertices.push(...curveToVertices(curve, options.edgeRoutingMode));
         }
@@ -131,11 +138,11 @@ function applyLinkLayout(
     }
 
     if (label) {
-        const points = [curve.start, ...link.vertices(), curve.end];
+        const points = [curve.start, ...vertices, curve.end];
 
         if (options.setLabels) {
 
-            const labelPosition = label.boundingBox.leftTop;
+            const labelPosition = label.boundingBox.leftBottom;
 
             if (util.isFunction(options.setLabels)) {
                 (options.setLabels as unknown as typeof setLabels)(link, labelPosition, points);
@@ -180,6 +187,8 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph, option
         }
 
         // Get all self edges and convert to array
+        // TODO: Self edges are using BezierSegs; multiple self edges are overlapping each other
+        // TODO: `RouteSelfEdges` in MSAGL uses edge.GetMaxArrowheadLength() - since Padding is never propagated to the RectlinearEdgeRouter
         const selfEdges = Array.from(geomNode.selfEdges());
         for (let i = 0; i < selfEdges.length; i++) {
             const geomEdge = selfEdges[i] as IdentifiableGeomEdge;
