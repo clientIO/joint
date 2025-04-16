@@ -13,6 +13,7 @@ import typedMemo from '../../utils/typed-memo';
 import type { PaperEvents } from '../../types/event.types';
 import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
 import { REACT_TYPE } from '../../models/react-element';
+import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -133,16 +134,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   });
 
   const elements = useElements((items) => items.map(elementSelector));
-  const areElementsMeasured = useElements((items) => {
-    let areMeasured = true;
-    for (const [, { width = 0, height = 0 }] of items) {
-      if (width <= 1 || height <= 1) {
-        areMeasured = false;
-        break;
-      }
-    }
-    return areMeasured;
-  });
+  const areElementsMeasured = useAreElementMeasured();
 
   const hasRenderElement = !!renderElement;
 

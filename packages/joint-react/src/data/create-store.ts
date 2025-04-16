@@ -1,7 +1,7 @@
 import { dia, shapes } from '@joint/core';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
-import { setCells } from '../utils/cell/set-cells';
+import { setElements } from '../utils/cell/set-cells';
 import type { GraphElementBase } from '../types/element-types';
 import type { GraphLink, GraphLinkBase } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
@@ -143,13 +143,12 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * ```
  */
 export function createStore(options?: StoreOptions): Store {
-  const { defaultElements, defaultLinks } = options || {};
+  const { defaultElements } = options || {};
 
   const graph = createGraph(options);
-  setCells({
+  setElements({
     graph,
     defaultElements,
-    defaultLinks,
   });
   const data = createStoreData();
   const elementsEvents = subscribeHandler(forceUpdate);

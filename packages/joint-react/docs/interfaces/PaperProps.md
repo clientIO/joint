@@ -6,7 +6,7 @@
 
 # Interface: PaperProps\<ElementItem\>
 
-Defined in: [joint-react/src/components/paper/paper.tsx:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L28)
+Defined in: [joint-react/src/components/paper/paper.tsx:29](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L29)
 
 The props for the Paper component. Extend the `dia.Paper.Options` interface.
 For more information, see the JointJS documentation.
@@ -143,7 +143,7 @@ Defined in: [joint-core/types/joint.d.ts:1432](https://github.com/samuelgja/join
 
 > `readonly` `optional` **children**: `ReactNode`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:94](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L94)
+Defined in: [joint-react/src/components/paper/paper.tsx:95](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L95)
 
 Children to render. Paper automatically wrap the children with the PaperContext, if there is no PaperContext in the parent tree.
 
@@ -153,7 +153,7 @@ Children to render. Paper automatically wrap the children with the PaperContext,
 
 > `readonly` `optional` **className**: `string`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:72](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L72)
+Defined in: [joint-react/src/components/paper/paper.tsx:73](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L73)
 
 Class name of the paper element.
 
@@ -167,7 +167,7 @@ Class name of the paper element.
 
 > `readonly` `optional` **clickThreshold**: `number`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:111](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L111)
+Defined in: [joint-react/src/components/paper/paper.tsx:112](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L112)
 
 The threshold for click events in pixels.
 If the mouse moves more than this distance, it will be considered a drag event.
@@ -344,7 +344,7 @@ Defined in: [joint-core/types/joint.d.ts:3440](https://github.com/samuelgja/join
 
 > `readonly` `optional` **elementSelector**: (`item`) => `ElementItem`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:80](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L80)
+Defined in: [joint-react/src/components/paper/paper.tsx:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L81)
 
 A function that selects the elements to be rendered.
 It defaults to the `GraphElement` elements because `dia.Element` is not a valid React element (it do not change reference after update).
@@ -651,7 +651,7 @@ Defined in: [joint-core/types/joint.d.ts:1411](https://github.com/samuelgja/join
 
 > `readonly` `optional` **noDataPlaceholder**: `ReactNode`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:89](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L89)
+Defined in: [joint-react/src/components/paper/paper.tsx:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L90)
 
 Placeholder to be rendered when there is no data (no nodes or elements to render).
 
@@ -1649,7 +1649,7 @@ Defined in: [joint-react/src/types/event.types.ts:234](https://github.com/samuel
 
 > `readonly` `optional` **onElementsMeasured**: (`options`) => `void`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:63](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L63)
+Defined in: [joint-react/src/components/paper/paper.tsx:64](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L64)
 
 Event called when all elements are properly measured (has all elements width and height greater than 1 - default).
 In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
@@ -2585,7 +2585,7 @@ Defined in: [joint-core/types/joint.d.ts:1457](https://github.com/samuelgja/join
 
 > `readonly` `optional` **overwriteDefaultPaperElement**: (`paper`) => [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement) \| [`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)
 
-Defined in: [joint-react/src/components/paper/paper.tsx:104](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L104)
+Defined in: [joint-react/src/components/paper/paper.tsx:105](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L105)
 
 On load custom element.
 If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
@@ -2646,7 +2646,7 @@ Defined in: [joint-core/types/joint.d.ts:1417](https://github.com/samuelgja/join
 
 > `readonly` `optional` **renderElement**: [`RenderElement`](../type-aliases/RenderElement.md)\<`ElementItem`\>
 
-Defined in: [joint-react/src/components/paper/paper.tsx:57](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L57)
+Defined in: [joint-react/src/components/paper/paper.tsx:58](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L58)
 
 A function that renders the element.
 
@@ -2705,7 +2705,7 @@ Defined in: [joint-core/types/joint.d.ts:1433](https://github.com/samuelgja/join
 
 > `readonly` `optional` **scale**: `number`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:85](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L85)
+Defined in: [joint-react/src/components/paper/paper.tsx:86](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L86)
 
 The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
 
@@ -2763,7 +2763,7 @@ Defined in: [joint-core/types/joint.d.ts:1449](https://github.com/samuelgja/join
 
 > `readonly` `optional` **style**: `CSSProperties`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:68](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L68)
+Defined in: [joint-react/src/components/paper/paper.tsx:69](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L69)
 
 The style of the paper element.
 

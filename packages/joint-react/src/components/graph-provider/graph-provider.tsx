@@ -1,9 +1,62 @@
 import type { dia } from '@joint/core';
 import type { GraphLink } from '../../types/link-types';
-import { GraphStoreContext } from '../../context/graph-store-context';
+import {
+  GraphAreElementsMeasuredContext,
+  GraphStoreContext,
+} from '../../context/graph-store-context';
 import type { GraphElementBase } from '../../types/element-types';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type PropsWithChildren } from 'react';
 import { createStore, type Store } from '../../data/create-store';
+import { useElements } from '../../hooks/use-elements';
+import { useGraph } from '../../hooks';
+import { setLinks } from '../../utils/cell/set-cells';
+
+interface GraphProviderHandlerProps {
+  /**
+   * Initial links to be added to graph
+   * It's loaded just once, so it cannot be used as React state.
+   */
+  readonly defaultLinks?: Array<dia.Link | GraphLink>;
+}
+
+/**
+ * GraphProviderHandler component is used to handle the graph instance and provide it to the children.
+ * It also handles the default elements and links.
+ * @param props - {GraphProviderHandler} props
+ * @param props.children - Children to render.
+ * @param props.defaultLinks - Initial links to be added to graph
+ * @returns GraphProviderHandler component
+ * @private
+ */
+function GraphProviderHandler({
+  children,
+  defaultLinks,
+}: PropsWithChildren<GraphProviderHandlerProps>) {
+  const areElementsMeasured = useElements((items) => {
+    let areMeasured = true;
+    for (const [, { width = 0, height = 0 }] of items) {
+      if (width <= 1 || height <= 1) {
+        areMeasured = false;
+        break;
+      }
+    }
+    return areMeasured;
+  });
+  const graph = useGraph();
+
+  useEffect(() => {
+    if (areElementsMeasured) {
+      setLinks({ graph, defaultLinks });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areElementsMeasured, graph]);
+
+  return (
+    <GraphAreElementsMeasuredContext.Provider value={areElementsMeasured}>
+      {children}
+    </GraphAreElementsMeasuredContext.Provider>
+  );
+}
 
 export interface GraphProps {
   /**
@@ -82,7 +135,7 @@ export interface GraphProps {
  * @group Components
  */
 export function GraphProvider(props: GraphProps) {
-  const { children, ...rest } = props;
+  const { children, defaultLinks, ...rest } = props;
 
   /**
    * Graph store instance.
@@ -108,5 +161,9 @@ export function GraphProvider(props: GraphProps) {
     return null;
   }
 
-  return <GraphStoreContext.Provider value={graphStore}>{children}</GraphStoreContext.Provider>;
+  return (
+    <GraphStoreContext.Provider value={graphStore}>
+      <GraphProviderHandler defaultLinks={defaultLinks}>{children}</GraphProviderHandler>
+    </GraphStoreContext.Provider>
+  );
 }

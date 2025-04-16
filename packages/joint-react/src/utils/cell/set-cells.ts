@@ -74,7 +74,7 @@ export function setLinks(options: Options) {
  * It processes the elements and adds them to the graph.
  * It also checks for unsized elements and returns their IDs.
  */
-function setElements(options: Options) {
+export function setElements(options: Options) {
   const { graph, defaultElements } = options;
   if (defaultElements === undefined) {
     return new Set<string>();
@@ -116,18 +116,4 @@ function setElements(options: Options) {
   // Process elements if provided.
   graph.addCells(defaultElements.map(processElement));
   return unsizedIds;
-}
-
-/**
- * Updating of graph cells inside use graph store - helper function
- * @description
- * It also check for the react unsized elements, if the element has not size, it will not render the link immanently.
- * It return callback to set unsized links later.
- * @param options - The options for setting cells.
- * @group utils
- * @private
- */
-export function setCells(options: Options) {
-  setElements(options);
-  setLinks(options);
 }

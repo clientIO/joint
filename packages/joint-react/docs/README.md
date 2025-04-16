@@ -88,6 +88,7 @@ const paper = usePaper();
 
 ## Variables
 
+- [GraphAreElementsMeasuredContext](variables/GraphAreElementsMeasuredContext.md)
 - [GraphStoreContext](variables/GraphStoreContext.md)
 - [REACT\_TYPE](variables/REACT_TYPE.md)
 

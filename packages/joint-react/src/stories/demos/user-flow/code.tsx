@@ -39,7 +39,7 @@ const nodes = createElements<Data>([
       type: 'entity',
     },
     x: 120,
-    y: 160,
+    y: 200,
   },
   {
     id: '3',
@@ -49,97 +49,24 @@ const nodes = createElements<Data>([
       type: 'user-action',
     },
     x: 190,
-    y: 270,
-  },
-
-  {
-    id: '4',
-    data: {
-      title: 'Confirmation',
-      description: 'Balance information',
-      type: 'confirm',
-    },
-    x: 260,
-    y: 380,
-  },
-  {
-    id: '5',
-    data: {
-      title: 'Message',
-      description: 'Information about the transfer',
-      type: 'message',
-    },
-    x: 330,
-    y: 490,
-  },
-
-  {
-    id: '6',
-    data: {
-      title: 'Entity',
-      description: 'Some transfer information',
-      type: 'entity',
-    },
-    x: 450,
-    y: 50,
-  },
-  {
-    id: '7',
-    data: {
-      title: 'Entity',
-      description: 'Verifying transfer information',
-      type: 'entity',
-    },
-    x: 500,
-    y: 160,
-  },
-
-  {
-    id: '8',
-    data: {
-      title: 'Message',
-      description: 'Message about the transfer',
-      type: 'message',
-    },
-    x: 550,
-    y: 290,
+    y: 350,
   },
 ]);
 const links = createLinks([
   {
     id: 'link1',
     source: { id: '1', port: '1' },
-    target: { id: '2', port: '1' },
+    target: { id: '2', port: 'in' },
   },
   {
     id: 'link2',
     source: { id: '2', port: '1' },
-    target: { id: '3', port: '1' },
+    target: { id: '3', port: 'in' },
   },
   {
     id: 'link3',
-    source: { id: '3', port: '1' },
-    target: { id: '4', port: '1' },
-  },
-  {
-    id: 'link4',
-    source: { id: '4', port: '1' },
-    target: { id: '5', port: '1' },
-  },
-  {
-    id: 'link5',
-    source: { id: '5', port: '1' },
-    target: { id: '8', port: '1' },
-  },
-  {
-    id: 'link6',
-    source: { id: '6', port: '1' },
-    target: { id: '7', port: '1' },
-  },
-  {
-    id: 'link7',
-    source: { id: '7', port: '1' },
-    target: { id: '8', port: '1' },
+    source: { id: '3', port: '2' },
+    target: { id: '1', port: 'in' },
   },
 ]);
 
@@ -207,6 +134,7 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
     { id: '2', label: 'Port 2' },
   ]);
 
+  const PORT_IN_SIZE = 15;
   return (
     <HTMLNode
       style={{
@@ -222,7 +150,14 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
           <div className="text-black text-sm">{description}</div>
         </div>
       </div>
-      <Port.Group id="port-group" position="bottom" x={10} dy={-15}>
+      <Port.Group id="port-in-group" position="top" x={10} dy={-PORT_IN_SIZE / 2}>
+        <Port.Item id="in" isPassive>
+          <foreignObject width={PORT_IN_SIZE} height={PORT_IN_SIZE} overflow="visible">
+            <div className="bg-white w-full h-full border-2 border-black rounded-full opacity-50" />
+          </foreignObject>
+        </Port.Item>
+      </Port.Group>
+      <Port.Group id="port-out-group" position="bottom" x={10} dy={-15}>
         {ports.map((port, index) => (
           <PortIem
             x={index * 85}
@@ -274,8 +209,8 @@ function Main() {
       defaultConnectionPoint={{
         name: 'boundary',
         args: {
-          offset: 10,
-          extrapolate: true,
+          offset: 0,
+          extrapolate: false,
         },
       }}
       defaultRouter={{ name: 'rightAngle', args: { margin: 20 } }}
