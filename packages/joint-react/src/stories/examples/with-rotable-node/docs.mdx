@@ -1,0 +1,37 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+
+<Meta of={Stories} />
+
+# Example showing rotatable node.
+User can rotate node to any direction.
+For handling rotation and anchor points we leverage external libraries:
+```tsx
+import { drag } from 'd3-drag';
+import { select } from 'd3-selection';
+```
+You can use anything other.
+
+
+
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
+
+
+

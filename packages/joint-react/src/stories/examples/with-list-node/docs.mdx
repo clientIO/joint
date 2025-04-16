@@ -1,0 +1,25 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+
+<Meta of={Stories} />
+
+# Example with list inside node
+This example shows how to use list or table inside a node.
+
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
