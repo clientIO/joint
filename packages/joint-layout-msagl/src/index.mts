@@ -1,6 +1,11 @@
-import { dia, g } from "@joint/core";
+import { dia, g, util } from "@joint/core";
 import { Graph, GeomGraph, layoutGraphWithSugiayma, LayerDirectionEnum, CancelToken } from '@msagl/core';
-import { applyLayoutResult, buildLayoutSettings, processJointGraph } from "./utils.mjs";
+import {
+    applyLayoutResult,
+    buildLayoutSettings,
+    importJointGraph,
+    setPosition
+} from "./utils.mjs";
 
 const LAYOUT_BATCH_NAME = 'layout';
 
@@ -10,26 +15,47 @@ export enum EdgeRoutingMode {
 }
 
 export interface Options {
-    layoutOptions?: {
-        layerSeparation?: number,
-        nodeSeparation?: number,
-        layerDirection?: LayerDirectionEnum,
-        gridSize?: number
-    },
-    edgeRoutingSettings?: {
-        edgeRoutingMode?: EdgeRoutingMode
-    },
+    layerSeparation?: number,
+    nodeSeparation?: number,
+    layerDirection?: LayerDirectionEnum,
+    gridSize?: number,
+    edgeRoutingMode?: EdgeRoutingMode
     margins?: {
         left: number,
         right: number,
         top: number,
         bottom: number
-    }
+    },
+    setPosition?: (element: dia.Element, position: g.Point) => void;
+    setVertices?: boolean | ((link: dia.Link, vertices: g.Point[]) => void);
+    setLabels?: boolean | ((link: dia.Link, labelPositon: dia.Point, points: g.Point[]) => void);
+    setAnchor?: boolean | ((link: dia.Link, referencePoint: dia.Point, bbox: dia.BBox, endType: 'source' | 'target') => void);
 }
+
+const defaultOptions: Required<Options> = {
+    layerDirection: LayerDirectionEnum.TB,
+    layerSeparation: 40,
+    nodeSeparation: 20,
+    gridSize: 10,
+    edgeRoutingMode: EdgeRoutingMode.Rectilinear,
+    margins: {
+        left: 10,
+        right: 10,
+        top: 10,
+        bottom: 10
+    },
+    setPosition,
+    setVertices: true,
+    setLabels: true,
+    setAnchor: true
+};
 
 export { LayerDirectionEnum } from '@msagl/core';
 
 export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options): g.Rect {
+
+    // Merge user options with defaults and cast to the correct type
+    const finalOptions = util.defaultsDeep({}, options || {}, defaultOptions) as Required<Options>;
 
     let graph: dia.Graph;
 
@@ -45,35 +71,33 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     const msGraph = new Graph();
     const geomGraph = new GeomGraph(msGraph);
 
-    const margins = options?.margins || { left: 10, right: 10, top: 10, bottom: 10 };
-    geomGraph.margins = margins;
+    // Use finalOptions for margins and layout settings
+    geomGraph.margins = finalOptions.margins;
 
     // Process the JointJS graph and convert it to a MSAGL graph
-    processJointGraph(graph, msGraph);
+    importJointGraph(graph, msGraph);
 
     // Top-level layout settings
-    geomGraph.layoutSettings = buildLayoutSettings(options);
+    geomGraph.layoutSettings = buildLayoutSettings(finalOptions);
 
     // Subgraphs layout settings
     for (const geomNode of geomGraph.subgraphsDepthFirst) {
         const geomSubgraph = geomNode as GeomGraph;
-        const layoutSettings = buildLayoutSettings(options);
+        const layoutSettings = buildLayoutSettings(finalOptions);
         // Set the layer direction to top to bottom for subgraphs
         // Since anything else will cause the layout to break
         layoutSettings.layerDirection = LayerDirectionEnum.TB;
         geomSubgraph.layoutSettings = layoutSettings;
         // Propagate the margins to the subgraph
-        geomSubgraph.margins = margins;
+        geomSubgraph.margins = finalOptions.margins;
     }
 
     layoutGraphWithSugiayma(geomGraph, new CancelToken(), true);
 
     // Apply the layout result to the JointJS graph
-    // while traversing the geomGraph
     // wrap the changes in a batch
     graph.startBatch(LAYOUT_BATCH_NAME);
-    const edgeRoutingMode = options?.edgeRoutingSettings?.edgeRoutingMode || EdgeRoutingMode.Rectilinear;
-    applyLayoutResult(graph, geomGraph, edgeRoutingMode);
+    applyLayoutResult(graph, geomGraph, finalOptions);
     graph.stopBatch(LAYOUT_BATCH_NAME);
 
     const bbox = geomGraph.boundingBox;
@@ -81,10 +105,13 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     // empty geomGraph returns { x: 0, y: 0, width: -1, height: 20 }
     if (bbox.isEmpty()) return new g.Rect(0, 0, 0, 0);
 
+    // Use finalOptions.margins for calculating final bounding box
+    const { left, right, top, bottom } = finalOptions.margins;
+
     return new g.Rect(
-        bbox.left + margins.left,
-        bbox.bottom + margins.bottom,
-        bbox.width - (margins.left + margins.right),
-        bbox.height - (margins.top + margins.bottom)
+        bbox.left + left,
+        bbox.bottom + bottom,
+        bbox.width - (left + right),
+        bbox.height - (top + bottom)
     );
 }
