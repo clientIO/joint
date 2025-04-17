@@ -95,36 +95,32 @@ exports[`TextNode "WithBreakText" 1`] = `
   "baseElement": <body>
     <div>
       <text
-        display="none"
         fill="white"
         width="100"
         xml:space="preserve"
         y="0.8em"
       >
         <tspan
-          class="v-line v-empty-line"
+          class="v-line"
           dy="0"
-          style="fill-opacity: 0; stroke-opacity: 0;"
         >
-          -
+          Hello world Hello world
         </tspan>
       </text>
     </div>
   </body>,
   "container": <div>
     <text
-      display="none"
       fill="white"
       width="100"
       xml:space="preserve"
       y="0.8em"
     >
       <tspan
-        class="v-line v-empty-line"
+        class="v-line"
         dy="0"
-        style="fill-opacity: 0; stroke-opacity: 0;"
       >
-        -
+        Hello world Hello world
       </tspan>
     </text>
   </div>,
@@ -188,36 +184,32 @@ exports[`TextNode "WithEllipsis" 1`] = `
   "baseElement": <body>
     <div>
       <text
-        display="none"
         fill="white"
         width="80"
         xml:space="preserve"
         y="0.8em"
       >
         <tspan
-          class="v-line v-empty-line"
+          class="v-line"
           dy="0"
-          style="fill-opacity: 0; stroke-opacity: 0;"
         >
-          -
+          Hello world Hello world Hello world
         </tspan>
       </text>
     </div>
   </body>,
   "container": <div>
     <text
-      display="none"
       fill="white"
       width="80"
       xml:space="preserve"
       y="0.8em"
     >
       <tspan
-        class="v-line v-empty-line"
+        class="v-line"
         dy="0"
-        style="fill-opacity: 0; stroke-opacity: 0;"
       >
-        -
+        Hello world Hello world Hello world
       </tspan>
     </text>
   </div>,
