@@ -11,7 +11,7 @@ import { PRIMARY } from 'storybook-config/theme';
 import { useElement } from '../../hooks';
 import { MeasuredNode } from '../measured-node/measured-node';
 
-const API_URL = getAPILink('TextNode', 'variables');
+const API_URL = getAPILink('TextNode');
 export type Story = StoryObj<typeof TextNode>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

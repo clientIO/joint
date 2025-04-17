@@ -10,6 +10,7 @@
 - [MeasuredNode](variables/MeasuredNode.md)
 - [Paper](variables/Paper.md)
 - [GraphProvider](functions/GraphProvider.md)
+- [TextNode](functions/TextNode.md)
 
 ## Hooks
 
@@ -75,6 +76,7 @@ const paper = usePaper();
 - [PortGroupProps](interfaces/PortGroupProps.md)
 - [PortProps](interfaces/PortProps.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
+- [TextNodeProps](interfaces/TextNodeProps.md)
 
 ## Type Aliases
 
