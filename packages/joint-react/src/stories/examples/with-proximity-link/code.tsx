@@ -12,7 +12,7 @@ import {
 import '../index.css';
 import { useEffect, useRef } from 'react';
 import { shapes, util } from '@joint/core';
-import { PRIMARY } from 'storybook/theme';
+import { PRIMARY } from 'storybook-config/theme';
 import type { dia } from '../../../../../joint-core/types';
 
 const initialElements = createElements([

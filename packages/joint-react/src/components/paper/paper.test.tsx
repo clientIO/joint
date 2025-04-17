@@ -4,6 +4,8 @@ import { GraphProvider } from '../graph-provider/graph-provider';
 import { createElements, type InferElement } from '../../utils/create';
 import { Paper } from './paper';
 import { MeasuredNode } from '../measured-node/measured-node';
+import { runStorybookSnapshot } from '../../utils/run-storybook-snapshot';
+import * as stories from './paper.stories';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' } },
@@ -23,6 +25,12 @@ jest.mock('../../utils/create-element-size-observer', () => ({
     return () => {};
   }),
 }));
+
+runStorybookSnapshot({
+  Component: Paper,
+  name: 'Paper',
+  stories,
+});
 
 describe('Paper Component', () => {
   it('renders elements correctly with correct measured node and onElementsMeasured event', async () => {

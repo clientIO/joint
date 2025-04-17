@@ -10,5 +10,6 @@ export default {
   moduleNameMapper: {
     '^@joint/react$': '<rootDir>/src/index.ts',
     '^src/(.*)$': '<rootDir>/src/$1', // Add this if you are using src alias
+    '^storybook-config/(.*)$': '<rootDir>/.storybook/$1',
   },
 };

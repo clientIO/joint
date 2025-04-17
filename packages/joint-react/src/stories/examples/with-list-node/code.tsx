@@ -13,7 +13,7 @@ import {
   type InferElement,
   type OnSetSize,
 } from '@joint/react';
-import { PRIMARY } from 'storybook/theme';
+import { PRIMARY } from 'storybook-config/theme';
 
 interface Data {
   label: string;

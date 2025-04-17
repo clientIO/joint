@@ -12,7 +12,7 @@ import {
 } from '@joint/react';
 import { dia } from '@joint/core';
 import { useCallback, useState } from 'react';
-import { HTMLNode } from 'storybook/decorators/with-simple-data';
+import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
 interface Data {
   title: string;

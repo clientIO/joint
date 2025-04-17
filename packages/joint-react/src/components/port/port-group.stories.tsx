@@ -14,7 +14,7 @@ import {
   Port,
   useElement,
 } from '@joint/react';
-import { PRIMARY } from 'storybook/theme';
+import { PRIMARY } from 'storybook-config/theme';
 import { PortGroup } from './port-group';
 
 const initialElements = createElements([
