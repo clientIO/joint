@@ -116,5 +116,5 @@ export function TextNode(props: TextNodeProps) {
     width,
     x,
   ]);
-  return <text ref={textRef} {...rest} width={width} height={height} x={x} />;
+  return <text ref={textRef} {...rest} x={x} />;
 }
