@@ -9,7 +9,7 @@ import {
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
-import { PRIMARY } from 'storybook/theme';
+import { PRIMARY } from 'storybook-config/theme';
 const shape = {
   type: 'standard.Rectangle',
   width: 100,

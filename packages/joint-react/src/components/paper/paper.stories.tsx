@@ -9,7 +9,7 @@ import {
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
 import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
-import { PRIMARY } from 'storybook/theme';
+import { PRIMARY } from 'storybook-config/theme';
 import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { MeasuredNode } from '../measured-node/measured-node';

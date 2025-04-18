@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { Mask } from './mask';
-import { PRIMARY, SECONDARY } from 'storybook/theme';
+import { PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 

@@ -2,9 +2,9 @@
 import { dia } from '@joint/core';
 import '../../stories/examples/index.css';
 import { createElements, createLinks, GraphProvider, jsx, MeasuredNode, Paper } from '@joint/react';
-import { PRIMARY } from 'storybook/theme';
+import { PRIMARY } from 'storybook-config/theme';
 import type { Meta, StoryObj } from '@storybook/react/*';
-import { SimpleGraphDecorator } from 'storybook/decorators/with-simple-data';
+import { SimpleGraphDecorator } from 'storybook-config/decorators/with-simple-data';
 import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 

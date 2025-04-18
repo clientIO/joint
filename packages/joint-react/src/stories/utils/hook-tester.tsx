@@ -3,7 +3,7 @@
 import type { JSX } from 'react';
 import type { StoryObj } from '@storybook/react/*';
 import '../examples/index.css';
-import { HTMLNode } from 'storybook/decorators/with-simple-data';
+import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
 type AnyFunction = (...args: any[]) => any;
 interface HookTesterProps<T extends AnyFunction> {

@@ -12,7 +12,7 @@ import {
   type OnSetSize,
   type RenderElement,
 } from '@joint/react';
-import { PRIMARY } from 'storybook/theme';
+import { PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },

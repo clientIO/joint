@@ -6,7 +6,14 @@ import type { Store } from '../../data/create-store';
 import { dia } from '@joint/core';
 import { useElements, useLinks } from '../../hooks';
 import { createElements } from '../../utils/create';
+import * as stories from './graph-provider.stories';
+import { runStorybookSnapshot } from '../../utils/run-storybook-snapshot';
 
+runStorybookSnapshot({
+  Component: GraphProvider,
+  stories,
+  name: 'GraphProvider',
+});
 describe('graph-provider', () => {
   it('should render children and match snapshot', () => {
     const { asFragment, getByText } = render(
