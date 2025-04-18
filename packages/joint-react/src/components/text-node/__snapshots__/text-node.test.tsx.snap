@@ -7,7 +7,6 @@ exports[`TextNode "Default" 1`] = `
     <div>
       <text
         fill="white"
-        width="19"
         xml:space="preserve"
         y="0.8em"
       >
@@ -23,7 +22,6 @@ exports[`TextNode "Default" 1`] = `
   "container": <div>
     <text
       fill="white"
-      width="19"
       xml:space="preserve"
       y="0.8em"
     >
@@ -96,7 +94,6 @@ exports[`TextNode "WithBreakText" 1`] = `
     <div>
       <text
         fill="white"
-        width="100"
         xml:space="preserve"
         y="0.8em"
       >
@@ -112,7 +109,6 @@ exports[`TextNode "WithBreakText" 1`] = `
   "container": <div>
     <text
       fill="white"
-      width="100"
       xml:space="preserve"
       y="0.8em"
     >
@@ -185,7 +181,6 @@ exports[`TextNode "WithEllipsis" 1`] = `
     <div>
       <text
         fill="white"
-        width="80"
         xml:space="preserve"
         y="0.8em"
       >
@@ -201,7 +196,6 @@ exports[`TextNode "WithEllipsis" 1`] = `
   "container": <div>
     <text
       fill="white"
-      width="80"
       xml:space="preserve"
       y="0.8em"
     >
