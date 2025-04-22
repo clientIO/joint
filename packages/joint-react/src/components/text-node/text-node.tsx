@@ -1,5 +1,6 @@
 import { util, V, type Vectorizer } from '@joint/core';
-import { useEffect, useRef, type SVGTextElementAttributes } from 'react';
+import { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
+import { useCombinedRef } from '../../hooks/use-combined-ref';
 
 export interface TextNodeProps
   extends SVGTextElementAttributes<SVGTextElement>,
@@ -15,32 +16,8 @@ export interface TextNodeProps
   readonly height?: number;
 }
 
-// separator?: string | any;
-// eol?: string;
-// ellipsis?: boolean | string;
-// hyphen?: string | RegExp;
-// maxLineCount?: number;
-// preserveSpaces?: boolean;
-/**
- * TextNode component is a wrapper around the SVG text element that provides additional functionality for rendering text.
- * It uses the Vectorizer library to handle text rendering and annotations.
- * It allows you to specify various text options such as end-of-line characters, vertical alignment, line height, and more.
- * @see Vectorizer
- * @see Vectorizer.TextOptions
- * @group Components
- * @param props - The properties for the TextNode component.
- * @param props.children - The text content to be rendered.
- * @param props.eol - The end-of-line character(s) to be used for line breaks.
- * @param props.x - The x-coordinate for the text position.
- * @param props.textVerticalAnchor - The vertical alignment of the text.
- * @param props.lineHeight - The line height for the text.
- * @param props.textPath - The text path for the text to follow.
- * @param props.annotations - An array of text annotations to be applied to the text.
- * @param props.includeAnnotationIndices - Whether to include annotation indices in the text.
- * @param props.displayEmpty - Whether to display empty text.
- * @returns The rendered SVG text element with the specified properties.
- */
-export function TextNode(props: TextNodeProps) {
+// eslint-disable-next-line jsdoc/require-jsdoc
+function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>) {
   const {
     children,
     eol,
@@ -63,7 +40,7 @@ export function TextNode(props: TextNodeProps) {
     ...rest
   } = props;
 
-  const textRef = useRef<SVGTextElement>(null);
+  const textRef = useCombinedRef<SVGTextElement>(ref);
   useEffect(() => {
     if (!textRef.current) {
       return;
@@ -112,9 +89,21 @@ export function TextNode(props: TextNodeProps) {
     preserveSpaces,
     separator,
     textPath,
+    textRef,
     textVerticalAnchor,
     width,
     x,
   ]);
   return <text ref={textRef} {...rest} x={x} />;
 }
+
+/**
+ * TextNode component is a wrapper around the SVG text element that provides additional functionality for rendering text.
+ * It uses the Vectorizer library to handle text rendering and annotations.
+ * It allows you to specify various text options such as end-of-line characters, vertical alignment, line height, and more.
+ * @see Vectorizer
+ * @see Vectorizer.TextOptions
+ * @group Components
+ * @returns The rendered SVG text element with the specified properties.
+ */
+export const TextNode = forwardRef(Component);
