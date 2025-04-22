@@ -13,7 +13,7 @@ import '../index.css';
 import { useEffect, useRef } from 'react';
 import { drag } from 'd3-drag';
 import { select } from 'd3-selection';
-import { PRIMARY } from 'storybook/theme';
+import { PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 20, y: 100 },

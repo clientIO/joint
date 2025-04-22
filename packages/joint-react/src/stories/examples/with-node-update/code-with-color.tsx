@@ -9,8 +9,8 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { PRIMARY } from 'storybook/theme';
-import { HTMLNode } from 'storybook/decorators/with-simple-data';
+import { PRIMARY } from 'storybook-config/theme';
+import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1', color: PRIMARY }, x: 100, y: 0 },

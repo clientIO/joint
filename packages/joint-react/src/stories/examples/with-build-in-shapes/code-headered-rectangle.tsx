@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PRIMARY, SECONDARY } from 'storybook/theme';
+import { PRIMARY, SECONDARY } from 'storybook-config/theme';
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 

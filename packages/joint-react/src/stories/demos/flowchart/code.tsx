@@ -13,7 +13,7 @@ import {
   Paper,
   type InferElement,
 } from '@joint/react';
-import { PRIMARY, SECONDARY } from 'storybook/theme';
+import { PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { dia, linkTools } from '@joint/core';
 import { forwardRef, useState, type FC } from 'react';
 
