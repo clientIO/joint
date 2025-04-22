@@ -156,5 +156,5 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'getScreenCTM', {
  */
 Object.defineProperty(globalThis.SVGElement.prototype, 'getBBox', {
     writable: true,
-    value: vi.fn().mockImplementation(createSVGRect)
+    value: vi.fn().mockImplementation(createSVGRect),
 });
