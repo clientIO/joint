@@ -171,13 +171,12 @@ export function createStore(options?: StoreOptions): Store {
    * This function is called when a cell changes.
    * It checks if the graph has an active batch and returns if it does.
    * Otherwise, it notifies the subscribers of the elements events.
-   * @returns - The result of the elements events notification.
    */
   function onCellChange() {
     if (graph.hasActiveBatch()) {
       return;
     }
-    return elementsEvents.notifySubscribers();
+    elementsEvents.notifySubscribers();
   }
 
   /**
@@ -232,8 +231,8 @@ export function createStore(options?: StoreOptions): Store {
       }
       return portElement;
     },
-    onRenderPorts(portId, portElement) {
-      portElements.set(portId, portElement);
+    onRenderPorts(portId, portElementsCache) {
+      portElements.set(portId, portElementsCache);
       portEvents.notifySubscribers();
     },
   };

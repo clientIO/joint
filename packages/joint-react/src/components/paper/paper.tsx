@@ -64,6 +64,12 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
   readonly onElementsMeasured?: (options: OnLoadOptions) => void;
 
   /**
+   * Event called when the paper is resized.
+   * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
+   */
+  readonly onElementSizeChange?: (options: OnLoadOptions) => void;
+
+  /**
    * The style of the paper element.
    */
   readonly style?: CSSProperties;
@@ -124,6 +130,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     scale,
     children,
     onElementsMeasured,
+    onElementSizeChange,
     ...paperOptions
   } = props;
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
@@ -136,6 +143,23 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   const elements = useElements((items) => items.map(elementSelector));
   const areElementsMeasured = useAreElementMeasured();
 
+  const sizeHash = useMemo(() => {
+    let hash = 0;
+
+    for (const { width = 0, height = 0 } of elements) {
+      // Use fast integer hash mixing with large primes (shift + multiply + xor)
+      hash = Math.trunc(((hash << 5) - hash + width * 397) ^ (height * 883));
+    }
+
+    return hash >>> 0; // Ensure it's a positive 32-bit unsigned integer
+  }, [elements]);
+
+  useEffect(() => {
+    if (!areElementsMeasured) {
+      return;
+    }
+    onElementSizeChange?.({ paper, graph: paper.model });
+  }, [areElementsMeasured, onElementSizeChange, paper, sizeHash]);
   const hasRenderElement = !!renderElement;
 
   const paperContainerStyle = useMemo(

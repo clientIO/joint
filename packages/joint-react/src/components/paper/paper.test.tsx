@@ -33,15 +33,15 @@ runStorybookSnapshot({
 });
 
 describe('Paper Component', () => {
-  it('renders elements correctly with correct measured node and onElementsMeasured event', async () => {
-    const onElementsMeasuredMock = jest.fn();
+  it('renders elements correctly with correct measured node and onMeasured event', async () => {
+    const onMeasuredMock = jest.fn();
     let size = { width: 0, height: 0 };
     render(
       <GraphProvider defaultElements={initialElements}>
         <Paper<Element>
           width={PAPER_WIDTH}
           height={150}
-          onElementsMeasured={onElementsMeasuredMock}
+          onElementsMeasured={onMeasuredMock}
           renderElement={({ data: { label }, width, height }) => {
             size = { width, height };
             return (
@@ -58,7 +58,7 @@ describe('Paper Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Node 1')).toBeInTheDocument();
       expect(screen.getByText('Node 2')).toBeInTheDocument();
-      expect(onElementsMeasuredMock).toHaveBeenCalledTimes(1);
+      expect(onMeasuredMock).toHaveBeenCalledTimes(1);
       expect(size).toEqual({ width: 50, height: 50 });
     });
   });

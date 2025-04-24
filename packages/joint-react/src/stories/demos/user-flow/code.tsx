@@ -30,6 +30,9 @@ const nodes = createElements<Data>([
     },
     x: 50,
     y: 50,
+    attrs: {
+      magnet: 'active',
+    },
   },
   {
     id: '2',
@@ -40,6 +43,9 @@ const nodes = createElements<Data>([
     },
     x: 120,
     y: 200,
+    attrs: {
+      magnet: 'passive',
+    },
   },
   {
     id: '3',
@@ -75,16 +81,16 @@ type NodeType = InferElement<typeof nodes>;
 interface PortProps {
   id: string;
   label?: string;
-  onRemove: () => void;
+  onRemove: (id: dia.Cell.ID) => void;
   x: number;
 }
 function PortIem({ id, label, onRemove, x }: Readonly<PortProps>) {
   const onRemovePress = useCallback(
     (event: React.MouseEvent) => {
       event.stopPropagation();
-      onRemove();
+      onRemove(id);
     },
-    [onRemove]
+    [id, onRemove]
   );
   return (
     <Port.Item x={10 + x} id={id}>
@@ -135,6 +141,13 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
   ]);
 
   const PORT_IN_SIZE = 15;
+
+  const onRemove = useCallback(
+    (id: dia.Cell.ID) => {
+      setPorts((previous) => previous.filter((port) => port.id !== id));
+    },
+    [setPorts]
+  );
   return (
     <HTMLNode
       style={{
@@ -164,9 +177,7 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
             key={port.id}
             id={port.id}
             label={port.label}
-            onRemove={() => {
-              setPorts((previous) => previous.filter((item) => item.id !== port.id));
-            }}
+            onRemove={onRemove}
           />
         ))}
       </Port.Group>
@@ -206,6 +217,9 @@ function Main() {
       snapLabels
       clickThreshold={10}
       interactive={{ linkMove: false }}
+      validateMagnet={(_cellView, magnet) => {
+        return magnet.getAttribute('magnet') !== 'passive';
+      }}
       defaultConnectionPoint={{
         name: 'boundary',
         args: {

@@ -1,4 +1,4 @@
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import { memo, useContext, useEffect, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { useCellId, usePaper } from '../../hooks';
@@ -7,7 +7,6 @@ import { useGraphStore } from '../../hooks/use-graph-store';
 import { PORTAL_SELECTOR } from '../../data/create-ports-data';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 
-// eslint-disable-next-line @eslint-react/dom/no-unknown-property
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
 export interface PortItemProps {
   readonly isPassive?: boolean;
@@ -63,11 +62,6 @@ function Component(props: PortItemProps) {
 
     cell.addPort(port);
 
-    const elementView = cell.findView(paper);
-    if (!(elementView instanceof dia.ElementView)) {
-      return;
-    }
-
     return () => {
       cell.removePort(id);
     };
@@ -78,6 +72,32 @@ function Component(props: PortItemProps) {
     () => getPortElement(cellId, id),
     () => getPortElement(cellId, id)
   );
+
+  useEffect(() => {
+    if (!portalNode) {
+      return;
+    }
+
+    const elementView = paper.findViewByModel(cellId);
+    // @ts-expect-error we use private jointjs api method, it throw error here.
+    elementView.cleanNodesCache();
+    for (const link of graph.getConnectedLinks(elementView.model)) {
+      const target = link.target();
+      const source = link.source();
+
+      const isElementLink = target.id === cellId || source.id === cellId;
+      if (!isElementLink) {
+        continue;
+      }
+
+      const isPortLink = target.port === id || source.port === id;
+      if (!isPortLink) {
+        continue;
+      }
+      // @ts-expect-error we use private jointjs api method, it throw error here.
+      link.findView(paper).requestConnectionUpdate({ async: false });
+    }
+  }, [cellId, graph, id, paper, portalNode]);
 
   if (!portalNode) {
     return null;
