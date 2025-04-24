@@ -124,7 +124,8 @@ export const DirectedGraph = {
             resizeClusters: true,
             clusterPadding: 10,
             exportElement: this.exportElement,
-            exportLink: this.exportLink
+            exportLink: this.exportLink,
+            disableOptimalOrderHeuristic: false
         });
 
         // create a graphlib.Graph that represents the joint.dia.Graph
@@ -171,7 +172,13 @@ export const DirectedGraph = {
         glGraph.setGraph(glLabel);
 
         // Executes the layout.
-        dagreUtil.layout(glGraph, { debugTiming: !!opt.debugTiming });
+        dagreUtil.layout(glGraph, {
+            debugTiming: !!opt.debugTiming,
+            disableOptimalOrderHeuristic: opt.disableOptimalOrderHeuristic,
+            customOrder: util.isFunction(opt.customOrder) ? (dagreGraph, order) => {
+                opt.customOrder(dagreGraph, graph, order);
+            } : undefined,
+        });
 
         // Wrap all graph changes into a batch.
         graph.startBatch('layout');
