@@ -84,7 +84,7 @@ interface PortProps {
   onRemove: (id: dia.Cell.ID) => void;
   x: number;
 }
-function PortIem({ id, label, onRemove, x }: Readonly<PortProps>) {
+function PortItem({ id, label, onRemove, x }: Readonly<PortProps>) {
   const onRemovePress = useCallback(
     (event: React.MouseEvent) => {
       event.stopPropagation();
@@ -172,7 +172,7 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
       </Port.Group>
       <Port.Group id="port-out-group" position="bottom" x={10} dy={-15}>
         {ports.map((port, index) => (
-          <PortIem
+          <PortItem
             x={index * 85}
             key={port.id}
             id={port.id}
