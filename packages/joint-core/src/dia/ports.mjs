@@ -145,8 +145,9 @@ PortData.prototype = {
             },
             group.position,
             {
-                // TODO: remove `port.args`
-                args: (port.position?.args ?? port.args)
+                // TODO: remove `port.args` backwards compatibility
+                // NOTE: `x != null` is equivalent to `x !== null && x !== undefined`
+                args: (((port.position != null) && (port.position.args != null)) ? port.position.args : port.args)
             }
         );
     },

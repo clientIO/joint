@@ -1499,7 +1499,7 @@ QUnit.module('basic', function(hooks) {
                     assert.equal(translateX, 10, '`position.args.dx: 10` provided = translation of 10px');
                     break;
                 case 'left3':
-                    assert.equal(translateX, 10, '`position.args.dx: 10` has priority over `args.dx: 10` = translation of 10px');
+                    assert.equal(translateX, 10, '`position.args.dx: 10` has priority over `args.dx: 20` = translation of 10px');
                     break;
             }
         })
