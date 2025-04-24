@@ -3,8 +3,8 @@ import React from 'react';
 
 export function withStringMode(Story: any) {
   return (
-    // <React.StrictMode>
-    <Story />
-    // </React.StrictMode>
+    <React.StrictMode>
+      <Story />
+    </React.StrictMode>
   );
 }
