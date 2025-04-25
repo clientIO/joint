@@ -67,7 +67,7 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * Event called when the paper is resized.
    * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
    */
-  readonly onElementSizeChange?: (options: OnLoadOptions) => void;
+  readonly onElementsSizeChange?: (options: OnLoadOptions) => void;
 
   /**
    * The style of the paper element.
@@ -130,7 +130,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     scale,
     children,
     onElementsMeasured,
-    onElementSizeChange,
+    onElementsSizeChange,
     ...paperOptions
   } = props;
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
@@ -158,8 +158,8 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     if (!areElementsMeasured) {
       return;
     }
-    onElementSizeChange?.({ paper, graph: paper.model });
-  }, [areElementsMeasured, onElementSizeChange, paper, sizeHash]);
+    onElementsSizeChange?.({ paper, graph: paper.model });
+  }, [areElementsMeasured, onElementsSizeChange, paper, sizeHash]);
   const hasRenderElement = !!renderElement;
 
   const paperContainerStyle = useMemo(

@@ -112,7 +112,7 @@ function Main() {
         width={PAPER_WIDTH}
         height={450}
         renderElement={renderElement}
-        onElementSizeChange={makeLayout}
+        onElementsSizeChange={makeLayout}
       />
     </div>
   );
