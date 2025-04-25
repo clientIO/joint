@@ -43,11 +43,13 @@ export const DirectedGraph = {
             opt.setPosition(element, glNode);
         } else {
             element.position(glNode.x - glNode.width / 2, glNode.y - glNode.height / 2);
-            if ((opt.clusterPadding === 'default') && (glNode.rank === undefined)) {
-                // we want to use Dagre's default cluster padding, and this is a cluster
-                element.size(glNode.width, glNode.height);
-            } // else: rely on `opt.resizeClusters` and `opt.clusterPadding` (see `layout()` function)
         }
+
+        // check if we want to use Dagre's default cluster padding
+        if (opt.resizeClusters && (opt.clusterPadding === 'default') && (glNode.rank === undefined)) {
+            // when `glNode.rank === undefined`, it means that the current element is a cluster
+            element.size(glNode.width, glNode.height);
+        } // else: possibly apply numeric `opt.clusterPadding` (see `layout()` function)
     },
 
     importLink: function(edgeObj, glGraph, graph, opt) {
