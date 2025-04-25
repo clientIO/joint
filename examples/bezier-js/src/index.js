@@ -120,7 +120,7 @@ function outlinePath(path, o) {
             let segmentPath = outline[j].toSVG();
             if (j > 0) {
                 // Remove the first moveTo command
-                let index = segmentPath.search(/[C,Q]/);
+                let index = segmentPath.search(/[CQ]/);
                 if (index > 0) {
                     segmentPath = segmentPath.slice(index);
                 }
