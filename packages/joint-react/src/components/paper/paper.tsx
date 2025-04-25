@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import { useContext, useEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
+import { useContext, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
 import type { GraphElement, GraphElementBase } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
@@ -143,23 +143,42 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   const elements = useElements((items) => items.map(elementSelector));
   const areElementsMeasured = useAreElementMeasured();
 
-  const sizeHash = useMemo(() => {
-    let hash = 0;
+  // Keep previous sizes in a ref
+  const previousSizesRef = useRef<number[][]>([]);
 
-    for (const { width = 0, height = 0 } of elements) {
-      // Use fast integer hash mixing with large primes (shift + multiply + xor)
-      hash = Math.trunc(((hash << 5) - hash + width * 397) ^ (height * 883));
+  // Whenever elements change (or we’ve just become measured) compare old ↔ new
+  useEffect(() => {
+    if (!areElementsMeasured) return;
+
+    // Build current list of [width, height]
+    const currentSizes = elements.map(({ width = 0, height = 0 }) => [width, height]);
+    const previousSizes = previousSizesRef.current;
+    let changed = false;
+
+    // Quick bail-out on length mismatch
+    if (previousSizes.length === currentSizes.length) {
+      // Otherwise scan for any width/height diff
+      for (const [index, currentSize] of currentSizes.entries()) {
+        if (
+          previousSizes[index][0] !== currentSize[0] ||
+          previousSizes[index][1] !== currentSize[1]
+        ) {
+          changed = true;
+          break;
+        }
+      }
+    } else {
+      changed = true;
     }
 
-    return hash >>> 0; // Ensure it's a positive 32-bit unsigned integer
-  }, [elements]);
-
-  useEffect(() => {
-    if (!areElementsMeasured) {
+    if (!changed) {
       return;
     }
+    // store for next time
+    previousSizesRef.current = currentSizes;
+    // fire your callback exactly once per real change
     onElementsSizeChange?.({ paper, graph: paper.model });
-  }, [areElementsMeasured, onElementsSizeChange, paper, sizeHash]);
+  }, [elements, areElementsMeasured, onElementsSizeChange, paper]);
   const hasRenderElement = !!renderElement;
 
   const paperContainerStyle = useMemo(

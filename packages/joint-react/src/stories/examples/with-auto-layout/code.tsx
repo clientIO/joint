@@ -16,6 +16,7 @@ import {
 } from '@joint/react';
 import { useCallback, useState } from 'react';
 import { processElement } from '../../../utils/cell/set-cells';
+import type { dia } from '@joint/core';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' } },
@@ -56,8 +57,8 @@ function Main() {
   const [gridXSize, setGridXSize] = useState(3);
 
   // Grid layout logic based on number of columns
-  const makeLayout = useCallback(
-    ({ graph }: OnLoadOptions) => {
+  const makeLayoutWithGrid = useCallback(
+    ({ graph, gridXSize }: { gridXSize: number; graph: dia.Graph }) => {
       const gap = 20;
       const cols = Math.max(1, gridXSize); // avoid divide by 0
       const elements = graph.getElements();
@@ -73,8 +74,16 @@ function Main() {
         element.position(x, y);
       }
     },
-    [gridXSize]
+    []
   );
+
+  const makeLayout = useCallback(
+    (options: OnLoadOptions) => {
+      makeLayoutWithGrid({ ...options, gridXSize });
+    },
+    [makeLayoutWithGrid, gridXSize]
+  );
+
   const elementsLength = useElements((items) => items.size);
   return (
     <div className="flex flex-col">
@@ -88,7 +97,9 @@ function Main() {
           placeholder="Grid X Size"
           value={gridXSize}
           onChange={(event) => {
-            setGridXSize(Number(event.target.value));
+            const gridXSize = Number(event.target.value);
+            setGridXSize(gridXSize);
+            makeLayoutWithGrid({ graph, gridXSize });
           }}
           min={0}
         />
