@@ -42,13 +42,19 @@ export const DirectedGraph = {
         if (util.isFunction(opt.setPosition)) {
             opt.setPosition(element, glNode);
         } else {
-            element.position(glNode.x - glNode.width / 2, glNode.y - glNode.height / 2);
+            element.set('position', {
+                x: glNode.x - glNode.width / 2,
+                y: glNode.y - glNode.height / 2
+            });
         }
 
         // check if we want to use Dagre's default cluster padding
         if (opt.resizeClusters && (opt.clusterPadding === 'default') && (glNode.rank === undefined)) {
             // when `glNode.rank === undefined`, it means that the current element is a cluster
-            element.size(glNode.width, glNode.height);
+            element.set('size', {
+                width: glNode.width,
+                height: glNode.height
+            });
         } // else: possibly apply numeric `opt.clusterPadding` (see `layout()` function)
     },
 
