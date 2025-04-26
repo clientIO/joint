@@ -40,6 +40,7 @@ const toolsView = new dia.ToolsView({
 });
 rect.findView(paper).addTools(toolsView);
 rect.findView(paper).vel.translateAndAutoOrient({ x: 10, y: 10, }, { x: 100, y: 100 }, paper.svg);
+(rect.findView(paper).el as SVGGElement).getScreenCTM()!.inverse();
 
 onMounted(() => {
   canvas.value?.appendChild(paper.el);
