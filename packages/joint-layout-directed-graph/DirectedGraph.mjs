@@ -49,12 +49,14 @@ export const DirectedGraph = {
         }
 
         // check if we want to use Dagre's default cluster padding
-        if (opt.resizeClusters && (opt.clusterPadding === 'default') && (glNode.rank === undefined)) {
-            // when `glNode.rank === undefined`, it means that the current element is a cluster
-            element.set('size', {
-                width: glNode.width,
-                height: glNode.height
-            });
+        if (opt.resizeClusters && (opt.clusterPadding === 'default')) {
+            // check if element is a cluster (clusters has no `rank` assigned)
+            if (glNode.rank === undefined) {
+                element.set('size', {
+                    width: glNode.width,
+                    height: glNode.height
+                });
+            }
         } // else: possibly apply numeric `opt.clusterPadding` (see `layout()` function)
     },
 
