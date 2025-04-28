@@ -61,7 +61,7 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
    * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
    */
-  readonly onElementsMeasured?: (options: OnLoadOptions) => void;
+  readonly onElementsSizeReady?: (options: OnLoadOptions) => void;
 
   /**
    * Event called when the paper is resized.
@@ -129,7 +129,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     elementSelector = noopSelector as (item: GraphElement) => ElementItem,
     scale,
     children,
-    onElementsMeasured,
+    onElementsSizeReady,
     onElementsSizeChange,
     ...paperOptions
   } = props;
@@ -148,6 +148,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
 
   // Whenever elements change (or we’ve just become measured) compare old ↔ new
   useEffect(() => {
+    if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
 
     // Build current list of [width, height]
@@ -176,8 +177,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     }
     // store for next time
     previousSizesRef.current = currentSizes;
-    // fire your callback exactly once per real change
-    onElementsSizeChange?.({ paper, graph: paper.model });
+    onElementsSizeChange({ paper, graph: paper.model });
   }, [elements, areElementsMeasured, onElementsSizeChange, paper]);
   const hasRenderElement = !!renderElement;
 
@@ -192,7 +192,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
 
   useEffect(() => {
     if (areElementsMeasured) {
-      return onElementsMeasured?.({ paper, graph: paper.model });
+      return onElementsSizeReady?.({ paper, graph: paper.model });
     }
 
     // Handling dev warning check
@@ -209,7 +209,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
         clearTimeout(timeout);
       };
     }
-  }, [areElementsMeasured, onElementsMeasured, paper]);
+  }, [areElementsMeasured, onElementsSizeReady, paper]);
 
   const content = (
     <div className={className} ref={paperHtmlElement} style={paperContainerStyle}>

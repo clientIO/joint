@@ -41,7 +41,7 @@ describe('Paper Component', () => {
         <Paper<Element>
           width={PAPER_WIDTH}
           height={150}
-          onElementsMeasured={onMeasuredMock}
+          onElementsSizeReady={onMeasuredMock}
           renderElement={({ data: { label }, width, height }) => {
             size = { width, height };
             return (
