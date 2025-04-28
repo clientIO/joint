@@ -79,7 +79,7 @@ function anchorConnectionPoint(line, _view, _magnet, opt) {
 function bboxIntersection(line, view, magnet, opt) {
 
     const bbox = (opt.useModelGeometry)
-        ? getNodeModelGeometry(view, magnet, true)
+        ? getNodeModelBBox(view, magnet, true)
         : view.getNodeBBox(magnet);
     if (opt.stroke) bbox.inflate(stroke(magnet) / 2);
     const intersections = line.intersect(bbox);
@@ -97,7 +97,7 @@ function rectangleIntersection(line, view, magnet, opt) {
     }
 
     const bboxWORotation = (opt.useModelGeometry)
-        ? getNodeModelGeometry(view, magnet, false)
+        ? getNodeModelBBox(view, magnet, false)
         : view.getNodeUnrotatedBBox(magnet);
     if (opt.stroke) bboxWORotation.inflate(stroke(magnet) / 2);
     const center = bboxWORotation.center();
@@ -109,24 +109,15 @@ function rectangleIntersection(line, view, magnet, opt) {
     return offsetPoint(cp, line.start, opt.offset);
 }
 
-
-function getNodeModelGeometry(elementView, magnet, rotate) {
-
+function getNodeModelBBox(elementView, magnet, rotate) {
     const element = elementView.model;
+
     const portId = elementView.findAttribute('port', magnet);
-
-    let bbox;
     if (element.hasPort(portId)) {
-        bbox = element.getPortBBox(portId);
-    } else {
-        bbox = element.getBBox();
+        return element.getPortBBox(portId, { rotate });
     }
 
-    if (rotate) {
-        const angle = element.angle();
-        bbox.rotateAroundCenter(angle);
-    }
-    return bbox;
+    return element.getBBox({ rotate });
 }
 
 function findShapeNode(magnet) {

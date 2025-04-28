@@ -384,7 +384,7 @@ export const elementPortPrototype = {
         return portCenter;
     },
 
-    getPortBBox: function(portId) {
+    getPortBBox: function(portId, opt) {
         const portRect = this.getPortRelativeRect(portId);
         const elementBBox = this.getBBox();
         // Note: the `angle` property of the `port` is ignore here for now
@@ -393,6 +393,9 @@ export const elementPortPrototype = {
         const angle = this.angle();
         if (angle) {
             portBBox.moveAroundPoint(elementBBox.center(), -angle);
+        }
+        if (opt && opt.rotate) {
+            portBBox.rotateAroundCenter(angle);
         }
         return portBBox;
     },
