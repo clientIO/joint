@@ -550,12 +550,7 @@ export const Element = Cell.extend({
         if (!endDef) return center;
         var portId = endDef.port;
         if (!portId || !this.hasPort(portId)) return center;
-        var portGroup = this.portProp(portId, ['group']);
-        var portsPositions = this.getPortsPositions(portGroup);
-        var portCenter = new Point(portsPositions[portId]).offset(bbox.origin());
-        var angle = this.angle();
-        if (angle) portCenter.rotate(center, -angle);
-        return portCenter;
+        return this.getPortCenter(portId);
     }
 
 });

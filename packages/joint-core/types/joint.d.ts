@@ -687,7 +687,13 @@ export namespace dia {
 
         getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
 
-        getPortsRects(groupName: string): { [id: string]: Element.PortRect };
+        getPortRelativePosition(portId: string): Element.PortPosition;
+
+        getPortRelativeRect(portId: string): Element.PortRect;
+
+        getPortCenter(portId: string): g.Point;
+
+        getPortBBox(portId: string): g.Rect;
 
         getPortIndex(port: string | Element.Port): number;
 

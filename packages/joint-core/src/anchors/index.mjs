@@ -26,11 +26,7 @@ function getModelBBoxFromConnectedLink(element, link, endType, rotate) {
     const portId = link.get(endType).port;
 
     if (element.hasPort(portId)) {
-        const port = element.getPort(portId);
-        // Note: the `angle` property of the `port` is ignore here for now
-        bbox = new Rect(element.getPortsRects(port.group)[portId]);
-        bbox.offset(elementBBox.x, elementBBox.y);
-        bbox.moveAroundPoint(elementBBox.center(), -angle);
+        bbox = element.getPortBBox(portId);
     } else {
         bbox = elementBBox;
     }

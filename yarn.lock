@@ -2187,6 +2187,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-connection-points-ts@workspace:examples/connection-points-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-connection-points-ts@workspace:examples/connection-points-ts"
+  dependencies:
+    "@joint/core": "workspace:^"
+    css-loader: "npm:3.5.3"
+    style-loader: "npm:1.2.1"
+    ts-loader: "npm:^9.2.5"
+    typescript: "npm:^5.7.3"
+    webpack: "npm:^5.61.0"
+    webpack-cli: "npm:^4.8.0"
+    webpack-dev-server: "npm:^4.2.1"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-decorators@workspace:examples/decorators":
   version: 0.0.0-use.local
   resolution: "@joint/demo-decorators@workspace:examples/decorators"

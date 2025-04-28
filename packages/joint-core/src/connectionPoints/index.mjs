@@ -78,10 +78,12 @@ function anchorConnectionPoint(line, _view, _magnet, opt) {
 
 function bboxIntersection(line, view, magnet, opt) {
 
-    var bbox = view.getNodeBBox(magnet);
+    const bbox = (opt.useModelGeometry)
+        ? getNodeModelGeometry(view, magnet, true)
+        : view.getNodeBBox(magnet);
     if (opt.stroke) bbox.inflate(stroke(magnet) / 2);
-    var intersections = line.intersect(bbox);
-    var cp = (intersections)
+    const intersections = line.intersect(bbox);
+    const cp = (intersections)
         ? line.start.chooseClosest(intersections)
         : line.end;
     return offsetPoint(cp, line.start, opt.offset);
@@ -89,20 +91,42 @@ function bboxIntersection(line, view, magnet, opt) {
 
 function rectangleIntersection(line, view, magnet, opt) {
 
-    var angle = view.model.angle();
+    const angle = view.model.angle();
     if (angle === 0) {
         return bboxIntersection(line, view, magnet, opt);
     }
 
-    var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
+    const bboxWORotation = (opt.useModelGeometry)
+        ? getNodeModelGeometry(view, magnet, false)
+        : view.getNodeUnrotatedBBox(magnet);
     if (opt.stroke) bboxWORotation.inflate(stroke(magnet) / 2);
-    var center = bboxWORotation.center();
-    var lineWORotation = line.clone().rotate(center, angle);
-    var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
-    var cp = (intersections)
+    const center = bboxWORotation.center();
+    const lineWORotation = line.clone().rotate(center, angle);
+    const intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
+    const cp = (intersections)
         ? lineWORotation.start.chooseClosest(intersections).rotate(center, -angle)
         : line.end;
     return offsetPoint(cp, line.start, opt.offset);
+}
+
+
+function getNodeModelGeometry(elementView, magnet, rotate) {
+
+    const element = elementView.model;
+    const portId = elementView.findAttribute('port', magnet);
+
+    let bbox;
+    if (element.hasPort(portId)) {
+        bbox = element.getPortBBox(portId);
+    } else {
+        bbox = element.getBBox();
+    }
+
+    if (rotate) {
+        const angle = element.angle();
+        bbox.rotateAroundCenter(angle);
+    }
+    return bbox;
 }
 
 function findShapeNode(magnet) {
