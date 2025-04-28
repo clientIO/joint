@@ -20,6 +20,10 @@ var PortData = function(data) {
 
 PortData.prototype = {
 
+    hasPort: function(id) {
+        return id in this.portsMap;
+    },
+
     getPort: function(id) {
         const port = this.portsMap[id];
         if (port) return port;
@@ -280,8 +284,7 @@ export const elementPortPrototype = {
      */
     hasPorts: function() {
 
-        var ports = this.prop('ports/items');
-        return Array.isArray(ports) && ports.length > 0;
+        return this._portSettingsData.getPorts().length > 0;
     },
 
     /**
@@ -290,7 +293,7 @@ export const elementPortPrototype = {
      */
     hasPort: function(id) {
 
-        return this.getPortIndex(id) !== -1;
+        return this._portSettingsData.hasPort(id);
     },
 
     /**
