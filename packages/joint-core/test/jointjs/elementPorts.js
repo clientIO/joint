@@ -2044,7 +2044,7 @@ QUnit.module('element ports', function() {
             const width = 17;
             const height = 13;
 
-            var shape = create({
+            const shape = create({
                 groups: {
                     'a': {
                         position: 'left',
@@ -2085,6 +2085,57 @@ QUnit.module('element ports', function() {
             assert.ok(portBBoxTwo.y < portBBoxThree.y);
 
             assert.ok(layoutSpy.calledTwice, 'layout function called once');
+
+            layoutSpy.restore();
+        });
+
+        QUnit.test('option: rotate', function(assert) {
+
+            const width = 17;
+            const height = 13;
+
+            const elX = 47;
+            const elY = 53;
+            const elWidth = 100;
+            const elHeight = 100;
+
+            const shape = create({
+                groups: {
+                    'a': {
+                        position: 'left',
+                        size: { width, height }
+                    }
+                },
+                items: [
+                    { id: 'one', group: 'a' },
+                ]
+            });
+
+            shape.set({
+                position: { x: elX, y: elY },
+                size: { width: elWidth, height: elHeight },
+                angle: 90,
+            })
+
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
+            const portUnrotatedBBox = shape.getPortBBox('one');
+            const portRotatedBBox = shape.getPortBBox('one', { rotate: true });
+
+            assert.ok(portUnrotatedBBox instanceof g.Rect);
+            assert.ok(portRotatedBBox instanceof g.Rect);
+
+            assert.equal(portUnrotatedBBox.x, elX + elWidth / 2 - width / 2);
+            assert.equal(portUnrotatedBBox.y, elY - height / 2);
+            assert.equal(Math.round(portUnrotatedBBox.width), width);
+            assert.equal(Math.round(portUnrotatedBBox.height), height);
+
+            assert.equal(portRotatedBBox.x, elX + elWidth / 2 - height / 2);
+            assert.equal(portRotatedBBox.y, elY - width / 2);
+            assert.equal(Math.round(portRotatedBBox.width), height);
+            assert.equal(Math.round(portRotatedBBox.height), width);
+
+            assert.ok(layoutSpy.calledOnce, 'layout function called once');
 
             layoutSpy.restore();
         });

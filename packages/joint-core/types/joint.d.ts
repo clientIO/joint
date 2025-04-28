@@ -633,8 +633,12 @@ export namespace dia {
             terminator?: Cell | Cell.ID;
         }
 
-        interface BBoxOptions extends Cell.EmbeddableOptions {
+        interface RotateOptions {
             rotate?: boolean;
+        }
+
+        interface BBoxOptions extends Cell.EmbeddableOptions, RotateOptions {
+
         }
     }
 
@@ -693,7 +697,7 @@ export namespace dia {
 
         getPortCenter(portId: string): g.Point;
 
-        getPortBBox(portId: string): g.Rect;
+        getPortBBox(portId: string, opt?: Element.RotateOptions): g.Rect;
 
         getPortIndex(port: string | Element.Port): number;
 
