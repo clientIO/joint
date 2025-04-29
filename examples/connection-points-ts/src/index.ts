@@ -39,7 +39,7 @@ function createPair(graph,{
     sourcePort = null,
     targetPort = null
 } = {}) {
-    const portMarkup = util.svg`<rect x="-10" y="-10" width="20" height="20" fill="white" stroke="black" stroke-width="2" />`;
+    const portMarkup = util.svg`<rect x="-20" y="-10" width="40" height="20" fill="white" stroke="black" stroke-width="2" />`;
 
     const sourceEl = new shapes.standard.Rectangle({
         ...sourceAttributes,
@@ -61,7 +61,7 @@ function createPair(graph,{
             groups: {
                 portGroup1: {
                     position: 'top',
-                    size: { width: 20, height: 20 },
+                    size: { width: 40, height: 20 },
                 }
             }
         },
@@ -87,7 +87,14 @@ function createPair(graph,{
             groups: {
                 portGroup1: {
                     position: 'top',
-                    size: { width: 20, height: 20 },
+                    size: { width: 40, height: 20 },
+                    attrs: {
+                        portBody: {
+                            width: 'calc(w)',
+                            height: 'calc(h)',
+
+                        }
+                    }
                 }
             }
         },
