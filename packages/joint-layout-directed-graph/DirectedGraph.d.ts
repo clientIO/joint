@@ -1,5 +1,6 @@
 import { dia, g } from '@joint/core';
-import type { graphlib, configUnion } from '@dagrejs/dagre';
+import { Graph as GLibGraph} from '@dagrejs/graphlib';
+import { graphlib, configUnion } from '@dagrejs/dagre';
 
 export namespace DirectedGraph {
 
@@ -68,9 +69,9 @@ export namespace DirectedGraph {
 
     export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
 
-    export function toGraphLib(graph: dia.Graph, opt?: ToGraphLibOptions): any;
+    export function toGraphLib(graph: dia.Graph, opt?: ToGraphLibOptions): GLibGraph;
 
-    export function fromGraphLib(glGraph: any, opt?: FromGraphLibOptions): dia.Graph;
+    export function fromGraphLib(glGraph: GLibGraph, opt?: FromGraphLibOptions): dia.Graph;
 
     /** @deprecated pass the `graph` option instead */
     export function fromGraphLib(this: dia.Graph, glGraph: any, opt?: { [key: string]: any }): dia.Graph;
