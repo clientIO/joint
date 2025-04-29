@@ -1,5 +1,5 @@
 import * as util from '../util/index.mjs';
-import { toRad, Rect } from '../g/index.mjs';
+import { toRad } from '../g/index.mjs';
 import { resolveRef } from '../linkAnchors/index.mjs';
 
 const Side = {
