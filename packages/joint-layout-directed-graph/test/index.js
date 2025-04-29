@@ -556,5 +556,32 @@ QUnit.module('DirectedGraph', function(hooks) {
             assert.deepEqual(container1.size(), containerSize);
             assert.deepEqual(container2.size(), containerSize);
         });
+
+        QUnit.test('customOrder: function - should allow to specify a custom order of the elements', function(assert) {
+
+            assert.expect(4);
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({ id: '1' }),
+                new joint.shapes.standard.Rectangle({ id: '2' }),
+                new joint.shapes.standard.Link({
+                    id: 'link',
+                    source: { id: '1' },
+                    target: { id: '2' },
+                }),
+            ];
+
+            graph.resetCells(cells);
+
+            DirectedGraph.layout(graph, {
+                customOrder: function(glGraph, graph, order) {
+                    assert.ok(graph instanceof joint.dia.Graph);
+                    assert.ok(graph.getCell('1'));
+                    assert.ok(graph.getCell('2'));
+                    assert.ok(graph.getCell('link'));
+                    order(glGraph);
+                }
+            });
+        });
     });
 });
