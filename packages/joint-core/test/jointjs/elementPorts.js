@@ -2031,7 +2031,7 @@ QUnit.module('element ports', function() {
             assert.ok(portPositionOne.y < portPositionTwo.y);
             assert.ok(portPositionTwo.y < portPositionThree.y);
 
-            assert.ok(layoutSpy.calledTwice, 'layout function called once');
+            assert.ok(layoutSpy.calledTwice, 'layout function called twice');
 
             layoutSpy.restore();
         });
