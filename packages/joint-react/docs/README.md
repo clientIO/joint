@@ -9,8 +9,8 @@
 - [Highlighter](@joint/namespaces/Highlighter/README.md)
 - [MeasuredNode](variables/MeasuredNode.md)
 - [Paper](variables/Paper.md)
+- [TextNode](variables/TextNode.md)
 - [GraphProvider](functions/GraphProvider.md)
-- [TextNode](functions/TextNode.md)
 
 ## Hooks
 

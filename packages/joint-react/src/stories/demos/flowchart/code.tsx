@@ -3,7 +3,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { OnSetSize } from '@joint/react';
+import type { GraphLinkBase, OnSetSize } from '@joint/react';
 import {
   createElements,
   createLinks,
@@ -87,23 +87,16 @@ const flowchartNodes = createElements<NodeData>([
     cy: 460,
   },
 ]);
-const LINK_OPTIONS = {
+const LINK_OPTIONS: Partial<GraphLinkBase> = {
   z: 2,
   attrs: {
     line: {
-      class: 'jj-flow-line',
+      class: 'link',
       stroke: PRIMARY,
       strokeWidth: 2,
       targetMarker: {
-        class: 'jj-flow-arrowhead',
         d: `M 0 0 L 8 4 L 8 -4 Z`, // Larger arrowhead
       },
-    },
-    outline: {
-      class: 'jj-flow-outline',
-      strokeWidth: 10, // Adds clickable area
-      stroke: 'transparent',
-      connection: true,
     },
   },
 
@@ -365,7 +358,7 @@ function Main() {
       }}
       gridSize={5}
       height={600}
-      onElementsMeasured={({ paper }) => {
+      onElementsSizeReady={({ paper }) => {
         paper.transformToFitContent({
           padding: 40,
           useModelGeometry: true,

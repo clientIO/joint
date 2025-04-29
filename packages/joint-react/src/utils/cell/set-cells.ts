@@ -61,9 +61,53 @@ export function setLinks(options: Options) {
   }
 
   // Process links if provided.
-  graph.addCells(defaultLinks.map(processLink));
+  graph.addCells(
+    defaultLinks.map((item) => {
+      const link = processLink(item);
+      if (link.z === undefined) {
+        link.z = 0;
+      }
+      return link;
+    })
+  );
 }
 
+/**
+ * Process an element: create a ReactElement if applicable, otherwise a standard Cell.
+ * @param element - The element to process.
+ * @param unsizedIds - A set of unsized element IDs.
+ * @returns A standard JointJS element or a JSON representation of the element.
+ * @group utils
+ * @description
+ * This function is used to process an element and convert it to a standard JointJS element if needed.
+ * It also checks if the element is a ReactElement and if it has a size.
+ * If the element is a ReactElement and has no size, it adds its ID to the unsizedIds set.
+ * @private
+ */
+export function processElement<T extends dia.Element | GraphElementBase>(
+  element: T,
+  unsizedIds?: Set<string>
+): dia.Element | dia.Cell.JSON {
+  const stringId = String(element.id);
+  if (isCellInstance(element)) {
+    const size = element.size();
+    if (isReactElement(element) && isUnsized(size.width, size.height)) {
+      unsizedIds?.add(stringId);
+    }
+    return element;
+  }
+  const { type = REACT_TYPE, x, y, width, height } = element;
+  if (isUnsized(width, height)) {
+    unsizedIds?.add(stringId);
+  }
+
+  return {
+    type,
+    position: { x, y },
+    size: { width, height },
+    ...element,
+  } as dia.Cell.JSON;
+}
 /**
  * Set elements to the graph.
  * @param options - The options for setting elements.
@@ -81,39 +125,7 @@ export function setElements(options: Options) {
   }
   const unsizedIds = new Set<string>();
 
-  /**
-   * Process an element: create a ReactElement if applicable, otherwise a standard Cell.
-   * @param element - The element to process.
-   * @returns A standard JointJS element or a JSON representation of the element.
-   * @group utils
-   * @description
-   * This function is used to process an element and convert it to a standard JointJS element if needed.
-   * It also checks if the element is a ReactElement and if it has a size.
-   * If the element is a ReactElement and has no size, it adds its ID to the unsizedIds set.
-   * @private
-   */
-  function processElement(element: dia.Element | GraphElementBase): dia.Element | dia.Cell.JSON {
-    const stringId = String(element.id);
-    if (isCellInstance(element)) {
-      const size = element.size();
-      if (isReactElement(element) && isUnsized(size.width, size.height)) {
-        unsizedIds.add(stringId);
-      }
-      return element;
-    }
-    const { type = REACT_TYPE, x, y, width, height } = element;
-    if (isUnsized(width, height)) {
-      unsizedIds.add(stringId);
-    }
-
-    return {
-      type,
-      position: { x, y },
-      size: { width, height },
-      ...element,
-    } as dia.Cell.JSON;
-  }
   // Process elements if provided.
-  graph.addCells(defaultElements.map(processElement));
+  graph.addCells(defaultElements.map((item) => processElement(item, unsizedIds)));
   return unsizedIds;
 }

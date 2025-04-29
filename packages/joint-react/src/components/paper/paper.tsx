@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import { useContext, useEffect, useMemo, type CSSProperties, type ReactNode } from 'react';
+import { useContext, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
 import type { GraphElement, GraphElementBase } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
@@ -61,7 +61,13 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
    * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
    */
-  readonly onElementsMeasured?: (options: OnLoadOptions) => void;
+  readonly onElementsSizeReady?: (options: OnLoadOptions) => void;
+
+  /**
+   * Event called when the paper is resized.
+   * It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
+   */
+  readonly onElementsSizeChange?: (options: OnLoadOptions) => void;
 
   /**
    * The style of the paper element.
@@ -123,7 +129,8 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     elementSelector = noopSelector as (item: GraphElement) => ElementItem,
     scale,
     children,
-    onElementsMeasured,
+    onElementsSizeReady,
+    onElementsSizeChange,
     ...paperOptions
   } = props;
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
@@ -136,6 +143,42 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   const elements = useElements((items) => items.map(elementSelector));
   const areElementsMeasured = useAreElementMeasured();
 
+  // Keep previous sizes in a ref
+  const previousSizesRef = useRef<number[][]>([]);
+
+  // Whenever elements change (or we’ve just become measured) compare old ↔ new
+  useEffect(() => {
+    if (!onElementsSizeChange) return;
+    if (!areElementsMeasured) return;
+
+    // Build current list of [width, height]
+    const currentSizes = elements.map(({ width = 0, height = 0 }) => [width, height]);
+    const previousSizes = previousSizesRef.current;
+    let changed = false;
+
+    // Quick bail-out on length mismatch
+    if (previousSizes.length === currentSizes.length) {
+      // Otherwise scan for any width/height diff
+      for (const [index, currentSize] of currentSizes.entries()) {
+        if (
+          previousSizes[index][0] !== currentSize[0] ||
+          previousSizes[index][1] !== currentSize[1]
+        ) {
+          changed = true;
+          break;
+        }
+      }
+    } else {
+      changed = true;
+    }
+
+    if (!changed) {
+      return;
+    }
+    // store for next time
+    previousSizesRef.current = currentSizes;
+    onElementsSizeChange({ paper, graph: paper.model });
+  }, [elements, areElementsMeasured, onElementsSizeChange, paper]);
   const hasRenderElement = !!renderElement;
 
   const paperContainerStyle = useMemo(
@@ -149,7 +192,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
 
   useEffect(() => {
     if (areElementsMeasured) {
-      return onElementsMeasured?.({ paper, graph: paper.model });
+      return onElementsSizeReady?.({ paper, graph: paper.model });
     }
 
     // Handling dev warning check
@@ -166,7 +209,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
         clearTimeout(timeout);
       };
     }
-  }, [areElementsMeasured, onElementsMeasured, paper]);
+  }, [areElementsMeasured, onElementsSizeReady, paper]);
 
   const content = (
     <div className={className} ref={paperHtmlElement} style={paperContainerStyle}>
