@@ -375,6 +375,13 @@ export const elementPortPrototype = {
         return portRect;
     },
 
+    /**
+     * @param {string} portId
+     * @returns {Point}
+     * @description Returns the port center in the graph coordinate system.
+     * The port center is in the graph coordinate system, and the position
+     * already takes into account the element rotation.
+     **/
     getPortCenter(portId) {
         const elementBBox = this.getBBox();
         const portPosition = this.getPortRelativePosition(portId);
@@ -384,6 +391,16 @@ export const elementPortPrototype = {
         return portCenter;
     },
 
+    /**
+     * @param {string} portId
+     * @param {object} [opt]
+     * @param {boolean} [opt.rotate] - If true, the port bounding box is rotated
+     * around the port center.
+     * @returns {Rect}
+     * @description Returns the bounding box of the port in the graph coordinate system.
+     * The port center is rotated around the element center, but the port bounding box
+     * is not rotated (unless `opt.rotate` is set to true).
+     */
     getPortBBox: function(portId, opt) {
         const portRect = this.getPortRelativeRect(portId);
         const elementBBox = this.getBBox();
