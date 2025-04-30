@@ -971,6 +971,10 @@ export namespace dia {
 
         isIntersecting(geometryShape: g.Shape, geometryData?: g.SegmentSubdivisionsOpt | null): boolean;
 
+        cleanNodesCache(): void;
+
+        cleanNodeCache(node: SVGElement): void
+
         protected isEnclosedIn(area: g.Rect): boolean;
 
         protected isInArea(area: g.Rect, options: g.StrictOpt): boolean;
@@ -1026,8 +1030,6 @@ export namespace dia {
         protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
 
         protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
-
-        protected cleanNodesCache(): void;
 
         protected nodeCache(magnet: SVGElement): CellView.NodeMetrics;
 
