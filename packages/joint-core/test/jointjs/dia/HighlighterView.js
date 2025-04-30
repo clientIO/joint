@@ -400,6 +400,9 @@ QUnit.module('HighlighterView', function(hooks) {
 
             var highlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'highlight');
             var unhighlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'unhighlight');
+            var invalidSpy = sinon.spy();
+
+            paper.on('cell:highlight:invalid', invalidSpy);
 
             var id = 'highlighter-id';
             var node = elementView.el.querySelector('[joint-selector="body"]');
@@ -412,8 +415,10 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.ok(highlightSpy.calledOnceWithExactly(elementView, node));
             assert.ok(highlightSpy.calledOn(highlighter));
             assert.ok(unhighlightSpy.notCalled);
+            assert.ok(invalidSpy.notCalled);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
 
             // Re-render (will not highlight the node, because
             // it's not in the DOM anymore)
@@ -425,16 +430,21 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.ok(unhighlightSpy.calledOnce);
             assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node));
             assert.ok(unhighlightSpy.calledOn(highlighter));
+            assert.ok(invalidSpy.calledOnce);
+            assert.ok(invalidSpy.calledOnceWithExactly(elementView, id, highlighter));
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
 
             // Unhighlight
             joint.dia.HighlighterView.remove(elementView, id);
             assert.equal(joint.dia.HighlighterView.get(elementView, id), null);
             assert.notOk(unhighlightSpy.called);
             assert.ok(highlightSpy.notCalled);
+            assert.ok(invalidSpy.notCalled);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
 
             // Highlight
             var id2 = 'highlighter-id-2';
@@ -442,6 +452,7 @@ QUnit.module('HighlighterView', function(hooks) {
             var highlighter2 = joint.dia.HighlighterView.add(elementView, node3, id2);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
 
             // Update (Default will unhighlight and highlight)
             element.attr(['body', 'fill'], 'blue', { dirty: false });
@@ -453,8 +464,10 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.ok(unhighlightSpy.calledOnce);
             assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node3));
             assert.ok(unhighlightSpy.calledOn(highlighter2));
+            assert.ok(invalidSpy.notCalled);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
 
             // Unhighlight
             joint.dia.HighlighterView.remove(elementView, id2);
@@ -463,8 +476,10 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node3));
             assert.ok(unhighlightSpy.calledOn(highlighter2));
             assert.ok(highlightSpy.notCalled);
+            assert.ok(invalidSpy.notCalled);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
 
             highlightSpy.restore();
             unhighlightSpy.restore();
