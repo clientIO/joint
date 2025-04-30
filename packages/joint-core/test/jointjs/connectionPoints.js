@@ -1,6 +1,6 @@
 QUnit.module('connectionPoints', function(hooks) {
 
-    var paper, graph, r1, rv1, l1, lv1, sp, tp, fullNode;
+    var paper, graph, r1, rv1, l1, lv1, sp, tp, fullNode, quarterNode, textNode;
 
     hooks.beforeEach(function() {
 
@@ -28,6 +28,7 @@ QUnit.module('connectionPoints', function(hooks) {
         }, {
             markup: [{
                 tagName: 'g',
+                selector: 'text',
                 textContent: 'test-test-content'
             }, {
                 tagName: 'rect',
@@ -52,7 +53,9 @@ QUnit.module('connectionPoints', function(hooks) {
         graph.addCells([r1, l1]);
         rv1 = r1.findView(paper);
         lv1 = l1.findView(paper);
-        fullNode = rv1.el.querySelector('[joint-selector="full"]');
+        fullNode = rv1.findNode('full');
+        quarterNode = rv1.findNode('quarter');
+        textNode = rv1.findNode('text');
     });
 
     hooks.afterEach(function() {
@@ -164,6 +167,84 @@ QUnit.module('connectionPoints', function(hooks) {
                 cp = connectionPointFn.call(lv1, line, rv1, fullNode, { stroke: true });
                 assert.ok(cp.round().equals(r1.getBBox().rightMiddle().move(tp, -strokeWidth / 2).round()));
             });
+
+            QUnit.module('useModelGeometry', function() {
+
+                QUnit.test('uses model metrics when connected to an element', function(assert) {
+                    const connectionPointFn = joint.connectionPoints.bbox;
+                    let cp, line;
+
+                    r1.position(0, 0);
+                    r1.resize(52, 74);
+
+                    line = new g.Line(new g.Point(100, 37), new g.Point(26, 37));
+                    cp = connectionPointFn.call(lv1, line, rv1, fullNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox().rightMiddle().round()));
+                    cp = connectionPointFn.call(lv1, line, rv1, quarterNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox().rightMiddle().round()));
+                    cp = connectionPointFn.call(lv1, line, rv1, textNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox().rightMiddle().round()));
+
+                    r1.rotate(90);
+
+                    cp = connectionPointFn.call(lv1, line, rv1, fullNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox({ rotate: true }).rightMiddle().round()));
+                    cp = connectionPointFn.call(lv1, line, rv1, quarterNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox({ rotate: true }).rightMiddle().round()));
+                    cp = connectionPointFn.call(lv1, line, rv1, textNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox({ rotate: true }).rightMiddle().round()));
+                });
+
+                QUnit.test('uses port model metrics when connected to a port', function(assert) {
+                    const connectionPointFn = joint.connectionPoints.bbox;
+                    let cp, line;
+
+                    const width = 52;
+                    const height = 74;
+                    const portWidth = 11;
+                    const portHeight = 17;
+
+                    r1.position(0, 0);
+                    r1.resize(width, height);
+                    r1.set('ports', {
+                        groups: {
+                            'g1': {
+                                position: {
+                                    name: 'right'
+                                }
+                            },
+                        },
+                        items: [{
+                            id: 'p1',
+                            group: 'g1',
+                            size: { width: portWidth, height: portHeight },
+                        }]
+                    });
+
+                    const portNode = rv1.findPortNode('p1');
+
+                    line = new g.Line(new g.Point(2 * width, height / 2), new g.Point(width, height / 2));
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).rightMiddle()));
+
+                    line = new g.Line(new g.Point(width, 2 * height), new g.Point(width, height / 2));
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).bottomMiddle()));
+
+                    r1.rotate(45);
+
+                    const r1BBoxWR = r1.getBBox({ rotate: true });
+                    const p1BBoxWR = r1.getPortBBox('p1', { rotate: true });
+
+                    line = new g.Line(p1BBoxWR.center().offset(0, 1000), p1BBoxWR.center());
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).bottomMiddle()));
+
+                    line = new g.Line(p1BBoxWR.center().offset(1000, 0), p1BBoxWR.center());
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).rightMiddle()));
+                });
+            });
         });
     });
 
@@ -211,6 +292,83 @@ QUnit.module('connectionPoints', function(hooks) {
                 line = new g.Line(tp.clone(), sp.clone());
                 cp = connectionPointFn.call(lv1, line, rv1, fullNode, { stroke: true });
                 assert.ok(cp.round().equals(r1.getBBox().rightMiddle().move(tp, -strokeWidth / 2).round()));
+            });
+
+            QUnit.module('useModelGeometry', function() {
+
+                QUnit.test('uses model metrics when connected to an element', function(assert) {
+                    const connectionPointFn = joint.connectionPoints.rectangle;
+                    let cp, line;
+
+                    r1.position(0, 0);
+                    r1.resize(52, 74);
+
+                    line = new g.Line(new g.Point(100, 37), new g.Point(26, 37));
+                    cp = connectionPointFn.call(lv1, line, rv1, fullNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox().rightMiddle().round()));
+                    cp = connectionPointFn.call(lv1, line, rv1, quarterNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox().rightMiddle().round()));
+                    cp = connectionPointFn.call(lv1, line, rv1, textNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox().rightMiddle().round()));
+
+                    r1.rotate(90);
+
+                    cp = connectionPointFn.call(lv1, line, rv1, fullNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox({ rotate: true }).rightMiddle().round()));
+                    cp = connectionPointFn.call(lv1, line, rv1, quarterNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox({ rotate: true }).rightMiddle().round()));
+                    cp = connectionPointFn.call(lv1, line, rv1, textNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox({ rotate: true }).rightMiddle().round()));
+                });
+
+                QUnit.test('uses port model metrics when connected to a port', function(assert) {
+                    const connectionPointFn = joint.connectionPoints.rectangle;
+                    let cp, line;
+
+                    const width = 52;
+                    const height = 74;
+                    const portWidth = 11;
+                    const portHeight = 17;
+
+                    r1.position(0, 0);
+                    r1.resize(width, height);
+                    r1.set('ports', {
+                        groups: {
+                            'g1': {
+                                position: {
+                                    name: 'right'
+                                }
+                            },
+                        },
+                        items: [{
+                            id: 'p1',
+                            group: 'g1',
+                            size: { width: portWidth, height: portHeight },
+                        }]
+                    });
+
+                    const portNode = rv1.findPortNode('p1');
+
+                    line = new g.Line(new g.Point(2 * width, height / 2), new g.Point(width, height / 2));
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox({ rotate: true }).rightMiddle().offset(portWidth / 2, 0).round()));
+
+                    line = new g.Line(new g.Point(width, 2 * height), new g.Point(width, height / 2));
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
+                    assert.ok(cp.round().equals(r1.getBBox({ rotate: true }).rightMiddle().offset(0, portHeight / 2).round()));
+
+                    r1.rotate(90);
+
+                    const r1BBoxWR = r1.getBBox({ rotate: true });
+
+                    line = new g.Line(r1BBoxWR.bottomMiddle().offset(0, 1000), r1BBoxWR.bottomMiddle());
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).bottomMiddle()));
+
+                    line = new g.Line(r1BBoxWR.bottomMiddle().offset(1000, 0), r1BBoxWR.bottomMiddle());
+                    cp = connectionPointFn.call(lv1, line, rv1, portNode, { useModelGeometry: true });
+                    assert.ok(cp.equals(r1.getPortBBox('p1', { rotate: true }).rightMiddle()));
+                });
             });
         });
     });

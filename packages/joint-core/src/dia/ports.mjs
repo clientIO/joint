@@ -8,14 +8,27 @@ var PortData = function(data) {
 
     var clonedData = util.cloneDeep(data) || {};
     this.ports = [];
+    this.portsMap = {};
     this.groups = {};
     this.portLayoutNamespace = Port;
     this.portLabelLayoutNamespace = PortLabel;
+    this.metrics = {};
+    this.metricsKey = null;
 
     this._init(clonedData);
 };
 
 PortData.prototype = {
+
+    hasPort: function(id) {
+        return id in this.portsMap;
+    },
+
+    getPort: function(id) {
+        const port = this.portsMap[id];
+        if (port) return port;
+        throw new Error('Element: unable to find port with id ' + id);
+    },
 
     getPorts: function() {
         return this.ports;
@@ -32,7 +45,26 @@ PortData.prototype = {
         });
     },
 
-    getGroupPortsMetrics: function(groupName, elBBox) {
+    getGroupPortsMetrics: function(groupName, rect) {
+        const { x = 0, y = 0, width = 0, height = 0 } = rect;
+        const metricsKey = `${x}:${y}:${width}:${height}`;
+        if (this.metricsKey !== metricsKey) {
+            // Clear the cache (the element size has changed)
+            this.metrics = {};
+            this.metricsKey = metricsKey;
+        }
+        let groupPortsMetrics = this.metrics[groupName];
+        if (groupPortsMetrics) {
+            // Return cached metrics
+            return groupPortsMetrics;
+        }
+        // Calculate the metrics
+        groupPortsMetrics = this.resolveGroupPortsMetrics(groupName, new Rect(x, y, width, height));
+        this.metrics[groupName] = groupPortsMetrics;
+        return groupPortsMetrics;
+    },
+
+    resolveGroupPortsMetrics: function(groupName, elBBox) {
 
         var group = this.getGroup(groupName);
         var ports = this.getPortsByGroup(groupName);
@@ -52,21 +84,23 @@ PortData.prototype = {
 
         var accumulator = {
             ports: ports,
-            result: []
+            result: {}
         };
 
-        util.toArray(groupPortTransformations).reduce(function(res, portTransformation, index) {
-            var port = res.ports[index];
-            res.result.push({
-                portId: port.id,
+        util.toArray(groupPortTransformations).reduce((res, portTransformation, index) => {
+            const port = res.ports[index];
+            const portId = port.id;
+            res.result[portId] = {
+                index,
+                portId,
                 portTransformation: portTransformation,
                 labelTransformation: this._getPortLabelLayout(port, Point(portTransformation), elBBox),
                 portAttrs: port.attrs,
                 portSize: port.size,
                 labelSize: port.label.size
-            });
+            };
             return res;
-        }.bind(this), accumulator);
+        }, accumulator);
 
         return accumulator.result;
     },
@@ -97,7 +131,9 @@ PortData.prototype = {
         // prepare ports
         var ports = util.toArray(data.items);
         for (var j = 0, m = ports.length; j < m; j++) {
-            this.ports.push(this._evaluatePort(ports[j]));
+            const resolvedPort = this._evaluatePort(ports[j]);
+            this.ports.push(resolvedPort);
+            this.portsMap[resolvedPort.id] = resolvedPort;
         }
     },
 
@@ -248,8 +284,7 @@ export const elementPortPrototype = {
      */
     hasPorts: function() {
 
-        var ports = this.prop('ports/items');
-        return Array.isArray(ports) && ports.length > 0;
+        return this._portSettingsData.getPorts().length > 0;
     },
 
     /**
@@ -258,7 +293,7 @@ export const elementPortPrototype = {
      */
     hasPort: function(id) {
 
-        return this.getPortIndex(id) !== -1;
+        return this._portSettingsData.hasPort(id);
     },
 
     /**
@@ -296,38 +331,90 @@ export const elementPortPrototype = {
      */
     getPortsPositions: function(groupName) {
 
-        var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, Rect(this.size()));
-
-        return portsMetrics.reduce(function(positions, metrics) {
-            var transformation = metrics.portTransformation;
-            positions[metrics.portId] = {
-                x: transformation.x,
-                y: transformation.y,
-                angle: transformation.angle
-            };
-            return positions;
-        }, {});
-    },
-
-    getPortsRects: function(groupName) {
-
-        var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, Rect(this.size()));
-
-        return portsMetrics.reduce(function(rects, metrics) {
+        const portsMetrics = this.getGroupPortsMetrics(groupName);
+        const portsPosition = {};
+        for (const portId in portsMetrics) {
             const {
-                portId,
                 portTransformation: { x, y, angle },
-                portSize: { width, height }
-            } = metrics;
-            rects[portId] = {
-                x: x - width / 2,
-                y: y - height / 2,
-                width,
-                height,
+            } = portsMetrics[portId];
+            portsPosition[portId] = {
+                x: x,
+                y: y,
                 angle
             };
-            return rects;
-        }, {});
+        }
+        return portsPosition;
+    },
+
+    getPortMetrics: function(portId) {
+        const port = this._portSettingsData.getPort(portId);
+        return this.getGroupPortsMetrics(port.group)[portId];
+    },
+
+    getGroupPortsMetrics: function(groupName) {
+        return this._portSettingsData.getGroupPortsMetrics(groupName, this.size());
+    },
+
+    getPortRelativePosition: function(portId) {
+        const { portTransformation: { x, y, angle }} = this.getPortMetrics(portId);
+        return { x, y, angle };
+    },
+
+    getPortRelativeRect(portId) {
+        const {
+            portTransformation: { x, y, angle },
+            portSize: { width, height }
+        } = this.getPortMetrics(portId);
+        const portRect = {
+            x: x - width / 2,
+            y: y - height / 2,
+            width,
+            height,
+            angle
+        };
+        return portRect;
+    },
+
+    /**
+     * @param {string} portId
+     * @returns {Point}
+     * @description Returns the port center in the graph coordinate system.
+     * The port center is in the graph coordinate system, and the position
+     * already takes into account the element rotation.
+     **/
+    getPortCenter(portId) {
+        const elementBBox = this.getBBox();
+        const portPosition = this.getPortRelativePosition(portId);
+        const portCenter = new Point(portPosition).offset(elementBBox.x, elementBBox.y);
+        const angle = this.angle();
+        if (angle) portCenter.rotate(elementBBox.center(), -angle);
+        return portCenter;
+    },
+
+    /**
+     * @param {string} portId
+     * @param {object} [opt]
+     * @param {boolean} [opt.rotate] - If true, the port bounding box is rotated
+     * around the port center.
+     * @returns {Rect}
+     * @description Returns the bounding box of the port in the graph coordinate system.
+     * The port center is rotated around the element center, but the port bounding box
+     * is not rotated (unless `opt.rotate` is set to true).
+     */
+    getPortBBox: function(portId, opt) {
+        const portRect = this.getPortRelativeRect(portId);
+        const elementBBox = this.getBBox();
+        // Note: the `angle` property of the `port` is ignore here for now
+        const portBBox = new Rect(portRect);
+        portBBox.offset(elementBBox.x, elementBBox.y);
+        const angle = this.angle();
+        if (angle) {
+            portBBox.moveAroundPoint(elementBBox.center(), -angle);
+        }
+        if (opt && opt.rotate) {
+            portBBox.rotateAroundCenter(angle);
+        }
+        return portBBox;
     },
 
     /**
@@ -849,15 +936,15 @@ export const elementViewPortPrototype = {
      */
     _updatePortGroup: function(groupName) {
 
-        var elementBBox = Rect(this.model.size());
-        var portsMetrics = this.model._portSettingsData.getGroupPortsMetrics(groupName, elementBBox);
+        const portsMetrics = this.model.getGroupPortsMetrics(groupName);
+        const portsIds = Object.keys(portsMetrics);
 
-        for (var i = 0, n = portsMetrics.length; i < n; i++) {
-            var metrics = portsMetrics[i];
-            var portId = metrics.portId;
-            var cached = this._portElementsCache[portId] || {};
-            var portTransformation = metrics.portTransformation;
-            var labelTransformation = metrics.labelTransformation;
+        for (let i = 0, n = portsIds.length; i < n; i++) {
+            const portId = portsIds[i];
+            const metrics = portsMetrics[portId];
+            const cached = this._portElementsCache[portId] || {};
+            const portTransformation = metrics.portTransformation;
+            const labelTransformation = metrics.labelTransformation;
             if (labelTransformation && cached.portLabelElement) {
                 this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
                     rootBBox: new Rect(metrics.labelSize),
