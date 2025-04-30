@@ -35,7 +35,7 @@ https://docs.jointjs.com/api/dia/Paper
 
 > `optional` **afterRender**: `AfterRenderCallback`
 
-Defined in: [joint-core/types/joint.d.ts:1456](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1456)
+Defined in: [joint-core/types/joint.d.ts:1458](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1458)
 
 #### Inherited from
 
@@ -47,7 +47,7 @@ Defined in: [joint-core/types/joint.d.ts:1456](https://github.com/samuelgja/join
 
 > `optional` **allowLink**: `null` \| (`linkView`, `paper`) => `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1413](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1413)
+Defined in: [joint-core/types/joint.d.ts:1415](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1415)
 
 #### Inherited from
 
@@ -59,7 +59,7 @@ Defined in: [joint-core/types/joint.d.ts:1413](https://github.com/samuelgja/join
 
 > `optional` **anchorNamespace**: `any`
 
-Defined in: [joint-core/types/joint.d.ts:1436](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1436)
+Defined in: [joint-core/types/joint.d.ts:1438](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1438)
 
 #### Inherited from
 
@@ -71,7 +71,7 @@ Defined in: [joint-core/types/joint.d.ts:1436](https://github.com/samuelgja/join
 
 > `optional` **async**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1448](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1448)
+Defined in: [joint-core/types/joint.d.ts:1450](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1450)
 
 #### Inherited from
 
@@ -83,7 +83,7 @@ Defined in: [joint-core/types/joint.d.ts:1448](https://github.com/samuelgja/join
 
 > `optional` **attributes**: [`Record`](https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type)\<`string`, `any`\>
 
-Defined in: [joint-core/types/joint.d.ts:3442](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3442)
+Defined in: [joint-core/types/joint.d.ts:3444](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3444)
 
 #### Inherited from
 
@@ -95,7 +95,7 @@ Defined in: [joint-core/types/joint.d.ts:3442](https://github.com/samuelgja/join
 
 > `optional` **autoFreeze**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1451](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1451)
+Defined in: [joint-core/types/joint.d.ts:1453](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1453)
 
 #### Inherited from
 
@@ -107,7 +107,7 @@ Defined in: [joint-core/types/joint.d.ts:1451](https://github.com/samuelgja/join
 
 > `optional` **background**: `BackgroundOptions`
 
-Defined in: [joint-core/types/joint.d.ts:1397](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1397)
+Defined in: [joint-core/types/joint.d.ts:1399](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1399)
 
 #### Inherited from
 
@@ -119,7 +119,7 @@ Defined in: [joint-core/types/joint.d.ts:1397](https://github.com/samuelgja/join
 
 > `optional` **beforeRender**: `BeforeRenderCallback`
 
-Defined in: [joint-core/types/joint.d.ts:1455](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1455)
+Defined in: [joint-core/types/joint.d.ts:1457](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1457)
 
 #### Inherited from
 
@@ -131,7 +131,7 @@ Defined in: [joint-core/types/joint.d.ts:1455](https://github.com/samuelgja/join
 
 > `optional` **cellViewNamespace**: `any`
 
-Defined in: [joint-core/types/joint.d.ts:1432](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1432)
+Defined in: [joint-core/types/joint.d.ts:1434](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1434)
 
 #### Inherited from
 
@@ -188,7 +188,7 @@ If the mouse moves more than this distance, it will be considered a drag event.
 
 > `optional` **collection**: `Collection`\<`any`\>
 
-Defined in: [joint-core/types/joint.d.ts:3439](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3439)
+Defined in: [joint-core/types/joint.d.ts:3441](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3441)
 
 #### Inherited from
 
@@ -200,7 +200,7 @@ Defined in: [joint-core/types/joint.d.ts:3439](https://github.com/samuelgja/join
 
 > `optional` **connectionPointNamespace**: `any`
 
-Defined in: [joint-core/types/joint.d.ts:1438](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1438)
+Defined in: [joint-core/types/joint.d.ts:1440](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1440)
 
 #### Inherited from
 
@@ -212,7 +212,7 @@ Defined in: [joint-core/types/joint.d.ts:1438](https://github.com/samuelgja/join
 
 > `optional` **connectionStrategy**: `ConnectionStrategy`
 
-Defined in: [joint-core/types/joint.d.ts:1446](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1446)
+Defined in: [joint-core/types/joint.d.ts:1448](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1448)
 
 #### Inherited from
 
@@ -224,7 +224,7 @@ Defined in: [joint-core/types/joint.d.ts:1446](https://github.com/samuelgja/join
 
 > `optional` **connectorNamespace**: `any`
 
-Defined in: [joint-core/types/joint.d.ts:1434](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1434)
+Defined in: [joint-core/types/joint.d.ts:1436](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1436)
 
 #### Inherited from
 
@@ -236,7 +236,7 @@ Defined in: [joint-core/types/joint.d.ts:1434](https://github.com/samuelgja/join
 
 > `optional` **defaultAnchor**: `AnchorJSON` \| `Anchor`
 
-Defined in: [joint-core/types/joint.d.ts:1442](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1442)
+Defined in: [joint-core/types/joint.d.ts:1444](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1444)
 
 #### Inherited from
 
@@ -248,7 +248,7 @@ Defined in: [joint-core/types/joint.d.ts:1442](https://github.com/samuelgja/join
 
 > `optional` **defaultConnectionPoint**: `ConnectionPointJSON` \| `ConnectionPoint` \| (...`args`) => `ConnectionPoint`
 
-Defined in: [joint-core/types/joint.d.ts:1444](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1444)
+Defined in: [joint-core/types/joint.d.ts:1446](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1446)
 
 #### Inherited from
 
@@ -260,7 +260,7 @@ Defined in: [joint-core/types/joint.d.ts:1444](https://github.com/samuelgja/join
 
 > `optional` **defaultConnector**: `Connector` \| `ConnectorJSON`
 
-Defined in: [joint-core/types/joint.d.ts:1441](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1441)
+Defined in: [joint-core/types/joint.d.ts:1443](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1443)
 
 #### Inherited from
 
@@ -272,7 +272,7 @@ Defined in: [joint-core/types/joint.d.ts:1441](https://github.com/samuelgja/join
 
 > `optional` **defaultLink**: `Link`\<`Attributes`, `ModelSetOptions`\> \| (`cellView`, `magnet`) => `Link`
 
-Defined in: [joint-core/types/joint.d.ts:1439](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1439)
+Defined in: [joint-core/types/joint.d.ts:1441](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1441)
 
 #### Inherited from
 
@@ -284,7 +284,7 @@ Defined in: [joint-core/types/joint.d.ts:1439](https://github.com/samuelgja/join
 
 > `optional` **defaultLinkAnchor**: `AnchorJSON` \| `Anchor`
 
-Defined in: [joint-core/types/joint.d.ts:1443](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1443)
+Defined in: [joint-core/types/joint.d.ts:1445](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1445)
 
 #### Inherited from
 
@@ -296,7 +296,7 @@ Defined in: [joint-core/types/joint.d.ts:1443](https://github.com/samuelgja/join
 
 > `optional` **defaultRouter**: `Router` \| `RouterJSON`
 
-Defined in: [joint-core/types/joint.d.ts:1440](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1440)
+Defined in: [joint-core/types/joint.d.ts:1442](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1442)
 
 #### Inherited from
 
@@ -308,7 +308,7 @@ Defined in: [joint-core/types/joint.d.ts:1440](https://github.com/samuelgja/join
 
 > `optional` **drawGrid**: `boolean` \| `GridOptions` \| `GridOptions`[]
 
-Defined in: [joint-core/types/joint.d.ts:1395](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1395)
+Defined in: [joint-core/types/joint.d.ts:1397](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1397)
 
 #### Inherited from
 
@@ -320,7 +320,7 @@ Defined in: [joint-core/types/joint.d.ts:1395](https://github.com/samuelgja/join
 
 > `optional` **drawGridSize**: `null` \| `number`
 
-Defined in: [joint-core/types/joint.d.ts:1396](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1396)
+Defined in: [joint-core/types/joint.d.ts:1398](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1398)
 
 #### Inherited from
 
@@ -332,7 +332,7 @@ Defined in: [joint-core/types/joint.d.ts:1396](https://github.com/samuelgja/join
 
 > `optional` **el**: `unknown`
 
-Defined in: [joint-core/types/joint.d.ts:3440](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3440)
+Defined in: [joint-core/types/joint.d.ts:3442](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3442)
 
 #### Inherited from
 
@@ -373,7 +373,7 @@ GraphElement<Data>
 
 > `optional` **elementView**: *typeof* `ElementView` \| (`element`) => *typeof* `ElementView`
 
-Defined in: [joint-core/types/joint.d.ts:1423](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1423)
+Defined in: [joint-core/types/joint.d.ts:1425](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1425)
 
 #### Inherited from
 
@@ -385,7 +385,7 @@ Defined in: [joint-core/types/joint.d.ts:1423](https://github.com/samuelgja/join
 
 > `optional` **embeddingMode**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1426](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1426)
+Defined in: [joint-core/types/joint.d.ts:1428](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1428)
 
 #### Inherited from
 
@@ -397,7 +397,7 @@ Defined in: [joint-core/types/joint.d.ts:1426](https://github.com/samuelgja/join
 
 > `optional` **events**: `_Result`\<`EventsHash`\>
 
-Defined in: [joint-core/types/joint.d.ts:3445](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3445)
+Defined in: [joint-core/types/joint.d.ts:3447](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3447)
 
 #### Inherited from
 
@@ -409,7 +409,7 @@ Defined in: [joint-core/types/joint.d.ts:3445](https://github.com/samuelgja/join
 
 > `optional` **findParentBy**: `FindParentByType` \| `FindParentByCallback`
 
-Defined in: [joint-core/types/joint.d.ts:1428](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1428)
+Defined in: [joint-core/types/joint.d.ts:1430](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1430)
 
 #### Inherited from
 
@@ -421,7 +421,7 @@ Defined in: [joint-core/types/joint.d.ts:1428](https://github.com/samuelgja/join
 
 > `optional` **frontParentOnly**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1427](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1427)
+Defined in: [joint-core/types/joint.d.ts:1429](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1429)
 
 #### Inherited from
 
@@ -433,7 +433,7 @@ Defined in: [joint-core/types/joint.d.ts:1427](https://github.com/samuelgja/join
 
 > `optional` **frozen**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1450](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1450)
+Defined in: [joint-core/types/joint.d.ts:1452](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1452)
 
 #### Inherited from
 
@@ -445,7 +445,7 @@ Defined in: [joint-core/types/joint.d.ts:1450](https://github.com/samuelgja/join
 
 > `optional` **gridSize**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:1400](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1400)
+Defined in: [joint-core/types/joint.d.ts:1402](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1402)
 
 #### Inherited from
 
@@ -457,7 +457,7 @@ Defined in: [joint-core/types/joint.d.ts:1400](https://github.com/samuelgja/join
 
 > `optional` **guard**: (`evt`, `view`) => `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1415](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1415)
+Defined in: [joint-core/types/joint.d.ts:1417](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1417)
 
 #### Parameters
 
@@ -483,7 +483,7 @@ Defined in: [joint-core/types/joint.d.ts:1415](https://github.com/samuelgja/join
 
 > `optional` **height**: `Dimension`
 
-Defined in: [joint-core/types/joint.d.ts:1394](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1394)
+Defined in: [joint-core/types/joint.d.ts:1396](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1396)
 
 #### Inherited from
 
@@ -495,7 +495,7 @@ Defined in: [joint-core/types/joint.d.ts:1394](https://github.com/samuelgja/join
 
 > `optional` **highlighterNamespace**: `any`
 
-Defined in: [joint-core/types/joint.d.ts:1435](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1435)
+Defined in: [joint-core/types/joint.d.ts:1437](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1437)
 
 #### Inherited from
 
@@ -507,7 +507,7 @@ Defined in: [joint-core/types/joint.d.ts:1435](https://github.com/samuelgja/join
 
 > `optional` **highlighting**: `boolean` \| [`Record`](https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type)\<`string`, `boolean` \| `HighlighterJSON`\>
 
-Defined in: [joint-core/types/joint.d.ts:1401](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1401)
+Defined in: [joint-core/types/joint.d.ts:1403](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1403)
 
 #### Inherited from
 
@@ -519,7 +519,7 @@ Defined in: [joint-core/types/joint.d.ts:1401](https://github.com/samuelgja/join
 
 > `optional` **id**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3441](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3441)
+Defined in: [joint-core/types/joint.d.ts:3443](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3443)
 
 #### Inherited from
 
@@ -531,7 +531,7 @@ Defined in: [joint-core/types/joint.d.ts:3441](https://github.com/samuelgja/join
 
 > `optional` **interactive**: `boolean` \| (`cellView`, `event`) => `boolean` \| `InteractivityOptions` \| `InteractivityOptions`
 
-Defined in: [joint-core/types/joint.d.ts:1402](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1402)
+Defined in: [joint-core/types/joint.d.ts:1404](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1404)
 
 #### Inherited from
 
@@ -543,7 +543,7 @@ Defined in: [joint-core/types/joint.d.ts:1402](https://github.com/samuelgja/join
 
 > `optional` **labelsLayer**: `string` \| `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1398](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1398)
+Defined in: [joint-core/types/joint.d.ts:1400](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1400)
 
 #### Inherited from
 
@@ -555,7 +555,7 @@ Defined in: [joint-core/types/joint.d.ts:1398](https://github.com/samuelgja/join
 
 > `optional` **linkAnchorNamespace**: `any`
 
-Defined in: [joint-core/types/joint.d.ts:1437](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1437)
+Defined in: [joint-core/types/joint.d.ts:1439](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1439)
 
 #### Inherited from
 
@@ -567,7 +567,7 @@ Defined in: [joint-core/types/joint.d.ts:1437](https://github.com/samuelgja/join
 
 > `optional` **linkPinning**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1412](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1412)
+Defined in: [joint-core/types/joint.d.ts:1414](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1414)
 
 #### Inherited from
 
@@ -579,7 +579,7 @@ Defined in: [joint-core/types/joint.d.ts:1412](https://github.com/samuelgja/join
 
 > `optional` **linkView**: *typeof* `LinkView` \| (`link`) => *typeof* `LinkView`
 
-Defined in: [joint-core/types/joint.d.ts:1424](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1424)
+Defined in: [joint-core/types/joint.d.ts:1426](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1426)
 
 #### Inherited from
 
@@ -591,7 +591,7 @@ Defined in: [joint-core/types/joint.d.ts:1424](https://github.com/samuelgja/join
 
 > `optional` **magnetThreshold**: `string` \| `number`
 
-Defined in: [joint-core/types/joint.d.ts:1421](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1421)
+Defined in: [joint-core/types/joint.d.ts:1423](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1423)
 
 #### Inherited from
 
@@ -603,7 +603,7 @@ Defined in: [joint-core/types/joint.d.ts:1421](https://github.com/samuelgja/join
 
 > `optional` **markAvailable**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1406](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1406)
+Defined in: [joint-core/types/joint.d.ts:1408](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1408)
 
 #### Inherited from
 
@@ -615,7 +615,7 @@ Defined in: [joint-core/types/joint.d.ts:1406](https://github.com/samuelgja/join
 
 > `optional` **model**: `Graph`\<`Attributes`, `ModelSetOptions`\>
 
-Defined in: [joint-core/types/joint.d.ts:3437](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3437)
+Defined in: [joint-core/types/joint.d.ts:3439](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3439)
 
 #### Inherited from
 
@@ -627,7 +627,7 @@ Defined in: [joint-core/types/joint.d.ts:3437](https://github.com/samuelgja/join
 
 > `optional` **moveThreshold**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:1420](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1420)
+Defined in: [joint-core/types/joint.d.ts:1422](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1422)
 
 #### Inherited from
 
@@ -639,7 +639,7 @@ Defined in: [joint-core/types/joint.d.ts:1420](https://github.com/samuelgja/join
 
 > `optional` **multiLinks**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1411](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1411)
+Defined in: [joint-core/types/joint.d.ts:1413](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1413)
 
 #### Inherited from
 
@@ -1645,9 +1645,9 @@ Defined in: [joint-react/src/types/event.types.ts:234](https://github.com/samuel
 
 ***
 
-### onElementSizeChange()?
+### onElementsSizeChange()?
 
-> `readonly` `optional` **onElementSizeChange**: (`options`) => `void`
+> `readonly` `optional` **onElementsSizeChange**: (`options`) => `void`
 
 Defined in: [joint-react/src/components/paper/paper.tsx:70](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L70)
 
@@ -1666,9 +1666,9 @@ It is useful for like onLoad event to do some layout or other operations with `g
 
 ***
 
-### onElementsMeasured()?
+### onElementsSizeReady()?
 
-> `readonly` `optional` **onElementsMeasured**: (`options`) => `void`
+> `readonly` `optional` **onElementsSizeReady**: (`options`) => `void`
 
 Defined in: [joint-react/src/components/paper/paper.tsx:64](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L64)
 
@@ -2528,7 +2528,7 @@ Defined in: [joint-react/src/types/event.types.ts:441](https://github.com/samuel
 
 > `optional` **onViewPostponed**: (`view`, `flag`, `paper`) => `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1454](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1454)
+Defined in: [joint-core/types/joint.d.ts:1456](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1456)
 
 #### Parameters
 
@@ -2558,7 +2558,7 @@ Defined in: [joint-core/types/joint.d.ts:1454](https://github.com/samuelgja/join
 
 > `optional` **onViewUpdate**: (`view`, `flag`, `priority`, `opt`, `paper`) => `void`
 
-Defined in: [joint-core/types/joint.d.ts:1453](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1453)
+Defined in: [joint-core/types/joint.d.ts:1455](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1455)
 
 #### Parameters
 
@@ -2594,7 +2594,7 @@ Defined in: [joint-core/types/joint.d.ts:1453](https://github.com/samuelgja/join
 
 > `optional` **overflow**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1457](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1457)
+Defined in: [joint-core/types/joint.d.ts:1459](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1459)
 
 #### Inherited from
 
@@ -2631,7 +2631,7 @@ The paper instance
 
 > `optional` **preventContextMenu**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1416](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1416)
+Defined in: [joint-core/types/joint.d.ts:1418](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1418)
 
 #### Inherited from
 
@@ -2643,7 +2643,7 @@ Defined in: [joint-core/types/joint.d.ts:1416](https://github.com/samuelgja/join
 
 > `optional` **preventDefaultBlankAction**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1418](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1418)
+Defined in: [joint-core/types/joint.d.ts:1420](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1420)
 
 #### Inherited from
 
@@ -2655,7 +2655,7 @@ Defined in: [joint-core/types/joint.d.ts:1418](https://github.com/samuelgja/join
 
 > `optional` **preventDefaultViewAction**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1417](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1417)
+Defined in: [joint-core/types/joint.d.ts:1419](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1419)
 
 #### Inherited from
 
@@ -2702,7 +2702,7 @@ const renderElement: RenderElement<BaseElementWithData> = useCallback(
 
 > `optional` **restrictTranslate**: `boolean` \| `PlainRect` \| `RestrictTranslateCallback`
 
-Defined in: [joint-core/types/joint.d.ts:1410](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1410)
+Defined in: [joint-core/types/joint.d.ts:1412](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1412)
 
 #### Inherited from
 
@@ -2714,7 +2714,7 @@ Defined in: [joint-core/types/joint.d.ts:1410](https://github.com/samuelgja/join
 
 > `optional` **routerNamespace**: `any`
 
-Defined in: [joint-core/types/joint.d.ts:1433](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1433)
+Defined in: [joint-core/types/joint.d.ts:1435](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1435)
 
 #### Inherited from
 
@@ -2736,7 +2736,7 @@ The scale of the paper. It's useful to create for example a zoom feature or mini
 
 > `optional` **snapLabels**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1403](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1403)
+Defined in: [joint-core/types/joint.d.ts:1405](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1405)
 
 #### Inherited from
 
@@ -2748,7 +2748,7 @@ Defined in: [joint-core/types/joint.d.ts:1403](https://github.com/samuelgja/join
 
 > `optional` **snapLinks**: `boolean` \| `SnapLinksOptions`
 
-Defined in: [joint-core/types/joint.d.ts:1404](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1404)
+Defined in: [joint-core/types/joint.d.ts:1406](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1406)
 
 #### Inherited from
 
@@ -2760,7 +2760,7 @@ Defined in: [joint-core/types/joint.d.ts:1404](https://github.com/samuelgja/join
 
 > `optional` **snapLinksSelf**: `boolean` \| \{ `distance`: `number`; \}
 
-Defined in: [joint-core/types/joint.d.ts:1405](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1405)
+Defined in: [joint-core/types/joint.d.ts:1407](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1407)
 
 #### Inherited from
 
@@ -2772,7 +2772,7 @@ Defined in: [joint-core/types/joint.d.ts:1405](https://github.com/samuelgja/join
 
 > `optional` **sorting**: `sorting`
 
-Defined in: [joint-core/types/joint.d.ts:1449](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1449)
+Defined in: [joint-core/types/joint.d.ts:1451](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1451)
 
 #### Inherited from
 
@@ -2794,7 +2794,7 @@ The style of the paper element.
 
 > `optional` **tagName**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3444](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3444)
+Defined in: [joint-core/types/joint.d.ts:3446](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3446)
 
 #### Inherited from
 
@@ -2806,7 +2806,7 @@ Defined in: [joint-core/types/joint.d.ts:3444](https://github.com/samuelgja/join
 
 > `optional` **theme**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3503](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3503)
+Defined in: [joint-core/types/joint.d.ts:3505](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3505)
 
 #### Inherited from
 
@@ -2818,7 +2818,7 @@ Defined in: [joint-core/types/joint.d.ts:3503](https://github.com/samuelgja/join
 
 > `optional` **validateConnection**: (`cellViewS`, `magnetS`, `cellViewT`, `magnetT`, `end`, `linkView`) => `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1409](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1409)
+Defined in: [joint-core/types/joint.d.ts:1411](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1411)
 
 #### Parameters
 
@@ -2860,7 +2860,7 @@ Defined in: [joint-core/types/joint.d.ts:1409](https://github.com/samuelgja/join
 
 > `optional` **validateEmbedding**: (`this`, `childView`, `parentView`) => `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1429](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1429)
+Defined in: [joint-core/types/joint.d.ts:1431](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1431)
 
 #### Parameters
 
@@ -2890,7 +2890,7 @@ Defined in: [joint-core/types/joint.d.ts:1429](https://github.com/samuelgja/join
 
 > `optional` **validateMagnet**: (`cellView`, `magnet`, `evt`) => `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1408](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1408)
+Defined in: [joint-core/types/joint.d.ts:1410](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1410)
 
 #### Parameters
 
@@ -2920,7 +2920,7 @@ Defined in: [joint-core/types/joint.d.ts:1408](https://github.com/samuelgja/join
 
 > `optional` **validateUnembedding**: (`this`, `childView`) => `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:1430](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1430)
+Defined in: [joint-core/types/joint.d.ts:1432](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1432)
 
 #### Parameters
 
@@ -2946,7 +2946,7 @@ Defined in: [joint-core/types/joint.d.ts:1430](https://github.com/samuelgja/join
 
 > `optional` **viewport**: `null` \| `ViewportCallback`
 
-Defined in: [joint-core/types/joint.d.ts:1452](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1452)
+Defined in: [joint-core/types/joint.d.ts:1454](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1454)
 
 #### Inherited from
 
@@ -2958,7 +2958,7 @@ Defined in: [joint-core/types/joint.d.ts:1452](https://github.com/samuelgja/join
 
 > `optional` **width**: `Dimension`
 
-Defined in: [joint-core/types/joint.d.ts:1393](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1393)
+Defined in: [joint-core/types/joint.d.ts:1395](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1395)
 
 #### Inherited from
 

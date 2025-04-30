@@ -5,6 +5,12 @@ import type {
 } from '../types/element-types';
 import type { GraphLink, GraphLinkBase, StandardLinkShapesType } from '../types/link-types';
 
+type RequiredElementProps = {
+  isElement: true;
+  isLink: false;
+  width: number;
+  height: number;
+};
 /**
  * Create elements helper function.
  * @group Utils
@@ -29,13 +35,11 @@ import type { GraphLink, GraphLinkBase, StandardLinkShapesType } from '../types/
  */
 export function createElements<
   Data,
-  Type extends StandardShapesType | string = string,
+  Type extends StandardShapesType | string = 'react',
   Element extends GraphElementBase<Type> = GraphElementItem<Data, Type>,
->(
-  data: Array<Element & GraphElementBase<Type>>
-): Array<Element & { isElement: true; isLink: false; width: number; height: number }> {
+>(data: Array<Element & GraphElementBase<Type>>): Array<Element & RequiredElementProps> {
   return data.map((element) => ({ ...element, isElement: true, isLink: false })) as Array<
-    Element & { isElement: true; isLink: false; width: number; height: number }
+    Element & RequiredElementProps
   >;
 }
 
@@ -69,7 +73,7 @@ export type InferElement<T extends Array<Record<string, unknown>>> = T[number];
  */
 export function createLinks<
   Link extends GraphLinkBase<Type>,
-  Type extends StandardLinkShapesType | string = string,
+  Type extends StandardLinkShapesType | string = 'standard.Link',
 >(data: Array<Link & GraphLinkBase<Type>>): Array<Link & GraphLink> {
   return data.map((link) => ({ ...link, isElement: false, isLink: true }));
 }

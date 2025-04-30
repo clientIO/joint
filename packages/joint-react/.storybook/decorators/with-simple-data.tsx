@@ -19,7 +19,7 @@ const initialElements = createElements([
     data: { label: 'Node 1', color: PRIMARY },
     x: 100,
     y: 20,
-    width: 100,
+    width: 150,
     height: 50,
   },
   {
@@ -27,7 +27,7 @@ const initialElements = createElements([
     data: { label: 'Node 2', color: PRIMARY },
     x: 200,
     y: 250,
-    width: 100,
+    width: 150,
     height: 50,
   },
 ]);
@@ -46,7 +46,7 @@ const defaultLinks = createLinks([
   },
 ]);
 
-function SimpleGraphProviderDecorator({ children }: Readonly<PropsWithChildren>) {
+export function SimpleGraphProviderDecorator({ children }: Readonly<PropsWithChildren>) {
   return (
     <GraphProvider defaultElements={initialElements} defaultLinks={defaultLinks}>
       {children}
@@ -68,14 +68,13 @@ export function RenderItemDecorator(
   }>
 ) {
   return (
-    <div style={{ width: '100%', height: 350 }}>
+    <div style={{ width: '100%', height: 450 }}>
       <SimpleGraphProviderDecorator>
         <Paper
           width={'100%'}
-          height={350}
+          height={450}
           renderElement={properties.renderElement}
           linkPinning={false}
-          // snapLinks={{ radius: 20 }}
         />
       </SimpleGraphProviderDecorator>
     </div>

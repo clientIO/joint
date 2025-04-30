@@ -6,6 +6,7 @@ import { PortGroupContext } from '../../context/port-group-context';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import { PORTAL_SELECTOR } from '../../data/create-ports-data';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
+import { createElements } from '../../utils/create';
 
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
 export interface PortItemProps {
@@ -79,7 +80,7 @@ function Component(props: PortItemProps) {
     }
 
     const elementView = paper.findViewByModel(cellId);
-    // @ts-expect-error we use private jointjs api method, it throw error here.
+
     elementView.cleanNodesCache();
     for (const link of graph.getConnectedLinks(elementView.model)) {
       const target = link.target();
@@ -130,3 +131,9 @@ function Component(props: PortItemProps) {
  * ```
  */
 export const PortItem = memo(Component);
+
+createElements([
+  {
+    id: 'port-one',
+  },
+]);

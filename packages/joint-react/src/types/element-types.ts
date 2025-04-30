@@ -1,6 +1,10 @@
-import type { dia, shapes } from '@joint/core';
+import type { attributes, dia, shapes } from '@joint/core';
 import type { Attributes, Ports } from '../utils/cell/get-cell';
 
+export interface ReactElementAttributes {
+  root?: attributes.SVGAttributes;
+  rect?: attributes.SVGAttributes;
+}
 interface StandardShapesTypeMapper {
   'standard.Rectangle': shapes.standard.RectangleSelectors;
   'standard.Circle': shapes.standard.CircleSelectors;
@@ -15,6 +19,7 @@ interface StandardShapesTypeMapper {
   'standard.Polygon': shapes.standard.PolygonSelectors;
   'standard.Polyline': shapes.standard.PolylineSelectors;
   'standard.TextBlock': shapes.standard.TextBlockSelectors;
+  react: ReactElementAttributes;
 }
 
 export type StandardShapesType = keyof StandardShapesTypeMapper;
@@ -68,14 +73,16 @@ export interface GraphElementBase<Type extends StandardShapesType | string = str
   readonly attrs?: Type extends StandardShapesType ? StandardShapesTypeMapper[Type] : unknown;
 }
 
-export interface GraphElementItem<Data = unknown, Type extends StandardShapesType | string = string>
-  extends GraphElementBase<Type> {
+export interface GraphElementItem<
+  Data = unknown,
+  Type extends StandardShapesType | string = 'react',
+> extends GraphElementBase<Type> {
   /**
    * Generic data for the element.
    */
   readonly data: Data;
 }
-export interface GraphElement<Data = unknown, Type extends StandardShapesType | string = string>
+export interface GraphElement<Data = unknown, Type extends StandardShapesType | string = 'react'>
   extends GraphElementItem<Data, Type> {
   /**
    * Flag to distinguish between elements and links.

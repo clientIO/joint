@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // We have pre-loaded tailwind css
@@ -31,7 +30,9 @@ const nodes = createElements<Data>([
     x: 50,
     y: 50,
     attrs: {
-      magnet: 'active',
+      root: {
+        magnet: false,
+      },
     },
   },
   {
@@ -44,7 +45,9 @@ const nodes = createElements<Data>([
     x: 120,
     y: 200,
     attrs: {
-      magnet: 'passive',
+      root: {
+        magnet: false,
+      },
     },
   },
   {
@@ -53,6 +56,11 @@ const nodes = createElements<Data>([
       title: 'User Action',
       description: 'Get account balance',
       type: 'user-action',
+    },
+    attrs: {
+      root: {
+        magnet: false,
+      },
     },
     x: 190,
     y: 350,

@@ -1,8 +1,9 @@
-import { type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { CellWithId } from '../../types/cell.types';
 import type { GraphElement } from '../../types/element-types';
 import typedMemo from '../../utils/typed-memo';
+import { usePaper } from '../../hooks';
 
 export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
   /**
@@ -31,6 +32,11 @@ function Component<Data extends CellWithId = GraphElement>(props: PaperPortalPro
   const { renderElement, nodeSvgGElement, ...rest } = props;
   const cell = rest as Data;
   const element = renderElement(cell);
+  const paper = usePaper();
+  useEffect(() => {
+    const elementView = paper.findViewByModel(cell.id);
+    elementView.cleanNodeCache(elementView.el);
+  });
 
   return createPortal(element, nodeSvgGElement);
 }

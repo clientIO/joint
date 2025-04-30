@@ -6,9 +6,9 @@
 
 # Function: createElements()
 
-> **createElements**\<`Data`, `Type`, `Element`\>(`data`): `Element` & `object`[]
+> **createElements**\<`Data`, `Type`, `Element`\>(`data`): `Element` & `RequiredElementProps`[]
 
-Defined in: [joint-react/src/utils/create.ts:30](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L30)
+Defined in: [joint-react/src/utils/create.ts:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L36)
 
 Create elements helper function.
 
@@ -20,7 +20,7 @@ Create elements helper function.
 
 ### Type
 
-`Type` *extends* `string` = `string`
+`Type` *extends* `string` = `"react"`
 
 ### Element
 
@@ -36,7 +36,7 @@ Array of elements to create.
 
 ## Returns
 
-`Element` & `object`[]
+`Element` & `RequiredElementProps`[]
 
 Array of elements. (Nodes)
 

@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { REACT_TYPE } from '../../models/react-element';
-import type { GraphLink } from '../../types/link-types';
+import type { GraphLink, GraphLinkBase } from '../../types/link-types';
 import type { GraphElementBase } from '../../types/element-types';
 import { isCellInstance, isLinkInstance, isUnsized } from '../is';
 import { getTargetOrSource } from './get-link-targe-and-source-ids';
@@ -22,7 +22,7 @@ interface Options {
  * @returns
  * A standard JointJS link or a JSON representation of the link.
  */
-export function processLink(link: dia.Link | GraphLink): dia.Link | dia.Cell.JSON {
+export function processLink(link: dia.Link | GraphLinkBase): dia.Link | dia.Cell.JSON {
   if (isLinkInstance(link)) {
     const json = link.toJSON();
 

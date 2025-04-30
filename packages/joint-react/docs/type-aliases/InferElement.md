@@ -8,7 +8,7 @@
 
 > **InferElement**\<`T`\> = `T`\[`number`\]
 
-Defined in: [joint-react/src/utils/create.ts:55](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L55)
+Defined in: [joint-react/src/utils/create.ts:59](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L59)
 
 Infer element based on typeof createElements
 

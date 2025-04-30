@@ -14,9 +14,12 @@
 
 ## Hooks
 
+- [useAddElement](functions/useAddElement.md)
+- [useAddLink](functions/useAddLink.md)
 - [useElements](functions/useElements.md)
 - [useGraph](functions/useGraph.md)
 - [useLinks](functions/useLinks.md)
+- [useRemoveCell](functions/useRemoveCell.md)
 - [useSetElement](functions/useSetElement.md)
 
 ## Models
@@ -75,6 +78,7 @@ const paper = usePaper();
 - [PaperProps](interfaces/PaperProps.md)
 - [PortGroupProps](interfaces/PortGroupProps.md)
 - [PortProps](interfaces/PortProps.md)
+- [ReactElementAttributes](interfaces/ReactElementAttributes.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
 - [TextNodeProps](interfaces/TextNodeProps.md)
 

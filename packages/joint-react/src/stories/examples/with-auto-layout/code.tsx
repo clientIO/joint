@@ -15,8 +15,8 @@ import {
   type RenderElement,
 } from '@joint/react';
 import { useCallback, useState } from 'react';
-import { processElement } from '../../../utils/cell/set-cells';
 import type { dia } from '@joint/core';
+import { useAddElement } from '../../../hooks/use-add-element';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' } },
@@ -52,6 +52,7 @@ function Main() {
     []
   );
   const graph = useGraph();
+  const addElement = useAddElement<BaseElementWithData>();
 
   // Number of elements per row
   const [gridXSize, setGridXSize] = useState(3);
@@ -106,12 +107,10 @@ function Main() {
 
         <button
           onClick={() => {
-            graph.addCell(
-              processElement({
-                id: `${Math.random()}`,
-                data: { label: `Node ${elementsLength + 1}` },
-              })
-            );
+            addElement({
+              id: `${Math.random()}`,
+              data: { label: `Node ${elementsLength + 1}` },
+            });
           }}
           type="button"
           className="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
