@@ -52,13 +52,13 @@ const paper = new dia.Paper({
     }
 });
 
+const canvas = document.createElement('canvas');
+const canvasCtx = canvas.getContext('2d');
+
 function measureTextSize(text: string, fontSize: number, fontFamily: string) {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    if (!context) return { width: 0, height: 0 };
-    context.font = `${fontSize}px ${fontFamily}`;
+    canvasCtx.font = `${fontSize}px ${fontFamily}`;
     const lines = text.split('\n');
-    const maxWidth = Math.max(...lines.map(line => context.measureText(line).width));
+    const maxWidth = Math.max(...lines.map(line => canvasCtx.measureText(line).width));
     const lineHeight = lines.length * (fontSize * 1.2); // 1.2 is a common line height multiplier
     return {
         width: maxWidth,
@@ -265,7 +265,7 @@ paper.unfreeze({
         // remove the `afterRender` callback
         paper.unfreeze();
     }
-})
+});
 
 
 
