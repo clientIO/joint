@@ -1,6 +1,7 @@
-import { g, dia, shapes, util } from '@joint/core';
+import { g, dia, shapes, util, connectionPoints, V } from '@joint/core';
 
 const textMargin = 5;
+const shapeRadius = 30;
 
 const cellNamespace = {
     ...shapes,
@@ -193,9 +194,63 @@ const l2 = new shapes.standard.Link({
     target: { id: r4.id, port: 'port1' },
 });
 
+// Precise connection point
+
+const r5 = new shapes.standard.Rectangle({
+    position: { x: 100, y: 500 },
+    size: { width: 140, height: 100 },
+    attrs: {
+        label: {
+            fonSize: 14,
+            fontFamily: 'sans-serif',
+            text: 'Precise\nConnection point'
+        }
+    },
+});
+
+const r6 = new shapes.standard.Rectangle({
+    position: { x: 400, y: 500 },
+    size: { width: 140, height: 100 },
+    attrs: {
+        body: {
+            rx: shapeRadius,
+            ry: shapeRadius,
+        }
+    },
+});
+
+// Calculate the connection point as an intersection of the link and
+// the geometric representation of the element.
+paper.options.connectionPointNamespace = {
+    ...connectionPoints,
+    'rounded-rectangle': function(line, elementView) {
+        const d = V.rectToPath({
+            ...elementView.model.getBBox().toJSON(),
+            rx: shapeRadius,
+            ry: shapeRadius,
+        });
+        const path = new g.Path(V.normalizePathData(d));
+        const intersections = path.intersectionWithLine(line);
+        if (!intersections) return null;
+        return intersections[0];
+    }
+}
+
+const l3 = new shapes.standard.Link({
+    source: { id: r5.id },
+    target: {
+        id: r6.id,
+        connectionPoint: {
+            name: 'rounded-rectangle',
+        },
+    },
+});
+
+// Add examples to the graph
 graph.addCells([
     r1, r2, l1,
     r3, r4, l2,
+    r5, r6, l3,
 ]);
 
 // Resize the paper to fit the content using the model geometry.
