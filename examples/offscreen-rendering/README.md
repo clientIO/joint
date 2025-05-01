@@ -1,6 +1,6 @@
-# JointJS Connection Points
+# JointJS Offscreen Rendering
 
-The example shows various connection points.
+The example shows how to render diagrams offscreen.
 
 ## Setup
 

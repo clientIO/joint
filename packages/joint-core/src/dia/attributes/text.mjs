@@ -148,10 +148,17 @@ const textAttributesNS = {
                 // TODO: change the `lineHeight` to breakText option.
                 wrapFontAttributes.lineHeight = attrs['line-height'];
 
+                let svgDocument = this.paper.svg;
+                if (!svgDocument.checkVisibility()) {
+                    // If the SVG document is visible, we can use it
+                    // to measure the text width and height when wrapping.
+                    // Otherwise, we need to create a temporary SVG document
+                    // to measure the text (the default behavior of `breakText`).
+                    svgDocument = null;
+                }
+
                 wrappedText = breakTextFn('' + text, size, wrapFontAttributes, {
-                    // Provide an existing SVG Document here
-                    // instead of creating a temporary one over again.
-                    svgDocument: this.paper.svg,
+                    svgDocument,
                     ellipsis: value.ellipsis,
                     hyphen: value.hyphen,
                     separator: value.separator,
