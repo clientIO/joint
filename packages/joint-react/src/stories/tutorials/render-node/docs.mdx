@@ -2,6 +2,7 @@ import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import CodeSVG from './code-svg?raw';
 import CodeHTML from './code-html?raw';
+import COdeHTMLRenderer from './code-html-renderer?raw';
 import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-documentation-link'
 
 <Meta of={Stories} />
@@ -84,3 +85,12 @@ ${CodeHTML}
 \`\`\``}
 </Markdown>
 
+
+
+## Demo with HTML element renderer instead of SVG
+<Canvas of={Stories.HTMLRenderer} />
+<Markdown>
+{`\`\`\`tsx
+${COdeHTMLRenderer}
+\`\`\``}
+</Markdown>
