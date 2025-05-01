@@ -586,6 +586,9 @@ export namespace dia {
             markup?: string | MarkupJSON;
             group?: string;
             attrs?: Cell.Selectors;
+            position?: {
+                args?: { [key: string]: any };
+            };
             args?: { [key: string]: any };
             size?: Size;
             label?: {
@@ -630,8 +633,12 @@ export namespace dia {
             terminator?: Cell | Cell.ID;
         }
 
-        interface BBoxOptions extends Cell.EmbeddableOptions {
+        interface RotateOptions {
             rotate?: boolean;
+        }
+
+        interface BBoxOptions extends Cell.EmbeddableOptions, RotateOptions {
+
         }
     }
 
@@ -684,7 +691,13 @@ export namespace dia {
 
         getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
 
-        getPortsRects(groupName: string): { [id: string]: Element.PortRect };
+        getPortRelativePosition(portId: string): Element.PortPosition;
+
+        getPortRelativeRect(portId: string): Element.PortRect;
+
+        getPortCenter(portId: string): g.Point;
+
+        getPortBBox(portId: string, opt?: Element.RotateOptions): g.Rect;
 
         getPortIndex(port: string | Element.Port): number;
 
@@ -968,6 +981,10 @@ export namespace dia {
 
         isIntersecting(geometryShape: g.Shape, geometryData?: g.SegmentSubdivisionsOpt | null): boolean;
 
+        cleanNodesCache(): void;
+
+        cleanNodeCache(node: SVGElement): void
+
         protected isEnclosedIn(area: g.Rect): boolean;
 
         protected isInArea(area: g.Rect, options: g.StrictOpt): boolean;
@@ -1023,8 +1040,6 @@ export namespace dia {
         protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
 
         protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
-
-        protected cleanNodesCache(): void;
 
         protected nodeCache(magnet: SVGElement): CellView.NodeMetrics;
 

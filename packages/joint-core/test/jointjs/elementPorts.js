@@ -1992,6 +1992,155 @@ QUnit.module('element ports', function() {
         });
     });
 
+    QUnit.module('getPortCenter', function() {
+
+        QUnit.test('ports center can be retrieved', function(assert) {
+
+            const shape = create({
+                groups: {
+                    'a': { position: 'left' }
+                },
+                items: [
+                    { id: 'one', group: 'a' },
+                    { id: 'two', group: 'a' },
+                    { id: 'three', group: 'a' }
+                ]
+            }).set('size', { width: 5, height: 10 });
+
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
+            let portPositionOne, portPositionTwo, portPositionThree;
+
+            portPositionOne = shape.getPortCenter('one');
+            portPositionTwo = shape.getPortCenter('two');
+            portPositionThree = shape.getPortCenter('three');
+
+            assert.ok(portPositionOne.y > 0);
+            assert.ok(portPositionOne.y < portPositionTwo.y);
+            assert.ok(portPositionTwo.y < portPositionThree.y);
+
+            assert.ok(layoutSpy.calledOnce, 'layout function called once');
+
+            shape.resize(13, 17);
+
+            portPositionOne = shape.getPortCenter('one');
+            portPositionTwo = shape.getPortCenter('two');
+            portPositionThree = shape.getPortCenter('three');
+
+            assert.ok(portPositionOne.y > 0);
+            assert.ok(portPositionOne.y < portPositionTwo.y);
+            assert.ok(portPositionTwo.y < portPositionThree.y);
+
+            assert.ok(layoutSpy.calledTwice, 'layout function called twice');
+
+            layoutSpy.restore();
+        });
+    });
+
+    QUnit.module('getPortBBox', function() {
+
+        QUnit.test('port bounding box can be retrieved', function(assert) {
+
+            const width = 17;
+            const height = 13;
+
+            const shape = create({
+                groups: {
+                    'a': {
+                        position: 'left',
+                        size: { width, height }
+                    }
+                },
+                items: [
+                    { id: 'one', group: 'a' },
+                    { id: 'two', group: 'a' },
+                    { id: 'three', group: 'a' }
+                ]
+            }).set('size', { width: 50, height: 50 });
+
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
+            let portBBoxOne, portBBoxTwo, portBBoxThree;
+
+            portBBoxOne = shape.getPortBBox('one');
+            portBBoxTwo = shape.getPortBBox('two');
+            portBBoxThree = shape.getPortBBox('three');
+
+            assert.ok(portBBoxOne.y > 0);
+            assert.ok(portBBoxOne.y < portBBoxTwo.y);
+            assert.ok(portBBoxTwo.y < portBBoxThree.y);
+            assert.equal(portBBoxOne.width, width);
+            assert.equal(portBBoxOne.height, height);
+
+            assert.ok(layoutSpy.calledOnce, 'layout function called once');
+
+            shape.resize(100, 100);
+
+            portBBoxOne = shape.getPortBBox('one');
+            portBBoxTwo = shape.getPortBBox('two');
+            portBBoxThree = shape.getPortBBox('three');
+
+            assert.ok(portBBoxOne.y > 0);
+            assert.ok(portBBoxOne.y < portBBoxTwo.y);
+            assert.ok(portBBoxTwo.y < portBBoxThree.y);
+
+            assert.ok(layoutSpy.calledTwice, 'layout function called once');
+
+            layoutSpy.restore();
+        });
+
+        QUnit.test('option: rotate', function(assert) {
+
+            const width = 17;
+            const height = 13;
+
+            const elX = 47;
+            const elY = 53;
+            const elWidth = 100;
+            const elHeight = 100;
+
+            const shape = create({
+                groups: {
+                    'a': {
+                        position: 'left',
+                        size: { width, height }
+                    }
+                },
+                items: [
+                    { id: 'one', group: 'a' },
+                ]
+            });
+
+            shape.set({
+                position: { x: elX, y: elY },
+                size: { width: elWidth, height: elHeight },
+                angle: 90,
+            })
+
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
+            const portUnrotatedBBox = shape.getPortBBox('one');
+            const portRotatedBBox = shape.getPortBBox('one', { rotate: true });
+
+            assert.ok(portUnrotatedBBox instanceof g.Rect);
+            assert.ok(portRotatedBBox instanceof g.Rect);
+
+            assert.equal(portUnrotatedBBox.x, elX + elWidth / 2 - width / 2);
+            assert.equal(portUnrotatedBBox.y, elY - height / 2);
+            assert.equal(Math.round(portUnrotatedBBox.width), width);
+            assert.equal(Math.round(portUnrotatedBBox.height), height);
+
+            assert.equal(portRotatedBBox.x, elX + elWidth / 2 - height / 2);
+            assert.equal(portRotatedBBox.y, elY - width / 2);
+            assert.equal(Math.round(portRotatedBBox.width), height);
+            assert.equal(Math.round(portRotatedBBox.height), width);
+
+            assert.ok(layoutSpy.calledOnce, 'layout function called once');
+
+            layoutSpy.restore();
+        });
+    });
+
     QUnit.module('getGroupPorts', function() {
 
         QUnit.test('return ports with given group', function(assert) {
