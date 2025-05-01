@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState, useContext } from 'react';
-import { PaperContext } from '../context/paper-context';
+import { useEffect, useRef, useState } from 'react';
 import type { PaperOptions } from '../utils/create-paper';
 import { createPaper } from '../utils/create-paper';
 import { mvc, type dia } from '@joint/core';
@@ -31,73 +30,67 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
 export function useCreatePaper(options?: UseCreatePaperOptions) {
   const { overwriteDefaultPaperElement, ...restOptions } = options ?? {};
 
-  const paperHtmlElement = useRef<HTMLDivElement | null>(null);
+  const paperContainerElement = useRef<HTMLDivElement | null>(null);
   const { graph, onRenderPorts } = useGraphStore();
 
-  // Try to get the paper from the context, it can be undefined if there is no PaperContext.
-  const paperCtx = useContext(PaperContext);
   // If paper is not inside the PaperContext, create a new paper instance.
-  const [paperState] = useState<dia.Paper | null>(() => {
-    if (paperCtx) {
-      return null;
+  const [paper, setPaper] = useState<dia.Paper | null>(null);
+
+  useEffect(() => {
+    /**
+     * Resize the paper container element to match the paper size.
+     * @param jointPaper - The paper instance.
+     */
+    function resizePaperContainer(jointPaper: dia.Paper) {
+      if (paperContainerElement.current) {
+        paperContainerElement.current.style.width = jointPaper.el.style.width;
+        paperContainerElement.current.style.height = jointPaper.el.style.height;
+      }
     }
-    return createPaper(graph, { ...restOptions, onRenderPorts });
-  });
-  const isPaperFromContext = paperCtx !== undefined;
-  const paper = paperCtx ?? paperState;
 
-  if (!paper) {
-    // This throw should never happen, it's just to make TypeScript happy and return a paper instance.
-    throw new Error('Paper not found');
-  }
+    const jointPaper = createPaper(graph, {
+      ...restOptions,
+      onRenderPorts,
+      // paperElement: paperContainerElement,
+      // el: paperContainerElement.current,
+    });
 
-  const resizePaperContainer = useCallback(() => {
-    if (paperHtmlElement.current) {
-      paperHtmlElement.current.style.width = paper.el.style.width;
-      paperHtmlElement.current.style.height = paper.el.style.height;
+    if (overwriteDefaultPaperElement) {
+      paperContainerElement.current?.append(overwriteDefaultPaperElement(jointPaper));
+    } else {
+      paperContainerElement.current?.append(jointPaper.el);
     }
-  }, [paper]);
 
-  const listener = useCallback(() => {
+    jointPaper.unfreeze();
+
     // An object to keep track of the listeners. It's not exposed, so the users
     const controller = new mvc.Listener();
     controller.listenTo(paper, 'resize', resizePaperContainer);
     controller.listenTo(paper, 'all', (type: PaperEventType, ...args: unknown[]) =>
-      handleEvent(type, restOptions, paper, ...args)
+      handleEvent(type, restOptions, jointPaper, ...args)
     );
 
-    return () => controller.stopListening();
-    // TODO: We need to find out some mechanism to add events to the paper, now i think memoized events will not works properly.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paper, resizePaperContainer]);
-
-  useEffect(() => {
-    if (overwriteDefaultPaperElement) {
-      paperHtmlElement.current?.append(overwriteDefaultPaperElement(paper));
-    } else {
-      paperHtmlElement.current?.append(paper.el);
-    }
-
-    resizePaperContainer();
-    paper.unfreeze();
-
-    const unsubscribe = listener();
+    setPaper(jointPaper);
 
     return () => {
-      paper.freeze();
-      unsubscribe();
+      controller.stopListening();
+      jointPaper.freeze();
+      jointPaper.remove();
     };
-  }, [listener, overwriteDefaultPaperElement, paper, resizePaperContainer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
+    if (!paper) {
+      return;
+    }
     if (options?.scale !== undefined) {
       paper.scale(options.scale);
     }
   }, [options?.scale, paper]);
 
   return {
-    isPaperFromContext,
     paper,
-    paperHtmlElement,
+    paperContainerElement,
   };
 }

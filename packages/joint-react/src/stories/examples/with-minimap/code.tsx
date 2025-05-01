@@ -34,7 +34,13 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
     (element) => (
-      <rect width={element.width} height={element.height} className="minimap-node" radius={10} />
+      <rect
+        width={element.width}
+        height={element.height}
+        className="minimap-node"
+        radius={10}
+        fill="yellow"
+      />
     ),
     []
   );

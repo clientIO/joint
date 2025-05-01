@@ -11,4 +11,4 @@ export interface PaperContext extends dia.Paper {
  * This context is internally used by the `PaperProvider` component. Use the `usePaper` hook to access the paper instead.
  * @group context
  */
-export const PaperContext = createContext<PaperContext | undefined>(undefined);
+export const PaperContext = createContext<PaperContext | null>(null);

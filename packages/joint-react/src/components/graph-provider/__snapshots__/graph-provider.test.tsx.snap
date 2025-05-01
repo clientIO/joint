@@ -6,7 +6,7 @@ exports[`GraphProvider "Default" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -67,7 +67,7 @@ exports[`GraphProvider "Default" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -185,7 +185,7 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -246,7 +246,7 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -367,7 +367,7 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
         Layout
       </button>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -431,7 +431,7 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
       Layout
     </button>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -549,7 +549,7 @@ exports[`GraphProvider "WithLink" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -610,7 +610,7 @@ exports[`GraphProvider "WithLink" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -728,7 +728,7 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 0; pointer-events: none; width: 800px; height: 600px;"
+        style="opacity: 0; pointer-events: none; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -789,7 +789,7 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 0; pointer-events: none; width: 800px; height: 600px;"
+      style="opacity: 0; pointer-events: none; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"

@@ -6,7 +6,7 @@ exports[`Paper "WithAutoFitContent" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -67,7 +67,7 @@ exports[`Paper "WithAutoFitContent" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -185,7 +185,7 @@ exports[`Paper "WithEvent" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -246,7 +246,7 @@ exports[`Paper "WithEvent" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -364,7 +364,7 @@ exports[`Paper "WithGrid" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -414,7 +414,7 @@ exports[`Paper "WithGrid" 1`] = `
                   >
                     <pattern
                       height="10"
-                      id="pattern_view22_0"
+                      id="pattern_view21_0"
                       patternUnits="userSpaceOnUse"
                       width="10"
                       x="0"
@@ -429,7 +429,7 @@ exports[`Paper "WithGrid" 1`] = `
                     </pattern>
                   </defs>
                   <rect
-                    fill="url(#pattern_view22_0)"
+                    fill="url(#pattern_view21_0)"
                     height="100%"
                     id="v-10"
                     width="100%"
@@ -461,7 +461,7 @@ exports[`Paper "WithGrid" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -511,7 +511,7 @@ exports[`Paper "WithGrid" 1`] = `
                 >
                   <pattern
                     height="10"
-                    id="pattern_view22_0"
+                    id="pattern_view21_0"
                     patternUnits="userSpaceOnUse"
                     width="10"
                     x="0"
@@ -526,7 +526,7 @@ exports[`Paper "WithGrid" 1`] = `
                   </pattern>
                 </defs>
                 <rect
-                  fill="url(#pattern_view22_0)"
+                  fill="url(#pattern_view21_0)"
                   height="100%"
                   id="v-10"
                   width="100%"
@@ -684,7 +684,7 @@ exports[`Paper "WithLinkTools" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -745,7 +745,7 @@ exports[`Paper "WithLinkTools" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -863,7 +863,7 @@ exports[`Paper "WithRectElement" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -924,7 +924,7 @@ exports[`Paper "WithRectElement" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -1042,7 +1042,7 @@ exports[`Paper "WithScaleDown" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -1104,7 +1104,7 @@ exports[`Paper "WithScaleDown" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden;"
     >
       <div
         class="joint-paper joint-theme-default"

@@ -5,7 +5,7 @@ import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
 import { useElements } from '../../hooks/use-elements';
 import { CellIdContext } from '../../context/cell-id.context';
-import { PaperItem } from './paper-item';
+import { HTMLRenderer, SvgRenderer } from './paper-renderer';
 import { PaperContext } from '../../context/paper-context';
 import { GraphStoreContext } from '../../context/graph-store-context';
 import { GraphProvider } from '../graph-provider/graph-provider';
@@ -14,6 +14,7 @@ import type { PaperEvents } from '../../types/event.types';
 import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
 import { REACT_TYPE } from '../../models/react-element';
 import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
+import { PaperHtmlRendererContainer } from './paper-html-renderer';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -116,6 +117,13 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * @default 10
    */
   readonly clickThreshold?: number;
+
+  /**
+   * Enabled if renderElements is render to pure HTML elements.
+   * By default, `joint/react` renderElements to SVG elements, so for using HTML elements without this prop, you need to use `foreignObject` element.
+   * @default false
+   */
+  readonly isHTMLRendererEnabled?: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -131,14 +139,17 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     children,
     onElementsSizeReady,
     onElementsSizeChange,
+    isHTMLRendererEnabled,
     ...paperOptions
   } = props;
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
-  const { paperHtmlElement, isPaperFromContext, paper } = useCreatePaper({
+  const { paperContainerElement, paper } = useCreatePaper({
     ...paperOptions,
     scale,
     onRenderElement,
   });
+
+  const HTMLRendererContainer = useRef<HTMLDivElement>(null);
 
   const elements = useElements((items) => items.map(elementSelector));
   const areElementsMeasured = useAreElementMeasured();
@@ -148,6 +159,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
 
   // Whenever elements change (or we’ve just become measured) compare old ↔ new
   useEffect(() => {
+    if (!paper) return;
     if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
 
@@ -185,12 +197,19 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
     (): CSSProperties => ({
       opacity: areElementsMeasured ? 1 : 0,
       pointerEvents: areElementsMeasured ? 'all' : 'none',
+      position: 'relative',
+      overflow: 'hidden',
+      width: '100%',
+      height: '100%',
       ...style,
     }),
     [areElementsMeasured, style]
   );
 
   useEffect(() => {
+    if (!paper) {
+      return;
+    }
     if (areElementsMeasured) {
       return onElementsSizeReady?.({ paper, graph: paper.model });
     }
@@ -212,7 +231,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   }, [areElementsMeasured, onElementsSizeReady, paper]);
 
   const content = (
-    <div className={className} ref={paperHtmlElement} style={paperContainerStyle}>
+    <>
       {hasRenderElement &&
         elements.map((cell) => {
           if (!cell.id) {
@@ -225,29 +244,42 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
           if (cell.type !== REACT_TYPE) {
             return null;
           }
+
           return (
             <CellIdContext.Provider key={cell.id} value={cell.id}>
-              <PaperItem
-                {...cell}
-                nodeSvgGElement={portalHtmlElement}
-                renderElement={renderElement}
-              />
+              {isHTMLRendererEnabled ? (
+                <HTMLRenderer
+                  {...cell}
+                  rendererElement={HTMLRendererContainer.current}
+                  renderElement={renderElement}
+                />
+              ) : (
+                <SvgRenderer
+                  {...cell}
+                  rendererElement={portalHtmlElement}
+                  renderElement={renderElement}
+                />
+              )}
             </CellIdContext.Provider>
           );
         })}
-    </div>
+      {hasRenderElement && isHTMLRendererEnabled && (
+        <PaperHtmlRendererContainer ref={HTMLRendererContainer} />
+      )}
+    </>
   );
 
-  if (isPaperFromContext) {
-    return content;
+  const paperContext: PaperContext | null = paper as PaperContext | null;
+  if (paperContext) {
+    paperContext.renderElement = renderElement as RenderElement<GraphElementBase>;
   }
-
-  const paperContext: PaperContext = paper as PaperContext;
-  paperContext.renderElement = renderElement as RenderElement<GraphElementBase>;
+  const hasPaper = !!paper;
   return (
     <PaperContext.Provider value={paperContext}>
-      {content}
-      {children}
+      <div className={className} ref={paperContainerElement} style={paperContainerStyle}>
+        {hasPaper && content}
+      </div>
+      {hasPaper && children}
     </PaperContext.Provider>
   );
 }
