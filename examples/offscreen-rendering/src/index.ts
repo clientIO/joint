@@ -52,6 +52,8 @@ const paper = new dia.Paper({
     }
 });
 
+// Text measurement
+
 const canvas = document.createElement('canvas');
 const canvasCtx = canvas.getContext('2d');
 
@@ -221,6 +223,10 @@ const r6 = new shapes.standard.Rectangle({
 
 // Calculate the connection point as an intersection of the link and
 // the geometric representation of the element.
+// One needs to avoid using the `getBBox` method of the element,
+// because it returns zero-sized bounding boxes for elements
+// that are not in the DOM render tree (although the specification
+// says otherwise).
 paper.options.connectionPointNamespace = {
     ...connectionPoints,
     'rounded-rectangle': function(line, elementView) {

@@ -150,10 +150,12 @@ const textAttributesNS = {
 
                 let svgDocument = this.paper.svg;
                 if (!svgDocument.checkVisibility()) {
-                    // If the SVG document is visible, we can use it
-                    // to measure the text width and height when wrapping.
-                    // Otherwise, we need to create a temporary SVG document
-                    // to measure the text (the default behavior of `breakText`).
+                    // If the paper is visible, we can utilize
+                    // its SVG element to measure the text size
+                    // when breaking the text.
+                    // Otherwise, we need to create a temporary
+                    // SVG document and append it to the DOM,
+                    // (the default behavior of `breakText`).
                     svgDocument = null;
                 }
 
