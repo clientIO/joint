@@ -818,7 +818,7 @@ export const CellView = View.extend({
             } else {
                 target = el;
             }
-            metrics.magnetMatrix = V(magnet).getTransformToElement(target);
+            metrics.magnetMatrix = V(magnet).getTransformToElement(target, { safe: !magnet.checkVisibility() });
         }
         return V.createSVGMatrix(metrics.magnetMatrix);
     },
@@ -1028,7 +1028,7 @@ export const CellView = View.extend({
                     // is not descendant of the `<g>` element and will not be affected
                     // by the transformation.
                     const refRect = this.getNodeBoundingRect(refNode);
-                    const refTMatrix = V(refNode).getTransformToElement(getCommonAncestorNode(node, refNode));
+                    const refTMatrix = V(refNode).getTransformToElement(V.getCommonAncestor(node, refNode));
                     refBBox = V.transformRect(refRect, refTMatrix);
                 } else {
                     refBBox = opt.rootBBox;
@@ -1387,15 +1387,5 @@ Object.defineProperty(CellView.prototype, 'useCSSSelectors', {
         return config.useCSSSelectors;
     }
 });
-
-// TODO: Move to Vectorizer library.
-function getCommonAncestorNode(node1, node2) {
-    let parent = node1;
-    do {
-        if (parent.contains(node2)) return parent;
-        parent = parent.parentNode;
-    } while (parent);
-    return null;
-}
 
 

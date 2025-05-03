@@ -5,6 +5,10 @@
 // The only Vectorizer dependency is the Geometry library.
 
 import * as g from '../g/index.mjs';
+import * as ns from './namespace.mjs';
+import { svgDocument, SVGVersion, createSVGDocument } from './document.mjs';
+import { createIdentityMatrix, getRelativeTransformation, getRelativeTransformationTraversal } from './transform.mjs';
+import { getCommonAncestor } from './traversal.mjs';
 
 const V = (function() {
 
@@ -18,17 +22,6 @@ const V = (function() {
             throw new Error('SVG is required to use Vectorizer.');
         };
     }
-
-    // XML namespaces.
-    var ns = {
-        svg: 'http://www.w3.org/2000/svg',
-        xmlns: 'http://www.w3.org/2000/xmlns/',
-        xml: 'http://www.w3.org/XML/1998/namespace',
-        xlink: 'http://www.w3.org/1999/xlink',
-        xhtml: 'http://www.w3.org/1999/xhtml'
-    };
-
-    var SVGVersion = '1.1';
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -125,17 +118,19 @@ const V = (function() {
      * @param {SVGGElement} toElem
      * @returns {SVGMatrix}
      */
-    VPrototype.getTransformToElement = function(target) {
-        var node = this.node;
-        if (V.isSVGGraphicsElement(target) && V.isSVGGraphicsElement(node)) {
-            var targetCTM = V.toNode(target).getScreenCTM();
-            var nodeCTM = node.getScreenCTM();
-            if (targetCTM && nodeCTM) {
-                return targetCTM.inverse().multiply(nodeCTM);
+    VPrototype.getTransformToElement = function(target, opt) {
+        const node = this.node;
+        const targetNode = V.toNode(target);
+        let m;
+        if (V.isSVGGraphicsElement(targetNode) && V.isSVGGraphicsElement(node)) {
+            if (opt && opt.safe) {
+                // Use the traversal method to get the transformation matrix.
+                m = getRelativeTransformationTraversal(node, targetNode);
+            } else {
+                m = getRelativeTransformation(node, targetNode);
             }
         }
-        // Could not get actual transformation matrix
-        return V.createSVGMatrix();
+        return m || createIdentityMatrix();
     };
 
     /**
@@ -147,7 +142,7 @@ const V = (function() {
 
         var node = this.node;
         if (V.isUndefined(matrix)) {
-            return V.transformStringToMatrix(this.attr('transform'));
+            return getMatrixNullable(node) || createIdentityMatrix();
         }
 
         if (opt && opt.absolute) {
@@ -926,7 +921,7 @@ const V = (function() {
 
         } catch {
             // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
-            // We have to make do with the original coordianates.
+            // We have to make do with the original coordinates.
             return p;
         }
 
@@ -1292,10 +1287,7 @@ const V = (function() {
             return documentElement;
         }
 
-        const svg = document.createElementNS(ns.svg, 'svg');
-        svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
-        svg.setAttribute('version', SVGVersion);
-        return svg;
+        return createSVGDocument();
     };
 
     V.createSVGStyle = function(stylesheet) {
@@ -1519,86 +1511,11 @@ const V = (function() {
     V.transformRotateRegex = /\brotate\(([^()]+)\)/;
     V.transformScaleRegex = /\bscale\(([^()]+)\)/;
 
+
     V.transformStringToMatrix = function(transform) {
-
-        // Initialize result matrix as identity matrix
-        let transformationMatrix = V.createSVGMatrix();
-
-        // Note: Multiple transform functions are allowed in `transform` string
-        // `match()` returns `null` if none found
-        const transformMatches = transform && transform.match(V.transformRegex);
-        if (!transformMatches) {
-            // Return identity matrix
-            return transformationMatrix;
-        }
-
-        const numMatches = transformMatches.length;
-        for (let i = 0; i < numMatches; i++) {
-
-            const transformMatch = transformMatches[i];
-            // Use same regex as above, but with capturing groups
-            // `match()` returns values of capturing groups as `[1]`, `[2]`
-            const transformFunctionMatch = transformMatch.match(V.transformFunctionRegex);
-            if (transformFunctionMatch) {
-
-                let sx, sy, tx, ty, angle;
-                let ctm = V.createSVGMatrix();
-                const transformFunction = transformFunctionMatch[1].toLowerCase();
-                const args = transformFunctionMatch[2].split(V.transformSeparatorRegex);
-                switch (transformFunction) {
-
-                    case 'scale':
-                        sx = parseFloat(args[0]);
-                        sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
-                        ctm = ctm.scaleNonUniform(sx, sy);
-                        break;
-
-                    case 'translate':
-                        tx = parseFloat(args[0]);
-                        ty = parseFloat(args[1]);
-                        ctm = ctm.translate(tx, ty);
-                        break;
-
-                    case 'rotate':
-                        angle = parseFloat(args[0]);
-                        tx = parseFloat(args[1]) || 0;
-                        ty = parseFloat(args[2]) || 0;
-                        if (tx !== 0 || ty !== 0) {
-                            ctm = ctm.translate(tx, ty).rotate(angle).translate(-tx, -ty);
-                        } else {
-                            ctm = ctm.rotate(angle);
-                        }
-                        break;
-
-                    case 'skewx':
-                        angle = parseFloat(args[0]);
-                        ctm = ctm.skewX(angle);
-                        break;
-
-                    case 'skewy':
-                        angle = parseFloat(args[0]);
-                        ctm = ctm.skewY(angle);
-                        break;
-
-                    case 'matrix':
-                        ctm.a = parseFloat(args[0]);
-                        ctm.b = parseFloat(args[1]);
-                        ctm.c = parseFloat(args[2]);
-                        ctm.d = parseFloat(args[3]);
-                        ctm.e = parseFloat(args[4]);
-                        ctm.f = parseFloat(args[5]);
-                        break;
-
-                    default:
-                        continue;
-                }
-
-                // Multiply current transformation into result matrix
-                transformationMatrix = transformationMatrix.multiply(ctm);
-            }
-
-        }
-        return transformationMatrix;
+        if (!transform) return createIdentityMatrix();
+        svgDocument.setAttribute('transform', transform);
+        return getMatrixNullable(svgDocument) || createIdentityMatrix();
     };
 
     V.matrixToTransformString = function(matrix) {
@@ -1780,12 +1697,10 @@ const V = (function() {
         return node instanceof SVGElement && typeof node.getScreenCTM === 'function';
     };
 
-    var svgDocument = V('svg').node;
-
     V.createSVGMatrix = function(matrix) {
 
-        var svgMatrix = svgDocument.createSVGMatrix();
-        for (var component in matrix) {
+        const svgMatrix = createIdentityMatrix();
+        for (let component in matrix) {
             svgMatrix[component] = matrix[component];
         }
 
@@ -2635,7 +2550,12 @@ const V = (function() {
         };
     })();
 
-    V.namespace = ns;
+    V.getCommonAncestor = function(node1, node2) {
+        if (!node1 || !node2) return null;
+        return getCommonAncestor(V.toNode(node1), V.toNode(node2));
+    };
+
+    V.namespace = { ...ns };
 
     V.g = g;
 
