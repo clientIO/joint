@@ -23,7 +23,8 @@ const shape = {
       fill: 'white',
     },
   },
-};
+} as const;
+
 const initialElements = createElements([
   {
     id: '1',
@@ -111,7 +112,7 @@ function Main() {
       width={PAPER_WIDTH}
       height={280}
       renderElement={renderElement}
-      onElementsMeasured={makeLayout}
+      onElementsSizeReady={makeLayout}
     />
   );
 }

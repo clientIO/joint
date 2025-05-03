@@ -9,6 +9,8 @@ import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation
 import '../stories/examples/index.css';
 
 const API_URL = getAPILink('useSetElement');
+const BUTTON_CLASSNAME =
+  'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2 text-sm';
 
 export type Story = StoryObj<typeof Hook>;
 
@@ -36,7 +38,9 @@ function Hook({ data: { label }, id }: SimpleElement) {
 
   return (
     <HTMLNode className="node">
-      <button onClick={() => set({ label: 'hello' })}>Set label</button>
+      <button className={BUTTON_CLASSNAME} onClick={() => set({ label: 'hello' })}>
+        Set label
+      </button>
       label: {label}
     </HTMLNode>
   );
@@ -69,6 +73,7 @@ function HookSetPosition({ data: { label }, id }: SimpleElement) {
   return (
     <HTMLNode className="node">
       <button
+        className={BUTTON_CLASSNAME}
         onClick={() =>
           set((previous) => {
             if (previous === undefined) {
@@ -121,6 +126,7 @@ function HookSetSize({ data: { label }, id }: SimpleElement) {
   return (
     <HTMLNode className="node">
       <button
+        className={BUTTON_CLASSNAME}
         onClick={() =>
           set((previous) => {
             if (previous === undefined) {
@@ -172,6 +178,7 @@ function HookSetAngle({ data: { label }, id }: SimpleElement) {
   return (
     <HTMLNode className="node">
       <button
+        className={BUTTON_CLASSNAME}
         onClick={() =>
           set((previous) => {
             if (previous === undefined) {
@@ -221,6 +228,7 @@ function HookSetAny({ data: { label }, id }: SimpleElement) {
   return (
     <HTMLNode className="node">
       <button
+        className={BUTTON_CLASSNAME}
         onClick={() =>
           set('position', (previous) => {
             if (previous === undefined) {
@@ -233,6 +241,7 @@ function HookSetAny({ data: { label }, id }: SimpleElement) {
         Set Position
       </button>
       <button
+        className={BUTTON_CLASSNAME}
         onClick={() =>
           set('size', (previous) => {
             if (previous === undefined) {

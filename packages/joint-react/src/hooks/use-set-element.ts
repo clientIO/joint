@@ -47,7 +47,7 @@ function setCellHelper<Attributes, Attribute extends keyof Attributes>(
 }
 
 /**
- * Use this hook to set element attributes.
+ * Set the element attribute in the graph.
  * It returns a function to set the element attribute.
  *
  * It must be used inside the GraphProvider.

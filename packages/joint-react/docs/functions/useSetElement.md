@@ -14,7 +14,7 @@ Defined in: [joint-react/src/hooks/use-set-element.ts:81](https://github.com/sam
 
 **`Experimental`**
 
-Use this hook to set element attributes.
+Set the element attribute in the graph.
 It returns a function to set the element attribute.
 
 It must be used inside the GraphProvider.
@@ -89,7 +89,7 @@ Defined in: [joint-react/src/hooks/use-set-element.ts:89](https://github.com/sam
 
 **`Experimental`**
 
-Use this hook to set element attributes.
+Set the element attribute in the graph.
 It returns a function to set the element attribute.
 
 It must be used inside the GraphProvider.
@@ -164,7 +164,7 @@ Defined in: [joint-react/src/hooks/use-set-element.ts:93](https://github.com/sam
 
 **`Experimental`**
 
-Use this hook to set element attributes.
+Set the element attribute in the graph.
 It returns a function to set the element attribute.
 
 It must be used inside the GraphProvider.

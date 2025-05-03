@@ -8,7 +8,7 @@
 
 > **createLinks**\<`Link`, `Type`\>(`data`): `Link` & [`GraphLink`](../interfaces/GraphLink.md)[]
 
-Defined in: [joint-react/src/utils/create.ts:70](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L70)
+Defined in: [joint-react/src/utils/create.ts:74](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L74)
 
 Create links helper function.
 
@@ -20,7 +20,7 @@ Create links helper function.
 
 ### Type
 
-`Type` *extends* `string` = `string`
+`Type` *extends* `string` = `"standard.Link"`
 
 ## Parameters
 

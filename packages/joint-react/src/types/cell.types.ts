@@ -18,5 +18,5 @@ export function isReactElement(element: unknown): boolean {
   if (!isGraphElement(element)) {
     return false;
   }
-  return element.type === REACT_TYPE || element.type == undefined;
+  return (element.type as string) === REACT_TYPE || element.type == undefined;
 }

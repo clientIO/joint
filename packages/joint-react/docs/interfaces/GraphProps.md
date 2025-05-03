@@ -58,7 +58,7 @@ Children to render.
 
 ### defaultElements?
 
-> `readonly` `optional` **defaultElements**: ([`GraphElementBase`](GraphElementBase.md)\<`string`\> \| `Element`\<`Attributes`, `ModelSetOptions`\>)[]
+> `readonly` `optional` **defaultElements**: (`Element`\<`Attributes`, `ModelSetOptions`\> \| [`GraphElementBase`](GraphElementBase.md)\<`string`\>)[]
 
 Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:88](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L88)
 
@@ -69,7 +69,7 @@ It's loaded just once, so it cannot be used as React state.
 
 ### defaultLinks?
 
-> `readonly` `optional` **defaultLinks**: ([`GraphLink`](GraphLink.md) \| `Link`\<`Attributes`, `ModelSetOptions`\>)[]
+> `readonly` `optional` **defaultLinks**: (`Link`\<`Attributes`, `ModelSetOptions`\> \| [`GraphLink`](GraphLink.md))[]
 
 Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:93](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L93)
 

@@ -6,7 +6,7 @@
 
 # Interface: GraphElementItem\<Data, Type\>
 
-Defined in: [joint-react/src/types/element-types.ts:71](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L71)
+Defined in: [joint-react/src/types/element-types.ts:76](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L76)
 
 Base interface for graph element.
 It's a subset of `dia.Element` with some additional properties.
@@ -32,7 +32,7 @@ It's a subset of `dia.Element` with some additional properties.
 
 ### Type
 
-`Type` *extends* [`StandardShapesType`](../type-aliases/StandardShapesType.md) \| `string` = `string`
+`Type` *extends* [`StandardShapesType`](../type-aliases/StandardShapesType.md) \| `string` = `"react"`
 
 ## Indexable
 
@@ -46,7 +46,7 @@ It's a subset of `dia.Element` with some additional properties.
 
 > `readonly` `optional` **attrs**: `Type` *extends* keyof `StandardShapesTypeMapper` ? `StandardShapesTypeMapper`\[`Type`\<`Type`\>\] : `unknown`
 
-Defined in: [joint-react/src/types/element-types.ts:68](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L68)
+Defined in: [joint-react/src/types/element-types.ts:73](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L73)
 
 Attributes of the element.
 
@@ -60,7 +60,7 @@ Attributes of the element.
 
 > `readonly` **data**: `Data`
 
-Defined in: [joint-react/src/types/element-types.ts:76](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L76)
+Defined in: [joint-react/src/types/element-types.ts:83](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L83)
 
 Generic data for the element.
 
@@ -74,7 +74,7 @@ Generic data for the element.
 
 > `readonly` `optional` **height**: `number`
 
-Defined in: [joint-react/src/types/element-types.ts:62](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L62)
+Defined in: [joint-react/src/types/element-types.ts:67](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L67)
 
 Optional height of the element.
 
@@ -88,7 +88,7 @@ Optional height of the element.
 
 > `readonly` **id**: `ID`
 
-Defined in: [joint-react/src/types/element-types.ts:33](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L33)
+Defined in: [joint-react/src/types/element-types.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L38)
 
 Unique identifier of the element.
 
@@ -102,7 +102,7 @@ Unique identifier of the element.
 
 > `readonly` `optional` **markup**: `string` \| `MarkupJSON`
 
-Defined in: [joint-react/src/types/element-types.ts:64](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L64)
+Defined in: [joint-react/src/types/element-types.ts:69](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L69)
 
 #### Inherited from
 
@@ -114,7 +114,7 @@ Defined in: [joint-react/src/types/element-types.ts:64](https://github.com/samue
 
 > `readonly` `optional` **ports**: `Ports`
 
-Defined in: [joint-react/src/types/element-types.ts:42](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L42)
+Defined in: [joint-react/src/types/element-types.ts:47](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L47)
 
 Ports of the element.
 
@@ -128,7 +128,7 @@ Ports of the element.
 
 > `readonly` `optional` **type**: `Type`
 
-Defined in: [joint-react/src/types/element-types.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L38)
+Defined in: [joint-react/src/types/element-types.ts:43](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L43)
 
 Optional element type.
 
@@ -146,7 +146,7 @@ Optional element type.
 
 > `readonly` `optional` **width**: `number`
 
-Defined in: [joint-react/src/types/element-types.ts:58](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L58)
+Defined in: [joint-react/src/types/element-types.ts:63](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L63)
 
 Optional width of the element.
 
@@ -160,7 +160,7 @@ Optional width of the element.
 
 > `readonly` `optional` **x**: `number`
 
-Defined in: [joint-react/src/types/element-types.ts:50](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L50)
+Defined in: [joint-react/src/types/element-types.ts:55](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L55)
 
 X position of the element.
 
@@ -174,7 +174,7 @@ X position of the element.
 
 > `readonly` `optional` **y**: `number`
 
-Defined in: [joint-react/src/types/element-types.ts:54](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L54)
+Defined in: [joint-react/src/types/element-types.ts:59](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L59)
 
 Y position of the element.
 

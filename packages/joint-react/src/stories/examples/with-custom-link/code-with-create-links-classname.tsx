@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { PRIMARY } from 'storybook-config/theme';
+
 import {
   createElements,
   createLinks,
@@ -12,6 +12,8 @@ import {
 } from '@joint/react';
 import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
+import './code-with-create-links-classname.css';
+import { PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -25,8 +27,7 @@ const initialEdges = createLinks([
     attrs: {
       line: {
         stroke: PRIMARY,
-        strokeWidth: 2, // Set stroke width
-        strokeDasharray: '5,5', // Makes the line da
+        class: 'link',
       },
     },
   },

@@ -65,11 +65,6 @@
   stroke-width: 1px;
 }
 
-.jj-flow-line {
-  stroke: #ed2637;
-  stroke-width: 1;
-}
-
 .jj-flow-tools circle {
   stroke: var(--frame-color);
   fill: var(--background-color);
@@ -78,4 +73,16 @@
 
 .jj-flow-tools rect {
   stroke: var(--frame-color);
+}
+
+.link {
+  stroke-dasharray: 5 5; /* dash length 10, gap 10 */
+  stroke-dashoffset: 0;
+  animation: dashmove 1s linear infinite;
+}
+
+@keyframes dashmove {
+  to {
+    stroke-dashoffset: -20; /* dash + gap length */
+  }
 }
