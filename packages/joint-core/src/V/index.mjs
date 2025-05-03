@@ -6,9 +6,9 @@
 
 import * as g from '../g/index.mjs';
 import * as ns from './namespace.mjs';
-import { svgDocument, SVGVersion, createSVGDocument } from './document.mjs';
+import { svgDocument, SVGVersion, createSVGDocument, createSVGElement } from './create.mjs';
 import { createIdentityMatrix, getRelativeTransformation, getRelativeTransformationTraversal } from './transform.mjs';
-import { getCommonAncestor } from './traversal.mjs';
+import { getCommonAncestor } from './traverse.mjs';
 
 const V = (function() {
 
@@ -85,7 +85,7 @@ const V = (function() {
 
             } else {
 
-                el = document.createElementNS(ns.svg, el);
+                el = createSVGElement(el);
             }
 
             V.ensureId(el);
@@ -142,7 +142,7 @@ const V = (function() {
 
         var node = this.node;
         if (V.isUndefined(matrix)) {
-            return getMatrixNullable(node) || createIdentityMatrix();
+            return getNodeMatrix(node) || createIdentityMatrix();
         }
 
         if (opt && opt.absolute) {
@@ -1515,7 +1515,7 @@ const V = (function() {
     V.transformStringToMatrix = function(transform) {
         if (!transform) return createIdentityMatrix();
         svgDocument.setAttribute('transform', transform);
-        return getMatrixNullable(svgDocument) || createIdentityMatrix();
+        return getNodeMatrix(svgDocument) || createIdentityMatrix();
     };
 
     V.matrixToTransformString = function(matrix) {
@@ -2550,6 +2550,12 @@ const V = (function() {
         };
     })();
 
+    /**
+     *
+     * @param {SVGElement|V} node1
+     * @param {SVGElement|V} node2
+     * @returns {SVGElement|null}
+     */
     V.getCommonAncestor = function(node1, node2) {
         if (!node1 || !node2) return null;
         return getCommonAncestor(V.toNode(node1), V.toNode(node2));
