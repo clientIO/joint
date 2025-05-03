@@ -159,7 +159,7 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'getBBox', {
     value: vi.fn().mockImplementation(createSVGRect),
 });
 
-/**\
+/**
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/checkVisibility
  * @see https://github.com/jsdom/jsdom/issues/3695
  * @description This method is not implemented in JSDOM yet.
