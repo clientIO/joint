@@ -69,7 +69,7 @@ function ResizableNode({ data, width, height }: Readonly<BaseElementWithData>) {
 
 function Main() {
   const elementsSize = useElements((items) =>
-    items.map(({ width, height }) => `${width},${height}`)
+    items.map(({ width, height }) => `${width}, ${height}`)
   );
 
   return (
@@ -82,7 +82,7 @@ function Main() {
           right: 0,
         }}
       >
-        NodeID,Width, Height:
+        NodeID, width, height:
         {elementsSize.map((position, index) => (
           // eslint-disable-next-line @eslint-react/no-array-index-key
           <div className="text" key={`${index}-${position}`} style={{ marginLeft: 10 }}>
