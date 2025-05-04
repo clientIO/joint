@@ -90,7 +90,7 @@ function bboxWrapper(method) {
             bbox = getModelBBoxFromConnectedLink(element, link, endType, !rotate);
             center = bbox.center();
         } else {
-            center = element.getBBox().center();
+            center = element.getCenter();
             bbox = (rotate) ? elementView.getNodeUnrotatedBBox(magnet) : elementView.getNodeBBox(magnet);
         }
 
@@ -173,7 +173,7 @@ function _perpendicular(elementView, magnet, refPoint, opt, endType, linkView) {
 function _midSide(view, magnet, refPoint, opt, endType, linkView) {
     var rotate = !!opt.rotate;
     var angle = view.model.angle();
-    var center = view.model.getBBox().center();
+    var center = view.model.getCenter();
 
     var bbox;
     if (opt.useModelGeometry) {
