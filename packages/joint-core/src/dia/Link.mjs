@@ -409,10 +409,6 @@ export const Link = Cell.extend({
         return this.getPolyline().bbox();
     },
 
-    getCenter: function() {
-        return this.getBBox().center();
-    },
-
     reparent: function(opt) {
 
         var newParent;

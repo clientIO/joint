@@ -922,8 +922,7 @@ export const Cell = Model.extend({
     },
 
     getCenter: function() {
-        // To be overridden
-        return new g.Point(0, 0);
+        return this.getBBox().center();
     },
 
     getPointRotatedAroundCenter(angle, x, y) {
