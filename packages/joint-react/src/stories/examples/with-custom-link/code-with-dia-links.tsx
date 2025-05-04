@@ -26,8 +26,8 @@ class LinkModel extends shapes.standard.Link {
       attrs: {
         line: {
           stroke: PRIMARY,
-          strokeWidth: 10, // Set stroke width
-          strokeDasharray: '5,5', // Makes the line da
+          strokeWidth: 10,
+          strokeDasharray: '5,5',
         },
       },
     });

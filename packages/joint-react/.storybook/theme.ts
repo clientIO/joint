@@ -2,6 +2,7 @@ import { create } from '@storybook/theming';
 export const PRIMARY = '#ED2637';
 export const BG = '#131E29';
 export const SECONDARY = '#FF9505';
+export const LIGHT = '#DDE6ED';
 export const TEXT = '#DDE6ED';
 export const theme = create({
   base: 'dark',

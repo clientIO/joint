@@ -25,7 +25,11 @@ interface NodeData {
 }
 
 const flowchartNodes = createElements<NodeData>([
-  { id: 'start', data: { label: 'Start', type: 'start' }, cx: 50, cy: 40 },
+  { id: 'start',
+    data: { label: 'Start', type: 'start' },
+    cx: 50,
+    cy: 40
+  },
   {
     id: 'addToCart',
     data: { label: 'Add to Cart', type: 'step' },
@@ -141,14 +145,12 @@ const flowchartLinks = createLinks([
     source: 'validPayment',
     target: 'presentErrorMessage',
     label: 'No',
-    // router: { name: 'manhattan' }, // Use right-angle routing
   },
   {
     ...LINK_OPTIONS,
     id: 'flow7',
     source: 'presentErrorMessage',
     target: 'addPaymentInfo',
-    // router: { name: 'manhattan' },
   },
   {
     ...LINK_OPTIONS,
@@ -156,7 +158,6 @@ const flowchartLinks = createLinks([
     source: 'validPayment',
     target: 'sendOrder',
     label: 'Yes',
-    // router: { name: 'manhattan' },
   },
   { ...LINK_OPTIONS, id: 'flow9', source: 'sendOrder', target: 'packOrder' },
   { ...LINK_OPTIONS, id: 'flow10', source: 'packOrder', target: 'qualityCheck' },
@@ -166,7 +167,6 @@ const flowchartLinks = createLinks([
     source: 'qualityCheck',
     target: 'shipItems',
     label: 'Ok',
-    // router: { name: 'manhattan' },
   },
   {
     ...LINK_OPTIONS,
@@ -174,7 +174,6 @@ const flowchartLinks = createLinks([
     source: 'qualityCheck',
     target: 'sendOrder',
     label: 'Not Ok',
-    // router: { name: 'manhattan' },
   },
 ]);
 
@@ -323,7 +322,7 @@ function Main() {
       onLinkMouseEnter={({ linkView, paper }) => {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
-        const snapAnchor = function (coords: dia.Point, endView: dia.LinkView): dia.Point {
+        const snapAnchor: linkTools.AnchorCallback<dia.Point> = (coords: dia.Point, endView: dia.CellView) => {
           const bbox = endView.model.getBBox();
           // Find the closest point on the bbox border.
           const point = bbox.pointNearestToPoint(coords);
@@ -341,12 +340,12 @@ function Main() {
         const toolsView = new dia.ToolsView({
           tools: [
             new linkTools.TargetAnchor({
-              snap: snapAnchor as never,
-              resetAnchor: linkView.model.prop(['target', 'anchor']),
+              snap: snapAnchor,
+              resetAnchor: true,
             }),
             new linkTools.SourceAnchor({
-              snap: snapAnchor as never,
-              resetAnchor: linkView.model.prop(['source', 'anchor']),
+              snap: snapAnchor,
+              resetAnchor: true
             }),
           ],
         });
@@ -368,20 +367,20 @@ function Main() {
       }}
       width={900}
       renderElement={RenderFlowchartNode}
-      scrollWhileDragging
-      sorting={dia.Paper.sorting.APPROX}
-      snapLabels
       interactive={{ linkMove: false }}
       defaultConnectionPoint={{
         name: 'anchor',
         args: {
-          offset: 6,
+          offset: unit * 2,
           extrapolate: true,
+          useModelGeometry: true
         },
       }}
       defaultAnchor={{
         name: 'midSide',
-        args: { useModelGeometry: true },
+        args: {
+          useModelGeometry: true
+        },
       }}
       defaultRouter={{
         name: 'rightAngle',

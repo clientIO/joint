@@ -25,8 +25,8 @@ const initialEdges = createLinks([
     attrs: {
       line: {
         stroke: PRIMARY,
-        strokeWidth: 2, // Set stroke width
-        strokeDasharray: '5,5', // Makes the line da
+        strokeWidth: 2,
+        strokeDasharray: '5,5',
       },
     },
   },

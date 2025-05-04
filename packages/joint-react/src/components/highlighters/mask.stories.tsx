@@ -4,6 +4,7 @@ import { Mask } from './mask';
 import { PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { useElement } from '../../hooks';
 
 const API_URL = getAPILink('Highlighter/variables/Mask', 'namespaces');
 
@@ -27,10 +28,17 @@ Mask is a component that creates a mask around the children. It is used to highl
 
 export default meta;
 
+function MyRectComponent() {
+  const { width, height } = useElement();
+  return <rect rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
+}
+
+
+
 export const Default = makeStory<Story>({
   args: {
     stroke: SECONDARY,
-    children: <rect rx={10} ry={10} width={100} height={50} fill={PRIMARY} />,
+    children: <MyRectComponent />,
   },
 
   apiURL: API_URL,

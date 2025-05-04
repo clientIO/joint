@@ -9,7 +9,7 @@ import {
   Port,
   type InferElement,
 } from '@joint/react';
-import { dia } from '@joint/core';
+import { dia, util } from '@joint/core';
 import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
@@ -194,8 +194,7 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
           setPorts((previous) => [
             ...previous,
             {
-              // eslint-disable-next-line sonarjs/pseudo-random
-              id: `${Math.random()}`,
+              id: util.uuid(),
               label: `Port ${ports.length + 1}`,
             },
           ]);
@@ -220,13 +219,20 @@ function Main() {
       height={670}
       width={900}
       renderElement={RenderElement}
-      scrollWhileDragging
-      sorting={dia.Paper.sorting.APPROX}
-      snapLabels
       clickThreshold={10}
+      magnetThreshold={'onleave'}
       interactive={{ linkMove: false }}
+      linkPinning={false}
+      snapLinks={{ radius: 10 }}
       validateMagnet={(_cellView, magnet) => {
         return magnet.getAttribute('magnet') !== 'passive';
+      }}
+      validateConnection={(cellViewS, magnetS, cellViewT, magnetT) => {
+        if (cellViewS === cellViewT) return false;
+        if (cellViewS.model.isLink() || cellViewT.model.isLink()) return false;
+        if (cellViewS.findAttribute('port-group', magnetS) === 'port-in-group') return false;
+        if (cellViewT.findAttribute('port-group', magnetT) === 'port-out-group') return false;
+        return true;
       }}
       defaultConnectionPoint={{
         name: 'boundary',
@@ -235,7 +241,10 @@ function Main() {
           extrapolate: false,
         },
       }}
-      defaultRouter={{ name: 'rightAngle', args: { margin: 20 } }}
+      defaultRouter={{
+        name: 'rightAngle',
+        args: { margin: 20 }
+      }}
       defaultConnector={{
         name: 'straight',
         args: { cornerType: 'line', cornerPreserveAspectRatio: true },
