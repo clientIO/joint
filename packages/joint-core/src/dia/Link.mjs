@@ -410,7 +410,7 @@ export const Link = Cell.extend({
     },
 
     getCenter: function() {
-        return this.getCenter();
+        return this.getBBox().center();
     },
 
     reparent: function(opt) {
