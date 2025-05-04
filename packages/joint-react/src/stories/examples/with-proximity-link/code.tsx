@@ -12,13 +12,13 @@ import {
 import '../index.css';
 import { useEffect, useRef } from 'react';
 import { shapes, util } from '@joint/core';
-import { PRIMARY } from 'storybook-config/theme';
+import { SECONDARY } from 'storybook-config/theme';
 import type { dia } from '../../../../../joint-core/types';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
-  { id: '3', data: { label: 'Node 3' }, x: 200, y: 100 },
+  { id: '3', data: { label: 'Node 3' }, x: 220, y: 100 },
   { id: '4', data: { label: 'Node 4' }, x: 0, y: 100 },
 ]);
 
@@ -26,20 +26,24 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 class DashedLink extends shapes.standard.Link {
   defaults() {
-    return util.defaultsDeep(super.defaults, {
-      type: 'link',
+    return util.defaultsDeep({
+      type: 'DashedLink',
       attrs: {
         line: {
-          stroke: PRIMARY, // Set stroke color
-          strokeWidth: 10, // Set stroke width
-          strokeDasharray: '5,5', // Makes the line da
+          stroke: SECONDARY,
+          strokeWidth: 2,
+          strokeDasharray: '5,5',
+          sourceMarker: {
+            d: 'M 10 -5 0 0 10 5 z'
+          }
         },
       },
-    });
+    }, super.defaults);
   }
 }
 
-const BE_CLOSE_DISTANCE = 100;
+const PROXIMITY_THRESHOLD = 150;
+
 function getLinkId(id: dia.Cell.ID | null, closeId: dia.Cell.ID | null) {
   return `${id}-${closeId}`;
 }
@@ -47,54 +51,48 @@ function getLinkId(id: dia.Cell.ID | null, closeId: dia.Cell.ID | null) {
 function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElementWithData>) {
   const graph = useGraph();
   const nodeRef = useRef<HTMLDivElement>(null);
+  const element = graph.getCell(id);
 
-  const closeId = useElements<BaseElementWithData, dia.Cell.ID | null>((elements) => {
-    const element = graph.getCell(id);
-    if (!element) {
-      return null;
-    }
-    for (const [otherId, value] of elements) {
-      const otherElement = graph.getCell(otherId);
-      const box1 = element.getBBox();
-      const box2 = otherElement.getBBox();
-      const isClose = box1.center().distance(box2.center()) <= BE_CLOSE_DISTANCE;
-      if (otherElement.id !== element.id && isClose) {
-        return value.id;
-      }
-    }
-    return null;
+  const closeIds = useElements(() => {
+    const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
+    const center = area.center();
+    const proximityElements = graph.findElementsInArea(area).filter((otherElement) => {
+      const otherId = otherElement.id;
+      return (
+        otherId !== element.id &&
+        otherElement.getBBox().center().distance(center) <= PROXIMITY_THRESHOLD
+      );
+    });
+    return proximityElements.map((el) => el.id);
   });
 
   useEffect(() => {
-    if (!closeId) {
-      return;
-    }
-    const linkId = getLinkId(id, closeId);
-    const link = new DashedLink({
-      id: linkId,
-      source: { id },
-      target: { id: closeId },
-      attrs: {
-        line: {
-          stroke: PRIMARY,
-          strokeDasharray: '5,5',
-        },
-      },
+    closeIds.forEach((closeId) => {
+
+      const linkId = getLinkId(id, closeId);
+      // Check if the link or the reverse link already exists
+      if (graph.getCell(linkId)) return;
+      if (graph.getCell(getLinkId(closeId, id))) return;
+
+      const link = new DashedLink({
+        id: linkId,
+        source: { id },
+        target: { id: closeId },
+      });
+      graph.addCell(link, { async: false});
     });
-    graph?.addCell(link);
-  }, [closeId, graph, id]);
+    return () => {
+      closeIds.forEach((closeId) => {
+        const linkId = getLinkId(id, closeId);
+        graph.getCell(linkId)?.remove();
+      });
+    };
+  }, [closeIds, graph, id]);
 
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode ref={nodeRef}>
-        <div
-          onMouseUp={() => {
-            graph.removeCells(graph.getLinks());
-          }}
-          className="node"
-        >
-          {label}
-        </div>
+        <div className="node">{label}</div>
       </MeasuredNode>
     </foreignObject>
   );
@@ -103,7 +101,15 @@ function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElem
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} height={280} renderElement={ResizableNode} />
+      <Paper
+        width={400}
+        height={280}
+        renderElement={ResizableNode}
+        defaultAnchor={{
+          name: 'perpendicular',
+          args: { useModelGeometry: true }
+        }}
+      />
     </div>
   );
 }

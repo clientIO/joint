@@ -9,7 +9,7 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { PRIMARY } from 'storybook-config/theme';
+import { PRIMARY, LIGHT } from 'storybook-config/theme';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
 const initialElements = createElements([
@@ -23,7 +23,7 @@ const initialEdges = createLinks([
     target: '2',
     attrs: {
       line: {
-        stroke: PRIMARY,
+        stroke: LIGHT,
       },
     },
   },

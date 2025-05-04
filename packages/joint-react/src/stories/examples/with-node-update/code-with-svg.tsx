@@ -10,7 +10,7 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { PRIMARY } from 'storybook-config/theme';
+import { LIGHT, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { color: PRIMARY }, x: 100, y: 0, width: 130, height: 35 },
@@ -23,7 +23,7 @@ const initialEdges = createLinks([
     target: '2',
     attrs: {
       line: {
-        stroke: PRIMARY,
+        stroke: LIGHT,
       },
     },
   },

@@ -59,8 +59,7 @@ function RenderElement({ data: { label }, width, height }: BaseElementWithData) 
             <span className="mb-1 text-sm">{label}</span>
             <button
               onClick={() => {
-                const cell = graph.getCell(id);
-                graph.removeCells([cell]);
+                graph.getCell(id).remove();
               }}
               type="button"
               className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
@@ -81,7 +80,7 @@ function Main() {
       <Paper
         clickThreshold={10}
         interactive={{ linkMove: false }}
-        defaultRouter={{ name: 'rightAngle', args: { margin: 6 } }}
+        defaultRouter={{ name: 'rightAngle', args: { margin: 40 } }}
         defaultConnector={{
           name: 'straight',
           args: { cornerType: 'line', cornerPreserveAspectRatio: true },
