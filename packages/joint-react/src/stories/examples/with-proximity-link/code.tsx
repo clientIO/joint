@@ -18,7 +18,7 @@ import type { dia } from '../../../../../joint-core/types';
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
   { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
-  { id: '3', data: { label: 'Node 3' }, x: 220, y: 100 },
+  { id: '3', data: { label: 'Node 3' }, x: 280, y: 100 },
   { id: '4', data: { label: 'Node 4' }, x: 0, y: 100 },
 ]);
 
@@ -42,7 +42,7 @@ class DashedLink extends shapes.standard.Link {
   }
 }
 
-const PROXIMITY_THRESHOLD = 150;
+const PROXIMITY_THRESHOLD = 60;
 
 function getLinkId(id: dia.Cell.ID | null, closeId: dia.Cell.ID | null) {
   return `${id}-${closeId}`;
@@ -55,15 +55,8 @@ function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElem
 
   const closeIds = useElements(() => {
     const area = element.getBBox().inflate(PROXIMITY_THRESHOLD);
-    const center = area.center();
-    const proximityElements = graph.findElementsInArea(area).filter((otherElement) => {
-      const otherId = otherElement.id;
-      return (
-        otherId !== element.id &&
-        otherElement.getBBox().center().distance(center) <= PROXIMITY_THRESHOLD
-      );
-    });
-    return proximityElements.map((el) => el.id);
+    const proximityElements = graph.findElementsInArea(area).filter(el => el.id !== id);
+    return proximityElements.map(el => el.id);
   });
 
   useEffect(() => {
@@ -79,7 +72,7 @@ function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElem
         source: { id },
         target: { id: closeId },
       });
-      graph.addCell(link, { async: false});
+      graph.addCell(link, { async: false });
     });
     return () => {
       closeIds.forEach((closeId) => {
