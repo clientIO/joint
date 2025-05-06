@@ -14,7 +14,7 @@ import {
   Port,
   useElement,
 } from '@joint/react';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { PortGroup } from './port-group';
 
 const initialElements = createElements([
@@ -76,7 +76,13 @@ function PaperDecorator(Story: React.FC) {
   const renderItem = () => RenderItem(Story);
   return (
     <GraphProvider defaultElements={initialElements} defaultLinks={defaultLinks}>
-      <Paper width={'100%'} height={350} renderElement={renderItem} linkPinning={false} />
+      <Paper
+        className={PAPER_CLASSNAME}
+        width={'100%'}
+        height={350}
+        renderElement={renderItem}
+        linkPinning={false}
+      />
     </GraphProvider>
   );
 }

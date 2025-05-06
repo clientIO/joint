@@ -9,7 +9,8 @@ import {
   Port,
   type InferElement,
 } from '@joint/react';
-import { dia, util } from '@joint/core';
+import type { dia } from '@joint/core';
+import { util } from '@joint/core';
 import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
@@ -231,8 +232,7 @@ function Main() {
         if (cellViewS === cellViewT) return false;
         if (cellViewS.model.isLink() || cellViewT.model.isLink()) return false;
         if (cellViewS.findAttribute('port-group', magnetS) === 'port-in-group') return false;
-        if (cellViewT.findAttribute('port-group', magnetT) === 'port-out-group') return false;
-        return true;
+        return cellViewT.findAttribute('port-group', magnetT) !== 'port-out-group';
       }}
       defaultConnectionPoint={{
         name: 'boundary',
@@ -243,7 +243,7 @@ function Main() {
       }}
       defaultRouter={{
         name: 'rightAngle',
-        args: { margin: 20 }
+        args: { margin: 20 },
       }}
       defaultConnector={{
         name: 'straight',

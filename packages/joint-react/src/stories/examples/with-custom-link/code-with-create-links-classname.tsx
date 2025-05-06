@@ -13,7 +13,7 @@ import {
 import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 import './code-with-create-links-classname.css';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -42,7 +42,7 @@ function Main() {
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={renderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
     </div>
   );
 }

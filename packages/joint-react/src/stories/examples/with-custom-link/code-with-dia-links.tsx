@@ -1,7 +1,7 @@
 /* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { shapes, util } from '@joint/core';
 import {
   createElements,
@@ -45,7 +45,8 @@ function Main() {
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
         defaultLink={() => new LinkModel()}
-        width={400}
+        width="100%"
+        className={PAPER_CLASSNAME}
         height={280}
         renderElement={renderElement}
       />

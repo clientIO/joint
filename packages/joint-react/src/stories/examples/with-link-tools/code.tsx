@@ -12,7 +12,7 @@ import {
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
-import { PRIMARY, BG, SECONDARY } from 'storybook-config/theme';
+import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialEdges = createLinks([
   {
@@ -40,7 +40,7 @@ const verticesTool = new linkTools.Vertices({
       fill: BG,
       stroke: SECONDARY,
       strokeWidth: 2,
-    }
+    },
   }),
 });
 
@@ -53,13 +53,7 @@ const infoButton = new linkTools.Button({
   // using jsx utility by joint-jsx, convert jsx to markup
   markup: jsx(
     <>
-      <circle
-        r="8"
-        fill={BG}
-        stroke={PRIMARY}
-        strokeWidth="2"
-        cursor="pointer"
-      />
+      <circle r="8" fill={BG} stroke={PRIMARY} strokeWidth="2" cursor="pointer" />
       <path
         d="M -5 0 L 5 0 M 0 -5 L 0 5"
         fill="none"
@@ -71,9 +65,8 @@ const infoButton = new linkTools.Button({
   ),
   distance: 20,
   action: () => {
-    // eslint-disable-next-line no-alert
     alert('Info button clicked');
-  }
+  },
 });
 
 // 3) creating a tools view
@@ -85,16 +78,28 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RectElement({ width, height }: BaseElementWithData) {
   return (
-    <rect rx={5} ry={5} width={width} height={height} stroke={PRIMARY} strokeWidth="2" fill="transparent" />
+    <rect
+      rx={5}
+      ry={5}
+      width={width}
+      height={height}
+      stroke={PRIMARY}
+      strokeWidth="2"
+      fill="transparent"
+    />
   );
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback((props) => <RectElement {...props} />, []);
+  const renderElement: RenderElement<BaseElementWithData> = useCallback(
+    (props) => <RectElement {...props} />,
+    []
+  );
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper
-        width={400}
+        width="100%"
+        className={PAPER_CLASSNAME}
         height={280}
         renderElement={renderElement}
         // add listeners when show and hide tools

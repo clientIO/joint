@@ -13,7 +13,7 @@ import {
   Paper,
   type InferElement,
 } from '@joint/react';
-import { PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { dia, linkTools } from '@joint/core';
 import { forwardRef, useState, type FC } from 'react';
 
@@ -25,11 +25,7 @@ interface NodeData {
 }
 
 const flowchartNodes = createElements<NodeData>([
-  { id: 'start',
-    data: { label: 'Start', type: 'start' },
-    cx: 50,
-    cy: 40
-  },
+  { id: 'start', data: { label: 'Start', type: 'start' }, cx: 50, cy: 40 },
   {
     id: 'addToCart',
     data: { label: 'Add to Cart', type: 'step' },
@@ -322,7 +318,10 @@ function Main() {
       onLinkMouseEnter={({ linkView, paper }) => {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
-        const snapAnchor: linkTools.AnchorCallback<dia.Point> = (coords: dia.Point, endView: dia.CellView) => {
+        const snapAnchor: linkTools.AnchorCallback<dia.Point> = (
+          coords: dia.Point,
+          endView: dia.CellView
+        ) => {
           const bbox = endView.model.getBBox();
           // Find the closest point on the bbox border.
           const point = bbox.pointNearestToPoint(coords);
@@ -345,7 +344,7 @@ function Main() {
             }),
             new linkTools.SourceAnchor({
               snap: snapAnchor,
-              resetAnchor: true
+              resetAnchor: true,
             }),
           ],
         });
@@ -365,7 +364,8 @@ function Main() {
           horizontalAlign: 'middle',
         });
       }}
-      width={900}
+      width="100%"
+      className={PAPER_CLASSNAME}
       renderElement={RenderFlowchartNode}
       interactive={{ linkMove: false }}
       defaultConnectionPoint={{
@@ -373,13 +373,13 @@ function Main() {
         args: {
           offset: unit * 2,
           extrapolate: true,
-          useModelGeometry: true
+          useModelGeometry: true,
         },
       }}
       defaultAnchor={{
         name: 'midSide',
         args: {
-          useModelGeometry: true
+          useModelGeometry: true,
         },
       }}
       defaultRouter={{

@@ -10,7 +10,7 @@ import {
 } from '@joint/react';
 import '../index.css';
 import { useState } from 'react';
-import { PRIMARY, SECONDARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   {
@@ -57,22 +57,11 @@ function RenderItemWithChildren({ height, width, label }: BaseElementWithData) {
       className="node"
     >
       <Highlighter.Mask isHidden={!isHighlighted} padding={5} strokeWidth={2} stroke={SECONDARY}>
-        <rect
-          rx={10}
-          ry={10}
-          width={width}
-          height={height}
-          fill={PRIMARY}
-        />
+        <rect rx={10} ry={10} width={width} height={height} fill={PRIMARY} />
       </Highlighter.Mask>
-      <text
-          x={width / 2}
-          y={height / 2}
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill="#fff">
-            {label}
-        </text>
+      <text x={width / 2} y={height / 2} textAnchor="middle" dominantBaseline="middle" fill="#fff">
+        {label}
+      </text>
     </g>
   );
 }
@@ -80,7 +69,8 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
-        width={400}
+        width="100%"
+        className={PAPER_CLASSNAME}
         height={280}
         renderElement={RenderItemWithChildren}
       />

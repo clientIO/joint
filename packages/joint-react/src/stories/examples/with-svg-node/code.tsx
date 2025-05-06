@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { LIGHT, PRIMARY, TEXT } from 'storybook-config/theme';
+import { LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import '../index.css';
 import {
   createElements,
@@ -39,6 +39,7 @@ function RenderedRect({ width, height, label }: BaseElementWithData) {
     <>
       <rect rx={cornerRadius} ry={cornerRadius} width={width} height={height} fill={PRIMARY} />
       <MeasuredNode
+        // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop, no-shadow, @typescript-eslint/no-shadow
         setSize={({ element, size: { width, height } }) => {
           element.size(width + textMargin, height + textMargin);
         }}
@@ -51,17 +52,22 @@ function RenderedRect({ width, height, label }: BaseElementWithData) {
           fill={TEXT}
           fontSize={14}
           fontWeight="bold"
-        >{label}</text>
+        >
+          {label}
+        </text>
       </MeasuredNode>
     </>
   );
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback((props) => <RenderedRect {...props}/>, []);
+  const renderElement: RenderElement<BaseElementWithData> = useCallback(
+    (props) => <RenderedRect {...props} />,
+    []
+  );
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} height={280} renderElement={renderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
       <div
         style={{
           position: 'absolute',

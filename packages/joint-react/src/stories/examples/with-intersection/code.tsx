@@ -10,7 +10,8 @@ import {
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -27,7 +28,7 @@ function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElem
   const element = graph.getCell(id) as dia.Element;
 
   const isIntersected = useElements(() => {
-    return (graph.findElementsUnderElement(element).length > 0);
+    return graph.findElementsUnderElement(element).length > 0;
   });
 
   return (
@@ -44,7 +45,7 @@ function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElem
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} height={280} renderElement={ResizableNode} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={ResizableNode} />
     </div>
   );
 }

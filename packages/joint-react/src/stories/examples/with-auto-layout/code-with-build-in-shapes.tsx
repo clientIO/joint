@@ -9,7 +9,7 @@ import {
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 const shape = {
   type: 'standard.Rectangle',
   width: 100,
@@ -92,6 +92,7 @@ function Main() {
     []
   );
 
+  // eslint-disable-next-line unicorn/consistent-function-scoping
   function makeLayout({ graph }: OnLoadOptions) {
     const gap = 20;
     let currentX = 0;
@@ -109,7 +110,8 @@ function Main() {
   }
   return (
     <Paper
-      width={PAPER_WIDTH}
+      width="100%"
+      className={PAPER_CLASSNAME}
       height={280}
       renderElement={renderElement}
       onElementsSizeReady={makeLayout}

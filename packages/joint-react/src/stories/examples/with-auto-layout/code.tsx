@@ -17,6 +17,7 @@ import {
 import { useCallback, useState } from 'react';
 import type { dia } from '@joint/core';
 import { useAddElement } from '../../../hooks/use-add-element';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' } },
@@ -43,8 +44,6 @@ function RenderedRect({ width, height, data: { label } }: BaseElementWithData) {
     </foreignObject>
   );
 }
-
-const PAPER_WIDTH = 1200;
 
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
@@ -119,7 +118,8 @@ function Main() {
         </button>
       </div>
       <Paper
-        width={PAPER_WIDTH}
+        width="100%"
+        className={PAPER_CLASSNAME}
         height={450}
         renderElement={renderElement}
         onElementsSizeChange={makeLayout}

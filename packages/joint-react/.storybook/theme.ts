@@ -22,3 +22,9 @@ export const theme = create({
   barHoverColor: PRIMARY,
   barBg: BG,
 });
+
+export const BUTTON_CLASSNAME =
+  'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2 text-sm';
+
+export const PAPER_CLASSNAME =
+  'border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2';

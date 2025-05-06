@@ -9,7 +9,7 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { PRIMARY, LIGHT } from 'storybook-config/theme';
+import { PRIMARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
 const initialElements = createElements([
@@ -57,7 +57,7 @@ function RenderElement({ data, id }: BaseElementWithData) {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={RenderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
     </div>
   );
 }

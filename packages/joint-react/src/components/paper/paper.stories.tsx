@@ -9,7 +9,7 @@ import {
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
 import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { MeasuredNode } from '../measured-node/measured-node';
@@ -64,6 +64,8 @@ function RenderHtmlElement({ width, height }: SimpleElement) {
 export const WithRectElement: Story = {
   args: {
     renderElement: RenderRectElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
@@ -71,6 +73,8 @@ export const WithHtmlElement: Story = {
   args: {
     noDataPlaceholder: 'No data',
     renderElement: RenderHtmlElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
@@ -80,6 +84,8 @@ export const WithGrid: Story = {
     grid: { color: 'red', size: 10 },
     gridSize: 10,
     renderElement: RenderHtmlElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
@@ -87,12 +93,16 @@ export const WithScaleDown: Story = {
   args: {
     scale: 0.7,
     renderElement: RenderHtmlElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
 export const WithAutoFitContent: Story = {
   args: {
     renderElement: RenderHtmlElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
@@ -116,7 +126,14 @@ export const WithEvent: Story = {
     onCellContextmenu: action('onCellContextmenu'),
     onCellHighlight: action('onCellHighlight'),
     onCellHighlightInvalid: action('onCellHighlightInvalid'),
-    onCustom: action('onCustom'),
+    onCustomEvent: action('onCustomEvent'),
+    onBlankContextMenu: action('onBlankContextMenu'),
+    onCellContextMenu: action('onCellContextMenu'),
+    onBlankMouseEnter: action('onBlankMouseEnter'),
+    onElementPointerClick: action('onElementPointerClick'),
+
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
@@ -150,5 +167,23 @@ export const WithLinkTools: Story = {
     onLinkMouseLeave: ({ linkView }) => {
       linkView.removeTools();
     },
+    width: '100%',
+    className: PAPER_CLASSNAME,
+  },
+};
+
+export const WithCustomEvent: Story = {
+  args: {
+    renderElement: RenderHtmlElement as never,
+    onElementPointerClick: ({ paper }) => {
+      paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
+    },
+    onCustomEvent: ({ args, eventName }) => {
+      action('onCustomEvent')(
+        `Custom event triggered: ${eventName} with args: ${JSON.stringify(args)}`
+      );
+    },
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };

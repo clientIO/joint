@@ -7,10 +7,9 @@ import { useSetElement } from './use-set-element';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../stories/examples/index.css';
+import { BUTTON_CLASSNAME } from 'storybook-config/theme';
 
 const API_URL = getAPILink('useSetElement');
-const BUTTON_CLASSNAME =
-  'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2 text-sm';
 
 export type Story = StoryObj<typeof Hook>;
 

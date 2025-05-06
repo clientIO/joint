@@ -4,7 +4,6 @@ import type { OnPaperRenderElement } from '../utils/create-paper';
 
 /**
  * A custom hook that manages the rendering of SVG elements in a JointJS paper.
- * @param onReady - A callback function that is called when the SVG element is ready.
  * @returns An object containing the rendered SVG elements and a function to handle rendering.
  * @group hooks
  * @description

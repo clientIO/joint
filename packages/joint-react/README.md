@@ -41,7 +41,7 @@ function Main() {
   )
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} renderElement={renderElement} />
+      <Paper width="100%" renderElement={renderElement} />
       <MiniMap />
     </div>
   )
@@ -82,7 +82,7 @@ const renderElement = (element) => (
   <rect width={element.size().width} height={element.size().height} fill="cyan" />
 );
 
-<Paper width={800} height={600} renderElement={renderElement} />
+<Paper width="100%" height={600} renderElement={renderElement} />
 ```
 
 ### 3. **Rendering HTML Elements**

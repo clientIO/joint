@@ -13,7 +13,7 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1', color: '#ffffff' }, x: 40, y: 70 },
@@ -78,6 +78,8 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
+        width="100%"
+        className={PAPER_CLASSNAME}
         clickThreshold={10}
         interactive={{ linkMove: false }}
         defaultRouter={{ name: 'rightAngle', args: { margin: 40 } }}
@@ -92,8 +94,7 @@ function Main() {
             extrapolate: true,
           },
         }}
-        width={400}
-        height={280}
+        height={380}
         renderElement={RenderElement}
       />
       <div style={{ display: 'flex', flexDirection: 'column' }}>

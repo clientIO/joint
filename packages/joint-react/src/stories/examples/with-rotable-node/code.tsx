@@ -11,9 +11,8 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { useEffect, useRef } from 'react';
-import { PRIMARY } from 'storybook-config/theme';
-import { g } from '@joint/core';
+import { useCallback } from 'react';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 20, y: 100 },
@@ -36,47 +35,55 @@ const initialEdges = createLinks([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RotatableNode({ data, id, width, height }: Readonly<BaseElementWithData>) {
-  const nodeRef = useRef<HTMLDivElement>(null);
   const paper = usePaper();
-
   const setRotation = useSetElement(id, 'angle');
 
-  useEffect(() => {
-
-    const node = nodeRef.current;
-    if (!node) return;
-
-    const dragHandle = function (event: PointerEvent) {
+  const dragHandle = useCallback(
+    (event: PointerEvent) => {
       const graph = paper.model;
       const point = paper.clientToLocalPoint(event.clientX, event.clientY);
       const center = graph.getCell(id).getBBox().center();
       const deg = center.angleBetween(point, center.clone().offset(0, -1));
       setRotation(Math.round(deg));
-    }
+    },
+    [id, paper, setRotation]
+  );
 
-    node.addEventListener('mousedown', (event) => {
-      // Prevent the default action of the mousedown event
-      // to avoid starting a drag operation on the node.
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent) => {
       event.stopPropagation();
-    });
-
-    node.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      const node = event.currentTarget as HTMLDivElement;
+      if (!node) {
+        return;
+      }
       node.setPointerCapture(event.pointerId);
       node.addEventListener('pointermove', dragHandle);
-    });
+    },
+    [dragHandle]
+  );
 
-    node.addEventListener('pointerup', (event) => {
+  const handlePointerUp = useCallback(
+    (event: React.PointerEvent) => {
+      const node = event.currentTarget as HTMLDivElement;
+      if (!node) {
+        return;
+      }
       node.removeEventListener('pointermove', dragHandle);
       node.releasePointerCapture(event.pointerId);
-    });
-
-  }, [setRotation]);
+    },
+    [dragHandle]
+  );
 
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <MeasuredNode>
         <div className="node">
-          <div className="rotatable-node__handle" ref={nodeRef} />
+          <div
+            className="rotatable-node__handle"
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+          />
           {data.label}
         </div>
       </MeasuredNode>
@@ -91,14 +98,8 @@ function Main() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} height={280} renderElement={RotatableNode} />
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-        }}
-      >
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RotatableNode} />
+      <div>
         <u>angle</u>
         {elementRotation.map((rotation, index) => (
           // eslint-disable-next-line @eslint-react/no-array-index-key

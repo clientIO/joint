@@ -12,7 +12,7 @@ import {
   type OnSetSize,
   type RenderElement,
 } from '@joint/react';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -73,7 +73,9 @@ function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback((element) => {
     return <Card {...element}>{element.data.label}</Card>;
   }, []);
-  return <Paper width={400} height={280} renderElement={renderElement} />;
+  return (
+    <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
+  );
 }
 
 export default function App() {

@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
   createElements,
   createLinks,
@@ -42,7 +42,7 @@ function RenderItem({ width, height, data: { color } }: CustomElement) {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={RenderItem} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderItem} />
     </div>
   );
 }

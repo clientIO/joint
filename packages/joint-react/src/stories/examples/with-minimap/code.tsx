@@ -10,7 +10,7 @@ import {
   type InferElement,
   type RenderElement,
 } from '@joint/react';
-import { PRIMARY, SECONDARY, LIGHT } from 'storybook-config/theme';
+import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1', color: PRIMARY }, x: 100, y: 10, width: 100, height: 50 },
@@ -33,8 +33,8 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    ({ width, height, data: { color }}) => (
-      <rect width={width} height={height} fill={color} rx={10} ry={10}/>
+    ({ width, height, data: { color } }) => (
+      <rect width={width} height={height} fill={color} rx={10} ry={10} />
     ),
     []
   );
@@ -43,8 +43,9 @@ function MiniMap() {
       <Paper
         interactive={false}
         scale={0.4}
-        width={'100%'}
-        height={'100%'}
+        width="100%"
+        className={PAPER_CLASSNAME}
+        height="100%"
         renderElement={renderElement}
       />
     </div>
@@ -71,7 +72,7 @@ function RenderElement(props: Readonly<BaseElementWithData>) {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={RenderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
       <MiniMap />
     </div>
   );

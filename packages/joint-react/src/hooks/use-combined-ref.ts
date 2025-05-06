@@ -21,6 +21,7 @@ export function useCombinedRef<T>(ref?: ForwardedRef<T>): RefObject<T | null> {
     if (typeof ref === 'function') {
       ref(innerRef.current);
     } else if ('current' in ref) {
+      // eslint-disable-next-line sonarjs/deprecation
       (ref as React.MutableRefObject<T | null>).current = innerRef.current;
     }
   }, [ref]);
