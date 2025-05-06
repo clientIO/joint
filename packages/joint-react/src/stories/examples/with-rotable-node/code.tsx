@@ -6,14 +6,13 @@ import {
   MeasuredNode,
   Paper,
   useElements,
+  usePaper,
   useSetElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { useEffect, useRef } from 'react';
-import { drag } from 'd3-drag';
-import { select } from 'd3-selection';
-import { PRIMARY } from 'storybook-config/theme';
+import { useCallback } from 'react';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 20, y: 100 },
@@ -35,34 +34,56 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ResizableNode({ data, id, width, height }: Readonly<BaseElementWithData>) {
-  const nodeRef = useRef<HTMLDivElement>(null);
-
+function RotatableNode({ data, id, width, height }: Readonly<BaseElementWithData>) {
+  const paper = usePaper();
   const setRotation = useSetElement(id, 'angle');
-  useEffect(() => {
-    if (!nodeRef.current) {
-      return;
-    }
 
-    const selection = select(nodeRef.current);
-    const dragHandler = drag().on('drag', (event) => {
-      const offset = 60;
-      const dx = event.x - offset;
-      const dy = event.y - offset;
-      const rad = Math.atan2(dx, dy);
-      const deg = rad * (180 / Math.PI);
+  const dragHandle = useCallback(
+    (event: PointerEvent) => {
+      const graph = paper.model;
+      const point = paper.clientToLocalPoint(event.clientX, event.clientY);
+      const center = graph.getCell(id).getBBox().center();
+      const deg = center.angleBetween(point, center.clone().offset(0, -1));
+      setRotation(Math.round(deg));
+    },
+    [id, paper, setRotation]
+  );
 
-      setRotation(180 - deg);
-    });
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+      const node = event.currentTarget as HTMLDivElement;
+      if (!node) {
+        return;
+      }
+      node.setPointerCapture(event.pointerId);
+      node.addEventListener('pointermove', dragHandle);
+    },
+    [dragHandle]
+  );
 
-    selection.call(dragHandler as never);
-  }, [setRotation]);
+  const handlePointerUp = useCallback(
+    (event: React.PointerEvent) => {
+      const node = event.currentTarget as HTMLDivElement;
+      if (!node) {
+        return;
+      }
+      node.removeEventListener('pointermove', dragHandle);
+      node.releasePointerCapture(event.pointerId);
+    },
+    [dragHandle]
+  );
 
   return (
     <foreignObject width={width} height={height} overflow="visible">
       <MeasuredNode>
         <div className="node">
-          <div className="rotatable-node__handle" ref={nodeRef} />
+          <div
+            className="rotatable-node__handle"
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+          />
           {data.label}
         </div>
       </MeasuredNode>
@@ -72,24 +93,18 @@ function ResizableNode({ data, id, width, height }: Readonly<BaseElementWithData
 
 function Main() {
   const elementRotation = useElements((items) =>
-    items.map(({ angle }) => `${angle?.toFixed(2)} deg`)
+    items.map(({ angle }) => `${angle.toString().padStart(3, '0')} deg`)
   );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} height={280} renderElement={ResizableNode} />
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-        }}
-      >
-        NodeID,Width, Height:
-        {elementRotation.map((position, index) => (
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RotatableNode} />
+      <div>
+        <u>angle</u>
+        {elementRotation.map((rotation, index) => (
           // eslint-disable-next-line @eslint-react/no-array-index-key
-          <div key={`${index}-${position}`} style={{ marginLeft: 10 }}>
-            {index}, {position}
+          <div key={`${index}-${rotation}`} style={{ marginLeft: 10 }}>
+            {index + 1}. {rotation}
           </div>
         ))}
       </div>

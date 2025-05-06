@@ -10,7 +10,7 @@ import {
 } from '@joint/react';
 import '../index.css';
 import { useCallback, useRef } from 'react';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -69,24 +69,18 @@ function ResizableNode({ data, width, height }: Readonly<BaseElementWithData>) {
 
 function Main() {
   const elementsSize = useElements((items) =>
-    items.map(({ width, height }) => `${width},${height}`)
+    items.map(({ width, height }) => `${width} x ${height}`)
   );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} height={280} renderElement={ResizableNode} />
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-        }}
-      >
-        NodeID,Width, Height:
-        {elementsSize.map((position, index) => (
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={ResizableNode} />
+      <div>
+        <u>width & height</u>
+        {elementsSize.map((size, index) => (
           // eslint-disable-next-line @eslint-react/no-array-index-key
-          <div className="text" key={`${index}-${position}`} style={{ marginLeft: 10 }}>
-            {index}, {position}
+          <div className="text" key={`${index}-${size}`} style={{ marginLeft: 10 }}>
+            {index + 1}. {size}
           </div>
         ))}
       </div>

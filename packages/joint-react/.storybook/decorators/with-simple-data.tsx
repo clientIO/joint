@@ -11,7 +11,7 @@ import {
   Paper,
   useElement,
 } from '@joint/react';
-import { PRIMARY } from '../theme';
+import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 
 const initialElements = createElements([
   {
@@ -71,8 +71,9 @@ export function RenderItemDecorator(
     <div style={{ width: '100%', height: 450 }}>
       <SimpleGraphProviderDecorator>
         <Paper
-          width={'100%'}
+          width="100%"
           height={450}
+          className={PAPER_CLASSNAME}
           renderElement={properties.renderElement}
           linkPinning={false}
         />
@@ -94,7 +95,12 @@ export function RenderPaperWithChildren(properties: Readonly<{ children: JSX.Ele
   return (
     <div style={{ width: '100%', height: 350 }}>
       <SimpleGraphProviderDecorator>
-        <Paper width={'100%'} height={350} renderElement={RenderSimpleRectElement}>
+        <Paper
+          width="100%"
+          height={350}
+          className={PAPER_CLASSNAME}
+          renderElement={RenderSimpleRectElement}
+        >
           {properties.children}
         </Paper>
       </SimpleGraphProviderDecorator>

@@ -9,10 +9,10 @@ import type { SimpleElement } from '../../.storybook/decorators/with-simple-data
 import { HTMLNode, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import '../stories/examples/index.css';
 import { Paper } from '../components';
+import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const API_URL = getAPILink('useAddElement');
-const BUTTON_CLASSNAME =
-  'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2 text-sm';
+
 export type Story = StoryObj<typeof Hook>;
 
 const meta: Meta<typeof Hook> = {
@@ -24,7 +24,13 @@ const meta: Meta<typeof Hook> = {
     return (
       <div className="flex flex-row">
         <div style={{ width: '100%', height: 450 }}>
-          <Paper width={'100%'} height={450} renderElement={Hook} linkPinning={false} />
+          <Paper
+            className={PAPER_CLASSNAME}
+            width={'100%'}
+            height={450}
+            renderElement={Hook}
+            linkPinning={false}
+          />
         </div>
         <div>
           <button

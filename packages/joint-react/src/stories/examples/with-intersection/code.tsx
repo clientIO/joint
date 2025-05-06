@@ -10,7 +10,8 @@ import {
 } from '@joint/react';
 import '../index.css';
 import { useRef } from 'react';
-import { g } from '@joint/core';
+import type { dia } from '@joint/core';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
@@ -24,23 +25,10 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElementWithData>) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const graph = useGraph();
-  const isIntersected = useElements<BaseElementWithData, boolean>((elements) => {
-    const element = graph.getCell(id);
-    if (!element) {
-      return false;
-    }
+  const element = graph.getCell(id) as dia.Element;
 
-    // g.intersection.exists(el1.getBBox, el2.getBBox())
-    for (const [otherId, value] of elements) {
-      const otherElement = graph.getCell(otherId);
-      const box1 = element.getBBox();
-      const box2 = otherElement.getBBox();
-      const isIntersect = g.intersection.exists(box1, box2);
-      if (value.id !== id && isIntersect) {
-        return true;
-      }
-    }
-    return false;
+  const isIntersected = useElements(() => {
+    return graph.findElementsUnderElement(element).length > 0;
   });
 
   return (
@@ -57,7 +45,7 @@ function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElem
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} height={280} renderElement={ResizableNode} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={ResizableNode} />
     </div>
   );
 }

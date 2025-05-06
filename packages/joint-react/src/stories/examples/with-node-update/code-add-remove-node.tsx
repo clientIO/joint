@@ -13,7 +13,7 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1', color: '#ffffff' }, x: 40, y: 70 },
@@ -59,8 +59,7 @@ function RenderElement({ data: { label }, width, height }: BaseElementWithData) 
             <span className="mb-1 text-sm">{label}</span>
             <button
               onClick={() => {
-                const cell = graph.getCell(id);
-                graph.removeCells([cell]);
+                graph.getCell(id).remove();
               }}
               type="button"
               className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
@@ -79,9 +78,11 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
       <Paper
+        width="100%"
+        className={PAPER_CLASSNAME}
         clickThreshold={10}
         interactive={{ linkMove: false }}
-        defaultRouter={{ name: 'rightAngle', args: { margin: 6 } }}
+        defaultRouter={{ name: 'rightAngle', args: { margin: 40 } }}
         defaultConnector={{
           name: 'straight',
           args: { cornerType: 'line', cornerPreserveAspectRatio: true },
@@ -93,8 +94,7 @@ function Main() {
             extrapolate: true,
           },
         }}
-        width={400}
-        height={280}
+        height={380}
         renderElement={RenderElement}
       />
       <div style={{ display: 'flex', flexDirection: 'column' }}>

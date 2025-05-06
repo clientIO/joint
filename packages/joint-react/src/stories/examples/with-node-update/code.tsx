@@ -11,7 +11,7 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   { id: '1', data: { label: 'Node 1', color: '#ffffff' }, x: 100, y: 0 },
@@ -59,7 +59,7 @@ function Main() {
   const elements = useElements<BaseElementWithData>();
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={RenderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {elements.map((item) => {
           return <ElementInput key={item.id} {...item} />;

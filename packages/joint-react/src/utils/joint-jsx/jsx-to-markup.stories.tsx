@@ -2,7 +2,7 @@
 import { dia } from '@joint/core';
 import '../../stories/examples/index.css';
 import { createElements, createLinks, GraphProvider, jsx, MeasuredNode, Paper } from '@joint/react';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleGraphDecorator } from 'storybook-config/decorators/with-simple-data';
 import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
@@ -63,7 +63,8 @@ function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper
-        width={400}
+        width="100%"
+        className={PAPER_CLASSNAME}
         height={280}
         renderElement={RenderedRect}
         // add listeners when show and hide tools

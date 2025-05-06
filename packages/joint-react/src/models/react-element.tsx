@@ -21,6 +21,11 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
       type: REACT_TYPE,
       data: {},
       attrs: {
+        root: {
+          magnetSelector: 'placeholder',
+          highlighterSelector: 'placeholder',
+          containerSelector: 'placeholder',
+        },
         placeholder: {
           width: 'calc(w)',
           height: 'calc(h)',

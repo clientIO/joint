@@ -177,7 +177,7 @@ describe('handle-paper-events', () => {
     {
       type: 'custom',
       args: ['customEvent', {}, {}, {}],
-      handler: 'onCustom',
+      handler: 'onCustomEvent',
       expected: { eventName: 'customEvent', args: [{}, {}, {}] },
     },
   ];

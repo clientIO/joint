@@ -13,7 +13,7 @@ import {
   type InferElement,
   type OnSetSize,
 } from '@joint/react';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 interface Data {
   label: string;
@@ -124,7 +124,9 @@ function Main() {
   const renderElement = useCallback((element: BaseElementWithData) => {
     return <ListElement {...element}>{element.data.label}</ListElement>;
   }, []);
-  return <Paper width={800} height={500} renderElement={renderElement} />;
+  return (
+    <Paper width="100%" className={PAPER_CLASSNAME} height={500} renderElement={renderElement} />
+  );
 }
 
 export default function App() {

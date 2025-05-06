@@ -10,7 +10,7 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../../examples/index.css';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 // define initial elements
 const initialElements = createElements([
   { id: '1', data: { label: 'Hello' }, x: 100, y: 0, width: 100, height: 25 },
@@ -49,7 +49,7 @@ function RenderItem({ data: { label }, width, height }: CustomElement) {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={RenderItem} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderItem} />
     </div>
   );
 }

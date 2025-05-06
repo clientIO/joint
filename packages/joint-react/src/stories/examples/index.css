@@ -38,11 +38,6 @@ body {
   border-radius: 8px;
   overflow: hidden;
 }
-.minimap-node {
-  background-color: #ed2637;
-  border-radius: 10px;
-  fill: #ed2637;
-}
 
 .resizable-node {
   background-color: #ed2637;

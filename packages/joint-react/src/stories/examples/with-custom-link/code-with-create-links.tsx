@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
   createElements,
   createLinks,
@@ -25,8 +25,8 @@ const initialEdges = createLinks([
     attrs: {
       line: {
         stroke: PRIMARY,
-        strokeWidth: 2, // Set stroke width
-        strokeDasharray: '5,5', // Makes the line da
+        strokeWidth: 2,
+        strokeDasharray: '5,5',
       },
     },
   },
@@ -41,7 +41,7 @@ function Main() {
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={renderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
     </div>
   );
 }

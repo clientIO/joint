@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable @eslint-react/dom/no-missing-button-type */
-/* eslint-disable @eslint-react/no-unstable-default-props */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 
 import type { Meta, StoryObj } from '@storybook/react/*';
@@ -9,7 +8,7 @@ import { createElements, createLinks, type InferElement, ReactElement } from '@j
 import { Paper, type RenderElement } from '../paper/paper';
 import { dia } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
-import { PRIMARY } from 'storybook-config/theme';
+import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
@@ -27,7 +26,7 @@ GraphProvider is a component that provides a graph context to its children. It i
     apiURL: API_URL,
     code: `import { GraphProvider } from '@joint/react'
 <GraphProvider>
-  <Paper renderElement={() => <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />} />
+  <Paper renderElement={({width, height}) => <rect rx={10} ry={10} width={width} height={height} fill={"blue"} />} />
 </GraphProvider>
     `,
   }),
@@ -60,13 +59,12 @@ const defaultLinks = createLinks([
 
 type ElementType = InferElement<typeof defaultElementsWithSize>;
 
+function RenderElement({ data: { color }, width, height }: ElementType) {
+  return <rect rx={10} ry={10} className="node" width={width} height={height} fill={color} />;
+}
 function PaperChildren(props: Readonly<{ renderElement?: RenderElement<ElementType> }>) {
-  const {
-    renderElement = ({ width, height, data: { color } }: ElementType) => (
-      <rect rx={10} ry={10} width={width} height={height} fill={color} />
-    ),
-  } = props;
-  return <Paper renderElement={renderElement} />;
+  const { renderElement = RenderElement } = props;
+  return <Paper className={PAPER_CLASSNAME} renderElement={renderElement} width={'100%'} />;
 }
 
 export const Default = makeStory<Story>({
@@ -88,6 +86,15 @@ export const WithExternalGraph = makeStory<Story>({
 
   apiURL: API_URL,
   description: 'Graph provider with external graph.',
+  code: `import { GraphProvider } from '@joint/react'
+import { dia } from '@joint/core';
+import { Paper } from '../paper/paper';
+import { ReactElement } from '@joint/react/src/core/react-element';
+const graph = new dia.Graph({}, { cellNamespace: { ReactElement } });
+<GraphProvider graph={graph}>
+  <Paper renderElement={({width, height}) => <rect rx={10} ry={10} width={width} height={height} fill={"blue"} />} />
+</GraphProvider>
+  `,
 });
 
 export const WithLink = makeStory<Story>({
@@ -136,16 +143,17 @@ export const WithExternalGraphAndLayout = makeStory<Story>({
     children: (
       <>
         <button
+          className={BUTTON_CLASSNAME}
           onClick={() => {
             DirectedGraph.layout(graph, {
               setLinkVertices: true,
-              marginX: 5,
-              marginY: 5,
+              marginX: 2,
+              marginY: 2,
               align: 'DR',
             });
           }}
         >
-          Layout
+          Make layout
         </button>
         <PaperChildren renderElement={() => <HTMLNode style={STYLE}>Hello world!</HTMLNode>} />
       </>
@@ -154,4 +162,27 @@ export const WithExternalGraphAndLayout = makeStory<Story>({
 
   apiURL: API_URL,
   description: 'Graph provider with external graph and layout.',
+  code: `import { GraphProvider } from '@joint/react'
+import { dia } from '@joint/core';
+import { Paper } from '../paper/paper';
+import { ReactElement } from '@joint/react/src/core/react-element';
+import { DirectedGraph } from '@joint/layout-directed-graph';
+const graph = new dia.Graph({}, { cellNamespace: { ReactElement } });
+const elements = generateRandomElements(20);
+<GraphProvider graph={graph} defaultElements={elements}>
+  <button
+    onClick={() => {
+      DirectedGraph.layout(graph, {
+        setLinkVertices: true,
+        marginX: 2,
+        marginY: 2,
+        align: 'DR',
+      });
+    }
+  >
+    Make layout
+  </button>
+  <Paper renderElement={({ width, height }) => <rect rx={10} ry={10} width={width} height={height} fill={"blue"} />} />
+</GraphProvider>
+  `,
 });
