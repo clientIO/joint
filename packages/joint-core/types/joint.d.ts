@@ -1402,6 +1402,7 @@ export namespace dia {
         type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
         type FindParentByType = 'bbox' | 'pointer' | PositionName;
         type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
+        type MeasureNodeCallback = (node: SVGGraphicsElement, cellView: dia.CellView) => g.Rect;
 
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
@@ -1437,6 +1438,7 @@ export namespace dia {
             // views
             elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
+            measureNode?: MeasureNodeCallback;
             // embedding
             embeddingMode?: boolean;
             frontParentOnly?: boolean;

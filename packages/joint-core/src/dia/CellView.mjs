@@ -795,7 +795,15 @@ export const CellView = View.extend({
     getNodeBoundingRect: function(magnet) {
 
         var metrics = this.nodeCache(magnet);
-        if (metrics.boundingRect === undefined) metrics.boundingRect = V(magnet).getBBox();
+        if (metrics.boundingRect === undefined) {
+            const { measureNode } = this.paper.options;
+            if (typeof measureNode === 'function') {
+                // Measure the node bounding box using the paper's measureNode method.
+                metrics.boundingRect = measureNode(magnet, this);
+            } else {
+                metrics.boundingRect = V(magnet).getBBox();
+            }
+        }
         return new Rect(metrics.boundingRect);
     },
 
@@ -994,33 +1002,38 @@ export const CellView = View.extend({
             const refNodeId = refNode ? V.ensureId(refNode) : '';
             let refBBox = bboxCache[refNodeId];
             if (!refBBox) {
-                // Get the bounding box of the reference element using to the common ancestor
-                // transformation space.
-                //
-                // @example 1
-                // <g transform="translate(11, 13)">
-                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
-                //     <rect @selector="a"/>
-                // </g>
-                //
-                // In this case, the reference bounding box can not be affected
-                // by the `transform` attribute of the `<g>` element,
-                // because the exact transformation will be applied to the `a` element
-                // as well as to the `b` element.
-                //
-                // @example 2
-                // <g transform="translate(11, 13)">
-                //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
-                // </g>
-                // <rect @selector="a"/>
-                //
-                // In this case, the reference bounding box have to be affected by the
-                // `transform` attribute of the `<g>` element, because the `a` element
-                // is not descendant of the `<g>` element and will not be affected
-                // by the transformation.
-                refBBox = bboxCache[refNodeId] = (refNode)
-                    ? V(refNode).getBBox({ target: getCommonAncestorNode(node, refNode) })
-                    : opt.rootBBox;
+                if (refNode) {
+                    // Get the bounding box of the reference element using to the common ancestor
+                    // transformation space.
+                    //
+                    // @example 1
+                    // <g transform="translate(11, 13)">
+                    //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
+                    //     <rect @selector="a"/>
+                    // </g>
+                    //
+                    // In this case, the reference bounding box can not be affected
+                    // by the `transform` attribute of the `<g>` element,
+                    // because the exact transformation will be applied to the `a` element
+                    // as well as to the `b` element.
+                    //
+                    // @example 2
+                    // <g transform="translate(11, 13)">
+                    //     <rect @selector="b" x="1" y="2" width="3" height="4"/>
+                    // </g>
+                    // <rect @selector="a"/>
+                    //
+                    // In this case, the reference bounding box have to be affected by the
+                    // `transform` attribute of the `<g>` element, because the `a` element
+                    // is not descendant of the `<g>` element and will not be affected
+                    // by the transformation.
+                    const refRect = this.getNodeBoundingRect(refNode);
+                    const refTMatrix = V(refNode).getTransformToElement(getCommonAncestorNode(node, refNode));
+                    refBBox = V.transformRect(refRect, refTMatrix);
+                } else {
+                    refBBox = opt.rootBBox;
+                }
+                bboxCache[refNodeId] = refBBox;
             }
 
             if (roAttrs) {
