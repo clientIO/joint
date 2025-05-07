@@ -124,7 +124,7 @@ export interface PaperProps<
    * By default, `joint/react` renderElements to SVG elements, so for using HTML elements without this prop, you need to use `foreignObject` element.
    * @default false
    */
-  readonly isHTMLRendererEnabled?: boolean;
+  readonly useHTMLOverlay?: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -140,7 +140,7 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
     children,
     onElementsSizeReady,
     onElementsSizeChange,
-    isHTMLRendererEnabled,
+    useHTMLOverlay,
     ...paperOptions
   } = props;
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
@@ -248,7 +248,7 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
 
           return (
             <CellIdContext.Provider key={cell.id} value={cell.id}>
-              {isHTMLRendererEnabled ? (
+              {useHTMLOverlay ? (
                 <HTMLRenderer
                   {...cell}
                   rendererElement={HTMLRendererContainer.current}
@@ -264,7 +264,7 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
             </CellIdContext.Provider>
           );
         })}
-      {hasRenderElement && isHTMLRendererEnabled && (
+      {hasRenderElement && useHTMLOverlay && (
         <PaperHtmlRendererContainer ref={HTMLRendererContainer} />
       )}
     </>

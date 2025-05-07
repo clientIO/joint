@@ -6,7 +6,7 @@
 
 # Variable: PaperContext
 
-> **PaperContext**: `Context`\<`undefined` \| [`PaperContext`](../interfaces/PaperContext.md)\>
+> **PaperContext**: `Context`\<`null` \| [`PaperContext`](../interfaces/PaperContext.md)\>
 
 Defined in: [joint-react/src/context/paper-context.tsx:6](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/context/paper-context.tsx#L6)
 

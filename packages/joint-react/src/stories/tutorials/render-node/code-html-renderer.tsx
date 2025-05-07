@@ -84,7 +84,7 @@ function Controls() {
 }
 function Main() {
   return (
-    <Paper isHTMLRendererEnabled width={400} height={400} renderElement={RenderItem}>
+    <Paper useHTMLOverlay width={400} height={400} renderElement={RenderItem}>
       <Controls />
     </Paper>
   );
