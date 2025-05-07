@@ -7,7 +7,7 @@ exports[`GraphProvider "Default" 1`] = `
     <div>
       <div
         class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -69,7 +69,7 @@ exports[`GraphProvider "Default" 1`] = `
   "container": <div>
     <div
       class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -188,7 +188,7 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
     <div>
       <div
         class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -250,7 +250,7 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
   "container": <div>
     <div
       class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -374,7 +374,7 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
       </button>
       <div
         class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -441,7 +441,7 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
     </button>
     <div
       class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -560,7 +560,7 @@ exports[`GraphProvider "WithLink" 1`] = `
     <div>
       <div
         class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -622,7 +622,7 @@ exports[`GraphProvider "WithLink" 1`] = `
   "container": <div>
     <div
       class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
         class="joint-paper joint-theme-default"
@@ -741,7 +741,7 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
     <div>
       <div
         class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-        style="opacity: 0; pointer-events: none; width: 100%; height: 600px;"
+        style="opacity: 0; pointer-events: none; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
           class="joint-paper joint-theme-default"
@@ -803,7 +803,7 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
   "container": <div>
     <div
       class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-      style="opacity: 0; pointer-events: none; width: 100%; height: 600px;"
+      style="opacity: 0; pointer-events: none; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
         class="joint-paper joint-theme-default"
