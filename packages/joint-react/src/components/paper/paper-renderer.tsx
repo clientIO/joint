@@ -13,7 +13,7 @@ export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
   /**
    * The cell to render.
    */
-  readonly rendererElement: SVGElement | HTMLElement | null;
+  readonly portalElement: SVGElement | HTMLElement | null;
 }
 
 /**
@@ -31,14 +31,14 @@ export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
 function SvgRendererComponent<Data extends CellWithId = GraphElement>(
   props: PaperPortalProps<Data>
 ) {
-  const { renderElement, rendererElement, ...rest } = props;
-  if (!rendererElement) {
+  const { renderElement, portalElement, ...rest } = props;
+  if (!portalElement) {
     return null;
   }
   const cell = rest as Data;
   const element = renderElement(cell);
 
-  return createPortal(element, rendererElement);
+  return createPortal(element, portalElement);
 }
 
 export const SvgRenderer = typedMemo(SvgRendererComponent);
@@ -58,7 +58,7 @@ export const SvgRenderer = typedMemo(SvgRendererComponent);
 function HTMLRendererComponent<Data extends CellWithId = GraphElement>(
   props: PaperPortalProps<Data>
 ) {
-  const { renderElement, rendererElement, ...rest } = props;
+  const { renderElement, portalElement, ...rest } = props;
   const cell = rest as Data;
   // we must use renderElement and not cell data, because user can select different data, so then, the width and height do not have to be inside the cell data.
   const element = renderElement(cell);
@@ -76,7 +76,7 @@ function HTMLRendererComponent<Data extends CellWithId = GraphElement>(
     }),
     [height, width, x, y]
   );
-  if (!rendererElement) {
+  if (!portalElement) {
     return null;
   }
 
@@ -85,7 +85,7 @@ function HTMLRendererComponent<Data extends CellWithId = GraphElement>(
       {element}
     </div>
   );
-  return createPortal(container, rendererElement);
+  return createPortal(container, portalElement);
 }
 
 export const HTMLRenderer = typedMemo(HTMLRendererComponent);

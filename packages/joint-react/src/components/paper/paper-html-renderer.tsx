@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { usePaper } from '../../hooks';
 import { useCombinedRef } from '../../hooks/use-combined-ref';
-import { V } from '@joint/core';
+import { mvc, V } from '@joint/core';
 import { createPortal } from 'react-dom';
 /**
  * Helper paper render component wrapped in a portal.
@@ -27,9 +27,8 @@ function Component(_: PropsWithChildren, ref: Ref<HTMLDivElement>) {
 
   useEffect(() => {
     // apply the transformation to the HTML element
-    paper.on('transform', function () {
-      // Update the transformation of all JointJS HTML Elements
-      // var htmlContainer = this.htmlContainer;
+    const controller = new mvc.Listener();
+    controller.listenTo(paper, 'transform', function () {
       if (!divRef.current) {
         return;
       }
@@ -39,8 +38,7 @@ function Component(_: PropsWithChildren, ref: Ref<HTMLDivElement>) {
       divRef.current.style.transform = V.matrixToTransformString(paper.matrix());
     });
     return () => {
-      // Remove the event listener when the component is unmounted
-      paper.off('transform');
+      controller.stopListening();
     };
   }, [divRef, paper]);
 

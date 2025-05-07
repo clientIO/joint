@@ -251,13 +251,13 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
               {useHTMLOverlay ? (
                 <HTMLRenderer
                   {...cell}
-                  rendererElement={HTMLRendererContainer.current}
+                  portalElement={HTMLRendererContainer.current}
                   renderElement={renderElement}
                 />
               ) : (
                 <SvgRenderer
                   {...cell}
-                  rendererElement={portalHtmlElement}
+                  portalElement={portalHtmlElement}
                   renderElement={renderElement}
                 />
               )}
