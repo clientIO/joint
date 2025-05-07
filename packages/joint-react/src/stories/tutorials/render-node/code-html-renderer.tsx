@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { useRef } from 'react';
+import { useCallback, useState } from 'react';
 import {
   createElements,
   createLinks,
@@ -11,8 +11,7 @@ import {
   type InferElement,
 } from '@joint/react';
 import '../../examples/index.css';
-const BUTTON_CLASS =
-  'text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800';
+import { BUTTON_CLASSNAME } from 'storybook-config/theme';
 // Define initial elements
 const initialElements = createElements([
   { id: '1', data: { label: 'Hello' }, x: 100, y: 0, width: 100, height: 25 },
@@ -35,20 +34,6 @@ const initialEdges = createLinks([
   },
 ]);
 
-// Infer element type from the initial elements
-type CustomElement = InferElement<typeof initialElements>;
-
-const RenderItem = ({ data: { label } }: CustomElement) => {
-  const htmlElementRef = useRef<HTMLDivElement | null>(null);
-  return (
-    <MeasuredNode>
-      <div ref={htmlElementRef} className="node">
-        <div>{label}</div>
-      </div>
-    </MeasuredNode>
-  );
-};
-
 let zoomLevel = 1;
 
 function Controls() {
@@ -63,7 +48,7 @@ function Controls() {
           zoomLevel = Math.min(3, zoomLevel + 0.2);
           paper.scaleUniformAtPoint(zoomLevel, center);
         }}
-        className={BUTTON_CLASS}
+        className={BUTTON_CLASSNAME}
       >
         Zoom in
       </button>
@@ -75,7 +60,7 @@ function Controls() {
           zoomLevel = Math.max(0.2, zoomLevel - 0.2);
           paper.scaleUniformAtPoint(zoomLevel, center);
         }}
-        className={`${BUTTON_CLASS} ml-2`}
+        className={`${BUTTON_CLASSNAME} ml-2`}
       >
         Zoom out
       </button>
@@ -83,9 +68,40 @@ function Controls() {
   );
 }
 function Main() {
+  const [isHTMLEnabled, setHTMLEnabled] = useState(true);
+
+  // Infer element type from the initial elements
+  type CustomElement = InferElement<typeof initialElements>;
+
+  const renderItem = useCallback(
+    ({ data: { label }, width, height }: CustomElement) => {
+      if (isHTMLEnabled) {
+        return (
+          <MeasuredNode>
+            <div className="node">
+              <div>{label}</div>
+            </div>
+          </MeasuredNode>
+        );
+      }
+      return <rect rx={10} ry={10} width={width} height={height} fill="blue" />;
+    },
+    [isHTMLEnabled]
+  );
+
   return (
-    <Paper useHTMLOverlay width={400} height={400} renderElement={RenderItem}>
+    <Paper useHTMLOverlay={isHTMLEnabled} width={400} height={400} renderElement={renderItem}>
       <Controls />
+      <button
+        type="button"
+        // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
+        onClick={() => {
+          setHTMLEnabled((previous) => !previous);
+        }}
+        className={`${BUTTON_CLASSNAME} mt-2`}
+      >
+        is HTML Overlay enabled: {isHTMLEnabled ? 'true' : 'false'}
+      </button>
     </Paper>
   );
 }

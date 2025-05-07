@@ -1,5 +1,13 @@
 import { type dia } from '@joint/core';
-import { useContext, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
+import {
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import type { GraphElement, GraphElementWithAttributes } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
@@ -14,7 +22,7 @@ import type { PaperEvents } from '../../types/event.types';
 import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
 import { REACT_TYPE } from '../../models/react-element';
 import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
-import { PaperHTMLRendererContainer } from './paper-html-renderer';
+import { PaperHTMLContainer } from './paper-html-container';
 import type { ReactPaperOptions } from '../../utils/create-paper';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
@@ -151,7 +159,7 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
     onRenderElement,
   });
 
-  const HTMLRendererContainer = useRef<HTMLDivElement>(null);
+  const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
 
   const elements = useElements((items) => items.map(elementSelector));
   const areElementsMeasured = useAreElementMeasured();
@@ -193,6 +201,7 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
     previousSizesRef.current = currentSizes;
     onElementsSizeChange({ paper, graph: paper.model });
   }, [elements, areElementsMeasured, onElementsSizeChange, paper]);
+
   const hasRenderElement = !!renderElement;
 
   const paperContainerStyle = useMemo(
@@ -234,6 +243,9 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
 
   const content = (
     <>
+      {hasRenderElement && useHTMLOverlay && (
+        <PaperHTMLContainer onSetElement={setHTMLRendererContainer} />
+      )}
       {hasRenderElement &&
         elements.map((cell) => {
           if (!cell.id) {
@@ -249,10 +261,10 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
 
           return (
             <CellIdContext.Provider key={cell.id} value={cell.id}>
-              {useHTMLOverlay ? (
+              {useHTMLOverlay && HTMLRendererContainer ? (
                 <HTMLElementItem
                   {...cell}
-                  portalElement={HTMLRendererContainer.current}
+                  portalElement={HTMLRendererContainer}
                   renderElement={renderElement}
                 />
               ) : (
@@ -265,9 +277,6 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
             </CellIdContext.Provider>
           );
         })}
-      {hasRenderElement && useHTMLOverlay && (
-        <PaperHTMLRendererContainer ref={HTMLRendererContainer} />
-      )}
     </>
   );
 
@@ -276,6 +285,7 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
     paperContext.renderElement = renderElement as RenderElement<GraphElement>;
   }
   const hasPaper = !!paper;
+
   return (
     <PaperContext.Provider value={paperContext}>
       <div className={className} ref={paperContainerElement} style={paperContainerStyle}>

@@ -8,7 +8,7 @@
 
 > **RenderElement**\<`ElementItem`\> = (`element`) => `ReactNode`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:22](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L22)
+Defined in: [joint-react/src/components/paper/paper.tsx:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L31)
 
 ## Type Parameters
 

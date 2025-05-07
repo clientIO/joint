@@ -16,18 +16,7 @@ export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
   readonly portalElement: SVGElement | HTMLElement | null;
 }
 
-/**
- * Helper paper render component wrapped in a portal to render SVGElement.
- * This component is used to render a paper element inside a portal.
- * It takes a renderElement function, a cell, and a containerElement as props.
- * The renderElement function is called with the cell as an argument and its return value is rendered inside the containerElement.
- * @param props - The props for the component.
- * @group Components
- * @description
- * This component is used to render a paper element inside a portal.
- * @returns The rendered element inside the portal.
- * @internal
- */
+// eslint-disable-next-line jsdoc/require-jsdoc
 function SVGElementItemComponent<Data extends CellWithId = GraphElement>(
   props: PaperPortalProps<Data>
 ) {
@@ -41,6 +30,18 @@ function SVGElementItemComponent<Data extends CellWithId = GraphElement>(
   return createPortal(element, portalElement);
 }
 
+/**
+ * Helper paper render component wrapped in a portal to render SVGElement.
+ * This component is used to render a paper element inside a portal.
+ * It takes a renderElement function, a cell, and a containerElement as props.
+ * The renderElement function is called with the cell as an argument and its return value is rendered inside the containerElement.
+ * @param props - The props for the component.
+ * @group Components
+ * @description
+ * This component is used to render a paper element inside a portal.
+ * @returns The rendered element inside the portal.
+ * @internal
+ */
 export const SVGElementItem = typedMemo(SVGElementItemComponent);
 
 /**
@@ -76,6 +77,7 @@ function HTMLElementItemComponent<Data extends CellWithId = GraphElement>(
     }),
     [height, width, x, y]
   );
+
   if (!portalElement) {
     return null;
   }
@@ -85,7 +87,18 @@ function HTMLElementItemComponent<Data extends CellWithId = GraphElement>(
       {element}
     </div>
   );
+
   return createPortal(container, portalElement);
 }
 
+/**
+ * Helper paper render component wrapped in a portal to render HTMLElement.
+ * This component is used to render a paper element inside a portal.
+ * It takes a renderElement function, a cell, and a containerElement as props.
+ * @private
+ * @param props - The props for the component.
+ * @group Components
+ * @description
+ * This component is used to render a paper element inside a portal.
+ */
 export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
