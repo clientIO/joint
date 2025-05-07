@@ -1,6 +1,12 @@
 import * as ns from './namespace.mjs';
 
 /**
+ * @constant {boolean}
+ * @description Indicates the environment supports SVG.
+ */
+export const isSVGSupported = typeof window === 'object' && !!window.SVGAngle;
+
+/**
  * @constant {string}
  * @description The version of the SVG document.
  */
@@ -12,7 +18,7 @@ export const SVGVersion = '1.1';
  * e.g. SVGMatrix has no constructor, so the only way to create it is
  * to create an SVG document and then call `createSVGMatrix()`.
  */
-export const internalSVGDocument = createSVGDocument();
+export const internalSVGDocument = isSVGSupported ? createSVGDocument() : null;
 
 /**
  * @returns {SVGSVGElement}

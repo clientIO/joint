@@ -6,16 +6,14 @@
 
 import * as g from '../g/index.mjs';
 import * as ns from './namespace.mjs';
-import { internalSVGDocument, SVGVersion, createSVGDocument, createSVGElement } from './create.mjs';
+import { isSVGSupported, internalSVGDocument, SVGVersion, createSVGDocument, createSVGElement } from './create.mjs';
 import { createIdentityMatrix, getNodeMatrix, getRelativeTransformation, getRelativeTransformationSafe, setNodeMatrix } from './transform.mjs';
 import { getCommonAncestor } from './traverse.mjs';
 
 const V = (function() {
 
-    var hasSvg = typeof window === 'object' && !!window.SVGAngle;
-
     // SVG support is required.
-    if (!hasSvg) {
+    if (!isSVGSupported) {
 
         // Return a function that throws an error when it is used.
         return function() {
