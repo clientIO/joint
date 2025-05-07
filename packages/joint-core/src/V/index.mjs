@@ -131,6 +131,8 @@ const V = (function() {
         return m || createIdentityMatrix();
     };
 
+    const MATRIX_TYPE = '[object SVGMatrix]';
+
     /**
      * @param {SVGMatrix} matrix
      * @param {Object=} opt
@@ -148,7 +150,7 @@ const V = (function() {
         setNodeMatrix(
             node,
             // Support partial matrices. e.g `{ a: 2, d: 2 }`
-            (matrix instanceof SVGMatrix) ? matrix : V.createSVGMatrix(matrix),
+            (matrix.toString() === MATRIX_TYPE) ? matrix : V.createSVGMatrix(matrix),
             // Override the existing transformation matrix.
             opt && opt.absolute
         );
