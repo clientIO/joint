@@ -6,7 +6,7 @@
 
 import * as g from '../g/index.mjs';
 import * as ns from './namespace.mjs';
-import { svgDocument, SVGVersion, createSVGDocument, createSVGElement } from './create.mjs';
+import { internalSVGDocument, SVGVersion, createSVGDocument, createSVGElement } from './create.mjs';
 import { createIdentityMatrix, getNodeMatrix, getRelativeTransformation, getRelativeTransformationSafe, setNodeMatrix } from './transform.mjs';
 import { getCommonAncestor } from './traverse.mjs';
 
@@ -1518,8 +1518,8 @@ const V = (function() {
 
     V.transformStringToMatrix = function(transform) {
         if (!transform) return createIdentityMatrix();
-        svgDocument.setAttribute('transform', transform);
-        return getNodeMatrix(svgDocument) || createIdentityMatrix();
+        internalSVGDocument.setAttribute('transform', transform);
+        return getNodeMatrix(internalSVGDocument) || createIdentityMatrix();
     };
 
     V.matrixToTransformString = function(matrix) {
@@ -1719,15 +1719,15 @@ const V = (function() {
                 matrix = V.createSVGMatrix(matrix);
             }
 
-            return svgDocument.createSVGTransformFromMatrix(matrix);
+            return internalSVGDocument.createSVGTransformFromMatrix(matrix);
         }
 
-        return svgDocument.createSVGTransform();
+        return internalSVGDocument.createSVGTransform();
     };
 
     V.createSVGPoint = function(x, y) {
 
-        var p = svgDocument.createSVGPoint();
+        var p = internalSVGDocument.createSVGPoint();
         p.x = x;
         p.y = y;
         return p;
@@ -1735,7 +1735,7 @@ const V = (function() {
 
     V.transformRect = function(r, matrix) {
 
-        var p = svgDocument.createSVGPoint();
+        var p = internalSVGDocument.createSVGPoint();
 
         p.x = r.x;
         p.y = r.y;

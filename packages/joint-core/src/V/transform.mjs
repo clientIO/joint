@@ -1,4 +1,4 @@
-import { svgDocument } from './create.mjs';
+import { internalSVGDocument } from './create.mjs';
 import { getCommonAncestor } from './traverse.mjs';
 
 /**
@@ -6,7 +6,7 @@ import { getCommonAncestor } from './traverse.mjs';
  * @description Creates an identity matrix.
  */
 export function createIdentityMatrix() {
-    return svgDocument.createSVGMatrix();
+    return internalSVGDocument.createSVGMatrix();
 }
 
 /**
@@ -14,7 +14,7 @@ export function createIdentityMatrix() {
  * @description Creates a new SVGTransform object.
  */
 export function createSVGTransform() {
-    return svgDocument.createSVGTransform();
+    return internalSVGDocument.createSVGTransform();
 }
 
 /**

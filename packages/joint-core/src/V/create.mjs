@@ -12,7 +12,7 @@ export const SVGVersion = '1.1';
  * e.g. SVGMatrix has no constructor, so the only way to create it is
  * to create an SVG document and then call `createSVGMatrix()`.
  */
-export const svgDocument = createSVGDocument();
+export const internalSVGDocument = createSVGDocument();
 
 /**
  * @returns {SVGSVGElement}
@@ -31,5 +31,5 @@ export function createSVGDocument() {
  * @description Creates an SVG element with the given name.
  */
 export function createSVGElement(name) {
-    return document.createElementNS(ns.svg, name);
+    return svgDocument.createElementNS(ns.svg, name);
 }
