@@ -15,8 +15,8 @@ import { useCallback } from 'react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 20, y: 100 },
-  { id: '2', data: { label: 'Node 2' }, x: 200, y: 100 },
+  { id: '1', label: 'Node 1', x: 20, y: 100 },
+  { id: '2', label: 'Node 2', x: 200, y: 100 },
 ]);
 
 const initialEdges = createLinks([
@@ -34,7 +34,7 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RotatableNode({ data, id, width, height }: Readonly<BaseElementWithData>) {
+function RotatableNode({ label, id, width, height }: Readonly<BaseElementWithData>) {
   const paper = usePaper();
   const setRotation = useSetElement(id, 'angle');
 
@@ -84,7 +84,7 @@ function RotatableNode({ data, id, width, height }: Readonly<BaseElementWithData
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
           />
-          {data.label}
+          {label}
         </div>
       </MeasuredNode>
     </foreignObject>

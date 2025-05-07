@@ -4,7 +4,7 @@ import {
   GraphAreElementsMeasuredContext,
   GraphStoreContext,
 } from '../../context/graph-store-context';
-import type { GraphElementBase } from '../../types/element-types';
+import type { GraphElementWithAttributes } from '../../types/element-types';
 import { useEffect, useState, type PropsWithChildren } from 'react';
 import { createStore, type Store } from '../../data/create-store';
 import { useElements } from '../../hooks/use-elements';
@@ -85,7 +85,7 @@ export interface GraphProps {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: Array<dia.Element | GraphElementBase>;
+  readonly defaultElements?: Array<dia.Element | GraphElementWithAttributes>;
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.

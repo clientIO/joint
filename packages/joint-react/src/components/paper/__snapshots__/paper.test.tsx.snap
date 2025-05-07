@@ -6,11 +6,12 @@ exports[`Paper "WithAutoFitContent" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -67,11 +68,12 @@ exports[`Paper "WithAutoFitContent" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -179,17 +181,199 @@ exports[`Paper "WithAutoFitContent" 1`] = `
 }
 `;
 
+exports[`Paper "WithCustomEvent" 1`] = `
+{
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+      >
+        <div
+          class="joint-paper joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
+        >
+          <div
+            class="joint-paper-background"
+            joint-selector="background"
+            style="position: absolute; inset: 0;"
+          />
+          <svg
+            height="100%"
+            id="v-19"
+            joint-selector="svg"
+            style="position: absolute; inset: 0; overflow: hidden;"
+            width="100%"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+          >
+            <style
+              id="v-20"
+              type="text/css"
+            >
+              CDATASection {}
+            </style>
+            <defs
+              joint-selector="defs"
+            />
+            <g
+              class="joint-layers"
+              joint-selector="layers"
+            >
+              <g
+                class="joint-grid-layer"
+                style="pointer-events: none;"
+              />
+              <g
+                class="joint-back-layer"
+              />
+              <g
+                class="joint-cells-layer joint-viewport"
+                style="webkit-user-select: none; user-select: none;"
+              />
+              <g
+                class="joint-labels-layer joint-viewport"
+                style="webkit-user-select: none; user-select: none;"
+              />
+              <g
+                class="joint-front-layer"
+              />
+              <g
+                class="joint-tools-layer"
+              />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
+    >
+      <div
+        class="joint-paper joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
+      >
+        <div
+          class="joint-paper-background"
+          joint-selector="background"
+          style="position: absolute; inset: 0;"
+        />
+        <svg
+          height="100%"
+          id="v-19"
+          joint-selector="svg"
+          style="position: absolute; inset: 0; overflow: hidden;"
+          width="100%"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <style
+            id="v-20"
+            type="text/css"
+          >
+            CDATASection {}
+          </style>
+          <defs
+            joint-selector="defs"
+          />
+          <g
+            class="joint-layers"
+            joint-selector="layers"
+          >
+            <g
+              class="joint-grid-layer"
+              style="pointer-events: none;"
+            />
+            <g
+              class="joint-back-layer"
+            />
+            <g
+              class="joint-cells-layer joint-viewport"
+              style="webkit-user-select: none; user-select: none;"
+            />
+            <g
+              class="joint-labels-layer joint-viewport"
+              style="webkit-user-select: none; user-select: none;"
+            />
+            <g
+              class="joint-front-layer"
+            />
+            <g
+              class="joint-tools-layer"
+            />
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;
+
 exports[`Paper "WithEvent" 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -246,11 +430,12 @@ exports[`Paper "WithEvent" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -364,11 +549,12 @@ exports[`Paper "WithGrid" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -461,11 +647,12 @@ exports[`Paper "WithGrid" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -614,13 +801,17 @@ exports[`Paper "WithHtmlElement" 1`] = `
   "asFragment": [Function],
   "baseElement": <body>
     <div>
-      <div>
+      <div
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      >
         No data
       </div>
     </div>
   </body>,
   "container": <div>
-    <div>
+    <div
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+    >
       No data
     </div>
   </div>,
@@ -684,11 +875,12 @@ exports[`Paper "WithLinkTools" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -745,11 +937,12 @@ exports[`Paper "WithLinkTools" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -863,11 +1056,12 @@ exports[`Paper "WithRectElement" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -924,11 +1118,12 @@ exports[`Paper "WithRectElement" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -1042,11 +1237,12 @@ exports[`Paper "WithScaleDown" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -1104,11 +1300,12 @@ exports[`Paper "WithScaleDown" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; width: 800px; height: 600px;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"

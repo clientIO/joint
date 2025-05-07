@@ -13,8 +13,8 @@ import '../index.css';
 import { LIGHT, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { color: PRIMARY }, x: 100, y: 0, width: 130, height: 35 },
-  { id: '2', data: { color: PRIMARY }, x: 100, y: 200, width: 130, height: 35 },
+  { id: '1', color: PRIMARY, x: 100, y: 0, width: 130, height: 35 },
+  { id: '2', color: PRIMARY, x: 100, y: 200, width: 130, height: 35 },
 ]);
 const initialEdges = createLinks([
   {
@@ -31,20 +31,19 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ElementInput({ id, data }: BaseElementWithData) {
-  const { color } = data;
-  const setElement = useSetElement(id, 'data');
+function ElementInput({ id, color }: BaseElementWithData) {
+  const setColor = useSetElement<BaseElementWithData>(id, 'color');
   return (
     <input
       className="nodrag"
       type="color"
       value={color}
-      onChange={(event) => setElement({ ...data, color: event.target.value })}
+      onChange={(event) => setColor(event.target.value)}
     />
   );
 }
 
-function RenderElement({ data: { color }, width, height }: BaseElementWithData) {
+function RenderElement({ color, width, height }: BaseElementWithData) {
   return <rect rx={10} ry={10} className="node" width={width} height={height} fill={color} />;
 }
 

@@ -39,7 +39,8 @@ const meta: Meta<typeof Hook> = {
             onClick={() =>
               addElement({
                 id: '10',
-                data: { label: 'New node added', color: 'red' },
+                label: 'New node added',
+                color: 'red',
                 x: 300,
                 y: 100,
               })
@@ -58,14 +59,14 @@ const meta: Meta<typeof Hook> = {
 
 function Component() {
   const addElement = useAddElement();
-  return <button onClick={() => addElement({ id: '1', data: { label: 'Node 1' } })}>Add Element</button>;
+  return <button onClick={() => addElement({ id: '1', label: 'Node 1' })}>Add Element</button>;
 }`,
   }),
 };
 
 export default meta;
 
-function Hook({ data: { label } }: Readonly<{ id: string; data: { label: string } }>) {
+function Hook({ label }: SimpleElement) {
   return <HTMLNode className="node">{label}</HTMLNode>;
 }
 
@@ -79,10 +80,10 @@ function Hook() {
 
   return (
     <div>
-      <button onClick={() => addElement({ id: '1', data: { label: 'Node 1' } })}>
+      <button onClick={() => addElement({ id: '1', label: 'Node 1' })}>
         Add Node 1
       </button>
-      <button onClick={() => addElement({ id: '2', data: { label: 'Node 2' } })}>
+      <button onClick={() => addElement({ id: '2', label: 'Node 2' })}>
         Add Node 2
       </button>
     </div>

@@ -47,8 +47,8 @@ const initialEdges = createLinks([
   },
 ]);
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
+  { id: '1', label: 'Node 1', x: 100, y: 0 },
+  { id: '2', label: 'Node 2', x: 100, y: 200 },
 ]);
 
 function RenderedRect() {

@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { REACT_TYPE } from '../../models/react-element';
-import type { GraphLink, GraphLinkBase } from '../../types/link-types';
-import type { GraphElementBase } from '../../types/element-types';
+import type { GraphLink } from '../../types/link-types';
+import type { GraphElementWithAttributes } from '../../types/element-types';
 import { isCellInstance, isLinkInstance, isUnsized } from '../is';
 import { getTargetOrSource } from './get-link-targe-and-source-ids';
 import { isReactElement } from '../is-react-element';
@@ -9,7 +9,7 @@ import { isReactElement } from '../is-react-element';
 interface Options {
   readonly graph: dia.Graph;
   readonly defaultLinks?: Array<dia.Link | GraphLink>;
-  readonly defaultElements?: Array<dia.Element | GraphElementBase>;
+  readonly defaultElements?: Array<dia.Element | GraphElementWithAttributes>;
 }
 
 /**
@@ -22,7 +22,7 @@ interface Options {
  * @returns
  * A standard JointJS link or a JSON representation of the link.
  */
-export function processLink(link: dia.Link | GraphLinkBase): dia.Link | dia.Cell.JSON {
+export function processLink(link: dia.Link | GraphLink): dia.Link | dia.Cell.JSON {
   if (isLinkInstance(link)) {
     const json = link.toJSON();
 
@@ -84,7 +84,7 @@ export function setLinks(options: Options) {
  * If the element is a ReactElement and has no size, it adds its ID to the unsizedIds set.
  * @private
  */
-export function processElement<T extends dia.Element | GraphElementBase>(
+export function processElement<T extends dia.Element | GraphElementWithAttributes>(
   element: T,
   unsizedIds?: Set<string>
 ): dia.Element | dia.Cell.JSON {

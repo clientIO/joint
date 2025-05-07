@@ -1,20 +1,21 @@
-import type {
-  GraphElementBase,
-  GraphElementItem,
-  StandardShapesType,
-} from '../types/element-types';
-import type { GraphLink, GraphLinkBase, StandardLinkShapesType } from '../types/link-types';
+import type { GraphElement, StandardShapesTypeMapper } from '../types/element-types';
+import type { GraphLink, StandardLinkShapesType } from '../types/link-types';
 
 type RequiredElementProps = {
-  isElement: true;
-  isLink: false;
   width: number;
   height: number;
 };
+
+type ElementWithAttributes<T extends string | undefined = undefined> =
+  T extends keyof StandardShapesTypeMapper
+    ? { type?: T; attrs?: StandardShapesTypeMapper[T] }
+    : // eslint-disable-next-line sonarjs/no-redundant-optional
+      { type?: undefined; attrs?: StandardShapesTypeMapper['react'] };
+
 /**
  * Create elements helper function.
  * @group Utils
- * @param data - Array of elements to create.
+ * @param items - Array of elements to create.
  * @returns Array of elements. (Nodes)
  * @example
  * without custom data
@@ -34,13 +35,10 @@ type RequiredElementProps = {
  * ```
  */
 export function createElements<
-  Data,
-  Type extends StandardShapesType | string = 'react',
-  Element extends GraphElementBase<Type> = GraphElementItem<Data, Type>,
->(data: Array<Element & GraphElementBase<Type>>): Array<Element & RequiredElementProps> {
-  return data.map((element) => ({ ...element, isElement: true, isLink: false })) as Array<
-    Element & RequiredElementProps
-  >;
+  Element extends GraphElement,
+  Type extends string | undefined = 'react',
+>(items: Array<Element & ElementWithAttributes<Type>>): Array<Element & RequiredElementProps> {
+  return items.map((item) => ({ ...item })) as Array<Element & RequiredElementProps>;
 }
 
 /**
@@ -72,8 +70,8 @@ export type InferElement<T extends Array<Record<string, unknown>>> = T[number];
  * ```
  */
 export function createLinks<
-  Link extends GraphLinkBase<Type>,
+  Link extends GraphLink<Type>,
   Type extends StandardLinkShapesType | string = 'standard.Link',
->(data: Array<Link & GraphLinkBase<Type>>): Array<Link & GraphLink> {
+>(data: Array<Link & GraphLink<Type>>): Array<Link & GraphLink> {
   return data.map((link) => ({ ...link, isElement: false, isLink: true }));
 }

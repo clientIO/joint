@@ -13,8 +13,8 @@ import {
 import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1', color: PRIMARY }, x: 100, y: 10, width: 100, height: 50 },
-  { id: '2', data: { label: 'Node 2', color: SECONDARY }, x: 100, y: 200, width: 100, height: 50 },
+  { id: '1', label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
+  { id: '2', label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
 ]);
 const initialEdges = createLinks([
   {
@@ -33,7 +33,7 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    ({ width, height, data: { color } }) => (
+    ({ width, height, color }) => (
       <rect width={width} height={height} fill={color} rx={10} ry={10} />
     ),
     []
@@ -52,12 +52,7 @@ function MiniMap() {
   );
 }
 
-function RenderElement(props: Readonly<BaseElementWithData>) {
-  const {
-    width,
-    height,
-    data: { label, color },
-  } = props;
+function RenderElement({ width, height, label, color }: Readonly<BaseElementWithData>) {
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode>

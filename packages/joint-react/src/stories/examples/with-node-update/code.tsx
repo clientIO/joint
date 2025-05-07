@@ -14,8 +14,8 @@ import '../index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1', color: '#ffffff' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2', color: '#ffffff' }, x: 100, y: 200 },
+  { id: '1', label: 'Node 1', color: '#ffffff', x: 100, y: 0 },
+  { id: '2', label: 'Node 2', color: '#ffffff', x: 100, y: 200 },
 ]);
 const initialEdges = createLinks([
   {
@@ -32,20 +32,19 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function ElementInput({ id, data }: BaseElementWithData) {
-  const { label } = data;
-  const setElement = useSetElement<BaseElementWithData>(id, 'data');
+function ElementInput({ id, label }: BaseElementWithData) {
+  const setLabel = useSetElement<BaseElementWithData>(id, 'label');
   return (
     <input
       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
       style={{ padding: 5, marginTop: 4 }}
       value={label}
-      onChange={(event) => setElement({ ...data, label: event.target.value })}
+      onChange={(event) => setLabel(event.target.value)}
     />
   );
 }
 
-function RenderElement({ data: { label }, width, height }: BaseElementWithData) {
+function RenderElement({ label, width, height }: BaseElementWithData) {
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode>
