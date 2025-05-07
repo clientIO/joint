@@ -15,6 +15,7 @@ import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer'
 import { REACT_TYPE } from '../../models/react-element';
 import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
 import { PaperHTMLRendererContainer } from './paper-html-renderer';
+import type { ReactPaperOptions } from '../../utils/create-paper';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -29,7 +30,7 @@ export type RenderElement<
  */
 export interface PaperProps<
   ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
-> extends dia.Paper.Options,
+> extends ReactPaperOptions,
     PaperEvents {
   /**
    * A function that renders the element.

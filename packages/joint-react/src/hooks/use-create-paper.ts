@@ -27,8 +27,8 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
  * @param options - Options for creating the paper instance.
  * @returns An object containing the paper instance and a reference to the paper HTML element.
  */
-export function useCreatePaper(options?: UseCreatePaperOptions) {
-  const { overwriteDefaultPaperElement, ...restOptions } = options ?? {};
+export function useCreatePaper(options: UseCreatePaperOptions = {}) {
+  const { overwriteDefaultPaperElement, ...restOptions } = options;
 
   const paperContainerElement = useRef<HTMLDivElement | null>(null);
   const { graph, onRenderPorts } = useGraphStore();
@@ -37,17 +37,6 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
   const [paper, setPaper] = useState<dia.Paper | null>(null);
 
   useEffect(() => {
-    /**
-     * Resize the paper container element to match the paper size.
-     * @param jointPaper - The paper instance.
-     */
-    function resizePaperContainer(jointPaper: dia.Paper) {
-      if (paperContainerElement.current) {
-        paperContainerElement.current.style.width = jointPaper.el.style.width;
-        paperContainerElement.current.style.height = jointPaper.el.style.height;
-      }
-    }
-
     const jointPaper = createPaper(graph, {
       ...restOptions,
       onRenderPorts,
@@ -63,22 +52,38 @@ export function useCreatePaper(options?: UseCreatePaperOptions) {
 
     jointPaper.unfreeze();
 
+    setPaper(jointPaper);
+
+    return () => {
+      jointPaper.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graph, onRenderPorts, overwriteDefaultPaperElement]);
+
+  useEffect(() => {
+    if (!paper) {
+      return;
+    }
+    /**
+     * Resize the paper container element to match the paper size.
+     * @param jointPaper - The paper instance.
+     */
+    function resizePaperContainer(jointPaper: dia.Paper) {
+      if (paperContainerElement.current) {
+        paperContainerElement.current.style.width = jointPaper.el.style.width;
+        paperContainerElement.current.style.height = jointPaper.el.style.height;
+      }
+    }
     // An object to keep track of the listeners. It's not exposed, so the users
     const controller = new mvc.Listener();
     controller.listenTo(paper, 'resize', resizePaperContainer);
     controller.listenTo(paper, 'all', (type: PaperEventType, ...args: unknown[]) =>
-      handleEvent(type, restOptions, jointPaper, ...args)
+      handleEvent(type, restOptions, paper, ...args)
     );
-
-    setPaper(jointPaper);
-
     return () => {
       controller.stopListening();
-      jointPaper.freeze();
-      jointPaper.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [paper, restOptions]);
 
   useEffect(() => {
     if (!paper) {
