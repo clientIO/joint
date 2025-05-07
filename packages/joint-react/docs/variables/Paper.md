@@ -8,7 +8,7 @@
 
 > `const` **Paper**: \<`ElementItem`\>(`props`) => `Element`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:341](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L341)
+Defined in: [joint-react/src/components/paper/paper.tsx:342](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L342)
 
 Paper component that renders the JointJS paper elements inside HTML.
 It uses `renderElement` to render the elements.
@@ -18,7 +18,7 @@ It must be used within a `GraphProvider` context.
 
 ### ElementItem
 
-`ElementItem` *extends* [`GraphElementBase`](../interfaces/GraphElementBase.md)\<`string`\> = [`GraphElementBase`](../interfaces/GraphElementBase.md)\<`string`\>
+`ElementItem` *extends* [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\> = [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\>
 
 ## Parameters
 
@@ -44,11 +44,11 @@ Example with `global renderElement component`:
 ```tsx
 import { createElements, InferElement, GraphProvider, Paper } from '@joint/react'
 
-const initialElements = createElements([ { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 } ])
+const initialElements = createElements([ { id: '1', label: 'Node 1' , x: 100, y: 0, width: 100, height: 50 } ])
 type BaseElementWithData = InferElement<typeof initialElements>
 
-function RenderElement({ data }: BaseElementWithData) {
- return <HtmlElement className="node">{data.label}</HtmlElement>
+function RenderElement({ label }: BaseElementWithData) {
+ return <HtmlElement className="node">{label}</HtmlElement>
 }
 function MyApp() {
  return <GraphProvider defaultElements={initialElements}>
@@ -60,13 +60,13 @@ function MyApp() {
 Example with `local renderElement component`:
 ```tsx
  const initialElements = createElements([
-   { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },
+   { id: '1', label: 'Node 1', x: 100, y: 0, width: 100, height: 50 },
  ])
  type BaseElementWithData = InferElement<typeof initialElements>
 
  function MyApp() {
    const renderElement: RenderElement<BaseElementWithData> = useCallback(
-     (element) => <HtmlElement className="node">{element.data.label}</HtmlElement>,
+     (element) => <HtmlElement className="node">{element.label}</HtmlElement>,
      []
    )
 

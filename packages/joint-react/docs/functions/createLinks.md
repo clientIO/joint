@@ -6,9 +6,9 @@
 
 # Function: createLinks()
 
-> **createLinks**\<`Link`, `Type`\>(`data`): `Link` & [`GraphLink`](../interfaces/GraphLink.md)[]
+> **createLinks**\<`Link`, `Type`\>(`data`): `Link` & [`GraphLink`](../interfaces/GraphLink.md)\<`string`\>[]
 
-Defined in: [joint-react/src/utils/create.ts:74](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L74)
+Defined in: [joint-react/src/utils/create.ts:72](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/utils/create.ts#L72)
 
 Create links helper function.
 
@@ -16,7 +16,7 @@ Create links helper function.
 
 ### Link
 
-`Link` *extends* [`GraphLinkBase`](../interfaces/GraphLinkBase.md)\<`Type`\>
+`Link` *extends* [`GraphLink`](../interfaces/GraphLink.md)\<`Type`\>
 
 ### Type
 
@@ -26,13 +26,13 @@ Create links helper function.
 
 ### data
 
-`Link` & [`GraphLinkBase`](../interfaces/GraphLinkBase.md)\<`Type`\>[]
+`Link` & [`GraphLink`](../interfaces/GraphLink.md)\<`Type`\>[]
 
 Array of links to create.
 
 ## Returns
 
-`Link` & [`GraphLink`](../interfaces/GraphLink.md)[]
+`Link` & [`GraphLink`](../interfaces/GraphLink.md)\<`string`\>[]
 
 Array of links. (Edges)
 

@@ -1,10 +1,10 @@
 import type { dia } from '@joint/core';
 import { createContext } from 'react';
-import type { GraphElementBase } from '../types/element-types';
+import type { GraphElementWithAttributes } from '../types/element-types';
 import type { RenderElement } from '../components/paper/paper';
 
 export interface PaperContext extends dia.Paper {
-  renderElement?: RenderElement<GraphElementBase>;
+  renderElement?: RenderElement<GraphElementWithAttributes>;
 }
 /**
  * Paper context provides a paper instance to its children.

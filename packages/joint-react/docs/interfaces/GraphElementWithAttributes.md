@@ -2,19 +2,29 @@
 
 ***
 
-[@joint/react](../README.md) / GraphElement
+[@joint/react](../README.md) / GraphElementWithAttributes
 
-# Interface: GraphElement
+# Interface: GraphElementWithAttributes\<Attributes\>
 
-Defined in: [joint-react/src/types/element-types.ts:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L27)
+Defined in: [joint-react/src/types/element-types.ts:71](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L71)
+
+Base interface for graph element.
+It's a subset of `dia.Element` with some additional properties.
+
+## See
+
+ - 
+ - https://docs.jointjs.com/learn/features/shapes/elements/#diaelement
 
 ## Extends
 
-- `JointAttributes`
+- [`GraphElement`](GraphElement.md)
 
-## Extended by
+## Type Parameters
 
-- [`GraphElementWithAttributes`](GraphElementWithAttributes.md)
+### Attributes
+
+`Attributes` = `unknown`
 
 ## Indexable
 
@@ -26,11 +36,15 @@ Defined in: [joint-react/src/types/element-types.ts:27](https://github.com/samue
 
 ### attrs?
 
-> `readonly` `optional` **attrs**: `unknown`
+> `readonly` `optional` **attrs**: `Attributes`
 
-Defined in: [joint-react/src/types/element-types.ts:62](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L62)
+Defined in: [joint-react/src/types/element-types.ts:75](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L75)
 
 Attributes of the element.
+
+#### Overrides
+
+[`GraphElement`](GraphElement.md).[`attrs`](GraphElement.md#attrs)
 
 ***
 
@@ -42,6 +56,10 @@ Defined in: [joint-react/src/types/element-types.ts:56](https://github.com/samue
 
 Optional height of the element.
 
+#### Inherited from
+
+[`GraphElement`](GraphElement.md).[`height`](GraphElement.md#height)
+
 ***
 
 ### id
@@ -52,6 +70,10 @@ Defined in: [joint-react/src/types/element-types.ts:31](https://github.com/samue
 
 Unique identifier of the element.
 
+#### Inherited from
+
+[`GraphElement`](GraphElement.md).[`id`](GraphElement.md#id)
+
 ***
 
 ### markup?
@@ -59,6 +81,10 @@ Unique identifier of the element.
 > `readonly` `optional` **markup**: `string` \| `MarkupJSON`
 
 Defined in: [joint-react/src/types/element-types.ts:58](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L58)
+
+#### Inherited from
+
+[`GraphElement`](GraphElement.md).[`markup`](GraphElement.md#markup)
 
 ***
 
@@ -69,6 +95,10 @@ Defined in: [joint-react/src/types/element-types.ts:58](https://github.com/samue
 Defined in: [joint-react/src/types/element-types.ts:40](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L40)
 
 Ports of the element.
+
+#### Inherited from
+
+[`GraphElement`](GraphElement.md).[`ports`](GraphElement.md#ports)
 
 ***
 
@@ -84,6 +114,10 @@ Optional element type.
 
 `REACT_TYPE`
 
+#### Inherited from
+
+[`GraphElement`](GraphElement.md).[`type`](GraphElement.md#type)
+
 ***
 
 ### width?
@@ -93,6 +127,10 @@ Optional element type.
 Defined in: [joint-react/src/types/element-types.ts:52](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L52)
 
 Optional width of the element.
+
+#### Inherited from
+
+[`GraphElement`](GraphElement.md).[`width`](GraphElement.md#width)
 
 ***
 
@@ -104,6 +142,10 @@ Defined in: [joint-react/src/types/element-types.ts:44](https://github.com/samue
 
 X position of the element.
 
+#### Inherited from
+
+[`GraphElement`](GraphElement.md).[`x`](GraphElement.md#x)
+
 ***
 
 ### y?
@@ -113,3 +155,7 @@ X position of the element.
 Defined in: [joint-react/src/types/element-types.ts:48](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/element-types.ts#L48)
 
 Y position of the element.
+
+#### Inherited from
+
+[`GraphElement`](GraphElement.md).[`y`](GraphElement.md#y)

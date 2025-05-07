@@ -14,20 +14,23 @@ import { util } from '@joint/core';
 import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
-interface Data {
+type Data = {
+  id: string;
   title: string;
   description: string;
-  type: 'user-action' | 'entity' | 'confirm' | 'message';
-}
+  nodeType: 'user-action' | 'entity' | 'confirm' | 'message';
+  x: number;
+  y: number;
+};
 
 const nodes = createElements<Data>([
   {
     id: '1',
-    data: {
-      title: 'User Action',
-      description: 'Transfer funds',
-      type: 'user-action',
-    },
+
+    title: 'User Action',
+    description: 'Transfer funds',
+    nodeType: 'user-action',
+
     x: 50,
     y: 50,
     attrs: {
@@ -38,11 +41,11 @@ const nodes = createElements<Data>([
   },
   {
     id: '2',
-    data: {
-      title: 'Entity',
-      description: 'Transfer funds',
-      type: 'entity',
-    },
+
+    title: 'Entity',
+    description: 'Transfer funds',
+    nodeType: 'entity',
+
     x: 120,
     y: 200,
     attrs: {
@@ -53,11 +56,11 @@ const nodes = createElements<Data>([
   },
   {
     id: '3',
-    data: {
-      title: 'User Action',
-      description: 'Get account balance',
-      type: 'user-action',
-    },
+
+    title: 'User Action',
+    description: 'Get account balance',
+    nodeType: 'user-action',
+
     attrs: {
       root: {
         magnet: false,
@@ -119,9 +122,9 @@ function PortItem({ id, label, onRemove, x }: Readonly<PortProps>) {
     </Port.Item>
   );
 }
-function RenderElement({ data: { title, description, type } }: NodeType) {
+function RenderElement({ title, description, nodeType }: NodeType) {
   let icon: string;
-  switch (type) {
+  switch (nodeType) {
     case 'user-action': {
       icon = 'fas fa-user';
       break;

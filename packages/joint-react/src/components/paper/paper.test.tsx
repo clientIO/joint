@@ -8,8 +8,8 @@ import { runStorybookSnapshot } from '../../utils/run-storybook-snapshot';
 import * as stories from './paper.stories';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' } },
-  { id: '2', data: { label: 'Node 2' } },
+  { id: '1', label: 'Node 1' },
+  { id: '2', label: 'Node 2' },
 ]);
 
 type Element = InferElement<typeof initialElements>;
@@ -42,7 +42,7 @@ describe('Paper Component', () => {
           width={PAPER_WIDTH}
           height={150}
           onElementsSizeReady={onMeasuredMock}
-          renderElement={({ data: { label }, width, height }) => {
+          renderElement={({ label, width, height }) => {
             size = { width, height };
             return (
               <foreignObject width={width} height={height}>

@@ -26,7 +26,7 @@ How it works:
 
 ### Link
 
-`Link` *extends* [`GraphLinkBase`](../interfaces/GraphLinkBase.md)\<`string`\> = [`GraphLink`](../interfaces/GraphLink.md)
+`Link` *extends* [`GraphLink`](../interfaces/GraphLink.md)\<`string`\> = [`GraphLink`](../interfaces/GraphLink.md)\<`string`\>
 
 ### SelectorReturnType
 

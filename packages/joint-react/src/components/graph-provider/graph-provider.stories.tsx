@@ -34,15 +34,15 @@ GraphProvider is a component that provides a graph context to its children. It i
 
 export default meta;
 
-const STYLE = { padding: 10, backgroundColor: PRIMARY, borderRadius: 10 };
+const STYLE = { padding: 10, backgroundColor: PRIMARY, borderRadius: 10, width: 80 };
 
 const defaultElementsWithSize = createElements([
-  { id: 1, width: 100, height: 50, x: 20, y: 200, data: { color: PRIMARY } },
-  { id: 2, width: 100, height: 50, x: 200, y: 200, data: { color: PRIMARY } },
+  { id: 1, width: 100, height: 50, x: 20, y: 200, color: PRIMARY },
+  { id: 2, width: 100, height: 50, x: 200, y: 200, color: PRIMARY },
 ]);
 const defaultElementsWithoutSize = createElements([
-  { id: 1, x: 20, y: 200, data: { color: PRIMARY } },
-  { id: 2, x: 200, y: 200, data: { color: PRIMARY } },
+  { id: 1, x: 20, y: 200, color: PRIMARY },
+  { id: 2, x: 200, y: 200, color: PRIMARY },
 ]);
 const defaultLinks = createLinks([
   {
@@ -59,7 +59,7 @@ const defaultLinks = createLinks([
 
 type ElementType = InferElement<typeof defaultElementsWithSize>;
 
-function RenderElement({ data: { color }, width, height }: ElementType) {
+function RenderElement({ color, width, height }: ElementType) {
   return <rect rx={10} ry={10} className="node" width={width} height={height} fill={color} />;
 }
 function PaperChildren(props: Readonly<{ renderElement?: RenderElement<ElementType> }>) {
@@ -131,7 +131,7 @@ function generateRandomElements(length: number) {
       height: 50,
       x: Math.random() * 500,
       y: Math.random() * 500,
-      data: { color: 'magenta' },
+      color: 'magenta',
     }))
   );
 }

@@ -1,0 +1,26 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+
+<Meta of={Stories} />
+
+# Example showing render with minimap. 
+Minimap is just another [paper](https://docs.jointjs.com/learn/quickstart/paper) component that is rendered inside the `GraphProvider` component with scale and position properties.
+
+### Demo
+<Canvas of={Stories.Default} />
+
+### Code
+Minimap is is separate `paper` component that is rendered inside the `GraphProvider` component.
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+

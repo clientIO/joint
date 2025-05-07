@@ -1,6 +1,6 @@
 import { type dia } from '@joint/core';
 import { useContext, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
-import type { GraphElement, GraphElementBase } from '../../types/element-types';
+import type { GraphElementWithAttributes } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
 import { useElements } from '../../hooks/use-elements';
@@ -18,16 +18,17 @@ export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
 }
-export type RenderElement<ElementItem extends GraphElementBase = GraphElementBase> = (
-  element: ElementItem
-) => ReactNode;
+export type RenderElement<
+  ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
+> = (element: ElementItem) => ReactNode;
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<ElementItem extends GraphElementBase = GraphElementBase>
-  extends dia.Paper.Options,
+export interface PaperProps<
+  ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
+> extends dia.Paper.Options,
     PaperEvents {
   /**
    * A function that renders the element.
@@ -40,8 +41,8 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * Example with `global component`:
    * ```tsx
    * type BaseElementWithData = InferElement<typeof initialElements>
-   * function RenderElement({ data }: BaseElementWithData) {
-   *  return <HtmlElement className="node">{data.label}</HtmlElement>
+   * function RenderElement({ label }: BaseElementWithData) {
+   *  return <HtmlElement className="node">{label}</HtmlElement>
    * }
    * ```
    * @example
@@ -50,7 +51,7 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * 
   type BaseElementWithData = InferElement<typeof initialElements>
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-      (element) => <HtmlElement className="node">{element.data.label}</HtmlElement>,
+      (element) => <HtmlElement className="node">{element.label}</HtmlElement>,
       []
   )
    * ```
@@ -82,9 +83,9 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
    * A function that selects the elements to be rendered.
    * It defaults to the `GraphElement` elements because `dia.Element` is not a valid React element (it do not change reference after update).
    * @default (item: dia.Cell) => `BaseElement`
-   * @see GraphElement<Data>
+   * @see GraphElementWithAttributes<Data>
    */
-  readonly elementSelector?: (item: GraphElement) => ElementItem;
+  readonly elementSelector?: (item: GraphElementWithAttributes) => ElementItem;
   /**
    * The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
    */
@@ -119,14 +120,14 @@ export interface PaperProps<ElementItem extends GraphElementBase = GraphElementB
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component<ElementItem extends GraphElementBase = GraphElementBase>(
+function Component<ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes>(
   props: PaperProps<ElementItem>
 ) {
   const {
     renderElement,
     style,
     className,
-    elementSelector = noopSelector as (item: GraphElement) => ElementItem,
+    elementSelector = noopSelector as (item: GraphElementWithAttributes) => ElementItem,
     scale,
     children,
     onElementsSizeReady,
@@ -243,7 +244,7 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
   }
 
   const paperContext: PaperContext = paper as PaperContext;
-  paperContext.renderElement = renderElement as RenderElement<GraphElementBase>;
+  paperContext.renderElement = renderElement as RenderElement<GraphElementWithAttributes>;
   return (
     <PaperContext.Provider value={paperContext}>
       {content}
@@ -253,9 +254,9 @@ function Component<ElementItem extends GraphElementBase = GraphElementBase>(
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function PaperWithNoDataPlaceHolder<ElementItem extends GraphElementBase = GraphElementBase>(
-  props: PaperProps<ElementItem>
-) {
+function PaperWithNoDataPlaceHolder<
+  ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
+>(props: PaperProps<ElementItem>) {
   const { style, className, noDataPlaceholder, ...rest } = props;
 
   const hasNoDataPlaceholder = !!noDataPlaceholder;
@@ -274,9 +275,9 @@ function PaperWithNoDataPlaceHolder<ElementItem extends GraphElementBase = Graph
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElementBase>(
-  props: PaperProps<ElementItem>
-) {
+function PaperWithGraphProvider<
+  ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
+>(props: PaperProps<ElementItem>) {
   const hasStore = !!useContext(GraphStoreContext);
   const { children, ...rest } = props;
   const paperContent = (
@@ -304,11 +305,11 @@ function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElem
  * ```tsx
  * import { createElements, InferElement, GraphProvider, Paper } from '@joint/react'
  *
- * const initialElements = createElements([ { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 } ])
+ * const initialElements = createElements([ { id: '1', label: 'Node 1' , x: 100, y: 0, width: 100, height: 50 } ])
  * type BaseElementWithData = InferElement<typeof initialElements>
  *
- * function RenderElement({ data }: BaseElementWithData) {
- *  return <HtmlElement className="node">{data.label}</HtmlElement>
+ * function RenderElement({ label }: BaseElementWithData) {
+ *  return <HtmlElement className="node">{label}</HtmlElement>
  * }
  * function MyApp() {
  *  return <GraphProvider defaultElements={initialElements}>
@@ -320,13 +321,13 @@ function PaperWithGraphProvider<ElementItem extends GraphElementBase = GraphElem
  * Example with `local renderElement component`:
  * ```tsx
   const initialElements = createElements([
-    { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },
+    { id: '1', label: 'Node 1', x: 100, y: 0, width: 100, height: 50 },
   ])
   type BaseElementWithData = InferElement<typeof initialElements>
  
   function MyApp() {
     const renderElement: RenderElement<BaseElementWithData> = useCallback(
-      (element) => <HtmlElement className="node">{element.data.label}</HtmlElement>,
+      (element) => <HtmlElement className="node">{element.label}</HtmlElement>,
       []
     )
  

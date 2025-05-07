@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import {
   createElements,
@@ -16,10 +15,10 @@ import { PAPER_CLASSNAME, SECONDARY } from 'storybook-config/theme';
 import type { dia } from '../../../../../joint-core/types';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
-  { id: '3', data: { label: 'Node 3' }, x: 280, y: 100 },
-  { id: '4', data: { label: 'Node 4' }, x: 0, y: 100 },
+  { id: '1', label: 'Node 1', x: 100, y: 0 },
+  { id: '2', label: 'Node 2', x: 100, y: 200 },
+  { id: '3', label: 'Node 3', x: 280, y: 100 },
+  { id: '4', label: 'Node 4', x: 0, y: 100 },
 ]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
@@ -51,7 +50,7 @@ function getLinkId(id: dia.Cell.ID | null, closeId: dia.Cell.ID | null) {
   return `${id}-${closeId}`;
 }
 
-function ResizableNode({ id, data: { label }, width, height }: Readonly<BaseElementWithData>) {
+function ResizableNode({ id, label, width, height }: Readonly<BaseElementWithData>) {
   const graph = useGraph();
   const nodeRef = useRef<HTMLDivElement>(null);
   const element = graph.getCell(id);

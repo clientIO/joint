@@ -16,8 +16,8 @@ import './code-with-create-links-classname.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
+  { id: '1', label: 'Node 1', x: 100, y: 0 },
+  { id: '2', label: 'Node 2', x: 100, y: 200 },
 ]);
 const initialEdges = createLinks([
   {
@@ -37,7 +37,7 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <HTMLNode className="node">{element.data.label}</HTMLNode>,
+    (element) => <HTMLNode className="node">{element.label}</HTMLNode>,
     []
   );
   return (

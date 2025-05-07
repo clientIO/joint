@@ -18,7 +18,7 @@ Defined in: [joint-react/src/components/port/port-group.tsx:8](https://github.co
 
 > `optional` **angle**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:2983](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2983)
+Defined in: [joint-core/types/joint.d.ts:2996](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2996)
 
 #### Inherited from
 
@@ -38,7 +38,7 @@ Defined in: [joint-react/src/components/port/port-group.tsx:10](https://github.c
 
 > `optional` **compensateRotation**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:2988](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2988)
+Defined in: [joint-core/types/joint.d.ts:3001](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3001)
 
 #### Inherited from
 
@@ -50,7 +50,7 @@ Defined in: [joint-core/types/joint.d.ts:2988](https://github.com/samuelgja/join
 
 > `optional` **dx**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:2981](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2981)
+Defined in: [joint-core/types/joint.d.ts:2994](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2994)
 
 #### Inherited from
 
@@ -62,7 +62,7 @@ Defined in: [joint-core/types/joint.d.ts:2981](https://github.com/samuelgja/join
 
 > `optional` **dy**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:2982](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2982)
+Defined in: [joint-core/types/joint.d.ts:2995](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2995)
 
 #### Inherited from
 
@@ -74,7 +74,7 @@ Defined in: [joint-core/types/joint.d.ts:2982](https://github.com/samuelgja/join
 
 > `optional` **end**: `Position`
 
-Defined in: [joint-core/types/joint.d.ts:2985](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2985)
+Defined in: [joint-core/types/joint.d.ts:2998](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2998)
 
 #### Inherited from
 
@@ -106,7 +106,7 @@ Defined in: [joint-react/src/components/port/port.types.ts:20](https://github.co
 
 > `optional` **start**: `Position`
 
-Defined in: [joint-core/types/joint.d.ts:2984](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2984)
+Defined in: [joint-core/types/joint.d.ts:2997](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2997)
 
 #### Inherited from
 
@@ -118,7 +118,7 @@ Defined in: [joint-core/types/joint.d.ts:2984](https://github.com/samuelgja/join
 
 > `optional` **startAngle**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:2986](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2986)
+Defined in: [joint-core/types/joint.d.ts:2999](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2999)
 
 #### Inherited from
 
@@ -130,7 +130,7 @@ Defined in: [joint-core/types/joint.d.ts:2986](https://github.com/samuelgja/join
 
 > `optional` **step**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:2987](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2987)
+Defined in: [joint-core/types/joint.d.ts:3000](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3000)
 
 #### Inherited from
 
@@ -142,7 +142,7 @@ Defined in: [joint-core/types/joint.d.ts:2987](https://github.com/samuelgja/join
 
 > `optional` **x**: `string` \| `number`
 
-Defined in: [joint-core/types/joint.d.ts:2979](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2979)
+Defined in: [joint-core/types/joint.d.ts:2992](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2992)
 
 #### Inherited from
 
@@ -154,7 +154,7 @@ Defined in: [joint-core/types/joint.d.ts:2979](https://github.com/samuelgja/join
 
 > `optional` **y**: `string` \| `number`
 
-Defined in: [joint-core/types/joint.d.ts:2980](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2980)
+Defined in: [joint-core/types/joint.d.ts:2993](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L2993)
 
 #### Inherited from
 

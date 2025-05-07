@@ -1,6 +1,6 @@
 /* eslint-disable @eslint-react/no-array-index-key */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
+
 import '../index.css';
 import { useCallback, type PropsWithChildren } from 'react';
 import {
@@ -15,13 +15,16 @@ import {
 } from '@joint/react';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
-interface Data {
+type Data = {
+  id: string;
   label: string;
   inputs: string[];
-}
+  x: number;
+  y: number;
+};
 const initialElements = createElements<Data>([
-  { id: '1', data: { label: 'Node 1', inputs: [] }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2', inputs: [] }, x: 500, y: 200 },
+  { id: '1', label: 'Node 1', inputs: [], x: 100, y: 0 },
+  { id: '2', label: 'Node 2', inputs: [], x: 500, y: 200 },
 ]);
 const initialEdges = createLinks([
   {
@@ -43,7 +46,7 @@ function ListElement({
   children,
   width,
   height,
-  data: { inputs },
+  inputs,
 }: PropsWithChildren<BaseElementWithData>) {
   const padding = 10;
   const headerHeight = 50;
@@ -54,11 +57,11 @@ function ListElement({
     element.size(w, h, { async: false });
   }, []);
 
-  const setInputs = useSetElement<BaseElementWithData, 'data'>(id, 'data');
+  const setInputs = useSetElement<BaseElementWithData, 'inputs'>(id, 'inputs');
 
   const addInput = () => {
     setInputs((previous) => {
-      return { ...previous, inputs: [...previous.inputs, ''] };
+      return { ...previous, inputs: [...previous, ''] };
     });
   };
 
@@ -122,7 +125,7 @@ function ListElement({
 }
 function Main() {
   const renderElement = useCallback((element: BaseElementWithData) => {
-    return <ListElement {...element}>{element.data.label}</ListElement>;
+    return <ListElement {...element}>{element.label}</ListElement>;
   }, []);
   return (
     <Paper width="100%" className={PAPER_CLASSNAME} height={500} renderElement={renderElement} />

@@ -16,7 +16,8 @@ import { PAPER_CLASSNAME, PRIMARY } from '../theme';
 const initialElements = createElements([
   {
     id: '1',
-    data: { label: 'Node 1', color: PRIMARY },
+    label: 'Node 1',
+    color: PRIMARY,
     x: 100,
     y: 20,
     width: 150,
@@ -24,7 +25,8 @@ const initialElements = createElements([
   },
   {
     id: '2',
-    data: { label: 'Node 2', color: PRIMARY },
+    label: 'Node 2',
+    color: PRIMARY,
     x: 200,
     y: 250,
     width: 150,
@@ -83,11 +85,7 @@ export function RenderItemDecorator(
 }
 
 function RenderSimpleRectElement(properties: SimpleElement) {
-  const {
-    width,
-    data: { color },
-    height,
-  } = properties;
+  const { width, color, height } = properties;
   return <rect width={width} height={height} fill={color} />;
 }
 

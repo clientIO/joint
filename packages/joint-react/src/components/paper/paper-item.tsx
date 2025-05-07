@@ -1,11 +1,11 @@
 import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { CellWithId } from '../../types/cell.types';
-import type { GraphElement } from '../../types/element-types';
+import type { GraphElementWithAttributes } from '../../types/element-types';
 import typedMemo from '../../utils/typed-memo';
 import { usePaper } from '../../hooks';
 
-export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
+export interface PaperPortalProps<Data extends CellWithId = GraphElementWithAttributes> {
   /**
    * A function that renders the element. It is called every time the element is rendered.
    */
@@ -28,7 +28,9 @@ export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
  * @returns The rendered element inside the portal.
  * @internal
  */
-function Component<Data extends CellWithId = GraphElement>(props: PaperPortalProps<Data>) {
+function Component<Data extends CellWithId = GraphElementWithAttributes>(
+  props: PaperPortalProps<Data>
+) {
   const { renderElement, nodeSvgGElement, ...rest } = props;
   const cell = rest as Data;
   const element = renderElement(cell);

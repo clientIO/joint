@@ -2,8 +2,8 @@ import { dia, shapes } from '@joint/core';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
 import { setElements } from '../utils/cell/set-cells';
-import type { GraphElementBase } from '../types/element-types';
-import type { GraphLink, GraphLinkBase } from '../types/link-types';
+import type { GraphElementWithAttributes } from '../types/element-types';
+import type { GraphLink } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
 import { createStoreData } from './create-store-data';
 import type { CellMap } from '../utils/cell/cell-map';
@@ -34,7 +34,7 @@ export interface StoreOptions {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: Array<dia.Element | GraphElementBase>;
+  readonly defaultElements?: Array<dia.Element | GraphElementWithAttributes>;
 
   /**
    * Initial links to be added to graph
@@ -55,19 +55,19 @@ export interface Store {
   /**
    * Get elements
    */
-  readonly getElements: () => CellMap<GraphElementBase>;
+  readonly getElements: () => CellMap<GraphElementWithAttributes>;
   /**
    * Get element by id
    */
-  readonly getElement: (id: dia.Cell.ID) => GraphElementBase;
+  readonly getElement: (id: dia.Cell.ID) => GraphElementWithAttributes;
   /**
    *  Get links
    */
-  readonly getLinks: () => CellMap<GraphLinkBase>;
+  readonly getLinks: () => CellMap<GraphLink>;
   /**
    * Get link by id
    */
-  readonly getLink: (id: dia.Cell.ID) => GraphLinkBase;
+  readonly getLink: (id: dia.Cell.ID) => GraphLink;
   /**
    *  Remove all listeners and cleanup the graph.
    */

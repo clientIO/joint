@@ -16,7 +16,7 @@ A custom hook that adds a link to the graph.
 
 ### T
 
-`T` *extends* `Link`\<`Attributes`, `ModelSetOptions`\> \| [`GraphLinkBase`](../interfaces/GraphLinkBase.md)\<`string`\>
+`T` *extends* [`GraphLink`](../interfaces/GraphLink.md)\<`string`\> \| `Link`\<`Attributes`, `ModelSetOptions`\>
 
 ## Returns
 

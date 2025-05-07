@@ -16,7 +16,7 @@ A custom hook that adds an element to the graph.
 
 ### T
 
-`T` *extends* `Element`\<`Attributes`, `ModelSetOptions`\> \| [`GraphElementBase`](../interfaces/GraphElementBase.md)\<`string`\>
+`T` *extends* [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\> \| `Element`\<`Attributes`, `ModelSetOptions`\>
 
 ## Returns
 
@@ -38,5 +38,5 @@ A function that adds the element to the graph.
 
 ```ts
 const addElement = useAddElement();
-addElement({ id: '1', data: { label: 'Node 1' } });
+addElement({ id: '1', label: 'Node 1' });
 ```

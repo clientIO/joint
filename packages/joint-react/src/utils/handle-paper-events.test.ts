@@ -13,11 +13,19 @@ describe('handle-paper-events', () => {
   });
 
   const eventTestCases: Array<{
-    type: PaperEventType;
+    type: PaperEventType | string;
     args: unknown[];
     handler: keyof PaperEvents;
     expected: Record<string, unknown>;
   }> = [
+    // --- render ---
+    {
+      type: 'render:done',
+      args: [{}, {}],
+      handler: 'onRenderDone',
+      expected: { stats: {}, opt: {} },
+    },
+    // --- pointer click ---
     {
       type: 'cell:pointerclick',
       args: [{}, {}, 10, 20],
@@ -42,6 +50,7 @@ describe('handle-paper-events', () => {
       handler: 'onBlankPointerClick',
       expected: { event: {}, x: 50, y: 60 },
     },
+    // --- pointer double-click ---
     {
       type: 'cell:pointerdblclick',
       args: [{}, {}, 70, 80],
@@ -66,6 +75,7 @@ describe('handle-paper-events', () => {
       handler: 'onBlankPointerDblClick',
       expected: { event: {}, x: 130, y: 140 },
     },
+    // --- context menu ---
     {
       type: 'cell:contextmenu',
       args: [{}, {}, 150, 160],
@@ -90,36 +100,251 @@ describe('handle-paper-events', () => {
       handler: 'onBlankContextMenu',
       expected: { event: {}, x: 210, y: 220 },
     },
+    // --- pointer down ---
+    {
+      type: 'cell:pointerdown',
+      args: [{}, {}, 1, 2],
+      handler: 'onCellPointerDown',
+      expected: { cellView: {}, event: {}, x: 1, y: 2 },
+    },
+    {
+      type: 'element:pointerdown',
+      args: [{}, {}, 3, 4],
+      handler: 'onElementPointerDown',
+      expected: { elementView: {}, event: {}, x: 3, y: 4 },
+    },
+    {
+      type: 'link:pointerdown',
+      args: [{}, {}, 5, 6],
+      handler: 'onLinkPointerDown',
+      expected: { linkView: {}, event: {}, x: 5, y: 6 },
+    },
+    {
+      type: 'blank:pointerdown',
+      args: [{}, 7, 8],
+      handler: 'onBlankPointerDown',
+      expected: { event: {}, x: 7, y: 8 },
+    },
+    // --- pointer move ---
+    {
+      type: 'cell:pointermove',
+      args: [{}, {}, 9, 10],
+      handler: 'onCellPointerMove',
+      expected: { cellView: {}, event: {}, x: 9, y: 10 },
+    },
+    {
+      type: 'element:pointermove',
+      args: [{}, {}, 11, 12],
+      handler: 'onElementPointerMove',
+      expected: { elementView: {}, event: {}, x: 11, y: 12 },
+    },
+    {
+      type: 'link:pointermove',
+      args: [{}, {}, 13, 14],
+      handler: 'onLinkPointerMove',
+      expected: { linkView: {}, event: {}, x: 13, y: 14 },
+    },
+    {
+      type: 'blank:pointermove',
+      args: [{}, 15, 16],
+      handler: 'onBlankPointerMove',
+      expected: { event: {}, x: 15, y: 16 },
+    },
+    // --- pointer up ---
+    {
+      type: 'cell:pointerup',
+      args: [{}, {}, 17, 18],
+      handler: 'onCellPointerUp',
+      expected: { cellView: {}, event: {}, x: 17, y: 18 },
+    },
+    {
+      type: 'element:pointerup',
+      args: [{}, {}, 19, 20],
+      handler: 'onElementPointerUp',
+      expected: { elementView: {}, event: {}, x: 19, y: 20 },
+    },
+    {
+      type: 'link:pointerup',
+      args: [{}, {}, 21, 22],
+      handler: 'onLinkPointerUp',
+      expected: { linkView: {}, event: {}, x: 21, y: 22 },
+    },
+    {
+      type: 'blank:pointerup',
+      args: [{}, 23, 24],
+      handler: 'onBlankPointerUp',
+      expected: { event: {}, x: 23, y: 24 },
+    },
+    // --- mouse over ---
+    {
+      type: 'cell:mouseover',
+      args: [{}, {}],
+      handler: 'onCellMouseOver',
+      expected: { cellView: {}, event: {} },
+    },
+    {
+      type: 'element:mouseover',
+      args: [{}, {}],
+      handler: 'onElementMouseOver',
+      expected: { elementView: {}, event: {} },
+    },
+    {
+      type: 'link:mouseover',
+      args: [{}, {}],
+      handler: 'onLinkMouseOver',
+      expected: { linkView: {}, event: {} },
+    },
+    {
+      type: 'blank:mouseover',
+      args: [{}],
+      handler: 'onBlankMouseOver',
+      expected: { event: {} },
+    },
+    // --- mouse out ---
+    {
+      type: 'cell:mouseout',
+      args: [{}, {}],
+      handler: 'onCellMouseOut',
+      expected: { cellView: {}, event: {} },
+    },
+    {
+      type: 'element:mouseout',
+      args: [{}, {}],
+      handler: 'onElementMouseOut',
+      expected: { elementView: {}, event: {} },
+    },
+    {
+      type: 'link:mouseout',
+      args: [{}, {}],
+      handler: 'onLinkMouseOut',
+      expected: { linkView: {}, event: {} },
+    },
+    {
+      type: 'blank:mouseout',
+      args: [{}],
+      handler: 'onBlankMouseOut',
+      expected: { event: {} },
+    },
+    // --- mouse enter/leave ---
+    {
+      type: 'cell:mouseenter',
+      args: [{}, {}],
+      handler: 'onCellMouseEnter',
+      expected: { cellView: {}, event: {} },
+    },
+    {
+      type: 'element:mouseenter',
+      args: [{}, {}],
+      handler: 'onElementMouseEnter',
+      expected: { elementView: {}, event: {} },
+    },
+    {
+      type: 'link:mouseenter',
+      args: [{}, {}],
+      handler: 'onLinkMouseEnter',
+      expected: { linkView: {}, event: {} },
+    },
+    {
+      type: 'blank:mouseenter',
+      args: [{}],
+      handler: 'onBlankMouseEnter',
+      expected: { event: {} },
+    },
+    {
+      type: 'cell:mouseleave',
+      args: [{}, {}],
+      handler: 'onCellMouseLeave',
+      expected: { cellView: {}, event: {} },
+    },
+    {
+      type: 'element:mouseleave',
+      args: [{}, {}],
+      handler: 'onElementMouseLeave',
+      expected: { elementView: {}, event: {} },
+    },
+    {
+      type: 'link:mouseleave',
+      args: [{}, {}],
+      handler: 'onLinkMouseLeave',
+      expected: { linkView: {}, event: {} },
+    },
+    {
+      type: 'blank:mouseleave',
+      args: [{}],
+      handler: 'onBlankMouseLeave',
+      expected: { event: {} },
+    },
+    // --- mouse wheel ---
+    {
+      type: 'cell:mousewheel',
+      args: [{}, {}, 1, 2, 3],
+      handler: 'onCellMouseWheel',
+      expected: { cellView: {}, event: {}, x: 1, y: 2, delta: 3 },
+    },
+    {
+      type: 'element:mousewheel',
+      args: [{}, {}, 4, 5, 6],
+      handler: 'onElementMouseWheel',
+      expected: { elementView: {}, event: {}, x: 4, y: 5, delta: 6 },
+    },
+    {
+      type: 'link:mousewheel',
+      args: [{}, {}, 7, 8, 9],
+      handler: 'onLinkMouseWheel',
+      expected: { linkView: {}, event: {}, x: 7, y: 8, delta: 9 },
+    },
+    {
+      type: 'blank:mousewheel',
+      args: [{}, 10, 11, 12],
+      handler: 'onBlankMouseWheel',
+      expected: { event: {}, x: 10, y: 11, delta: 12 },
+    },
+    // --- paper gestures ---
     {
       type: 'paper:pan',
-      args: [{}, 230, 240],
+      args: [{}, 13, 14],
       handler: 'onPan',
-      expected: { event: {}, deltaX: 230, deltaY: 240 },
+      expected: { event: {}, deltaX: 13, deltaY: 14 },
     },
     {
       type: 'paper:pinch',
-      args: [{}, 250, 260, 1.5],
+      args: [{}, 15, 16, 1.5],
       handler: 'onPinch',
-      expected: { event: {}, x: 250, y: 260, scale: 1.5 },
+      expected: { event: {}, x: 15, y: 16, scale: 1.5 },
+    },
+    // --- paper mouse enter/leave ---
+    {
+      type: 'paper:mouseenter',
+      args: [{}],
+      handler: 'onPaperMouseEnter',
+      expected: { event: {} },
     },
     {
+      type: 'paper:mouseleave',
+      args: [{}],
+      handler: 'onPaperMouseLeave',
+      expected: { event: {} },
+    },
+    // --- magnet events ---
+    {
       type: 'element:magnet:pointerclick',
-      args: [{}, {}, {}, 270, 280],
+      args: [{}, {}, {}, 17, 18],
       handler: 'onElementMagnetPointerClick',
-      expected: { elementView: {}, event: {}, magnetNode: {}, x: 270, y: 280 },
+      expected: { elementView: {}, event: {}, magnetNode: {}, x: 17, y: 18 },
     },
     {
       type: 'element:magnet:pointerdblclick',
-      args: [{}, {}, {}, 290, 300],
+      args: [{}, {}, {}, 19, 20],
       handler: 'onElementMagnetPointerDblClick',
-      expected: { elementView: {}, event: {}, magnetNode: {}, x: 290, y: 300 },
+      expected: { elementView: {}, event: {}, magnetNode: {}, x: 19, y: 20 },
     },
     {
       type: 'element:magnet:contextmenu',
-      args: [{}, {}, {}, 310, 320],
+      args: [{}, {}, {}, 21, 22],
       handler: 'onElementMagnetContextMenu',
-      expected: { elementView: {}, event: {}, magnetNode: {}, x: 310, y: 320 },
+      expected: { elementView: {}, event: {}, magnetNode: {}, x: 21, y: 22 },
     },
+    // --- highlight events ---
     {
       type: 'cell:highlight',
       args: [{}, {}, {}],
@@ -138,6 +363,7 @@ describe('handle-paper-events', () => {
       handler: 'onCellHighlightInvalid',
       expected: { cellView: {}, highlighterId: 'highlighterId', highlighter: {} },
     },
+    // --- link connection events ---
     {
       type: 'link:connect',
       args: [{}, {}, {}, {}, {}],
@@ -174,11 +400,43 @@ describe('handle-paper-events', () => {
         arrowhead: {},
       },
     },
+    // --- transform events ---
     {
-      type: 'custom',
-      args: ['customEvent', {}, {}, {}],
+      type: 'translate',
+      args: [1, 2, {}],
+      handler: 'onTranslate',
+      expected: { tx: 1, ty: 2, data: {} },
+    },
+    {
+      type: 'scale',
+      args: [1.1, 2.2, {}],
+      handler: 'onScale',
+      expected: { sx: 1.1, sy: 2.2, data: {} },
+    },
+    {
+      type: 'resize',
+      args: [100, 200, {}],
+      handler: 'onResize',
+      expected: { width: 100, height: 200, data: {} },
+    },
+    {
+      type: 'transform',
+      args: [{}, {}],
+      handler: 'onTransform',
+      expected: { matrix: {}, data: {} },
+    },
+    // --- catch-all custom event ---
+    {
+      type: 'custom:event',
+      args: [{}, {}, {}],
       handler: 'onCustomEvent',
-      expected: { eventName: 'customEvent', args: [{}, {}, {}] },
+      expected: { eventName: 'custom:event', args: [{}, {}, {}] },
+    },
+    {
+      type: 'something:else',
+      args: [1, 2, 3],
+      handler: 'onCustomEvent',
+      expected: { eventName: 'something:else', args: [1, 2, 3] },
     },
   ];
 
@@ -187,7 +445,7 @@ describe('handle-paper-events', () => {
       const mockHandler = jest.fn();
       (mockEvents as any)[handler] = mockHandler;
 
-      handleEvent(type, mockEvents, mockPaper, ...args);
+      handleEvent(type as PaperEventType, mockEvents, mockPaper, ...args);
 
       expect(mockHandler).toHaveBeenCalledWith({ ...expected, paper: mockPaper });
     });

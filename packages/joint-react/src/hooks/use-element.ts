@@ -2,7 +2,7 @@ import { util } from '@joint/core';
 import { useCellId } from './use-cell-id';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import type { GraphElement } from '../types/element-types';
+import type { GraphElementWithAttributes } from '../types/element-types';
 
 /**
  * A hook to access a specific graph element from the Paper context.
@@ -32,8 +32,13 @@ import type { GraphElement } from '../types/element-types';
  * @param isEqual The function used to check equality. @default util.isEqual
  * @returns The selected element based on the current cell id.
  */
-export function useElement<Data = unknown, Element = GraphElement, ReturnedElements = Element>(
-  selector: (item: GraphElement<Data>) => ReturnedElements = (item) => item as ReturnedElements,
+export function useElement<
+  Data = unknown,
+  Element = GraphElementWithAttributes,
+  ReturnedElements = Element,
+>(
+  selector: (item: GraphElementWithAttributes<Data>) => ReturnedElements = (item) =>
+    item as ReturnedElements,
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {
   const id = useCellId();
@@ -41,8 +46,8 @@ export function useElement<Data = unknown, Element = GraphElement, ReturnedEleme
 
   const element = useSyncExternalStoreWithSelector(
     subscribeToElements,
-    () => getElement(id) as GraphElement<Data>,
-    () => getElement(id) as GraphElement<Data>,
+    () => getElement(id) as GraphElementWithAttributes<Data>,
+    () => getElement(id) as GraphElementWithAttributes<Data>,
     selector,
     isEqual
   );

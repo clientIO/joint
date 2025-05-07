@@ -28,54 +28,54 @@ const shape = {
 const initialElements = createElements([
   {
     id: '1',
-    data: { label: 'Node 1' },
+    label: 'Node 1',
     ...shape,
   },
   {
     id: '2',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
   {
     id: '3',
-    data: { label: 'Node 1' },
+    label: 'Node 1',
     ...shape,
   },
   {
     id: '4',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
   {
     id: '5',
-    data: { label: 'Node 1' },
+    label: 'Node 1',
     ...shape,
   },
   {
     id: '6',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
   {
     id: '7',
-    data: { label: 'Node 1' },
+    label: 'Node 1',
     ...shape,
   },
   {
     id: '8',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
   {
     id: '9',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
 ]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RenderedRect({ width, height, data: { label } }: BaseElementWithData) {
+function RenderedRect({ width, height, label }: BaseElementWithData) {
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode>
