@@ -31,5 +31,5 @@ export function createSVGDocument() {
  * @description Creates an SVG element with the given name.
  */
 export function createSVGElement(name) {
-    return svgDocument.createElementNS(ns.svg, name);
+    return document.createElementNS(ns.svg, name);
 }
