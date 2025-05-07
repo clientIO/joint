@@ -10,6 +10,14 @@ export function createIdentityMatrix() {
 }
 
 /**
+ * @returns {SVGTransform}
+ * @description Creates a new SVGTransform object.
+ */
+export function createSVGTransform() {
+    return svgDocument.createSVGTransform();
+}
+
+/**
  * @param {SVGElement} node
  * @returns {SVGMatrix|null}
  * @description Returns the transformation matrix of the given node.
@@ -18,6 +26,24 @@ export function createIdentityMatrix() {
 export function getNodeMatrix(node) {
     const consolidatedTransformation = node.transform.baseVal.consolidate();
     return consolidatedTransformation ? consolidatedTransformation.matrix : null;
+}
+
+/**
+ * @param {SVGElement} node
+ * @param {SVGMatrix} matrix
+ * @param {boolean} override
+ * @description Sets the transformation matrix of the given node.
+ * If `override` is true, it clears the existing transformation matrix.
+ * If `override` is false, it appends the new transformation matrix to the existing one.
+ */
+export function setNodeMatrix(node, matrix, override) {
+    const transform = createSVGTransform();
+    transform.setMatrix(matrix);
+    const transformList = node.transform.baseVal;
+    if (override && transformList.numberOfItems > 0) {
+        transformList.clear();
+    }
+    transformList.appendItem(transform);
 }
 
 /**
@@ -31,7 +57,8 @@ export function getNodeMatrix(node) {
  */
 export function getRelativeTransformation(a, b) {
     // Different SVG elements, no transformation possible
-    if (a.ownerSVGElement !== b.ownerSVGElement) return null;
+    // Note: SVGSVGElement has no `ownerSVGElement`
+    if ((a.ownerSVGElement || a) !== (b.ownerSVGElement || b)) return null;
     // Get the transformation matrix from `a` to `b`.
     const am = b.getScreenCTM();
     if (!am) return null;
@@ -48,7 +75,7 @@ export function getRelativeTransformation(a, b) {
  * A safe way to calculate the transformation matrix between two elements.
  * It does not require the elements to be visible (in the render tree).
  */
-export function getRelativeTransformationTraversal(a, b) {
+export function getRelativeTransformationSafe(a, b) {
     if (a === b) {
         // No transformation needed
         return createIdentityMatrix();
@@ -56,7 +83,7 @@ export function getRelativeTransformationTraversal(a, b) {
     const position = a.compareDocumentPosition(b);
     if (position & Node.DOCUMENT_POSITION_CONTAINED_BY) {
         // `b` is a descendant of `a`
-        return getLinealTransformation(a, a).inverse();
+        return getLinealTransformation(a, b).inverse();
     } else if (position & Node.DOCUMENT_POSITION_CONTAINS) {
         // `a` is a descendant of `b`
         return getLinealTransformation(b, a);
@@ -68,9 +95,9 @@ export function getRelativeTransformationTraversal(a, b) {
         return null;
     }
 
-    const mac = getRelativeTransformationTraversal(a, c);
-    const mcb = getRelativeTransformationTraversal(c, b);
-    return mac.multiply(mcb);
+    const mca = getLinealTransformation(c, a);
+    const mcb = getLinealTransformation(c, b);
+    return mcb.inverse().multiply(mca);
 }
 
 /**
@@ -80,14 +107,14 @@ export function getRelativeTransformationTraversal(a, b) {
  * @description Finds the transformation matrix between the `ancestor` and `descendant`.
  */
 function getLinealTransformation(ancestor, descendant) {
-    let m = createIdentityMatrix();
+    const transformations = [];
     let n = descendant;
     while (n && n.nodeType === Node.ELEMENT_NODE && n !== ancestor) {
         const nm = getNodeMatrix(n);
         if (nm) {
-            m = m.multiply(nm);
+            transformations.unshift(nm);
         }
         n = n.parentNode;
     }
-    return m;
+    return transformations.reduce((m, t) => m.multiply(t), createIdentityMatrix());
 }
