@@ -7,7 +7,7 @@
 import * as g from '../g/index.mjs';
 import * as ns from './namespace.mjs';
 import { svgDocument, SVGVersion, createSVGDocument, createSVGElement } from './create.mjs';
-import { createIdentityMatrix, getRelativeTransformation, getRelativeTransformationTraversal } from './transform.mjs';
+import { createIdentityMatrix, getNodeMatrix, getRelativeTransformation, getRelativeTransformationSafe, setNodeMatrix } from './transform.mjs';
 import { getCommonAncestor } from './traverse.mjs';
 
 const V = (function() {
@@ -125,7 +125,7 @@ const V = (function() {
         if (V.isSVGGraphicsElement(targetNode) && V.isSVGGraphicsElement(node)) {
             if (opt && opt.safe) {
                 // Use the traversal method to get the transformation matrix.
-                m = getRelativeTransformationTraversal(node, targetNode);
+                m = getRelativeTransformationSafe(node, targetNode);
             } else {
                 m = getRelativeTransformation(node, targetNode);
             }
@@ -139,18 +139,22 @@ const V = (function() {
      * @returns {Vectorizer|SVGMatrix} Setter / Getter
      */
     VPrototype.transform = function(matrix, opt) {
+        const node = this.node;
 
-        var node = this.node;
+        // Getter
         if (V.isUndefined(matrix)) {
             return getNodeMatrix(node) || createIdentityMatrix();
         }
 
-        if (opt && opt.absolute) {
-            return this.attr('transform', V.matrixToTransformString(matrix));
-        }
+        // Setter
+        setNodeMatrix(
+            node,
+            // Support partial matrices. e.g `{ a: 2, d: 2 }`
+            (matrix instanceof SVGMatrix) ? matrix : V.createSVGMatrix(matrix),
+            // Override the existing transformation matrix.
+            opt && opt.absolute
+        );
 
-        var svgTransform = V.createSVGTransform(matrix);
-        node.transform.baseVal.appendItem(svgTransform);
         return this;
     };
 
