@@ -358,7 +358,7 @@ exports[`Highlighters/Mask "WithPadding" 1`] = `
 }
 `;
 
-exports[`Highlighters/Mask "WithSvgProps" 1`] = `
+exports[`Highlighters/Mask "WithSVGProps" 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>

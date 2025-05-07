@@ -38,7 +38,7 @@ function RenderRectElement({ width, height }: SimpleElement) {
   return <rect rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
 }
 
-function RenderHtmlElement({ width, height }: SimpleElement) {
+function RenderHTMLElement({ width, height }: SimpleElement) {
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode>
@@ -69,10 +69,10 @@ export const WithRectElement: Story = {
   },
 };
 
-export const WithHtmlElement: Story = {
+export const WithHTMLElement: Story = {
   args: {
     noDataPlaceholder: 'No data',
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
     width: '100%',
     className: PAPER_CLASSNAME,
   },
@@ -83,7 +83,7 @@ export const WithGrid: Story = {
     drawGrid: true,
     grid: { color: 'red', size: 10 },
     gridSize: 10,
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
     width: '100%',
     className: PAPER_CLASSNAME,
   },
@@ -92,7 +92,7 @@ export const WithGrid: Story = {
 export const WithScaleDown: Story = {
   args: {
     scale: 0.7,
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
     width: '100%',
     className: PAPER_CLASSNAME,
   },
@@ -100,7 +100,7 @@ export const WithScaleDown: Story = {
 
 export const WithAutoFitContent: Story = {
   args: {
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
     width: '100%',
     className: PAPER_CLASSNAME,
   },
@@ -108,7 +108,7 @@ export const WithAutoFitContent: Story = {
 
 export const WithEvent: Story = {
   args: {
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
     onLinkMouseenter: action('onLinkMouseenter'),
     onCellMouseenter: action('onCellMouseenter'),
     onBlankContextmenu: action('onBlankContextmenu'),
@@ -160,7 +160,7 @@ const toolsView = new dia.ToolsView({
 
 export const WithLinkTools: Story = {
   args: {
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
     onLinkMouseEnter: ({ linkView }) => {
       linkView.addTools(toolsView);
     },
@@ -174,7 +174,7 @@ export const WithLinkTools: Story = {
 
 export const WithCustomEvent: Story = {
   args: {
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
     onElementPointerClick: ({ paper }) => {
       paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
     },

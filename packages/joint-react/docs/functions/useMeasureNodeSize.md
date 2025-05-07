@@ -6,7 +6,7 @@
 
 # Function: useMeasureNodeSize()
 
-> **useMeasureNodeSize**\<`AnyHtmlOrSvgElement`\>(`elementRef`, `options`?): `void`
+> **useMeasureNodeSize**\<`AnyHTMLOrSVGElement`\>(`elementRef`, `options`?): `void`
 
 Defined in: [joint-react/src/hooks/use-measure-node-size.tsx:32](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-measure-node-size.tsx#L32)
 
@@ -15,15 +15,15 @@ It uses the `createElementSizeObserver` utility to observe size changes.
 
 ## Type Parameters
 
-### AnyHtmlOrSvgElement
+### AnyHTMLOrSVGElement
 
-`AnyHtmlOrSvgElement` *extends* [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement) \| [`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)
+`AnyHTMLOrSVGElement` *extends* [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement) \| [`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)
 
 ## Parameters
 
 ### elementRef
 
-`RefObject`\<`null` \| `AnyHtmlOrSvgElement`\>
+`RefObject`\<`null` \| `AnyHTMLOrSVGElement`\>
 
 A reference to the HTML or SVG element to measure.
 

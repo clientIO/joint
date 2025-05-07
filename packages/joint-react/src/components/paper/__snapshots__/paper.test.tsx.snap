@@ -796,7 +796,7 @@ exports[`Paper "WithGrid" 1`] = `
 }
 `;
 
-exports[`Paper "WithHtmlElement" 1`] = `
+exports[`Paper "WithHTMLElement" 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>

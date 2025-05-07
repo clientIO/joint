@@ -3204,7 +3204,7 @@ Defined in: [joint-react/src/components/paper/paper.tsx:60](https://github.com/s
 A function that renders the element.
 
 Note: Jointjs works by default with SVG's so by default renderElement is append inside the SVGElement node.
-To use HTML elements, you need to use the `HtmlNode` component or `foreignObject` element.
+To use HTML elements, you need to use the `HTMLNode` component or `foreignObject` element.
 
 This is called when the data from `elementSelector` changes.
 
@@ -3214,7 +3214,7 @@ Example with `global component`:
 ```tsx
 type BaseElementWithData = InferElement<typeof initialElements>
 function RenderElement({ label }: BaseElementWithData) {
- return <HtmlElement className="node">{label}</HtmlElement>
+ return <HTMLElement className="node">{label}</HTMLElement>
 }
 ```
 
@@ -3223,7 +3223,7 @@ Example with `local component`:
 
 type BaseElementWithData = InferElement<typeof initialElements>
 const renderElement: RenderElement<BaseElementWithData> = useCallback(
-   (element) => <HtmlElement className="node">{element.label}</HtmlElement>,
+   (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
    []
 )
 ```

@@ -29,8 +29,8 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * @param elementRef - A reference to the HTML or SVG element to measure.
  * @param options - Options for measuring the node size.
  */
-export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVGElement>(
-  elementRef: RefObject<AnyHtmlOrSvgElement | null>,
+export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVGElement>(
+  elementRef: RefObject<AnyHTMLOrSVGElement | null>,
   options?: MeasureNodeOptions
 ) {
   const { setSize } = options ?? EMPTY_OBJECT;

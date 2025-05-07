@@ -60,4 +60,4 @@ function Component(_: PropsWithChildren, ref: Ref<HTMLDivElement>) {
   return createPortal(element, paper.el);
 }
 
-export const PaperHtmlRendererContainer = memo(forwardRef(Component));
+export const PaperHTMLRendererContainer = memo(forwardRef(Component));

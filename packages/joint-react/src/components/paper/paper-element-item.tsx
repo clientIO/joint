@@ -28,7 +28,7 @@ export interface PaperPortalProps<Data extends CellWithId = GraphElement> {
  * @returns The rendered element inside the portal.
  * @internal
  */
-function SvgRendererComponent<Data extends CellWithId = GraphElement>(
+function SVGElementItemComponent<Data extends CellWithId = GraphElement>(
   props: PaperPortalProps<Data>
 ) {
   const { renderElement, portalElement, ...rest } = props;
@@ -41,7 +41,7 @@ function SvgRendererComponent<Data extends CellWithId = GraphElement>(
   return createPortal(element, portalElement);
 }
 
-export const SvgRenderer = typedMemo(SvgRendererComponent);
+export const SVGElementItem = typedMemo(SVGElementItemComponent);
 
 /**
  * Helper paper render component wrapped in a portal to render HTMLElement.
@@ -55,7 +55,7 @@ export const SvgRenderer = typedMemo(SvgRendererComponent);
  * @returns The rendered element inside the portal.
  * @internal
  */
-function HTMLRendererComponent<Data extends CellWithId = GraphElement>(
+function HTMLElementItemComponent<Data extends CellWithId = GraphElement>(
   props: PaperPortalProps<Data>
 ) {
   const { renderElement, portalElement, ...rest } = props;
@@ -88,4 +88,4 @@ function HTMLRendererComponent<Data extends CellWithId = GraphElement>(
   return createPortal(container, portalElement);
 }
 
-export const HTMLRenderer = typedMemo(HTMLRendererComponent);
+export const HTMLElementItem = typedMemo(HTMLElementItemComponent);
