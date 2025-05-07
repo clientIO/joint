@@ -47,11 +47,8 @@
 
 ## Graph
 
-- [GraphElement](interfaces/GraphElement.md)
-- [GraphElementBase](interfaces/GraphElementBase.md)
-- [GraphElementItem](interfaces/GraphElementItem.md)
+- [GraphElementWithAttributes](interfaces/GraphElementWithAttributes.md)
 - [GraphLink](interfaces/GraphLink.md)
-- [GraphLinkBase](interfaces/GraphLinkBase.md)
 
 ## Hooks
 ```tsx
@@ -67,6 +64,7 @@ const paper = usePaper();
 - [CellBase](interfaces/CellBase.md)
 - [CellWithId](interfaces/CellWithId.md)
 - [CustomHighlighterProps](interfaces/CustomHighlighterProps.md)
+- [GraphElement](interfaces/GraphElement.md)
 - [GraphProps](interfaces/GraphProps.md)
 - [MaskHighlighterProps](interfaces/MaskHighlighterProps.md)
 - [MeasuredNodeProps](interfaces/MeasuredNodeProps.md)
@@ -79,6 +77,7 @@ const paper = usePaper();
 - [PortGroupProps](interfaces/PortGroupProps.md)
 - [PortProps](interfaces/PortProps.md)
 - [ReactElementAttributes](interfaces/ReactElementAttributes.md)
+- [StandardShapesTypeMapper](interfaces/StandardShapesTypeMapper.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
 - [TextNodeProps](interfaces/TextNodeProps.md)
 
