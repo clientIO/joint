@@ -1,10 +1,10 @@
 import type { dia } from '@joint/core';
-import type { GraphElementBase } from '../types/element-types';
+import type { GraphElementWithAttributes } from '../types/element-types';
 import { useGraph } from './use-graph';
 import { useCallback } from 'react';
 import { processElement } from '../utils/cell/set-cells';
 
-type SetElement<T extends dia.Element | GraphElementBase> = Omit<
+type SetElement<T extends dia.Element | GraphElementWithAttributes> = Omit<
   Partial<T> & { id: dia.Cell.ID },
   'isElement' | 'isLink'
 >;
@@ -16,10 +16,10 @@ type SetElement<T extends dia.Element | GraphElementBase> = Omit<
  * @example
  * ```ts
  * const addElement = useAddElement();
- * addElement({ id: '1', data: { label: 'Node 1' } });
+ * addElement({ id: '1', label: 'Node 1' });
  * ```
  */
-export function useAddElement<T extends dia.Element | GraphElementBase>() {
+export function useAddElement<T extends dia.Element | GraphElementWithAttributes>() {
   const graph = useGraph();
   return useCallback(
     (element: SetElement<T>) => {

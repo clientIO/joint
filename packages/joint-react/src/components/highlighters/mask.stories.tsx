@@ -4,6 +4,8 @@ import { Mask } from './mask';
 import { PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { forwardRef, type PropsWithChildren } from 'react';
+import { useElement } from '../../hooks';
 
 const API_URL = getAPILink('Highlighter/variables/Mask', 'namespaces');
 
@@ -25,18 +27,25 @@ Mask is a component that creates a mask around the children. It is used to highl
   }),
 };
 
+// we need to use forwardRef to pass the ref to the rect element, so highlighter can use it
+function RectRenderComponent(_: PropsWithChildren, ref: React.Ref<SVGRectElement>) {
+  const { width, height } = useElement();
+  return <rect ref={ref} rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
+}
+const RectRender = forwardRef(RectRenderComponent);
+
 export default meta;
 
 export const Default = makeStory<Story>({
   args: {
     stroke: SECONDARY,
-    children: <rect rx={10} ry={10} width={100} height={50} fill={PRIMARY} />,
+    children: <RectRender />,
   },
 
   apiURL: API_URL,
   description: 'Default mask highlighter with rectangle children.',
   code: `<Highlighter.Mask>
-  <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />
+  <rect rx={10} ry={10} width={width} height={height} fill={"blue"} />
 </Highlighter.Mask>`,
 });
 
@@ -44,13 +53,13 @@ export const WithPadding = makeStory<Story>({
   args: {
     padding: 10,
     stroke: SECONDARY,
-    children: <rect rx={10} ry={10} width={100} height={50} fill={PRIMARY} />,
+    children: <RectRender />,
   },
 
   apiURL: API_URL,
   description: 'Mask highlighter with padding.',
   code: `<Highlighter.Mask padding={10}>
-  <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />
+  <rect rx={10} ry={10} width={width} height={height} fill={"blue"} />
 </Highlighter.Mask>`,
 });
 
@@ -60,12 +69,12 @@ export const WithSvgProps = makeStory<Story>({
     stroke: SECONDARY,
     strokeWidth: 5,
     strokeLinejoin: 'bevel',
-    children: <rect rx={10} ry={10} width={100} height={50} fill={PRIMARY} />,
+    children: <RectRender />,
   },
 
   apiURL: API_URL,
   description: 'Mask highlighter with SVG Element props.',
   code: `<Highlighter.Mask padding={10} stroke={SECONDARY} strokeWidth={5} strokeLinejoin="bevel">
-  <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />
+  <rect rx={10} ry={10}  width={width} height={height}fill={"blue"} />
 </Highlighter.Mask>`,
 });

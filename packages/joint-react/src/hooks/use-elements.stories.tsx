@@ -5,7 +5,7 @@ import type { Meta } from '@storybook/react/*';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
 import { Paper } from '../components/paper/paper';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
@@ -48,6 +48,8 @@ export const Default = makeStory<Story>({
       <div>
         <DataRenderer data={result} name="All Elements" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
@@ -73,6 +75,8 @@ export const WithSelectedJustIds = makeStory<Story>({
       <span>
         <DataRenderer data={result} name="Element IDs" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
@@ -98,6 +102,8 @@ export const WithGetJustSize = makeStory<Story>({
       <div>
         <DataRenderer data={result} name="Size of Elements" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
@@ -129,6 +135,8 @@ export const WithJustPosition = makeStory<Story>({
       <div>
         <DataRenderer data={result} name="Position" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
@@ -163,6 +171,8 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
       <div>
         <DataRenderer data={result} name="Position" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
@@ -195,6 +205,8 @@ export const WithAdditionalData = makeStory<Story>({
       <div>
         <DataRenderer data={result} name="Element with new data" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}

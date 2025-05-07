@@ -9,24 +9,28 @@ import {
   Port,
   type InferElement,
 } from '@joint/react';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
+import { util } from '@joint/core';
 import { useCallback, useState } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
-interface Data {
+type Data = {
+  id: string;
   title: string;
   description: string;
-  type: 'user-action' | 'entity' | 'confirm' | 'message';
-}
+  nodeType: 'user-action' | 'entity' | 'confirm' | 'message';
+  x: number;
+  y: number;
+};
 
 const nodes = createElements<Data>([
   {
     id: '1',
-    data: {
-      title: 'User Action',
-      description: 'Transfer funds',
-      type: 'user-action',
-    },
+
+    title: 'User Action',
+    description: 'Transfer funds',
+    nodeType: 'user-action',
+
     x: 50,
     y: 50,
     attrs: {
@@ -37,11 +41,11 @@ const nodes = createElements<Data>([
   },
   {
     id: '2',
-    data: {
-      title: 'Entity',
-      description: 'Transfer funds',
-      type: 'entity',
-    },
+
+    title: 'Entity',
+    description: 'Transfer funds',
+    nodeType: 'entity',
+
     x: 120,
     y: 200,
     attrs: {
@@ -52,11 +56,11 @@ const nodes = createElements<Data>([
   },
   {
     id: '3',
-    data: {
-      title: 'User Action',
-      description: 'Get account balance',
-      type: 'user-action',
-    },
+
+    title: 'User Action',
+    description: 'Get account balance',
+    nodeType: 'user-action',
+
     attrs: {
       root: {
         magnet: false,
@@ -118,9 +122,9 @@ function PortItem({ id, label, onRemove, x }: Readonly<PortProps>) {
     </Port.Item>
   );
 }
-function RenderElement({ data: { title, description, type } }: NodeType) {
+function RenderElement({ title, description, nodeType }: NodeType) {
   let icon: string;
-  switch (type) {
+  switch (nodeType) {
     case 'user-action': {
       icon = 'fas fa-user';
       break;
@@ -194,8 +198,7 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
           setPorts((previous) => [
             ...previous,
             {
-              // eslint-disable-next-line sonarjs/pseudo-random
-              id: `${Math.random()}`,
+              id: util.uuid(),
               label: `Port ${ports.length + 1}`,
             },
           ]);
@@ -220,13 +223,19 @@ function Main() {
       height={670}
       width={900}
       renderElement={RenderElement}
-      scrollWhileDragging
-      sorting={dia.Paper.sorting.APPROX}
-      snapLabels
       clickThreshold={10}
+      magnetThreshold={'onleave'}
       interactive={{ linkMove: false }}
+      linkPinning={false}
+      snapLinks={{ radius: 10 }}
       validateMagnet={(_cellView, magnet) => {
         return magnet.getAttribute('magnet') !== 'passive';
+      }}
+      validateConnection={(cellViewS, magnetS, cellViewT, magnetT) => {
+        if (cellViewS === cellViewT) return false;
+        if (cellViewS.model.isLink() || cellViewT.model.isLink()) return false;
+        if (cellViewS.findAttribute('port-group', magnetS) === 'port-in-group') return false;
+        return cellViewT.findAttribute('port-group', magnetT) !== 'port-out-group';
       }}
       defaultConnectionPoint={{
         name: 'boundary',
@@ -235,7 +244,10 @@ function Main() {
           extrapolate: false,
         },
       }}
-      defaultRouter={{ name: 'rightAngle', args: { margin: 20 } }}
+      defaultRouter={{
+        name: 'rightAngle',
+        args: { margin: 20 },
+      }}
       defaultConnector={{
         name: 'straight',
         args: { cornerType: 'line', cornerPreserveAspectRatio: true },

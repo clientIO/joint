@@ -6,14 +6,13 @@ import {
   createElements,
   createLinks,
   GraphProvider,
-  MeasuredNode,
   Paper,
   jsx,
   type InferElement,
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
-import { PRIMARY } from 'storybook-config/theme';
+import { PRIMARY, BG, SECONDARY, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialEdges = createLinks([
   {
@@ -30,56 +29,77 @@ const initialEdges = createLinks([
 ]);
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
+  { id: '1', label: 'Node 1', x: 100, y: 10, width: 120, height: 30 },
+  { id: '2', label: 'Node 2', x: 100, y: 200, width: 120, height: 30 },
 ]);
 
 // 1) creating link tools
-const verticesTool = new linkTools.Vertices();
-const segmentsTool = new linkTools.Segments();
-const boundaryTool = new linkTools.Boundary();
+const verticesTool = new linkTools.Vertices({
+  handleClass: linkTools.Vertices.VertexHandle.extend({
+    style: {
+      fill: BG,
+      stroke: SECONDARY,
+      strokeWidth: 2,
+    },
+  }),
+});
+
+const boundaryTool = new linkTools.Boundary({
+  style: { stroke: '#999' },
+});
 // 2) create custom link tool
 
 const infoButton = new linkTools.Button({
   // using jsx utility by joint-jsx, convert jsx to markup
   markup: jsx(
     <>
-      <circle r={7} fill="#001DFF" cursor="pointer" />
+      <circle r="8" fill={BG} stroke={PRIMARY} strokeWidth="2" cursor="pointer" />
       <path
-        d="M -2 4 2 4 M 0 3 0 0 M -2 -1 1 -1 M -1 -4 1 -4"
+        d="M -5 0 L 5 0 M 0 -5 L 0 5"
         fill="none"
-        stroke="#FFFFFF"
-        strokeWidth={2}
+        stroke={SECONDARY}
+        strokeWidth="2"
         pointerEvents="none"
       />
     </>
   ),
   distance: 20,
-  offset: 0,
+  action: () => {
+    alert('Info button clicked');
+  },
 });
 
 // 3) creating a tools view
 const toolsView = new dia.ToolsView({
-  name: 'basic-tools',
-  tools: [infoButton, verticesTool, segmentsTool, boundaryTool],
+  tools: [boundaryTool, verticesTool, infoButton],
 });
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RenderedRect() {
+function RectElement({ width, height }: BaseElementWithData) {
   return (
-    <MeasuredNode>
-      <rect rx={10} ry={10} width={150} height={35} fill={PRIMARY} />
-    </MeasuredNode>
+    <rect
+      rx={5}
+      ry={5}
+      width={width}
+      height={height}
+      stroke={PRIMARY}
+      strokeWidth="2"
+      fill="transparent"
+    />
   );
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(() => <RenderedRect />, []);
+  const renderElement: RenderElement<BaseElementWithData> = useCallback(
+    (props) => <RectElement {...props} />,
+    []
+  );
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
       <Paper
-        width={400}
+        width="100%"
+        className={PAPER_CLASSNAME}
         height={280}
         renderElement={renderElement}
         // add listeners when show and hide tools

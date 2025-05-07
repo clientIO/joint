@@ -4,6 +4,8 @@ import { Opacity } from './opacity';
 import { PRIMARY } from 'storybook-config/theme';
 import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
+import { forwardRef, type PropsWithChildren } from 'react';
+import { useElement } from '../../hooks';
 
 const API_URL = getAPILink('Highlighter/variables/Opacity', 'namespaces');
 
@@ -25,28 +27,22 @@ Opacity is a component that changes the opacity of the children. It is used to h
   }),
 };
 
+// we need to use forwardRef to pass the ref to the rect element, so highlighter can use it
+function RectRenderComponent(_: PropsWithChildren, ref: React.Ref<SVGRectElement>) {
+  const { width, height } = useElement();
+  return <rect ref={ref} rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
+}
+const RectRender = forwardRef(RectRenderComponent);
 export default meta;
 
 export const Default = makeStory<Story>({
   args: {
-    children: <rect rx={10} ry={10} width={100} height={50} fill={PRIMARY} />,
+    alphaValue: 0.5,
+    children: <RectRender />,
   },
 
   apiURL: API_URL,
   description: 'Default opacity highlighter with rectangle children.',
-  code: `<Highlighter.Opacity>
-  <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />
-</Highlighter.Opacity>`,
-});
-
-export const WithAlphaValue = makeStory<Story>({
-  args: {
-    alphaValue: 0.5,
-    children: <rect rx={10} ry={10} width={100} height={50} fill={PRIMARY} />,
-  },
-
-  apiURL: API_URL,
-  description: 'Opacity highlighter with alpha value.',
   code: `<Highlighter.Opacity alphaValue={0.5}>
   <rect rx={10} ry={10} width={100} height={50} fill={"blue"} />
 </Highlighter.Opacity>`,

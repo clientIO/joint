@@ -9,10 +9,10 @@ import type { SimpleElement } from '../../.storybook/decorators/with-simple-data
 import { HTMLNode, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import '../stories/examples/index.css';
 import { Paper } from '../components';
+import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const API_URL = getAPILink('useAddElement');
-const BUTTON_CLASSNAME =
-  'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2 text-sm';
+
 export type Story = StoryObj<typeof Hook>;
 
 const meta: Meta<typeof Hook> = {
@@ -24,7 +24,13 @@ const meta: Meta<typeof Hook> = {
     return (
       <div className="flex flex-row">
         <div style={{ width: '100%', height: 450 }}>
-          <Paper width={'100%'} height={450} renderElement={Hook} linkPinning={false} />
+          <Paper
+            className={PAPER_CLASSNAME}
+            width={'100%'}
+            height={450}
+            renderElement={Hook}
+            linkPinning={false}
+          />
         </div>
         <div>
           <button
@@ -33,7 +39,8 @@ const meta: Meta<typeof Hook> = {
             onClick={() =>
               addElement({
                 id: '10',
-                data: { label: 'New node added', color: 'red' },
+                label: 'New node added',
+                color: 'red',
                 x: 300,
                 y: 100,
               })
@@ -52,14 +59,14 @@ const meta: Meta<typeof Hook> = {
 
 function Component() {
   const addElement = useAddElement();
-  return <button onClick={() => addElement({ id: '1', data: { label: 'Node 1' } })}>Add Element</button>;
+  return <button onClick={() => addElement({ id: '1', label: 'Node 1' })}>Add Element</button>;
 }`,
   }),
 };
 
 export default meta;
 
-function Hook({ data: { label } }: Readonly<{ id: string; data: { label: string } }>) {
+function Hook({ label }: SimpleElement) {
   return <HTMLNode className="node">{label}</HTMLNode>;
 }
 
@@ -73,10 +80,10 @@ function Hook() {
 
   return (
     <div>
-      <button onClick={() => addElement({ id: '1', data: { label: 'Node 1' } })}>
+      <button onClick={() => addElement({ id: '1', label: 'Node 1' })}>
         Add Node 1
       </button>
-      <button onClick={() => addElement({ id: '2', data: { label: 'Node 2' } })}>
+      <button onClick={() => addElement({ id: '2', label: 'Node 2' })}>
         Add Node 2
       </button>
     </div>

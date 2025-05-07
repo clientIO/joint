@@ -4,9 +4,9 @@
 
 [@joint/react](../README.md) / GraphLink
 
-# Interface: GraphLink
+# Interface: GraphLink\<Type\>
 
-Defined in: [joint-react/src/types/link-types.ts:55](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L55)
+Defined in: [joint-react/src/types/link-types.ts:16](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L16)
 
 Base interface for graph link.
 It's a subset of `dia.Link` with some additional properties.
@@ -18,7 +18,13 @@ It's a subset of `dia.Link` with some additional properties.
 
 ## Extends
 
-- [`GraphLinkBase`](GraphLinkBase.md)
+- `EndJSON`.[`Record`](https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type)\<`string`, `unknown`\>
+
+## Type Parameters
+
+### Type
+
+`Type` *extends* [`StandardLinkShapesType`](../type-aliases/StandardLinkShapesType.md) \| `string` = `string`
 
 ## Indexable
 
@@ -30,25 +36,21 @@ It's a subset of `dia.Link` with some additional properties.
 
 > `optional` **anchor**: `AnchorJSON`
 
-Defined in: [joint-core/types/joint.d.ts:712](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L712)
+Defined in: [joint-core/types/joint.d.ts:725](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L725)
 
 #### Inherited from
 
-[`GraphLinkBase`](GraphLinkBase.md).[`anchor`](GraphLinkBase.md#anchor)
+`dia.Link.EndJSON.anchor`
 
 ***
 
 ### attrs?
 
-> `readonly` `optional` **attrs**: `unknown`
+> `readonly` `optional` **attrs**: `Type` *extends* keyof `StandardLinkShapesTypeMapper` ? `StandardLinkShapesTypeMapper`\[`Type`\<`Type`\>\] : `unknown`
 
 Defined in: [joint-react/src/types/link-types.ts:51](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L51)
 
 Attributes of the element.
-
-#### Inherited from
-
-[`GraphLinkBase`](GraphLinkBase.md).[`attrs`](GraphLinkBase.md#attrs)
 
 ***
 
@@ -56,11 +58,11 @@ Attributes of the element.
 
 > `optional` **connectionPoint**: `ConnectionPointJSON`
 
-Defined in: [joint-core/types/joint.d.ts:713](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L713)
+Defined in: [joint-core/types/joint.d.ts:726](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L726)
 
 #### Inherited from
 
-[`GraphLinkBase`](GraphLinkBase.md).[`connectionPoint`](GraphLinkBase.md#connectionpoint)
+`dia.Link.EndJSON.connectionPoint`
 
 ***
 
@@ -72,10 +74,6 @@ Defined in: [joint-react/src/types/link-types.ts:46](https://github.com/samuelgj
 
 Optional link attrs.
 
-#### Inherited from
-
-[`GraphLinkBase`](GraphLinkBase.md).[`defaultLabel`](GraphLinkBase.md#defaultlabel)
-
 ***
 
 ### id
@@ -86,29 +84,9 @@ Defined in: [joint-react/src/types/link-types.ts:22](https://github.com/samuelgj
 
 Unique identifier of the link.
 
-#### Inherited from
+#### Overrides
 
-[`GraphLinkBase`](GraphLinkBase.md).[`id`](GraphLinkBase.md#id)
-
-***
-
-### isElement
-
-> `readonly` **isElement**: `false`
-
-Defined in: [joint-react/src/types/link-types.ts:59](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L59)
-
-Flag to distinguish between elements and links.
-
-***
-
-### isLink
-
-> `readonly` **isLink**: `true`
-
-Defined in: [joint-react/src/types/link-types.ts:63](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L63)
-
-Flag to distinguish between elements and links.
+`dia.Link.EndJSON.id`
 
 ***
 
@@ -116,11 +94,11 @@ Flag to distinguish between elements and links.
 
 > `optional` **magnet**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:709](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L709)
+Defined in: [joint-core/types/joint.d.ts:722](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L722)
 
 #### Inherited from
 
-[`GraphLinkBase`](GraphLinkBase.md).[`magnet`](GraphLinkBase.md#magnet)
+`dia.Link.EndJSON.magnet`
 
 ***
 
@@ -132,21 +110,17 @@ Defined in: [joint-react/src/types/link-types.ts:42](https://github.com/samuelgj
 
 Optional link markup.
 
-#### Inherited from
-
-[`GraphLinkBase`](GraphLinkBase.md).[`markup`](GraphLinkBase.md#markup)
-
 ***
 
 ### port?
 
 > `optional` **port**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:711](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L711)
+Defined in: [joint-core/types/joint.d.ts:724](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L724)
 
 #### Inherited from
 
-[`GraphLinkBase`](GraphLinkBase.md).[`port`](GraphLinkBase.md#port)
+`dia.Link.EndJSON.port`
 
 ***
 
@@ -154,11 +128,11 @@ Defined in: [joint-core/types/joint.d.ts:711](https://github.com/samuelgja/joint
 
 > `optional` **priority**: `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:714](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L714)
+Defined in: [joint-core/types/joint.d.ts:727](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L727)
 
 #### Inherited from
 
-[`GraphLinkBase`](GraphLinkBase.md).[`priority`](GraphLinkBase.md#priority)
+`dia.Link.EndJSON.priority`
 
 ***
 
@@ -166,11 +140,11 @@ Defined in: [joint-core/types/joint.d.ts:714](https://github.com/samuelgja/joint
 
 > `optional` **selector**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:710](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L710)
+Defined in: [joint-core/types/joint.d.ts:723](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L723)
 
 #### Inherited from
 
-[`GraphLinkBase`](GraphLinkBase.md).[`selector`](GraphLinkBase.md#selector)
+`dia.Link.EndJSON.selector`
 
 ***
 
@@ -182,10 +156,6 @@ Defined in: [joint-react/src/types/link-types.ts:26](https://github.com/samuelgj
 
 Source element id.
 
-#### Inherited from
-
-[`GraphLinkBase`](GraphLinkBase.md).[`source`](GraphLinkBase.md#source)
-
 ***
 
 ### target
@@ -196,23 +166,15 @@ Defined in: [joint-react/src/types/link-types.ts:30](https://github.com/samuelgj
 
 Target element id.
 
-#### Inherited from
-
-[`GraphLinkBase`](GraphLinkBase.md).[`target`](GraphLinkBase.md#target)
-
 ***
 
 ### type?
 
-> `readonly` `optional` **type**: `string`
+> `readonly` `optional` **type**: `Type`
 
 Defined in: [joint-react/src/types/link-types.ts:34](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L34)
 
 Optional link type.
-
-#### Inherited from
-
-[`GraphLinkBase`](GraphLinkBase.md).[`type`](GraphLinkBase.md#type-1)
 
 ***
 
@@ -220,11 +182,11 @@ Optional link type.
 
 > `optional` **x**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:719](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L719)
+Defined in: [joint-core/types/joint.d.ts:732](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L732)
 
 #### Inherited from
 
-[`GraphLinkBase`](GraphLinkBase.md).[`x`](GraphLinkBase.md#x)
+`dia.Link.EndJSON.x`
 
 ***
 
@@ -232,11 +194,11 @@ Defined in: [joint-core/types/joint.d.ts:719](https://github.com/samuelgja/joint
 
 > `optional` **y**: `number`
 
-Defined in: [joint-core/types/joint.d.ts:720](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L720)
+Defined in: [joint-core/types/joint.d.ts:733](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L733)
 
 #### Inherited from
 
-[`GraphLinkBase`](GraphLinkBase.md).[`y`](GraphLinkBase.md#y)
+`dia.Link.EndJSON.y`
 
 ***
 
@@ -247,7 +209,3 @@ Defined in: [joint-core/types/joint.d.ts:720](https://github.com/samuelgja/joint
 Defined in: [joint-react/src/types/link-types.ts:38](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/types/link-types.ts#L38)
 
 Z index of the link.
-
-#### Inherited from
-
-[`GraphLinkBase`](GraphLinkBase.md).[`z`](GraphLinkBase.md#z)

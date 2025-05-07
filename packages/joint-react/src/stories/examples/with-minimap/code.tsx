@@ -10,11 +10,11 @@ import {
   type InferElement,
   type RenderElement,
 } from '@joint/react';
-import { PRIMARY } from 'storybook-config/theme';
+import { PRIMARY, SECONDARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0, width: 100, height: 50 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200, width: 100, height: 50 },
+  { id: '1', label: 'Node 1', color: PRIMARY, x: 100, y: 10, width: 100, height: 50 },
+  { id: '2', label: 'Node 2', color: SECONDARY, x: 100, y: 200, width: 100, height: 50 },
 ]);
 const initialEdges = createLinks([
   {
@@ -23,7 +23,7 @@ const initialEdges = createLinks([
     target: '2',
     attrs: {
       line: {
-        stroke: PRIMARY,
+        stroke: LIGHT,
       },
     },
   },
@@ -33,14 +33,8 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function MiniMap() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => (
-      <rect
-        width={element.width}
-        height={element.height}
-        className="minimap-node"
-        radius={10}
-        fill="yellow"
-      />
+    ({ width, height, color }) => (
+      <rect width={width} height={height} fill={color} rx={10} ry={10} />
     ),
     []
   );
@@ -49,25 +43,21 @@ function MiniMap() {
       <Paper
         interactive={false}
         scale={0.4}
-        width={'100%'}
-        height={'100%'}
+        width="100%"
+        className={PAPER_CLASSNAME}
+        height="100%"
         renderElement={renderElement}
       />
     </div>
   );
 }
 
-function RenderElement(props: Readonly<BaseElementWithData>) {
-  const {
-    width,
-    height,
-    data: { label },
-  } = props;
+function RenderElement({ width, height, label, color }: Readonly<BaseElementWithData>) {
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode>
-        <div className="node flex flex-col">
-          Test
+        <div className="flex flex-col items-center rounded-sm" style={{ background: color }}>
+          Example
           <div>{label}</div>
         </div>
       </MeasuredNode>
@@ -77,7 +67,7 @@ function RenderElement(props: Readonly<BaseElementWithData>) {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={RenderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
       <MiniMap />
     </div>
   );

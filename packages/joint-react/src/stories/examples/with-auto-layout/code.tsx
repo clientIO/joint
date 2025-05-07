@@ -17,24 +17,25 @@ import {
 import { useCallback, useState } from 'react';
 import type { dia } from '@joint/core';
 import { useAddElement } from '../../../hooks/use-add-element';
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' } },
-  { id: '2', data: { label: 'Node 2' } },
-  { id: '3', data: { label: 'Node 3' } },
-  { id: '4', data: { label: 'Node 4' } },
-  { id: '5', data: { label: 'Node 5' } },
-  { id: '6', data: { label: 'Node 6' } },
-  { id: '7', data: { label: 'Node 7' } },
-  { id: '8', data: { label: 'Node 8' } },
-  { id: '9', data: { label: 'Node 9' } },
+  { id: '1', label: 'Node 1' },
+  { id: '2', label: 'Node 2' },
+  { id: '3', label: 'Node 3' },
+  { id: '4', label: 'Node 4' },
+  { id: '5', label: 'Node 5' },
+  { id: '6', label: 'Node 6' },
+  { id: '7', label: 'Node 7' },
+  { id: '8', label: 'Node 8' },
+  { id: '9', label: 'Node 9' },
 ]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 const INPUT_CLASSNAME =
   'block w-15 mr-2 p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
-function RenderedRect({ width, height, data: { label } }: BaseElementWithData) {
+function RenderedRect({ width, height, label }: BaseElementWithData) {
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode>
@@ -43,8 +44,6 @@ function RenderedRect({ width, height, data: { label } }: BaseElementWithData) {
     </foreignObject>
   );
 }
-
-const PAPER_WIDTH = 1200;
 
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
@@ -109,7 +108,7 @@ function Main() {
           onClick={() => {
             addElement({
               id: `${Math.random()}`,
-              data: { label: `Node ${elementsLength + 1}` },
+              label: `Node ${elementsLength + 1}`,
             });
           }}
           type="button"
@@ -119,7 +118,8 @@ function Main() {
         </button>
       </div>
       <Paper
-        width={PAPER_WIDTH}
+        width="100%"
+        className={PAPER_CLASSNAME}
         height={450}
         renderElement={renderElement}
         onElementsSizeChange={makeLayout}

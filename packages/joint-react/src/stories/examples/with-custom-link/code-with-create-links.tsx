@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import {
   createElements,
   createLinks,
@@ -14,8 +14,8 @@ import { useCallback } from 'react';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
+  { id: '1', label: 'Node 1', x: 100, y: 0 },
+  { id: '2', label: 'Node 2', x: 100, y: 200 },
 ]);
 const initialEdges = createLinks([
   {
@@ -25,8 +25,8 @@ const initialEdges = createLinks([
     attrs: {
       line: {
         stroke: PRIMARY,
-        strokeWidth: 2, // Set stroke width
-        strokeDasharray: '5,5', // Makes the line da
+        strokeWidth: 2,
+        strokeDasharray: '5,5',
       },
     },
   },
@@ -36,12 +36,12 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <HTMLNode className="node">{element.data.label}</HTMLNode>,
+    (element) => <HTMLNode className="node">{element.label}</HTMLNode>,
     []
   );
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={renderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
     </div>
   );
 }

@@ -6,11 +6,12 @@ exports[`GraphProvider "Default" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -67,11 +68,12 @@ exports[`GraphProvider "Default" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -185,11 +187,12 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -246,11 +249,12 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -363,15 +367,18 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
   "asFragment": [Function],
   "baseElement": <body>
     <div>
-      <button>
-        Layout
+      <button
+        class="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2 text-sm"
+      >
+        Make layout
       </button>
       <div
-        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -427,15 +434,18 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
     </div>
   </body>,
   "container": <div>
-    <button>
-      Layout
+    <button
+      class="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2 text-sm"
+    >
+      Make layout
     </button>
     <div
-      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -549,11 +559,12 @@ exports[`GraphProvider "WithLink" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -610,11 +621,12 @@ exports[`GraphProvider "WithLink" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -728,11 +740,12 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
   "baseElement": <body>
     <div>
       <div
-        style="opacity: 0; pointer-events: none; position: relative; overflow: hidden; width: 100%; height: 100%;"
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 0; pointer-events: none; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -789,11 +802,12 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
   </body>,
   "container": <div>
     <div
-      style="opacity: 0; pointer-events: none; position: relative; overflow: hidden; width: 100%; height: 100%;"
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 0; pointer-events: none; width: 100%; height: 600px;"
     >
       <div
         class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"

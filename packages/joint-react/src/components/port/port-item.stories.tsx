@@ -14,12 +14,11 @@ import {
   Port,
   useElement,
 } from '@joint/react';
-import { PRIMARY } from 'storybook-config/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
   {
     id: '1',
-    data: { label: 'Node 1', color: PRIMARY },
     x: 100,
     y: 20,
     width: 100,
@@ -27,7 +26,6 @@ const initialElements = createElements([
   },
   {
     id: '2',
-    data: { label: 'Node 2', color: PRIMARY },
     x: 200,
     y: 250,
     width: 100,
@@ -70,7 +68,13 @@ function PaperDecorator(Story: React.FC) {
   const renderItem = () => RenderItem(Story);
   return (
     <GraphProvider defaultElements={initialElements} defaultLinks={defaultLinks}>
-      <Paper width={'100%'} height={350} renderElement={renderItem} linkPinning={false} />
+      <Paper
+        className={PAPER_CLASSNAME}
+        width={'100%'}
+        height={350}
+        renderElement={renderItem}
+        linkPinning={false}
+      />
     </GraphProvider>
   );
 }
