@@ -10,21 +10,22 @@ export function createIdentityMatrix() {
 }
 
 /**
- * @param {Partial<SVGMatrix>} matrix
+ * @param {Partial<SVGMatrix>} matrixInit
  * @returns {SVGMatrix}
  * @description Creates a new SVGMatrix object.
  * If no matrix is provided, it returns the identity matrix.
  * If a matrix like object is provided, it sets the matrix values.
  */
-export function createSVGMatrix(matrix = {}) {
-    const res = internalSVGDocument.createSVGMatrix();
-    if ('a' in matrix) res.a = matrix.a;
-    if ('b' in matrix) res.b = matrix.b;
-    if ('c' in matrix) res.c = matrix.c;
-    if ('d' in matrix) res.d = matrix.d;
-    if ('e' in matrix) res.e = matrix.e;
-    if ('f' in matrix) res.f = matrix.f;
-    return res;
+export function createMatrix(matrixInit = {}) {
+    const matrix = internalSVGDocument.createSVGMatrix();
+    if (!matrixInit) return matrix;
+    if ('a' in matrixInit) matrix.a = matrixInit.a;
+    if ('b' in matrixInit) matrix.b = matrixInit.b;
+    if ('c' in matrixInit) matrix.c = matrixInit.c;
+    if ('d' in matrixInit) matrix.d = matrixInit.d;
+    if ('e' in matrixInit) matrix.e = matrixInit.e;
+    if ('f' in matrixInit) matrix.f = matrixInit.f;
+    return matrix;
 }
 
 /**
@@ -48,7 +49,7 @@ export function getNodeMatrix(node) {
 
 /**
  * @param {SVGElement} node
- * @param {Partial<SVGMatrix>} matrix
+ * @param {Partial<SVGMatrix>} matrixInit
  * @param {boolean} override
  * @description Sets the transformation matrix of the given node.
  * We don't use `node.transform.baseVal` here (@see `transformNode`)
@@ -58,44 +59,44 @@ export function getNodeMatrix(node) {
  *   https://www.measurethat.net/Benchmarks/Show/34447/1/overriding-svg-transform-attribute
  * - Limited support: JSDOM does not support `node.transform.baseVal`
  */
-export function replaceTransformNode(node, matrix) {
-    node.setAttribute('transform', matrixToTransformString(matrix));
+export function replaceTransformNode(node, matrixInit) {
+    node.setAttribute('transform', matrixToTransformString(matrixInit));
 }
 
 /**
  * @param {SVGElement} node
- * @param {Partial<SVGMatrix>} matrix
+ * @param {Partial<SVGMatrix>} matrixInit
  * @description Applies a transformation matrix to the given node.
  * If the node already has a transformation, it appends the new transformation.
  * If the node has no transformation, it creates a new one.
  * @todo: Support `node.transform.baseVal` within `joint-vitest-plugin-mock`
  */
-export function transformNode(node, matrix) {
+export function transformNode(node, matrixInit) {
     const transform = createSVGTransform();
-    const svgMatrix = isSVGMatrix(matrix) ? matrix : createSVGMatrix(matrix);
-    transform.setMatrix(svgMatrix);
+    const matrix = isSVGMatrix(matrixInit) ? matrixInit : createMatrix(matrixInit);
+    transform.setMatrix(matrix);
     node.transform.baseVal.appendItem(transform);
 }
 
 const MATRIX_TYPE = '[object SVGMatrix]';
 
 /**
- * @param {any} matrix
+ * @param {any} obj
  * @returns {boolean}
  * @description Checks if the given object is an SVGMatrix.
  */
-export function isSVGMatrix(matrix) {
-    return Object.prototype.toString.call(matrix) === MATRIX_TYPE;
+export function isSVGMatrix(obj) {
+    return Object.prototype.toString.call(obj) === MATRIX_TYPE;
 }
 
 /**
- * @param {Partial<SVGMatrix>} matrix
+ * @param {Partial<SVGMatrix>} matrixInit
  * @returns {string}
  * @description Converts a matrix to a transform string.
  * If no matrix is provided, it returns the identity matrix string.
  */
-export function matrixToTransformString(matrix = {}) {
-    const { a = 1, b = 0, c = 0, d = 1, e = 0, f = 0 } = matrix;
+export function matrixToTransformString(matrixInit = {}) {
+    const { a = 1, b = 0, c = 0, d = 1, e = 0, f = 0 } = matrixInit;
     return `matrix(${a},${b},${c},${d},${e},${f})`;
 }
 

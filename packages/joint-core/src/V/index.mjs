@@ -6,8 +6,12 @@
 
 import * as g from '../g/index.mjs';
 import * as ns from './namespace.mjs';
-import { isSVGSupported, internalSVGDocument, SVGVersion, createSVGDocument, createSVGElement } from './create.mjs';
-import { createIdentityMatrix, getNodeMatrix, getRelativeTransformation, getRelativeTransformationSafe, setNodeMatrix, matrixToTransformString, isSVGMatrix } from './transform.mjs';
+import { isSVGSupported, internalSVGDocument, SVG_VERSION, createSVGDocument, createSVGElement } from './create.mjs';
+import {
+    createIdentityMatrix, createMatrix, getNodeMatrix, matrixToTransformString, isSVGMatrix,
+    getRelativeTransformation, getRelativeTransformationSafe,
+    transformNode, replaceTransformNode,
+} from './transform.mjs';
 import { getCommonAncestor } from './traverse.mjs';
 
 const V = (function() {
@@ -1283,7 +1287,7 @@ const V = (function() {
     V.createSvgDocument = function(content) {
 
         if (content) {
-            const XMLString = `<svg xmlns="${ns.svg}" xmlns:xlink="${ns.xlink}" version="${SVGVersion}">${content}</svg>`;
+            const XMLString = `<svg xmlns="${ns.svg}" xmlns:xlink="${ns.xlink}" version="${SVG_VERSION}">${content}</svg>`;
             const { documentElement } = V.parseXML(XMLString, { async: false });
             return documentElement;
         }
@@ -1687,14 +1691,14 @@ const V = (function() {
         return node instanceof SVGElement && typeof node.getScreenCTM === 'function';
     };
 
-    V.createSVGMatrix = createSVGMatrix;
+    V.createSVGMatrix = createMatrix;
 
     V.createSVGTransform = function(matrix) {
 
         if (!V.isUndefined(matrix)) {
 
             if (!isSVGMatrix(matrix)) {
-                matrix = createSVGMatrix(matrix);
+                matrix = createMatrix(matrix);
             }
 
             return internalSVGDocument.createSVGTransformFromMatrix(matrix);
