@@ -7,7 +7,7 @@
 import * as g from '../g/index.mjs';
 import * as ns from './namespace.mjs';
 import { isSVGSupported, internalSVGDocument, SVGVersion, createSVGDocument, createSVGElement } from './create.mjs';
-import { createIdentityMatrix, getNodeMatrix, getRelativeTransformation, getRelativeTransformationSafe, setNodeMatrix } from './transform.mjs';
+import { createIdentityMatrix, getNodeMatrix, getRelativeTransformation, getRelativeTransformationSafe, setNodeMatrix, matrixToTransformString, isSVGMatrix } from './transform.mjs';
 import { getCommonAncestor } from './traverse.mjs';
 
 const V = (function() {
@@ -131,7 +131,6 @@ const V = (function() {
         return m || createIdentityMatrix();
     };
 
-    const MATRIX_TYPE = '[object SVGMatrix]';
 
     /**
      * @param {SVGMatrix} matrix
@@ -147,13 +146,11 @@ const V = (function() {
         }
 
         // Setter
-        setNodeMatrix(
-            node,
-            // Support partial matrices. e.g `{ a: 2, d: 2 }`
-            (matrix.toString() === MATRIX_TYPE) ? matrix : V.createSVGMatrix(matrix),
-            // Override the existing transformation matrix.
-            opt && opt.absolute
-        );
+        if (opt && opt.absolute) {
+            replaceTransformNode(node, matrix);
+        } else {
+            transformNode(node, matrix);
+        }
 
         return this;
     };
@@ -985,7 +982,7 @@ const V = (function() {
                     translateToOrigin.matrix.multiply(
                         ctm.scale(scale.sx, scale.sy)))));
 
-        this.attr('transform', V.matrixToTransformString(transform.matrix));
+        this.attr('transform', matrixToTransformString(transform.matrix));
 
         return this;
     };
@@ -1522,18 +1519,7 @@ const V = (function() {
         return getNodeMatrix(internalSVGDocument) || createIdentityMatrix();
     };
 
-    V.matrixToTransformString = function(matrix) {
-        matrix || (matrix = true);
-
-        return 'matrix(' +
-            (matrix.a !== undefined ? matrix.a : 1) + ',' +
-            (matrix.b !== undefined ? matrix.b : 0) + ',' +
-            (matrix.c !== undefined ? matrix.c : 0) + ',' +
-            (matrix.d !== undefined ? matrix.d : 1) + ',' +
-            (matrix.e !== undefined ? matrix.e : 0) + ',' +
-            (matrix.f !== undefined ? matrix.f : 0) +
-            ')';
-    };
+    V.matrixToTransformString = matrixToTransformString;
 
     V.parseTransformString = function(transform) {
 
@@ -1701,22 +1687,14 @@ const V = (function() {
         return node instanceof SVGElement && typeof node.getScreenCTM === 'function';
     };
 
-    V.createSVGMatrix = function(matrix) {
-
-        const svgMatrix = createIdentityMatrix();
-        for (let component in matrix) {
-            svgMatrix[component] = matrix[component];
-        }
-
-        return svgMatrix;
-    };
+    V.createSVGMatrix = createSVGMatrix;
 
     V.createSVGTransform = function(matrix) {
 
         if (!V.isUndefined(matrix)) {
 
-            if (!(matrix instanceof SVGMatrix)) {
-                matrix = V.createSVGMatrix(matrix);
+            if (!isSVGMatrix(matrix)) {
+                matrix = createSVGMatrix(matrix);
             }
 
             return internalSVGDocument.createSVGTransformFromMatrix(matrix);
