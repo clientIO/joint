@@ -61,7 +61,7 @@ function ListElement({
 
   const addInput = () => {
     setInputs((previous) => {
-      return { ...previous, inputs: [...previous, ''] };
+      return [...previous, ''];
     });
   };
 
@@ -108,9 +108,7 @@ function ListElement({
                     onChange={(event) => {
                       const newInputs = [...inputs];
                       newInputs[index] = event.target.value;
-                      setInputs((previous) => {
-                        return { ...previous, inputs: [...newInputs] };
-                      });
+                      setInputs(newInputs);
                     }}
                   />
                 </li>
