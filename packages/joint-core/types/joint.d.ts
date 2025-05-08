@@ -516,6 +516,8 @@ export namespace dia {
 
         position(): g.Point;
 
+        position(x: number, y: number): this;
+
         z(): number;
 
         angle(): number;

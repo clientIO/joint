@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-unused-vars */
 /* eslint-disable sonarjs/pseudo-random */
 /* eslint-disable @eslint-react/dom/no-missing-button-type */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
@@ -7,7 +8,6 @@ import { GraphProvider } from './graph-provider';
 import { createElements, createLinks, type InferElement, ReactElement } from '@joint/react';
 import { Paper, type RenderElement } from '../paper/paper';
 import { dia } from '@joint/core';
-import { DirectedGraph } from '@joint/layout-directed-graph';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
@@ -145,12 +145,28 @@ export const WithExternalGraphAndLayout = makeStory<Story>({
         <button
           className={BUTTON_CLASSNAME}
           onClick={() => {
-            DirectedGraph.layout(graph, {
-              setLinkVertices: true,
-              marginX: 2,
-              marginY: 2,
-              align: 'DR',
-            });
+            const elements = graph.getCells(); // Get all elements in the graph
+            const rowWidth = 500; // Define the maximum width of each row
+            let currentX = 0;
+            let currentY = 0;
+            let rowWidthUsed = 0;
+
+            for (const [_, element] of elements.entries()) {
+              const elementWidth = 100; // Set width for the element (you can use element.getBBox().width if dynamic)
+              if (rowWidthUsed + elementWidth > rowWidth) {
+                // Move to the next row
+                currentX = 0;
+                currentY += 85; // Add some vertical space between rows
+                rowWidthUsed = 0;
+              }
+
+              // Set the new position for the element
+              element.position(currentX, currentY);
+
+              // Update the current X and row width used
+              currentX += elementWidth;
+              rowWidthUsed += elementWidth;
+            }
           }}
         >
           Make layout
