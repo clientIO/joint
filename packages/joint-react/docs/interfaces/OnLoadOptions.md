@@ -6,7 +6,7 @@
 
 # Interface: OnLoadOptions
 
-Defined in: [joint-react/src/components/paper/paper.tsx:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L17)
+Defined in: [joint-react/src/components/paper/paper.tsx:27](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L27)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [joint-react/src/components/paper/paper.tsx:17](https://github.com/s
 
 > `readonly` **graph**: `Graph`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:19](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L19)
+Defined in: [joint-react/src/components/paper/paper.tsx:29](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L29)
 
 ***
 
@@ -22,4 +22,4 @@ Defined in: [joint-react/src/components/paper/paper.tsx:19](https://github.com/s
 
 > `readonly` **paper**: `Paper`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:18](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L18)
+Defined in: [joint-react/src/components/paper/paper.tsx:28](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L28)

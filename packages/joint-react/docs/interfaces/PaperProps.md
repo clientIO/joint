@@ -6,7 +6,7 @@
 
 # Interface: PaperProps\<ElementItem\>
 
-Defined in: [joint-react/src/components/paper/paper.tsx:29](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L29)
+Defined in: [joint-react/src/components/paper/paper.tsx:39](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L39)
 
 The props for the Paper component. Extend the `dia.Paper.Options` interface.
 For more information, see the JointJS documentation.
@@ -17,17 +17,13 @@ https://docs.jointjs.com/api/dia/Paper
 
 ## Extends
 
-- `Options`.`PaperEvents`
+- `ReactPaperOptions`.`PaperEvents`
 
 ## Type Parameters
 
 ### ElementItem
 
 `ElementItem` *extends* [`GraphElementWithAttributes`](GraphElementWithAttributes.md) = [`GraphElementWithAttributes`](GraphElementWithAttributes.md)
-
-## Indexable
-
-\[`key`: `string`\]: `any`
 
 ## Properties
 
@@ -39,7 +35,7 @@ Defined in: [joint-core/types/joint.d.ts:1471](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.afterRender`
+`ReactPaperOptions.afterRender`
 
 ***
 
@@ -51,7 +47,7 @@ Defined in: [joint-core/types/joint.d.ts:1428](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.allowLink`
+`ReactPaperOptions.allowLink`
 
 ***
 
@@ -63,7 +59,7 @@ Defined in: [joint-core/types/joint.d.ts:1451](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.anchorNamespace`
+`ReactPaperOptions.anchorNamespace`
 
 ***
 
@@ -75,7 +71,7 @@ Defined in: [joint-core/types/joint.d.ts:1463](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.async`
+`ReactPaperOptions.async`
 
 ***
 
@@ -87,7 +83,7 @@ Defined in: [joint-core/types/joint.d.ts:3457](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.attributes`
+`ReactPaperOptions.attributes`
 
 ***
 
@@ -99,7 +95,7 @@ Defined in: [joint-core/types/joint.d.ts:1466](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.autoFreeze`
+`ReactPaperOptions.autoFreeze`
 
 ***
 
@@ -111,7 +107,7 @@ Defined in: [joint-core/types/joint.d.ts:1412](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.background`
+`ReactPaperOptions.background`
 
 ***
 
@@ -123,7 +119,7 @@ Defined in: [joint-core/types/joint.d.ts:1470](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.beforeRender`
+`ReactPaperOptions.beforeRender`
 
 ***
 
@@ -135,7 +131,7 @@ Defined in: [joint-core/types/joint.d.ts:1447](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.cellViewNamespace`
+`ReactPaperOptions.cellViewNamespace`
 
 ***
 
@@ -143,7 +139,7 @@ Defined in: [joint-core/types/joint.d.ts:1447](https://github.com/samuelgja/join
 
 > `readonly` `optional` **children**: `ReactNode`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:102](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L102)
+Defined in: [joint-react/src/components/paper/paper.tsx:112](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L112)
 
 Children to render. Paper automatically wrap the children with the PaperContext, if there is no PaperContext in the parent tree.
 
@@ -153,13 +149,13 @@ Children to render. Paper automatically wrap the children with the PaperContext,
 
 > `readonly` `optional` **className**: `string`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:80](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L80)
+Defined in: [joint-react/src/components/paper/paper.tsx:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L90)
 
 Class name of the paper element.
 
 #### Overrides
 
-`dia.Paper.Options.className`
+`ReactPaperOptions.className`
 
 ***
 
@@ -167,7 +163,7 @@ Class name of the paper element.
 
 > `readonly` `optional` **clickThreshold**: `number`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:119](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L119)
+Defined in: [joint-react/src/components/paper/paper.tsx:129](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L129)
 
 The threshold for click events in pixels.
 If the mouse moves more than this distance, it will be considered a drag event.
@@ -180,7 +176,7 @@ If the mouse moves more than this distance, it will be considered a drag event.
 
 #### Overrides
 
-`dia.Paper.Options.clickThreshold`
+`ReactPaperOptions.clickThreshold`
 
 ***
 
@@ -192,7 +188,7 @@ Defined in: [joint-core/types/joint.d.ts:3454](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.collection`
+`ReactPaperOptions.collection`
 
 ***
 
@@ -204,7 +200,7 @@ Defined in: [joint-core/types/joint.d.ts:1453](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.connectionPointNamespace`
+`ReactPaperOptions.connectionPointNamespace`
 
 ***
 
@@ -216,7 +212,7 @@ Defined in: [joint-core/types/joint.d.ts:1461](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.connectionStrategy`
+`ReactPaperOptions.connectionStrategy`
 
 ***
 
@@ -228,7 +224,7 @@ Defined in: [joint-core/types/joint.d.ts:1449](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.connectorNamespace`
+`ReactPaperOptions.connectorNamespace`
 
 ***
 
@@ -240,7 +236,7 @@ Defined in: [joint-core/types/joint.d.ts:1457](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.defaultAnchor`
+`ReactPaperOptions.defaultAnchor`
 
 ***
 
@@ -252,7 +248,7 @@ Defined in: [joint-core/types/joint.d.ts:1459](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.defaultConnectionPoint`
+`ReactPaperOptions.defaultConnectionPoint`
 
 ***
 
@@ -264,7 +260,7 @@ Defined in: [joint-core/types/joint.d.ts:1456](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.defaultConnector`
+`ReactPaperOptions.defaultConnector`
 
 ***
 
@@ -276,7 +272,7 @@ Defined in: [joint-core/types/joint.d.ts:1454](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.defaultLink`
+`ReactPaperOptions.defaultLink`
 
 ***
 
@@ -288,7 +284,7 @@ Defined in: [joint-core/types/joint.d.ts:1458](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.defaultLinkAnchor`
+`ReactPaperOptions.defaultLinkAnchor`
 
 ***
 
@@ -300,7 +296,7 @@ Defined in: [joint-core/types/joint.d.ts:1455](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.defaultRouter`
+`ReactPaperOptions.defaultRouter`
 
 ***
 
@@ -312,7 +308,7 @@ Defined in: [joint-core/types/joint.d.ts:1410](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.drawGrid`
+`ReactPaperOptions.drawGrid`
 
 ***
 
@@ -324,7 +320,7 @@ Defined in: [joint-core/types/joint.d.ts:1411](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.drawGridSize`
+`ReactPaperOptions.drawGridSize`
 
 ***
 
@@ -336,7 +332,7 @@ Defined in: [joint-core/types/joint.d.ts:3455](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.el`
+`ReactPaperOptions.el`
 
 ***
 
@@ -344,7 +340,7 @@ Defined in: [joint-core/types/joint.d.ts:3455](https://github.com/samuelgja/join
 
 > `readonly` `optional` **elementSelector**: (`item`) => `ElementItem`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:88](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L88)
+Defined in: [joint-react/src/components/paper/paper.tsx:98](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L98)
 
 A function that selects the elements to be rendered.
 It defaults to the `GraphElement` elements because `dia.Element` is not a valid React element (it do not change reference after update).
@@ -377,7 +373,7 @@ Defined in: [joint-core/types/joint.d.ts:1438](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.elementView`
+`ReactPaperOptions.elementView`
 
 ***
 
@@ -389,7 +385,7 @@ Defined in: [joint-core/types/joint.d.ts:1441](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.embeddingMode`
+`ReactPaperOptions.embeddingMode`
 
 ***
 
@@ -401,7 +397,7 @@ Defined in: [joint-core/types/joint.d.ts:3460](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.events`
+`ReactPaperOptions.events`
 
 ***
 
@@ -413,7 +409,7 @@ Defined in: [joint-core/types/joint.d.ts:1443](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.findParentBy`
+`ReactPaperOptions.findParentBy`
 
 ***
 
@@ -425,19 +421,7 @@ Defined in: [joint-core/types/joint.d.ts:1442](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.frontParentOnly`
-
-***
-
-### frozen?
-
-> `optional` **frozen**: `boolean`
-
-Defined in: [joint-core/types/joint.d.ts:1465](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L1465)
-
-#### Inherited from
-
-`dia.Paper.Options.frozen`
+`ReactPaperOptions.frontParentOnly`
 
 ***
 
@@ -449,7 +433,7 @@ Defined in: [joint-core/types/joint.d.ts:1415](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.gridSize`
+`ReactPaperOptions.gridSize`
 
 ***
 
@@ -475,7 +459,7 @@ Defined in: [joint-core/types/joint.d.ts:1430](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.guard`
+`ReactPaperOptions.guard`
 
 ***
 
@@ -487,7 +471,7 @@ Defined in: [joint-core/types/joint.d.ts:1409](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.height`
+`ReactPaperOptions.height`
 
 ***
 
@@ -499,7 +483,7 @@ Defined in: [joint-core/types/joint.d.ts:1450](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.highlighterNamespace`
+`ReactPaperOptions.highlighterNamespace`
 
 ***
 
@@ -511,7 +495,7 @@ Defined in: [joint-core/types/joint.d.ts:1416](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.highlighting`
+`ReactPaperOptions.highlighting`
 
 ***
 
@@ -523,7 +507,7 @@ Defined in: [joint-core/types/joint.d.ts:3456](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.id`
+`ReactPaperOptions.id`
 
 ***
 
@@ -535,7 +519,7 @@ Defined in: [joint-core/types/joint.d.ts:1417](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.interactive`
+`ReactPaperOptions.interactive`
 
 ***
 
@@ -547,7 +531,7 @@ Defined in: [joint-core/types/joint.d.ts:1413](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.labelsLayer`
+`ReactPaperOptions.labelsLayer`
 
 ***
 
@@ -559,7 +543,7 @@ Defined in: [joint-core/types/joint.d.ts:1452](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.linkAnchorNamespace`
+`ReactPaperOptions.linkAnchorNamespace`
 
 ***
 
@@ -571,7 +555,7 @@ Defined in: [joint-core/types/joint.d.ts:1427](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.linkPinning`
+`ReactPaperOptions.linkPinning`
 
 ***
 
@@ -583,7 +567,7 @@ Defined in: [joint-core/types/joint.d.ts:1439](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.linkView`
+`ReactPaperOptions.linkView`
 
 ***
 
@@ -595,7 +579,7 @@ Defined in: [joint-core/types/joint.d.ts:1436](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.magnetThreshold`
+`ReactPaperOptions.magnetThreshold`
 
 ***
 
@@ -607,7 +591,7 @@ Defined in: [joint-core/types/joint.d.ts:1421](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.markAvailable`
+`ReactPaperOptions.markAvailable`
 
 ***
 
@@ -619,7 +603,7 @@ Defined in: [joint-core/types/joint.d.ts:3452](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.model`
+`ReactPaperOptions.model`
 
 ***
 
@@ -631,7 +615,7 @@ Defined in: [joint-core/types/joint.d.ts:1435](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.moveThreshold`
+`ReactPaperOptions.moveThreshold`
 
 ***
 
@@ -643,7 +627,7 @@ Defined in: [joint-core/types/joint.d.ts:1426](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.multiLinks`
+`ReactPaperOptions.multiLinks`
 
 ***
 
@@ -651,7 +635,7 @@ Defined in: [joint-core/types/joint.d.ts:1426](https://github.com/samuelgja/join
 
 > `readonly` `optional` **noDataPlaceholder**: `ReactNode`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:97](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L97)
+Defined in: [joint-react/src/components/paper/paper.tsx:107](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L107)
 
 Placeholder to be rendered when there is no data (no nodes or elements to render).
 
@@ -2125,7 +2109,7 @@ Defined in: [joint-react/src/types/event.types.ts:343](https://github.com/samuel
 
 > `readonly` `optional` **onElementsSizeChange**: (`options`) => `void`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:71](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L71)
+Defined in: [joint-react/src/components/paper/paper.tsx:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L81)
 
 Event called when the paper is resized.
 It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
@@ -2146,7 +2130,7 @@ It is useful for like onLoad event to do some layout or other operations with `g
 
 > `readonly` `optional` **onElementsSizeReady**: (`options`) => `void`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:65](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L65)
+Defined in: [joint-react/src/components/paper/paper.tsx:75](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L75)
 
 Event called when all elements are properly measured (has all elements width and height greater than 1 - default).
 In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
@@ -3082,7 +3066,7 @@ Defined in: [joint-core/types/joint.d.ts:1469](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.onViewPostponed`
+`ReactPaperOptions.onViewPostponed`
 
 ***
 
@@ -3118,7 +3102,7 @@ Defined in: [joint-core/types/joint.d.ts:1468](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.onViewUpdate`
+`ReactPaperOptions.onViewUpdate`
 
 ***
 
@@ -3130,7 +3114,7 @@ Defined in: [joint-core/types/joint.d.ts:1472](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.overflow`
+`ReactPaperOptions.overflow`
 
 ***
 
@@ -3138,7 +3122,7 @@ Defined in: [joint-core/types/joint.d.ts:1472](https://github.com/samuelgja/join
 
 > `readonly` `optional` **overwriteDefaultPaperElement**: (`paper`) => [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement) \| [`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)
 
-Defined in: [joint-react/src/components/paper/paper.tsx:112](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L112)
+Defined in: [joint-react/src/components/paper/paper.tsx:122](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L122)
 
 On load custom element.
 If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
@@ -3167,7 +3151,7 @@ Defined in: [joint-core/types/joint.d.ts:1431](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.preventContextMenu`
+`ReactPaperOptions.preventContextMenu`
 
 ***
 
@@ -3179,7 +3163,7 @@ Defined in: [joint-core/types/joint.d.ts:1433](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.preventDefaultBlankAction`
+`ReactPaperOptions.preventDefaultBlankAction`
 
 ***
 
@@ -3191,7 +3175,7 @@ Defined in: [joint-core/types/joint.d.ts:1432](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.preventDefaultViewAction`
+`ReactPaperOptions.preventDefaultViewAction`
 
 ***
 
@@ -3199,12 +3183,12 @@ Defined in: [joint-core/types/joint.d.ts:1432](https://github.com/samuelgja/join
 
 > `readonly` `optional` **renderElement**: [`RenderElement`](../type-aliases/RenderElement.md)\<`ElementItem`\>
 
-Defined in: [joint-react/src/components/paper/paper.tsx:59](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L59)
+Defined in: [joint-react/src/components/paper/paper.tsx:69](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L69)
 
 A function that renders the element.
 
 Note: Jointjs works by default with SVG's so by default renderElement is append inside the SVGElement node.
-To use HTML elements, you need to use the `HtmlNode` component or `foreignObject` element.
+To use HTML elements, you need to use the `HTMLNode` component or `foreignObject` element.
 
 This is called when the data from `elementSelector` changes.
 
@@ -3214,7 +3198,7 @@ Example with `global component`:
 ```tsx
 type BaseElementWithData = InferElement<typeof initialElements>
 function RenderElement({ label }: BaseElementWithData) {
- return <HtmlElement className="node">{label}</HtmlElement>
+ return <HTMLElement className="node">{label}</HTMLElement>
 }
 ```
 
@@ -3223,7 +3207,7 @@ Example with `local component`:
 
 type BaseElementWithData = InferElement<typeof initialElements>
 const renderElement: RenderElement<BaseElementWithData> = useCallback(
-   (element) => <HtmlElement className="node">{element.label}</HtmlElement>,
+   (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
    []
 )
 ```
@@ -3238,7 +3222,7 @@ Defined in: [joint-core/types/joint.d.ts:1425](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.restrictTranslate`
+`ReactPaperOptions.restrictTranslate`
 
 ***
 
@@ -3250,7 +3234,7 @@ Defined in: [joint-core/types/joint.d.ts:1448](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.routerNamespace`
+`ReactPaperOptions.routerNamespace`
 
 ***
 
@@ -3258,7 +3242,7 @@ Defined in: [joint-core/types/joint.d.ts:1448](https://github.com/samuelgja/join
 
 > `readonly` `optional` **scale**: `number`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:93](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L93)
+Defined in: [joint-react/src/components/paper/paper.tsx:103](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L103)
 
 The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
 
@@ -3272,7 +3256,7 @@ Defined in: [joint-core/types/joint.d.ts:1418](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.snapLabels`
+`ReactPaperOptions.snapLabels`
 
 ***
 
@@ -3284,7 +3268,7 @@ Defined in: [joint-core/types/joint.d.ts:1419](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.snapLinks`
+`ReactPaperOptions.snapLinks`
 
 ***
 
@@ -3296,7 +3280,7 @@ Defined in: [joint-core/types/joint.d.ts:1420](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.snapLinksSelf`
+`ReactPaperOptions.snapLinksSelf`
 
 ***
 
@@ -3308,7 +3292,7 @@ Defined in: [joint-core/types/joint.d.ts:1464](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.sorting`
+`ReactPaperOptions.sorting`
 
 ***
 
@@ -3316,7 +3300,7 @@ Defined in: [joint-core/types/joint.d.ts:1464](https://github.com/samuelgja/join
 
 > `readonly` `optional` **style**: `CSSProperties`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:76](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L76)
+Defined in: [joint-react/src/components/paper/paper.tsx:86](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L86)
 
 The style of the paper element.
 
@@ -3330,7 +3314,7 @@ Defined in: [joint-core/types/joint.d.ts:3459](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.tagName`
+`ReactPaperOptions.tagName`
 
 ***
 
@@ -3342,7 +3326,24 @@ Defined in: [joint-core/types/joint.d.ts:3518](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.theme`
+`ReactPaperOptions.theme`
+
+***
+
+### useHTMLOverlay?
+
+> `readonly` `optional` **useHTMLOverlay**: `boolean`
+
+Defined in: [joint-react/src/components/paper/paper.tsx:136](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L136)
+
+Enabled if renderElements is render to pure HTML elements.
+By default, `joint/react` renderElements to SVG elements, so for using HTML elements without this prop, you need to use `foreignObject` element.
+
+#### Default
+
+```ts
+false
+```
 
 ***
 
@@ -3384,7 +3385,7 @@ Defined in: [joint-core/types/joint.d.ts:1424](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.validateConnection`
+`ReactPaperOptions.validateConnection`
 
 ***
 
@@ -3414,7 +3415,7 @@ Defined in: [joint-core/types/joint.d.ts:1444](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.validateEmbedding`
+`ReactPaperOptions.validateEmbedding`
 
 ***
 
@@ -3444,7 +3445,7 @@ Defined in: [joint-core/types/joint.d.ts:1423](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.validateMagnet`
+`ReactPaperOptions.validateMagnet`
 
 ***
 
@@ -3470,7 +3471,7 @@ Defined in: [joint-core/types/joint.d.ts:1445](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.validateUnembedding`
+`ReactPaperOptions.validateUnembedding`
 
 ***
 
@@ -3482,7 +3483,7 @@ Defined in: [joint-core/types/joint.d.ts:1467](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.viewport`
+`ReactPaperOptions.viewport`
 
 ***
 
@@ -3494,4 +3495,4 @@ Defined in: [joint-core/types/joint.d.ts:1408](https://github.com/samuelgja/join
 
 #### Inherited from
 
-`dia.Paper.Options.width`
+`ReactPaperOptions.width`

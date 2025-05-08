@@ -1,11 +1,19 @@
 import { type dia } from '@joint/core';
-import { useContext, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
-import type { GraphElementWithAttributes } from '../../types/element-types';
+import {
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
+import type { GraphElement, GraphElementWithAttributes } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
 import { useElements } from '../../hooks/use-elements';
 import { CellIdContext } from '../../context/cell-id.context';
-import { PaperItem } from './paper-item';
+import { HTMLElementItem, SVGElementItem } from './paper-element-item';
 import { PaperContext } from '../../context/paper-context';
 import { GraphStoreContext } from '../../context/graph-store-context';
 import { GraphProvider } from '../graph-provider/graph-provider';
@@ -14,6 +22,8 @@ import type { PaperEvents } from '../../types/event.types';
 import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
 import { REACT_TYPE } from '../../models/react-element';
 import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
+import { PaperHTMLContainer } from './paper-html-container';
+import type { ReactPaperOptions } from '../../utils/create-paper';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -28,13 +38,13 @@ export type RenderElement<
  */
 export interface PaperProps<
   ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
-> extends dia.Paper.Options,
+> extends ReactPaperOptions,
     PaperEvents {
   /**
    * A function that renders the element.
    * 
    * Note: Jointjs works by default with SVG's so by default renderElement is append inside the SVGElement node.
-   * To use HTML elements, you need to use the `HtmlNode` component or `foreignObject` element.
+   * To use HTML elements, you need to use the `HTMLNode` component or `foreignObject` element.
    * 
    * This is called when the data from `elementSelector` changes.
    * @example
@@ -42,7 +52,7 @@ export interface PaperProps<
    * ```tsx
    * type BaseElementWithData = InferElement<typeof initialElements>
    * function RenderElement({ label }: BaseElementWithData) {
-   *  return <HtmlElement className="node">{label}</HtmlElement>
+   *  return <HTMLElement className="node">{label}</HTMLElement>
    * }
    * ```
    * @example
@@ -51,7 +61,7 @@ export interface PaperProps<
    * 
   type BaseElementWithData = InferElement<typeof initialElements>
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-      (element) => <HtmlElement className="node">{element.label}</HtmlElement>,
+      (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
       []
   )
    * ```
@@ -117,6 +127,13 @@ export interface PaperProps<
    * @default 10
    */
   readonly clickThreshold?: number;
+
+  /**
+   * Enabled if renderElements is render to pure HTML elements.
+   * By default, `joint/react` renderElements to SVG elements, so for using HTML elements without this prop, you need to use `foreignObject` element.
+   * @default false
+   */
+  readonly useHTMLOverlay?: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -132,14 +149,17 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
     children,
     onElementsSizeReady,
     onElementsSizeChange,
+    useHTMLOverlay,
     ...paperOptions
   } = props;
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
-  const { paperHtmlElement, isPaperFromContext, paper } = useCreatePaper({
+  const { paperContainerElement, paper } = useCreatePaper({
     ...paperOptions,
     scale,
     onRenderElement,
   });
+
+  const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
 
   const elements = useElements((items) => items.map(elementSelector));
   const areElementsMeasured = useAreElementMeasured();
@@ -149,6 +169,7 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
 
   // Whenever elements change (or we’ve just become measured) compare old ↔ new
   useEffect(() => {
+    if (!paper) return;
     if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
 
@@ -180,18 +201,26 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
     previousSizesRef.current = currentSizes;
     onElementsSizeChange({ paper, graph: paper.model });
   }, [elements, areElementsMeasured, onElementsSizeChange, paper]);
+
   const hasRenderElement = !!renderElement;
 
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({
       opacity: areElementsMeasured ? 1 : 0,
       pointerEvents: areElementsMeasured ? 'all' : 'none',
+      position: 'relative',
+      overflow: 'hidden',
+      width: '100%',
+      height: '100%',
       ...style,
     }),
     [areElementsMeasured, style]
   );
 
   useEffect(() => {
+    if (!paper) {
+      return;
+    }
     if (areElementsMeasured) {
       return onElementsSizeReady?.({ paper, graph: paper.model });
     }
@@ -213,42 +242,56 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
   }, [areElementsMeasured, onElementsSizeReady, paper]);
 
   const content = (
-    <div className={className} ref={paperHtmlElement} style={paperContainerStyle}>
+    <>
+      {hasRenderElement && useHTMLOverlay && (
+        <PaperHTMLContainer onSetElement={setHTMLRendererContainer} />
+      )}
       {hasRenderElement &&
         elements.map((cell) => {
           if (!cell.id) {
             return null;
           }
-          const portalHtmlElement = svgGElements[cell.id];
-          if (!portalHtmlElement) {
+          const portalHTMLElement = svgGElements[cell.id];
+          if (!portalHTMLElement) {
             return null;
           }
           if (cell.type !== REACT_TYPE) {
             return null;
           }
+
           return (
             <CellIdContext.Provider key={cell.id} value={cell.id}>
-              <PaperItem
-                {...cell}
-                nodeSvgGElement={portalHtmlElement}
-                renderElement={renderElement}
-              />
+              {useHTMLOverlay && HTMLRendererContainer ? (
+                <HTMLElementItem
+                  {...cell}
+                  portalElement={HTMLRendererContainer}
+                  renderElement={renderElement}
+                />
+              ) : (
+                <SVGElementItem
+                  {...cell}
+                  portalElement={portalHTMLElement}
+                  renderElement={renderElement}
+                />
+              )}
             </CellIdContext.Provider>
           );
         })}
-    </div>
+    </>
   );
 
-  if (isPaperFromContext) {
-    return content;
+  const paperContext: PaperContext | null = paper as PaperContext | null;
+  if (paperContext) {
+    paperContext.renderElement = renderElement as RenderElement<GraphElement>;
   }
+  const hasPaper = !!paper;
 
-  const paperContext: PaperContext = paper as PaperContext;
-  paperContext.renderElement = renderElement as RenderElement<GraphElementWithAttributes>;
   return (
     <PaperContext.Provider value={paperContext}>
-      {content}
-      {children}
+      <div className={className} ref={paperContainerElement} style={paperContainerStyle}>
+        {hasPaper && content}
+      </div>
+      {hasPaper && children}
     </PaperContext.Provider>
   );
 }
@@ -309,7 +352,7 @@ function PaperWithGraphProvider<
  * type BaseElementWithData = InferElement<typeof initialElements>
  *
  * function RenderElement({ label }: BaseElementWithData) {
- *  return <HtmlElement className="node">{label}</HtmlElement>
+ *  return <HTMLElement className="node">{label}</HTMLElement>
  * }
  * function MyApp() {
  *  return <GraphProvider defaultElements={initialElements}>
@@ -327,7 +370,7 @@ function PaperWithGraphProvider<
  
   function MyApp() {
     const renderElement: RenderElement<BaseElementWithData> = useCallback(
-      (element) => <HtmlElement className="node">{element.label}</HtmlElement>,
+      (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
       []
     )
  

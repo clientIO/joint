@@ -8,7 +8,7 @@
 
 > `const` **Paper**: \<`ElementItem`\>(`props`) => `Element`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:342](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L342)
+Defined in: [joint-react/src/components/paper/paper.tsx:385](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L385)
 
 Paper component that renders the JointJS paper elements inside HTML.
 It uses `renderElement` to render the elements.
@@ -48,7 +48,7 @@ const initialElements = createElements([ { id: '1', label: 'Node 1' , x: 100, y:
 type BaseElementWithData = InferElement<typeof initialElements>
 
 function RenderElement({ label }: BaseElementWithData) {
- return <HtmlElement className="node">{label}</HtmlElement>
+ return <HTMLElement className="node">{label}</HTMLElement>
 }
 function MyApp() {
  return <GraphProvider defaultElements={initialElements}>
@@ -66,7 +66,7 @@ Example with `local renderElement component`:
 
  function MyApp() {
    const renderElement: RenderElement<BaseElementWithData> = useCallback(
-     (element) => <HtmlElement className="node">{element.label}</HtmlElement>,
+     (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
      []
    )
 

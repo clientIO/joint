@@ -36,7 +36,7 @@ const initialEdges = createLinks([{ id: 'e1-2', source: '1', target: '2' }])
 
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback(
-    (element) => <HtmlElement className="node">{element.label}</HtmlElement>,
+    (element) => <HTMLElement className="node">{element.label}</HTMLElement>,
     []
   )
   return (

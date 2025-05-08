@@ -63,7 +63,7 @@ export const WithPadding = makeStory<Story>({
 </Highlighter.Mask>`,
 });
 
-export const WithSvgProps = makeStory<Story>({
+export const WithSVGProps = makeStory<Story>({
   args: {
     padding: 10,
     stroke: SECONDARY,

@@ -14,7 +14,7 @@ const API_URL = getAPILink('TextNode');
 export type Story = StoryObj<typeof TextNode>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function SvgDecorator(Story: any) {
+function SVGDecorator(Story: any) {
   const { width, height } = useElement();
   return (
     <>
@@ -39,7 +39,7 @@ function SvgDecorator(Story: any) {
 const meta: Meta<typeof TextNode> = {
   title: 'Components/TextNode',
   component: TextNode,
-  decorators: [SvgDecorator, SimpleRenderItemDecorator],
+  decorators: [SVGDecorator, SimpleRenderItemDecorator],
   parameters: makeRootDocs({
     apiURL: API_URL,
     code: ``,

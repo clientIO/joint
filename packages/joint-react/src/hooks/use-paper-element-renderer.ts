@@ -14,13 +14,13 @@ import type { OnPaperRenderElement } from '../utils/create-paper';
  * @internal
  */
 export function usePaperElementRenderer() {
-  const [svgGElements, setSvgGElements] = useState<Record<dia.Cell.ID, SVGElement>>({});
+  const [svgGElements, setSVGGElements] = useState<Record<dia.Cell.ID, SVGElement>>({});
 
-  const onRenderElement: OnPaperRenderElement = useCallback((element, nodeSvgGElement) => {
-    setSvgGElements((previousState) => {
+  const onRenderElement: OnPaperRenderElement = useCallback((element, nodeSVGGElement) => {
+    setSVGGElements((previousState) => {
       return {
         ...previousState,
-        [element.id]: nodeSvgGElement,
+        [element.id]: nodeSVGGElement,
       };
     });
   }, []);

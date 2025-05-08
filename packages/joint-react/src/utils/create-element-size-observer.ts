@@ -19,8 +19,8 @@ export interface SizeObserver {
  * const cleanup = createElementSizeObserver(element, onResize);
  * ```
  */
-export function createElementSizeObserver<AnyHtmlOrSvgElement extends HTMLElement | SVGElement>(
-  element: AnyHtmlOrSvgElement,
+export function createElementSizeObserver<AnyHTMLOrSVGElement extends HTMLElement | SVGElement>(
+  element: AnyHTMLOrSVGElement,
   onResize: (position: SizeObserver) => void
 ) {
   // Create a ResizeObserver to observe changes in the size of the HTML element.

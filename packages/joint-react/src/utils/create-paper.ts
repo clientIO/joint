@@ -1,11 +1,20 @@
 import { dia } from '@joint/core';
 import type { PortElementsCacheEntry } from '../data/create-ports-data';
 
+const DEFAULT_CLICK_THRESHOLD = 10;
+
 export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
 export type OnPaperRenderPorts = (
   cellId: dia.Cell.ID,
   portElementsCache: Record<string, PortElementsCacheEntry>
 ) => void;
+
+type RemoveIndexSignature<T> = {
+  [K in keyof T as string extends K ? never : K]: T[K];
+};
+
+export type ReactPaperOptions = Omit<RemoveIndexSignature<dia.Paper.Options>, 'frozen'>;
+
 // Interface for Paper options, extending JointJS Paper options
 export interface PaperOptions extends dia.Paper.Options {
   readonly scale?: number;
@@ -71,7 +80,7 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
     // or find a better way to do it (e.g. trigger the event in JointJS)
     elementView,
     ...restOptions,
-    clickThreshold: restOptions?.clickThreshold ?? 10,
+    clickThreshold: restOptions?.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
     frozen: true,
     model: graph,
   });
