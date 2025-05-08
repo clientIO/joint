@@ -126,3 +126,10 @@ If you must use HTML inside an SVG and need cross-browser support:
 As react works is asynchronously, where adding `dynamically` **ports** or changing `dynamically` **element size**, it may cause flickering, 
 we know about this issue and we are working on a solution to fix it.
 
+
+
+### Controlled mode
+Under the hood, @joint/react uses `useSyncExternalStore` to listen to changes in the graph.
+Graph is source of truth, so passing `defaultElements` and `defaultLinks` is just used on load.
+Changing the state can be possible via changing the graph directly via `useGraph` or `useSetElement` or `useSetLink`.
+We are working on a solution to make it fully controlled and effective, but for now, you can use `useGraph` and `useSetElement` to change the graph directly.
