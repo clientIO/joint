@@ -10,7 +10,7 @@ export const isSVGSupported = typeof window === 'object' && !!window.SVGAngle;
  * @constant {string}
  * @description The version of the SVG document.
  */
-export const SVGVersion = '1.1';
+export const SVG_VERSION = '1.1';
 
 /**
  * @constant {SVGSVGElement}
@@ -27,7 +27,7 @@ export const internalSVGDocument = isSVGSupported ? createSVGDocument() : null;
 export function createSVGDocument() {
     const svg = createSVGElement('svg');
     svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
-    svg.setAttribute('version', SVGVersion);
+    svg.setAttribute('version', SVG_VERSION);
     return svg;
 }
 
