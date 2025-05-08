@@ -5,15 +5,18 @@ import { useCombinedRef } from '../../hooks/use-combined-ref';
 export interface TextNodeProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
-  readonly separator?: string | unknown;
   readonly eol?: string;
-  readonly ellipsis?: boolean | string;
+
+  readonly width?: number;
+  readonly height?: number;
+
+  readonly isTextWrapEnabled?: boolean;
+  readonly ellipsis?: string | boolean;
+  readonly textWrapEol?: string;
   readonly hyphen?: string | RegExp;
   readonly maxLineCount?: number;
   readonly preserveSpaces?: boolean;
-  readonly isLineBreakEnabled?: boolean;
-  readonly width?: number;
-  readonly height?: number;
+  readonly separator?: string | unknown;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -36,7 +39,8 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     ellipsis,
     maxLineCount,
     preserveSpaces,
-    isLineBreakEnabled,
+    isTextWrapEnabled,
+    textWrapEol,
     ...rest
   } = props;
 
@@ -46,21 +50,20 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
       return;
     }
 
-    // util.breakText()
     if (typeof children !== 'string') {
       throw new TypeError('TextNode children must be a string');
     }
 
     let text = children;
-    if (isLineBreakEnabled) {
+    if (isTextWrapEnabled) {
       if (width === undefined) {
-        throw new TypeError('TextNode width must be defined when isLineBreakEnabled is true');
+        throw new TypeError('TextNode width must be defined when isTextWrapEnabled is true');
       }
       text = util.breakText(
         text,
         { width, height },
         {},
-        { ellipsis, eol, hyphen, maxLineCount, preserveSpaces, separator }
+        { ellipsis, eol: textWrapEol, hyphen, maxLineCount, preserveSpaces, separator }
       );
     }
 
@@ -83,7 +86,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     height,
     hyphen,
     includeAnnotationIndices,
-    isLineBreakEnabled,
+    isTextWrapEnabled,
     lineHeight,
     maxLineCount,
     preserveSpaces,
@@ -91,6 +94,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     textPath,
     textRef,
     textVerticalAnchor,
+    textWrapEol,
     width,
     x,
   ]);

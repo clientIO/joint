@@ -95,7 +95,9 @@ Hooks like `useSetElement` are just convenience helpers (**syntactic sugar**) th
 You can also access the graph yourself using `useGraph()` and call methods like `graph.setCells()` or any other JointJS method as needed and react will update it accordingly.
 
 
-## Avoid Certain CSS Properties in `<foreignObject>`
+## Known Issues
+
+### Avoid Certain CSS Properties in `<foreignObject>`
 
 Developers have observed that some CSS properties can cause rendering issues in Safari when used inside an SVG `<foreignObject>`. To improve compatibility, it's recommended to **avoid** the following properties within `<foreignObject>` elements:
 
@@ -107,6 +109,10 @@ Developers have observed that some CSS properties can cause rendering issues in 
 
 These styles can lead to unpredictable behavior, layout issues, or elements not being rendered at all in Safari and other WebKit-based browsers.
 
+We know about this issue and for that purpose we added a `useHTMLOverlay` property inside paper, which enabled the `HTMLOverlay` component, which is not part of the `jointjs` svg, but rather div container.
+
+```tsx
+
 ### Recommended Workaround
 
 If you must use HTML inside an SVG and need cross-browser support:
@@ -114,3 +120,9 @@ If you must use HTML inside an SVG and need cross-browser support:
 - Use only minimal, simple CSS inside `<foreignObject>`.
 - Favor static positioning and avoid CSS transforms.
 - Consider overlaying HTML outside the SVG using absolute positioning
+
+
+### Flickering
+As react works is asynchronously, where adding `dynamically` **ports** or changing `dynamically` **element size**, it may cause flickering, 
+we know about this issue and we are working on a solution to fix it.
+

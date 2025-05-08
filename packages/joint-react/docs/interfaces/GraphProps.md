@@ -14,7 +14,7 @@ Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:60](ht
 
 > `readonly` `optional` **cellModel**: *typeof* `Cell`
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:83](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L83)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:85](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L85)
 
 Custom cell model to use.
 It's loaded just once, so it cannot be used as React state.
@@ -29,16 +29,16 @@ https://docs.jointjs.com/api/dia/Cell
 
 > `readonly` `optional` **cellNamespace**: `unknown`
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:77](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L77)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:79](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L79)
 
 Namespace for cell models.
 It's loaded just once, so it cannot be used as React state.
+When added new shape, it will not remove existing ones, it will just add new ones.
+So `{ ...shapes, ReactElement }` elements are still available.
 
 #### Default
 
-```ts
-shapes + ReactElement
-```
+`{ ...shapes, ReactElement }`
 
 #### See
 
@@ -60,7 +60,7 @@ Children to render.
 
 > `readonly` `optional` **defaultElements**: ([`GraphElementWithAttributes`](GraphElementWithAttributes.md)\<`unknown`\> \| `Element`\<`Attributes`, `ModelSetOptions`\>)[]
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:88](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L88)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L90)
 
 Initial elements to be added to graph
 It's loaded just once, so it cannot be used as React state.
@@ -71,7 +71,7 @@ It's loaded just once, so it cannot be used as React state.
 
 > `readonly` `optional` **defaultLinks**: ([`GraphLink`](GraphLink.md)\<`string`\> \| `Link`\<`Attributes`, `ModelSetOptions`\>)[]
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:93](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L93)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:95](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L95)
 
 Initial links to be added to graph
 It's loaded just once, so it cannot be used as React state.
@@ -102,7 +102,7 @@ new dia.Graph({}, { cellNamespace: shapes })
 
 > `readonly` `optional` **store**: `Store`
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:99](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L99)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:101](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L101)
 
 Store is build around graph, it handles react updates and states, it can be created separately and passed to the provider via `createStore` function.
 

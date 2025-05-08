@@ -42,7 +42,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:29](https://github.com/samuelgja/j
 
 > `readonly` `optional` **ellipsis**: `string` \| `boolean`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L10)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L14)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:10](https://gith
 
 > `readonly` `optional` **eol**: `string`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:9](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L9)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L8)
 
 #### Overrides
 
@@ -62,7 +62,7 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:9](https://githu
 
 > `readonly` `optional` **height**: `number`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:16](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L16)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L11)
 
 #### Overrides
 
@@ -74,7 +74,7 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:16](https://gith
 
 > `readonly` `optional` **hyphen**: `string` \| [`RegExp`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L11)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:16](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L16)
 
 ***
 
@@ -90,11 +90,11 @@ Defined in: [joint-core/types/vectorizer.d.ts:28](https://github.com/samuelgja/j
 
 ***
 
-### isLineBreakEnabled?
+### isTextWrapEnabled?
 
-> `readonly` `optional` **isLineBreakEnabled**: `boolean`
+> `readonly` `optional` **isTextWrapEnabled**: `boolean`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:14](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L14)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L13)
 
 ***
 
@@ -114,7 +114,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:25](https://github.com/samuelgja/j
 
 > `readonly` `optional` **maxLineCount**: `number`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:12](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L12)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L17)
 
 ***
 
@@ -122,7 +122,7 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:12](https://gith
 
 > `readonly` `optional` **preserveSpaces**: `boolean`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L13)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:18](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L18)
 
 ***
 
@@ -130,7 +130,7 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:13](https://gith
 
 > `readonly` `optional` **separator**: `unknown`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L8)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:19](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L19)
 
 ***
 
@@ -158,11 +158,19 @@ Defined in: [joint-core/types/vectorizer.d.ts:24](https://github.com/samuelgja/j
 
 ***
 
+### textWrapEol?
+
+> `readonly` `optional` **textWrapEol**: `string`
+
+Defined in: [joint-react/src/components/text-node/text-node.tsx:15](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L15)
+
+***
+
 ### width?
 
 > `readonly` `optional` **width**: `number`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:15](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L15)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L10)
 
 #### Overrides
 

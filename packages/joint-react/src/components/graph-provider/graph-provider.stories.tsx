@@ -9,7 +9,7 @@ import { Paper, type RenderElement } from '../paper/paper';
 import { dia } from '@joint/core';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
@@ -19,7 +19,7 @@ export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
   title: 'Components/GraphProvider',
   component: GraphProvider,
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     description: `
 GraphProvider is a component that provides a graph context to its children. It is used to manage and render graph elements.
     `,
