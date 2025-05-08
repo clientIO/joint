@@ -1406,9 +1406,8 @@ QUnit.module('element ports', function() {
             // MANUAL:
 
             function getMatrix(node) {
-                return V.matrixToTransformString(V(node).transform());
+                return node.getAttribute('transform');
             }
-
 
             const manualG = view.findPortNode('manual').parentElement;
             assert.equal(getMatrix(manualG), 'matrix(1,0,0,1,0,1)');
