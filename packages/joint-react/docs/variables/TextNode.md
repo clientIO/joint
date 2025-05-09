@@ -6,9 +6,9 @@
 
 # Variable: TextNode
 
-> `const` **TextNode**: `ForwardRefExoticComponent`\<[`Omit`](https://www.typescriptlang.org/docs/handbook/utility-types.html#omittype-keys)\<[`TextNodeProps`](../interfaces/TextNodeProps.md), `"ref"`\> & `RefAttributes`\<[`SVGTextElement`](https://developer.mozilla.org/docs/Web/API/SVGTextElement)\>\>
+> `const` **TextNode**: `ForwardRefExoticComponent`\<[`Omit`](https://www.typescriptlang.org/docs/handbook/utility-types.html#omittype-keys)\<[`TextNodePropsWithoutTextWrap`](../interfaces/TextNodePropsWithoutTextWrap.md), `"ref"`\> \| [`Omit`](https://www.typescriptlang.org/docs/handbook/utility-types.html#omittype-keys)\<[`TextNodePropsWithTextWrap`](../interfaces/TextNodePropsWithTextWrap.md), `"ref"`\> & `RefAttributes`\<[`SVGTextElement`](https://developer.mozilla.org/docs/Web/API/SVGTextElement)\>\>
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:88](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L88)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:99](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L99)
 
 TextNode component is a wrapper around the SVG text element that provides additional functionality for rendering text.
 It uses the Vectorizer library to handle text rendering and annotations.

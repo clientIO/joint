@@ -7,7 +7,7 @@ import {
   MeasuredNode,
   Paper,
   useElements,
-  useSetElement,
+  useUpdateElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
@@ -33,7 +33,7 @@ const initialEdges = createLinks([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function ElementInput({ id, label }: BaseElementWithData) {
-  const setLabel = useSetElement<BaseElementWithData>(id, 'label');
+  const setLabel = useUpdateElement<BaseElementWithData>(id, 'label');
   return (
     <input
       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"

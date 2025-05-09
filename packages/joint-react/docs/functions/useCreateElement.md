@@ -2,13 +2,13 @@
 
 ***
 
-[@joint/react](../README.md) / useAddElement
+[@joint/react](../README.md) / useCreateElement
 
-# Function: useAddElement()
+# Function: useCreateElement()
 
-> **useAddElement**\<`T`\>(): (`element`) => `void`
+> **useCreateElement**\<`T`\>(): (`element`) => `void`
 
-Defined in: [joint-react/src/hooks/use-add-element.ts:22](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-add-element.ts#L22)
+Defined in: joint-react/src/hooks/use-create-element.ts:22
 
 A custom hook that adds an element to the graph.
 
@@ -37,6 +37,6 @@ A function that adds the element to the graph.
 ## Example
 
 ```ts
-const addElement = useAddElement();
+const addElement = useCreateElement();
 addElement({ id: '1', label: 'Node 1' });
 ```

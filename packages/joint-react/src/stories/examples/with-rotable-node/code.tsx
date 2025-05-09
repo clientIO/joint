@@ -7,7 +7,7 @@ import {
   Paper,
   useElements,
   usePaper,
-  useSetElement,
+  useUpdateElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
@@ -36,7 +36,7 @@ type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RotatableNode({ label, id, width, height }: Readonly<BaseElementWithData>) {
   const paper = usePaper();
-  const setRotation = useSetElement(id, 'angle');
+  const setRotation = useUpdateElement(id, 'angle');
 
   const dragHandle = useCallback(
     (event: PointerEvent) => {

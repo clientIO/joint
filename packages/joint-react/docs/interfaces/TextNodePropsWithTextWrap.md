@@ -2,15 +2,15 @@
 
 ***
 
-[@joint/react](../README.md) / TextNodeProps
+[@joint/react](../README.md) / TextNodePropsWithTextWrap
 
-# Interface: TextNodeProps
+# Interface: TextNodePropsWithTextWrap
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L5)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L17)
 
 ## Extends
 
-- `SVGTextElementAttributes`\<[`SVGTextElement`](https://developer.mozilla.org/docs/Web/API/SVGTextElement)\>.`TextOptions`
+- `TextNodePropsBase`
 
 ## Properties
 
@@ -22,7 +22,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:27](https://github.com/samuelgja/j
 
 #### Inherited from
 
-`Vectorizer.TextOptions.annotations`
+`TextNodePropsBase.annotations`
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:29](https://github.com/samuelgja/j
 
 #### Inherited from
 
-`Vectorizer.TextOptions.displayEmpty`
+`TextNodePropsBase.displayEmpty`
 
 ***
 
@@ -44,9 +44,9 @@ Defined in: [joint-core/types/vectorizer.d.ts:29](https://github.com/samuelgja/j
 
 Defined in: [joint-react/src/components/text-node/text-node.tsx:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L8)
 
-#### Overrides
+#### Inherited from
 
-`Vectorizer.TextOptions.eol`
+`TextNodePropsBase.eol`
 
 ***
 
@@ -54,11 +54,11 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:8](https://githu
 
 > `readonly` `optional` **height**: `number`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L10)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:20](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L20)
 
 #### Overrides
 
-`SVGTextElementAttributes.height`
+`TextNodePropsBase.height`
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:28](https://github.com/samuelgja/j
 
 #### Inherited from
 
-`Vectorizer.TextOptions.includeAnnotationIndices`
+`TextNodePropsBase.includeAnnotationIndices`
 
 ***
 
@@ -82,7 +82,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:25](https://github.com/samuelgja/j
 
 #### Inherited from
 
-`Vectorizer.TextOptions.lineHeight`
+`TextNodePropsBase.lineHeight`
 
 ***
 
@@ -94,7 +94,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:26](https://github.com/samuelgja/j
 
 #### Inherited from
 
-`Vectorizer.TextOptions.textPath`
+`TextNodePropsBase.textPath`
 
 ***
 
@@ -106,24 +106,28 @@ Defined in: [joint-core/types/vectorizer.d.ts:24](https://github.com/samuelgja/j
 
 #### Inherited from
 
-`Vectorizer.TextOptions.textVerticalAnchor`
+`TextNodePropsBase.textVerticalAnchor`
 
 ***
 
-### textWrap?
+### textWrap
 
-> `readonly` `optional` **textWrap**: `boolean` \| `BreakTextOptions`
+> `readonly` **textWrap**: `true` \| `BreakTextOptions`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L11)
-
-***
-
-### width?
-
-> `readonly` `optional` **width**: `number`
-
-Defined in: [joint-react/src/components/text-node/text-node.tsx:9](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L9)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:18](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L18)
 
 #### Overrides
 
-`SVGTextElementAttributes.width`
+`TextNodePropsBase.textWrap`
+
+***
+
+### width
+
+> `readonly` **width**: `number`
+
+Defined in: [joint-react/src/components/text-node/text-node.tsx:19](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L19)
+
+#### Overrides
+
+`TextNodePropsBase.width`

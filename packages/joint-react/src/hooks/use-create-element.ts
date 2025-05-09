@@ -15,11 +15,11 @@ type SetElement<T extends dia.Element | GraphElementWithAttributes> = Omit<
  * @returns A function that adds the element to the graph.
  * @example
  * ```ts
- * const addElement = useAddElement();
+ * const addElement = useCreateElement();
  * addElement({ id: '1', label: 'Node 1' });
  * ```
  */
-export function useAddElement<T extends dia.Element | GraphElementWithAttributes>() {
+export function useCreateElement<T extends dia.Element | GraphElementWithAttributes>() {
   const graph = useGraph();
   return useCallback(
     (element: SetElement<T>) => {

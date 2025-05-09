@@ -9,7 +9,7 @@ import {
   useCellId,
   useElements,
   useGraph,
-  useSetElement,
+  useUpdateElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
@@ -36,7 +36,7 @@ const initialEdges = createLinks([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function ElementInput({ id, label }: BaseElementWithData) {
-  const setLabel = useSetElement<BaseElementWithData>(id, 'label');
+  const setLabel = useUpdateElement<BaseElementWithData>(id, 'label');
   return (
     <input
       style={{ padding: 5, marginTop: 4 }}

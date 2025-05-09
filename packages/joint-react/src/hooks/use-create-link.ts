@@ -10,11 +10,11 @@ import type { GraphLink } from '../types/link-types';
  * @returns A function that adds the link to the graph.
  * @example
  * ```ts
- * const addLink = useAddLink();
+ * const addLink = useCreateLink();
  * addLink({ id: '1', source: { id: '2' }, target: { id: '3' } });
  * ```
  */
-export function useAddLink<T extends dia.Link | GraphLink>() {
+export function useCreateLink<T extends dia.Link | GraphLink>() {
   const graph = useGraph();
   return useCallback(
     (link: T) => {

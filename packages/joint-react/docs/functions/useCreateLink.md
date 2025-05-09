@@ -2,13 +2,13 @@
 
 ***
 
-[@joint/react](../README.md) / useAddLink
+[@joint/react](../README.md) / useCreateLink
 
-# Function: useAddLink()
+# Function: useCreateLink()
 
-> **useAddLink**\<`T`\>(): (`link`) => `void`
+> **useCreateLink**\<`T`\>(): (`link`) => `void`
 
-Defined in: [joint-react/src/hooks/use-add-link.ts:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-add-link.ts#L17)
+Defined in: joint-react/src/hooks/use-create-link.ts:17
 
 A custom hook that adds a link to the graph.
 
@@ -37,6 +37,6 @@ A function that adds the link to the graph.
 ## Example
 
 ```ts
-const addLink = useAddLink();
+const addLink = useCreateLink();
 addLink({ id: '1', source: { id: '2' }, target: { id: '3' } });
 ```

@@ -1,10 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
-import { useSetElement } from '../use-set-element';
+import { useUpdateElement } from '../use-update-element';
 import { useGraph } from '../use-graph';
 import { useElements } from '../use-elements';
 
-describe('use-set-element', () => {
+describe('use-update-element', () => {
   const wrapper = graphProviderWrapper({
     initialElements: [
       {
@@ -33,7 +33,7 @@ describe('use-set-element', () => {
       () => {
         renders();
         return {
-          set: useSetElement(),
+          set: useUpdateElement(),
           graph: useGraph(),
           reactElementsSizeCheck: useElements(),
         };
@@ -70,7 +70,7 @@ describe('use-set-element', () => {
       () => {
         renders();
         return {
-          set: useSetElement('1'),
+          set: useUpdateElement('1'),
           graph: useGraph(),
           reactElementsSizeCheck: useElements(),
         };
@@ -107,7 +107,7 @@ describe('use-set-element', () => {
       () => {
         renders();
         return {
-          set: useSetElement('1', 'size'),
+          set: useUpdateElement('1', 'size'),
           graph: useGraph(),
           reactElementsSizeCheck: useElements(),
         };
@@ -144,7 +144,7 @@ describe('use-set-element', () => {
       () => {
         renders();
         return {
-          set: useSetElement(),
+          set: useUpdateElement(),
           graph: useGraph(),
         };
       },
@@ -170,7 +170,7 @@ describe('use-set-element', () => {
       () => {
         renders();
         return {
-          set: useSetElement('1'),
+          set: useUpdateElement('1'),
           graph: useGraph(),
         };
       },
@@ -199,7 +199,7 @@ describe('use-set-element', () => {
       () => {
         renders();
         return {
-          set: useSetElement('1', 'size'),
+          set: useUpdateElement('1', 'size'),
           graph: useGraph(),
         };
       },
@@ -225,7 +225,7 @@ describe('use-set-element', () => {
       () => {
         renders();
         return {
-          set: useSetElement('1', 'size'),
+          set: useUpdateElement('1', 'size'),
           graph: useGraph(),
         };
       },
@@ -251,7 +251,7 @@ describe('use-set-element', () => {
       () => {
         renders();
         return {
-          set: useSetElement('1', 'size'),
+          set: useUpdateElement('1', 'size'),
           graph: useGraph(),
         };
       },

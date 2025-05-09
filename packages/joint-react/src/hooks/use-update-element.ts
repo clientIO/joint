@@ -61,24 +61,24 @@ function setCellHelper<Attributes, Attribute extends keyof Attributes>(
  * @example
  * 1. Use empty hook and define ID, attribute, and value inside the set function
  * ```tsx
- * const setElement = useSetElement();
+ * const setElement = useUpdateElement();
  * setElement('element-id', 'position', { x: 100, y: 100 });
  * ```
  * @example
  * 2. Provide ID and attribute, and use the returned function to set value
  * ```tsx
- * const setElement = useSetElement('element-id', 'position');
+ * const setElement = useUpdateElement('element-id', 'position');
  * setElement({ x: 100, y: 100 });
  * ```
  * @example
  * 3. Provide ID and use the returned function to set attribute and value
  * ```tsx
- * const setElement = useSetElement('element-id');
+ * const setElement = useUpdateElement('element-id');
  * setElement('position', { x: 100, y: 100 });
  * ```
  */
 
-export function useSetElement<
+export function useUpdateElement<
   Attributes = BaseAttributes,
   Attribute extends keyof Attributes = keyof Attributes,
 >(
@@ -86,18 +86,18 @@ export function useSetElement<
   attribute: Attribute
 ): (value: Attributes[Attribute] | Setter<Attributes[Attribute]>) => void;
 
-export function useSetElement<Attributes = BaseAttributes>(
+export function useUpdateElement<Attributes = BaseAttributes>(
   id: dia.Cell.ID
 ): <X extends keyof Attributes>(attribute: X, value: Attributes[X] | Setter<Attributes[X]>) => void;
 
-export function useSetElement<Attributes = BaseAttributes>(): <X extends keyof Attributes>(
+export function useUpdateElement<Attributes = BaseAttributes>(): <X extends keyof Attributes>(
   id: dia.Cell.ID,
   attribute: X,
   value: Attributes[X] | Setter<Attributes[X]>
 ) => void;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-export function useSetElement<
+export function useUpdateElement<
   Attributes = BaseAttributes,
   Attribute extends keyof Attributes = keyof Attributes,
 >(id?: dia.Cell.ID, attributeParameter?: Attribute) {
@@ -131,4 +131,4 @@ export function useSetElement<
   return setElement;
 }
 
-export type SetCell = ReturnType<typeof useSetElement>;
+export type SetCell = ReturnType<typeof useUpdateElement>;

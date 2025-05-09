@@ -2,7 +2,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-hooks/rules-of-hooks */
 import type { Meta, StoryObj } from '@storybook/react';
-import { useAddElement } from './use-add-element';
+import { useCreateElement } from './use-create-element';
 import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
@@ -11,16 +11,16 @@ import '../stories/examples/index.css';
 import { Paper } from '../components';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME } from 'storybook-config/theme';
 
-const API_URL = getAPILink('useAddElement');
+const API_URL = getAPILink('useCreateElement');
 
 export type Story = StoryObj<typeof Hook>;
 
 const meta: Meta<typeof Hook> = {
-  title: 'Hooks/useAddElement',
+  title: 'Hooks/useCreateElement',
   component: Hook,
   decorators: [SimpleGraphDecorator],
   render: () => {
-    const addElement = useAddElement<SimpleElement>();
+    const addElement = useCreateElement<SimpleElement>();
     return (
       <div className="flex flex-row">
         <div style={{ width: '100%', height: 450 }}>
@@ -54,11 +54,11 @@ const meta: Meta<typeof Hook> = {
   },
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description: `\`useAddElement\` is a hook to add elements to the graph. It returns a function to add an element. It must be used inside the GraphProvider.`,
-    code: `import { useAddElement } from '@joint/react'
+    description: `\`useCreateElement\` is a hook to add elements to the graph. It returns a function to add an element. It must be used inside the GraphProvider.`,
+    code: `import { useCreateElement } from '@joint/react'
 
 function Component() {
-  const addElement = useAddElement();
+  const addElement = useCreateElement();
   return <button onClick={() => addElement({ id: '1', label: 'Node 1' })}>Add Element</button>;
 }`,
   }),
@@ -73,10 +73,10 @@ function Hook({ label }: SimpleElement) {
 export const Default: Story = makeStory<Story>({
   args: {},
   apiURL: API_URL,
-  code: `import { useAddElement } from '@joint/react'
+  code: `import { useCreateElement } from '@joint/react'
 
 function Hook() {
-  const addElement = useAddElement();
+  const addElement = useCreateElement();
 
   return (
     <div>

@@ -125,7 +125,7 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * Under the hood, @joint/react works by listening to changes in the `dia.Graph` via this store. `dia.graph` is the single source of truth.
  * When you update something—like adding or modifying cells—you do it directly through the `dia.Graph` API, just like in a standard JointJS app.
  * React components automatically observe and react to changes in the graph, keeping the UI in sync via `useSyncExternalStore` API.
- * Hooks like `useSetElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes.
+ * Hooks like `useUpdateElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes.
  * You can also access the graph yourself using `useGraph()` and call methods like `graph.setCells()` or any other JointJS method as needed and react will update it accordingly.
  * @group Data
  * @internal

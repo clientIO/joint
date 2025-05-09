@@ -2,15 +2,15 @@
 
 ***
 
-[@joint/react](../README.md) / useSetElement
+[@joint/react](../README.md) / useUpdateElement
 
-# Function: useSetElement()
+# Function: useUpdateElement()
 
 ## Call Signature
 
-> **useSetElement**\<`Attributes`, `Attribute`\>(`id`, `attribute`): (`value`) => `void`
+> **useUpdateElement**\<`Attributes`, `Attribute`\>(`id`, `attribute`): (`value`) => `void`
 
-Defined in: [joint-react/src/hooks/use-set-element.ts:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L81)
+Defined in: joint-react/src/hooks/use-update-element.ts:81
 
 **`Experimental`**
 
@@ -65,27 +65,27 @@ It can be used in three ways:
 
 1. Use empty hook and define ID, attribute, and value inside the set function
 ```tsx
-const setElement = useSetElement();
+const setElement = useUpdateElement();
 setElement('element-id', 'position', { x: 100, y: 100 });
 ```
 
 2. Provide ID and attribute, and use the returned function to set value
 ```tsx
-const setElement = useSetElement('element-id', 'position');
+const setElement = useUpdateElement('element-id', 'position');
 setElement({ x: 100, y: 100 });
 ```
 
 3. Provide ID and use the returned function to set attribute and value
 ```tsx
-const setElement = useSetElement('element-id');
+const setElement = useUpdateElement('element-id');
 setElement('position', { x: 100, y: 100 });
 ```
 
 ## Call Signature
 
-> **useSetElement**\<`Attributes`\>(`id`): \<`X`\>(`attribute`, `value`) => `void`
+> **useUpdateElement**\<`Attributes`\>(`id`): \<`X`\>(`attribute`, `value`) => `void`
 
-Defined in: [joint-react/src/hooks/use-set-element.ts:89](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L89)
+Defined in: joint-react/src/hooks/use-update-element.ts:89
 
 **`Experimental`**
 
@@ -140,27 +140,27 @@ It can be used in three ways:
 
 1. Use empty hook and define ID, attribute, and value inside the set function
 ```tsx
-const setElement = useSetElement();
+const setElement = useUpdateElement();
 setElement('element-id', 'position', { x: 100, y: 100 });
 ```
 
 2. Provide ID and attribute, and use the returned function to set value
 ```tsx
-const setElement = useSetElement('element-id', 'position');
+const setElement = useUpdateElement('element-id', 'position');
 setElement({ x: 100, y: 100 });
 ```
 
 3. Provide ID and use the returned function to set attribute and value
 ```tsx
-const setElement = useSetElement('element-id');
+const setElement = useUpdateElement('element-id');
 setElement('position', { x: 100, y: 100 });
 ```
 
 ## Call Signature
 
-> **useSetElement**\<`Attributes`\>(): \<`X`\>(`id`, `attribute`, `value`) => `void`
+> **useUpdateElement**\<`Attributes`\>(): \<`X`\>(`id`, `attribute`, `value`) => `void`
 
-Defined in: [joint-react/src/hooks/use-set-element.ts:93](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L93)
+Defined in: joint-react/src/hooks/use-update-element.ts:93
 
 **`Experimental`**
 
@@ -211,18 +211,18 @@ It can be used in three ways:
 
 1. Use empty hook and define ID, attribute, and value inside the set function
 ```tsx
-const setElement = useSetElement();
+const setElement = useUpdateElement();
 setElement('element-id', 'position', { x: 100, y: 100 });
 ```
 
 2. Provide ID and attribute, and use the returned function to set value
 ```tsx
-const setElement = useSetElement('element-id', 'position');
+const setElement = useUpdateElement('element-id', 'position');
 setElement({ x: 100, y: 100 });
 ```
 
 3. Provide ID and use the returned function to set attribute and value
 ```tsx
-const setElement = useSetElement('element-id');
+const setElement = useUpdateElement('element-id');
 setElement('position', { x: 100, y: 100 });
 ```

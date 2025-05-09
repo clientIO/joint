@@ -16,7 +16,7 @@ import {
 } from '@joint/react';
 import { useCallback, useState } from 'react';
 import type { dia } from '@joint/core';
-import { useAddElement } from '../../../hooks/use-add-element';
+import { useCreateElement } from '../../../hooks/use-create-element';
 import { PAPER_CLASSNAME } from 'storybook-config/theme';
 
 const initialElements = createElements([
@@ -51,7 +51,7 @@ function Main() {
     []
   );
   const graph = useGraph();
-  const addElement = useAddElement<BaseElementWithData>();
+  const addElement = useCreateElement<BaseElementWithData>();
 
   // Number of elements per row
   const [gridXSize, setGridXSize] = useState(3);

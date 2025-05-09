@@ -3,28 +3,28 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { HTMLNode, RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
-import { useSetElement } from './use-set-element';
+import { useUpdateElement } from './use-update-element';
 import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../stories/examples/index.css';
 import { BUTTON_CLASSNAME } from 'storybook-config/theme';
 
-const API_URL = getAPILink('useSetElement');
+const API_URL = getAPILink('useUpdateElement');
 
 export type Story = StoryObj<typeof Hook>;
 
 const meta: Meta<typeof Hook> = {
-  title: 'Hooks/useSetElement',
+  title: 'Hooks/useUpdateElement',
   component: Hook,
   render: () => <RenderItemDecorator renderElement={Hook} />,
   parameters: makeRootDocumentation({
     apiURL: API_URL,
-    description: `\`useSetElement\` is a hook to set element attributes. It returns a function to set the element attribute. It must be used inside the GraphProvider.
+    description: `\`useUpdateElement\` is a hook to set element attributes. It returns a function to set the element attribute. It must be used inside the GraphProvider.
     `,
-    code: `import { useSetElement } from '@joint/react'
+    code: `import { useUpdateElement } from '@joint/react'
 
 function Component() {
-  const setPosition = useSetElement('element-id', 'position');
+  const setPosition = useUpdateElement('element-id', 'position');
   return <button onClick={() => setPosition({ x: 100, y: 100 })}>Set Position</button>;
 }`,
   }),
@@ -33,7 +33,7 @@ function Component() {
 export default meta;
 
 function Hook({ label, id }: SimpleElement) {
-  const setLabel = useSetElement<SimpleElement>(id, 'label');
+  const setLabel = useUpdateElement<SimpleElement>(id, 'label');
 
   return (
     <HTMLNode className="node">
@@ -51,11 +51,11 @@ export const Default: Story = makeStory<Story>({
     id: 'default-id',
   },
   apiURL: API_URL,
-  code: `import { useSetElement } from '@joint/react'
+  code: `import { useUpdateElement } from '@joint/react'
 
 
   function Hook({  label , id }: SimpleElement) {
-    const setLabel = useSetElement(id, 'label');
+    const setLabel = useUpdateElement(id, 'label');
   
     return (
       <HTMLNode className="node">
@@ -68,7 +68,7 @@ export const Default: Story = makeStory<Story>({
 });
 
 function HookSetPosition({ label, id }: SimpleElement) {
-  const set = useSetElement(id, 'position');
+  const set = useUpdateElement(id, 'position');
 
   return (
     <HTMLNode className="node">
@@ -93,10 +93,10 @@ function HookSetPosition({ label, id }: SimpleElement) {
 export const SetPosition: Story = makeStory<Story>({
   component: () => <RenderItemDecorator renderElement={HookSetPosition} />,
   apiURL: API_URL,
-  code: `import { useSetElement } from '@joint/react'
+  code: `import { useUpdateElement } from '@joint/react'
 
   function HookSetPosition({ label, id }: SimpleElement) {
-    const set = useSetElement(id, 'position');
+    const set = useUpdateElement(id, 'position');
   
     return (
       <HTMLNode className="node">
@@ -121,7 +121,7 @@ export const SetPosition: Story = makeStory<Story>({
 });
 
 function HookSetSize({ label, id }: SimpleElement) {
-  const set = useSetElement(id, 'size');
+  const set = useUpdateElement(id, 'size');
 
   return (
     <HTMLNode className="node">
@@ -146,10 +146,10 @@ function HookSetSize({ label, id }: SimpleElement) {
 export const SetSize: Story = makeStory<Story>({
   component: () => <RenderItemDecorator renderElement={HookSetSize} />,
   apiURL: API_URL,
-  code: `import { useSetElement } from '@joint/react'
+  code: `import { useUpdateElement } from '@joint/react'
 
 function HookSetSize({  label, id }: SimpleElement) {
-  const set = useSetElement(id, 'size');
+  const set = useUpdateElement(id, 'size');
 
   return (
     <HTMLNode className="node">
@@ -173,7 +173,7 @@ function HookSetSize({  label, id }: SimpleElement) {
 });
 
 function HookSetAngle({ label, id }: SimpleElement) {
-  const set = useSetElement(id, 'angle');
+  const set = useUpdateElement(id, 'angle');
 
   return (
     <HTMLNode className="node">
@@ -199,7 +199,7 @@ export const SetAngle: Story = makeStory<Story>({
   component: () => <RenderItemDecorator renderElement={HookSetAngle} />,
   apiURL: API_URL,
   code: `function HookSetAngle({  label, id }: SimpleElement) {
-  const set = useSetElement(id, 'angle');
+  const set = useUpdateElement(id, 'angle');
 
   return (
     <HTMLNode className="node">
@@ -223,7 +223,7 @@ export const SetAngle: Story = makeStory<Story>({
 });
 
 function HookSetAny({ label, id }: SimpleElement) {
-  const set = useSetElement(id);
+  const set = useUpdateElement(id);
 
   return (
     <HTMLNode className="node">
@@ -261,10 +261,10 @@ function HookSetAny({ label, id }: SimpleElement) {
 export const SetAnyProperty: Story = makeStory<Story>({
   apiURL: API_URL,
   component: () => <RenderItemDecorator renderElement={HookSetAny} />,
-  code: `import { useSetElement } from '@joint/react'
+  code: `import { useUpdateElement } from '@joint/react'
 
 function HookSetAny({  label , id }: SimpleElement) {
-  const set = useSetElement(id);
+  const set = useUpdateElement(id);
 
   return (
     <HTMLNode className="node">

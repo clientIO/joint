@@ -1,17 +1,17 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { useAddElement } from '../use-add-element';
+import { useCreateElement } from '../use-create-element';
 import { simpleRenderElementWrapper } from '../../utils/test-wrappers';
 import { useGraph } from '../use-graph';
 import { useElements } from '../use-elements';
 
-describe('use-add-element', () => {
+describe('use-create-element', () => {
   it('should add element and should it be added also to the graph', async () => {
     const renders = jest.fn();
     const { result } = renderHook(
       () => {
         renders();
         return {
-          add: useAddElement(),
+          add: useCreateElement(),
           graph: useGraph(),
           reactElementsCheck: useElements((items) => items.size),
         };

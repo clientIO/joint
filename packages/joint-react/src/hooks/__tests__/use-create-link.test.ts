@@ -1,10 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { useAddLink } from '../use-add-link';
+import { useCreateLink } from '../use-create-link';
 import { useGraph } from '../use-graph';
 import { useLinks } from '../use-links';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
 
-describe('use-add-link', () => {
+describe('use-create-link', () => {
   const wrapper = graphProviderWrapper({
     initialElements: [
       {
@@ -26,7 +26,7 @@ describe('use-add-link', () => {
       () => {
         renders();
         return {
-          add: useAddLink(),
+          add: useCreateLink(),
           graph: useGraph(),
           reactLinksSizeCheck: useLinks((items) => items.size),
         };
