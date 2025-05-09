@@ -2,13 +2,15 @@
 /* eslint-disable no-shadow */
 import type { dia } from '@joint/core';
 import { memo, useEffect } from 'react';
-import type { PortGroupBase } from './port.types';
 import { useCellId, useGraph } from '../../hooks';
 import { PortGroupContext } from '../../context/port-group-context';
-export interface PortGroupProps extends PortGroupBase {
+import type { PortLayout } from './port.types';
+
+export type PortGroupProps = {
   readonly id: string;
   readonly children?: React.ReactNode;
-}
+} & PortLayout; // PortLayout now includes compensateRotation and all layout props
+
 /**
  * Get the group body for the port group.
  * @param props - The properties of the port group.
@@ -17,7 +19,7 @@ export interface PortGroupProps extends PortGroupBase {
  * @description
  * This function is used to get the group body for the port group.
  */
-function getGroupBody(props: PortGroupBase): dia.Element.PortGroup {
+function getGroupBody(props: PortLayout): dia.Element.PortGroup {
   const { position = 'absolute', ...args } = props;
   return typeof position === 'function'
     ? { position }
@@ -30,21 +32,7 @@ function getGroupBody(props: PortGroupBase): dia.Element.PortGroup {
 }
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: PortGroupProps) {
-  const {
-    id,
-    children,
-    angle,
-    compensateRotation,
-    dx,
-    dy,
-    end,
-    position,
-    start,
-    startAngle,
-    step,
-    x,
-    y,
-  } = props;
+  const { id, children, width, height, ...rest } = props;
   const cellId = useCellId();
   const graph = useGraph();
 
@@ -54,24 +42,15 @@ function Component(props: PortGroupProps) {
 
     const ports = cell.get('ports') || {};
     const groups = ports.groups || {};
-    const newGroup = getGroupBody({
-      angle,
-      compensateRotation,
-      dx,
-      dy,
-      end,
-      position,
-      start,
-      startAngle,
-      step,
-      x,
-      y,
-    });
+    const newGroup = getGroupBody(rest);
     cell.set('ports', {
       ...ports,
       groups: {
         ...groups,
-        [id]: newGroup,
+        [id]: {
+          ...newGroup,
+          size: { height, width },
+        },
       },
     });
 
@@ -82,22 +61,7 @@ function Component(props: PortGroupProps) {
       delete groups[id];
       cell.set('ports', { ...ports, groups });
     };
-  }, [
-    angle,
-    cellId,
-    compensateRotation,
-    dx,
-    dy,
-    end,
-    graph,
-    id,
-    position,
-    start,
-    startAngle,
-    step,
-    x,
-    y,
-  ]);
+  }, [cellId, graph, height, id, rest, width]);
 
   return <PortGroupContext.Provider value={id}>{children}</PortGroupContext.Provider>;
 }
