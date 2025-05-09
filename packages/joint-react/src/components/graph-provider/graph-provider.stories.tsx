@@ -159,6 +159,9 @@ export const WithExternalGraphAndLayout = makeStory<Story>({
                 currentY += 85; // Add some vertical space between rows
                 rowWidthUsed = 0;
               }
+              if (!element.isElement()) {
+                continue;
+              }
 
               // Set the new position for the element
               element.position(currentX, currentY);

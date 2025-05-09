@@ -516,8 +516,6 @@ export namespace dia {
 
         position(): g.Point;
 
-        position(x: number, y: number): this;
-
         z(): number;
 
         angle(): number;
@@ -2676,19 +2674,21 @@ export namespace util {
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number, unit?: string } | null;
 
+    type BreakTextOptions = {
+        svgDocument?: SVGElement;
+        separator?: string | any;
+        eol?: string;
+        ellipsis?: boolean | string;
+        hyphen?: string | RegExp;
+        maxLineCount?: number;
+        preserveSpaces?: boolean;
+    }
+    
     type BreakTextFunction = (
         text: string,
         size: { width: number, height?: number },
         attrs?: attributes.NativeSVGAttributes,
-        opt?: {
-            svgDocument?: SVGElement;
-            separator?: string | any;
-            eol?: string;
-            ellipsis?: boolean | string;
-            hyphen?: string | RegExp;
-            maxLineCount?: number;
-            preserveSpaces?: boolean;
-        }
+        opt?: BreakTextOptions
     ) => string;
 
     export var breakText: BreakTextFunction;

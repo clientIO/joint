@@ -2,17 +2,18 @@ import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
 
-
 <Meta of={Stories} />
 
-# Example showing render with minimap. 
-Minimap is just another [paper](https://docs.jointjs.com/learn/quickstart/paper) component that is rendered inside the `GraphProvider` component with scale and position properties.
+# Example: Rendering with JSON
+This example demonstrates how to render a graph using JSON data. The graph structure, including its elements and connections, is defined in JSON format and then loaded into the `GraphProvider` component.
 
 ### Demo
+Below is a live demo of the graph rendered from JSON data:
 <Canvas of={Stories.Default} />
 
 ### Code
-Minimap is is separate `paper` component that is rendered inside the `GraphProvider` component.
+The graph is created by parsing JSON data and rendering it within the `GraphProvider` component. This approach allows you to define and manage graph structures programmatically.
+
 <Markdown>
 {`\`\`\`tsx
 ${Code}

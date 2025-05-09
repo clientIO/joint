@@ -16,6 +16,7 @@ export type Story = StoryObj<typeof TextNode>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SVGDecorator(Story: any) {
   const { width, height } = useElement();
+
   return (
     <>
       <rect width={width} height={height} fill={PRIMARY} rx={10} ry={10} />
@@ -47,9 +48,7 @@ const meta: Meta<typeof TextNode> = {
     <TextNode
       fill="white"
       width={19}
-      ellipsis={true}
-      maxLineCount={1}
-      isTextWrapEnabled={true}
+      textWrap
       >
       Hello world
     </TextNode>
@@ -75,7 +74,7 @@ export const WithBreakText = makeStory<Story>({
     children: 'Hello world Hello world',
     fill: 'white',
     width: 100,
-    isTextWrapEnabled: true,
+    textWrap: true,
   },
   apiURL: API_URL,
   name: 'Measured div with exact size',
@@ -86,10 +85,11 @@ export const WithEllipsis = makeStory<Story>({
   args: {
     children: 'Hello world Hello world Hello world',
     fill: 'white',
-    width: 80,
-    isTextWrapEnabled: true,
-    ellipsis: true,
-    maxLineCount: 1,
+    width: 100,
+    textWrap: {
+      ellipsis: true,
+      maxLineCount: 1,
+    },
   },
   apiURL: API_URL,
   name: 'Measured div with exact size',

@@ -2,12 +2,13 @@ import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
 
-
 <Meta of={Stories} />
 
-# Example showing intersection between nodes.
-Intersection is derived from the x and y and width and height of the nodes.
-To play with demo, just move nodes around and see the intersection between them.
+# Example: Node Intersection
+
+This example demonstrates how to detect intersections between nodes. Intersections are calculated based on the `x`, `y`, `width`, and `height` properties of the nodes.
+
+To try it out, move the nodes around in the demo and observe how intersections between them are detected.
 
 ### Demo
 <Canvas of={Stories.Default} />
