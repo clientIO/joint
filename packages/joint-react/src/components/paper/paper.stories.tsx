@@ -10,7 +10,7 @@ import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
 import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { MeasuredNode } from '../measured-node/measured-node';
 
@@ -21,7 +21,7 @@ const meta: Meta<typeof Paper> = {
   title: 'Components/Paper',
   component: Paper,
   decorators: [SimpleGraphDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     description: `
 Paper is a component that renders graph elements. It is used to display and interact with graph elements.
     `,

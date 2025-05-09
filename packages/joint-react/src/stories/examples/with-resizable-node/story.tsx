@@ -1,21 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/react/*';
 import '../index.css';
 import Code from './code';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
-import RawCode from './code?raw';
+import { makeRootDocumentation } from '../../utils/make-story';
+// @ts-expect-error its storybook raw import
+import CodeRaw from './code?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
-  title: 'Examples/With resizable node',
+  title: 'Examples/Resizable node',
   component: Code,
-  parameters: {
-    docs: {
-      source: {
-        code: RawCode,
-      },
-    },
-  },
+  parameters: makeRootDocumentation({
+    code: CodeRaw,
+  }),
 } satisfies Meta<typeof Code>;
 
 export const Default: Story = {};

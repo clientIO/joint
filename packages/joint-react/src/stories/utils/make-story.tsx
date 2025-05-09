@@ -48,7 +48,7 @@ export function makeStory<T>(options: MakeStoryOptions<T>): T {
 // eslint-disable-next-line unicorn/prevent-abbreviations
 interface MakeRootDocsOptions {
   readonly code?: string;
-  readonly apiURL: string;
+  readonly apiURL?: string;
   readonly description?: string;
 }
 
@@ -63,7 +63,7 @@ interface MakeRootDocsOptions {
  * An object containing the docs and source code.
  */
 // eslint-disable-next-line unicorn/prevent-abbreviations
-export function makeRootDocs(options: MakeRootDocsOptions) {
+export function makeRootDocumentation(options: MakeRootDocsOptions) {
   const { code, apiURL, description = '' } = options;
 
   return {

@@ -119,4 +119,9 @@ describe('create', () => {
     };
     expect(test).toHaveProperty('id', 'start');
   });
+  it('should return an empty array when called with an empty array', () => {
+    const elements = createElements([]);
+    expect(Array.isArray(elements)).toBe(true);
+    expect(elements).toHaveLength(0);
+  });
 });

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { Stroke } from './stroke';
 import { PRIMARY, SECONDARY } from 'storybook-config/theme';
-import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { useElement } from '../../hooks';
 import { forwardRef, type PropsWithChildren } from 'react';
@@ -22,7 +22,7 @@ const meta: Meta<typeof Stroke> = {
   title: 'Components/Highlighter/Stroke',
   component: Stroke,
   decorators: [SimpleRenderItemDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     description: `
 Stroke is a component that adds a stroke around the children. It is used to highlight the children.
     `,

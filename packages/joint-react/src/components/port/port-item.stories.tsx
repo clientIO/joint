@@ -2,7 +2,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable sonarjs/prefer-read-only-props */
 import type { Meta, StoryObj } from '@storybook/react/*';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../../stories/examples/index.css';
 import {
@@ -23,6 +23,11 @@ const initialElements = createElements([
     y: 20,
     width: 100,
     height: 50,
+    attrs: {
+      root: {
+        magnet: false,
+      },
+    },
   },
   {
     id: '2',
@@ -30,13 +35,21 @@ const initialElements = createElements([
     y: 250,
     width: 100,
     height: 50,
+    attrs: {
+      root: {
+        magnet: false,
+      },
+    },
   },
 ]);
 
 const defaultLinks = createLinks([
   {
-    id: 'e1-2',
-    source: '1',
+    id: 'link-1',
+    source: {
+      id: '1',
+      port: 'port-one',
+    },
     target: {
       id: '2',
       port: 'port-one',
@@ -54,27 +67,21 @@ const API_URL = getAPILink('Port/variables/Item', 'namespaces');
 function RenderItem(Story: React.FC) {
   const { width, height } = useElement();
   return (
-    <foreignObject width={width} height={height}>
-      <MeasuredNode>
-        <div className="node flex flex-col">
-          Test
-          <Story />
-        </div>
-      </MeasuredNode>
-    </foreignObject>
+    <>
+      <Story />
+      <foreignObject width={width} height={height}>
+        <MeasuredNode>
+          <div className="node flex flex-col">Test</div>
+        </MeasuredNode>
+      </foreignObject>
+    </>
   );
 }
 function PaperDecorator(Story: React.FC) {
   const renderItem = () => RenderItem(Story);
   return (
     <GraphProvider defaultElements={initialElements} defaultLinks={defaultLinks}>
-      <Paper
-        className={PAPER_CLASSNAME}
-        width={'100%'}
-        height={350}
-        renderElement={renderItem}
-        linkPinning={false}
-      />
+      <Paper className={PAPER_CLASSNAME} width={'100%'} height={350} renderElement={renderItem} />
     </GraphProvider>
   );
 }
@@ -83,7 +90,7 @@ const meta: Meta<typeof Port.Item> = {
   title: 'Components/Port/Item',
   component: Port.Item,
   decorators: [PaperDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     code: `
       import { Port } from '@joint/react';

@@ -6,7 +6,7 @@ import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
 import { Paper } from '../components/paper/paper';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('useElements');
@@ -15,7 +15,7 @@ const meta: Meta<typeof HookTester> = {
   title: 'Hooks/useElements',
   component: HookTester,
   decorators: [SimpleGraphDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     description: `\`useElements\` is a hook that returns the elements of the current graph. It supports selector functions to get specific properties of the elements and re-renders the component only when selected properties are changed.`,
     code: `import { useElements } from '@joint/react'

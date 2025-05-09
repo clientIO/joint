@@ -74,7 +74,6 @@ const paper = usePaper();
 - [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
 - [PaperContext](interfaces/PaperContext.md)
 - [PaperProps](interfaces/PaperProps.md)
-- [PortGroupProps](interfaces/PortGroupProps.md)
 - [PortProps](interfaces/PortProps.md)
 - [ReactElementAttributes](interfaces/ReactElementAttributes.md)
 - [StandardShapesTypeMapper](interfaces/StandardShapesTypeMapper.md)
@@ -85,6 +84,7 @@ const paper = usePaper();
 
 - [OnAddHighlighter](type-aliases/OnAddHighlighter.md)
 - [OnSetSize](type-aliases/OnSetSize.md)
+- [PortGroupProps](type-aliases/PortGroupProps.md)
 - [RenderElement](type-aliases/RenderElement.md)
 - [SetCell](type-aliases/SetCell.md)
 - [StandardLinkShapesType](type-aliases/StandardLinkShapesType.md)

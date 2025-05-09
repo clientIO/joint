@@ -2,7 +2,7 @@ import { useElement } from './use-element';
 import { SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
 import type { Meta } from '@storybook/react/*';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('useElement');
@@ -11,7 +11,7 @@ const meta: Meta<typeof HookTester> = {
   title: 'Hooks/useElement',
   component: HookTester,
   decorators: [SimpleRenderItemDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     description: `\`useElement\` is a hook that returns the element of the current cell. It is used to get the element of the current cell. It must be used inside \`renderElement\`
     It also support selector function to get specific properties of the element (it re-render the component only when selected properties are changed)

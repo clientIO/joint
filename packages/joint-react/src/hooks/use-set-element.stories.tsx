@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { HTMLNode, RenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useSetElement } from './use-set-element';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../stories/examples/index.css';
 import { BUTTON_CLASSNAME } from 'storybook-config/theme';
@@ -17,7 +17,7 @@ const meta: Meta<typeof Hook> = {
   title: 'Hooks/useSetElement',
   component: Hook,
   render: () => <RenderItemDecorator renderElement={Hook} />,
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     description: `\`useSetElement\` is a hook to set element attributes. It returns a function to set the element attribute. It must be used inside the GraphProvider.
     `,

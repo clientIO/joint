@@ -3,7 +3,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import type { Meta, StoryObj } from '@storybook/react';
 import { useAddElement } from './use-add-element';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { HTMLNode, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
@@ -52,7 +52,7 @@ const meta: Meta<typeof Hook> = {
       </div>
     );
   },
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     description: `\`useAddElement\` is a hook to add elements to the graph. It returns a function to add an element. It must be used inside the GraphProvider.`,
     code: `import { useAddElement } from '@joint/react'

@@ -71,7 +71,9 @@ export interface GraphProps {
   /**
    * Namespace for cell models.
    * It's loaded just once, so it cannot be used as React state.
-   * @default shapes + ReactElement
+   * When added new shape, it will not remove existing ones, it will just add new ones.
+   * So `{ ...shapes, ReactElement }` elements are still available.
+   * @default  `{ ...shapes, ReactElement }`
    * @see https://docs.jointjs.com/api/shapes
    */
   readonly cellNamespace?: unknown;

@@ -176,7 +176,7 @@ function RenderElement({ title, description, nodeType }: NodeType) {
         </div>
       </div>
       <Port.Group id="port-in-group" position="top" x={10} dy={-PORT_IN_SIZE / 2}>
-        <Port.Item id="in" isPassive>
+        <Port.Item id="in">
           <foreignObject width={PORT_IN_SIZE} height={PORT_IN_SIZE} overflow="visible">
             <div className="bg-white w-full h-full border-2 border-black rounded-full opacity-50" />
           </foreignObject>

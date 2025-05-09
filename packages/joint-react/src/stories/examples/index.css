@@ -28,17 +28,6 @@ body {
   background-color: #ff9505;
 }
 
-.minimap {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 200px;
-  height: 150px;
-  border: 1px solid #dde6ed;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
 .resizable-node {
   background-color: #ed2637;
   border-radius: 8px;
