@@ -6,7 +6,7 @@ import { useElements } from '../use-elements';
 
 describe('use-set-element', () => {
   const wrapper = graphProviderWrapper({
-    defaultElements: [
+    initialElements: [
       {
         id: '1',
         width: 97,
@@ -18,7 +18,7 @@ describe('use-set-element', () => {
         height: 99,
       },
     ],
-    defaultLinks: [
+    initialLinks: [
       {
         id: '3',
         source: '1',

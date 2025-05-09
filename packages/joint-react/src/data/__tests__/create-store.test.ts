@@ -21,8 +21,8 @@ describe('createStore', () => {
     const element = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
     const link = new dia.Link({ id: 'link1', type: 'standard.Link', source: { id: 'element1' } });
     const store = createStore({
-      defaultElements: [element],
-      defaultLinks: [link],
+      initialElements: [element],
+      initialLinks: [link],
     });
     expect(store.getElements().size).toBe(1);
     expect(store.getElement('element1')).toBeDefined();

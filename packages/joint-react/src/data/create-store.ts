@@ -34,13 +34,13 @@ export interface StoreOptions {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: Array<dia.Element | GraphElementWithAttributes>;
+  readonly initialElements?: Array<dia.Element | GraphElementWithAttributes>;
 
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link | GraphLink>;
+  readonly initialLinks?: Array<dia.Link | GraphLink>;
 }
 
 export interface Store {
@@ -143,12 +143,12 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * ```
  */
 export function createStore(options?: StoreOptions): Store {
-  const { defaultElements } = options || {};
+  const { initialElements } = options || {};
 
   const graph = createGraph(options);
   setElements({
     graph,
-    defaultElements,
+    initialElements,
   });
   const data = createStoreData();
   const elementsEvents = subscribeHandler(forceUpdate);

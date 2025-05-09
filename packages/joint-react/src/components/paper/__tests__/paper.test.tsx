@@ -45,7 +45,7 @@ describe('Paper Component', () => {
     const onMeasuredMock = jest.fn();
     let size = { width: 0, height: 0 };
     render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element>
           width={PAPER_WIDTH}
           height={150}
@@ -73,7 +73,7 @@ describe('Paper Component', () => {
 
   it('renders elements correctly with useHTMLOverlay enabled', async () => {
     render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element>
           useHTMLOverlay
           renderElement={({ label }) => <div className="html-node">{label}</div>}
@@ -89,7 +89,7 @@ describe('Paper Component', () => {
 
   it('renders noDataPlaceholder when there are no elements', () => {
     render(
-      <GraphProvider defaultElements={[]}>
+      <GraphProvider initialElements={[]}>
         <Paper<Element> noDataPlaceholder={<div>No Data</div>} />
       </GraphProvider>
     );
@@ -104,7 +104,7 @@ describe('Paper Component', () => {
     ]);
 
     const { rerender } = render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element>
           onElementsSizeChange={onElementsSizeChangeMock}
           renderElement={({ label }) => <div className="node">{label}</div>}
@@ -114,7 +114,7 @@ describe('Paper Component', () => {
 
     // Simulate element size change by rerendering with updated elements
     rerender(
-      <GraphProvider defaultElements={updatedElements}>
+      <GraphProvider initialElements={updatedElements}>
         <Paper<Element>
           onElementsSizeChange={onElementsSizeChangeMock}
           renderElement={({ label }) => <div className="node">{label}</div>}
@@ -131,7 +131,7 @@ describe('Paper Component', () => {
     const customElement = document.createElement('div');
     customElement.className = 'custom-paper-element';
     render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element> overwriteDefaultPaperElement={() => customElement} />
       </GraphProvider>
     );
@@ -152,7 +152,7 @@ describe('Paper Component', () => {
       return null;
     }
     render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element> onCustomEvent={handleCustomEvent}>
           <FireEvent />
         </Paper>
@@ -166,7 +166,7 @@ describe('Paper Component', () => {
 
   it('applies default clickThreshold and custom clickThreshold', () => {
     render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element> />
       </GraphProvider>
     );
@@ -174,7 +174,7 @@ describe('Paper Component', () => {
     expect(paperElement).toBeInTheDocument();
 
     render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element> clickThreshold={20} />
       </GraphProvider>
     );
@@ -184,7 +184,7 @@ describe('Paper Component', () => {
 
   it('applies scale to the paper', () => {
     render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element> scale={2} />
       </GraphProvider>
     );
@@ -199,7 +199,7 @@ describe('Paper Component', () => {
       return <rect id={custom ? 'isCustom' : 'nope'} width={50} height={50} fill="blue" />;
     }
     render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element> elementSelector={customSelector} renderElement={RenderElement} />
       </GraphProvider>
     );
@@ -218,7 +218,7 @@ describe('Paper Component', () => {
   it('calls onElementsSizeReady when elements are measured', async () => {
     const onElementsSizeReadyMock = jest.fn();
     render(
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper<Element> onElementsSizeReady={onElementsSizeReadyMock} />
       </GraphProvider>
     );

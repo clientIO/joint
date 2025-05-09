@@ -16,7 +16,7 @@ interface GraphProviderHandlerProps {
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link | GraphLink>;
+  readonly initialLinks?: Array<dia.Link | GraphLink>;
 }
 
 /**
@@ -24,13 +24,13 @@ interface GraphProviderHandlerProps {
  * It also handles the default elements and links.
  * @param props - {GraphProviderHandler} props
  * @param props.children - Children to render.
- * @param props.defaultLinks - Initial links to be added to graph
+ * @param props.initialLinks - Initial links to be added to graph
  * @returns GraphProviderHandler component
  * @private
  */
 function GraphProviderHandler({
   children,
-  defaultLinks,
+  initialLinks,
 }: PropsWithChildren<GraphProviderHandlerProps>) {
   const areElementsMeasured = useElements((items) => {
     let areMeasured = true;
@@ -45,7 +45,7 @@ function GraphProviderHandler({
   const graph = useGraph();
   useEffect(() => {
     if (areElementsMeasured) {
-      setLinks({ graph, defaultLinks });
+      setLinks({ graph, initialLinks });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [areElementsMeasured, graph]);
@@ -87,12 +87,12 @@ export interface GraphProps {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: Array<dia.Element | GraphElementWithAttributes>;
+  readonly initialElements?: Array<dia.Element | GraphElementWithAttributes>;
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link | GraphLink>;
+  readonly initialLinks?: Array<dia.Link | GraphLink>;
 
   /**
    * Store is build around graph, it handles react updates and states, it can be created separately and passed to the provider via `createStore` function.
@@ -128,7 +128,7 @@ export interface GraphProps {
  *
  * function App() {
  *  return (
- *   <GraphProvider defaultElements={[]} defaultLinks={[]}>
+ *   <GraphProvider initialElements={[]} initialLinks={[]}>
  *    <MyApp />
  *  </GraphProvider>
  * )
@@ -136,7 +136,7 @@ export interface GraphProps {
  * @group Components
  */
 export function GraphProvider(props: GraphProps) {
-  const { children, defaultLinks, store, ...rest } = props;
+  const { children, initialLinks, store, ...rest } = props;
 
   /**
    * Graph store instance.
@@ -164,7 +164,7 @@ export function GraphProvider(props: GraphProps) {
 
   return (
     <GraphStoreContext.Provider value={graphStore}>
-      <GraphProviderHandler defaultLinks={defaultLinks}>{children}</GraphProviderHandler>
+      <GraphProviderHandler initialLinks={initialLinks}>{children}</GraphProviderHandler>
     </GraphStoreContext.Provider>
   );
 }

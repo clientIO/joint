@@ -28,7 +28,7 @@ import type { GraphElementWithAttributes } from '../types/element-types';
  *   (element) => element,
  *   (prev, next) => prev.width === next.width
  * );
- * @param selector The selector function to pick part of the element. @default defaultElementSelector
+ * @param selector The selector function to pick part of the element. @default initialElementselector
  * @param isEqual The function used to check equality. @default util.isEqual
  * @returns The selected element based on the current cell id.
  */

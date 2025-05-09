@@ -6,7 +6,7 @@ import { graphProviderWrapper } from '../../utils/test-wrappers';
 
 describe('use-add-link', () => {
   const wrapper = graphProviderWrapper({
-    defaultElements: [
+    initialElements: [
       {
         id: '1',
         width: 97,

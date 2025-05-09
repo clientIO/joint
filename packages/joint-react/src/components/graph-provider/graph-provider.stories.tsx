@@ -36,15 +36,15 @@ export default meta;
 
 const STYLE = { padding: 10, backgroundColor: PRIMARY, borderRadius: 10, width: 80 };
 
-const defaultElementsWithSize = createElements([
+const initialElementsWithSize = createElements([
   { id: 1, width: 100, height: 50, x: 20, y: 200, color: PRIMARY },
   { id: 2, width: 100, height: 50, x: 200, y: 200, color: PRIMARY },
 ]);
-const defaultElementsWithoutSize = createElements([
+const initialElementsWithoutSize = createElements([
   { id: 1, x: 20, y: 200, color: PRIMARY },
   { id: 2, x: 200, y: 200, color: PRIMARY },
 ]);
-const defaultLinks = createLinks([
+const initialLinks = createLinks([
   {
     id: '1-1',
     source: 2,
@@ -57,7 +57,7 @@ const defaultLinks = createLinks([
   },
 ]);
 
-type ElementType = InferElement<typeof defaultElementsWithSize>;
+type ElementType = InferElement<typeof initialElementsWithSize>;
 
 function RenderElement({ color, width, height }: ElementType) {
   return <rect rx={10} ry={10} className="node" width={width} height={height} fill={color} />;
@@ -69,7 +69,7 @@ function PaperChildren(props: Readonly<{ renderElement?: RenderElement<ElementTy
 
 export const Default = makeStory<Story>({
   args: {
-    defaultElements: defaultElementsWithSize,
+    initialElements: initialElementsWithSize,
     children: <PaperChildren />,
   },
 
@@ -79,7 +79,7 @@ export const Default = makeStory<Story>({
 
 export const WithExternalGraph = makeStory<Story>({
   args: {
-    defaultElements: defaultElementsWithSize,
+    initialElements: initialElementsWithSize,
     children: <PaperChildren />,
     graph: new dia.Graph({}, { cellNamespace: { ReactElement } }),
   },
@@ -99,8 +99,8 @@ const graph = new dia.Graph({}, { cellNamespace: { ReactElement } });
 
 export const WithLink = makeStory<Story>({
   args: {
-    defaultLinks,
-    defaultElements: defaultElementsWithSize,
+    initialLinks,
+    initialElements: initialElementsWithSize,
     children: <PaperChildren />,
   },
 
@@ -110,8 +110,8 @@ export const WithLink = makeStory<Story>({
 
 export const WithoutSizeDefinedInElements = makeStory<Story>({
   args: {
-    defaultLinks,
-    defaultElements: defaultElementsWithoutSize,
+    initialLinks,
+    initialElements: initialElementsWithoutSize,
     children: (
       <PaperChildren renderElement={() => <HTMLNode style={STYLE}>Hello world!</HTMLNode>} />
     ),
@@ -139,7 +139,7 @@ function generateRandomElements(length: number) {
 export const WithExternalGraphAndLayout = makeStory<Story>({
   args: {
     graph,
-    defaultElements: generateRandomElements(20),
+    initialElements: generateRandomElements(20),
     children: (
       <>
         <button
@@ -188,7 +188,7 @@ import { ReactElement } from '@joint/react/src/core/react-element';
 import { DirectedGraph } from '@joint/layout-directed-graph';
 const graph = new dia.Graph({}, { cellNamespace: { ReactElement } });
 const elements = generateRandomElements(20);
-<GraphProvider graph={graph} defaultElements={elements}>
+<GraphProvider graph={graph} initialElements={elements}>
   <button
     onClick={() => {
       DirectedGraph.layout(graph, {

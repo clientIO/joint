@@ -26,7 +26,7 @@ import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-do
    - The `GraphProvider` component wraps your app in a [jointjs/graph](https://docs.jointjs.com/api/dia/Graph) instance. It manages the React state for your nodes and links.
    - Example:
      ```tsx
-     <GraphProvider defaultElements={elements} defaultLinks={links}>
+     <GraphProvider initialElements={elements} initialLinks={links}>
        {/* Your components go here */}
      </GraphProvider>
      ```

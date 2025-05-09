@@ -53,7 +53,7 @@ import { GraphProvider } from '@joint/react'
 
 function App() {
  return (
-  <GraphProvider defaultElements={[]} defaultLinks={[]}>
+  <GraphProvider initialElements={[]} initialLinks={[]}>
    <MyApp />
  </GraphProvider>
 )

@@ -113,7 +113,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={initialElements} cellNamespace={{ DashedLink }}>
+    <GraphProvider initialElements={initialElements} cellNamespace={{ DashedLink }}>
       <Main />
     </GraphProvider>
   );

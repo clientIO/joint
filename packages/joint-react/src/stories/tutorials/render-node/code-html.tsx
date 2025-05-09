@@ -56,7 +56,7 @@ function Main() {
 
 export default function App(props: Readonly<GraphProps>) {
   return (
-    <GraphProvider {...props} defaultLinks={initialEdges} defaultElements={initialElements}>
+    <GraphProvider {...props} initialLinks={initialEdges} initialElements={initialElements}>
       <Main />
     </GraphProvider>
   );

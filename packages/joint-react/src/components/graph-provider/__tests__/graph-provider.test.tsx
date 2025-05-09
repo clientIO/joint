@@ -59,7 +59,7 @@ describe('graph-provider', () => {
     }
     render(
       // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
-      <GraphProvider defaultElements={elements} defaultLinks={[link]}>
+      <GraphProvider initialElements={elements} initialLinks={[link]}>
         <TestComponent />
       </GraphProvider>
     );
@@ -116,7 +116,7 @@ describe('graph-provider', () => {
       return null;
     }
     render(
-      <GraphProvider defaultElements={elements}>
+      <GraphProvider initialElements={elements}>
         <TestComponent />
       </GraphProvider>
     );

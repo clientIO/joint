@@ -8,8 +8,8 @@ import { isReactElement } from '../is-react-element';
 
 interface Options {
   readonly graph: dia.Graph;
-  readonly defaultLinks?: Array<dia.Link | GraphLink>;
-  readonly defaultElements?: Array<dia.Element | GraphElementWithAttributes>;
+  readonly initialLinks?: Array<dia.Link | GraphLink>;
+  readonly initialElements?: Array<dia.Element | GraphElementWithAttributes>;
 }
 
 /**
@@ -55,14 +55,14 @@ export function processLink(link: dia.Link | GraphLink): dia.Link | dia.Cell.JSO
  * It also converts the source and target of the links to a standard format.
  */
 export function setLinks(options: Options) {
-  const { graph, defaultLinks } = options;
-  if (defaultLinks === undefined) {
+  const { graph, initialLinks } = options;
+  if (initialLinks === undefined) {
     return;
   }
 
   // Process links if provided.
   graph.addCells(
-    defaultLinks.map((item) => {
+    initialLinks.map((item) => {
       const link = processLink(item);
       if (link.z === undefined) {
         link.z = 0;
@@ -119,13 +119,13 @@ export function processElement<T extends dia.Element | GraphElementWithAttribute
  * It also checks for unsized elements and returns their IDs.
  */
 export function setElements(options: Options) {
-  const { graph, defaultElements } = options;
-  if (defaultElements === undefined) {
+  const { graph, initialElements } = options;
+  if (initialElements === undefined) {
     return new Set<string>();
   }
   const unsizedIds = new Set<string>();
 
   // Process elements if provided.
-  graph.addCells(defaultElements.map((item) => processElement(item, unsizedIds)));
+  graph.addCells(initialElements.map((item) => processElement(item, unsizedIds)));
   return unsizedIds;
 }

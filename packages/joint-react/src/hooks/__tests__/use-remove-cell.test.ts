@@ -7,7 +7,7 @@ import { useElements } from '../use-elements';
 
 describe('use-remove-cell', () => {
   const wrapper = graphProviderWrapper({
-    defaultElements: [
+    initialElements: [
       {
         id: '1',
         width: 97,
@@ -19,7 +19,7 @@ describe('use-remove-cell', () => {
         height: 99,
       },
     ],
-    defaultLinks: [
+    initialLinks: [
       {
         id: '3',
         source: '1',
