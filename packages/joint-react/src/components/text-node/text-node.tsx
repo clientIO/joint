@@ -2,7 +2,7 @@ import { util, V, type Vectorizer } from '@joint/core';
 import { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
 import { useCombinedRef } from '../../hooks/use-combined-ref';
 
-export interface TextNodeProps
+interface TextNodePropsBase
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
   readonly eol?: string;
@@ -10,6 +10,17 @@ export interface TextNodeProps
   readonly height?: number;
   readonly textWrap?: boolean | util.BreakTextOptions;
 }
+export interface TextNodePropsWithoutTextWrap extends TextNodePropsBase {
+  readonly textWrap?: false;
+}
+
+export interface TextNodePropsWithTextWrap extends TextNodePropsBase {
+  readonly textWrap: true | util.BreakTextOptions;
+  readonly width: number;
+  readonly height?: number;
+}
+
+export type TextNodeProps = TextNodePropsWithoutTextWrap | TextNodePropsWithTextWrap;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>) {
@@ -41,8 +52,8 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
 
     let text = children;
     if (textWrap) {
-      if (width === undefined) {
-        throw new TypeError('TextNode width must be defined when isTextWrapEnabled is true');
+      if (width == undefined) {
+        throw new TypeError('TextNode width is required when textWrap is true');
       }
       const options = typeof textWrap === 'object' ? textWrap : {};
       text = util.breakText(text, { width, height }, {}, options);
