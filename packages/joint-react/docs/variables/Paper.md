@@ -51,7 +51,7 @@ function RenderElement({ label }: BaseElementWithData) {
  return <HTMLElement className="node">{label}</HTMLElement>
 }
 function MyApp() {
- return <GraphProvider defaultElements={initialElements}>
+ return <GraphProvider initialElements={initialElements}>
    <Paper renderElement={RenderElement} />
  </GraphProvider>
 }
@@ -71,7 +71,7 @@ Example with `local renderElement component`:
    )
 
    return (
-     <GraphProvider defaultElements={initialElements}>
+     <GraphProvider initialElements={initialElements}>
        <Paper renderElement={renderElement} />
      </GraphProvider>
    )

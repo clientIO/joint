@@ -6,7 +6,7 @@ import {
   GraphProvider,
   Paper,
   useElements,
-  useSetElement,
+  useUpdateElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
@@ -32,7 +32,7 @@ const initialEdges = createLinks([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function ElementInput({ id, color }: BaseElementWithData) {
-  const setColor = useSetElement<BaseElementWithData>(id, 'color');
+  const setColor = useUpdateElement<BaseElementWithData>(id, 'color');
   return (
     <input
       className="nodrag"
@@ -63,7 +63,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

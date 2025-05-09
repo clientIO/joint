@@ -79,7 +79,7 @@ const refinedElement = useElement(
 ## Default
 
 ```ts
-defaultElementSelector
+initialElementselector
 ```
 
 ## Default

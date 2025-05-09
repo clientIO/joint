@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { Opacity } from './opacity';
 import { PRIMARY } from 'storybook-config/theme';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { forwardRef, type PropsWithChildren } from 'react';
 import { useElement } from '../../hooks';
@@ -14,7 +14,7 @@ const meta: Meta<typeof Opacity> = {
   title: 'Components/Highlighter/Opacity',
   component: Opacity,
   decorators: [SimpleRenderItemDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     description: `
 Opacity is a component that changes the opacity of the children. It is used to highlight the children.
     `,

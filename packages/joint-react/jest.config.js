@@ -6,10 +6,11 @@ export default {
     '^.+\\.tsx?$': 'ts-jest', // Transform TypeScript files
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'], // Recognize file extensions
-  setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/__mocks__/jest-setup.ts'],
   moduleNameMapper: {
+    '^.+\\.css$': '<rootDir>/__mocks__/style-mock.ts', // Mock CSS files
     '^@joint/react$': '<rootDir>/src/index.ts',
-    '^src/(.*)$': '<rootDir>/src/$1', // Add this if you are using src alias
+    '^src/(.*)$': '<rootDir>/src/$1',
     '^storybook-config/(.*)$': '<rootDir>/.storybook/$1',
   },
 };

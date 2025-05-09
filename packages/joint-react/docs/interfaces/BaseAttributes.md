@@ -6,7 +6,7 @@
 
 # Interface: BaseAttributes
 
-Defined in: [joint-react/src/hooks/use-set-element.ts:6](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L6)
+Defined in: joint-react/src/hooks/use-update-element.ts:6
 
 ## Extends
 
@@ -22,7 +22,7 @@ Defined in: [joint-react/src/hooks/use-set-element.ts:6](https://github.com/samu
 
 > `readonly` `optional` **angle**: `number`
 
-Defined in: [joint-react/src/hooks/use-set-element.ts:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L10)
+Defined in: joint-react/src/hooks/use-update-element.ts:10
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [joint-core/types/joint.d.ts:334](https://github.com/samuelgja/joint
 
 > `readonly` `optional` **data**: `unknown`
 
-Defined in: [joint-react/src/hooks/use-set-element.ts:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L11)
+Defined in: joint-react/src/hooks/use-update-element.ts:11
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [joint-core/types/joint.d.ts:336](https://github.com/samuelgja/joint
 
 > `readonly` `optional` **markup**: `string` \| `MarkupJSON`
 
-Defined in: [joint-react/src/hooks/use-set-element.ts:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L7)
+Defined in: joint-react/src/hooks/use-update-element.ts:7
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [joint-react/src/hooks/use-set-element.ts:7](https://github.com/samu
 
 > `readonly` `optional` **position**: `PlainPoint`
 
-Defined in: [joint-react/src/hooks/use-set-element.ts:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L8)
+Defined in: joint-react/src/hooks/use-update-element.ts:8
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [joint-react/src/hooks/use-set-element.ts:8](https://github.com/samu
 
 > `readonly` `optional` **size**: `Size`
 
-Defined in: [joint-react/src/hooks/use-set-element.ts:9](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-set-element.ts#L9)
+Defined in: joint-react/src/hooks/use-update-element.ts:9
 
 ***
 

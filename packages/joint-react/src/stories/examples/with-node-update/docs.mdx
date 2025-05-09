@@ -7,14 +7,15 @@ import CodeNodeRemove from './code-add-remove-node?raw';
 
 <Meta of={Stories} />
 
-# Example showing updating a node. 
-Updating a elements or nodes can be done via `useSetElement` hook.
+# Example: Updating a Node
 
-### Demo
-Simple example of updating a node with `useSetElement` hook.
+This guide shows how to update nodes (or elements) using the `useUpdateElement` hook. Each example demonstrates a different way to modify nodes, making it easy to understand and apply.
+
+### Demo: Basic Node Update
+This example demonstrates a simple way to update a node using the `useUpdateElement` hook.
 <Canvas of={Stories.Default} />
 
-### Code
+### Code: Basic Node Update
 
 <Markdown>
 {`\`\`\`tsx
@@ -22,11 +23,11 @@ ${Code}
 \`\`\``}
 </Markdown>
 
-### Demo with color picker
-Example of updating a node with `useSetElement` hook and color picker.
+### Demo: Update with Color Picker
+This example shows how to update a node using the `useUpdateElement` hook, combined with a color picker for dynamic color changes.
 <Canvas of={Stories.WithColorPicker} />
 
-### Code with color picker
+### Code: Update with Color Picker
 
 <Markdown>
 {`\`\`\`tsx
@@ -34,12 +35,11 @@ ${CodeWithColorPicker}
 \`\`\``}
 </Markdown>
 
-
-### Demo with SVG
-Example of updating a node with `useSetElement` hook and color picker.
+### Demo: Update with SVG
+This example demonstrates how to update a node using the `useUpdateElement` hook while rendering it as an SVG element.
 <Canvas of={Stories.WithSVG} />
 
-### Code with SVG
+### Code: Update with SVG
 
 <Markdown>
 {`\`\`\`tsx
@@ -47,11 +47,12 @@ ${CodeWithSVG}
 \`\`\``}
 </Markdown>
 
-
-### Demo with add/remove node
-Example of updating a node with `useSetElement` hook and color picker.
+### Demo: Add and Remove Nodes
+This example shows how to dynamically add and remove nodes using the `useUpdateElement` hook. It provides a flexible way to manage nodes in your application.
 <Canvas of={Stories.WithNodeRemove} />
-### Code with add/remove node
+
+### Code: Add and Remove Nodes
+
 <Markdown>
 {`\`\`\`tsx
 ${CodeNodeRemove}

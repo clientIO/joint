@@ -14,13 +14,15 @@
 
 ## Hooks
 
-- [useAddElement](functions/useAddElement.md)
-- [useAddLink](functions/useAddLink.md)
+- [useCreateElement](functions/useCreateElement.md)
+- [useCreateLink](functions/useCreateLink.md)
 - [useElements](functions/useElements.md)
 - [useGraph](functions/useGraph.md)
 - [useLinks](functions/useLinks.md)
 - [useRemoveCell](functions/useRemoveCell.md)
-- [useSetElement](functions/useSetElement.md)
+- [useRemoveElement](functions/useRemoveElement.md)
+- [useRemoveLink](functions/useRemoveLink.md)
+- [useUpdateElement](functions/useUpdateElement.md)
 
 ## Models
 
@@ -74,22 +76,24 @@ const paper = usePaper();
 - [OpacityHighlighterProps](interfaces/OpacityHighlighterProps.md)
 - [PaperContext](interfaces/PaperContext.md)
 - [PaperProps](interfaces/PaperProps.md)
-- [PortGroupProps](interfaces/PortGroupProps.md)
 - [PortProps](interfaces/PortProps.md)
 - [ReactElementAttributes](interfaces/ReactElementAttributes.md)
 - [StandardShapesTypeMapper](interfaces/StandardShapesTypeMapper.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
-- [TextNodeProps](interfaces/TextNodeProps.md)
+- [TextNodePropsWithoutTextWrap](interfaces/TextNodePropsWithoutTextWrap.md)
+- [TextNodePropsWithTextWrap](interfaces/TextNodePropsWithTextWrap.md)
 
 ## Type Aliases
 
 - [OnAddHighlighter](type-aliases/OnAddHighlighter.md)
 - [OnSetSize](type-aliases/OnSetSize.md)
+- [PortGroupProps](type-aliases/PortGroupProps.md)
 - [RenderElement](type-aliases/RenderElement.md)
 - [SetCell](type-aliases/SetCell.md)
 - [StandardLinkShapesType](type-aliases/StandardLinkShapesType.md)
 - [StandardShapesType](type-aliases/StandardShapesType.md)
 - [StoreContext](type-aliases/StoreContext.md)
+- [TextNodeProps](type-aliases/TextNodeProps.md)
 
 ## Variables
 

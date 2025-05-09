@@ -70,6 +70,8 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
     },
   });
 
+  // setup default link if there is any link at the graph, just assign first one, otherwise it will be undefined
+  const link = graph.getLinks().find((linkCell) => linkCell.isLink());
   // Create a new JointJS Paper with the provided options
   const paper = new dia.Paper({
     async: true,
@@ -83,6 +85,7 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
     clickThreshold: restOptions?.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
     frozen: true,
     model: graph,
+    defaultLink: restOptions?.defaultLink ?? link,
   });
 
   // Return the created paper

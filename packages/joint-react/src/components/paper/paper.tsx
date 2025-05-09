@@ -355,7 +355,7 @@ function PaperWithGraphProvider<
  *  return <HTMLElement className="node">{label}</HTMLElement>
  * }
  * function MyApp() {
- *  return <GraphProvider defaultElements={initialElements}>
+ *  return <GraphProvider initialElements={initialElements}>
  *    <Paper renderElement={RenderElement} />
  *  </GraphProvider>
  * }
@@ -375,7 +375,7 @@ function PaperWithGraphProvider<
     )
  
     return (
-      <GraphProvider defaultElements={initialElements}>
+      <GraphProvider initialElements={initialElements}>
         <Paper renderElement={renderElement} />
       </GraphProvider>
     )

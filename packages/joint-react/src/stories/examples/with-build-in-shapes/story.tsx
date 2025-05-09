@@ -71,7 +71,7 @@ import { makeStory } from '@joint/react/src/stories/utils/make-story';
 export type Story = StoryObj<typeof Rectangle>;
 
 export default {
-  title: 'Examples/With built-in shapes',
+  title: 'Examples/Built-in shapes',
   component: Rectangle,
   parameters: {
     docs: {

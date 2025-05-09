@@ -2,17 +2,19 @@ import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
 
-
 <Meta of={Stories} />
 
-# Example showing render with minimap. 
-Minimap is just another [paper](https://docs.jointjs.com/learn/quickstart/paper) component that is rendered inside the `GraphProvider` component with scale and position properties.
+# Example: Rendering with a Minimap
+The minimap is a separate [paper](https://docs.jointjs.com/learn/quickstart/paper) component that works alongside the `GraphProvider` component. It displays a scaled-down view of the graph and updates its position and scale dynamically.
 
 ### Demo
+Below is a live demo of the minimap in action:
+
 <Canvas of={Stories.Default} />
 
 ### Code
-Minimap is is separate `paper` component that is rendered inside the `GraphProvider` component.
+The minimap is implemented as a separate `paper` component and is rendered inside the `GraphProvider` component. It uses properties like scale and position to synchronize with the main graph.
+
 <Markdown>
 {`\`\`\`tsx
 ${Code}

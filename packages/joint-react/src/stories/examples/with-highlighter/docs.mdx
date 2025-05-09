@@ -2,46 +2,49 @@ import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
 
-
 <Meta of={Stories} />
 
-# Render nodes with highlighter
+# Render Nodes with Highlighter
 
-Render element with [highlighters](https://docs.jointjs.com/api/highlighters) around the element.
+This example demonstrates how to render elements with [highlighters](https://docs.jointjs.com/api/highlighters) applied around them. Highlighters are visual effects that can be used to emphasize specific elements in your graph.
 
 ### Demo
+Below is a live demo showcasing the default highlighter in action:
 <Canvas of={Stories.Default} />
 
 ### Code
-Highlighter is defined inside the `highlighters` property of the `GraphProvider` component.
+The highlighter is configured using the `highlighters` property of the `GraphProvider` component. Here is the code used in this example:
 <Markdown>
 {`\`\`\`tsx
 ${Code}
 \`\`\``}
 </Markdown>
 
+### Available Highlighters
+Here are the different types of highlighters you can use. Each highlighter provides a unique way to emphasize elements:
 
-
-### Available highlighters:
-
+#### Mask Highlighter
 ```tsx
-import { Highlighter } from '@joint/react'
-return <Highlighter.Mask />
+import { Highlighter } from '@joint/react';
+return <Highlighter.Mask />;
 ```
 
+#### Opacity Highlighter
 ```tsx
-import { Highlighter } from '@joint/react'
-return <Highlighter.Opacity />
+import { Highlighter } from '@joint/react';
+return <Highlighter.Opacity />;
 ```
 
+#### Stroke Highlighter
 ```tsx
-import { Highlighter } from '@joint/react'
-return <Highlighter.Stroke />
+import { Highlighter } from '@joint/react';
+return <Highlighter.Stroke />;
 ```
 
+#### Custom Highlighter
 ```tsx
-import { Highlighter } from '@joint/react'
-return <Highlighter.Custom />
+import { Highlighter } from '@joint/react';
+return <Highlighter.Custom />;
 ```
 
 

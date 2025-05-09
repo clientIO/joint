@@ -111,3 +111,6 @@ await fs.copyFile('README.md', path.join(outDir, 'README.md'));
 
 // Copy LICENSE
 await fs.copyFile('LICENSE', path.join(outDir, 'LICENSE'));
+
+// Copy jest-setup.ts
+await fs.copyFile('__mocks__/jest-setup.ts', path.join(outDir, 'jest-setup.ts'));
