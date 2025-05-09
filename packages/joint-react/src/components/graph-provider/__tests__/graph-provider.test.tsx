@@ -1,13 +1,13 @@
 import React from 'react';
 import { act, render, waitFor } from '@testing-library/react';
-import { GraphStoreContext } from '../../context/graph-store-context';
-import { GraphProvider } from './graph-provider';
-import type { Store } from '../../data/create-store';
+import { GraphStoreContext } from '../../../context/graph-store-context';
+import { GraphProvider } from '../graph-provider';
+import { createStore, type Store } from '../../../data/create-store';
 import { dia } from '@joint/core';
-import { useElements, useLinks } from '../../hooks';
-import { createElements } from '../../utils/create';
-import * as stories from './graph-provider.stories';
-import { runStorybookSnapshot } from '../../utils/run-storybook-snapshot';
+import { useElements, useLinks } from '../../../hooks';
+import { createElements } from '../../../utils/create';
+import * as stories from '../graph-provider.stories';
+import { runStorybookSnapshot } from '../../../utils/run-storybook-snapshot';
 
 runStorybookSnapshot({
   Component: GraphProvider,
@@ -103,5 +103,43 @@ describe('graph-provider', () => {
       expect(linkCount).toBe(1);
       expect(elementCount).toBe(1);
     });
+  });
+
+  it('should initialize with default elements', async () => {
+    const elements = createElements([
+      { width: 100, height: 100, id: 'element1' },
+      { width: 200, height: 200, id: 'element2' },
+    ]);
+    let elementCount = 0;
+    function TestComponent() {
+      elementCount = useElements((items) => items.size);
+      return null;
+    }
+    render(
+      <GraphProvider defaultElements={elements}>
+        <TestComponent />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(elementCount).toBe(2);
+    });
+  });
+
+  it('should use provided store and clean up on unmount', () => {
+    const mockDestroy = jest.fn();
+    const mockStore = createStore({});
+    // @ts-expect-error its just unit test, readonly is not needed
+    mockStore.destroy = mockDestroy;
+
+    const { unmount } = render(
+      <GraphProvider store={mockStore}>
+        <div>Test</div>
+      </GraphProvider>
+    );
+
+    expect(mockDestroy).not.toHaveBeenCalled();
+    unmount();
+    expect(mockDestroy).toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/deprecation */
 import { dia } from '@joint/core';
-import { createStore } from './create-store';
+import { createStore } from '../create-store';
 import { waitFor } from '@testing-library/react';
 
 describe('createStore', () => {

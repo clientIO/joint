@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { handleEvent } from './handle-paper-events';
+
 import type { dia } from '@joint/core';
-import type { PaperEvents, PaperEventType } from '../types/event.types';
+import type { PaperEvents, PaperEventType } from '../../types/event.types';
+import { handleEvent } from '../handle-paper-events';
 
 describe('handle-paper-events', () => {
   let mockPaper: dia.Paper;

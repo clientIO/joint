@@ -1,4 +1,4 @@
-import { createElements, type InferElement } from './create';
+import { createElements, type InferElement } from '../create';
 
 describe('create', () => {
   it('should create element with ts support for react element', () => {

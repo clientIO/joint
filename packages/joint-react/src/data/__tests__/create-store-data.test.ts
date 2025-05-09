@@ -1,5 +1,5 @@
 import { dia } from '@joint/core';
-import { createStoreData } from './create-store-data';
+import { createStoreData } from '../create-store-data';
 
 describe('create-store-data', () => {
   it('should handle proper data insertion', () => {

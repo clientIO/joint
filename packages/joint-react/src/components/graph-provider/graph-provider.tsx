@@ -136,7 +136,7 @@ export interface GraphProps {
  * @group Components
  */
 export function GraphProvider(props: GraphProps) {
-  const { children, defaultLinks, ...rest } = props;
+  const { children, defaultLinks, store, ...rest } = props;
 
   /**
    * Graph store instance.
@@ -146,7 +146,7 @@ export function GraphProvider(props: GraphProps) {
   const [graphStore, setGraphStore] = useState<null | Store>(null);
 
   useEffect(() => {
-    const newStore = createStore({ ...rest });
+    const newStore = store ?? createStore({ ...rest });
     // We must use state initialization for the store, because it can be used in the same component.
     // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
     setGraphStore(newStore);
