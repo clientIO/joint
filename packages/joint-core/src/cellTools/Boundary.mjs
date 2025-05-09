@@ -35,7 +35,7 @@ export const Boundary = ToolView.extend({
             var angle = model.angle();
             if (angle) {
                 if (rotate) {
-                    var origin = model.getBBox().center();
+                    var origin = model.getCenter();
                     vel.rotate(angle, origin.x, origin.y, { absolute: true });
                 } else {
                     bbox = bbox.bbox(angle);

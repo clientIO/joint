@@ -103,7 +103,7 @@ export const Control = ToolView.extend({
         const model = relatedView.model;
         const angle = model.angle();
         const center = bbox.center();
-        if (angle) center.rotate(model.getBBox().center(), -angle);
+        if (angle) center.rotate(model.getCenter(), -angle);
         bbox.inflate(padding);
         extrasNode.setAttribute('x', -bbox.width / 2);
         extrasNode.setAttribute('y', -bbox.height / 2);

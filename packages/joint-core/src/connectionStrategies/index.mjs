@@ -21,7 +21,7 @@ function pinnedElementEnd(relative, end, view, magnet, coords) {
 
     var angle = view.model.angle();
     var bbox = view.getNodeUnrotatedBBox(magnet);
-    var origin = view.model.getBBox().center();
+    var origin = view.model.getCenter();
     coords.rotate(origin, angle);
     var dx = coords.x - bbox.x;
     var dy = coords.y - bbox.y;

@@ -495,7 +495,7 @@ export const Element = Cell.extend({
 
         if (origin) {
 
-            var center = this.getBBox().center();
+            var center = this.getCenter();
             var size = this.get('size');
             var position = this.get('position');
             center.rotate(origin, this.get('angle') - angle);
@@ -539,6 +539,11 @@ export const Element = Cell.extend({
             bbox.rotateAroundCenter(angle);
         }
         return bbox;
+    },
+
+    getCenter: function() {
+        const { position: { x, y }, size: { width, height }} = this.attributes;
+        return new Point(x + width / 2, y + height / 2);
     },
 
     getPointFromConnectedLink: function(link, endType) {

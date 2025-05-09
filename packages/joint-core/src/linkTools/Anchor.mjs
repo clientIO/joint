@@ -118,7 +118,7 @@ const Anchor = ToolView.extend({
             bbox = view.getNodeUnrotatedBBox(magnet);
             angle = model.angle();
             center = bbox.center();
-            if (angle) center.rotate(model.getBBox().center(), -angle);
+            if (angle) center.rotate(model.getCenter(), -angle);
             // TODO: get the link's magnet rotation into account
         }
         bbox.inflate(padding);
@@ -185,7 +185,7 @@ const Anchor = ToolView.extend({
                 // snap coords within node bbox
                 var bbox = view.getNodeUnrotatedBBox(magnet);
                 var angle = model.angle();
-                var origin = model.getBBox().center();
+                var origin = model.getCenter();
                 var rotatedCoords = coords.clone().rotate(origin, angle);
                 if (!bbox.containsPoint(rotatedCoords)) {
                     coords = bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
