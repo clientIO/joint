@@ -6,17 +6,9 @@ export interface TextNodeProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
   readonly eol?: string;
-
   readonly width?: number;
   readonly height?: number;
-
-  readonly isTextWrapEnabled?: boolean;
-  readonly ellipsis?: string | boolean;
-  readonly textWrapEol?: string;
-  readonly hyphen?: string | RegExp;
-  readonly maxLineCount?: number;
-  readonly preserveSpaces?: boolean;
-  readonly separator?: string | unknown;
+  readonly textWrap?: boolean | util.BreakTextOptions;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -33,14 +25,7 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     displayEmpty,
     width,
     height,
-
-    separator,
-    hyphen,
-    ellipsis,
-    maxLineCount,
-    preserveSpaces,
-    isTextWrapEnabled,
-    textWrapEol,
+    textWrap,
     ...rest
   } = props;
 
@@ -55,16 +40,12 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     }
 
     let text = children;
-    if (isTextWrapEnabled) {
+    if (textWrap) {
       if (width === undefined) {
         throw new TypeError('TextNode width must be defined when isTextWrapEnabled is true');
       }
-      text = util.breakText(
-        text,
-        { width, height },
-        {},
-        { ellipsis, eol: textWrapEol, hyphen, maxLineCount, preserveSpaces, separator }
-      );
+      const options = typeof textWrap === 'object' ? textWrap : {};
+      text = util.breakText(text, { width, height }, {}, options);
     }
 
     V(textRef.current).text(text, {
@@ -81,20 +62,14 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     annotations,
     children,
     displayEmpty,
-    ellipsis,
     eol,
     height,
-    hyphen,
     includeAnnotationIndices,
-    isTextWrapEnabled,
+    textWrap,
     lineHeight,
-    maxLineCount,
-    preserveSpaces,
-    separator,
     textPath,
     textRef,
     textVerticalAnchor,
-    textWrapEol,
     width,
     x,
   ]);

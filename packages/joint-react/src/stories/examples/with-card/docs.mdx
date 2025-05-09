@@ -2,17 +2,22 @@ import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
 
-
 <Meta of={Stories} />
 
-# Example showing card with children render 
-Example showing card component with custom `onSetSize` method which override default behavior of measuredNode.
+# Example: Card with Custom Children Rendering
 
-When measured node is used, its recommended to not define `width` and `height` in the node data itself.
+This example demonstrates how to use a card component with a custom `onSetSize` method. The `onSetSize` method overrides the default behavior of the `MeasuredNode` component.
+
+When using a `measured node`, it is recommended **not** to define `width` and `height` directly in the node's data. This ensures that the node's size is dynamically calculated based on its content.
+
 ### Demo
+Below is a live demo of the card component in action:
+
 <Canvas of={Stories.Default} />
 
 ### Code
+Here is the code used in this example:
+
 <Markdown>
 {`\`\`\`tsx
 ${Code}
