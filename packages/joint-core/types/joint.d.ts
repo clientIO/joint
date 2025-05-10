@@ -1136,6 +1136,8 @@ export namespace dia {
         protected clearEmbedding(data: any): void;
 
         protected finalizeEmbedding(data: any): void;
+
+        protected getSnapPoint(): dia.Point;
     }
 
     // dia.LinkView
@@ -1301,6 +1303,8 @@ export namespace dia {
         protected mountLabels(): void;
 
         protected unmountLabels(): void;
+
+        protected getSnapPoint(): dia.Point;
     }
 
     // dia.Paper
