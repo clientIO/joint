@@ -7,7 +7,7 @@ import { useChildrenRef } from '../../hooks/use-children-ref';
 import { useHighlighter } from '../../hooks/use-highlighter';
 import typedMemo from '../../utils/typed-memo';
 
-export type OnAddHighlighter<
+export type OnCreateHighlighter<
   Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
 > = (
   cellView:
@@ -26,9 +26,14 @@ export interface CustomHighlighterProps<
    */
   readonly children?: React.ReactNode | null | false;
   /**
-   * Callback to add the highlighter.
+   * Callback function should return any highlighter.
+   * @param cellView - The cell view to which the highlighter is attached.
+   * @param element - The SVG element to which the highlighter is attached.
+   * @param highlighterId - The ID of the highlighter.
+   * @param options - The options for the highlighter.
+   * @returns The created highlighter.
    */
-  readonly onAdd: OnAddHighlighter<Highlighter>;
+  readonly onCreateHighlighter: OnCreateHighlighter<Highlighter>;
 
   /**
    * This should be memoized
@@ -44,7 +49,7 @@ export interface CustomHighlighterProps<
 function RawComponent<
   Highlighter extends dia.HighlighterView.Options = dia.HighlighterView.Options,
 >(props: CustomHighlighterProps<Highlighter>, forwardedRef: React.Ref<SVGElement>) {
-  const { children, options, onAdd, isHidden } = props;
+  const { children, options, onCreateHighlighter, isHidden } = props;
   const id = useCellId();
   const paper = usePaper();
   const highlighterId = useId();
@@ -63,9 +68,9 @@ function RawComponent<
       if (!cellView) {
         return;
       }
-      return onAdd(cellView, elementRef.current ?? {}, highlighterId, hOptions);
+      return onCreateHighlighter(cellView, elementRef.current ?? {}, highlighterId, hOptions);
     },
-    [onAdd, elementRef, highlighterId, id, paper]
+    [onCreateHighlighter, elementRef, highlighterId, id, paper]
   );
 
   const update = useCallback((instance: ReturnType<typeof create>, hOptions: Highlighter) => {

@@ -43,6 +43,9 @@
 
 ## Functions
 
+- [getLinkId](functions/getLinkId.md)
+- [getLinkMagnet](functions/getLinkMagnet.md)
+- [getLinkPortId](functions/getLinkPortId.md)
 - [jsx](functions/jsx.md)
 - [useElement](functions/useElement.md)
 - [useMeasureNodeSize](functions/useMeasureNodeSize.md)

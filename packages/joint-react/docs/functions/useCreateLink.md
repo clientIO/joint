@@ -8,7 +8,7 @@
 
 > **useCreateLink**\<`T`\>(): (`link`) => `void`
 
-Defined in: joint-react/src/hooks/use-create-link.ts:17
+Defined in: [joint-react/src/hooks/use-create-link.ts:17](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-create-link.ts#L17)
 
 A custom hook that adds a link to the graph.
 

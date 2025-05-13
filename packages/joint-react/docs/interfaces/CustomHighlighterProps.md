@@ -30,19 +30,39 @@ Child elements to render inside the highlighter.
 
 > `readonly` `optional` **isHidden**: `boolean`
 
-Defined in: [joint-react/src/components/highlighters/custom.tsx:40](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L40)
+Defined in: [joint-react/src/components/highlighters/custom.tsx:45](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L45)
 
 If the highlighter is disabled or not.
 
 ***
 
-### onAdd
+### onCreateHighlighter
 
-> `readonly` **onAdd**: [`OnAddHighlighter`](../type-aliases/OnAddHighlighter.md)\<`Highlighter`\>
+> `readonly` **onCreateHighlighter**: [`OnAddHighlighter`](../type-aliases/OnAddHighlighter.md)\<`Highlighter`\>
 
-Defined in: [joint-react/src/components/highlighters/custom.tsx:31](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L31)
+Defined in: [joint-react/src/components/highlighters/custom.tsx:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L36)
 
-Callback to add the highlighter.
+Callback function should return any highlighter.
+
+#### Param
+
+The cell view to which the highlighter is attached.
+
+#### Param
+
+The SVG element to which the highlighter is attached.
+
+#### Param
+
+The ID of the highlighter.
+
+#### Param
+
+The options for the highlighter.
+
+#### Returns
+
+The created highlighter.
 
 ***
 
@@ -50,6 +70,6 @@ Callback to add the highlighter.
 
 > `readonly` **options**: `Highlighter`
 
-Defined in: [joint-react/src/components/highlighters/custom.tsx:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L36)
+Defined in: [joint-react/src/components/highlighters/custom.tsx:41](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/custom.tsx#L41)
 
 This should be memoized

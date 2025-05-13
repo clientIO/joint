@@ -17,7 +17,7 @@ describe('custom highlighter', () => {
   it('should render custom highlighter', async () => {
     const { container } = render(
       <Custom
-        onAdd={(cellView, element, highlighterId, options) => {
+        onCreateHighlighter={(cellView, element, highlighterId, options) => {
           return highlighters.opacity.add(cellView, element, highlighterId, options);
         }}
         options={{ alphaValue: 0.5 }}
