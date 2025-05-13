@@ -5,4 +5,5 @@ runStorybookSnapshot({
   Component: TextNode,
   name: 'TextNode',
   stories,
+  withRenderElementWrapper: true,
 });

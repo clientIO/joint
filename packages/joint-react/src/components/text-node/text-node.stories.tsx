@@ -81,6 +81,17 @@ export const WithBreakText = makeStory<Story>({
   description: 'Div with exact size.',
 });
 
+export const WithBreakTextWithoutDefinedWith = makeStory<Story>({
+  args: {
+    children: 'Hello world Hello world',
+    fill: 'white',
+    textWrap: true,
+  },
+  apiURL: API_URL,
+  name: 'Measured div with exact size',
+  description: 'Div with exact size.',
+});
+
 export const WithEllipsis = makeStory<Story>({
   args: {
     children: 'Hello world Hello world Hello world',
