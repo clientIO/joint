@@ -24,6 +24,7 @@ import { REACT_TYPE } from '../../models/react-element';
 import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
 import { PaperHTMLContainer } from './paper-html-container';
 import type { ReactPaperOptions } from '../../utils/create-paper';
+import { useGraph } from '../../hooks';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -158,6 +159,8 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     onRenderElement,
   });
 
+  const graph = useGraph();
+
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
 
   const elements = useElements((items) => items.map(elementSelector));
@@ -221,6 +224,13 @@ function Component<ElementItem extends GraphElement = GraphElement>(
       return;
     }
     if (areElementsMeasured) {
+      if (!paperOptions.defaultLink) {
+        // setup default link if there is any link at the graph, just assign first one, otherwise it will be undefined
+        const link = graph.getLinks().at(0);
+        if (link) {
+          paper.options.defaultLink = link;
+        }
+      }
       return onElementsSizeReady?.({ paper, graph: paper.model });
     }
 
@@ -238,7 +248,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
         clearTimeout(timeout);
       };
     }
-  }, [areElementsMeasured, onElementsSizeReady, paper]);
+  }, [areElementsMeasured, graph, onElementsSizeReady, paper, paperOptions.defaultLink]);
 
   const content = (
     <>

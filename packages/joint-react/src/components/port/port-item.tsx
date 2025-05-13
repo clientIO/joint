@@ -98,7 +98,6 @@ function Component(props: PortItemProps) {
     };
 
     cell.addPort(port);
-
     return () => {
       cell.removePort(id);
     };
