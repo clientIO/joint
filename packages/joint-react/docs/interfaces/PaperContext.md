@@ -3572,7 +3572,7 @@ Defined in: [joint-core/types/joint.d.ts:1613](https://github.com/samuelgja/join
 
 ### renderElement?
 
-> `optional` **renderElement**: [`RenderElement`](../type-aliases/RenderElement.md)\<[`GraphElementWithAttributes`](GraphElementWithAttributes.md)\<`unknown`\>\>
+> `optional` **renderElement**: [`RenderElement`](../type-aliases/RenderElement.md)\<[`GraphElement`](GraphElement.md)\>
 
 Defined in: [joint-react/src/context/paper-context.tsx:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/context/paper-context.tsx#L7)
 

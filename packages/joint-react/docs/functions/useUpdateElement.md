@@ -10,7 +10,7 @@
 
 > **useUpdateElement**\<`Attributes`, `Attribute`\>(`id`, `attribute`): (`value`) => `void`
 
-Defined in: joint-react/src/hooks/use-update-element.ts:81
+Defined in: [joint-react/src/hooks/use-update-element.ts:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-update-element.ts#L81)
 
 **`Experimental`**
 
@@ -85,7 +85,7 @@ setElement('position', { x: 100, y: 100 });
 
 > **useUpdateElement**\<`Attributes`\>(`id`): \<`X`\>(`attribute`, `value`) => `void`
 
-Defined in: joint-react/src/hooks/use-update-element.ts:89
+Defined in: [joint-react/src/hooks/use-update-element.ts:89](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-update-element.ts#L89)
 
 **`Experimental`**
 
@@ -160,7 +160,7 @@ setElement('position', { x: 100, y: 100 });
 
 > **useUpdateElement**\<`Attributes`\>(): \<`X`\>(`id`, `attribute`, `value`) => `void`
 
-Defined in: joint-react/src/hooks/use-update-element.ts:93
+Defined in: [joint-react/src/hooks/use-update-element.ts:93](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-update-element.ts#L93)
 
 **`Experimental`**
 

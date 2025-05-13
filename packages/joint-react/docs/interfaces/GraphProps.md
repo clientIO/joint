@@ -78,7 +78,7 @@ new dia.Graph({}, { cellNamespace: shapes })
 
 ### initialElements?
 
-> `readonly` `optional` **initialElements**: ([`GraphElementWithAttributes`](GraphElementWithAttributes.md)\<`unknown`\> \| `Element`\<`Attributes`, `ModelSetOptions`\>)[]
+> `readonly` `optional` **initialElements**: ([`GraphElement`](GraphElement.md) \| `Element`\<`Attributes`, `ModelSetOptions`\>)[]
 
 Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L90)
 

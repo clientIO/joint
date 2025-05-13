@@ -2,9 +2,9 @@ import { util, type dia } from '@joint/core';
 import { getElement, getLink } from '../utils/cell/get-cell';
 import { CellMap } from '../utils/cell/cell-map';
 import type { GraphLink } from '../types/link-types';
-import type { GraphElementWithAttributes } from '../types/element-types';
+import type { GraphElement } from '../types/element-types';
 import { diffUpdate } from '../utils/diff-update';
-interface StoreData<Element extends GraphElementWithAttributes = GraphElementWithAttributes> {
+interface StoreData<Element extends GraphElement = GraphElement> {
   readonly updateStore: (graph: dia.Graph) => void;
   readonly destroy: () => void;
   elements: CellMap<Element>;
@@ -25,9 +25,7 @@ interface StoreData<Element extends GraphElementWithAttributes = GraphElementWit
  * storeData.update(graph);
  * ```
  */
-export function createStoreData<
-  Element extends GraphElementWithAttributes = GraphElementWithAttributes,
->(): StoreData<Element> {
+export function createStoreData<Element extends GraphElement = GraphElement>(): StoreData<Element> {
   /**
    * Update the store data with the graph data.
    * @param graph - The graph to update the store data with..

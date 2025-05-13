@@ -8,7 +8,7 @@
 
 > **useCreateElement**\<`T`\>(): (`element`) => `void`
 
-Defined in: joint-react/src/hooks/use-create-element.ts:22
+Defined in: [joint-react/src/hooks/use-create-element.ts:22](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-create-element.ts#L22)
 
 A custom hook that adds an element to the graph.
 
@@ -16,7 +16,7 @@ A custom hook that adds an element to the graph.
 
 ### T
 
-`T` *extends* [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\> \| `Element`\<`Attributes`, `ModelSetOptions`\>
+`T` *extends* [`GraphElement`](../interfaces/GraphElement.md) \| `Element`\<`Attributes`, `ModelSetOptions`\>
 
 ## Returns
 

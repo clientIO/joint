@@ -2,7 +2,7 @@ import { dia, shapes } from '@joint/core';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
 import { setElements } from '../utils/cell/set-cells';
-import type { GraphElementWithAttributes } from '../types/element-types';
+import type { GraphElement } from '../types/element-types';
 import type { GraphLink } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
 import { createStoreData } from './create-store-data';
@@ -34,7 +34,7 @@ export interface StoreOptions {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly initialElements?: Array<dia.Element | GraphElementWithAttributes>;
+  readonly initialElements?: Array<dia.Element | GraphElement>;
 
   /**
    * Initial links to be added to graph
@@ -55,11 +55,11 @@ export interface Store {
   /**
    * Get elements
    */
-  readonly getElements: () => CellMap<GraphElementWithAttributes>;
+  readonly getElements: () => CellMap<GraphElement>;
   /**
    * Get element by id
    */
-  readonly getElement: (id: dia.Cell.ID) => GraphElementWithAttributes;
+  readonly getElement: <Element extends GraphElement>(id: dia.Cell.ID) => Element;
   /**
    *  Get links
    */
@@ -210,12 +210,12 @@ export function createStore(options?: StoreOptions): Store {
     getLinks() {
       return data.links;
     },
-    getElement(id) {
+    getElement<E extends GraphElement>(id: dia.Cell.ID) {
       const item = data.elements.get(id);
       if (!item) {
         throw new Error(`Element with id ${id} not found`);
       }
-      return item;
+      return item as E;
     },
     getLink(id) {
       const item = data.links.get(id);

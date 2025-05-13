@@ -1,7 +1,7 @@
 import { useGraphStore } from './use-graph-store';
 import { util } from '@joint/core';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
-import type { GraphElementWithAttributes } from '../types/element-types';
+import type { GraphElement } from '../types/element-types';
 import type { CellMap } from '../utils/cell/cell-map';
 
 /**
@@ -9,7 +9,7 @@ import type { CellMap } from '../utils/cell/cell-map';
  * @param items - The items to select from.
  * @returns - The selected items.
  */
-function defaultSelector<Elements extends GraphElementWithAttributes = GraphElementWithAttributes>(
+function defaultSelector<Elements extends GraphElement = GraphElement>(
   items: CellMap<Elements>
 ): Elements[] {
   return items.map((item) => item) as Elements[];
@@ -57,7 +57,7 @@ function defaultSelector<Elements extends GraphElementWithAttributes = GraphElem
  * @returns - The selected elements.
  */
 export function useElements<
-  Elements extends GraphElementWithAttributes = GraphElementWithAttributes,
+  Elements extends GraphElement = GraphElement,
   SelectorReturnType = Elements[],
 >(
   selector: (
