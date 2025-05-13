@@ -34,7 +34,7 @@ interface OffsetPosition {
   readonly dy?: number;
 }
 
-interface Position {
+export interface Position {
   /**
    * The x position
    */
