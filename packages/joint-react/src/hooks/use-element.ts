@@ -3,6 +3,7 @@ import { useCellId } from './use-cell-id';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { GraphElement } from '../types/element-types';
+import { useCallback } from 'react';
 
 /**
  * A hook to access a specific graph element from the Paper context.
@@ -37,10 +38,21 @@ export function useElement<Element extends GraphElement, ReturnedElements = Elem
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {
   const id = useCellId();
-  const { subscribe: subscribeToElements, getElement } = useGraphStore();
+  const { subscribe, getElement } = useGraphStore();
+
+  const subscribeForElement = useCallback(
+    (subscribeCallback: () => void) => {
+      return subscribe((changedIds) => {
+        if (changedIds?.has(id)) {
+          subscribeCallback();
+        }
+      });
+    },
+    [id, subscribe]
+  );
 
   const element = useSyncExternalStoreWithSelector(
-    subscribeToElements,
+    subscribeForElement,
     () => getElement<Element>(id),
     () => getElement<Element>(id),
     selector,

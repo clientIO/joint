@@ -51,7 +51,8 @@ export interface Store {
   /**
    * Subscribes to the store changes.
    */
-  readonly subscribe: (onStoreChange: () => void) => () => void;
+  readonly subscribe: (onStoreChange: (changedIds?: Set<dia.Cell.ID>) => void) => () => void;
+
   /**
    * Get elements
    */
@@ -146,10 +147,12 @@ export function createStore(options?: StoreOptions): Store {
   const { initialElements } = options || {};
 
   const graph = createGraph(options);
+  // set elements to the graph
   setElements({
     graph,
     initialElements,
   });
+  // create store data - caching the elements and links for the react
   const data = createStoreData();
   const elementsEvents = subscribeHandler(forceUpdate);
   const portElements = createPortsData();
@@ -163,19 +166,22 @@ export function createStore(options?: StoreOptions): Store {
    * Force update the graph.
    * This function is called when the graph is updated.
    * It checks if there are any unsized links and processes them.
+   * @returns changed ids
    */
-  function forceUpdate() {
-    data.updateStore(graph);
+  function forceUpdate(): Set<dia.Cell.ID> {
+    return data.updateStore(graph);
   }
   /**
    * This function is called when a cell changes.
    * It checks if the graph has an active batch and returns if it does.
    * Otherwise, it notifies the subscribers of the elements events.
+   * @param cell - The cell that changed.
    */
   function onCellChange() {
     if (graph.hasActiveBatch()) {
       return;
     }
+
     elementsEvents.notifySubscribers();
   }
 
@@ -212,6 +218,7 @@ export function createStore(options?: StoreOptions): Store {
     },
     getElement<E extends GraphElement>(id: dia.Cell.ID) {
       const item = data.elements.get(id);
+
       if (!item) {
         throw new Error(`Element with id ${id} not found`);
       }
@@ -231,8 +238,8 @@ export function createStore(options?: StoreOptions): Store {
       }
       return portElement;
     },
-    onRenderPorts(portId, portElementsCache) {
-      portElements.set(portId, portElementsCache);
+    onRenderPorts(cellId, portElementsCache) {
+      portElements.set(cellId, portElementsCache);
       portEvents.notifySubscribers();
     },
   };
