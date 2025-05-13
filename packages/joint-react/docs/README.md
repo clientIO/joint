@@ -52,7 +52,6 @@
 
 ## Graph
 
-- [GraphElementWithAttributes](interfaces/GraphElementWithAttributes.md)
 - [GraphLink](interfaces/GraphLink.md)
 
 ## Hooks

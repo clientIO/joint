@@ -61,7 +61,8 @@ function Component(props: PortGroupProps) {
       delete groups[id];
       cell.set('ports', { ...ports, groups });
     };
-  }, [cellId, graph, height, id, rest, width]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cellId, graph, height, id, width]);
 
   return <PortGroupContext.Provider value={id}>{children}</PortGroupContext.Provider>;
 }

@@ -8,7 +8,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
-import type { GraphElement, GraphElementWithAttributes } from '../../types/element-types';
+import type { GraphElement } from '../../types/element-types';
 import { noopSelector } from '../../utils/noop-selector';
 import { useCreatePaper } from '../../hooks/use-create-paper';
 import { useElements } from '../../hooks/use-elements';
@@ -28,17 +28,16 @@ export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
 }
-export type RenderElement<
-  ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
-> = (element: ElementItem) => ReactNode;
+export type RenderElement<ElementItem extends GraphElement = GraphElement> = (
+  element: ElementItem
+) => ReactNode;
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
  * @see https://docs.jointjs.com/api/dia/Paper
  */
-export interface PaperProps<
-  ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
-> extends ReactPaperOptions,
+export interface PaperProps<ElementItem extends GraphElement = GraphElement>
+  extends ReactPaperOptions,
     PaperEvents {
   /**
    * A function that renders the element.
@@ -93,9 +92,9 @@ export interface PaperProps<
    * A function that selects the elements to be rendered.
    * It defaults to the `GraphElement` elements because `dia.Element` is not a valid React element (it do not change reference after update).
    * @default (item: dia.Cell) => `BaseElement`
-   * @see GraphElementWithAttributes<Data>
+   * @see GraphElement
    */
-  readonly elementSelector?: (item: GraphElementWithAttributes) => ElementItem;
+  readonly elementSelector?: (item: GraphElement) => ElementItem;
   /**
    * The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
    */
@@ -137,14 +136,14 @@ export interface PaperProps<
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component<ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes>(
+function Component<ElementItem extends GraphElement = GraphElement>(
   props: PaperProps<ElementItem>
 ) {
   const {
     renderElement,
     style,
     className,
-    elementSelector = noopSelector as (item: GraphElementWithAttributes) => ElementItem,
+    elementSelector = noopSelector as (item: GraphElement) => ElementItem,
     scale,
     children,
     onElementsSizeReady,
@@ -297,9 +296,9 @@ function Component<ElementItem extends GraphElementWithAttributes = GraphElement
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function PaperWithNoDataPlaceHolder<
-  ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
->(props: PaperProps<ElementItem>) {
+function PaperWithNoDataPlaceHolder<ElementItem extends GraphElement = GraphElement>(
+  props: PaperProps<ElementItem>
+) {
   const { style, className, noDataPlaceholder, ...rest } = props;
 
   const hasNoDataPlaceholder = !!noDataPlaceholder;
@@ -318,9 +317,9 @@ function PaperWithNoDataPlaceHolder<
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function PaperWithGraphProvider<
-  ElementItem extends GraphElementWithAttributes = GraphElementWithAttributes,
->(props: PaperProps<ElementItem>) {
+function PaperWithGraphProvider<ElementItem extends GraphElement = GraphElement>(
+  props: PaperProps<ElementItem>
+) {
   const hasStore = !!useContext(GraphStoreContext);
   const { children, ...rest } = props;
   const paperContent = (

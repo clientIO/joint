@@ -88,12 +88,17 @@ export function useUpdateElement<
 
 export function useUpdateElement<Attributes = BaseAttributes>(
   id: dia.Cell.ID
-): <X extends keyof Attributes>(attribute: X, value: Attributes[X] | Setter<Attributes[X]>) => void;
+): <Attribute extends keyof Attributes>(
+  attribute: Attribute,
+  value: Attributes[Attribute] | Setter<Attributes[Attribute]>
+) => void;
 
-export function useUpdateElement<Attributes = BaseAttributes>(): <X extends keyof Attributes>(
+export function useUpdateElement<Attributes = BaseAttributes>(): <
+  Attribute extends keyof Attributes,
+>(
   id: dia.Cell.ID,
-  attribute: X,
-  value: Attributes[X] | Setter<Attributes[X]>
+  attribute: Attribute,
+  value: Attributes[Attribute] | Setter<Attributes[Attribute]>
 ) => void;
 
 // eslint-disable-next-line jsdoc/require-jsdoc

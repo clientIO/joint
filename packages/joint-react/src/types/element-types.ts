@@ -61,16 +61,3 @@ export interface GraphElement extends JointAttributes {
    */
   readonly attrs?: unknown;
 }
-
-/**
- * Base interface for graph element.
- * It's a subset of `dia.Element` with some additional properties.
- * @group Graph
- * @see @see https://docs.jointjs.com/learn/features/shapes/elements/#diaelement
- */
-export interface GraphElementWithAttributes<Attributes = unknown> extends GraphElement {
-  /**
-   * Attributes of the element.
-   */
-  readonly attrs?: Attributes;
-}

@@ -16,7 +16,7 @@ A custom hook that adds an element to the graph.
 
 ### T
 
-`T` *extends* [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\> \| `Element`\<`Attributes`, `ModelSetOptions`\>
+`T` *extends* [`GraphElement`](../interfaces/GraphElement.md) \| `Element`\<`Attributes`, `ModelSetOptions`\>
 
 ## Returns
 

@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { REACT_TYPE } from '../../models/react-element';
 import type { GraphLink } from '../../types/link-types';
-import type { GraphElementWithAttributes } from '../../types/element-types';
+import type { GraphElement } from '../../types/element-types';
 import { isCellInstance, isLinkInstance, isUnsized } from '../is';
 import { getTargetOrSource } from './get-link-targe-and-source-ids';
 import { isReactElement } from '../is-react-element';
@@ -9,7 +9,7 @@ import { isReactElement } from '../is-react-element';
 interface Options {
   readonly graph: dia.Graph;
   readonly initialLinks?: Array<dia.Link | GraphLink>;
-  readonly initialElements?: Array<dia.Element | GraphElementWithAttributes>;
+  readonly initialElements?: Array<dia.Element | GraphElement>;
 }
 
 /**
@@ -84,7 +84,7 @@ export function setLinks(options: Options) {
  * If the element is a ReactElement and has no size, it adds its ID to the unsizedIds set.
  * @private
  */
-export function processElement<T extends dia.Element | GraphElementWithAttributes>(
+export function processElement<T extends dia.Element | GraphElement>(
   element: T,
   unsizedIds?: Set<string>
 ): dia.Element | dia.Cell.JSON {

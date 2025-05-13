@@ -14,7 +14,7 @@ Defined in: [joint-react/src/components/paper/paper.tsx:31](https://github.com/s
 
 ### ElementItem
 
-`ElementItem` *extends* [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md) = [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)
+`ElementItem` *extends* [`GraphElement`](../interfaces/GraphElement.md) = [`GraphElement`](../interfaces/GraphElement.md)
 
 ## Parameters
 

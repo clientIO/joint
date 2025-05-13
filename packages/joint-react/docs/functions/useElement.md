@@ -6,7 +6,7 @@
 
 # Function: useElement()
 
-> **useElement**\<`Data`, `Element`, `ReturnedElements`\>(`selector`, `isEqual`): `ReturnedElements`
+> **useElement**\<`Element`, `ReturnedElements`\>(`selector`, `isEqual`): `ReturnedElements`
 
 Defined in: [joint-react/src/hooks/use-element.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element.ts#L35)
 
@@ -24,13 +24,9 @@ How it works:
 
 ## Type Parameters
 
-### Data
-
-`Data` = `unknown`
-
 ### Element
 
-`Element` = [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\>
+`Element` *extends* [`GraphElement`](../interfaces/GraphElement.md)
 
 ### ReturnedElements
 
