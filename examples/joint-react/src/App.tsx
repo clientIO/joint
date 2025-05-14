@@ -1,12 +1,5 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable no-shadow */
-/* eslint-disable @eslint-react/no-array-index-key */
-/* eslint-disable sonarjs/no-small-switch */
-/* eslint-disable react-perf/jsx-no-new-function-as-prop */
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { dia, linkTools, shapes } from '@joint/core';
-import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
-import './index.css';
+import { dia, linkTools, shapes } from "@joint/core";
+import "./index.css";
 import {
   createElements,
   createLinks,
@@ -16,32 +9,36 @@ import {
   Paper,
   Port,
   useCellId,
-  useElements,
   useGraph,
-  useLinks,
   usePaper,
   useUpdateElement,
   type GraphElement,
   type PaperProps,
   type RenderElement,
-} from '@joint/react';
-import { useCallback, useState } from 'react';
-import { ShowJson } from 'storybook-config/decorators/with-simple-data';
+} from "@joint/react";
+import { useCallback, useState } from "react";
+
+const PAPER_CLASSNAME =
+  "border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2";
+const LIGHT = "#DDE6ED";
+// Define the class name for the paper
+const BUTTON_CLASSNAME =
+  "bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 mr-2 mb-2 rounded text-sm";
 
 // Define types for the elements
 interface ElementBase extends GraphElement {
-  readonly elementType: 'alert' | 'info' | 'table';
+  readonly elementType: "alert" | "info" | "table";
 }
 
 interface MessageElement extends ElementBase {
-  readonly elementType: 'alert' | 'info';
+  readonly elementType: "alert" | "info";
   readonly title: string;
   readonly description: string;
   readonly inputText: string;
 }
 
 interface TableElement extends ElementBase {
-  readonly elementType: 'table';
+  readonly elementType: "table";
   readonly columnNames: string[];
   readonly rows: string[][];
 }
@@ -50,25 +47,21 @@ type Element = MessageElement | TableElement;
 
 type ElementWithSelected<T> = { readonly isSelected: boolean } & T;
 
-// Define the class name for the paper
-export const BUTTON_CLASSNAME =
-  'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 mr-2 mb-2 rounded text-sm';
-
 // Define static properties for the paper - used by minimap and main paper
 const PAPER_PROPS: PaperProps<Element> = {
   defaultRouter: {
-    name: 'rightAngle',
+    name: "rightAngle",
     args: {
       margin: 25,
     },
   },
   defaultConnector: {
-    name: 'straight',
-    args: { cornerType: 'line', cornerPreserveAspectRatio: true },
+    name: "straight",
+    args: { cornerType: "line", cornerPreserveAspectRatio: true },
   },
   snapLinks: { radius: 25 },
   validateMagnet: (_cellView, magnet) => {
-    return magnet.getAttribute('magnet') !== 'passive';
+    return magnet.getAttribute("magnet") !== "passive";
   },
   sorting: dia.Paper.sorting.APPROX,
   linkPinning: false,
@@ -79,35 +72,37 @@ const PAPER_PROPS: PaperProps<Element> = {
 // Create initial elements and links with typing support
 const elements = createElements<Element>([
   {
-    id: '1',
+    id: "1",
     x: 50,
     y: 50,
-    elementType: 'alert',
-    title: 'This is error element',
-    description: 'This is longer text, it can be any message provided by the user',
-    inputText: 'Node Text',
+    elementType: "alert",
+    title: "This is error element",
+    description:
+      "This is longer text, it can be any message provided by the user",
+    inputText: "Node Text",
   },
   {
-    id: '2',
+    id: "2",
     x: 550,
     y: 50,
-    elementType: 'info',
-    title: 'This is info element',
-    description: 'This is longer text, it can be any message provided by the user',
-    inputText: '',
+    elementType: "info",
+    title: "This is info element",
+    description:
+      "This is longer text, it can be any message provided by the user",
+    inputText: "",
   },
   {
-    id: '3',
+    id: "3",
     x: 50,
     y: 350,
-    elementType: 'table',
-    columnNames: ['Column 1', 'Column 2', 'Column 3'],
+    elementType: "table",
+    columnNames: ["Column 1", "Column 2", "Column 3"],
     rows: [
-      ['Row 1', 'Row 2', 'Row 3'],
-      ['Row 4', 'Row 5', 'Row 6'],
-      ['Row 7', 'Row 8', 'Row 9'],
+      ["Row 1", "Row 2", "Row 3"],
+      ["Row 4", "Row 5", "Row 6"],
+      ["Row 7", "Row 8", "Row 9"],
     ],
-    inputText: '',
+    inputText: "",
     width: 400,
     height: 200,
     attrs: {
@@ -121,15 +116,15 @@ const elements = createElements<Element>([
 // Create initial links from table element port to another element
 const links = createLinks([
   {
-    id: 'link2',
-    source: { id: '3', port: 'out-3-0' }, // Port from table element
-    target: { id: '1' },
+    id: "link2",
+    source: { id: "3", port: "out-3-0" }, // Port from table element
+    target: { id: "1" },
     attrs: {
       line: {
         stroke: LIGHT,
-        class: 'link',
+        class: "link",
         strokeWidth: 2,
-        strokeDasharray: '5,5',
+        strokeDasharray: "5,5",
         targetMarker: {
           d: `M 0 0 L 8 4 L 8 -4 Z`, // Larger arrowhead
         },
@@ -151,7 +146,7 @@ function MessageComponent({
   let iconContent;
   let titleText;
   switch (elementType) {
-    case 'alert': {
+    case "alert": {
       iconContent = (
         <i className="fa-solid fa-triangle-exclamation text-rose-500 text-3xl mt-2"></i>
       );
@@ -165,7 +160,7 @@ function MessageComponent({
     }
   }
   const id = useCellId();
-  const setMessage = useUpdateElement<MessageElement>(id, 'inputText');
+  const setMessage = useUpdateElement<MessageElement>(id, "inputText");
   return (
     <Highlighter.Stroke
       padding={10}
@@ -245,7 +240,10 @@ function TableElement({
                 {rows.map((row, index) => (
                   <tr key={index}>
                     {row.map((cell, cellIndex) => (
-                      <td key={cellIndex} className="p-2 border-t border-white/20 border-dashed">
+                      <td
+                        key={cellIndex}
+                        className="p-2 border-t border-white/20 border-dashed"
+                      >
                         {cell}
                       </td>
                     ))}
@@ -258,7 +256,11 @@ function TableElement({
       </Highlighter.Stroke>
       <Port.Group position="right" id="out" dx={-10}>
         {rows.map((_, index) => (
-          <Port.Item key={index} id={`out-${cellId}-${index}`} y={index * ROW_HEIGHT + ROW_START}>
+          <Port.Item
+            key={index}
+            id={`out-${cellId}-${index}`}
+            y={index * ROW_HEIGHT + ROW_START}
+          >
             <foreignObject width={20} height={20} overflow="visible">
               <div className="flex flex-col items-center justify-center bg-white rounded-full w-5 h-5">
                 <i className="fa-solid fa-arrow-right text-black text-sm"></i>
@@ -274,16 +276,18 @@ function TableElement({
 // Minimap component
 function MiniMap() {
   const renderElement: RenderElement<Element> = useCallback(
-    ({ width, height }) => <rect width={width} height={height} fill={'white'} rx={10} ry={10} />,
-    []
+    ({ width, height }) => (
+      <rect width={width} height={height} fill={"white"} rx={10} ry={10} />
+    ),
+    [],
   );
   // On change, the minimap will be resized to fit the content automatically
   const onElementReady = useCallback(({ paper }: { paper: dia.Paper }) => {
     const { model: graph } = paper;
     paper.transformToFitContent({
       contentArea: graph.getCellsBBox(graph.getElements()) ?? undefined,
-      verticalAlign: 'middle',
-      horizontalAlign: 'middle',
+      verticalAlign: "middle",
+      horizontalAlign: "middle",
       padding: 20,
     });
   }, []);
@@ -293,9 +297,9 @@ function MiniMap() {
       <Paper
         {...PAPER_PROPS}
         interactive={false}
-        width={'100%'}
+        width={"100%"}
         className={PAPER_CLASSNAME}
-        height={'100%'}
+        height={"100%"}
         renderElement={renderElement}
         onElementsSizeReady={onElementReady}
         onRenderDone={onElementReady}
@@ -307,7 +311,7 @@ function MiniMap() {
 // Define the remove tool for the link
 const removeTool = new linkTools.Remove({
   scale: 1.5,
-  style: { stroke: '#999' },
+  style: { stroke: "#999" },
 });
 
 // Define the tools view for the link - so we can remove the link when hovered
@@ -320,19 +324,11 @@ interface ToolbarProps {
   readonly isMinimapVisible: boolean;
   readonly selectedId: dia.Cell.ID | null;
   readonly setSelectedId: (id: dia.Cell.ID | null) => void;
-  readonly showElementsInfo: boolean;
-  readonly setShowElementsInfo: (show: boolean) => void;
 }
 // Toolbar component with some actions
 function ToolBar(props: ToolbarProps) {
-  const {
-    onToggleMinimap,
-    isMinimapVisible,
-    selectedId,
-    setSelectedId,
-    setShowElementsInfo,
-    showElementsInfo,
-  } = props;
+  const { onToggleMinimap, isMinimapVisible, selectedId, setSelectedId } =
+    props;
   const graph = useGraph();
   const paper = usePaper();
   return (
@@ -353,7 +349,7 @@ function ToolBar(props: ToolbarProps) {
       </button>
       <button
         type="button"
-        className={`${BUTTON_CLASSNAME} ${selectedId ? '' : 'opacity-20 cursor-not-allowed'}`}
+        className={`${BUTTON_CLASSNAME} ${selectedId ? "" : "opacity-20 cursor-not-allowed"}`}
         disabled={!selectedId}
         onClick={() => {
           if (!selectedId) {
@@ -377,7 +373,7 @@ function ToolBar(props: ToolbarProps) {
       </button>
       <button
         type="button"
-        className={`${BUTTON_CLASSNAME} ${selectedId ? '' : 'opacity-20 cursor-not-allowed'}`}
+        className={`${BUTTON_CLASSNAME} ${selectedId ? "" : "opacity-20 cursor-not-allowed"}`}
         disabled={!selectedId}
         onClick={() => {
           if (!selectedId) {
@@ -406,8 +402,8 @@ function ToolBar(props: ToolbarProps) {
             return;
           }
           paper.transformToFitContent({
-            verticalAlign: 'middle',
-            horizontalAlign: 'middle',
+            verticalAlign: "middle",
+            horizontalAlign: "middle",
             padding: 20,
           });
         }}
@@ -415,38 +411,6 @@ function ToolBar(props: ToolbarProps) {
         <i className="fa-solid fa-undo"></i>
         <span className="ml-2">Zoom to fit</span>
       </button>
-      <button
-        type="button"
-        className={BUTTON_CLASSNAME}
-        onClick={() => {
-          setShowElementsInfo(!showElementsInfo);
-        }}
-      >
-        {showElementsInfo ? (
-          <i className="fa-solid fa-eye-slash"></i>
-        ) : (
-          <i className="fa-solid fa-eye"></i>
-        )}
-        <span className="ml-2">Toggle info</span>
-      </button>
-    </div>
-  );
-}
-
-// Show elements and links info
-function ElementsInfo() {
-  const elements = useElements();
-  const links = useLinks();
-  return (
-    <div className="flex flex-col gap-2 mt-4">
-      <div className="flex flex-col gap-2">
-        <div className="text-white text-sm">Elements</div>
-        <ShowJson data={JSON.stringify(elements, null, 2)} />
-      </div>
-      <div className="flex flex-col gap-2">
-        <div className="text-white text-sm">Links</div>
-        <ShowJson data={JSON.stringify(links, null, 2)} />
-      </div>
     </div>
   );
 }
@@ -454,8 +418,9 @@ function ElementsInfo() {
 // Define main paper component and render elements
 function Main() {
   const [isMinimapVisible, setIsMinimapVisible] = useState(false);
-  const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(null);
-  const [showElementsInfo, setShowElementsInfo] = useState(false);
+  const [selectedElement, setSelectedElement] = useState<dia.Cell.ID | null>(
+    null,
+  );
 
   const renderElement = useCallback(
     (element: Element) => {
@@ -463,20 +428,20 @@ function Main() {
 
       const isSelected = id === selectedElement;
       switch (elementType) {
-        case 'alert':
-        case 'info': {
+        case "alert":
+        case "info": {
           return <MessageComponent {...element} isSelected={isSelected} />;
         }
-        case 'table': {
+        case "table": {
           return <TableElement {...element} isSelected={isSelected} />;
         }
       }
     },
-    [selectedElement]
+    [selectedElement],
   );
   return (
-    <div className="flex flex-col relative">
-      <div className="flex flex-col relative">
+    <div className="flex flex-col relative w-full h-full">
+      <div className="flex flex-col relative h-full">
         <Paper
           {...PAPER_PROPS}
           defaultLink={new shapes.standard.Link(links[0])}
@@ -493,20 +458,18 @@ function Main() {
             setSelectedElement(null);
           }}
           width="100%"
+          height="calc(100vh - 100px)"
         >
           <ToolBar
             onToggleMinimap={setIsMinimapVisible}
             isMinimapVisible={isMinimapVisible}
             selectedId={selectedElement}
             setSelectedId={setSelectedElement}
-            showElementsInfo={showElementsInfo}
-            setShowElementsInfo={setShowElementsInfo}
           />
         </Paper>
 
         {isMinimapVisible && <MiniMap />}
       </div>
-      {showElementsInfo && <ElementsInfo />}
     </div>
   );
 }
