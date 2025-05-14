@@ -63,6 +63,7 @@
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-vue": "^5.2.4",
     "@vue/eslint-config-typescript": "14.5.0",
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^26.0.0",
