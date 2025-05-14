@@ -10,7 +10,7 @@ export interface TextNodeProps
   readonly eol?: string;
   readonly width?: number;
   readonly height?: number;
-  readonly textWrap?: boolean | util.BreakTextOptions;
+  readonly textWrap: boolean | util.BreakTextOptions;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc

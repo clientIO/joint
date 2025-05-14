@@ -6,4 +6,5 @@ runStorybookSnapshot({
   name: 'TextNode',
   withRenderElementWrapper: true,
   stories,
+  withRenderElementWrapper: true,
 });

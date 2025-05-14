@@ -8,7 +8,7 @@
 
 > **PortGroupProps** = `object` & `PortLayout`
 
-Defined in: [joint-react/src/components/port/port-group.tsx:9](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-group.tsx#L9)
+Defined in: [joint-react/src/components/port/port-group.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/port/port-group.tsx#L11)
 
 ## Type declaration
 
