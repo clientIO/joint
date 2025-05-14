@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
+import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import type { Meta } from '@storybook/react/*';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
@@ -31,22 +31,12 @@ export default meta;
 
 type Story = TesterHookStory<typeof useElements>;
 
-function DataRenderer({ data, name }: Readonly<{ data: unknown; name: string }>) {
-  return (
-    <div style={{ position: 'absolute', right: 0, display: 'inline-block', top: 0 }}>
-      <h4 style={{ padding: 0, margin: 0 }}>{name}:</h4>
-      <pre style={{ fontSize: 10 }}>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-  );
-}
-
 export const Default = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="All Elements" />
         <Paper
           width="100%"
           className={PAPER_CLASSNAME}
@@ -54,6 +44,7 @@ export const Default = makeStory<Story>({
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="All Elements" />
       </div>
     ),
   },
@@ -73,7 +64,6 @@ export const WithSelectedJustIds = makeStory<Story>({
     hookArgs: [(elements) => elements.map((element) => element.id)],
     render: (result) => (
       <span>
-        <DataRenderer data={result} name="Element IDs" />
         <Paper
           width="100%"
           className={PAPER_CLASSNAME}
@@ -81,6 +71,7 @@ export const WithSelectedJustIds = makeStory<Story>({
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Element IDs" />
       </span>
     ),
   },
@@ -100,7 +91,6 @@ export const WithGetJustSize = makeStory<Story>({
     hookArgs: [(elements) => elements.size],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="Size of Elements" />
         <Paper
           width="100%"
           className={PAPER_CLASSNAME}
@@ -108,6 +98,7 @@ export const WithGetJustSize = makeStory<Story>({
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Size of Elements" />
       </div>
     ),
   },
@@ -133,7 +124,6 @@ export const WithJustPosition = makeStory<Story>({
     ],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="Position" />
         <Paper
           width="100%"
           className={PAPER_CLASSNAME}
@@ -141,6 +131,7 @@ export const WithJustPosition = makeStory<Story>({
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Position" />
       </div>
     ),
   },
@@ -169,7 +160,6 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
     ],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="Position" />
         <Paper
           width="100%"
           className={PAPER_CLASSNAME}
@@ -177,6 +167,7 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Position" />
       </div>
     ),
   },
@@ -203,7 +194,6 @@ export const WithAdditionalData = makeStory<Story>({
     ],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="Element with new data" />
         <Paper
           width="100%"
           className={PAPER_CLASSNAME}
@@ -211,6 +201,7 @@ export const WithAdditionalData = makeStory<Story>({
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Element with new data" />
       </div>
     ),
   },

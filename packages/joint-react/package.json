@@ -19,6 +19,7 @@
     "doc:readme:gen": "npx typedoc"
   },
   "devDependencies": {
+    "@andypf/json-viewer": "^2.1.10",
     "@chromatic-com/storybook": "^3.2.5",
     "@joint/layout-directed-graph": "*",
     "@joint/react-eslint": "*",

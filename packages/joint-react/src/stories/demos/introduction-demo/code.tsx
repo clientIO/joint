@@ -26,6 +26,7 @@ import {
 } from '@joint/react';
 import { useCallback, useState } from 'react';
 import { useAreElementMeasured } from '../../../hooks/use-are-elements-measured';
+import { ShowJson } from 'storybook-config/decorators/with-simple-data';
 
 // Define types for the elements
 interface ElementBase extends GraphElement {
@@ -436,24 +437,6 @@ function ToolBar(props: ToolbarProps) {
   );
 }
 
-// Show JSON data in a viewer
-function ShowJson(props: { readonly data: string }) {
-  return (
-    // @ts-expect-error for demo purpose we loaded: https://www.npmjs.com/package/@andypf/json-viewer viewer
-    <andypf-json-viewer
-      indent="2"
-      expanded="true"
-      theme="default-dark"
-      show-data-types="true"
-      show-toolbar="false"
-      expand-icon-type="arrow"
-      show-copy="true"
-      show-size="true"
-      data={props.data}
-    />
-  );
-}
-
 // Show elements and links info
 function ElementsInfo() {
   const elements = useElements();
@@ -497,33 +480,36 @@ function Main() {
   );
   return (
     <div className="flex flex-col relative">
-      <Paper
-        {...PAPER_PROPS}
-        // defaultLink={() => new shapes.standard.Link({ attrs: { line: { stroke: LIGHT } } })}
-        renderElement={renderElement}
-        className={PAPER_CLASSNAME}
-        onCellPointerClick={({ cellView }) => {
-          const cell = cellView.model;
-          setSelectedElement(cell.id ?? null);
-        }}
-        onLinkPointerClick={() => {
-          setSelectedElement(null);
-        }}
-        onBlankPointerClick={() => {
-          setSelectedElement(null);
-        }}
-      >
-        <ToolBar
-          onToggleMinimap={setIsMinimapVisible}
-          isMinimapVisible={isMinimapVisible}
-          selectedId={selectedElement}
-          setSelectedId={setSelectedElement}
-          showElementsInfo={showElementsInfo}
-          setShowElementsInfo={setShowElementsInfo}
-        />
-      </Paper>
+      <div className="flex flex-col relative">
+        <Paper
+          {...PAPER_PROPS}
+          // defaultLink={() => new shapes.standard.Link({ attrs: { line: { stroke: LIGHT } } })}
+          renderElement={renderElement}
+          className={PAPER_CLASSNAME}
+          onCellPointerClick={({ cellView }) => {
+            const cell = cellView.model;
+            setSelectedElement(cell.id ?? null);
+          }}
+          onLinkPointerClick={() => {
+            setSelectedElement(null);
+          }}
+          onBlankPointerClick={() => {
+            setSelectedElement(null);
+          }}
+          width="100%"
+        >
+          <ToolBar
+            onToggleMinimap={setIsMinimapVisible}
+            isMinimapVisible={isMinimapVisible}
+            selectedId={selectedElement}
+            setSelectedId={setSelectedElement}
+            showElementsInfo={showElementsInfo}
+            setShowElementsInfo={setShowElementsInfo}
+          />
+        </Paper>
 
-      {isMinimapVisible && <MiniMap />}
+        {isMinimapVisible && <MiniMap />}
+      </div>
       {showElementsInfo && <ElementsInfo />}
     </div>
   );
