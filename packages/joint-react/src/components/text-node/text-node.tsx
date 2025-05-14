@@ -1,26 +1,17 @@
 import { util, V, type Vectorizer } from '@joint/core';
 import { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
 import { useCombinedRef } from '../../hooks/use-combined-ref';
+import { isNumber } from '../../utils/is';
+import { useCellId, useGraph } from '../../hooks';
 
-interface TextNodePropsBase
+export interface TextNodeProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
   readonly eol?: string;
   readonly width?: number;
   readonly height?: number;
-  readonly textWrap?: boolean | util.BreakTextOptions;
+  readonly textWrap: boolean | util.BreakTextOptions;
 }
-export interface TextNodePropsWithoutTextWrap extends TextNodePropsBase {
-  readonly textWrap?: false;
-}
-
-export interface TextNodePropsWithTextWrap extends TextNodePropsBase {
-  readonly textWrap: true | util.BreakTextOptions;
-  readonly width: number;
-  readonly height?: number;
-}
-
-export type TextNodeProps = TextNodePropsWithoutTextWrap | TextNodePropsWithTextWrap;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>) {
@@ -41,6 +32,8 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
   } = props;
 
   const textRef = useCombinedRef<SVGTextElement>(ref);
+  const cellId = useCellId();
+  const graph = useGraph();
   useEffect(() => {
     if (!textRef.current) {
       return;
@@ -52,11 +45,20 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
 
     let text = children;
     if (textWrap) {
-      if (width == undefined) {
-        throw new TypeError('TextNode width is required when textWrap is true');
+      let breakTextWidth = width;
+
+      if (isNumber(breakTextWidth)) {
+        breakTextWidth = Math.max(0, breakTextWidth);
+      } else if (breakTextWidth == undefined) {
+        const element = graph.getCell(cellId);
+        if (!element.isElement()) {
+          throw new TypeError('TextNode must be used inside a MeasuredNode');
+        }
+        breakTextWidth = element.size().width;
       }
-      const options = typeof textWrap === 'object' ? textWrap : {};
-      text = util.breakText(text, { width, height }, {}, options);
+
+      const options: util.BreakTextOptions = typeof textWrap === 'object' ? textWrap : {};
+      text = util.breakText(text, { width: breakTextWidth, height }, {}, options);
     }
 
     V(textRef.current).text(text, {
@@ -83,6 +85,8 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     textVerticalAnchor,
     width,
     x,
+    graph,
+    cellId,
   ]);
   return <text ref={textRef} {...rest} x={x} />;
 }

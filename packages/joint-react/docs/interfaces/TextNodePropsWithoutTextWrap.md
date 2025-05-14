@@ -34,7 +34,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:29](https://github.com/samuelgja/j
 
 #### Inherited from
 
-`TextNodePropsBase.displayEmpty`
+`Vectorizer.TextOptions.displayEmpty`
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:10](https://gith
 
 #### Inherited from
 
-`TextNodePropsBase.height`
+`SVGTextElementAttributes.height`
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:28](https://github.com/samuelgja/j
 
 #### Inherited from
 
-`TextNodePropsBase.includeAnnotationIndices`
+`Vectorizer.TextOptions.includeAnnotationIndices`
 
 ***
 
@@ -82,7 +82,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:25](https://github.com/samuelgja/j
 
 #### Inherited from
 
-`TextNodePropsBase.lineHeight`
+`Vectorizer.TextOptions.lineHeight`
 
 ***
 
@@ -119,6 +119,14 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:14](https://gith
 #### Overrides
 
 `TextNodePropsBase.textWrap`
+
+***
+
+### textWrap?
+
+> `readonly` `optional` **textWrap**: `boolean` \| `BreakTextOptions`
+
+Defined in: [joint-react/src/components/text-node/text-node.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L11)
 
 ***
 
