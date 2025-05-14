@@ -3,7 +3,6 @@
 
 # Build output
 /dist/
-docs/
 # Yarn
 .yarn/*
 !.yarn/releases
