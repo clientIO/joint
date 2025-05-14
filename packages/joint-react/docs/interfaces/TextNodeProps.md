@@ -110,9 +110,9 @@ Defined in: [joint-core/types/vectorizer.d.ts:24](https://github.com/samuelgja/j
 
 ***
 
-### textWrap
+### textWrap?
 
-> `readonly` **textWrap**: `boolean` \| `BreakTextOptions`
+> `readonly` `optional` **textWrap**: `boolean` \| `BreakTextOptions`
 
 Defined in: [joint-react/src/components/text-node/text-node.tsx:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L13)
 

@@ -24,9 +24,9 @@ If the highlighter is disabled or not.
 
 ***
 
-### layer
+### layer?
 
-> `readonly` **layer**: `string`
+> `readonly` `optional` **layer**: `string`
 
 Defined in: [joint-react/src/components/highlighters/stroke.tsx:12](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/highlighters/stroke.tsx#L12)
 

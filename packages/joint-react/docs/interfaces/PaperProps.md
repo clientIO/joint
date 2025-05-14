@@ -523,6 +523,16 @@ Defined in: [joint-core/types/joint.d.ts:1417](https://github.com/samuelgja/join
 
 ***
 
+### isChildrenAtBottom?
+
+> `readonly` `optional` **isChildrenAtBottom**: `boolean`
+
+Defined in: [joint-react/src/components/paper/paper.tsx:141](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L141)
+
+If true, the children will be rendered at the bottom of the paper - after paper in HTML tree.
+
+***
+
 ### labelsLayer?
 
 > `optional` **labelsLayer**: `string` \| `boolean`

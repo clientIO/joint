@@ -6,7 +6,7 @@
 
 # Interface: GraphProps
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:60](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L60)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:62](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L62)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:60](ht
 
 > `readonly` `optional` **cellModel**: *typeof* `Cell`
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:85](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L85)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:87](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L87)
 
 Custom cell model to use.
 It's loaded just once, so it cannot be used as React state.
@@ -29,7 +29,7 @@ https://docs.jointjs.com/api/dia/Cell
 
 > `readonly` `optional` **cellNamespace**: `unknown`
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:79](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L79)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L81)
 
 Namespace for cell models.
 It's loaded just once, so it cannot be used as React state.
@@ -50,7 +50,7 @@ https://docs.jointjs.com/api/shapes
 
 > `readonly` `optional` **children**: `ReactNode`
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:70](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L70)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:72](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L72)
 
 Children to render.
 
@@ -60,7 +60,7 @@ Children to render.
 
 > `readonly` `optional` **graph**: `Graph`\<`Attributes`, `ModelSetOptions`\>
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:66](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L66)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:68](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L68)
 
 Graph instance to use. If not provided, a new graph instance will be created.
 
@@ -80,7 +80,7 @@ new dia.Graph({}, { cellNamespace: shapes })
 
 > `readonly` `optional` **initialElements**: ([`GraphElement`](GraphElement.md) \| `Element`\<`Attributes`, `ModelSetOptions`\>)[]
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L90)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:92](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L92)
 
 Initial elements to be added to graph
 It's loaded just once, so it cannot be used as React state.
@@ -91,7 +91,7 @@ It's loaded just once, so it cannot be used as React state.
 
 > `readonly` `optional` **initialLinks**: ([`GraphLink`](GraphLink.md)\<`string`\> \| `Link`\<`Attributes`, `ModelSetOptions`\>)[]
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:95](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L95)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:97](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L97)
 
 Initial links to be added to graph
 It's loaded just once, so it cannot be used as React state.
@@ -102,7 +102,7 @@ It's loaded just once, so it cannot be used as React state.
 
 > `readonly` `optional` **store**: `Store`
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:101](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L101)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:103](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L103)
 
 Store is build around graph, it handles react updates and states, it can be created separately and passed to the provider via `createStore` function.
 

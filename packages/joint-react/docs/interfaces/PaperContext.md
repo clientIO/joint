@@ -6,7 +6,7 @@
 
 # Interface: PaperContext
 
-Defined in: [joint-react/src/context/paper-context.tsx:6](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/context/paper-context.tsx#L6)
+Defined in: [joint-react/src/context/paper-context.tsx:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/context/paper-context.tsx#L7)
 
 ## Extends
 
@@ -3570,11 +3570,19 @@ Defined in: [joint-core/types/joint.d.ts:1613](https://github.com/samuelgja/join
 
 ***
 
+### portStore
+
+> **portStore**: `PortsStore`
+
+Defined in: [joint-react/src/context/paper-context.tsx:9](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/context/paper-context.tsx#L9)
+
+***
+
 ### renderElement?
 
 > `optional` **renderElement**: [`RenderElement`](../type-aliases/RenderElement.md)\<[`GraphElement`](GraphElement.md)\>
 
-Defined in: [joint-react/src/context/paper-context.tsx:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/context/paper-context.tsx#L7)
+Defined in: [joint-react/src/context/paper-context.tsx:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/context/paper-context.tsx#L8)
 
 ***
 
