@@ -17,7 +17,7 @@ https://docs.jointjs.com/api/dia/Paper
 
 ## Extends
 
-- `ReactPaperOptions`.`PaperEvents`
+- `ReactPaperOptions`.[`GraphProps`](GraphProps.md).`PaperEvents`
 
 ## Type Parameters
 
@@ -123,6 +123,50 @@ Defined in: [joint-core/types/joint.d.ts:1470](https://github.com/samuelgja/join
 
 ***
 
+### cellModel?
+
+> `readonly` `optional` **cellModel**: *typeof* `Cell`
+
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:86](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L86)
+
+Custom cell model to use.
+It's loaded just once, so it cannot be used as React state.
+
+#### See
+
+https://docs.jointjs.com/api/dia/Cell
+
+#### Inherited from
+
+[`GraphProps`](GraphProps.md).[`cellModel`](GraphProps.md#cellmodel)
+
+***
+
+### cellNamespace?
+
+> `readonly` `optional` **cellNamespace**: `unknown`
+
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:80](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L80)
+
+Namespace for cell models.
+It's loaded just once, so it cannot be used as React state.
+When added new shape, it will not remove existing ones, it will just add new ones.
+So `{ ...shapes, ReactElement }` elements are still available.
+
+#### Default
+
+`{ ...shapes, ReactElement }`
+
+#### See
+
+https://docs.jointjs.com/api/shapes
+
+#### Inherited from
+
+[`GraphProps`](GraphProps.md).[`cellNamespace`](GraphProps.md#cellnamespace)
+
+***
+
 ### cellViewNamespace?
 
 > `optional` **cellViewNamespace**: `any`
@@ -139,9 +183,13 @@ Defined in: [joint-core/types/joint.d.ts:1447](https://github.com/samuelgja/join
 
 > `readonly` `optional` **children**: `ReactNode`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:112](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L112)
+Defined in: [joint-react/src/components/paper/paper.tsx:113](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L113)
 
 Children to render. Paper automatically wrap the children with the PaperContext, if there is no PaperContext in the parent tree.
+
+#### Overrides
+
+[`GraphProps`](GraphProps.md).[`children`](GraphProps.md#children)
 
 ***
 
@@ -149,7 +197,7 @@ Children to render. Paper automatically wrap the children with the PaperContext,
 
 > `readonly` `optional` **className**: `string`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L90)
+Defined in: [joint-react/src/components/paper/paper.tsx:91](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L91)
 
 Class name of the paper element.
 
@@ -163,7 +211,7 @@ Class name of the paper element.
 
 > `readonly` `optional` **clickThreshold**: `number`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:129](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L129)
+Defined in: [joint-react/src/components/paper/paper.tsx:130](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L130)
 
 The threshold for click events in pixels.
 If the mouse moves more than this distance, it will be considered a drag event.
@@ -340,7 +388,7 @@ Defined in: [joint-core/types/joint.d.ts:3457](https://github.com/samuelgja/join
 
 > `readonly` `optional` **elementSelector**: (`item`) => `ElementItem`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:98](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L98)
+Defined in: [joint-react/src/components/paper/paper.tsx:99](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L99)
 
 A function that selects the elements to be rendered.
 It defaults to the `GraphElement` elements because `dia.Element` is not a valid React element (it do not change reference after update).
@@ -422,6 +470,30 @@ Defined in: [joint-core/types/joint.d.ts:1442](https://github.com/samuelgja/join
 #### Inherited from
 
 `ReactPaperOptions.frontParentOnly`
+
+***
+
+### graph?
+
+> `readonly` `optional` **graph**: `Graph`\<`Attributes`, `ModelSetOptions`\>
+
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:67](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L67)
+
+Graph instance to use. If not provided, a new graph instance will be created.
+
+#### See
+
+https://docs.jointjs.com/api/dia/Graph
+
+#### Default
+
+```ts
+new dia.Graph({}, { cellNamespace: shapes })
+```
+
+#### Inherited from
+
+[`GraphProps`](GraphProps.md).[`graph`](GraphProps.md#graph)
 
 ***
 
@@ -511,6 +583,36 @@ Defined in: [joint-core/types/joint.d.ts:3458](https://github.com/samuelgja/join
 
 ***
 
+### initialElements?
+
+> `readonly` `optional` **initialElements**: (`Element`\<`Attributes`, `ModelSetOptions`\> \| [`GraphElement`](GraphElement.md))[]
+
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:91](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L91)
+
+Initial elements to be added to graph
+It's loaded just once, so it cannot be used as React state.
+
+#### Inherited from
+
+[`GraphProps`](GraphProps.md).[`initialElements`](GraphProps.md#initialelements)
+
+***
+
+### initialLinks?
+
+> `readonly` `optional` **initialLinks**: (`Link`\<`Attributes`, `ModelSetOptions`\> \| [`GraphLink`](GraphLink.md)\<`string`\>)[]
+
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:96](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L96)
+
+Initial links to be added to graph
+It's loaded just once, so it cannot be used as React state.
+
+#### Inherited from
+
+[`GraphProps`](GraphProps.md).[`initialLinks`](GraphProps.md#initiallinks)
+
+***
+
 ### interactive?
 
 > `optional` **interactive**: `boolean` \| (`cellView`, `event`) => `boolean` \| `InteractivityOptions` \| `InteractivityOptions`
@@ -520,16 +622,6 @@ Defined in: [joint-core/types/joint.d.ts:1417](https://github.com/samuelgja/join
 #### Inherited from
 
 `ReactPaperOptions.interactive`
-
-***
-
-### isChildrenAtBottom?
-
-> `readonly` `optional` **isChildrenAtBottom**: `boolean`
-
-Defined in: [joint-react/src/components/paper/paper.tsx:141](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L141)
-
-If true, the children will be rendered at the bottom of the paper - after paper in HTML tree.
 
 ***
 
@@ -645,7 +737,7 @@ Defined in: [joint-core/types/joint.d.ts:1426](https://github.com/samuelgja/join
 
 > `readonly` `optional` **noDataPlaceholder**: `ReactNode`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:107](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L107)
+Defined in: [joint-react/src/components/paper/paper.tsx:108](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L108)
 
 Placeholder to be rendered when there is no data (no nodes or elements to render).
 
@@ -2119,7 +2211,7 @@ Defined in: [joint-react/src/types/event.types.ts:343](https://github.com/samuel
 
 > `readonly` `optional` **onElementsSizeChange**: (`options`) => `void`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:81](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L81)
+Defined in: [joint-react/src/components/paper/paper.tsx:82](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L82)
 
 Event called when the paper is resized.
 It is useful for like onLoad event to do some layout or other operations with `graph` or `paper`.
@@ -2140,7 +2232,7 @@ It is useful for like onLoad event to do some layout or other operations with `g
 
 > `readonly` `optional` **onElementsSizeReady**: (`options`) => `void`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:75](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L75)
+Defined in: [joint-react/src/components/paper/paper.tsx:76](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L76)
 
 Event called when all elements are properly measured (has all elements width and height greater than 1 - default).
 In react, we cannot detect jointjs paper render:done event properly, so we use this special event to check if all elements are measured.
@@ -3132,7 +3224,7 @@ Defined in: [joint-core/types/joint.d.ts:1472](https://github.com/samuelgja/join
 
 > `readonly` `optional` **overwriteDefaultPaperElement**: (`paper`) => [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement) \| [`HTMLElement`](https://developer.mozilla.org/docs/Web/API/HTMLElement)
 
-Defined in: [joint-react/src/components/paper/paper.tsx:122](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L122)
+Defined in: [joint-react/src/components/paper/paper.tsx:123](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L123)
 
 On load custom element.
 If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
@@ -3193,7 +3285,7 @@ Defined in: [joint-core/types/joint.d.ts:1432](https://github.com/samuelgja/join
 
 > `readonly` `optional` **renderElement**: [`RenderElement`](../type-aliases/RenderElement.md)\<`ElementItem`\>
 
-Defined in: [joint-react/src/components/paper/paper.tsx:69](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L69)
+Defined in: [joint-react/src/components/paper/paper.tsx:70](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L70)
 
 A function that renders the element.
 
@@ -3252,7 +3344,7 @@ Defined in: [joint-core/types/joint.d.ts:1448](https://github.com/samuelgja/join
 
 > `readonly` `optional` **scale**: `number`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:103](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L103)
+Defined in: [joint-react/src/components/paper/paper.tsx:104](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L104)
 
 The scale of the paper. It's useful to create for example a zoom feature or minimap Paper.
 
@@ -3306,11 +3398,29 @@ Defined in: [joint-core/types/joint.d.ts:1464](https://github.com/samuelgja/join
 
 ***
 
+### store?
+
+> `readonly` `optional` **store**: `Store`
+
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:102](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L102)
+
+Store is build around graph, it handles react updates and states, it can be created separately and passed to the provider via `createStore` function.
+
+#### See
+
+`createStore`
+
+#### Inherited from
+
+[`GraphProps`](GraphProps.md).[`store`](GraphProps.md#store)
+
+***
+
 ### style?
 
 > `readonly` `optional` **style**: `CSSProperties`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:86](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L86)
+Defined in: [joint-react/src/components/paper/paper.tsx:87](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L87)
 
 The style of the paper element.
 
@@ -3344,7 +3454,7 @@ Defined in: [joint-core/types/joint.d.ts:3520](https://github.com/samuelgja/join
 
 > `readonly` `optional` **useHTMLOverlay**: `boolean`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:136](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L136)
+Defined in: [joint-react/src/components/paper/paper.tsx:137](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L137)
 
 Enabled if renderElements is render to pure HTML elements.
 By default, `joint/react` renderElements to SVG elements, so for using HTML elements without this prop, you need to use `foreignObject` element.

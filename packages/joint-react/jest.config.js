@@ -16,4 +16,5 @@ export default {
     '^src/(.*)$': '<rootDir>/src/$1',
     '^storybook-config/(.*)$': '<rootDir>/.storybook/$1',
   },
+  testMatch: ['<rootDir>/src/**/*.{test,spec}.ts?(x)'], // Only run tests in src folder
 };

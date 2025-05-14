@@ -8,7 +8,7 @@
 
 > **GraphProvider**(`props`): `null` \| `Element`
 
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:140](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L140)
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:139](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L139)
 
 GraphProvider component creates a graph instance and provide `dia.graph` to it's children.
 It relies on
