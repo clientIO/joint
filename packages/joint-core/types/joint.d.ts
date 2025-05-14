@@ -522,6 +522,8 @@ export namespace dia {
 
         getBBox(): g.Rect;
 
+        getCenter(): g.Point;
+
         getPointFromConnectedLink(link: dia.Link, endType: dia.LinkEnd): g.Point;
 
         getPointRotatedAroundCenter(angle: number, x: number, y: number): g.Point;

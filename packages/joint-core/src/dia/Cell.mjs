@@ -921,9 +921,13 @@ export const Cell = Model.extend({
         return new g.Rect(0, 0, 0, 0);
     },
 
+    getCenter: function() {
+        return this.getBBox().center();
+    },
+
     getPointRotatedAroundCenter(angle, x, y) {
         const point = new g.Point(x, y);
-        if (angle) point.rotate(this.getBBox().center(), angle);
+        if (angle) point.rotate(this.getCenter(), angle);
         return point;
     },
 
