@@ -1617,6 +1617,12 @@ QUnit.module('vectorizer', function(hooks) {
 
         QUnit.test('offscreen results', function(assert) {
 
+            // We need to build a new DOM tree to test this
+            // because the DOM from the setup was already
+            // appended to the document and even if we remove it
+            // from the document, the browser will still
+            // return the correct ScreenCTM (used in unsafe mode)
+
             const svgPath2 = V('path');
             const svgGroup1 = V('g');
 
@@ -1631,9 +1637,9 @@ QUnit.module('vectorizer', function(hooks) {
                 ])
             ]);
 
-            // unsafe method returns an identity matrix (no transform)
+            // unsafe mode returns an identity matrix (no transform)
             assert.equal(V.matrixToTransformString(V(svgPath2).getTransformToElement(svgGroup1)), 'matrix(1,0,0,1,0,0)');
-            // safe method returns a matrix with the correct transform
+            // safe mode returns a matrix with the correct transform
             assert.equal(V.matrixToTransformString(V(svgPath2).getTransformToElement(svgGroup1, { safe: true })), 'matrix(2,0,0,2,20,20)');
         });
 
