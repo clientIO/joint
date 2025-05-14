@@ -6,9 +6,9 @@
 
 # Function: useElement()
 
-> **useElement**\<`Data`, `Element`, `ReturnedElements`\>(`selector`, `isEqual`): `ReturnedElements`
+> **useElement**\<`Element`, `ReturnedElements`\>(`selector`, `isEqual`): `ReturnedElements`
 
-Defined in: [joint-react/src/hooks/use-element.ts:35](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element.ts#L35)
+Defined in: [joint-react/src/hooks/use-element.ts:36](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-element.ts#L36)
 
 A hook to access a specific graph element from the Paper context.
 It must be used inside a PaperProvider.
@@ -24,13 +24,9 @@ How it works:
 
 ## Type Parameters
 
-### Data
-
-`Data` = `unknown`
-
 ### Element
 
-`Element` = [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\>
+`Element` *extends* [`GraphElement`](../interfaces/GraphElement.md)
 
 ### ReturnedElements
 
@@ -79,7 +75,7 @@ const refinedElement = useElement(
 ## Default
 
 ```ts
-defaultElementSelector
+initialElementselector
 ```
 
 ## Default

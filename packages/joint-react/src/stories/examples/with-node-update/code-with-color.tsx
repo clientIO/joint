@@ -5,7 +5,7 @@ import {
   createLinks,
   GraphProvider,
   Paper,
-  useSetElement,
+  useUpdateElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
@@ -32,7 +32,7 @@ const initialEdges = createLinks([
 type BaseElementWithData = InferElement<typeof initialElements>;
 
 function RenderElement({ color, id }: BaseElementWithData) {
-  const setColor = useSetElement<BaseElementWithData>(id, 'color');
+  const setColor = useUpdateElement<BaseElementWithData>(id, 'color');
   return (
     <HTMLNode
       style={{
@@ -64,7 +64,7 @@ function Main() {
 
 export default function WithColor() {
   return (
-    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

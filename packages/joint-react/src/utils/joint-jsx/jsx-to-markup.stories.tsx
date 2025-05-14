@@ -53,8 +53,8 @@ function App() {
   return (
     <GraphProvider
       cellNamespace={{ CustomRect }}
-      defaultElements={initialElements}
-      defaultLinks={[]}
+      initialElements={initialElements}
+      initialLinks={[]}
     >
       <Paper width={320} height={220} className={PAPER_CLASSNAME} />
     </GraphProvider>

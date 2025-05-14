@@ -14,13 +14,15 @@
 
 ## Hooks
 
-- [useAddElement](functions/useAddElement.md)
-- [useAddLink](functions/useAddLink.md)
+- [useCreateElement](functions/useCreateElement.md)
+- [useCreateLink](functions/useCreateLink.md)
 - [useElements](functions/useElements.md)
 - [useGraph](functions/useGraph.md)
 - [useLinks](functions/useLinks.md)
 - [useRemoveCell](functions/useRemoveCell.md)
-- [useSetElement](functions/useSetElement.md)
+- [useRemoveElement](functions/useRemoveElement.md)
+- [useRemoveLink](functions/useRemoveLink.md)
+- [useUpdateElement](functions/useUpdateElement.md)
 
 ## Models
 
@@ -47,7 +49,6 @@
 
 ## Graph
 
-- [GraphElementWithAttributes](interfaces/GraphElementWithAttributes.md)
 - [GraphLink](interfaces/GraphLink.md)
 
 ## Hooks

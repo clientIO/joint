@@ -35,7 +35,7 @@ const initialElements = createElements([
 ]);
 
 export type SimpleElement = InferElement<typeof initialElements>;
-const defaultLinks = createLinks([
+const initialLinks = createLinks([
   {
     id: 'l-1',
     source: '1',
@@ -50,7 +50,7 @@ const defaultLinks = createLinks([
 
 export function SimpleGraphProviderDecorator({ children }: Readonly<PropsWithChildren>) {
   return (
-    <GraphProvider defaultElements={initialElements} defaultLinks={defaultLinks}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
       {children}
     </GraphProvider>
   );

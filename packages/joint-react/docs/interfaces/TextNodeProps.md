@@ -6,7 +6,7 @@
 
 # Interface: TextNodeProps
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:5](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L5)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:7](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L7)
 
 ## Extends
 
@@ -42,7 +42,7 @@ Defined in: [joint-core/types/vectorizer.d.ts:29](https://github.com/samuelgja/j
 
 > `readonly` `optional` **eol**: `string`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:8](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L8)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L10)
 
 #### Overrides
 
@@ -54,7 +54,7 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:8](https://githu
 
 > `readonly` `optional` **height**: `number`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:10](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L10)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:12](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L12)
 
 #### Overrides
 
@@ -110,11 +110,11 @@ Defined in: [joint-core/types/vectorizer.d.ts:24](https://github.com/samuelgja/j
 
 ***
 
-### textWrap?
+### textWrap
 
-> `readonly` `optional` **textWrap**: `boolean` \| `BreakTextOptions`
+> `readonly` **textWrap**: `boolean` \| `BreakTextOptions`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L11)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:13](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L13)
 
 ***
 
@@ -122,7 +122,7 @@ Defined in: [joint-react/src/components/text-node/text-node.tsx:11](https://gith
 
 > `readonly` `optional` **width**: `number`
 
-Defined in: [joint-react/src/components/text-node/text-node.tsx:9](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L9)
+Defined in: [joint-react/src/components/text-node/text-node.tsx:11](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/text-node/text-node.tsx#L11)
 
 #### Overrides
 

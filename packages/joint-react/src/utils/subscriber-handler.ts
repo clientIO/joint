@@ -1,5 +1,7 @@
+import type { dia } from '@joint/core';
+
 export interface SubscribeHandler {
-  readonly subscribe: (onStoreChange: () => void) => () => void;
+  readonly subscribe: (onStoreChange: (changedIds?: Set<dia.Cell.ID>) => void) => () => void;
   readonly notifySubscribers: () => void;
 }
 
@@ -10,12 +12,14 @@ export interface SubscribeHandler {
  * @returns - An object with subscribe and notifySubscribers methods.
  * @group utils
  */
-export function subscribeHandler(beforeSubscribe?: () => void): SubscribeHandler {
+export function subscribeHandler(
+  beforeSubscribe?: () => Set<dia.Cell.ID> | undefined
+): SubscribeHandler {
   let isScheduled = false;
-  const subscribers = new Set<() => void>();
+  const subscribers = new Set<(changedIds?: Set<dia.Cell.ID>) => void>();
 
   return {
-    subscribe: (onStoreChange: () => void) => {
+    subscribe: (onStoreChange: (changedIds?: Set<dia.Cell.ID>) => void) => {
       subscribers.add(onStoreChange);
       return () => {
         subscribers.delete(onStoreChange);
@@ -25,9 +29,9 @@ export function subscribeHandler(beforeSubscribe?: () => void): SubscribeHandler
       if (!isScheduled) {
         isScheduled = true;
         requestAnimationFrame(() => {
-          beforeSubscribe?.();
+          const changedIds = beforeSubscribe?.();
           for (const subscriber of subscribers) {
-            subscriber();
+            subscriber(changedIds);
           }
           isScheduled = false;
         });

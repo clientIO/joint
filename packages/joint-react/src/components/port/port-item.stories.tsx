@@ -43,7 +43,7 @@ const initialElements = createElements([
   },
 ]);
 
-const defaultLinks = createLinks([
+const initialLinks = createLinks([
   {
     id: 'link-1',
     source: {
@@ -80,7 +80,7 @@ function RenderItem(Story: React.FC) {
 function PaperDecorator(Story: React.FC) {
   const renderItem = () => RenderItem(Story);
   return (
-    <GraphProvider defaultElements={initialElements} defaultLinks={defaultLinks}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialLinks}>
       <Paper className={PAPER_CLASSNAME} width={'100%'} height={350} renderElement={renderItem} />
     </GraphProvider>
   );

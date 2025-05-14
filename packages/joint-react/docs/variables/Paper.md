@@ -8,7 +8,7 @@
 
 > `const` **Paper**: \<`ElementItem`\>(`props`) => `Element`
 
-Defined in: [joint-react/src/components/paper/paper.tsx:385](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L385)
+Defined in: [joint-react/src/components/paper/paper.tsx:394](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L394)
 
 Paper component that renders the JointJS paper elements inside HTML.
 It uses `renderElement` to render the elements.
@@ -18,7 +18,7 @@ It must be used within a `GraphProvider` context.
 
 ### ElementItem
 
-`ElementItem` *extends* [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\> = [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\>
+`ElementItem` *extends* [`GraphElement`](../interfaces/GraphElement.md) = [`GraphElement`](../interfaces/GraphElement.md)
 
 ## Parameters
 
@@ -51,7 +51,7 @@ function RenderElement({ label }: BaseElementWithData) {
  return <HTMLElement className="node">{label}</HTMLElement>
 }
 function MyApp() {
- return <GraphProvider defaultElements={initialElements}>
+ return <GraphProvider initialElements={initialElements}>
    <Paper renderElement={RenderElement} />
  </GraphProvider>
 }
@@ -71,7 +71,7 @@ Example with `local renderElement component`:
    )
 
    return (
-     <GraphProvider defaultElements={initialElements}>
+     <GraphProvider initialElements={initialElements}>
        <Paper renderElement={renderElement} />
      </GraphProvider>
    )

@@ -9,7 +9,7 @@ import {
   GraphProvider,
   MeasuredNode,
   Paper,
-  useSetElement,
+  useUpdateElement,
   type InferElement,
   type OnSetSize,
 } from '@joint/react';
@@ -57,7 +57,7 @@ function ListElement({
     element.size(w, h, { async: false });
   }, []);
 
-  const setInputs = useSetElement<BaseElementWithData, 'inputs'>(id, 'inputs');
+  const setInputs = useUpdateElement<BaseElementWithData, 'inputs'>(id, 'inputs');
 
   const addInput = () => {
     setInputs((previous) => {
@@ -132,7 +132,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

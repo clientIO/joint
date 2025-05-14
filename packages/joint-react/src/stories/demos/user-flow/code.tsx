@@ -258,7 +258,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={nodes} defaultLinks={links}>
+    <GraphProvider initialElements={nodes} initialLinks={links}>
       <Main />
     </GraphProvider>
   );

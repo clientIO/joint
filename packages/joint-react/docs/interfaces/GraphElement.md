@@ -12,10 +12,6 @@ Defined in: [joint-react/src/types/element-types.ts:27](https://github.com/samue
 
 - `JointAttributes`
 
-## Extended by
-
-- [`GraphElementWithAttributes`](GraphElementWithAttributes.md)
-
 ## Indexable
 
 \[`key`: `string`\]: `any`

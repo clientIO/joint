@@ -28,7 +28,7 @@ checks if the selected value really changed.
 
 ### Elements
 
-`Elements` *extends* [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\> = [`GraphElementWithAttributes`](../interfaces/GraphElementWithAttributes.md)\<`unknown`\>
+`Elements` *extends* [`GraphElement`](../interfaces/GraphElement.md) = [`GraphElement`](../interfaces/GraphElement.md)
 
 ### SelectorReturnType
 

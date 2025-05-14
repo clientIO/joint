@@ -55,7 +55,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider defaultLinks={initialLinks} defaultElements={initialElements}>
+    <GraphProvider initialLinks={initialLinks} initialElements={initialElements}>
       <Main />
     </GraphProvider>
   );
@@ -108,7 +108,7 @@ const renderElement = ({ width, height }) => (
 - `useElement()`: Retrieve individual element data, typically used within `renderElement`.
 
 ### 🔹 Modifying Elements
-- `useSetElement()`: Update existing elements in the diagram.
+- `useUpdateElement()`: Update existing elements in the diagram.
 
 ### 🔹 Graph and Paper Instances
 - `useGraph()`: Access the [dia.Graph](https://docs.jointjs.com/api/dia/Graph/) instance directly.
@@ -120,7 +120,7 @@ const renderElement = ({ width, height }) => (
 ```ts
 import { createElements } from '@joint/react';
 
-const defaultElements = createElements([
+const initialElements = createElements([
   { id: '1', type: 'rect', x: 10, y: 10, width: 100, height: 100 },
 ]);
 ```
@@ -130,7 +130,7 @@ const defaultElements = createElements([
 ```ts
 import { createLinks } from '@joint/react';
 
-const defaultLinks = createLinks([
+const initialLinks = createLinks([
   { source: '1', target: '2', id: '1-2' },
 ]);
 ```
@@ -141,7 +141,7 @@ const defaultLinks = createLinks([
 
 Under the hood, **@joint/react** listens to changes in the `dia.Graph`, which acts as the single source of truth. When you update the graph—such as adding or modifying cells—the React components automatically observe and react to these changes, keeping the UI in sync.
 
-Hooks like `useSetElement` provide a convenient way to update the graph, but you can also directly access the graph using `useGraph()` and call methods like `graph.setCells()`.
+Hooks like `useUpdateElement` provide a convenient way to update the graph, but you can also directly access the graph using `useGraph()` and call methods like `graph.setCells()`.
 
 ---
 
@@ -167,7 +167,7 @@ If you need to use HTML inside an SVG with cross-browser support:
 React's asynchronous rendering can cause flickering when dynamically adding ports or resizing elements. We are aware of this issue and are working on a fix.
 
 ### Controlled Mode
-Currently, **@joint/react** uses `useSyncExternalStore` to listen to graph changes. The graph is the source of truth, so `defaultElements` and `defaultLinks` are only used during initialization. To modify the state, update the graph directly using hooks like `useGraph`, `useSetElement`, or `useAddElement`. A fully controlled mode is under development.
+Currently, **@joint/react** uses `useSyncExternalStore` to listen to graph changes. The graph is the source of truth, so `initialElements` and `initialLinks` are only used during initialization. To modify the state, update the graph directly using hooks like `useGraph`, `useUpdateElement`, or `useCreateElement`. A fully controlled mode is under development.
 
 ---
 

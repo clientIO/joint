@@ -64,6 +64,7 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
     if (!paper) {
       return;
     }
+
     /**
      * Resize the paper container element to match the paper size.
      * @param jointPaper - The paper instance.

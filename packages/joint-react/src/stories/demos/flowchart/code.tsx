@@ -409,7 +409,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={flowchartNodes} defaultLinks={flowchartLinks}>
+    <GraphProvider initialElements={flowchartNodes} initialLinks={flowchartLinks}>
       <Main />
     </GraphProvider>
   );

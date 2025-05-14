@@ -4,19 +4,19 @@ import {
   GraphAreElementsMeasuredContext,
   GraphStoreContext,
 } from '../../context/graph-store-context';
-import type { GraphElementWithAttributes } from '../../types/element-types';
 import { useEffect, useState, type PropsWithChildren } from 'react';
 import { createStore, type Store } from '../../data/create-store';
 import { useElements } from '../../hooks/use-elements';
 import { useGraph } from '../../hooks';
 import { setLinks } from '../../utils/cell/set-cells';
+import type { GraphElement } from '../../types/element-types';
 
 interface GraphProviderHandlerProps {
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link | GraphLink>;
+  readonly initialLinks?: Array<dia.Link | GraphLink>;
 }
 
 /**
@@ -24,13 +24,13 @@ interface GraphProviderHandlerProps {
  * It also handles the default elements and links.
  * @param props - {GraphProviderHandler} props
  * @param props.children - Children to render.
- * @param props.defaultLinks - Initial links to be added to graph
+ * @param props.initialLinks - Initial links to be added to graph
  * @returns GraphProviderHandler component
  * @private
  */
 function GraphProviderHandler({
   children,
-  defaultLinks,
+  initialLinks,
 }: PropsWithChildren<GraphProviderHandlerProps>) {
   const areElementsMeasured = useElements((items) => {
     let areMeasured = true;
@@ -45,7 +45,7 @@ function GraphProviderHandler({
   const graph = useGraph();
   useEffect(() => {
     if (areElementsMeasured) {
-      setLinks({ graph, defaultLinks });
+      setLinks({ graph, initialLinks });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [areElementsMeasured, graph]);
@@ -87,12 +87,12 @@ export interface GraphProps {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: Array<dia.Element | GraphElementWithAttributes>;
+  readonly initialElements?: Array<dia.Element | GraphElement>;
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link | GraphLink>;
+  readonly initialLinks?: Array<dia.Link | GraphLink>;
 
   /**
    * Store is build around graph, it handles react updates and states, it can be created separately and passed to the provider via `createStore` function.
@@ -128,7 +128,7 @@ export interface GraphProps {
  *
  * function App() {
  *  return (
- *   <GraphProvider defaultElements={[]} defaultLinks={[]}>
+ *   <GraphProvider initialElements={[]} initialLinks={[]}>
  *    <MyApp />
  *  </GraphProvider>
  * )
@@ -136,7 +136,7 @@ export interface GraphProps {
  * @group Components
  */
 export function GraphProvider(props: GraphProps) {
-  const { children, defaultLinks, ...rest } = props;
+  const { children, initialLinks, store, ...rest } = props;
 
   /**
    * Graph store instance.
@@ -146,7 +146,7 @@ export function GraphProvider(props: GraphProps) {
   const [graphStore, setGraphStore] = useState<null | Store>(null);
 
   useEffect(() => {
-    const newStore = createStore({ ...rest });
+    const newStore = store ?? createStore({ ...rest });
     // We must use state initialization for the store, because it can be used in the same component.
     // eslint-disable-next-line @eslint-react/hooks-extra/no-direct-set-state-in-use-effect
     setGraphStore(newStore);
@@ -164,7 +164,7 @@ export function GraphProvider(props: GraphProps) {
 
   return (
     <GraphStoreContext.Provider value={graphStore}>
-      <GraphProviderHandler defaultLinks={defaultLinks}>{children}</GraphProviderHandler>
+      <GraphProviderHandler initialLinks={initialLinks}>{children}</GraphProviderHandler>
     </GraphStoreContext.Provider>
   );
 }

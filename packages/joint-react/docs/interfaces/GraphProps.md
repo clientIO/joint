@@ -56,28 +56,6 @@ Children to render.
 
 ***
 
-### defaultElements?
-
-> `readonly` `optional` **defaultElements**: ([`GraphElementWithAttributes`](GraphElementWithAttributes.md)\<`unknown`\> \| `Element`\<`Attributes`, `ModelSetOptions`\>)[]
-
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L90)
-
-Initial elements to be added to graph
-It's loaded just once, so it cannot be used as React state.
-
-***
-
-### defaultLinks?
-
-> `readonly` `optional` **defaultLinks**: ([`GraphLink`](GraphLink.md)\<`string`\> \| `Link`\<`Attributes`, `ModelSetOptions`\>)[]
-
-Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:95](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L95)
-
-Initial links to be added to graph
-It's loaded just once, so it cannot be used as React state.
-
-***
-
 ### graph?
 
 > `readonly` `optional` **graph**: `Graph`\<`Attributes`, `ModelSetOptions`\>
@@ -95,6 +73,28 @@ https://docs.jointjs.com/api/dia/Graph
 ```ts
 new dia.Graph({}, { cellNamespace: shapes })
 ```
+
+***
+
+### initialElements?
+
+> `readonly` `optional` **initialElements**: ([`GraphElement`](GraphElement.md) \| `Element`\<`Attributes`, `ModelSetOptions`\>)[]
+
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:90](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L90)
+
+Initial elements to be added to graph
+It's loaded just once, so it cannot be used as React state.
+
+***
+
+### initialLinks?
+
+> `readonly` `optional` **initialLinks**: ([`GraphLink`](GraphLink.md)\<`string`\> \| `Link`\<`Attributes`, `ModelSetOptions`\>)[]
+
+Defined in: [joint-react/src/components/graph-provider/graph-provider.tsx:95](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/graph-provider/graph-provider.tsx#L95)
+
+Initial links to be added to graph
+It's loaded just once, so it cannot be used as React state.
 
 ***
 

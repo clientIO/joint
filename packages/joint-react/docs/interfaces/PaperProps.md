@@ -6,7 +6,7 @@
 
 # Interface: PaperProps\<ElementItem\>
 
-Defined in: [joint-react/src/components/paper/paper.tsx:39](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L39)
+Defined in: [joint-react/src/components/paper/paper.tsx:40](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/components/paper/paper.tsx#L40)
 
 The props for the Paper component. Extend the `dia.Paper.Options` interface.
 For more information, see the JointJS documentation.
@@ -23,7 +23,7 @@ https://docs.jointjs.com/api/dia/Paper
 
 ### ElementItem
 
-`ElementItem` *extends* [`GraphElementWithAttributes`](GraphElementWithAttributes.md) = [`GraphElementWithAttributes`](GraphElementWithAttributes.md)
+`ElementItem` *extends* [`GraphElement`](GraphElement.md) = [`GraphElement`](GraphElement.md)
 
 ## Properties
 
@@ -349,7 +349,7 @@ It defaults to the `GraphElement` elements because `dia.Element` is not a valid 
 
 ##### item
 
-[`GraphElementWithAttributes`](GraphElementWithAttributes.md)
+[`GraphElement`](GraphElement.md)
 
 #### Returns
 
@@ -361,7 +361,7 @@ It defaults to the `GraphElement` elements because `dia.Element` is not a valid 
 
 #### See
 
-GraphElementWithAttributes<Data>
+GraphElement
 
 ***
 
