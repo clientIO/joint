@@ -8,4 +8,4 @@
 
 > **SetCell** = [`ReturnType`](https://www.typescriptlang.org/docs/handbook/utility-types.html#returntypetype)\<*typeof* [`useUpdateElement`](../functions/useUpdateElement.md)\>
 
-Defined in: [joint-react/src/hooks/use-update-element.ts:134](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-update-element.ts#L134)
+Defined in: [joint-react/src/hooks/use-update-element.ts:139](https://github.com/samuelgja/joint/blob/main/packages/joint-react/src/hooks/use-update-element.ts#L139)

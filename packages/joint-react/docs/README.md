@@ -79,8 +79,7 @@ const paper = usePaper();
 - [ReactElementAttributes](interfaces/ReactElementAttributes.md)
 - [StandardShapesTypeMapper](interfaces/StandardShapesTypeMapper.md)
 - [StrokeHighlighterProps](interfaces/StrokeHighlighterProps.md)
-- [TextNodePropsWithoutTextWrap](interfaces/TextNodePropsWithoutTextWrap.md)
-- [TextNodePropsWithTextWrap](interfaces/TextNodePropsWithTextWrap.md)
+- [TextNodeProps](interfaces/TextNodeProps.md)
 
 ## Type Aliases
 
@@ -92,7 +91,6 @@ const paper = usePaper();
 - [StandardLinkShapesType](type-aliases/StandardLinkShapesType.md)
 - [StandardShapesType](type-aliases/StandardShapesType.md)
 - [StoreContext](type-aliases/StoreContext.md)
-- [TextNodeProps](type-aliases/TextNodeProps.md)
 
 ## Variables
 
