@@ -7,13 +7,13 @@ import CodeCss from './index.css?raw';
 export type Story = StoryObj<typeof Code>;
 
 export default {
-  title: 'Demos/Pulsing Port',
+  title: 'Demos/Introduction demo',
   component: Code,
 
   parameters: {
     docs: {
       description: {
-        story: 'Demo of pulsing port using SVG animations and CSS keyframes for ports.',
+        story: 'Demo of jointjs with react using custom nodes',
       },
       source: {
         code: `${RawCode} \n <style>\n${CodeCss}</style>`,

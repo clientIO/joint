@@ -134,6 +134,11 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
    * @default false
    */
   readonly useHTMLOverlay?: boolean;
+
+  /**
+   * If true, the children will be rendered at the bottom of the paper - after paper in HTML tree.
+   */
+  readonly isChildrenAtBottom?: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -150,6 +155,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     onElementsSizeReady,
     onElementsSizeChange,
     useHTMLOverlay,
+    isChildrenAtBottom,
     ...paperOptions
   } = props;
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
@@ -297,10 +303,11 @@ function Component<ElementItem extends GraphElement = GraphElement>(
 
   return (
     <PaperContext.Provider value={paperContext}>
+      {hasPaper && !isChildrenAtBottom && children}
       <div className={className} ref={paperContainerElement} style={paperContainerStyle}>
         {hasPaper && content}
       </div>
-      {hasPaper && children}
+      {hasPaper && isChildrenAtBottom && children}
     </PaperContext.Provider>
   );
 }

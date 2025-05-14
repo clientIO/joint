@@ -9,7 +9,7 @@ export interface StrokeHighlighterProps extends PropsWithChildren, React.SVGProp
   /**
    * The stacking order of the highlighter. See dia.HighlighterView for supported values.
    */
-  readonly layer: string;
+  readonly layer?: string;
   /**
    * The space between the stroke and the element
    */

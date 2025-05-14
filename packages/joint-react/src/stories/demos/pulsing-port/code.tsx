@@ -198,6 +198,10 @@ function Main() {
         name: 'straight',
         args: { cornerType: 'line', cornerPreserveAspectRatio: true },
       }}
+      snapLinks={{ radius: 25 }}
+      validateMagnet={(_cellView, magnet) => {
+        return magnet.getAttribute('magnet') !== 'passive';
+      }}
     />
   );
 }
