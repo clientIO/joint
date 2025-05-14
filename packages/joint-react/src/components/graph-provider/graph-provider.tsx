@@ -43,17 +43,16 @@ function GraphProviderHandler({
     return areMeasured;
   });
   const graph = useGraph();
-  const [isReady, setIsReady] = useState(false);
+
   useEffect(() => {
     if (areElementsMeasured) {
       setLinks({ graph, initialLinks });
-      setIsReady(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [areElementsMeasured, graph]);
 
   return (
-    <GraphAreElementsMeasuredContext.Provider value={isReady}>
+    <GraphAreElementsMeasuredContext.Provider value={areElementsMeasured}>
       {children}
     </GraphAreElementsMeasuredContext.Provider>
   );

@@ -4,7 +4,7 @@
 /* eslint-disable sonarjs/no-small-switch */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { dia, linkTools } from '@joint/core';
+import { dia, linkTools, shapes } from '@joint/core';
 import { createElements, createLinks } from '../../../utils/create';
 import { PAPER_CLASSNAME, LIGHT } from 'storybook-config/theme';
 import './index.css';
@@ -483,7 +483,7 @@ function Main() {
       <div className="flex flex-col relative">
         <Paper
           {...PAPER_PROPS}
-          // defaultLink={() => new shapes.standard.Link({ attrs: { line: { stroke: LIGHT } } })}
+          defaultLink={new shapes.standard.Link(links[0])}
           renderElement={renderElement}
           className={PAPER_CLASSNAME}
           onCellPointerClick={({ cellView }) => {

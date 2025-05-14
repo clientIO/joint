@@ -230,13 +230,6 @@ function Component<ElementItem extends GraphElement = GraphElement>(
       return;
     }
     if (areElementsMeasured) {
-      if (!paperOptions.defaultLink) {
-        // setup default link if there is any link at the graph, just assign first one, otherwise it will be undefined
-        const link = graph.getLinks().at(0);
-        if (link) {
-          paper.options.defaultLink = link;
-        }
-      }
       return onElementsSizeReady?.({ paper, graph: paper.model });
     }
 
@@ -254,7 +247,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
         clearTimeout(timeout);
       };
     }
-  }, [areElementsMeasured, graph, onElementsSizeReady, paper, paperOptions.defaultLink]);
+  }, [areElementsMeasured, graph, onElementsSizeReady, paper]);
 
   const content = (
     <>

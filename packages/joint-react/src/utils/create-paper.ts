@@ -11,7 +11,7 @@ export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElem
 export type ReactPaperOptions = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen'>;
 
 // Interface for Paper options, extending JointJS Paper options
-export interface PaperOptions extends dia.Paper.Options {
+export interface PaperOptions extends ReactPaperOptions {
   readonly scale?: number;
   /**
    * A function that is called when the paper is ready.
