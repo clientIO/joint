@@ -224,7 +224,7 @@ Defined in: [joint-core/types/joint.d.ts:485](https://github.com/samuelgja/joint
 
 > **bind**(`eventName`, `callback`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3256](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3256)
+Defined in: [joint-core/types/joint.d.ts:3258](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3258)
 
 ##### Parameters
 
@@ -252,7 +252,7 @@ Defined in: [joint-core/types/joint.d.ts:3256](https://github.com/samuelgja/join
 
 > **bind**(`eventMap`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3257](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3257)
+Defined in: [joint-core/types/joint.d.ts:3259](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3259)
 
 ##### Parameters
 
@@ -300,7 +300,7 @@ Defined in: [joint-core/types/joint.d.ts:503](https://github.com/samuelgja/joint
 
 > **changedAttributes**(`attributes`?): `false` \| [`Partial`](https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype)\<`Attributes` & `Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:3342](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3342)
+Defined in: [joint-core/types/joint.d.ts:3344](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3344)
 
 Return an object containing all the attributes that have changed, or
 false if there are no changed attributes. Useful for determining what
@@ -329,7 +329,7 @@ determining if there *would be* a change.
 
 > **clear**(`options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3343](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3343)
+Defined in: [joint-core/types/joint.d.ts:3345](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3345)
 
 #### Parameters
 
@@ -455,7 +455,7 @@ Defined in: [joint-core/types/joint.d.ts:499](https://github.com/samuelgja/joint
 
 > **escape**(`attribute`): `string`
 
-Defined in: [joint-core/types/joint.d.ts:3345](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3345)
+Defined in: [joint-core/types/joint.d.ts:3347](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3347)
 
 #### Parameters
 
@@ -565,7 +565,7 @@ Defined in: [joint-core/types/joint.d.ts:665](https://github.com/samuelgja/joint
 
 > **get**\<`A`\>(`attributeName`): `undefined` \| `Attributes` & `Attributes`\[`A`\]
 
-Defined in: [joint-core/types/joint.d.ts:3321](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3321)
+Defined in: [joint-core/types/joint.d.ts:3323](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3323)
 
 For strongly-typed access to attributes, use the `get` method only privately in public getter properties.
 
@@ -1105,7 +1105,7 @@ Defined in: [joint-core/types/joint.d.ts:495](https://github.com/samuelgja/joint
 
 > **has**(`attribute`): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:3346](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3346)
+Defined in: [joint-core/types/joint.d.ts:3348](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3348)
 
 #### Parameters
 
@@ -1127,7 +1127,7 @@ Defined in: [joint-core/types/joint.d.ts:3346](https://github.com/samuelgja/join
 
 > **hasChanged**(`attribute`?): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:3347](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3347)
+Defined in: [joint-core/types/joint.d.ts:3349](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3349)
 
 #### Parameters
 
@@ -1187,7 +1187,7 @@ Defined in: [joint-core/types/joint.d.ts:682](https://github.com/samuelgja/joint
 
 > **initialize**(`attributes`?, `options`?): `void`
 
-Defined in: [joint-core/types/joint.d.ts:3311](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3311)
+Defined in: [joint-core/types/joint.d.ts:3313](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3313)
 
 #### Parameters
 
@@ -1317,7 +1317,7 @@ Defined in: [joint-core/types/joint.d.ts:509](https://github.com/samuelgja/joint
 
 > **isValid**(`options`?): `boolean`
 
-Defined in: [joint-core/types/joint.d.ts:3348](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3348)
+Defined in: [joint-core/types/joint.d.ts:3350](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3350)
 
 #### Parameters
 
@@ -1341,7 +1341,7 @@ Defined in: [joint-core/types/joint.d.ts:3348](https://github.com/samuelgja/join
 
 > **listenTo**(`object`, `events`, `callback`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3262](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3262)
+Defined in: [joint-core/types/joint.d.ts:3264](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3264)
 
 ##### Parameters
 
@@ -1369,7 +1369,7 @@ Defined in: [joint-core/types/joint.d.ts:3262](https://github.com/samuelgja/join
 
 > **listenTo**(`object`, `eventMap`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3263](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3263)
+Defined in: [joint-core/types/joint.d.ts:3265](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3265)
 
 ##### Parameters
 
@@ -1397,7 +1397,7 @@ Defined in: [joint-core/types/joint.d.ts:3263](https://github.com/samuelgja/join
 
 > **listenToOnce**(`object`, `events`, `callback`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3264](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3264)
+Defined in: [joint-core/types/joint.d.ts:3266](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3266)
 
 ##### Parameters
 
@@ -1425,7 +1425,7 @@ Defined in: [joint-core/types/joint.d.ts:3264](https://github.com/samuelgja/join
 
 > **listenToOnce**(`object`, `eventMap`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3265](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3265)
+Defined in: [joint-core/types/joint.d.ts:3267](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3267)
 
 ##### Parameters
 
@@ -1451,7 +1451,7 @@ Defined in: [joint-core/types/joint.d.ts:3265](https://github.com/samuelgja/join
 
 > **off**(`eventName`?, `callback`?, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3254](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3254)
+Defined in: [joint-core/types/joint.d.ts:3256](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3256)
 
 #### Parameters
 
@@ -1483,7 +1483,7 @@ Defined in: [joint-core/types/joint.d.ts:3254](https://github.com/samuelgja/join
 
 > **on**(`eventName`, `callback`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3252](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3252)
+Defined in: [joint-core/types/joint.d.ts:3254](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3254)
 
 ##### Parameters
 
@@ -1511,7 +1511,7 @@ Defined in: [joint-core/types/joint.d.ts:3252](https://github.com/samuelgja/join
 
 > **on**(`eventMap`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3253](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3253)
+Defined in: [joint-core/types/joint.d.ts:3255](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3255)
 
 ##### Parameters
 
@@ -1539,7 +1539,7 @@ Defined in: [joint-core/types/joint.d.ts:3253](https://github.com/samuelgja/join
 
 > **once**(`events`, `callback`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3260](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3260)
+Defined in: [joint-core/types/joint.d.ts:3262](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3262)
 
 ##### Parameters
 
@@ -1567,7 +1567,7 @@ Defined in: [joint-core/types/joint.d.ts:3260](https://github.com/samuelgja/join
 
 > **once**(`eventMap`, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3261](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3261)
+Defined in: [joint-core/types/joint.d.ts:3263](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3263)
 
 ##### Parameters
 
@@ -1721,7 +1721,7 @@ Defined in: [joint-core/types/joint.d.ts:650](https://github.com/samuelgja/joint
 
 > **preinitialize**(`attributes`?, `options`?): `void`
 
-Defined in: [joint-core/types/joint.d.ts:3308](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3308)
+Defined in: [joint-core/types/joint.d.ts:3310](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3310)
 
 For use with models as ES classes. If you define a preinitialize
 method, it will be invoked when the Model is first created, before
@@ -1751,7 +1751,7 @@ any instantiation logic is run for the Model.
 
 > **previous**\<`A`\>(`attribute`): `undefined` \| `null` \| `Attributes` & `Attributes`\[`A`\]
 
-Defined in: [joint-core/types/joint.d.ts:3349](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3349)
+Defined in: [joint-core/types/joint.d.ts:3351](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3351)
 
 #### Type Parameters
 
@@ -1779,7 +1779,7 @@ Defined in: [joint-core/types/joint.d.ts:3349](https://github.com/samuelgja/join
 
 > **previousAttributes**(): [`Partial`](https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype)\<`Attributes` & `Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:3350](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3350)
+Defined in: [joint-core/types/joint.d.ts:3352](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3352)
 
 #### Returns
 
@@ -2115,7 +2115,7 @@ Defined in: [joint-core/types/joint.d.ts:662](https://github.com/samuelgja/joint
 
 > **set**\<`A`\>(`attributeName`, `value`?, `options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3330](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3330)
+Defined in: [joint-core/types/joint.d.ts:3332](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3332)
 
 For strongly-typed assignment of attributes, use the `set` method only privately in public setter properties.
 
@@ -2159,7 +2159,7 @@ set name(value: string) {
 
 > **set**(`attributeName`, `options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3331](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3331)
+Defined in: [joint-core/types/joint.d.ts:3333](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3333)
 
 For strongly-typed assignment of attributes, use the `set` method only privately in public setter properties.
 
@@ -2193,7 +2193,7 @@ set name(value: string) {
 
 > **set**\<`A`\>(`attributeName`, `value`?, `options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3332](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3332)
+Defined in: [joint-core/types/joint.d.ts:3334](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3334)
 
 For strongly-typed assignment of attributes, use the `set` method only privately in public setter properties.
 
@@ -2361,7 +2361,7 @@ Defined in: [joint-core/types/joint.d.ts:515](https://github.com/samuelgja/joint
 
 > **stopListening**(`object`?, `events`?, `callback`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3266](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3266)
+Defined in: [joint-core/types/joint.d.ts:3268](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3268)
 
 #### Parameters
 
@@ -2547,7 +2547,7 @@ Defined in: [joint-core/types/joint.d.ts:647](https://github.com/samuelgja/joint
 
 > **trigger**(`eventName`, ...`args`): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3255](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3255)
+Defined in: [joint-core/types/joint.d.ts:3257](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3257)
 
 #### Parameters
 
@@ -2573,7 +2573,7 @@ Defined in: [joint-core/types/joint.d.ts:3255](https://github.com/samuelgja/join
 
 > **unbind**(`eventName`?, `callback`?, `context`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3258](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3258)
+Defined in: [joint-core/types/joint.d.ts:3260](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3260)
 
 #### Parameters
 
@@ -2629,7 +2629,7 @@ Defined in: [joint-core/types/joint.d.ts:501](https://github.com/samuelgja/joint
 
 > **unset**(`attribute`, `options`?): `this`
 
-Defined in: [joint-core/types/joint.d.ts:3351](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3351)
+Defined in: [joint-core/types/joint.d.ts:3353](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3353)
 
 #### Parameters
 
@@ -2655,7 +2655,7 @@ Defined in: [joint-core/types/joint.d.ts:3351](https://github.com/samuelgja/join
 
 > **validate**(`attributes`, `options`?): `any`
 
-Defined in: [joint-core/types/joint.d.ts:3352](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3352)
+Defined in: [joint-core/types/joint.d.ts:3354](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3354)
 
 #### Parameters
 
@@ -2731,7 +2731,7 @@ Defined in: [joint-core/types/joint.d.ts:712](https://github.com/samuelgja/joint
 
 > `static` **extend**(`properties`, `classProperties`?): `any`
 
-Defined in: [joint-core/types/joint.d.ts:3281](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3281)
+Defined in: [joint-core/types/joint.d.ts:3283](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3283)
 
 Do not use, prefer TypeScript's extend functionality.
 
@@ -2759,7 +2759,7 @@ Do not use, prefer TypeScript's extend functionality.
 
 > **attributes**: [`Partial`](https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype)\<`Attributes` & `Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:3283](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3283)
+Defined in: [joint-core/types/joint.d.ts:3285](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3285)
 
 #### Inherited from
 
@@ -2771,7 +2771,7 @@ Defined in: [joint-core/types/joint.d.ts:3283](https://github.com/samuelgja/join
 
 > **changed**: [`Partial`](https://www.typescriptlang.org/docs/handbook/utility-types.html#partialtype)\<`Attributes` & `Attributes`\>
 
-Defined in: [joint-core/types/joint.d.ts:3284](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3284)
+Defined in: [joint-core/types/joint.d.ts:3286](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3286)
 
 #### Inherited from
 
@@ -2783,7 +2783,7 @@ Defined in: [joint-core/types/joint.d.ts:3284](https://github.com/samuelgja/join
 
 > **cid**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3286](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3286)
+Defined in: [joint-core/types/joint.d.ts:3288](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3288)
 
 #### Inherited from
 
@@ -2795,7 +2795,7 @@ Defined in: [joint-core/types/joint.d.ts:3286](https://github.com/samuelgja/join
 
 > **cidPrefix**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3285](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3285)
+Defined in: [joint-core/types/joint.d.ts:3287](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3287)
 
 #### Inherited from
 
@@ -2807,7 +2807,7 @@ Defined in: [joint-core/types/joint.d.ts:3285](https://github.com/samuelgja/join
 
 > **collection**: `Collection`\<`ReactElement`\<`Attributes`\>\>
 
-Defined in: [joint-core/types/joint.d.ts:3287](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3287)
+Defined in: [joint-core/types/joint.d.ts:3289](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3289)
 
 #### Inherited from
 
@@ -2843,7 +2843,7 @@ Defined in: [joint-core/types/joint.d.ts:446](https://github.com/samuelgja/joint
 
 > **idAttribute**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3300](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3300)
+Defined in: [joint-core/types/joint.d.ts:3302](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3302)
 
 #### Inherited from
 
@@ -2879,7 +2879,7 @@ Defined in: [joint-core/types/joint.d.ts:449](https://github.com/samuelgja/joint
 
 > **validationError**: `any`
 
-Defined in: [joint-core/types/joint.d.ts:3301](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3301)
+Defined in: [joint-core/types/joint.d.ts:3303](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3303)
 
 #### Inherited from
 

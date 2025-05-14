@@ -1,19 +1,16 @@
 import { util, V, type Vectorizer } from '@joint/core';
 import { forwardRef, useEffect, type SVGTextElementAttributes } from 'react';
 import { useCombinedRef } from '../../hooks/use-combined-ref';
+import { isNumber } from '../../utils/is';
+import { useCellId, useGraph } from '../../hooks';
 
 export interface TextNodeProps
   extends SVGTextElementAttributes<SVGTextElement>,
     Vectorizer.TextOptions {
-  readonly separator?: string | unknown;
   readonly eol?: string;
-  readonly ellipsis?: boolean | string;
-  readonly hyphen?: string | RegExp;
-  readonly maxLineCount?: number;
-  readonly preserveSpaces?: boolean;
-  readonly isLineBreakEnabled?: boolean;
   readonly width?: number;
   readonly height?: number;
+  readonly textWrap: boolean | util.BreakTextOptions;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -30,38 +27,38 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     displayEmpty,
     width,
     height,
-
-    separator,
-    hyphen,
-    ellipsis,
-    maxLineCount,
-    preserveSpaces,
-    isLineBreakEnabled,
+    textWrap,
     ...rest
   } = props;
 
   const textRef = useCombinedRef<SVGTextElement>(ref);
+  const cellId = useCellId();
+  const graph = useGraph();
   useEffect(() => {
     if (!textRef.current) {
       return;
     }
 
-    // util.breakText()
     if (typeof children !== 'string') {
       throw new TypeError('TextNode children must be a string');
     }
 
     let text = children;
-    if (isLineBreakEnabled) {
-      if (width === undefined) {
-        throw new TypeError('TextNode width must be defined when isLineBreakEnabled is true');
+    if (textWrap) {
+      let breakTextWidth = width;
+
+      if (isNumber(breakTextWidth)) {
+        breakTextWidth = Math.max(0, breakTextWidth);
+      } else if (breakTextWidth == undefined) {
+        const element = graph.getCell(cellId);
+        if (!element.isElement()) {
+          throw new TypeError('TextNode must be used inside a MeasuredNode');
+        }
+        breakTextWidth = element.size().width;
       }
-      text = util.breakText(
-        text,
-        { width, height },
-        {},
-        { ellipsis, eol, hyphen, maxLineCount, preserveSpaces, separator }
-      );
+
+      const options: util.BreakTextOptions = typeof textWrap === 'object' ? textWrap : {};
+      text = util.breakText(text, { width: breakTextWidth, height }, {}, options);
     }
 
     V(textRef.current).text(text, {
@@ -78,21 +75,18 @@ function Component(props: TextNodeProps, ref: React.ForwardedRef<SVGTextElement>
     annotations,
     children,
     displayEmpty,
-    ellipsis,
     eol,
     height,
-    hyphen,
     includeAnnotationIndices,
-    isLineBreakEnabled,
+    textWrap,
     lineHeight,
-    maxLineCount,
-    preserveSpaces,
-    separator,
     textPath,
     textRef,
     textVerticalAnchor,
     width,
     x,
+    graph,
+    cellId,
   ]);
   return <text ref={textRef} {...rest} x={x} />;
 }

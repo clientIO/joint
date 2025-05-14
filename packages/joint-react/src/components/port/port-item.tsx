@@ -9,19 +9,53 @@ import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 import { createElements } from '../../utils/create';
 
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
+
+export enum Magnet {
+  PASSIVE = 'passive',
+}
 export interface PortItemProps {
-  readonly isPassive?: boolean;
+  /**
+   * Magnet - define if the port is passive or not. It can be set to any value inside the paper.
+   * @default true
+   */
+  readonly magnet?: string;
+  /**
+   * The id of the port. It must be unique within the cell.
+   */
   readonly id: string;
+  /**
+   * The group id of the port. It must be unique within the cell.
+   */
   readonly groupId?: string;
+  /**
+   * The z-index of the port. It must be unique within the cell.
+   */
   readonly z?: number | 'auto';
+  /*
+   * The x position of the port. It can be a number or a string.
+   */
   readonly children?: React.ReactNode;
+  /**
+   * The y position of the port. It can be a number or a string.
+   */
   readonly x?: number | string;
+  /**
+   * The y position of the port. It can be a number or a string.
+   */
   readonly y?: number | string;
+  /**
+   * The x offset of the port. It can be a number or a string.
+   */
+  readonly dx?: number | string;
+  /**
+   * The y offset of the port. It can be a number or a string.
+   */
+  readonly dy?: number | string;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: PortItemProps) {
-  const { isPassive, id, children, groupId, z, x, y } = props;
+  const { magnet, id, children, groupId, z, x, y, dx, dy } = props;
   const cellId = useCellId();
   const paper = usePaper();
   const { graph, subscribeToPorts, getPortElement } = useGraphStore();
@@ -50,12 +84,14 @@ function Component(props: PortItemProps) {
       z,
       id,
       args: {
+        dx,
+        dy,
         x,
         y,
       },
       attrs: {
         [PORTAL_SELECTOR]: {
-          magnet: isPassive ? 'passive' : true,
+          magnet: magnet ?? true,
         },
       },
       markup: elementMarkup,
@@ -66,7 +102,7 @@ function Component(props: PortItemProps) {
     return () => {
       cell.removePort(id);
     };
-  }, [cellId, contextGroupId, graph, groupId, isPassive, paper, id, x, y, z]);
+  }, [cellId, contextGroupId, graph, groupId, paper, id, x, y, z, magnet, dx, dy]);
 
   const portalNode = useSyncExternalStore(
     subscribeToPorts,

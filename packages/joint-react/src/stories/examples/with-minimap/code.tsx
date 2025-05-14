@@ -38,8 +38,9 @@ function MiniMap() {
     ),
     []
   );
+
   return (
-    <div className="minimap">
+    <div className="absolute bottom-4 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
       <Paper
         interactive={false}
         scale={0.4}
@@ -66,7 +67,7 @@ function RenderElement({ width, height, label, color }: Readonly<BaseElementWith
 }
 function Main() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'row' }}>
+    <div className="flex flex-row relative">
       <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
       <MiniMap />
     </div>

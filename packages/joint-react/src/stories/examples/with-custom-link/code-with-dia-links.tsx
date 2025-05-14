@@ -58,7 +58,7 @@ export default function App(props: Readonly<GraphProps>) {
   return (
     <GraphProvider
       {...props}
-      defaultLinks={[new LinkModel({ source: '1', target: '2', type: 'LinkModel', id: '1123' })]}
+      defaultLinks={[{ source: '1', target: '2', type: 'LinkModel', id: '1123' }]}
       defaultElements={initialElements}
       cellNamespace={{ LinkModel }}
     >

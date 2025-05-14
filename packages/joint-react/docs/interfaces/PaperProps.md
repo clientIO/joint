@@ -79,7 +79,7 @@ Defined in: [joint-core/types/joint.d.ts:1463](https://github.com/samuelgja/join
 
 > `optional` **attributes**: [`Record`](https://www.typescriptlang.org/docs/handbook/utility-types.html#recordkeys-type)\<`string`, `any`\>
 
-Defined in: [joint-core/types/joint.d.ts:3457](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3457)
+Defined in: [joint-core/types/joint.d.ts:3459](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3459)
 
 #### Inherited from
 
@@ -184,7 +184,7 @@ If the mouse moves more than this distance, it will be considered a drag event.
 
 > `optional` **collection**: `Collection`\<`any`\>
 
-Defined in: [joint-core/types/joint.d.ts:3454](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3454)
+Defined in: [joint-core/types/joint.d.ts:3456](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3456)
 
 #### Inherited from
 
@@ -328,7 +328,7 @@ Defined in: [joint-core/types/joint.d.ts:1411](https://github.com/samuelgja/join
 
 > `optional` **el**: `unknown`
 
-Defined in: [joint-core/types/joint.d.ts:3455](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3455)
+Defined in: [joint-core/types/joint.d.ts:3457](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3457)
 
 #### Inherited from
 
@@ -393,7 +393,7 @@ Defined in: [joint-core/types/joint.d.ts:1441](https://github.com/samuelgja/join
 
 > `optional` **events**: `_Result`\<`EventsHash`\>
 
-Defined in: [joint-core/types/joint.d.ts:3460](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3460)
+Defined in: [joint-core/types/joint.d.ts:3462](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3462)
 
 #### Inherited from
 
@@ -503,7 +503,7 @@ Defined in: [joint-core/types/joint.d.ts:1416](https://github.com/samuelgja/join
 
 > `optional` **id**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3456](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3456)
+Defined in: [joint-core/types/joint.d.ts:3458](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3458)
 
 #### Inherited from
 
@@ -599,7 +599,7 @@ Defined in: [joint-core/types/joint.d.ts:1421](https://github.com/samuelgja/join
 
 > `optional` **model**: `Graph`\<`Attributes`, `ModelSetOptions`\>
 
-Defined in: [joint-core/types/joint.d.ts:3452](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3452)
+Defined in: [joint-core/types/joint.d.ts:3454](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3454)
 
 #### Inherited from
 
@@ -3310,7 +3310,7 @@ The style of the paper element.
 
 > `optional` **tagName**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3459](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3459)
+Defined in: [joint-core/types/joint.d.ts:3461](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3461)
 
 #### Inherited from
 
@@ -3322,7 +3322,7 @@ Defined in: [joint-core/types/joint.d.ts:3459](https://github.com/samuelgja/join
 
 > `optional` **theme**: `string`
 
-Defined in: [joint-core/types/joint.d.ts:3518](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3518)
+Defined in: [joint-core/types/joint.d.ts:3520](https://github.com/samuelgja/joint/blob/main/packages/joint-core/types/joint.d.ts#L3520)
 
 #### Inherited from
 

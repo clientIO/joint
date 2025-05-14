@@ -2,7 +2,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable sonarjs/prefer-read-only-props */
 import type { Meta, StoryObj } from '@storybook/react/*';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../../stories/examples/index.css';
 import {
@@ -89,7 +89,7 @@ const meta: Meta<typeof PortGroup> = {
   title: 'Components/Port/Group',
   component: PortGroup,
   decorators: [PaperDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     code: `
         import { Port } from '@joint/react';
@@ -109,19 +109,20 @@ const meta: Meta<typeof PortGroup> = {
 };
 
 export default meta;
+
 export const Default = makeStory<Story>({
   args: {
     children: (
-      <Port.Item id="port-one">
+      <Port.Item id="port-1">
         <foreignObject width={20} height={20}>
-          <div className="size-5 bg-sky-200 rounded-full" />
+          <div className="size-5 bg-sky-200" />
         </foreignObject>
       </Port.Item>
     ),
     id: 'group-one',
-    y: 10,
-    dx: 10,
     position: 'right',
+    angle: 0,
+    height: 1,
   },
   apiURL: API_URL,
   name: 'Default group',

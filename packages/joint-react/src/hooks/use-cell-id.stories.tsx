@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useCellId } from './use-cell-id'; // Adjust path accordingly
 import type { SimpleElement } from '../../.storybook/decorators/with-simple-data';
 import { HTMLNode, SimpleRenderItemDecorator } from '../../.storybook/decorators/with-simple-data';
-import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import '../stories/examples/index.css';
 
@@ -16,7 +16,7 @@ const meta: Meta<typeof Hook> = {
   title: 'Hooks/useCellId',
   component: Hook,
   decorators: [SimpleRenderItemDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     description:
       '`useCellId` is a hook that returns the cellId of the current cell. It is used to get the cellId of the current cell. It must be used inside `renderElement`',
     apiURL: API_URL,

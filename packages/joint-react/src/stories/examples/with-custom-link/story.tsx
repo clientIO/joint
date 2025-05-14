@@ -4,7 +4,7 @@ import '../index.css';
 import CodeWithCreateLinks from './code-with-create-links';
 import CodeWithDiaLinksClassName from './code-with-create-links-classname';
 import CodeWithDiaLinks from './code-with-dia-links';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 
 // @ts-expect-error
 import CodeWithCreateLinksCode from './code-with-create-links?raw';
@@ -16,9 +16,9 @@ import CodeWithCreateLinksClassName from './code-with-create-links-classname?raw
 export type Story = StoryObj<typeof CodeWithCreateLinks>;
 
 export default {
-  title: 'Examples/With custom link',
+  title: 'Examples/Custom link',
   component: CodeWithCreateLinks,
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: 'https://resources.jointjs.com/tutorial/links',
     code: CodeWithCreateLinksCode,
     description: 'Code with create links.',

@@ -7,12 +7,12 @@ import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-do
 
 <Meta of={Stories} />
 
-# Basic example
+# Basic Example
 
-### How it works
+### How It Works
 
-1. **Define default elements (nodes) and default links (edges)**
-   - You can define elements and links using helper functions like {getAPIDocumentationLink("createElements")} and {getAPIDocumentationLink("createLinks")}. Alternatively, you can define them manually as `Array<GraphElement | dia.Element>` or `Array<GraphLink | dia.Link>`.
+1. **Define default nodes (elements) and links (edges):**
+   - You can create nodes and links using helper functions like {getAPIDocumentationLink("createElements")} and {getAPIDocumentationLink("createLinks")}. Alternatively, you can define them manually as arrays of `GraphElement | dia.Element` for nodes or `GraphLink | dia.Link` for links.
    - Example:
      ```ts
      const elements = createElements([
@@ -22,18 +22,18 @@ import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-do
      const links = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
      ```
 
-2. **Wrap your app inside {getAPIDocumentationLink('GraphProvider')}**
-   - The `GraphProvider` component wraps all its children within a [jointjs/graph](https://docs.jointjs.com/api/dia/Graph) instance and manages the React state for elements and links.
+2. **Wrap your app with {getAPIDocumentationLink('GraphProvider')}:**
+   - The `GraphProvider` component wraps your app in a [jointjs/graph](https://docs.jointjs.com/api/dia/Graph) instance. It manages the React state for your nodes and links.
    - Example:
      ```tsx
      <GraphProvider defaultElements={elements} defaultLinks={links}>
-       {/* Your components here */}
+       {/* Your components go here */}
      </GraphProvider>
      ```
 
-3. **Render nodes using the {getAPIDocumentationLink('Paper', 'variables')} component**
-   - The `Paper` component is a wrapper around [jointjs/paper](https://docs.jointjs.com/learn/quickstart/paper/). It is responsible for rendering nodes.
-   - The `Paper` component has an important prop called {getAPIPropsLink('Paper', 'renderElement')}, which is responsible for rendering a node inside the paper. The `Paper` component accepts any `dia.paper.Options` and HTML attributes.
+3. **Render nodes with the {getAPIDocumentationLink('Paper', 'variables')} component:**
+   - The `Paper` component is a wrapper around [jointjs/paper](https://docs.jointjs.com/learn/quickstart/paper/). It handles rendering your nodes.
+   - The `Paper` component has a key prop called {getAPIPropsLink('Paper', 'renderElement')}, which defines how each node is rendered. It also accepts any `dia.paper.Options` and standard HTML attributes.
    - Example:
      ```tsx
      function RenderItem({ width, height, color }) {
@@ -43,13 +43,13 @@ import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-do
      <Paper width="100%" renderElement={RenderItem} />
      ```
 
-4. **Create a `RenderElement` function and render an SVG rect component**
-   - The {getAPIPropsLink('Paper', 'renderElement')} function defines how each node should be rendered. In this example, we render a rectangle (`rect`) SVG component.
+4. **Create a `RenderElement` function to render an SVG rectangle:**
+   - Use the {getAPIPropsLink('Paper', 'renderElement')} function to define how each node should look. In this example, we render a rectangle (`rect`) SVG component.
 
-### Using HTML elements inside SVG
+### Using HTML Elements Inside SVG
 
-- By default, this library works with SVG elements. If you want to use HTML elements, you need to use the `foreignObject` element.
-- The `foreignObject` element allows for the inclusion of HTML within an SVG. Note that `foreignObject` has a default `overflow` property set to `hidden`, so you might need to adjust it.
+- By default, this library works with SVG elements. To use HTML elements, you need to wrap them in a `foreignObject` element.
+- The `foreignObject` element allows you to include HTML within an SVG. Keep in mind that its default `overflow` property is set to `hidden`, so you may need to adjust it.
 - Reference: [MDN foreignObject](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject)
 - Example:
   ```tsx
@@ -62,10 +62,9 @@ import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-do
       </foreignObject>
     );
   }
-
   ```
 
-### Demo with SVG node
+### Demo with SVG Node
 <Canvas of={Stories.SVG} />
 
 ### Code
@@ -75,7 +74,7 @@ ${CodeSVG}
 \`\`\``}
 </Markdown>
 
-### Demo with HTML node
+### Demo with HTML Node
 <Canvas of={Stories.HTML} />
 
 ### Code
@@ -85,9 +84,7 @@ ${CodeHTML}
 \`\`\``}
 </Markdown>
 
-
-
-## Demo with HTML element renderer instead of SVG
+## Demo with HTML Element Renderer Instead of SVG
 <Canvas of={Stories.HTMLRenderer} />
 <Markdown>
 {`\`\`\`tsx
