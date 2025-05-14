@@ -2,16 +2,13 @@ import { dia } from '@joint/core';
 import { type PortElementsCacheEntry } from '../data/create-ports-data';
 import type { PaperContext } from '../context';
 import { createPortsStore } from '../data/create-ports-store';
+import type { OmitWithoutIndexSignature } from '../types';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 
 export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
 
-type RemoveIndexSignature<T> = {
-  [K in keyof T as string extends K ? never : K]: T[K];
-};
-
-export type ReactPaperOptions = Omit<RemoveIndexSignature<dia.Paper.Options>, 'frozen'>;
+export type ReactPaperOptions = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen'>;
 
 // Interface for Paper options, extending JointJS Paper options
 export interface PaperOptions extends dia.Paper.Options {

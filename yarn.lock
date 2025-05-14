@@ -22,6 +22,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@andypf/json-viewer@npm:^2.1.10":
+  version: 2.1.10
+  resolution: "@andypf/json-viewer@npm:2.1.10"
+  checksum: 10/ff40988ad6140ca0a1c5ec80a5e9a6e5113d0eda0baed4d5529ae1b7ce8f01208c9882c4ee117c1e0731b83cb0beac063366c17dd49433e22787724eb3d17464
+  languageName: node
+  linkType: hard
+
 "@asamuzakjp/css-color@npm:^3.1.1":
   version: 3.1.1
   resolution: "@asamuzakjp/css-color@npm:3.1.1"
@@ -3146,6 +3153,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@joint/react@workspace:packages/joint-react"
   dependencies:
+    "@andypf/json-viewer": "npm:^2.1.10"
     "@chromatic-com/storybook": "npm:^3.2.5"
     "@joint/core": "npm:*"
     "@joint/layout-directed-graph": "npm:*"
