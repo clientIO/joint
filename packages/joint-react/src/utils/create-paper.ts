@@ -1,13 +1,11 @@
 import { dia } from '@joint/core';
-import type { PortElementsCacheEntry } from '../data/create-ports-data';
+import { type PortElementsCacheEntry } from '../data/create-ports-data';
+import type { PaperContext } from '../context';
+import { createPortsStore } from '../data/create-ports-store';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 
 export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
-export type OnPaperRenderPorts = (
-  cellId: dia.Cell.ID,
-  portElementsCache: Record<string, PortElementsCacheEntry>
-) => void;
 
 type RemoveIndexSignature<T> = {
   [K in keyof T as string extends K ? never : K]: T[K];
@@ -25,7 +23,6 @@ export interface PaperOptions extends dia.Paper.Options {
    * @returns
    */
   readonly onRenderElement?: OnPaperRenderElement;
-  readonly onRenderPorts?: OnPaperRenderPorts;
 }
 
 /**
@@ -42,9 +39,10 @@ export interface PaperOptions extends dia.Paper.Options {
  * const paper = createPaper(graph, options);
  * ```
  */
-export function createPaper(graph: dia.Graph, options?: PaperOptions) {
-  const { scale, onRenderElement, onRenderPorts, ...restOptions } = options ?? {};
+export function createPaper(graph: dia.Graph, options?: PaperOptions): PaperContext {
+  const { scale, onRenderElement, ...restOptions } = options ?? {};
 
+  const portsStore = createPortsStore();
   const elementView = dia.ElementView.extend({
     // Render element using react, `elementView.el` is used as portal gate for react (createPortal)
     onRender() {
@@ -63,19 +61,15 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
       const elementView: dia.ElementView = this;
 
       const portElementsCache: Record<string, PortElementsCacheEntry> = this._portElementsCache;
-      if (!onRenderPorts) {
-        return;
-      }
-      onRenderPorts(elementView.model.id, portElementsCache);
+      portsStore.onRenderPorts(elementView.model.id, portElementsCache);
     },
   });
 
   // Create a new JointJS Paper with the provided options
-  const paper = new dia.Paper({
+  const paper: PaperContext = new dia.Paper({
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     preventDefaultBlankAction: false,
-    width: restOptions?.width ?? '100%',
     // TODO: It is possible to override it. We need to instruct
     // the users to trigger the PORTAL_READY_EVENT event manually
     // or find a better way to do it (e.g. trigger the event in JointJS)
@@ -84,11 +78,12 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
     clickThreshold: restOptions?.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
     frozen: true,
     model: graph,
-  });
-
+  }) as PaperContext;
+  paper.portStore = portsStore;
   // Return the created paper
   if (scale) {
     paper.scale(scale);
   }
+
   return paper;
 }

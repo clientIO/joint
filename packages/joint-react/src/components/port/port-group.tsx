@@ -116,7 +116,6 @@ function Component(props: PortGroupProps) {
       step,
       compensateRotation,
     });
-    console.log('newGroup', newGroup);
     cell.set('ports', {
       ...ports,
       groups: {

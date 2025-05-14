@@ -295,14 +295,13 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     </>
   );
 
-  const paperContext: PaperContext | null = paper as PaperContext | null;
-  if (paperContext) {
-    paperContext.renderElement = renderElement as RenderElement<GraphElement>;
+  if (paper) {
+    paper.renderElement = renderElement as RenderElement<GraphElement>;
   }
   const hasPaper = !!paper;
 
   return (
-    <PaperContext.Provider value={paperContext}>
+    <PaperContext.Provider value={paper}>
       {hasPaper && !isChildrenAtBottom && children}
       <div className={className} ref={paperContainerElement} style={paperContainerStyle}>
         {hasPaper && content}

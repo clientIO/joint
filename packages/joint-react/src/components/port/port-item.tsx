@@ -58,7 +58,8 @@ function Component(props: PortItemProps) {
   const { magnet, id, children, groupId, z, x, y, dx, dy } = props;
   const cellId = useCellId();
   const paper = usePaper();
-  const { graph, subscribeToPorts, getPortElement } = useGraphStore();
+  const { portStore } = paper;
+  const { graph } = useGraphStore();
 
   const contextGroupId = useContext(PortGroupContext);
 
@@ -104,9 +105,9 @@ function Component(props: PortItemProps) {
   }, [cellId, contextGroupId, graph, groupId, paper, id, x, y, z, magnet, dx, dy]);
 
   const portalNode = useSyncExternalStore(
-    subscribeToPorts,
-    () => getPortElement(cellId, id),
-    () => getPortElement(cellId, id)
+    portStore.subscribe,
+    () => portStore.getPortElement(cellId, id),
+    () => portStore.getPortElement(cellId, id)
   );
 
   useEffect(() => {

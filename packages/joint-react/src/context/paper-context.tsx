@@ -2,9 +2,11 @@ import type { dia } from '@joint/core';
 import { createContext } from 'react';
 import type { GraphElement } from '../types/element-types';
 import type { RenderElement } from '../components/paper/paper';
+import type { PortsStore } from '../data/create-ports-store';
 
 export interface PaperContext extends dia.Paper {
   renderElement?: RenderElement<GraphElement>;
+  portStore: PortsStore;
 }
 /**
  * Paper context provides a paper instance to its children.

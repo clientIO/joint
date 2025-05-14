@@ -7,8 +7,6 @@ import type { GraphLink } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
 import { createStoreData } from './create-store-data';
 import type { CellMap } from '../utils/cell/cell-map';
-import type { OnPaperRenderPorts } from '../utils/create-paper';
-import { createPortsData } from './create-ports-data';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
@@ -73,19 +71,6 @@ export interface Store {
    *  Remove all listeners and cleanup the graph.
    */
   readonly destroy: () => void;
-
-  /**
-   * Get port element
-   */
-  readonly getPortElement: (cellId: dia.Cell.ID, portId: string) => SVGElement | undefined;
-  /**
-   * Set port element
-   */
-  readonly onRenderPorts: OnPaperRenderPorts;
-  /**
-   * Subscribes to port element changes.
-   */
-  readonly subscribeToPorts: (onPortChange: () => void) => () => void;
 }
 
 /**
@@ -155,8 +140,7 @@ export function createStore(options?: StoreOptions): Store {
   // create store data - caching the elements and links for the react
   const data = createStoreData();
   const elementsEvents = subscribeHandler(forceUpdate);
-  const portElements = createPortsData();
-  const portEvents = subscribeHandler();
+
   const unsubscribe = listenToCellChange(graph, onCellChange);
 
   data.updateStore(graph);
@@ -200,7 +184,6 @@ export function createStore(options?: StoreOptions): Store {
     graph.off('batch:stop', onBatchStop);
     graph.clear();
     data.destroy();
-    portElements.clear();
   }
   // Force update the graph to ensure it's in sync with the store.
   forceUpdate();
@@ -209,7 +192,6 @@ export function createStore(options?: StoreOptions): Store {
     destroy,
     graph,
     subscribe: elementsEvents.subscribe,
-    subscribeToPorts: portEvents.subscribe,
     getElements() {
       return data.elements;
     },
@@ -230,17 +212,6 @@ export function createStore(options?: StoreOptions): Store {
         throw new Error(`Link with id ${id} not found`);
       }
       return item;
-    },
-    getPortElement(cellId, portId) {
-      const portElement = portElements.get(cellId, portId);
-      if (!portElement) {
-        return;
-      }
-      return portElement;
-    },
-    onRenderPorts(cellId, portElementsCache) {
-      portElements.set(cellId, portElementsCache);
-      portEvents.notifySubscribers();
     },
   };
   return store;
