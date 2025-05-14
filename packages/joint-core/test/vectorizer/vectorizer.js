@@ -1615,6 +1615,28 @@ QUnit.module('vectorizer', function(hooks) {
             );
         });
 
+        QUnit.test('offscreen results', function(assert) {
+
+            const svgPath2 = V('path');
+            const svgGroup1 = V('g');
+
+            V('svg', {}, [
+                V(svgGroup1, { id: 'svgGroup1', transform: 'rotate(45)' }, [
+                    V('g', { id: 'svgGroup2', transform: 'scale(2, 2)' }, [
+                        V('g', { id: 'svgGroup3', transform: 'translate(10, 10)' }, [
+                            V('path', { id: 'svgPath1', d: 'M 10 10' }),
+                            V(svgPath2, { id: 'svgPath2', d: 'M 20 20' })
+                        ])
+                    ])
+                ])
+            ]);
+
+            // unsafe method returns an identity matrix (no transform)
+            assert.equal(V.matrixToTransformString(V(svgPath2).getTransformToElement(svgGroup1)), 'matrix(1,0,0,1,0,0)');
+            // safe method returns a matrix with the correct transform
+            assert.equal(V.matrixToTransformString(V(svgPath2).getTransformToElement(svgGroup1, { safe: true })), 'matrix(2,0,0,2,20,20)');
+        });
+
         QUnit.test('native getTransformToElement vs VElement getTransformToElement - translate', function(assert) {
 
             var container = V(svgContainer);
