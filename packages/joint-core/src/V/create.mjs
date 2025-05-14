@@ -18,7 +18,17 @@ export const SVG_VERSION = '1.1';
  * e.g. SVGMatrix has no constructor, so the only way to create it is
  * to create an SVG document and then call `createSVGMatrix()`.
  */
-export const internalSVGDocument = isSVGSupported ? createSVGDocument() : null;
+export const internalSVGDocument = isSVGSupported
+    ? createSVGDocument()
+    : null;
+
+/**
+ * @constant {SVGGElement}
+ * @description The detached SVG group element for various internal purposes.
+ */
+export const internalGroupElement = isSVGSupported
+    ? createSVGElement('g')
+    : null;
 
 /**
  * @returns {SVGSVGElement}

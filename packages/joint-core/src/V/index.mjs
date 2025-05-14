@@ -1518,9 +1518,11 @@ const V = (function() {
 
 
     V.transformStringToMatrix = function(transform) {
-        if (!transform) return createIdentityMatrix();
-        internalSVGDocument.setAttribute('transform', transform);
-        return getNodeMatrix(internalSVGDocument) || createIdentityMatrix();
+        let matrix;
+        if (V.isString(transform)) {
+            matrix = createMatrixFromTransformString(transform);
+        }
+        return matrix || createIdentityMatrix();
     };
 
     V.matrixToTransformString = matrixToTransformString;

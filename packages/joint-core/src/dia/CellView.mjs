@@ -818,7 +818,12 @@ export const CellView = View.extend({
             } else {
                 target = el;
             }
-            metrics.magnetMatrix = V(magnet).getTransformToElement(target, { safe: !magnet.checkVisibility() });
+            metrics.magnetMatrix = V(magnet).getTransformToElement(target, {
+                // We use `safe` mode if the magnet is not visible (not in the DOM render tree).
+                // The browser would not be able to calculate the transformation matrix
+                // using `getScreenCTM()` method.
+                safe: !magnet.checkVisibility()
+            });
         }
         return V.createSVGMatrix(metrics.magnetMatrix);
     },

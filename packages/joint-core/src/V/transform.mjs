@@ -1,4 +1,4 @@
-import { internalSVGDocument } from './create.mjs';
+import { internalSVGDocument, internalSVGGroup } from './create.mjs';
 import { getCommonAncestor } from './traverse.mjs';
 
 /**
@@ -45,6 +45,16 @@ export function createSVGTransform() {
 export function getNodeMatrix(node) {
     const consolidatedTransformation = node.transform.baseVal.consolidate();
     return consolidatedTransformation ? consolidatedTransformation.matrix : null;
+}
+
+/**
+ * @param {string} transformString
+ * @returns {SVGMatrix}
+ * @description Creates a matrix from the given transform string.
+ */
+export function createMatrixFromTransformString(transformString) {
+    internalSVGGroup.setAttribute('transform', transformString);
+    return getNodeMatrix(internalSVGGroup);
 }
 
 /**
