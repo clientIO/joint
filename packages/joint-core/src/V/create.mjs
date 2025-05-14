@@ -26,7 +26,7 @@ export const internalSVGDocument = isSVGSupported
  * @constant {SVGGElement}
  * @description The detached SVG group element for various internal purposes.
  */
-export const internalGroupElement = isSVGSupported
+export const internalSVGGroup = isSVGSupported
     ? createSVGElement('g')
     : null;
 
