@@ -288,7 +288,7 @@ function MiniMap() {
   }, []);
 
   return (
-    <div className="absolute bg-black bottom-[70px] right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
+    <div className="absolute bg-black bottom-6 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
       <Paper
         {...PAPER_PROPS}
         interactive={false}
