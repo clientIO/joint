@@ -1508,8 +1508,6 @@ const V = (function() {
     // ReDoS mitigation: Use an anchor at the beginning of the match
     // ReDoS mitigation: Avoid backtracking (uses `[^()]+` instead of `.*?`)
     // ReDoS mitigation: Don't match initial `(` inside repeated part
-    // The following regex needs to use /g (= cannot use capturing groups)
-    V.transformRegex = /\b\w+\([^()]+\)/g;
     // The following regexes need to use capturing groups (= cannot use /g)
     V.transformFunctionRegex = /\b(\w+)\(([^()]+)\)/;
     V.transformTranslateRegex = /\btranslate\(([^()]+)\)/;
