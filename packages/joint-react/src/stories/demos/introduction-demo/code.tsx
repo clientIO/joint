@@ -50,9 +50,8 @@ type Element = MessageElement | TableElement;
 
 type ElementWithSelected<T> = { readonly isSelected: boolean } & T;
 
-// Define the class name for the paper
-export const BUTTON_CLASSNAME =
-  'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 mr-2 mb-2 rounded text-sm';
+const BUTTON_CLASSNAME =
+  'bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm flex items-center';
 
 // Define static properties for the paper - used by minimap and main paper
 const PAPER_PROPS: PaperProps<Element> = {
@@ -81,7 +80,7 @@ const elements = createElements<Element>([
   {
     id: '1',
     x: 50,
-    y: 50,
+    y: 110,
     elementType: 'alert',
     title: 'This is error element',
     description: 'This is longer text, it can be any message provided by the user',
@@ -90,7 +89,7 @@ const elements = createElements<Element>([
   {
     id: '2',
     x: 550,
-    y: 50,
+    y: 110,
     elementType: 'info',
     title: 'This is info element',
     description: 'This is longer text, it can be any message provided by the user',
@@ -99,7 +98,7 @@ const elements = createElements<Element>([
   {
     id: '3',
     x: 50,
-    y: 350,
+    y: 370,
     elementType: 'table',
     columnNames: ['Column 1', 'Column 2', 'Column 3'],
     rows: [
@@ -289,7 +288,7 @@ function MiniMap() {
   }, []);
 
   return (
-    <div className="absolute bg-black bottom-4 right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
+    <div className="absolute bg-black bottom-[70px] right-6 w-[200px] h-[150px] border border-[#dde6ed] rounded-lg overflow-hidden">
       <Paper
         {...PAPER_PROPS}
         interactive={false}
@@ -336,7 +335,7 @@ function ToolBar(props: ToolbarProps) {
   const graph = useGraph();
   const paper = usePaper();
   return (
-    <div className="flex flex-row">
+    <div className="flex flex-row absolute top-2 left-2 z-10 bg-gray-900  rounded-lg p-2 shadow-md gap-2">
       <button
         type="button"
         className={BUTTON_CLASSNAME}
@@ -373,7 +372,7 @@ function ToolBar(props: ToolbarProps) {
         }}
       >
         <i className="fa-solid fa-clone"></i>
-        <span className="ml-2">Duplicate selected element</span>
+        <span className="ml-2">Duplicate</span>
       </button>
       <button
         type="button"
