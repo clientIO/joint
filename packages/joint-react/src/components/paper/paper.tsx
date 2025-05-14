@@ -16,7 +16,7 @@ import { CellIdContext } from '../../context/cell-id.context';
 import { HTMLElementItem, SVGElementItem } from './paper-element-item';
 import { PaperContext } from '../../context/paper-context';
 import { GraphStoreContext } from '../../context/graph-store-context';
-import { GraphProvider } from '../graph-provider/graph-provider';
+import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
 import type { PaperEvents } from '../../types/event.types';
 import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
@@ -39,6 +39,7 @@ export type RenderElement<ElementItem extends GraphElement = GraphElement> = (
  */
 export interface PaperProps<ElementItem extends GraphElement = GraphElement>
   extends ReactPaperOptions,
+    GraphProps,
     PaperEvents {
   /**
    * A function that renders the element.
@@ -134,11 +135,6 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
    * @default false
    */
   readonly useHTMLOverlay?: boolean;
-
-  /**
-   * If true, the children will be rendered at the bottom of the paper - after paper in HTML tree.
-   */
-  readonly isChildrenAtBottom?: boolean;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
@@ -155,7 +151,6 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     onElementsSizeReady,
     onElementsSizeChange,
     useHTMLOverlay,
-    isChildrenAtBottom,
     ...paperOptions
   } = props;
   const { onRenderElement, svgGElements } = usePaperElementRenderer();
@@ -295,11 +290,10 @@ function Component<ElementItem extends GraphElement = GraphElement>(
 
   return (
     <PaperContext.Provider value={paper}>
-      {hasPaper && !isChildrenAtBottom && children}
       <div className={className} ref={paperContainerElement} style={paperContainerStyle}>
         {hasPaper && content}
       </div>
-      {hasPaper && isChildrenAtBottom && children}
+      {hasPaper && children}
     </PaperContext.Provider>
   );
 }
@@ -330,7 +324,17 @@ function PaperWithGraphProvider<ElementItem extends GraphElement = GraphElement>
   props: PaperProps<ElementItem>
 ) {
   const hasStore = !!useContext(GraphStoreContext);
-  const { children, ...rest } = props;
+
+  const {
+    children,
+    initialElements,
+    initialLinks,
+    graph,
+    cellNamespace,
+    cellModel,
+    store,
+    ...rest
+  } = props;
   const paperContent = (
     <PaperWithNoDataPlaceHolder {...rest}>{children}</PaperWithNoDataPlaceHolder>
   );
@@ -338,7 +342,18 @@ function PaperWithGraphProvider<ElementItem extends GraphElement = GraphElement>
   if (hasStore) {
     return paperContent;
   }
-  return <GraphProvider>{paperContent}</GraphProvider>;
+  return (
+    <GraphProvider
+      initialElements={initialElements}
+      initialLinks={initialLinks}
+      graph={graph}
+      cellNamespace={cellNamespace}
+      cellModel={cellModel}
+      store={store}
+    >
+      {paperContent}
+    </GraphProvider>
+  );
 }
 
 /**
