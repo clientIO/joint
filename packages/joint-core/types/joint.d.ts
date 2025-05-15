@@ -522,6 +522,8 @@ export namespace dia {
 
         getBBox(): g.Rect;
 
+        getCenter(): g.Point;
+
         getPointFromConnectedLink(link: dia.Link, endType: dia.LinkEnd): g.Point;
 
         getPointRotatedAroundCenter(angle: number, x: number, y: number): g.Point;
@@ -1402,6 +1404,7 @@ export namespace dia {
         type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
         type FindParentByType = 'bbox' | 'pointer' | PositionName;
         type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
+        type MeasureNodeCallback = (node: SVGGraphicsElement, cellView: dia.CellView) => g.Rect;
 
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
@@ -1437,6 +1440,7 @@ export namespace dia {
             // views
             elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
+            measureNode?: MeasureNodeCallback;
             // embedding
             embeddingMode?: boolean;
             frontParentOnly?: boolean;
@@ -2673,7 +2677,7 @@ export namespace util {
     export function isPercentage(val: any): boolean;
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number, unit?: string } | null;
-
+    
     type BreakTextOptions = {
         svgDocument?: SVGElement;
         separator?: string | any;

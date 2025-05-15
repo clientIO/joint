@@ -2137,6 +2137,27 @@ QUnit.module('links', function(hooks) {
         });
     });
 
+    QUnit.module('getCenter()', function(hooks) {
+
+        QUnit.test('getCenter() returns the center of the link', function(assert) {
+
+            const x1 = 11;
+            const y1 = 13;
+            const x2 = 99;
+            const y2 = 101;
+
+            const link = new joint.shapes.standard.Link({
+                source: { x: x1, y: y1 },
+                target: { x: x2, y: y2 }
+            });
+
+            assert.ok(link.getCenter() instanceof g.Point);
+            assert.ok(link.getBBox().center().equals(link.getCenter()));
+            assert.equal(link.getCenter().x, (x1 + x2) / 2);
+            assert.equal(link.getCenter().y, (y1 + y2) / 2);
+        });
+    });
+
     QUnit.test('reparent()', function(assert) {
 
         var Rectangle = joint.shapes.standard.Rectangle;

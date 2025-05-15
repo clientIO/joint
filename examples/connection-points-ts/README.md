@@ -1,6 +1,6 @@
-# JointJS Link Label Tools
+# JointJS Connection Points
 
-The example shows different tools for editing labels.
+The example shows various connection points.
 
 ## Setup
 
