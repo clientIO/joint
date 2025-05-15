@@ -71,6 +71,19 @@ export interface Store {
    *  Remove all listeners and cleanup the graph.
    */
   readonly destroy: () => void;
+
+  /**
+   * Set the measured node element.
+   * For safety, each node, can use only one measured node, do not matter how many papers the graph is using,
+   * only one paper and one node can use measured node, otherwise it can lead to unexpected behavior
+   * when many nodes or same node with many measuredNodes try to adjust the size.
+   */
+  readonly setMeasuredNode: (id: dia.Cell.ID) => () => void;
+
+  /**
+   * Check if the graph has already measured node for the given element id.
+   */
+  readonly hasMeasuredNode: (id: dia.Cell.ID) => boolean;
 }
 
 /**
@@ -146,6 +159,8 @@ export function createStore(options?: StoreOptions): Store {
   data.updateStore(graph);
   graph.on('batch:stop', onBatchStop);
 
+  const measuredNodes = new Set<dia.Cell.ID>();
+
   /**
    * Force update the graph.
    * This function is called when the graph is updated.
@@ -184,6 +199,7 @@ export function createStore(options?: StoreOptions): Store {
     graph.off('batch:stop', onBatchStop);
     graph.clear();
     data.destroy();
+    measuredNodes.clear();
   }
   // Force update the graph to ensure it's in sync with the store.
   forceUpdate();
@@ -212,6 +228,15 @@ export function createStore(options?: StoreOptions): Store {
         throw new Error(`Link with id ${id} not found`);
       }
       return item;
+    },
+    setMeasuredNode(id: dia.Cell.ID) {
+      measuredNodes.add(id);
+      return () => {
+        measuredNodes.delete(id);
+      };
+    },
+    hasMeasuredNode(id: dia.Cell.ID) {
+      return measuredNodes.has(id);
     },
   };
   return store;
