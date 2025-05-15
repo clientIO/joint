@@ -62,10 +62,4 @@ describe('createStore', () => {
     expect(unsubscribeSpy).toHaveBeenCalled();
     expect(store.graph.getCells().length).toBe(0);
   });
-
-  it('should return undefined for non-existent port elements', () => {
-    const store = createStore();
-    const retrievedPortElement = store.getPortElement('cell1', 'nonexistent');
-    expect(retrievedPortElement).toBeUndefined();
-  });
 });

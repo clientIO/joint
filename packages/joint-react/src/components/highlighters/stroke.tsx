@@ -1,6 +1,6 @@
 import type { FC, PropsWithChildren } from 'react';
 import { forwardRef, useCallback, useMemo } from 'react';
-import type { OnAddHighlighter } from './custom';
+import type { OnCreateHighlighter } from './custom';
 import { Custom } from './custom';
 import type { dia } from '@joint/core';
 import { highlighters } from '@joint/core';
@@ -9,7 +9,7 @@ export interface StrokeHighlighterProps extends PropsWithChildren, React.SVGProp
   /**
    * The stacking order of the highlighter. See dia.HighlighterView for supported values.
    */
-  readonly layer: string;
+  readonly layer?: string;
   /**
    * The space between the stroke and the element
    */
@@ -62,12 +62,12 @@ function Component(props: StrokeHighlighterProps, forwardedRef: React.Ref<SVGEle
     return data;
   }, [svgAttributes, layer, nonScalingStroke, padding, rx, ry, useFirstSubpath]);
 
-  const onAdd: OnAddHighlighter = useCallback((cellView, element, highlighterId, hOptions) => {
+  const onAdd: OnCreateHighlighter = useCallback((cellView, element, highlighterId, hOptions) => {
     return highlighters.stroke.add(cellView, element, highlighterId, hOptions);
   }, []);
 
   return (
-    <Custom options={options} ref={forwardedRef} onAdd={onAdd} isHidden={isHidden}>
+    <Custom options={options} ref={forwardedRef} onCreateHighlighter={onAdd} isHidden={isHidden}>
       {children}
     </Custom>
   );

@@ -4,6 +4,6 @@ import * as stories from '../text-node.stories';
 runStorybookSnapshot({
   Component: TextNode,
   name: 'TextNode',
-  stories,
   withRenderElementWrapper: true,
+  stories,
 });

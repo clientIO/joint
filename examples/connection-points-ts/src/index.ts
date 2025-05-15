@@ -16,7 +16,7 @@ const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: cellNamespace,
     gridSize: 1,
-    // async: true,
+    async: true,
     defaultAnchor: {
         name: 'center',
         args: {
@@ -24,8 +24,6 @@ const paper = new dia.Paper({
         }
     }
 });
-
-paper.el.style.display = 'none'
 
 let y = 100;
 
@@ -218,7 +216,5 @@ createPair(graph, {
     targetLabel: 'rectangle',
     targetPort: 'port1',
 });
-
-paper.el.style.display = 'block';
 
 paper.fitToContent({ useModelGeometry: true, padding: 20 });

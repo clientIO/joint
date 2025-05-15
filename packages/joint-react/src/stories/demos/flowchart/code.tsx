@@ -221,6 +221,7 @@ function DecisionNodeRaw(
         stroke={PRIMARY}
         strokeWidth="2"
       />
+
       <MeasuredNode setSize={setSize}>
         <text
           onMouseEnter={onMouseEnter}

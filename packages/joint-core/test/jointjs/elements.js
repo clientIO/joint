@@ -682,4 +682,26 @@ QUnit.module('elements', function(hooks) {
             assert.deepEqual(this.group2.getBBox(), g.rect(502, 202, 100, 100), 'Deep: ShrinkOnly using padding options does not expand anywhere because no overlap.');
         });
     });
+
+    QUnit.module('getCenter()', function(hooks) {
+
+        QUnit.test('getCenter() returns the center of the element', function(assert) {
+
+            const x = 10;
+            const y = 20;
+            const width = 100;
+            const height = 200;
+
+            const rect = new joint.shapes.standard.Rectangle({
+                position: { x, y },
+                size: { width, height }
+            });
+
+            assert.ok(rect.getCenter() instanceof g.Point);
+            assert.ok(rect.getBBox().center().equals(rect.getCenter()));
+            assert.equal(rect.getCenter().x, x + width / 2);
+            assert.equal(rect.getCenter().y, y + height / 2);
+        });
+    });
+
 });

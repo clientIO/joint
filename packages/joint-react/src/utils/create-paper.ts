@@ -1,22 +1,17 @@
 import { dia } from '@joint/core';
-import type { PortElementsCacheEntry } from '../data/create-ports-data';
+import { type PortElementsCacheEntry } from '../data/create-ports-data';
+import type { PaperContext } from '../context';
+import { createPortsStore } from '../data/create-ports-store';
+import type { OmitWithoutIndexSignature } from '../types';
 
 const DEFAULT_CLICK_THRESHOLD = 10;
 
 export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
-export type OnPaperRenderPorts = (
-  cellId: dia.Cell.ID,
-  portElementsCache: Record<string, PortElementsCacheEntry>
-) => void;
 
-type RemoveIndexSignature<T> = {
-  [K in keyof T as string extends K ? never : K]: T[K];
-};
-
-export type ReactPaperOptions = Omit<RemoveIndexSignature<dia.Paper.Options>, 'frozen'>;
+export type ReactPaperOptions = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen'>;
 
 // Interface for Paper options, extending JointJS Paper options
-export interface PaperOptions extends dia.Paper.Options {
+export interface PaperOptions extends ReactPaperOptions {
   readonly scale?: number;
   /**
    * A function that is called when the paper is ready.
@@ -25,7 +20,6 @@ export interface PaperOptions extends dia.Paper.Options {
    * @returns
    */
   readonly onRenderElement?: OnPaperRenderElement;
-  readonly onRenderPorts?: OnPaperRenderPorts;
 }
 
 /**
@@ -42,9 +36,10 @@ export interface PaperOptions extends dia.Paper.Options {
  * const paper = createPaper(graph, options);
  * ```
  */
-export function createPaper(graph: dia.Graph, options?: PaperOptions) {
-  const { scale, onRenderElement, onRenderPorts, ...restOptions } = options ?? {};
+export function createPaper(graph: dia.Graph, options?: PaperOptions): PaperContext {
+  const { scale, onRenderElement, ...restOptions } = options ?? {};
 
+  const portsStore = createPortsStore();
   const elementView = dia.ElementView.extend({
     // Render element using react, `elementView.el` is used as portal gate for react (createPortal)
     onRender() {
@@ -63,17 +58,12 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
       const elementView: dia.ElementView = this;
 
       const portElementsCache: Record<string, PortElementsCacheEntry> = this._portElementsCache;
-      if (!onRenderPorts) {
-        return;
-      }
-      onRenderPorts(elementView.model.id, portElementsCache);
+      portsStore.onRenderPorts(elementView.model.id, portElementsCache);
     },
   });
 
-  // setup default link if there is any link at the graph, just assign first one, otherwise it will be undefined
-  const link = graph.getLinks().find((linkCell) => linkCell.isLink());
   // Create a new JointJS Paper with the provided options
-  const paper = new dia.Paper({
+  const paper: PaperContext = new dia.Paper({
     async: true,
     sorting: dia.Paper.sorting.APPROX,
     preventDefaultBlankAction: false,
@@ -85,12 +75,12 @@ export function createPaper(graph: dia.Graph, options?: PaperOptions) {
     clickThreshold: restOptions?.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
     frozen: true,
     model: graph,
-    defaultLink: restOptions?.defaultLink ?? link,
-  });
-
+  }) as PaperContext;
+  paper.portStore = portsStore;
   // Return the created paper
   if (scale) {
     paper.scale(scale);
   }
+
   return paper;
 }

@@ -43,6 +43,7 @@ function GraphProviderHandler({
     return areMeasured;
   });
   const graph = useGraph();
+
   useEffect(() => {
     if (areElementsMeasured) {
       setLinks({ graph, initialLinks });

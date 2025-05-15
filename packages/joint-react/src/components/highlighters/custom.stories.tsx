@@ -42,7 +42,7 @@ export default meta;
 
 export const CustomWithOpacity = makeStory<Story>({
   args: {
-    onAdd: (cellView, element, highlighterId, options) => {
+    onCreateHighlighter: (cellView, element, highlighterId, options) => {
       return highlighters.opacity.add(cellView, element, highlighterId, options);
     },
     options: {
@@ -64,7 +64,7 @@ export const CustomWithOpacity = makeStory<Story>({
 
 export const CustomWithMask = makeStory<Story>({
   args: {
-    onAdd: (cellView, element, highlighterId, options) => {
+    onCreateHighlighter: (cellView, element, highlighterId, options) => {
       return highlighters.mask.add(cellView, element, highlighterId, options);
     },
     options: {
@@ -90,7 +90,7 @@ export const CustomWithMask = makeStory<Story>({
 
 export const CustomWithStroke = makeStory<Story>({
   args: {
-    onAdd: (cellView, element, highlighterId, options) => {
+    onCreateHighlighter: (cellView, element, highlighterId, options) => {
       return highlighters.stroke.add(cellView, element, highlighterId, options);
     },
     options: {

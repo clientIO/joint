@@ -7,8 +7,6 @@ import type { GraphLink } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
 import { createStoreData } from './create-store-data';
 import type { CellMap } from '../utils/cell/cell-map';
-import type { OnPaperRenderPorts } from '../utils/create-paper';
-import { createPortsData } from './create-ports-data';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
@@ -75,17 +73,17 @@ export interface Store {
   readonly destroy: () => void;
 
   /**
-   * Get port element
+   * Set the measured node element.
+   * For safety, each node, can use only one measured node, do not matter how many papers the graph is using,
+   * only one paper and one node can use measured node, otherwise it can lead to unexpected behavior
+   * when many nodes or same node with many measuredNodes try to adjust the size.
    */
-  readonly getPortElement: (cellId: dia.Cell.ID, portId: string) => SVGElement | undefined;
+  readonly setMeasuredNode: (id: dia.Cell.ID) => () => void;
+
   /**
-   * Set port element
+   * Check if the graph has already measured node for the given element id.
    */
-  readonly onRenderPorts: OnPaperRenderPorts;
-  /**
-   * Subscribes to port element changes.
-   */
-  readonly subscribeToPorts: (onPortChange: () => void) => () => void;
+  readonly hasMeasuredNode: (id: dia.Cell.ID) => boolean;
 }
 
 /**
@@ -155,12 +153,13 @@ export function createStore(options?: StoreOptions): Store {
   // create store data - caching the elements and links for the react
   const data = createStoreData();
   const elementsEvents = subscribeHandler(forceUpdate);
-  const portElements = createPortsData();
-  const portEvents = subscribeHandler();
+
   const unsubscribe = listenToCellChange(graph, onCellChange);
 
   data.updateStore(graph);
   graph.on('batch:stop', onBatchStop);
+
+  const measuredNodes = new Set<dia.Cell.ID>();
 
   /**
    * Force update the graph.
@@ -200,7 +199,7 @@ export function createStore(options?: StoreOptions): Store {
     graph.off('batch:stop', onBatchStop);
     graph.clear();
     data.destroy();
-    portElements.clear();
+    measuredNodes.clear();
   }
   // Force update the graph to ensure it's in sync with the store.
   forceUpdate();
@@ -209,7 +208,6 @@ export function createStore(options?: StoreOptions): Store {
     destroy,
     graph,
     subscribe: elementsEvents.subscribe,
-    subscribeToPorts: portEvents.subscribe,
     getElements() {
       return data.elements;
     },
@@ -231,16 +229,14 @@ export function createStore(options?: StoreOptions): Store {
       }
       return item;
     },
-    getPortElement(cellId, portId) {
-      const portElement = portElements.get(cellId, portId);
-      if (!portElement) {
-        return;
-      }
-      return portElement;
+    setMeasuredNode(id: dia.Cell.ID) {
+      measuredNodes.add(id);
+      return () => {
+        measuredNodes.delete(id);
+      };
     },
-    onRenderPorts(cellId, portElementsCache) {
-      portElements.set(cellId, portElementsCache);
-      portEvents.notifySubscribers();
+    hasMeasuredNode(id: dia.Cell.ID) {
+      return measuredNodes.has(id);
     },
   };
   return store;

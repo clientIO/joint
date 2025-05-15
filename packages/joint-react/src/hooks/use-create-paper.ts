@@ -5,6 +5,7 @@ import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import type { PaperEventType, PaperEvents } from '../types/event.types';
 import { handleEvent } from '../utils/handle-paper-events';
+import type { PaperContext } from '../context';
 
 interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
   /**
@@ -31,15 +32,14 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
   const { overwriteDefaultPaperElement, ...restOptions } = options;
 
   const paperContainerElement = useRef<HTMLDivElement | null>(null);
-  const { graph, onRenderPorts } = useGraphStore();
+  const { graph } = useGraphStore();
 
   // If paper is not inside the PaperContext, create a new paper instance.
-  const [paper, setPaper] = useState<dia.Paper | null>(null);
+  const [paper, setPaper] = useState<PaperContext | null>(null);
 
   useEffect(() => {
     const jointPaper = createPaper(graph, {
       ...restOptions,
-      onRenderPorts,
       // paperElement: paperContainerElement,
       // el: paperContainerElement.current,
     });
@@ -55,10 +55,11 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
     setPaper(jointPaper);
 
     return () => {
+      jointPaper.portStore.destroy();
       jointPaper.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graph, onRenderPorts, overwriteDefaultPaperElement]);
+  }, [graph, overwriteDefaultPaperElement]);
 
   useEffect(() => {
     if (!paper) {

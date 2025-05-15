@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
+//@ts-expect-error its js package without types
+import JsonViewer from '@andypf/json-viewer/dist/esm/react/JsonViewer';
 
 import type { HTMLProps, JSX, PropsWithChildren } from 'react';
 import type { InferElement } from '@joint/react';
@@ -122,5 +124,30 @@ export function HTMLNode(props: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
         <div {...props} />
       </MeasuredNode>
     </foreignObject>
+  );
+}
+
+export function ShowJson(props: Readonly<{ readonly data: string; showCopy?: boolean }>) {
+  return (
+    <JsonViewer
+      indent={2}
+      expanded
+      theme="default-dark"
+      show-data-types
+      show-toolbar="false"
+      expand-icon-type="arrow"
+      show-copy={false}
+      show-size
+      data={props.data}
+    />
+  );
+}
+
+export function DataRenderer({ data, name }: Readonly<{ data: unknown; name: string }>) {
+  return (
+    <div className="mt-4">
+      <h4 className="mb-2">{name}:</h4>
+      <ShowJson data={JSON.stringify(data, null, 2)} />
+    </div>
   );
 }

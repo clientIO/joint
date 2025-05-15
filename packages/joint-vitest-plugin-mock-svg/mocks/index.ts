@@ -158,3 +158,17 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'getBBox', {
     writable: true,
     value: vi.fn().mockImplementation(createSVGRect),
 });
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/checkVisibility
+ * @see https://github.com/jsdom/jsdom/issues/3695
+ * @description This method is not implemented in JSDOM yet.
+ * We are adding it only to SVGElement.
+ */
+Object.defineProperty(globalThis.SVGElement.prototype, 'checkVisibility', {
+    writable: true,
+    value: function () {
+        const bbox = this.getBBox();
+        return bbox.width > 0 && bbox.height > 0;
+    }
+});

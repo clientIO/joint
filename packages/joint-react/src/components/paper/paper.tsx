@@ -16,7 +16,7 @@ import { CellIdContext } from '../../context/cell-id.context';
 import { HTMLElementItem, SVGElementItem } from './paper-element-item';
 import { PaperContext } from '../../context/paper-context';
 import { GraphStoreContext } from '../../context/graph-store-context';
-import { GraphProvider } from '../graph-provider/graph-provider';
+import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
 import type { PaperEvents } from '../../types/event.types';
 import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
@@ -39,6 +39,7 @@ export type RenderElement<ElementItem extends GraphElement = GraphElement> = (
  */
 export interface PaperProps<ElementItem extends GraphElement = GraphElement>
   extends ReactPaperOptions,
+    GraphProps,
     PaperEvents {
   /**
    * A function that renders the element.
@@ -224,13 +225,6 @@ function Component<ElementItem extends GraphElement = GraphElement>(
       return;
     }
     if (areElementsMeasured) {
-      if (!paperOptions.defaultLink) {
-        // setup default link if there is any link at the graph, just assign first one, otherwise it will be undefined
-        const link = graph.getLinks().at(0);
-        if (link) {
-          paper.options.defaultLink = link;
-        }
-      }
       return onElementsSizeReady?.({ paper, graph: paper.model });
     }
 
@@ -248,7 +242,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
         clearTimeout(timeout);
       };
     }
-  }, [areElementsMeasured, graph, onElementsSizeReady, paper, paperOptions.defaultLink]);
+  }, [areElementsMeasured, graph, onElementsSizeReady, paper]);
 
   const content = (
     <>
@@ -289,14 +283,13 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     </>
   );
 
-  const paperContext: PaperContext | null = paper as PaperContext | null;
-  if (paperContext) {
-    paperContext.renderElement = renderElement as RenderElement<GraphElement>;
+  if (paper) {
+    paper.renderElement = renderElement as RenderElement<GraphElement>;
   }
   const hasPaper = !!paper;
 
   return (
-    <PaperContext.Provider value={paperContext}>
+    <PaperContext.Provider value={paper}>
       <div className={className} ref={paperContainerElement} style={paperContainerStyle}>
         {hasPaper && content}
       </div>
@@ -331,7 +324,17 @@ function PaperWithGraphProvider<ElementItem extends GraphElement = GraphElement>
   props: PaperProps<ElementItem>
 ) {
   const hasStore = !!useContext(GraphStoreContext);
-  const { children, ...rest } = props;
+
+  const {
+    children,
+    initialElements,
+    initialLinks,
+    graph,
+    cellNamespace,
+    cellModel,
+    store,
+    ...rest
+  } = props;
   const paperContent = (
     <PaperWithNoDataPlaceHolder {...rest}>{children}</PaperWithNoDataPlaceHolder>
   );
@@ -339,7 +342,18 @@ function PaperWithGraphProvider<ElementItem extends GraphElement = GraphElement>
   if (hasStore) {
     return paperContent;
   }
-  return <GraphProvider>{paperContent}</GraphProvider>;
+  return (
+    <GraphProvider
+      initialElements={initialElements}
+      initialLinks={initialLinks}
+      graph={graph}
+      cellNamespace={cellNamespace}
+      cellModel={cellModel}
+      store={store}
+    >
+      {paperContent}
+    </GraphProvider>
+  );
 }
 
 /**

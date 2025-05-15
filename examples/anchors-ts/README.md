@@ -1,6 +1,6 @@
-# JointJS Link Label Tools
+# JointJS Anchors
 
-The example shows different tools for editing labels.
+The example shows various link anchors.
 
 ## Setup
 

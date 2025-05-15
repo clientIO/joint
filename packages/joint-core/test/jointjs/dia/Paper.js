@@ -1675,6 +1675,96 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(cellsLayer.children.length, 1);
             });
         });
+
+        QUnit.module('measureNode', function(hooks) {
+
+            QUnit.test('is called when `ref` attribute is used', function(assert) {
+                const spyMeasureNode = sinon.spy((node) => node.getBBox());
+
+                paper.options.measureNode = spyMeasureNode;
+
+                const el = new joint.dia.Element({
+                    type: 'testElement',
+                    markup: joint.util.svg`
+                        <rect @selector="labelBackground" />
+                        <text @selector="label" />
+                    `,
+                    attrs: {
+                        label: {
+                            text: 'test'
+                        },
+                        labelBackground: {
+                            ref: 'label',
+                            x: 'calc(x)',
+                            y: 'calc(y)',
+                            width: 'calc(w)',
+                            height: 'calc(h)',
+                        },
+                    },
+                });
+                el.addTo(graph);
+
+                const elView = el.findView(paper);
+                assert.ok(spyMeasureNode.calledOnce);
+                assert.ok(spyMeasureNode.calledWithExactly(elView.findNode('label'), elView));
+            });
+
+            QUnit.test('is called when `offset` attribute is used', function(assert) {
+                const spyMeasureNode = sinon.spy((node) => node.getBBox());
+
+                paper.options.measureNode = spyMeasureNode;
+
+                const el = new joint.dia.Element({
+                    type: 'testElement',
+                    markup: joint.util.svg`
+                        <rect @selector="rect" />
+                    `,
+                    attrs: {
+                        rect: {
+                            xAlignment: 'middle',
+                            yAlignment: 'middle',
+                            width: 100,
+                            height: 100,
+                        },
+                    },
+                });
+                el.addTo(graph);
+
+                const elView = el.findView(paper);
+                assert.ok(spyMeasureNode.calledOnce);
+                assert.ok(spyMeasureNode.calledWithExactly(elView.findNode('rect'), elView));
+            });
+
+            QUnit.test('is called when a magnet is measured', function(assert) {
+                const spyMeasureNode = sinon.spy((node) => node.getBBox());
+
+                paper.options.measureNode = spyMeasureNode;
+
+                const el = new joint.shapes.standard.Rectangle({
+                    size: { width: 100, height: 100 },
+                    attrs: {
+                        root: {
+                            magnetSelector: 'body',
+                        }
+                    }
+                });
+                const link = new joint.shapes.standard.Link({
+                    source: {
+                        id: el.id,
+                        selector: 'body',
+                        anchor: { name: 'modelCenter', args: { useModelGeometry: false }},
+                        connectionPoint: { name: 'bbox', args: { useModelGeometry: false }},
+                    },
+                    target: { x: 200, y: 0 },
+                });
+                graph.addCells([el, link]);
+
+                const elView = el.findView(paper);
+                assert.ok(spyMeasureNode.calledOnce);
+                assert.ok(spyMeasureNode.calledWithExactly(elView.findNode('body'), elView));
+            });
+
+        });
     });
 
     QUnit.module('async = TRUE, autoFreeze = TRUE', function(hooks) {
