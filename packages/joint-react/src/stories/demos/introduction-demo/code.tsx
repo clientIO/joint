@@ -390,8 +390,7 @@ function ToolBar(props: ToolbarProps) {
             return;
           }
           cell.remove();
-          const lastElement = graph.getElements().at(-1);
-          setSelectedId(lastElement?.id ?? null);
+          setSelectedId(null);
         }}
       >
         <i className="fa-solid fa-trash"></i>
@@ -401,9 +400,6 @@ function ToolBar(props: ToolbarProps) {
         type="button"
         className={BUTTON_CLASSNAME}
         onClick={() => {
-          if (!paper) {
-            return;
-          }
           paper.transformToFitContent({
             verticalAlign: 'middle',
             horizontalAlign: 'middle',
