@@ -30,7 +30,7 @@ const Pulse = dia.HighlighterView.extend({
     const { radius = PORT_SIZE / 2 } = this.options;
 
     return jsx(
-      <circle fill="none" r={radius} className="pulse-border" stroke={LIGHT} strokeWidth={2}>
+      <circle fill="none" r={radius} stroke={LIGHT} strokeWidth={2}>
         <animate
           attributeName="r"
           from="8"
