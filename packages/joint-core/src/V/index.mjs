@@ -8,8 +8,9 @@ import * as g from '../g/index.mjs';
 import * as ns from './namespace.mjs';
 import { isSVGSupported, internalSVGDocument, SVG_VERSION, createSVGDocument, createSVGElement } from './create.mjs';
 import {
-    createIdentityMatrix, createMatrix, getNodeMatrix, matrixToTransformString, isSVGMatrix,
+    createIdentityMatrix, createMatrix, getNodeMatrix, isSVGMatrix,
     getRelativeTransformation, getRelativeTransformationSafe,
+    matrixToTransformString, createMatrixFromTransformString,
     transformNode, replaceTransformNode,
 } from './transform.mjs';
 import { getCommonAncestor } from './traverse.mjs';
