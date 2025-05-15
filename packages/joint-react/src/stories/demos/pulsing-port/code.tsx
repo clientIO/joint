@@ -177,7 +177,7 @@ function Main() {
       onLinkMouseLeave={({ linkView }) => linkView.removeTools()}
       markAvailable
       highlighting={{
-        magnetAvailability: {
+        [dia.CellView.Highlighting.MAGNET_AVAILABILITY]: {
           name: 'pulse',
           options: {
             radius: PORT_SIZE / 2 + 4,
