@@ -8,11 +8,10 @@
   "typescript": "dist/src/index.ts",
   "sideEffects": false,
   "scripts": {
-    "code-check": "yarn run typecheck && yarn run lint && yarn run test && yarn run format",
     "typecheck": "tsc --noEmit",
     "lint": "yarn eslint \"**/*.{ts,tsx}\"",
     "format": "prettier --write \"./**/*.{js,jsx,json,ts,tsx}\"",
-    "test": "yarn jest",
+    "test": "yarn run typecheck && yarn run lint && yarn jest",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build": "node --experimental-json-modules --loader ts-node/esm build.ts",
