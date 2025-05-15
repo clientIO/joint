@@ -7,7 +7,7 @@ import CodeHTMLPortal from './code-html-renderer';
 export type Story = StoryObj<typeof CodeSVG>;
 
 export default {
-  title: 'Tutorials/Render Node',
+  title: 'Tutorials/Step by Step',
   component: CodeSVG,
 } satisfies Meta<typeof CodeSVG>;
 
