@@ -1389,6 +1389,7 @@ const V = (function() {
     // List of attributes for which not to split camel case words.
     // It contains known SVG attribute names and may be extended with user-defined attribute names.
     [
+        'attributeName',
         'baseFrequency',
         'baseProfile',
         'clipPathUnits',
@@ -1426,6 +1427,7 @@ const V = (function() {
         'refY',
         'requiredExtensions',
         'requiredFeatures',
+        'repeatCount',
         'specularConstant',
         'specularExponent',
         'spreadMethod',
@@ -1442,7 +1444,7 @@ const V = (function() {
         'viewTarget', // deprecated
         'xChannelSelector',
         'yChannelSelector',
-        'zoomAndPan' // deprecated
+        'zoomAndPan', // deprecated
     ].forEach((name) => _attributeNames[name] = name);
 
     _attributeNames['xlinkShow'] = 'xlink:show';
