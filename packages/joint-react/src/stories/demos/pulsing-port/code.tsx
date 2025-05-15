@@ -4,7 +4,6 @@ import { dia, highlighters, linkTools, V } from '@joint/core';
 import { shapes } from '@joint/core';
 import { createElements, type InferElement } from '../../../utils/create';
 import { PAPER_CLASSNAME, PRIMARY, LIGHT, BG } from 'storybook-config/theme';
-import './index.css';
 import {
   getLinkId,
   GraphProvider,
