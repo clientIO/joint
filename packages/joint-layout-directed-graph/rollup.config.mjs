@@ -1,6 +1,6 @@
 import packageJson from './package.json' with { type: 'json' };
 import banner from 'rollup-plugin-banner2';
-import { uglify } from 'rollup-plugin-uglify';
+import terser from '@rollup/plugin-terser';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 const today = new Date();
@@ -43,7 +43,7 @@ export default [
                     '@joint/core': 'joint'
                 },
                 plugins: [
-                    uglify({ output: { ascii_only: true }}),
+                    terser({ format: { ascii_only: true }}),
                     banner(() => bannerText)
                 ]
             },
