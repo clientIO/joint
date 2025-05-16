@@ -269,7 +269,7 @@ export const Paper = View.extend({
 
         autoFreeze: false,
 
-        delayedCellViewInitialization: true,
+        delayedCellViewInitialization: false,
 
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
@@ -1217,6 +1217,29 @@ export const Paper = View.extend({
         this.trigger('render:done', stats, opt);
     },
 
+    isViewVisible: function(view, isMounted, visibilityCallback) {
+            if (!visibilityCallback || !view.DETACHABLE) return true;
+        if (this.options.delayedCellViewInitialization) {
+            const model = view.model;
+            if (!model) return false;
+            return visibilityCallback.call(this, model, isMounted, this);
+        } else {
+            return visibilityCallback.call(this, view, isMounted, this);
+        }
+    },
+
+    getCellVisibilityCallback: function(opt) {
+        const { options } = this;
+        if (options.delayedCellViewInitialization) {
+            const isVisibleFn = 'isCellVisible' in opt ? opt.isCellVisible : options.isCellVisible;
+            if (typeof isVisibleFn === 'function') return isVisibleFn;
+        } else {
+            const viewportFn = 'viewport' in opt ? opt.viewport : options.viewport;
+            if (typeof viewportFn === 'function') return viewportFn;
+        }
+        return null;
+    },
+
     updateViewsBatch: function(opt) {
         opt || (opt = {});
         var batchSize = opt.batchSize || UPDATE_BATCH_SIZE;
@@ -1229,8 +1252,7 @@ export const Paper = View.extend({
         var empty = true;
         var options = this.options;
         var priorities = updates.priorities;
-        var viewportFn = 'viewport' in opt ? opt.viewport : options.viewport;
-        if (typeof viewportFn !== 'function') viewportFn = null;
+        const visibilityCb = this.getCellVisibilityCallback(opt);
         var postponeViewFn = options.onViewPostponed;
         if (typeof postponeViewFn !== 'function') postponeViewFn = null;
         var priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
@@ -1244,10 +1266,10 @@ export const Paper = View.extend({
                 }
                 var view = views[cid];
                 if (!view) {
-                    // This should not occur
                     if (this._viewPlaceholders[cid]) {
                         view = this._viewPlaceholders[cid];
                     } else {
+                        // This should not occur
                         delete priorityUpdates[cid];
                         continue;
                     }
@@ -1256,7 +1278,7 @@ export const Paper = View.extend({
                 if ((currentFlag & this.FLAG_REMOVE) === 0) {
                     // We should never check a view for viewport if we are about to remove the view
                     var isDetached = cid in updates.unmounted;
-                    if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
+                    if (!this.isViewVisible(view, !isDetached, visibilityCb)) {
                         // Unmount View
 
                         // TODO: remove view
@@ -1335,10 +1357,10 @@ export const Paper = View.extend({
         return mountedViews;
     },
 
-    checkUnmountedViews: function(viewportFn, opt) {
+    checkUnmountedViews: function(visibilityCb, opt) {
         opt || (opt  = {});
         var mountCount = 0;
-        if (typeof viewportFn !== 'function') viewportFn = null;
+        if (typeof visibilityCb !== 'function') visibilityCb = null;
         var batchSize = 'mountBatchSize' in opt ? opt.mountBatchSize : Infinity;
         var updates = this._updates;
         var unmountedCids = updates.unmountedCids;
@@ -1351,7 +1373,7 @@ export const Paper = View.extend({
                 // This should not occur
                 continue;
             }
-            if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, false, this)) {
+            if (!this.isViewVisible(view, false, visibilityCb)) {
                 // Push at the end of all unmounted ids, so this can be check later again
                 unmountedCids.push(cid);
                 continue;
@@ -1369,10 +1391,10 @@ export const Paper = View.extend({
         return mountCount;
     },
 
-    checkMountedViews: function(viewportFn, opt) {
+    checkMountedViews: function(visibilityCb, opt) {
         opt || (opt = {});
         var unmountCount = 0;
-        if (typeof viewportFn !== 'function') return unmountCount;
+        if (typeof visibilityCb !== 'function') return unmountCount;
         var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : Infinity;
         var updates = this._updates;
         var mountedCids = updates.mountedCids;
@@ -1382,7 +1404,7 @@ export const Paper = View.extend({
             if (!(cid in mounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (!view.DETACHABLE || viewportFn.call(this, view, true, this)) {
+            if (this.isViewVisible(view, true, visibilityCb)) {
                 // Push at the end of all mounted ids, so this can be check later again
                 mountedCids.push(cid);
                 continue;
@@ -1406,11 +1428,11 @@ export const Paper = View.extend({
     },
 
     checkViewVisibility: function(cellView, opt = {}) {
-        let viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
-        if (typeof viewportFn !== 'function') viewportFn = null;
+        const visibilityCb = this.getCellVisibilityCallback(opt);
         const updates = this._updates;
         const { mounted, unmounted } = updates;
-        const visible = !cellView.DETACHABLE || !viewportFn || viewportFn.call(this, cellView, false, this);
+
+        const visible = this.isViewVisible(cellView, false, visibilityCb);
 
         let isUnmounted = false;
         let isMounted = false;
@@ -1442,14 +1464,14 @@ export const Paper = View.extend({
             mountBatchSize: Infinity,
             unmountBatchSize: Infinity
         });
-        var viewportFn = 'viewport' in passingOpt ? passingOpt.viewport : this.options.viewport;
-        var unmountedCount = this.checkMountedViews(viewportFn, passingOpt);
+        const visibilityCb = this.getCellVisibilityCallback(passingOpt);
+        var unmountedCount = this.checkMountedViews(visibilityCb, passingOpt);
         if (unmountedCount > 0) {
-            // Do not check views, that have been just unmounted and pushed at the end of the cids array
+            // Do not check views, that paper = been just unmounted and pushed at the end of the cids array
             var unmountedCids = this._updates.unmountedCids;
             passingOpt.mountBatchSize = Math.min(unmountedCids.length - unmountedCount, passingOpt.mountBatchSize);
         }
-        var mountedCount = this.checkUnmountedViews(viewportFn, passingOpt);
+        var mountedCount = this.checkUnmountedViews(visibilityCb, passingOpt);
         return {
             mounted: mountedCount,
             unmounted: unmountedCount
