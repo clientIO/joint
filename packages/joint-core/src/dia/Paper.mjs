@@ -646,8 +646,16 @@ export const Paper = View.extend({
         viewsMap[layerName] = layerView;
     },
 
-    _getLayerView(layerName) {
+    _getLayerView(layer) {
         const { _layers: { viewsMap }} = this;
+
+        let layerName;
+        if (layer instanceof LayerView) {
+            layerName = layer.name;
+        } else {
+            layerName = layer;
+        }
+
         if (layerName in viewsMap) return viewsMap[layerName];
         return null;
     },

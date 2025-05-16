@@ -154,7 +154,7 @@ export class GridLayer extends LayerView {
 
         const options = opt || { args: [{}] };
         const isArray = Array.isArray(options);
-        const name = options.name;
+        let name = options.name;
 
         if (!isArray && !name && !options.markup) {
             name = 'dot';
