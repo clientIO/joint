@@ -3,8 +3,6 @@ import { addClassNamePrefix } from '../util/util.mjs';
 
 export class LayerView extends View {
 
-    defaultTheme = null;
-
     preinitialize() {
         this.tagName = 'g';
         this.svgElement = true;

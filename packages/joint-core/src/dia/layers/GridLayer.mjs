@@ -11,9 +11,6 @@ import V from '../../V/index.mjs';
 
 export class GridLayer extends LayerView {
 
-    _gridCache = null;
-    _gridSettings = null;
-
     preinitialize() {
         super.preinitialize();
 

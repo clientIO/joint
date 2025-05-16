@@ -1480,8 +1480,13 @@ export const Paper = View.extend({
         this.removeLayers();
         this.removeViews();
 
-        this.embeddingLayersController.stopListening();
-        this.cellLayersController.stopListening();
+        if (this.embeddingLayersController) {
+            this.embeddingLayersController.stopListening();
+        }
+
+        if (this.cellLayersController) {
+            this.cellLayersController.stopListening();
+        }
     },
 
     getComputedSize: function() {
