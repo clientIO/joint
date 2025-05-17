@@ -1902,10 +1902,9 @@ export const Paper = View.extend({
         //  1. call the function from the paper options
         //  2. if no view was return, search the namespace for a view
         //  3. if no view was found, use the default
-        var ViewClass = (optionalViewClass.prototype instanceof ViewBase)
+        return (optionalViewClass.prototype instanceof ViewBase)
             ? namespaceViewClass || optionalViewClass
             : optionalViewClass.call(this, cell) || namespaceViewClass || defaultViewClass;
-        return ViewClass;
     },
 
     createViewForModel: function(cell, cid) {
@@ -1913,7 +1912,7 @@ export const Paper = View.extend({
     },
 
     removeView: function(cell) {
-
+        // TODO: remove view or a placeholder
         const { id } = cell;
         const { _views, _updates } = this;
         const view = _views[id];
