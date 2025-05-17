@@ -485,12 +485,12 @@ export const Paper = View.extend({
     },
 
     onCellRemoved: function(cell, _, opt) {
-        const view = this._getCellView(cell);
-        if (!view) return;
-        if (view[CELL_VIEW_PLACEHOLDER]) {
-            this.removeView(view);
+        const viewLike = this._getCellViewLike(cell);
+        if (!viewLike) return;
+        if (viewLike[CELL_VIEW_PLACEHOLDER]) {
+            this._unregisterCellViewPlaceholder(viewLike);
         } else {
-            this.requestViewUpdate(view, this.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
+            this.requestViewUpdate(viewLike, this.FLAG_REMOVE, viewLike.UPDATE_PRIORITY, opt);
         }
     },
 
@@ -500,10 +500,10 @@ export const Paper = View.extend({
             cell.hasChanged('layer') ||
             (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX)
         ) {
-            // TODO: we don't need to create a new view yet
-            // if it's a placeholder
-            const view = this.findViewByModel(cell);
-            if (view) this.requestViewUpdate(view, this.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+            const viewLike = this._getCellViewLike(cell);
+            if (viewLike) {
+                this.requestViewUpdate(viewLike, this.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+            }
         }
     },
 
@@ -2062,7 +2062,7 @@ export const Paper = View.extend({
         return undefined;
     },
 
-    _getCellView: function(cell) {
+    _getCellViewLike: function(cell) {
 
         const { id } = cell;
         const view = this._views[id];
