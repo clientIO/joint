@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { dia, shapes, elementTools } from '@joint/core';
+import { dia, shapes, elementTools, V } from '@joint/core';
 
 const canvas = ref<Element | null>(null);
 
@@ -38,9 +38,14 @@ const toolsView = new dia.ToolsView({
     new elementTools.Remove(),
   ]
 });
-rect.findView(paper).addTools(toolsView);
-rect.findView(paper).vel.translateAndAutoOrient({ x: 10, y: 10, }, { x: 100, y: 100 }, paper.svg);
-(rect.findView(paper).el as SVGGElement).getScreenCTM()!.inverse();
+const rectView = rect.findView(paper) as dia.ElementView;
+rectView.addTools(toolsView);
+rectView.vel.translateAndAutoOrient({ x: 10, y: 10, }, { x: 100, y: 100 }, paper.svg);
+(rectView.el as SVGGElement).getScreenCTM()!.inverse();
+
+// SVGElement.transform.baseVal.consolidate();
+rectView.vel.transform();
+V.transformStringToMatrix('matrix(1, 0, 0, 1, 10, 20)');
 
 onMounted(() => {
   canvas.value?.appendChild(paper.el);

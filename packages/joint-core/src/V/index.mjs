@@ -5,30 +5,26 @@
 // The only Vectorizer dependency is the Geometry library.
 
 import * as g from '../g/index.mjs';
+import * as ns from './namespace.mjs';
+import { isSVGSupported, internalSVGDocument, SVG_VERSION, createSVGDocument, createSVGElement } from './create.mjs';
+import {
+    createIdentityMatrix, createMatrix, getNodeMatrix, isSVGMatrix,
+    getRelativeTransformation, getRelativeTransformationSafe,
+    matrixToTransformString, createMatrixFromTransformString,
+    transformNode, replaceTransformNode,
+} from './transform.mjs';
+import { getCommonAncestor } from './traverse.mjs';
 
 const V = (function() {
 
-    var hasSvg = typeof window === 'object' && !!window.SVGAngle;
-
     // SVG support is required.
-    if (!hasSvg) {
+    if (!isSVGSupported) {
 
         // Return a function that throws an error when it is used.
         return function() {
             throw new Error('SVG is required to use Vectorizer.');
         };
     }
-
-    // XML namespaces.
-    var ns = {
-        svg: 'http://www.w3.org/2000/svg',
-        xmlns: 'http://www.w3.org/2000/xmlns/',
-        xml: 'http://www.w3.org/XML/1998/namespace',
-        xlink: 'http://www.w3.org/1999/xlink',
-        xhtml: 'http://www.w3.org/1999/xhtml'
-    };
-
-    var SVGVersion = '1.1';
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -92,7 +88,7 @@ const V = (function() {
 
             } else {
 
-                el = document.createElementNS(ns.svg, el);
+                el = createSVGElement(el);
             }
 
             V.ensureId(el);
@@ -125,18 +121,21 @@ const V = (function() {
      * @param {SVGGElement} toElem
      * @returns {SVGMatrix}
      */
-    VPrototype.getTransformToElement = function(target) {
-        var node = this.node;
-        if (V.isSVGGraphicsElement(target) && V.isSVGGraphicsElement(node)) {
-            var targetCTM = V.toNode(target).getScreenCTM();
-            var nodeCTM = node.getScreenCTM();
-            if (targetCTM && nodeCTM) {
-                return targetCTM.inverse().multiply(nodeCTM);
+    VPrototype.getTransformToElement = function(target, opt) {
+        const node = this.node;
+        const targetNode = V.toNode(target);
+        let m;
+        if (V.isSVGGraphicsElement(targetNode) && V.isSVGGraphicsElement(node)) {
+            if (opt && opt.safe) {
+                // Use the traversal method to get the transformation matrix.
+                m = getRelativeTransformationSafe(node, targetNode);
+            } else {
+                m = getRelativeTransformation(node, targetNode);
             }
         }
-        // Could not get actual transformation matrix
-        return V.createSVGMatrix();
+        return m || createIdentityMatrix();
     };
+
 
     /**
      * @param {SVGMatrix} matrix
@@ -144,18 +143,20 @@ const V = (function() {
      * @returns {Vectorizer|SVGMatrix} Setter / Getter
      */
     VPrototype.transform = function(matrix, opt) {
+        const node = this.node;
 
-        var node = this.node;
+        // Getter
         if (V.isUndefined(matrix)) {
-            return V.transformStringToMatrix(this.attr('transform'));
+            return getNodeMatrix(node) || createIdentityMatrix();
         }
 
+        // Setter
         if (opt && opt.absolute) {
-            return this.attr('transform', V.matrixToTransformString(matrix));
+            replaceTransformNode(node, matrix);
+        } else {
+            transformNode(node, matrix);
         }
 
-        var svgTransform = V.createSVGTransform(matrix);
-        node.transform.baseVal.appendItem(svgTransform);
         return this;
     };
 
@@ -926,7 +927,7 @@ const V = (function() {
 
         } catch {
             // IE9 throws an exception in odd cases. (`Unexpected call to method or property access`)
-            // We have to make do with the original coordianates.
+            // We have to make do with the original coordinates.
             return p;
         }
 
@@ -986,7 +987,7 @@ const V = (function() {
                     translateToOrigin.matrix.multiply(
                         ctm.scale(scale.sx, scale.sy)))));
 
-        this.attr('transform', V.matrixToTransformString(transform.matrix));
+        this.attr('transform', matrixToTransformString(transform.matrix));
 
         return this;
     };
@@ -1287,15 +1288,12 @@ const V = (function() {
     V.createSvgDocument = function(content) {
 
         if (content) {
-            const XMLString = `<svg xmlns="${ns.svg}" xmlns:xlink="${ns.xlink}" version="${SVGVersion}">${content}</svg>`;
+            const XMLString = `<svg xmlns="${ns.svg}" xmlns:xlink="${ns.xlink}" version="${SVG_VERSION}">${content}</svg>`;
             const { documentElement } = V.parseXML(XMLString, { async: false });
             return documentElement;
         }
 
-        const svg = document.createElementNS(ns.svg, 'svg');
-        svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
-        svg.setAttribute('version', SVGVersion);
-        return svg;
+        return createSVGDocument();
     };
 
     V.createSVGStyle = function(stylesheet) {
@@ -1513,108 +1511,22 @@ const V = (function() {
     // ReDoS mitigation: Use an anchor at the beginning of the match
     // ReDoS mitigation: Avoid backtracking (uses `[^()]+` instead of `.*?`)
     // ReDoS mitigation: Don't match initial `(` inside repeated part
-    // The following regex needs to use /g (= cannot use capturing groups)
-    V.transformRegex = /\b\w+\([^()]+\)/g;
     // The following regexes need to use capturing groups (= cannot use /g)
     V.transformFunctionRegex = /\b(\w+)\(([^()]+)\)/;
     V.transformTranslateRegex = /\btranslate\(([^()]+)\)/;
     V.transformRotateRegex = /\brotate\(([^()]+)\)/;
     V.transformScaleRegex = /\bscale\(([^()]+)\)/;
 
+
     V.transformStringToMatrix = function(transform) {
-
-        // Initialize result matrix as identity matrix
-        let transformationMatrix = V.createSVGMatrix();
-
-        // Note: Multiple transform functions are allowed in `transform` string
-        // `match()` returns `null` if none found
-        const transformMatches = transform && transform.match(V.transformRegex);
-        if (!transformMatches) {
-            // Return identity matrix
-            return transformationMatrix;
+        let matrix;
+        if (V.isString(transform)) {
+            matrix = createMatrixFromTransformString(transform);
         }
-
-        const numMatches = transformMatches.length;
-        for (let i = 0; i < numMatches; i++) {
-
-            const transformMatch = transformMatches[i];
-            // Use same regex as above, but with capturing groups
-            // `match()` returns values of capturing groups as `[1]`, `[2]`
-            const transformFunctionMatch = transformMatch.match(V.transformFunctionRegex);
-            if (transformFunctionMatch) {
-
-                let sx, sy, tx, ty, angle;
-                let ctm = V.createSVGMatrix();
-                const transformFunction = transformFunctionMatch[1].toLowerCase();
-                const args = transformFunctionMatch[2].split(V.transformSeparatorRegex);
-                switch (transformFunction) {
-
-                    case 'scale':
-                        sx = parseFloat(args[0]);
-                        sy = (args[1] === undefined) ? sx : parseFloat(args[1]);
-                        ctm = ctm.scaleNonUniform(sx, sy);
-                        break;
-
-                    case 'translate':
-                        tx = parseFloat(args[0]);
-                        ty = parseFloat(args[1]);
-                        ctm = ctm.translate(tx, ty);
-                        break;
-
-                    case 'rotate':
-                        angle = parseFloat(args[0]);
-                        tx = parseFloat(args[1]) || 0;
-                        ty = parseFloat(args[2]) || 0;
-                        if (tx !== 0 || ty !== 0) {
-                            ctm = ctm.translate(tx, ty).rotate(angle).translate(-tx, -ty);
-                        } else {
-                            ctm = ctm.rotate(angle);
-                        }
-                        break;
-
-                    case 'skewx':
-                        angle = parseFloat(args[0]);
-                        ctm = ctm.skewX(angle);
-                        break;
-
-                    case 'skewy':
-                        angle = parseFloat(args[0]);
-                        ctm = ctm.skewY(angle);
-                        break;
-
-                    case 'matrix':
-                        ctm.a = parseFloat(args[0]);
-                        ctm.b = parseFloat(args[1]);
-                        ctm.c = parseFloat(args[2]);
-                        ctm.d = parseFloat(args[3]);
-                        ctm.e = parseFloat(args[4]);
-                        ctm.f = parseFloat(args[5]);
-                        break;
-
-                    default:
-                        continue;
-                }
-
-                // Multiply current transformation into result matrix
-                transformationMatrix = transformationMatrix.multiply(ctm);
-            }
-
-        }
-        return transformationMatrix;
+        return matrix || createIdentityMatrix();
     };
 
-    V.matrixToTransformString = function(matrix) {
-        matrix || (matrix = true);
-
-        return 'matrix(' +
-            (matrix.a !== undefined ? matrix.a : 1) + ',' +
-            (matrix.b !== undefined ? matrix.b : 0) + ',' +
-            (matrix.c !== undefined ? matrix.c : 0) + ',' +
-            (matrix.d !== undefined ? matrix.d : 1) + ',' +
-            (matrix.e !== undefined ? matrix.e : 0) + ',' +
-            (matrix.f !== undefined ? matrix.f : 0) +
-            ')';
-    };
+    V.matrixToTransformString = matrixToTransformString;
 
     V.parseTransformString = function(transform) {
 
@@ -1782,35 +1694,25 @@ const V = (function() {
         return node instanceof SVGElement && typeof node.getScreenCTM === 'function';
     };
 
-    var svgDocument = V('svg').node;
-
-    V.createSVGMatrix = function(matrix) {
-
-        var svgMatrix = svgDocument.createSVGMatrix();
-        for (var component in matrix) {
-            svgMatrix[component] = matrix[component];
-        }
-
-        return svgMatrix;
-    };
+    V.createSVGMatrix = createMatrix;
 
     V.createSVGTransform = function(matrix) {
 
         if (!V.isUndefined(matrix)) {
 
-            if (!(matrix instanceof SVGMatrix)) {
-                matrix = V.createSVGMatrix(matrix);
+            if (!isSVGMatrix(matrix)) {
+                matrix = createMatrix(matrix);
             }
 
-            return svgDocument.createSVGTransformFromMatrix(matrix);
+            return internalSVGDocument.createSVGTransformFromMatrix(matrix);
         }
 
-        return svgDocument.createSVGTransform();
+        return internalSVGDocument.createSVGTransform();
     };
 
     V.createSVGPoint = function(x, y) {
 
-        var p = svgDocument.createSVGPoint();
+        var p = internalSVGDocument.createSVGPoint();
         p.x = x;
         p.y = y;
         return p;
@@ -1818,7 +1720,7 @@ const V = (function() {
 
     V.transformRect = function(r, matrix) {
 
-        var p = svgDocument.createSVGPoint();
+        var p = internalSVGDocument.createSVGPoint();
 
         p.x = r.x;
         p.y = r.y;
@@ -2637,7 +2539,18 @@ const V = (function() {
         };
     })();
 
-    V.namespace = ns;
+    /**
+     *
+     * @param {SVGElement|V} node1
+     * @param {SVGElement|V} node2
+     * @returns {SVGElement|null}
+     */
+    V.getCommonAncestor = function(node1, node2) {
+        if (!node1 || !node2) return null;
+        return getCommonAncestor(V.toNode(node1), V.toNode(node2));
+    };
+
+    V.namespace = { ...ns };
 
     V.g = g;
 
