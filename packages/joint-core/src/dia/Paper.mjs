@@ -396,6 +396,11 @@ export const Paper = View.extend({
     // Default layer to insert the cell views into.
     DEFAULT_CELL_LAYER: LayersNames.CELLS,
 
+    // Update flags
+    FLAG_INSERT: 1<<30,
+    FLAG_REMOVE: 1<<29,
+    FLAG_INIT: 1<<28,
+
     init: function() {
 
         const { options } = this;
@@ -491,6 +496,8 @@ export const Paper = View.extend({
             cell.hasChanged('layer') ||
             (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX)
         ) {
+            // TODO: we don't need to create a new view yet
+            // if it's a placeholder
             const view = this.findViewByModel(cell);
             if (view) this.requestViewUpdate(view, this.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
         }
@@ -1051,7 +1058,8 @@ export const Paper = View.extend({
 
     updateView: function(view, flag, opt) {
         if (!view) return 0;
-        const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT, model } = view;
+        const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT } = this;
+        const { model } = view;
         if (view instanceof CellView) {
             if (flag & FLAG_REMOVE) {
                 this.removeView(model);
@@ -1220,14 +1228,13 @@ export const Paper = View.extend({
     },
 
     isViewVisible: function(view, isMounted, visibilityCallback) {
-            if (!visibilityCallback || !view.DETACHABLE) return true;
+        if (!visibilityCallback || !view.DETACHABLE) return true;
         if (this.options.delayedCellViewInitialization) {
             const model = view.model;
-            if (!model) return false;
+            if (!model) return true;
             return visibilityCallback.call(this, model, isMounted, this);
-        } else {
-            return visibilityCallback.call(this, view, isMounted, this);
         }
+        return visibilityCallback.call(this, view, isMounted, this);
     },
 
     getCellVisibilityCallback: function(opt) {
@@ -1414,8 +1421,10 @@ export const Paper = View.extend({
             unmountCount++;
             var flag = this.registerUnmountedView(view);
             if (flag) {
-
                 if (this.options.delayedCellViewInitialization) {
+                    // TODO: the choice of whether to remove the view
+                    // or just detach it should be made via an option
+                    // or a callback
                     view.remove();
                     delete this._views[view.model.id];
                     this.createCellViewPlaceholder(view.model, view.cid);
@@ -1469,7 +1478,7 @@ export const Paper = View.extend({
         const visibilityCb = this.getCellVisibilityCallback(passingOpt);
         var unmountedCount = this.checkMountedViews(visibilityCb, passingOpt);
         if (unmountedCount > 0) {
-            // Do not check views, that paper = been just unmounted and pushed at the end of the cids array
+            // Do not check views, that have been just unmounted and pushed at the end of the cids array
             var unmountedCids = this._updates.unmountedCids;
             passingOpt.mountBatchSize = Math.min(unmountedCids.length - unmountedCount, passingOpt.mountBatchSize);
         }
@@ -1826,10 +1835,9 @@ export const Paper = View.extend({
         return restrictedArea;
     },
 
-
     resolveCellViewPlaceholder: function(placeholder) {
-        const { model, cid } = placeholder;
-        const view = this.createViewForModel(model, cid);
+        const { model, viewClass, cid } = placeholder;
+        const view = this.initializeCellView(viewClass, model, cid);
         view.paper = this;
         this._views[model.id] = view;
         delete this._viewPlaceholders[cid];
@@ -1839,11 +1847,14 @@ export const Paper = View.extend({
 
     createCellViewPlaceholder: function(cell, cid = uniqueId('view')) {
 
+        const ViewClass = this.resolveCellViewClass(cell);
+
         const placeholder = {
             cid,
             model: cell,
             DETACHABLE: true,
-            UPDATE_PRIORITY: cell.isLink() ? 1 : 0,
+            viewClass: ViewClass,
+            UPDATE_PRIORITY: ViewClass.prototype.UPDATE_PRIORITY,
             [CELL_VIEW_PLACEHOLDER]: true,
         };
 
@@ -1852,21 +1863,17 @@ export const Paper = View.extend({
         return placeholder;
     },
 
-    createViewForModel: function(cell, cid) {
-
+    resolveCellViewClass: function(cell) {
         const { options } = this;
+        const { cellViewNamespace } = options;
+        const type = cell.get('type') + 'View';
+        const namespaceViewClass = getByPath(cellViewNamespace, type, '.');
+        if (namespaceViewClass) {
+            return namespaceViewClass;
+        }
         // A class taken from the paper options.
-        var optionalViewClass;
-
-        // A default basic class (either dia.ElementView or dia.LinkView)
-        var defaultViewClass;
-
-        // A special class defined for this model in the corresponding namespace.
-        // e.g. joint.shapes.standard.Rectangle searches for joint.shapes.standard.RectangleView
-        var namespace = options.cellViewNamespace;
-        var type = cell.get('type') + 'View';
-        var namespaceViewClass = getByPath(namespace, type, '.');
-
+        let optionalViewClass;
+        let defaultViewClass;
         if (cell.isLink()) {
             optionalViewClass = options.linkView;
             defaultViewClass = LinkView;
@@ -1874,7 +1881,6 @@ export const Paper = View.extend({
             optionalViewClass = options.elementView;
             defaultViewClass = ElementView;
         }
-
         // a) the paper options view is a class (deprecated)
         //  1. search the namespace for a view
         //  2. if no view was found, use view from the paper options
@@ -1885,13 +1891,22 @@ export const Paper = View.extend({
         var ViewClass = (optionalViewClass.prototype instanceof ViewBase)
             ? namespaceViewClass || optionalViewClass
             : optionalViewClass.call(this, cell) || namespaceViewClass || defaultViewClass;
+        return ViewClass;
+    },
 
+    initializeCellView: function(ViewClass, cell, cid) {
+        const { options } = this;
+        const { interactive, labelsLayer } = options;
         return new ViewClass({
             cid,
             model: cell,
-            interactive: options.interactive,
-            labelsLayer: options.labelsLayer === true ? LayersNames.LABELS : options.labelsLayer
+            interactive,
+            labelsLayer: labelsLayer === true ? LayersNames.LABELS : labelsLayer
         });
+    },
+
+    createViewForModel: function(cell, cid) {
+        return this.initializeCellView(this.resolveCellViewClass(cell), cell, cid);
     },
 
     removeView: function(cell) {
