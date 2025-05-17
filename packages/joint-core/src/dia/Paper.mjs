@@ -98,6 +98,8 @@ const defaultLayers = [{
     name: LayersNames.TOOLS
 }];
 
+const CELL_VIEW_PLACEHOLDER = Symbol('joint:cellViewPlaceholder');
+
 export const Paper = View.extend({
 
     className: 'paper',
@@ -478,6 +480,7 @@ export const Paper = View.extend({
     },
 
     onCellRemoved: function(cell, _, opt) {
+        // TODO: if view is a placeholder, remove it immediately
         const view = this.findViewByModel(cell);
         if (view) this.requestViewUpdate(view, this.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
     },
@@ -989,7 +992,6 @@ export const Paper = View.extend({
             }
         }
         const { FLAG_REMOVE, FLAG_INSERT } = this;
-        // const { FLAG_REMOVE, FLAG_INSERT, UPDATE_PRIORITY, cid } = view;
         const { UPDATE_PRIORITY, cid } = view;
 
         let priorityUpdates = updates.priorities[priority];
@@ -1295,7 +1297,7 @@ export const Paper = View.extend({
                         continue;
                     }
 
-                    if (view.placeholder) {
+                    if (view[CELL_VIEW_PLACEHOLDER]) {
                         view = this.resolveCellViewPlaceholder(view);
                         currentFlag |= view.getFlag(result(view, 'initFlag'));
                     }
@@ -1380,7 +1382,7 @@ export const Paper = View.extend({
             }
             mountCount++;
             var flag = this.registerMountedView(view);
-            if (view.placeholder) {
+            if (view[CELL_VIEW_PLACEHOLDER]) {
                 view = this.resolveCellViewPlaceholder(view);
                 flag |= view.getFlag(result(view, 'initFlag'));
             }
@@ -1842,7 +1844,7 @@ export const Paper = View.extend({
             model: cell,
             DETACHABLE: true,
             UPDATE_PRIORITY: cell.isLink() ? 1 : 0,
-            placeholder: true
+            [CELL_VIEW_PLACEHOLDER]: true,
         };
 
         this._viewPlaceholders[cid] = placeholder;
@@ -2023,7 +2025,7 @@ export const Paper = View.extend({
     },
 
     detachView(view) {
-        if (view.placeholder) return;
+        if (view[CELL_VIEW_PLACEHOLDER]) return;
         view.unmount();
         view.onDetach();
     },
@@ -2048,7 +2050,7 @@ export const Paper = View.extend({
         var id = (isString(cell) || isNumber(cell)) ? cell : (cell && cell.id);
 
         let view = this._views[id] || this._viewPlaceholders[this._idToCid[id]];
-        if (view && view.placeholder) {
+        if (view && view[CELL_VIEW_PLACEHOLDER]) {
             view = this.resolveCellViewPlaceholder(view);
             this.requestViewUpdate(view, view.getFlag(result(view, 'initFlag')), view.UPDATE_PRIORITY);
         }
