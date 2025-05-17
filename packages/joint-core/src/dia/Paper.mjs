@@ -485,9 +485,13 @@ export const Paper = View.extend({
     },
 
     onCellRemoved: function(cell, _, opt) {
-        // TODO: if view is a placeholder, remove it immediately
-        const view = this.findViewByModel(cell);
-        if (view) this.requestViewUpdate(view, this.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
+        const view = this._getCellView(cell);
+        if (!view) return;
+        if (view[CELL_VIEW_PLACEHOLDER]) {
+            this.removeView(view);
+        } else {
+            this.requestViewUpdate(view, this.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
+        }
     },
 
     onCellChange: function(cell, opt) {
@@ -1305,7 +1309,7 @@ export const Paper = View.extend({
                     }
 
                     if (view[CELL_VIEW_PLACEHOLDER]) {
-                        view = this.resolveCellViewPlaceholder(view);
+                        view = this._resolveCellViewPlaceholder(view);
                         currentFlag |= view.getFlag(result(view, 'initFlag'));
                     }
 
@@ -1390,7 +1394,7 @@ export const Paper = View.extend({
             mountCount++;
             var flag = this.registerMountedView(view);
             if (view[CELL_VIEW_PLACEHOLDER]) {
-                view = this.resolveCellViewPlaceholder(view);
+                view = this._resolveCellViewPlaceholder(view);
                 flag |= view.getFlag(result(view, 'initFlag'));
             }
             if (flag) this.scheduleViewUpdate(view, flag, view.UPDATE_PRIORITY, { mounting: true });
@@ -1427,7 +1431,7 @@ export const Paper = View.extend({
                     // or a callback
                     view.remove();
                     delete this._views[view.model.id];
-                    this.createCellViewPlaceholder(view.model, view.cid);
+                    this._registerCellViewPlaceholder(view.model, view.cid);
                 } else {
                     this.detachView(view);
                 }
@@ -1835,32 +1839,45 @@ export const Paper = View.extend({
         return restrictedArea;
     },
 
-    resolveCellViewPlaceholder: function(placeholder) {
+    _resolveCellViewPlaceholder: function(placeholder) {
         const { model, viewClass, cid } = placeholder;
-        const view = this.initializeCellView(viewClass, model, cid);
+        const view = this._initializeCellView(viewClass, model, cid);
         view.paper = this;
         this._views[model.id] = view;
-        delete this._viewPlaceholders[cid];
-        delete this._idToCid[model.id];
+        this._unregisterCellViewPlaceholder(placeholder);
         return view;
     },
 
-    createCellViewPlaceholder: function(cell, cid = uniqueId('view')) {
-
+    _registerCellViewPlaceholder: function(cell, cid = uniqueId('view')) {
         const ViewClass = this.resolveCellViewClass(cell);
-
         const placeholder = {
+            // A way to distinguish a placeholder from a real view
+            [CELL_VIEW_PLACEHOLDER]: true,
             cid,
             model: cell,
             DETACHABLE: true,
             viewClass: ViewClass,
             UPDATE_PRIORITY: ViewClass.prototype.UPDATE_PRIORITY,
-            [CELL_VIEW_PLACEHOLDER]: true,
         };
-
         this._viewPlaceholders[cid] = placeholder;
         this._idToCid[cell.id] = cid;
         return placeholder;
+    },
+
+    _unregisterCellViewPlaceholder: function(placeholder) {
+        delete this._viewPlaceholders[placeholder.cid];
+        delete this._idToCid[placeholder.model.id];
+    },
+
+    _initializeCellView: function(ViewClass, cell, cid) {
+        const { options } = this;
+        const { interactive, labelsLayer } = options;
+        return new ViewClass({
+            cid,
+            model: cell,
+            interactive,
+            labelsLayer: labelsLayer === true ? LayersNames.LABELS : labelsLayer
+        });
     },
 
     resolveCellViewClass: function(cell) {
@@ -1891,19 +1908,8 @@ export const Paper = View.extend({
         return ViewClass;
     },
 
-    initializeCellView: function(ViewClass, cell, cid) {
-        const { options } = this;
-        const { interactive, labelsLayer } = options;
-        return new ViewClass({
-            cid,
-            model: cell,
-            interactive,
-            labelsLayer: labelsLayer === true ? LayersNames.LABELS : labelsLayer
-        });
-    },
-
     createViewForModel: function(cell, cid) {
-        return this.initializeCellView(this.resolveCellViewClass(cell), cell, cid);
+        return this._initializeCellView(this.resolveCellViewClass(cell), cell, cid);
     },
 
     removeView: function(cell) {
@@ -1943,7 +1949,7 @@ export const Paper = View.extend({
         }
         if (create) {
             if (this.options.delayedCellViewInitialization) {
-                view = this.createCellViewPlaceholder(cell);
+                view = this._registerCellViewPlaceholder(cell);
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT;
             } else {
                 view = this.createViewForModel(cell);
@@ -2056,6 +2062,21 @@ export const Paper = View.extend({
         return undefined;
     },
 
+    _getCellView: function(cell) {
+
+        const { id } = cell;
+        const view = this._views[id];
+        if (view) return view;
+
+        // If the view is not found, it may be a placeholder
+        const cid = this._idToCid[id];
+        if (cid) {
+            return this._viewPlaceholders[cid];
+        }
+
+        return null;
+    },
+
     // Find a view for a model `cell`. `cell` can also be a string or number representing a model `id`.
     findViewByModel: function(cell) {
 
@@ -2063,7 +2084,7 @@ export const Paper = View.extend({
 
         let view = this._views[id] || this._viewPlaceholders[this._idToCid[id]];
         if (view && view[CELL_VIEW_PLACEHOLDER]) {
-            view = this.resolveCellViewPlaceholder(view);
+            view = this._resolveCellViewPlaceholder(view);
             this.requestViewUpdate(view, view.getFlag(result(view, 'initFlag')), view.UPDATE_PRIORITY);
         }
 
