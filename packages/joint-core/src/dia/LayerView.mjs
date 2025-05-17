@@ -1,48 +1,36 @@
 import { View } from '../mvc/index.mjs';
 import { addClassNamePrefix } from '../util/util.mjs';
 
-export const LayersNames = {
-    GRID: 'grid',
-    CELLS: 'cells',
-    BACK: 'back',
-    FRONT: 'front',
-    TOOLS: 'tools',
-    LABELS: 'labels'
-};
+export class LayerView extends View {
 
-export const PaperLayer = View.extend({
+    preinitialize() {
+        this.tagName = 'g';
+        this.svgElement = true;
+        this.pivotNodes = {};
+    }
 
-    tagName: 'g',
-    svgElement: true,
-    pivotNodes: null,
-    defaultTheme: null,
+    init(...args) {
+        super.init(...args);
+    }
 
-    options: {
-        name: ''
-    },
-
-    className: function() {
+    className() {
         const { name } = this.options;
         if (!name) return null;
         return addClassNamePrefix(`${name}-layer`);
-    },
+    }
 
-    init: function() {
-        this.pivotNodes = {};
-    },
-
-    insertSortedNode: function(node, z) {
+    insertSortedNode(node, z) {
         this.el.insertBefore(node, this.insertPivot(z));
-    },
+    }
 
-    insertNode: function(node) {
+    insertNode(node) {
         const { el } = this;
         if (node.parentNode !== el) {
             el.appendChild(node);
         }
-    },
+    }
 
-    insertPivot: function(z) {
+    insertPivot(z) {
         const { el, pivotNodes } = this;
         z = +z;
         z || (z = 0);
@@ -66,17 +54,21 @@ export const PaperLayer = View.extend({
             el.insertBefore(pivotNode, el.firstChild);
         }
         return pivotNode;
-    },
+    }
 
-    removePivots: function() {
+    removePivots() {
         const { el, pivotNodes } = this;
-        for (let z in pivotNodes) el.removeChild(pivotNodes[z]);
+        for (let z in pivotNodes) {
+            el.removeChild(pivotNodes[z]);
+        }
         this.pivotNodes = {};
-    },
+    }
 
-    isEmpty: function() {
-        // Check if the layer has any child elements (pivot comments are not counted).
+    isEmpty() {
         return this.el.children.length === 0;
-    },
+    }
 
-});
+    get name() {
+        return this.options.name;
+    }
+}
