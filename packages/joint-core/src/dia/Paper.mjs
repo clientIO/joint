@@ -1868,9 +1868,6 @@ export const Paper = View.extend({
         const { cellViewNamespace } = options;
         const type = cell.get('type') + 'View';
         const namespaceViewClass = getByPath(cellViewNamespace, type, '.');
-        if (namespaceViewClass) {
-            return namespaceViewClass;
-        }
         // A class taken from the paper options.
         let optionalViewClass;
         let defaultViewClass;
