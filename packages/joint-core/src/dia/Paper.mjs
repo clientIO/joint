@@ -1263,6 +1263,7 @@ export const Paper = View.extend({
         var maxPriority = MIN_PRIORITY;
         var empty = true;
         var options = this.options;
+        const { viewManagement } = options;
         var priorities = updates.priorities;
         const visibilityCb = this.getCellVisibilityCallback(opt);
         var postponeViewFn = options.onViewPostponed;
@@ -1292,27 +1293,29 @@ export const Paper = View.extend({
                     var isDetached = cid in updates.unmounted;
                     if (!this.isViewVisible(view, !isDetached, visibilityCb)) {
                         // Unmount View
-
-                        // TODO: remove view
-
                         if (!isDetached) {
+                            // The view has been already mounted
                             this.registerUnmountedView(view);
-                            this.detachView(view);
-                            // this.removeView(view.model);
-                            // TODO
+                            if (viewManagement && viewManagement.reclaimHidden) {
+                                view.remove();
+                                delete this._views[view.model.id];
+                                this._registerCellViewPlaceholder(view.model, view.cid);
+                            } else {
+                                this.detachView(view);
+                            }
                         }
                         updates.unmounted[cid] |= currentFlag;
                         delete priorityUpdates[cid];
                         unmountCount++;
                         continue;
                     }
+                    // Mount View
 
                     if (view[CELL_VIEW_PLACEHOLDER]) {
                         view = this._resolveCellViewPlaceholder(view);
                         currentFlag |= view.getFlag(result(view, 'initFlag'));
                     }
 
-                    // Mount View
                     if (isDetached) {
                         currentFlag |= this.FLAG_INSERT;
                         mountCount++;
