@@ -30,7 +30,6 @@ import {
     toArray,
     has,
     uniqueId,
-    uniq
 } from '../util/index.mjs';
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
@@ -98,7 +97,7 @@ const defaultLayers = [{
     name: LayersNames.TOOLS
 }];
 
-const CELL_VIEW_PLACEHOLDER = Symbol('joint:cellViewPlaceholder');
+const CELL_VIEW_PLACEHOLDER = Symbol('joint.cellViewPlaceholder');
 
 export const Paper = View.extend({
 
@@ -271,7 +270,7 @@ export const Paper = View.extend({
 
         autoFreeze: false,
 
-        delayedCellViewInitialization: false,
+        viewManagement: false,
 
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
@@ -502,7 +501,7 @@ export const Paper = View.extend({
         ) {
             const viewLike = this._getCellViewLike(cell);
             if (viewLike) {
-                this.requestViewUpdate(viewLike, this.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+                this.requestViewUpdate(viewLike, this.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
             }
         }
     },
@@ -1233,7 +1232,7 @@ export const Paper = View.extend({
 
     isViewVisible: function(view, isMounted, visibilityCallback) {
         if (!visibilityCallback || !view.DETACHABLE) return true;
-        if (this.options.delayedCellViewInitialization) {
+        if (this.options.viewManagement) {
             const model = view.model;
             if (!model) return true;
             return visibilityCallback.call(this, model, isMounted, this);
@@ -1243,7 +1242,7 @@ export const Paper = View.extend({
 
     getCellVisibilityCallback: function(opt) {
         const { options } = this;
-        if (options.delayedCellViewInitialization) {
+        if (options.viewManagement) {
             const isVisibleFn = 'isCellVisible' in opt ? opt.isCellVisible : options.isCellVisible;
             if (typeof isVisibleFn === 'function') return isVisibleFn;
         } else {
@@ -1406,6 +1405,7 @@ export const Paper = View.extend({
 
     checkMountedViews: function(visibilityCb, opt) {
         opt || (opt = {});
+        const { viewManagement } = this.options;
         var unmountCount = 0;
         if (typeof visibilityCb !== 'function') return unmountCount;
         var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : Infinity;
@@ -1425,10 +1425,7 @@ export const Paper = View.extend({
             unmountCount++;
             var flag = this.registerUnmountedView(view);
             if (flag) {
-                if (this.options.delayedCellViewInitialization) {
-                    // TODO: the choice of whether to remove the view
-                    // or just detach it should be made via an option
-                    // or a callback
+                if (viewManagement && viewManagement.reclaimHidden) {
                     view.remove();
                     delete this._views[view.model.id];
                     this._registerCellViewPlaceholder(view.model, view.cid);
@@ -1947,7 +1944,8 @@ export const Paper = View.extend({
             }
         }
         if (create) {
-            if (this.options.delayedCellViewInitialization) {
+            const { viewManagement } = this.options;
+            if (viewManagement && viewManagement.lazy) {
                 view = this._registerCellViewPlaceholder(cell);
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT;
             } else {
