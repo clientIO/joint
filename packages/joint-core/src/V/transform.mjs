@@ -79,7 +79,6 @@ export function replaceTransformNode(node, matrixInit) {
  * @description Applies a transformation matrix to the given node.
  * If the node already has a transformation, it appends the new transformation.
  * If the node has no transformation, it creates a new one.
- * @todo: Support `node.transform.baseVal` within `joint-vitest-plugin-mock`
  */
 export function transformNode(node, matrixInit) {
     const transform = createSVGTransform();
