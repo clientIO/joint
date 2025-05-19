@@ -1296,7 +1296,7 @@ export const Paper = View.extend({
                         if (!isDetached) {
                             // The view has been already mounted
                             this.registerUnmountedView(view);
-                            if (viewManagement && viewManagement.reclaimHidden) {
+                            if (viewManagement && viewManagement.disposeHidden) {
                                 view.remove();
                                 delete this._views[view.model.id];
                                 this._registerCellViewPlaceholder(view.model, view.cid);
@@ -1428,7 +1428,7 @@ export const Paper = View.extend({
             unmountCount++;
             var flag = this.registerUnmountedView(view);
             if (flag) {
-                if (viewManagement && viewManagement.reclaimHidden) {
+                if (viewManagement && viewManagement.disposeHidden) {
                     view.remove();
                     delete this._views[view.model.id];
                     this._registerCellViewPlaceholder(view.model, view.cid);
@@ -1912,7 +1912,6 @@ export const Paper = View.extend({
     },
 
     removeView: function(cell) {
-        // TODO: remove view or a placeholder
         const { id } = cell;
         const { _views, _updates } = this;
         const view = _views[id];
@@ -1921,7 +1920,6 @@ export const Paper = View.extend({
             const { mounted, unmounted } = _updates;
             view.remove();
             delete _views[id];
-            delete this._viewPlaceholders[cid];
             delete mounted[cid];
             delete unmounted[cid];
         }
@@ -1948,7 +1946,7 @@ export const Paper = View.extend({
         }
         if (create) {
             const { viewManagement } = this.options;
-            if (viewManagement && viewManagement.lazy) {
+            if (viewManagement && viewManagement.lazyInitialization) {
                 view = this._registerCellViewPlaceholder(cell);
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT;
             } else {
@@ -1986,11 +1984,16 @@ export const Paper = View.extend({
     },
 
     removeViews: function() {
-
-        invoke(this._views, 'remove');
-
+        // Remove all views and their references from the paper.
+        for (let cid in this._views) {
+            const view = this._views[cid];
+            if (view) {
+                view.remove();
+            }
+        }
         this._views = {};
         this._viewPlaceholders = {};
+        this._idToCid = {};
     },
 
     sortViews: function() {
