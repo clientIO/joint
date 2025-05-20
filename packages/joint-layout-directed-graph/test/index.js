@@ -595,13 +595,15 @@ QUnit.module('DirectedGraph', function(hooks) {
             elements[0].embed(elements[1]);
             elements[2].embed(elements[3]);
 
-            const links = [
+            const invalidGraphLinks = [
                 // this throws error:
                 new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[0].id }}), // child -> its container
                 new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[2].id }}), // child -> unrelated container
                 new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[1].id }}), // container -> its child
                 new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[3].id }}), // container -> unrelated child
                 new joint.shapes.standard.Link({ source: { id: elements[0].id }, target: { id: elements[2].id }}), // container -> unrelated container
+            ];
+            const validGraphLinks = [
                 // this is ok:
                 new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { id: elements[3].id }}), // child -> unrelated child
                 new joint.shapes.standard.Link({ source: { id: elements[1].id }, target: { x: 0, y: 0 }}), // child -> point
@@ -610,115 +612,46 @@ QUnit.module('DirectedGraph', function(hooks) {
                 new joint.shapes.standard.Link({ source: { x: 0, y: 0 }, target: { id: elements[0].id }}), // point -> container
             ];
 
-            let cells, error;
+            let cells;
 
             // Using `validateGraph` option (default):
-
-            error = new Error('DirectedGraph: It is not possible to connect a child to a container.');
-
-            cells = elements.concat([links[0]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph);
-            }, error);
-
-            cells = elements.concat([links[1]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph);
-            }, error);
-
-            cells = elements.concat([links[2]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph);
-            }, error);
-
-            cells = elements.concat([links[3]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph);
-            }, error);
-
-            cells = elements.concat([links[4]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph);
-            }, error);
-
-            cells = elements.concat([links[5]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
-
-            cells = elements.concat([links[6]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
-
-            cells = elements.concat([links[7]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
-
-            cells = elements.concat([links[8]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
-
-            cells = elements.concat([links[9]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
+            invalidGraphLinks.forEach((link) => {
+                cells = elements.concat([link]);
+                graph.resetCells(cells);
+                assert.throws(() => {
+                        DirectedGraph.layout(graph);
+                    },
+                    new Error('DirectedGraph: It is not possible to connect a child to a container.'),
+                    'Should throw our own Error about an attempt having been made to connect a child to a container'
+                );
+            });
+            validGraphLinks.forEach((link) => {
+                cells = elements.concat([link]);
+                graph.resetCells(cells);
+                assert.ok(DirectedGraph.layout(graph) instanceof g.Rect);
+            });
 
             // Disabling `validateGraph` option:
-
-            error = new TypeError(`Cannot set properties of undefined (setting 'rank')`);
-
-            cells = elements.concat([links[0]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph, { validateGraph: false });
-            }, error);
-
-            cells = elements.concat([links[1]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph, { validateGraph: false });
-            }, error);
-
-            cells = elements.concat([links[2]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph, { validateGraph: false });
-            }, error);
-
-            cells = elements.concat([links[3]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph, { validateGraph: false });
-            }, error);
-
-            cells = elements.concat([links[4]]);
-            graph.resetCells(cells);
-            assert.throws(() => {
-                DirectedGraph.layout(graph, { validateGraph: false });
-            }, error);
-
-            cells = elements.concat([links[5]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph, { validateGraph: false }) instanceof g.Rect);
-
-            cells = elements.concat([links[6]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph, { validateGraph: false }) instanceof g.Rect);
-
-            cells = elements.concat([links[7]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph, { validateGraph: false }) instanceof g.Rect);
-
-            cells = elements.concat([links[8]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph, { validateGraph: false }) instanceof g.Rect);
-
-            cells = elements.concat([links[9]]);
-            graph.resetCells(cells);
-            assert.ok(DirectedGraph.layout(graph, { validateGraph: false }) instanceof g.Rect);
+            invalidGraphLinks.forEach((link) => {
+                cells = elements.concat([link]);
+                graph.resetCells(cells);
+                assert.throws(() => {
+                        DirectedGraph.layout(graph, { validateGraph: false });
+                    },
+                    (err) => {
+                        return err instanceof TypeError &&
+                            err.message.includes('set') &&
+                            err.message.includes('rank') &&
+                            err.message.includes('undefined');
+                    },
+                    'Should cause a JavaScript TypeError about not being able to set `rank` on `undefined`'
+                );
+            });
+            validGraphLinks.forEach((link) => {
+                cells = elements.concat([link]);
+                graph.resetCells(cells);
+                assert.ok(DirectedGraph.layout(graph, { validateGraph: false }) instanceof g.Rect);
+            });
         })
     });
 });

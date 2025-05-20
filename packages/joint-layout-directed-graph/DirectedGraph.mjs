@@ -105,11 +105,14 @@ export const DirectedGraph = {
         }
     },
 
-    // Validate that the graph does not have an arrangement of cells that Dagre considers invalid:
-    // - child connected to a container
-    // - container connected to a child
-    // - container connected to a container
-    // Throw an understandable error if one of the above situations is the case.
+    /**
+     * Validates that the graph does not contain an arrangement of cells that Dagre considers invalid:
+     * - A child connected to a container.
+     * - A container connected to a child.
+     * - A container connected to a container.
+     * @param {dia.Graph} graph The graph to validate.
+     * @throws {Error} Throws an error if an invalid arrangement is encountered.
+     */
     validateGraph: function(graph) {
 
         graph.getLinks().forEach((link) => {
