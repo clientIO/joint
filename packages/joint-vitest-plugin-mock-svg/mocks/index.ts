@@ -172,3 +172,26 @@ Object.defineProperty(globalThis.SVGElement.prototype, 'checkVisibility', {
         return bbox.width > 0 && bbox.height > 0;
     }
 });
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SVGTransformList
+ * @description SVGElement.transform.baseVal is not implemented in JSDOM yet.
+ */
+Object.defineProperty(globalThis.SVGElement.prototype, 'transform', {
+    writable: true,
+    value: {
+        baseVal: {
+            numberOfItems: 0,
+            length: 0,
+            appendItem: vi.fn().mockImplementation(createSVGTransform),
+            clear: vi.fn(),
+            consolidate: vi.fn().mockImplementation(createSVGTransform),
+            getItem: vi.fn().mockImplementation(() => createSVGTransform()),
+            initialize: vi.fn().mockImplementation(createSVGTransform),
+            insertItemBefore: vi.fn().mockImplementation(createSVGTransform),
+            removeItem: vi.fn().mockImplementation(createSVGTransform),
+            replaceItem: vi.fn().mockImplementation(createSVGTransform),
+            createSVGTransformFromMatrix: vi.fn().mockImplementation(createSVGTransform),
+        }
+    }
+});

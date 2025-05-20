@@ -1405,34 +1405,38 @@ QUnit.module('element ports', function() {
 
             // MANUAL:
 
+            function getMatrix(node) {
+                return node.getAttribute('transform');
+            }
+
             const manualG = view.findPortNode('manual').parentElement;
-            assert.equal(manualG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(manualG), 'matrix(1,0,0,1,0,1)');
             const manualText = manualG.querySelector('text');
-            assert.equal(manualText.getAttribute('transform'), 'matrix(1,0,0,1,0,0)');
+            assert.equal(getMatrix(manualText), 'matrix(1,0,0,1,0,0)');
             assert.equal(manualText.getAttribute('x'), null);
             assert.equal(manualText.getAttribute('y'), null);
             assert.equal(manualText.getAttribute('text-anchor'), null);
 
             const manualAttrsG = view.findPortNode('manualAttrs').parentElement;
-            assert.equal(manualAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(manualAttrsG), 'matrix(1,0,0,1,0,1)');
             const manualAttrsText = manualAttrsG.querySelector('text');
-            assert.equal(manualAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,0)');
+            assert.equal(getMatrix(manualAttrsText), 'matrix(1,0,0,1,0,0)');
             assert.equal(manualAttrsText.getAttribute('x'), '.11em');
             assert.equal(manualAttrsText.getAttribute('y'), '.12em');
             assert.equal(manualAttrsText.getAttribute('text-anchor'), 'middle');
 
             const manualLabelAttrsG = view.findPortNode('manualLabelAttrs').parentElement;
-            assert.equal(manualLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(manualLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const manualLabelAttrsText = manualLabelAttrsG.querySelector('text');
-            assert.equal(manualLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(manualLabelAttrsText), 'matrix(1,0,0,1,10,20)');
             assert.equal(manualLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(manualLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(manualLabelAttrsText.getAttribute('text-anchor'), 'start');
 
             const manualBothAttrsG = view.findPortNode('manualBothAttrs').parentElement;
-            assert.equal(manualBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(manualBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const manualBothAttrsText = manualBothAttrsG.querySelector('text');
-            assert.equal(manualBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(manualBothAttrsText), 'matrix(1,0,0,1,10,20)');
             // `attrs` come from `group.attrs`
             assert.equal(manualBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(manualBothAttrsText.getAttribute('y'), '.12em');
@@ -1441,33 +1445,33 @@ QUnit.module('element ports', function() {
             // LEFT:
 
             const leftG = view.findPortNode('left').parentElement;
-            assert.equal(leftG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(leftG), 'matrix(1,0,0,1,0,1)');
             const leftText = leftG.querySelector('text');
-            assert.equal(leftText.getAttribute('transform'), 'matrix(1,0,0,1,-15,0)');
+            assert.equal(getMatrix(leftText), 'matrix(1,0,0,1,-15,0)');
             assert.equal(leftText.getAttribute('x'), null);
             assert.equal(leftText.getAttribute('y'), '.3em');
             assert.equal(leftText.getAttribute('text-anchor'), 'end');
 
             const leftAttrsG = view.findPortNode('leftAttrs').parentElement;
-            assert.equal(leftAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(leftAttrsG), 'matrix(1,0,0,1,0,1)');
             const leftAttrsText = leftAttrsG.querySelector('text');
-            assert.equal(leftAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,-15,0)');
+            assert.equal(getMatrix(leftAttrsText), 'matrix(1,0,0,1,-15,0)');
             assert.equal(leftAttrsText.getAttribute('x'), '.11em');
             assert.equal(leftAttrsText.getAttribute('y'), '.12em');
             assert.equal(leftAttrsText.getAttribute('text-anchor'), 'middle');
 
             const leftLabelAttrsG = view.findPortNode('leftLabelAttrs').parentElement;
-            assert.equal(leftLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(leftLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const leftLabelAttrsText = leftLabelAttrsG.querySelector('text');
-            assert.equal(leftLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(leftLabelAttrsText), 'matrix(1,0,0,1,10,20)');
             assert.equal(leftLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(leftLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(leftLabelAttrsText.getAttribute('text-anchor'), 'start');
 
             const leftBothAttrsG = view.findPortNode('leftBothAttrs').parentElement;
-            assert.equal(leftBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(leftBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const leftBothAttrsText = leftBothAttrsG.querySelector('text');
-            assert.equal(leftBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(leftBothAttrsText), 'matrix(1,0,0,1,10,20)');
             // `attrs` come from `group.attrs`
             assert.equal(leftBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(leftBothAttrsText.getAttribute('y'), '.12em');
@@ -1476,33 +1480,33 @@ QUnit.module('element ports', function() {
             // RIGHT:
 
             const rightG = view.findPortNode('right').parentElement;
-            assert.equal(rightG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(rightG), 'matrix(1,0,0,1,0,1)');
             const rightText = rightG.querySelector('text');
-            assert.equal(rightText.getAttribute('transform'), 'matrix(1,0,0,1,15,0)');
+            assert.equal(getMatrix(rightText), 'matrix(1,0,0,1,15,0)');
             assert.equal(rightText.getAttribute('x'), null);
             assert.equal(rightText.getAttribute('y'), '.3em');
             assert.equal(rightText.getAttribute('text-anchor'), 'start');
 
             const rightAttrsG = view.findPortNode('rightAttrs').parentElement;
-            assert.equal(rightAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(rightAttrsG), 'matrix(1,0,0,1,0,1)');
             const rightAttrsText = rightAttrsG.querySelector('text');
-            assert.equal(rightAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,15,0)');
+            assert.equal(getMatrix(rightAttrsText), 'matrix(1,0,0,1,15,0)');
             assert.equal(rightAttrsText.getAttribute('x'), '.11em');
             assert.equal(rightAttrsText.getAttribute('y'), '.12em');
             assert.equal(rightAttrsText.getAttribute('text-anchor'), 'middle');
 
             const rightLabelAttrsG = view.findPortNode('rightLabelAttrs').parentElement;
-            assert.equal(rightLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(rightLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const rightLabelAttrsText = rightLabelAttrsG.querySelector('text');
-            assert.equal(rightLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(rightLabelAttrsText), 'matrix(1,0,0,1,10,20)');
             assert.equal(rightLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(rightLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(rightLabelAttrsText.getAttribute('text-anchor'), 'end');
 
             const rightBothAttrsG = view.findPortNode('rightBothAttrs').parentElement;
-            assert.equal(rightBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(rightBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const rightBothAttrsText = rightBothAttrsG.querySelector('text');
-            assert.equal(rightBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(rightBothAttrsText), 'matrix(1,0,0,1,10,20)');
             // `attrs` come from `group.attrs`
             assert.equal(rightBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(rightBothAttrsText.getAttribute('y'), '.12em');
@@ -1511,33 +1515,33 @@ QUnit.module('element ports', function() {
             // TOP:
 
             const topG = view.findPortNode('top').parentElement;
-            assert.equal(topG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(topG), 'matrix(1,0,0,1,0,1)');
             const topText = topG.querySelector('text');
-            assert.equal(topText.getAttribute('transform'), 'matrix(1,0,0,1,0,-15)');
+            assert.equal(getMatrix(topText), 'matrix(1,0,0,1,0,-15)');
             assert.equal(topText.getAttribute('x'), null);
             assert.equal(topText.getAttribute('y'), '0');
             assert.equal(topText.getAttribute('text-anchor'), 'middle');
 
             const topAttrsG = view.findPortNode('topAttrs').parentElement;
-            assert.equal(topAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(topAttrsG), 'matrix(1,0,0,1,0,1)');
             const topAttrsText = topAttrsG.querySelector('text');
-            assert.equal(topAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,-15)');
+            assert.equal(getMatrix(topAttrsText), 'matrix(1,0,0,1,0,-15)');
             assert.equal(topAttrsText.getAttribute('x'), '.11em');
             assert.equal(topAttrsText.getAttribute('y'), '.12em');
             assert.equal(topAttrsText.getAttribute('text-anchor'), 'start');
 
             const topLabelAttrsG = view.findPortNode('bottomLabelAttrs').parentElement;
-            assert.equal(topLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(topLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const topLabelAttrsText = topLabelAttrsG.querySelector('text');
-            assert.equal(topLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(topLabelAttrsText), 'matrix(1,0,0,1,10,20)');
             assert.equal(topLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(topLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(topLabelAttrsText.getAttribute('text-anchor'), 'end');
 
             const topBothAttrsG = view.findPortNode('bottomBothAttrs').parentElement;
-            assert.equal(topBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(topBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const topBothAttrsText = topBothAttrsG.querySelector('text');
-            assert.equal(topBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(topBothAttrsText), 'matrix(1,0,0,1,10,20)');
             // `attrs` come from `group.attrs`
             assert.equal(topBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(topBothAttrsText.getAttribute('y'), '.12em');
@@ -1546,33 +1550,33 @@ QUnit.module('element ports', function() {
             // BOTTOM:
 
             const bottomG = view.findPortNode('bottom').parentElement;
-            assert.equal(bottomG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(bottomG), 'matrix(1,0,0,1,0,1)');
             const bottomText = bottomG.querySelector('text');
-            assert.equal(bottomText.getAttribute('transform'), 'matrix(1,0,0,1,0,15)');
+            assert.equal(getMatrix(bottomText), 'matrix(1,0,0,1,0,15)');
             assert.equal(bottomText.getAttribute('x'), null);
             assert.equal(bottomText.getAttribute('y'), '.6em');
             assert.equal(bottomText.getAttribute('text-anchor'), 'middle');
 
             const bottomAttrsG = view.findPortNode('bottomAttrs').parentElement;
-            assert.equal(bottomAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(bottomAttrsG), 'matrix(1,0,0,1,0,1)');
             const bottomAttrsText = bottomAttrsG.querySelector('text');
-            assert.equal(bottomAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,15)');
+            assert.equal(getMatrix(bottomAttrsText), 'matrix(1,0,0,1,0,15)');
             assert.equal(bottomAttrsText.getAttribute('x'), '.11em');
             assert.equal(bottomAttrsText.getAttribute('y'), '.12em');
             assert.equal(bottomAttrsText.getAttribute('text-anchor'), 'start');
 
             const bottomLabelAttrsG = view.findPortNode('bottomLabelAttrs').parentElement;
-            assert.equal(bottomLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(bottomLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const bottomLabelAttrsText = bottomLabelAttrsG.querySelector('text');
-            assert.equal(bottomLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(bottomLabelAttrsText), 'matrix(1,0,0,1,10,20)');
             assert.equal(bottomLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(bottomLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(bottomLabelAttrsText.getAttribute('text-anchor'), 'end');
 
             const bottomBothAttrsG = view.findPortNode('bottomBothAttrs').parentElement;
-            assert.equal(bottomBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(bottomBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const bottomBothAttrsText = bottomBothAttrsG.querySelector('text');
-            assert.equal(bottomBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,10,20)');
+            assert.equal(getMatrix(bottomBothAttrsText), 'matrix(1,0,0,1,10,20)');
             // `attrs` come from `group.attrs`
             assert.equal(bottomBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(bottomBothAttrsText.getAttribute('y'), '.12em');
@@ -1582,33 +1586,33 @@ QUnit.module('element ports', function() {
             // = bottom
 
             const outsideG = view.findPortNode('outside').parentElement;
-            assert.equal(outsideG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(outsideG), 'matrix(1,0,0,1,0,1)');
             const outsideText = outsideG.querySelector('text');
-            assert.equal(outsideText.getAttribute('transform'), 'matrix(1,0,0,1,0,15)');
+            assert.equal(getMatrix(outsideText), 'matrix(1,0,0,1,0,15)');
             assert.equal(outsideText.getAttribute('x'), null);
             assert.equal(outsideText.getAttribute('y'), '.6em');
             assert.equal(outsideText.getAttribute('text-anchor'), 'middle');
 
             const outsideAttrsG = view.findPortNode('outsideAttrs').parentElement;
-            assert.equal(outsideAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(outsideAttrsG), 'matrix(1,0,0,1,0,1)');
             const outsideAttrsText = outsideAttrsG.querySelector('text');
-            assert.equal(outsideAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,15)');
+            assert.equal(getMatrix(outsideAttrsText), 'matrix(1,0,0,1,0,15)');
             assert.equal(outsideAttrsText.getAttribute('x'), '.11em');
             assert.equal(outsideAttrsText.getAttribute('y'), '.12em');
             assert.equal(outsideAttrsText.getAttribute('text-anchor'), 'start');
 
             const outsideLabelAttrsG = view.findPortNode('outsideLabelAttrs').parentElement;
-            assert.equal(outsideLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(outsideLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const outsideLabelAttrsText = outsideLabelAttrsG.querySelector('text');
-            assert.equal(outsideLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,11)');
+            assert.equal(getMatrix(outsideLabelAttrsText), 'matrix(1,0,0,1,0,11)');
             assert.equal(outsideLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(outsideLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(outsideLabelAttrsText.getAttribute('text-anchor'), 'end');
 
             const outsideBothAttrsG = view.findPortNode('outsideBothAttrs').parentElement;
-            assert.equal(outsideBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(outsideBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const outsideBothAttrsText = outsideBothAttrsG.querySelector('text');
-            assert.equal(outsideBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,11)');
+            assert.equal(getMatrix(outsideBothAttrsText), 'matrix(1,0,0,1,0,11)');
             // `attrs` come from `group.attrs`
             assert.equal(outsideBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(outsideBothAttrsText.getAttribute('y'), '.12em');
@@ -1618,33 +1622,33 @@ QUnit.module('element ports', function() {
             // = like right, written top-down (angle: 90 clockwise)
 
             const outsideOrientedG = view.findPortNode('outsideOriented').parentElement;
-            assert.equal(outsideOrientedG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(outsideOrientedG), 'matrix(1,0,0,1,0,1)');
             const outsideOrientedText = outsideOrientedG.querySelector('text');
-            assert.equal(outsideOrientedText.getAttribute('transform'), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,15)');
+            assert.equal(getMatrix(outsideOrientedText), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,15)');
             assert.equal(outsideOrientedText.getAttribute('x'), null);
             assert.equal(outsideOrientedText.getAttribute('y'), '.3em');
             assert.equal(outsideOrientedText.getAttribute('text-anchor'), 'start');
 
             const outsideOrientedAttrsG = view.findPortNode('outsideOrientedAttrs').parentElement;
-            assert.equal(outsideOrientedAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(outsideOrientedAttrsG), 'matrix(1,0,0,1,0,1)');
             const outsideOrientedAttrsText = outsideOrientedAttrsG.querySelector('text');
-            assert.equal(outsideOrientedAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,15)');
+            assert.equal(getMatrix(outsideOrientedAttrsText), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,15)');
             assert.equal(outsideOrientedAttrsText.getAttribute('x'), '.11em');
             assert.equal(outsideOrientedAttrsText.getAttribute('y'), '.12em');
             assert.equal(outsideOrientedAttrsText.getAttribute('text-anchor'), 'middle');
 
             const outsideOrientedLabelAttrsG = view.findPortNode('outsideOrientedLabelAttrs').parentElement;
-            assert.equal(outsideOrientedLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(outsideOrientedLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const outsideOrientedLabelAttrsText = outsideOrientedLabelAttrsG.querySelector('text');
-            assert.equal(outsideOrientedLabelAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,11)');
+            assert.equal(getMatrix(outsideOrientedLabelAttrsText), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,11)');
             assert.equal(outsideOrientedLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(outsideOrientedLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(outsideOrientedLabelAttrsText.getAttribute('text-anchor'), 'end');
 
             const outsideOrientedBothAttrsG = view.findPortNode('outsideOrientedBothAttrs').parentElement;
-            assert.equal(outsideOrientedBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(outsideOrientedBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const outsideOrientedBothAttrsText = outsideOrientedBothAttrsG.querySelector('text');
-            assert.equal(outsideOrientedBothAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,11)');
+            assert.equal(getMatrix(outsideOrientedBothAttrsText), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,11)');
             // `attrs` come from `group.attrs`
             assert.equal(outsideOrientedBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(outsideOrientedBothAttrsText.getAttribute('y'), '.12em');
@@ -1654,33 +1658,33 @@ QUnit.module('element ports', function() {
             // = top
 
             const insideG = view.findPortNode('inside').parentElement;
-            assert.equal(insideG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(insideG), 'matrix(1,0,0,1,0,1)');
             const insideText = insideG.querySelector('text');
-            assert.equal(insideText.getAttribute('transform'), 'matrix(1,0,0,1,0,-15)');
+            assert.equal(getMatrix(insideText), 'matrix(1,0,0,1,0,-15)');
             assert.equal(insideText.getAttribute('x'), null);
             assert.equal(insideText.getAttribute('y'), '0');
             assert.equal(insideText.getAttribute('text-anchor'), 'middle');
 
             const insideAttrsG = view.findPortNode('insideAttrs').parentElement;
-            assert.equal(insideAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(insideAttrsG), 'matrix(1,0,0,1,0,1)');
             const insideAttrsText = insideAttrsG.querySelector('text');
-            assert.equal(insideAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,-15)');
+            assert.equal(getMatrix(insideAttrsText), 'matrix(1,0,0,1,0,-15)');
             assert.equal(insideAttrsText.getAttribute('x'), '.11em');
             assert.equal(insideAttrsText.getAttribute('y'), '.12em');
             assert.equal(insideAttrsText.getAttribute('text-anchor'), 'start');
 
             const insideLabelAttrsG = view.findPortNode('insideLabelAttrs').parentElement;
-            assert.equal(insideLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(insideLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const insideLabelAttrsText = insideLabelAttrsG.querySelector('text');
-            assert.equal(insideLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,-11)');
+            assert.equal(getMatrix(insideLabelAttrsText), 'matrix(1,0,0,1,0,-11)');
             assert.equal(insideLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(insideLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(insideLabelAttrsText.getAttribute('text-anchor'), 'end');
 
             const insideBothAttrsG = view.findPortNode('insideBothAttrs').parentElement;
-            assert.equal(insideBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(insideBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const insideBothAttrsText = insideBothAttrsG.querySelector('text');
-            assert.equal(insideBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,0,-11)');
+            assert.equal(getMatrix(insideBothAttrsText), 'matrix(1,0,0,1,0,-11)');
             // `attrs` come from `group.attrs`
             assert.equal(insideBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(insideBothAttrsText.getAttribute('y'), '.12em');
@@ -1690,33 +1694,33 @@ QUnit.module('element ports', function() {
             // = like right, written bottom-up (angle: -90 clockwise)
 
             const insideOrientedG = view.findPortNode('insideOriented').parentElement;
-            assert.equal(insideOrientedG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(insideOrientedG), 'matrix(1,0,0,1,0,1)');
             const insideOrientedText = insideOrientedG.querySelector('text');
-            assert.equal(insideOrientedText.getAttribute('transform'), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-15)');
+            assert.equal(getMatrix(insideOrientedText), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-15)');
             assert.equal(insideOrientedText.getAttribute('x'), null);
             assert.equal(insideOrientedText.getAttribute('y'), '.3em');
             assert.equal(insideOrientedText.getAttribute('text-anchor'), 'start');
 
             const insideOrientedAttrsG = view.findPortNode('insideOrientedAttrs').parentElement;
-            assert.equal(insideOrientedAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(insideOrientedAttrsG), 'matrix(1,0,0,1,0,1)');
             const insideOrientedAttrsText = insideOrientedAttrsG.querySelector('text');
-            assert.equal(insideOrientedAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-15)');
+            assert.equal(getMatrix(insideOrientedAttrsText), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-15)');
             assert.equal(insideOrientedAttrsText.getAttribute('x'), '.11em');
             assert.equal(insideOrientedAttrsText.getAttribute('y'), '.12em');
             assert.equal(insideOrientedAttrsText.getAttribute('text-anchor'), 'middle');
 
             const insideOrientedLabelAttrsG = view.findPortNode('insideOrientedLabelAttrs').parentElement;
-            assert.equal(insideOrientedLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(insideOrientedLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const insideOrientedLabelAttrsText = insideOrientedLabelAttrsG.querySelector('text');
-            assert.equal(insideOrientedLabelAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-11)');
+            assert.equal(getMatrix(insideOrientedLabelAttrsText), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-11)');
             assert.equal(insideOrientedLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(insideOrientedLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(insideOrientedLabelAttrsText.getAttribute('text-anchor'), 'end');
 
             const insideOrientedBothAttrsG = view.findPortNode('insideOrientedBothAttrs').parentElement;
-            assert.equal(insideOrientedBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(insideOrientedBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const insideOrientedBothAttrsText = insideOrientedBothAttrsG.querySelector('text');
-            assert.equal(insideOrientedBothAttrsText.getAttribute('transform'), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-11)');
+            assert.equal(getMatrix(insideOrientedBothAttrsText), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-11)');
             // `attrs` come from `group.attrs`
             assert.equal(insideOrientedBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(insideOrientedBothAttrsText.getAttribute('y'), '.12em');
@@ -1726,33 +1730,33 @@ QUnit.module('element ports', function() {
             // = like left, written left-right
 
             const radialG = view.findPortNode('radial').parentElement;
-            assert.equal(radialG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(radialG), 'matrix(1,0,0,1,0,1)');
             const radialText = radialG.querySelector('text');
-            assert.equal(radialText.getAttribute('transform'), 'matrix(1,0,0,1,-14,14)');
+            assert.equal(getMatrix(radialText), 'matrix(1,0,0,1,-14,14)');
             assert.equal(radialText.getAttribute('x'), null);
             assert.equal(radialText.getAttribute('y'), '.3em');
             assert.equal(radialText.getAttribute('text-anchor'), 'end');
 
             const radialAttrsG = view.findPortNode('radialAttrs').parentElement;
-            assert.equal(radialAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(radialAttrsG), 'matrix(1,0,0,1,0,1)');
             const radialAttrsText = radialAttrsG.querySelector('text');
-            assert.equal(radialAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,-14,14)');
+            assert.equal(getMatrix(radialAttrsText), 'matrix(1,0,0,1,-14,14)');
             assert.equal(radialAttrsText.getAttribute('x'), '.11em');
             assert.equal(radialAttrsText.getAttribute('y'), '.12em');
             assert.equal(radialAttrsText.getAttribute('text-anchor'), 'middle');
 
             const radialLabelAttrsG = view.findPortNode('radialLabelAttrs').parentElement;
-            assert.equal(radialLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(radialLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const radialLabelAttrsText = radialLabelAttrsG.querySelector('text');
-            assert.equal(radialLabelAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,-8,8)');
+            assert.equal(getMatrix(radialLabelAttrsText), 'matrix(1,0,0,1,-8,8)');
             assert.equal(radialLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(radialLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(radialLabelAttrsText.getAttribute('text-anchor'), 'start');
 
             const radialBothAttrsG = view.findPortNode('radialBothAttrs').parentElement;
-            assert.equal(radialBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(radialBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const radialBothAttrsText = radialBothAttrsG.querySelector('text');
-            assert.equal(radialBothAttrsText.getAttribute('transform'), 'matrix(1,0,0,1,-8,8)');
+            assert.equal(getMatrix(radialBothAttrsText), 'matrix(1,0,0,1,-8,8)');
             // `attrs` come from `group.attrs`
             assert.equal(radialBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(radialBothAttrsText.getAttribute('y'), '.12em');
@@ -1762,33 +1766,33 @@ QUnit.module('element ports', function() {
             // = like left, written left-right (angle: -45 clockwise)
 
             const radialOrientedG = view.findPortNode('radialOriented').parentElement;
-            assert.equal(radialOrientedG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(radialOrientedG), 'matrix(1,0,0,1,0,1)');
             const radialOrientedText = radialOrientedG.querySelector('text');
-            assert.equal(radialOrientedText.getAttribute('transform'), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-14,14)');
+            assert.equal(getMatrix(radialOrientedText), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-14,14)');
             assert.equal(radialOrientedText.getAttribute('x'), null);
             assert.equal(radialOrientedText.getAttribute('y'), '.3em');
             assert.equal(radialOrientedText.getAttribute('text-anchor'), 'end');
 
             const radialOrientedAttrsG = view.findPortNode('radialOrientedAttrs').parentElement;
-            assert.equal(radialOrientedAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(radialOrientedAttrsG), 'matrix(1,0,0,1,0,1)');
             const radialOrientedAttrsText = radialOrientedAttrsG.querySelector('text');
-            assert.equal(radialOrientedAttrsText.getAttribute('transform'), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-14,14)');
+            assert.equal(getMatrix(radialOrientedAttrsText), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-14,14)');
             assert.equal(radialOrientedAttrsText.getAttribute('x'), '.11em');
             assert.equal(radialOrientedAttrsText.getAttribute('y'), '.12em');
             assert.equal(radialOrientedAttrsText.getAttribute('text-anchor'), 'middle');
 
             const radialOrientedLabelAttrsG = view.findPortNode('radialOrientedLabelAttrs').parentElement;
-            assert.equal(radialOrientedLabelAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(radialOrientedLabelAttrsG), 'matrix(1,0,0,1,0,1)');
             const radialOrientedLabelAttrsText = radialOrientedLabelAttrsG.querySelector('text');
-            assert.equal(radialOrientedLabelAttrsText.getAttribute('transform'), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-8,8)');
+            assert.equal(getMatrix(radialOrientedLabelAttrsText), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-8,8)');
             assert.equal(radialOrientedLabelAttrsText.getAttribute('x'), '.1em');
             assert.equal(radialOrientedLabelAttrsText.getAttribute('y'), '.2em');
             assert.equal(radialOrientedLabelAttrsText.getAttribute('text-anchor'), 'start');
 
             const radialOrientedBothAttrsG = view.findPortNode('radialOrientedBothAttrs').parentElement;
-            assert.equal(radialOrientedBothAttrsG.getAttribute('transform'), 'matrix(1,0,0,1,0,1)');
+            assert.equal(getMatrix(radialOrientedBothAttrsG), 'matrix(1,0,0,1,0,1)');
             const radialOrientedBothAttrsText = radialOrientedBothAttrsG.querySelector('text');
-            assert.equal(radialOrientedBothAttrsText.getAttribute('transform'), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-8,8)');
+            assert.equal(getMatrix(radialOrientedBothAttrsText), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-8,8)');
             // `attrs` come from `group.attrs`
             assert.equal(radialOrientedBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(radialOrientedBothAttrsText.getAttribute('y'), '.12em');
