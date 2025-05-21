@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { useCallback, useState } from 'react';
-import type { OnPaperRenderElement } from '../utils/create-paper';
+import type { OnPaperRenderElement } from '../components/paper-provider/paper-provider';
 
 /**
  * A custom hook that manages the rendering of SVG elements in a JointJS paper.

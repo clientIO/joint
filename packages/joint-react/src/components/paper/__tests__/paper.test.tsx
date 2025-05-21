@@ -87,15 +87,6 @@ describe('Paper Component', () => {
     });
   });
 
-  it('renders noDataPlaceholder when there are no elements', () => {
-    render(
-      <GraphProvider initialElements={[]}>
-        <Paper<Element> noDataPlaceholder={<div>No Data</div>} />
-      </GraphProvider>
-    );
-    expect(screen.getByText('No Data')).toBeInTheDocument();
-  });
-
   it('calls onElementsSizeChange when element sizes change', async () => {
     const onElementsSizeChangeMock = jest.fn();
     const updatedElements = createElements([
@@ -205,7 +196,7 @@ describe('Paper Component', () => {
     );
 
     // Ensure the customSelector is called for each element
-    expect(customSelector).toHaveBeenCalledTimes(initialElements.length * 2);
+    expect(customSelector).toHaveBeenCalledTimes(initialElements.length);
 
     await waitFor(() => {
       // Validate that the elements are rendered correctly

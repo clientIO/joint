@@ -71,7 +71,6 @@ export const WithRectElement: Story = {
 
 export const WithHTMLElement: Story = {
   args: {
-    noDataPlaceholder: 'No data',
     renderElement: RenderHTMLElement as never,
     width: '100%',
     className: PAPER_CLASSNAME,
