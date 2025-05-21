@@ -27,6 +27,7 @@ import {
 } from '@joint/react';
 import { useCallback, useState } from 'react';
 import { ShowJson } from 'storybook-config/decorators/with-simple-data';
+import { PaperProvider } from '../../../components/paper-provider/paper-provider';
 
 // Define types for the elements
 interface ElementBase extends GraphElement {
@@ -472,23 +473,7 @@ function Main() {
   return (
     <div className="flex flex-col relative">
       <div className="flex flex-col relative">
-        <Paper
-          {...PAPER_PROPS}
-          defaultLink={new shapes.standard.Link(links[0])}
-          renderElement={renderElement}
-          className={PAPER_CLASSNAME}
-          onCellPointerClick={({ cellView }) => {
-            const cell = cellView.model;
-            setSelectedElement(cell.id ?? null);
-          }}
-          onLinkPointerClick={() => {
-            setSelectedElement(null);
-          }}
-          onBlankPointerClick={() => {
-            setSelectedElement(null);
-          }}
-          width="100%"
-        >
+        <PaperProvider>
           <ToolBar
             onToggleMinimap={setIsMinimapVisible}
             isMinimapVisible={isMinimapVisible}
@@ -497,8 +482,24 @@ function Main() {
             showElementsInfo={showElementsInfo}
             setShowElementsInfo={setShowElementsInfo}
           />
-        </Paper>
-
+          <Paper
+            {...PAPER_PROPS}
+            defaultLink={new shapes.standard.Link(links[0])}
+            renderElement={renderElement}
+            className={PAPER_CLASSNAME}
+            onCellPointerClick={({ cellView }) => {
+              const cell = cellView.model;
+              setSelectedElement(cell.id ?? null);
+            }}
+            onLinkPointerClick={() => {
+              setSelectedElement(null);
+            }}
+            onBlankPointerClick={() => {
+              setSelectedElement(null);
+            }}
+            width="100%"
+          />
+        </PaperProvider>
         {isMinimapVisible && <MiniMap />}
       </div>
       {showElementsInfo && <ElementsInfo />}
