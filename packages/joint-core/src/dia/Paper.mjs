@@ -38,7 +38,8 @@ import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LayersNames, PaperLayer } from './PaperLayer.mjs';
+import { LayersNames } from './Layer.mjs';
+import { LayerView } from './LayerView.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
@@ -46,6 +47,7 @@ import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayer } from './layers/GridLayer.mjs';
+import { EmbeddingLayersController } from './controllers/EmbeddingLayersController.mjs';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -81,20 +83,6 @@ const defaultHighlighting = {
         }
     }
 };
-
-const defaultLayers = [{
-    name: LayersNames.GRID,
-}, {
-    name: LayersNames.BACK,
-}, {
-    name: LayersNames.CELLS,
-}, {
-    name: LayersNames.LABELS,
-}, {
-    name: LayersNames.FRONT
-}, {
-    name: LayersNames.TOOLS
-}];
 
 export const Paper = View.extend({
 
@@ -305,7 +293,7 @@ export const Paper = View.extend({
 
         connectionPointNamespace: connectionPoints,
 
-        overflow: false
+        overflow: false,
     },
 
     events: {
@@ -401,10 +389,25 @@ export const Paper = View.extend({
 
         const model = this.model = options.model || new Graph;
 
+        // Paper layers
+        this._layersSettings = [{
+            name: LayersNames.GRID,
+        }, {
+            name: LayersNames.BACK,
+        }, {
+            name: LayersNames.LABELS,
+        }, {
+            name: LayersNames.CELLS,
+            model: this.model.getDefaultLayer()
+        }, {
+            name: LayersNames.FRONT
+        }, {
+            name: LayersNames.TOOLS
+        }];
+
         // Layers (SVGGroups)
         this._layers = {
             viewsMap: {},
-            namesMap: {},
             order: [],
         };
 
@@ -412,6 +415,10 @@ export const Paper = View.extend({
         this.render();
         this._setDimensions();
         this.startListening();
+
+        if (model.useLayersForEmbedding) {
+            this.embeddingLayersController = new EmbeddingLayersController({ graph: model, paper: this });
+        }
 
         // Hash of all cell views.
         this._views = {};
@@ -455,6 +462,7 @@ export const Paper = View.extend({
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'sort', this.onGraphSort)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
+
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
             .on('transform', this.update);
@@ -617,44 +625,45 @@ export const Paper = View.extend({
     },
 
     _unregisterLayer(layerView) {
-        const { _layers: { viewsMap, namesMap, order }} = this;
-        const layerName = this._getLayerName(layerView);
-        order.splice(order.indexOf(layerName), 1);
-        delete namesMap[layerView.cid];
+        const { _layers: { viewsMap, order }} = this;
+        const layerName = layerView.name;
+        if (order.indexOf(layerName) !== -1) {
+            order.splice(order.indexOf(layerName), 1);
+        }
         delete viewsMap[layerName];
     },
 
-    _registerLayer(layerName, layerView, beforeLayerView) {
-        const { _layers: { viewsMap, namesMap, order }} = this;
-        if (beforeLayerView) {
-            const beforeLayerName = this._getLayerName(beforeLayerView);
-            order.splice(order.indexOf(beforeLayerName), 0, layerName);
-        } else {
-            order.push(layerName);
+    _registerLayer(layerName, layerView, beforeLayerView, ignoreOrder) {
+        const { _layers: { viewsMap, order }} = this;
+        if (!ignoreOrder) {
+            if (beforeLayerView) {
+                const beforeLayerName = beforeLayerView.name;
+                order.splice(order.indexOf(beforeLayerName), 0, layerName);
+            } else {
+                order.push(layerName);
+            }
         }
         viewsMap[layerName] = layerView;
-        namesMap[layerView.cid] = layerName;
     },
 
     _getLayerView(layer) {
-        const { _layers: { namesMap, viewsMap }} = this;
-        if (layer instanceof PaperLayer) {
-            if (layer.cid in namesMap) return layer;
-            return null;
-        }
-        if (layer in viewsMap) return viewsMap[layer];
-        return null;
-    },
+        const { _layers: { viewsMap }} = this;
 
-    _getLayerName(layerView) {
-        const { _layers: { namesMap }} = this;
-        return namesMap[layerView.cid];
+        let layerName;
+        if (layer instanceof LayerView) {
+            layerName = layer.name;
+        } else {
+            layerName = layer;
+        }
+
+        if (layerName in viewsMap) return viewsMap[layerName];
+        return null;
     },
 
     _requireLayerView(layer) {
         const layerView = this._getLayerView(layer);
         if (!layerView) {
-            if (layer instanceof PaperLayer) {
+            if (layer instanceof LayerView) {
                 throw new Error('dia.Paper: The layer is not registered.');
             } else {
                 throw new Error(`dia.Paper: Unknown layer "${layer}".`);
@@ -682,24 +691,28 @@ export const Paper = View.extend({
         if (this._getLayerView(layerName)) {
             throw new Error(`dia.Paper: The layer "${layerName}" already exists.`);
         }
-        if (!(layerView instanceof PaperLayer)) {
-            throw new Error('dia.Paper: The layer view is not an instance of dia.PaperLayer.');
+        if (!(layerView instanceof LayerView)) {
+            throw new Error('dia.Paper: The layer view is not an instance of dia.LayerView.');
         }
-        const { insertBefore } = options;
-        if (!insertBefore) {
-            this._registerLayer(layerName, layerView, null);
-            this.layers.appendChild(layerView.el);
+        const { insertBefore, doNotAppend } = options;
+        if (doNotAppend) {
+            this._registerLayer(layerName, layerView, null, true);
         } else {
-            const beforeLayerView = this._requireLayerView(insertBefore);
-            this._registerLayer(layerName, layerView, beforeLayerView);
-            this.layers.insertBefore(layerView.el, beforeLayerView.el);
+            if (!insertBefore) {
+                this._registerLayer(layerName, layerView, null);
+                this.layers.appendChild(layerView.el);
+            } else {
+                const beforeLayerView = this._requireLayerView(insertBefore);
+                this._registerLayer(layerName, layerView, beforeLayerView);
+                this.layers.insertBefore(layerView.el, beforeLayerView.el);
+            }
         }
     },
 
     moveLayer(layer, insertBefore) {
         const layerView = this._requireLayerView(layer);
         if (layerView === this._getLayerView(insertBefore)) return;
-        const layerName = this._getLayerName(layerView);
+        const layerName = layerView.name;
         this._unregisterLayer(layerView);
         this.addLayer(layerName, layerView, { insertBefore });
     },
@@ -727,7 +740,7 @@ export const Paper = View.extend({
         this.defs = defs;
         this.layers = layers;
 
-        this.renderLayers();
+        this.renderLayers(this._layersSettings);
 
         V.ensureId(svg);
 
@@ -749,24 +762,25 @@ export const Paper = View.extend({
         V(this.svg).prepend(V.createSVGStyle(css));
     },
 
-    createLayer(name) {
-        switch (name) {
+    createLayer(attributes) {
+        attributes.paper = this;
+        switch (attributes.name) {
             case LayersNames.GRID:
-                return new GridLayer({ name, paper: this, patterns: this.constructor.gridPatterns });
+                return new GridLayer({ ...attributes, patterns: this.constructor.gridPatterns });
             default:
-                return new PaperLayer({ name });
+                return new LayerView(attributes);
         }
     },
 
-    renderLayer: function(name) {
-        const layerView = this.createLayer(name);
-        this.addLayer(name, layerView);
+    renderLayer: function(attributes) {
+        const layerView = this.createLayer(attributes);
+        this.addLayer(attributes.name, layerView);
         return layerView;
     },
 
-    renderLayers: function(layers = defaultLayers) {
+    renderLayers: function(layers) {
         this.removeLayers();
-        layers.forEach(({ name }) => this.renderLayer(name));
+        layers.forEach(attributes => this.renderLayer(attributes));
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(LayersNames.CELLS);
         const toolsLayerView = this.getLayerView(LayersNames.TOOLS);
@@ -1473,6 +1487,14 @@ export const Paper = View.extend({
         //clean up all DOM elements/views to prevent memory leaks
         this.removeLayers();
         this.removeViews();
+
+        if (this.embeddingLayersController) {
+            this.embeddingLayersController.stopListening();
+        }
+
+        if (this.cellLayersController) {
+            this.cellLayersController.stopListening();
+        }
     },
 
     getComputedSize: function() {
@@ -1919,6 +1941,9 @@ export const Paper = View.extend({
                 layerView.insertNode(el);
                 break;
         }
+
+        this.trigger('cell:inserted', view, isInitialInsert);
+
         view.onMount(isInitialInsert);
     },
 

@@ -193,7 +193,12 @@ export namespace dia {
 
     class Graph<A extends ObjectHash = Graph.Attributes, S = dia.ModelSetOptions> extends mvc.Model<A, S> {
 
-        constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
+        constructor(attributes?: Graph.Attributes, opt?: {
+            cellNamespace?: any,
+            cellModel?: typeof Cell,
+            // layers
+            useLayersForEmbedding?: boolean;
+        });
 
         addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
         addCell(cell: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
@@ -201,6 +206,16 @@ export namespace dia {
         addCells(cells: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
+
+        addLayer(layer: Layer): void;
+
+        removeLayer(layerName: string): void;
+
+        getActiveLayer(): Layer;
+
+        setActiveLayer(layerName: string): Layer;
+
+        getDefaultLayer(): Layer;
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -305,9 +320,9 @@ export namespace dia {
 
         hasActiveBatch(name?: string | string[]): boolean;
 
-        maxZIndex(): number;
+        maxZIndex(layerName?: string): number;
 
-        minZIndex(): number;
+        minZIndex(layerName?: string): number;
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
@@ -1792,7 +1807,7 @@ export namespace dia {
 
         getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
-        getLayerView(layerName: Paper.Layers | string): PaperLayer;
+        getLayerView(layerName: Paper.Layers | string): LayerView;
 
         hasLayerView(layerName: Paper.Layers | string): boolean;
 
@@ -1802,17 +1817,17 @@ export namespace dia {
 
         protected resetLayers(): void;
 
-        addLayer(layerName: string, layerView: PaperLayer, options?: { insertBefore?: string }): void;
+        addLayer(layerName: string, layerView: LayerView, options?: { insertBefore?: string }): void;
 
-        removeLayer(layer: string | PaperLayer): void;
+        removeLayer(layer: string | LayerView): void;
 
-        moveLayer(layer: string | PaperLayer, insertBefore: string | PaperLayer | null): void;
+        moveLayer(layer: string | LayerView, insertBefore: string | LayerView | null): void;
 
-        hasLayer(layer: string | PaperLayer): boolean;
+        hasLayer(layer: string | LayerView): boolean;
 
         getLayerNames(): string[];
 
-        getLayers(): Array<PaperLayer>;
+        getLayers(): Array<LayerView>;
 
         // rendering
 
@@ -2005,17 +2020,17 @@ export namespace dia {
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
     }
 
-    namespace PaperLayer {
+    namespace LayerView {
 
         interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             name: string;
         }
     }
-    class PaperLayer extends mvc.View<undefined, SVGElement> {
+    class LayerView extends mvc.View<undefined, SVGElement> {
 
-        constructor(opt?: PaperLayer.Options);
+        constructor(opt?: LayerView.Options);
 
-        options: PaperLayer.Options;
+        options: LayerView.Options;
 
         pivotNodes: { [z: number]: Comment };
 
@@ -2026,6 +2041,21 @@ export namespace dia {
         insertPivot(z: number): Comment;
 
         removePivots(): void;
+    }
+
+    class Layer extends mvc.Model {
+
+        name: string;
+
+        add(cell: Cell): void;
+
+        remove(cell: Cell): void;
+
+        //clear(): void;
+
+        minZIndex(): number;
+
+        maxZIndex(): number;
     }
 
     namespace ToolsView {

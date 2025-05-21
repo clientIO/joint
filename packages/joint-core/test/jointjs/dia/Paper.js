@@ -2238,8 +2238,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     function() {
                         paper.addLayer('test');
                     },
-                    /dia.Paper: The layer view is not an instance of dia.PaperLayer./,
-                    'Layer view must be an instance of joint.dia.PaperLayer.'
+                    /dia.Paper: The layer view is not an instance of dia.LayerView./,
+                    'Layer view must be an instance of joint.dia.LayerView.'
                 );
             });
 
@@ -2254,7 +2254,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
             QUnit.test('adds a new layer at the end of the layers list', function(assert) {
-                const testLayer = new joint.dia.PaperLayer();
+                const testLayer = new joint.dia.LayerView();
                 assert.equal(paper.getLayerNames().indexOf('test1'), -1);
                 assert.notOk(paper.hasLayer('test1'));
                 paper.addLayer('test1', testLayer);
@@ -2263,7 +2263,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
             QUnit.test('adds a new layer before the specified layer', function(assert) {
-                const testLayer = new joint.dia.PaperLayer();
+                const testLayer = new joint.dia.LayerView();
                 assert.equal(paper.getLayerNames().indexOf('test2'), -1);
                 assert.notOk(paper.hasLayer('test1'));
                 paper.addLayer('test2', testLayer, { insertBefore: 'cells' });
@@ -2315,7 +2315,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
             QUnit.test('removes the layer if passed as an object', function(assert) {
-                const testLayer = new joint.dia.PaperLayer();
+                const testLayer = new joint.dia.LayerView();
                 paper.addLayer('test', testLayer);
                 assert.ok(paper.hasLayer('test'));
                 paper.removeLayer(testLayer);
@@ -2323,7 +2323,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
             QUnit.test('throws error when trying to remove a layer which is not added to the paper', function(assert) {
-                const testLayer = new joint.dia.PaperLayer();
+                const testLayer = new joint.dia.LayerView();
                 assert.throws(
                     function() {
                         paper.removeLayer(testLayer);
@@ -2411,10 +2411,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 const r1 = new joint.shapes.standard.Rectangle();
                 graph.addCell(r1, { async: false });
-                assert.notOk(r1.get('layer'));
+                assert.equal(r1.get('layer'), 'cells');
                 assert.ok(paper.getLayerNode('cells').contains(r1.findView(paper).el));
 
-                const test1Layer = new joint.dia.PaperLayer();
+                const test1Layer = new joint.dia.LayerView();
                 paper.addLayer('test1', test1Layer);
 
 
@@ -2438,7 +2438,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 graph.addCell(r1, { async: false });
                 assert.ok(paper.getLayerNode('cells').contains(r1.findView(paper).el));
 
-                const test1Layer = new joint.dia.PaperLayer();
+                const test1Layer = new joint.dia.LayerView();
                 paper.addLayer('test1', test1Layer);
 
                 r1.set('layer', 'test1', { async: false });
