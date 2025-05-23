@@ -1,94 +1,259 @@
 (function(joint) {
 
-    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
-    var paper = new joint.dia.Paper({
-        el: document.getElementById('paper'),
+    const HEADER_HEIGHT = 30;
+
+    const cellNamespace = {
+        // includes additional defined shapes from `./joint.shapes.container.js`
+        ...joint.shapes
+    };
+
+    const graph = new joint.dia.Graph({}, { cellNamespace });
+    const paper = new joint.dia.Paper({
         width: 800,
         height: 600,
         model: graph,
-        cellViewNamespace: joint.shapes,
+        cellViewNamespace: cellNamespace,
         async: true,
         background: {
             color: '#F3F7F6'
         },
         interactive: { linkMove: false },
         viewport: function(view) {
-            var element = view.model;
+            const cell = view.model;
             // Hide any element or link which is embedded inside a collapsed parent (or parent of the parent).
-            var hidden = element.getAncestors().some(function(ancestor) {
-                // `isCollapsed()` method is defined at `joint.shapes.container.Parent` in `./joint.shapes.container.js`
-                return ancestor.isCollapsed();
+            const hidden = cell.getAncestors().some(function(ancestor) {
+                if (ancestor.isCollapsed()) return true;
+                if (cell.isElement()) {
+                    return ancestor.isChildFiltered(cell);
+                } else {
+                    return (
+                    ancestor.isChildFiltered(cell.getSourceCell()) ||
+                    ancestor.isChildFiltered(cell.getTargetCell())
+                    );
+                }
             });
             return !hidden;
         }
     });
 
-    paper.el.style.border = '1px solid #E2E2E2';
+    document.getElementById('paper').appendChild(paper.el);
 
-    var Container = joint.shapes.container.Parent;
-    var Child = joint.shapes.container.Child;
-    var Link = joint.shapes.container.Link;
+    // Custom highlighter to render the expand/collapse button.
+    const ExpandButtonHighlighter = joint.dia.HighlighterView.extend({
+        tagName: 'g',
 
-    var container_a = new Container({
+        UPDATE_ATTRIBUTES: ['collapsed'],
+
+        children: function() {
+            return [
+                {
+                    tagName: 'rect',
+                    selector: 'button',
+                    attributes: {
+                    fill: '#000000',
+                    fillOpacity: 0.2,
+                    stroke: '#FFFFFF',
+                    strokeWidth: 0.5,
+                    x: -7,
+                    y: -7,
+                    width: 14,
+                    height: 14,
+                    cursor: 'pointer'
+                    }
+                },
+                {
+                    tagName: 'path',
+                    selector: 'icon',
+                    attributes: {
+                    fill: 'none',
+                    stroke: '#FFFFFF',
+                    strokeWidth: 1,
+                    pointerEvents: 'none'
+                    }
+                }
+            ];
+        },
+
+        events: {
+            click: 'onClick'
+        },
+
+        onClick() {
+            this.cellView.model.toggle();
+        },
+
+        // Method called to highlight a CellView
+        highlight(cellView, _node) {
+            if (this.el.childNodes.length === 0) {
+                this.renderChildren();
+            }
+
+            const size = cellView.model.size();
+            this.el.setAttribute(
+                'transform',
+                `translate(${size.width - HEADER_HEIGHT / 2}, ${HEADER_HEIGHT / 2})`
+            );
+
+            let d;
+            if (cellView.model.get('collapsed')) {
+                d = 'M -4 0 4 0 M 0 -4 0 4';
+            } else {
+                d = 'M -4 0 4 0';
+            }
+            this.childNodes.icon.setAttribute('d', d);
+        }
+    });
+
+    graph.on({
+        'add': function(cell) {
+            if (joint.shapes.container.Parent.isContainer(cell)) {
+                // Add the expand button highlighter.
+                ExpandButtonHighlighter.add(cell.findView(paper), 'root', 'expand-button');
+            }
+        },
+
+        'remove': function(cell) {
+            if (cell.isLink()) return;
+            updateContainerSize(cell.getParentCell());
+        },
+
+        'change:position': function(cell) {
+            if (cell.isLink()) return;
+            updateContainerSize(cell.getParentCell());
+        },
+
+        'change:size': function(cell) {
+            if (cell.isLink()) return;
+            updateContainerSize(cell.getParentCell());
+        },
+
+        'change:embeds': function(cell) {
+            if (cell.isLink()) return;
+            updateContainerSize(cell);
+        },
+
+        'change:collapsed': function(cell) {
+            updateContainerSize(cell);
+        }
+    });
+
+    function updateContainerSize(container) {
+        if (!joint.shapes.container.Parent.isContainer(container)) return;
+            const flags = { ignoreCommandManager: true };
+        if (container.isCollapsed()) {
+            container.resize(140, 30, flags);
+        } else {
+            container.fitToChildElements(flags);
+        }
+    }
+
+    // Show element tools on hover
+    paper.on({
+        'element:mouseenter': function(elementView) {
+            elementView.removeTools();
+            if (joint.shapes.container.Parent.isContainer(elementView.model)) {
+                // Silently remove the children elements, then remove the container
+                elementView.addTools(
+                    new joint.dia.ToolsView({
+                        tools: [
+                            new joint.elementTools.Remove({
+                                useModelGeometry: true,
+                                y: 0,
+                                x: 0,
+                                action: function(evt, view) {
+                                    // The children elements removal should not be added to the command manager.
+                                    graph.removeCells(view.model.getEmbeddedCells(), { ignoreCommandManager: true });
+                                    view.model.remove();
+                                }
+                            })
+                        ]
+                    })
+                );
+            } else if (joint.shapes.container.Child.isChild(elementView.model)) {
+                // Remove the element from the graph
+                elementView.addTools(
+                    new joint.dia.ToolsView({
+                        tools: [
+                            new joint.elementTools.Remove({
+                            useModelGeometry: true,
+                            y: 0,
+                            x: 0
+                            })
+                        ]
+                    })
+                );
+            }
+        },
+
+        'element:mouseleave': function(elementView) {
+            elementView.removeTools();
+        }
+    });
+
+    // Example diagram
+    const container_a = new joint.shapes.container.Parent({
         z: 1,
+        position: { x: 0, y: 0 },
+        size: { width: 10, height: 10 },
         attrs: { headerText: { text: 'Container A' }}
     });
 
-    var container_b = new Container({
+    const container_b = new joint.shapes.container.Parent({
         z: 3,
+        position: { x: 0, y: 0 },
         size: { width: 50, height: 50 },
         attrs: { headerText: { text: 'Container B' }}
     });
 
-    var child_1 = new Child({
+    const child_1 = new joint.shapes.container.Child({
         z: 2,
-        position: { x: 250, y: 150 },
+        position: { x: 150, y: 50 },
         attrs: { label: { text: 1 }}
     });
 
-    var child_2 = new Child({
+    const child_2 = new joint.shapes.container.Child({
         z: 2,
-        position: { x: 200, y: 250 },
+        position: { x: 100, y: 150 },
         attrs: { label: { text: 2 }}
     });
 
-    var child_3 = new Child({
+    const child_3 = new joint.shapes.container.Child({
         z: 2,
-        position: { x: 300, y: 250 },
+        position: { x: 200, y: 150 },
         attrs: { label: { text: 3 }}
     });
 
-    var child_4 = new Child({
+    const child_4 = new joint.shapes.container.Child({
         z: 4,
-        position: { x: 400, y: 290 },
+        position: { x: 300, y: 190 },
         attrs: { label: { text: '4' }}
     });
 
-    var child_5 = new Child({
+    const child_5 = new joint.shapes.container.Child({
         z: 4,
-        position: { x: 500, y: 360 },
+        position: { x: 400, y: 260 },
         attrs: { label: { text: '5' }}
     });
 
-    var link_1_2 = new Link({
+    const link_1_2 = new joint.shapes.container.Link({
         z: 2,
         source: { id: child_1.id },
         target: { id: child_2.id }
     });
 
-    var link_1_3 = new Link({
+    const link_1_3 = new joint.shapes.container.Link({
         z: 2,
         source: { id: child_1.id },
         target: { id: child_3.id }
     });
 
-    var link_4_5 = new Link({
+    const link_4_5 = new joint.shapes.container.Link({
         z: 4,
         source: { id: child_4.id },
         target: { id: child_5.id }
     });
 
-    var link_1_b = new Link({
+    const link_1_b = new joint.shapes.container.Link({
         z: 4,
         source: { id: child_1.id },
         target: { id: container_b.id }
@@ -107,23 +272,5 @@
     link_1_3.reparent();
     link_4_5.reparent();
     link_1_b.reparent();
-
-    // `toggle()` method is defined at `joint.shapes.container.Parent` in `./joint.shapes.container.js`
-    container_b.toggle(false);
-    container_a.toggle(false);
-
-    paper.on('element:button:pointerdown', function(elementView) {
-        var element = elementView.model;
-        // `toggle()` method is defined at `joint.shapes.container.Parent` in `./joint.shapes.container.js`
-        element.toggle();
-        // `fitAncestorElements()` method is defined at `joint.shapes.container.Base` in `./joint.shapes.container.js`
-        element.fitAncestorElements();
-    });
-
-    paper.on('element:pointermove', function(elementView) {
-        var element = elementView.model;
-        // `fitAncestorElements()` method is defined at `joint.shapes.container.Base` in `./joint.shapes.container.js`
-        element.fitAncestorElements();
-    });
 
 })(joint);
