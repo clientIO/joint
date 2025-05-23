@@ -1,39 +1,37 @@
 (function(joint) {
 
-    joint.shapes.standard.Link.define('container.Link', {
-        attrs: {
-            line: {
-                stroke: '#222222',
-                strokeWidth: 1,
-                targetMarker: {
-                    'd': 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
-                    'fill': 'none'
-                }
-            }
-        }
-    });
-
-    var headerHeight = 30;
-    var buttonSize = 14;
+    const PADDING = 10;
+    const HEADER_HEIGHT = 30;
 
     joint.dia.Element.define('container.Base', {
-        // no default attributes
+        // (no default attributes)
     }, {
+        // (no custom markup)
+
+        // prototype methods:
         fitAncestorElements: function() {
-            var padding = 10;
             this.fitParent({
                 deep: true,
                 padding: {
-                    top: headerHeight + padding,
-                    left: padding,
-                    right: padding,
-                    bottom: padding
+                    top: HEADER_HEIGHT + PADDING,
+                    left: PADDING,
+                    right: PADDING,
+                    bottom: PADDING
                 }
             });
         }
+    }, {
+        // (no static methods)
     });
 
+    const childMarkup = joint.util.svg/* xml */`
+        <rect @selector="shadow"/>
+        <rect @selector="body"/>
+        <text @selector="label"/>
+    `;
+
     joint.shapes.container.Base.define('container.Child', {
+        // default attributes:
         size: { width: 50, height: 50 },
         attrs: {
             root: {
@@ -65,19 +63,27 @@
             }
         }
     }, {
-        markup: [{
-            tagName: 'rect',
-            selector: 'shadow',
-        }, {
-            tagName: 'rect',
-            selector: 'body',
-        }, {
-            tagName: 'text',
-            selector: 'label'
-        }]
+        // custom markup:
+        markup: childMarkup
+
+        // (no prototype methods)
+    }, {
+        // static methods:
+        isChild: function(obj) {
+            return obj instanceof joint.shapes.container.Child;
+        }
     });
 
+    const containerMarkup = joint.util.svg/* xml */`
+        <rect @selector="shadow"/>
+        <rect @selector="body"/>
+        <rect @selector="header"/>
+        <text @selector="headerText"/>
+    `;
+
     joint.shapes.container.Base.define('container.Parent', {
+        // default attributes:
+        size: { width: 10, height: 10 },
         collapsed: false,
         attrs: {
             root: {
@@ -100,7 +106,7 @@
             },
             header: {
                 refWidth: '100%',
-                height: headerHeight,
+                height: HEADER_HEIGHT,
                 strokeWidth: 0.5,
                 stroke: '#4666E5',
                 fill: '#4666E5'
@@ -109,7 +115,7 @@
                 textVerticalAnchor: 'middle',
                 textAnchor: 'start',
                 refX: 8,
-                refY: headerHeight / 2,
+                refY: HEADER_HEIGHT / 2,
                 fontSize: 16,
                 fontFamily: 'sans-serif',
                 letterSpacing: 1,
@@ -122,82 +128,75 @@
                 style: {
                     textShadow: '1px 1px #222222',
                 }
-            },
-            button: {
-                refDx: - buttonSize - (headerHeight - buttonSize) / 2,
-                refY: (headerHeight - buttonSize) / 2,
-                cursor: 'pointer',
-                event: 'element:button:pointerdown',
-                title: 'Collapse / Expand'
-            },
-            buttonBorder: {
-                width: buttonSize,
-                height: buttonSize,
-                fill: '#000000',
-                fillOpacity: 0.2,
-                stroke: '#FFFFFF',
-                strokeWidth: 0.5,
-            },
-            buttonIcon: {
-                fill: 'none',
-                stroke: '#FFFFFF',
-                strokeWidth: 1
             }
         }
     }, {
-        markup: [{
-            tagName: 'rect',
-            selector: 'shadow'
-        }, {
-            tagName: 'rect',
-            selector: 'body'
-        }, {
-            tagName: 'rect',
-            selector: 'header'
-        }, {
-            tagName: 'text',
-            selector: 'headerText'
-        }, {
-            tagName: 'g',
-            selector: 'button',
-            children: [{
-                tagName: 'rect',
-                selector: 'buttonBorder'
-            }, {
-                tagName: 'path',
-                selector: 'buttonIcon'
-            }]
-        }],
+        // custom markup:
+        markup: containerMarkup,
 
+        // prototype methods:
         toggle: function(shouldCollapse) {
-            var buttonD;
-            var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
-            if (collapsed) {
-                buttonD = 'M 2 7 12 7 M 7 2 7 12';
-                this.resize(140, 30);
-            } else {
-                buttonD = 'M 2 7 12 7';
-                this.fitToChildElements();
-            }
-            this.attr(['buttonIcon','d'], buttonD);
-            this.set('collapsed', collapsed);
+            this.set(
+                'collapsed',
+                typeof shouldCollapse === 'boolean'
+                    ? shouldCollapse
+                    : !this.get('collapsed')
+            );
         },
 
         isCollapsed: function() {
             return Boolean(this.get('collapsed'));
         },
 
-        fitToChildElements: function() {
-            var padding = 10;
+        getFilteredChildren: function() {
+            return this.get("filteredSources") || [];
+        },
+
+        isChildFiltered: function(child) {
+            const sourceId = child.get("sourceId");
+            if (!sourceId) return false;
+            return this.getFilteredChildren().includes(sourceId);
+        },
+
+        fitToChildElements: function(flags) {
+            if (this.getEmbeddedCells().length === 0) {
+                this.resize(140, 100, flags);
+            }
             this.fitToChildren({
                 padding: {
-                    top: headerHeight + padding,
-                    left: padding,
-                    right: padding,
-                    bottom: padding
-                }
-            })
+                    top: HEADER_HEIGHT + PADDING,
+                    left: PADDING,
+                    right: PADDING,
+                    bottom: PADDING
+                },
+                flags
+            });
         }
+    }, {
+        // static methods:
+        isContainer: function(obj) {
+            return obj instanceof joint.shapes.container.Parent;
+        }
+    });
+
+    joint.shapes.standard.Link.define('container.Link', {
+        // default attributes:
+        attrs: {
+            line: {
+                stroke: '#222222',
+                strokeWidth: 1,
+                targetMarker: {
+                    'd': 'M 4 -4 0 0 4 4 M 7 -4 3 0 7 4 M 10 -4 6 0 10 4',
+                    'fill': 'none'
+                }
+            }
+        }
+    }, {
+        // (no custom markup)
+
+        // (no prototype methods)
+    }, {
+        // (no static methods)
     });
 
 })(joint);
