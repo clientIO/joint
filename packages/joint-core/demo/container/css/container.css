@@ -10,3 +10,8 @@ body {
     margin: 0;
     overflow-y: hidden;
 }
+
+#paper .joint-paper {
+    border: 1px solid #E2E2E2;
+    margin: 0;
+}
