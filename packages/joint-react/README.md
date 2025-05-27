@@ -232,6 +232,12 @@ const renderElement = ({ width, height }) => (
 
 ### 🔹 Modifying Elements
 - `useUpdateElement()`: Update existing elements in the diagram.
+- `useCreateElement()`: Create new elements in the diagram.
+- `useRemoveElement()`: Remove elements from the diagram.
+
+- `useCreateLink()`: Create new elements in the diagram.
+- `useRemoveLink()`: Remove elements from the diagram.
+
 
 ### 🔹 Graph and Paper Instances
 - `useGraph()`: Access the [dia.Graph](https://docs.jointjs.com/api/dia/Graph/) instance directly.
@@ -239,6 +245,7 @@ const renderElement = ({ width, height }) => (
 
 ### 🔹 Creating Nodes and Links
 - `createElements()`: Utility for creating nodes.
+
 
 ```ts
 import { createElements } from '@joint/react';
