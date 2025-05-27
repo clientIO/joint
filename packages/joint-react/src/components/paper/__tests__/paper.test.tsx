@@ -66,7 +66,7 @@ describe('Paper Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Node 1')).toBeInTheDocument();
       expect(screen.getByText('Node 2')).toBeInTheDocument();
-      expect(onMeasuredMock).toHaveBeenCalledTimes(2);
+      expect(onMeasuredMock).toHaveBeenCalledTimes(1);
       expect(size).toEqual({ width: 50, height: 50 });
     });
   });
