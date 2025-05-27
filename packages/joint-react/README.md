@@ -168,10 +168,6 @@ const renderElement = (element: CustomElement) => (
 );
 ```
 
-## Error Handling
-
-If you have an error boundary, document it here. Otherwise, remove this section or mention standard React error boundaries.
-
 ## Performance Considerations
 
 To ensure optimal performance:
