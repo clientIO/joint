@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { render, screen, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../../graph-provider/graph-provider';
@@ -193,7 +192,7 @@ describe('Paper Component', () => {
     );
 
     // Ensure the customSelector is called for each element
-    expect(customSelector).toHaveBeenCalledTimes(initialElements.length * 2);
+    expect(customSelector).toHaveBeenCalledTimes(initialElements.length);
 
     await waitFor(() => {
       // Validate that the elements are rendered correctly
@@ -211,7 +210,7 @@ describe('Paper Component', () => {
       </GraphProvider>
     );
     await waitFor(() => {
-      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(2);
+      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
     });
   });
 });

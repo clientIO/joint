@@ -1,11 +1,12 @@
-import { useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { GraphStoreContext, PaperContext, type PaperContextValue } from '../../context';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { GraphStoreContext, PaperContext } from '../../context';
 import { dia } from '@joint/core';
 import { useGraph } from '../../hooks';
 import { createPortsStore } from '../../data/create-ports-store';
 import type { PortElementsCacheEntry } from '../../data/create-ports-data';
 import type { OmitWithoutIndexSignature } from '../../types';
 import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider';
+import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
 const DEFAULT_CLICK_THRESHOLD = 10;
 
 export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
@@ -27,23 +28,23 @@ export interface PaperOptions extends ReactPaperOptions {
 export interface PaperProviderProps extends ReactPaperOptions, GraphProps {
   readonly children: React.ReactNode;
 }
+const EMPTY_OBJECT = {} as const;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: PaperProviderProps) {
-  const { children, ...restOptions } = props;
+  const { children, ...paperOptions } = props;
   const graph = useGraph();
-  const onRenderElementRef = useRef<OnPaperRenderElement | null>(null);
 
-  const [paperCtx, setPaperCtx] = useState<PaperContextValue>(function (): PaperContextValue {
-    const portStore = createPortsStore();
+  const { onRenderElement, recordOfSVGElements } = usePaperElementRenderer();
+
+  const [paperCtx] = useState<PaperContext>(function (): PaperContext {
+    const portsStore = createPortsStore();
     const elementView = dia.ElementView.extend({
       // Render element using react, `elementView.el` is used as portal gate for react (createPortal)
       onRender() {
-        if (onRenderElementRef.current) {
-          // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
-          const elementView: dia.ElementView = this;
-          onRenderElementRef.current(elementView.model, elementView.el as SVGGElement);
-        }
+        // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
+        const elementView: dia.ElementView = this;
+        onRenderElement(elementView.model, elementView.el as SVGGElement);
       },
       // Render port using react, `portData.portElement.node` is used as portal gate for react (createPortal)
       _renderPorts() {
@@ -54,7 +55,7 @@ function Component(props: PaperProviderProps) {
         const elementView: dia.ElementView = this;
 
         const portElementsCache: Record<string, PortElementsCacheEntry> = this._portElementsCache;
-        portStore.onRenderPorts(elementView.model.id, portElementsCache);
+        portsStore.onRenderPorts(elementView.model.id, portElementsCache);
       },
     });
 
@@ -66,34 +67,33 @@ function Component(props: PaperProviderProps) {
       frozen: true,
       model: graph,
       elementView,
-      ...restOptions,
-      clickThreshold: restOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
+      ...paperOptions,
+      clickThreshold: paperOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
     });
 
     return {
       paper,
-      portStore,
+      portsStore,
+      recordOfSVGElements: EMPTY_OBJECT,
     };
   });
 
-  const onSetPaper = useCallback(({ onRenderElement, ...paperOptions }: PaperOptions) => {
-    setPaperCtx((previousCtx) => {
-      const { paper } = previousCtx;
-      onRenderElementRef.current = onRenderElement ?? null;
-      paper.options = {
-        ...paper.options,
-        ...paperOptions,
-      };
-      return {
-        ...previousCtx,
-      };
-    });
-  }, []);
+  useEffect(() => {
+    paperCtx.paper.options = {
+      ...paperCtx.paper.options,
+      ...paperOptions,
+    };
+  }, [paperCtx.paper, paperOptions]);
 
-  const contextValue = useMemo((): PaperContext => [paperCtx, onSetPaper], [onSetPaper, paperCtx]);
+  const paperContextFull = useMemo((): PaperContext => {
+    return {
+      ...paperCtx,
+      recordOfSVGElements,
+    };
+  }, [paperCtx, recordOfSVGElements]);
 
   // Remove the check for existing context, always provide PaperContext
-  return <PaperContext.Provider value={contextValue}>{children}</PaperContext.Provider>;
+  return <PaperContext.Provider value={paperContextFull}>{children}</PaperContext.Provider>;
 }
 
 /**
@@ -114,10 +114,10 @@ export function PaperProvider(props: PaperProviderProps) {
     cellNamespace,
     cellModel,
     store,
-    ...restOptions
+    ...paperOptions
   } = props;
   const hasStore = !!useContext(GraphStoreContext);
-  const content = <Component {...restOptions}>{children}</Component>;
+  const content = <Component {...paperOptions}>{children}</Component>;
   if (hasStore) {
     return content;
   }

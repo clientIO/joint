@@ -17,13 +17,13 @@ import { HTMLElementItem, SVGElementItem } from './paper-element-item';
 import { type GraphProps } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
 import type { PaperEvents } from '../../types/event.types';
-import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
 import { REACT_TYPE } from '../../models/react-element';
 import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
 import { PaperHTMLContainer } from './paper-html-container';
 import { useGraph } from '../../hooks';
 import { PaperProvider, type ReactPaperOptions } from '../paper-provider/paper-provider';
 import { PaperContext } from '../../context';
+import { PaperCheck } from './paper-check';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -149,12 +149,16 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     ...paperOptions
   } = props;
 
-  const { onRenderElement, svgGElements } = usePaperElementRenderer();
   const { paperContainerElement, paperCtx } = useCreatePaper({
     ...paperOptions,
     scale,
-    onRenderElement,
   });
+
+  const paperContext = useContext(PaperContext);
+  if (!paperContext) {
+    throw new Error('Paper must be used within a `PaperProvider` or `Paper` component');
+  }
+  const { recordOfSVGElements } = paperContext;
 
   const graph = useGraph();
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
@@ -215,8 +219,14 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     [areElementsMeasured, style]
   );
 
+  const measured = useRef(false);
+
   useEffect(() => {
     if (!paperCtx) {
+      return;
+    }
+    if (measured.current) {
+      // If we already measured, we can skip this effect
       return;
     }
     const { paper } = paperCtx;
@@ -224,6 +234,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
       return;
     }
     if (areElementsMeasured) {
+      measured.current = true;
       return onElementsSizeReady?.({ paper, graph: paper.model });
     }
 
@@ -253,7 +264,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
           if (!cell.id) {
             return null;
           }
-          const portalHTMLElement = svgGElements[cell.id];
+          const portalHTMLElement = recordOfSVGElements[cell.id];
           if (!portalHTMLElement) {
             return null;
           }
@@ -297,7 +308,6 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     </>
   );
 }
-
 // eslint-disable-next-line jsdoc/require-jsdoc
 function PaperWithProviders<ElementItem extends GraphElement = GraphElement>(
   props: PaperProps<ElementItem>
@@ -306,10 +316,16 @@ function PaperWithProviders<ElementItem extends GraphElement = GraphElement>(
   const { children, ...rest } = props;
   const content = <Component {...rest}>{children}</Component>;
   if (hasPaperCtx) {
+    const verifyProps = process.env.NODE_ENV !== 'production' && <PaperCheck {...rest} />;
     // If PaperContext is already provided, we don't need to wrap it again
-    return content;
+    return (
+      <>
+        {verifyProps}
+        {content}
+      </>
+    );
   }
-  return <PaperProvider {...props}>{content}</PaperProvider>;
+  return <PaperProvider {...rest}>{content}</PaperProvider>;
 }
 
 /**

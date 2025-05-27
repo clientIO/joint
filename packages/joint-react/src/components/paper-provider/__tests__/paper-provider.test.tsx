@@ -13,6 +13,7 @@ function MockChild() {
   }, [paper]);
   return <div>Mock Child</div>;
 }
+// TODO - add dev error when parsing options to the paper when it has already set options
 
 describe('PaperProvider', () => {
   it('should create a paper context and pass paper instance to children', async () => {
@@ -55,7 +56,7 @@ describe('PaperProvider', () => {
       </PaperProvider>
     );
     expect(outsidePaper).toBeDefined();
-    expect(outsidePaper?.options.width).toBe(789);
+    expect(outsidePaper?.options.width).toBe(123);
     expect(outsidePaper?.options.height).toBe(456);
     expect(outsidePaper?.options.clickThreshold).toBe(42);
   });
@@ -66,22 +67,26 @@ describe('PaperProvider', () => {
       paperInstance = usePaper();
       return null;
     }
+    let reRenders = 0;
     const { rerender } = render(
       <PaperProvider width={10} height={20}>
+        {reRenders++}
         <CheckPaper />
       </PaperProvider>
     );
     expect(paperInstance?.options.width).toBe(10);
     expect(paperInstance?.options.height).toBe(20);
+    expect(reRenders).toBe(1);
 
     rerender(
       <PaperProvider width={99} height={77}>
+        {reRenders++}
         <CheckPaper />
       </PaperProvider>
     );
-    // we do not for now reflect changes in PaperProvider options to Paper options
-    expect(paperInstance?.options.width).toBe(10);
-    expect(paperInstance?.options.height).toBe(20);
+    expect(reRenders).toBe(2);
+    expect(paperInstance?.options.width).toBe(99);
+    expect(paperInstance?.options.height).toBe(77);
   });
 
   it('should share the same paper instance between outside and inside Paper components', () => {

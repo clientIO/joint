@@ -600,7 +600,7 @@ exports[`Paper "WithGrid" 1`] = `
                   >
                     <pattern
                       height="10"
-                      id="pattern_view34_0"
+                      id="pattern_view32_0"
                       patternUnits="userSpaceOnUse"
                       width="10"
                       x="0"
@@ -615,7 +615,7 @@ exports[`Paper "WithGrid" 1`] = `
                     </pattern>
                   </defs>
                   <rect
-                    fill="url(#pattern_view34_0)"
+                    fill="url(#pattern_view32_0)"
                     height="100%"
                     id="v-12"
                     width="100%"
@@ -698,7 +698,7 @@ exports[`Paper "WithGrid" 1`] = `
                 >
                   <pattern
                     height="10"
-                    id="pattern_view34_0"
+                    id="pattern_view32_0"
                     patternUnits="userSpaceOnUse"
                     width="10"
                     x="0"
@@ -713,7 +713,7 @@ exports[`Paper "WithGrid" 1`] = `
                   </pattern>
                 </defs>
                 <rect
-                  fill="url(#pattern_view34_0)"
+                  fill="url(#pattern_view32_0)"
                   height="100%"
                   id="v-12"
                   width="100%"

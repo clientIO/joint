@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { PaperContext } from '../context/paper-context';
 import type { dia } from '@joint/core';
-export const EMPTY_ARRAY = [] as const;
+
 /**
  * Return jointjs paper instance from the paper context.
  * @see https://docs.jointjs.com/learn/quickstart/paper
@@ -14,7 +14,7 @@ export const EMPTY_ARRAY = [] as const;
  * @throws - If the hook is not used inside the paper context.
  */
 export function usePaper(): dia.Paper {
-  const [paperCtx] = useContext(PaperContext) ?? EMPTY_ARRAY;
+  const paperCtx = useContext(PaperContext);
   if (!paperCtx) {
     throw new Error('usePaper must be used within a `PaperProvider` or `Paper` component');
   }

@@ -1,7 +1,7 @@
 import type { dia } from '@joint/core';
 import { memo, useContext, useEffect, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import { EMPTY_ARRAY, useCellId } from '../../hooks';
+import { useCellId } from '../../hooks';
 import { PortGroupContext } from '../../context/port-group-context';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import { PORTAL_SELECTOR } from '../../data/create-ports-data';
@@ -58,11 +58,11 @@ export interface PortItemProps {
 function Component(props: PortItemProps) {
   const { magnet, id, children, groupId, z, x, y, dx, dy } = props;
   const cellId = useCellId();
-  const [paperCtx] = useContext(PaperContext) ?? EMPTY_ARRAY;
+  const paperCtx = useContext(PaperContext);
   if (!paperCtx) {
     throw new Error('PortItem must be used within a `PaperProvider` or `Paper` component');
   }
-  const { portStore, paper } = paperCtx;
+  const { portsStore, paper } = paperCtx;
   const { graph } = useGraphStore();
 
   const contextGroupId = useContext(PortGroupContext);
@@ -109,9 +109,9 @@ function Component(props: PortItemProps) {
   }, [cellId, contextGroupId, graph, groupId, id, x, y, z, magnet, dx, dy]);
 
   const portalNode = useSyncExternalStore(
-    portStore.subscribe,
-    () => portStore.getPortElement(cellId, id),
-    () => portStore.getPortElement(cellId, id)
+    portsStore.subscribe,
+    () => portsStore.getPortElement(cellId, id),
+    () => portsStore.getPortElement(cellId, id)
   );
 
   useEffect(() => {

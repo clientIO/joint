@@ -14,10 +14,10 @@ import type { OnPaperRenderElement } from '../components/paper-provider/paper-pr
  * @internal
  */
 export function usePaperElementRenderer() {
-  const [svgGElements, setSVGGElements] = useState<Record<dia.Cell.ID, SVGElement>>({});
+  const [recordOfSVGElements, setElements] = useState<Record<dia.Cell.ID, SVGElement>>({});
 
   const onRenderElement: OnPaperRenderElement = useCallback((element, nodeSVGGElement) => {
-    setSVGGElements((previousState) => {
+    setElements((previousState) => {
       return {
         ...previousState,
         [element.id]: nodeSVGGElement,
@@ -25,5 +25,5 @@ export function usePaperElementRenderer() {
     });
   }, []);
 
-  return { svgGElements, onRenderElement };
+  return { recordOfSVGElements, onRenderElement };
 }

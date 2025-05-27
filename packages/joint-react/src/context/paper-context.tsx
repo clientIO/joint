@@ -3,14 +3,12 @@ import { createContext } from 'react';
 import type { RenderElement } from '../components';
 import type { GraphElement } from '../types/element-types';
 import { type PortsStore } from '../data/create-ports-store';
-import type { PaperOptions } from '../components/paper-provider/paper-provider';
 
-export interface PaperContextValue {
+export interface PaperContext {
   paper: dia.Paper;
   renderElement?: RenderElement<GraphElement>;
-  portStore: PortsStore;
+  portsStore: PortsStore;
+  recordOfSVGElements: Record<dia.Cell.ID, SVGElement>;
 }
-
-export type PaperContext = [PaperContextValue, (options: PaperOptions) => void];
 
 export const PaperContext = createContext<PaperContext | null>(null);

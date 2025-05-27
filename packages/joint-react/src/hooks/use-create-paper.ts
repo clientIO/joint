@@ -4,10 +4,8 @@ import { useGraphStore } from './use-graph-store';
 import type { PaperEventType, PaperEvents } from '../types/event.types';
 import { handleEvent } from '../utils/handle-paper-events';
 import { PaperContext } from '../context';
-import { EMPTY_ARRAY } from './use-paper';
-import type { PaperOptions } from '../components/paper-provider/paper-provider';
 
-interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
+interface UseCreatePaperOptions extends PaperEvents {
   /**
    * On load custom element.
    * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
@@ -17,6 +15,7 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
    * @returns
    */
   readonly overwriteDefaultPaperElement?: (paper: dia.Paper) => HTMLElement | SVGElement;
+  readonly scale?: number;
 }
 
 /**
@@ -35,16 +34,12 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
   const paperContainerElement = useRef<HTMLDivElement | null>(null);
   const { graph } = useGraphStore();
 
-  const [paperCtx, setPaperOptions] = useContext(PaperContext) ?? EMPTY_ARRAY;
+  const paperCtx = useContext(PaperContext);
   useLayoutEffect(() => {
     if (!paperCtx) {
       return;
     }
-    if (!setPaperOptions) {
-      return;
-    }
 
-    setPaperOptions(restOptions);
     const { paper } = paperCtx;
     if (!paper) {
       throw new Error('Paper is not created');
