@@ -10,8 +10,8 @@ exports[`GraphProvider "Default" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -72,8 +72,8 @@ exports[`GraphProvider "Default" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -191,8 +191,8 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -253,8 +253,8 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -377,8 +377,8 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -444,8 +444,8 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -563,8 +563,8 @@ exports[`GraphProvider "WithLink" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -625,8 +625,8 @@ exports[`GraphProvider "WithLink" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -744,8 +744,8 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
         style="opacity: 0; pointer-events: none; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -806,8 +806,8 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
       style="opacity: 0; pointer-events: none; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"

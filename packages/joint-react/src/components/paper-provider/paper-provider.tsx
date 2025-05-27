@@ -1,10 +1,11 @@
 import { useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { PaperContext, type PaperContextValue } from '../../context';
+import { GraphStoreContext, PaperContext, type PaperContextValue } from '../../context';
 import { dia } from '@joint/core';
 import { useGraph } from '../../hooks';
 import { createPortsStore } from '../../data/create-ports-store';
 import type { PortElementsCacheEntry } from '../../data/create-ports-data';
 import type { OmitWithoutIndexSignature } from '../../types';
+import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider';
 const DEFAULT_CLICK_THRESHOLD = 10;
 
 export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
@@ -22,20 +23,18 @@ export interface PaperOptions extends ReactPaperOptions {
    */
   readonly onRenderElement?: OnPaperRenderElement;
 }
-/**
- * PaperProvider is a React component that provides a context for managing the state of the paper.
- * It uses the PaperContext to provide a value to its children.
- * The context value is an array containing the current paper context and a function to update it.
- * @param props - The props object containing the children components.
- * @param props.children - The children components that will have access to the PaperContext.
- * @returns - A JSX element that wraps the children with the PaperContext provider.
- * @group Components
- */
-export function PaperProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+
+export interface PaperProviderProps extends ReactPaperOptions, GraphProps {
+  readonly children: React.ReactNode;
+}
+
+// eslint-disable-next-line jsdoc/require-jsdoc
+function Component(props: PaperProviderProps) {
+  const { children, ...restOptions } = props;
   const graph = useGraph();
   const onRenderElementRef = useRef<OnPaperRenderElement | null>(null);
 
-  const [paperCtx] = useState<PaperContextValue>(function (): PaperContextValue {
+  const [paperCtx, setPaperCtx] = useState<PaperContextValue>(function (): PaperContextValue {
     const portStore = createPortsStore();
     const elementView = dia.ElementView.extend({
       // Render element using react, `elementView.el` is used as portal gate for react (createPortal)
@@ -58,6 +57,7 @@ export function PaperProvider({ children }: Readonly<{ children: React.ReactNode
         portStore.onRenderPorts(elementView.model.id, portElementsCache);
       },
     });
+
     // Create a new JointJS Paper with the provided options
     const paper = new dia.Paper({
       async: true,
@@ -66,33 +66,71 @@ export function PaperProvider({ children }: Readonly<{ children: React.ReactNode
       frozen: true,
       model: graph,
       elementView,
+      ...restOptions,
+      clickThreshold: restOptions.clickThreshold ?? DEFAULT_CLICK_THRESHOLD,
     });
+
     return {
       paper,
       portStore,
     };
   });
 
-  const onSetPaper = useCallback(
-    ({ clickThreshold, onRenderElement, ...restOptions }: PaperOptions) => {
-      const { paper } = paperCtx;
+  const onSetPaper = useCallback(({ onRenderElement, ...paperOptions }: PaperOptions) => {
+    setPaperCtx((previousCtx) => {
+      const { paper } = previousCtx;
       onRenderElementRef.current = onRenderElement ?? null;
       paper.options = {
         ...paper.options,
-        ...restOptions,
+        ...paperOptions,
       };
-      paper.options.clickThreshold = clickThreshold ?? DEFAULT_CLICK_THRESHOLD;
-    },
-    [paperCtx]
-  );
+      return {
+        ...previousCtx,
+      };
+    });
+  }, []);
 
   const contextValue = useMemo((): PaperContext => [paperCtx, onSetPaper], [onSetPaper, paperCtx]);
 
-  // checking for the existing context exist, if exist, just return the children
-  const existingCtx = useContext(PaperContext);
-  const hasExistingCtx = !!existingCtx;
-  if (hasExistingCtx) {
-    return children;
-  }
+  // Remove the check for existing context, always provide PaperContext
   return <PaperContext.Provider value={contextValue}>{children}</PaperContext.Provider>;
+}
+
+/**
+ * PaperProvider is a React component that provides a context for managing the state of the paper.
+ * It uses the PaperContext to provide a value to its children.
+ * The context value is an array containing the current paper context and a function to update it.
+ * @param props - The props object containing the children components.
+ * @param props.children - The children components that will have access to the PaperContext.
+ * @returns - A JSX element that wraps the children with the PaperContext provider.
+ * @group Components
+ */
+export function PaperProvider(props: PaperProviderProps) {
+  const {
+    children,
+    initialElements,
+    initialLinks,
+    graph,
+    cellNamespace,
+    cellModel,
+    store,
+    ...restOptions
+  } = props;
+  const hasStore = !!useContext(GraphStoreContext);
+  const content = <Component {...restOptions}>{children}</Component>;
+  if (hasStore) {
+    return content;
+  }
+  return (
+    <GraphProvider
+      initialElements={initialElements}
+      initialLinks={initialLinks}
+      graph={graph}
+      cellNamespace={cellNamespace}
+      cellModel={cellModel}
+      store={store}
+    >
+      {content}
+    </GraphProvider>
+  );
 }

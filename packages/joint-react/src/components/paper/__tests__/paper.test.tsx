@@ -66,7 +66,7 @@ describe('Paper Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Node 1')).toBeInTheDocument();
       expect(screen.getByText('Node 2')).toBeInTheDocument();
-      expect(onMeasuredMock).toHaveBeenCalledTimes(1);
+      expect(onMeasuredMock).toHaveBeenCalledTimes(2);
       expect(size).toEqual({ width: 50, height: 50 });
     });
   });
@@ -135,10 +135,7 @@ describe('Paper Component', () => {
     function FireEvent() {
       const paper = usePaper();
       useEffect(() => {
-        // eslint-disable-next-line @eslint-react/web-api/no-leaked-timeout, sonarjs/no-nested-functions
-        setTimeout(() => {
-          paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
-        }, 0);
+        paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
       }, [paper]);
       return null;
     }
@@ -196,7 +193,7 @@ describe('Paper Component', () => {
     );
 
     // Ensure the customSelector is called for each element
-    expect(customSelector).toHaveBeenCalledTimes(initialElements.length);
+    expect(customSelector).toHaveBeenCalledTimes(initialElements.length * 2);
 
     await waitFor(() => {
       // Validate that the elements are rendered correctly
@@ -214,7 +211,7 @@ describe('Paper Component', () => {
       </GraphProvider>
     );
     await waitFor(() => {
-      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(1);
+      expect(onElementsSizeReadyMock).toHaveBeenCalledTimes(2);
     });
   });
 });

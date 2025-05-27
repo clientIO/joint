@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from 'react';
+import { useContext, useLayoutEffect, useRef } from 'react';
 import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import type { PaperEventType, PaperEvents } from '../types/event.types';
@@ -36,7 +36,7 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
   const { graph } = useGraphStore();
 
   const [paperCtx, setPaperOptions] = useContext(PaperContext) ?? EMPTY_ARRAY;
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!paperCtx) {
       return;
     }
@@ -59,7 +59,7 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph, overwriteDefaultPaperElement]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!paperCtx) {
       return;
     }
@@ -88,7 +88,7 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
     };
   }, [paperCtx, restOptions]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!paperCtx) {
       return;
     }

@@ -10,8 +10,8 @@ exports[`Paper "WithAutoFitContent" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -20,14 +20,14 @@ exports[`Paper "WithAutoFitContent" 1`] = `
           />
           <svg
             height="100%"
-            id="v-10"
+            id="v-15"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-11"
+              id="v-16"
               type="text/css"
             >
               CDATASection {}
@@ -72,8 +72,8 @@ exports[`Paper "WithAutoFitContent" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -82,14 +82,14 @@ exports[`Paper "WithAutoFitContent" 1`] = `
         />
         <svg
           height="100%"
-          id="v-10"
+          id="v-15"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-11"
+            id="v-16"
             type="text/css"
           >
             CDATASection {}
@@ -191,8 +191,8 @@ exports[`Paper "WithCustomEvent" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -201,14 +201,14 @@ exports[`Paper "WithCustomEvent" 1`] = `
           />
           <svg
             height="100%"
-            id="v-16"
+            id="v-21"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-17"
+              id="v-22"
               type="text/css"
             >
               CDATASection {}
@@ -253,8 +253,8 @@ exports[`Paper "WithCustomEvent" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -263,14 +263,14 @@ exports[`Paper "WithCustomEvent" 1`] = `
         />
         <svg
           height="100%"
-          id="v-16"
+          id="v-21"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-17"
+            id="v-22"
             type="text/css"
           >
             CDATASection {}
@@ -372,8 +372,8 @@ exports[`Paper "WithEvent" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -382,14 +382,14 @@ exports[`Paper "WithEvent" 1`] = `
           />
           <svg
             height="100%"
-            id="v-12"
+            id="v-17"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-13"
+              id="v-18"
               type="text/css"
             >
               CDATASection {}
@@ -434,8 +434,8 @@ exports[`Paper "WithEvent" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -444,14 +444,14 @@ exports[`Paper "WithEvent" 1`] = `
         />
         <svg
           height="100%"
-          id="v-12"
+          id="v-17"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-13"
+            id="v-18"
             type="text/css"
           >
             CDATASection {}
@@ -553,8 +553,8 @@ exports[`Paper "WithGrid" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -585,7 +585,43 @@ exports[`Paper "WithGrid" 1`] = `
               <g
                 class="joint-grid-layer"
                 style="pointer-events: none;"
-              />
+              >
+                <svg
+                  height="0"
+                  id="v-9"
+                  version="1.1"
+                  width="0"
+                  x="0"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  y="600"
+                >
+                  <defs
+                    id="v-8"
+                  >
+                    <pattern
+                      height="10"
+                      id="pattern_view34_0"
+                      patternUnits="userSpaceOnUse"
+                      width="10"
+                      x="0"
+                      y="-600"
+                    >
+                      <rect
+                        fill="#AAAAAA"
+                        height="1"
+                        id="v-10"
+                        width="1"
+                      />
+                    </pattern>
+                  </defs>
+                  <rect
+                    fill="url(#pattern_view34_0)"
+                    height="100%"
+                    id="v-12"
+                    width="100%"
+                  />
+                </svg>
+              </g>
               <g
                 class="joint-back-layer"
               />
@@ -615,8 +651,8 @@ exports[`Paper "WithGrid" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -647,7 +683,43 @@ exports[`Paper "WithGrid" 1`] = `
             <g
               class="joint-grid-layer"
               style="pointer-events: none;"
-            />
+            >
+              <svg
+                height="0"
+                id="v-9"
+                version="1.1"
+                width="0"
+                x="0"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                y="600"
+              >
+                <defs
+                  id="v-8"
+                >
+                  <pattern
+                    height="10"
+                    id="pattern_view34_0"
+                    patternUnits="userSpaceOnUse"
+                    width="10"
+                    x="0"
+                    y="-600"
+                  >
+                    <rect
+                      fill="#AAAAAA"
+                      height="1"
+                      id="v-10"
+                      width="1"
+                    />
+                  </pattern>
+                </defs>
+                <rect
+                  fill="url(#pattern_view34_0)"
+                  height="100%"
+                  id="v-12"
+                  width="100%"
+                />
+              </svg>
+            </g>
             <g
               class="joint-back-layer"
             />
@@ -734,8 +806,8 @@ exports[`Paper "WithHTMLElement" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -796,8 +868,8 @@ exports[`Paper "WithHTMLElement" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -915,8 +987,8 @@ exports[`Paper "WithLinkTools" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -925,14 +997,14 @@ exports[`Paper "WithLinkTools" 1`] = `
           />
           <svg
             height="100%"
-            id="v-14"
+            id="v-19"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-15"
+              id="v-20"
               type="text/css"
             >
               CDATASection {}
@@ -977,8 +1049,8 @@ exports[`Paper "WithLinkTools" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -987,14 +1059,14 @@ exports[`Paper "WithLinkTools" 1`] = `
         />
         <svg
           height="100%"
-          id="v-14"
+          id="v-19"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-15"
+            id="v-20"
             type="text/css"
           >
             CDATASection {}
@@ -1096,8 +1168,8 @@ exports[`Paper "WithRectElement" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -1158,8 +1230,8 @@ exports[`Paper "WithRectElement" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -1277,8 +1349,8 @@ exports[`Paper "WithScaleDown" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 800px; height: 600px;"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
         >
           <div
             class="joint-paper-background"
@@ -1287,14 +1359,14 @@ exports[`Paper "WithScaleDown" 1`] = `
           />
           <svg
             height="100%"
-            id="v-8"
+            id="v-13"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-9"
+              id="v-14"
               type="text/css"
             >
               CDATASection {}
@@ -1340,8 +1412,8 @@ exports[`Paper "WithScaleDown" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 800px; height: 600px;"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
       >
         <div
           class="joint-paper-background"
@@ -1350,14 +1422,14 @@ exports[`Paper "WithScaleDown" 1`] = `
         />
         <svg
           height="100%"
-          id="v-8"
+          id="v-13"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-9"
+            id="v-14"
             type="text/css"
           >
             CDATASection {}

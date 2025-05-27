@@ -14,8 +14,7 @@ import { useCreatePaper } from '../../hooks/use-create-paper';
 import { useElements } from '../../hooks/use-elements';
 import { CellIdContext } from '../../context/cell-id.context';
 import { HTMLElementItem, SVGElementItem } from './paper-element-item';
-import { GraphStoreContext } from '../../context/graph-store-context';
-import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider';
+import { type GraphProps } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
 import type { PaperEvents } from '../../types/event.types';
 import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
@@ -24,6 +23,7 @@ import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
 import { PaperHTMLContainer } from './paper-html-container';
 import { useGraph } from '../../hooks';
 import { PaperProvider, type ReactPaperOptions } from '../paper-provider/paper-provider';
+import { PaperContext } from '../../context';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -302,39 +302,14 @@ function Component<ElementItem extends GraphElement = GraphElement>(
 function PaperWithProviders<ElementItem extends GraphElement = GraphElement>(
   props: PaperProps<ElementItem>
 ) {
-  const hasStore = !!useContext(GraphStoreContext);
-
-  const {
-    children,
-    initialElements,
-    initialLinks,
-    graph,
-    cellNamespace,
-    cellModel,
-    store,
-    ...rest
-  } = props;
-  const paperContent = (
-    <PaperProvider>
-      <Component {...rest}>{children}</Component>
-    </PaperProvider>
-  );
-
-  if (hasStore) {
-    return paperContent;
+  const hasPaperCtx = !!useContext(PaperContext);
+  const { children, ...rest } = props;
+  const content = <Component {...rest}>{children}</Component>;
+  if (hasPaperCtx) {
+    // If PaperContext is already provided, we don't need to wrap it again
+    return content;
   }
-  return (
-    <GraphProvider
-      initialElements={initialElements}
-      initialLinks={initialLinks}
-      graph={graph}
-      cellNamespace={cellNamespace}
-      cellModel={cellModel}
-      store={store}
-    >
-      {paperContent}
-    </GraphProvider>
-  );
+  return <PaperProvider {...props}>{content}</PaperProvider>;
 }
 
 /**
