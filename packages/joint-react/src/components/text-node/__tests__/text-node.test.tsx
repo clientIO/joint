@@ -26,6 +26,7 @@ describe('TextNode', () => {
 
   it('renders with height and textWrap options', () => {
     render(
+      // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
       <TextNode width={100} height={40} textWrap={{ ellipsis: true, maxLineCount: 2 }}>
         hello world hello world hello world
       </TextNode>,
