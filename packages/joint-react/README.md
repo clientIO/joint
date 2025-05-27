@@ -1,6 +1,14 @@
-<p align="center" style="background:#131E29;padding:2rem 0;">
-  <img src="https://cdn.prod.website-files.com/63061d4ee85b5a18644f221c/633045c1d726c7116dcbe582_JJS_logo.svg" alt="JointJS Logo" height="64" />
-</p>
+<div style="display:flex;align-items:center;background:#131E29;padding:1.5rem 1rem 1.5rem 1rem;margin-bottom:2rem;">
+  <img src="https://cdn.prod.website-files.com/63061d4ee85b5a18644f221c/633045c1d726c7116dcbe582_JJS_logo.svg" alt="JointJS Logo" height="56" style="margin-right:1.5rem;display:inline-block;" />
+  <svg width="56" height="56" viewBox="-10.5 -9.45 21 18.9" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;">
+    <circle cx="0" cy="0" r="2" fill="#61DAFB"></circle>
+    <g stroke="#61DAFB" stroke-width="1" fill="none">
+      <ellipse rx="10" ry="4.5"></ellipse>
+      <ellipse rx="10" ry="4.5" transform="rotate(60)"></ellipse>
+      <ellipse rx="10" ry="4.5" transform="rotate(120)"></ellipse>
+    </g>
+  </svg>
+</div>
 
 # @joint/react
 
