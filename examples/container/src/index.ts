@@ -28,7 +28,7 @@ const paper = new dia.Paper({
         const cell = view.model;
         // Hide any element or link which is embedded inside a collapsed parent (or parent of the parent).
         const hidden = cell.getAncestors().some((ancestor) => {
-            if (ancestor instanceof Container && ancestor.isCollapsed()) return true;
+            if ((ancestor as Container).isCollapsed()) return true;
         });
         return !hidden;
     }
