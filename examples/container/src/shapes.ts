@@ -156,9 +156,9 @@ export class Container extends Base {
         return Boolean(this.get('collapsed'));
     }
 
-    fitToChildElements(flags: { [key: string]: any }) {
+    fitToChildElements(): void {
         if (this.getEmbeddedCells().length === 0) {
-            this.resize(140, 100, flags);
+            this.resize(140, 100);
         }
         this.fitToChildren({
             padding: {
@@ -166,8 +166,7 @@ export class Container extends Base {
                 left: PADDING,
                 right: PADDING,
                 bottom: PADDING
-            },
-            ...flags
+            }
         });
     }
 

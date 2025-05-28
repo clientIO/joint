@@ -81,11 +81,10 @@ class ExpandButtonHighlighter extends dia.HighlighterView {
 
 const updateContainerSize = (container: dia.Cell) => {
     if (!Container.isContainer(container)) return;
-    const flags = { ignoreCommandManager: true };
     if (container.isCollapsed()) {
-        container.resize(140, 30, flags);
+        container.resize(140, 30);
     } else {
-        container.fitToChildElements(flags);
+        container.fitToChildElements();
     }
 }
 
@@ -136,8 +135,7 @@ paper.on({
                             y: 0,
                             x: 0,
                             action: (_evt, view) => {
-                                // The children elements removal should not be added to the command manager.
-                                graph.removeCells(view.model.getEmbeddedCells(), { ignoreCommandManager: true });
+                                graph.removeCells(view.model.getEmbeddedCells());
                                 view.model.remove();
                             }
                         })
