@@ -1,4 +1,4 @@
-import { shapes, dia, util, elementTools, mvc } from '@joint/core';
+import { shapes, dia, util, elementTools } from '@joint/core';
 import { Child, Container, Link, HEADER_HEIGHT } from './shapes';
 
 import '../index.css';
@@ -63,7 +63,7 @@ class ExpandButtonHighlighter extends dia.HighlighterView {
             this.renderChildren();
         }
 
-        const size = (cellView.model as Container).size();
+        const size = (cellView.model as dia.Element).size();
         this.el.setAttribute(
             'transform',
             `translate(${size.width - HEADER_HEIGHT / 2}, ${HEADER_HEIGHT / 2})`
