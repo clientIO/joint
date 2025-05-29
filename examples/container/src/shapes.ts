@@ -45,16 +45,16 @@ export class Child extends Base {
                     magnetSelector: 'body'
                 },
                 shadow: {
-                    refWidth: '100%',
-                    refHeight: '100%',
+                    width: 'calc(w)',
+                    height: 'calc(h)',
                     x: 3,
                     y: 3,
                     fill: '#000000',
                     opacity: 0.2
                 },
                 body: {
-                    refWidth: '100%',
-                    refHeight: '100%',
+                    width: 'calc(w)',
+                    height: 'calc(h)',
                     strokeWidth: 1,
                     stroke: '#FF4365',
                     fill: '#F9DBDF'
@@ -62,8 +62,8 @@ export class Child extends Base {
                 label: {
                     textVerticalAnchor: 'middle',
                     textAnchor: 'middle',
-                    refX: '50%',
-                    refY: '50%',
+                    x: 'calc(w / 2)',
+                    y: 'calc(h / 2)',
                     fontSize: 14,
                     fontFamily: 'sans-serif',
                     fill: '#222222'
@@ -100,22 +100,22 @@ export class Container extends Base {
                     magnetSelector: 'body'
                 },
                 shadow: {
-                    refWidth: '100%',
-                    refHeight: '100%',
+                    width: 'calc(w)',
+                    height: 'calc(h)',
                     x: 3,
                     y: 3,
                     fill: '#000000',
                     opacity: 0.05
                 },
                 body: {
-                    refWidth: '100%',
-                    refHeight: '100%',
+                    width: 'calc(w)',
+                    height: 'calc(h)',
                     strokeWidth: 1,
                     stroke: '#DDDDDD',
                     fill: '#FCFCFC'
                 },
                 header: {
-                    refWidth: '100%',
+                    width: 'calc(w)',
                     height: HEADER_HEIGHT,
                     strokeWidth: 0.5,
                     stroke: '#4666E5',
@@ -124,8 +124,8 @@ export class Container extends Base {
                 headerText: {
                     textVerticalAnchor: 'middle',
                     textAnchor: 'start',
-                    refX: 8,
-                    refY: HEADER_HEIGHT / 2,
+                    x: 8,
+                    y: HEADER_HEIGHT / 2,
                     fontSize: 16,
                     fontFamily: 'sans-serif',
                     letterSpacing: 1,
@@ -136,7 +136,7 @@ export class Container extends Base {
                         ellipsis: '*'
                     },
                     style: {
-                        textShadow: '1px 1px #222222',
+                        textShadow: '1px 1px #222222'
                     }
                 }
             }
