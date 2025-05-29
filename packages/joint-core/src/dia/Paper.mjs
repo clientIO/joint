@@ -416,7 +416,7 @@ export const Paper = View.extend({
         this._setDimensions();
         this.startListening();
 
-        if (model.useLayersForEmbedding) {
+        if (options.useLayersForEmbedding) {
             this.embeddingLayersController = new EmbeddingLayersController({ graph: model, paper: this });
         }
 
@@ -656,7 +656,9 @@ export const Paper = View.extend({
             layerName = layer;
         }
 
-        if (layerName in viewsMap) return viewsMap[layerName];
+        if (layerName in viewsMap) {
+            return viewsMap[layerName];
+        }
         return null;
     },
 
@@ -684,7 +686,9 @@ export const Paper = View.extend({
         this._removeLayer(layerView);
     },
 
-    addLayer(layerName, layerView, options = {}) {
+    addLayer(layerView, options = {}) {
+        const layerName = layer.name;
+
         if (!layerName || typeof layerName !== 'string') {
             throw new Error('dia.Paper: The layer name must be provided.');
         }
@@ -712,9 +716,8 @@ export const Paper = View.extend({
     moveLayer(layer, insertBefore) {
         const layerView = this._requireLayerView(layer);
         if (layerView === this._getLayerView(insertBefore)) return;
-        const layerName = layerView.name;
         this._unregisterLayer(layerView);
-        this.addLayer(layerName, layerView, { insertBefore });
+        this.addLayer(layerView, { insertBefore });
     },
 
     getLayerNames() {
@@ -774,7 +777,7 @@ export const Paper = View.extend({
 
     renderLayer: function(attributes) {
         const layerView = this.createLayer(attributes);
-        this.addLayer(attributes.name, layerView);
+        this.addLayer(layerView);
         return layerView;
     },
 

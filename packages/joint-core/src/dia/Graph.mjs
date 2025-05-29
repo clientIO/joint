@@ -71,7 +71,6 @@ export const Graph = Model.extend({
 
         opt = opt || {};
 
-        this.useLayersForEmbedding = opt.useLayersForEmbedding || false;
         this.enableCellLayers = opt.enableCellLayers || false;
 
         this.defaultLayerName = LayersNames.CELLS;
@@ -426,20 +425,12 @@ export const Graph = Model.extend({
         this.layersController.addLayer(layer, opt);
     },
 
-    removeLayer(layerName, opt) {
-        this.layersController.removeLayer(layerName, opt);
+    removeLayer(layer, opt) {
+        this.layersController.removeLayer(layer.name, opt);
     },
 
     getDefaultLayer() {
         return this.layersController.getDefaultLayer();
-    },
-
-    getActiveLayer() {
-        return this.layersController.getActiveLayer();
-    },
-
-    setActiveLayer(layerName) {
-        this.layersController.setActiveLayer(layerName);
     },
 
     getLayersMap() {

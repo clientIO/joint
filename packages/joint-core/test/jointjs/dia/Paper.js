@@ -2146,7 +2146,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 );
                 assert.throws(
                     function() {
-                        paper.addLayer('test');
+                        paper.addLayer({ name: 'test' });
                     },
                     /dia.Paper: The layer view is not an instance of dia.LayerView./,
                     'Layer view must be an instance of joint.dia.LayerView.'
@@ -2156,7 +2156,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('throws error when layer with the same name already exists', function(assert) {
                 assert.throws(
                     function() {
-                        paper.addLayer(joint.dia.Paper.Layers.BACK);
+                        paper.addLayer(new LayerView({ name: joint.dia.Paper.Layers.BACK }));
                     },
                     /dia.Paper: The layer "back" already exists./,
                     'Layer with the name "back" already exists.'
@@ -2164,19 +2164,23 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
             QUnit.test('adds a new layer at the end of the layers list', function(assert) {
-                const testLayer = new joint.dia.LayerView();
+                const testLayer = new joint.dia.LayerView({
+                    name: 'test1'
+                });
                 assert.equal(paper.getLayerNames().indexOf('test1'), -1);
                 assert.notOk(paper.hasLayer('test1'));
-                paper.addLayer('test1', testLayer);
+                paper.addLayer(testLayer);
                 assert.ok(paper.hasLayer('test1'));
                 assert.equal(paper.getLayers().at(-1), testLayer);
             });
 
             QUnit.test('adds a new layer before the specified layer', function(assert) {
-                const testLayer = new joint.dia.LayerView();
+                const testLayer = new joint.dia.LayerView({
+                    name: 'test2'
+                });
                 assert.equal(paper.getLayerNames().indexOf('test2'), -1);
                 assert.notOk(paper.hasLayer('test1'));
-                paper.addLayer('test2', testLayer, { insertBefore: 'cells' });
+                paper.addLayer(testLayer, { insertBefore: 'cells' });
                 assert.ok(paper.hasLayer('test2'));
                 const layerNames = paper.getLayerNames();
                 assert.equal(layerNames.indexOf('test2'), layerNames.indexOf('cells') - 1);
@@ -2225,8 +2229,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
             QUnit.test('removes the layer if passed as an object', function(assert) {
-                const testLayer = new joint.dia.LayerView();
-                paper.addLayer('test', testLayer);
+                const testLayer = new joint.dia.LayerView({
+                    name: 'test'
+                });
+                paper.addLayer(testLayer);
                 assert.ok(paper.hasLayer('test'));
                 paper.removeLayer(testLayer);
                 assert.notOk(paper.hasLayer('test'));
@@ -2324,8 +2330,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(r1.get('layer'), 'cells');
                 assert.ok(paper.getLayerNode('cells').contains(r1.findView(paper).el));
 
-                const test1Layer = new joint.dia.LayerView();
-                paper.addLayer('test1', test1Layer);
+                const test1Layer = new joint.dia.LayerView({
+                    name: 'test1'
+                });
+                paper.addLayer(test1Layer);
 
 
                 const r2 = new joint.shapes.standard.Rectangle({ layer: 'test1' });

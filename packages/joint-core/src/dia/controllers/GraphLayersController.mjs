@@ -15,7 +15,6 @@ export class GraphLayersController extends Listener {
         });
 
         this.defaultLayerName = this.graph.defaultLayerName;
-        this.activeLayerName = this.defaultLayerName;
 
         this.startListening();
     }
@@ -45,9 +44,9 @@ export class GraphLayersController extends Listener {
     }
 
     onAdd(cell) {
-        const { activeLayerName, layersMap } = this;
+        const { layersMap } = this;
 
-        const layerName = cell.layer() || activeLayerName;
+        const layerName = cell.layer();
         const layer = layersMap[layerName];
 
         if (!cell.has('z')) {
@@ -71,25 +70,11 @@ export class GraphLayersController extends Listener {
         }
     }
 
-    setActiveLayer(layerName) {
-        const { layersMap } = this;
-
-        if (!layersMap[layerName]) {
-            throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
-        }
-
-        this.activeLayerName = layerName;
-    }
-
-    getActiveLayer() {
-        return this.layersMap[this.activeLayerName];
-    }
-
     getDefaultLayer() {
         return this.layersMap[this.defaultLayerName];
     }
 
-    addLayer(layer, opt) {
+    addLayer(layer, _opt) {
         const { layersMap } = this;
 
         if (layersMap[layer.name]) {
@@ -102,11 +87,11 @@ export class GraphLayersController extends Listener {
         this.graph.set('layers', this.layers);
     }
 
-    removeLayer(layerName, opt) {
-        const { layersMap, defaultLayerName, activeLayerName } = this;
+    removeLayer(layerName, _opt) {
+        const { layersMap, defaultLayerName } = this;
 
-        if (layerName === defaultLayerName || layerName === activeLayerName) {
-            throw new Error('dia.Graph: default or active layer cannot be removed.');
+        if (layerName === defaultLayerName) {
+            throw new Error('dia.Graph: default layer cannot be removed.');
         }
 
         if (!layersMap[layerName]) {

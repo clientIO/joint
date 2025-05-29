@@ -247,7 +247,7 @@ export const Cell = Model.extend({
     },
 
     toFront: function(opt) {
-        var graph = this.graph;
+        const { graph } = this;
         if (graph) {
             opt = defaults(opt || {}, { foregroundEmbeds: true });
 
@@ -292,7 +292,7 @@ export const Cell = Model.extend({
     },
 
     toBack: function(opt) {
-        var graph = this.graph;
+        const { graph } = this;
         if (graph) {
             opt = defaults(opt || {}, { foregroundEmbeds: true });
 
@@ -310,7 +310,7 @@ export const Cell = Model.extend({
 
             let z = graph.minZIndex(layerName);
 
-            var collection = graph.getLayerCells(layerName);
+            const  collection = graph.getLayerCells(layerName);
 
             let shouldUpdate = (collection.toArray().indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {
@@ -951,13 +951,21 @@ export const Cell = Model.extend({
     setLayer(layerName) {
         if (layerName) {
             this.set('layer', layerName);
-        } else {
-            this.unset('layer');
         }
     },
 
+    unsetLayer() {
+        this.unset('layer');
+    },
+
     layer() {
-        return this.get('layer') || null;
+        let layer = this.get('layer') || null;
+        if (layer == null && this.graph) {
+            // If the cell is part of a graph, use the graph's default layer.
+            layer = this.graph.getDefaultLayer();
+        }
+
+        return layer;
     }
 
 }, {

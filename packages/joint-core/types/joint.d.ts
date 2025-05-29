@@ -196,8 +196,6 @@ export namespace dia {
         constructor(attributes?: Graph.Attributes, opt?: {
             cellNamespace?: any,
             cellModel?: typeof Cell,
-            // layers
-            useLayersForEmbedding?: boolean;
         });
 
         addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
@@ -209,11 +207,7 @@ export namespace dia {
 
         addLayer(layer: Layer): void;
 
-        removeLayer(layerName: string): void;
-
-        getActiveLayer(): Layer;
-
-        setActiveLayer(layerName: string): Layer;
+        removeLayer(layer: Layer): void;
 
         getDefaultLayer(): Layer;
 
@@ -1417,6 +1411,7 @@ export namespace dia {
             elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
             // embedding
+            useLayersForEmbedding?: boolean;
             embeddingMode?: boolean;
             frontParentOnly?: boolean;
             findParentBy?: FindParentByType | FindParentByCallback;
