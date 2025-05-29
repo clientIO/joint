@@ -19,7 +19,6 @@ const paper = new dia.Paper({
     model: graph,
     cellViewNamespace: cellNamespace,
     async: true,
-    overflow: true,
     background: {
         color: '#F3F7F6'
     },
@@ -34,7 +33,7 @@ const paper = new dia.Paper({
     }
 });
 
-document.getElementById('paper').appendChild(paper.el);
+document.getElementById('paper')!.appendChild(paper.el);
 
 const highlighterMarkup = util.svg/* xml */`
     <rect @selector="button" fill="#000000" fill-opacity="0.2" stroke="#FFFFFF" stroke-width="0.5" x="-7" y="-7" width="14" height="14" cursor="pointer"/>
