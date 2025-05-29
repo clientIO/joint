@@ -13,7 +13,6 @@ function MockChild() {
   }, [paper]);
   return <div>Mock Child</div>;
 }
-// TODO - add dev error when parsing options to the paper when it has already set options
 
 describe('PaperProvider', () => {
   it('should create a paper context and pass paper instance to children', async () => {

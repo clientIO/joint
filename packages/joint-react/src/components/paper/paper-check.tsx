@@ -136,10 +136,10 @@ export function PaperCheck<ElementItem extends GraphElement = GraphElement>(
       if (warnings.length > 0) {
         // eslint-disable-next-line no-console
         console.warn(
-          `[Paper] Detected the following props set directly on <Paper>: ${warnings.join(', ')}.
-If you are using <PaperProvider>, you should set these options on <PaperProvider> instead of on <Paper>.
-Props set on <Paper> will be ignored when a <PaperProvider> is present.
-If you are NOT using <PaperProvider>, then it is fine to set options directly on <Paper>.`
+          `[Paper] The following props were set directly on "<Paper>": "${warnings.join(', ')}".
+If you're using <PaperProvider>, these options should be defined there instead.
+When"<PaperProvider> is present, any props set on <Paper> will be ignored.
+If you're NOT using "<PaperProvider>", then it's perfectly fine to set options directly on <Paper>.`
         );
       }
     }
