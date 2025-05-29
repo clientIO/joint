@@ -14,8 +14,8 @@ const cellNamespace = {
 
 const graph = new dia.Graph({}, { cellNamespace });
 const paper = new dia.Paper({
-    width: 600,
-    height: 380,
+    width: 800,
+    height: 600,
     model: graph,
     cellViewNamespace: cellNamespace,
     async: true,
