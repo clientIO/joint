@@ -1,65 +1,188 @@
+<div style="display:flex;align-items:center;background:#131E29;padding:1.5rem 1rem 1.5rem 1rem;margin-bottom:2rem;">
+  <img src="https://cdn.prod.website-files.com/63061d4ee85b5a18644f221c/633045c1d726c7116dcbe582_JJS_logo.svg" alt="JointJS Logo" height="56" style="margin-right:1.5rem;display:inline-block;" />
+</div>
+
 # @joint/react
 
-A React library for creating and managing interactive diagrams and graphs using JointJS.
+A React library for building interactive diagrams, flowcharts, and graph-based visualizations. This library provides React components and hooks that wrap JointJS, making it easy to create powerful diagramming applications.
 
-## Overview
+## What can you build with @joint/react?
 
-**@joint/react** is a React wrapper for [JointJS](https://www.jointjs.com/), designed to simplify the creation and management of interactive diagrams and graphs in React applications. It provides intuitive React components, hooks, and utilities to efficiently manage nodes, links, and user interactions.
+- 📊 Flowcharts and process diagrams
+- 🌐 Network topology visualizations
+- 🧠 Mind maps and organization charts
+- ⚙️ State machines and workflow editors
+- 📈 Any interactive connected graphs
+
+## Why @joint/react?
+
+- 🎯 **React-First**: React components and hooks for modern React applications
+- 🔌 **Easy Integration**: Simple drop-in components with minimal setup
+- 🎨 **Customizable**: Full control over node and link appearances
+- ⚡ **Interactive**: Built-in support for dragging, connecting, and editing
+- 🎭 **Type-Safe**: Written in TypeScript with full type definitions
+
+## Prerequisites
+
+Before installing @joint/react, ensure you have:
+- React 16.8+ (for Hooks support)
+- Node.js 14+
+- A modern browser (Chrome, Firefox, Safari, Edge)
 
 ## Installation
 
 Install the library using your preferred package manager:
 
-### Yarn
 ```sh
-yarn add @joint/react
-```
-
-### Npm
-```sh
+# Using npm
 npm install @joint/react
-```
 
-### Bun
-```sh
+# Using yarn
+yarn add @joint/react
+
+# Using bun
 bun add @joint/react
 ```
 
+## Core Concepts
+
+Before diving into the code, let's understand the basic building blocks:
+
+- **Elements**: Nodes in your diagram (boxes, circles, or custom shapes)
+- **Links**: Connections between elements (lines, arrows, or custom connectors)
+- **Paper**: The canvas (UI) where your diagram is rendered
+- **Graph**: The data model that holds your diagram's structure
+
 ## Quick Start
 
-Here’s a simple example to get started:
+Here's a complete example of a simple diagram with two connected nodes:
 
 ```tsx
 import React, { useCallback } from 'react';
 import { GraphProvider, Paper, createElements, createLinks } from '@joint/react';
 
+// Define your diagram elements (nodes)
 const initialElements = createElements([
-  { id: '1', label: 'Node 1', x: 100, y: 0, width: 100, height: 50 },
-  { id: '2', label: 'Node 2', x: 100, y: 200, width: 100, height: 50 },
+  {
+    id: '1',
+    label: 'Start',
+    x: 100,      // Position from left
+    y: 50,       // Position from top
+    width: 120,
+    height: 60
+  },
+  {
+    id: '2',
+    label: 'End',
+    x: 100,
+    y: 200,
+    width: 120,
+    height: 60
+  },
 ]);
 
-const initialLinks = createLinks([{ id: 'e1-2', source: '1', target: '2' }]);
+// Define connections between elements
+const initialLinks = createLinks([
+  {
+    id: 'link1',
+    source: '1',  // ID of source element
+    target: '2'   // ID of target element
+  }
+]);
 
-function Main() {
-  const renderElement = useCallback(
-    (element) => <div className="node">{element.label}</div>,
-    []
-  );
+// Main component that renders the diagram
+function DiagramExample() {
+  // Define how each element should look
+  const renderElement = useCallback((element) => (
+    <div style={{
+      padding: '10px',
+      border: '2px solid #3498db',
+      borderRadius: '8px',
+      background: 'white'
+    }}>
+      {element.label}
+    </div>
+  ), []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width="100%" renderElement={renderElement} />
+    <div style={{ height: '400px', border: '1px solid #ccc' }}>
+      <Paper
+        initialElements={initialElements}
+        width="100%"
+        height="100%"
+        renderElement={renderElement}
+        useHTMLOverlay
+      />
     </div>
   );
 }
 
+// Wrap your app with GraphProvider
 export default function App() {
   return (
-    <GraphProvider initialLinks={initialLinks} initialElements={initialElements}>
-      <Main />
+    <GraphProvider
+      initialElements={initialElements}
+      initialLinks={initialLinks}
+    >
+      <DiagramExample />
     </GraphProvider>
   );
 }
+```
+
+## Event Handling
+
+@joint/react provides various events to handle user interactions:
+
+```tsx
+function DiagramExample() {
+  const handleElementClick = useCallback((element) => {
+    console.log('Element clicked:', element);
+  }, []);
+
+  return (
+    <Paper
+      width="100%"
+      height="100%"
+      onElementPointerClick={handleElementClick}
+    />
+  );
+}
+```
+
+## TypeScript Support
+
+@joint/react is written in TypeScript and includes comprehensive type definitions. Here's an example of using types:
+
+```tsx
+import { InferElement } from '@joint/react';
+
+const elements = createElements([
+  { id: '1', label: 'Node', x: 0, y: 0, width: 100, height: 40 }
+]);
+
+type CustomElement = InferElement<typeof elements>;
+
+const renderElement = (element: CustomElement) => (
+  <div>{element.label}</div>
+);
+```
+
+## Performance Considerations
+
+To ensure optimal performance:
+
+1. **Memoization**
+```tsx
+// Memoize render functions
+const renderElement = useCallback((element) => {
+  return <CustomNode element={element} />;
+}, []);
+
+// Memoize event handlers
+const handleElementClick = useCallback((element) => {
+  // Handle click
+}, []);
 ```
 
 ## 📌 Core Components
@@ -109,6 +232,12 @@ const renderElement = ({ width, height }) => (
 
 ### 🔹 Modifying Elements
 - `useUpdateElement()`: Update existing elements in the diagram.
+- `useCreateElement()`: Create new elements in the diagram.
+- `useRemoveElement()`: Remove elements from the diagram.
+
+- `useCreateLink()`: Create new elements in the diagram.
+- `useRemoveLink()`: Remove elements from the diagram.
+
 
 ### 🔹 Graph and Paper Instances
 - `useGraph()`: Access the [dia.Graph](https://docs.jointjs.com/api/dia/Graph/) instance directly.
@@ -116,6 +245,7 @@ const renderElement = ({ width, height }) => (
 
 ### 🔹 Creating Nodes and Links
 - `createElements()`: Utility for creating nodes.
+
 
 ```ts
 import { createElements } from '@joint/react';

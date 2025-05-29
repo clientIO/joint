@@ -1,12 +1,13 @@
 import type { dia } from '@joint/core';
 import { memo, useContext, useEffect, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import { useCellId, usePaper } from '../../hooks';
+import { useCellId } from '../../hooks';
 import { PortGroupContext } from '../../context/port-group-context';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import { PORTAL_SELECTOR } from '../../data/create-ports-data';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
 import { createElements } from '../../utils/create';
+import { PaperContext } from '../../context';
 
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
 
@@ -57,8 +58,11 @@ export interface PortItemProps {
 function Component(props: PortItemProps) {
   const { magnet, id, children, groupId, z, x, y, dx, dy } = props;
   const cellId = useCellId();
-  const paper = usePaper();
-  const { portStore } = paper;
+  const paperCtx = useContext(PaperContext);
+  if (!paperCtx) {
+    throw new Error('PortItem must be used within a `PaperProvider` or `Paper` component');
+  }
+  const { portsStore, paper } = paperCtx;
   const { graph } = useGraphStore();
 
   const contextGroupId = useContext(PortGroupContext);
@@ -102,12 +106,12 @@ function Component(props: PortItemProps) {
     return () => {
       cell.removePort(id);
     };
-  }, [cellId, contextGroupId, graph, groupId, paper, id, x, y, z, magnet, dx, dy]);
+  }, [cellId, contextGroupId, graph, groupId, id, x, y, z, magnet, dx, dy]);
 
   const portalNode = useSyncExternalStore(
-    portStore.subscribe,
-    () => portStore.getPortElement(cellId, id),
-    () => portStore.getPortElement(cellId, id)
+    portsStore.subscribe,
+    () => portsStore.getPortElement(cellId, id),
+    () => portsStore.getPortElement(cellId, id)
   );
 
   useEffect(() => {

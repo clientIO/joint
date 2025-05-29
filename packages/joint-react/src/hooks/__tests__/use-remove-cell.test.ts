@@ -93,4 +93,54 @@ describe('use-remove-cell', () => {
       expect(result.current.reactLinksSizeCheck).toBe(0);
     });
   });
+
+  it('should do nothing if id does not exist', async () => {
+    const { result } = renderHook(
+      () => ({
+        remove: useRemoveCell(),
+        graph: useGraph(),
+        reactLinksSizeCheck: useLinks((items) => items.size),
+        reactElementsSizeCheck: useElements((items) => items.size),
+      }),
+      { wrapper }
+    );
+
+    // Remove a non-existent cell
+    act(() => {
+      result.current.remove('non-existent-id');
+    });
+
+    // Graph should remain unchanged
+    await waitFor(() => {
+      expect(result.current.graph.getElements().length).toBe(2);
+      expect(result.current.graph.getLinks().length).toBe(1);
+      expect(result.current.reactElementsSizeCheck).toBe(2);
+      expect(result.current.reactLinksSizeCheck).toBe(1);
+    });
+  });
+
+  it('should not throw if called with undefined/null', async () => {
+    const { result } = renderHook(
+      () => ({
+        remove: useRemoveCell(),
+        graph: useGraph(),
+        reactLinksSizeCheck: useLinks((items) => items.size),
+        reactElementsSizeCheck: useElements((items) => items.size),
+      }),
+      { wrapper }
+    );
+
+    act(() => {
+      expect(() => result.current.remove(undefined as never)).not.toThrow();
+      expect(() => result.current.remove(null as never)).not.toThrow();
+    });
+
+    // Graph should remain unchanged
+    await waitFor(() => {
+      expect(result.current.graph.getElements().length).toBe(2);
+      expect(result.current.graph.getLinks().length).toBe(1);
+      expect(result.current.reactElementsSizeCheck).toBe(2);
+      expect(result.current.reactLinksSizeCheck).toBe(1);
+    });
+  });
 });

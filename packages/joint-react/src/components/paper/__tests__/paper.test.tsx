@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 import { render, screen, waitFor } from '@testing-library/react';
 import { GraphProvider } from '../../graph-provider/graph-provider';
@@ -87,15 +86,6 @@ describe('Paper Component', () => {
     });
   });
 
-  it('renders noDataPlaceholder when there are no elements', () => {
-    render(
-      <GraphProvider initialElements={[]}>
-        <Paper<Element> noDataPlaceholder={<div>No Data</div>} />
-      </GraphProvider>
-    );
-    expect(screen.getByText('No Data')).toBeInTheDocument();
-  });
-
   it('calls onElementsSizeChange when element sizes change', async () => {
     const onElementsSizeChangeMock = jest.fn();
     const updatedElements = createElements([
@@ -144,10 +134,7 @@ describe('Paper Component', () => {
     function FireEvent() {
       const paper = usePaper();
       useEffect(() => {
-        // eslint-disable-next-line @eslint-react/web-api/no-leaked-timeout, sonarjs/no-nested-functions
-        setTimeout(() => {
-          paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
-        }, 0);
+        paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
       }, [paper]);
       return null;
     }
@@ -205,7 +192,7 @@ describe('Paper Component', () => {
     );
 
     // Ensure the customSelector is called for each element
-    expect(customSelector).toHaveBeenCalledTimes(initialElements.length * 2);
+    expect(customSelector).toHaveBeenCalledTimes(initialElements.length);
 
     await waitFor(() => {
       // Validate that the elements are rendered correctly

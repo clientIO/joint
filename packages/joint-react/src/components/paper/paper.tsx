@@ -14,17 +14,16 @@ import { useCreatePaper } from '../../hooks/use-create-paper';
 import { useElements } from '../../hooks/use-elements';
 import { CellIdContext } from '../../context/cell-id.context';
 import { HTMLElementItem, SVGElementItem } from './paper-element-item';
-import { PaperContext } from '../../context/paper-context';
-import { GraphStoreContext } from '../../context/graph-store-context';
-import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider';
+import { type GraphProps } from '../graph-provider/graph-provider';
 import typedMemo from '../../utils/typed-memo';
 import type { PaperEvents } from '../../types/event.types';
-import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
 import { REACT_TYPE } from '../../models/react-element';
 import { useAreElementMeasured } from '../../hooks/use-are-elements-measured';
 import { PaperHTMLContainer } from './paper-html-container';
-import type { ReactPaperOptions } from '../../utils/create-paper';
 import { useGraph } from '../../hooks';
+import { PaperProvider, type ReactPaperOptions } from '../paper-provider/paper-provider';
+import { PaperContext } from '../../context';
+import { PaperCheck } from './paper-check';
 export interface OnLoadOptions {
   readonly paper: dia.Paper;
   readonly graph: dia.Graph;
@@ -32,6 +31,7 @@ export interface OnLoadOptions {
 export type RenderElement<ElementItem extends GraphElement = GraphElement> = (
   element: ElementItem
 ) => ReactNode;
+
 /**
  * The props for the Paper component. Extend the `dia.Paper.Options` interface.
  * For more information, see the JointJS documentation.
@@ -103,11 +103,6 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
 
   readonly scale?: number;
   /**
-   * Placeholder to be rendered when there is no data (no nodes or elements to render).
-   */
-  readonly noDataPlaceholder?: ReactNode;
-
-  /**
    * Children to render. Paper automatically wrap the children with the PaperContext, if there is no PaperContext in the parent tree.
    */
   readonly children?: ReactNode;
@@ -153,28 +148,32 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     useHTMLOverlay,
     ...paperOptions
   } = props;
-  const { onRenderElement, svgGElements } = usePaperElementRenderer();
-  const { paperContainerElement, paper } = useCreatePaper({
+
+  const { paperContainerElement, paperCtx } = useCreatePaper({
     ...paperOptions,
     scale,
-    onRenderElement,
   });
 
+  const paperContext = useContext(PaperContext);
+  if (!paperContext) {
+    throw new Error('Paper must be used within a `PaperProvider` or `Paper` component');
+  }
+  const { recordOfSVGElements } = paperContext;
+
   const graph = useGraph();
-
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
-
   const elements = useElements((items) => items.map(elementSelector));
   const areElementsMeasured = useAreElementMeasured();
-
   // Keep previous sizes in a ref
   const previousSizesRef = useRef<number[][]>([]);
 
   // Whenever elements change (or we’ve just become measured) compare old ↔ new
   useEffect(() => {
-    if (!paper) return;
+    if (!paperCtx) return;
     if (!onElementsSizeChange) return;
     if (!areElementsMeasured) return;
+    const { paper } = paperCtx;
+    if (!paper) return;
 
     // Build current list of [width, height]
     const currentSizes = elements.map(({ width = 0, height = 0 }) => [width, height]);
@@ -203,7 +202,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     // store for next time
     previousSizesRef.current = currentSizes;
     onElementsSizeChange({ paper, graph: paper.model });
-  }, [elements, areElementsMeasured, onElementsSizeChange, paper]);
+  }, [elements, areElementsMeasured, onElementsSizeChange, paperCtx]);
 
   const hasRenderElement = !!renderElement;
 
@@ -220,11 +219,22 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     [areElementsMeasured, style]
   );
 
+  const measured = useRef(false);
+
   useEffect(() => {
+    if (!paperCtx) {
+      return;
+    }
+    if (measured.current) {
+      // If we already measured, we can skip this effect
+      return;
+    }
+    const { paper } = paperCtx;
     if (!paper) {
       return;
     }
     if (areElementsMeasured) {
+      measured.current = true;
       return onElementsSizeReady?.({ paper, graph: paper.model });
     }
 
@@ -242,7 +252,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
         clearTimeout(timeout);
       };
     }
-  }, [areElementsMeasured, graph, onElementsSizeReady, paper]);
+  }, [areElementsMeasured, graph, onElementsSizeReady, paperCtx]);
 
   const content = (
     <>
@@ -254,7 +264,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
           if (!cell.id) {
             return null;
           }
-          const portalHTMLElement = svgGElements[cell.id];
+          const portalHTMLElement = recordOfSVGElements[cell.id];
           if (!portalHTMLElement) {
             return null;
           }
@@ -283,77 +293,39 @@ function Component<ElementItem extends GraphElement = GraphElement>(
     </>
   );
 
-  if (paper) {
-    paper.renderElement = renderElement as RenderElement<GraphElement>;
+  if (paperCtx) {
+    // we need this for shared paper context - joint plus
+    paperCtx.renderElement = renderElement as RenderElement<GraphElement>;
   }
-  const hasPaper = !!paper;
+  const hasPaper = !!paperCtx?.paper;
 
   return (
-    <PaperContext.Provider value={paper}>
+    <>
       <div className={className} ref={paperContainerElement} style={paperContainerStyle}>
         {hasPaper && content}
       </div>
       {hasPaper && children}
-    </PaperContext.Provider>
+    </>
   );
 }
-
 // eslint-disable-next-line jsdoc/require-jsdoc
-function PaperWithNoDataPlaceHolder<ElementItem extends GraphElement = GraphElement>(
+function PaperWithProviders<ElementItem extends GraphElement = GraphElement>(
   props: PaperProps<ElementItem>
 ) {
-  const { style, className, noDataPlaceholder, ...rest } = props;
-
-  const hasNoDataPlaceholder = !!noDataPlaceholder;
-  const elementsLength = useElements((items) => items.size);
-  const isEmpty = elementsLength === 0;
-
-  if (isEmpty && hasNoDataPlaceholder) {
+  const hasPaperCtx = !!useContext(PaperContext);
+  const { children, ...rest } = props;
+  const content = <Component {...rest}>{children}</Component>;
+  if (hasPaperCtx) {
+    const verifyProps = process.env.NODE_ENV !== 'production' && <PaperCheck {...rest} />;
+    // If PaperContext is already provided, we don't need to wrap it again
     return (
-      <div style={style} className={className}>
-        {noDataPlaceholder}
-      </div>
+      <>
+        {verifyProps}
+        {content}
+      </>
     );
   }
-
-  return <Component {...rest} style={style} className={className} />;
-}
-
-// eslint-disable-next-line jsdoc/require-jsdoc
-function PaperWithGraphProvider<ElementItem extends GraphElement = GraphElement>(
-  props: PaperProps<ElementItem>
-) {
-  const hasStore = !!useContext(GraphStoreContext);
-
-  const {
-    children,
-    initialElements,
-    initialLinks,
-    graph,
-    cellNamespace,
-    cellModel,
-    store,
-    ...rest
-  } = props;
-  const paperContent = (
-    <PaperWithNoDataPlaceHolder {...rest}>{children}</PaperWithNoDataPlaceHolder>
-  );
-
-  if (hasStore) {
-    return paperContent;
-  }
-  return (
-    <GraphProvider
-      initialElements={initialElements}
-      initialLinks={initialLinks}
-      graph={graph}
-      cellNamespace={cellNamespace}
-      cellModel={cellModel}
-      store={store}
-    >
-      {paperContent}
-    </GraphProvider>
-  );
+  return <PaperProvider {...rest}>{content}</PaperProvider>;
 }
 
 /**
@@ -405,4 +377,4 @@ function PaperWithGraphProvider<ElementItem extends GraphElement = GraphElement>
   }
  * ```
  */
-export const Paper = typedMemo(PaperWithGraphProvider);
+export const Paper = typedMemo(PaperWithProviders);

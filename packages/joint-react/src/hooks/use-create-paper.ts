@@ -1,13 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import type { PaperOptions } from '../utils/create-paper';
-import { createPaper } from '../utils/create-paper';
+import { useContext, useLayoutEffect, useRef } from 'react';
 import { mvc, type dia } from '@joint/core';
 import { useGraphStore } from './use-graph-store';
 import type { PaperEventType, PaperEvents } from '../types/event.types';
 import { handleEvent } from '../utils/handle-paper-events';
-import type { PaperContext } from '../context';
+import { PaperContext } from '../context';
 
-interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
+interface UseCreatePaperOptions extends PaperEvents {
   /**
    * On load custom element.
    * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
@@ -17,12 +15,14 @@ interface UseCreatePaperOptions extends PaperOptions, PaperEvents {
    * @returns
    */
   readonly overwriteDefaultPaperElement?: (paper: dia.Paper) => HTMLElement | SVGElement;
+  readonly scale?: number;
 }
 
 /**
  * Custom hook to use a JointJS paper instance.
  * It retrieves the paper from the PaperContext or creates a new instance.
  * Returns a reference to the paper HTML element.
+ * This hook must be already be defined inside `PaperProvider`
  * @group Hooks
  * @internal
  * @param options - Options for creating the paper instance.
@@ -34,38 +34,34 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
   const paperContainerElement = useRef<HTMLDivElement | null>(null);
   const { graph } = useGraphStore();
 
-  // If paper is not inside the PaperContext, create a new paper instance.
-  const [paper, setPaper] = useState<PaperContext | null>(null);
-
-  useEffect(() => {
-    const jointPaper = createPaper(graph, {
-      ...restOptions,
-      // paperElement: paperContainerElement,
-      // el: paperContainerElement.current,
-    });
-
-    if (overwriteDefaultPaperElement) {
-      paperContainerElement.current?.append(overwriteDefaultPaperElement(jointPaper));
-    } else {
-      paperContainerElement.current?.append(jointPaper.el);
-    }
-
-    jointPaper.unfreeze();
-
-    setPaper(jointPaper);
-
-    return () => {
-      jointPaper.portStore.destroy();
-      jointPaper.remove();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graph, overwriteDefaultPaperElement]);
-
-  useEffect(() => {
-    if (!paper) {
+  const paperCtx = useContext(PaperContext);
+  useLayoutEffect(() => {
+    if (!paperCtx) {
       return;
     }
 
+    const { paper } = paperCtx;
+    if (!paper) {
+      throw new Error('Paper is not created');
+    }
+    if (overwriteDefaultPaperElement) {
+      paperContainerElement.current?.append(overwriteDefaultPaperElement(paper));
+    } else {
+      paperContainerElement.current?.append(paper.el);
+    }
+    paper.unfreeze();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graph, overwriteDefaultPaperElement]);
+
+  useLayoutEffect(() => {
+    if (!paperCtx) {
+      return;
+    }
+    const { paper } = paperCtx;
+    if (!paper) {
+      return;
+    }
     /**
      * Resize the paper container element to match the paper size.
      * @param jointPaper - The paper instance.
@@ -85,19 +81,22 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
     return () => {
       controller.stopListening();
     };
-  }, [paper, restOptions]);
+  }, [paperCtx, restOptions]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (!paperCtx) {
+      return;
+    }
+    const { paper } = paperCtx;
     if (!paper) {
       return;
     }
     if (options?.scale !== undefined) {
       paper.scale(options.scale);
     }
-  }, [options?.scale, paper]);
-
+  }, [options.scale, paperCtx]);
   return {
-    paper,
+    paperCtx,
     paperContainerElement,
   };
 }

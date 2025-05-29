@@ -10,369 +10,7 @@ exports[`Paper "WithAutoFitContent" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 100%; height: 600px;"
-        >
-          <div
-            class="joint-paper-background"
-            joint-selector="background"
-            style="position: absolute; inset: 0;"
-          />
-          <svg
-            height="100%"
-            id="v-13"
-            joint-selector="svg"
-            style="position: absolute; inset: 0; overflow: hidden;"
-            width="100%"
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-          >
-            <style
-              id="v-14"
-              type="text/css"
-            >
-              CDATASection {}
-            </style>
-            <defs
-              joint-selector="defs"
-            />
-            <g
-              class="joint-layers"
-              joint-selector="layers"
-            >
-              <g
-                class="joint-grid-layer"
-                style="pointer-events: none;"
-              />
-              <g
-                class="joint-back-layer"
-              />
-              <g
-                class="joint-cells-layer joint-viewport"
-                style="webkit-user-select: none; user-select: none;"
-              />
-              <g
-                class="joint-labels-layer joint-viewport"
-                style="webkit-user-select: none; user-select: none;"
-              />
-              <g
-                class="joint-front-layer"
-              />
-              <g
-                class="joint-tools-layer"
-              />
-            </g>
-          </svg>
-        </div>
-      </div>
-    </div>
-  </body>,
-  "container": <div>
-    <div
-      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
-    >
-      <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 100%; height: 600px;"
-      >
-        <div
-          class="joint-paper-background"
-          joint-selector="background"
-          style="position: absolute; inset: 0;"
-        />
-        <svg
-          height="100%"
-          id="v-13"
-          joint-selector="svg"
-          style="position: absolute; inset: 0; overflow: hidden;"
-          width="100%"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-        >
-          <style
-            id="v-14"
-            type="text/css"
-          >
-            CDATASection {}
-          </style>
-          <defs
-            joint-selector="defs"
-          />
-          <g
-            class="joint-layers"
-            joint-selector="layers"
-          >
-            <g
-              class="joint-grid-layer"
-              style="pointer-events: none;"
-            />
-            <g
-              class="joint-back-layer"
-            />
-            <g
-              class="joint-cells-layer joint-viewport"
-              style="webkit-user-select: none; user-select: none;"
-            />
-            <g
-              class="joint-labels-layer joint-viewport"
-              style="webkit-user-select: none; user-select: none;"
-            />
-            <g
-              class="joint-front-layer"
-            />
-            <g
-              class="joint-tools-layer"
-            />
-          </g>
-        </svg>
-      </div>
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
-`;
-
-exports[`Paper "WithCustomEvent" 1`] = `
-{
-  "asFragment": [Function],
-  "baseElement": <body>
-    <div>
-      <div
-        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
-      >
-        <div
-          class="joint-paper joint-theme-default"
-          style="position: relative; width: 100%; height: 600px;"
-        >
-          <div
-            class="joint-paper-background"
-            joint-selector="background"
-            style="position: absolute; inset: 0;"
-          />
-          <svg
-            height="100%"
-            id="v-19"
-            joint-selector="svg"
-            style="position: absolute; inset: 0; overflow: hidden;"
-            width="100%"
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-          >
-            <style
-              id="v-20"
-              type="text/css"
-            >
-              CDATASection {}
-            </style>
-            <defs
-              joint-selector="defs"
-            />
-            <g
-              class="joint-layers"
-              joint-selector="layers"
-            >
-              <g
-                class="joint-grid-layer"
-                style="pointer-events: none;"
-              />
-              <g
-                class="joint-back-layer"
-              />
-              <g
-                class="joint-cells-layer joint-viewport"
-                style="webkit-user-select: none; user-select: none;"
-              />
-              <g
-                class="joint-labels-layer joint-viewport"
-                style="webkit-user-select: none; user-select: none;"
-              />
-              <g
-                class="joint-front-layer"
-              />
-              <g
-                class="joint-tools-layer"
-              />
-            </g>
-          </svg>
-        </div>
-      </div>
-    </div>
-  </body>,
-  "container": <div>
-    <div
-      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
-    >
-      <div
-        class="joint-paper joint-theme-default"
-        style="position: relative; width: 100%; height: 600px;"
-      >
-        <div
-          class="joint-paper-background"
-          joint-selector="background"
-          style="position: absolute; inset: 0;"
-        />
-        <svg
-          height="100%"
-          id="v-19"
-          joint-selector="svg"
-          style="position: absolute; inset: 0; overflow: hidden;"
-          width="100%"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-        >
-          <style
-            id="v-20"
-            type="text/css"
-          >
-            CDATASection {}
-          </style>
-          <defs
-            joint-selector="defs"
-          />
-          <g
-            class="joint-layers"
-            joint-selector="layers"
-          >
-            <g
-              class="joint-grid-layer"
-              style="pointer-events: none;"
-            />
-            <g
-              class="joint-back-layer"
-            />
-            <g
-              class="joint-cells-layer joint-viewport"
-              style="webkit-user-select: none; user-select: none;"
-            />
-            <g
-              class="joint-labels-layer joint-viewport"
-              style="webkit-user-select: none; user-select: none;"
-            />
-            <g
-              class="joint-front-layer"
-            />
-            <g
-              class="joint-tools-layer"
-            />
-          </g>
-        </svg>
-      </div>
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
-`;
-
-exports[`Paper "WithEvent" 1`] = `
-{
-  "asFragment": [Function],
-  "baseElement": <body>
-    <div>
-      <div
-        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
-      >
-        <div
-          class="joint-paper joint-theme-default"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
           style="position: relative; width: 100%; height: 600px;"
         >
           <div
@@ -434,7 +72,7 @@ exports[`Paper "WithEvent" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
         style="position: relative; width: 100%; height: 600px;"
       >
         <div
@@ -543,7 +181,7 @@ exports[`Paper "WithEvent" 1`] = `
 }
 `;
 
-exports[`Paper "WithGrid" 1`] = `
+exports[`Paper "WithCustomEvent" 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>
@@ -553,7 +191,7 @@ exports[`Paper "WithGrid" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
           style="position: relative; width: 100%; height: 600px;"
         >
           <div
@@ -563,14 +201,14 @@ exports[`Paper "WithGrid" 1`] = `
           />
           <svg
             height="100%"
-            id="v-4"
+            id="v-21"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-5"
+              id="v-22"
               type="text/css"
             >
               CDATASection {}
@@ -585,43 +223,7 @@ exports[`Paper "WithGrid" 1`] = `
               <g
                 class="joint-grid-layer"
                 style="pointer-events: none;"
-              >
-                <svg
-                  height="0"
-                  id="v-7"
-                  version="1.1"
-                  width="0"
-                  x="0"
-                  xmlns:xlink="http://www.w3.org/1999/xlink"
-                  y="600"
-                >
-                  <defs
-                    id="v-6"
-                  >
-                    <pattern
-                      height="10"
-                      id="pattern_view22_0"
-                      patternUnits="userSpaceOnUse"
-                      width="10"
-                      x="0"
-                      y="-600"
-                    >
-                      <rect
-                        fill="#AAAAAA"
-                        height="1"
-                        id="v-8"
-                        width="1"
-                      />
-                    </pattern>
-                  </defs>
-                  <rect
-                    fill="url(#pattern_view22_0)"
-                    height="100%"
-                    id="v-10"
-                    width="100%"
-                  />
-                </svg>
-              </g>
+              />
               <g
                 class="joint-back-layer"
               />
@@ -651,7 +253,7 @@ exports[`Paper "WithGrid" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
         style="position: relative; width: 100%; height: 600px;"
       >
         <div
@@ -661,14 +263,14 @@ exports[`Paper "WithGrid" 1`] = `
         />
         <svg
           height="100%"
-          id="v-4"
+          id="v-21"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-5"
+            id="v-22"
             type="text/css"
           >
             CDATASection {}
@@ -683,43 +285,7 @@ exports[`Paper "WithGrid" 1`] = `
             <g
               class="joint-grid-layer"
               style="pointer-events: none;"
-            >
-              <svg
-                height="0"
-                id="v-7"
-                version="1.1"
-                width="0"
-                x="0"
-                xmlns:xlink="http://www.w3.org/1999/xlink"
-                y="600"
-              >
-                <defs
-                  id="v-6"
-                >
-                  <pattern
-                    height="10"
-                    id="pattern_view22_0"
-                    patternUnits="userSpaceOnUse"
-                    width="10"
-                    x="0"
-                    y="-600"
-                  >
-                    <rect
-                      fill="#AAAAAA"
-                      height="1"
-                      id="v-8"
-                      width="1"
-                    />
-                  </pattern>
-                </defs>
-                <rect
-                  fill="url(#pattern_view22_0)"
-                  height="100%"
-                  id="v-10"
-                  width="100%"
-                />
-              </svg>
-            </g>
+            />
             <g
               class="joint-back-layer"
             />
@@ -796,80 +362,7 @@ exports[`Paper "WithGrid" 1`] = `
 }
 `;
 
-exports[`Paper "WithHTMLElement" 1`] = `
-{
-  "asFragment": [Function],
-  "baseElement": <body>
-    <div>
-      <div
-        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-      >
-        No data
-      </div>
-    </div>
-  </body>,
-  "container": <div>
-    <div
-      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
-    >
-      No data
-    </div>
-  </div>,
-  "debug": [Function],
-  "findAllByAltText": [Function],
-  "findAllByDisplayValue": [Function],
-  "findAllByLabelText": [Function],
-  "findAllByPlaceholderText": [Function],
-  "findAllByRole": [Function],
-  "findAllByTestId": [Function],
-  "findAllByText": [Function],
-  "findAllByTitle": [Function],
-  "findByAltText": [Function],
-  "findByDisplayValue": [Function],
-  "findByLabelText": [Function],
-  "findByPlaceholderText": [Function],
-  "findByRole": [Function],
-  "findByTestId": [Function],
-  "findByText": [Function],
-  "findByTitle": [Function],
-  "getAllByAltText": [Function],
-  "getAllByDisplayValue": [Function],
-  "getAllByLabelText": [Function],
-  "getAllByPlaceholderText": [Function],
-  "getAllByRole": [Function],
-  "getAllByTestId": [Function],
-  "getAllByText": [Function],
-  "getAllByTitle": [Function],
-  "getByAltText": [Function],
-  "getByDisplayValue": [Function],
-  "getByLabelText": [Function],
-  "getByPlaceholderText": [Function],
-  "getByRole": [Function],
-  "getByTestId": [Function],
-  "getByText": [Function],
-  "getByTitle": [Function],
-  "queryAllByAltText": [Function],
-  "queryAllByDisplayValue": [Function],
-  "queryAllByLabelText": [Function],
-  "queryAllByPlaceholderText": [Function],
-  "queryAllByRole": [Function],
-  "queryAllByTestId": [Function],
-  "queryAllByText": [Function],
-  "queryAllByTitle": [Function],
-  "queryByAltText": [Function],
-  "queryByDisplayValue": [Function],
-  "queryByLabelText": [Function],
-  "queryByPlaceholderText": [Function],
-  "queryByRole": [Function],
-  "queryByTestId": [Function],
-  "queryByText": [Function],
-  "queryByTitle": [Function],
-  "rerender": [Function],
-  "unmount": [Function],
-}
-`;
-
-exports[`Paper "WithLinkTools" 1`] = `
+exports[`Paper "WithEvent" 1`] = `
 {
   "asFragment": [Function],
   "baseElement": <body>
@@ -879,7 +372,7 @@ exports[`Paper "WithLinkTools" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
           style="position: relative; width: 100%; height: 600px;"
         >
           <div
@@ -941,7 +434,7 @@ exports[`Paper "WithLinkTools" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
         style="position: relative; width: 100%; height: 600px;"
       >
         <div
@@ -1050,6 +543,621 @@ exports[`Paper "WithLinkTools" 1`] = `
 }
 `;
 
+exports[`Paper "WithGrid" 1`] = `
+{
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+      >
+        <div
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
+        >
+          <div
+            class="joint-paper-background"
+            joint-selector="background"
+            style="position: absolute; inset: 0;"
+          />
+          <svg
+            height="100%"
+            id="v-6"
+            joint-selector="svg"
+            style="position: absolute; inset: 0; overflow: hidden;"
+            width="100%"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+          >
+            <style
+              id="v-7"
+              type="text/css"
+            >
+              CDATASection {}
+            </style>
+            <defs
+              joint-selector="defs"
+            />
+            <g
+              class="joint-layers"
+              joint-selector="layers"
+            >
+              <g
+                class="joint-grid-layer"
+                style="pointer-events: none;"
+              >
+                <svg
+                  height="0"
+                  id="v-9"
+                  version="1.1"
+                  width="0"
+                  x="0"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  y="600"
+                >
+                  <defs
+                    id="v-8"
+                  >
+                    <pattern
+                      height="10"
+                      id="pattern_view32_0"
+                      patternUnits="userSpaceOnUse"
+                      width="10"
+                      x="0"
+                      y="-600"
+                    >
+                      <rect
+                        fill="#AAAAAA"
+                        height="1"
+                        id="v-10"
+                        width="1"
+                      />
+                    </pattern>
+                  </defs>
+                  <rect
+                    fill="url(#pattern_view32_0)"
+                    height="100%"
+                    id="v-12"
+                    width="100%"
+                  />
+                </svg>
+              </g>
+              <g
+                class="joint-back-layer"
+              />
+              <g
+                class="joint-cells-layer joint-viewport"
+                style="webkit-user-select: none; user-select: none;"
+              />
+              <g
+                class="joint-labels-layer joint-viewport"
+                style="webkit-user-select: none; user-select: none;"
+              />
+              <g
+                class="joint-front-layer"
+              />
+              <g
+                class="joint-tools-layer"
+              />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+    >
+      <div
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
+      >
+        <div
+          class="joint-paper-background"
+          joint-selector="background"
+          style="position: absolute; inset: 0;"
+        />
+        <svg
+          height="100%"
+          id="v-6"
+          joint-selector="svg"
+          style="position: absolute; inset: 0; overflow: hidden;"
+          width="100%"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <style
+            id="v-7"
+            type="text/css"
+          >
+            CDATASection {}
+          </style>
+          <defs
+            joint-selector="defs"
+          />
+          <g
+            class="joint-layers"
+            joint-selector="layers"
+          >
+            <g
+              class="joint-grid-layer"
+              style="pointer-events: none;"
+            >
+              <svg
+                height="0"
+                id="v-9"
+                version="1.1"
+                width="0"
+                x="0"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+                y="600"
+              >
+                <defs
+                  id="v-8"
+                >
+                  <pattern
+                    height="10"
+                    id="pattern_view32_0"
+                    patternUnits="userSpaceOnUse"
+                    width="10"
+                    x="0"
+                    y="-600"
+                  >
+                    <rect
+                      fill="#AAAAAA"
+                      height="1"
+                      id="v-10"
+                      width="1"
+                    />
+                  </pattern>
+                </defs>
+                <rect
+                  fill="url(#pattern_view32_0)"
+                  height="100%"
+                  id="v-12"
+                  width="100%"
+                />
+              </svg>
+            </g>
+            <g
+              class="joint-back-layer"
+            />
+            <g
+              class="joint-cells-layer joint-viewport"
+              style="webkit-user-select: none; user-select: none;"
+            />
+            <g
+              class="joint-labels-layer joint-viewport"
+              style="webkit-user-select: none; user-select: none;"
+            />
+            <g
+              class="joint-front-layer"
+            />
+            <g
+              class="joint-tools-layer"
+            />
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;
+
+exports[`Paper "WithHTMLElement" 1`] = `
+{
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+      >
+        <div
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
+        >
+          <div
+            class="joint-paper-background"
+            joint-selector="background"
+            style="position: absolute; inset: 0;"
+          />
+          <svg
+            height="100%"
+            id="v-4"
+            joint-selector="svg"
+            style="position: absolute; inset: 0; overflow: hidden;"
+            width="100%"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+          >
+            <style
+              id="v-5"
+              type="text/css"
+            >
+              CDATASection {}
+            </style>
+            <defs
+              joint-selector="defs"
+            />
+            <g
+              class="joint-layers"
+              joint-selector="layers"
+            >
+              <g
+                class="joint-grid-layer"
+                style="pointer-events: none;"
+              />
+              <g
+                class="joint-back-layer"
+              />
+              <g
+                class="joint-cells-layer joint-viewport"
+                style="webkit-user-select: none; user-select: none;"
+              />
+              <g
+                class="joint-labels-layer joint-viewport"
+                style="webkit-user-select: none; user-select: none;"
+              />
+              <g
+                class="joint-front-layer"
+              />
+              <g
+                class="joint-tools-layer"
+              />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+    >
+      <div
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
+      >
+        <div
+          class="joint-paper-background"
+          joint-selector="background"
+          style="position: absolute; inset: 0;"
+        />
+        <svg
+          height="100%"
+          id="v-4"
+          joint-selector="svg"
+          style="position: absolute; inset: 0; overflow: hidden;"
+          width="100%"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <style
+            id="v-5"
+            type="text/css"
+          >
+            CDATASection {}
+          </style>
+          <defs
+            joint-selector="defs"
+          />
+          <g
+            class="joint-layers"
+            joint-selector="layers"
+          >
+            <g
+              class="joint-grid-layer"
+              style="pointer-events: none;"
+            />
+            <g
+              class="joint-back-layer"
+            />
+            <g
+              class="joint-cells-layer joint-viewport"
+              style="webkit-user-select: none; user-select: none;"
+            />
+            <g
+              class="joint-labels-layer joint-viewport"
+              style="webkit-user-select: none; user-select: none;"
+            />
+            <g
+              class="joint-front-layer"
+            />
+            <g
+              class="joint-tools-layer"
+            />
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;
+
+exports[`Paper "WithLinkTools" 1`] = `
+{
+  "asFragment": [Function],
+  "baseElement": <body>
+    <div>
+      <div
+        class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+        style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+      >
+        <div
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+          style="position: relative; width: 100%; height: 600px;"
+        >
+          <div
+            class="joint-paper-background"
+            joint-selector="background"
+            style="position: absolute; inset: 0;"
+          />
+          <svg
+            height="100%"
+            id="v-19"
+            joint-selector="svg"
+            style="position: absolute; inset: 0; overflow: hidden;"
+            width="100%"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+          >
+            <style
+              id="v-20"
+              type="text/css"
+            >
+              CDATASection {}
+            </style>
+            <defs
+              joint-selector="defs"
+            />
+            <g
+              class="joint-layers"
+              joint-selector="layers"
+            >
+              <g
+                class="joint-grid-layer"
+                style="pointer-events: none;"
+              />
+              <g
+                class="joint-back-layer"
+              />
+              <g
+                class="joint-cells-layer joint-viewport"
+                style="webkit-user-select: none; user-select: none;"
+              />
+              <g
+                class="joint-labels-layer joint-viewport"
+                style="webkit-user-select: none; user-select: none;"
+              />
+              <g
+                class="joint-front-layer"
+              />
+              <g
+                class="joint-tools-layer"
+              />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </body>,
+  "container": <div>
+    <div
+      class="border-1 border-gray-300 rounded-lg shadow-md overflow-hidden p-2 mr-2"
+      style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
+    >
+      <div
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
+        style="position: relative; width: 100%; height: 600px;"
+      >
+        <div
+          class="joint-paper-background"
+          joint-selector="background"
+          style="position: absolute; inset: 0;"
+        />
+        <svg
+          height="100%"
+          id="v-19"
+          joint-selector="svg"
+          style="position: absolute; inset: 0; overflow: hidden;"
+          width="100%"
+          xmlns:xlink="http://www.w3.org/1999/xlink"
+        >
+          <style
+            id="v-20"
+            type="text/css"
+          >
+            CDATASection {}
+          </style>
+          <defs
+            joint-selector="defs"
+          />
+          <g
+            class="joint-layers"
+            joint-selector="layers"
+          >
+            <g
+              class="joint-grid-layer"
+              style="pointer-events: none;"
+            />
+            <g
+              class="joint-back-layer"
+            />
+            <g
+              class="joint-cells-layer joint-viewport"
+              style="webkit-user-select: none; user-select: none;"
+            />
+            <g
+              class="joint-labels-layer joint-viewport"
+              style="webkit-user-select: none; user-select: none;"
+            />
+            <g
+              class="joint-front-layer"
+            />
+            <g
+              class="joint-tools-layer"
+            />
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>,
+  "debug": [Function],
+  "findAllByAltText": [Function],
+  "findAllByDisplayValue": [Function],
+  "findAllByLabelText": [Function],
+  "findAllByPlaceholderText": [Function],
+  "findAllByRole": [Function],
+  "findAllByTestId": [Function],
+  "findAllByText": [Function],
+  "findAllByTitle": [Function],
+  "findByAltText": [Function],
+  "findByDisplayValue": [Function],
+  "findByLabelText": [Function],
+  "findByPlaceholderText": [Function],
+  "findByRole": [Function],
+  "findByTestId": [Function],
+  "findByText": [Function],
+  "findByTitle": [Function],
+  "getAllByAltText": [Function],
+  "getAllByDisplayValue": [Function],
+  "getAllByLabelText": [Function],
+  "getAllByPlaceholderText": [Function],
+  "getAllByRole": [Function],
+  "getAllByTestId": [Function],
+  "getAllByText": [Function],
+  "getAllByTitle": [Function],
+  "getByAltText": [Function],
+  "getByDisplayValue": [Function],
+  "getByLabelText": [Function],
+  "getByPlaceholderText": [Function],
+  "getByRole": [Function],
+  "getByTestId": [Function],
+  "getByText": [Function],
+  "getByTitle": [Function],
+  "queryAllByAltText": [Function],
+  "queryAllByDisplayValue": [Function],
+  "queryAllByLabelText": [Function],
+  "queryAllByPlaceholderText": [Function],
+  "queryAllByRole": [Function],
+  "queryAllByTestId": [Function],
+  "queryAllByText": [Function],
+  "queryAllByTitle": [Function],
+  "queryByAltText": [Function],
+  "queryByDisplayValue": [Function],
+  "queryByLabelText": [Function],
+  "queryByPlaceholderText": [Function],
+  "queryByRole": [Function],
+  "queryByTestId": [Function],
+  "queryByText": [Function],
+  "queryByTitle": [Function],
+  "rerender": [Function],
+  "unmount": [Function],
+}
+`;
+
 exports[`Paper "WithRectElement" 1`] = `
 {
   "asFragment": [Function],
@@ -1060,7 +1168,7 @@ exports[`Paper "WithRectElement" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
           style="position: relative; width: 100%; height: 600px;"
         >
           <div
@@ -1122,7 +1230,7 @@ exports[`Paper "WithRectElement" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
         style="position: relative; width: 100%; height: 600px;"
       >
         <div
@@ -1241,7 +1349,7 @@ exports[`Paper "WithScaleDown" 1`] = `
         style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
       >
         <div
-          class="joint-paper joint-theme-default"
+          class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
           style="position: relative; width: 100%; height: 600px;"
         >
           <div
@@ -1251,14 +1359,14 @@ exports[`Paper "WithScaleDown" 1`] = `
           />
           <svg
             height="100%"
-            id="v-11"
+            id="v-13"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-12"
+              id="v-14"
               type="text/css"
             >
               CDATASection {}
@@ -1304,7 +1412,7 @@ exports[`Paper "WithScaleDown" 1`] = `
       style="opacity: 1; pointer-events: all; position: relative; overflow: hidden; width: 100%; height: 100%;"
     >
       <div
-        class="joint-paper joint-theme-default"
+        class="joint-border-1 joint-border-gray-300 joint-rounded-lg joint-shadow-md joint-overflow-hidden joint-p-2 joint-mr-2 joint-theme-default"
         style="position: relative; width: 100%; height: 600px;"
       >
         <div
@@ -1314,14 +1422,14 @@ exports[`Paper "WithScaleDown" 1`] = `
         />
         <svg
           height="100%"
-          id="v-11"
+          id="v-13"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-12"
+            id="v-14"
             type="text/css"
           >
             CDATASection {}

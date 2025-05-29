@@ -1,6 +1,6 @@
 import type { dia } from '@joint/core';
 import { useCallback, useState } from 'react';
-import type { OnPaperRenderElement } from '../utils/create-paper';
+import type { OnPaperRenderElement } from '../components/paper-provider/paper-provider';
 
 /**
  * A custom hook that manages the rendering of SVG elements in a JointJS paper.
@@ -14,10 +14,10 @@ import type { OnPaperRenderElement } from '../utils/create-paper';
  * @internal
  */
 export function usePaperElementRenderer() {
-  const [svgGElements, setSVGGElements] = useState<Record<dia.Cell.ID, SVGElement>>({});
+  const [recordOfSVGElements, setElements] = useState<Record<dia.Cell.ID, SVGElement>>({});
 
   const onRenderElement: OnPaperRenderElement = useCallback((element, nodeSVGGElement) => {
-    setSVGGElements((previousState) => {
+    setElements((previousState) => {
       return {
         ...previousState,
         [element.id]: nodeSVGGElement,
@@ -25,5 +25,5 @@ export function usePaperElementRenderer() {
     });
   }, []);
 
-  return { svgGElements, onRenderElement };
+  return { recordOfSVGElements, onRenderElement };
 }
