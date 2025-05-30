@@ -1987,8 +1987,8 @@ const V = (function() {
 
         line = V(line);
         var d = [
-            'M', line.attr('x1'), line.attr('y1'),
-            'L', line.attr('x2'), line.attr('y2')
+            'M', line.attr('x1') || '0', line.attr('y1') || '0',
+            'L', line.attr('x2') || '0', line.attr('y2') || '0'
         ].join(' ');
         return d;
     };
