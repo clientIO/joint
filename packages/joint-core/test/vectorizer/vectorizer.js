@@ -1117,6 +1117,11 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(line.convertToPathData(), 'M 100 50 L 200 150');
         });
 
+        QUnit.test('<line> with implicit 0 coordinates', function(assert) {
+            var line = V('<line/>', { y1: 50, x2: 200 });
+            assert.equal(line.convertToPathData(), 'M 0 50 L 200 0');
+        });
+
         QUnit.test('<rect>', function(assert) {
             var rect = V('<rect/>', { x: 100, y: 50, width: 200, height: 150 });
             assert.equal(rect.convertToPathData(), 'M 100 50 H 300 V 200 H 100 V 50 Z');
