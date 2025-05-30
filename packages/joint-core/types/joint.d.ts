@@ -17,7 +17,7 @@ type _DeepRequired<T> = {
 };
 
 type _DeepPartial<T> = {
-	[P in keyof T]?: T[P] extends object ? _DeepPartial<T[P]> : T[P];
+    [P in keyof T]?: T[P] extends object ? _DeepPartial<T[P]> : T[P];
 };
 
 type DeepPartial<T> = _DeepPartial<_DeepRequired<T>>;
@@ -174,6 +174,11 @@ export namespace dia {
             strict?: boolean;
         }
 
+        interface JSON<K extends Array<Cell.SyntheticJSON>> {
+            cells: K;
+            [graphAttribute: string]: any;
+        }
+
         type SearchByKey = 'bbox' | PositionName;
 
         interface FindUnderElementOptions extends FindInAreaOptions, FindAtPointOptions {
@@ -256,9 +261,9 @@ export namespace dia {
 
         getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-        toJSON(opt?: { cellAttributes?: dia.Cell.ExportOptions }): any;
+        toJSON(opt?: { cellAttributes?: dia.Cell.ExportOptions }): Graph.JSON<Array<Element.JSON> | Array<Link.JSON>>;
 
-        fromJSON(json: any, opt?: S): this;
+        fromJSON(json: Graph.JSON<Array<Cell.SyntheticJSON<Element.JSON>> | Array<Cell.SyntheticJSON<Link.JSON>>>, opt?: S): this;
 
         clear(opt?: { [key: string]: any }): this;
 
@@ -347,8 +352,17 @@ export namespace dia {
         type JSON<K extends Selectors = Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = T & {
             [attribute in keyof T]: T[attribute];
         } & {
-            id: ID;
             type: string;
+            id: ID;
+        };
+
+        // `Omit<>` doesn't work as expected
+        // (see https://github.com/microsoft/TypeScript/issues/54451 and https://github.com/sindresorhus/type-fest/blob/main/source/except.d.ts)
+        // - we want to make `id` of J optional, but trying to do so with `Omit<J, 'id'>` also omits `type`
+        // - we need to omit both `type` and `id` (for explicitness) and re-add them as appropriate
+        type SyntheticJSON<J extends JSON = JSON> = Omit<J, 'type' | 'id'> & {
+            type: string;
+            id?: ID;
         };
 
         interface Constructor<T extends mvc.Model> {
@@ -563,6 +577,8 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Cell.Selectors> {
         }
 
+        type JSON<K extends Cell.Selectors = Cell.Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = Cell.JSON<K, T>;
+
         type PortPositionCallback = (ports: Port[], bbox: g.Rect) => dia.Point[];
 
         interface PortPositionJSON {
@@ -729,11 +745,16 @@ export namespace dia {
             priority?: boolean;
         }
 
-        interface EndJSON extends EndCellArgs {
-            id?: Cell.ID;
-            x?: number;
-            y?: number;
+        interface EndCellJSON extends EndCellArgs {
+            id: Cell.ID;
         }
+
+        interface EndPointJSON extends EndCellArgs {
+            x: number;
+            y: number;
+        }
+
+        type EndJSON = EndCellJSON | EndPointJSON;
 
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
             source?: EndJSON;
@@ -757,6 +778,8 @@ export namespace dia {
 
         interface Attributes extends Cell.GenericAttributes<LinkSelectors> {
         }
+
+        type JSON<K extends LinkSelectors = LinkSelectors, T extends GenericAttributes<K> = GenericAttributes<K>> = Cell.JSON<K, T>;
 
         interface LabelPosition {
             distance?: number; // optional for default labels
@@ -2677,7 +2700,7 @@ export namespace util {
     export function isPercentage(val: any): boolean;
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number, unit?: string } | null;
-    
+
     type BreakTextOptions = {
         svgDocument?: SVGElement;
         separator?: string | any;
@@ -2687,7 +2710,7 @@ export namespace util {
         maxLineCount?: number;
         preserveSpaces?: boolean;
     }
-    
+
     type BreakTextFunction = (
         text: string,
         size: { width: number, height?: number },
