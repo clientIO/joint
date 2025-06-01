@@ -174,8 +174,8 @@ export namespace dia {
             strict?: boolean;
         }
 
-        interface JSON<K extends Array<Cell.SyntheticJSON>> {
-            cells: K;
+        interface JSON<K extends Cell.SyntheticJSON> {
+            cells: Array<K>;
             [graphAttribute: string]: any;
         }
 
@@ -261,9 +261,9 @@ export namespace dia {
 
         getCommonAncestor(...cells: Cell[]): Element | undefined;
 
-        toJSON(opt?: { cellAttributes?: dia.Cell.ExportOptions }): Graph.JSON<Array<Element.JSON> | Array<Link.JSON>>;
+        toJSON(opt?: { cellAttributes?: Cell.ExportOptions }): Graph.JSON<Element.JSON | Link.JSON>;
 
-        fromJSON(json: Graph.JSON<Array<Cell.SyntheticJSON<Element.JSON>> | Array<Cell.SyntheticJSON<Link.JSON>>>, opt?: S): this;
+        fromJSON(json: Graph.JSON<Cell.SyntheticJSON<Element.JSON | Link.JSON>>, opt?: S): this;
 
         clear(opt?: { [key: string]: any }): this;
 
