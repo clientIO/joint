@@ -2238,6 +2238,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-container@workspace:examples/container":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-container@workspace:examples/container"
+  dependencies:
+    "@joint/core": "workspace:^"
+    css-loader: "npm:^6.8.1"
+    style-loader: "npm:^3.3.3"
+    ts-loader: "npm:^9.2.5"
+    typescript: "npm:5.8.2"
+    webpack: "npm:5.98.0"
+    webpack-cli: "npm:6.0.1"
+    webpack-dev-server: "npm:5.2.0"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-decorators@workspace:examples/decorators":
   version: 0.0.0-use.local
   resolution: "@joint/demo-decorators@workspace:examples/decorators"
