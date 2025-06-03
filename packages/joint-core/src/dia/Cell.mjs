@@ -247,7 +247,7 @@ export const Cell = Model.extend({
     },
 
     toFront: function(opt) {
-        var graph = this.graph;
+        const { graph } = this;
         if (graph) {
             opt = defaults(opt || {}, { foregroundEmbeds: true });
 
@@ -261,10 +261,12 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const maxZ = graph.maxZIndex();
+            const layerName = this.layer();
+
+            const maxZ = graph.maxZIndex(layerName);
             let z = maxZ - cells.length + 1;
 
-            const collection = graph.get('cells');
+            const collection = graph.getLayerCells(layerName);
 
             let shouldUpdate = (collection.toArray().indexOf(sortedCells[0]) !== (collection.length - cells.length));
             if (!shouldUpdate) {
@@ -290,7 +292,7 @@ export const Cell = Model.extend({
     },
 
     toBack: function(opt) {
-        var graph = this.graph;
+        const { graph } = this;
         if (graph) {
             opt = defaults(opt || {}, { foregroundEmbeds: true });
 
@@ -304,9 +306,11 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            let z = graph.minZIndex();
+            const layerName = this.layer();
 
-            var collection = graph.get('cells');
+            let z = graph.minZIndex(layerName);
+
+            const  collection = graph.getLayerCells(layerName);
 
             let shouldUpdate = (collection.toArray().indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {
@@ -946,6 +950,26 @@ export const Cell = Model.extend({
             .getPointRotatedAroundCenter(this.angle(), x, y)
             // Transform the absolute position into relative
             .difference(this.position());
+    },
+
+    setLayer(layerName) {
+        if (layerName) {
+            this.set('layer', layerName);
+        }
+    },
+
+    unsetLayer() {
+        this.unset('layer');
+    },
+
+    layer() {
+        let layer = this.get('layer') || null;
+        if (layer == null && this.graph) {
+            // If the cell is part of a graph, use the graph's default layer.
+            layer = this.graph.getDefaultLayer();
+        }
+
+        return layer;
     }
 
 }, {
