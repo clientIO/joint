@@ -1,5 +1,5 @@
 import { Listener } from '../../mvc/Listener.mjs';
-import { Layer } from '../Layer.mjs';
+import { GraphLayer } from '../GraphLayer.mjs';
 
 export class EmbeddingLayersController extends Listener {
 
@@ -27,7 +27,7 @@ export class EmbeddingLayersController extends Listener {
                 });
 
                 graph.removeLayer(layer);
-                this.removePaperLayer(layer);
+                this.removeEmbeddingLayer(layer);
             }
         });
 
@@ -43,7 +43,7 @@ export class EmbeddingLayersController extends Listener {
 
             let layer;
             if (parentId && !layersMap[parentId]) {
-                layer = new Layer({
+                layer = new GraphLayer({
                     name: parentId
                 });
                 graph.addLayer(layer);
@@ -57,8 +57,8 @@ export class EmbeddingLayersController extends Listener {
 
         this.listenTo(paper, 'cell:inserted', (_appContext, cellView) => {
             const cellId = cellView.model.id;
-            if (paper.hasLayerView(cellId)) {
-                const layerView = paper.getLayerView(cellId);
+            if (paper.hasLayer(cellId)) {
+                const layerView = paper.getLayer(cellId);
                 cellView.el.after(layerView.el);
             }
         });
@@ -67,9 +67,9 @@ export class EmbeddingLayersController extends Listener {
     insertEmbeddingLayer(layer) {
         const { paper } = this;
 
-        const cellId = layer.get('name');
+        const cellId = layer.name;
         const layerView = paper.createLayer({ name: cellId, model: layer });
-        paper.addLayer(cellId, layerView, { doNotAppend: true });
+        paper.addLayer(layerView, { doNotAppend: true });
 
         const cellView = paper.findViewByModel(cellId);
         if (cellView.isMounted()) {
@@ -80,10 +80,10 @@ export class EmbeddingLayersController extends Listener {
     removeEmbeddingLayer(layer) {
         const { paper } = this;
 
-        const cellId = layer.get('name');
-        const layerView = paper.hasLayerView(cellId);
-        if (layerView) {
-            paper.removeLayer(cellId);
+        const cellId = layer.name;
+        if (paper.hasLayer(cellId)) {
+            const layerView = paper.getLayer(cellId);
+            paper.removeLayer(layerView);
         }
     }
 }

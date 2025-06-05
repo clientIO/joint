@@ -1,14 +1,5 @@
 import { Model, Collection } from '../mvc/index.mjs';
 
-export const LayersNames = {
-    GRID: 'grid',
-    CELLS: 'cells',
-    BACK: 'back',
-    FRONT: 'front',
-    TOOLS: 'tools',
-    LABELS: 'labels'
-};
-
 class LayerCells extends Collection {
 
     // `comparator` makes it easy to sort cells based on their `z` index.
@@ -17,7 +8,7 @@ class LayerCells extends Collection {
     }
 }
 
-export class Layer extends Model {
+export class GraphLayer extends Model {
 
     defaults() {
         return {

@@ -1782,7 +1782,7 @@ QUnit.module('paper', function(hooks) {
     QUnit.module('draw grid options', function(hooks) {
 
         const getGridSettings = function(paper) {
-            return paper.getLayerView(joint.dia.Paper.Layers.GRID)._gridSettings;
+            return paper.getLayer(joint.dia.Paper.Layers.GRID)._gridSettings;
         };
 
         const getGridVel = function(paper) {
@@ -1857,7 +1857,7 @@ QUnit.module('paper', function(hooks) {
                     gridSize: 1,
                     drawGridSize: 17
                 });
-                const drawGridSpy = sinon.spy(paper.getLayerView(joint.dia.Paper.Layers.GRID), 'renderGrid');
+                const drawGridSpy = sinon.spy(paper.getLayer(joint.dia.Paper.Layers.GRID), 'renderGrid');
                 paper.setGridSize(5);
                 assert.ok(drawGridSpy.notCalled);
                 drawGridSpy.restore();

@@ -2141,8 +2141,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     function() {
                         paper.addLayer();
                     },
-                    /dia.Paper: The layer name must be provided./,
-                    'Layer name must be provided.'
+                    /dia.Paper: The layer view must be provided./,
+                    'Layer view must be provided.'
                 );
                 assert.throws(
                     function() {
@@ -2156,7 +2156,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('throws error when layer with the same name already exists', function(assert) {
                 assert.throws(
                     function() {
-                        paper.addLayer(new LayerView({ name: joint.dia.Paper.Layers.BACK }));
+                        paper.addLayer(new joint.dia.LayerView({ name: joint.dia.Paper.Layers.BACK }));
                     },
                     /dia.Paper: The layer "back" already exists./,
                     'Layer with the name "back" already exists.'
@@ -2195,8 +2195,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     function() {
                         paper.removeLayer();
                     },
-                    /dia.Paper: Unknown layer "undefined"./,
-                    'Layer name must be provided.'
+                    /dia.Paper: The layer view must be provided./,
+                    'Layer view must be provided.'
                 );
             });
 
@@ -2204,7 +2204,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.notOk(paper.hasLayer('test'));
                 assert.throws(
                     function() {
-                        paper.removeLayer('test');
+                        paper.removeLayer(new joint.dia.LayerView({ name: 'test' }));
                     },
                     /dia.Paper: Unknown layer "test"./,
                     'Layer with the name "test" does not exist.'
@@ -2237,18 +2237,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 paper.removeLayer(testLayer);
                 assert.notOk(paper.hasLayer('test'));
             });
-
-            QUnit.test('throws error when trying to remove a layer which is not added to the paper', function(assert) {
-                const testLayer = new joint.dia.LayerView();
-                assert.throws(
-                    function() {
-                        paper.removeLayer(testLayer);
-                    },
-                    /dia.Paper: The layer is not registered./,
-                    'Layer with the name "test" does not exist.'
-                );
-            });
-
         });
 
         QUnit.module('moveLayer()', function() {
@@ -2258,7 +2246,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     function() {
                         paper.moveLayer();
                     },
-                    /dia.Paper: Unknown layer "undefined"./,
+                    /dia.Paper: The layer view is not an instance of dia.LayerView./,
                     'Layer name must be provided.'
                 );
             });
@@ -2267,7 +2255,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.notOk(paper.hasLayer('test'));
                 assert.throws(
                     function() {
-                        paper.moveLayer('test');
+                        paper.moveLayer(new joint.dia.LayerView({ name: 'test' }));
                     },
                     /dia.Paper: Unknown layer "test"./,
                     'Layer with the name "test" does not exist.'
@@ -2277,7 +2265,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('throws error when invalid position is provided', function(assert) {
                 assert.throws(
                     function() {
-                        paper.moveLayer(joint.dia.Paper.Layers.BACK, 'test');
+                        paper.moveLayer(paper.getLayer(joint.dia.Paper.Layers.BACK), 'test');
                     },
                     /dia.Paper: Unknown layer "test"./,
                     'Invalid position "test".'
@@ -2287,7 +2275,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('moves the specified layer to the specified position', function(assert) {
                 const layerNames = paper.getLayerNames();
                 const [firstLayer, secondLayer] = layerNames;
-                paper.moveLayer(secondLayer, firstLayer);
+                paper.moveLayer(paper.getLayer(secondLayer), firstLayer);
                 const [newFirstLayer, newSecondLayer] = paper.getLayerNames();
                 assert.equal(newFirstLayer, secondLayer);
                 assert.equal(newSecondLayer, firstLayer);
@@ -2296,7 +2284,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('moves the specified layer to the end of the layers list', function(assert) {
                 const layerNames = paper.getLayerNames();
                 const [firstLayer, secondLayer] = layerNames;
-                paper.moveLayer(firstLayer);
+                paper.moveLayer(paper.getLayer(firstLayer));
                 const newLayerNames = paper.getLayerNames();
                 assert.equal(newLayerNames.at(0), secondLayer);
                 assert.equal(newLayerNames.at(-1), firstLayer);
@@ -2305,7 +2293,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('it\'s possible to move the layer to the same position', function(assert) {
                 const layerNames = paper.getLayerNames();
                 const [firstLayer, secondLayer] = layerNames;
-                paper.moveLayer(firstLayer, secondLayer);
+                paper.moveLayer(paper.getLayer(firstLayer), secondLayer);
                 const newLayerNames = paper.getLayerNames();
                 assert.equal(newLayerNames.at(0), firstLayer);
                 assert.equal(newLayerNames.at(1), secondLayer);
@@ -2314,7 +2302,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             QUnit.test('it\'s ok to move layer before itself', function(assert) {
                 const layerNames = paper.getLayerNames();
                 const [, secondLayer] = layerNames;
-                paper.moveLayer(secondLayer, secondLayer);
+                paper.moveLayer(paper.getLayer(secondLayer), secondLayer);
                 const newLayerNames = paper.getLayerNames();
                 assert.equal(newLayerNames.at(1), secondLayer);
             });
@@ -2334,19 +2322,13 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     name: 'test1'
                 });
                 paper.addLayer(test1Layer);
-
-
                 const r2 = new joint.shapes.standard.Rectangle({ layer: 'test1' });
-                graph.addCell(r2, { async: false });
-                assert.ok(paper.getLayerNode('test1').contains(r2.findView(paper).el));
-
-                const r3 = new joint.shapes.standard.Rectangle({ layer: 'test2' });
                 assert.throws(
                     () => {
-                        graph.addCell(r3, { async: false });
+                        graph.addCell(r2, { async: false });
                     },
-                    /dia.Paper: Unknown layer "test2"./,
-                    'Layer "test2" does not exist.'
+                    /dia.Graph: Layer with name 'test1' does not exist./,
+                    'Layer "test1" does not exist on Graph Level.'
                 );
             });
 
@@ -2356,8 +2338,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 graph.addCell(r1, { async: false });
                 assert.ok(paper.getLayerNode('cells').contains(r1.findView(paper).el));
 
-                const test1Layer = new joint.dia.LayerView();
-                paper.addLayer('test1', test1Layer);
+                const test1Layer = new joint.dia.LayerView({ name: 'test1' });
+                paper.addLayer(test1Layer);
 
                 r1.set('layer', 'test1', { async: false });
                 assert.ok(paper.getLayerNode('test1').contains(r1.findView(paper).el));

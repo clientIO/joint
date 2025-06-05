@@ -962,7 +962,7 @@ export const Cell = Model.extend({
         let layer = this.get('layer') || null;
         if (layer == null && this.graph) {
             // If the cell is part of a graph, use the graph's default layer.
-            layer = this.graph.getDefaultLayer();
+            layer = this.graph.getDefaultLayer().name;
         }
 
         return layer;

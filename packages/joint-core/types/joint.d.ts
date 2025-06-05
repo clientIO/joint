@@ -205,11 +205,11 @@ export namespace dia {
 
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
-        addLayer(layer: Layer): void;
+        addLayer(layer: GraphLayer): void;
 
-        removeLayer(layer: Layer): void;
+        removeLayer(layer: GraphLayer): void;
 
-        getDefaultLayer(): Layer;
+        getDefaultLayer(): GraphLayer;
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -1762,9 +1762,9 @@ export namespace dia {
 
         getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
-        getLayerView(layerName: Paper.Layers | string): LayerView;
+        getLayer(layerName: Paper.Layers | string): LayerView;
 
-        hasLayerView(layerName: Paper.Layers | string): boolean;
+        hasLayer(layerName: Paper.Layers | string): boolean;
 
         renderLayers(layers: Array<{ name: string }>): void;
 
@@ -1772,13 +1772,11 @@ export namespace dia {
 
         protected resetLayers(): void;
 
-        addLayer(layerName: string, layerView: LayerView, options?: { insertBefore?: string }): void;
+        addLayer(layerView: LayerView, options?: { insertBefore?: string | LayerView }): void;
 
-        removeLayer(layer: string | LayerView): void;
+        removeLayer(LayerView: LayerView): void;
 
-        moveLayer(layer: string | LayerView, insertBefore: string | LayerView | null): void;
-
-        hasLayer(layer: string | LayerView): boolean;
+        moveLayer(layerView: LayerView, insertBefore: string | LayerView | null): void;
 
         getLayerNames(): string[];
 
@@ -1998,7 +1996,7 @@ export namespace dia {
         removePivots(): void;
     }
 
-    class Layer extends mvc.Model {
+    class GraphLayer extends mvc.Model {
 
         name: string;
 

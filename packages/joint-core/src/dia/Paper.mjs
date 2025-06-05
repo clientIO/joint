@@ -38,7 +38,6 @@ import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LayersNames } from './Layer.mjs';
 import { LayerView } from './LayerView.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
@@ -48,6 +47,15 @@ import * as anchors from '../anchors/index.mjs';
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayer } from './layers/GridLayer.mjs';
 import { EmbeddingLayersController } from './controllers/EmbeddingLayersController.mjs';
+
+export const LayersNames = {
+    GRID: 'grid',
+    CELLS: 'cells',
+    BACK: 'back',
+    FRONT: 'front',
+    TOOLS: 'tools',
+    LABELS: 'labels'
+};
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -375,9 +383,6 @@ export const Paper = View.extend({
     // to mitigate the differences between the model and view geometry.
     DEFAULT_FIND_BUFFER: 200,
 
-    // Default layer to insert the cell views into.
-    DEFAULT_CELL_LAYER: LayersNames.CELLS,
-
     init: function() {
 
         const { options } = this;
@@ -515,10 +520,6 @@ export const Paper = View.extend({
                 this.updateViews(data);
             }
         }
-        var sortDelayingBatches = this.SORT_DELAYING_BATCHES;
-        if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
-            this.sortViews();
-        }
     },
 
     cloneOptions: function() {
@@ -605,18 +606,20 @@ export const Paper = View.extend({
         }];
     },
 
-    hasLayerView(layerName) {
+    hasLayer(layerName) {
         return  (layerName in this._layers.viewsMap);
     },
 
-    getLayerView(layerName) {
+    getLayer(layerName) {
         const { _layers: { viewsMap }} = this;
-        if (layerName in viewsMap) return viewsMap[layerName];
+        if (layerName in viewsMap) {
+            return viewsMap[layerName];
+        }
         throw new Error(`dia.Paper: Unknown layer "${layerName}".`);
     },
 
     getLayerNode(layerName) {
-        return this.getLayerView(layerName).el;
+        return this.getLayer(layerName).el;
     },
 
     _removeLayer(layerView) {
@@ -633,8 +636,10 @@ export const Paper = View.extend({
         delete viewsMap[layerName];
     },
 
-    _registerLayer(layerName, layerView, beforeLayerView, ignoreOrder) {
+    _registerLayer(layerView, beforeLayerView, ignoreOrder) {
         const { _layers: { viewsMap, order }} = this;
+        const layerName = layerView.name;
+
         if (!ignoreOrder) {
             if (beforeLayerView) {
                 const beforeLayerName = beforeLayerView.name;
@@ -646,39 +651,27 @@ export const Paper = View.extend({
         viewsMap[layerName] = layerView;
     },
 
-    _getLayerView(layer) {
-        const { _layers: { viewsMap }} = this;
-
+    _requireLayerView(layer) {
         let layerName;
-        if (layer instanceof LayerView) {
+        if (typeof layer === 'string') {
+            layerName = layer;
+        } else if (layer instanceof LayerView) {
             layerName = layer.name;
         } else {
-            layerName = layer;
+            throw new Error('dia.Paper: The layer view is not an instance of dia.LayerView.');
         }
 
-        if (layerName in viewsMap) {
-            return viewsMap[layerName];
+        if (!this.hasLayer(layerName)) {
+            throw new Error(`dia.Paper: Unknown layer "${layerName}".`);
         }
-        return null;
-    },
-
-    _requireLayerView(layer) {
-        const layerView = this._getLayerView(layer);
-        if (!layerView) {
-            if (layer instanceof LayerView) {
-                throw new Error('dia.Paper: The layer is not registered.');
-            } else {
-                throw new Error(`dia.Paper: Unknown layer "${layer}".`);
-            }
-        }
-        return layerView;
-    },
-
-    hasLayer(layer) {
-        return this._getLayerView(layer) !== null;
+        return this.getLayer(layerName);
     },
 
     removeLayer(layer) {
+        if (!layer) {
+            throw new Error('dia.Paper: The layer view must be provided.');
+        }
+
         const layerView = this._requireLayerView(layer);
         if (!layerView.isEmpty()) {
             throw new Error('dia.Paper: The layer is not empty.');
@@ -687,12 +680,16 @@ export const Paper = View.extend({
     },
 
     addLayer(layerView, options = {}) {
-        const layerName = layer.name;
+        if (!layerView) {
+            throw new Error('dia.Paper: The layer view must be provided.');
+        }
+
+        const layerName = layerView.name;
 
         if (!layerName || typeof layerName !== 'string') {
-            throw new Error('dia.Paper: The layer name must be provided.');
+            throw new Error('dia.Paper: The layer should has a name.');
         }
-        if (this._getLayerView(layerName)) {
+        if (this.hasLayer(layerName)) {
             throw new Error(`dia.Paper: The layer "${layerName}" already exists.`);
         }
         if (!(layerView instanceof LayerView)) {
@@ -700,24 +697,35 @@ export const Paper = View.extend({
         }
         const { insertBefore, doNotAppend } = options;
         if (doNotAppend) {
-            this._registerLayer(layerName, layerView, null, true);
+            this._registerLayer(layerView, null, true);
         } else {
             if (!insertBefore) {
-                this._registerLayer(layerName, layerView, null);
+                this._registerLayer(layerView, null);
                 this.layers.appendChild(layerView.el);
             } else {
                 const beforeLayerView = this._requireLayerView(insertBefore);
-                this._registerLayer(layerName, layerView, beforeLayerView);
+                this._registerLayer(layerView, beforeLayerView);
                 this.layers.insertBefore(layerView.el, beforeLayerView.el);
             }
         }
     },
 
     moveLayer(layer, insertBefore) {
-        const layerView = this._requireLayerView(layer);
-        if (layerView === this._getLayerView(insertBefore)) return;
-        this._unregisterLayer(layerView);
-        this.addLayer(layerView, { insertBefore });
+        if (!layer) {
+            throw new Error('dia.Paper: The layer view is not an instance of dia.LayerView.');
+        }
+
+        if (!this.hasLayer(layer.name)) {
+            throw new Error(`dia.Paper: Unknown layer "${layer.name}".`);
+        }
+
+        if (insertBefore) {
+            const insertBeforeLayer = this._requireLayerView(insertBefore);
+            if (layer === insertBeforeLayer)
+                return;
+        }
+        this._unregisterLayer(layer);
+        this.addLayer(layer, { insertBefore });
     },
 
     getLayerNames() {
@@ -727,7 +735,7 @@ export const Paper = View.extend({
 
     getLayers() {
         // Returns a sorted array of layer views.
-        return this.getLayerNames().map(name => this.getLayerView(name));
+        return this.getLayerNames().map(name => this.getLayer(name));
     },
 
     render: function() {
@@ -785,9 +793,9 @@ export const Paper = View.extend({
         this.removeLayers();
         layers.forEach(attributes => this.renderLayer(attributes));
         // Throws an exception if doesn't exist
-        const cellsLayerView = this.getLayerView(LayersNames.CELLS);
-        const toolsLayerView = this.getLayerView(LayersNames.TOOLS);
-        const labelsLayerView = this.getLayerView(LayersNames.LABELS);
+        const cellsLayerView = this.getLayer(LayersNames.CELLS);
+        const toolsLayerView = this.getLayer(LayersNames.TOOLS);
+        const labelsLayerView = this.getLayer(LayersNames.LABELS);
         // backwards compatibility
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
@@ -1932,8 +1940,8 @@ export const Paper = View.extend({
     insertView: function(view, isInitialInsert) {
         const { el, model } = view;
 
-        const layerName = model.get('layer') || this.DEFAULT_CELL_LAYER;
-        const layerView = this.getLayerView(layerName);
+        const layerName = model.layer();
+        const layerView = this.getLayer(layerName);
 
         switch (this.options.sorting) {
             case sortingTypes.APPROX:
@@ -2841,13 +2849,13 @@ export const Paper = View.extend({
         options.gridSize = gridSize;
         if (options.drawGrid && !options.drawGridSize) {
             // Do not redraw the grid if the `drawGridSize` is set.
-            this.getLayerView(LayersNames.GRID).renderGrid();
+            this.getLayer(LayersNames.GRID).renderGrid();
         }
         return this;
     },
 
     setGrid: function(drawGrid) {
-        this.getLayerView(LayersNames.GRID).setGrid(drawGrid);
+        this.getLayer(LayersNames.GRID).setGrid(drawGrid);
         return this;
     },
 

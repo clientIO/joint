@@ -1,7 +1,7 @@
 import * as mvc from '../mvc/index.mjs';
 import * as util from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
-import { LayersNames } from './Layer.mjs';
+import { LayersNames } from './Paper.mjs';
 import { ToolView } from './ToolView.mjs';
 
 export const ToolsView = mvc.View.extend({
@@ -143,7 +143,7 @@ export const ToolsView = mvc.View.extend({
         const { relatedView, layer = LayersNames.TOOLS, z } = options;
         if (relatedView) {
             if (layer) {
-                relatedView.paper.getLayerView(layer).insertSortedNode(el, z);
+                relatedView.paper.getLayer(layer).insertSortedNode(el, z);
             } else {
                 relatedView.el.appendChild(el);
             }

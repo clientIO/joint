@@ -391,7 +391,7 @@ export const LinkView = CellView.extend({
         if (!vLabels || !model.hasLabels()) return;
         const { node } = vLabels;
         if (options.labelsLayer) {
-            paper.getLayerView(options.labelsLayer).insertSortedNode(node, model.get('z'));
+            paper.getLayer(options.labelsLayer).insertSortedNode(node, model.get('z'));
         } else {
             if (node.parentNode !== el) {
                 el.appendChild(node);

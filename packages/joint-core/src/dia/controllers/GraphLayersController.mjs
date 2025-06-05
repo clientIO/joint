@@ -49,6 +49,10 @@ export class GraphLayersController extends Listener {
         const layerName = cell.layer();
         const layer = layersMap[layerName];
 
+        if (!layer) {
+            throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
+        }
+
         if (!cell.has('z')) {
             cell.set('z', layer.maxZIndex() + 1);
         }
@@ -83,7 +87,9 @@ export class GraphLayersController extends Listener {
 
         this.layers = this.layers.concat([layer]);
 
+        layer.set('graph', this.graph);
         layersMap[layer.name] = layer;
+
         this.graph.set('layers', this.layers);
     }
 
@@ -99,6 +105,9 @@ export class GraphLayersController extends Listener {
         }
 
         this.layers = this.layers.filter(l => l.name !== layerName);
+
+        const layer = layersMap[layerName];
+        layer.unset('graph');
 
         delete this.layersMap[layerName];
         this.set('layers', this.layers);

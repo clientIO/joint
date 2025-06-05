@@ -1,7 +1,7 @@
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
-import { LayersNames, Layer } from './Layer.mjs';
+import { GraphLayer } from './GraphLayer.mjs';
 import { Model } from '../mvc/Model.mjs';
 import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
@@ -73,10 +73,11 @@ export const Graph = Model.extend({
 
         this.enableCellLayers = opt.enableCellLayers || false;
 
-        this.defaultLayerName = LayersNames.CELLS;
+        this.defaultLayerName = 'cells';
 
-        const defaultLayer = new Layer({
-            name: this.defaultLayerName
+        const defaultLayer = new GraphLayer({
+            name: this.defaultLayerName,
+            graph: this,
         });
 
         this.set('layers', [
