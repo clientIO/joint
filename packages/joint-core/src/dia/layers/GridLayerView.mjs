@@ -9,7 +9,7 @@ import {
 } from '../../util/index.mjs';
 import V from '../../V/index.mjs';
 
-export class GridLayer extends LayerView {
+export class GridLayerView extends LayerView {
 
     preinitialize() {
         super.preinitialize();
@@ -22,7 +22,11 @@ export class GridLayer extends LayerView {
 
     init(...args) {
         super.init(...args);
+
         const { options: { paper }} = this;
+
+        this.options.patterns = paper.constructor.gridPatterns;
+
         this._gridCache = null;
         this._gridSettings = [];
         this.listenTo(paper, 'transform resize', this.updateGrid);

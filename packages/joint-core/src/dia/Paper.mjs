@@ -12,7 +12,6 @@ import {
     isFunction,
     isPlainObject,
     getByPath,
-    sortElements,
     isString,
     guid,
     normalizeEvent,
@@ -39,13 +38,14 @@ import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
 import { LayerView } from './LayerView.mjs';
+import { GraphLayerView } from './layers/GraphLayerView.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
-import { GridLayer } from './layers/GridLayer.mjs';
+import { GridLayerView } from './layers/GridLayerView.mjs';
 import { EmbeddingLayersController } from './controllers/EmbeddingLayersController.mjs';
 
 export const LayersNames = {
@@ -289,6 +289,11 @@ export const Paper = View.extend({
 
         cellViewNamespace: null,
 
+        layerViewNamespace: {
+            'GridLayerView': GridLayerView,
+            'GraphLayerView': GraphLayerView,
+        },
+
         routerNamespace: null,
 
         connectorNamespace: null,
@@ -396,12 +401,14 @@ export const Paper = View.extend({
 
         // Paper layers
         this._layersSettings = [{
+            type: 'GridLayerView',
             name: LayersNames.GRID,
         }, {
             name: LayersNames.BACK,
         }, {
             name: LayersNames.LABELS,
         }, {
+            type: 'GraphLayerView',
             name: LayersNames.CELLS,
             model: this.model.getDefaultLayer()
         }, {
@@ -465,7 +472,6 @@ export const Paper = View.extend({
             .listenTo(model, 'remove', this.onCellRemoved)
             .listenTo(model, 'change', this.onCellChange)
             .listenTo(model, 'reset', this.onGraphReset)
-            .listenTo(model, 'sort', this.onGraphSort)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
 
         this.on('cell:highlight', this.onCellHighlight)
@@ -503,11 +509,6 @@ export const Paper = View.extend({
     onGraphReset: function(collection, opt) {
         this.resetLayers();
         this.resetViews(collection.models, opt);
-    },
-
-    onGraphSort: function() {
-        if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
-        this.sortViews();
     },
 
     onGraphBatchStop: function(data) {
@@ -775,12 +776,9 @@ export const Paper = View.extend({
 
     createLayer(attributes) {
         attributes.paper = this;
-        switch (attributes.name) {
-            case LayersNames.GRID:
-                return new GridLayer({ ...attributes, patterns: this.constructor.gridPatterns });
-            default:
-                return new LayerView(attributes);
-        }
+        const viewConstructor = this.options.layerViewNamespace[attributes.type] || LayerView;
+
+        return new viewConstructor(attributes);
     },
 
     renderLayer: function(attributes) {
@@ -1474,7 +1472,7 @@ export const Paper = View.extend({
         }
         this.options.frozen = updates.keyFrozen = false;
         if (updates.sort) {
-            this.sortViews();
+            this.sortLayers();
             updates.sort = false;
         }
     },
@@ -1896,7 +1894,7 @@ export const Paper = View.extend({
             this.renderView(cells[i], opt);
         }
         this.unfreeze({ key });
-        this.sortViews();
+        this.sortLayers();
     },
 
     removeViews: function() {
@@ -1906,8 +1904,7 @@ export const Paper = View.extend({
         this._views = {};
     },
 
-    sortViews: function() {
-
+    sortLayers: function() {
         if (!this.isExactSorting()) {
             // noop
             return;
@@ -1917,24 +1914,13 @@ export const Paper = View.extend({
             this._updates.sort = true;
             return;
         }
-        this.sortViewsExact();
+        this.sortLayersExact();
     },
 
-    sortViewsExact: function() {
+    sortLayersExact: function() {
+        const { _layers: { viewsMap }} = this;
 
-        // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
-        // associated model `z` attribute.
-
-        var cellNodes = Array.from(this.cells.childNodes).filter(node => node.getAttribute('model-id'));
-        var cells = this.model.get('cells');
-
-        sortElements(cellNodes, function(a, b) {
-            var cellA = cells.get(a.getAttribute('model-id'));
-            var cellB = cells.get(b.getAttribute('model-id'));
-            var zA = cellA.attributes.z || 0;
-            var zB = cellB.attributes.z || 0;
-            return (zA === zB) ? 0 : (zA < zB) ? -1 : 1;
-        });
+        Object.values(viewsMap).filter(view => view instanceof GraphLayerView).forEach(view => view.sortLayerExact());
     },
 
     insertView: function(view, isInitialInsert) {
@@ -3312,7 +3298,6 @@ export const Paper = View.extend({
             return canvas;
         }
     },
-
     gridPatterns: {
         dot: [{
             color: '#AAAAAA',

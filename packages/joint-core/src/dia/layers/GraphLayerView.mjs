@@ -1,4 +1,5 @@
 import { LayerView } from '../LayerView.mjs';
+import { sortElements } from '../../util/index.mjs';
 
 export class GraphLayerView extends LayerView {
 
@@ -7,11 +8,17 @@ export class GraphLayerView extends LayerView {
 
         const { model } = this;
 
-        this.startListening();
+        const graph = model.get('graph');
+        if (graph) {
+            this.startListening(graph);
+        }
 
         this.listenTo(model, 'change:graph', (_, graph) => {
-            if (graph)
-            this.startGra
+            if (graph) {
+                this.startListening(graph);
+            } else {
+                this.stopListening();
+            }
         });
     }
 
@@ -19,20 +26,13 @@ export class GraphLayerView extends LayerView {
         return ['add', 'to-front', 'to-back'];
     }
 
-    startListening() {
+    startListening(graph) {
         const { model } = this;
-        if (!model)
-            return;
 
         this.listenTo(model, 'sort', () => {
-            if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
+            if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
             this.sortLayer();
         });
-
-        const graph = model.get('graph');
-
-        if (!graph)
-            return;
 
         this.listenTo(graph, 'batch:stop', (data) => {
             const name = data && data.batchName;
