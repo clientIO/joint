@@ -344,11 +344,15 @@ export const Graph = Model.extend({
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
 
+        this.startBatch('reset', opt);
+
         var preparedCells = util.toArray(cells).map(function(cell) {
             return this._prepareCell(cell, opt);
         }, this);
 
         this.get('cells').reset(preparedCells, opt);
+
+        this.stopBatch('reset', opt);
 
         return this;
     },
@@ -455,22 +459,22 @@ export const Graph = Model.extend({
 
     getElements: function() {
 
-        return this.get('cells').toArray().filter(cell => cell.isElement());
+        return this.getCells().filter(cell => cell.isElement());
     },
 
     getLinks: function() {
 
-        return this.get('cells').toArray().filter(cell => cell.isLink());
+        return this.getCells().filter(cell => cell.isLink());
     },
 
     getFirstCell: function() {
 
-        return this.get('cells').first();
+        return this.getCells().first();
     },
 
     getLastCell: function() {
 
-        return this.get('cells').last();
+        return this.getCells().last();
     },
 
     // Get all inbound and outbound links connected to the cell `model`.

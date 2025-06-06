@@ -23,7 +23,7 @@ export class GraphLayerView extends LayerView {
     }
 
     get SORT_DELAYING_BATCHES() {
-        return ['add', 'to-front', 'to-back'];
+        return ['add', 'reset', 'to-front', 'to-back'];
     }
 
     startListening(graph) {
