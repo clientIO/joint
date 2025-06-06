@@ -449,8 +449,8 @@ export const Graph = Model.extend({
     },
 
     getCells: function() {
-
-        return this.get('cells').toArray();
+        // Preserve old order without layers
+        return this.layersController.getCells();
     },
 
     getElements: function() {

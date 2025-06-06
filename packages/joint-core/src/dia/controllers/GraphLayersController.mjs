@@ -46,7 +46,7 @@ export class GraphLayersController extends Listener {
     onAdd(cell) {
         const { layersMap } = this;
 
-        const layerName = cell.layer();
+        const layerName = cell.layer() || this.defaultLayerName;
         const layer = layersMap[layerName];
 
         if (!layer) {
@@ -65,7 +65,7 @@ export class GraphLayersController extends Listener {
     onRemove(cell) {
         const { layersMap } = this;
 
-        const layerName = cell.layer();
+        const layerName = cell.layer() || this.defaultLayerName;
 
         const layer = layersMap[layerName];
 
@@ -139,5 +139,15 @@ export class GraphLayersController extends Listener {
 
     getLayerCells(layerName) {
         return this.layersMap[layerName].get('cells');
+    }
+
+    getCells() {
+        const cells = [];
+
+        for (let layerName in this.layersMap) {
+            cells.push(...this.layersMap[layerName].get('cells'));
+        }
+
+        return cells;
     }
 }

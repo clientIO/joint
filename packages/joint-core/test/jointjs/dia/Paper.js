@@ -977,9 +977,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             rect3.translate(10, 10);
                             assert.ok(sortLayersExactSpy.notCalled);
                             // ADD CELLS
+                            var sortLayerExactSpy = sinon.spy(paper.getLayer('cells'), 'sortLayerExact');
                             graph.clear();
                             graph.addCells([rect1, rect2, rect3]);
-                            assert.equal(sortLayersExactSpy.callCount, paper.options.sorting === Paper.sorting.EXACT ? 1 : 0);
+                            assert.equal(sortLayerExactSpy.callCount, paper.options.sorting === Paper.sorting.EXACT ? 1 : 0);
                             if (paper.options.sorting !== Paper.sorting.NONE) {
                                 rect1View = rect1.findView(paper);
                                 rect2View = rect2.findView(paper);
@@ -2315,13 +2316,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 const r1 = new joint.shapes.standard.Rectangle();
                 graph.addCell(r1, { async: false });
-                assert.equal(r1.get('layer'), 'cells');
                 assert.ok(paper.getLayerNode('cells').contains(r1.findView(paper).el));
 
-                const test1Layer = new joint.dia.LayerView({
-                    name: 'test1'
-                });
-                paper.addLayer(test1Layer);
                 const r2 = new joint.shapes.standard.Rectangle({ layer: 'test1' });
                 assert.throws(
                     () => {
@@ -2330,6 +2326,19 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     /dia.Graph: Layer with name 'test1' does not exist./,
                     'Layer "test1" does not exist on Graph Level.'
                 );
+
+                graph.removeCells([r2], { async: false });
+
+                const test1Layer = new joint.dia.GraphLayer({ name: 'test1' });
+                graph.addLayer(test1Layer);
+                paper.renderLayer({
+                    name: 'test1',
+                    type: 'GraphLayerView',
+                    model: test1Layer
+                });
+
+                graph.addCell(r2, { async: false });
+                assert.ok(paper.getLayerNode('test1').contains(r2.findView(paper).el));
             });
 
             QUnit.test('cell view is moved to correct layer', function(assert) {
