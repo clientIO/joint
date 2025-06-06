@@ -146,9 +146,12 @@ export const HighlighterView = mvc.View.extend({
     },
 
     unmount() {
-        const { MOUNTABLE, transformGroup, vel } = this;
+        const { MOUNTABLE, transformGroup, vel, options } = this;
         if (!MOUNTABLE) return;
-        if (transformGroup) {
+        if (options.layer) {
+            if (!transformGroup) return;
+            // else: if `transformGroup` is not null, it means the highlighter
+            // has not been mounted yet
             this.transformGroup = null;
             this.detachedTransformGroup = transformGroup;
             transformGroup.remove();
