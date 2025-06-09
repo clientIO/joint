@@ -12,6 +12,7 @@ export class GraphLayer extends Model {
 
     defaults() {
         return {
+            type: 'GraphLayer',
             displayName: '',
             hidden: false,
             locked: false,

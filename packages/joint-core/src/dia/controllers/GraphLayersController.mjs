@@ -78,6 +78,16 @@ export class GraphLayersController extends Listener {
         return this.layersMap[this.defaultLayerName];
     }
 
+    addToLayer(cell, layer) {
+        if (!layer) {
+            layer = this.getDefaultLayer();
+            layer.add(cell);
+        } else {
+            layer.add(cell);
+            cell.setLayer(layer.name);
+        }
+    }
+
     addLayer(layer, _opt) {
         const { layersMap } = this;
 
@@ -110,7 +120,7 @@ export class GraphLayersController extends Listener {
         layer.unset('graph');
 
         delete this.layersMap[layerName];
-        this.set('layers', this.layers);
+        this.graph.set('layers', this.layers);
     }
 
     minZIndex(layerName) {

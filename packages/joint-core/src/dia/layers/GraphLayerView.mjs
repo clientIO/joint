@@ -64,7 +64,7 @@ export class GraphLayerView extends LayerView {
     sortLayerExact() {
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.
-        const cellNodes = Array.from(this.el.childNodes).filter(node => node.getAttribute('model-id'));
+        const cellNodes = Array.from(this.el.children).filter(node => node.getAttribute('model-id'));
         const cells = this.model.get('cells');
 
         sortElements(cellNodes, function(a, b) {
@@ -73,6 +73,19 @@ export class GraphLayerView extends LayerView {
             const zA = cellA.attributes.z || 0;
             const zB = cellB.attributes.z || 0;
             return (zA === zB) ? 0 : (zA < zB) ? -1 : 1;
+        });
+    }
+
+    _prepareRemove() {
+        const cellNodes = Array.from(this.el.children).filter(node => node.getAttribute('model-id'));
+        const cells = this.model.get('cells');
+
+        cellNodes.forEach((node) => {
+            const cellId = node.getAttribute('model-id');
+
+            if (!cells.has(cellId)) {
+                this.el.removeChild(node);
+            }
         });
     }
 

@@ -674,6 +674,11 @@ export const Paper = View.extend({
         }
 
         const layerView = this._requireLayerView(layer);
+
+        if (layerView instanceof GraphLayerView) {
+            layerView._prepareRemove();
+        }
+
         if (!layerView.isEmpty()) {
             throw new Error('dia.Paper: The layer is not empty.');
         }
@@ -776,7 +781,15 @@ export const Paper = View.extend({
 
     createLayer(attributes) {
         attributes.paper = this;
-        const viewConstructor = this.options.layerViewNamespace[attributes.type] || LayerView;
+
+        let type = attributes.type;
+
+        if (attributes.model) {
+            const modelType = attributes.model.get('type') || attributes.model.constructor.name;
+            type = modelType + 'View';
+        }
+
+        const viewConstructor = this.options.layerViewNamespace[type] || LayerView;
 
         return new viewConstructor(attributes);
     },

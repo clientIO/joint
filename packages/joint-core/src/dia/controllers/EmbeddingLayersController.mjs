@@ -17,13 +17,12 @@ export class EmbeddingLayersController extends Listener {
 
         this.listenTo(graph, 'remove', (_appContext, cell) => {
             const layersMap = graph.getLayersMap();
-            const activeLayer = graph.getActiveLayer();
 
             if (layersMap[cell.id]) {
                 const layer = layersMap[cell.id];
                 const cells = layer.get('cells').models;
                 cells.forEach((cell) => {
-                    activeLayer.add(cell);
+                    graph.addToLayer(cell);
                 });
 
                 graph.removeLayer(layer);
@@ -33,7 +32,6 @@ export class EmbeddingLayersController extends Listener {
 
         this.listenTo(graph, 'change:parent', (_appContext, cell, parentId) => {
             const layersMap = graph.getLayersMap();
-            const activeLayer = graph.getActiveLayer();
 
             const currentLayer = cell.layer();
 
@@ -50,9 +48,7 @@ export class EmbeddingLayersController extends Listener {
                 this.insertEmbeddingLayer(layer);
             }
 
-            const targetLayer = layersMap[parentId] || activeLayer;
-
-            targetLayer.add(cell);
+            graph.addToLayer(cell, layersMap[parentId]);
         });
 
         this.listenTo(paper, 'cell:inserted', (_appContext, cellView) => {
