@@ -107,11 +107,29 @@ PortData.prototype = {
 
     _getPortLabelLayout: function(port, portPosition, elBBox) {
 
-        var namespace = this.portLabelLayoutNamespace;
-        var labelPosition = port.label.position.name || 'left';
+        const labelNamespace = this.portLabelLayoutNamespace;
+        const labelPosition = port.label.position;
 
-        if (namespace[labelPosition]) {
-            return namespace[labelPosition](portPosition, elBBox, port.label.position.args);
+        const labelArgs = Object.assign({}, port.label.position.args);
+        let labelPositionName; //let labelPositionName = port.label.position.name || 'left';
+
+        if (util.isFunction(labelPosition)) {
+            labelPositionName = 'fn';
+            labelArgs.fn = labelPosition;
+        } else if (util.isString(labelPosition)) {
+            labelPositionName = labelPosition;
+        } else/* if (labelPosition === undefined)*/ {
+            labelPositionName = 'left';
+        }/* else if (Array.isArray(labelPosition)) {
+            labelPositionName = 'manual';
+            labelArgs.x = labelPosition[0];
+            labelArgs.y = labelPosition[1];
+        } else if (util.isObject(position)) {
+            labelPositionName = labelPosition.name;
+        }*/
+
+        if (labelNamespace[labelPositionName]) {
+            return labelNamespace[labelPositionName](portPosition, elBBox, labelArgs);
         }
 
         return null;
