@@ -14,10 +14,10 @@ export class GraphLayerView extends LayerView {
         }
 
         this.listenTo(model, 'change:graph', (_, graph) => {
+            this.stopListening();
+
             if (graph) {
                 this.startListening(graph);
-            } else {
-                this.stopListening();
             }
         });
     }
