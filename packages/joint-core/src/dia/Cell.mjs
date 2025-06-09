@@ -39,7 +39,7 @@ import * as g from '../g/index.mjs';
 
 const attributesMerger = function(a, b) {
     if (Array.isArray(a)) {
-        return b;
+        return cloneDeep(b);
     }
 };
 
