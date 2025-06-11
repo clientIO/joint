@@ -91,7 +91,7 @@ jobs:
           path: ./packages/joint-react/docs
 
   # Deploy the docs to GitHub Pages
-  deploy-docs:
+  deploy-joint-react-docs:
     needs: build-joint-react-docs
     runs-on: ubuntu-latest
     environment:
