@@ -24,11 +24,12 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Configure Yarn to avoid global cache
+      - name: Configure Yarn and create cache folder
         run: |
           yarn config set enableGlobalCache false
           yarn config set enableImmutableInstalls false
           yarn config set enableImmutableCache false
+          mkdir -p .yarn/cache
 
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache
