@@ -8,7 +8,7 @@ import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation
 import { forwardRef, type PropsWithChildren } from 'react';
 import { useElement } from '../../hooks';
 
-const API_URL = getAPILink('Highlighter/variables/Custom', 'namespaces');
+const API_URL = getAPILink('Highlighter.Custom', 'variables');
 
 export type Story = StoryObj<typeof Custom>;
 const meta: Meta<typeof Custom> = {

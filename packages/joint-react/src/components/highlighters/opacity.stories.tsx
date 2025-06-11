@@ -7,7 +7,7 @@ import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation
 import { forwardRef, type PropsWithChildren } from 'react';
 import { useElement } from '../../hooks';
 
-const API_URL = getAPILink('Highlighter/variables/Opacity', 'namespaces');
+const API_URL = getAPILink('Highlighter.Opacity', 'variables');
 
 export type Story = StoryObj<typeof Opacity>;
 const meta: Meta<typeof Opacity> = {

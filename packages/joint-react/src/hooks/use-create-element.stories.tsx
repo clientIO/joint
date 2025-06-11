@@ -72,7 +72,6 @@ function Hook({ label }: SimpleElement) {
 
 export const Default: Story = makeStory<Story>({
   args: {},
-  apiURL: API_URL,
   code: `import { useCreateElement } from '@joint/react'
 
 function Hook() {

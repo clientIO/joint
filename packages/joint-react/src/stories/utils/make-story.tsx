@@ -6,7 +6,7 @@ interface MakeStoryOptions<T extends StoryObj> {
   readonly component?: React.FC;
   readonly code?: string;
   readonly name?: string;
-  readonly apiURL: string;
+  readonly apiURL?: string;
   readonly description?: string;
   readonly args?: T['args'];
   readonly decorators?: T['decorators'];
@@ -69,7 +69,8 @@ export function makeRootDocumentation(options: MakeRootDocsOptions) {
   return {
     docs: {
       description: {
-        component: `[API reference](${apiURL})<br/>${description}`,
+        // eslint-disable-next-line sonarjs/no-nested-template-literals
+        component: `${apiURL ? `[API reference](${apiURL})` : ''}<br/>${description}`,
       },
       source: {
         code,
