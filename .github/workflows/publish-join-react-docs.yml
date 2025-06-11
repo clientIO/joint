@@ -9,6 +9,15 @@ on:
       - feat/release-joint-react-storybook
   workflow_call:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build-joint-react-docs:
     runs-on: ubuntu-latest
@@ -16,8 +25,11 @@ jobs:
       run:
         working-directory: ./packages/joint-react
 
+    outputs:
+      pages_path: ${{ steps.prepare.outputs.pages_path }}
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 22.14.0
         uses: actions/setup-node@v4
@@ -40,9 +52,11 @@ jobs:
         working-directory: ./
 
       - name: Ensure docs folders
+        id: prepare
         run: |
           mkdir -p docs/joint-react-storybook
           mkdir -p docs/joint-react-api
+          echo "pages_path=$(pwd)/docs" >> $GITHUB_OUTPUT
 
       - name: Build Storybook
         run: NODE_ENV=production yarn build-storybook -o docs/joint-react-storybook
@@ -50,27 +64,22 @@ jobs:
       - name: Build Typedoc
         run: NODE_ENV=production yarn docs:typedoc
 
-      - name: Upload built docs
-        uses: actions/upload-artifact@v4
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: joint-react-docs
-          path: packages/joint-react/docs
+          path: docs
 
   deploy-docs:
     needs: build-joint-react-docs
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Download built docs
-        uses: actions/download-artifact@v4
-        with:
-          name: joint-react-docs
-          path: ./packages/joint-react/docs
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./packages/joint-react/docs
+        id: deployment
+        uses: actions/deploy-pages@v4
