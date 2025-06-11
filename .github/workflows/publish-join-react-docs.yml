@@ -23,7 +23,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
+      - name: Configure Yarn to avoid global cache
+        run: |
+          yarn config set enableGlobalCache false
+          yarn config set enableImmutableInstalls false
+          yarn config set enableImmutableCache false
+
       - name: Install dependencies
         run: yarn install --immutable --immutable-cache
 
