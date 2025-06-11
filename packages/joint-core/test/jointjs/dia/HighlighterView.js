@@ -374,6 +374,128 @@ QUnit.module('HighlighterView', function(hooks) {
                 });
             });
 
+            QUnit.test('are not removed when a subelement of element view is missing', function(assert) {
+                ['back', null].forEach(layer => {
+                    const id = 'highlighter-id';
+                    let el, elView;
+
+                    el = new joint.shapes.standard.Rectangle({
+                        position: { x: 100, y: 100 },
+                        size: { width: 100, height: 100 }
+                    });
+                    // remove body from markup
+                    el.set('markup', [{
+                        tagName: 'text',
+                        selector: 'label'
+                    }]);
+                    graph.resetCells(el);
+                    elView = el.findView(paper);
+                    const invalidHighlightCallback = sinon.spy();
+                    paper.on('cell:highlight:invalid', invalidHighlightCallback);
+                    const highlighter = joint.dia.HighlighterView.add(elView, 'body', id, { layer });
+
+                    assert.equal(invalidHighlightCallback.callCount, 1, `layer '${layer}': 'body' subelement missing, 'cell:highlight:invalid' called`);
+                    assert.equal(invalidHighlightCallback.calledWith(elView, id, highlighter), true, `layer '${layer}': 'body' subelement missing, 'cell:highlight:invalid' called with correct arguments`);
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup, `layer '${layer}': 'body' subelement missing, transformGroup is present`);
+                        const { tx, ty } = highlighter.transformGroup.translate();
+                        const { x, y } = element.position();
+                        assert.equal(tx, x, `layer '${layer}': 'body' subelement missing, transformGroup's x is element's x`);
+                        assert.equal(ty, y, `layer '${layer}': 'body' subelement missing, transformGroup's y is element's y`);
+                        assert.notOk(highlighter.detachedTransformGroup, `layer '${layer}': 'body' subelement missing, detachedTransformGroup is null`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    // add body back to markup
+                    el.set('markup', [{
+                        tagName: 'rect',
+                        selector: 'body',
+                    }, {
+                        tagName: 'text',
+                        selector: 'label'
+                    }]);
+                    assert.equal(invalidHighlightCallback.callCount, 0, `layer '${layer}': 'body' subelement present, 'cell:highlight:invalid' not called`);
+                    assert.ok(highlighter.el.isConnected, `layer '${layer}': 'body' subelement present, highlighter present in document`);
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup, `layer '${layer}': 'body' subelement present, transformGroup is present`);
+                        const { tx, ty } = highlighter.transformGroup.translate();
+                        const { x, y } = element.position();
+                        assert.equal(tx, x, `layer '${layer}': 'body' subelement present, transformGroup's x is element's x`);
+                        assert.equal(ty, y, `layer '${layer}': 'body' subelement present, transformGroup's y is element's y`);
+                        assert.notOk(highlighter.detachedTransformGroup, `layer '${layer}': 'body' subelement present, detachedTransformGroup is null`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    joint.dia.HighlighterView.remove(elView, id);
+                });
+            });
+
+            QUnit.test('are removed when a subelement of element view is removed', function(assert) {
+                ['back', null].forEach(layer => {
+                    const id = 'highlighter-id';
+                    let el, elView;
+
+                    el = new joint.shapes.standard.Rectangle({
+                        position: { x: 100, y: 100 },
+                        size: { width: 100, height: 100 }
+                    });
+                    graph.resetCells(el);
+                    elView = el.findView(paper);
+                    const highlighter = joint.dia.HighlighterView.add(elView, 'body', id, { layer });
+                    const invalidHighlightCallback = sinon.spy();
+                    paper.on('cell:highlight:invalid', invalidHighlightCallback);
+
+                    assert.equal(invalidHighlightCallback.callCount, 0, `layer '${layer}': 'body' subelement present, 'cell:highlight:invalid' not called`);
+                    assert.ok(highlighter.el.isConnected, `layer '${layer}': 'body' subelement present, highlighter present in document`);
+                    const transformGroup = highlighter.transformGroup;
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup, `layer '${layer}': 'body' subelement present, transformGroup is present`);
+                        const { tx, ty } = highlighter.transformGroup.translate();
+                        const { x, y } = element.position();
+                        assert.equal(tx, x, `layer '${layer}': 'body' subelement present, transformGroup's x is element's x`);
+                        assert.equal(ty, y, `layer '${layer}': 'body' subelement present, transformGroup's y is element's y`);
+                        assert.notOk(highlighter.detachedTransformGroup, `layer '${layer}': 'body' subelement present, detachedTransformGroup is null`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    // remove body from markup
+                    el.set('markup', [{
+                        tagName: 'text',
+                        selector: 'label'
+                    }]);
+                    assert.equal(invalidHighlightCallback.callCount, 1, `layer '${layer}': 'body' subelement removed, 'cell:highlight:invalid' called`);
+                    assert.equal(invalidHighlightCallback.calledWith(elView, id, highlighter), true, `layer '${layer}': 'body' subelement removed, 'cell:highlight:invalid' called with correct arguments`);
+                    assert.notOk(highlighter.el.isConnected, `layer '${layer}': 'body' subelement removed, highlighter removed from document`);
+                    if (layer) {
+                        assert.notOk(highlighter.transformGroup, `layer '${layer}': 'body' subelement removed, transformGroup is null`);
+                        assert.deepEqual(highlighter.detachedTransformGroup, transformGroup, `layer '${layer}': 'body' subelement removed, detachedTransformGroup is previous transformGroup`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    // add body back to markup
+                    el.set('markup', [{
+                        tagName: 'rect',
+                        selector: 'body',
+                    }, {
+                        tagName: 'text',
+                        selector: 'label'
+                    }]);
+                    assert.equal(invalidHighlightCallback.callCount, 0, `layer '${layer}': 'body' subelement present, 'cell:highlight:invalid' not called`);
+                    assert.ok(highlighter.el.isConnected, `layer '${layer}': 'body' subelement present, highlighter present in document`);
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup, `layer '${layer}': 'body' subelement present, transformGroup is present`);
+                        const { tx, ty } = highlighter.transformGroup.translate();
+                        const { x, y } = element.position();
+                        assert.equal(tx, x, `layer '${layer}': 'body' subelement present, transformGroup's x is element's x`);
+                        assert.equal(ty, y, `layer '${layer}': 'body' subelement present, transformGroup's y is element's y`);
+                        assert.notOk(highlighter.detachedTransformGroup, `layer '${layer}': 'body' subelement present, detachedTransformGroup is null`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    joint.dia.HighlighterView.remove(elView, id);
+                });
+            });
+
             QUnit.test('are mounted and unmounted with the link view', function(assert) {
                 ['back', null].forEach(layer => {
                     const id = 'highlighter-id';
