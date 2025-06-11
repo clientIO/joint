@@ -24,15 +24,17 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Configure Yarn and create cache folder
+      - name: Prepare Yarn workspace (from monorepo root)
         run: |
+          mkdir -p .yarn/cache
           yarn config set enableGlobalCache false
           yarn config set enableImmutableInstalls false
           yarn config set enableImmutableCache false
-          mkdir -p .yarn/cache
+        working-directory: ./
 
-      - name: Install dependencies
+      - name: Install dependencies from root
         run: yarn install --immutable --immutable-cache
+        working-directory: ./
 
       - name: Ensure docs folders
         run: |
