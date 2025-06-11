@@ -1,9 +1,8 @@
-const STORYBOOK_BASE_DOCS_URL =
-  // @ts-expect-error Vite config
-  import.meta.env.STORYBOOK_BASE_DOCS_URL ?? 'https://docs.official.com';
+// eslint-disable-next-line unicorn/prevent-abbreviations
+import { getApiDocsBaseUrl } from './get-api-docs-base-url';
 
 export function getAPILink(name: string, path = 'functions') {
-  return `${STORYBOOK_BASE_DOCS_URL}/${path}/${name}.html`;
+  return `${getApiDocsBaseUrl()}/${path}/${name}.html`;
 }
 export function getAPIDocumentationLink(name: string, path = 'functions') {
   const href = getAPILink(name, path);
