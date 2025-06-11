@@ -426,7 +426,7 @@ QUnit.module('HighlighterView', function(hooks) {
                     }
                     invalidHighlightCallback.resetHistory();
 
-                    joint.dia.HighlighterView.remove(elementView, id);
+                    joint.dia.HighlighterView.remove(elView, id);
                 });
             });
 
@@ -492,7 +492,7 @@ QUnit.module('HighlighterView', function(hooks) {
                     }
                     invalidHighlightCallback.resetHistory();
 
-                    joint.dia.HighlighterView.remove(elementView, id);
+                    joint.dia.HighlighterView.remove(elView, id);
                 });
             });
 
