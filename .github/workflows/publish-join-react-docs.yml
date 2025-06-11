@@ -10,7 +10,7 @@ on:
   workflow_call:
 
 jobs:
-  build-docs:
+  build-joint-react-docs:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -45,7 +45,7 @@ jobs:
           path: packages/joint-react/docs
 
   deploy-docs:
-    needs: build-docs
+    needs: build-joint-react-docs
     runs-on: ubuntu-latest
 
     steps:
