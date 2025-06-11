@@ -1,0 +1,66 @@
+name: Publish Joint React Docs
+# Builds and deploys Storybook + API docs for Joint React
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - dev
+      - feat/release-joint-react-storybook  # TODO: remove once merged
+  workflow_call:
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packages/joint-react
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (from root)
+        run: yarn install --frozen-lockfile
+        working-directory: ./
+
+      - name: Ensure local docs folders exist
+        run: |
+          mkdir -p docs/joint-react-storybook
+          mkdir -p docs/joint-react-api
+
+      - name: Build Storybook
+        run: NODE_ENV=production yarn build-storybook -o docs/joint-react-storybook
+
+      - name: Build Typedoc
+        run: NODE_ENV=production yarn docs:typedoc
+
+      - name: Upload built docs
+        uses: actions/upload-artifact@v3
+        with:
+          name: joint-react-docs
+          path: packages/joint-react/docs
+
+  deploy-docs:
+    needs: build-docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download built docs
+        uses: actions/download-artifact@v3
+        with:
+          name: joint-react-docs
+          path: ./packages/joint-react/docs
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: ./packages/joint-react/docs
+          github_token: ${{ secrets.GITHUB_TOKEN }}
