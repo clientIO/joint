@@ -7,7 +7,7 @@ import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation
 import { useElement } from '../../hooks';
 import { forwardRef, type PropsWithChildren } from 'react';
 
-const API_URL = getAPILink('Highlighter/variables/Stroke', 'namespaces');
+const API_URL = getAPILink('Highlighter.Stroke', 'variables');
 
 export type Story = StoryObj<typeof Stroke>;
 

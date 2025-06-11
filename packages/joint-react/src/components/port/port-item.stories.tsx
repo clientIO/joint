@@ -63,7 +63,7 @@ const initialLinks = createLinks([
 ]);
 
 export type Story = StoryObj<typeof Port.Item>;
-const API_URL = getAPILink('Port/variables/Item', 'namespaces');
+const API_URL = getAPILink('Port.Item', 'variables');
 function RenderItem(Story: React.FC) {
   const { width, height } = useElement();
   return (

@@ -55,7 +55,7 @@ const initialLinks = createLinks([
 ]);
 
 export type Story = StoryObj<typeof PortGroup>;
-const API_URL = getAPILink('Port/variables/Group', 'namespaces');
+const API_URL = getAPILink('Port.Group', 'variables');
 
 function RenderItem(Story: React.FC) {
   const { width, height } = useElement();

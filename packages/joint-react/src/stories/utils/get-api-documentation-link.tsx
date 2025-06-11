@@ -1,7 +1,9 @@
-const BASE_DOCS_URL = 'https://github.com/clientIO/joint/tree/master/packages/joint-react/docs';
+const STORYBOOK_BASE_DOCS_URL =
+  // @ts-expect-error Vite config
+  import.meta.env.STORYBOOK_BASE_DOCS_URL ?? 'https://docs.official.com';
 
 export function getAPILink(name: string, path = 'functions') {
-  return `${BASE_DOCS_URL}/${path}/${name}.md`;
+  return `${STORYBOOK_BASE_DOCS_URL}/${path}/${name}.html`;
 }
 export function getAPIDocumentationLink(name: string, path = 'functions') {
   const href = getAPILink(name, path);

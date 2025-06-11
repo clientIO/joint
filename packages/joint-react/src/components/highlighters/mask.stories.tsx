@@ -7,7 +7,7 @@ import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation
 import { forwardRef, type PropsWithChildren } from 'react';
 import { useElement } from '../../hooks';
 
-const API_URL = getAPILink('Highlighter/variables/Mask', 'namespaces');
+const API_URL = getAPILink('Highlighter.Mask', 'variables');
 
 export type Story = StoryObj<typeof Mask>;
 const meta: Meta<typeof Mask> = {
