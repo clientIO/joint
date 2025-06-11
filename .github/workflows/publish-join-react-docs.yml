@@ -4,13 +4,14 @@ name: Publish Joint React Docs
 
 # Trigger this workflow on:
 on:
-  workflow_dispatch:                      # Manual trigger via GitHub UI
-  push:                                   # Automatic trigger on push to specific branches
+  workflow_dispatch:
+  push:
     branches:
       - master
-      - dev
-      - feat/release-joint-react-storybook
-  workflow_call:                          # Allow this workflow to be called by another workflow
+    paths:
+      - 'packages/joint-react/**'           # Only trigger if files in this folder change
+      - '.github/workflows/**'              # (optional) include changes to the workflow itself
+  workflow_call:
 
 # Permissions needed to write to GitHub Pages
 permissions:
