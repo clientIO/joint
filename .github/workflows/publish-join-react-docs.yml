@@ -24,16 +24,15 @@ jobs:
         with:
           node-version: '22.14.0'
 
-      - name: Prepare Yarn workspace (from monorepo root)
-        run: |
-          mkdir -p .yarn/cache
-          yarn config set enableGlobalCache false
-          yarn config set enableImmutableInstalls false
-          yarn config set enableImmutableCache false
-        working-directory: ./
+      - name: Cache Yarn
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
 
       - name: Install dependencies from root
-        run: yarn install --immutable --immutable-cache
+        run: yarn install --immutable
         working-directory: ./
 
       - name: Ensure docs folders
