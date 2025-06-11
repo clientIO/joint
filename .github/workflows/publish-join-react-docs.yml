@@ -35,6 +35,10 @@ jobs:
         run: yarn install --immutable
         working-directory: ./
 
+      - name: Build @joint/core package
+        run: yarn workspace @joint/core build
+        working-directory: ./
+
       - name: Ensure docs folders
         run: |
           mkdir -p docs/joint-react-storybook
