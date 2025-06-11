@@ -67,7 +67,7 @@ jobs:
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: ./packages/joint-react/docs
 
   deploy-docs:
     needs: build-joint-react-docs
