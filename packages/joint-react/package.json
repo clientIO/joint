@@ -5,8 +5,13 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
-  "typescript": "dist/src/index.ts",
   "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "src"
+  ],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "yarn eslint \"**/*.{ts,tsx}\"",
@@ -15,12 +20,12 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build": "node --experimental-json-modules --loader ts-node/esm build.ts",
-    "docs:typedoc": "typedoc --out docs/joint-react-api src"
+    "docs:typedoc": "typedoc --out docs/joint-react-api src",
+    "prepublishOnly": "yarn test && yarn build"
   },
   "devDependencies": {
     "@andypf/json-viewer": "^2.1.10",
     "@chromatic-com/storybook": "^3.2.5",
-    "@joint/layout-directed-graph": "*",
     "@joint/react-eslint": "*",
     "@storybook/addon-a11y": "^8.6.12",
     "@storybook/addon-docs": "8.6.12",
@@ -70,13 +75,13 @@
     "vitest": "^3.0.4"
   },
   "dependencies": {
-    "@joint/core": "*",
+    "@joint/core": "workspace:*",
+    "@joint/layout-directed-graph": "workspace:*",
     "use-sync-external-store": "^1.4.0"
   },
   "peerDependencies": {
     "react": ">=18 <20",
-    "react-dom": ">=18 <20",
-    "use-sync-external-store": "^1.4.0"
+    "react-dom": ">=18 <20"
   },
   "volta": {
     "node": "22.14.0",
@@ -86,5 +91,8 @@
   "resolutions": {
     "react": "18.x",
     "react-dom": "18.x"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
