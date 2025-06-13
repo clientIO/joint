@@ -5,7 +5,6 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
-  "private": false,
   "sideEffects": false,
   "files": [
     "dist",
@@ -76,13 +75,11 @@
     "vitest": "^3.0.4"
   },
   "dependencies": {
-    "@joint/core": "^4.1.3",
-    "@joint/layout-directed-graph": "^4.1.4",
+    "@joint/core": "*",
+    "@joint/layout-directed-graph": "*",
     "use-sync-external-store": "^1.4.0"
   },
   "peerDependencies": {
-    "@joint/core": "^4.1.3",
-    "@joint/layout-directed-graph": "^4.1.4",
     "react": ">=18 <20",
     "react-dom": ">=18 <20"
   },

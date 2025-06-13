@@ -3016,7 +3016,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@joint/core@npm:^4.1.3, @joint/core@workspace:^, @joint/core@workspace:packages/joint-core, @joint/core@workspace:~":
+"@joint/core@npm:*, @joint/core@workspace:^, @joint/core@workspace:packages/joint-core, @joint/core@workspace:~":
   version: 0.0.0-use.local
   resolution: "@joint/core@workspace:packages/joint-core"
   dependencies:
@@ -3304,7 +3304,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@joint/layout-directed-graph@npm:^4.1.4, @joint/layout-directed-graph@workspace:^, @joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph":
+"@joint/layout-directed-graph@npm:*, @joint/layout-directed-graph@workspace:^, @joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph":
   version: 0.0.0-use.local
   resolution: "@joint/layout-directed-graph@workspace:packages/joint-layout-directed-graph"
   dependencies:
@@ -3363,8 +3363,8 @@ __metadata:
   dependencies:
     "@andypf/json-viewer": "npm:^2.1.10"
     "@chromatic-com/storybook": "npm:^3.2.5"
-    "@joint/core": "npm:^4.1.3"
-    "@joint/layout-directed-graph": "npm:^4.1.4"
+    "@joint/core": "npm:*"
+    "@joint/layout-directed-graph": "npm:*"
     "@joint/react-eslint": "npm:*"
     "@storybook/addon-a11y": "npm:^8.6.12"
     "@storybook/addon-docs": "npm:8.6.12"
@@ -3414,8 +3414,6 @@ __metadata:
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^3.0.4"
   peerDependencies:
-    "@joint/core": ^4.1.3
-    "@joint/layout-directed-graph": ^4.1.4
     react: ">=18 <20"
     react-dom: ">=18 <20"
   languageName: unknown
