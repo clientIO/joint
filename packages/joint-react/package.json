@@ -75,8 +75,8 @@
     "vitest": "^3.0.4"
   },
   "dependencies": {
-    "@joint/core": "*",
-    "@joint/layout-directed-graph": "*",
+    "@joint/core": "workspace:*",
+    "@joint/layout-directed-graph": "workspace:*",
     "use-sync-external-store": "^1.4.0"
   },
   "peerDependencies": {
