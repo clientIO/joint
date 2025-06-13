@@ -1218,6 +1218,29 @@ QUnit.module('element ports', function() {
                                 //args: { angle: -45 }
                             }
                         }
+                    },
+                    'fn': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: (_portPosition, _elBBox, _opt) => ({ x: 0, y: 0, angle: 0 })
+                            //args: { x: -14, y: 14, angle: -45, attrs: { labelText: { y: '.3em', textAnchor: 'end' }}}
+                        }
+                    },
+                    'fnAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: (_portPosition, _elBBox, _opt) => ({ x: 0, y: 0, angle: 0 })
+                            //args: { x: -14, y: 14, angle: -45 }
+                        }
                     }
                 },
                 items: [
@@ -1396,6 +1419,14 @@ QUnit.module('element ports', function() {
                     {
                         id: 'radialOrientedBothAttrs',
                         group: 'radialOrientedBothAttrs'
+                    },
+                    {
+                        id: 'fn',
+                        group: 'fn'
+                    },
+                    {
+                        id: 'fnAttrs',
+                        group: 'fnAttrs'
                     }
                 ]
             };
@@ -1403,11 +1434,11 @@ QUnit.module('element ports', function() {
             const shape = create(data);
             const view = new joint.dia.ElementView({ model: shape }).render();
 
-            // MANUAL:
-
             function getMatrix(node) {
                 return node.getAttribute('transform');
             }
+
+            // MANUAL:
 
             const manualG = view.findPortNode('manual').parentElement;
             assert.equal(getMatrix(manualG), 'matrix(1,0,0,1,0,1)');
@@ -1797,6 +1828,25 @@ QUnit.module('element ports', function() {
             assert.equal(radialOrientedBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(radialOrientedBothAttrsText.getAttribute('y'), '.12em');
             assert.equal(radialOrientedBothAttrsText.getAttribute('text-anchor'), 'middle');
+
+            // CALLBACK FN:
+            // = uses provided function
+
+            const fnG = view.findPortNode('fn').parentElement;
+            assert.equal(getMatrix(fnG), 'matrix(1,0,0,1,0,1)');
+            const fnText = fnG.querySelector('text');
+            assert.equal(getMatrix(fnText), 'matrix(1,0,0,1,0,0)');
+            assert.equal(fnText.getAttribute('x'), null);
+            assert.equal(fnText.getAttribute('y'), null);
+            assert.equal(fnText.getAttribute('text-anchor'), null);
+
+            const fnAttrsG = view.findPortNode('fnAttrs').parentElement;
+            assert.equal(getMatrix(fnAttrsG), 'matrix(1,0,0,1,0,1)');
+            const fnAttrsText = fnAttrsG.querySelector('text');
+            assert.equal(getMatrix(fnAttrsText), 'matrix(1,0,0,1,0,0)');
+            assert.equal(fnAttrsText.getAttribute('x'), '.11em');
+            assert.equal(fnAttrsText.getAttribute('y'), '.12em');
+            assert.equal(fnAttrsText.getAttribute('text-anchor'), 'middle');
         });
     });
 
@@ -1949,7 +1999,6 @@ QUnit.module('element ports', function() {
             assert.equal(trans[3].angle, 10, 'y position overridden');
         });
 
-
         QUnit.test('absolute layout', function(assert) {
             var ports = [
                 {},
@@ -1969,6 +2018,28 @@ QUnit.module('element ports', function() {
 
             assert.equal(trans[2].y, 111);
             assert.equal(trans[2].x, 113);
+            assert.equal(trans[2].angle, 0);
+        });
+
+        QUnit.test('callback fn port layout', function(assert) {
+            const ports = [
+                {},
+                { x: 20, y: -15, angle: 45 },
+                { y: 'calc(w+11)', x: 'calc(h+13)' }
+            ];
+            const elBBox = new g.Rect(0, 0, 100, 100);
+            const trans = joint.layout.Port.fn(ports, elBBox, { fn: (ports, _elBBox, _opt) => (ports.map(() => ({ x: 100, y: 100, angle: 0 }))) });
+
+            assert.equal(trans[0].x, 100);
+            assert.equal(trans[0].y, 100);
+            assert.equal(trans[0].angle, 0);
+
+            assert.equal(trans[1].x, 100);
+            assert.equal(trans[1].y, 100);
+            assert.equal(trans[1].angle, 0);
+
+            assert.equal(trans[2].y, 100);
+            assert.equal(trans[2].x, 100);
             assert.equal(trans[2].angle, 0);
         });
     });
