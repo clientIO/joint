@@ -10,8 +10,8 @@ var PortData = function(data) {
     this.ports = [];
     this.portsMap = {};
     this.groups = {};
-    this.portLayoutNamespace = Port;
-    this.portLabelLayoutNamespace = PortLabel;
+    this.portLayoutNamespace = Port; // can be overridden (see `elementPortPrototype._createPortData()`)
+    this.portLabelLayoutNamespace = PortLabel; // can be overridden (see `elementPortPrototype._createPortData()`)
     this.metrics = {};
     this.metricsKey = null;
 
@@ -196,6 +196,8 @@ PortData.prototype = {
             },
             group.position,
             {
+                // port cannot overwrite group `position.name` (or set its own)
+                // port can overwrite group `position.args` - via `port.position.args` or `port.args`
                 // TODO: remove `port.args` backwards compatibility
                 // NOTE: `x != null` is equivalent to `x !== null && x !== undefined`
                 args: (((port.position != null) && (port.position.args != null)) ? port.position.args : port.args)
@@ -629,6 +631,13 @@ export const elementPortPrototype = {
         }
 
         this._portSettingsData = new PortData(this.get('ports'));
+        // Override default portLayoutNamespace and portLabelLayoutNamespace if they are present on element
+        if (this.portLayoutNamespace) {
+            this._portSettingsData.portLayoutNamespace = this.portLayoutNamespace;
+        }
+        if (this.portLabelLayoutNamespace) {
+            this._portSettingsData.portLabelLayoutNamespace = this.portLabelLayoutNamespace;
+        }
 
         var curPortData = this._portSettingsData.getPorts();
 
