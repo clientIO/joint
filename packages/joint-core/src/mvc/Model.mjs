@@ -217,8 +217,8 @@ assign(Model.prototype, Events, {
     },
 
     // Create a new model with identical attributes to this one.
-    clone: function() {
-        return new this.constructor(this.attributes);
+    clone: function(options) {
+        return new this.constructor(this.attributes, options);
     },
 
     // Check if the model is currently in a valid state.
