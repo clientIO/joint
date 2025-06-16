@@ -53,6 +53,8 @@ export class GraphLayersController extends Listener {
             throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
         }
 
+        // compatibility
+        // in the version before layers, z-index was not set on reset
         if (!reset) {
             if (!cell.has('z')) {
                 cell.set('z', layer.maxZIndex() + 1);
