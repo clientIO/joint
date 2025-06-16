@@ -184,4 +184,3 @@ export const ellipse = function(ports, elBBox, opt) {
         return (index + 0.5 - count / 2) * stepAngle;
     });
 };
-

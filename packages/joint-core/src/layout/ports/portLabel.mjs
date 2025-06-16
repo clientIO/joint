@@ -171,10 +171,6 @@ export const manual = function(_portPosition, _elBBox, opt) {
     return labelAttributes(opt);
 };
 
-export const fn = function(portPosition, elBBox, opt) {
-    return opt.fn(portPosition, elBBox, opt);
-};
-
 export const left = function(_portPosition, _elBBox, opt) {
     return labelAttributes(opt, {
         x: -15,

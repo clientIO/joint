@@ -3049,7 +3049,6 @@ export namespace layout {
         type LayoutFunction = (portPosition: g.Point, elBBox: g.Rect, opt: Options) => LabelAttributes;
 
         export var manual: LayoutFunction;
-        export var fn: LayoutFunction;
         export var left: LayoutFunction;
         export var right: LayoutFunction;
         export var top: LayoutFunction;

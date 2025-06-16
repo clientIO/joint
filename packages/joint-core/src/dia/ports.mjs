@@ -66,23 +66,16 @@ PortData.prototype = {
 
     resolveGroupPortsMetrics: function(groupName, elBBox) {
 
-        var group = this.getGroup(groupName);
-        var ports = this.getPortsByGroup(groupName);
+        const group = this.getGroup(groupName);
+        const ports = this.getPortsByGroup(groupName);
 
-        var groupPosition = group.position || {};
-        var groupPositionName = groupPosition.name;
-        var namespace = this.portLayoutNamespace;
-        if (!namespace[groupPositionName]) {
-            groupPositionName = 'left';
-        }
-
-        var groupArgs = groupPosition.args || {};
-        var portsArgs = ports.map(function(port) {
+        const portsArgs = ports.map(function(port) {
             return port && port.position && port.position.args;
         });
-        var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
-        var accumulator = {
+        const groupPortTransformations = this._getPortLayout(group, portsArgs, elBBox);
+
+        let accumulator = {
             ports: ports,
             result: {}
         };
@@ -105,13 +98,38 @@ PortData.prototype = {
         return accumulator.result;
     },
 
+    _getPortLayout: function(group, portsArgs, elBBox) {
+
+        const groupPosition = group.position || {};
+        const groupPositionArgs = groupPosition.args || {};
+
+        // TODO: check `groupPosition.fn` and call it directly (see `_getPortLabelLayout()`)
+
+        const groupPositionName = groupPosition.name || 'left';
+        const namespace = this.portLayoutNamespace;
+        const layoutFn = namespace[groupPositionName];
+        if (layoutFn) {
+            return layoutFn(portsArgs, elBBox, groupPositionArgs);
+        }
+
+        return namespace['left'](portsArgs, elBBox, groupPositionArgs);
+    },
+
     _getPortLabelLayout: function(port, portPosition, elBBox) {
 
-        var namespace = this.portLabelLayoutNamespace;
-        var labelPosition = port.label.position.name || 'left';
+        const labelPosition = port.label.position || {};
+        const labelPositionArgs = labelPosition.args || {};
 
-        if (namespace[labelPosition]) {
-            return namespace[labelPosition](portPosition, elBBox, port.label.position.args);
+        const labelPositionFn = labelPosition.fn;
+        if (labelPositionFn) {
+            return labelPositionFn(portPosition, elBBox, labelPositionArgs);
+        }
+
+        const labelPositionName = labelPosition.name || 'left';
+        const namespace = this.portLabelLayoutNamespace;
+        const labelLayoutFn = namespace[labelPositionName];
+        if (labelLayoutFn) {
+            return labelLayoutFn(portPosition, elBBox, labelPositionArgs);
         }
 
         return null;
@@ -192,19 +210,20 @@ PortData.prototype = {
 
     _getPosition: function(position, setDefault) {
 
-        var args = {};
-        var positionName;
+        const args = {};
+        let positionName;
 
         if (util.isFunction(position)) {
+            // TODO: return function as `fn` of `result` (see `_getLabelPosition()`)
             positionName = 'fn';
             args.fn = position;
         } else if (util.isString(position)) {
-            // backwards compatibility
+            // TODO: remove legacy signature (see `_getLabelPosition()`)
             positionName = position;
         } else if (position === undefined) {
             positionName = setDefault ? 'left' : null;
         } else if (Array.isArray(position)) {
-            // backwards compatibility
+            // TODO: remove legacy signature (see `_getLabelPosition()`)
             positionName = 'absolute';
             args.x = position[0];
             args.y = position[1];
@@ -213,8 +232,7 @@ PortData.prototype = {
             util.assign(args, position.args);
         }
 
-        var result = { args: args };
-
+        const result = { args: args };
         if (positionName) {
             result.name = positionName;
         }
@@ -233,14 +251,11 @@ PortData.prototype = {
 
     _getLabelPosition: function(labelPosition, setDefault) {
 
-        var labelArgs = {};
-        var labelPositionName;
+        const labelArgs = {};
+        let labelPositionName;
 
-        // NOTE: omits legacy types of port's position option (string, array)
-        // - compare to `_getPosition()`
         if (util.isFunction(labelPosition)) {
-            labelPositionName = 'fn';
-            labelArgs.fn = labelPosition;
+            return { fn: labelPosition };
         } else if (labelPosition === undefined) {
             labelPositionName = setDefault ? 'left' : null;
         } else if (util.isObject(labelPosition)) {
@@ -248,8 +263,7 @@ PortData.prototype = {
             util.assign(labelArgs, labelPosition.args);
         }
 
-        var result = { args: labelArgs };
-
+        const result = { args: labelArgs };
         if (labelPositionName) {
             result.name = labelPositionName;
         }
