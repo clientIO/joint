@@ -1,4 +1,4 @@
-import { LayerView } from '../LayerView.mjs';
+import { LayerView } from './LayerView.mjs';
 import { sortElements } from '../../util/index.mjs';
 
 export class GraphLayerView extends LayerView {

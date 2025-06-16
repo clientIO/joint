@@ -1,4 +1,4 @@
-import { LayerView } from '../LayerView.mjs';
+import { LayerView } from './LayerView.mjs';
 import {
     isFunction,
     isString,
@@ -17,7 +17,6 @@ export class GridLayerView extends LayerView {
         this.style = {
             'pointer-events': 'none'
         }
-
     }
 
     init(...args) {

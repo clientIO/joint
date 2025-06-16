@@ -1,7 +1,7 @@
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
-import { GraphLayer } from './GraphLayer.mjs';
+import { GraphLayer } from './layers/GraphLayer.mjs';
 import { Model } from '../mvc/Model.mjs';
 import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';

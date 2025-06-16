@@ -1,5 +1,5 @@
-import { View } from '../mvc/index.mjs';
-import { addClassNamePrefix, sortElements } from '../util/util.mjs';
+import { View } from '../../mvc/index.mjs';
+import { addClassNamePrefix } from '../../util/util.mjs';
 
 export class LayerView extends View {
 

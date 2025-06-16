@@ -38,12 +38,12 @@ export class GraphLayersController extends Listener {
             }
 
             cells.forEach(cell => {
-                this.onAdd(cell);
+                this.onAdd(cell, true);
             });
         });
     }
 
-    onAdd(cell) {
+    onAdd(cell, reset = false) {
         const { layersMap } = this;
 
         const layerName = cell.layer() || this.defaultLayerName;
@@ -53,8 +53,10 @@ export class GraphLayersController extends Listener {
             throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
         }
 
-        if (!cell.has('z')) {
-            cell.set('z', layer.maxZIndex() + 1);
+        if (!reset) {
+            if (!cell.has('z')) {
+                cell.set('z', layer.maxZIndex() + 1);
+            }
         }
 
         // mandatory add to the layer

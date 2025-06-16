@@ -1979,6 +1979,7 @@ export namespace dia {
             name: string;
         }
     }
+
     class LayerView extends mvc.View<undefined, SVGElement> {
 
         constructor(opt?: LayerView.Options);

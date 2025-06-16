@@ -1,4 +1,4 @@
-import { Model, Collection } from '../mvc/index.mjs';
+import { Model, Collection } from '../../mvc/index.mjs';
 
 class LayerCells extends Collection {
 

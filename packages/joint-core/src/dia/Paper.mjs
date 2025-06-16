@@ -37,7 +37,7 @@ import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LayerView } from './LayerView.mjs';
+import { LayerView } from './layers/LayerView.mjs';
 import { GraphLayerView } from './layers/GraphLayerView.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';

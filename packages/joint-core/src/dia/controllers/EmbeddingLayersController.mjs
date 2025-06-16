@@ -1,5 +1,5 @@
 import { Listener } from '../../mvc/Listener.mjs';
-import { GraphLayer } from '../GraphLayer.mjs';
+import { GraphLayer } from '../layers/GraphLayer.mjs';
 
 export class EmbeddingLayersController extends Listener {
 
