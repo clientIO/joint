@@ -542,17 +542,17 @@ export const Cell = Model.extend({
     // Isolated cloning. Isolated cloning has two versions: shallow and deep (pass `{ deep: true }` in `opt`).
     // Shallow cloning simply clones the cell and returns a new cell with different ID.
     // Deep cloning clones the cell and all its embedded cells recursively.
-    clone: function(opt) {
-
-        opt = opt || {};
+    clone: function() {
+        // `opt` = first argument
+        const [opt = {}, ...rest] = arguments;
 
         if (!opt.deep) {
             // Shallow cloning.
 
-            // Preserve the original's `portLayoutNamespace` and `portLabelLayoutNamespace` in the clone.
-            // - Since we are cloning by passing `arguments` to `Model.prototype.clone()`, we need to modify the original `opt` object.
-            Object.assign(opt, { portLayoutNamespace: this.portLayoutNamespace, portLabelLayoutNamespace: this.portLabelLayoutNamespace });
-            const clone = Model.prototype.clone.apply(this, arguments);
+            // Preserve the original's `portLayoutNamespace` and `portLabelLayoutNamespace` in the clone, while passing all `arguments` to `Model.prototype.clone()`.
+            // - Enhance `opt` with those values, and create a new array of enhanced opt + rest of arguments (if any)
+            const enhancedOpt = Object.assign({}, opt, { portLayoutNamespace: this.portLayoutNamespace, portLabelLayoutNamespace: this.portLabelLayoutNamespace });
+            const clone = Model.prototype.clone.apply(this, [enhancedOpt, ...rest]);
             // We don't want the clone to have the same ID as the original.
             clone.set(this.getIdAttribute(), this.generateId());
             // A shallow cloned element does not carry over the original embeds.
