@@ -9,8 +9,8 @@ import {
 import { action } from '@storybook/addon-actions';
 import { dia, linkTools } from '@joint/core';
 import { jsx } from '@joint/react/src/utils/joint-jsx/jsx-to-markup';
-import { PRIMARY } from 'storybook/theme';
-import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { MeasuredNode } from '../measured-node/measured-node';
 
@@ -21,7 +21,7 @@ const meta: Meta<typeof Paper> = {
   title: 'Components/Paper',
   component: Paper,
   decorators: [SimpleGraphDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     description: `
 Paper is a component that renders graph elements. It is used to display and interact with graph elements.
     `,
@@ -38,7 +38,7 @@ function RenderRectElement({ width, height }: SimpleElement) {
   return <rect rx={10} ry={10} width={width} height={height} fill={PRIMARY} />;
 }
 
-function RenderHtmlElement({ width, height }: SimpleElement) {
+function RenderHTMLElement({ width, height }: SimpleElement) {
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode>
@@ -64,59 +64,118 @@ function RenderHtmlElement({ width, height }: SimpleElement) {
 export const WithRectElement: Story = {
   args: {
     renderElement: RenderRectElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
-export const WithHtmlElement: Story = {
+export const WithHTMLElement: Story = {
   args: {
-    noDataPlaceholder: 'No data',
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
 export const WithGrid: Story = {
   args: {
     drawGrid: true,
-    grid: { color: 'red', size: 10 },
     gridSize: 10,
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
 export const WithScaleDown: Story = {
   args: {
     scale: 0.7,
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
 export const WithAutoFitContent: Story = {
   args: {
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
 export const WithEvent: Story = {
   args: {
-    renderElement: RenderHtmlElement as never,
-    onLinkMouseenter: action('onLinkMouseenter'),
-    onCellMouseenter: action('onCellMouseenter'),
-    onBlankContextmenu: action('onBlankContextmenu'),
-    onBlankMouseenter: action('onBlankMouseenter'),
-    onBlankMouseleave: action('onBlankMouseleave'),
-    onCellMouseleave: action('onCellMouseleave'),
-    onBlankMouseout: action('onBlankMouseout'),
-    onBlankMouseover: action('onBlankMouseover'),
-    onBlankMousewheel: action('onBlankMousewheel'),
+    renderElement: RenderHTMLElement as never,
+    onLinkMouseEnter: action('onLinkMouseenter'),
+    onCellMouseEnter: action('onCellMouseEnter'),
+    onBlankContextMenu: action('onBlankContextmenu'),
+    onBlankMouseEnter: action('onBlankMouseEnter'),
+    onBlankMouseLeave: action('onBlankMouseLeave'),
+    onBlankPointerMove: action('onBlankPointerMove'),
+    onBlankPointerUp: action('onBlankPointerUp'),
+    onBlankPointerDown: action('onBlankPointerDown'),
     onBlankPointerClick: action('onBlankPointerClick'),
-    onBlankPointerdblClick: action('onBlankPointerdblClick'),
-    onBlankPointerdown: action('onBlankPointerdown'),
-    onBlankPointermove: action('onBlankPointermove'),
-    onBlankPointerup: action('onBlankPointerup'),
-    onCellContextmenu: action('onCellContextmenu'),
+    onBlankMouseOut: action('onBlankMouseOut'),
+    onBlankMouseOver: action('onBlankMouseOver'),
+    onBlankMouseWheel: action('onBlankMouseWheel'),
+    onBlankPointerDblClick: action('onBlankPointerDblClick'),
+    onCellContextMenu: action('onCellContextMenu'),
     onCellHighlight: action('onCellHighlight'),
     onCellHighlightInvalid: action('onCellHighlightInvalid'),
-    onCustom: action('onCustom'),
+    onCellUnhighlight: action('onCellUnhighlight'),
+    onCellMouseLeave: action('onCellMouseLeave'),
+    onCellMouseOut: action('onCellMouseOut'),
+    onCellMouseOver: action('onCellMouseOver'),
+    onCellMouseWheel: action('onCellMouseWheel'),
+    onCellPointerClick: action('onCellPointerClick'),
+    onCellPointerDblClick: action('onCellPointerDblClick'),
+    onCellPointerDown: action('onCellPointerDown'),
+    onCellPointerMove: action('onCellPointerMove'),
+    onCellPointerUp: action('onCellPointerUp'),
+    onCustomEvent: action('onCustomEvent'),
+    onElementContextMenu: action('onElementContextMenu'),
+    onElementMagnetContextMenu: action('onElementMagnetContextMenu'),
+    onElementMagnetPointerClick: action('onElementMagnetPointerClick'),
+    onElementMagnetPointerDblClick: action('onElementMagnetPointerDblClick'),
+    onElementMouseEnter: action('onElementMouseEnter'),
+    onElementMouseLeave: action('onElementMouseLeave'),
+    onElementMouseOut: action('onElementMouseOut'),
+    onElementMouseOver: action('onElementMouseOver'),
+    onElementMouseWheel: action('onElementMouseWheel'),
+    onElementPointerClick: action('onElementPointerClick'),
+    onElementPointerDblClick: action('onElementPointerDblClick'),
+    onElementPointerDown: action('onElementPointerDown'),
+    onElementPointerMove: action('onElementPointerMove'),
+    onElementPointerUp: action('onElementPointerUp'),
+    onElementsSizeChange: action('onElementsSizeChange'),
+    onLinkContextMenu: action('onLinkContextMenu'),
+    onElementsSizeReady: action('onElementsSizeReady'),
+    onLinkConnect: action('onLinkConnect'),
+    onLinkDisconnect: action('onLinkDisconnect'),
+    onLinkMouseLeave: action('onLinkMouseLeave'),
+    onLinkMouseOut: action('onLinkMouseOut'),
+    onLinkMouseOver: action('onLinkMouseOver'),
+    onLinkMouseWheel: action('onLinkMouseWheel'),
+    onLinkPointerClick: action('onLinkPointerClick'),
+    onLinkPointerDblClick: action('onLinkPointerDblClick'),
+    onLinkPointerDown: action('onLinkPointerDown'),
+    onLinkPointerMove: action('onLinkPointerMove'),
+    onLinkPointerUp: action('onLinkPointerUp'),
+    onLinkSnapConnect: action('onLinkSnapConnect'),
+    onLinkSnapDisconnect: action('onLinkSnapDisconnect'),
+    onPan: action('onPan'),
+    onPaperMouseEnter: action('onPaperMouseEnter'),
+    onPaperMouseLeave: action('onPaperMouseLeave'),
+    onPinch: action('onPinch'),
+    onRenderDone: action('onRenderDone'),
+    onResize: action('onResize'),
+    onScale: action('onScale'),
+    onTransform: action('onTransform'),
+    onTranslate: action('onTranslate'),
+
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };
 
@@ -143,12 +202,30 @@ const toolsView = new dia.ToolsView({
 
 export const WithLinkTools: Story = {
   args: {
-    renderElement: RenderHtmlElement as never,
+    renderElement: RenderHTMLElement as never,
     onLinkMouseEnter: ({ linkView }) => {
       linkView.addTools(toolsView);
     },
     onLinkMouseLeave: ({ linkView }) => {
       linkView.removeTools();
     },
+    width: '100%',
+    className: PAPER_CLASSNAME,
+  },
+};
+
+export const WithCustomEvent: Story = {
+  args: {
+    renderElement: RenderHTMLElement as never,
+    onElementPointerClick: ({ paper }) => {
+      paper.trigger('MyCustomEventOnClick', { message: 'Hello from custom event!' });
+    },
+    onCustomEvent: ({ args, eventName }) => {
+      action('onCustomEvent')(
+        `Custom event triggered: ${eventName} with args: ${JSON.stringify(args)}`
+      );
+    },
+    width: '100%',
+    className: PAPER_CLASSNAME,
   },
 };

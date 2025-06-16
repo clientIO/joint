@@ -15,11 +15,10 @@ const preview: Preview = {
       values: [{ name: 'Dark', value: theme.appBg }],
       default: 'Dark',
     },
-    options: {
-      storySort: {
-        method: '',
-        order: ['Tutorials', 'Examples', 'Components', 'Hooks'],
-        locales: '',
+    parameters: {
+      options: {
+        // @ts-expect-error its storybook multilevel sort
+        storySort: (a, b) => globalThis['storybook-multilevel-sort:storySort'](a, b),
       },
     },
     controls: {

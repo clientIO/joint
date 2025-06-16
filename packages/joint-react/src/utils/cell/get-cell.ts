@@ -1,5 +1,5 @@
 import { type dia } from '@joint/core';
-import type { GraphElement, GraphElementBase } from '../../types/element-types';
+import type { GraphElement } from '../../types/element-types';
 import type { GraphLink } from '../../types/link-types';
 
 export interface Ports {
@@ -7,9 +7,9 @@ export interface Ports {
   readonly items?: dia.Element.Port[];
 }
 
-export type Attributes = Omit<dia.Element.Attributes, 'size' | 'position'>;
+export type JointAttributes = Omit<dia.Element.Attributes, 'size' | 'position'>;
 
-export type GraphCell<Element extends GraphElementBase = GraphElement> = Element | GraphLink;
+export type GraphCell<Element extends GraphElement = GraphElement> = Element | GraphLink;
 
 /**
  * Get element via cell
@@ -27,8 +27,8 @@ export type GraphCell<Element extends GraphElementBase = GraphElement> = Element
  * console.log(element);
  * ```
  */
-export function getElement<Element extends GraphElementBase = GraphElement>(
-  cell: dia.Cell<Attributes>
+export function getElement<Element extends GraphElement = GraphElement>(
+  cell: dia.Cell<JointAttributes>
 ): Element {
   const { size, position, ...attributes } = cell.attributes;
   return {
@@ -90,7 +90,7 @@ export function getLink(cell: dia.Cell<dia.Cell.Attributes>): GraphLink {
  * console.log(cell);
  * ```
  */
-export function getCell<Element extends GraphElementBase = GraphElement>(
+export function getCell<Element extends GraphElement = GraphElement>(
   cell: dia.Cell<dia.Cell.Attributes>
 ): GraphCell<Element> {
   if (cell.isElement()) {

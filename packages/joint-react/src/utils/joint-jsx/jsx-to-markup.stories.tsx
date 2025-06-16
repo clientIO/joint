@@ -1,92 +1,62 @@
+/* eslint-disable react-perf/jsx-no-new-array-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { dia } from '@joint/core';
 import '../../stories/examples/index.css';
-import { createElements, createLinks, GraphProvider, jsx, MeasuredNode, Paper } from '@joint/react';
-import { PRIMARY } from 'storybook/theme';
+import { GraphProvider, jsx, Paper } from '@joint/react';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import type { Meta, StoryObj } from '@storybook/react/*';
-import { SimpleGraphDecorator } from 'storybook/decorators/with-simple-data';
-import { makeRootDocs } from '@joint/react/src/stories/utils/make-story';
+import { SimpleGraphDecorator } from 'storybook-config/decorators/with-simple-data';
+import { makeRootDocumentation } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('jsx');
 
-const customLink = dia.Link.define(
-  'standard.Link',
+// Define a custom element using JointJS and provide markup using the jsx utility
+const CustomRect = dia.Element.define(
+  'CustomRect',
   {
     attrs: {
-      line: {
-        connection: true,
+      body: {
+        fill: PRIMARY,
+        stroke: '#333',
+        strokeWidth: 2,
+      },
+      label: {
+        text: 'JSX Markup',
+        fill: '#fff',
+        fontSize: 14,
+        fontWeight: 'bold',
       },
     },
+    size: { width: 120, height: 50 },
   },
   {
     markup: jsx(
-      <path
-        strokeWidth={10}
-        strokeLinejoin="round"
-        fill="none"
-        pointerEvents="none"
-        d="M 10 -5 0 0 10 5 z"
-      />
+      <g>
+        <rect joint-selector="body" width="120" height="50" rx="10" ry="10" />
+        <text joint-selector="label" x="60" y="25" textAnchor="middle" dominantBaseline="middle" />
+      </g>
     ),
   }
 );
 
-const initialEdges = createLinks([
+const initialElements = [
   {
-    type: 'customLink',
-    id: 'e1-2',
-    source: '1',
-    target: '2',
-    attrs: {
-      line: {
-        stroke: PRIMARY,
-        strokeDasharray: '5 5',
-      },
-    },
+    type: 'CustomRect',
+    id: 'rect1',
+    x: 80,
+    y: 80,
   },
-]);
-const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
-]);
-
-function RenderedRect() {
-  return (
-    <MeasuredNode>
-      <rect rx={10} ry={10} width={150} height={35} fill={PRIMARY} />
-    </MeasuredNode>
-  );
-}
-
-function Main() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper
-        width={400}
-        height={280}
-        renderElement={RenderedRect}
-        // add listeners when show and hide tools
-      />
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-        }}
-      ></div>
-    </div>
-  );
-}
+];
 
 function App() {
   return (
     <GraphProvider
-      cellNamespace={{ customLink }}
-      defaultElements={initialElements}
-      defaultLinks={initialEdges}
+      cellNamespace={{ CustomRect }}
+      initialElements={initialElements}
+      initialLinks={[]}
     >
-      <Main />
+      <Paper width={320} height={220} className={PAPER_CLASSNAME} />
     </GraphProvider>
   );
 }
@@ -97,45 +67,37 @@ const meta: Meta<typeof App> = {
   title: 'Utils/JSX',
   component: App,
   decorators: [SimpleGraphDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     code: `import { dia } from '@joint/core';
+import { jsx } from '@joint/react';
 
-const customLink = dia.Link.define(
-  'standard.Link',
+const CustomRect = dia.Element.define(
+  'custom.Rect',
   {
     attrs: {
-      line: {
-        connection: true,
-      },
+      body: { fill: '#007bff' },
+      label: { text: 'JSX Markup' },
     },
+    size: { width: 120, height: 50 },
   },
   {
     markup: jsx(
-      <path
-        strokeWidth={10}
-        strokeLinejoin="round"
-        joint-selector="line"
-        fill="none"
-        pointer-events="none"
-        d="M 10 -5 0 0 10 5 z"
-      />
+      <g>
+        <rect joint-selector="body" width="120" height="50" rx="10" ry="10" />
+        <text
+          joint-selector="label"
+          x="60"
+          y="25"
+          textAnchor="middle"
+          dominantBaseline="middle"
+        />
+      </g>
     ),
-  }
-
-
-function App() {
-    return <GraphProvider
-      cellNamespace={{ customLink }}
-      defaultElements={initialElements}
-      defaultLinks={initialEdges}
-    >
-      <Main />
-  </GraphProvider>
   }
 );`,
     description: `
-    JSX is a utility that allows you to create JointJS markup using JSX syntax.
+This story demonstrates how to use the \`jsx\` utility to define JointJS markup for a custom element.
     `,
   }),
 };

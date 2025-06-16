@@ -3,7 +3,6 @@
 
 # Build output
 /dist/
-
 # Yarn
 .yarn/*
 !.yarn/releases
@@ -13,7 +12,7 @@
 .yarn/cache/
 .yarn/install-state.gz
 .pnp.*
-
+docs
 # Vite
 .vite/
 

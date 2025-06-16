@@ -1,7 +1,8 @@
-const BASE_DOCS_URL = 'https://github.com/clientIO/joint/tree/master/packages/joint-react/docs';
+// eslint-disable-next-line unicorn/prevent-abbreviations
+import { getApiDocsBaseUrl } from './get-api-docs-base-url';
 
 export function getAPILink(name: string, path = 'functions') {
-  return `${BASE_DOCS_URL}/${path}/${name}.md`;
+  return `${getApiDocsBaseUrl()}/${path}/${name}.html`;
 }
 export function getAPIDocumentationLink(name: string, path = 'functions') {
   const href = getAPILink(name, path);

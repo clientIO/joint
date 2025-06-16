@@ -1,113 +1,111 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable unicorn/prevent-abbreviations */
 import esbuild from 'esbuild';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
-import packageJson from './package.json' with { type: 'json' };
 // eslint-disable-next-line depend/ban-dependencies
 import { glob } from 'glob';
 
-/**
- * Recursively get all .ts and .tsx files in a directory, excluding test and story files.
- * @param directory - The directory to search.
- * @returns An array of file paths.
- */
+const execAsync = promisify(exec);
+const entryDir = 'src';
+const entry = path.join(entryDir, 'index.ts');
+const outDir = 'dist';
+const external = [
+  'react',
+  'react-dom',
+  'use-sync-external-store',
+  '@joint/core',
+  '@joint/layout-directed-graph',
+  '@joint/react-eslint',
+];
+
+// eslint-disable-next-line jsdoc/require-jsdoc
 async function getAllFiles(directory: string): Promise<string[]> {
   return glob(`${directory}/**/*.{ts,tsx}`, {
     ignore: [
-      '**/__tests__/**', // Ignore test directories
-      '**/*.test.ts', // Ignore test files
+      '**/__tests__/**',
+      '**/*.test.ts',
       '**/*.test.tsx',
-      '**/*.spec.ts', // Ignore spec files
+      '**/*.spec.ts',
       '**/*.spec.tsx',
-      '**/stories/**', // Ignore stories directories
-      '**/*.stories.ts', // Ignore story files
+      '**/stories/**',
+      '**/*.stories.ts',
       '**/*.stories.tsx',
     ],
   });
 }
-const execAsync = promisify(exec);
-// eslint-disable-next-line unicorn/prevent-abbreviations
-const entryDir = 'src';
-const entry = path.join(entryDir, 'index.ts');
-// eslint-disable-next-line unicorn/prevent-abbreviations
-const outDir = 'dist';
-const external = ['react', 'react-dom', 'use-sync-external-store', '@joint/core'];
-
-// Ensure output directories
-await fs.mkdir(path.join(outDir, 'cjs'), { recursive: true });
-await fs.mkdir(path.join(outDir, 'esm'), { recursive: true });
-await fs.mkdir(path.join(outDir, entryDir), { recursive: true });
 
 /**
- * Copy source files to the output directory.
- * @returns - Promise that resolves when the copy is complete.
+ * Clean the dist directory
  */
-async function copySourceFiles() {
-  const files = await getAllFiles(entryDir);
-  for (const file of files) {
-    await fs.cp(file, path.join(outDir, file));
+async function cleanDist() {
+  let retries = 3;
+  while (retries > 0) {
+    try {
+      await fs.rm(outDir, { recursive: true, force: true });
+      break;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.code === 'ENOTEMPTY' && retries > 1) {
+        await new Promise((res) => setTimeout(res, 100));
+        retries--;
+      } else {
+        throw error;
+      }
+    }
+  }
+  await fs.mkdir(path.join(outDir, 'cjs'), { recursive: true });
+  await fs.mkdir(path.join(outDir, 'esm'), { recursive: true });
+  await fs.mkdir(path.join(outDir, 'types'), { recursive: true });
+}
+
+/**
+ * Build the library
+ */
+async function build() {
+  try {
+    await cleanDist();
+
+    // CommonJS build
+    await esbuild.build({
+      entryPoints: [entry],
+      bundle: true,
+      format: 'cjs',
+      outfile: path.join(outDir, 'cjs/index.js'),
+      minify: true,
+      treeShaking: true,
+      pure: ['console.log'],
+      preserveSymlinks: true,
+      external,
+      sourcemap: true,
+      target: ['node14'],
+    });
+
+    // ESM build
+    await esbuild.build({
+      entryPoints: await getAllFiles(entryDir),
+      bundle: false,
+      format: 'esm',
+      outdir: path.join(outDir, 'esm'),
+      minify: true,
+      treeShaking: true,
+      preserveSymlinks: true,
+      sourcemap: true,
+      target: ['node14'],
+    });
+
+    // Generate TypeScript declarations
+    await execAsync(
+      'npx tsc --project tsconfig.types.json --declaration --emitDeclarationOnly --outDir dist/types'
+    );
+
+    console.log('Build completed successfully!');
+  } catch (error) {
+    console.error('Build failed:', error);
+    // eslint-disable-next-line unicorn/no-process-exit
+    process.exit(1);
   }
 }
 
-await copySourceFiles();
-// CommonJS build (single file)
-await esbuild.build({
-  entryPoints: [entry],
-  bundle: true,
-  format: 'cjs',
-  outfile: path.join(outDir, 'cjs/index.js'),
-  minify: true,
-  treeShaking: true, // Enable tree shaking
-  pure: ['console.log'], // Remove console logs
-  preserveSymlinks: true,
-  external,
-});
-
-// ESM build (files as they are)
-await esbuild.build({
-  entryPoints: await getAllFiles(entryDir),
-  bundle: false,
-  format: 'esm',
-  outdir: path.join(outDir, 'esm'),
-  minify: true,
-  treeShaking: true,
-  preserveSymlinks: true,
-  // external,
-});
-
-// TypeScript types generation using tsconfig.types.json
-await execAsync(
-  'npx tsc --project tsconfig.types.json --declaration --emitDeclarationOnly --outDir dist/types'
-);
-
-// @ts-expect-error
-delete packageJson.scripts;
-// @ts-ignore
-delete packageJson.devDependencies;
-// @ts-ignore
-delete packageJson.private;
-// @ts-ignore
-delete packageJson.workspaces;
-
-// remove dist name from package json
-
-// "main": "dist/cjs/index.js",
-// "module": "dist/esm/index.js",
-// "types": "dist/types/index.d.ts",
-// "typescript": "dist/src/index.ts",
-
-packageJson.main = 'cjs/index.js';
-packageJson.module = 'esm/index.js';
-packageJson.types = 'types/index.d.ts';
-packageJson.typescript = 'src/index.ts';
-
-// Copy package.json and README.md
-await fs.writeFile(path.join(outDir, 'package.json'), JSON.stringify(packageJson, undefined, 2));
-
-// Copy README.md
-await fs.copyFile('README.md', path.join(outDir, 'README.md'));
-
-// Copy LICENSE
-await fs.copyFile('LICENSE', path.join(outDir, 'LICENSE'));
+await build();

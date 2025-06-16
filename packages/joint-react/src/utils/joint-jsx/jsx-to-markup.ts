@@ -27,7 +27,9 @@ function extractJointAttributes(
     return [newProps, jointProps];
   }
   for (const key in props) {
-    if (key.startsWith('joint-')) {
+    if (key === 'className') {
+      newProps['class'] = props[key]; // Convert className to class
+    } else if (key.startsWith('joint-')) {
       const keyWithoutPrefix = key.slice(6);
       jointProps[keyWithoutPrefix] = props[key];
     } else {

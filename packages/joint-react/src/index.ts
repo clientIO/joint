@@ -8,6 +8,7 @@ export * from './hooks';
 export * from './utils/create';
 export * from './utils/cell/cell-map';
 export * from './utils/joint-jsx/jsx-to-markup';
+export * from './utils/link-utilities';
 
 export * from './models/react-element';
 

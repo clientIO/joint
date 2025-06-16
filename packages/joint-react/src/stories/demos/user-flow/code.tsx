@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-functions */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 // We have pre-loaded tailwind css
@@ -10,43 +9,62 @@ import {
   Port,
   type InferElement,
 } from '@joint/react';
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
+import { util } from '@joint/core';
 import { useCallback, useState } from 'react';
-import { HTMLNode } from 'storybook/decorators/with-simple-data';
+import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
-interface Data {
+type Data = {
+  id: string;
   title: string;
   description: string;
-  type: 'user-action' | 'entity' | 'confirm' | 'message';
-}
+  nodeType: 'user-action' | 'entity' | 'confirm' | 'message';
+  x: number;
+  y: number;
+};
 
 const nodes = createElements<Data>([
   {
     id: '1',
-    data: {
-      title: 'User Action',
-      description: 'Transfer funds',
-      type: 'user-action',
-    },
+
+    title: 'User Action',
+    description: 'Transfer funds',
+    nodeType: 'user-action',
+
     x: 50,
     y: 50,
+    attrs: {
+      root: {
+        magnet: false,
+      },
+    },
   },
   {
     id: '2',
-    data: {
-      title: 'Entity',
-      description: 'Transfer funds',
-      type: 'entity',
-    },
+
+    title: 'Entity',
+    description: 'Transfer funds',
+    nodeType: 'entity',
+
     x: 120,
     y: 200,
+    attrs: {
+      root: {
+        magnet: false,
+      },
+    },
   },
   {
     id: '3',
-    data: {
-      title: 'User Action',
-      description: 'Get account balance',
-      type: 'user-action',
+
+    title: 'User Action',
+    description: 'Get account balance',
+    nodeType: 'user-action',
+
+    attrs: {
+      root: {
+        magnet: false,
+      },
     },
     x: 190,
     y: 350,
@@ -75,16 +93,16 @@ type NodeType = InferElement<typeof nodes>;
 interface PortProps {
   id: string;
   label?: string;
-  onRemove: () => void;
+  onRemove: (id: dia.Cell.ID) => void;
   x: number;
 }
-function PortIem({ id, label, onRemove, x }: Readonly<PortProps>) {
+function PortItem({ id, label, onRemove, x }: Readonly<PortProps>) {
   const onRemovePress = useCallback(
     (event: React.MouseEvent) => {
       event.stopPropagation();
-      onRemove();
+      onRemove(id);
     },
-    [onRemove]
+    [id, onRemove]
   );
   return (
     <Port.Item x={10 + x} id={id}>
@@ -104,9 +122,9 @@ function PortIem({ id, label, onRemove, x }: Readonly<PortProps>) {
     </Port.Item>
   );
 }
-function RenderElement({ data: { title, description, type } }: NodeType) {
+function RenderElement({ title, description, nodeType }: NodeType) {
   let icon: string;
-  switch (type) {
+  switch (nodeType) {
     case 'user-action': {
       icon = 'fas fa-user';
       break;
@@ -135,6 +153,13 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
   ]);
 
   const PORT_IN_SIZE = 15;
+
+  const onRemove = useCallback(
+    (id: dia.Cell.ID) => {
+      setPorts((previous) => previous.filter((port) => port.id !== id));
+    },
+    [setPorts]
+  );
   return (
     <HTMLNode
       style={{
@@ -151,7 +176,7 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
         </div>
       </div>
       <Port.Group id="port-in-group" position="top" x={10} dy={-PORT_IN_SIZE / 2}>
-        <Port.Item id="in" isPassive>
+        <Port.Item id="in">
           <foreignObject width={PORT_IN_SIZE} height={PORT_IN_SIZE} overflow="visible">
             <div className="bg-white w-full h-full border-2 border-black rounded-full opacity-50" />
           </foreignObject>
@@ -159,14 +184,12 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
       </Port.Group>
       <Port.Group id="port-out-group" position="bottom" x={10} dy={-15}>
         {ports.map((port, index) => (
-          <PortIem
+          <PortItem
             x={index * 85}
             key={port.id}
             id={port.id}
             label={port.label}
-            onRemove={() => {
-              setPorts((previous) => previous.filter((item) => item.id !== port.id));
-            }}
+            onRemove={onRemove}
           />
         ))}
       </Port.Group>
@@ -175,8 +198,7 @@ function RenderElement({ data: { title, description, type } }: NodeType) {
           setPorts((previous) => [
             ...previous,
             {
-              // eslint-disable-next-line sonarjs/pseudo-random
-              id: `${Math.random()}`,
+              id: util.uuid(),
               label: `Port ${ports.length + 1}`,
             },
           ]);
@@ -201,11 +223,20 @@ function Main() {
       height={670}
       width={900}
       renderElement={RenderElement}
-      scrollWhileDragging
-      sorting={dia.Paper.sorting.APPROX}
-      snapLabels
       clickThreshold={10}
+      magnetThreshold={'onleave'}
       interactive={{ linkMove: false }}
+      linkPinning={false}
+      snapLinks={{ radius: 10 }}
+      validateMagnet={(_cellView, magnet) => {
+        return magnet.getAttribute('magnet') !== 'passive';
+      }}
+      validateConnection={(cellViewS, magnetS, cellViewT, magnetT) => {
+        if (cellViewS === cellViewT) return false;
+        if (cellViewS.model.isLink() || cellViewT.model.isLink()) return false;
+        if (cellViewS.findAttribute('port-group', magnetS) === 'port-in-group') return false;
+        return cellViewT.findAttribute('port-group', magnetT) !== 'port-out-group';
+      }}
       defaultConnectionPoint={{
         name: 'boundary',
         args: {
@@ -213,7 +244,10 @@ function Main() {
           extrapolate: false,
         },
       }}
-      defaultRouter={{ name: 'rightAngle', args: { margin: 20 } }}
+      defaultRouter={{
+        name: 'rightAngle',
+        args: { margin: 20 },
+      }}
       defaultConnector={{
         name: 'straight',
         args: { cornerType: 'line', cornerPreserveAspectRatio: true },
@@ -224,7 +258,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={nodes} defaultLinks={links}>
+    <GraphProvider initialElements={nodes} initialLinks={links}>
       <Main />
     </GraphProvider>
   );

@@ -10,7 +10,7 @@ import { Custom } from './custom';
 export type { MaskHighlighterProps } from './mask';
 export type { OpacityHighlighterProps } from './opacity';
 export type { StrokeHighlighterProps } from './stroke';
-export type { OnAddHighlighter, CustomHighlighterProps } from './custom';
+export type { OnCreateHighlighter as OnAddHighlighter, CustomHighlighterProps } from './custom';
 
 const Component = {
   Mask,

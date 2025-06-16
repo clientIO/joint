@@ -1,7 +1,11 @@
-import type { dia, shapes } from '@joint/core';
-import type { Attributes, Ports } from '../utils/cell/get-cell';
+import type { attributes, dia, shapes } from '@joint/core';
+import type { JointAttributes, Ports } from '../utils/cell/get-cell';
 
-interface StandardShapesTypeMapper {
+export interface ReactElementAttributes {
+  root?: attributes.SVGAttributes;
+  rect?: attributes.SVGAttributes;
+}
+export interface StandardShapesTypeMapper {
   'standard.Rectangle': shapes.standard.RectangleSelectors;
   'standard.Circle': shapes.standard.CircleSelectors;
   'standard.Cylinder': shapes.standard.CylinderSelectors;
@@ -15,18 +19,12 @@ interface StandardShapesTypeMapper {
   'standard.Polygon': shapes.standard.PolygonSelectors;
   'standard.Polyline': shapes.standard.PolylineSelectors;
   'standard.TextBlock': shapes.standard.TextBlockSelectors;
+  react: ReactElementAttributes;
 }
 
 export type StandardShapesType = keyof StandardShapesTypeMapper;
 
-/**
- * Base interface for graph element.
- * It's a subset of `dia.Element` with some additional properties.
- * @group Graph
- * @see @see https://docs.jointjs.com/learn/features/shapes/elements/#diaelement
- */
-export interface GraphElementBase<Type extends StandardShapesType | string = string>
-  extends Attributes {
+export interface GraphElement extends JointAttributes {
   /**
    * Unique identifier of the element.
    */
@@ -35,15 +33,11 @@ export interface GraphElementBase<Type extends StandardShapesType | string = str
    * Optional element type.
    * @default `REACT_TYPE`
    */
-  readonly type?: Type;
+  readonly type?: string | keyof StandardShapesTypeMapper;
   /**
    * Ports of the element.
    */
   readonly ports?: Ports;
-  /**
-   * Generic data for the element.
-   */
-  readonly data?: unknown;
   /**
    * X position of the element.
    */
@@ -65,24 +59,5 @@ export interface GraphElementBase<Type extends StandardShapesType | string = str
   /**
    * Attributes of the element.
    */
-  readonly attrs?: Type extends StandardShapesType ? StandardShapesTypeMapper[Type] : unknown;
-}
-
-export interface GraphElementItem<Data = unknown, Type extends StandardShapesType | string = string>
-  extends GraphElementBase<Type> {
-  /**
-   * Generic data for the element.
-   */
-  readonly data: Data;
-}
-export interface GraphElement<Data = unknown, Type extends StandardShapesType | string = string>
-  extends GraphElementItem<Data, Type> {
-  /**
-   * Flag to distinguish between elements and links.
-   */
-  readonly isElement: true;
-  /**
-   * Flag to distinguish between elements and links.
-   */
-  readonly isLink: false;
+  readonly attrs?: unknown;
 }

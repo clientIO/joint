@@ -3,6 +3,7 @@ import { useCellId } from './use-cell-id';
 import { useGraphStore } from './use-graph-store';
 import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/with-selector';
 import type { GraphElement } from '../types/element-types';
+import { useCallback } from 'react';
 
 /**
  * A hook to access a specific graph element from the Paper context.
@@ -28,21 +29,32 @@ import type { GraphElement } from '../types/element-types';
  *   (element) => element,
  *   (prev, next) => prev.width === next.width
  * );
- * @param selector The selector function to pick part of the element. @default defaultElementSelector
+ * @param selector The selector function to pick part of the element. @default initialElementselector
  * @param isEqual The function used to check equality. @default util.isEqual
  * @returns The selected element based on the current cell id.
  */
-export function useElement<Data = unknown, Element = GraphElement, ReturnedElements = Element>(
-  selector: (item: GraphElement<Data>) => ReturnedElements = (item) => item as ReturnedElements,
+export function useElement<Element extends GraphElement, ReturnedElements = Element>(
+  selector: (item: Element) => ReturnedElements = (item) => item as unknown as ReturnedElements,
   isEqual: (a: ReturnedElements, b: ReturnedElements) => boolean = util.isEqual
 ): ReturnedElements {
   const id = useCellId();
-  const { subscribe: subscribeToElements, getElement } = useGraphStore();
+  const { subscribe, getElement } = useGraphStore();
+
+  const subscribeForElement = useCallback(
+    (subscribeCallback: () => void) => {
+      return subscribe((changedIds) => {
+        if (changedIds?.has(id)) {
+          subscribeCallback();
+        }
+      });
+    },
+    [id, subscribe]
+  );
 
   const element = useSyncExternalStoreWithSelector(
-    subscribeToElements,
-    () => getElement(id) as GraphElement<Data>,
-    () => getElement(id) as GraphElement<Data>,
+    subscribeForElement,
+    () => getElement<Element>(id),
+    () => getElement<Element>(id),
     selector,
     isEqual
   );

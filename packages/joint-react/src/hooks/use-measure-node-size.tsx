@@ -1,11 +1,11 @@
 import { useEffect, useRef, type RefObject } from 'react';
-import { useGraph } from './use-graph';
 import { useCellId } from './use-cell-id';
 import {
   createElementSizeObserver,
   type SizeObserver,
 } from '../utils/create-element-size-observer';
 import type { dia } from '@joint/core';
+import { useGraphStore } from './use-graph-store';
 
 export interface OnSetOptions {
   readonly element: dia.Element;
@@ -29,13 +29,13 @@ const EMPTY_OBJECT: MeasureNodeOptions = {};
  * @param elementRef - A reference to the HTML or SVG element to measure.
  * @param options - Options for measuring the node size.
  */
-export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVGElement>(
-  elementRef: RefObject<AnyHtmlOrSvgElement | null>,
+export function useMeasureNodeSize<AnyHTMLOrSVGElement extends HTMLElement | SVGElement>(
+  elementRef: RefObject<AnyHTMLOrSVGElement | null>,
   options?: MeasureNodeOptions
 ) {
   const { setSize } = options ?? EMPTY_OBJECT;
-  const graph = useGraph();
-  const cellID = useCellId();
+  const { graph, setMeasuredNode, hasMeasuredNode } = useGraphStore();
+  const id = useCellId();
 
   const onSetSizeRef = useRef(setSize);
 
@@ -47,12 +47,19 @@ export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVG
     const element = elementRef.current;
     if (!element) throw new Error('MeasuredNode must have a child element');
 
-    const cell = graph.getCell(cellID);
+    const cell = graph.getCell(id);
     if (!cell?.isElement()) throw new Error('Cell not valid');
 
     const previous = { width: 0, height: 0 };
 
-    // elementRef.current?.getBoundingClientRect
+    // Check if the element is already measured
+    if (hasMeasuredNode(id)) {
+      // If it is already measured, we don't need to set the size again
+      throw new Error(
+        `Multiple measurements used. Element with id ${id} is already measured, only one element inside the graph can be measured at a time`
+      );
+    }
+    const clean = setMeasuredNode(id);
 
     // Create the observer that calls back on measurement changes
     const stop = createElementSizeObserver(element, ({ width, height }) => {
@@ -71,9 +78,10 @@ export function useMeasureNodeSize<AnyHtmlOrSvgElement extends HTMLElement | SVG
 
     // Cleanup on unmount or when dependencies change.
     return () => {
+      clean();
       stop();
     };
-  }, [cellID, elementRef, graph]);
+  }, [id, elementRef, graph, hasMeasuredNode, setMeasuredNode]);
 
   // This hook itself does not return anything.
 }

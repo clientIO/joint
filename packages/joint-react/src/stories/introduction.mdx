@@ -5,25 +5,23 @@ import { getAPIDocumentationLink, getAPIPropsLink } from './utils/get-api-docume
 
 # Introduction to @joint/react
 
-The **@joint/react** library is a React wrapper around [JointJS](https://www.jointjs.com/) designed to simplify the creation and management of interactive diagrams and graphs within React applications. It provides intuitive React components, hooks, and utilities to efficiently handle nodes, edges, and user interactions.
+**@joint/react** is a React wrapper for [JointJS](https://www.jointjs.com/), designed to make creating and managing interactive diagrams and graphs in React applications simple and intuitive. It provides React components, hooks, and utilities to efficiently manage nodes, links, and user interactions.
 
 ## 📌 Core Components
 
 ### 1. {getAPIDocumentationLink('GraphProvider')}
-- Creates and manages a shared [JointJS Graph instance](https://docs.jointjs.com/api/dia/Graph/) to handle diagram state.
-- Required to wrap any component interacting with graph data or manipulation methods.
+The `GraphProvider` component manages a shared [JointJS Graph instance](https://docs.jointjs.com/api/dia/Graph/) to handle the state of your diagram. Wrap it around any components that interact with the graph.
 
 ```tsx
 import { GraphProvider } from '@joint/react';
 
 <GraphProvider>
-  {/* Paper (rendering nodes and edges) or other graph components */}
+  {/* Components like Paper for rendering nodes and edges */}
 </GraphProvider>
 ```
 
 ### 2. {getAPIDocumentationLink('Paper', 'variables')}
-- Wraps [JointJS Paper](https://docs.jointjs.com/learn/quickstart/paper/) for visual rendering of diagram nodes and links.
-- Utilizes the critical prop {getAPIPropsLink('Paper', 'renderElement')}, a function specifying how nodes are rendered:
+The `Paper` component wraps [JointJS Paper](https://docs.jointjs.com/learn/quickstart/paper/) to render nodes and links. Use the {getAPIPropsLink('Paper', 'renderElement')} prop to define how nodes are displayed.
 
 ```tsx
 import { Paper } from '@joint/react';
@@ -35,8 +33,8 @@ const renderElement = (element) => (
 <Paper width={800} height={600} renderElement={renderElement} />
 ```
 
-### 3. **Rendering HTML in SVG Nodes**
-- Although JointJS primarily uses SVG, HTML content can be embedded using SVG's [`<foreignObject>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject):
+### 3. **Embedding HTML in SVG Nodes**
+While JointJS primarily uses SVG, you can embed HTML content inside nodes using SVG's `<foreignObject>`:
 
 ```tsx
 const renderElement = ({ width, height }) => (
@@ -51,53 +49,50 @@ const renderElement = ({ width, height }) => (
 ## 🛠️ Core Hooks and Utilities
 
 ### 🔹 Accessing Elements
-- {getAPIDocumentationLink('useElements')}: Retrieve all diagram elements (requires GraphProvider context).
-- {getAPIDocumentationLink('useElement')}: Retrieve individual element data within `renderElement`.
+- {getAPIDocumentationLink('useElements')}: Retrieve all diagram elements (requires `GraphProvider` context).
+- {getAPIDocumentationLink('useElement')}: Retrieve individual element data, typically used within `renderElement`.
 
 ### 🔹 Modifying Elements
-- {getAPIDocumentationLink('useSetElement')}: Update existing elements in the diagram.
+- {getAPIDocumentationLink('useUpdateElement')}: Update existing elements in the diagram.
 
 ### 🔹 Graph and Paper Instances
 - {getAPIDocumentationLink('useGraph')}: Access the JointJS [Graph instance](https://docs.jointjs.com/api/dia/Graph/) directly.
 - {getAPIDocumentationLink('usePaper')}: Access the JointJS [Paper instance](https://docs.jointjs.com/learn/quickstart/paper/) directly.
 
 ### 🔹 Creating Nodes and Links
-- {getAPIDocumentationLink('createElements')}: Utility for generating nodes.
+- {getAPIDocumentationLink('createElements')}: Utility for creating nodes.
 
 ```ts
 import { createElements } from '@joint/react';
 
-const defaultElements = createElements([
+const initialElements = createElements([
   { id: '1', type: 'rect', x: 10, y: 10, width: 100, height: 100 },
 ]);
 ```
 
-- {getAPIDocumentationLink('createLinks')}: Utility for generating links between nodes.
+- {getAPIDocumentationLink('createLinks')}: Utility for creating links between nodes.
 
 ```ts
 import { createLinks } from '@joint/react';
 
-const defaultLinks = createLinks([
+const initialLinks = createLinks([
   { source: '1', target: '2', id: '1-2' },
 ]);
 ```
 
 ---
 
-This introduction provides essential information to quickly integrate and effectively utilize **@joint/react** for interactive diagramming in React applications. Refer to the official [JointJS documentation](https://docs.jointjs.com/) for more in-depth details and advanced usage examples. 🚀
+## How It Works
+Under the hood, **@joint/react** listens to changes in the `dia.Graph`, which acts as the single source of truth. When you update the graph—such as adding or modifying cells—the React components automatically observe and react to these changes, keeping the UI in sync.
 
+Hooks like `useUpdateElement` provide a convenient way to update the graph, but you can also directly access the graph using `useGraph()` and call methods like `graph.setCells()`.
 
-## How does it work?
-Under the hood, @joint/react works by listening to changes in the `dia.Graph`. The graph is the single source of truth. 
-When you update something—like adding or modifying cells—you do it directly through the `dia.Graph` API, just like in a standard JointJS app. 
-React components automatically observe and react to changes in the graph, keeping the UI in sync via `useSyncExternalStore` API.
-Hooks like `useSetElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes. 
-You can also access the graph yourself using `useGraph()` and call methods like `graph.setCells()` or any other JointJS method as needed and react will update it accordingly.
+---
 
+## Known Issues
 
-## Avoid Certain CSS Properties in `<foreignObject>`
-
-Developers have observed that some CSS properties can cause rendering issues in Safari when used inside an SVG `<foreignObject>`. To improve compatibility, it's recommended to **avoid** the following properties within `<foreignObject>` elements:
+### Avoid Certain CSS Properties in `<foreignObject>`
+Some CSS properties can cause rendering issues in Safari when used inside an SVG `<foreignObject>`. To ensure compatibility, avoid the following properties:
 
 - `position` (other than `static`)
 - `-webkit-transform-style`
@@ -105,12 +100,15 @@ Developers have observed that some CSS properties can cause rendering issues in 
 - `transition`
 - `transform`
 
-These styles can lead to unpredictable behavior, layout issues, or elements not being rendered at all in Safari and other WebKit-based browsers.
-
 ### Recommended Workaround
+If you need to use HTML inside an SVG with cross-browser support:
 
-If you must use HTML inside an SVG and need cross-browser support:
+- Use minimal CSS inside `<foreignObject>`.
+- Stick to static positioning and avoid CSS transforms.
+- Consider overlaying HTML outside the SVG using absolute positioning.
 
-- Use only minimal, simple CSS inside `<foreignObject>`.
-- Favor static positioning and avoid CSS transforms.
-- Consider overlaying HTML outside the SVG using absolute positioning
+### Flickering
+React's asynchronous rendering can cause flickering when dynamically adding ports or resizing elements. We are aware of this issue and are working on a fix.
+
+### Controlled Mode
+Currently, **@joint/react** uses `useSyncExternalStore` to listen to graph changes. The graph is the source of truth, so `initialElements` and `initialLinks` are only used during initialization. To modify the state, update the graph directly using hooks like `useGraph`, `useUpdateElement`, or `useCreateElement`. A fully controlled mode is under development.

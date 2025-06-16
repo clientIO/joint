@@ -5,16 +5,16 @@ import {
   createLinks,
   GraphProvider,
   Paper,
-  useSetElement,
+  useUpdateElement,
   type InferElement,
 } from '@joint/react';
 import '../index.css';
-import { PRIMARY } from 'storybook/theme';
-import { HTMLNode } from 'storybook/decorators/with-simple-data';
+import { PRIMARY, LIGHT, PAPER_CLASSNAME } from 'storybook-config/theme';
+import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1', color: PRIMARY }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2', color: PRIMARY }, x: 100, y: 200 },
+  { id: '1', label: 'Node 1', color: PRIMARY, x: 100, y: 0 },
+  { id: '2', label: 'Node 2', color: PRIMARY, x: 100, y: 200 },
 ]);
 const initialEdges = createLinks([
   {
@@ -23,7 +23,7 @@ const initialEdges = createLinks([
     target: '2',
     attrs: {
       line: {
-        stroke: PRIMARY,
+        stroke: LIGHT,
       },
     },
   },
@@ -31,12 +31,12 @@ const initialEdges = createLinks([
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RenderElement({ data, id }: BaseElementWithData) {
-  const setElement = useSetElement<BaseElementWithData>(id, 'data');
+function RenderElement({ color, id }: BaseElementWithData) {
+  const setColor = useUpdateElement<BaseElementWithData>(id, 'color');
   return (
     <HTMLNode
       style={{
-        backgroundColor: data.color,
+        backgroundColor: color,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -47,9 +47,9 @@ function RenderElement({ data, id }: BaseElementWithData) {
         className="nodrag"
         type="color"
         onChange={(event) => {
-          setElement({ ...data, color: event.target.value });
+          setColor(event.target.value);
         }}
-        defaultValue={data.color}
+        defaultValue={color}
       />
     </HTMLNode>
   );
@@ -57,14 +57,14 @@ function RenderElement({ data, id }: BaseElementWithData) {
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={280} renderElement={RenderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={RenderElement} />
     </div>
   );
 }
 
 export default function WithColor() {
   return (
-    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

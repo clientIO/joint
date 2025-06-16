@@ -1,12 +1,12 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
-import { SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
+import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import type { Meta } from '@storybook/react/*';
 import { HookTester, type TesterHookStory } from '../stories/utils/hook-tester';
 import { useElements } from './use-elements';
 import { Paper } from '../components/paper/paper';
-import { PRIMARY } from 'storybook/theme';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('useElements');
@@ -15,7 +15,7 @@ const meta: Meta<typeof HookTester> = {
   title: 'Hooks/useElements',
   component: HookTester,
   decorators: [SimpleGraphDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     description: `\`useElements\` is a hook that returns the elements of the current graph. It supports selector functions to get specific properties of the elements and re-renders the component only when selected properties are changed.`,
     code: `import { useElements } from '@joint/react'
@@ -31,27 +31,20 @@ export default meta;
 
 type Story = TesterHookStory<typeof useElements>;
 
-function DataRenderer({ data, name }: Readonly<{ data: unknown; name: string }>) {
-  return (
-    <div style={{ position: 'absolute', right: 0, display: 'inline-block', top: 0 }}>
-      <h4 style={{ padding: 0, margin: 0 }}>{name}:</h4>
-      <pre style={{ fontSize: 10 }}>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-  );
-}
-
 export const Default = makeStory<Story>({
   args: {
     useHook: useElements,
     hookArgs: [],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="All Elements" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="All Elements" />
       </div>
     ),
   },
@@ -71,12 +64,14 @@ export const WithSelectedJustIds = makeStory<Story>({
     hookArgs: [(elements) => elements.map((element) => element.id)],
     render: (result) => (
       <span>
-        <DataRenderer data={result} name="Element IDs" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Element IDs" />
       </span>
     ),
   },
@@ -96,12 +91,14 @@ export const WithGetJustSize = makeStory<Story>({
     hookArgs: [(elements) => elements.size],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="Size of Elements" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Size of Elements" />
       </div>
     ),
   },
@@ -127,12 +124,14 @@ export const WithJustPosition = makeStory<Story>({
     ],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="Position" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Position" />
       </div>
     ),
   },
@@ -161,12 +160,14 @@ export const WithJustPositionButNotReRenderBecauseCompareFN = makeStory<Story>({
     ],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="Position" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Position" />
       </div>
     ),
   },
@@ -193,12 +194,14 @@ export const WithAdditionalData = makeStory<Story>({
     ],
     render: (result) => (
       <div>
-        <DataRenderer data={result} name="Element with new data" />
         <Paper
+          width="100%"
+          className={PAPER_CLASSNAME}
           renderElement={({ width, height }) => {
             return <rect width={width} height={height} fill={PRIMARY} />;
           }}
         />
+        <DataRenderer data={result} name="Element with new data" />
       </div>
     ),
   },

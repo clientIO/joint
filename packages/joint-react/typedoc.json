@@ -1,12 +1,6 @@
 {
   "entryPoints": ["src/index.ts"],
-  "outputs": [
-    {
-      "name": "markdown",
-      "path": "./docs"
-    }
-  ],
-  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-mdn-links"],
+  "out": "docs/joint-react-api",
   "readme": "none",
   "name": "@joint/react",
   "excludePrivate": true,
@@ -14,5 +8,7 @@
   "excludeExternals": true,
   "excludeNotDocumented": false,
   "groupOrder": ["Components", "Hooks", "Models", "Utils", "*"],
-  "gitRevision": "main"
+  "gitRevision": "master",
+  "customCss": "typedoc.css",
+  "plugin": ["typedoc-github-theme"]
 }

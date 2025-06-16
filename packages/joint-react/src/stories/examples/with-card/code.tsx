@@ -12,11 +12,11 @@ import {
   type OnSetSize,
   type RenderElement,
 } from '@joint/react';
-import { PRIMARY } from 'storybook/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2 with longer text' }, x: 250, y: 150 },
+  { id: '1', label: 'Node 1', x: 100, y: 0 },
+  { id: '2', label: 'Node 2 with longer text', x: 250, y: 150 },
 ]);
 const initialEdges = createLinks([
   {
@@ -71,14 +71,16 @@ function Card({ children, width, height }: PropsWithChildren<BaseElementWithData
 }
 function Main() {
   const renderElement: RenderElement<BaseElementWithData> = useCallback((element) => {
-    return <Card {...element}>{element.data.label}</Card>;
+    return <Card {...element}>{element.label}</Card>;
   }, []);
-  return <Paper width={400} height={280} renderElement={renderElement} />;
+  return (
+    <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
+  );
 }
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

@@ -1,0 +1,68 @@
+import { Meta , Canvas} from '@storybook/blocks';
+import * as Stories from './jsx-to-markup.stories.tsx';
+
+
+<Meta title="Utils/JSX/JSX to Markup" />
+
+# `jsx-to-markup`
+
+The `jsx-to-markup` utility allows you to define [JointJS](https://resources.jointjs.com/docs/jointjs/v4.0/joint.html) element markup using JSX syntax, making it easier to create and maintain complex SVG or HTML structures for custom JointJS elements.
+
+## What does it do?
+
+- Converts JSX elements (including fragments, custom components, and standard HTML/SVG tags) into JointJS's `MarkupJSON` format.
+- Supports attribute extraction, including special handling for `joint-*` attributes.
+- Allows you to use React-like composition for defining markup, but **does not** support dynamic React features (like hooks or state).
+
+## Why use it?
+
+- **Readability:** Write markup in familiar JSX/TSX syntax instead of verbose JSON.
+- **Maintainability:** Compose and reuse markup using functional components.
+- **Integration:** Seamlessly integrates with JointJS's custom element definitions.
+
+## Example
+
+```tsx
+import { dia } from '@joint/core';
+import { jsx } from '@joint/react';
+
+const CustomRect = dia.Element.define(
+  'custom.Rect',
+  {
+    attrs: {
+      body: { fill: '#007bff' },
+      label: { text: 'JSX Markup' },
+    },
+    size: { width: 120, height: 50 },
+  },
+  {
+    // Here we using the jsx function to define the markup
+    markup: jsx(
+      <g>
+        <rect joint-selector="body" width="120" height="50" rx="10" ry="10" />
+        <text joint-selector="label" x="60" y="25" textAnchor="middle" dominantBaseline="middle" />
+      </g>
+    ),
+  }
+);
+```
+<Canvas of={Stories.Default} />
+
+## How does it work?
+
+- The `jsx` function takes a JSX element and recursively converts it into the `MarkupJSON` format expected by JointJS.
+- You can use fragments (`<>...</>`) and custom functional components for markup composition.
+- Attributes prefixed with `joint-` are extracted and attached as top-level properties in the markup object.
+
+## Limitations
+
+- Only static markup is supported. Dynamic React features (hooks, state, context) are **not** supported.
+- Only functional components are supported for composition.
+- All children must be valid JSX elements, strings, numbers, booleans, or null.
+
+## See also
+
+- [JointJS Markup documentation](https://resources.jointjs.com/docs/jointjs/v4.0/joint.html#dia.Element.markup)
+- [JointJS React integration](https://resources.jointjs.com/docs/jointjs/v4.0/joint.html#ui.Paper)
+
+---

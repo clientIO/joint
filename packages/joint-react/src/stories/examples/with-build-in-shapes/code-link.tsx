@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PRIMARY } from 'storybook/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import '../index.css';
 import { createElements, createLinks, GraphProvider, Paper } from '@joint/react';
 
@@ -56,14 +56,14 @@ const initialEdges = createLinks([
 function Main() {
   return (
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={250} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={250} />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

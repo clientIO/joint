@@ -3,7 +3,7 @@
 /* eslint-disable react-perf/jsx-no-new-function-as-prop */
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import './index.css';
-import type { OnSetSize } from '@joint/react';
+import type { GraphLink, OnSetSize } from '@joint/react';
 import {
   createElements,
   createLinks,
@@ -13,97 +13,103 @@ import {
   Paper,
   type InferElement,
 } from '@joint/react';
-import { PRIMARY, SECONDARY } from 'storybook/theme';
+import { PAPER_CLASSNAME, PRIMARY, SECONDARY } from 'storybook-config/theme';
 import { dia, linkTools } from '@joint/core';
 import { forwardRef, useState, type FC } from 'react';
 
 const unit = 4;
 
-interface NodeData {
+type NodeElement = {
+  id: string;
   label: string;
-  type: 'start' | 'step' | 'decision';
-}
+  nodeType: 'start' | 'step' | 'decision';
+  cx: number;
+  cy: number;
+};
 
-const flowchartNodes = createElements<NodeData>([
-  { id: 'start', data: { label: 'Start', type: 'start' }, cx: 50, cy: 40 },
+const flowchartNodes = createElements<NodeElement>([
+  { id: 'start', label: 'Start', nodeType: 'start', cx: 50, cy: 40 },
   {
     id: 'addToCart',
-    data: { label: 'Add to Cart', type: 'step' },
+    label: 'Add to Cart',
+    nodeType: 'step',
     cx: 200,
     cy: 40,
   },
   {
     id: 'checkoutItems',
-    data: { label: 'Checkout Items', type: 'step' },
+    label: 'Checkout Items',
+    nodeType: 'step',
     cx: 350,
     cy: 40,
   },
   {
     id: 'addShippingInfo',
-    data: { label: 'Add Shipping Info', type: 'step' },
+    label: 'Add Shipping Info',
+    nodeType: 'step',
     cx: 500,
     cy: 40,
   },
   {
     id: 'addPaymentInfo',
-    data: { label: 'Add Payment Info', type: 'step' },
+    label: 'Add Payment Info',
+    nodeType: 'step',
     cx: 500,
     cy: 140,
   },
   {
     id: 'validPayment',
-    data: { label: 'Valid Payment?', type: 'decision' },
+    label: 'Valid Payment?',
+    nodeType: 'decision',
     cx: 500,
     cy: 250,
   },
   {
     id: 'presentErrorMessage',
-    data: { label: 'Present Error Message', type: 'step' },
+    label: 'Present Error Message',
+    nodeType: 'step',
     cx: 750,
     cy: 350,
   },
   {
     id: 'sendOrder',
-    data: { label: 'Send Order to Warehouse', type: 'step' },
+    label: 'Send Order to Warehouse',
+    nodeType: 'step',
     cx: 200,
     cy: 250,
   },
   {
     id: 'packOrder',
-    data: { label: 'Pack Order', type: 'step' },
+    label: 'Pack Order',
+    nodeType: 'step',
     cx: 40,
     cy: 350,
   },
   {
     id: 'qualityCheck',
-    data: { label: 'Quality Check?', type: 'decision' },
+    label: 'Quality Check?',
+    nodeType: 'decision',
     cx: 200,
     cy: 460,
   },
   {
     id: 'shipItems',
-    data: { label: 'Ship Items to Customer', type: 'step' },
+    label: 'Ship Items to Customer',
+    nodeType: 'step',
     cx: 500,
     cy: 460,
   },
 ]);
-const LINK_OPTIONS = {
+const LINK_OPTIONS: Partial<GraphLink> = {
   z: 2,
   attrs: {
     line: {
-      class: 'jj-flow-line',
+      class: 'link',
       stroke: PRIMARY,
       strokeWidth: 2,
       targetMarker: {
-        class: 'jj-flow-arrowhead',
         d: `M 0 0 L 8 4 L 8 -4 Z`, // Larger arrowhead
       },
-    },
-    outline: {
-      class: 'jj-flow-outline',
-      strokeWidth: 10, // Adds clickable area
-      stroke: 'transparent',
-      connection: true,
     },
   },
 
@@ -148,14 +154,12 @@ const flowchartLinks = createLinks([
     source: 'validPayment',
     target: 'presentErrorMessage',
     label: 'No',
-    // router: { name: 'manhattan' }, // Use right-angle routing
   },
   {
     ...LINK_OPTIONS,
     id: 'flow7',
     source: 'presentErrorMessage',
     target: 'addPaymentInfo',
-    // router: { name: 'manhattan' },
   },
   {
     ...LINK_OPTIONS,
@@ -163,7 +167,6 @@ const flowchartLinks = createLinks([
     source: 'validPayment',
     target: 'sendOrder',
     label: 'Yes',
-    // router: { name: 'manhattan' },
   },
   { ...LINK_OPTIONS, id: 'flow9', source: 'sendOrder', target: 'packOrder' },
   { ...LINK_OPTIONS, id: 'flow10', source: 'packOrder', target: 'qualityCheck' },
@@ -173,7 +176,6 @@ const flowchartLinks = createLinks([
     source: 'qualityCheck',
     target: 'shipItems',
     label: 'Ok',
-    // router: { name: 'manhattan' },
   },
   {
     ...LINK_OPTIONS,
@@ -181,7 +183,6 @@ const flowchartLinks = createLinks([
     source: 'qualityCheck',
     target: 'sendOrder',
     label: 'Not Ok',
-    // router: { name: 'manhattan' },
   },
 ]);
 
@@ -193,7 +194,7 @@ interface PropsWithClick {
 type FlowchartNodeProps = InferElement<typeof flowchartNodes> & PropsWithClick;
 
 function DecisionNodeRaw(
-  { data: { label }, width, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+  { label, width, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
   ref: React.ForwardedRef<SVGPolygonElement>
 ) {
   // If we define custom size, not defined in initial nodes, we have to use measure node
@@ -220,6 +221,7 @@ function DecisionNodeRaw(
         stroke={PRIMARY}
         strokeWidth="2"
       />
+
       <MeasuredNode setSize={setSize}>
         <text
           onMouseEnter={onMouseEnter}
@@ -239,7 +241,7 @@ function DecisionNodeRaw(
 }
 
 function StepNodeRaw(
-  { data: { label }, width, height, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
+  { label, width, height, cx, cy, onMouseEnter, onMouseLeave }: FlowchartNodeProps,
   ref: React.ForwardedRef<SVGRectElement>
 ) {
   const padding = 20;
@@ -296,13 +298,11 @@ const StepNode: FC<FlowchartNodeProps> = forwardRef(StepNodeRaw as never);
 
 // Custom render function that maps the node type to a CSS class for styling
 function RenderFlowchartNode(props: FlowchartNodeProps) {
-  const {
-    data: { type },
-  } = props;
+  const { nodeType } = props;
 
   const [isHighlighted, setIsHighlighted] = useState(false);
   const content =
-    type === 'decision' ? (
+    nodeType === 'decision' ? (
       <DecisionNode
         {...props}
         onMouseEnter={() => setIsHighlighted(true)}
@@ -330,7 +330,10 @@ function Main() {
       onLinkMouseEnter={({ linkView, paper }) => {
         paper.removeTools();
         dia.HighlighterView.removeAll(paper);
-        const snapAnchor = function (coords: dia.Point, endView: dia.LinkView): dia.Point {
+        const snapAnchor: linkTools.AnchorCallback<dia.Point> = (
+          coords: dia.Point,
+          endView: dia.CellView
+        ) => {
           const bbox = endView.model.getBBox();
           // Find the closest point on the bbox border.
           const point = bbox.pointNearestToPoint(coords);
@@ -348,12 +351,12 @@ function Main() {
         const toolsView = new dia.ToolsView({
           tools: [
             new linkTools.TargetAnchor({
-              snap: snapAnchor as never,
-              resetAnchor: linkView.model.prop(['target', 'anchor']),
+              snap: snapAnchor,
+              resetAnchor: true,
             }),
             new linkTools.SourceAnchor({
-              snap: snapAnchor as never,
-              resetAnchor: linkView.model.prop(['source', 'anchor']),
+              snap: snapAnchor,
+              resetAnchor: true,
             }),
           ],
         });
@@ -365,7 +368,7 @@ function Main() {
       }}
       gridSize={5}
       height={600}
-      onElementsMeasured={({ paper }) => {
+      onElementsSizeReady={({ paper }) => {
         paper.transformToFitContent({
           padding: 40,
           useModelGeometry: true,
@@ -373,22 +376,23 @@ function Main() {
           horizontalAlign: 'middle',
         });
       }}
-      width={900}
+      width="100%"
+      className={PAPER_CLASSNAME}
       renderElement={RenderFlowchartNode}
-      scrollWhileDragging
-      sorting={dia.Paper.sorting.APPROX}
-      snapLabels
       interactive={{ linkMove: false }}
       defaultConnectionPoint={{
         name: 'anchor',
         args: {
-          offset: 6,
+          offset: unit * 2,
           extrapolate: true,
+          useModelGeometry: true,
         },
       }}
       defaultAnchor={{
         name: 'midSide',
-        args: { useModelGeometry: true },
+        args: {
+          useModelGeometry: true,
+        },
       }}
       defaultRouter={{
         name: 'rightAngle',
@@ -406,7 +410,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={flowchartNodes} defaultLinks={flowchartLinks}>
+    <GraphProvider initialElements={flowchartNodes} initialLinks={flowchartLinks}>
       <Main />
     </GraphProvider>
   );

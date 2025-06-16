@@ -1,4 +1,7 @@
+/* eslint-disable unicorn/consistent-function-scoping */
+/* eslint-disable jsdoc/require-jsdoc */
 import { render } from '@testing-library/react';
+import { GraphProvider, Paper } from '../components';
 
 interface Options<StorybookOptions> {
   Component: React.ComponentType<StorybookOptions>;
@@ -6,6 +9,7 @@ interface Options<StorybookOptions> {
   // we have to use any here because we don't know the type of the story
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   stories: Record<string, any>;
+  withRenderElementWrapper?: boolean;
 }
 
 /**
@@ -16,7 +20,7 @@ interface Options<StorybookOptions> {
  * @param options.stories - The stories to test.
  */
 export function runStorybookSnapshot<StorybookOptions>(options: Options<StorybookOptions>) {
-  const { stories, Component, name } = options;
+  const { stories, Component, name, withRenderElementWrapper } = options;
   const keys = Object.keys(stories).filter((key) => key !== 'default');
   describe(name, () => {
     it.each(keys)('%p', (key) => {
@@ -25,8 +29,21 @@ export function runStorybookSnapshot<StorybookOptions>(options: Options<Storyboo
       const props = ('args' in story ? story.args : {}) as StorybookOptions & {
         children?: React.ReactNode;
       };
+
+      let wrapper = function ({ children }: { children: React.ReactNode }) {
+        return <>{children}</>;
+      };
+      if (withRenderElementWrapper) {
+        wrapper = function ({ children }: { children: React.ReactNode }) {
+          return (
+            <GraphProvider>
+              <Paper renderElement={children as never} />
+            </GraphProvider>
+          );
+        };
+      }
       // ACT
-      const tree = render(<Component {...props} />);
+      const tree = render(<Component {...props} />, { wrapper });
 
       // ASSERTS
       expect(tree).toMatchSnapshot();

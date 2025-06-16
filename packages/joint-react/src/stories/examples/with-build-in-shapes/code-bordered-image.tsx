@@ -1,3 +1,4 @@
+import { PAPER_CLASSNAME } from 'storybook-config/theme';
 import '../index.css';
 import { createElements, GraphProvider, Paper } from '@joint/react';
 
@@ -27,14 +28,14 @@ function Main() {
   return (
     // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
     <div style={{ display: 'flex', flexDirection: 'row' }}>
-      <Paper width={400} height={100} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={100} />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={initialElements}>
+    <GraphProvider initialElements={initialElements}>
       <Main />
     </GraphProvider>
   );

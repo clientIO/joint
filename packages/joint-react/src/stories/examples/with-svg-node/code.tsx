@@ -1,5 +1,5 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
-import { PRIMARY } from 'storybook/theme';
+import { LIGHT, PAPER_CLASSNAME, PRIMARY, TEXT } from 'storybook-config/theme';
 import '../index.css';
 import {
   createElements,
@@ -19,32 +19,55 @@ const initialEdges = createLinks([
     target: '2',
     attrs: {
       line: {
-        stroke: PRIMARY,
+        stroke: LIGHT,
       },
     },
   },
 ]);
 
 const initialElements = createElements([
-  { id: '1', data: { label: 'Node 1' }, x: 100, y: 0 },
-  { id: '2', data: { label: 'Node 2' }, x: 100, y: 200 },
+  { id: '1', label: 'Node 1', x: 100, y: 0 },
+  { id: '2', label: 'Node 2', x: 100, y: 200 },
 ]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RenderedRect() {
+function RenderedRect({ width, height, label }: BaseElementWithData) {
+  const textMargin = 20;
+  const cornerRadius = 5;
   return (
-    <MeasuredNode>
-      <rect rx={10} ry={10} width={120} height={32} fill={PRIMARY} />
-    </MeasuredNode>
+    <>
+      <rect rx={cornerRadius} ry={cornerRadius} width={width} height={height} fill={PRIMARY} />
+      <MeasuredNode
+        // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop, no-shadow, @typescript-eslint/no-shadow
+        setSize={({ element, size: { width, height } }) => {
+          element.size(width + textMargin, height + textMargin);
+        }}
+      >
+        <text
+          x={width / 2}
+          y={height / 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill={TEXT}
+          fontSize={14}
+          fontWeight="bold"
+        >
+          {label}
+        </text>
+      </MeasuredNode>
+    </>
   );
 }
 
 function Main() {
-  const renderElement: RenderElement<BaseElementWithData> = useCallback(() => <RenderedRect />, []);
+  const renderElement: RenderElement<BaseElementWithData> = useCallback(
+    (props) => <RenderedRect {...props} />,
+    []
+  );
   return (
     <div style={{ display: 'flex', flexDirection: 'row', position: 'relative' }}>
-      <Paper width={400} height={280} renderElement={renderElement} />
+      <Paper width="100%" className={PAPER_CLASSNAME} height={280} renderElement={renderElement} />
       <div
         style={{
           position: 'absolute',
@@ -58,7 +81,7 @@ function Main() {
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={initialElements} defaultLinks={initialEdges}>
+    <GraphProvider initialElements={initialElements} initialLinks={initialEdges}>
       <Main />
     </GraphProvider>
   );

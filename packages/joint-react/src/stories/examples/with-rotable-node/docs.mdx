@@ -2,21 +2,14 @@ import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
 import * as Stories from './story';
 import Code from './code?raw';
 
-
 <Meta of={Stories} />
 
-# Example showing rotatable node.
-User can rotate node to any direction.
-For handling rotation and anchor points we leverage external libraries:
-```tsx
-import { drag } from 'd3-drag';
-import { select } from 'd3-selection';
-```
-You can use anything other.
+# Rotating a Node Example
+This example demonstrates how to rotate nodes in the diagram. You can rotate a node by dragging its rotation handle.
 
+### Live Demo
+Below is a live demo of the node rotation feature. Try it out by interacting with the rotation handle.
 
-
-### Demo
 <Canvas of={Stories.Default} />
 
 ### Code

@@ -1,14 +1,18 @@
+/* eslint-disable unicorn/no-useless-undefined */
+/* eslint-disable prefer-destructuring */
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable no-shadow */
 import type { dia } from '@joint/core';
 import { memo, useEffect } from 'react';
-import type { PortGroupBase } from './port.types';
 import { useCellId, useGraph } from '../../hooks';
 import { PortGroupContext } from '../../context/port-group-context';
-export interface PortGroupProps extends PortGroupBase {
+import type { PortLayout, Position } from './port.types';
+
+export type PortGroupProps = {
   readonly id: string;
   readonly children?: React.ReactNode;
-}
+} & PortLayout; // PortLayout now includes compensateRotation and all layout props
+
 /**
  * Get the group body for the port group.
  * @param props - The properties of the port group.
@@ -17,7 +21,7 @@ export interface PortGroupProps extends PortGroupBase {
  * @description
  * This function is used to get the group body for the port group.
  */
-function getGroupBody(props: PortGroupBase): dia.Element.PortGroup {
+function getGroupBody(props: Partial<PortLayout>): dia.Element.PortGroup {
   const { position = 'absolute', ...args } = props;
   return typeof position === 'function'
     ? { position }
@@ -33,18 +37,60 @@ function Component(props: PortGroupProps) {
   const {
     id,
     children,
-    angle,
-    compensateRotation,
-    dx,
-    dy,
-    end,
+    // destructure every single layout prop so we can list them individually
     position,
-    start,
-    startAngle,
-    step,
-    x,
-    y,
+    width,
+    height,
   } = props;
+  type Coordinate = number | string | undefined;
+  let angle: number | undefined;
+  let x: Coordinate = undefined;
+  let y: Coordinate = undefined;
+  let dx: Coordinate = undefined;
+  let dy: Coordinate = undefined;
+  let start: Position | undefined = undefined;
+  let end: Position | undefined = undefined;
+  let dr: number | undefined = undefined;
+  let startAngle: number | undefined = undefined;
+  let step: number | undefined = undefined;
+  let compensateRotation: boolean | undefined = undefined;
+
+  switch (position) {
+    case 'absolute': {
+      angle = props.angle;
+      x = props.x;
+      y = props.y;
+      break;
+    }
+    case 'bottom':
+    case 'top':
+    case 'left':
+    case 'right': {
+      dx = props.dx;
+      dy = props.dy;
+      x = props.x;
+      y = props.y;
+      angle = props.angle;
+      break;
+    }
+    case 'line': {
+      start = props.start;
+      end = props.end;
+
+      break;
+    }
+    case 'ellipse':
+    case 'ellipseSpread': {
+      dx = props.dx;
+      dy = props.dy;
+      x = props.x;
+      y = props.y;
+      dr = props.dr;
+      startAngle = props.startAngle;
+      step = props.step;
+      compensateRotation = props.compensateRotation;
+    }
+  }
   const cellId = useCellId();
   const graph = useGraph();
 
@@ -55,23 +101,29 @@ function Component(props: PortGroupProps) {
     const ports = cell.get('ports') || {};
     const groups = ports.groups || {};
     const newGroup = getGroupBody({
-      angle,
-      compensateRotation,
-      dx,
-      dy,
-      end,
       position,
-      start,
-      startAngle,
-      step,
+      width,
+      height,
+      angle,
       x,
       y,
+      dx,
+      dy,
+      start,
+      end,
+      dr,
+      startAngle,
+      step,
+      compensateRotation,
     });
     cell.set('ports', {
       ...ports,
       groups: {
         ...groups,
-        [id]: newGroup,
+        [id]: {
+          ...newGroup,
+          size: { height, width },
+        },
       },
     });
 
@@ -86,15 +138,18 @@ function Component(props: PortGroupProps) {
     angle,
     cellId,
     compensateRotation,
+    dr,
     dx,
     dy,
     end,
     graph,
+    height,
     id,
     position,
     start,
     startAngle,
     step,
+    width,
     x,
     y,
   ]);

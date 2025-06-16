@@ -4,8 +4,8 @@ import type { Meta, StoryObj } from '@storybook/react/*';
 import { SimpleRenderItemDecorator } from '../../../.storybook/decorators/with-simple-data';
 import { MeasuredNode } from './measured-node';
 import { useElement } from '@joint/react/src/hooks/use-element';
-import { PRIMARY } from 'storybook/theme';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { PRIMARY } from 'storybook-config/theme';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 
 const API_URL = getAPILink('MeasuredNode', 'variables');
@@ -25,7 +25,7 @@ const meta: Meta<typeof MeasuredNode> = {
   title: 'Components/MeasuredNode',
   component: MeasuredNode,
   decorators: [ForeignObjectDecorator, SimpleRenderItemDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     code: `import { MeasuredNode } from '@joint/react'
 // This will automatically measure component size and update the parent node size

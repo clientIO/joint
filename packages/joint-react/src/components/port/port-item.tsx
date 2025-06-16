@@ -1,30 +1,69 @@
-import { dia } from '@joint/core';
+import type { dia } from '@joint/core';
 import { memo, useContext, useEffect, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import { useCellId, usePaper } from '../../hooks';
+import { useCellId } from '../../hooks';
 import { PortGroupContext } from '../../context/port-group-context';
 import { useGraphStore } from '../../hooks/use-graph-store';
 import { PORTAL_SELECTOR } from '../../data/create-ports-data';
 import { jsx } from '../../utils/joint-jsx/jsx-to-markup';
+import { createElements } from '../../utils/create';
+import { PaperContext } from '../../context';
 
-// eslint-disable-next-line @eslint-react/dom/no-unknown-property
 const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
+
+export enum Magnet {
+  PASSIVE = 'passive',
+}
 export interface PortItemProps {
-  readonly isPassive?: boolean;
+  /**
+   * Magnet - define if the port is passive or not. It can be set to any value inside the paper.
+   * @default true
+   */
+  readonly magnet?: string;
+  /**
+   * The id of the port. It must be unique within the cell.
+   */
   readonly id: string;
+  /**
+   * The group id of the port. It must be unique within the cell.
+   */
   readonly groupId?: string;
+  /**
+   * The z-index of the port. It must be unique within the cell.
+   */
   readonly z?: number | 'auto';
+  /*
+   * The x position of the port. It can be a number or a string.
+   */
   readonly children?: React.ReactNode;
+  /**
+   * The y position of the port. It can be a number or a string.
+   */
   readonly x?: number | string;
+  /**
+   * The y position of the port. It can be a number or a string.
+   */
   readonly y?: number | string;
+  /**
+   * The x offset of the port. It can be a number or a string.
+   */
+  readonly dx?: number | string;
+  /**
+   * The y offset of the port. It can be a number or a string.
+   */
+  readonly dy?: number | string;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: PortItemProps) {
-  const { isPassive, id, children, groupId, z, x, y } = props;
+  const { magnet, id, children, groupId, z, x, y, dx, dy } = props;
   const cellId = useCellId();
-  const paper = usePaper();
-  const { graph, subscribeToPorts, getPortElement } = useGraphStore();
+  const paperCtx = useContext(PaperContext);
+  if (!paperCtx) {
+    throw new Error('PortItem must be used within a `PaperProvider` or `Paper` component');
+  }
+  const { portsStore, paper } = paperCtx;
+  const { graph } = useGraphStore();
 
   const contextGroupId = useContext(PortGroupContext);
 
@@ -50,34 +89,56 @@ function Component(props: PortItemProps) {
       z,
       id,
       args: {
+        dx,
+        dy,
         x,
         y,
       },
       attrs: {
         [PORTAL_SELECTOR]: {
-          magnet: isPassive ? 'passive' : true,
+          magnet: magnet ?? true,
         },
       },
       markup: elementMarkup,
     };
 
     cell.addPort(port);
-
-    const elementView = cell.findView(paper);
-    if (!(elementView instanceof dia.ElementView)) {
-      return;
-    }
-
     return () => {
       cell.removePort(id);
     };
-  }, [cellId, contextGroupId, graph, groupId, isPassive, paper, id, x, y, z]);
+  }, [cellId, contextGroupId, graph, groupId, id, x, y, z, magnet, dx, dy]);
 
   const portalNode = useSyncExternalStore(
-    subscribeToPorts,
-    () => getPortElement(cellId, id),
-    () => getPortElement(cellId, id)
+    portsStore.subscribe,
+    () => portsStore.getPortElement(cellId, id),
+    () => portsStore.getPortElement(cellId, id)
   );
+
+  useEffect(() => {
+    if (!portalNode) {
+      return;
+    }
+
+    const elementView = paper.findViewByModel(cellId);
+
+    elementView.cleanNodesCache();
+    for (const link of graph.getConnectedLinks(elementView.model)) {
+      const target = link.target();
+      const source = link.source();
+
+      const isElementLink = target.id === cellId || source.id === cellId;
+      if (!isElementLink) {
+        continue;
+      }
+
+      const isPortLink = target.port === id || source.port === id;
+      if (!isPortLink) {
+        continue;
+      }
+      // @ts-expect-error we use private jointjs api method, it throw error here.
+      link.findView(paper).requestConnectionUpdate({ async: false });
+    }
+  }, [cellId, graph, id, paper, portalNode]);
 
   if (!portalNode) {
     return null;
@@ -110,3 +171,9 @@ function Component(props: PortItemProps) {
  * ```
  */
 export const PortItem = memo(Component);
+
+createElements([
+  {
+    id: 'port-one',
+  },
+]);

@@ -2,13 +2,11 @@ import { dia, shapes } from '@joint/core';
 import { listenToCellChange } from '../utils/cell/listen-to-cell-change';
 import { ReactElement } from '../models/react-element';
 import { setElements } from '../utils/cell/set-cells';
-import type { GraphElementBase } from '../types/element-types';
-import type { GraphLink, GraphLinkBase } from '../types/link-types';
+import type { GraphElement } from '../types/element-types';
+import type { GraphLink } from '../types/link-types';
 import { subscribeHandler } from '../utils/subscriber-handler';
 import { createStoreData } from './create-store-data';
 import type { CellMap } from '../utils/cell/cell-map';
-import type { OnPaperRenderPorts } from '../utils/create-paper';
-import { createPortsData } from './create-ports-data';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
@@ -34,13 +32,13 @@ export interface StoreOptions {
    * Initial elements to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultElements?: Array<dia.Element | GraphElementBase>;
+  readonly initialElements?: Array<dia.Element | GraphElement>;
 
   /**
    * Initial links to be added to graph
    * It's loaded just once, so it cannot be used as React state.
    */
-  readonly defaultLinks?: Array<dia.Link | GraphLink>;
+  readonly initialLinks?: Array<dia.Link | GraphLink>;
 }
 
 export interface Store {
@@ -51,40 +49,41 @@ export interface Store {
   /**
    * Subscribes to the store changes.
    */
-  readonly subscribe: (onStoreChange: () => void) => () => void;
+  readonly subscribe: (onStoreChange: (changedIds?: Set<dia.Cell.ID>) => void) => () => void;
+
   /**
    * Get elements
    */
-  readonly getElements: () => CellMap<GraphElementBase>;
+  readonly getElements: () => CellMap<GraphElement>;
   /**
    * Get element by id
    */
-  readonly getElement: (id: dia.Cell.ID) => GraphElementBase;
+  readonly getElement: <Element extends GraphElement>(id: dia.Cell.ID) => Element;
   /**
    *  Get links
    */
-  readonly getLinks: () => CellMap<GraphLinkBase>;
+  readonly getLinks: () => CellMap<GraphLink>;
   /**
    * Get link by id
    */
-  readonly getLink: (id: dia.Cell.ID) => GraphLinkBase;
+  readonly getLink: (id: dia.Cell.ID) => GraphLink;
   /**
    *  Remove all listeners and cleanup the graph.
    */
   readonly destroy: () => void;
 
   /**
-   * Get port element
+   * Set the measured node element.
+   * For safety, each node, can use only one measured node, do not matter how many papers the graph is using,
+   * only one paper and one node can use measured node, otherwise it can lead to unexpected behavior
+   * when many nodes or same node with many measuredNodes try to adjust the size.
    */
-  readonly getPortElement: (cellId: dia.Cell.ID, portId: string) => SVGElement | undefined;
+  readonly setMeasuredNode: (id: dia.Cell.ID) => () => void;
+
   /**
-   * Set port element
+   * Check if the graph has already measured node for the given element id.
    */
-  readonly onRenderPorts: OnPaperRenderPorts;
-  /**
-   * Subscribes to port element changes.
-   */
-  readonly subscribeToPorts: (onPortChange: () => void) => () => void;
+  readonly hasMeasuredNode: (id: dia.Cell.ID) => boolean;
 }
 
 /**
@@ -125,7 +124,7 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * Under the hood, @joint/react works by listening to changes in the `dia.Graph` via this store. `dia.graph` is the single source of truth.
  * When you update something—like adding or modifying cells—you do it directly through the `dia.Graph` API, just like in a standard JointJS app.
  * React components automatically observe and react to changes in the graph, keeping the UI in sync via `useSyncExternalStore` API.
- * Hooks like `useSetElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes.
+ * Hooks like `useUpdateElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes.
  * You can also access the graph yourself using `useGraph()` and call methods like `graph.setCells()` or any other JointJS method as needed and react will update it accordingly.
  * @group Data
  * @internal
@@ -143,41 +142,46 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * ```
  */
 export function createStore(options?: StoreOptions): Store {
-  const { defaultElements } = options || {};
+  const { initialElements } = options || {};
 
   const graph = createGraph(options);
+  // set elements to the graph
   setElements({
     graph,
-    defaultElements,
+    initialElements,
   });
+  // create store data - caching the elements and links for the react
   const data = createStoreData();
   const elementsEvents = subscribeHandler(forceUpdate);
-  const portElements = createPortsData();
-  const portEvents = subscribeHandler();
+
   const unsubscribe = listenToCellChange(graph, onCellChange);
 
   data.updateStore(graph);
   graph.on('batch:stop', onBatchStop);
 
+  const measuredNodes = new Set<dia.Cell.ID>();
+
   /**
    * Force update the graph.
    * This function is called when the graph is updated.
    * It checks if there are any unsized links and processes them.
+   * @returns changed ids
    */
-  function forceUpdate() {
-    data.updateStore(graph);
+  function forceUpdate(): Set<dia.Cell.ID> {
+    return data.updateStore(graph);
   }
   /**
    * This function is called when a cell changes.
    * It checks if the graph has an active batch and returns if it does.
    * Otherwise, it notifies the subscribers of the elements events.
-   * @returns - The result of the elements events notification.
+   * @param cell - The cell that changed.
    */
   function onCellChange() {
     if (graph.hasActiveBatch()) {
       return;
     }
-    return elementsEvents.notifySubscribers();
+
+    elementsEvents.notifySubscribers();
   }
 
   /**
@@ -195,7 +199,7 @@ export function createStore(options?: StoreOptions): Store {
     graph.off('batch:stop', onBatchStop);
     graph.clear();
     data.destroy();
-    portElements.clear();
+    measuredNodes.clear();
   }
   // Force update the graph to ensure it's in sync with the store.
   forceUpdate();
@@ -204,19 +208,19 @@ export function createStore(options?: StoreOptions): Store {
     destroy,
     graph,
     subscribe: elementsEvents.subscribe,
-    subscribeToPorts: portEvents.subscribe,
     getElements() {
       return data.elements;
     },
     getLinks() {
       return data.links;
     },
-    getElement(id) {
+    getElement<E extends GraphElement>(id: dia.Cell.ID) {
       const item = data.elements.get(id);
+
       if (!item) {
         throw new Error(`Element with id ${id} not found`);
       }
-      return item;
+      return item as E;
     },
     getLink(id) {
       const item = data.links.get(id);
@@ -225,16 +229,14 @@ export function createStore(options?: StoreOptions): Store {
       }
       return item;
     },
-    getPortElement(cellId, portId) {
-      const portElement = portElements.get(cellId, portId);
-      if (!portElement) {
-        return;
-      }
-      return portElement;
+    setMeasuredNode(id: dia.Cell.ID) {
+      measuredNodes.add(id);
+      return () => {
+        measuredNodes.delete(id);
+      };
     },
-    onRenderPorts(portId, portElement) {
-      portElements.set(portId, portElement);
-      portEvents.notifySubscribers();
+    hasMeasuredNode(id: dia.Cell.ID) {
+      return measuredNodes.has(id);
     },
   };
   return store;

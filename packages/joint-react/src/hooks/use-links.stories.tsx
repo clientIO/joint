@@ -1,8 +1,8 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import type { Meta, StoryObj } from '@storybook/react';
-import { SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
+import { DataRenderer, SimpleGraphDecorator } from '../../.storybook/decorators/with-simple-data';
 import { useLinks } from './use-links';
-import { makeRootDocs, makeStory } from '@joint/react/src/stories/utils/make-story';
+import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { HookTester } from '@joint/react/src/stories/utils/hook-tester';
 
@@ -10,20 +10,11 @@ const API_URL = getAPILink('useLinks');
 
 export type Story = StoryObj<typeof HookTester>;
 
-function DataRenderer({ data, name }: Readonly<{ data: unknown; name: string }>) {
-  return (
-    <div style={{ right: 0, display: 'inline-block', top: 0 }}>
-      <h4 style={{ padding: 0, margin: 0 }}>{name}:</h4>
-      <pre style={{ fontSize: 10 }}>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-  );
-}
-
 const meta: Meta<typeof HookTester> = {
   title: 'Hooks/useLinks',
   component: HookTester,
   decorators: [SimpleGraphDecorator],
-  parameters: makeRootDocs({
+  parameters: makeRootDocumentation({
     apiURL: API_URL,
     description: `\`useLinks\` is a hook that returns the links of the current graph. It supports selector functions to get specific properties of the links and re-renders the component only when selected properties are changed.`,
     code: `import { useLinks } from '@joint/react'

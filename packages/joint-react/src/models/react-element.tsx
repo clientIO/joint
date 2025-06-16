@@ -3,7 +3,7 @@ import { dia } from '@joint/core';
 import { jsx } from '../utils/joint-jsx/jsx-to-markup';
 export const REACT_TYPE = 'ReactElement';
 
-const elementMarkup = jsx(<rect joint-selector="rect" />);
+const elementMarkup = jsx(<rect joint-selector="placeholder" />);
 /**
  * A custom JointJS element that can render React components.
  * @group Models
@@ -21,7 +21,12 @@ export class ReactElement<Attributes = dia.Element.Attributes> extends dia.Eleme
       type: REACT_TYPE,
       data: {},
       attrs: {
-        rect: {
+        root: {
+          magnetSelector: 'placeholder',
+          highlighterSelector: 'placeholder',
+          containerSelector: 'placeholder',
+        },
+        placeholder: {
           width: 'calc(w)',
           height: 'calc(h)',
           fill: 'transparent',

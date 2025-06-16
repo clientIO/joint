@@ -9,7 +9,7 @@ import {
   type RenderElement,
 } from '@joint/react';
 import { useCallback } from 'react';
-import { PRIMARY } from 'storybook/theme';
+import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 const shape = {
   type: 'standard.Rectangle',
   width: 100,
@@ -23,58 +23,59 @@ const shape = {
       fill: 'white',
     },
   },
-};
+} as const;
+
 const initialElements = createElements([
   {
     id: '1',
-    data: { label: 'Node 1' },
+    label: 'Node 1',
     ...shape,
   },
   {
     id: '2',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
   {
     id: '3',
-    data: { label: 'Node 1' },
+    label: 'Node 1',
     ...shape,
   },
   {
     id: '4',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
   {
     id: '5',
-    data: { label: 'Node 1' },
+    label: 'Node 1',
     ...shape,
   },
   {
     id: '6',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
   {
     id: '7',
-    data: { label: 'Node 1' },
+    label: 'Node 1',
     ...shape,
   },
   {
     id: '8',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
   {
     id: '9',
-    data: { label: 'Node 2' },
+    label: 'Node 2',
     ...shape,
   },
 ]);
 
 type BaseElementWithData = InferElement<typeof initialElements>;
 
-function RenderedRect({ width, height, data: { label } }: BaseElementWithData) {
+function RenderedRect({ width, height, label }: BaseElementWithData) {
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode>
@@ -91,6 +92,7 @@ function Main() {
     []
   );
 
+  // eslint-disable-next-line unicorn/consistent-function-scoping
   function makeLayout({ graph }: OnLoadOptions) {
     const gap = 20;
     let currentX = 0;
@@ -108,17 +110,18 @@ function Main() {
   }
   return (
     <Paper
-      width={PAPER_WIDTH}
+      width="100%"
+      className={PAPER_CLASSNAME}
       height={280}
       renderElement={renderElement}
-      onElementsMeasured={makeLayout}
+      onElementsSizeReady={makeLayout}
     />
   );
 }
 
 export default function App() {
   return (
-    <GraphProvider defaultElements={initialElements}>
+    <GraphProvider initialElements={initialElements}>
       <Main />
     </GraphProvider>
   );
