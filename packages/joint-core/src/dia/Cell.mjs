@@ -550,9 +550,9 @@ export const Cell = Model.extend({
             // Shallow cloning.
 
             // Preserve the original's `portLayoutNamespace` and `portLabelLayoutNamespace` in the clone, while passing all `arguments` to `Model.prototype.clone()`.
-            // - Enhance `opt` with those values, and create a new array of enhanced opt + rest of arguments (if any)
+            // - Enhance `opt` with those values, and create a new array of enhanced opt + rest of arguments (if any).
             const enhancedOpt = Object.assign({}, opt, { portLayoutNamespace: this.portLayoutNamespace, portLabelLayoutNamespace: this.portLabelLayoutNamespace });
-            const clone = Model.prototype.clone.apply(this, [enhancedOpt, ...rest]);
+            const clone = Model.prototype.clone.call(this, enhancedOpt, ...rest);
             // We don't want the clone to have the same ID as the original.
             clone.set(this.getIdAttribute(), this.generateId());
             // A shallow cloned element does not carry over the original embeds.
