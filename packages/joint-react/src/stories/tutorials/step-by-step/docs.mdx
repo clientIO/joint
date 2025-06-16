@@ -1,0 +1,255 @@
+import { Meta, Canvas, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import CodeSVG from './code-svg?raw';
+import CodeHTML from './code-html?raw';
+import CodeHTMLRenderer from './code-html-renderer?raw';
+import { getAPIDocumentationLink, getAPIPropsLink } from '../../utils/get-api-documentation-link'
+
+<Meta of={Stories} />
+
+# Get Started with @joint/react
+
+Welcome! This guide will help you get started with the new `@joint/react` library, which brings the power of [JointJS](https://www.jointjs.com/) to React. We'll walk through the core concepts step by step, with live examples and code blocks.
+
+---
+
+## 1. What is @joint/react?
+
+- **@joint/react** is a React-first API for building interactive diagrams, powered by [JointJS](https://www.jointjs.com/).
+- **JointJS** is a diagramming library for creating flowcharts, BPMN, ER diagrams, and more.
+- **@joint/react** wraps JointJS concepts in idiomatic React components and hooks.
+
+---
+
+## 2. Core Concepts
+
+- **Element (Node):** A visual item in your diagram (e.g., a rectangle, circle, or custom shape).
+- **Link (Edge):** A connection between two elements.
+- **Graph:** The data model holding all elements and links.
+- **Paper:** The UI component that renders the graph.
+- **GraphProvider:** React context provider for managing the graph state.
+- **Ports:** Named connection points on elements for precise linking.
+- **MeasuredNode:** Utility for auto-sizing nodes based on their content.
+
+---
+
+## 3. Creating Elements and Links
+
+### a. Elements (Nodes)
+
+You can create elements with or without a custom type. The type is inferred automatically, but you can also specify it for type safety.
+
+```tsx
+// Inferred type
+const elements = createElements([
+  { id: '1', label: 'Node 1', x: 100, y: 0, width: 100, height: 25 },
+  { id: '2', label: 'Node 2', x: 100, y: 200, width: 100, height: 25 },
+]);
+
+// Here we can use the inferred type
+type ElementType = InferElement<typeof elements>;
+
+// With custom type
+interface MyNode extends GraphElement {
+  label: string;
+  color: string;
+}
+const customElements = createElements<MyNode>([
+  { id: 'a', label: 'A', color: 'red', x: 0, y: 0, width: 80, height: 40 },
+]);
+```
+
+### b. Links (Edges)
+
+Links connect elements by their `id`. You can use simple strings or objects (for advanced features like ports).
+
+```tsx
+// Simple link by id
+const links = createLinks([{ id: 'l1', source: '1', target: '2' }]);
+
+// Link with port (advanced)
+const linksWithPorts = createLinks([
+  { id: 'l2', source: { id: '1', port: 'out' }, target: { id: '2', port: 'in' } }
+]);
+```
+
+---
+
+## 4. Setting Up the Graph Context
+
+Wrap your app (or diagram) with {getAPIDocumentationLink('GraphProvider')}. This provides the graph context to all child components.
+- **initialElements:** Initial elements to load.
+- **initialLinks:** Initial links to load.
+```tsx
+<GraphProvider initialElements={elements} initialLinks={links}>
+  {/* Your diagram components */}
+</GraphProvider>
+```
+
+- You can also use `initialElements` and `initialLinks` directly on the {getAPIDocumentationLink('Paper', 'variables')} component for simple cases without need to use the GraphProvider.
+
+```tsx
+<Paper initialElements={elements} initialLinks={links}>
+  {/* Your diagram components */}
+</Paper>
+```
+
+---
+
+## 5. Rendering the Diagram with Paper
+
+The {getAPIDocumentationLink('Paper', 'variables')} component renders your graph. It is the main UI component.
+
+- **renderElement:** Function to render each node.
+- **elementSelector:** (Optional) Selects which elements to render.
+- **Events:** Handle user interactions (e.g., onLinkMouseEnter).
+
+```tsx
+// MyNode is a custom type
+function RenderItem({ width, height, label }: MyNode) {
+  return <rect width={width} height={height} fill="lightblue"><title>{label}</title></rect>;
+}
+
+<Paper width="100%" height={300} renderElement={RenderItem} />
+```
+
+---
+
+## 6. Using HTML in Nodes
+
+By default, nodes are rendered as SVG. To use HTML, wrap your content in a `foreignObject` or use the `useHTMLOverlay` prop.
+
+```tsx
+function RenderHTMLNode({ label, width, height }) {
+  return (
+    <foreignObject width={width} height={height}>
+      <MeasuredNode>
+        <div className="node">{label}</div>
+      </MeasuredNode>
+    </foreignObject>
+  );
+}
+```
+
+Or, with `useHTMLOverlay` (renders HTML outside SVG, no `foreignObject` needed):
+
+```tsx
+<Paper useHTMLOverlay renderElement={RenderHTMLNode} />
+```
+
+---
+
+## 7. Live Examples
+
+### SVG Node Example
+
+<Canvas of={Stories.SVG} />
+<Markdown>
+{`\`\`\`tsx
+${CodeSVG}
+\`\`\``}
+</Markdown>
+
+---
+
+### HTML Node Example
+
+<Canvas of={Stories.HTML} />
+<Markdown>
+{`\`\`\`tsx
+${CodeHTML}
+\`\`\``}
+</Markdown>
+
+---
+
+### HTML Overlay Example
+
+<Canvas of={Stories.HTMLRenderer} />
+<Markdown>
+{`\`\`\`tsx
+${CodeHTMLRenderer}
+\`\`\``}
+</Markdown>
+
+---
+
+## 8. Advanced: Ports, Events, and Customization
+
+### a. Ports
+
+Ports allow you to define named connection points on elements for links.
+
+We can also define it in declerative way, using the `ports` components.
+```tsx
+function RenderNodeWithPorts({ label, width, height }) {
+  return (
+    <>
+    <MeasuredNode>
+      <rect width={width} height={height} fill="lightblue">
+        <title>{label}</title>
+      </rect>
+    </MeasuredNode>
+    <Port.Group id="ports" position="top">
+      <Port id="in" >
+        <circle r={5} fill="red" />
+      </Port>
+      <Port id="out">
+        <circle r={5} fill="green" />
+      </Port>
+    </Port.Group>
+    <>
+  );
+}
+```
+
+### b. Events
+
+Handle user interactions with events like `onLinkMouseEnter`, `onElementsSizeReady`, etc.
+
+```tsx
+<Paper
+  onLinkMouseEnter={({ linkView, paper }) => {
+    // Add custom link tools or highlighters
+  }}
+  onElementsSizeReady={({ paper }) => {
+    // Fit content to view
+    paper.transformToFitContent({ padding: 40 });
+  }}
+  // ...other props
+/>
+```
+
+### c. Customizing Link Behavior
+
+You can change how links behave and look by setting props like `defaultRouter`, `defaultConnector`, `defaultAnchor`, etc.
+
+```tsx
+<Paper
+  defaultRouter={{ name: 'rightAngle', args: { margin: 28 } }}
+  defaultConnector={{ name: 'straight' }}
+  // ...other props
+/>
+```
+
+---
+
+## 9. Key Terms
+
+- **GraphProvider:** React context for graph data.
+- **Paper:** Renders the graph visually.
+- **Element:** Node in the graph.
+- **Link:** Edge between nodes.
+- **Port:** Named connection point on an element.
+- **MeasuredNode:** Auto-measures and updates node size.
+- **useHTMLOverlay:** Renders HTML nodes outside SVG for full HTML support.
+
+---
+
+## 10. More Resources
+
+- [@joint/react API Reference](https://github.com/clientIO/joint-plus/tree/main/packages/joint-react)
+- [JointJS Documentation](https://docs.jointjs.com/)
+---
+
+Happy diagramming! 🚀

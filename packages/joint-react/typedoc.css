@@ -1,0 +1,14 @@
+:root {
+  /* Backgrounds */
+  --tsd-background: #131e29;
+  --tsd-background-inset: #131e29;
+
+  /* Text */
+  --tsd-text: #dde6ed;
+  --tsd-link-color: #ed2637;
+
+  /* Primary color accents */
+  --tsd-color-primary: #ed2637;
+  --tsd-block-heading-background: #131e29;
+  --tsd-block-heading-text-color: #dde6ed;
+}

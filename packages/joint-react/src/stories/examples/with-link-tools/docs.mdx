@@ -1,0 +1,36 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+<Meta of={Stories} />
+
+# Link Tools Example
+
+This example shows how to use link tools in your project. Link tools are interactive features that let you edit and manipulate links in a diagram. They make it easy to customize and work with links visually. For more information, check out the [Link Tools documentation](https://resources.jointjs.com/tutorial/link-tools).
+
+You can also use the `jsx` utility provided by JointJS to convert JSX into JointJS markup. This makes it simpler to define custom elements and tools.
+
+### Demo
+
+Here is a live demo of the link tools in action:
+
+<Canvas of={Stories.Default} />
+
+### Code
+
+Below is the code used in this example. You can copy and modify it to fit your needs:
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
+
+
+
