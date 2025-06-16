@@ -88,7 +88,7 @@ function link(source, target, label, vertices) {
                 },
                 text: {
                     text: label,
-                    fontWeight: 'bold',
+                    fontWeight: 'bold'
                 }
             }
         }],
