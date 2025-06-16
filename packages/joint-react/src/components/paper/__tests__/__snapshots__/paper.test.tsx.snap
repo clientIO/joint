@@ -20,14 +20,14 @@ exports[`Paper "WithAutoFitContent" 1`] = `
           />
           <svg
             height="100%"
-            id="v-15"
+            id="v-14"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-16"
+              id="v-15"
               type="text/css"
             >
               CDATASection {}
@@ -82,14 +82,14 @@ exports[`Paper "WithAutoFitContent" 1`] = `
         />
         <svg
           height="100%"
-          id="v-15"
+          id="v-14"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-16"
+            id="v-15"
             type="text/css"
           >
             CDATASection {}
@@ -201,14 +201,14 @@ exports[`Paper "WithCustomEvent" 1`] = `
           />
           <svg
             height="100%"
-            id="v-21"
+            id="v-20"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-22"
+              id="v-21"
               type="text/css"
             >
               CDATASection {}
@@ -263,14 +263,14 @@ exports[`Paper "WithCustomEvent" 1`] = `
         />
         <svg
           height="100%"
-          id="v-21"
+          id="v-20"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-22"
+            id="v-21"
             type="text/css"
           >
             CDATASection {}
@@ -382,14 +382,14 @@ exports[`Paper "WithEvent" 1`] = `
           />
           <svg
             height="100%"
-            id="v-17"
+            id="v-16"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-18"
+              id="v-17"
               type="text/css"
             >
               CDATASection {}
@@ -444,14 +444,14 @@ exports[`Paper "WithEvent" 1`] = `
         />
         <svg
           height="100%"
-          id="v-17"
+          id="v-16"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-18"
+            id="v-17"
             type="text/css"
           >
             CDATASection {}
@@ -563,14 +563,14 @@ exports[`Paper "WithGrid" 1`] = `
           />
           <svg
             height="100%"
-            id="v-6"
+            id="v-5"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-7"
+              id="v-6"
               type="text/css"
             >
               CDATASection {}
@@ -588,7 +588,7 @@ exports[`Paper "WithGrid" 1`] = `
               >
                 <svg
                   height="0"
-                  id="v-9"
+                  id="v-8"
                   version="1.1"
                   width="0"
                   x="0"
@@ -596,7 +596,7 @@ exports[`Paper "WithGrid" 1`] = `
                   y="600"
                 >
                   <defs
-                    id="v-8"
+                    id="v-7"
                   >
                     <pattern
                       height="10"
@@ -609,7 +609,7 @@ exports[`Paper "WithGrid" 1`] = `
                       <rect
                         fill="#AAAAAA"
                         height="1"
-                        id="v-10"
+                        id="v-9"
                         width="1"
                       />
                     </pattern>
@@ -617,7 +617,7 @@ exports[`Paper "WithGrid" 1`] = `
                   <rect
                     fill="url(#pattern_view32_0)"
                     height="100%"
-                    id="v-12"
+                    id="v-11"
                     width="100%"
                   />
                 </svg>
@@ -661,14 +661,14 @@ exports[`Paper "WithGrid" 1`] = `
         />
         <svg
           height="100%"
-          id="v-6"
+          id="v-5"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-7"
+            id="v-6"
             type="text/css"
           >
             CDATASection {}
@@ -686,7 +686,7 @@ exports[`Paper "WithGrid" 1`] = `
             >
               <svg
                 height="0"
-                id="v-9"
+                id="v-8"
                 version="1.1"
                 width="0"
                 x="0"
@@ -694,7 +694,7 @@ exports[`Paper "WithGrid" 1`] = `
                 y="600"
               >
                 <defs
-                  id="v-8"
+                  id="v-7"
                 >
                   <pattern
                     height="10"
@@ -707,7 +707,7 @@ exports[`Paper "WithGrid" 1`] = `
                     <rect
                       fill="#AAAAAA"
                       height="1"
-                      id="v-10"
+                      id="v-9"
                       width="1"
                     />
                   </pattern>
@@ -715,7 +715,7 @@ exports[`Paper "WithGrid" 1`] = `
                 <rect
                   fill="url(#pattern_view32_0)"
                   height="100%"
-                  id="v-12"
+                  id="v-11"
                   width="100%"
                 />
               </svg>
@@ -816,14 +816,14 @@ exports[`Paper "WithHTMLElement" 1`] = `
           />
           <svg
             height="100%"
-            id="v-4"
+            id="v-3"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-5"
+              id="v-4"
               type="text/css"
             >
               CDATASection {}
@@ -878,14 +878,14 @@ exports[`Paper "WithHTMLElement" 1`] = `
         />
         <svg
           height="100%"
-          id="v-4"
+          id="v-3"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-5"
+            id="v-4"
             type="text/css"
           >
             CDATASection {}
@@ -997,14 +997,14 @@ exports[`Paper "WithLinkTools" 1`] = `
           />
           <svg
             height="100%"
-            id="v-19"
+            id="v-18"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-20"
+              id="v-19"
               type="text/css"
             >
               CDATASection {}
@@ -1059,14 +1059,14 @@ exports[`Paper "WithLinkTools" 1`] = `
         />
         <svg
           height="100%"
-          id="v-19"
+          id="v-18"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-20"
+            id="v-19"
             type="text/css"
           >
             CDATASection {}
@@ -1178,14 +1178,14 @@ exports[`Paper "WithRectElement" 1`] = `
           />
           <svg
             height="100%"
-            id="v-2"
+            id="v-1"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-3"
+              id="v-2"
               type="text/css"
             >
               CDATASection {}
@@ -1240,14 +1240,14 @@ exports[`Paper "WithRectElement" 1`] = `
         />
         <svg
           height="100%"
-          id="v-2"
+          id="v-1"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-3"
+            id="v-2"
             type="text/css"
           >
             CDATASection {}
@@ -1359,14 +1359,14 @@ exports[`Paper "WithScaleDown" 1`] = `
           />
           <svg
             height="100%"
-            id="v-13"
+            id="v-12"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-14"
+              id="v-13"
               type="text/css"
             >
               CDATASection {}
@@ -1422,14 +1422,14 @@ exports[`Paper "WithScaleDown" 1`] = `
         />
         <svg
           height="100%"
-          id="v-13"
+          id="v-12"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-14"
+            id="v-13"
             type="text/css"
           >
             CDATASection {}
