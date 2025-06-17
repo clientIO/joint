@@ -44,6 +44,12 @@ yarn add @joint/react
 bun add @joint/react
 ```
 
+## Documentation
+
+The documentation is available online:
+- [API reference](https://changelog.jointjs.com/joint/joint-react-api/index.html)
+- [Storybook with examples](https://changelog.jointjs.com/joint/joint-react-storybook/?path=/docs/introduction--docs)
+
 ## Core Concepts
 
 Before diving into the code, let's understand the basic building blocks:
@@ -298,9 +304,3 @@ React's asynchronous rendering can cause flickering when dynamically adding port
 
 ### Controlled Mode
 Currently, **@joint/react** uses `useSyncExternalStore` to listen to graph changes. The graph is the source of truth, so `initialElements` and `initialLinks` are only used during initialization. To modify the state, update the graph directly using hooks like `useGraph`, `useUpdateElement`, or `useCreateElement`. A fully controlled mode is under development.
-
----
-
-## [API Reference](docs/README.md)
-
-For more examples and detailed documentation, visit the [API Reference](docs/README.md).

@@ -1,6 +1,6 @@
 {
   "name": "@joint/react",
-  "version": "0.0.1",
+  "version": "1.0.0-alpha.2",
   "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -21,11 +21,13 @@
     "build-storybook": "storybook build",
     "build": "node --experimental-json-modules --loader ts-node/esm build.ts",
     "docs:typedoc": "typedoc --out docs/joint-react-api src",
-    "prepublishOnly": "yarn test && yarn build"
+    "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
+    "prepack": "yarn test && yarn build"
   },
   "devDependencies": {
     "@andypf/json-viewer": "^2.1.10",
     "@chromatic-com/storybook": "^3.2.5",
+    "@joint/layout-directed-graph": "workspace:*",
     "@joint/react-eslint": "*",
     "@storybook/addon-a11y": "^8.6.12",
     "@storybook/addon-docs": "8.6.12",
@@ -76,7 +78,6 @@
   },
   "dependencies": {
     "@joint/core": "workspace:*",
-    "@joint/layout-directed-graph": "workspace:*",
     "use-sync-external-store": "^1.4.0"
   },
   "peerDependencies": {
