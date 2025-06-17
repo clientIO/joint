@@ -4,6 +4,9 @@ import { Rect, Point } from '../g/index.mjs';
 import * as Port from '../layout/ports/port.mjs';
 import * as PortLabel from '../layout/ports/portLabel.mjs';
 
+const DEFAULT_PORT_POSITION_NAME = 'left';
+const DEFAULT_PORT_LABEL_POSITION_NAME = 'left';
+
 var PortData = function(data) {
 
     var clonedData = util.cloneDeep(data) || {};
@@ -105,14 +108,19 @@ PortData.prototype = {
 
         // TODO: check `groupPosition.fn` and call it directly (see `_getPortLabelLayout()`)
 
-        const groupPositionName = groupPosition.name || 'left';
+        const groupPositionName = groupPosition.name || DEFAULT_PORT_POSITION_NAME;
         const namespace = this.portLayoutNamespace;
         const layoutFn = namespace[groupPositionName];
         if (layoutFn) {
             return layoutFn(portsArgs, elBBox, groupPositionArgs);
         }
 
-        return namespace['left'](portsArgs, elBBox, groupPositionArgs);
+        const defaultLayoutFn = namespace[DEFAULT_PORT_POSITION_NAME];
+        if (defaultLayoutFn) {
+            return defaultLayoutFn(portsArgs, elBBox, groupPositionArgs);
+        }
+
+        throw new Error('layout.Port: No default port layout defined.');
     },
 
     _getPortLabelLayout: function(port, portPosition, elBBox) {
@@ -125,7 +133,7 @@ PortData.prototype = {
             return labelPositionFn(portPosition, elBBox, labelPositionArgs);
         }
 
-        const labelPositionName = labelPosition.name || 'left';
+        const labelPositionName = labelPosition.name || DEFAULT_PORT_LABEL_POSITION_NAME;
         const namespace = this.portLabelLayoutNamespace;
         const labelLayoutFn = namespace[labelPositionName];
         if (labelLayoutFn) {
@@ -194,7 +202,7 @@ PortData.prototype = {
 
         return util.merge(
             {
-                name: 'left',
+                name: DEFAULT_PORT_POSITION_NAME,
                 args: {}
             },
             group.position,
@@ -221,7 +229,7 @@ PortData.prototype = {
             // TODO: remove legacy signature (see `_getLabelPosition()`)
             positionName = position;
         } else if (position === undefined) {
-            positionName = setDefault ? 'left' : null;
+            positionName = setDefault ? DEFAULT_PORT_POSITION_NAME : null;
         } else if (Array.isArray(position)) {
             // TODO: remove legacy signature (see `_getLabelPosition()`)
             positionName = 'absolute';
@@ -257,7 +265,7 @@ PortData.prototype = {
         if (util.isFunction(labelPosition)) {
             return { fn: labelPosition };
         } else if (labelPosition === undefined) {
-            labelPositionName = setDefault ? 'left' : null;
+            labelPositionName = setDefault ? DEFAULT_PORT_LABEL_POSITION_NAME : null;
         } else if (util.isObject(labelPosition)) {
             labelPositionName = labelPosition.name;
             util.assign(labelArgs, labelPosition.args);

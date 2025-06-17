@@ -3358,7 +3358,7 @@ export namespace mvc {
          */
         changedAttributes(attributes?: Partial<T>): Partial<T> | false;
         clear(options?: Silenceable): this;
-        clone(options?: { [key: string]: any }): Model;
+        clone(): Model;
         escape(attribute: _StringKey<T>): string;
         has(attribute: _StringKey<T>): boolean;
         hasChanged(attribute?: _StringKey<T>): boolean;
