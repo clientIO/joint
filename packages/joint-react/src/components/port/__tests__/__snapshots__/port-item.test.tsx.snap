@@ -19,14 +19,14 @@ exports[`Port/Item "Default" 1`] = `
           />
           <svg
             height="100%"
-            id="v-2"
+            id="v-1"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-3"
+              id="v-2"
               type="text/css"
             >
               CDATASection {}
@@ -80,14 +80,14 @@ exports[`Port/Item "Default" 1`] = `
         />
         <svg
           height="100%"
-          id="v-2"
+          id="v-1"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-3"
+            id="v-2"
             type="text/css"
           >
             CDATASection {}

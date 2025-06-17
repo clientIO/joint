@@ -20,14 +20,14 @@ exports[`GraphProvider "Default" 1`] = `
           />
           <svg
             height="100%"
-            id="v-2"
+            id="v-1"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-3"
+              id="v-2"
               type="text/css"
             >
               CDATASection {}
@@ -82,14 +82,14 @@ exports[`GraphProvider "Default" 1`] = `
         />
         <svg
           height="100%"
-          id="v-2"
+          id="v-1"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-3"
+            id="v-2"
             type="text/css"
           >
             CDATASection {}
@@ -201,14 +201,14 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
           />
           <svg
             height="100%"
-            id="v-4"
+            id="v-3"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-5"
+              id="v-4"
               type="text/css"
             >
               CDATASection {}
@@ -263,14 +263,14 @@ exports[`GraphProvider "WithExternalGraph" 1`] = `
         />
         <svg
           height="100%"
-          id="v-4"
+          id="v-3"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-5"
+            id="v-4"
             type="text/css"
           >
             CDATASection {}
@@ -387,14 +387,14 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
           />
           <svg
             height="100%"
-            id="v-10"
+            id="v-9"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-11"
+              id="v-10"
               type="text/css"
             >
               CDATASection {}
@@ -454,14 +454,14 @@ exports[`GraphProvider "WithExternalGraphAndLayout" 1`] = `
         />
         <svg
           height="100%"
-          id="v-10"
+          id="v-9"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-11"
+            id="v-10"
             type="text/css"
           >
             CDATASection {}
@@ -573,14 +573,14 @@ exports[`GraphProvider "WithLink" 1`] = `
           />
           <svg
             height="100%"
-            id="v-6"
+            id="v-5"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-7"
+              id="v-6"
               type="text/css"
             >
               CDATASection {}
@@ -635,14 +635,14 @@ exports[`GraphProvider "WithLink" 1`] = `
         />
         <svg
           height="100%"
-          id="v-6"
+          id="v-5"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-7"
+            id="v-6"
             type="text/css"
           >
             CDATASection {}
@@ -754,14 +754,14 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
           />
           <svg
             height="100%"
-            id="v-8"
+            id="v-7"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-9"
+              id="v-8"
               type="text/css"
             >
               CDATASection {}
@@ -816,14 +816,14 @@ exports[`GraphProvider "WithoutSizeDefinedInElements" 1`] = `
         />
         <svg
           height="100%"
-          id="v-8"
+          id="v-7"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-9"
+            id="v-8"
             type="text/css"
           >
             CDATASection {}

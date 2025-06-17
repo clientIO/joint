@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-export function withStringMode(Story: any) {
+export function withStrictMode(Story: any) {
   return (
     <React.StrictMode>
       <Story />
