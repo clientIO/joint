@@ -12,6 +12,12 @@ interface Options<StorybookOptions> {
   withRenderElementWrapper?: boolean;
 }
 
+function normalizeSnapshot(html: string) {
+  const cleaned = html.replaceAll(/id="v-\d+"/g, 'id="v-*"');
+
+  return cleaned;
+}
+
 /**
  * Runs a snapshot test for each story in the provided options.
  * @param options - The options for the snapshot test.
@@ -43,10 +49,11 @@ export function runStorybookSnapshot<StorybookOptions>(options: Options<Storyboo
         };
       }
       // ACT
-      const tree = render(<Component {...props} />, { wrapper });
+      const { container } = render(<Component {...props} />, { wrapper });
 
-      // ASSERTS
-      expect(tree).toMatchSnapshot();
+      // Clean volatile parts before asserting
+      const cleanedHTML = normalizeSnapshot(container.innerHTML);
+      expect(cleanedHTML).toMatchSnapshot(`${name}-${key}`);
     });
   });
 }
