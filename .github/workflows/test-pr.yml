@@ -1,0 +1,62 @@
+# This GitHub Actions workflow runs tests for the `joint` repositoty.
+name: Test PR
+
+# Trigger this workflow on:
+on:
+  push:
+    branches: [ "master", "github-action-test-pr" ]
+  pull_request:
+    branches: [ "master" ]
+
+# Cancel in-progress runs on new commits
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job to run tests on different platforms
+  test:
+    strategy:
+      matrix:
+        runner-platform:
+          - ubuntu-latest
+    runs-on: ${{ matrix.runner-platform }}
+    steps:
+      # Checkout contents of joint repo
+      - name: Checkout joint
+        id: checkout-joint
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Set up Node.js version for building
+      - name: Setup Node.js v22
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Cache Yarn packages to speed up CI
+      - name: Cache Yarn
+        id: cache-yarn
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      # Install all dependencies from the joint repo
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install --immutable
+
+      # Build the joint project
+      - name: Prepare joint
+        id: prepare-joint
+        run: yarn run dist
+
+      # Test the joint project
+      - name: 'Test joint (Allow failed tests: ${{ vars.ALLOW_FAILED_TESTS || false }})'
+        id: test-joint
+        continue-on-error: ${{ vars.ALLOW_FAILED_TESTS || false }}
+        run: yarn run test
