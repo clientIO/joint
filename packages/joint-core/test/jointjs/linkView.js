@@ -1286,7 +1286,7 @@ QUnit.module('linkView', function(hooks) {
             // the move
             linkView2.pointermove({
                 target: linkView,
-                action: 'mousemove',
+                action: 'arrowhead-move',
                 data: data
             }, 120, 120);
 
@@ -1301,6 +1301,237 @@ QUnit.module('linkView', function(hooks) {
                 paper
             ));
             assert.equal(link2.get('source').id, link.id);
+        });
+
+        QUnit.test('with snapLinks=true - magnet priority over element/link', function(assert) {
+
+            const rect = new joint.shapes.standard.Rectangle({
+                position: { x: 160, y: 80 },
+                size: { width: 40, height: 40 },
+                ports: {
+                    groups: {
+                        left: {
+                            attrs: {
+                                circle: {
+                                    r: 10,
+                                    magnet: true,
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            rect.addPort({
+                group: 'left',
+                id: 'rect-port-left'
+            });
+
+            paper.model.resetCells([link, rect]);
+
+            paper.options.validateConnection = () => true;
+            const data = {};
+            const strategySpy = paper.options.connectionStrategy = sinon.spy();
+            paper.options.snapLinks = { radius: 100 };
+
+            const linkView = link.findView(paper);
+            const rectView = rect.findView(paper);
+
+            simulate.dragLinkView(linkView, 'source', { data });
+
+            // Move pointer near both the first link and the rectangle magnet; the link path is closer
+            // (distance smaller) but rectangle magnet should win due to higher priority.
+            linkView.pointermove({
+                target: rectView.el,
+                action: 'arrowhead-move',
+                data
+            }, 170, 100);
+
+            assert.equal(strategySpy.callCount, 1, 'connectionStrategy called once');
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: rect.id }), // The snapped element should be the rectangle
+                rectView,
+                rectView.el.querySelector('[magnet]'),
+                sinon.match.any,
+                link,
+                'source',
+                paper
+            ), 'snapped to magnet');
+            assert.equal(link.source().id, rect.id, 'link attached to magnet');
+        });
+
+        QUnit.test('with snapLinks=true - does not snap to magnet outside of snap radius', function(assert) {
+
+            const rect = new joint.shapes.standard.Rectangle({
+                position: { x: 100, y: 0 },
+                size: { width: 100, height: 40 },
+                attrs: {
+                    root: {
+                        magnet: false // doesn't snap to rectangle itself
+                    }
+                },
+                ports: {
+                    groups: {
+                        left: {
+                            attrs: {
+                                circle: {
+                                    r: 10,
+                                    magnet: true,
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            rect.addPort({
+                group: 'left',
+                id: 'port-left'
+            });
+
+            paper.model.resetCells([link, rect]);
+
+            paper.options.validateConnection = () => true;
+            const data = {};
+            const strategySpy = paper.options.connectionStrategy = sinon.spy();
+            paper.options.snapLinks = { radius: 50 };
+
+            const linkView = link.findView(paper);
+            const rectView = rect.findView(paper);
+
+            simulate.dragLinkView(linkView, 'target', { data });
+
+            // Move pointer just outside of the radius of the magnet
+            // but inside the radius of the rectangle
+            linkView.pointermove({
+                target: rectView.el,
+                action: 'arrowhead-move',
+                data
+            }, 161, 20);
+
+            assert.equal(strategySpy.callCount, 0, 'Link did not snap to the magnet, since it was outside of the radius of the magnet');
+
+            // Move pointer inside the search radius of the magnet
+            linkView.pointermove({
+                target: rectView.el,
+                action: 'arrowhead-move',
+                data
+            }, 160, 20);
+
+            assert.equal(strategySpy.callCount, 1, 'Link snapped to the magnet');
+            assert.equal(link.target().id, rect.id, 'Link attached to the rectangle magnet');
+            assert.equal(link.target().port, 'port-left', 'Link attached to the rectangle magnet');
+        });
+
+        QUnit.test('snapLinks=true - overlapping magnets', function(assert) {
+
+            const rect = new joint.shapes.standard.Rectangle({
+                position: { x: 100, y: 0 },
+                size: { width: 100, height: 40 },
+                attrs: {
+                    root: {
+                        magnet: false // doesn't snap to rectangle itself
+                    }
+                },
+                ports: {
+                    groups: {
+                        small: {
+                            position: {
+                                name: 'absolute',
+                                args: {
+                                    x: 25,
+                                    y: 20
+                                }
+                            },
+                            attrs: {
+                                circle: {
+                                    r: 25,
+                                    magnet: true,
+                                }
+                            }
+                        },
+                        big: {
+                            position: {
+                                name: 'absolute',
+                                args: {
+                                    x: 0,
+                                    y: 20
+                                }
+                            },
+                            attrs: {
+                                circle: {
+                                    r: 50,
+                                    magnet: true,
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            rect.addPort({
+                group: 'big',
+                id: 'port-big'
+            });
+
+            rect.addPort({
+                group: 'small',
+                id: 'port-small'
+            });
+
+            paper.model.resetCells([link, rect]);
+
+            paper.options.validateConnection = () => true;
+            const data = {};
+            const strategySpy = paper.options.connectionStrategy = sinon.spy();
+            paper.options.snapLinks = { radius: 50 };
+
+            const linkView = link.findView(paper);
+            const rectView = rect.findView(paper);
+
+            simulate.dragLinkView(linkView, 'target', { data });
+
+            // Move pointer inside the `big` magnet
+            linkView.pointermove({
+                target: rectView.el,
+                action: 'arrowhead-move',
+                data
+            }, 99, 20);
+
+            assert.equal(strategySpy.callCount, 1);
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: rect.id }),
+                rectView,
+                rectView.el.querySelector('[magnet]'),
+                sinon.match.any,
+                link,
+                'target',
+                paper
+            ), 'snapped to big magnet');
+
+            assert.equal(link.target().id, rect.id, 'link attached to magnet');
+            assert.equal(link.target().port, 'port-big', 'link attached to magnet');
+
+            // Move pointer inside the `small` magnet
+            linkView.pointermove({
+                target: rectView.el,
+                action: 'arrowhead-move',
+                data
+            }, 100, 20);
+
+            assert.equal(strategySpy.callCount, 2);
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: rect.id }),
+                rectView,
+                rectView.el.querySelector('[magnet]'),
+                sinon.match.any,
+                link,
+                'target',
+                paper
+            ), 'snapped to small magnet');
+
+            assert.equal(link.target().id, rect.id, 'link attached to magnet');
+            assert.equal(link.target().port, 'port-small', 'link attached to magnet');
         });
 
         QUnit.test('with snapLinksSelf=true', function(assert) {
