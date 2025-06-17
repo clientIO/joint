@@ -1862,21 +1862,23 @@ export const LinkView = CellView.extend({
         let isSnapped = false;
         // checking view in close area of the pointer
 
-        var r = snapLinks.radius || 50;
-        var viewsInArea = paper.findCellViewsInArea(
+        const r = snapLinks.radius || 50;
+        const viewsInArea = paper.findCellViewsInArea(
             { x: x - r, y: y - r, width: 2 * r, height: 2 * r },
             snapLinks.findInAreaOptions
         );
 
-        var prevClosestView = data.closestView || null;
-        var prevClosestMagnet = data.closestMagnet || null;
-        var prevMagnetProxy = data.magnetProxy || null;
+        const prevClosestView = data.closestView || null;
+        const prevClosestMagnet = data.closestMagnet || null;
+        const prevMagnetProxy = data.magnetProxy || null;
 
         data.closestView = data.closestMagnet = data.magnetProxy = null;
 
-        var minDistance = Number.MAX_VALUE;
-        var pointer = new Point(x, y);
+        let minDistance = Number.MAX_VALUE;
+        let bestPriority = -Infinity;
+        const pointer = new Point(x, y);
 
+        // Note: If snapRadius is smaller than magnet size, views will not be found.
         // filter out the current view
         viewsInArea.filter((view) => view !== this).forEach(function(view) {
             const candidates = [];
@@ -1888,12 +1890,14 @@ export const LinkView = CellView.extend({
                     const connection = view.getConnection();
                     candidates.push({
                         // find distance from the closest point of a link to pointer coordinates
+                        priority: 0,
                         distance: connection.closestPoint(pointer).squaredDistance(pointer),
                         magnet: view.el
                     });
                 } else {
                     candidates.push({
                         // find distance from the center of the model to pointer coordinates
+                        priority: 0,
                         distance: model.getBBox().center().squaredDistance(pointer),
                         magnet: view.el
                     });
@@ -1903,26 +1907,38 @@ export const LinkView = CellView.extend({
             view.$('[magnet]').toArray().forEach(magnet => {
 
                 const magnetBBox = view.getNodeBBox(magnet);
-                const snapPoint = view.getSnapPoint();
-                // Squared distance from model center to the magnet center is used as a priority.
-                const magnetDistance = magnetBBox.center().squaredDistance(snapPoint);
+                let magnetDistance = magnetBBox.pointNearestToPoint(pointer).squaredDistance(pointer);
+                if (magnetBBox.containsPoint(pointer)) {
+                    // Pointer sits inside this magnet.
+                    // Push its distance far into the negative range so any
+                    // "under-pointer" magnet outranks magnets that are only nearby
+                    // (positive distance) and every non-magnet candidate.
+                    // We add the original distance back to keep ordering among
+                    // overlapping magnets: the one whose border is closest to the
+                    // pointer (smaller original distance) still wins.
+                    magnetDistance = -Number.MAX_SAFE_INTEGER + magnetDistance;
+                }
 
-                candidates.push({
+                // Check if magnet is inside the snap radius.
+                if (magnetDistance <= r * r) {
                     // Prioritize magnets
-                    // find distance from the center of a magnet to pointer coordinates
-                    distance: magnetBBox.center().squaredDistance(pointer) - magnetDistance / 2,
-                    magnet
-                });
+                    candidates.push({
+                        priority: 1,
+                        distance: magnetDistance,
+                        magnet
+                    });
+                }
             });
 
             candidates.forEach(candidate => {
-                const { magnet, distance } = candidate;
-                // the connection is looked up in a circle area by `distance < r`
-                if (distance < minDistance) {
+                const { magnet, distance, priority } = candidate;
+                const isBetterCandidate = (priority > bestPriority) || (priority === bestPriority && distance < minDistance);
+                if (isBetterCandidate) {
                     const isAlreadyValidated = prevClosestMagnet === magnet;
                     if (isAlreadyValidated || paper.options.validateConnection.apply(
                         paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
                     )) {
+                        bestPriority = priority;
                         minDistance = distance;
                         data.closestView = view;
                         data.closestMagnet = magnet;
@@ -2284,4 +2300,3 @@ Object.defineProperty(LinkView.prototype, 'targetBBox', {
         return targetView.getNodeBBox(targetMagnet || targetView.el);
     }
 });
-
