@@ -115,7 +115,7 @@ PortData.prototype = {
             return layoutFn(portsArgs, elBBox, groupPositionArgs);
         }
 
-        throw new Error('layout.Port: No default port layout defined.');
+        throw new Error('layout.Port: Port layout name not recognized.');
     },
 
     _getPortLabelLayout: function(port, portPosition, elBBox) {
