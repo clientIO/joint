@@ -115,11 +115,6 @@ PortData.prototype = {
             return layoutFn(portsArgs, elBBox, groupPositionArgs);
         }
 
-        const defaultLayoutFn = namespace[DEFAULT_PORT_POSITION_NAME];
-        if (defaultLayoutFn) {
-            return defaultLayoutFn(portsArgs, elBBox, groupPositionArgs);
-        }
-
         throw new Error('layout.Port: No default port layout defined.');
     },
 
