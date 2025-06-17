@@ -19,14 +19,14 @@ exports[`Highlighters/Mask "Default" 1`] = `
           />
           <svg
             height="100%"
-            id="v-2"
+            id="v-1"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-3"
+              id="v-2"
               type="text/css"
             >
               CDATASection {}
@@ -80,14 +80,14 @@ exports[`Highlighters/Mask "Default" 1`] = `
         />
         <svg
           height="100%"
-          id="v-2"
+          id="v-1"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-3"
+            id="v-2"
             type="text/css"
           >
             CDATASection {}
@@ -198,14 +198,14 @@ exports[`Highlighters/Mask "WithPadding" 1`] = `
           />
           <svg
             height="100%"
-            id="v-4"
+            id="v-3"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-5"
+              id="v-4"
               type="text/css"
             >
               CDATASection {}
@@ -259,14 +259,14 @@ exports[`Highlighters/Mask "WithPadding" 1`] = `
         />
         <svg
           height="100%"
-          id="v-4"
+          id="v-3"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-5"
+            id="v-4"
             type="text/css"
           >
             CDATASection {}
@@ -377,14 +377,14 @@ exports[`Highlighters/Mask "WithSVGProps" 1`] = `
           />
           <svg
             height="100%"
-            id="v-6"
+            id="v-5"
             joint-selector="svg"
             style="position: absolute; inset: 0; overflow: hidden;"
             width="100%"
             xmlns:xlink="http://www.w3.org/1999/xlink"
           >
             <style
-              id="v-7"
+              id="v-6"
               type="text/css"
             >
               CDATASection {}
@@ -438,14 +438,14 @@ exports[`Highlighters/Mask "WithSVGProps" 1`] = `
         />
         <svg
           height="100%"
-          id="v-6"
+          id="v-5"
           joint-selector="svg"
           style="position: absolute; inset: 0; overflow: hidden;"
           width="100%"
           xmlns:xlink="http://www.w3.org/1999/xlink"
         >
           <style
-            id="v-7"
+            id="v-6"
             type="text/css"
           >
             CDATASection {}
