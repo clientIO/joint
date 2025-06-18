@@ -50,7 +50,10 @@ PortData.prototype = {
         });
     },
 
+    // Calculate SVG transformations based on evaluated group + port data
+    // NOTE: This function is also called for ports without a group (groupName = undefined)
     getGroupPortsMetrics: function(groupName, rect) {
+
         const { x = 0, y = 0, width = 0, height = 0 } = rect;
         const metricsKey = `${x}:${y}:${width}:${height}`;
         if (this.metricsKey !== metricsKey) {
@@ -58,11 +61,13 @@ PortData.prototype = {
             this.metrics = {};
             this.metricsKey = metricsKey;
         }
+
         let groupPortsMetrics = this.metrics[groupName];
         if (groupPortsMetrics) {
             // Return cached metrics
             return groupPortsMetrics;
         }
+
         // Calculate the metrics
         groupPortsMetrics = this.resolveGroupPortsMetrics(groupName, new Rect(x, y, width, height));
         this.metrics[groupName] = groupPortsMetrics;
@@ -78,7 +83,7 @@ PortData.prototype = {
             return port && port.position && port.position.args;
         });
 
-        const groupPortTransformations = this._getPortLayout(group, portsArgs, elBBox);
+        const groupPortTransformations = this._getGroupPortTransformations(group, portsArgs, elBBox);
 
         let accumulator = {
             ports: ports,
@@ -92,7 +97,7 @@ PortData.prototype = {
                 index,
                 portId,
                 portTransformation: portTransformation,
-                labelTransformation: this._getPortLabelLayout(port, Point(portTransformation), elBBox),
+                labelTransformation: this._getPortLabelTransformation(port, Point(portTransformation), elBBox),
                 portAttrs: port.attrs,
                 portSize: port.size,
                 labelSize: port.label.size
@@ -103,7 +108,7 @@ PortData.prototype = {
         return accumulator.result;
     },
 
-    _getPortLayout: function(group, portsArgs, elBBox) {
+    _getGroupPortTransformations: function(group, portsArgs, elBBox) {
 
         const groupPosition = group.position || {};
         const groupPositionArgs = groupPosition.args || {};
@@ -123,7 +128,7 @@ PortData.prototype = {
         throw new Error('layout.Port: Port layout name not recognized.');
     },
 
-    _getPortLabelLayout: function(port, portPosition, elBBox) {
+    _getPortLabelTransformation: function(port, portPosition, elBBox) {
 
         const labelPosition = port.label.position || {};
         const labelPositionArgs = labelPosition.args || {};
@@ -146,6 +151,7 @@ PortData.prototype = {
     _init: function(data) {
 
         // prepare groups
+        // - overwrites passed group properties with evaluated properties
         if (util.isObject(data.groups)) {
             var groups = Object.keys(data.groups);
             for (var i = 0, n = groups.length; i < n; i++) {
@@ -155,6 +161,7 @@ PortData.prototype = {
         }
 
         // prepare ports
+        // - overwrites passed port properties with evaluated properties or mixed-in evaluated group properties
         var ports = util.toArray(data.items);
         for (var j = 0, m = ports.length; j < m; j++) {
             const resolvedPort = this._evaluatePort(ports[j]);
@@ -165,40 +172,95 @@ PortData.prototype = {
 
     _evaluateGroup: function(group) {
 
-        return util.merge(group, {
-            position: this._getPosition(group.position, true),
-            label: this._getLabel(group, true)
-        });
+        return util.merge(
+            group,
+            {
+                position: this._evaluateGroupPositionProperty(group),
+                label: this._evaluateGroupLabelProperty(group)
+            }
+        );
+    },
+
+    _evaluateGroupPositionProperty: function(group) {
+
+        const groupPosition = group.position;
+        if (groupPosition === undefined) {
+            return { name: DEFAULT_PORT_POSITION_NAME };
+
+        } else if (util.isFunction(groupPosition)) {
+            return { fn: groupPosition };
+
+        } else if (util.isObject(groupPosition)) {
+            if (groupPosition.name) {
+                return { name: groupPosition.name, args: groupPosition.args };
+            } else {
+                return { name: DEFAULT_PORT_POSITION_NAME, args: groupPosition.args };
+            }
+
+        } else if (util.isString(groupPosition)) {
+            // TODO: remove legacy signature (see `_evaluateLabelPositionProperty()`)
+            return { name: groupPosition };
+
+        } else if (Array.isArray(groupPosition)) {
+            // TODO: remove legacy signature (see `_evaluateLabelPositionProperty()`)
+            return { name: 'absolute', args: { x: groupPosition[0], y: groupPosition[1] }};
+
+        } else {
+            throw new Error('dia.Element: Invalid group port position type.');
+        }
+    },
+
+    _evaluateGroupLabelProperty: function(group) {
+
+        const groupLabel = group.label;
+        if (!groupLabel) {
+            return { position: { name: DEFAULT_PORT_LABEL_POSITION_NAME }};
+        }
+
+        return util.merge(
+            groupLabel,
+            {
+                position: this._evaluateGroupLabelPositionProperty(groupLabel)
+            }
+        );
+    },
+
+    _evaluateGroupLabelPositionProperty: function(groupLabel) {
+
+        const groupLabelPosition = groupLabel.position;
+        if (groupLabelPosition === undefined) {
+            return { name: DEFAULT_PORT_LABEL_POSITION_NAME };
+
+        } else if (util.isFunction(groupLabelPosition)) {
+            return { fn: groupLabelPosition };
+
+        }  else if (util.isObject(groupLabelPosition)) {
+            if (groupLabelPosition.name) {
+                return { name: groupLabelPosition.name, args: groupLabelPosition.args };
+            } else {
+                return { name: DEFAULT_PORT_LABEL_POSITION_NAME, args: groupLabelPosition.args };
+            }
+
+        } else {
+            throw new Error('dia.Element: Invalid group label position type.');
+        }
     },
 
     _evaluatePort: function(port) {
 
-        var evaluated = util.assign({}, port);
+        const group = this.getGroup(port.group);
 
-        var group = this.getGroup(port.group);
-
+        const evaluated = util.assign({}, port);
         evaluated.markup = evaluated.markup || group.markup;
         evaluated.attrs = util.merge({}, group.attrs, evaluated.attrs);
-        evaluated.position = this._createPositionNode(group, evaluated);
-        evaluated.label = util.merge({}, group.label, this._getLabel(evaluated));
-        evaluated.z = this._getZIndex(group, evaluated);
+        evaluated.position = this._evaluatePortPositionProperty(group, evaluated);
+        evaluated.label = this._evaluatePortLabelProperty(group, evaluated);
+        evaluated.z = this._evaluatePortZProperty(group, evaluated);
         evaluated.size = util.assign({}, group.size, evaluated.size);
-
         return evaluated;
     },
 
-    _getZIndex: function(group, port) {
-
-        if (util.isNumber(port.z)) {
-            return port.z;
-        }
-        if (util.isNumber(group.z) || group.z === 'auto') {
-            return group.z;
-        }
-        return 'auto';
-    },
-
-    _createPositionNode: function(group, port) {
+    _evaluatePortPositionProperty: function(group, port) {
 
         return util.merge(
             {
@@ -216,64 +278,59 @@ PortData.prototype = {
         );
     },
 
-    _getPosition: function(position, setDefault) {
+    _evaluatePortLabelProperty: function(group, port) {
 
-        const args = {};
-        let positionName;
-
-        if (util.isFunction(position)) {
-            return { fn: position };
-        } else if (util.isString(position)) {
-            // TODO: remove legacy signature (see `_getLabelPosition()`)
-            positionName = position;
-        } else if (position === undefined) {
-            positionName = setDefault ? DEFAULT_PORT_POSITION_NAME : null;
-        } else if (Array.isArray(position)) {
-            // TODO: remove legacy signature (see `_getLabelPosition()`)
-            positionName = 'absolute';
-            args.x = position[0];
-            args.y = position[1];
-        } else if (util.isObject(position)) {
-            positionName = position.name;
-            util.assign(args, position.args);
+        const groupLabel = group.label;
+        const portLabel = port.label;
+        if (!portLabel) {
+            return util.merge(
+                {},
+                groupLabel
+            );
         }
 
-        const result = { args: args };
-        if (positionName) {
-            result.name = positionName;
-        }
-        return result;
+        return util.merge(
+            {},
+            groupLabel,
+            util.merge(
+                portLabel,
+                {
+                    position: this._evaluatePortLabelPositionProperty(portLabel)
+                }
+            )
+        );
     },
 
-    _getLabel: function(item, setDefault) {
+    _evaluatePortLabelPositionProperty: function(portLabel) {
 
-        var label = item.label || {};
+        const portLabelPosition = portLabel.position;
+        if (portLabelPosition === undefined) {
+            return {};
 
-        var ret = label;
-        ret.position = this._getLabelPosition(label.position, setDefault);
+        } else if (util.isFunction(portLabelPosition)) {
+            return { fn: portLabelPosition };
 
-        return ret;
+        }  else if (util.isObject(portLabelPosition)) {
+            if (portLabelPosition.name) {
+                return { name: portLabelPosition.name, args: portLabelPosition.args };
+            } else {
+                return { args: portLabelPosition.args };
+            }
+
+        } else {
+            throw new Error('dia.Element: Invalid port label position type.');
+        }
     },
 
-    _getLabelPosition: function(labelPosition, setDefault) {
+    _evaluatePortZProperty: function(group, port) {
 
-        const labelArgs = {};
-        let labelPositionName;
-
-        if (util.isFunction(labelPosition)) {
-            return { fn: labelPosition };
-        } else if (labelPosition === undefined) {
-            labelPositionName = setDefault ? DEFAULT_PORT_LABEL_POSITION_NAME : null;
-        } else if (util.isObject(labelPosition)) {
-            labelPositionName = labelPosition.name;
-            util.assign(labelArgs, labelPosition.args);
+        if (util.isNumber(port.z)) {
+            return port.z;
         }
-
-        const result = { args: labelArgs };
-        if (labelPositionName) {
-            result.name = labelPositionName;
+        if (util.isNumber(group.z) || group.z === 'auto') {
+            return group.z;
         }
-        return result;
+        return 'auto';
     }
 };
 
