@@ -7,6 +7,10 @@ export class GraphLayersController extends Listener {
 
         this.graph = context.graph;
 
+        if (!this.graph.has('layers')) {
+            this.graph.set('layers', []);
+        }
+
         this.layers = this.graph.get('layers');
         this.layersMap = {};
 
@@ -101,7 +105,7 @@ export class GraphLayersController extends Listener {
 
         this.layers = this.layers.concat([layer]);
 
-        layer.set('graph', this.graph);
+        layer.addToGraph(this.graph);
         layersMap[layer.name] = layer;
 
         this.graph.set('layers', this.layers);
@@ -121,7 +125,7 @@ export class GraphLayersController extends Listener {
         this.layers = this.layers.filter(l => l.name !== layerName);
 
         const layer = layersMap[layerName];
-        layer.unset('graph');
+        layer.removeFromGraph();
 
         delete this.layersMap[layerName];
         this.graph.set('layers', this.layers);

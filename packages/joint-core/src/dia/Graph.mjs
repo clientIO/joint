@@ -76,15 +76,11 @@ export const Graph = Model.extend({
         this.defaultLayerName = 'cells';
 
         const defaultLayer = new GraphLayer({
-            name: this.defaultLayerName,
-            graph: this,
+            name: this.defaultLayerName
         });
 
-        this.set('layers', [
-            defaultLayer
-        ]);
-
         this.layersController = new GraphLayersController({ graph: this });
+        this.layersController.addLayer(defaultLayer);
 
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy

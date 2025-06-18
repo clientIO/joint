@@ -58,4 +58,14 @@ export class GraphLayer extends Model {
         const lastCell = this.get('cells').last();
         return lastCell ? (lastCell.get('z') || 0) : 0;
     }
+
+    addToGraph(graph) {
+        this.graph = graph;
+        this.trigger('addToGraph', this.graph);
+    }
+
+    removeFromGraph() {
+        this.graph = null;
+        this.trigger('removeFromGraph');
+    }
 }

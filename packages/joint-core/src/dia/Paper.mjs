@@ -408,7 +408,6 @@ export const Paper = View.extend({
         }, {
             name: LayersNames.LABELS,
         }, {
-            type: 'GraphLayerView',
             name: LayersNames.CELLS,
             model: this.model.getDefaultLayer()
         }, {

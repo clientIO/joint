@@ -8,17 +8,17 @@ export class GraphLayerView extends LayerView {
 
         const { model } = this;
 
-        const graph = model.get('graph');
-        if (graph) {
-            this.startListening(graph);
+        if (model.graph) {
+            this.startListening(model.graph);
         }
 
-        this.listenTo(model, 'change:graph', (_, graph) => {
+        this.listenTo(model, 'addedToGraph', (graph) => {
             this.stopListening();
+            this.startListening(graph);
+        });
 
-            if (graph) {
-                this.startListening(graph);
-            }
+        this.listenTo(model, 'removedFromGraph', () => {
+            this.stopListening();
         });
     }
 
