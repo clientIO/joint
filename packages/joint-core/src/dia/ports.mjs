@@ -7,14 +7,16 @@ import * as PortLabel from '../layout/ports/portLabel.mjs';
 const DEFAULT_PORT_POSITION_NAME = 'left';
 const DEFAULT_PORT_LABEL_POSITION_NAME = 'left';
 
-var PortData = function(data) {
+const PortData = function(data, opt) {
 
-    var clonedData = util.cloneDeep(data) || {};
+    const { portLayoutNamespace = Port, portLabelLayoutNamespace = PortLabel } = opt;
+
+    const clonedData = util.cloneDeep(data) || {};
     this.ports = [];
     this.portsMap = {};
     this.groups = {};
-    this.portLayoutNamespace = Port; // can be overridden (see `elementPortPrototype._createPortData()`)
-    this.portLabelLayoutNamespace = PortLabel; // can be overridden (see `elementPortPrototype._createPortData()`)
+    this.portLayoutNamespace = portLayoutNamespace;
+    this.portLabelLayoutNamespace = portLabelLayoutNamespace;
     this.metrics = {};
     this.metricsKey = null;
 
@@ -660,14 +662,15 @@ export const elementPortPrototype = {
             prevPortData = this._portSettingsData.getPorts();
         }
 
-        this._portSettingsData = new PortData(this.get('ports'));
-        // Override default portLayoutNamespace and portLabelLayoutNamespace if they are present on element
-        if (this.portLayoutNamespace) {
-            this._portSettingsData.portLayoutNamespace = this.portLayoutNamespace;
-        }
-        if (this.portLabelLayoutNamespace) {
-            this._portSettingsData.portLabelLayoutNamespace = this.portLabelLayoutNamespace;
-        }
+        // Share portLayoutNamespace and portLabelLayoutNamespace if they are defined on element
+        const portDataOpt = {};
+         if (this.portLayoutNamespace) {
+            portDataOpt.portLayoutNamespace = this.portLayoutNamespace;
+         }
+         if (this.portLabelLayoutNamespace) {
+            portDataOpt.portLabelLayoutNamespace = this.portLabelLayoutNamespace;
+         }
+        this._portSettingsData = new PortData(this.get('ports'), portDataOpt);
 
         var curPortData = this._portSettingsData.getPorts();
 
