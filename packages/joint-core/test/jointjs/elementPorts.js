@@ -2551,6 +2551,8 @@ QUnit.module('element ports', function() {
 
         QUnit.test('ports center can be retrieved', function(assert) {
 
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
             const shape = create({
                 groups: {
                     'a': { position: 'left' }
@@ -2561,8 +2563,6 @@ QUnit.module('element ports', function() {
                     { id: 'three', group: 'a' }
                 ]
             }).set('size', { width: 5, height: 10 });
-
-            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
 
             let portPositionOne, portPositionTwo, portPositionThree;
 
@@ -2599,6 +2599,8 @@ QUnit.module('element ports', function() {
             const width = 17;
             const height = 13;
 
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
             const shape = create({
                 groups: {
                     'a': {
@@ -2612,8 +2614,6 @@ QUnit.module('element ports', function() {
                     { id: 'three', group: 'a' }
                 ]
             }).set('size', { width: 50, height: 50 });
-
-            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
 
             let portBBoxOne, portBBoxTwo, portBBoxThree;
 
@@ -2654,6 +2654,8 @@ QUnit.module('element ports', function() {
             const elWidth = 100;
             const elHeight = 100;
 
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
             const shape = create({
                 groups: {
                     'a': {
@@ -2671,8 +2673,6 @@ QUnit.module('element ports', function() {
                 size: { width: elWidth, height: elHeight },
                 angle: 90,
             })
-
-            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
 
             const portUnrotatedBBox = shape.getPortBBox('one');
             const portRotatedBBox = shape.getPortBBox('one', { rotate: true });
