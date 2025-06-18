@@ -167,32 +167,32 @@ function radialLayout(portCenterOffset, autoOrient, opt) {
     });
 }
 
-export const manual = function(_portPosition, _elBBox, opt) {
+export const manual = function(portPosition, elBBox, opt) {
     return labelAttributes(opt);
 };
 
-export const left = function(_portPosition, _elBBox, opt) {
+export const left = function(portPosition, elBBox, opt) {
     return labelAttributes(opt, {
         x: -15,
         attrs: { labelText: { y: '.3em', textAnchor: 'end' }},
     });
 };
 
-export const right = function(_portPosition, _elBBox, opt) {
+export const right = function(portPosition, elBBox, opt) {
     return labelAttributes(opt, {
         x: 15,
         attrs: { labelText: { y: '.3em', textAnchor: 'start' }},
     });
 };
 
-export const top = function(_portPosition, _elBBox, opt) {
+export const top = function(portPosition, elBBox, opt) {
     return labelAttributes(opt, {
         y: -15,
         attrs: { labelText: { y: '0', textAnchor: 'middle' }},
     });
 };
 
-export const bottom = function(_portPosition, _elBBox, opt) {
+export const bottom = function(portPosition, elBBox, opt) {
     return labelAttributes(opt, {
         y: 15,
         attrs: { labelText: { y: '.6em', textAnchor: 'middle' }},

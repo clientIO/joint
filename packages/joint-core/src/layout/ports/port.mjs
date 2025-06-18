@@ -52,7 +52,6 @@ function ellipseLayout(ports, elBBox, startAngle, stepFn) {
     });
 }
 
-
 function argTransform(bbox, args) {
     let { x, y, angle } = args;
     if (util.isPercentage(x)) {
@@ -74,14 +73,13 @@ function argPoint(bbox, args) {
     return new g.Point(x || 0, y || 0);
 }
 
-
 /**
  * @param {Array<Object>} ports
  * @param {g.Rect} elBBox
  * @param {Object=} opt opt Group options
  * @returns {Array<g.Point>}
  */
-export const absolute = function(ports, elBBox) {
+export const absolute = function(ports, elBBox, opt) {
     return ports.map(port => {
         const transformation = argPoint(elBBox, port).round().toJSON();
         transformation.angle = port.angle || 0;
