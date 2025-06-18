@@ -90,6 +90,7 @@ export const absolute = function(ports, elBBox) {
 };
 
 /**
+ * @deprecated
  * @param {Array<Object>} ports
  * @param {g.Rect} elBBox
  * @param {Object=} opt opt Group options

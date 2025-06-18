@@ -2998,7 +2998,7 @@ export namespace layout {
         type Transformation = {
             x: number;
             y: number;
-            angle?: number;
+            angle: number;
         };
 
         type LayoutFunction = (ports: Array<dia.Element.Port>, elBBox: g.Rect, opt: Options) => Array<Transformation>;
@@ -3018,6 +3018,7 @@ export namespace layout {
         }
 
         export var absolute: LayoutFunction;
+        /** @deprecated */
         export var fn: LayoutFunction;
         export var line: LayoutFunction;
         export var left: LayoutFunction;
@@ -3042,8 +3043,8 @@ export namespace layout {
         interface LabelAttributes {
             x: number;
             y: number;
-            angle?: number;
-            attrs?: dia.Cell.Selectors;
+            angle: number;
+            attrs: dia.Cell.Selectors;
         }
 
         type LayoutFunction = (portPosition: g.Point, elBBox: g.Rect, opt: Options) => LabelAttributes;

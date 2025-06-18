@@ -106,7 +106,10 @@ PortData.prototype = {
         const groupPosition = group.position || {};
         const groupPositionArgs = groupPosition.args || {};
 
-        // TODO: check `groupPosition.fn` and call it directly (see `_getPortLabelLayout()`)
+        const groupPositionFn = groupPosition.fn;
+        if (groupPositionFn) {
+            return groupPositionFn(portsArgs, elBBox, groupPositionArgs);
+        }
 
         const groupPositionName = groupPosition.name || DEFAULT_PORT_POSITION_NAME;
         const namespace = this.portLayoutNamespace;
@@ -217,9 +220,7 @@ PortData.prototype = {
         let positionName;
 
         if (util.isFunction(position)) {
-            // TODO: return function as `fn` of `result` (see `_getLabelPosition()`)
-            positionName = 'fn';
-            args.fn = position;
+            return { fn: position };
         } else if (util.isString(position)) {
             // TODO: remove legacy signature (see `_getLabelPosition()`)
             positionName = position;
