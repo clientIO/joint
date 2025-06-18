@@ -27,6 +27,7 @@ concurrency:
 jobs:
   # Job to build the documentation (Storybook + TypeDoc)
   build-joint-react-docs:
+    if: ${{ github.repository == 'clientIO/joint' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -93,6 +94,7 @@ jobs:
   # Deploy the docs to GitHub Pages
   deploy-joint-react-docs:
     needs: build-joint-react-docs
+    if: ${{ github.repository == 'clientIO/joint' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
