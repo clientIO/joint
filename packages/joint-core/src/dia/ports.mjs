@@ -76,6 +76,9 @@ PortData.prototype = {
 
     resolveGroupPortsMetrics: function(groupName, elBBox) {
 
+        // `groupName` of `undefined` (= not a string) means "the group of ports which do not have the `group` property".
+        const isNoGroup = (groupName === undefined);
+
         const group = this.getGroup(groupName);
         const ports = this.getPortsByGroup(groupName);
 
@@ -83,13 +86,22 @@ PortData.prototype = {
             return port && port.position && port.position.args;
         });
 
-        const groupPortTransformations = this._getGroupPortTransformations(group, portsArgs, elBBox);
+        // Get an array of transformations of individual ports according to the group's port layout function:
+        let groupPortTransformations;
+        if (isNoGroup) {
+            // Apply default port layout function to ports without `group` property.
+            const noGroup = { position: { fn: this.portLayoutNamespace[DEFAULT_PORT_POSITION_NAME] }};
+            groupPortTransformations = this._getGroupPortTransformations(noGroup, portsArgs, elBBox);
+        } else {
+            groupPortTransformations = this._getGroupPortTransformations(group, portsArgs, elBBox);
+        }
 
         let accumulator = {
             ports: ports,
             result: {}
         };
 
+        // For each individual port transformation, find the information necessary to calculate SVG transformations:
         util.toArray(groupPortTransformations).reduce((res, portTransformation, index) => {
             const port = res.ports[index];
             const portId = port.id;
@@ -150,8 +162,8 @@ PortData.prototype = {
 
     _init: function(data) {
 
-        // prepare groups
-        // - overwrites passed group properties with evaluated properties
+        // Prepare groups:
+        // NOTE: This overwrites passed group properties with evaluated group properties.
         if (util.isObject(data.groups)) {
             var groups = Object.keys(data.groups);
             for (var i = 0, n = groups.length; i < n; i++) {
@@ -160,8 +172,8 @@ PortData.prototype = {
             }
         }
 
-        // prepare ports
-        // - overwrites passed port properties with evaluated properties or mixed-in evaluated group properties
+        // Prepare ports:
+        // NOTE: This overwrites passed port properties with evaluated port properties, plus mixed-in evaluated group properties (see above).
         var ports = util.toArray(data.items);
         for (var j = 0, m = ports.length; j < m; j++) {
             const resolvedPort = this._evaluatePort(ports[j]);
@@ -173,6 +185,7 @@ PortData.prototype = {
     _evaluateGroup: function(group) {
 
         return util.merge(
+            {},
             group,
             {
                 position: this._evaluateGroupPositionProperty(group),
@@ -198,11 +211,11 @@ PortData.prototype = {
             }
 
         } else if (util.isString(groupPosition)) {
-            // TODO: remove legacy signature (see `_evaluateLabelPositionProperty()`)
+            // TODO: Remove legacy signature (see `this._evaluateGroupLabelPositionProperty()`).
             return { name: groupPosition };
 
         } else if (Array.isArray(groupPosition)) {
-            // TODO: remove legacy signature (see `_evaluateLabelPositionProperty()`)
+            // TODO: Remove legacy signature (see `this._evaluateGroupLabelPositionProperty()`).
             return { name: 'absolute', args: { x: groupPosition[0], y: groupPosition[1] }};
 
         } else {
@@ -218,6 +231,7 @@ PortData.prototype = {
         }
 
         return util.merge(
+            {},
             groupLabel,
             {
                 position: this._evaluateGroupLabelPositionProperty(groupLabel)
@@ -264,15 +278,19 @@ PortData.prototype = {
 
         return util.merge(
             {
+                // Do not assign `fn` - port layout functions work for groups, so they don't make sense for individual ports.
+                // Port cannot overwrite `group.position.name` - if port is not in a group, then `port.position.name` must be the default position name.
+                // TODO: Do not assign `port.position.name` backwards compatibility either (same reason as `fn`).
                 name: DEFAULT_PORT_POSITION_NAME,
                 args: {}
             },
-            group.position,
+            // Omit `group.position.fn` - port layout functions work for groups, so they don't make sense for individual ports.
+            // TODO: Omit `group.position.name` backwards compatibility as well (same reason as `group.position.fn`).
+            util.omit(group.position, 'fn'),
             {
-                // port cannot overwrite group `position.name` (or set its own)
-                // port can overwrite group `position.args` - via `port.position.args` or `port.args`
-                // TODO: remove `port.args` backwards compatibility
-                // NOTE: `x != null` is equivalent to `x !== null && x !== undefined`
+                // Port can overwrite `group.position.args` via `port.position.args` or `port.args`.
+                // TODO: Remove `port.args` backwards compatibility.
+                // NOTE: `x != null` is equivalent to `x !== null && x !== undefined`.
                 args: (((port.position != null) && (port.position.args != null)) ? port.position.args : port.args)
             }
         );
@@ -283,7 +301,7 @@ PortData.prototype = {
         const groupLabel = group.label;
         const portLabel = port.label;
         if (!portLabel) {
-            return util.merge(
+            return util.assign(
                 {},
                 groupLabel
             );
@@ -293,6 +311,7 @@ PortData.prototype = {
             {},
             groupLabel,
             util.merge(
+                {},
                 portLabel,
                 {
                     position: this._evaluatePortLabelPositionProperty(portLabel)
