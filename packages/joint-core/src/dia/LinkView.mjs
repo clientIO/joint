@@ -408,10 +408,6 @@ export const LinkView = CellView.extend({
         }
     },
 
-    getSnapPoint: function() {
-        return this.getConnection().pointAt(0.5);
-    },
-
     findLabelNodes: function(labelIndex, selector) {
         const labelRoot = this._labelCache[labelIndex];
         if (!labelRoot) return [];
