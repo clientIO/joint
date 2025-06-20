@@ -563,24 +563,35 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Cell.Selectors> {
         }
 
-        type PortPositionCallback = (ports: Port[], bbox: g.Rect) => dia.Point[];
+        type PortPositionCallback = layout.Port.LayoutFunction;
+
+        type PortLabelPositionCallback = layout.PortLabel.LayoutFunction;
 
         interface PortPositionJSON {
             name?: string;
-            args?: { [key: string]: any };
+            args?: layout.Port.Options;
+        }
+
+        interface PortLabelPositionJSON {
+            name?: string;
+            args?: layout.PortLabel.Options;
         }
 
         type PositionType = string | PortPositionCallback | PortPositionJSON;
+
+        type PortLabelPositionType = PortLabelPositionCallback | PortPositionJSON;
 
         interface PortGroup {
             position?: PositionType;
             markup?: string | MarkupJSON;
             attrs?: Cell.Selectors;
             size?: Size;
-            label?: {
-                markup?: string | MarkupJSON;
-                position?: PositionType;
-            };
+            label?: PortLabel;
+        }
+
+        interface PortLabel {
+            markup?: string | MarkupJSON;
+            position?: PortLabelPositionType;
         }
 
         interface Port {
@@ -589,14 +600,12 @@ export namespace dia {
             group?: string;
             attrs?: Cell.Selectors;
             position?: {
-                args?: { [key: string]: any };
+                args?: layout.Port.Options;
             };
-            args?: { [key: string]: any };
+            /** @deprecated use `position.args` instead */
+            args?: layout.Port.Options;
             size?: Size;
-            label?: {
-                markup?: string | MarkupJSON;
-                position?: PositionType;
-            };
+            label?: PortLabel;
             z?: number | 'auto';
         }
 
@@ -2677,7 +2686,7 @@ export namespace util {
     export function isPercentage(val: any): boolean;
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number, unit?: string } | null;
-    
+
     type BreakTextOptions = {
         svgDocument?: SVGElement;
         separator?: string | any;
@@ -2687,7 +2696,7 @@ export namespace util {
         maxLineCount?: number;
         preserveSpaces?: boolean;
     }
-    
+
     type BreakTextFunction = (
         text: string,
         size: { width: number, height?: number },
@@ -2992,7 +3001,7 @@ export namespace layout {
             angle: number;
         };
 
-        type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<Transformation>;
+        type LayoutFunction = (ports: Array<dia.Element.Port>, elBBox: g.Rect, opt: Options) => Array<Transformation>;
 
         interface Options {
             x?: number | string;
@@ -3005,9 +3014,11 @@ export namespace layout {
             startAngle?: number;
             step?: number;
             compensateRotation?: boolean;
+            [key: string]: any;
         }
 
         export var absolute: LayoutFunction;
+        /** @deprecated */
         export var fn: LayoutFunction;
         export var line: LayoutFunction;
         export var left: LayoutFunction;
@@ -3026,6 +3037,7 @@ export namespace layout {
             angle?: number;
             offset?: number;
             attrs?: dia.Cell.Selectors;
+            [key: string]: any;
         }
 
         interface LabelAttributes {
@@ -3502,9 +3514,9 @@ export namespace mvc {
 
         el: TElement;
         attributes: Record<string, any>;
-        /* @deprecated use `el` instead */
+        /** @deprecated use `el` instead */
         $el: Dom;
-        /* @deprecated use `el.querySelector()` instead */
+        /** @deprecated use `el.querySelector()` instead */
         $(selector: string): Dom;
         render(): this;
         remove(): this;

@@ -1218,6 +1218,29 @@ QUnit.module('element ports', function() {
                                 //args: { angle: -45 }
                             }
                         }
+                    },
+                    'fn': {
+                        position: {
+                            name: 'left'
+                            //args: { x: 0, y: 1 }
+                        },
+                        label: {
+                            position: (_portPosition, _elBBox, _opt) => ({ x: 100, y: 100, angle: 0 })
+                            //args: { x: -14, y: 14, angle: -45, attrs: { labelText: { y: '.3em', textAnchor: 'end' }}}
+                        }
+                    },
+                    'fnAttrs': {
+                        position: {
+                            name: 'left',
+                            //args: { x: 0, y: 1 }
+                        },
+                        attrs: {
+                            labelText: { x: '.11em', y: '.12em', textAnchor: 'middle' }
+                        },
+                        label: {
+                            position: (_portPosition, _elBBox, _opt) => ({ x: 100, y: 100, angle: 0 })
+                            //args: { x: -14, y: 14, angle: -45 }
+                        }
                     }
                 },
                 items: [
@@ -1396,6 +1419,14 @@ QUnit.module('element ports', function() {
                     {
                         id: 'radialOrientedBothAttrs',
                         group: 'radialOrientedBothAttrs'
+                    },
+                    {
+                        id: 'fn',
+                        group: 'fn'
+                    },
+                    {
+                        id: 'fnAttrs',
+                        group: 'fnAttrs'
                     }
                 ]
             };
@@ -1403,11 +1434,11 @@ QUnit.module('element ports', function() {
             const shape = create(data);
             const view = new joint.dia.ElementView({ model: shape }).render();
 
-            // MANUAL:
-
             function getMatrix(node) {
                 return node.getAttribute('transform');
             }
+
+            // MANUAL:
 
             const manualG = view.findPortNode('manual').parentElement;
             assert.equal(getMatrix(manualG), 'matrix(1,0,0,1,0,1)');
@@ -1421,6 +1452,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(manualAttrsG), 'matrix(1,0,0,1,0,1)');
             const manualAttrsText = manualAttrsG.querySelector('text');
             assert.equal(getMatrix(manualAttrsText), 'matrix(1,0,0,1,0,0)');
+            // `attrs` come from `group.attrs`
             assert.equal(manualAttrsText.getAttribute('x'), '.11em');
             assert.equal(manualAttrsText.getAttribute('y'), '.12em');
             assert.equal(manualAttrsText.getAttribute('text-anchor'), 'middle');
@@ -1456,6 +1488,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(leftAttrsG), 'matrix(1,0,0,1,0,1)');
             const leftAttrsText = leftAttrsG.querySelector('text');
             assert.equal(getMatrix(leftAttrsText), 'matrix(1,0,0,1,-15,0)');
+            // `attrs` come from `group.attrs`
             assert.equal(leftAttrsText.getAttribute('x'), '.11em');
             assert.equal(leftAttrsText.getAttribute('y'), '.12em');
             assert.equal(leftAttrsText.getAttribute('text-anchor'), 'middle');
@@ -1491,6 +1524,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(rightAttrsG), 'matrix(1,0,0,1,0,1)');
             const rightAttrsText = rightAttrsG.querySelector('text');
             assert.equal(getMatrix(rightAttrsText), 'matrix(1,0,0,1,15,0)');
+            // `attrs` come from `group.attrs`
             assert.equal(rightAttrsText.getAttribute('x'), '.11em');
             assert.equal(rightAttrsText.getAttribute('y'), '.12em');
             assert.equal(rightAttrsText.getAttribute('text-anchor'), 'middle');
@@ -1526,6 +1560,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(topAttrsG), 'matrix(1,0,0,1,0,1)');
             const topAttrsText = topAttrsG.querySelector('text');
             assert.equal(getMatrix(topAttrsText), 'matrix(1,0,0,1,0,-15)');
+            // `attrs` come from `group.attrs`
             assert.equal(topAttrsText.getAttribute('x'), '.11em');
             assert.equal(topAttrsText.getAttribute('y'), '.12em');
             assert.equal(topAttrsText.getAttribute('text-anchor'), 'start');
@@ -1561,6 +1596,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(bottomAttrsG), 'matrix(1,0,0,1,0,1)');
             const bottomAttrsText = bottomAttrsG.querySelector('text');
             assert.equal(getMatrix(bottomAttrsText), 'matrix(1,0,0,1,0,15)');
+            // `attrs` come from `group.attrs`
             assert.equal(bottomAttrsText.getAttribute('x'), '.11em');
             assert.equal(bottomAttrsText.getAttribute('y'), '.12em');
             assert.equal(bottomAttrsText.getAttribute('text-anchor'), 'start');
@@ -1597,6 +1633,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(outsideAttrsG), 'matrix(1,0,0,1,0,1)');
             const outsideAttrsText = outsideAttrsG.querySelector('text');
             assert.equal(getMatrix(outsideAttrsText), 'matrix(1,0,0,1,0,15)');
+            // `attrs` come from `group.attrs`
             assert.equal(outsideAttrsText.getAttribute('x'), '.11em');
             assert.equal(outsideAttrsText.getAttribute('y'), '.12em');
             assert.equal(outsideAttrsText.getAttribute('text-anchor'), 'start');
@@ -1633,6 +1670,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(outsideOrientedAttrsG), 'matrix(1,0,0,1,0,1)');
             const outsideOrientedAttrsText = outsideOrientedAttrsG.querySelector('text');
             assert.equal(getMatrix(outsideOrientedAttrsText), 'matrix(6.123233995736766e-17,1,-1,6.123233995736766e-17,0,15)');
+            // `attrs` come from `group.attrs`
             assert.equal(outsideOrientedAttrsText.getAttribute('x'), '.11em');
             assert.equal(outsideOrientedAttrsText.getAttribute('y'), '.12em');
             assert.equal(outsideOrientedAttrsText.getAttribute('text-anchor'), 'middle');
@@ -1669,6 +1707,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(insideAttrsG), 'matrix(1,0,0,1,0,1)');
             const insideAttrsText = insideAttrsG.querySelector('text');
             assert.equal(getMatrix(insideAttrsText), 'matrix(1,0,0,1,0,-15)');
+            // `attrs` come from `group.attrs`
             assert.equal(insideAttrsText.getAttribute('x'), '.11em');
             assert.equal(insideAttrsText.getAttribute('y'), '.12em');
             assert.equal(insideAttrsText.getAttribute('text-anchor'), 'start');
@@ -1705,6 +1744,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(insideOrientedAttrsG), 'matrix(1,0,0,1,0,1)');
             const insideOrientedAttrsText = insideOrientedAttrsG.querySelector('text');
             assert.equal(getMatrix(insideOrientedAttrsText), 'matrix(6.123233995736766e-17,-1,1,6.123233995736766e-17,0,-15)');
+            // `attrs` come from `group.attrs`
             assert.equal(insideOrientedAttrsText.getAttribute('x'), '.11em');
             assert.equal(insideOrientedAttrsText.getAttribute('y'), '.12em');
             assert.equal(insideOrientedAttrsText.getAttribute('text-anchor'), 'middle');
@@ -1741,6 +1781,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(radialAttrsG), 'matrix(1,0,0,1,0,1)');
             const radialAttrsText = radialAttrsG.querySelector('text');
             assert.equal(getMatrix(radialAttrsText), 'matrix(1,0,0,1,-14,14)');
+            // `attrs` come from `group.attrs`
             assert.equal(radialAttrsText.getAttribute('x'), '.11em');
             assert.equal(radialAttrsText.getAttribute('y'), '.12em');
             assert.equal(radialAttrsText.getAttribute('text-anchor'), 'middle');
@@ -1777,6 +1818,7 @@ QUnit.module('element ports', function() {
             assert.equal(getMatrix(radialOrientedAttrsG), 'matrix(1,0,0,1,0,1)');
             const radialOrientedAttrsText = radialOrientedAttrsG.querySelector('text');
             assert.equal(getMatrix(radialOrientedAttrsText), 'matrix(0.7071067811865476,-0.7071067811865475,0.7071067811865475,0.7071067811865476,-14,14)');
+            // `attrs` come from `group.attrs`
             assert.equal(radialOrientedAttrsText.getAttribute('x'), '.11em');
             assert.equal(radialOrientedAttrsText.getAttribute('y'), '.12em');
             assert.equal(radialOrientedAttrsText.getAttribute('text-anchor'), 'middle');
@@ -1797,6 +1839,26 @@ QUnit.module('element ports', function() {
             assert.equal(radialOrientedBothAttrsText.getAttribute('x'), '.11em');
             assert.equal(radialOrientedBothAttrsText.getAttribute('y'), '.12em');
             assert.equal(radialOrientedBothAttrsText.getAttribute('text-anchor'), 'middle');
+
+            // CALLBACK FN:
+            // = uses provided function
+
+            const fnG = view.findPortNode('fn').parentElement;
+            assert.equal(getMatrix(fnG), 'matrix(1,0,0,1,0,1)');
+            const fnText = fnG.querySelector('text');
+            assert.equal(getMatrix(fnText), 'matrix(1,0,0,1,100,100)');
+            assert.equal(fnText.getAttribute('x'), null);
+            assert.equal(fnText.getAttribute('y'), null);
+            assert.equal(fnText.getAttribute('text-anchor'), null);
+
+            const fnAttrsG = view.findPortNode('fnAttrs').parentElement;
+            assert.equal(getMatrix(fnAttrsG), 'matrix(1,0,0,1,0,1)');
+            const fnAttrsText = fnAttrsG.querySelector('text');
+            assert.equal(getMatrix(fnAttrsText), 'matrix(1,0,0,1,100,100)');
+            // `attrs` come from `group.attrs`
+            assert.equal(fnAttrsText.getAttribute('x'), '.11em');
+            assert.equal(fnAttrsText.getAttribute('y'), '.12em');
+            assert.equal(fnAttrsText.getAttribute('text-anchor'), 'middle');
         });
     });
 
@@ -1839,17 +1901,20 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
+            var getGroup = function(id) {
+                return shape._portSettingsData.groups[id];
+            }
             var getPort = function(id) {
                 return _.find(shape._portSettingsData.ports, function(p) {
                     return p.id === id;
                 });
             };
 
-            assert.equal(getPort('pa').position.name, 'right');
+            assert.equal(getGroup(getPort('pa').group).position.layoutCallback, joint.layout.Port.right);
             assert.equal(getPort('pa').position.args.y, 20);
             assert.equal(getPort('pa').position.args.x, 10);
 
-            assert.equal(getPort('pb').position.name, 'top');
+            assert.equal(getGroup(getPort('pb').group).position.layoutCallback, joint.layout.Port.top);
             assert.equal(getPort('pb').position.args.y, 20);
         });
 
@@ -1883,16 +1948,16 @@ QUnit.module('element ports', function() {
                 });
             };
 
-            assert.equal(getPort('pa1').label.position.name, 'top', 'override group settings');
+            assert.equal(getPort('pa1').label.position.layoutCallback, joint.layout.PortLabel.top, 'override group settings');
             assert.equal(getPort('pa1').label.position.args.tx, 11);
             assert.equal(getPort('pa1').label.position.args.ty, 20);
 
-            assert.equal(getPort('pa2').label.position.name, 'right', 'gets settings from group');
+            assert.equal(getPort('pa2').label.position.layoutCallback, joint.layout.PortLabel.right, 'gets settings from group');
 
-            assert.equal(getPort('pb1').label.position.name, 'left', 'default settings, extra args');
+            assert.equal(getPort('pb1').label.position.layoutCallback, joint.layout.PortLabel.left, 'default settings, extra args');
             assert.equal(getPort('pb1').label.position.args.tx, 11);
 
-            assert.equal(getPort('pb2').label.position.name, 'left', 'defaults - no settings on group, either on port label');
+            assert.equal(getPort('pb2').label.position.layoutCallback, joint.layout.PortLabel.left, 'defaults - no settings on group, either on port label');
         });
     });
 
@@ -1949,7 +2014,6 @@ QUnit.module('element ports', function() {
             assert.equal(trans[3].angle, 10, 'y position overridden');
         });
 
-
         QUnit.test('absolute layout', function(assert) {
             var ports = [
                 {},
@@ -1970,6 +2034,496 @@ QUnit.module('element ports', function() {
             assert.equal(trans[2].y, 111);
             assert.equal(trans[2].x, 113);
             assert.equal(trans[2].angle, 0);
+        });
+
+        QUnit.test('callback fn port layout', function(assert) {
+            const ports = [
+                {},
+                { x: 20, y: -15, angle: 45 },
+                { y: 'calc(w+11)', x: 'calc(h+13)' }
+            ];
+            const elBBox = new g.Rect(0, 0, 100, 100);
+            const trans = joint.layout.Port.fn(ports, elBBox, { fn: (ports, _elBBox, _opt) => (ports.map(() => ({ x: 100, y: 100, angle: 0 }))) });
+
+            assert.equal(trans[0].x, 100);
+            assert.equal(trans[0].y, 100);
+            assert.equal(trans[0].angle, 0);
+
+            assert.equal(trans[1].x, 100);
+            assert.equal(trans[1].y, 100);
+            assert.equal(trans[1].angle, 0);
+
+            assert.equal(trans[2].y, 100);
+            assert.equal(trans[2].x, 100);
+            assert.equal(trans[2].angle, 0);
+        });
+    });
+
+    QUnit.module('port layout namespace', function(hooks) {
+
+        QUnit.test('add a layout definition', function(assert) {
+            const portLayoutNamespace = {
+                ...joint.layout.Port,
+                hundred: (ports, _elBBox, _opt) => (ports.map(() => ({ x: 100, y: 100, angle: 0 })))
+            };
+            const shape = new joint.shapes.standard.Rectangle({
+                position: { x: 0, y: 0 },
+                size: { width: 100, height: 100 },
+                ports: {
+                    groups: {
+                        'hundred': {
+                            position: {
+                                name: 'hundred'
+                            },
+                            label: {
+                                position: {
+                                    name: 'left'
+                                    //args: { x: -15, y: 0, angle: 0, attrs: { labelText: { y: '.3em', textAnchor: 'end' }}}
+                                },
+                                markup: [{
+                                    tagName: 'text',
+                                    selector: 'label'
+                                }]
+                            },
+                            attrs: {
+                                portBody: {
+                                    magnet: true,
+                                    width: 16,
+                                    height: 16,
+                                    x: -8,
+                                    y: -8,
+                                    fill: '#03071E'
+                                },
+                                label: {
+                                    text: 'port'
+                                }
+                            },
+                            markup: [{
+                                tagName: 'rect',
+                                selector: 'portBody'
+                            }]
+                        },
+                        'absolute': {
+                            position: {
+                                name: 'absolute',
+                                args: { x: 50, y: 50 }
+                            },
+                            label: {
+                                position: {
+                                    name: 'left'
+                                    //args: { x: -15, y: 0, angle: 0, attrs: { labelText: { y: '.3em', textAnchor: 'end' }}}
+                                },
+                                markup: [{
+                                    tagName: 'text',
+                                    selector: 'label'
+                                }]
+                            },
+                            attrs: {
+                                portBody: {
+                                    magnet: true,
+                                    width: 16,
+                                    height: 16,
+                                    x: -8,
+                                    y: -8,
+                                    fill: '#03071E'
+                                },
+                                label: {
+                                    text: 'port'
+                                }
+                            },
+                            markup: [{
+                                tagName: 'rect',
+                                selector: 'portBody'
+                            }]
+                        },
+                    },
+                    items: [{
+                        id: 'hundred',
+                        group: 'hundred'
+                    }, {
+                        id: 'absolute',
+                        group: 'absolute'
+                    }]
+                }
+            }, {
+                portLayoutNamespace
+            });
+
+            const view = new joint.dia.ElementView({ model: shape }).render();
+
+            function getMatrix(node) {
+                return node.getAttribute('transform');
+            }
+
+            // ADDED LAYOUT DEFINITION:
+
+            const hundredG = view.findPortNode('hundred').parentElement;
+            assert.equal(getMatrix(hundredG), 'matrix(1,0,0,1,100,100)');
+            const hundredText = hundredG.querySelector('text');
+            assert.equal(getMatrix(hundredText), 'matrix(1,0,0,1,-15,0)');
+            assert.equal(hundredText.getAttribute('x'), null);
+            assert.equal(hundredText.getAttribute('y'), '.3em');
+            assert.equal(hundredText.getAttribute('text-anchor'), 'end');
+
+            // BUILT-IN LAYOUT DEFINITION:
+
+            const absoluteG = view.findPortNode('absolute').parentElement;
+            assert.equal(getMatrix(absoluteG), 'matrix(1,0,0,1,50,50)');
+            const absoluteText = absoluteG.querySelector('text');
+            assert.equal(getMatrix(absoluteText), 'matrix(1,0,0,1,-15,0)');
+            assert.equal(absoluteText.getAttribute('x'), null);
+            assert.equal(absoluteText.getAttribute('y'), '.3em');
+            assert.equal(absoluteText.getAttribute('text-anchor'), 'end');
+        });
+
+        QUnit.test('clone an element with added layout definition', function(assert) {
+            const portLayoutNamespace = {
+                ...joint.layout.Port,
+                hundred: (ports, _elBBox, _opt) => (ports.map(() => ({ x: 100, y: 100, angle: 0 })))
+            };
+            const shape = new joint.shapes.standard.Rectangle({
+                position: { x: 0, y: 0 },
+                size: { width: 100, height: 100 },
+                ports: {
+                    groups: {
+                        'hundred': {
+                            position: {
+                                name: 'hundred'
+                            },
+                            label: {
+                                position: {
+                                    name: 'left'
+                                    //args: { x: -15, y: 0, angle: 0, attrs: { labelText: { y: '.3em', textAnchor: 'end' }}}
+                                },
+                                markup: [{
+                                    tagName: 'text',
+                                    selector: 'label'
+                                }]
+                            },
+                            attrs: {
+                                portBody: {
+                                    magnet: true,
+                                    width: 16,
+                                    height: 16,
+                                    x: -8,
+                                    y: -8,
+                                    fill: '#03071E'
+                                },
+                                label: {
+                                    text: 'port'
+                                }
+                            },
+                            markup: [{
+                                tagName: 'rect',
+                                selector: 'portBody'
+                            }]
+                        },
+                        'absolute': {
+                            position: {
+                                name: 'absolute',
+                                args: { x: 50, y: 50 }
+                            },
+                            label: {
+                                position: {
+                                    name: 'left'
+                                    //args: { x: -15, y: 0, angle: 0, attrs: { labelText: { y: '.3em', textAnchor: 'end' }}}
+                                },
+                                markup: [{
+                                    tagName: 'text',
+                                    selector: 'label'
+                                }]
+                            },
+                            attrs: {
+                                portBody: {
+                                    magnet: true,
+                                    width: 16,
+                                    height: 16,
+                                    x: -8,
+                                    y: -8,
+                                    fill: '#03071E'
+                                },
+                                label: {
+                                    text: 'port'
+                                }
+                            },
+                            markup: [{
+                                tagName: 'rect',
+                                selector: 'portBody'
+                            }]
+                        },
+                    },
+                    items: [{
+                        id: 'hundred',
+                        group: 'hundred'
+                    }, {
+                        id: 'absolute',
+                        group: 'absolute'
+                    }]
+                }
+            }, {
+                portLayoutNamespace
+            });
+            const shapeClone = shape.clone();
+
+            const view = new joint.dia.ElementView({ model: shapeClone }).render();
+
+            function getMatrix(node) {
+                return node.getAttribute('transform');
+            }
+
+            // ADDED LAYOUT DEFINITION:
+
+            const hundredG = view.findPortNode('hundred').parentElement;
+            assert.equal(getMatrix(hundredG), 'matrix(1,0,0,1,100,100)');
+            const hundredText = hundredG.querySelector('text');
+            assert.equal(getMatrix(hundredText), 'matrix(1,0,0,1,-15,0)');
+            assert.equal(hundredText.getAttribute('x'), null);
+            assert.equal(hundredText.getAttribute('y'), '.3em');
+            assert.equal(hundredText.getAttribute('text-anchor'), 'end');
+
+            // BUILT-IN LAYOUT DEFINITION:
+
+            const absoluteG = view.findPortNode('absolute').parentElement;
+            assert.equal(getMatrix(absoluteG), 'matrix(1,0,0,1,50,50)');
+            const absoluteText = absoluteG.querySelector('text');
+            assert.equal(getMatrix(absoluteText), 'matrix(1,0,0,1,-15,0)');
+            assert.equal(absoluteText.getAttribute('x'), null);
+            assert.equal(absoluteText.getAttribute('y'), '.3em');
+            assert.equal(absoluteText.getAttribute('text-anchor'), 'end');
+        });
+    });
+
+    QUnit.module('port label layout namespace', function(hooks) {
+
+        QUnit.test('add a label layout definition', function(assert) {
+            const portLabelLayoutNamespace = {
+                ...joint.layout.PortLabel,
+                labelHundred: (_portPosition, _elBBox, _opt) => ({ x: 100, y: 100, angle: 0 })
+            };
+            const shape = new joint.shapes.standard.Rectangle({
+                position: { x: 0, y: 0 },
+                size: { width: 100, height: 100 },
+                ports: {
+                    groups: {
+                        'labelHundred': {
+                            position: {
+                                name: 'left'
+                                //args: { x: 0, y: 50 }
+                            },
+                            label: {
+                                position: {
+                                    name: 'labelHundred'
+                                },
+                                markup: [{
+                                    tagName: 'text',
+                                    selector: 'label'
+                                }]
+                            },
+                            attrs: {
+                                portBody: {
+                                    magnet: true,
+                                    width: 16,
+                                    height: 16,
+                                    x: -8,
+                                    y: -8,
+                                    fill: '#03071E'
+                                },
+                                label: {
+                                    text: 'port'
+                                }
+                            },
+                            markup: [{
+                                tagName: 'rect',
+                                selector: 'portBody'
+                            }]
+                        },
+                        'manual': {
+                            position: {
+                                name: 'left'
+                                //args: { x: 0, y: 50 }
+                            },
+                            label: {
+                                position: {
+                                    name: 'manual',
+                                    args: { x: 50, y: 50 }
+                                },
+                                markup: [{
+                                    tagName: 'text',
+                                    selector: 'label'
+                                }]
+                            },
+                            attrs: {
+                                portBody: {
+                                    magnet: true,
+                                    width: 16,
+                                    height: 16,
+                                    x: -8,
+                                    y: -8,
+                                    fill: '#03071E'
+                                },
+                                label: {
+                                    text: 'port'
+                                }
+                            },
+                            markup: [{
+                                tagName: 'rect',
+                                selector: 'portBody'
+                            }]
+                        },
+                    },
+                    items: [{
+                        id: 'labelHundred',
+                        group: 'labelHundred'
+                    }, {
+                        id: 'manual',
+                        group: 'manual'
+                    }]
+                }
+            }, {
+                portLabelLayoutNamespace
+            });
+
+            const view = new joint.dia.ElementView({ model: shape }).render();
+
+            function getMatrix(node) {
+                return node.getAttribute('transform');
+            }
+
+            // ADDED LABEL LAYOUT DEFINITION:
+
+            const labelHundredG = view.findPortNode('labelHundred').parentElement;
+            assert.equal(getMatrix(labelHundredG), 'matrix(1,0,0,1,0,50)');
+            const labelHundredText = labelHundredG.querySelector('text');
+            assert.equal(getMatrix(labelHundredText), 'matrix(1,0,0,1,100,100)');
+            assert.equal(labelHundredText.getAttribute('x'), null);
+            assert.equal(labelHundredText.getAttribute('y'), '0.8em'); // default from Vectorizer
+            assert.equal(labelHundredText.getAttribute('text-anchor'), null);
+
+            // BUILT-IN LABEL LAYOUT DEFINITION:
+
+            const manualG = view.findPortNode('manual').parentElement;
+            assert.equal(getMatrix(manualG), 'matrix(1,0,0,1,0,50)');
+            const manualText = manualG.querySelector('text');
+            assert.equal(getMatrix(manualText), 'matrix(1,0,0,1,50,50)');
+            assert.equal(manualText.getAttribute('x'), null);
+            assert.equal(manualText.getAttribute('y'), '0.8em'); // default from Vectorizer
+            assert.equal(manualText.getAttribute('text-anchor'), null);
+        });
+
+        QUnit.test('clone an element with added label layout definition', function(assert) {
+            const portLabelLayoutNamespace = {
+                ...joint.layout.PortLabel,
+                labelHundred: (_portPosition, _elBBox, _opt) => ({ x: 100, y: 100, angle: 0 })
+            };
+            const shape = new joint.shapes.standard.Rectangle({
+                position: { x: 0, y: 0 },
+                size: { width: 100, height: 100 },
+                ports: {
+                    groups: {
+                        'labelHundred': {
+                            position: {
+                                name: 'left'
+                                //args: { x: 0, y: 50 }
+                            },
+                            label: {
+                                position: {
+                                    name: 'labelHundred'
+                                },
+                                markup: [{
+                                    tagName: 'text',
+                                    selector: 'label'
+                                }]
+                            },
+                            attrs: {
+                                portBody: {
+                                    magnet: true,
+                                    width: 16,
+                                    height: 16,
+                                    x: -8,
+                                    y: -8,
+                                    fill: '#03071E'
+                                },
+                                label: {
+                                    text: 'port'
+                                }
+                            },
+                            markup: [{
+                                tagName: 'rect',
+                                selector: 'portBody'
+                            }]
+                        },
+                        'manual': {
+                            position: {
+                                name: 'left'
+                                //args: { x: 0, y: 50 }
+                            },
+                            label: {
+                                position: {
+                                    name: 'manual',
+                                    args: { x: 50, y: 50 }
+                                },
+                                markup: [{
+                                    tagName: 'text',
+                                    selector: 'label'
+                                }]
+                            },
+                            attrs: {
+                                portBody: {
+                                    magnet: true,
+                                    width: 16,
+                                    height: 16,
+                                    x: -8,
+                                    y: -8,
+                                    fill: '#03071E'
+                                },
+                                label: {
+                                    text: 'port'
+                                }
+                            },
+                            markup: [{
+                                tagName: 'rect',
+                                selector: 'portBody'
+                            }]
+                        },
+                    },
+                    items: [{
+                        id: 'labelHundred',
+                        group: 'labelHundred'
+                    }, {
+                        id: 'manual',
+                        group: 'manual'
+                    }]
+                }
+            }, {
+                portLabelLayoutNamespace
+            });
+            const shapeClone = shape.clone();
+
+            const view = new joint.dia.ElementView({ model: shapeClone }).render();
+
+            function getMatrix(node) {
+                return node.getAttribute('transform');
+            }
+
+            // ADDED LABEL LAYOUT DEFINITION:
+
+            const labelHundredG = view.findPortNode('labelHundred').parentElement;
+            assert.equal(getMatrix(labelHundredG), 'matrix(1,0,0,1,0,50)');
+            const labelHundredText = labelHundredG.querySelector('text');
+            assert.equal(getMatrix(labelHundredText), 'matrix(1,0,0,1,100,100)');
+            assert.equal(labelHundredText.getAttribute('x'), null);
+            assert.equal(labelHundredText.getAttribute('y'), '0.8em'); // default from Vectorizer
+            assert.equal(labelHundredText.getAttribute('text-anchor'), null);
+
+            // BUILT-IN LABEL LAYOUT DEFINITION:
+
+            const manualG = view.findPortNode('manual').parentElement;
+            assert.equal(getMatrix(manualG), 'matrix(1,0,0,1,0,50)');
+            const manualText = manualG.querySelector('text');
+            assert.equal(getMatrix(manualText), 'matrix(1,0,0,1,50,50)');
+            assert.equal(manualText.getAttribute('x'), null);
+            assert.equal(manualText.getAttribute('y'), '0.8em'); // default from Vectorizer
+            assert.equal(manualText.getAttribute('text-anchor'), null);
         });
     });
 
@@ -2000,6 +2554,8 @@ QUnit.module('element ports', function() {
 
         QUnit.test('ports center can be retrieved', function(assert) {
 
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
             const shape = create({
                 groups: {
                     'a': { position: 'left' }
@@ -2010,8 +2566,6 @@ QUnit.module('element ports', function() {
                     { id: 'three', group: 'a' }
                 ]
             }).set('size', { width: 5, height: 10 });
-
-            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
 
             let portPositionOne, portPositionTwo, portPositionThree;
 
@@ -2048,6 +2602,8 @@ QUnit.module('element ports', function() {
             const width = 17;
             const height = 13;
 
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
             const shape = create({
                 groups: {
                     'a': {
@@ -2061,8 +2617,6 @@ QUnit.module('element ports', function() {
                     { id: 'three', group: 'a' }
                 ]
             }).set('size', { width: 50, height: 50 });
-
-            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
 
             let portBBoxOne, portBBoxTwo, portBBoxThree;
 
@@ -2103,6 +2657,8 @@ QUnit.module('element ports', function() {
             const elWidth = 100;
             const elHeight = 100;
 
+            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
+
             const shape = create({
                 groups: {
                     'a': {
@@ -2120,8 +2676,6 @@ QUnit.module('element ports', function() {
                 size: { width: elWidth, height: elHeight },
                 angle: 90,
             })
-
-            const layoutSpy = sinon.spy(joint.layout.Port, 'left');
 
             const portUnrotatedBBox = shape.getPortBBox('one');
             const portRotatedBBox = shape.getPortBBox('one', { rotate: true });

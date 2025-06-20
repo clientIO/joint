@@ -4,14 +4,20 @@ import { Rect, Point } from '../g/index.mjs';
 import * as Port from '../layout/ports/port.mjs';
 import * as PortLabel from '../layout/ports/portLabel.mjs';
 
-var PortData = function(data) {
+const DEFAULT_PORT_POSITION_NAME = 'left';
+const DEFAULT_ABSOLUTE_PORT_POSITION_NAME = 'absolute';
+const DEFAULT_PORT_LABEL_POSITION_NAME = 'left';
 
-    var clonedData = util.cloneDeep(data) || {};
+const PortData = function(model) {
+
+    const { portLayoutNamespace = Port, portLabelLayoutNamespace = PortLabel } = model;
+
+    const clonedData = util.cloneDeep(model.get('ports')) || {};
     this.ports = [];
     this.portsMap = {};
     this.groups = {};
-    this.portLayoutNamespace = Port;
-    this.portLabelLayoutNamespace = PortLabel;
+    this.portLayoutNamespace = portLayoutNamespace;
+    this.portLabelLayoutNamespace = portLabelLayoutNamespace;
     this.metrics = {};
     this.metricsKey = null;
 
@@ -45,7 +51,10 @@ PortData.prototype = {
         });
     },
 
+    // Calculate SVG transformations based on evaluated group + port data
+    // NOTE: This function is also called for ports without a group (groupName = undefined)
     getGroupPortsMetrics: function(groupName, rect) {
+
         const { x = 0, y = 0, width = 0, height = 0 } = rect;
         const metricsKey = `${x}:${y}:${width}:${height}`;
         if (this.metricsKey !== metricsKey) {
@@ -53,11 +62,13 @@ PortData.prototype = {
             this.metrics = {};
             this.metricsKey = metricsKey;
         }
+
         let groupPortsMetrics = this.metrics[groupName];
         if (groupPortsMetrics) {
             // Return cached metrics
             return groupPortsMetrics;
         }
+
         // Calculate the metrics
         groupPortsMetrics = this.resolveGroupPortsMetrics(groupName, new Rect(x, y, width, height));
         this.metrics[groupName] = groupPortsMetrics;
@@ -66,27 +77,33 @@ PortData.prototype = {
 
     resolveGroupPortsMetrics: function(groupName, elBBox) {
 
-        var group = this.getGroup(groupName);
-        var ports = this.getPortsByGroup(groupName);
+        // `groupName` of `undefined` (= not a string) means "the group of ports which do not have the `group` property".
+        const isNoGroup = (groupName === undefined);
 
-        var groupPosition = group.position || {};
-        var groupPositionName = groupPosition.name;
-        var namespace = this.portLayoutNamespace;
-        if (!namespace[groupPositionName]) {
-            groupPositionName = 'left';
-        }
+        const group = this.getGroup(groupName);
+        const ports = this.getPortsByGroup(groupName);
 
-        var groupArgs = groupPosition.args || {};
-        var portsArgs = ports.map(function(port) {
+        const portsArgs = ports.map(function(port) {
             return port && port.position && port.position.args;
         });
-        var groupPortTransformations = namespace[groupPositionName](portsArgs, elBBox, groupArgs);
 
-        var accumulator = {
+        // Get an array of transformations of individual ports according to the group's port layout function:
+        let groupPortTransformations;
+        if (isNoGroup) {
+            // Apply default port layout function to the set of ports without `group` property.
+            const noGroup = this._evaluateGroup({});
+            groupPortTransformations = this._getGroupPortTransformations(noGroup, portsArgs, elBBox);
+
+        } else {
+            groupPortTransformations = this._getGroupPortTransformations(group, portsArgs, elBBox);
+        }
+
+        let accumulator = {
             ports: ports,
             result: {}
         };
 
+        // For each individual port transformation, find the information necessary to calculate SVG transformations:
         util.toArray(groupPortTransformations).reduce((res, portTransformation, index) => {
             const port = res.ports[index];
             const portId = port.id;
@@ -94,7 +111,7 @@ PortData.prototype = {
                 index,
                 portId,
                 portTransformation: portTransformation,
-                labelTransformation: this._getPortLabelLayout(port, Point(portTransformation), elBBox),
+                labelTransformation: this._getPortLabelTransformation(port, Point(portTransformation), elBBox),
                 portAttrs: port.attrs,
                 portSize: port.size,
                 labelSize: port.label.size
@@ -105,13 +122,21 @@ PortData.prototype = {
         return accumulator.result;
     },
 
-    _getPortLabelLayout: function(port, portPosition, elBBox) {
+    _getGroupPortTransformations: function(group, portsArgs, elBBox) {
 
-        var namespace = this.portLabelLayoutNamespace;
-        var labelPosition = port.label.position.name || 'left';
+        const groupPosition = group.position || {};
+        const groupPositionArgs = groupPosition.args || {};
+        const groupPositionLayoutCallback = groupPosition.layoutCallback;
+        return groupPositionLayoutCallback(portsArgs, elBBox, groupPositionArgs);
+    },
 
-        if (namespace[labelPosition]) {
-            return namespace[labelPosition](portPosition, elBBox, port.label.position.args);
+    _getPortLabelTransformation: function(port, portPosition, elBBox) {
+
+        const portLabelPosition = port.label.position || {};
+        const portLabelPositionArgs = portLabelPosition.args || {};
+        const portLabelPositionLayoutCallback = portLabelPosition.layoutCallback;
+        if (portLabelPositionLayoutCallback) {
+            return portLabelPositionLayoutCallback(portPosition, elBBox, portLabelPositionArgs);
         }
 
         return null;
@@ -119,7 +144,8 @@ PortData.prototype = {
 
     _init: function(data) {
 
-        // prepare groups
+        // Prepare groups:
+        // NOTE: This overwrites passed group properties with evaluated group properties.
         if (util.isObject(data.groups)) {
             var groups = Object.keys(data.groups);
             for (var i = 0, n = groups.length; i < n; i++) {
@@ -128,7 +154,8 @@ PortData.prototype = {
             }
         }
 
-        // prepare ports
+        // Prepare ports:
+        // NOTE: This overwrites passed port properties with evaluated port properties, plus mixed-in evaluated group properties (see above).
         var ports = util.toArray(data.items);
         for (var j = 0, m = ports.length; j < m; j++) {
             const resolvedPort = this._evaluatePort(ports[j]);
@@ -139,29 +166,169 @@ PortData.prototype = {
 
     _evaluateGroup: function(group) {
 
-        return util.merge(group, {
-            position: this._getPosition(group.position, true),
-            label: this._getLabel(group, true)
-        });
+        return util.merge(
+            {},
+            group,
+            {
+                position: this._evaluateGroupPositionProperty(group),
+                label: this._evaluateGroupLabelProperty(group)
+            }
+        );
+    },
+
+    _evaluateGroupPositionProperty: function(group) {
+
+        const namespace = this.portLayoutNamespace;
+        const groupPosition = group.position;
+        if (groupPosition === undefined) {
+            const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_PORT_POSITION_NAME, 'Default port group');
+            return { layoutCallback };
+
+        } else if (util.isFunction(groupPosition)) {
+            return { layoutCallback: groupPosition };
+
+        } else if (util.isObject(groupPosition)) {
+            if (groupPosition.name) {
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, groupPosition.name, 'Provided port group');
+                return { layoutCallback, args: groupPosition.args };
+            } else {
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_PORT_POSITION_NAME, 'Default port group');
+                return { layoutCallback, args: groupPosition.args };
+            }
+
+        } else if (util.isString(groupPosition)) {
+            // TODO: Remove legacy signature (see `this._evaluateGroupLabelPositionProperty()`).
+            const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, groupPosition, 'Provided port group');
+            return { layoutCallback };
+
+        } else if (Array.isArray(groupPosition)) {
+            // TODO: Remove legacy signature (see `this._evaluateGroupLabelPositionProperty()`).
+            const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_ABSOLUTE_PORT_POSITION_NAME, 'Default absolute port group');
+            return { layoutCallback, args: { x: groupPosition[0], y: groupPosition[1] }};
+
+        } else {
+            throw new Error('dia.Element: Provided port group position value has an invalid type.');
+        }
+    },
+
+    _evaluateGroupLabelProperty: function(group) {
+
+        const groupLabel = group.label;
+        if (!groupLabel) {
+            return {
+                position: this._evaluateGroupLabelPositionProperty({})
+            };
+        }
+
+        return util.merge(
+            {},
+            groupLabel,
+            {
+                position: this._evaluateGroupLabelPositionProperty(groupLabel)
+            }
+        );
+    },
+
+    _evaluateGroupLabelPositionProperty: function(groupLabel) {
+
+        const namespace = this.portLabelLayoutNamespace;
+        const groupLabelPosition = groupLabel.position;
+        if (groupLabelPosition === undefined) {
+            const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_PORT_LABEL_POSITION_NAME, 'Default port group label');
+            return { layoutCallback };
+
+        } else if (util.isFunction(groupLabelPosition)) {
+            return { layoutCallback: groupLabelPosition };
+
+        }  else if (util.isObject(groupLabelPosition)) {
+            if (groupLabelPosition.name) {
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, groupLabelPosition.name, 'Provided port group label');
+                return { layoutCallback, args: groupLabelPosition.args };
+            } else {
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_PORT_LABEL_POSITION_NAME, 'Default port group label');
+                return { layoutCallback, args: groupLabelPosition.args };
+            }
+
+        } else {
+            throw new Error('dia.Element: Provided port group label position value has an invalid type.');
+        }
     },
 
     _evaluatePort: function(port) {
 
-        var evaluated = util.assign({}, port);
+        const group = this.getGroup(port.group);
 
-        var group = this.getGroup(port.group);
-
+        const evaluated = util.assign({}, port);
         evaluated.markup = evaluated.markup || group.markup;
         evaluated.attrs = util.merge({}, group.attrs, evaluated.attrs);
-        evaluated.position = this._createPositionNode(group, evaluated);
-        evaluated.label = util.merge({}, group.label, this._getLabel(evaluated));
-        evaluated.z = this._getZIndex(group, evaluated);
+        evaluated.position = this._evaluatePortPositionProperty(group, evaluated);
+        evaluated.label = this._evaluatePortLabelProperty(group, evaluated);
+        evaluated.z = this._evaluatePortZProperty(group, evaluated);
         evaluated.size = util.assign({}, group.size, evaluated.size);
-
         return evaluated;
     },
 
-    _getZIndex: function(group, port) {
+    _evaluatePortPositionProperty: function(group, port) {
+
+        return {
+            args: util.merge(
+                {},
+                // NOTE: `x != null` is equivalent to `x !== null && x !== undefined`.
+                (group.position != null) ? group.position.args : {},
+                // Port can overwrite `group.position.args` via `port.position.args` or `port.args`.
+                // TODO: Remove `port.args` backwards compatibility.
+                (((port.position != null) && (port.position.args != null)) ? port.position.args : port.args))
+        };
+    },
+
+    _evaluatePortLabelProperty: function(group, port) {
+
+        const groupLabel = group.label;
+        const portLabel = port.label;
+        if (!portLabel) {
+            return util.assign(
+                {},
+                groupLabel
+            );
+        }
+
+        return util.merge(
+            {},
+            groupLabel,
+            util.merge(
+                {},
+                portLabel,
+                {
+                    position: this._evaluatePortLabelPositionProperty(portLabel)
+                }
+            )
+        );
+    },
+
+    _evaluatePortLabelPositionProperty: function(portLabel) {
+
+        const namespace = this.portLabelLayoutNamespace;
+        const portLabelPosition = portLabel.position;
+        if (portLabelPosition === undefined) {
+            return {};
+
+        } else if (util.isFunction(portLabelPosition)) {
+            return { layoutCallback: portLabelPosition };
+
+        }  else if (util.isObject(portLabelPosition)) {
+            if (portLabelPosition.name) {
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, portLabelPosition.name, 'Provided port label');
+                return { layoutCallback, args: portLabelPosition.args };
+            } else {
+                return { args: portLabelPosition.args };
+            }
+
+        } else {
+            throw new Error('dia.Element: Provided port label position value has an invalid type.');
+        }
+    },
+
+    _evaluatePortZProperty: function(group, port) {
 
         if (util.isNumber(port.z)) {
             return port.z;
@@ -172,59 +339,12 @@ PortData.prototype = {
         return 'auto';
     },
 
-    _createPositionNode: function(group, port) {
-
-        return util.merge(
-            {
-                name: 'left',
-                args: {}
-            },
-            group.position,
-            {
-                // TODO: remove `port.args` backwards compatibility
-                // NOTE: `x != null` is equivalent to `x !== null && x !== undefined`
-                args: (((port.position != null) && (port.position.args != null)) ? port.position.args : port.args)
-            }
-        );
-    },
-
-    _getPosition: function(position, setDefault) {
-
-        var args = {};
-        var positionName;
-
-        if (util.isFunction(position)) {
-            positionName = 'fn';
-            args.fn = position;
-        } else if (util.isString(position)) {
-            positionName = position;
-        } else if (position === undefined) {
-            positionName = setDefault ? 'left' : null;
-        } else if (Array.isArray(position)) {
-            positionName = 'absolute';
-            args.x = position[0];
-            args.y = position[1];
-        } else if (util.isObject(position)) {
-            positionName = position.name;
-            util.assign(args, position.args);
+    _resolveLayoutCallbackOrThrow: function(namespace, name, errorSubstring) {
+        const layoutCallback = namespace[name];
+        if (!layoutCallback) {
+            throw new Error(`dia.Element: ${errorSubstring} layout name is not recognized.`);
         }
-
-        var result = { args: args };
-
-        if (positionName) {
-            result.name = positionName;
-        }
-        return result;
-    },
-
-    _getLabel: function(item, setDefaults) {
-
-        var label = item.label || {};
-
-        var ret = label;
-        ret.position = this._getPosition(label.position, setDefaults);
-
-        return ret;
+        return layoutCallback;
     }
 };
 
@@ -613,7 +733,7 @@ export const elementPortPrototype = {
             prevPortData = this._portSettingsData.getPorts();
         }
 
-        this._portSettingsData = new PortData(this.get('ports'));
+        this._portSettingsData = new PortData(this);
 
         var curPortData = this._portSettingsData.getPorts();
 

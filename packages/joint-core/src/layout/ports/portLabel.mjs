@@ -167,7 +167,7 @@ function radialLayout(portCenterOffset, autoOrient, opt) {
     });
 }
 
-export const manual = function(_portPosition, _elBBox, opt) {
+export const manual = function(portPosition, elBBox, opt) {
     return labelAttributes(opt);
 };
 

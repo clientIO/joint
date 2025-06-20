@@ -28,7 +28,7 @@ function getGroupBody(props: Partial<PortLayout>): dia.Element.PortGroup {
     : {
         position: {
           name: position,
-          args,
+          args: args as dia.Element.PortPositionCallback,
         },
       };
 }
@@ -74,9 +74,13 @@ function Component(props: PortGroupProps) {
       break;
     }
     case 'line': {
-      start = props.start;
-      end = props.end;
-
+      // Only assign start/end if both x and y are defined
+      if (props.start?.x != undefined && props.start.y != undefined) {
+        start = props.start as Position;
+      }
+      if (props.end?.x != undefined && props.end.y != undefined) {
+        end = props.end as Position;
+      }
       break;
     }
     case 'ellipse':

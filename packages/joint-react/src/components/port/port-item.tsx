@@ -14,6 +14,7 @@ const elementMarkup = jsx(<g joint-selector={PORTAL_SELECTOR} />);
 export enum Magnet {
   PASSIVE = 'passive',
 }
+
 export interface PortItemProps {
   /**
    * Magnet - define if the port is passive or not. It can be set to any value inside the paper.
@@ -47,11 +48,11 @@ export interface PortItemProps {
   /**
    * The x offset of the port. It can be a number or a string.
    */
-  readonly dx?: number | string;
+  readonly dx?: number;
   /**
    * The y offset of the port. It can be a number or a string.
    */
-  readonly dy?: number | string;
+  readonly dy?: number;
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
