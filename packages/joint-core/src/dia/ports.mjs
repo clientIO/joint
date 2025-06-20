@@ -8,11 +8,11 @@ const DEFAULT_PORT_POSITION_NAME = 'left';
 const DEFAULT_ABSOLUTE_PORT_POSITION_NAME = 'absolute';
 const DEFAULT_PORT_LABEL_POSITION_NAME = 'left';
 
-const PortData = function(data, opt) {
+const PortData = function(model) {
 
-    const { portLayoutNamespace = Port, portLabelLayoutNamespace = PortLabel } = opt;
+    const { portLayoutNamespace = Port, portLabelLayoutNamespace = PortLabel } = model;
 
-    const clonedData = util.cloneDeep(data) || {};
+    const clonedData = util.cloneDeep(model.get('ports')) || {};
     this.ports = [];
     this.portsMap = {};
     this.groups = {};
@@ -91,16 +91,7 @@ PortData.prototype = {
         let groupPortTransformations;
         if (isNoGroup) {
             // Apply default port layout function to the set of ports without `group` property.
-            const namespace = this.portLayoutNamespace;
-            const layoutCallback = namespace[DEFAULT_PORT_POSITION_NAME];
-            if (!layoutCallback) {
-                throw new Error('dia.Element: Default port group layout name is not recognized.');
-            }
-            const noGroup = {
-                position: {
-                    layoutCallback
-                }
-            };
+            const noGroup = this._evaluateGroup({});
             groupPortTransformations = this._getGroupPortTransformations(noGroup, portsArgs, elBBox);
 
         } else {
@@ -133,7 +124,7 @@ PortData.prototype = {
 
     _getGroupPortTransformations: function(group, portsArgs, elBBox) {
 
-        const groupPosition = group.position;
+        const groupPosition = group.position || {};
         const groupPositionArgs = groupPosition.args || {};
         const groupPositionLayoutCallback = groupPosition.layoutCallback;
         return groupPositionLayoutCallback(portsArgs, elBBox, groupPositionArgs);
@@ -190,65 +181,30 @@ PortData.prototype = {
         const namespace = this.portLayoutNamespace;
         const groupPosition = group.position;
         if (groupPosition === undefined) {
-            const layoutCallback = namespace[DEFAULT_PORT_POSITION_NAME];
-            if (!layoutCallback) {
-                throw new Error('dia.Element: Default port group layout name is not recognized.');
-            }
-            return {
-                layoutCallback,
-                name: DEFAULT_PORT_POSITION_NAME
-            };
+            const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_PORT_POSITION_NAME, 'Default port group');
+            return { layoutCallback };
 
         } else if (util.isFunction(groupPosition)) {
-            return {
-                layoutCallback: groupPosition
-            };
+            return { layoutCallback: groupPosition };
 
         } else if (util.isObject(groupPosition)) {
             if (groupPosition.name) {
-                const layoutCallback = namespace[groupPosition.name];
-                if (!layoutCallback) {
-                    throw new Error('dia.Element: Provided port group layout name is not recognized.');
-                }
-                return {
-                    layoutCallback,
-                    name: groupPosition.name,
-                    args: groupPosition.args
-                };
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, groupPosition.name, 'Provided port group');
+                return { layoutCallback, args: groupPosition.args };
             } else {
-                const layoutCallback = namespace[DEFAULT_PORT_POSITION_NAME];
-                if (!layoutCallback) {
-                    throw new Error('dia.Element: Default port group layout name is not recognized.');
-                }
-                return {
-                    layoutCallback,
-                    name: DEFAULT_PORT_POSITION_NAME,
-                    args: groupPosition.args
-                };
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_PORT_POSITION_NAME, 'Default port group');
+                return { layoutCallback, args: groupPosition.args };
             }
 
         } else if (util.isString(groupPosition)) {
             // TODO: Remove legacy signature (see `this._evaluateGroupLabelPositionProperty()`).
-            const layoutCallback = namespace[groupPosition];
-            if (!layoutCallback) {
-                throw new Error('dia.Element: Provided port group layout name is not recognized.');
-            }
-            return {
-                layoutCallback,
-                name: groupPosition
-            };
+            const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, groupPosition, 'Provided port group');
+            return { layoutCallback };
 
         } else if (Array.isArray(groupPosition)) {
             // TODO: Remove legacy signature (see `this._evaluateGroupLabelPositionProperty()`).
-            const layoutCallback = namespace[DEFAULT_ABSOLUTE_PORT_POSITION_NAME];
-            if (!layoutCallback) {
-                throw new Error('dia.Element: Default absolute port group layout name is not recognized.');
-            }
-            return {
-                layoutCallback,
-                name: DEFAULT_ABSOLUTE_PORT_POSITION_NAME,
-                args: { x: groupPosition[0], y: groupPosition[1] }
-            };
+            const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_ABSOLUTE_PORT_POSITION_NAME, 'Default absolute port group');
+            return { layoutCallback, args: { x: groupPosition[0], y: groupPosition[1] }};
 
         } else {
             throw new Error('dia.Element: Provided port group position value has an invalid type.');
@@ -257,18 +213,10 @@ PortData.prototype = {
 
     _evaluateGroupLabelProperty: function(group) {
 
-        const namespace = this.portLabelLayoutNamespace;
         const groupLabel = group.label;
         if (!groupLabel) {
-            const layoutCallback = namespace[DEFAULT_PORT_LABEL_POSITION_NAME];
-            if (!layoutCallback) {
-                throw new Error('dia.Element: Default port group label layout name is not recognized.');
-            }
             return {
-                position: {
-                    layoutCallback,
-                    name: DEFAULT_PORT_LABEL_POSITION_NAME
-                }
+                position: this._evaluateGroupLabelPositionProperty({})
             };
         }
 
@@ -286,41 +234,19 @@ PortData.prototype = {
         const namespace = this.portLabelLayoutNamespace;
         const groupLabelPosition = groupLabel.position;
         if (groupLabelPosition === undefined) {
-            const layoutCallback = namespace[DEFAULT_PORT_LABEL_POSITION_NAME];
-            if (!layoutCallback) {
-                throw new Error('dia.Element: Default port group label layout name is not recognized.');
-            }
-            return {
-                layoutCallback,
-                name: DEFAULT_PORT_LABEL_POSITION_NAME
-            };
+            const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_PORT_LABEL_POSITION_NAME, 'Default port group label');
+            return { layoutCallback };
 
         } else if (util.isFunction(groupLabelPosition)) {
-            return {
-                layoutCallback: groupLabelPosition
-            };
+            return { layoutCallback: groupLabelPosition };
 
         }  else if (util.isObject(groupLabelPosition)) {
             if (groupLabelPosition.name) {
-                const layoutCallback = namespace[groupLabelPosition.name];
-                if (!layoutCallback) {
-                    throw new Error('dia.Element: Provided port group label layout name is not recognized.');
-                }
-                return {
-                    layoutCallback,
-                    name: groupLabelPosition.name,
-                    args: groupLabelPosition.args
-                };
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, groupLabelPosition.name, 'Provided port group label');
+                return { layoutCallback, args: groupLabelPosition.args };
             } else {
-                const layoutCallback = namespace[DEFAULT_PORT_LABEL_POSITION_NAME];
-                if (!layoutCallback) {
-                    throw new Error('dia.Element: Default port group label layout name is not recognized.');
-                }
-                return {
-                    layoutCallback,
-                    name: DEFAULT_PORT_LABEL_POSITION_NAME,
-                    args: groupLabelPosition.args
-                };
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, DEFAULT_PORT_LABEL_POSITION_NAME, 'Default port group label');
+                return { layoutCallback, args: groupLabelPosition.args };
             }
 
         } else {
@@ -344,24 +270,15 @@ PortData.prototype = {
 
     _evaluatePortPositionProperty: function(group, port) {
 
-        return util.merge(
-            {
-                // Do not assign `layoutCallback` - port layout functions work for groups, so they don't make sense for individual ports.
-                // Port cannot overwrite `group.position.name` - if port is not in a group, then `port.position.name` must be the default position name.
-                // TODO: Do not assign `port.position.name` backwards compatibility either (same reason as `layoutCallback`).
-                name: DEFAULT_PORT_POSITION_NAME,
-                args: {}
-            },
-            // Omit `group.position.layoutCallback` - port layout functions work for groups, so they don't make sense for individual ports.
-            // TODO: Omit `group.position.name` backwards compatibility as well (same reason as `group.position.layoutCallback`).
-            util.omit(group.position, 'layoutCallback'),
-            {
+        return {
+            args: util.merge(
+                {},
+                // NOTE: `x != null` is equivalent to `x !== null && x !== undefined`.
+                (group.position != null) ? group.position.args : {},
                 // Port can overwrite `group.position.args` via `port.position.args` or `port.args`.
                 // TODO: Remove `port.args` backwards compatibility.
-                // NOTE: `x != null` is equivalent to `x !== null && x !== undefined`.
-                args: (((port.position != null) && (port.position.args != null)) ? port.position.args : port.args)
-            }
-        );
+                (((port.position != null) && (port.position.args != null)) ? port.position.args : port.args))
+        };
     },
 
     _evaluatePortLabelProperty: function(group, port) {
@@ -396,25 +313,14 @@ PortData.prototype = {
             return {};
 
         } else if (util.isFunction(portLabelPosition)) {
-            return {
-                layoutCallback: portLabelPosition
-            };
+            return { layoutCallback: portLabelPosition };
 
         }  else if (util.isObject(portLabelPosition)) {
             if (portLabelPosition.name) {
-                const layoutCallback = namespace[portLabelPosition.name];
-                if (!layoutCallback) {
-                    throw new Error('dia.Element: Provided port label layout name is not recognized.');
-                }
-                return {
-                    layoutCallback,
-                    name: portLabelPosition.name,
-                    args: portLabelPosition.args
-                };
+                const layoutCallback = this._resolveLayoutCallbackOrThrow(namespace, portLabelPosition.name, 'Provided port label');
+                return { layoutCallback, args: portLabelPosition.args };
             } else {
-                return {
-                    args: portLabelPosition.args
-                };
+                return { args: portLabelPosition.args };
             }
 
         } else {
@@ -431,6 +337,14 @@ PortData.prototype = {
             return group.z;
         }
         return 'auto';
+    },
+
+    _resolveLayoutCallbackOrThrow: function(namespace, name, errorSubstring) {
+        const layoutCallback = namespace[name];
+        if (!layoutCallback) {
+            throw new Error(`dia.Element: ${errorSubstring} layout name is not recognized.`);
+        }
+        return layoutCallback;
     }
 };
 
@@ -819,15 +733,7 @@ export const elementPortPrototype = {
             prevPortData = this._portSettingsData.getPorts();
         }
 
-        // Share portLayoutNamespace and portLabelLayoutNamespace if they are defined on element
-        const portDataOpt = {};
-         if (this.portLayoutNamespace) {
-            portDataOpt.portLayoutNamespace = this.portLayoutNamespace;
-         }
-         if (this.portLabelLayoutNamespace) {
-            portDataOpt.portLabelLayoutNamespace = this.portLabelLayoutNamespace;
-         }
-        this._portSettingsData = new PortData(this.get('ports'), portDataOpt);
+        this._portSettingsData = new PortData(this);
 
         var curPortData = this._portSettingsData.getPorts();
 

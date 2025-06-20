@@ -1901,17 +1901,20 @@ QUnit.module('element ports', function() {
             var shape = create(data);
             new joint.dia.ElementView({ model: shape }).render();
 
+            var getGroup = function(id) {
+                return shape._portSettingsData.groups[id];
+            }
             var getPort = function(id) {
                 return _.find(shape._portSettingsData.ports, function(p) {
                     return p.id === id;
                 });
             };
 
-            assert.equal(getPort('pa').position.name, 'right');
+            assert.equal(getGroup(getPort('pa').group).position.layoutCallback, joint.layout.Port.right);
             assert.equal(getPort('pa').position.args.y, 20);
             assert.equal(getPort('pa').position.args.x, 10);
 
-            assert.equal(getPort('pb').position.name, 'top');
+            assert.equal(getGroup(getPort('pb').group).position.layoutCallback, joint.layout.Port.top);
             assert.equal(getPort('pb').position.args.y, 20);
         });
 
@@ -1945,16 +1948,16 @@ QUnit.module('element ports', function() {
                 });
             };
 
-            assert.equal(getPort('pa1').label.position.name, 'top', 'override group settings');
+            assert.equal(getPort('pa1').label.position.layoutCallback, joint.layout.PortLabel.top, 'override group settings');
             assert.equal(getPort('pa1').label.position.args.tx, 11);
             assert.equal(getPort('pa1').label.position.args.ty, 20);
 
-            assert.equal(getPort('pa2').label.position.name, 'right', 'gets settings from group');
+            assert.equal(getPort('pa2').label.position.layoutCallback, joint.layout.PortLabel.right, 'gets settings from group');
 
-            assert.equal(getPort('pb1').label.position.name, 'left', 'default settings, extra args');
+            assert.equal(getPort('pb1').label.position.layoutCallback, joint.layout.PortLabel.left, 'default settings, extra args');
             assert.equal(getPort('pb1').label.position.args.tx, 11);
 
-            assert.equal(getPort('pb2').label.position.name, 'left', 'defaults - no settings on group, either on port label');
+            assert.equal(getPort('pb2').label.position.layoutCallback, joint.layout.PortLabel.left, 'defaults - no settings on group, either on port label');
         });
     });
 
