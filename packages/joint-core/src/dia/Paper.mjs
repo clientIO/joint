@@ -1243,7 +1243,7 @@ export const Paper = View.extend({
     getCellVisibilityCallback: function(opt) {
         const { options } = this;
         if (options.viewManagement) {
-            const isVisibleFn = 'isCellVisible' in opt ? opt.isCellVisible : options.isCellVisible;
+            const isVisibleFn = 'cellVisibility' in opt ? opt.cellVisibility : options.cellVisibility;
             if (typeof isVisibleFn === 'function') return isVisibleFn;
         } else {
             const viewportFn = 'viewport' in opt ? opt.viewport : options.viewport;
