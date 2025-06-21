@@ -7,7 +7,8 @@ const paper = new joint.dia.Paper({
     model: graph,
     cellViewNamespace: joint.shapes,
     defaultConnector: { name: 'smooth' },
-    interactive: { linkMove: false },
+    interactive: { linkMove: false, labelMove: false },
+    preventDefaultViewAction: false,
     labelsLayer: true,
     frozen: true
 });
@@ -79,6 +80,12 @@ function link(source, target, label, vertices) {
                 }
             },
             attrs: {
+                root: {
+                    cursor: 'text',
+                    style: {
+                        userSelect: 'text'
+                    }
+                },
                 text: {
                     text: label,
                     fontWeight: 'bold'
