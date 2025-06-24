@@ -45,10 +45,18 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
     if (!paper) {
       throw new Error('Paper is not created');
     }
+
     if (overwriteDefaultPaperElement) {
-      paperContainerElement.current?.append(overwriteDefaultPaperElement(paperCtx));
+      const customElement = overwriteDefaultPaperElement(paperCtx);
+      if (!customElement) {
+        throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
+      }
+      paperContainerElement.current?.replaceChildren(customElement);
     } else {
-      paperContainerElement.current?.append(paper.el);
+      if (!paperContainerElement.current) {
+        throw new Error('Paper container element is not defined');
+      }
+      paperContainerElement.current.replaceChildren(paper.el);
     }
     paper.unfreeze();
 
