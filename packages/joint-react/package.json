@@ -1,6 +1,6 @@
 {
   "name": "@joint/react",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.4",
   "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",

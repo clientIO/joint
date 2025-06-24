@@ -280,8 +280,13 @@ function MiniMap() {
   // On change, the minimap will be resized to fit the content automatically
   const onElementReady = useCallback(({ paper }: { paper: dia.Paper }) => {
     const { model: graph } = paper;
+
+    const contentArea = graph.getCellsBBox(graph.getElements());
+    if (!contentArea) {
+      return;
+    }
     paper.transformToFitContent({
-      contentArea: graph.getCellsBBox(graph.getElements()) ?? undefined,
+      contentArea,
       verticalAlign: 'middle',
       horizontalAlign: 'middle',
       padding: 20,
@@ -297,7 +302,6 @@ function MiniMap() {
         className={PAPER_CLASSNAME}
         height={'100%'}
         renderElement={renderElement}
-        onElementsSizeReady={onElementReady}
         onRenderDone={onElementReady}
       />
     </div>
@@ -473,7 +477,11 @@ function Main() {
   return (
     <div className="flex flex-col relative">
       <div className="flex flex-col relative">
-        <PaperProvider>
+        <PaperProvider
+          {...PAPER_PROPS}
+          defaultLink={new shapes.standard.Link(links[0])}
+          width="100%"
+        >
           <ToolBar
             onToggleMinimap={setIsMinimapVisible}
             isMinimapVisible={isMinimapVisible}
@@ -483,8 +491,6 @@ function Main() {
             setShowElementsInfo={setShowElementsInfo}
           />
           <Paper
-            {...PAPER_PROPS}
-            defaultLink={new shapes.standard.Link(links[0])}
             renderElement={renderElement}
             className={PAPER_CLASSNAME}
             onCellPointerClick={({ cellView }) => {
@@ -497,7 +503,6 @@ function Main() {
             onBlankPointerClick={() => {
               setSelectedElement(null);
             }}
-            width="100%"
           />
         </PaperProvider>
         {isMinimapVisible && <MiniMap />}
