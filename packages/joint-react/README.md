@@ -47,8 +47,8 @@ bun add @joint/react
 ## Documentation
 
 The documentation is available online:
-- [API reference](https://changelog.jointjs.com/joint/joint-react-api/index.html)
-- [Storybook with examples](https://changelog.jointjs.com/joint/joint-react-storybook/?path=/docs/introduction--docs)
+- [API reference](https://changelog.jointjs.com/joint/api/index.html)
+- [Storybook with examples](https://changelog.jointjs.com/joint/learn/?path=/docs/introduction--docs)
 
 ## Core Concepts
 
