@@ -69,17 +69,17 @@ jobs:
       - name: Ensure docs folders
         id: prepare
         run: |
-          mkdir -p docs/joint-react-storybook
-          mkdir -p docs/joint-react-api
+          mkdir -p docs/learn
+          mkdir -p docs/api
           echo "pages_path=$(pwd)/docs" >> $GITHUB_OUTPUT
 
       # Build Storybook with proper BASE_DOCS_URL for MD linking
       - name: Build Storybook
         env:
-          STORYBOOK_BASE_DOCS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/joint-react-api
+          STORYBOOK_BASE_DOCS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/api
         run: |
           echo "Using BASE_DOCS_URL=$STORYBOOK_BASE_DOCS_URL"
-          yarn build-storybook -o docs/joint-react-storybook
+          yarn build-storybook -o docs/learn
 
       # Generate API reference using TypeDoc
       - name: Build Typedoc

@@ -1,6 +1,6 @@
 {
   "entryPoints": ["src/index.ts"],
-  "out": "docs/joint-react-api",
+  "out": "docs/api",
   "readme": "none",
   "name": "@joint/react",
   "excludePrivate": true,

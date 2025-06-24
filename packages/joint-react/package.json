@@ -20,7 +20,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build": "node --experimental-json-modules --loader ts-node/esm build.ts",
-    "docs:typedoc": "typedoc --out docs/joint-react-api src",
+    "docs:typedoc": "typedoc --out docs/api src",
     "prepublishOnly": "echo \"Publishing via NPM is not allowed!\" && exit 1",
     "prepack": "yarn test && yarn build"
   },
