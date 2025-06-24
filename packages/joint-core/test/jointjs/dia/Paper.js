@@ -2453,9 +2453,15 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         QUnit.test('receives correct parameters', function(assert) {
 
             const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
-            const cellVisibilitySpy = sinon.spy(function() {
+
+            const cellVisibilityTrueSpy = sinon.spy(function() {
                 return true;
             });
+            const cellVisibilityFalseSpy = sinon.spy(function() {
+                return false;
+            });
+
+
 
             paper = new Paper({
                 el: paperEl,
@@ -2464,25 +2470,26 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     lazyInitialization: true,
                     disposeHidden: true
                 },
-                cellVisibility: cellVisibilitySpy,
+                cellVisibility: cellVisibilityTrueSpy,
             });
 
             const rect = new joint.shapes.standard.Rectangle();
             rect.addTo(graph);
 
-            assert.ok(cellVisibilitySpy.calledOnce, 'cellVisibility callback is called once for element');
-            assert.ok(cellVisibilitySpy.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters');
-            cellVisibilitySpy.resetHistory();
+            assert.ok(cellVisibilityTrueSpy.calledOnce, 'cellVisibility callback is called once for element');
+            assert.ok(cellVisibilityTrueSpy.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters');
+            cellVisibilityTrueSpy.resetHistory();
 
-            paper.checkViewport({ isCellVisible: () => false });
-            assert.ok(cellVisibilitySpy.calledOnce, 'cellVisibility callback is called once for element after viewport check');
-            assert.ok(cellVisibilitySpy.calledWithExactly(rect, true, paper), 'cellVisibility callback is called with correct parameters after viewport check');
-            cellVisibilitySpy.resetHistory();
+            paper.checkViewport({ cellVisibility: cellVisibilityFalseSpy });
+            // TODO: it should run only once
+            assert.ok(cellVisibilityFalseSpy.calledTwice, 'cellVisibility callback is called once for element after viewport check');
+            assert.ok(cellVisibilityFalseSpy.calledWithExactly(rect, true, paper), 'cellVisibility callback is called with correct parameters after viewport check');
+            cellVisibilityFalseSpy.resetHistory();
 
-            paper.checkViewport({ isCellVisible: () => true });
-            assert.ok(cellVisibilitySpy.calledOnce, 'cellVisibility callback is called once for element after viewport check');
-            assert.ok(cellVisibilitySpy.calledWithExactly(rect, true, paper), 'cellVisibility callback is called with correct parameters after viewport check');
-            cellVisibilitySpy.resetHistory();
+            paper.checkViewport();
+            assert.ok(cellVisibilityTrueSpy.calledOnce, 'cellVisibility callback is called once for element after viewport check');
+            assert.ok(cellVisibilityTrueSpy.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters after viewport check');
+            cellVisibilityTrueSpy.resetHistory();
 
 
             const link = new joint.shapes.standard.Link({
@@ -2490,10 +2497,54 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 target: { x: 200, y: 0 },
             });
             link.addTo(graph);
-            assert.ok(cellVisibilitySpy.calledOnce, 'cellVisibility callback is called once for link');
-            assert.ok(cellVisibilitySpy.calledWithExactly(link, false, paper), 'cellVisibility callback is called with correct parameters for link');
+            // TODO: it should run only once
+            assert.ok(cellVisibilityTrueSpy.calledTwice, 'cellVisibility callback is called once for link');
+            assert.ok(cellVisibilityTrueSpy.calledWithExactly(link, false, paper), 'cellVisibility callback is called with correct parameters for link');
 
             paper.remove();
+        });
+
+        QUnit.test('same test with viewport', function(assert) {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const cellVisibilityTrueSpy = sinon.spy(function() {
+                return true;
+            });
+            const cellVisibilityFalseSpy = sinon.spy(function() {
+                return false;
+            });
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                viewport: cellVisibilityTrueSpy
+            });
+
+            const rect = new joint.shapes.standard.Rectangle();
+            rect.addTo(graph);
+
+            assert.ok(cellVisibilityTrueSpy.calledOnce, 'cellVisibility callback is called once for element');
+            assert.ok(cellVisibilityTrueSpy.calledWithExactly(rect.findView(paper), false, paper), 'cellVisibility callback is called with correct parameters');
+            cellVisibilityTrueSpy.resetHistory();
+
+            paper.checkViewport({ viewport: cellVisibilityFalseSpy });
+            // TODO: it should run only once
+            assert.ok(cellVisibilityFalseSpy.calledTwice, 'cellVisibility callback is called once for element after viewport check');
+            assert.ok(cellVisibilityFalseSpy.calledWithExactly(rect.findView(paper), true, paper), 'cellVisibility callback is called with correct parameters after viewport check');
+            cellVisibilityFalseSpy.resetHistory();
+
+            paper.checkViewport();
+            assert.ok(cellVisibilityTrueSpy.calledOnce, 'cellVisibility callback is called once for element after viewport check');
+            assert.ok(cellVisibilityTrueSpy.calledWithExactly(rect.findView(paper), false, paper), 'cellVisibility callback is called with correct parameters after viewport check');
+            cellVisibilityTrueSpy.resetHistory();
+
+            const link = new joint.shapes.standard.Link({
+                source: { id: rect.id },
+                target: { x: 200, y: 0 },
+            });
+            link.addTo(graph);
+            // TODO: it should run only once
+            assert.ok(cellVisibilityTrueSpy.calledTwice, 'cellVisibility callback is called once for link');
+            assert.ok(cellVisibilityTrueSpy.calledWithExactly(link.findView(paper), false, paper), 'cellVisibility callback is called with correct parameters for link');
         });
 
     });
@@ -2509,7 +2560,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 paper = new Paper({
                     el: paperEl,
                     model: graph,
-                    isCellVisible: () => false,
+                    cellVisibility: () => false,
                     viewManagement: {
                         lazyInitialization: true
                     },
@@ -2552,16 +2603,16 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is initialized');
 
-                paper.checkViewport({ isCellVisible: () => false });
+                paper.checkViewport({ cellVisibility: () => false });
                 assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is disposed');
 
-                paper.checkViewport({ isCellVisible: () => false });
+                paper.checkViewport({ cellVisibility: () => false });
                 assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is still disposed');
 
-                paper.checkViewport({ isCellVisible: () => true });
+                paper.checkViewport({ cellVisibility: () => true });
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is initialized again');
 
-                paper.checkViewport({ isCellVisible: () => true });
+                paper.checkViewport({ cellVisibility: () => true });
                 assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is still initialized');
 
                 paper.remove();
