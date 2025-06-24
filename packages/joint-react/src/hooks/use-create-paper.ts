@@ -11,10 +11,11 @@ interface UseCreatePaperOptions extends PaperEvents {
    * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
    * So it overwrite default paper rendering.
    * It is used internally for example to render `PaperScroller` from [joint plus](https://www.jointjs.com/jointjs-plus) package.
-   * @param paper - The paper instance
+   * @param paperCtx - The paper context
    * @returns
    */
-  readonly overwriteDefaultPaperElement?: (paper: dia.Paper) => HTMLElement | SVGElement;
+  readonly overwriteDefaultPaperElement?: (paperCtx: PaperContext) => HTMLElement | SVGElement;
+
   readonly scale?: number;
 }
 
@@ -45,7 +46,7 @@ export function useCreatePaper(options: UseCreatePaperOptions = {}) {
       throw new Error('Paper is not created');
     }
     if (overwriteDefaultPaperElement) {
-      paperContainerElement.current?.append(overwriteDefaultPaperElement(paper));
+      paperContainerElement.current?.append(overwriteDefaultPaperElement(paperCtx));
     } else {
       paperContainerElement.current?.append(paper.el);
     }
