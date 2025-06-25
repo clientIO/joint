@@ -1892,8 +1892,10 @@ export const LinkView = CellView.extend({
                     });
                 } else {
                     candidates.push({
+                        // Set the priority to the level of nested elements of the model
+                        // To ensure that the embedded cells get priority over the parent cells
+                        priority: model.getAncestors().length,
                         // find distance from the center of the model to pointer coordinates
-                        priority: 0,
                         distance: model.getBBox().center().squaredDistance(pointer),
                         magnet: view.el
                     });
@@ -1917,9 +1919,9 @@ export const LinkView = CellView.extend({
 
                 // Check if magnet is inside the snap radius.
                 if (magnetDistance <= r * r) {
-                    // Prioritize magnets
                     candidates.push({
-                        priority: 1,
+                        // Give magnets priority over other candidates.
+                        priority: Number.MAX_SAFE_INTEGER,
                         distance: magnetDistance,
                         magnet
                     });

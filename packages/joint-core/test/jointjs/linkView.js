@@ -1534,6 +1534,67 @@ QUnit.module('linkView', function(hooks) {
             assert.equal(link.target().port, 'port-small', 'link attached to magnet');
         });
 
+        QUnit.test('snapLinks=true - respecting priority in embedded cells when distance to center is 0', function(assert) {
+
+            const container = new joint.shapes.standard.Rectangle({
+                size: {
+                    width: 400,
+                    height: 400
+                }
+            });
+
+            const child = new joint.shapes.standard.Rectangle({
+                size: {
+                    width: 100,
+                    height: 100
+                },
+                position: {
+                    x: 150,
+                    y: 150
+                }
+            });
+
+            const link = new joint.shapes.standard.Link({
+                source: { x: 0, y: 500 },
+                target: { x: 100, y: 500 }
+            });
+
+            container.embed(child);
+
+            paper.model.resetCells([container, child, link]);
+
+            const linkView = link.findView(paper);
+            const childView = child.findView(paper);
+
+            paper.options.validateConnection = () => true;
+            paper.options.snapLinks = { radius: 50 };
+            const data = {};
+            const strategySpy = paper.options.connectionStrategy = sinon.spy();
+
+            simulate.dragLinkView(linkView, 'target', { data });
+
+            const center = container.getCenter();
+
+            linkView.pointermove({
+                target: childView.el,
+                action: 'arrowhead-move',
+                data
+            }, center.x, center.y);
+
+            assert.equal(strategySpy.callCount, 1);
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: child.id }),
+                childView,
+                childView.el,
+                sinon.match.any,
+                link,
+                'target',
+                paper
+            ), 'snapped to embedded element');
+
+            assert.equal(link.target().id, child.id, 'link attached to embedded element');
+        });
+
         QUnit.test('with snapLinksSelf=true', function(assert) {
 
             var data;
