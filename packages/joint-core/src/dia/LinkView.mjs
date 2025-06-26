@@ -1858,9 +1858,9 @@ export const LinkView = CellView.extend({
         let isSnapped = false;
         // checking view in close area of the pointer
 
-        const r = snapLinks.radius || 50;
+        const radius = snapLinks.radius || 50;
         const viewsInArea = paper.findCellViewsInArea(
-            { x: x - r, y: y - r, width: 2 * r, height: 2 * r },
+            { x: x - radius, y: y - radius, width: 2 * radius, height: 2 * radius },
             snapLinks.findInAreaOptions
         );
 
@@ -1875,8 +1875,13 @@ export const LinkView = CellView.extend({
         const pointer = new Point(x, y);
 
         // Note: If snapRadius is smaller than magnet size, views will not be found.
-        // filter out the current view
-        viewsInArea.filter((view) => view !== this).forEach(function(view) {
+        viewsInArea.forEach((view) => {
+
+            // Do not snap to the current view
+            if (view === this) {
+                return;
+            }
+
             const candidates = [];
             const { model } = view;
             // skip connecting to the element in case '.': { magnet: false } attribute present
@@ -1918,7 +1923,7 @@ export const LinkView = CellView.extend({
                 }
 
                 // Check if magnet is inside the snap radius.
-                if (magnetDistance <= r * r) {
+                if (magnetDistance <= radius * radius) {
                     candidates.push({
                         // Give magnets priority over other candidates.
                         priority: Number.MAX_SAFE_INTEGER,
