@@ -44,6 +44,7 @@ import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
+import { Deque } from './Deque.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayer } from './layers/GridLayer.mjs';
@@ -446,10 +447,8 @@ export const Paper = View.extend({
         return this._updates = {
             id: null,
             priorities: [{}, {}, {}],
-            unmountedCids: [],
-            mountedCids: [],
-            unmounted: {},
-            mounted: {},
+            unmountedList: new Deque(),
+            mountedList: new Deque(),
             count: 0,
             keyFrozen: false,
             freezeKey: null,
@@ -1091,29 +1090,28 @@ export const Paper = View.extend({
     registerUnmountedView: function(view) {
         var cid = view.cid;
         var updates = this._updates;
-        if (cid in updates.unmounted) return 0;
-        var flag = updates.unmounted[cid] |= this.FLAG_INSERT;
-        updates.unmountedCids.push(cid);
-        delete updates.mounted[cid];
+        if (updates.unmountedList.has(cid)) return 0;
+        const flag = this.FLAG_INSERT;
+        updates.unmountedList.push(cid, flag);
+        updates.mountedList.delete(cid);
         return flag;
     },
 
     registerMountedView: function(view) {
         var cid = view.cid;
         var updates = this._updates;
-        if (cid in updates.mounted) return 0;
-        updates.mounted[cid] = true;
-        updates.mountedCids.push(cid);
-        var flag = updates.unmounted[cid] || 0;
-        delete updates.unmounted[cid];
+        if (updates.mountedList.has(cid)) return 0;
+        const unmountedNode = updates.unmountedList.get(cid);
+        const flag = unmountedNode ? unmountedNode.value : 0;
+        updates.unmountedList.delete(cid);
+        updates.mountedList.push(cid);
         return flag;
     },
 
     isViewMounted: function(view) {
         if (!view) return false;
         var cid = view.cid;
-        var updates = this._updates;
-        return (cid in updates.mounted);
+        return this._updates.mountedList.has(cid);
     },
 
     dumpViews: function(opt) {
@@ -1290,7 +1288,7 @@ export const Paper = View.extend({
                 var currentFlag = priorityUpdates[cid];
                 if ((currentFlag & this.FLAG_REMOVE) === 0) {
                     // We should never check a view for viewport if we are about to remove the view
-                    var isDetached = cid in updates.unmounted;
+                    const isDetached = updates.unmountedList.has(cid);
                     if (!this.isViewVisible(view, !isDetached, visibilityCb)) {
                         // Unmount View
                         if (!isDetached) {
@@ -1304,12 +1302,19 @@ export const Paper = View.extend({
                                 this.detachView(view);
                             }
                         }
-                        updates.unmounted[cid] |= currentFlag;
+                        const unmountedNode = updates.unmountedList.get(cid);
+                        if (unmountedNode) {
+                            unmountedNode.value |= currentFlag;
+                        } else {
+                            updates.unmountedList.push(cid, currentFlag);
+                        }
+
                         delete priorityUpdates[cid];
                         unmountCount++;
                         continue;
                     }
                     // Mount View
+                    // This `|=` is what operator? It is mathematically equivalent to `currentFlag = currentFlag | view.getFlag(result(view, 'initFlag'))`
 
                     if (view[CELL_VIEW_PLACEHOLDER]) {
                         view = this._resolveCellViewPlaceholder(view);
@@ -1349,25 +1354,22 @@ export const Paper = View.extend({
 
     getUnmountedViews: function() {
         const updates = this._updates;
-        const unmountedCids = Object.keys(updates.unmounted);
-        const n = unmountedCids.length;
-        const unmountedViews = new Array(n);
-        for (var i = 0; i < n; i++) {
-            const cid = unmountedCids[i];
+        const unmountedViews = new Array(updates.unmountedList.length);
+        let i = 0;
+        for (const cid of updates.unmountedList) {
             // If the view is a placeholder, it won't be in the global views map
             // If the view is not a cell view, it won't be in the viewPlaceholders map
-            unmountedViews[i] = views[cid] || this._viewPlaceholders[cid];
+            unmountedViews[i++] = views[cid] || this._viewPlaceholders[cid];
         }
         return unmountedViews;
     },
 
     getMountedViews: function() {
         const updates = this._updates;
-        const mountedCids = Object.keys(updates.mounted);
-        const n = mountedCids.length;
-        const mountedViews = new Array(n);
-        for (var i = 0; i < n; i++) {
-            mountedViews[i] = views[mountedCids[i]];
+        const mountedViews = new Array(updates.mountedList.length);
+        let i = 0;
+        for (const cid of updates.mountedList) {
+            mountedViews[i++] = views[cid] || this._viewPlaceholders[cid];
         }
         return mountedViews;
     },
@@ -1378,31 +1380,29 @@ export const Paper = View.extend({
         if (typeof visibilityCb !== 'function') visibilityCb = null;
         var batchSize = 'mountBatchSize' in opt ? opt.mountBatchSize : Infinity;
         var updates = this._updates;
-        var unmountedCids = updates.unmountedCids;
-        var unmounted = updates.unmounted;
-        for (var i = 0, n = Math.min(unmountedCids.length, batchSize); i < n; i++) {
-            var cid = unmountedCids[i];
-            if (!(cid in unmounted)) continue;
-            var view = views[cid] || this._viewPlaceholders[cid];
+        var unmountedList = updates.unmountedList;
+        for (var i = 0, n = Math.min(unmountedList.length, batchSize); i < n; i++) {
+            const { key: cid } = unmountedList.peek();
+            let view = views[cid] || this._viewPlaceholders[cid];
             if (!view) {
                 // This should not occur
                 continue;
             }
             if (!this.isViewVisible(view, false, visibilityCb)) {
                 // Push at the end of all unmounted ids, so this can be check later again
-                unmountedCids.push(cid);
+                unmountedList.rotate();
                 continue;
             }
+            // Remove the view from the unmounted list
+            const { value: prevFlag } = unmountedList.shift();
             mountCount++;
-            var flag = this.registerMountedView(view);
+            var flag = this.registerMountedView(view) | prevFlag;
             if (view[CELL_VIEW_PLACEHOLDER]) {
                 view = this._resolveCellViewPlaceholder(view);
                 flag |= view.getFlag(result(view, 'initFlag'));
             }
             if (flag) this.scheduleViewUpdate(view, flag, view.UPDATE_PRIORITY, { mounting: true });
         }
-        // Get rid of views, that have been mounted
-        unmountedCids.splice(0, i);
         return mountCount;
     },
 
@@ -1413,18 +1413,18 @@ export const Paper = View.extend({
         if (typeof visibilityCb !== 'function') return unmountCount;
         var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : Infinity;
         var updates = this._updates;
-        var mountedCids = updates.mountedCids;
-        var mounted = updates.mounted;
-        for (var i = 0, n = Math.min(mountedCids.length, batchSize); i < n; i++) {
-            var cid = mountedCids[i];
-            if (!(cid in mounted)) continue;
-            var view = views[cid];
+        const mountedList = updates.mountedList;
+        for (var i = 0, n = Math.min(mountedList.length, batchSize); i < n; i++) {
+            const { key: cid } = mountedList.peek();
+            const view = views[cid];
             if (!view) continue;
             if (this.isViewVisible(view, true, visibilityCb)) {
                 // Push at the end of all mounted ids, so this can be check later again
-                mountedCids.push(cid);
+                mountedList.rotate();
                 continue;
             }
+            // Remove the view from the mounted list
+            mountedList.shift();
             unmountCount++;
             var flag = this.registerUnmountedView(view);
             if (flag) {
@@ -1437,32 +1437,28 @@ export const Paper = View.extend({
                 }
             }
         }
-        // Get rid of views, that have been unmounted
-        mountedCids.splice(0, i);
         return unmountCount;
     },
 
     checkViewVisibility: function(cellView, opt = {}) {
         const visibilityCb = this.getCellVisibilityCallback(opt);
         const updates = this._updates;
-        const { mounted, unmounted } = updates;
+        const { mountedList, unmountedList } = updates;
 
         const visible = this.isViewVisible(cellView, false, visibilityCb);
 
         let isUnmounted = false;
         let isMounted = false;
 
-        if (cellView.cid in mounted && !visible) {
+        if (mountedList.has(cellView.cid) && !visible) {
             const flag = this.registerUnmountedView(cellView);
             if (flag) this.detachView(cellView);
-            const i = updates.mountedCids.indexOf(cellView.cid);
-            updates.mountedCids.splice(i, 1);
+            updates.mountedList.delete(cellView.cid);
             isUnmounted = true;
         }
 
-        if (!isUnmounted && cellView.cid in unmounted && visible) {
-            const i = updates.unmountedCids.indexOf(cellView.cid);
-            updates.unmountedCids.splice(i, 1);
+        if (!isUnmounted && unmountedList.has(cellView.cid) && visible) {
+            updates.unmountedList.delete(cellView.cid);
             var flag = this.registerMountedView(cellView);
             if (flag) this.scheduleViewUpdate(cellView, flag, cellView.UPDATE_PRIORITY, { mounting: true });
             isMounted = true;
@@ -1483,8 +1479,8 @@ export const Paper = View.extend({
         var unmountedCount = this.checkMountedViews(visibilityCb, passingOpt);
         if (unmountedCount > 0) {
             // Do not check views, that have been just unmounted and pushed at the end of the cids array
-            var unmountedCids = this._updates.unmountedCids;
-            passingOpt.mountBatchSize = Math.min(unmountedCids.length - unmountedCount, passingOpt.mountBatchSize);
+            var unmountedList = this._updates.unmountedList;
+            passingOpt.mountBatchSize = Math.min(unmountedList.length - unmountedCount, passingOpt.mountBatchSize);
         }
         var mountedCount = this.checkUnmountedViews(visibilityCb, passingOpt);
         return {
@@ -1917,11 +1913,11 @@ export const Paper = View.extend({
         const view = _views[id];
         if (view) {
             var { cid } = view;
-            const { mounted, unmounted } = _updates;
+            const { mountedList, unmountedList } = _updates;
             view.remove();
             delete _views[id];
-            delete mounted[cid];
-            delete unmounted[cid];
+            mountedList.delete(cid);
+            unmountedList.delete(cid);
         }
         return view;
     },
