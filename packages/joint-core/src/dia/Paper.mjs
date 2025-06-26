@@ -945,11 +945,8 @@ export const Paper = View.extend({
                 var link = links[j];
                 var linkView = this.findViewByModel(link);
                 if (!linkView) continue;
-                var flagLabels = ['UPDATE'];
-                if (link.getTargetCell() === model) flagLabels.push('TARGET');
-                if (link.getSourceCell() === model) flagLabels.push('SOURCE');
                 var nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
-                this.scheduleViewUpdate(linkView, linkView.getFlag(flagLabels), nextPriority, opt);
+                this.scheduleViewUpdate(linkView, linkView.getFlag(linkView.constructor.Flags.UPDATE), nextPriority, opt);
             }
         }
     },
@@ -958,26 +955,24 @@ export const Paper = View.extend({
         if (!view || !(view instanceof CellView)) return false;
         var model = view.model;
         if (model.isElement()) return false;
-        if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
-            var dumpOptions = { silent: true };
-            // LinkView is waiting for the target or the source cellView to be rendered
-            // This can happen when the cells are not in the viewport.
-            var sourceFlag = 0;
-            var sourceView = this.findViewByModel(model.getSourceCell());
-            if (sourceView && !this.isViewMounted(sourceView)) {
-                sourceFlag = this.dumpView(sourceView, dumpOptions);
-                view.updateEndMagnet('source');
-            }
-            var targetFlag = 0;
-            var targetView = this.findViewByModel(model.getTargetCell());
-            if (targetView && !this.isViewMounted(targetView)) {
-                targetFlag = this.dumpView(targetView, dumpOptions);
-                view.updateEndMagnet('target');
-            }
-            if (sourceFlag === 0 && targetFlag === 0) {
-                // If leftover flag is 0, all view updates were done.
-                return !this.dumpView(view, dumpOptions);
-            }
+        var dumpOptions = { silent: true };
+        // LinkView is waiting for the target or the source cellView to be rendered
+        // This can happen when the cells are not in the viewport.
+        var sourceFlag = 0;
+        var sourceView = this.findViewByModel(model.getSourceCell());
+        if (sourceView && !this.isViewMounted(sourceView)) {
+            sourceFlag = this.dumpView(sourceView, dumpOptions);
+            // view.updateEndMagnet('source');
+        }
+        var targetFlag = 0;
+        var targetView = this.findViewByModel(model.getTargetCell());
+        if (targetView && !this.isViewMounted(targetView)) {
+            targetFlag = this.dumpView(targetView, dumpOptions);
+            // view.updateEndMagnet('target');
+        }
+        if (sourceFlag === 0 && targetFlag === 0) {
+            // If leftover flag is 0, all view updates were done.
+            return !this.dumpView(view, dumpOptions);
         }
         return false;
     },
@@ -1092,7 +1087,7 @@ export const Paper = View.extend({
         var updates = this._updates;
         if (updates.unmountedList.has(cid)) return 0;
         const flag = this.FLAG_INSERT;
-        updates.unmountedList.push(cid, flag);
+        updates.unmountedList.pushTail(cid, flag);
         updates.mountedList.delete(cid);
         return flag;
     },
@@ -1104,7 +1099,7 @@ export const Paper = View.extend({
         const unmountedNode = updates.unmountedList.get(cid);
         const flag = unmountedNode ? unmountedNode.value : 0;
         updates.unmountedList.delete(cid);
-        updates.mountedList.push(cid);
+        updates.mountedList.pushTail(cid);
         return flag;
     },
 
@@ -1306,7 +1301,7 @@ export const Paper = View.extend({
                         if (unmountedNode) {
                             unmountedNode.value |= currentFlag;
                         } else {
-                            updates.unmountedList.push(cid, currentFlag);
+                            updates.unmountedList.pushTail(cid, currentFlag);
                         }
 
                         delete priorityUpdates[cid];
@@ -1382,7 +1377,7 @@ export const Paper = View.extend({
         var updates = this._updates;
         var unmountedList = updates.unmountedList;
         for (var i = 0, n = Math.min(unmountedList.length, batchSize); i < n; i++) {
-            const { key: cid } = unmountedList.peek();
+            const { key: cid } = unmountedList.peekHead();
             let view = views[cid] || this._viewPlaceholders[cid];
             if (!view) {
                 // This should not occur
@@ -1394,7 +1389,7 @@ export const Paper = View.extend({
                 continue;
             }
             // Remove the view from the unmounted list
-            const { value: prevFlag } = unmountedList.shift();
+            const { value: prevFlag } = unmountedList.popHead();
             mountCount++;
             var flag = this.registerMountedView(view) | prevFlag;
             if (view[CELL_VIEW_PLACEHOLDER]) {
@@ -1415,16 +1410,21 @@ export const Paper = View.extend({
         var updates = this._updates;
         const mountedList = updates.mountedList;
         for (var i = 0, n = Math.min(mountedList.length, batchSize); i < n; i++) {
-            const { key: cid } = mountedList.peek();
+            const { key: cid } = mountedList.peekHead();
             const view = views[cid];
-            if (!view) continue;
+            if (!view) {
+                // A view (not a cell view) has been removed from the paper.
+                // Remove it from the mounted list and continue.
+                mountedList.popHead();
+                continue;
+            }
             if (this.isViewVisible(view, true, visibilityCb)) {
                 // Push at the end of all mounted ids, so this can be check later again
                 mountedList.rotate();
                 continue;
             }
             // Remove the view from the mounted list
-            mountedList.shift();
+            mountedList.popHead();
             unmountCount++;
             var flag = this.registerUnmountedView(view);
             if (flag) {

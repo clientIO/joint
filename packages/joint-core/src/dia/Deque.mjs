@@ -19,7 +19,7 @@ export class Deque {
         };
     }
 
-    shift() {
+    popHead() {
         if (!this.head) return;
         const node = this.head;
         this.map.delete(node.key);
@@ -32,7 +32,7 @@ export class Deque {
         return node;
     }
 
-    push(key, value) {
+    pushTail(key, value) {
         if (this.map.has(key)) {
             // TODO: handle case where key already exists
             return;
@@ -55,7 +55,7 @@ export class Deque {
     }
 
     // method to see the first node in the deque
-    peek() {
+    peekHead() {
         return this.head;
     }
 
