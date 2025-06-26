@@ -80,12 +80,12 @@ export const LinkView = CellView.extend({
         opt || (opt = {});
 
         if (this.hasFlag(flags, Flags.SOURCE)) {
-            if (!this.updateEndProperties('source')) return flags;
+            this.checkEndModel('source');
             flags = this.removeFlag(flags, Flags.SOURCE);
         }
 
         if (this.hasFlag(flags, Flags.TARGET)) {
-            if (!this.updateEndProperties('target')) return flags;
+            this.checkEndModel('target');
             flags = this.removeFlag(flags, Flags.TARGET);
         }
 
@@ -931,44 +931,14 @@ export const LinkView = CellView.extend({
         }
     },
 
-    updateEndProperties: function(endType) {
-
+    checkEndModel: function(endType) {
         const { model, paper } = this;
-        const endViewProperty = `${endType}View`;
         const endDef = model.get(endType);
         const endId = endDef && endDef.id;
-
-        if (!endId) {
-            // the link end is a point ~ rect 0x0
-            this[endViewProperty] = null;
-            this.updateEndMagnet(endType);
-            return true;
-        }
-
+        if (!endId) return;
         const endModel = paper.getModelById(endId);
-        if (!endModel) throw new Error('LinkView: invalid ' + endType + ' cell.');
-
-        const endView = endModel.findView(paper);
-        if (!endView) {
-            // A view for a model should always exist
-            return false;
-        }
-
-        this[endViewProperty] = endView;
-        this.updateEndMagnet(endType);
-        return true;
-    },
-
-    updateEndMagnet: function(endType) {
-
-        const endMagnetProperty = `${endType}Magnet`;
-        const endView = this.getEndView(endType);
-        if (endView) {
-            let connectedMagnet = endView.getMagnetFromLinkEnd(this.model.get(endType));
-            if (connectedMagnet === endView.el) connectedMagnet = null;
-            this[endMagnetProperty] = connectedMagnet;
-        } else {
-            this[endMagnetProperty] = null;
+        if (!endModel) {
+            throw new Error(`LinkView: invalid ${endType} cell.`);
         }
     },
 
@@ -2267,8 +2237,64 @@ export const LinkView = CellView.extend({
     Flags: Flags,
 });
 
-Object.defineProperty(LinkView.prototype, 'sourceBBox', {
+Object.defineProperty(LinkView.prototype, 'sourceView', {
+    enumerable: true,
 
+    get: function() {
+        const source = this.model.attributes.source;
+        if (source.id && this.paper) {
+            return this.paper.findViewByModel(source.id);
+        }
+        return null;
+    }
+
+});
+
+Object.defineProperty(LinkView.prototype, 'targetView', {
+    enumerable: true,
+
+    get: function() {
+        const target = this.model.attributes.target;
+        if (target.id && this.paper) {
+            return this.paper.findViewByModel(target.id);
+        }
+        return null;
+    }
+});
+
+Object.defineProperty(LinkView.prototype, 'sourceMagnet', {
+    enumerable: true,
+
+    get: function() {
+        const sourceView = this.sourceView;
+        if (!sourceView) return null;
+        // TODO: add caching of the magnet back
+        let connectedMagnet = sourceView.getMagnetFromLinkEnd(this.model.attributes.source);
+        if (connectedMagnet === sourceView.el) {
+            // If the source magnet is the element itself, we treat it as no magnet.
+            connectedMagnet = null;
+        }
+        return connectedMagnet;
+    }
+});
+
+Object.defineProperty(LinkView.prototype, 'targetMagnet', {
+    enumerable: true,
+
+    get: function() {
+        const targetView = this.targetView;
+        if (!targetView) return null;
+        // TODO: add caching of the magnet back
+        let connectedMagnet = targetView.getMagnetFromLinkEnd(this.model.attributes.target);
+        if (connectedMagnet === targetView.el) {
+            // If the target magnet is the element itself, we treat it as no magnet.
+            connectedMagnet = null;
+        }
+        return connectedMagnet;
+    }
+});
+
+Object.defineProperty(LinkView.prototype, 'sourceBBox', {
     enumerable: true,
 
     get: function() {
@@ -2283,11 +2309,9 @@ Object.defineProperty(LinkView.prototype, 'sourceBBox', {
         }
         return sourceView.getNodeBBox(sourceMagnet || sourceView.el);
     }
-
 });
 
 Object.defineProperty(LinkView.prototype, 'targetBBox', {
-
     enumerable: true,
 
     get: function() {
