@@ -2619,6 +2619,76 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 paper.remove();
             });
+
+            QUnit.test('highlighters on hidden cell views are preserved', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    viewManagement: {
+                        disposeHidden: true
+                    },
+                });
+
+                const Highlighter =  joint.highlighters.mask;
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+                Highlighter.add(rect.findView(paper), 'root', 'test-highlighter');
+
+                assert.ok(Highlighter.has(rect.findView(paper)));
+
+                paper.checkViewport({ cellVisibility: () => false });
+                assert.ok(Highlighter.has(rect.findView(paper)));
+
+                paper.checkViewport({ cellVisibility: () => true });
+                assert.ok(Highlighter.has(rect.findView(paper)));
+
+                Highlighter.remove(rect.findView(paper), 'test-highlighter');
+                assert.notOk(Highlighter.has(rect.findView(paper)));
+
+                paper.remove();
+            });
+
+            QUnit.test('tools on hidden cell views are preserved', function(assert) {
+
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    viewManagement: {
+                        disposeHidden: true
+                    },
+                });
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                const toolsView = new joint.dia.ToolsView({
+                    name: 'test-tool',
+                    tools: [new joint.elementTools.Button()]
+                });
+                rect.findView(paper).addTools(toolsView);
+
+                assert.ok(rect.findView(paper).hasTools('test-tool'));
+
+                paper.checkViewport({ cellVisibility: () => false });
+                assert.ok(rect.findView(paper).hasTools('test-tool'));
+
+                paper.checkViewport({ cellVisibility: () => true });
+                assert.ok(rect.findView(paper).hasTools('test-tool'));
+
+                rect.findView(paper).removeTools();
+                assert.notOk(rect.findView(paper).hasTools('test-tool'));
+
+                paper.remove();
+
+            });
+
+
+
         });
     });
 });

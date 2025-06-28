@@ -1,6 +1,6 @@
 import * as mvc from '../mvc/index.mjs';
 import V from '../V/index.mjs';
-import { isNumber, isPlainObject, result } from '../util/util.mjs';
+import { has, isNumber, isPlainObject, result } from '../util/util.mjs';
 
 function toArray(obj) {
     if (!obj) return [];
@@ -259,6 +259,28 @@ export const HighlighterView = mvc.View.extend({
                 if (ref instanceof this) return ref;
             }
             return null;
+        }
+    },
+
+    has(cellView, id = null) {
+        const { cid } = cellView;
+        const { _views } = this;
+        const refs = _views[cid];
+        if (!refs) return false;
+        if (id === null) {
+            // any highlighter
+            for (let hid in refs) {
+                const ref = refs[hid];
+                if (ref instanceof this) return true;
+            }
+            return false;
+        } else {
+            // single highlighter
+            if (id in refs) {
+                const ref = refs[id];
+                if (ref instanceof this) return true;
+            }
+            return false;
         }
     },
 
