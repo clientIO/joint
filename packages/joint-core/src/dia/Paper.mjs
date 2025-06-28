@@ -40,6 +40,7 @@ import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
 import { LayersNames, PaperLayer } from './PaperLayer.mjs';
+import { HighlighterView } from './HighlighterView.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
@@ -1297,13 +1298,7 @@ export const Paper = View.extend({
                         if (!isDetached) {
                             // The view has been already mounted
                             this.registerUnmountedView(view);
-                            if (viewManagement && viewManagement.disposeHidden) {
-                                view.remove();
-                                delete this._views[view.model.id];
-                                this._registerCellViewPlaceholder(view.model, view.cid);
-                            } else {
-                                this.detachView(view);
-                            }
+                            this.hideCellView(view);
                         }
                         // TODO: remove view if it is not a placeholder and disposeHidden is true
                         // TODO: why there is a view that is not a placeholder?
@@ -1436,13 +1431,7 @@ export const Paper = View.extend({
             unmountCount++;
             var flag = this.registerUnmountedView(view);
             if (flag) {
-                if (viewManagement && viewManagement.disposeHidden) {
-                    view.remove();
-                    delete this._views[view.model.id];
-                    this._registerCellViewPlaceholder(view.model, view.cid);
-                } else {
-                    this.detachView(view);
-                }
+                this.hideCellView(view);
             }
         }
         return unmountCount;
@@ -1460,7 +1449,7 @@ export const Paper = View.extend({
 
         if (mountedList.has(cellView.cid) && !visible) {
             const flag = this.registerUnmountedView(cellView);
-            if (flag) this.detachView(cellView);
+            if (flag) this.hideCellView(cellView);
             updates.mountedList.delete(cellView.cid);
             isUnmounted = true;
         }
@@ -2048,6 +2037,23 @@ export const Paper = View.extend({
                 break;
         }
         view.onMount(isInitialInsert);
+    },
+
+    hideCellView: function(view, opt = {}) {
+        const { viewManagement } = this.options;
+        if (viewManagement && viewManagement.disposeHidden) {
+            // We currently do not dispose views which has a highlighter or tools attached
+            // TODO: solve how to serialize highlighters/tools, so we can restore them later
+            if (!HighlighterView.has(view) && !view.hasTools()) {
+                // Remove the view from the paper and dispose it
+                view.remove();
+                delete this._views[view.model.id];
+                this._registerCellViewPlaceholder(view.model, view.cid);
+                return;
+            }
+        }
+        // Detach the view from the paper, but keep it in memory
+        this.detachView(view);
     },
 
     detachView(view) {
