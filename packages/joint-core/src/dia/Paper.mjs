@@ -943,8 +943,11 @@ export const Paper = View.extend({
             var links = this.model.getConnectedLinks(model);
             for (var j = 0, n = links.length; j < n; j++) {
                 var link = links[j];
-                var linkView = this.findViewByModel(link);
+                var linkView = this._getCellViewLike(link);
                 if (!linkView) continue;
+                // We do not have to update placeholder views.
+                // They will be updated on initial render.
+                if (linkView[CELL_VIEW_PLACEHOLDER]) continue;
                 var nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
                 this.scheduleViewUpdate(linkView, linkView.getFlag(linkView.constructor.Flags.UPDATE), nextPriority, opt);
             }
@@ -962,13 +965,11 @@ export const Paper = View.extend({
         var sourceView = this.findViewByModel(model.getSourceCell());
         if (sourceView && !this.isViewMounted(sourceView)) {
             sourceFlag = this.dumpView(sourceView, dumpOptions);
-            // view.updateEndMagnet('source');
         }
         var targetFlag = 0;
         var targetView = this.findViewByModel(model.getTargetCell());
         if (targetView && !this.isViewMounted(targetView)) {
             targetFlag = this.dumpView(targetView, dumpOptions);
-            // view.updateEndMagnet('target');
         }
         if (sourceFlag === 0 && targetFlag === 0) {
             // If leftover flag is 0, all view updates were done.
@@ -1106,6 +1107,13 @@ export const Paper = View.extend({
     isViewMounted: function(view) {
         if (!view) return false;
         var cid = view.cid;
+        return this._updates.mountedList.has(cid);
+    },
+
+    isViewMountedById: function(id) {
+        if (!id) return false;
+        const cid = this._idToCid[id];
+        if (!cid) return false;
         return this._updates.mountedList.has(cid);
     },
 
@@ -1297,6 +1305,8 @@ export const Paper = View.extend({
                                 this.detachView(view);
                             }
                         }
+                        // TODO: remove view if it is not a placeholder and disposeHidden is true
+                        // TODO: why there is a view that is not a placeholder?
                         const unmountedNode = updates.unmountedList.get(cid);
                         if (unmountedNode) {
                             unmountedNode.value |= currentFlag;
@@ -1309,8 +1319,6 @@ export const Paper = View.extend({
                         continue;
                     }
                     // Mount View
-                    // This `|=` is what operator? It is mathematically equivalent to `currentFlag = currentFlag | view.getFlag(result(view, 'initFlag'))`
-
                     if (view[CELL_VIEW_PLACEHOLDER]) {
                         view = this._resolveCellViewPlaceholder(view);
                         currentFlag |= view.getFlag(result(view, 'initFlag'));
@@ -1856,13 +1864,11 @@ export const Paper = View.extend({
             UPDATE_PRIORITY: ViewClass.prototype.UPDATE_PRIORITY,
         };
         this._viewPlaceholders[cid] = placeholder;
-        this._idToCid[cell.id] = cid;
         return placeholder;
     },
 
     _unregisterCellViewPlaceholder: function(placeholder) {
         delete this._viewPlaceholders[placeholder.cid];
-        delete this._idToCid[placeholder.model.id];
     },
 
     _initializeCellView: function(ViewClass, cell, cid) {
@@ -1916,6 +1922,7 @@ export const Paper = View.extend({
             const { mountedList, unmountedList } = _updates;
             view.remove();
             delete _views[id];
+            delete this._idToCid[id];
             mountedList.delete(cid);
             unmountedList.delete(cid);
         }
@@ -1942,11 +1949,13 @@ export const Paper = View.extend({
         }
         if (create) {
             const { viewManagement } = this.options;
+            const cid = uniqueId('view');
+            this._idToCid[cell.id] = cid;
             if (viewManagement && viewManagement.lazyInitialization) {
-                view = this._registerCellViewPlaceholder(cell);
+                view = this._registerCellViewPlaceholder(cell, cid);
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT;
             } else {
-                view = this.createViewForModel(cell);
+                view = this.createViewForModel(cell, cid);
                 view.paper = this;
                 this._views[cell.id] = view;
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
@@ -2079,12 +2088,20 @@ export const Paper = View.extend({
     // Find a view for a model `cell`. `cell` can also be a string or number representing a model `id`.
     findViewByModel: function(cell) {
 
-        var id = (isString(cell) || isNumber(cell)) ? cell : (cell && cell.id);
+        const id = (isString(cell) || isNumber(cell)) ? cell : (cell && cell.id);
 
-        let view = this._views[id] || this._viewPlaceholders[this._idToCid[id]];
-        if (view && view[CELL_VIEW_PLACEHOLDER]) {
-            view = this._resolveCellViewPlaceholder(view);
-            this.requestViewUpdate(view, view.getFlag(result(view, 'initFlag')), view.UPDATE_PRIORITY);
+        let view = this._views[id];
+        if (!view) {
+            const viewPlaceholder = this._viewPlaceholders[this._idToCid[id]];
+            if (viewPlaceholder) {
+                view = this._resolveCellViewPlaceholder(viewPlaceholder);
+                // It's important to run in isolation to avoid triggering the update of
+                // connected links
+                // TODO: Do we need to run the initFlag or should we just create a view and return it?
+                // but keep the placeholder
+                const flag = view.getFlag(result(view, 'initFlag'));
+                this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, { isolate: true });
+            }
         }
 
         return view;
