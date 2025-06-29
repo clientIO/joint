@@ -30,25 +30,26 @@ export class EmbeddingLayersController extends Listener {
             }
         });
 
+        this.listenTo(graph, 'add', (_appContext, cell) => {
+            const parentId = cell.get('parent');
+
+            if (parentId) {
+                this.onParentChange(cell, parentId);
+            }
+        });
+
+        this.listenTo(graph, 'reset', (_appContext, { models: cells }) => {
+            cells.forEach(cell => {
+                const parentId = cell.get('parent');
+
+                if (parentId) {
+                    this.onParentChange(cell, cell.get('parent'));
+                }
+            });
+        });
+
         this.listenTo(graph, 'change:parent', (_appContext, cell, parentId) => {
-            const layersMap = graph.getLayersMap();
-
-            const currentLayer = cell.layer();
-
-            if (layersMap[currentLayer]) {
-                layersMap[currentLayer].remove(cell);
-            }
-
-            let layer;
-            if (parentId && !layersMap[parentId]) {
-                layer = new GraphLayer({
-                    name: parentId
-                });
-                graph.addLayer(layer);
-                this.insertEmbeddingLayer(layer);
-            }
-
-            graph.addToLayer(cell, layersMap[parentId]);
+            this.onParentChange(cell, parentId);
         });
 
         this.listenTo(paper, 'cell:inserted', (_appContext, cellView) => {
@@ -58,6 +59,28 @@ export class EmbeddingLayersController extends Listener {
                 cellView.el.after(layerView.el);
             }
         });
+    }
+
+    onParentChange(cell, parentId) {
+        const { graph } = this;
+        const layersMap = graph.getLayersMap();
+
+        const currentLayer = cell.layer();
+
+        if (layersMap[currentLayer]) {
+            layersMap[currentLayer].remove(cell);
+        }
+
+        let layer;
+        if (parentId && !layersMap[parentId]) {
+            layer = new GraphLayer({
+                name: parentId
+            });
+            graph.addLayer(layer);
+            this.insertEmbeddingLayer(layer);
+        }
+
+        graph.addToLayer(cell, layersMap[parentId]);
     }
 
     insertEmbeddingLayer(layer) {
