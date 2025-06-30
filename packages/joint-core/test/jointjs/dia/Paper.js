@@ -2465,7 +2465,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 el: paperEl,
                 model: graph,
                 viewManagement: {
-                    lazyInitialization: true,
+                    lazyInitialize: true,
                     disposeHidden: true
                 },
                 cellVisibility: cellVisibilityTrueSpy,
@@ -2553,7 +2553,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
     QUnit.module('viewManagement', function(hooks) {
 
-        QUnit.module('lazyInitialization', function() {
+        QUnit.module('lazyInitialize', function() {
 
             QUnit.test('views are initialized on demand', function(assert) {
 
@@ -2564,7 +2564,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     model: graph,
                     cellVisibility: () => false,
                     viewManagement: {
-                        lazyInitialization: true
+                        lazyInitialize: true
                     },
                 });
 
