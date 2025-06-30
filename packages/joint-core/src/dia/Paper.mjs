@@ -1265,7 +1265,6 @@ export const Paper = View.extend({
         var maxPriority = MIN_PRIORITY;
         var empty = true;
         var options = this.options;
-        const { viewManagement } = options;
         var priorities = updates.priorities;
         const visibilityCb = this.getCellVisibilityCallback(opt);
         var postponeViewFn = options.onViewPostponed;
@@ -1406,7 +1405,6 @@ export const Paper = View.extend({
 
     checkMountedViews: function(visibilityCb, opt) {
         opt || (opt = {});
-        const { viewManagement } = this.options;
         var unmountCount = 0;
         if (typeof visibilityCb !== 'function') return unmountCount;
         var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : Infinity;
