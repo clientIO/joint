@@ -1940,7 +1940,7 @@ export const Paper = View.extend({
             const { viewManagement } = this.options;
             const cid = uniqueId('view');
             this._idToCid[cell.id] = cid;
-            if (viewManagement && viewManagement.lazyInitialization) {
+            if (viewManagement && viewManagement.lazyInitialize) {
                 view = this._registerCellViewPlaceholder(cell, cid);
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT;
             } else {
