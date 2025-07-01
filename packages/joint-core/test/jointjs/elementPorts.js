@@ -2548,6 +2548,23 @@ QUnit.module('element ports', function() {
             assert.ok(portsPositions.one.y < portsPositions.two.y);
             assert.ok(portsPositions.two.y < portsPositions.three.y);
         });
+
+        QUnit.test('return numeric port positions for string args', function(assert) {
+
+            const shape = create({
+                groups: {
+                    'a': {}
+                },
+                items: [
+                    { id: 'one', group: 'a', args: { x: '10', y: '10' } },
+                ]
+            });
+
+            const portsPositions = shape.getPortsPositions('a');
+
+            assert.strictEqual(portsPositions.one.x, 10);
+            assert.strictEqual(portsPositions.one.y, 10);
+        });
     });
 
     QUnit.module('getPortCenter', function() {
