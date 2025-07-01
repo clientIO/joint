@@ -54,6 +54,28 @@ export class Deque {
         }
     }
 
+    moveToHead(key) {
+        const node = this.map.get(key);
+        if (!node) return;
+        if (node === this.head) return; // already at head
+        // Remove node from its current position
+        if (node.prev) node.prev.next = node.next;
+        if (node.next) node.next.prev = node.prev;
+        if (node === this.tail) this.tail = node.prev; // if it's the tail
+        if (node === this.head) this.head = node.next; // if it's the head
+        // Move node to head
+        node.prev = null;
+        node.next = this.head;
+        if (this.head) {
+            this.head.prev = node; // link old head back to new head
+        }
+        this.head = node; // update head to be the moved node
+        if (!this.tail) {
+            this.tail = node; // if it was the only node, set tail as well
+        }
+    }
+
+
     // method to see the first node in the deque
     peekHead() {
         return this.head;
