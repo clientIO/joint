@@ -1,6 +1,6 @@
 import * as mvc from '../mvc/index.mjs';
 import V from '../V/index.mjs';
-import { has, isNumber, isPlainObject, result } from '../util/util.mjs';
+import { isNumber, isPlainObject, result } from '../util/util.mjs';
 
 function toArray(obj) {
     if (!obj) return [];

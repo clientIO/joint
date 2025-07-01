@@ -2054,6 +2054,25 @@ export const Paper = View.extend({
         this.detachView(view);
     },
 
+    // prioritizeCellViewVisibilityCheck: function(model) {
+    //     const cid = this._idToCid[model.id];
+    //     if (!cid) return;
+    //     const { mountedList, unmountedList } = this._updates;
+    //     let list = mountedList.has(cid) ? mountedList : unmountedList.has(cid) ? unmountedList : null;
+    //     if (!list) return;
+    //     list.moveToHead(cid);
+    // },
+
+    prioritizeCellViewMounting: function(model) {
+        const cid = this._idToCid[model.id];
+        if (!cid) return false;
+        const { unmountedList } = this._updates;
+        if (!unmountedList.has(cid)) return false;
+        // Move the view to the head of the mounted list
+        unmountedList.moveToHead(cid);
+        return true;
+    },
+
     detachView(view) {
         if (view[CELL_VIEW_PLACEHOLDER]) return;
         view.unmount();
