@@ -54,19 +54,27 @@ function ellipseLayout(ports, elBBox, startAngle, stepFn) {
 
 function argTransform(bbox, args) {
     let { x, y, angle } = args;
+
     if (util.isPercentage(x)) {
         x = parseFloat(x) / 100 * bbox.width;
     } else if (util.isCalcExpression(x)) {
         x = Number(util.evalCalcExpression(x, bbox));
     } else if (typeof x === 'string') {
         x = Number(x);
+        if (isNaN(x)) {
+            throw new TypeError(`Cannot convert port coordinate x: "${args.x}" to a number`);
+        }
     }
+
     if (util.isPercentage(y)) {
         y = parseFloat(y) / 100 * bbox.height;
     } else if (util.isCalcExpression(y)) {
         y = Number(util.evalCalcExpression(y, bbox));
     } else if (typeof y === 'string') {
         y = Number(y);
+        if (isNaN(y)) {
+            throw new TypeError(`Cannot convert port coordinate y: "${args.y}" to a number`);
+        }
     }
     return { x, y, angle };
 }
