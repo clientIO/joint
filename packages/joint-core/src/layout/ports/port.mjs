@@ -58,11 +58,15 @@ function argTransform(bbox, args) {
         x = parseFloat(x) / 100 * bbox.width;
     } else if (util.isCalcExpression(x)) {
         x = Number(util.evalCalcExpression(x, bbox));
+    } else if (typeof x === 'string') {
+        x = Number(x);
     }
     if (util.isPercentage(y)) {
         y = parseFloat(y) / 100 * bbox.height;
     } else if (util.isCalcExpression(y)) {
         y = Number(util.evalCalcExpression(y, bbox));
+    } else if (typeof y === 'string') {
+        y = Number(y);
     }
     return { x, y, angle };
 }
