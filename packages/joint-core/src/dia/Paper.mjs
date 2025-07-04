@@ -1979,8 +1979,8 @@ export const Paper = View.extend({
 
     removeViews: function() {
         // Remove all views and their references from the paper.
-        for (let cid in this._views) {
-            const view = this._views[cid];
+        for (const id in this._views) {
+            const view = this._views[id];
             if (view) {
                 view.remove();
             }
