@@ -2658,8 +2658,11 @@ export const Paper = View.extend({
 
         var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
-        var view = data.sourceView;
+        let view = data.sourceView;
         if (view) {
+            // The view could have been disposed during dragging
+            // e.g. dragged outside of the viewport and hidden
+            view = this.findViewByModel(view.model);
             view.pointermove(evt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
@@ -2676,8 +2679,11 @@ export const Paper = View.extend({
 
         var localPoint = this.snapToGrid(normalizedEvt.clientX, normalizedEvt.clientY);
 
-        var view = this.eventData(evt).sourceView;
+        let view = this.eventData(evt).sourceView;
         if (view) {
+            // The view could have been disposed during dragging
+            // e.g. dragged outside of the viewport and hidden
+            view = this.findViewByModel(view.model);
             view.pointerup(normalizedEvt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
