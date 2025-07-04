@@ -75,7 +75,6 @@ export class Deque {
         }
     }
 
-
     // method to see the first node in the deque
     peekHead() {
         return this.head;
