@@ -5,22 +5,20 @@ export class Deque {
         this.map = new Map(); // key -> node
     }
 
-    [Symbol.iterator]() {
+    // Return an array of keys in the deque
+    keys() {
         let current = this.head;
-        return {
-            next: () => {
-                if (current) {
-                    const value = current.key;
-                    current = current.next;
-                    return { value, done: false };
-                }
-                return { done: true };
-            }
-        };
+        const keys = [];
+        while (current) {
+            keys.push(current.key);
+            current = current.next;
+        }
+        return keys;
     }
 
+    // Return the first node and remove it from the deque
     popHead() {
-        if (!this.head) return;
+        if (!this.head) return null;
         const node = this.head;
         this.map.delete(node.key);
         this.head = node.next;
@@ -32,11 +30,9 @@ export class Deque {
         return node;
     }
 
+    // Add a new node to the back of the deque
     pushTail(key, value) {
-        if (this.map.has(key)) {
-            // TODO: handle case where key already exists
-            return;
-        }
+        if (this.map.has(key)) return;
         const node = {
             key,
             value,
@@ -44,7 +40,6 @@ export class Deque {
             next: null
         };
         this.map.set(key, node);
-
         if (!this.tail) {
             this.head = this.tail = node;
         } else {
@@ -54,6 +49,7 @@ export class Deque {
         }
     }
 
+    // Move a node from the deque to the head
     moveToHead(key) {
         const node = this.map.get(key);
         if (!node) return;
@@ -75,12 +71,12 @@ export class Deque {
         }
     }
 
-    // method to see the first node in the deque
+    // Return the first node without removing it
     peekHead() {
-        return this.head;
+        return this.head || null;
     }
 
-    // method to move the first node to the end of the deque
+    // Move the head node to the back of the deque
     rotate() {
         if (!this.head || !this.head.next) return;
         this.tail.next = this.head; // link tail to head
@@ -91,10 +87,10 @@ export class Deque {
         this.head.prev = null; // set new head's prev to null
     }
 
-    // method to remove a node by key
+    // Remove a node from the deque
     delete(key) {
         const node = this.map.get(key);
-        if (!node) return false;
+        if (!node) return;
 
         if (node.prev) node.prev.next = node.next;
         else this.head = node.next;
@@ -103,17 +99,19 @@ export class Deque {
         else this.tail = node.prev;
 
         this.map.delete(key);
-        return true;
     }
 
+    // Does the deque contain a node with the given key?
     has(key) {
         return this.map.has(key);
     }
 
+    // Get the node with the given key
     get(key) {
-        return this.map.get(key);
+        return this.map.get(key) || null;
     }
 
+    // Number of nodes in the deque
     get length() {
         return this.map.size;
     }

@@ -1352,8 +1352,9 @@ export const Paper = View.extend({
     getUnmountedViews: function() {
         const updates = this._updates;
         const unmountedViews = new Array(updates.unmountedList.length);
+        const unmountedCids = updates.unmountedList.keys();
         let i = 0;
-        for (const cid of updates.unmountedList) {
+        for (const cid of unmountedCids) {
             // If the view is a placeholder, it won't be in the global views map
             // If the view is not a cell view, it won't be in the viewPlaceholders map
             unmountedViews[i++] = views[cid] || this._viewPlaceholders[cid];
@@ -1364,8 +1365,9 @@ export const Paper = View.extend({
     getMountedViews: function() {
         const updates = this._updates;
         const mountedViews = new Array(updates.mountedList.length);
+        const mountedCids = updates.mountedList.keys();
         let i = 0;
-        for (const cid of updates.mountedList) {
+        for (const cid of mountedCids) {
             mountedViews[i++] = views[cid] || this._viewPlaceholders[cid];
         }
         return mountedViews;
