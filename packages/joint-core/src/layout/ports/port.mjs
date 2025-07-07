@@ -1,6 +1,19 @@
 import * as g from '../../g/index.mjs';
 import * as util from '../../util/index.mjs';
 
+function parseCoordinate(name, value) {
+    if (typeof value === 'string') {
+        const num = Number(value);
+        if (isNaN(num)) {
+            throw new TypeError(
+                `Cannot convert port coordinate ${name}: "${value}" to a number`
+            );
+        }
+        return num;
+    }
+    return value;
+}
+
 function portTransformAttrs(point, angle, opt) {
 
     var trans = point.toJSON();
@@ -59,24 +72,19 @@ function argTransform(bbox, args) {
         x = parseFloat(x) / 100 * bbox.width;
     } else if (util.isCalcExpression(x)) {
         x = Number(util.evalCalcExpression(x, bbox));
-    } else if (typeof x === 'string') {
-        x = Number(x);
-        if (isNaN(x)) {
-            throw new TypeError(`Cannot convert port coordinate x: "${args.x}" to a number`);
-        }
     }
 
     if (util.isPercentage(y)) {
         y = parseFloat(y) / 100 * bbox.height;
     } else if (util.isCalcExpression(y)) {
         y = Number(util.evalCalcExpression(y, bbox));
-    } else if (typeof y === 'string') {
-        y = Number(y);
-        if (isNaN(y)) {
-            throw new TypeError(`Cannot convert port coordinate y: "${args.y}" to a number`);
-        }
     }
-    return { x, y, angle };
+
+    return {
+        x: parseCoordinate('x', x),
+        y: parseCoordinate('y', y),
+        angle
+    };
 }
 
 // Creates a point stored in arguments
