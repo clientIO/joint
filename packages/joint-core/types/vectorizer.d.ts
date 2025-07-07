@@ -233,6 +233,9 @@ interface VStatic {
 
     ensureId(node: SVGElement | VElement): string;
 
+    /** 
+     * @deprecated Use regular spaces and rely on xml:space="preserve" instead.
+     */
     sanitizeText(text: string): string;
 
     isUndefined(value: any): boolean;

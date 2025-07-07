@@ -485,10 +485,13 @@ const V = (function() {
 
         if (content && typeof content !== 'string') throw new Error('Vectorizer: text() expects the first argument to be a string.');
 
-        // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
-        // IE would otherwise collapse all spaces into one.
-        content = V.sanitizeText(content);
         opt || (opt = {});
+
+        if (opt.sanitize) {
+            // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
+            // IE would otherwise collapse all spaces into one.
+            content = V.sanitizeText(content);
+        }
         // Should we allow the text to be selected?
         var displayEmpty = opt.displayEmpty;
         // End of Line character
@@ -1332,6 +1335,9 @@ const V = (function() {
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
     // when you want to compare the actual DOM text content without having to add the unicode character in
     // the place of all spaces.
+    /** 
+     * @deprecated Use regular spaces and rely on xml:space="preserve" instead.
+     */
     V.sanitizeText = function(text) {
 
         return (text || '').replace(/ /g, '\u00A0');

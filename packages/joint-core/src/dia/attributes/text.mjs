@@ -79,7 +79,8 @@ const textAttributesNS = {
                     x,
                     textVerticalAnchor,
                     eol,
-                    displayEmpty
+                    displayEmpty,
+                    sanitize: attrs.sanitize === true
                 });
                 $.data.set(node, cacheName, textHash);
             }
