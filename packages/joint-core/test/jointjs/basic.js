@@ -55,7 +55,7 @@ QUnit.module('basic', function(hooks) {
         var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { label: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle', sanitize: true }}
         });
 
         this.graph.addCell(myrect);
@@ -78,7 +78,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { label: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle', sanitize: true }}
         });
         var r2 = r1.clone();
         var r3 = r1.clone();
@@ -109,7 +109,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { label: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle', sanitize: true }}
         });
         var r2 = r1.clone();
         var r3 = r1.clone();
@@ -140,7 +140,7 @@ QUnit.module('basic', function(hooks) {
         var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { label: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle', sanitize: true }}
         });
 
         this.graph.addCell(myrect);
@@ -1167,7 +1167,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { label: { text: 'my rectangle' }}
+            attrs: { label: { text: 'my rectangle', sanitize: true }}
         });
 
         this.graph.addCell(r1);
