@@ -27,6 +27,7 @@ export namespace Vectorizer {
         annotations?: TextAnnotation[];
         includeAnnotationIndices?: boolean;
         displayEmpty?: boolean;
+        useNoBreakSpace?: boolean;
     }
 
     interface GetBBoxOptions {

@@ -487,7 +487,7 @@ const V = (function() {
 
         opt || (opt = {});
 
-        if (opt.sanitize) {
+        if (opt.useNoBreakSpace) {
             // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
             // IE would otherwise collapse all spaces into one.
             content = V.sanitizeText(content);
