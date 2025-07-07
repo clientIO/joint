@@ -46,7 +46,7 @@ QUnit.module('Attributes', function() {
             paper.remove();
         });
 
-        QUnit.module('sanitize', function() {
+        QUnit.module('useNoBreakSpace', function() {
 
             QUnit.test('false by default', function(assert) {
 
@@ -58,7 +58,7 @@ QUnit.module('Attributes', function() {
             QUnit.test('true', function(assert) {
 
                 const text = joint.dia.attributes['text'];
-                text.set.call(cellView, '  text  ', refBBox, node, { sanitize: true });
+                text.set.call(cellView, '  text  ', refBBox, node, { 'use-no-break-space': true });
                 assert.equal(node.textContent, V.sanitizeText('  text  '), 'Text uses non-breaking whitespace character');
             });
         });
