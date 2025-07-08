@@ -487,6 +487,12 @@ const V = (function() {
 
         opt || (opt = {});
 
+        // Backwards-compatibility: if no content was provided, treat it as an
+        // empty string so that subsequent string operations (e.g. split) do
+        // not throw and behaviour matches the previous implementation that
+        // always sanitised the input.
+        if (content == null) content = '';
+
         if (opt.useNoBreakSpace) {
             // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
             // IE would otherwise collapse all spaces into one.
