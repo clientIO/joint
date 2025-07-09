@@ -18,8 +18,12 @@ export const View = ViewBase.extend({
 
     DETACHABLE: true,
     UPDATE_PRIORITY: 2,
+
+    /** @deprecated is no longer used (moved to Paper) */
     FLAG_INSERT: 1<<30,
+    /** @deprecated is no longer used */
     FLAG_REMOVE: 1<<29,
+    /** @deprecated is no longer used */
     FLAG_INIT: 1<<28,
 
     constructor: function(options) {
