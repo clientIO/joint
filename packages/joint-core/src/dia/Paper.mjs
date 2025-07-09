@@ -1191,7 +1191,11 @@ export const Paper = View.extend({
                 }
             } else {
                 if (!updates.idle) {
-                    if (options.autoFreeze) {
+                    // The `checkViewport` could have scheduled some insertions
+                    // (note that removals are currently done synchronously).
+                    if (options.autoFreeze && !this.hasScheduledUpdates()) {
+                        // If there are no updates scheduled, freeze the paper.
+                        // Notify the idle state.
                         this.freeze();
                         updates.idle = true;
                         this.trigger('render:idle', opt);
