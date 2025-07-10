@@ -16,10 +16,8 @@ export class EmbeddingLayersController extends Listener {
         const { graph, paper } = this;
 
         this.listenTo(graph, 'remove', (_appContext, cell) => {
-            const layersMap = graph.getLayersMap();
-
-            if (layersMap[cell.id]) {
-                const layer = layersMap[cell.id];
+            if (graph.hasLayer(cell.id)) {
+                const layer = graph.getLayer(cell.id);
                 const cells = layer.get('cells').models;
                 cells.forEach((cell) => {
                     graph.addToLayer(cell);
@@ -63,12 +61,11 @@ export class EmbeddingLayersController extends Listener {
 
     onParentChange(cell, parentId) {
         const { graph } = this;
-        const layersMap = graph.getLayersMap();
 
-        const currentLayer = cell.layer();
+        const currentLayerName = cell.layer();
 
-        if (layersMap[currentLayer]) {
-            layersMap[currentLayer].remove(cell);
+        if (graph.hasLayer(currentLayerName)) {
+            graph.getLayer(currentLayerName).remove(cell);
         }
 
         let layer;

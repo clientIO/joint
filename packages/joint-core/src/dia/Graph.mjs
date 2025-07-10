@@ -438,8 +438,16 @@ export const Graph = Model.extend({
         return this.layersController.getDefaultLayer();
     },
 
-    getLayersMap() {
-        return this.layersController.getLayersMap();
+    getLayer(name) {
+        return this.layersController.getLayer(name);
+    },
+
+    hasLayer(name) {
+        return this.layersController.hasLayer(name);
+    },
+
+    getLayers() {
+        return this.layersController.getLayers();
     },
 
     getLayerCells(layerName) {

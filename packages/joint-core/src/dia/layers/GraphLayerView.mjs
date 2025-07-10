@@ -76,6 +76,7 @@ export class GraphLayerView extends LayerView {
         });
     }
 
+    // TODO: make it work properly from inside of paper
     _prepareRemove() {
         const cellNodes = Array.from(this.el.children).filter(node => node.getAttribute('model-id'));
         const cells = this.model.get('cells');

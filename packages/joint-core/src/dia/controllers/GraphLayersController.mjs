@@ -151,8 +151,26 @@ export class GraphLayersController extends Listener {
         return layer.maxZIndex();
     }
 
-    getLayersMap() {
-        return this.layersMap;
+    hasLayer(layerName) {
+        return !!this.layersMap[layerName];
+    }
+
+    getLayer(layerName) {
+        if (!this.layersMap[layerName]) {
+            throw new Error(`dia.Graph: Layer with name '${layerName}' does not exist.`);
+        }
+
+        return this.layersMap[layerName];
+    }
+
+    getLayers() {
+        const layers = [];
+
+        for (let layerName in this.layersMap) {
+            layers.push(this.layersMap[layerName]);
+        }
+
+        return layers;
     }
 
     getLayerCells(layerName) {

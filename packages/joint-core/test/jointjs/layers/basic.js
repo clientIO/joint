@@ -27,8 +27,9 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(this.paper.getLayer('cells'), 'Paper has default layer view for "cells" layer');
 
         const cellsLayerView = this.paper.getLayer('cells');
+        const graphDefaultLayer = this.graph.getDefaultLayer();
 
-        assert.equal(cellsLayerView.model, layers[0], 'Default layer view is linked to the default layer model');
+        assert.equal(cellsLayerView.model, graphDefaultLayer, 'Default layer view is linked to the default layer model');
     });
 
     hooks.afterEach(function() {

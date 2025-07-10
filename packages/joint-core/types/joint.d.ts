@@ -211,6 +211,12 @@ export namespace dia {
 
         getDefaultLayer(): GraphLayer;
 
+        getLayer(name: string): GraphLayer;
+
+        hasLayer(name: string): boolean;
+
+        getLayers(): GraphLayer[];
+
         getCell(id: Cell.ID | Cell): Cell;
 
         getElements(): Element[];
@@ -1975,12 +1981,12 @@ export namespace dia {
 
     namespace LayerView {
 
-        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
+        interface Options<T extends mvc.Model = undefined> extends mvc.ViewOptions<T, SVGElement> {
             name: string;
         }
     }
 
-    class LayerView extends mvc.View<undefined, SVGElement> {
+    class LayerView<T extends mvc.Model = undefined> extends mvc.View<T, SVGElement> {
 
         constructor(opt?: LayerView.Options);
 
@@ -2010,6 +2016,13 @@ export namespace dia {
         minZIndex(): number;
 
         maxZIndex(): number;
+    }
+
+    class GraphLayerView extends LayerView<GraphLayer> {
+
+        protected sortLayer(): void;
+
+        protected sortLayerExact(): void;
     }
 
     namespace ToolsView {

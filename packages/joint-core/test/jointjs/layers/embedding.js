@@ -14,15 +14,18 @@ QUnit.module('embedding-layers', function(hooks) {
         });
     });
 
-    QUnit.test('Embedding layers setup', function(assert) {
-
-        assert.ok(this.paper.embeddingLayersController, 1, 'Controller is created');
-    });
-
     hooks.afterEach(function() {
 
         this.paper.remove();
         this.graph = null;
         this.paper = null;
+    });
+
+    QUnit.test('Embedding layers setup', function(assert) {
+        assert.ok(this.paper.embeddingLayersController, 1, 'Controller is created');
+    });
+
+    QUnit.test('Embedding layers setup', function(assert) {
+        assert.ok(this.paper.embeddingLayersController, 1, 'Controller is created');
     });
 });
