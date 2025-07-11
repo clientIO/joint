@@ -45,7 +45,7 @@ export class GraphLayer extends Model {
         this.get('cells').remove(cell);
     }
 
-    clear() {
+    reset() {
         this.get('cells').reset();
     }
 

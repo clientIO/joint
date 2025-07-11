@@ -1932,7 +1932,7 @@ export const Paper = View.extend({
     sortLayersExact: function() {
         const { _layers: { viewsMap }} = this;
 
-        Object.values(viewsMap).filter(view => view instanceof GraphLayerView).forEach(view => view.sortLayerExact());
+        Object.values(viewsMap).filter(view => view instanceof GraphLayerView).forEach(view => view.sortExact());
     },
 
     insertView: function(view, isInitialInsert) {

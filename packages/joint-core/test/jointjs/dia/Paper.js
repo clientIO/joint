@@ -977,7 +977,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             rect3.translate(10, 10);
                             assert.ok(sortLayersExactSpy.notCalled);
                             // ADD CELLS
-                            var sortLayerExactSpy = sinon.spy(paper.getLayer('cells'), 'sortLayerExact');
+                            var sortLayerExactSpy = sinon.spy(paper.getLayer('cells'), 'sortExact');
                             graph.clear();
                             graph.addCells([rect1, rect2, rect3]);
                             assert.equal(sortLayerExactSpy.callCount, paper.options.sorting === Paper.sorting.EXACT ? 1 : 0);

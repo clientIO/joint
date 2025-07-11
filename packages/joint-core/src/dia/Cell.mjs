@@ -266,9 +266,9 @@ export const Cell = Model.extend({
             const maxZ = graph.maxZIndex(layerName);
             let z = maxZ - cells.length + 1;
 
-            const collection = graph.getLayerCells(layerName);
+            const layerCells = graph.getLayerCells(layerName);
 
-            let shouldUpdate = (collection.toArray().indexOf(sortedCells[0]) !== (collection.length - cells.length));
+            let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== (layerCells.length - cells.length));
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;
@@ -310,9 +310,9 @@ export const Cell = Model.extend({
 
             let z = graph.minZIndex(layerName);
 
-            const  collection = graph.getLayerCells(layerName);
+            const layerCells = graph.getLayerCells(layerName);
 
-            let shouldUpdate = (collection.toArray().indexOf(sortedCells[0]) !== 0);
+            let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;

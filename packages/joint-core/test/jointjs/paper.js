@@ -97,9 +97,9 @@ QUnit.module('paper', function(hooks) {
 
     });
 
-    QUnit.test('paper.addCell() number of sortLayer()', function(assert) {
+    QUnit.test('paper.addCell() number of sort()', function(assert) {
 
-        var spy = sinon.spy(this.paper.getLayer('cells'), 'sortLayer');
+        var spy = sinon.spy(this.paper.getLayer('cells'), 'sort');
 
         var r1 = new joint.shapes.standard.Rectangle;
         var r2 = new joint.shapes.standard.Rectangle;
@@ -119,9 +119,9 @@ QUnit.module('paper', function(hooks) {
 
     });
 
-    QUnit.test('paper.addCells() number of sortLayer()', function(assert) {
+    QUnit.test('paper.addCells() number of sort()', function(assert) {
 
-        var spy = sinon.spy(this.paper.getLayer('cells'), 'sortLayer');
+        var spy = sinon.spy(this.paper.getLayer('cells'), 'sort');
 
         var r1 = new joint.shapes.standard.Rectangle;
         var r2 = new joint.shapes.standard.Rectangle;

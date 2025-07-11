@@ -67,13 +67,11 @@ const GraphCells = Collection.extend({
 
 export const Graph = Model.extend({
 
+    defaultLayerName: 'cells',
+
     initialize: function(attrs, opt) {
 
         opt = opt || {};
-
-        this.enableCellLayers = opt.enableCellLayers || false;
-
-        this.defaultLayerName = 'cells';
 
         const defaultLayer = new GraphLayer({
             name: this.defaultLayerName
@@ -475,14 +473,20 @@ export const Graph = Model.extend({
         return this.getCells().filter(cell => cell.isLink());
     },
 
+    // @deprecated
     getFirstCell: function() {
 
-        return this.getCells().first();
+        const cells = this.getCells();
+
+        return cells[0];
     },
 
+    // @deprecated
     getLastCell: function() {
 
-        return this.getCells().last();
+        const cells = this.getCells();
+
+        return cells[cells.length - 1];
     },
 
     // Get all inbound and outbound links connected to the cell `model`.

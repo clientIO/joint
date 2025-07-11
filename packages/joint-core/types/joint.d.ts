@@ -2011,18 +2011,22 @@ export namespace dia {
 
         remove(cell: Cell): void;
 
-        //clear(): void;
+        reset(): void;
 
         minZIndex(): number;
 
         maxZIndex(): number;
+
+        addToGraph(graph: Graph): void;
+
+        removeFromGraph(): void;
     }
 
     class GraphLayerView extends LayerView<GraphLayer> {
 
-        protected sortLayer(): void;
+        protected sort(): void;
 
-        protected sortLayerExact(): void;
+        protected sortExact(): void;
     }
 
     namespace ToolsView {

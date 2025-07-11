@@ -38,7 +38,7 @@ export class GraphLayersController extends Listener {
             const { layersMap } = this;
 
             for (let layerName in layersMap) {
-                layersMap[layerName].clear();
+                layersMap[layerName].reset();
             }
 
             cells.forEach(cell => {
@@ -174,7 +174,7 @@ export class GraphLayersController extends Listener {
     }
 
     getLayerCells(layerName) {
-        return this.layersMap[layerName].get('cells');
+        return this.layersMap[layerName].get('cells').toArray();
     }
 
     getCells() {

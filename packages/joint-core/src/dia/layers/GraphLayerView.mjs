@@ -31,7 +31,7 @@ export class GraphLayerView extends LayerView {
 
         this.listenTo(model, 'sort', () => {
             if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
-            this.sortLayer();
+            this.sort();
         });
 
         this.listenTo(graph, 'batch:stop', (data) => {
@@ -39,12 +39,12 @@ export class GraphLayerView extends LayerView {
             const sortDelayingBatches = this.SORT_DELAYING_BATCHES;
 
             if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
-                this.sortLayer();
+                this.sort();
             }
         });
     }
 
-    sortLayer() {
+    sort() {
         const { options: { paper } } = this;
         if (!paper)
             return;
@@ -58,10 +58,10 @@ export class GraphLayerView extends LayerView {
             paper._updates.sort = true;
             return;
         }
-        this.sortLayerExact();
+        this.sortExact();
     }
 
-    sortLayerExact() {
+    sortExact() {
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.
         const cellNodes = Array.from(this.el.children).filter(node => node.getAttribute('model-id'));
