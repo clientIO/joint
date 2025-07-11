@@ -76,6 +76,14 @@ export class GraphLayerView extends LayerView {
         });
     }
 
+    getCellViewNode(cellId) {
+        const cellNode = this.el.querySelector(`[model-id="${cellId}"]`);
+        if (!cellNode) {
+            return null;
+        }
+        return cellNode;
+    }
+
     // TODO: make it work properly from inside of paper
     _prepareRemove() {
         const cellNodes = Array.from(this.el.children).filter(node => node.getAttribute('model-id'));
@@ -89,5 +97,4 @@ export class GraphLayerView extends LayerView {
             }
         });
     }
-
 }

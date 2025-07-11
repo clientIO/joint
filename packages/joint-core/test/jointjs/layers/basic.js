@@ -13,6 +13,13 @@ QUnit.module('layers-basic', function(hooks) {
         });
     });
 
+    hooks.afterEach(function() {
+
+        this.paper.remove();
+        this.graph = null;
+        this.paper = null;
+    });
+
     QUnit.test('Default layers setup', function(assert) {
         assert.ok(this.graph.layersController, 'Graph layers controller is created');
 
@@ -30,12 +37,5 @@ QUnit.module('layers-basic', function(hooks) {
         const graphDefaultLayer = this.graph.getDefaultLayer();
 
         assert.equal(cellsLayerView.model, graphDefaultLayer, 'Default layer view is linked to the default layer model');
-    });
-
-    hooks.afterEach(function() {
-
-        this.paper.remove();
-        this.graph = null;
-        this.paper = null;
     });
 });

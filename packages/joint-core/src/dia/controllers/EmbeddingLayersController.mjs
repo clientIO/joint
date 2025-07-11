@@ -24,7 +24,7 @@ export class EmbeddingLayersController extends Listener {
                 });
 
                 graph.removeLayer(layer);
-                this.removeEmbeddingLayer(layer);
+                this.removeLayerView(layer);
             }
         });
 
@@ -68,19 +68,25 @@ export class EmbeddingLayersController extends Listener {
             graph.getLayer(currentLayerName).remove(cell);
         }
 
-        let layer;
-        if (parentId && !layersMap[parentId]) {
-            layer = new GraphLayer({
-                name: parentId
-            });
-            graph.addLayer(layer);
-            this.insertEmbeddingLayer(layer);
-        }
+        if (parentId) {
+            let layer;
+            if (!graph.hasLayer(parentId)) {
+                layer = new GraphLayer({
+                    name: parentId
+                });
+                graph.addLayer(layer);
+                this.insertLayerView(layer);
+            } else {
+                layer = graph.getLayer(parentId);
+            }
 
-        graph.addToLayer(cell, layersMap[parentId]);
+            graph.addToLayer(cell, layer);
+        } else {
+            graph.addToLayer(cell);
+        }
     }
 
-    insertEmbeddingLayer(layer) {
+    insertLayerView(layer) {
         const { paper } = this;
 
         const cellId = layer.name;
@@ -93,7 +99,7 @@ export class EmbeddingLayersController extends Listener {
         }
     }
 
-    removeEmbeddingLayer(layer) {
+    removeLayerView(layer) {
         const { paper } = this;
 
         const cellId = layer.name;
