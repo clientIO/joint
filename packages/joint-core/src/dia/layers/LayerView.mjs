@@ -8,9 +8,13 @@ export const LayerView = View.extend({
     pivotNodes: null,
     defaultTheme: null,
 
+    options: {
+        name: ''
+    },
+
     init: function() {
         this.pivotNodes = {};
-        this.name = this.options.name || '';
+        this.name = this.options.name;
     },
 
     className: function() {
