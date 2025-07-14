@@ -403,6 +403,7 @@ export const Paper = View.extend({
         this._layersSettings = [{
             type: 'GridLayerView',
             name: LayersNames.GRID,
+            patterns: this.constructor.gridPatterns
         }, {
             name: LayersNames.BACK,
         }, {
@@ -778,30 +779,30 @@ export const Paper = View.extend({
         V(this.svg).prepend(V.createSVGStyle(css));
     },
 
-    createLayer(attributes) {
-        attributes.paper = this;
+    createLayer(options) {
+        options.paper = this;
 
-        let type = attributes.type;
+        let type = options.type;
 
-        if (attributes.model) {
-            const modelType = attributes.model.get('type') || attributes.model.constructor.name;
+        if (options.model) {
+            const modelType = options.model.get('type') || options.model.constructor.name;
             type = modelType + 'View';
         }
 
         const viewConstructor = this.options.layerViewNamespace[type] || LayerView;
 
-        return new viewConstructor(attributes);
+        return new viewConstructor(options);
     },
 
-    renderLayer: function(attributes) {
-        const layerView = this.createLayer(attributes);
+    renderLayer: function(options) {
+        const layerView = this.createLayer(options);
         this.addLayer(layerView);
         return layerView;
     },
 
     renderLayers: function(layers) {
         this.removeLayers();
-        layers.forEach(attributes => this.renderLayer(attributes));
+        layers.forEach(options => this.renderLayer(options));
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayer(LayersNames.CELLS);
         const toolsLayerView = this.getLayer(LayersNames.TOOLS);

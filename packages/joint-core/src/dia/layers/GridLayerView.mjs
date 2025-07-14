@@ -9,32 +9,27 @@ import {
 } from '../../util/index.mjs';
 import V from '../../V/index.mjs';
 
-export class GridLayerView extends LayerView {
+export const GridLayerView = LayerView.extend({
 
-    preinitialize() {
-        super.preinitialize();
+    style: {
+        'pointer-events': 'none'
+    },
 
-        this.style = {
-            'pointer-events': 'none'
-        }
-    }
+    _gridCache: null,
+    _gridSettings: null,
 
-    init(...args) {
-        super.init(...args);
-
+    init() {
+        LayerView.prototype.init.apply(this, arguments);
         const { options: { paper }} = this;
-
-        this.options.patterns = paper.constructor.gridPatterns;
-
         this._gridCache = null;
         this._gridSettings = [];
         this.listenTo(paper, 'transform resize', this.updateGrid);
-    }
+    },
 
     setGrid(drawGrid) {
         this._gridSettings = this.getGridSettings(drawGrid);
         this.renderGrid();
-    }
+    },
 
     getGridSettings(drawGrid) {
         const gridSettings = [];
@@ -45,14 +40,14 @@ export class GridLayerView extends LayerView {
             });
         }
         return gridSettings;
-    }
+    },
 
     removeGrid() {
         const { _gridCache: grid } = this;
         if (!grid) return;
         grid.root.remove();
         this._gridCache = null;
-    }
+    },
 
     renderGrid() {
 
@@ -97,7 +92,7 @@ export class GridLayerView extends LayerView {
 
         refs.root.appendTo(this.el);
         this.updateGrid();
-    }
+    },
 
     updateGrid() {
 
@@ -116,11 +111,11 @@ export class GridLayerView extends LayerView {
                 options.update(vPattern.node.firstChild, options, paper);
             }
         });
-    }
+    },
 
     _getPatternId(index) {
         return `pattern_${this.options.paper.cid}_${index}`;
-    }
+    },
 
     _getGridRefs() {
         let { _gridCache: grid } = this;
@@ -144,7 +139,7 @@ export class GridLayerView extends LayerView {
             }
         };
         return grid;
-    }
+    },
 
     _resolveDrawGridOption(opt) {
 
@@ -180,11 +175,11 @@ export class GridLayerView extends LayerView {
         }
 
         return isArray ? options : [options];
-    }
+    },
 
     isEmpty() {
         const { _gridCache: grid } = this;
         return this.el.children.length === (grid ? 1 : 0);
     }
 
-}
+});

@@ -1,30 +1,18 @@
 import { LayerView } from './LayerView.mjs';
 import { sortElements } from '../../util/index.mjs';
 
-export class GraphLayerView extends LayerView {
+export const GraphLayerView = LayerView.extend({
 
-    init(...args) {
-        super.init(...args);
+    SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
 
-        const { model } = this;
+    init() {
+        LayerView.prototype.init.apply(this, arguments);
 
-        if (model.graph) {
-            this.startListening(model.graph);
-        }
+        const { options: { paper } } = this;
+        const graph = paper.model;
 
-        this.listenTo(model, 'addedToGraph', (graph) => {
-            this.stopListening();
-            this.startListening(graph);
-        });
-
-        this.listenTo(model, 'removedFromGraph', () => {
-            this.stopListening();
-        });
-    }
-
-    get SORT_DELAYING_BATCHES() {
-        return ['add', 'reset', 'to-front', 'to-back'];
-    }
+        this.startListening(graph);
+    },
 
     startListening(graph) {
         const { model } = this;
@@ -42,7 +30,7 @@ export class GraphLayerView extends LayerView {
                 this.sort();
             }
         });
-    }
+    },
 
     sort() {
         const { options: { paper } } = this;
@@ -59,7 +47,7 @@ export class GraphLayerView extends LayerView {
             return;
         }
         this.sortExact();
-    }
+    },
 
     sortExact() {
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
@@ -74,7 +62,7 @@ export class GraphLayerView extends LayerView {
             const zB = cellB.attributes.z || 0;
             return (zA === zB) ? 0 : (zA < zB) ? -1 : 1;
         });
-    }
+    },
 
     getCellViewNode(cellId) {
         const cellNode = this.el.querySelector(`[model-id="${cellId}"]`);
@@ -82,7 +70,7 @@ export class GraphLayerView extends LayerView {
             return null;
         }
         return cellNode;
-    }
+    },
 
     // TODO: make it work properly from inside of paper
     _prepareRemove() {
@@ -97,4 +85,4 @@ export class GraphLayerView extends LayerView {
             }
         });
     }
-}
+});

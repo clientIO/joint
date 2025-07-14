@@ -1,32 +1,36 @@
 import { View } from '../../mvc/index.mjs';
 import { addClassNamePrefix } from '../../util/util.mjs';
 
-export class LayerView extends View {
+export const LayerView = View.extend({
 
-    preinitialize() {
-        this.tagName = 'g';
-        this.svgElement = true;
+    tagName: 'g',
+    svgElement: true,
+    pivotNodes: null,
+    defaultTheme: null,
+
+    init: function() {
         this.pivotNodes = {};
-    }
+        this.name = this.options.name || '';
+    },
 
-    className() {
+    className: function() {
         const { name } = this.options;
         if (!name) return null;
         return addClassNamePrefix(`${name}-layer`);
-    }
+    },
 
-    insertSortedNode(node, z) {
+    insertSortedNode: function(node, z) {
         this.el.insertBefore(node, this.insertPivot(z));
-    }
+    },
 
-    insertNode(node) {
+    insertNode: function(node) {
         const { el } = this;
         if (node.parentNode !== el) {
             el.appendChild(node);
         }
-    }
+    },
 
-    insertPivot(z) {
+    insertPivot: function(z) {
         const { el, pivotNodes } = this;
         z = +z;
         z || (z = 0);
@@ -50,21 +54,16 @@ export class LayerView extends View {
             el.insertBefore(pivotNode, el.firstChild);
         }
         return pivotNode;
-    }
+    },
 
-    removePivots() {
+    removePivots: function() {
         const { el, pivotNodes } = this;
-        for (let z in pivotNodes) {
-            el.removeChild(pivotNodes[z]);
-        }
+        for (let z in pivotNodes) el.removeChild(pivotNodes[z]);
         this.pivotNodes = {};
-    }
+    },
 
-    isEmpty() {
+    isEmpty: function() {
+        // Check if the layer has any child elements (pivot comments are not counted).
         return this.el.children.length === 0;
-    }
-
-    get name() {
-        return this.options.name;
-    }
-}
+    },
+});

@@ -2016,10 +2016,6 @@ export namespace dia {
         minZIndex(): number;
 
         maxZIndex(): number;
-
-        addToGraph(graph: Graph): void;
-
-        removeFromGraph(): void;
     }
 
     class GraphLayerView extends LayerView<GraphLayer> {
