@@ -26,15 +26,15 @@ export class GraphLayersController extends Listener {
     startListening() {
         const { graph } = this;
 
-        this.listenTo(graph, 'add', (_appContext, cell) => {
+        this.listenTo(graph, 'add', (_context, cell) => {
             this.onAdd(cell);
         });
 
-        this.listenTo(graph, 'remove', (_appContext, cell) => {
+        this.listenTo(graph, 'remove', (_context, cell) => {
             this.onRemove(cell);
         });
 
-        this.listenTo(graph, 'reset', (_appContext, { models: cells }) => {
+        this.listenTo(graph, 'reset', (_context, { models: cells }) => {
             const { layersMap } = this;
 
             for (let layerName in layersMap) {
@@ -92,7 +92,7 @@ export class GraphLayersController extends Listener {
             layer.add(cell);
         } else {
             layer.add(cell);
-            cell.setLayer(layer.name);
+            cell.layer(layer.name);
         }
     }
 

@@ -948,24 +948,29 @@ export const Cell = Model.extend({
             .difference(this.position());
     },
 
-    setLayer(layerName) {
-        if (layerName) {
-            this.set('layer', layerName);
+    layer: function(layerName, opt) {
+        // if strictly null unset the layer
+        if (layerName === null) {
+            return this.unset('layer', opt);
         }
-    },
 
-    unsetLayer() {
-        this.unset('layer');
-    },
-
-    layer() {
-        let layer = this.get('layer') || null;
-        if (layer == null && this.graph) {
+        // if undefined return the current layer name
+        if (layerName === undefined) {
+            let layer = this.get('layer') || null;
             // If the cell is part of a graph, use the graph's default layer.
-            layer = this.graph.getDefaultLayer().name;
+            if (layer == null && this.graph) {
+                layer = this.graph.getDefaultLayer().name;
+            }
+
+            return layer;
         }
 
-        return layer;
+        // otherwise set the layer name
+        if (!isString(layerName)) {
+            throw new Error('Layer name must be a string.');
+        }
+
+        return this.set('layer', layerName, opt);
     }
 
 }, {

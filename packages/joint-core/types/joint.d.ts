@@ -533,6 +533,9 @@ export namespace dia {
 
         z(): number;
 
+        layer(): string;
+        layer(name: string | null, opt?: Graph.Options): this;
+
         angle(): number;
 
         getBBox(): g.Rect;

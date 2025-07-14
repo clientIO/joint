@@ -41,7 +41,8 @@ export class GraphLayer extends Model {
     }
 
     remove(cell) {
-        cell.unsetLayer();
+        // unsets the layer making it default for the purpose of the DOM location
+        cell.layer(null);
         this.get('cells').remove(cell);
     }
 
