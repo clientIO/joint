@@ -2,9 +2,8 @@
 import { useEffect } from 'react';
 import type { GraphElement } from '../../types/element-types';
 import type { PaperProps } from './paper';
-import type { ReactPaperOptions } from '../paper-provider/paper-provider';
 
-const PAPER_PROPS_NAMES: Array<keyof ReactPaperOptions> = [
+const PAPER_PROPS_NAMES: Array<keyof PaperProps> = [
   'afterRender',
   'allowLink',
   'anchorNamespace',
@@ -62,6 +61,7 @@ const PAPER_PROPS_NAMES: Array<keyof ReactPaperOptions> = [
   'validateUnembedding',
   'viewport',
   'width',
+  'overwriteDefaultPaperElement',
 ];
 /**
  * `VerifyProps` is a component that checks the properties of the Paper component in development mode.

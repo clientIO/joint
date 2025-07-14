@@ -12,6 +12,23 @@
     "LICENSE",
     "src"
   ],
+  "homepage": "https://jointjs.com",
+  "author": {
+    "name": "client IO",
+    "url": "https://client.io"
+  },
+  "contributors": [
+    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
+    "Samuel <samuel@client.io> (https://github.com/samuelgja)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clientIO/joint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/clientIO/joint/issues"
+  },
+  "license": "MPL-2.0",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "yarn eslint \"**/*.{ts,tsx}\"",

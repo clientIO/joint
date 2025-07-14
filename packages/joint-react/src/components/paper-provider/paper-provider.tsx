@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { GraphStoreContext, PaperContext } from '../../context';
 import { dia } from '@joint/core';
 import { useGraph } from '../../hooks';
@@ -27,16 +27,26 @@ export interface PaperOptions extends ReactPaperOptions {
 
 export interface PaperProviderProps extends ReactPaperOptions, GraphProps {
   readonly children: React.ReactNode;
+
+  /**
+   * On load custom element.
+   * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
+   * So it overwrite default paper rendering.
+   * It is used internally for example to render `PaperScroller` from [joint plus](https://www.jointjs.com/jointjs-plus) package.
+   * @param paperCtx - The paper context
+   * @returns
+   */
+  readonly overwriteDefaultPaperElement?: (paperCtx: PaperContext) => HTMLElement | SVGElement;
 }
 const EMPTY_OBJECT = {} as const;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: PaperProviderProps) {
-  const { children, ...paperOptions } = props;
+  const { children, overwriteDefaultPaperElement, ...paperOptions } = props;
   const graph = useGraph();
 
   const { onRenderElement, recordOfSVGElements } = usePaperElementRenderer();
-
+  const paperHTMLElement = useRef<HTMLDivElement | null>(null);
   const [paperCtx] = useState<PaperContext>(function (): PaperContext {
     const portsStore = createPortsStore();
     const elementView = dia.ElementView.extend({
@@ -75,8 +85,36 @@ function Component(props: PaperProviderProps) {
       paper,
       portsStore,
       recordOfSVGElements: EMPTY_OBJECT,
+      paperHTMLElement,
     };
   });
+
+  useLayoutEffect(() => {
+    if (!paperCtx) {
+      return;
+    }
+
+    const { paper } = paperCtx;
+    if (!paper) {
+      throw new Error('Paper is not created');
+    }
+
+    if (overwriteDefaultPaperElement) {
+      const customElement = overwriteDefaultPaperElement(paperCtx);
+      if (!customElement) {
+        throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
+      }
+      paperHTMLElement.current?.replaceChildren(customElement);
+    } else {
+      if (!paperHTMLElement.current) {
+        throw new Error('Paper container element is not defined');
+      }
+      paperHTMLElement.current.replaceChildren(paper.el);
+    }
+    paper.unfreeze();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graph, overwriteDefaultPaperElement]);
 
   useEffect(() => {
     paperCtx.paper.options = {
