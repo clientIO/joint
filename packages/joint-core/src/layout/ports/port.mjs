@@ -1,6 +1,28 @@
 import * as g from '../../g/index.mjs';
 import * as util from '../../util/index.mjs';
 
+function parseCoordinate(coordinate, dimension, bbox, value) {
+
+    if (util.isPercentage(value)) {
+        return parseFloat(value) / 100 * bbox[dimension];
+    }
+
+    if (util.isCalcExpression(value)) {
+        return Number(util.evalCalcExpression(value, bbox));
+    }
+
+    if (typeof value === 'string') {
+        const num = Number(value);
+        if (isNaN(num)) {
+            throw new TypeError(
+                `Cannot convert port coordinate ${coordinate}: "${value}" to a number`
+            );
+        }
+        return num;
+    }
+    return value;
+}
+
 function portTransformAttrs(point, angle, opt) {
 
     var trans = point.toJSON();
@@ -54,17 +76,12 @@ function ellipseLayout(ports, elBBox, startAngle, stepFn) {
 
 function argTransform(bbox, args) {
     let { x, y, angle } = args;
-    if (util.isPercentage(x)) {
-        x = parseFloat(x) / 100 * bbox.width;
-    } else if (util.isCalcExpression(x)) {
-        x = Number(util.evalCalcExpression(x, bbox));
-    }
-    if (util.isPercentage(y)) {
-        y = parseFloat(y) / 100 * bbox.height;
-    } else if (util.isCalcExpression(y)) {
-        y = Number(util.evalCalcExpression(y, bbox));
-    }
-    return { x, y, angle };
+
+    return {
+        x: parseCoordinate('x', 'width', bbox, x),
+        y: parseCoordinate('y', 'height', bbox, y),
+        angle
+    };
 }
 
 // Creates a point stored in arguments

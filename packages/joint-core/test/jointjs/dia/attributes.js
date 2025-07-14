@@ -46,6 +46,23 @@ QUnit.module('Attributes', function() {
             paper.remove();
         });
 
+        QUnit.module('useNoBreakSpace', function() {
+
+            QUnit.test('false by default', function(assert) {
+
+                const text = joint.dia.attributes['text'];
+                text.set.call(cellView, '  text  ', refBBox, node, {});
+                assert.equal(node.textContent, '  text  ', 'Text uses normal whitespace character');
+            });
+
+            QUnit.test('true', function(assert) {
+
+                const text = joint.dia.attributes['text'];
+                text.set.call(cellView, '  text  ', refBBox, node, { 'use-no-break-space': true });
+                assert.equal(node.textContent, V.sanitizeText('  text  '), 'Text uses non-breaking whitespace character');
+            });
+        });
+
         QUnit.module('textWrap', function() {
 
             QUnit.test('qualify', function(assert) {

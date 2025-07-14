@@ -1963,6 +1963,42 @@ QUnit.module('element ports', function() {
 
     QUnit.module('port layout', function(hooks) {
 
+        QUnit.test('throws on invalid coordinate strings', function(assert) {
+
+            const elBBox = g.rect(0, 0, 100, 100);
+
+            assert.throws(
+                () => {
+                    joint.layout.Port.left([
+                        { x: 'a', y: 10 }
+                    ], elBBox);
+                },
+                'Cannot convert port coordinate x: "a" to a number'
+            );
+
+            assert.throws(
+                () => {
+                    joint.layout.Port.left([
+                        { x: 10, y: 'a' }
+                    ], elBBox);
+                },
+                'Cannot convert port coordinate y: "a" to a number'
+            );
+        });
+
+        QUnit.test('parses numeric string coordinates', function(assert) {
+            const elBBox = g.rect(0, 0, 100, 100);
+            const ports = [
+                { x: '10', y: '20' },
+                { x: '100', y: '100' },
+            ];
+            const trans = joint.layout.Port.left(ports, elBBox, {});
+            assert.equal(trans[0].x, 10);
+            assert.equal(trans[0].y, 20);
+            assert.equal(trans[1].x, 100);
+            assert.equal(trans[1].y, 100);
+        });
+
         QUnit.test('straight line layouts', function(assert) {
             var ports = [
                 {},

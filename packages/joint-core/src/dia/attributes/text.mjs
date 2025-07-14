@@ -54,9 +54,10 @@ const textAttributesNS = {
             const eol = attrs.eol;
             const x = attrs.x;
             let textPath = attrs['text-path'];
+            const useNoBreakSpace = attrs['use-no-break-space'] === true;
             // Update the text only if there was a change in the string
             // or any of its attributes.
-            const textHash = JSON.stringify([text, lineHeight, annotations, textVerticalAnchor, eol, displayEmpty, textPath, x, fontSize]);
+            const textHash = JSON.stringify([text, lineHeight, annotations, textVerticalAnchor, eol, displayEmpty, textPath, x, fontSize, useNoBreakSpace]);
             if (cache === undefined || cache !== textHash) {
                 // Chrome bug:
                 // <tspan> positions defined as `em` are not updated
@@ -79,7 +80,8 @@ const textAttributesNS = {
                     x,
                     textVerticalAnchor,
                     eol,
-                    displayEmpty
+                    displayEmpty,
+                    useNoBreakSpace
                 });
                 $.data.set(node, cacheName, textHash);
             }

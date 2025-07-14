@@ -1858,48 +1858,90 @@ export const LinkView = CellView.extend({
         let isSnapped = false;
         // checking view in close area of the pointer
 
-        var r = snapLinks.radius || 50;
-        var viewsInArea = paper.findElementViewsInArea(
-            { x: x - r, y: y - r, width: 2 * r, height: 2 * r },
+        const radius = snapLinks.radius || 50;
+        const viewsInArea = paper.findCellViewsInArea(
+            { x: x - radius, y: y - radius, width: 2 * radius, height: 2 * radius },
             snapLinks.findInAreaOptions
         );
 
-        var prevClosestView = data.closestView || null;
-        var prevClosestMagnet = data.closestMagnet || null;
-        var prevMagnetProxy = data.magnetProxy || null;
+        const prevClosestView = data.closestView || null;
+        const prevClosestMagnet = data.closestMagnet || null;
+        const prevMagnetProxy = data.magnetProxy || null;
 
         data.closestView = data.closestMagnet = data.magnetProxy = null;
 
-        var minDistance = Number.MAX_VALUE;
-        var pointer = new Point(x, y);
+        let minDistance = Number.MAX_VALUE;
+        let bestPriority = -Infinity;
+        const pointer = new Point(x, y);
 
-        viewsInArea.forEach(function(view) {
+        // Note: If snapRadius is smaller than magnet size, views will not be found.
+        viewsInArea.forEach((view) => {
+
+            // Do not snap to the current view
+            if (view === this) {
+                return;
+            }
+
             const candidates = [];
+            const { model } = view;
             // skip connecting to the element in case '.': { magnet: false } attribute present
             if (view.el.getAttribute('magnet') !== 'false') {
-                candidates.push({
-                    bbox: view.model.getBBox(),
-                    magnet: view.el
-                });
+
+                if (model.isLink()) {
+                    const connection = view.getConnection();
+                    candidates.push({
+                        // find distance from the closest point of a link to pointer coordinates
+                        priority: 0,
+                        distance: connection.closestPoint(pointer).squaredDistance(pointer),
+                        magnet: view.el
+                    });
+                } else {
+                    candidates.push({
+                        // Set the priority to the level of nested elements of the model
+                        // To ensure that the embedded cells get priority over the parent cells
+                        priority: model.getAncestors().length,
+                        // find distance from the center of the model to pointer coordinates
+                        distance: model.getBBox().center().squaredDistance(pointer),
+                        magnet: view.el
+                    });
+                }
             }
 
             view.$('[magnet]').toArray().forEach(magnet => {
-                candidates.push({
-                    bbox: view.getNodeBBox(magnet),
-                    magnet
-                });
+
+                const magnetBBox = view.getNodeBBox(magnet);
+                let magnetDistance = magnetBBox.pointNearestToPoint(pointer).squaredDistance(pointer);
+                if (magnetBBox.containsPoint(pointer)) {
+                    // Pointer sits inside this magnet.
+                    // Push its distance far into the negative range so any
+                    // "under-pointer" magnet outranks magnets that are only nearby
+                    // (positive distance) and every non-magnet candidate.
+                    // We add the original distance back to keep ordering among
+                    // overlapping magnets: the one whose border is closest to the
+                    // pointer (smaller original distance) still wins.
+                    magnetDistance = -Number.MAX_SAFE_INTEGER + magnetDistance;
+                }
+
+                // Check if magnet is inside the snap radius.
+                if (magnetDistance <= radius * radius) {
+                    candidates.push({
+                        // Give magnets priority over other candidates.
+                        priority: Number.MAX_SAFE_INTEGER,
+                        distance: magnetDistance,
+                        magnet
+                    });
+                }
             });
 
             candidates.forEach(candidate => {
-                const { magnet, bbox } = candidate;
-                // find distance from the center of the model to pointer coordinates
-                const distance = bbox.center().squaredDistance(pointer);
-                // the connection is looked up in a circle area by `distance < r`
-                if (distance < minDistance) {
+                const { magnet, distance, priority } = candidate;
+                const isBetterCandidate = (priority > bestPriority) || (priority === bestPriority && distance < minDistance);
+                if (isBetterCandidate) {
                     const isAlreadyValidated = prevClosestMagnet === magnet;
                     if (isAlreadyValidated || paper.options.validateConnection.apply(
                         paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
                     )) {
+                        bestPriority = priority;
                         minDistance = distance;
                         data.closestView = view;
                         data.closestMagnet = magnet;
@@ -2261,4 +2303,3 @@ Object.defineProperty(LinkView.prototype, 'targetBBox', {
         return targetView.getNodeBBox(targetMagnet || targetView.el);
     }
 });
-
