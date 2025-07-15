@@ -20,7 +20,7 @@ export class EmbeddingLayersController extends Listener {
                 const layer = graph.getLayer(cell.id);
                 const cells = layer.get('cells').models;
                 cells.forEach((cell) => {
-                    graph.addToLayer(cell);
+                    cell.layer(null); // Move all cells to the default layer
                 });
 
                 graph.removeLayer(layer);
@@ -62,28 +62,19 @@ export class EmbeddingLayersController extends Listener {
     onParentChange(cell, parentId) {
         const { graph } = this;
 
-        const currentLayerName = cell.layer();
-
-        if (graph.hasLayer(currentLayerName)) {
-            graph.getLayer(currentLayerName).remove(cell);
-        }
-
         if (parentId) {
-            let layer;
             // Create new layer if it's not exist
             if (!graph.hasLayer(parentId)) {
-                layer = new GraphLayer({
+                const layer = new GraphLayer({
                     name: parentId
                 });
                 graph.addLayer(layer);
                 this.insertLayerView(layer);
-            } else {
-                layer = graph.getLayer(parentId);
             }
 
-            graph.addToLayer(cell, layer);
+            cell.layer(parentId); // Set the layer for the cell
         } else {
-            graph.addToLayer(cell);
+            cell.layer(null); // Move to the default layer
         }
     }
 

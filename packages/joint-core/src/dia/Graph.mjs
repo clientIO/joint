@@ -304,10 +304,6 @@ export const Graph = Model.extend({
         return this.layersController.maxZIndex(layerName);
     },
 
-    addToLayer: function(cell, layer) {
-        this.layersController.addToLayer(cell, layer);
-    },
-
     addCell: function(cell, opt) {
 
         if (Array.isArray(cell)) {

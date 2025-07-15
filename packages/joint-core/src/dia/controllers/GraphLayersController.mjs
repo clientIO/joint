@@ -45,6 +45,16 @@ export class GraphLayersController extends Listener {
                 this.onAdd(cell, true);
             });
         });
+
+        this.listenTo(graph, 'change:layer', (_context, cell, layerName) => {
+            if (!layerName) {
+                layerName = this.defaultLayerName;
+            }
+
+            if (this.hasLayer(layerName)) {
+                this.layersMap[layerName].add(cell);
+            }
+        });
     }
 
     onAdd(cell, reset = false) {
@@ -84,16 +94,6 @@ export class GraphLayersController extends Listener {
 
     getDefaultLayer() {
         return this.layersMap[this.defaultLayerName];
-    }
-
-    addToLayer(cell, layer) {
-        if (!layer) {
-            layer = this.getDefaultLayer();
-            layer.add(cell);
-        } else {
-            layer.add(cell);
-            cell.layer(layer.name);
-        }
     }
 
     addLayer(layer, _opt) {

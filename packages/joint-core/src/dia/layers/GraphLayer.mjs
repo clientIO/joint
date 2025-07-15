@@ -31,6 +31,13 @@ export class GraphLayer extends Model {
             cells.sort();
         });
 
+        cells.on('change:layer', (cell, layerName) => {
+            // If the cell's layer is changed, we need to remove it from this layer.
+            if (layerName !== this.name) {
+                this.get('cells').remove(cell);
+            }
+        });
+
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
         cells.on('all', this.trigger, this);
