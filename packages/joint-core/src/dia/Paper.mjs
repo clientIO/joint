@@ -991,11 +991,8 @@ export const Paper = View.extend({
 
     scheduleViewUpdate: function(view, type, priority, opt) {
         const { _updates: updates, options } = this;
-        if (updates.idle) {
-            if (options.autoFreeze) {
-                updates.idle = false;
-                this.unfreeze();
-            }
+        if (updates.idle && options.autoFreeze) {
+            this.unfreeze();
         }
         const { FLAG_REMOVE, FLAG_INSERT } = this;
         const { UPDATE_PRIORITY, cid } = view;
@@ -1190,16 +1187,14 @@ export const Paper = View.extend({
                     data.processed = processed;
                 }
             } else {
-                if (!updates.idle) {
-                    // The `checkViewport` could have scheduled some insertions
-                    // (note that removals are currently done synchronously).
-                    if (options.autoFreeze && !this.hasScheduledUpdates()) {
-                        // If there are no updates scheduled, freeze the paper.
-                        // Notify the idle state.
-                        this.freeze();
-                        updates.idle = true;
-                        this.trigger('render:idle', opt);
-                    }
+                // The `checkViewport` could have scheduled some insertions
+                // (note that removals are currently done synchronously).
+                if (options.autoFreeze && !this.hasScheduledUpdates()) {
+                    // If there are no updates scheduled, freeze the paper.
+                    // Notify the idle state.
+                    this.freeze();
+                    updates.idle = true;
+                    this.trigger('render:idle', opt);
                 }
             }
             // Progress callback
@@ -1518,6 +1513,7 @@ export const Paper = View.extend({
         updates.freezeKey = null;
         // key passed, but the paper is already freezed
         if (key && key === freezeKey && updates.keyFrozen) return;
+        updates.idle = false;
         if (this.isAsync()) {
             this.freeze();
             this.updateViewsAsync(opt);
