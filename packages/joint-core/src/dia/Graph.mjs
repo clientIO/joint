@@ -56,12 +56,6 @@ const GraphCells = Collection.extend({
             model.graph = null;
         }
     },
-
-    // `comparator` makes it easy to sort cells based on their `z` index.
-    comparator: function(model) {
-
-        return model.get('z') || 0;
-    }
 });
 
 

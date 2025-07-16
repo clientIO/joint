@@ -18,10 +18,7 @@ export class EmbeddingLayersController extends Listener {
         this.listenTo(graph, 'remove', (_context, cell) => {
             if (graph.hasLayer(cell.id)) {
                 const layer = graph.getLayer(cell.id);
-                const cells = layer.get('cells').models;
-                cells.forEach((cell) => {
-                    cell.layer(null); // Move all cells to the default layer
-                });
+                layer.reset();
 
                 graph.removeLayer(layer);
                 this.removeLayerView(layer);

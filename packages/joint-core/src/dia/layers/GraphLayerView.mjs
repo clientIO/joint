@@ -1,5 +1,6 @@
 import { LayerView } from './LayerView.mjs';
 import { sortElements } from '../../util/index.mjs';
+import { sortingTypes } from '../Paper.mjs';
 
 export const GraphLayerView = LayerView.extend({
 
@@ -8,14 +9,12 @@ export const GraphLayerView = LayerView.extend({
     init() {
         LayerView.prototype.init.apply(this, arguments);
 
-        const { options: { paper } } = this;
-        const graph = paper.model;
-
-        this.startListening(graph);
+        this.startListening();
     },
 
-    startListening(graph) {
-        const { model } = this;
+    startListening() {
+        const { model, options: { paper } } = this;
+        const graph = paper.model;
 
         this.listenTo(model, 'sort', () => {
             if (graph.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
@@ -28,6 +27,18 @@ export const GraphLayerView = LayerView.extend({
 
             if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
                 this.sort();
+            }
+        });
+
+        this.listenTo(model, 'updateCell', (cell, opt) => {
+            if (
+                cell.hasChanged('layer') ||
+                (cell.hasChanged('z') && paper.options.sorting === sortingTypes.APPROX)
+            ) {
+                const view = paper.findViewByModel(cell);
+                if (view) {
+                    paper.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+                }
             }
         });
     },
@@ -62,6 +73,21 @@ export const GraphLayerView = LayerView.extend({
             const zB = cellB.attributes.z || 0;
             return (zA === zB) ? 0 : (zA < zB) ? -1 : 1;
         });
+    },
+
+    insertCellView(cellView) {
+        const { el, model } = cellView;
+        const { options: { paper } } = this;
+
+        switch (paper.options.sorting) {
+            case sortingTypes.APPROX:
+                this.insertSortedNode(el, model.get('z'));
+                break;
+            case sortingTypes.EXACT:
+            default:
+                this.insertNode(el);
+                break;
+        }
     },
 
     getCellViewNode(cellId) {

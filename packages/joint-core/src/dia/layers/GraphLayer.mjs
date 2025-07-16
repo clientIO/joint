@@ -27,14 +27,16 @@ export class GraphLayer extends Model {
         const cells = new LayerCells();
         this.set('cells', cells);
 
-        cells.on('change:z', () => {
+        cells.on('change:z', (cell, _, opt) => {
             cells.sort();
+
+            this.trigger('updateCell', cell, opt);
         });
 
         cells.on('change:layer', (cell, layerName) => {
             // If the cell's layer is changed, we need to remove it from this layer.
             if (layerName !== this.name) {
-                this.get('cells').remove(cell);
+                this.cells.remove(cell);
             }
         });
 
@@ -44,26 +46,33 @@ export class GraphLayer extends Model {
     }
 
     add(cell) {
-        this.get('cells').add(cell);
+        this.cells.add(cell);
+        this.trigger('updateCell', cell);
     }
 
     remove(cell) {
         // unsets the layer making it default for the purpose of the DOM location
         cell.layer(null);
-        this.get('cells').remove(cell);
+        this.cells.remove(cell);
     }
 
     reset() {
-        this.get('cells').reset();
+        this.cells.toArray().forEach(cell => {
+            this.remove(cell);
+        });
     }
 
     minZIndex() {
-        const firstCell = this.get('cells').first();
+        const firstCell = this.cells.first();
         return firstCell ? (firstCell.get('z') || 0) : 0;
     }
 
     maxZIndex() {
-        const lastCell = this.get('cells').last();
+        const lastCell = this.cells.last();
         return lastCell ? (lastCell.get('z') || 0) : 0;
+    }
+
+    get cells() {
+        return this.get('cells');
     }
 }

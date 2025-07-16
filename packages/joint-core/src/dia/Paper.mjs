@@ -57,7 +57,7 @@ export const LayersNames = {
     LABELS: 'labels'
 };
 
-const sortingTypes = {
+export const sortingTypes = {
     NONE: 'sorting-none',
     APPROX: 'sorting-approximate',
     EXACT: 'sorting-exact'
@@ -365,7 +365,6 @@ export const Paper = View.extend({
     // Paper Layers
     _layers: null,
 
-    SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
     // If you interact with these elements,
     // the default interaction such as `element move` is prevented.
@@ -470,7 +469,6 @@ export const Paper = View.extend({
         var model = this.model;
         this.listenTo(model, 'add', this.onCellAdded)
             .listenTo(model, 'remove', this.onCellRemoved)
-            .listenTo(model, 'change', this.onCellChange)
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop);
 
@@ -493,17 +491,6 @@ export const Paper = View.extend({
     onCellRemoved: function(cell, _, opt) {
         const view = this.findViewByModel(cell);
         if (view) this.requestViewUpdate(view, view.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
-    },
-
-    onCellChange: function(cell, opt) {
-        if (cell === this.model.attributes.cells) return;
-        if (
-            cell.hasChanged('layer') ||
-            (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX)
-        ) {
-            const view = this.findViewByModel(cell);
-            if (view) this.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
-        }
     },
 
     onGraphReset: function(collection, opt) {
@@ -674,10 +661,6 @@ export const Paper = View.extend({
         }
 
         const layerView = this._requireLayerView(layer);
-
-        if (layerView instanceof GraphLayerView) {
-            layerView._prepareRemove();
-        }
 
         if (!layerView.isEmpty()) {
             throw new Error('dia.Paper: The layer is not empty.');
@@ -1942,15 +1925,7 @@ export const Paper = View.extend({
         const layerName = model.layer();
         const layerView = this.getLayer(layerName);
 
-        switch (this.options.sorting) {
-            case sortingTypes.APPROX:
-                layerView.insertSortedNode(el, model.get('z'));
-                break;
-            case sortingTypes.EXACT:
-            default:
-                layerView.insertNode(el);
-                break;
-        }
+        layerView.insertCellView(view);
 
         this.trigger('cell:inserted', view, isInitialInsert);
 
