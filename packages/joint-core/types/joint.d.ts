@@ -986,6 +986,8 @@ export namespace dia {
 
         dragLinkEnd(evt: dia.Event, x: number, y: number): void;
 
+        getAttributeDefinition(attrName: string): dia.Cell.PresentationAttributeDefinition<T> | undefined;
+
         preventDefaultInteraction(evt: dia.Event): void;
 
         isDefaultInteractionPrevented(evt: dia.Event): boolean;
