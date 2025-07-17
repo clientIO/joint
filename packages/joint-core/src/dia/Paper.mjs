@@ -427,6 +427,9 @@ export const Paper = View.extend({
         this._setDimensions();
         this.startListening();
 
+        this._graphLayers = [];
+        this.updateGraphLayers(this.model.get('layers'));
+
         if (options.useLayersForEmbedding) {
             this.embeddingLayersController = new EmbeddingLayersController({ graph: model, paper: this });
         }
@@ -470,7 +473,8 @@ export const Paper = View.extend({
         this.listenTo(model, 'add', this.onCellAdded)
             .listenTo(model, 'remove', this.onCellRemoved)
             .listenTo(model, 'reset', this.onGraphReset)
-            .listenTo(model, 'batch:stop', this.onGraphBatchStop);
+            .listenTo(model, 'batch:stop', this.onGraphBatchStop)
+            .listenTo(model, 'change:layers', this.onLayersChange);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -508,6 +512,26 @@ export const Paper = View.extend({
                 this.updateViews(data);
             }
         }
+    },
+
+    onLayersChange: function(_, layers) {
+        this.updateGraphLayers(layers)
+    },
+
+    updateGraphLayers: function(layers) {
+        const removedLayerNames = this._graphLayers.filter(layer => !layers.some(l => l.name === layer.name)).map(layer => layer.name);
+        removedLayerNames.forEach(layerName => this.requestLayerRemove(layerName));
+
+        this._graphLayers = this.model.get('layers');
+
+        this._graphLayers.forEach(layer => {
+            if (!this.hasLayer(layer.name)) {
+                this.renderLayer({
+                    name: layer.name,
+                    model: layer
+                });
+            }
+        });
     },
 
     cloneOptions: function() {
@@ -618,24 +642,18 @@ export const Paper = View.extend({
     _unregisterLayer(layerView) {
         const { _layers: { viewsMap, order }} = this;
         const layerName = layerView.name;
+
         if (order.indexOf(layerName) !== -1) {
             order.splice(order.indexOf(layerName), 1);
         }
+
         delete viewsMap[layerName];
     },
 
-    _registerLayer(layerView, beforeLayerView, ignoreOrder) {
-        const { _layers: { viewsMap, order }} = this;
+    _registerLayer(layerView) {
+        const { _layers: { viewsMap }} = this;
         const layerName = layerView.name;
 
-        if (!ignoreOrder) {
-            if (beforeLayerView) {
-                const beforeLayerName = beforeLayerView.name;
-                order.splice(order.indexOf(beforeLayerName), 0, layerName);
-            } else {
-                order.push(layerName);
-            }
-        }
         viewsMap[layerName] = layerView;
     },
 
@@ -668,7 +686,19 @@ export const Paper = View.extend({
         this._removeLayer(layerView);
     },
 
-    addLayer(layerView, options = {}) {
+    requestLayerRemove(layer) {
+        if (!layer) {
+            throw new Error('dia.Paper: The layer view must be provided.');
+        }
+
+        const layerView = this._requireLayerView(layer);
+
+        const { FLAG_REMOVE, UPDATE_PRIORITY } = layerView;
+
+        this.requestViewUpdate(layerView, FLAG_REMOVE, UPDATE_PRIORITY);
+    },
+
+    addLayer(layerView) {
         if (!layerView) {
             throw new Error('dia.Paper: The layer view must be provided.');
         }
@@ -684,18 +714,26 @@ export const Paper = View.extend({
         if (!(layerView instanceof LayerView)) {
             throw new Error('dia.Paper: The layer view is not an instance of dia.LayerView.');
         }
-        const { insertBefore, doNotAppend } = options;
-        if (doNotAppend) {
-            this._registerLayer(layerView, null, true);
+
+        this._registerLayer(layerView);
+    },
+
+    insertLayer(layer, insertBefore) {
+        if (!this.hasLayer(layer.name)) {
+            this.addLayer(layer);
+        }
+
+        const { _layers: { order }} = this;
+        const layerName = layer.name;
+
+        if (!insertBefore) {
+            order.push(layerName);
+            this.layers.appendChild(layer.el);
         } else {
-            if (!insertBefore) {
-                this._registerLayer(layerView, null);
-                this.layers.appendChild(layerView.el);
-            } else {
-                const beforeLayerView = this._requireLayerView(insertBefore);
-                this._registerLayer(layerView, beforeLayerView);
-                this.layers.insertBefore(layerView.el, beforeLayerView.el);
-            }
+            const beforeLayerView = this._requireLayerView(insertBefore);
+            const beforeLayerName = beforeLayerView.name;
+            order.splice(order.indexOf(beforeLayerName), 0, layerName);
+            this.layers.insertBefore(layer.el, beforeLayerView.el);
         }
     },
 
@@ -714,7 +752,7 @@ export const Paper = View.extend({
                 return;
         }
         this._unregisterLayer(layer);
-        this.addLayer(layer, { insertBefore });
+        this.insertLayer(layer, insertBefore);
     },
 
     getLayerNames() {
@@ -785,7 +823,10 @@ export const Paper = View.extend({
 
     renderLayers: function(layers) {
         this.removeLayers();
-        layers.forEach(options => this.renderLayer(options));
+        layers.forEach(options => {
+            const layerView = this.renderLayer(options);
+            this.insertLayer(layerView);
+        });
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayer(LayersNames.CELLS);
         const toolsLayerView = this.getLayer(LayersNames.TOOLS);
@@ -1060,6 +1101,12 @@ export const Paper = View.extend({
     updateView: function(view, flag, opt) {
         if (!view) return 0;
         const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT, model } = view;
+        if (view instanceof GraphLayerView) {
+            if (flag & FLAG_REMOVE) {
+                this.removeLayer(view);
+                return 0;
+            }
+        }
         if (view instanceof CellView) {
             if (flag & FLAG_REMOVE) {
                 this.removeView(model);

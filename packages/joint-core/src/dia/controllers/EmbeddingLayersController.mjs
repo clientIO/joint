@@ -19,9 +19,7 @@ export class EmbeddingLayersController extends Listener {
             if (graph.hasLayer(cell.id)) {
                 const layer = graph.getLayer(cell.id);
                 layer.reset();
-
                 graph.removeLayer(layer);
-                this.removeLayerView(layer);
             }
         });
 
@@ -50,14 +48,13 @@ export class EmbeddingLayersController extends Listener {
         this.listenTo(paper, 'cell:inserted', (_context, cellView) => {
             const cellId = cellView.model.id;
             if (paper.hasLayer(cellId)) {
-                const layerView = paper.getLayer(cellId);
-                cellView.el.after(layerView.el);
+                this.insertEmbeddedLayer(cellView);
             }
         });
     }
 
     onParentChange(cell, parentId) {
-        const { graph } = this;
+        const { graph, paper } = this;
 
         if (parentId) {
             // Create new layer if it's not exist
@@ -66,7 +63,11 @@ export class EmbeddingLayersController extends Listener {
                     name: parentId
                 });
                 graph.addLayer(layer);
-                this.insertLayerView(layer);
+
+                const cellView = paper.findViewByModel(parentId);
+                if (cellView.isMounted()) {
+                    this.insertEmbeddedLayer(cellView);
+                }
             }
 
             cell.layer(parentId); // Set the layer for the cell
@@ -75,29 +76,9 @@ export class EmbeddingLayersController extends Listener {
         }
     }
 
-    insertLayerView(layer) {
-        const { paper } = this;
-
-        const cellId = layer.name;
-        const layerView = paper.createLayer({ name: cellId, model: layer });
-        // Do not append to the DOM immediately
-        // Layer will be appended with the correspondent container
-        paper.addLayer(layerView, { doNotAppend: true });
-
-        const cellView = paper.findViewByModel(cellId);
-        if (cellView.isMounted()) {
-            // Append the layer if the container is already mounted
-            cellView.el.after(layerView.el);
-        }
-    }
-
-    removeLayerView(layer) {
-        const { paper } = this;
-
-        const cellId = layer.name;
-        if (paper.hasLayer(cellId)) {
-            const layerView = paper.getLayer(cellId);
-            paper.removeLayer(layerView);
-        }
+    insertEmbeddedLayer(cellView) {
+        const cellId = cellView.model.id;
+        const layerView = this.paper.getLayer(cellId);
+        cellView.el.after(layerView.el);
     }
 }

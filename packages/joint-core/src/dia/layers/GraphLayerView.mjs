@@ -97,18 +97,4 @@ export const GraphLayerView = LayerView.extend({
         }
         return cellNode;
     },
-
-    // TODO: make it work properly from inside of paper
-    _prepareRemove() {
-        const cellNodes = Array.from(this.el.children).filter(node => node.getAttribute('model-id'));
-        const cells = this.model.get('cells');
-
-        cellNodes.forEach((node) => {
-            const cellId = node.getAttribute('model-id');
-
-            if (!cells.has(cellId)) {
-                this.el.removeChild(node);
-            }
-        });
-    }
 });
