@@ -1694,6 +1694,149 @@ QUnit.module('paper', function(hooks) {
         });
     });
 
+    QUnit.module('findClosestMagnetToPoint()', function() {
+
+        QUnit.test('returns the closest magnet inside radius', function(assert) {
+
+            const rect1 = new joint.shapes.standard.Rectangle({
+                id: 'r1',
+                position: { x: 10, y: 10 },
+                size: { width: 40, height: 40 }
+            });
+            const rect2 = new joint.shapes.standard.Rectangle({
+                id: 'r2',
+                position: { x: 120, y: 10 },
+                size: { width: 40, height: 40 }
+            });
+            const link = new joint.shapes.standard.Link({
+                id: 'l1',
+                source: { x: 300, y: 300 },
+                target: { x: 400, y: 300 }
+            });
+
+            this.graph.addCells([rect1, rect2, link]);
+
+            const { view: elView, magnet: elMagnet } = this.paper.findClosestMagnetToPoint({ x: 25, y: 25 });
+            assert.strictEqual(elView, this.paper.findViewByModel(rect1));
+            assert.strictEqual(elView.el, elMagnet);
+
+            const { view: linkView, magnet: linkMagnet } = this.paper.findClosestMagnetToPoint({ x: 350, y: 250 });
+            assert.strictEqual(linkView, this.paper.findViewByModel(link));
+            assert.strictEqual(linkView.el, linkMagnet);
+        });
+
+        QUnit.test('returns null when no magnet in radius', function(assert) {
+            const rect = new joint.shapes.standard.Rectangle({
+                id: 'r1',
+                position: { x: 10, y: 10 },
+                size: { width: 40, height: 40 }
+            });
+
+            this.graph.addCell(rect);
+
+            const closest = this.paper.findClosestMagnetToPoint({ x: 300, y: 300 }, { radius: 20 });
+            assert.strictEqual(closest, null);
+        });
+
+        QUnit.test('honours custom validation', function(assert) {
+
+            const rect1 = new joint.shapes.standard.Rectangle({
+                id: 'r1',
+                position: { x: 10, y: 10 },
+                size: { width: 40, height: 40 }
+            });
+            const rect2 = new joint.shapes.standard.Rectangle({
+                id: 'r2',
+                position: { x: 120, y: 10 },
+                size: { width: 40, height: 40 }
+            });
+            const link = new joint.shapes.standard.Link({
+                id: 'l1',
+                source: { x: 300, y: 300 },
+                target: { x: 400, y: 300 }
+            });
+
+            this.graph.addCells([rect1, rect2, link]);
+
+            const { view, magnet } = this.paper.findClosestMagnetToPoint(
+                { x: 25, y: 25 },
+                { radius: 100, validation: (view) => view.model.id === 'r2' }
+            );
+            assert.strictEqual(view, this.paper.findViewByModel(rect2));
+            assert.strictEqual(view.el, magnet);
+        });
+
+        QUnit.test('prefers magnet nodes over non-magnet candidates', function(assert) {
+
+            const port = {
+                attrs: {
+                    portBody: {
+                        magnet: true,
+                        r: 8,
+                        cx: -8,
+                        cy: -8,
+                        fill: '#03071E'
+                    },
+                    label: {
+                        text: 'port'
+                    }
+                },
+                markup: [{
+                    tagName: 'circle',
+                    selector: 'portBody'
+                }]
+            };
+
+            const rect = new joint.shapes.standard.Rectangle({
+                id: 'r1',
+                position: { x: 10, y: 10 },
+                size: { width: 40, height: 40 },
+                ports: {
+                    items: [port]
+                }
+            });
+
+            this.graph.addCell(rect);
+
+            const { view: elView, magnet: elMagnet } = this.paper.findClosestMagnetToPoint({ x: 25, y: 25 });
+            assert.strictEqual(elView, this.paper.findViewByModel(rect));
+            assert.strictEqual(elMagnet, this.paper.findViewByModel(rect).el.querySelector('circle'));
+
+            const link = new joint.dia.Link({
+                type: 'link',
+                source: { x: 100, y: 300 },
+                target: { x: 300, y: 300 },
+                markup: [
+                    {
+                        tagName: 'path',
+                        selector: 'line'
+                    },
+                    {
+                        tagName: 'circle',
+                        selector: 'lineMagnet'
+                    }
+                ],
+                attrs: {
+                    line: {
+                        stroke: 'black',
+                        strokeWidth: 2
+                    },
+                    lineMagnet: {
+                        magnet: true,
+                        r: 8,
+                        atConnectionRatio: .5
+                    }
+                }
+            });
+
+            this.graph.addCell(link);
+
+            const { view: linkView, magnet: linkMagnet } = this.paper.findClosestMagnetToPoint({ x: 200, y: 250 });
+            assert.strictEqual(linkView, this.paper.findViewByModel(link));
+            assert.strictEqual(linkMagnet, this.paper.findViewByModel(link).el.querySelector('circle'));
+        });
+    });
+
     QUnit.test('linkAllowed(linkViewOrModel)', function(assert) {
 
         assert.equal(typeof this.paper.linkAllowed, 'function', 'should be a function');
