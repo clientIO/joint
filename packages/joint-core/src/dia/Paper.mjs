@@ -2026,7 +2026,7 @@ export const Paper = View.extend({
     },
 
     findClosestMagnetToPoint: function(point, options = {}) {
-        let minDistance = Number.MAX_VALUE;
+        let minDistance = Number.MAX_SAFE_INTEGER;
         let bestPriority = -Infinity;
         const pointer = new Point(point);
 

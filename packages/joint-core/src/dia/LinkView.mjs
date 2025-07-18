@@ -1880,8 +1880,8 @@ export const LinkView = CellView.extend({
         };
 
         const closest = paper.findClosestMagnetToPoint({ x, y }, { radius, findInAreaOptions, validation: validationFn });
-        data.closestView = closest?.view;
-        data.closestMagnet = closest?.magnet;
+        data.closestView = closest ? closest.view : null;
+        data.closestMagnet = closest ? closest.magnet : null;
 
         var end;
         var magnetProxy = null;
