@@ -1617,6 +1617,17 @@ export namespace dia {
 
         interface FindInAreaOptions extends Graph.FindInAreaOptions, BufferOptions {
         }
+
+        interface FindClosestMagnetToPointOptions {
+            radius?: number;
+            findInAreaOptions?: FindInAreaOptions;
+            validation?: (view: CellView, magnet: SVGElement) => boolean;
+        }
+
+        interface ClosestMagnet {
+            view: CellView;
+            magnet: SVGElement;
+        }
     }
 
     class Paper extends mvc.View<Graph> {
@@ -1751,6 +1762,13 @@ export namespace dia {
          * @param opt options for the search
          */
         findCellViewsInArea(area: BBox, opt?: Paper.FindInAreaOptions): CellView[];
+
+        /**
+         * Finds the closest magnet to the specified point
+         * @param point a point in local paper coordinates
+         * @param opt options for the search
+         */
+        findClosestMagnetToPoint(point: Point, opt?: Paper.FindClosestMagnetToPointOptions): Paper.ClosestMagnet | null;
 
         fitToContent(opt?: Paper.FitToContentOptions): g.Rect;
         fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): g.Rect;

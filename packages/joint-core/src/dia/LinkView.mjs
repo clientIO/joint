@@ -1859,10 +1859,7 @@ export const LinkView = CellView.extend({
         // checking view in close area of the pointer
 
         const radius = snapLinks.radius || 50;
-        const viewsInArea = paper.findCellViewsInArea(
-            { x: x - radius, y: y - radius, width: 2 * radius, height: 2 * radius },
-            snapLinks.findInAreaOptions
-        );
+        const findInAreaOptions = snapLinks.findInAreaOptions;
 
         const prevClosestView = data.closestView || null;
         const prevClosestMagnet = data.closestMagnet || null;
@@ -1870,86 +1867,21 @@ export const LinkView = CellView.extend({
 
         data.closestView = data.closestMagnet = data.magnetProxy = null;
 
-        let minDistance = Number.MAX_VALUE;
-        let bestPriority = -Infinity;
-        const pointer = new Point(x, y);
-
-        // Note: If snapRadius is smaller than magnet size, views will not be found.
-        viewsInArea.forEach((view) => {
-
+        const validationFn = (view, magnet) => {
             // Do not snap to the current view
             if (view === this) {
-                return;
+                return false;
             }
 
-            const candidates = [];
-            const { model } = view;
-            // skip connecting to the element in case '.': { magnet: false } attribute present
-            if (view.el.getAttribute('magnet') !== 'false') {
+            const isAlreadyValidated = prevClosestMagnet === magnet;
+            return isAlreadyValidated || paper.options.validateConnection.apply(
+                paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
+            );
+        };
 
-                if (model.isLink()) {
-                    const connection = view.getConnection();
-                    candidates.push({
-                        // find distance from the closest point of a link to pointer coordinates
-                        priority: 0,
-                        distance: connection.closestPoint(pointer).squaredDistance(pointer),
-                        magnet: view.el
-                    });
-                } else {
-                    candidates.push({
-                        // Set the priority to the level of nested elements of the model
-                        // To ensure that the embedded cells get priority over the parent cells
-                        priority: model.getAncestors().length,
-                        // find distance from the center of the model to pointer coordinates
-                        distance: model.getBBox().center().squaredDistance(pointer),
-                        magnet: view.el
-                    });
-                }
-            }
-
-            view.$('[magnet]').toArray().forEach(magnet => {
-
-                const magnetBBox = view.getNodeBBox(magnet);
-                let magnetDistance = magnetBBox.pointNearestToPoint(pointer).squaredDistance(pointer);
-                if (magnetBBox.containsPoint(pointer)) {
-                    // Pointer sits inside this magnet.
-                    // Push its distance far into the negative range so any
-                    // "under-pointer" magnet outranks magnets that are only nearby
-                    // (positive distance) and every non-magnet candidate.
-                    // We add the original distance back to keep ordering among
-                    // overlapping magnets: the one whose border is closest to the
-                    // pointer (smaller original distance) still wins.
-                    magnetDistance = -Number.MAX_SAFE_INTEGER + magnetDistance;
-                }
-
-                // Check if magnet is inside the snap radius.
-                if (magnetDistance <= radius * radius) {
-                    candidates.push({
-                        // Give magnets priority over other candidates.
-                        priority: Number.MAX_SAFE_INTEGER,
-                        distance: magnetDistance,
-                        magnet
-                    });
-                }
-            });
-
-            candidates.forEach(candidate => {
-                const { magnet, distance, priority } = candidate;
-                const isBetterCandidate = (priority > bestPriority) || (priority === bestPriority && distance < minDistance);
-                if (isBetterCandidate) {
-                    const isAlreadyValidated = prevClosestMagnet === magnet;
-                    if (isAlreadyValidated || paper.options.validateConnection.apply(
-                        paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
-                    )) {
-                        bestPriority = priority;
-                        minDistance = distance;
-                        data.closestView = view;
-                        data.closestMagnet = magnet;
-                    }
-                }
-            });
-
-        }, this);
+        const closest = paper.findClosestMagnetToPoint({ x, y }, { radius, findInAreaOptions, validation: validationFn });
+        data.closestView = closest ? closest.view : null;
+        data.closestMagnet = closest ? closest.magnet : null;
 
         var end;
         var magnetProxy = null;
