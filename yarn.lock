@@ -3094,7 +3094,7 @@ __metadata:
     copy-webpack-plugin: "npm:5.1.1"
     css-loader: "npm:3.5.3"
     file-loader: "npm:6.0.0"
-    libavoid-js: "npm:0.4.0-beta.1"
+    libavoid-js: "npm:0.4.5"
     sass: "npm:1.26.8"
     sass-loader: "npm:8.0.2"
     style-loader: "npm:1.2.1"
@@ -16509,10 +16509,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libavoid-js@npm:0.4.0-beta.1":
-  version: 0.4.0-beta.1
-  resolution: "libavoid-js@npm:0.4.0-beta.1"
-  checksum: 10/229617a0546a07f25528ea69915875c83e32f4b26d5b643e9d72067f9aeb677e591ea2bb27855daf7f7acfef16af43a98669fb50d91af6155718c232da1e4ffb
+"libavoid-js@npm:0.4.5":
+  version: 0.4.5
+  resolution: "libavoid-js@npm:0.4.5"
+  checksum: 10/0fe733e6840db27557584060a6d0920e191d7d36b005720d3c39aa5ea01f0dae6e7f93a0e5279310be99754a82cd9eaf3c2b2dc96c44d5ae7d81b962cfc70b75
   languageName: node
   linkType: hard
 

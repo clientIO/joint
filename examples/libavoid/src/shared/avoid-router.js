@@ -34,7 +34,7 @@ export class AvoidRouter {
         // to the libavoid pin id (which must be a number)
         this.pinIds = {
             // [element.id + port.id]: number
-        }
+        };
 
 
         // libavoid-js seems not to work properly
