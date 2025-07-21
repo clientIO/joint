@@ -1,12 +1,12 @@
 import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
-import { GraphLayer } from './layers/GraphLayer.mjs';
+import { Group } from './groups/Group.mjs';
 import { Model } from '../mvc/Model.mjs';
 import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
-import { GraphLayersController } from './controllers/GraphLayersController.mjs';
+import { GroupsController } from './controllers/GroupsController.mjs';
 
 const GraphCells = Collection.extend({
 
@@ -61,18 +61,18 @@ const GraphCells = Collection.extend({
 
 export const Graph = Model.extend({
 
-    defaultLayerName: 'cells',
+    defaultGroupName: 'cells',
 
     initialize: function(attrs, opt) {
 
         opt = opt || {};
 
-        const defaultLayer = new GraphLayer({
-            name: this.defaultLayerName
+        const defaultGroup = new Group({
+            name: this.defaultGroupName
         });
 
-        this.layersController = new GraphLayersController({ graph: this });
-        this.layersController.addLayer(defaultLayer);
+        this.groupsController = new GroupsController({ graph: this });
+        this.groupsController.addGroup(defaultGroup);
 
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
@@ -290,12 +290,12 @@ export const Graph = Model.extend({
         return cell;
     },
 
-    minZIndex: function(layerName) {
-        return this.layersController.minZIndex(layerName);
+    minZIndex: function(groupName) {
+        return this.groupsController.minZIndex(groupName);
     },
 
-    maxZIndex: function(layerName) {
-        return this.layersController.maxZIndex(layerName);
+    maxZIndex: function(groupName) {
+        return this.groupsController.maxZIndex(groupName);
     },
 
     addCell: function(cell, opt) {
@@ -414,32 +414,32 @@ export const Graph = Model.extend({
         this.stopBatch(batchName);
     },
 
-    addLayer(layer, opt) {
-        this.layersController.addLayer(layer, opt);
+    addGroup(layer, opt) {
+        this.groupsController.addGroup(layer, opt);
     },
 
-    removeLayer(layer, opt) {
-        this.layersController.removeLayer(layer.name, opt);
+    removeGroup(layer, opt) {
+        this.groupsController.removeGroup(layer.name, opt);
     },
 
-    getDefaultLayer() {
-        return this.layersController.getDefaultLayer();
+    getDefaultGroup() {
+        return this.groupsController.getDefaultGroup();
     },
 
-    getLayer(name) {
-        return this.layersController.getLayer(name);
+    getGroup(name) {
+        return this.groupsController.getGroup(name);
     },
 
-    hasLayer(name) {
-        return this.layersController.hasLayer(name);
+    hasGroup(name) {
+        return this.groupsController.hasGroup(name);
     },
 
-    getLayers() {
-        return this.layersController.getLayers();
+    getGroups() {
+        return this.groupsController.getGroups();
     },
 
-    getLayerCells(layerName) {
-        return this.layersController.getLayerCells(layerName);
+    getGroupCells(groupName) {
+        return this.groupsController.getGroupCells(groupName);
     },
 
     // Get a cell by `id`.
@@ -450,7 +450,7 @@ export const Graph = Model.extend({
 
     getCells: function() {
         // Preserve old order without layers
-        return this.layersController.getCells();
+        return this.groupsController.getCells();
     },
 
     getElements: function() {
@@ -463,18 +463,24 @@ export const Graph = Model.extend({
         return this.getCells().filter(cell => cell.isLink());
     },
 
-    // @deprecated
-    getFirstCell: function() {
-
-        const cells = this.getCells();
+    getFirstCell: function(groupName) {
+        let cells;
+        if (!groupName) {
+            cells = this.getCells();
+        } else {
+            cells = this.groupsController.getGroupCells(groupName);
+        }
 
         return cells[0];
     },
 
-    // @deprecated
-    getLastCell: function() {
-
-        const cells = this.getCells();
+    getLastCell: function(groupName) {
+        let cells;
+        if (!groupName) {
+            cells = this.getCells();
+        } else {
+            cells = this.groupsController.getGroupCells(groupName);
+        }
 
         return cells[cells.length - 1];
     },

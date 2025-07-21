@@ -1,5 +1,5 @@
 import { Listener } from '../../mvc/Listener.mjs';
-import { GraphLayer } from '../layers/GraphLayer.mjs';
+import { Group } from '../groups/Group.mjs';
 
 export class EmbeddingLayersController extends Listener {
 
@@ -16,10 +16,10 @@ export class EmbeddingLayersController extends Listener {
         const { graph, paper } = this;
 
         this.listenTo(graph, 'remove', (_context, cell) => {
-            if (graph.hasLayer(cell.id)) {
-                const layer = graph.getLayer(cell.id);
-                layer.reset();
-                graph.removeLayer(layer);
+            if (graph.hasGroup(cell.id)) {
+                const group = graph.getGroup(cell.id);
+                group.reset();
+                graph.removeGroup(group);
             }
         });
 
@@ -58,11 +58,11 @@ export class EmbeddingLayersController extends Listener {
 
         if (parentId) {
             // Create new layer if it's not exist
-            if (!graph.hasLayer(parentId)) {
-                const layer = new GraphLayer({
+            if (!graph.hasGroup(parentId)) {
+                const group = new Group({
                     name: parentId
                 });
-                graph.addLayer(layer);
+                graph.addGroup(group);
 
                 const cellView = paper.findViewByModel(parentId);
                 if (cellView.isMounted()) {
@@ -78,7 +78,7 @@ export class EmbeddingLayersController extends Listener {
 
     insertEmbeddedLayer(cellView) {
         const cellId = cellView.model.id;
-        const layerView = this.paper.getLayer(cellId);
-        cellView.el.after(layerView.el);
+        const layer = this.paper.getLayer(cellId);
+        cellView.el.after(layer.el);
     }
 }

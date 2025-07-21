@@ -1,4 +1,4 @@
-import { LayerView } from './LayerView.mjs';
+import { Layer } from './Layer.mjs';
 import {
     isFunction,
     isString,
@@ -9,7 +9,7 @@ import {
 } from '../../util/index.mjs';
 import V from '../../V/index.mjs';
 
-export const GridLayerView = LayerView.extend({
+export const GridLayer = Layer.extend({
 
     style: {
         'pointer-events': 'none'
@@ -19,7 +19,7 @@ export const GridLayerView = LayerView.extend({
     _gridSettings: null,
 
     init() {
-        LayerView.prototype.init.apply(this, arguments);
+        Layer.prototype.init.apply(this, arguments);
         const { options: { paper }} = this;
         this._gridCache = null;
         this._gridSettings = [];

@@ -1771,25 +1771,25 @@ export namespace dia {
 
         getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
-        getLayer(layerName: Paper.Layers | string): LayerView;
+        getLayer(layerName: Paper.Layers | string): Layer;
 
         hasLayer(layerName: Paper.Layers | string): boolean;
-
-        renderLayers(layers: Array<{ name: string }>): void;
 
         protected removeLayers(): void;
 
         protected resetLayers(): void;
 
-        addLayer(layerView: LayerView, options?: { insertBefore?: string | LayerView }): void;
+        renderLayer(options: Omit<Layer.Options, 'paper'>): void;
 
-        removeLayer(LayerView: LayerView): void;
+        insertLayer(layer: Layer, insertBefore?: string | Layer): void;
 
-        moveLayer(layerView: LayerView, insertBefore: string | LayerView | null): void;
+        removeLayer(Layer: Layer): void;
+
+        moveLayer(layer: Layer, insertBefore?: string | Layer): void;
 
         getLayerNames(): string[];
 
-        getLayers(): Array<LayerView>;
+        getLayers(): Array<Layer>;
 
         // rendering
 
@@ -1982,18 +1982,20 @@ export namespace dia {
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
     }
 
-    namespace LayerView {
+    namespace Layer {
 
         interface Options<T extends mvc.Model = undefined> extends mvc.ViewOptions<T, SVGElement> {
             name: string;
+            paper: Paper;
+            type?: string;
         }
     }
 
-    class LayerView<T extends mvc.Model = undefined> extends mvc.View<T, SVGElement> {
+    class Layer<T extends mvc.Model = undefined> extends mvc.View<T, SVGElement> {
 
-        constructor(opt?: LayerView.Options);
+        constructor(opt?: Layer.Options);
 
-        options: LayerView.Options;
+        options: Layer.Options;
 
         pivotNodes: { [z: number]: Comment };
 
@@ -2021,7 +2023,7 @@ export namespace dia {
         maxZIndex(): number;
     }
 
-    class GraphLayerView extends LayerView<GraphLayer> {
+    class GraphLayer extends Layer<GraphLayer> {
 
         protected sort(): void;
 

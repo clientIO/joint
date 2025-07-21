@@ -37,15 +37,15 @@ import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LayerView } from './layers/LayerView.mjs';
-import { GraphLayerView } from './layers/GraphLayerView.mjs';
+import { Layer } from './layers/Layer.mjs';
+import { GroupLayer } from './layers/GroupLayer.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
-import { GridLayerView } from './layers/GridLayerView.mjs';
+import { GridLayer } from './layers/GridLayer.mjs';
 import { EmbeddingLayersController } from './controllers/EmbeddingLayersController.mjs';
 
 export const LayersNames = {
@@ -290,8 +290,8 @@ export const Paper = View.extend({
         cellViewNamespace: null,
 
         layerViewNamespace: {
-            'GridLayerView': GridLayerView,
-            'GraphLayerView': GraphLayerView,
+            'GridLayer': GridLayer,
+            'GroupLayer': GroupLayer,
         },
 
         routerNamespace: null,
@@ -400,7 +400,7 @@ export const Paper = View.extend({
 
         // Paper layers
         this._layersSettings = [{
-            type: 'GridLayerView',
+            type: 'GridLayer',
             name: LayersNames.GRID,
             patterns: this.constructor.gridPatterns
         }, {
@@ -409,7 +409,7 @@ export const Paper = View.extend({
             name: LayersNames.LABELS,
         }, {
             name: LayersNames.CELLS,
-            model: this.model.getDefaultLayer()
+            model: this.model.getDefaultGroup()
         }, {
             name: LayersNames.FRONT
         }, {
@@ -427,8 +427,8 @@ export const Paper = View.extend({
         this._setDimensions();
         this.startListening();
 
-        this._graphLayers = [];
-        this.updateGraphLayers(this.model.get('layers'));
+        this._groups = [];
+        this.updateGroups();
 
         if (options.useLayersForEmbedding) {
             this.embeddingLayersController = new EmbeddingLayersController({ graph: model, paper: this });
@@ -474,7 +474,7 @@ export const Paper = View.extend({
             .listenTo(model, 'remove', this.onCellRemoved)
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop)
-            .listenTo(model, 'change:layers', this.onLayersChange);
+            .listenTo(model, 'change:groups', this.updateGroups);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -514,21 +514,17 @@ export const Paper = View.extend({
         }
     },
 
-    onLayersChange: function(_, layers) {
-        this.updateGraphLayers(layers)
-    },
+    updateGroups: function() {
+        const removedGroupNames = this._groups.filter(group => !groups.some(l => l.name === group.name)).map(group => group.name);
+        removedGroupNames.forEach(groupName => this.requestLayerRemove(groupName));
 
-    updateGraphLayers: function(layers) {
-        const removedLayerNames = this._graphLayers.filter(layer => !layers.some(l => l.name === layer.name)).map(layer => layer.name);
-        removedLayerNames.forEach(layerName => this.requestLayerRemove(layerName));
+        this._groups = this.model.get('groups');
 
-        this._graphLayers = this.model.get('layers');
-
-        this._graphLayers.forEach(layer => {
-            if (!this.hasLayer(layer.name)) {
+        this._groups.forEach(group => {
+            if (!this.hasLayer(group.name)) {
                 this.renderLayer({
-                    name: layer.name,
-                    model: layer
+                    name: group.name,
+                    model: group
                 });
             }
         });
@@ -634,14 +630,14 @@ export const Paper = View.extend({
         return this.getLayer(layerName).el;
     },
 
-    _removeLayer(layerView) {
-        this._unregisterLayer(layerView);
-        layerView.remove();
+    _removeLayer(layer) {
+        this._unregisterLayer(layer);
+        layer.remove();
     },
 
-    _unregisterLayer(layerView) {
+    _unregisterLayer(layer) {
         const { _layers: { viewsMap, order }} = this;
-        const layerName = layerView.name;
+        const layerName = layer.name;
 
         if (order.indexOf(layerName) !== -1) {
             order.splice(order.indexOf(layerName), 1);
@@ -650,21 +646,21 @@ export const Paper = View.extend({
         delete viewsMap[layerName];
     },
 
-    _registerLayer(layerView) {
+    _registerLayer(layer) {
         const { _layers: { viewsMap }} = this;
-        const layerName = layerView.name;
+        const layerName = layer.name;
 
-        viewsMap[layerName] = layerView;
+        viewsMap[layerName] = layer;
     },
 
-    _requireLayerView(layer) {
+    _requireLayer(layer) {
         let layerName;
         if (typeof layer === 'string') {
             layerName = layer;
-        } else if (layer instanceof LayerView) {
+        } else if (layer instanceof Layer) {
             layerName = layer.name;
         } else {
-            throw new Error('dia.Paper: The layer view is not an instance of dia.LayerView.');
+            throw new Error('dia.Paper: The layer is not an instance of dia.Layer.');
         }
 
         if (!this.hasLayer(layerName)) {
@@ -675,10 +671,10 @@ export const Paper = View.extend({
 
     removeLayer(layer) {
         if (!layer) {
-            throw new Error('dia.Paper: The layer view must be provided.');
+            throw new Error('dia.Paper: The layer must be provided.');
         }
 
-        const layerView = this._requireLayerView(layer);
+        const layerView = this._requireLayer(layer);
 
         if (!layerView.isEmpty()) {
             throw new Error('dia.Paper: The layer is not empty.');
@@ -698,29 +694,9 @@ export const Paper = View.extend({
         this.requestViewUpdate(layerView, FLAG_REMOVE, UPDATE_PRIORITY);
     },
 
-    addLayer(layerView) {
-        if (!layerView) {
-            throw new Error('dia.Paper: The layer view must be provided.');
-        }
-
-        const layerName = layerView.name;
-
-        if (!layerName || typeof layerName !== 'string') {
-            throw new Error('dia.Paper: The layer should has a name.');
-        }
-        if (this.hasLayer(layerName)) {
-            throw new Error(`dia.Paper: The layer "${layerName}" already exists.`);
-        }
-        if (!(layerView instanceof LayerView)) {
-            throw new Error('dia.Paper: The layer view is not an instance of dia.LayerView.');
-        }
-
-        this._registerLayer(layerView);
-    },
-
     insertLayer(layer, insertBefore) {
         if (!this.hasLayer(layer.name)) {
-            this.addLayer(layer);
+            throw new Error(`dia.Paper: Unknown layer "${layer.name}".`);
         }
 
         const { _layers: { order }} = this;
@@ -807,17 +783,23 @@ export const Paper = View.extend({
 
         if (options.model) {
             const modelType = options.model.get('type') || options.model.constructor.name;
-            type = modelType + 'View';
+            type = modelType + 'Layer';
         }
 
-        const viewConstructor = this.options.layerViewNamespace[type] || LayerView;
+        const viewConstructor = this.options.layerViewNamespace[type] || Layer;
 
         return new viewConstructor(options);
     },
 
     renderLayer: function(options) {
         const layerView = this.createLayer(options);
-        this.addLayer(layerView);
+        const layerName = layerView.name;
+
+        if (this.hasLayer(layerName)) {
+            throw new Error(`dia.Paper: The layer "${layerName}" already exists.`);
+        }
+
+        this._registerLayer(layerView);
         return layerView;
     },
 
@@ -1101,7 +1083,7 @@ export const Paper = View.extend({
     updateView: function(view, flag, opt) {
         if (!view) return 0;
         const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT, model } = view;
-        if (view instanceof GraphLayerView) {
+        if (view instanceof GroupLayer) {
             if (flag & FLAG_REMOVE) {
                 this.removeLayer(view);
                 return 0;
@@ -1963,7 +1945,7 @@ export const Paper = View.extend({
     sortLayersExact: function() {
         const { _layers: { viewsMap }} = this;
 
-        Object.values(viewsMap).filter(view => view instanceof GraphLayerView).forEach(view => view.sortExact());
+        Object.values(viewsMap).filter(view => view instanceof GroupLayer).forEach(view => view.sortExact());
     },
 
     insertView: function(view, isInitialInsert) {

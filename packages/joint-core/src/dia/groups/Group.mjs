@@ -1,6 +1,6 @@
 import { Model, Collection } from '../../mvc/index.mjs';
 
-class LayerCells extends Collection {
+export class GroupCollection extends Collection {
 
     // `comparator` makes it easy to sort cells based on their `z` index.
     comparator(model) {
@@ -8,12 +8,11 @@ class LayerCells extends Collection {
     }
 }
 
-export class GraphLayer extends Model {
+export class Group extends Model {
 
     defaults() {
         return {
-            type: 'GraphLayer',
-            displayName: '',
+            type: 'Group',
             hidden: false,
             locked: false,
         };
@@ -22,32 +21,26 @@ export class GraphLayer extends Model {
     initialize(attrs) {
         super.initialize(attrs);
 
-        this.name = attrs.name;
+        this.cells = new GroupCollection();
 
-        const cells = new LayerCells();
-        this.set('cells', cells);
-
-        cells.on('change:z', (cell, _, opt) => {
-            cells.sort();
-
-            this.trigger('updateCell', cell, opt);
+        this.cells.on('change:z', (cell, _, opt) => {
+            this.cells.sort();
         });
 
-        cells.on('change:layer', (cell, layerName) => {
-            // If the cell's layer is changed, we need to remove it from this layer.
-            if (layerName !== this.name) {
+        this.cells.on('change:group', (cell, groupName) => {
+            // If the cell's group id is changed, we need to remove it from this group.
+            if (groupName !== this.name) {
                 this.cells.remove(cell);
             }
         });
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
-        cells.on('all', this.trigger, this);
+        this.cells.on('all', this.trigger, this);
     }
 
     add(cell) {
         this.cells.add(cell);
-        this.trigger('updateCell', cell);
     }
 
     remove(cell) {
@@ -70,9 +63,5 @@ export class GraphLayer extends Model {
     maxZIndex() {
         const lastCell = this.cells.last();
         return lastCell ? (lastCell.get('z') || 0) : 0;
-    }
-
-    get cells() {
-        return this.get('cells');
     }
 }

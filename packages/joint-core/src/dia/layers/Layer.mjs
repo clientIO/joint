@@ -1,7 +1,7 @@
 import { View } from '../../mvc/index.mjs';
 import { addClassNamePrefix } from '../../util/util.mjs';
 
-export const LayerView = View.extend({
+export const Layer = View.extend({
 
     tagName: 'g',
     svgElement: true,

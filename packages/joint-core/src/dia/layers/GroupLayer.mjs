@@ -1,13 +1,13 @@
-import { LayerView } from './LayerView.mjs';
+import { Layer } from './Layer.mjs';
 import { sortElements } from '../../util/index.mjs';
 import { sortingTypes } from '../Paper.mjs';
 
-export const GraphLayerView = LayerView.extend({
+export const GroupLayer = Layer.extend({
 
-    SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
+    SORT_DELAYING_EDGING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
 
     init() {
-        LayerView.prototype.init.apply(this, arguments);
+        Layer.prototype.init.apply(this, arguments);
 
         this.startListening();
     },
@@ -27,6 +27,13 @@ export const GraphLayerView = LayerView.extend({
 
             if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
                 this.sort();
+            }
+        });
+
+        this.listenTo(model, 'add', (cell, opt) => {
+            const view = paper.findViewByModel(cell);
+            if (view) {
+                paper.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
             }
         });
 

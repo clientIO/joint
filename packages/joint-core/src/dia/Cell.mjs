@@ -261,14 +261,14 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const layerName = this.layer();
+            const groupName = this.group();
 
-            const maxZ = graph.maxZIndex(layerName);
+            const maxZ = graph.maxZIndex(groupName);
             let z = maxZ - cells.length + 1;
 
-            const layerCells = graph.getLayerCells(layerName);
+            const groupCells = graph.getGroupCells(groupName);
 
-            let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== (layerCells.length - cells.length));
+            let shouldUpdate = (groupCells.indexOf(sortedCells[0]) !== (groupCells.length - cells.length));
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;
@@ -306,13 +306,13 @@ export const Cell = Model.extend({
 
             const sortedCells = opt.foregroundEmbeds ? cells : sortBy(cells, cell => cell.z());
 
-            const layerName = this.layer();
+            const groupName = this.group();
 
-            let z = graph.minZIndex(layerName);
+            let z = graph.minZIndex(groupName);
 
-            const layerCells = graph.getLayerCells(layerName);
+            const groupCells = graph.getGroupCells(groupName);
 
-            let shouldUpdate = (layerCells.indexOf(sortedCells[0]) !== 0);
+            let shouldUpdate = (groupCells.indexOf(sortedCells[0]) !== 0);
             if (!shouldUpdate) {
                 shouldUpdate = sortedCells.some(function(cell, index) {
                     return cell.z() !== z + index;
@@ -948,29 +948,29 @@ export const Cell = Model.extend({
             .difference(this.position());
     },
 
-    layer: function(layerName, opt) {
-        // if strictly null unset the layer
-        if (layerName === null) {
-            return this.unset('layer', opt);
+    group: function(groupName, opt) {
+        // if strictly null unset the group
+        if (groupName === null) {
+            return this.unset('group', opt);
         }
 
-        // if undefined return the current layer name
-        if (layerName === undefined) {
-            let layer = this.get('layer') || null;
-            // If the cell is part of a graph, use the graph's default layer.
-            if (layer == null && this.graph) {
-                layer = this.graph.getDefaultLayer().name;
+        // if undefined return the current group name
+        if (groupName === undefined) {
+            let group = this.get('group') || null;
+            // If the cell is part of a graph, use the graph's default group.
+            if (group == null && this.graph) {
+                group = this.graph.getDefaultGroup().name;
             }
 
-            return layer;
+            return group;
         }
 
-        // otherwise set the layer name
-        if (!isString(layerName)) {
-            throw new Error('Layer name must be a string.');
+        // otherwise set the group name
+        if (!isString(groupName)) {
+            throw new Error('Group name must be a string.');
         }
 
-        return this.set('layer', layerName, opt);
+        return this.set('group', groupName, opt);
     }
 
 }, {
