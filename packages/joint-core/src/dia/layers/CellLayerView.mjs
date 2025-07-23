@@ -37,11 +37,8 @@ export const CellLayerView = LayerView.extend({
             }
         });
 
-        this.listenTo(model, 'updateCell', (cell, opt) => {
-            if (
-                cell.hasChanged('layer') ||
-                (cell.hasChanged('z') && paper.options.sorting === sortingTypes.APPROX)
-            ) {
+        this.listenTo(model, 'cell:change:z', (cell, opt) => {
+            if (paper.options.sorting === sortingTypes.APPROX) {
                 const view = paper.findViewByModel(cell);
                 if (view) {
                     paper.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
