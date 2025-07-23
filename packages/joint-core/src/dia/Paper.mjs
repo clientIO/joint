@@ -1234,9 +1234,8 @@ export const Paper = View.extend({
     isViewVisible: function(view, isMounted, visibilityCallback) {
         if (!visibilityCallback || !view.DETACHABLE) return true;
         if (this.options.viewManagement) {
-            const model = view.model;
-            if (!model) return true;
-            return visibilityCallback.call(this, model, isMounted, this);
+            if (!view._isCellView) return true;
+            return visibilityCallback.call(this, view.model, isMounted, this);
         }
         return visibilityCallback.call(this, view, isMounted, this);
     },
@@ -1846,6 +1845,7 @@ export const Paper = View.extend({
         const placeholder = {
             // A way to distinguish a placeholder from a real view
             [CELL_VIEW_PLACEHOLDER]: true,
+            _isCellView: true,
             cid,
             model: cell,
             DETACHABLE: true,

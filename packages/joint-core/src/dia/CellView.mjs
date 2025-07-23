@@ -48,6 +48,10 @@ export const CellView = View.extend({
 
     metrics: null,
 
+    // Internal flag to identify this object as a cell view instance.
+    // Used instead of `instanceof` for performance and cross-frame safety.
+    _isCellView: true,
+
     className: function() {
 
         var classNames = ['cell'];
