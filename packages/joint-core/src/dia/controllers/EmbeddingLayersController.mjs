@@ -1,5 +1,5 @@
 import { Listener } from '../../mvc/Listener.mjs';
-import { Group } from '../groups/Group.mjs';
+import { CellLayer } from '../groups/CellLayer.mjs';
 
 export class EmbeddingLayersController extends Listener {
 
@@ -16,10 +16,9 @@ export class EmbeddingLayersController extends Listener {
         const { graph, paper } = this;
 
         this.listenTo(graph, 'remove', (_context, cell) => {
-            if (graph.hasGroup(cell.id)) {
-                const group = graph.getGroup(cell.id);
-                group.reset();
-                graph.removeGroup(group);
+            if (graph.hasCellLayer(cell.id)) {
+                const cellLayer = graph.getCellLayer(cell.id);
+                graph.removeCellLayer(cellLayer);
             }
         });
 
@@ -47,7 +46,7 @@ export class EmbeddingLayersController extends Listener {
 
         this.listenTo(paper, 'cell:inserted', (_context, cellView) => {
             const cellId = cellView.model.id;
-            if (paper.hasLayer(cellId)) {
+            if (paper.hasLayerView(cellId)) {
                 this.insertEmbeddedLayer(cellView);
             }
         });
@@ -58,11 +57,11 @@ export class EmbeddingLayersController extends Listener {
 
         if (parentId) {
             // Create new layer if it's not exist
-            if (!graph.hasGroup(parentId)) {
-                const group = new Group({
-                    name: parentId
+            if (!graph.hasCellLayer(parentId)) {
+                const cellLayer = new CellLayer({
+                    id: parentId
                 });
-                graph.addGroup(group);
+                graph.addCellLayer(cellLayer);
 
                 const cellView = paper.findViewByModel(parentId);
                 if (cellView.isMounted()) {
@@ -78,7 +77,7 @@ export class EmbeddingLayersController extends Listener {
 
     insertEmbeddedLayer(cellView) {
         const cellId = cellView.model.id;
-        const layer = this.paper.getLayer(cellId);
-        cellView.el.after(layer.el);
+        const layerView = this.paper.getLayerView(cellId);
+        cellView.el.after(layerView.el);
     }
 }

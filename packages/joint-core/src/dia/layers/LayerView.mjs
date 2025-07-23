@@ -1,7 +1,7 @@
 import { View } from '../../mvc/index.mjs';
 import { addClassNamePrefix } from '../../util/util.mjs';
 
-export const Layer = View.extend({
+export const LayerView = View.extend({
 
     tagName: 'g',
     svgElement: true,
@@ -11,18 +11,17 @@ export const Layer = View.extend({
     UPDATE_PRIORITY: 10,
 
     options: {
-        name: ''
+        id: ''
     },
 
     init: function() {
         this.pivotNodes = {};
-        this.name = this.options.name;
+        this.id = this.options.id || this.cid;
     },
 
     className: function() {
-        const { name } = this.options;
-        if (!name) return null;
-        return addClassNamePrefix(`${name}-layer`);
+        const { id } = this.options;
+        return addClassNamePrefix(`${id}-layer`);
     },
 
     insertSortedNode: function(node, z) {

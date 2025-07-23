@@ -1,4 +1,4 @@
-import { Layer } from './Layer.mjs';
+import { LayerView } from './LayerView.mjs';
 import {
     isFunction,
     isString,
@@ -9,7 +9,7 @@ import {
 } from '../../util/index.mjs';
 import V from '../../V/index.mjs';
 
-export const GridLayer = Layer.extend({
+export const GridLayerView = LayerView.extend({
 
     style: {
         'pointer-events': 'none'

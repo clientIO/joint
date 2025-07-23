@@ -1,8 +1,8 @@
-import { Layer } from './Layer.mjs';
+import { LayerView } from './LayerView.mjs';
 import { sortElements } from '../../util/index.mjs';
 import { sortingTypes } from '../Paper.mjs';
 
-export const GroupLayer = Layer.extend({
+export const CellLayerView = LayerView.extend({
 
     SORT_DELAYING_EDGING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
 
