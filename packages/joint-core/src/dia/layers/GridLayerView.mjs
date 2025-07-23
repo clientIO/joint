@@ -19,7 +19,7 @@ export const GridLayerView = LayerView.extend({
     _gridSettings: null,
 
     init() {
-        Layer.prototype.init.apply(this, arguments);
+        LayerView.prototype.init.apply(this, arguments);
         const { options: { paper }} = this;
         this._gridCache = null;
         this._gridSettings = [];

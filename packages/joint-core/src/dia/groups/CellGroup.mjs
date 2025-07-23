@@ -39,7 +39,7 @@ export class CellGroup extends Model {
     initialize(attrs) {
         super.initialize(attrs);
 
-        this.cells = new attrs.collectionConstructor();
+        this.cells = new this.attributes.collectionConstructor();
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.

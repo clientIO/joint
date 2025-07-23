@@ -115,7 +115,7 @@ export class CellLayersController extends Listener {
             throw new Error(`dia.Graph: Layer with id '${cellLayer.id}' already exists.`);
         }
 
-        cellLayersMap[cellLayer.id] = group;
+        cellLayersMap[cellLayer.id] = cellLayer;
 
         this.cellLayerAttributes = this.cellLayerAttributes.concat([{ id: cellLayer.id }]);
 

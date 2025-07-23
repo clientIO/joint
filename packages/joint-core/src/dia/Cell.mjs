@@ -956,7 +956,7 @@ export const Cell = Model.extend({
 
         // if undefined return the current layer id
         if (layerId === undefined) {
-            const layerId = this.get('layer') || null;
+            layerId = this.get('layer') || null;
             // If the cell is part of a graph, use the graph's default cell layer.
             if (layerId == null && this.graph) {
                 layerId = this.graph.getDefaultCellLayer().id;

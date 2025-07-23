@@ -417,14 +417,13 @@ export const Paper = View.extend({
             viewsMap: {},
             order: [],
         };
+        // current cell layers model attributes from the Graph
+        this._cellLayers = [];
 
         this.cloneOptions();
         this.render();
         this._setDimensions();
         this.startListening();
-
-        // current cell layers model attributes from the Graph
-        this._cellLayers = [];
 
         if (options.useLayersForEmbedding) {
             this.embeddingLayersController = new EmbeddingLayersController({ graph: model, paper: this });
@@ -494,7 +493,7 @@ export const Paper = View.extend({
     },
 
     onGraphReset: function(collection, opt) {
-        this.resetLayers();
+        this.resetLayerViews();
         this.resetViews(collection.models, opt);
     },
 
@@ -515,7 +514,7 @@ export const Paper = View.extend({
         removedCellLayerViewIds.forEach(cellLayerViewId => this.requestLayerViewRemove(cellLayerViewId));
 
         cellLayers.forEach(cellLayer => {
-            if (!this.hasLayer(cellLayer.id)) {
+            if (!this.hasLayerView(cellLayer.id)) {
                 const cellLayerModel = this.model.getCellLayer(cellLayer.id);
 
                 this.renderLayerView({
@@ -659,7 +658,7 @@ export const Paper = View.extend({
             layerId = layerView.id;
         }
 
-        if (!this.hasLayer(layerId)) {
+        if (!this.hasLayerView(layerId)) {
             throw new Error(`dia.Paper: Unknown layer "${layerId}".`);
         }
         return this.getLayerView(layerId);
@@ -763,7 +762,7 @@ export const Paper = View.extend({
             type = modelType + 'View';
         }
 
-        const viewConstructor = this.options.layerViewNamespace[type] || Layer;
+        const viewConstructor = this.options.layerViewNamespace[type] || LayerView;
 
         return new viewConstructor(options);
     },
@@ -1938,7 +1937,7 @@ export const Paper = View.extend({
         const { el, model } = view;
 
         const layerName = model.layer();
-        const layerView = this.getLayer(layerName);
+        const layerView = this.getLayerView(layerName);
 
         layerView.insertCellView(view);
 
@@ -2838,13 +2837,13 @@ export const Paper = View.extend({
         options.gridSize = gridSize;
         if (options.drawGrid && !options.drawGridSize) {
             // Do not redraw the grid if the `drawGridSize` is set.
-            this.getLayer(LayersIds.GRID).renderGrid();
+            this.getLayerView(LayersIds.GRID).renderGrid();
         }
         return this;
     },
 
     setGrid: function(drawGrid) {
-        this.getLayer(LayersIds.GRID).setGrid(drawGrid);
+        this.getLayerView(LayersIds.GRID).setGrid(drawGrid);
         return this;
     },
 

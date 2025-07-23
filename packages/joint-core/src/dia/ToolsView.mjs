@@ -143,7 +143,7 @@ export const ToolsView = mvc.View.extend({
         const { relatedView, layer = LayersIds.TOOLS, z } = options;
         if (relatedView) {
             if (layer) {
-                relatedView.paper.getLayer(layer).insertSortedNode(el, z);
+                relatedView.paper.getLayerView(layer).insertSortedNode(el, z);
             } else {
                 relatedView.el.appendChild(el);
             }

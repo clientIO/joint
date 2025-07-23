@@ -1,4 +1,4 @@
-import { CellGroupCollection } from './CellGroup.mjs';
+import { CellGroupCollection, CellGroup } from './CellGroup.mjs';
 
 export class CellLayerCollection extends CellGroupCollection {
 
@@ -8,7 +8,7 @@ export class CellLayerCollection extends CellGroupCollection {
     }
 }
 
-export class CellLayer extends Model {
+export class CellLayer extends CellGroup {
 
     defaults() {
         return {
@@ -20,7 +20,7 @@ export class CellLayer extends Model {
     initialize(attrs) {
         super.initialize(attrs);
 
-        this.cells.on('change:z', (cell, _, opt) => {
+        this.cells.on('change:z', () => {
             this.cells.sort();
         });
 

@@ -4,10 +4,10 @@ import { sortingTypes } from '../Paper.mjs';
 
 export const CellLayerView = LayerView.extend({
 
-    SORT_DELAYING_EDGING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
+    SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
 
     init() {
-        Layer.prototype.init.apply(this, arguments);
+        LayerView.prototype.init.apply(this, arguments);
 
         this.startListening();
     },
