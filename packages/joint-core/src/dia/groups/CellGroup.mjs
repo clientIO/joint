@@ -13,7 +13,6 @@ export class CellGroupCollection extends Collection {
 
     _onModelEvent(event, model, collection, options) {
         if (model) {
-            if ((event === 'add' || event === 'remove') && collection !== this) return;
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);
                 var id = this.modelId(model.attributes, model.idAttribute);

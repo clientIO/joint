@@ -168,7 +168,7 @@ export const Paper = View.extend({
         // }
         defaultLink: function() {
             // Do not create hard dependency on the joint.shapes.standard namespace (by importing the standard.Link model directly)
-            const { cellNamespace } = this.model.get('cells');
+            const { cellNamespace } = this.model.cellCollection;
             const ctor = getByPath(cellNamespace, ['standard', 'Link']);
             if (!ctor) throw new Error('dia.Paper: no default link model found. Use `options.defaultLink` to specify a default link model.');
             return new ctor();
@@ -439,7 +439,7 @@ export const Paper = View.extend({
         };
 
         // Render existing cells in the graph
-        this.resetViews(model.attributes.cells.models);
+        this.resetViews(model.cellCollection.models);
         // Start the Rendering Loop
         if (!this.isFrozen() && this.isAsync()) this.updateViewsAsync();
     },

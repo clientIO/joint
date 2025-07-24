@@ -24,7 +24,7 @@ export class CellLayer extends CellGroup {
             this.cells.sort();
         });
 
-        this.cells.on('change:layer', (cell, layerId) => {
+        this.cells.on('cell:change:layer', (cell, layerId) => {
             // If the cell's layer id is changed, we need to remove it from this cell layer.
             if (layerId !== this.id) {
                 this.cells.remove(cell);

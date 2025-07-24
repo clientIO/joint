@@ -72,16 +72,15 @@ export const Graph = Model.extend({
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
-        var cells = new GraphCells([], {
+        this.cellCollection = new GraphCells([], {
             model: opt.cellModel,
             cellNamespace: opt.cellNamespace,
             graph: this
         });
-        Model.prototype.set.call(this, 'cells', cells);
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
-        cells.on('all', this.trigger, this);
+        this.cellCollection.on('all', this.trigger, this);
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -107,12 +106,12 @@ export const Graph = Model.extend({
 
         this._batches = {};
 
-        cells.on('add', this._restructureOnAdd, this);
-        cells.on('remove', this._restructureOnRemove, this);
-        cells.on('reset', this._restructureOnReset, this);
-        cells.on('change:source', this._restructureOnChangeSource, this);
-        cells.on('change:target', this._restructureOnChangeTarget, this);
-        cells.on('remove', this._removeCell, this);
+        this.cellCollection.on('add', this._restructureOnAdd, this);
+        this.cellCollection.on('remove', this._restructureOnRemove, this);
+        this.cellCollection.on('reset', this._restructureOnReset, this);
+        this.cellCollection.on('change:source', this._restructureOnChangeSource, this);
+        this.cellCollection.on('change:target', this._restructureOnChangeTarget, this);
+        this.cellCollection.on('remove', this._removeCell, this);
     },
 
     _restructureOnAdd: function(cell) {
@@ -203,7 +202,7 @@ export const Graph = Model.extend({
         // JointJS does not recursively call `toJSON()` on attributes that are themselves models/collections.
         // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitly.
         var json = Model.prototype.toJSON.apply(this, arguments);
-        json.cells = this.get('cells').toJSON(opt.cellAttributes);
+        json.cells = this.cellCollection.toJSON(opt.cellAttributes);
         return json;
     },
 
@@ -215,6 +214,15 @@ export const Graph = Model.extend({
         }
 
         return this.set(json, opt);
+    },
+
+    get: function(attr) {
+        if (attr === 'cells') {
+            // Backwards compatibility with the old `cells` attribute.
+            // Return the cells collection from the default cell layer.
+            return this.cellLayersController.getDefaultCellLayer().cells;
+        }
+        return Model.prototype.get.call(this, attr);
     },
 
     set: function(key, val, opt) {
@@ -243,7 +251,7 @@ export const Graph = Model.extend({
 
         opt = util.assign({}, opt, { clear: true });
 
-        var collection = this.get('cells');
+        var collection = this.cellCollection;
 
         if (collection.length === 0) return this;
 
@@ -300,7 +308,7 @@ export const Graph = Model.extend({
             return this.addCells(cell, opt);
         }
 
-        this.get('cells').add(this._prepareCell(cell, opt), opt || {});
+        this.cellCollection.add(this._prepareCell(cell, opt), opt || {});
 
         return this;
     },
@@ -333,7 +341,7 @@ export const Graph = Model.extend({
             return this._prepareCell(cell, opt);
         }, this);
 
-        this.get('cells').reset(preparedCells, opt);
+        this.cellCollection.reset(preparedCells, opt);
 
         this.stopBatch('reset', opt);
 
@@ -373,7 +381,7 @@ export const Graph = Model.extend({
         // `joint.dia.Cell.prototype.remove` already triggers the `remove` event which is
         // then propagated to the graph model. If we didn't remove the cell silently, two `remove` events
         // would be triggered on the graph model.
-        this.get('cells').remove(cell, { silent: true });
+        this.cellCollection.remove(cell, { silent: true });
     },
 
     transferCellEmbeds: function(sourceCell, targetCell, opt = {}) {
@@ -440,7 +448,7 @@ export const Graph = Model.extend({
     // Get a cell by `id`.
     getCell: function(id) {
 
-        return this.get('cells').get(id);
+        return this.cellCollection.get(id);
     },
 
     getCells: function() {

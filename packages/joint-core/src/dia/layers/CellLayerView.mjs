@@ -30,7 +30,7 @@ export const CellLayerView = LayerView.extend({
             }
         });
 
-        this.listenTo(model, 'add', (cell, opt) => {
+        this.listenTo(model, 'cell:add', (cell, opt) => {
             const view = paper.findViewByModel(cell);
             if (view) {
                 paper.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
