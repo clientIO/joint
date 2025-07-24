@@ -41,11 +41,11 @@ import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
 import { LayersNames, PaperLayer } from './PaperLayer.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
+import { Deque } from '../alg/Deque.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
-import { Deque } from './Deque.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayer } from './layers/GridLayer.mjs';
