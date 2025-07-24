@@ -13,7 +13,6 @@ export class AvoidRouter {
         const Avoid = AvoidLib.getInstance();
 
         this.graph = graph;
-        window.graph = graph;
 
         this.connDirections = {
             top: Avoid.ConnDirUp,
