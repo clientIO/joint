@@ -3472,6 +3472,7 @@ export namespace mvc {
         collection?: Collection<any> | undefined; // was: Collection<TModel>;
         el?: $Element<TElement> | string | undefined;
         id?: string | undefined;
+        cid?: string | undefined;
         attributes?: Record<string, any> | undefined;
         className?: string | undefined;
         tagName?: string | undefined;
