@@ -93,8 +93,8 @@ export const LinkView = CellView.extend({
 
         if (
             paper && (
-                (sourceId && !paper.isViewMountedById(sourceId)) ||
-                (targetId && !paper.isViewMountedById(targetId))
+                (sourceId && !paper.isViewMounted(sourceId)) ||
+                (targetId && !paper.isViewMounted(targetId))
             )
         ) {
             // Wait for the source and target views to be rendered

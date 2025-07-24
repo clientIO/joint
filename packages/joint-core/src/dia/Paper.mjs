@@ -1102,16 +1102,17 @@ export const Paper = View.extend({
         return flag;
     },
 
-    isViewMounted: function(view) {
-        if (!view) return false;
-        var cid = view.cid;
-        return this._updates.mountedList.has(cid);
-    },
-
-    isViewMountedById: function(id) {
-        if (!id) return false;
-        const cid = this._idToCid[id];
-        if (!cid) return false;
+    isViewMounted: function(viewOrId) {
+        if (!viewOrId) return false;
+        let cid;
+        if (viewOrId._isCellView) {
+            // If the view is a CellView, we can use its cid.
+            cid = viewOrId.cid;
+        } else {
+            // `view` is model id
+            cid = this._idToCid[viewOrId];
+        }
+        if (!cid) return false; // The view is not registered.
         return this._updates.mountedList.has(cid);
     },
 
