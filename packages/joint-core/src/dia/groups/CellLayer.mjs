@@ -20,7 +20,7 @@ export class CellLayer extends CellGroup {
     initialize(attrs) {
         super.initialize(attrs);
 
-        this.cells.on('change:z', () => {
+        this.cells.on('cell:change:z', () => {
             this.cells.sort();
         });
 
