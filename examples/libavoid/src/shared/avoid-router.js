@@ -13,6 +13,7 @@ export class AvoidRouter {
         const Avoid = AvoidLib.getInstance();
 
         this.graph = graph;
+        window.graph = graph;
 
         this.connDirections = {
             top: Avoid.ConnDirUp,
@@ -418,6 +419,7 @@ export class AvoidRouter {
             remove: (cell) => this.onCellRemoved(cell),
             add: (cell) => this.onCellAdded(cell),
             change: (cell, opt) => this.onCellChanged(cell, opt),
+            reset: (graph, opt) => this.onGraphReset(graph, opt),
         });
 
         this.graphListener = listener;
@@ -471,6 +473,18 @@ export class AvoidRouter {
         if (this.commitTransactions && needsRerouting) {
             this.avoidRouter.processTransaction();
         }
+    }
+
+    onGraphReset(_graph, { previousModels }) {
+        previousModels.forEach((cell) => {
+            if (cell.isElement()) {
+                this.deleteShape(cell);
+            } else {
+                this.deleteConnector(cell);
+            }
+        });
+
+        this.routeAll();
     }
 
     onAvoidConnectorChange(connRefPtr) {
