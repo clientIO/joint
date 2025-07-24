@@ -539,6 +539,8 @@ export namespace dia {
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
 
+        static getAttributeDefinition(attrName: string): Cell.PresentationAttributeDefinition<CellView> | undefined;
+
         /**
          * @deprecated
          */
