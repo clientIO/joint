@@ -724,8 +724,6 @@ export namespace dia {
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
 
-        static getAttributeDefinition(attrName: string): Cell.PresentationAttributeDefinition<ElementView> | undefined;
-
         static attributes: { [attributeName: string]: Cell.PresentationAttributeDefinition<ElementView> };
     }
 
@@ -875,8 +873,6 @@ export namespace dia {
         translate(tx: number, ty: number, opt?: S): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Link>;
-
-        static getAttributeDefinition(attrName: string): Cell.PresentationAttributeDefinition<LinkView> | undefined;
 
         static attributes: { [attributeName: string]: Cell.PresentationAttributeDefinition<LinkView> };
     }
