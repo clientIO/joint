@@ -418,7 +418,7 @@ export class AvoidRouter {
             remove: (cell) => this.onCellRemoved(cell),
             add: (cell) => this.onCellAdded(cell),
             change: (cell, opt) => this.onCellChanged(cell, opt),
-            reset: (graph, opt) => this.onGraphReset(graph, opt),
+            reset: (_, opt) => this.onGraphReset(opt.previousModels),
         });
 
         this.graphListener = listener;
@@ -474,7 +474,7 @@ export class AvoidRouter {
         }
     }
 
-    onGraphReset(_graph, { previousModels }) {
+    onGraphReset(previousModels) {
         previousModels.forEach((cell) => {
             if (cell.isElement()) {
                 this.deleteShape(cell);
