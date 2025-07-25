@@ -1843,7 +1843,7 @@ export const Paper = View.extend({
     },
 
     _registerCellViewPlaceholder: function(cell, cid = uniqueId('view')) {
-        const ViewClass = this.resolveCellViewClass(cell);
+        const ViewClass = this._resolveCellViewClass(cell);
         const placeholder = {
             // A way to distinguish a placeholder from a real view
             [CELL_VIEW_PLACEHOLDER]: true,
@@ -1873,7 +1873,7 @@ export const Paper = View.extend({
         });
     },
 
-    resolveCellViewClass: function(cell) {
+    _resolveCellViewClass: function(cell) {
         const { options } = this;
         const { cellViewNamespace } = options;
         const type = cell.get('type') + 'View';
@@ -1900,8 +1900,24 @@ export const Paper = View.extend({
             : optionalViewClass.call(this, cell) || namespaceViewClass || defaultViewClass;
     },
 
+    // Returns a CellView instance or its placeholder for the given cell.
+    _getCellViewLike: function(cell) {
+
+        const { id } = cell;
+        const view = this._views[id];
+        if (view) return view;
+
+        // If the view is not found, it may be a placeholder
+        const cid = this._idToCid[id];
+        if (cid) {
+            return this._viewPlaceholders[cid];
+        }
+
+        return null;
+    },
+
     createViewForModel: function(cell, cid) {
-        return this._initializeCellView(this.resolveCellViewClass(cell), cell, cid);
+        return this._initializeCellView(this._resolveCellViewClass(cell), cell, cid);
     },
 
     removeView: function(cell) {
@@ -2058,15 +2074,6 @@ export const Paper = View.extend({
         this.detachView(view);
     },
 
-    // prioritizeCellViewVisibilityCheck: function(model) {
-    //     const cid = this._idToCid[model.id];
-    //     if (!cid) return;
-    //     const { mountedList, unmountedList } = this._updates;
-    //     let list = mountedList.has(cid) ? mountedList : unmountedList.has(cid) ? unmountedList : null;
-    //     if (!list) return;
-    //     list.moveToHead(cid);
-    // },
-
     prioritizeCellViewMounting: function(model) {
         const cid = this._idToCid[model.id];
         if (!cid) return false;
@@ -2095,21 +2102,6 @@ export const Paper = View.extend({
         if (id) return this._views[id];
 
         return undefined;
-    },
-
-    _getCellViewLike: function(cell) {
-
-        const { id } = cell;
-        const view = this._views[id];
-        if (view) return view;
-
-        // If the view is not found, it may be a placeholder
-        const cid = this._idToCid[id];
-        if (cid) {
-            return this._viewPlaceholders[cid];
-        }
-
-        return null;
     },
 
     // Find a view for a model `cell`. `cell` can also be a string or number representing a model `id`.
