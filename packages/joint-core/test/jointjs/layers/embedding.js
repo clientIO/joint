@@ -47,15 +47,15 @@ QUnit.module('embedding-layers', function(hooks) {
             ]
         });
 
-        assert.ok(this.paper.hasLayer('rect1'), 'Paper has layer for parent cell');
-        assert.ok(this.graph.hasLayer('rect1'), 'Graph has layer for parent cell');
+        assert.ok(this.paper.hasLayerView('rect1'), 'Paper has layer for parent cell');
+        assert.ok(this.graph.hasCellLayer('rect1'), 'Graph has layer for parent cell');
 
-        const layer = this.graph.getLayer('rect1');
+        const layer = this.graph.getCellLayer('rect1');
 
-        assert.ok(layer.get('cells').has('ellipse1'), 'Graph Layer has cell');
+        assert.ok(layer.cells.has('ellipse1'), 'Cell Layer has cell');
 
-        const layerView = this.paper.getLayer('rect1');
+        const layerView = this.paper.getLayerView('rect1');
 
-        assert.ok(layerView.getCellViewNode('ellipse1'), 'Layer view has cell view node for embedded cell');
+        assert.ok(layerView.el.querySelector(`[model-id="ellipse1"]`), 'Layer view has cell view node for embedded cell');
     });
 });

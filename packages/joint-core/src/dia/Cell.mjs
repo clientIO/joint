@@ -239,7 +239,7 @@ export const Cell = Model.extend({
             }
         }
 
-        this.trigger('remove', this, graph.attributes.cells, opt);
+        this.trigger('remove', this, graph.cellCollection, opt);
 
         graph.stopBatch('remove');
 

@@ -48,7 +48,7 @@ import $ from '../mvc/Dom/index.mjs';
 import { GridLayerView } from './layers/GridLayerView.mjs';
 import { EmbeddingLayersController } from './controllers/EmbeddingLayersController.mjs';
 
-export const LayersIds = {
+export const LAYERS = {
     GRID: 'grid',
     BACK: 'back',
     FRONT: 'front',
@@ -399,17 +399,17 @@ export const Paper = View.extend({
 
         // Paper layers except the cell layers.
         this._layersSettings = [{
-            id: LayersIds.GRID,
+            id: LAYERS.GRID,
             type: 'GridLayerView',
             patterns: this.constructor.gridPatterns
         }, {
-            id: LayersIds.BACK,
+            id: LAYERS.BACK,
         }, {
-            id: LayersIds.LABELS,
+            id: LAYERS.LABELS,
         }, {
-            id: LayersIds.FRONT
+            id: LAYERS.FRONT
         }, {
-            id: LayersIds.TOOLS
+            id: LAYERS.TOOLS
         }];
 
         // Layers (SVGGroups)
@@ -620,7 +620,7 @@ export const Paper = View.extend({
         if (layerId in viewsMap) {
             return viewsMap[layerId];
         }
-        throw new Error(`dia.Paper: Unknown layer "${layerId}".`);
+        throw new Error(`dia.Paper: Unknown layer view "${layerId}".`);
     },
 
     getLayerViewNode(layerId) {
@@ -644,6 +644,14 @@ export const Paper = View.extend({
     },
 
     _registerLayerView(layerView) {
+        if (!(layerView instanceof LayerView)) {
+            throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
+        }
+
+        if (this.hasLayerView(layerView.id)) {
+            throw new Error(`dia.Paper: The layer view "${layerView.id}" already exists.`);
+        }
+
         const { _layers: { viewsMap }} = this;
         const layerId = layerView.id;
 
@@ -656,10 +664,12 @@ export const Paper = View.extend({
             layerId = layerView;
         } else if (layerView instanceof LayerView) {
             layerId = layerView.id;
+        } else {
+            throw new Error('dia.Paper: The layer view must be provided.');
         }
 
         if (!this.hasLayerView(layerId)) {
-            throw new Error(`dia.Paper: Unknown layer "${layerId}".`);
+            throw new Error(`dia.Paper: Unknown layer view "${layerId}".`);
         }
         return this.getLayerView(layerId);
     },
@@ -668,7 +678,7 @@ export const Paper = View.extend({
         layerView = this._requireLayerView(layerView);
 
         if (!layerView.isEmpty()) {
-            throw new Error('dia.Paper: The layer is not empty.');
+            throw new Error('dia.Paper: The layer view is not empty.');
         }
         this._removeLayerView(layerView);
     },
@@ -683,38 +693,54 @@ export const Paper = View.extend({
     },
 
     insertLayerView(layerView, insertBefore) {
+        if (!(layerView instanceof LayerView)) {
+            throw new Error('dia.Paper: The layer view must be an instance of dia.LayerView.');
+        }
+
         const layerId = layerView.id;
 
         if (!this.hasLayerView(layerId)) {
-            throw new Error(`dia.Paper: Unknown layer "${layerId}".`);
+            throw new Error(`dia.Paper: Unknown layer view "${layerId}".`);
         }
 
         const { _layers: { order }} = this;
 
-        // remove from order in case of a move command
-        if (order.indexOf(layerId) !== -1) {
-            order.splice(order.indexOf(layerId), 1);
-        }
-
         if (!insertBefore) {
+            // remove from order in case of a move command
+            if (order.indexOf(layerId) !== -1) {
+                order.splice(order.indexOf(layerId), 1);
+            }
             order.push(layerId);
             this.layers.appendChild(layerView.el);
         } else {
             const beforeLayerView = this._requireLayerView(insertBefore);
             const beforeLayerViewId = beforeLayerView.id;
-            order.splice(order.indexOf(beforeLayerViewId), 0, layerId);
+            if (layerId === beforeLayerViewId) {
+                // The layer view is already in the right place.
+                return;
+            }
+
+            let beforeLayerPosition = order.indexOf(beforeLayerViewId);
+            // remove from order in case of a move command
+            if (order.indexOf(layerId) !== -1) {
+                if (order.indexOf(layerId) < beforeLayerPosition) {
+                    beforeLayerPosition -= 1;
+                }
+                order.splice(order.indexOf(layerId), 1);
+            }
+            order.splice(beforeLayerPosition, 0, layerId);
             this.layers.insertBefore(layerView.el, beforeLayerView.el);
         }
     },
 
-    getLayersOrder() {
+    getLayerViewOrder() {
         // Returns a sorted array of layer view ids.
         return this._layers.order.slice();
     },
 
-    getLayers() {
+    getOrderedLayerViews() {
         // Returns a sorted array of ordered layer views.
-        return this.getLayersOrder().map(id => this.getLayerView(id));
+        return this.getLayerViewOrder().map(id => this.getLayerView(id));
     },
 
     render: function() {
@@ -753,6 +779,10 @@ export const Paper = View.extend({
     },
 
     createLayerView(options) {
+        if (options.id == null) {
+            throw new Error('dia.Paper: Layer view id is required.');
+        }
+
         options.paper = this;
 
         let type = options.type;
@@ -768,13 +798,16 @@ export const Paper = View.extend({
     },
 
     renderLayerView: function(options) {
-        const layerView = this.createLayerView(options);
-        const layerId = layerView.id;
-
-        if (this.hasLayerView(layerId)) {
-            throw new Error(`dia.Paper: The layer "${layerId}" already exists.`);
+        if (options == null) {
+            throw new Error('dia.Paper: Layer view options are required.');
         }
 
+        const layerView = this.createLayerView(options);
+        this.addLayerView(layerView);
+        return layerView;
+    },
+
+    addLayerView: function(layerView) {
         this._registerLayerView(layerView);
         return layerView;
     },
@@ -792,12 +825,12 @@ export const Paper = View.extend({
         this._cellLayers.filter(cellLayer => cellLayer.order != null).sort((a, b) => b.order - a.order).forEach(cellLayer => {
             // insert cell layers before the front layer
             const layerView = this.getLayerView(cellLayer.id);
-            this.insertLayerView(layerView, LayersIds.FRONT);
+            this.insertLayerView(layerView, LAYERS.FRONT);
         });
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(this.model.defaultCellLayerId);
-        const toolsLayerView = this.getLayerView(LayersIds.TOOLS);
-        const labelsLayerView = this.getLayerView(LayersIds.LABELS);
+        const toolsLayerView = this.getLayerView(LAYERS.TOOLS);
+        const labelsLayerView = this.getLayerView(LAYERS.LABELS);
         // backwards compatibility
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
@@ -1510,10 +1543,6 @@ export const Paper = View.extend({
         if (this.embeddingLayersController) {
             this.embeddingLayersController.stopListening();
         }
-
-        if (this.cellLayersController) {
-            this.cellLayersController.stopListening();
-        }
     },
 
     getComputedSize: function() {
@@ -1837,7 +1866,7 @@ export const Paper = View.extend({
         return new ViewClass({
             model: cell,
             interactive: options.interactive,
-            labelsLayer: options.labelsLayer === true ? LayersIds.LABELS : options.labelsLayer
+            labelsLayer: options.labelsLayer === true ? LAYERS.LABELS : options.labelsLayer
         });
     },
 
@@ -1930,11 +1959,11 @@ export const Paper = View.extend({
     sortLayersExact: function() {
         const { _layers: { viewsMap }} = this;
 
-        Object.values(viewsMap).filter(view => view instanceof GroupLayer).forEach(view => view.sortExact());
+        Object.values(viewsMap).filter(view => view instanceof CellLayerView).forEach(view => view.sortExact());
     },
 
     insertView: function(view, isInitialInsert) {
-        const { el, model } = view;
+        const { model } = view;
 
         const layerName = model.layer();
         const layerView = this.getLayerView(layerName);
@@ -2837,13 +2866,13 @@ export const Paper = View.extend({
         options.gridSize = gridSize;
         if (options.drawGrid && !options.drawGridSize) {
             // Do not redraw the grid if the `drawGridSize` is set.
-            this.getLayerView(LayersIds.GRID).renderGrid();
+            this.getLayerView(LAYERS.GRID).renderGrid();
         }
         return this;
     },
 
     setGrid: function(drawGrid) {
-        this.getLayerView(LayersIds.GRID).setGrid(drawGrid);
+        this.getLayerView(LAYERS.GRID).setGrid(drawGrid);
         return this;
     },
 
@@ -3192,7 +3221,7 @@ export const Paper = View.extend({
 
     sorting: sortingTypes,
 
-    Layers: LayersIds,
+    Layers: LAYERS,
 
     backgroundPatterns: {
 

@@ -99,7 +99,7 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('paper.addCell() number of sort()', function(assert) {
 
-        var spy = sinon.spy(this.paper.getLayer('cells'), 'sort');
+        var spy = sinon.spy(this.paper.getLayerView('cells'), 'sort');
 
         var r1 = new joint.shapes.standard.Rectangle;
         var r2 = new joint.shapes.standard.Rectangle;
@@ -121,7 +121,7 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('paper.addCells() number of sort()', function(assert) {
 
-        var spy = sinon.spy(this.paper.getLayer('cells'), 'sort');
+        var spy = sinon.spy(this.paper.getLayerView('cells'), 'sort');
 
         var r1 = new joint.shapes.standard.Rectangle;
         var r2 = new joint.shapes.standard.Rectangle;
@@ -1782,11 +1782,11 @@ QUnit.module('paper', function(hooks) {
     QUnit.module('draw grid options', function(hooks) {
 
         const getGridSettings = function(paper) {
-            return paper.getLayer(joint.dia.Paper.Layers.GRID)._gridSettings;
+            return paper.getLayerView(joint.dia.Paper.Layers.GRID)._gridSettings;
         };
 
         const getGridVel = function(paper) {
-            return V(paper.getLayerNode(joint.dia.Paper.Layers.GRID).firstChild);
+            return V(paper.getLayerViewNode(joint.dia.Paper.Layers.GRID).firstChild);
         };
 
         var preparePaper = function(drawGrid, paperSettings) {
@@ -1857,7 +1857,7 @@ QUnit.module('paper', function(hooks) {
                     gridSize: 1,
                     drawGridSize: 17
                 });
-                const drawGridSpy = sinon.spy(paper.getLayer(joint.dia.Paper.Layers.GRID), 'renderGrid');
+                const drawGridSpy = sinon.spy(paper.getLayerView(joint.dia.Paper.Layers.GRID), 'renderGrid');
                 paper.setGridSize(5);
                 assert.ok(drawGridSpy.notCalled);
                 drawGridSpy.restore();

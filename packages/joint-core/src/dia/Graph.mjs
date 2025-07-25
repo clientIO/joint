@@ -5,7 +5,6 @@ import { Model } from '../mvc/Model.mjs';
 import { Collection } from '../mvc/Collection.mjs';
 import { wrappers, wrapWith } from '../util/wrappers.mjs';
 import { cloneCells } from '../util/index.mjs';
-import { CellLayer } from './groups/CellLayer.mjs';
 import { CellLayersController } from './controllers/CellLayersController.mjs';
 
 const GraphCells = Collection.extend({

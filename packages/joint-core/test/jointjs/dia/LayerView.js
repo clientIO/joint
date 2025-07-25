@@ -1,7 +1,7 @@
 QUnit.module('joint.dia.LayerView', function(hooks) {
 
-    QUnit.test('options: name', function(assert) {
-        const layer = new joint.dia.LayerView({ name: 'test' });
+    QUnit.test('options: id', function(assert) {
+        const layer = new joint.dia.LayerView({ id: 'test' });
         assert.ok(layer.el.classList.contains('joint-test-layer'));
     });
 

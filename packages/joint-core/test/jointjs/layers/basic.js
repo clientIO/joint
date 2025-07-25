@@ -21,21 +21,21 @@ QUnit.module('layers-basic', function(hooks) {
     });
 
     QUnit.test('Default layers setup', function(assert) {
-        assert.ok(this.graph.layersController, 'Graph layers controller is created');
+        assert.ok(this.graph.cellLayersController, 'Cell layers controller is created');
 
-        const layers = this.graph.get('layers');
+        const cellLayers = this.graph.get('cellLayers');
 
-        assert.ok(Array.isArray(layers), 'Graph has layers attribute');
+        assert.ok(Array.isArray(cellLayers), 'Graph has cellLayers attribute');
 
-        assert.strictEqual(layers.length, 1, 'Graph has one default layer');
+        assert.strictEqual(cellLayers.length, 1, 'Graph has one default cell layer');
 
-        assert.strictEqual(layers[0].name, 'cells', 'Graph has default layer with name "cells"');
+        assert.strictEqual(cellLayers[0].id, 'cells', 'Graph has default cell layer with id "cells"');
 
-        assert.ok(this.paper.getLayer('cells'), 'Paper has default layer view for "cells" layer');
+        assert.ok(this.paper.getLayerView('cells'), 'Paper has default layer view for "cells" layer');
 
-        const cellsLayerView = this.paper.getLayer('cells');
-        const graphDefaultLayer = this.graph.getDefaultLayer();
+        const cellsLayerView = this.paper.getLayerView('cells');
+        const graphDefaultCellLayer = this.graph.getDefaultCellLayer();
 
-        assert.equal(cellsLayerView.model, graphDefaultLayer, 'Default layer view is linked to the default layer model');
+        assert.equal(cellsLayerView.model, graphDefaultCellLayer, 'Default layer view is linked to the default layer model');
     });
 });

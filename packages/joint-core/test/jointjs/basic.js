@@ -808,7 +808,7 @@ QUnit.module('basic', function(hooks) {
         this.graph.addCell(r1);
         this.graph.addCell(r2);
 
-        var spy = sinon.spy(this.paper.getLayer('cells'), 'sort');
+        var spy = sinon.spy(this.paper.getLayerView('cells'), 'sort');
 
         var r1View = this.paper.findViewByModel(r1);
         var r2View = this.paper.findViewByModel(r2);

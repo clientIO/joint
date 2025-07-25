@@ -30,14 +30,16 @@ export const CellLayerView = LayerView.extend({
             }
         });
 
-        this.listenTo(model, 'cell:add', (cell, opt) => {
-            const view = paper.findViewByModel(cell);
-            if (view) {
-                paper.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+        this.listenTo(model, 'cell:add', (cell, _collection, opt) => {
+            if (!opt.initial) {
+                const view = paper.findViewByModel(cell);
+                if (view) {
+                    paper.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+                }
             }
         });
 
-        this.listenTo(model, 'cell:change:z', (cell, opt) => {
+        this.listenTo(model, 'cell:change:z', (cell, _value, opt) => {
             if (paper.options.sorting === sortingTypes.APPROX) {
                 const view = paper.findViewByModel(cell);
                 if (view) {
@@ -68,11 +70,11 @@ export const CellLayerView = LayerView.extend({
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.
         const cellNodes = Array.from(this.el.children).filter(node => node.getAttribute('model-id'));
-        const cells = this.model.get('cells');
+        const cellCollection = this.model.cells;
 
         sortElements(cellNodes, function(a, b) {
-            const cellA = cells.get(a.getAttribute('model-id'));
-            const cellB = cells.get(b.getAttribute('model-id'));
+            const cellA = cellCollection.get(a.getAttribute('model-id'));
+            const cellB = cellCollection.get(b.getAttribute('model-id'));
             const zA = cellA.attributes.z || 0;
             const zB = cellB.attributes.z || 0;
             return (zA === zB) ? 0 : (zA < zB) ? -1 : 1;
@@ -92,13 +94,5 @@ export const CellLayerView = LayerView.extend({
                 this.insertNode(el);
                 break;
         }
-    },
-
-    getCellViewNode(cellId) {
-        const cellNode = this.el.querySelector(`[model-id="${cellId}"]`);
-        if (!cellNode) {
-            return null;
-        }
-        return cellNode;
-    },
+    }
 });

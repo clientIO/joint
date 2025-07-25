@@ -45,8 +45,8 @@ export class CellGroup extends Model {
         this.cells.on('all', this.trigger, this);
     }
 
-    add(cell) {
-        this.cells.add(cell);
+    add(cell, opt) {
+        this.cells.add(cell, opt);
     }
 
     remove(cell) {

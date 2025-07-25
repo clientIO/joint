@@ -52,14 +52,13 @@ export class CellLayersController extends Listener {
             });
         });
 
-        this.listenTo(graph, 'change:layer', (_context, cell, layerId) => {
+        this.listenTo(graph, 'change:layer', (_context, cell, layerId, opt) => {
             if (!layerId) {
                 layerId = this.defaultCellLayerId;
             }
 
-            if (this.hasCellLayer(layerId)) {
-                this.cellLayersMap[layerId].add(cell);
-            }
+            const layer = this.getCellLayer(layerId);
+            layer.add(cell, opt);
         });
     }
 
@@ -70,14 +69,8 @@ export class CellLayersController extends Listener {
     }
 
     onAdd(cell, reset = false) {
-        const { cellLayersMap } = this;
-
         const layerId = cell.layer() || this.defaultCellLayerId;
-        const layer = cellLayersMap[layerId];
-
-        if (!layer) {
-            throw new Error(`dia.Graph: Layer with name '${layerId}' does not exist.`);
-        }
+        const layer = this.getCellLayer(layerId);
 
         // compatibility
         // in the version before groups, z-index was not set on reset
@@ -87,19 +80,16 @@ export class CellLayersController extends Listener {
             }
         }
 
-        // mandatory add to the layer
-        // so every cell now will have a layer specified
-        layer.add(cell);
+        // add to the layer without triggering rendering update
+        // when the cell is just added to the graph, it will be rendered normally by the paper
+        layer.add(cell, { initial: true });
     }
 
     onRemove(cell) {
-        const { cellLayersMap } = this;
-
         const layerId = cell.layer() || this.defaultCellLayerId;
 
-        const layer = cellLayersMap[layerId];
-
-        if (layer) {
+        if (this.hasCellLayer(layerId)) {
+            const layer = this.getCellLayer(layerId);
             layer.remove(cell);
         }
     }
@@ -133,7 +123,7 @@ export class CellLayersController extends Listener {
             throw new Error(`dia.Graph: Layer with id '${layerId}' does not exist.`);
         }
 
-        const layer = cellLayersMap[layerId];
+        const layer = this.getCellLayer(layerId);
         // reset the layer to remove all cells from it
         layer.reset();
 
@@ -144,21 +134,21 @@ export class CellLayersController extends Listener {
     }
 
     minZIndex(layerId) {
-        const { cellLayersMap, defaultCellLayerId } = this;
+        const { defaultCellLayerId } = this;
 
         layerId = layerId || defaultCellLayerId;
 
-        const layer = cellLayersMap[layerId];
+        const layer = this.getCellLayer(layerId);
 
         return layer.minZIndex();
     }
 
     maxZIndex(layerId) {
-        const { cellLayersMap, defaultCellLayerId } = this;
+        const { defaultCellLayerId } = this;
 
         layerId = layerId || defaultCellLayerId;
 
-        const layer = cellLayersMap[layerId];
+        const layer = this.getCellLayer(layerId);
 
         return layer.maxZIndex();
     }
@@ -169,7 +159,7 @@ export class CellLayersController extends Listener {
 
     getCellLayer(layerId) {
         if (!this.cellLayersMap[layerId]) {
-            throw new Error(`dia.Graph: Layer with id '${layerId}' does not exist.`);
+            throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
         }
 
         return this.cellLayersMap[layerId];
