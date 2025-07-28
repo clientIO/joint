@@ -60,8 +60,6 @@ const GraphCells = Collection.extend({
 
 export const Graph = Model.extend({
 
-    defaultCellLayerId: 'cells',
-
     initialize: function(attrs, opt) {
 
         opt = opt || {};
@@ -236,14 +234,28 @@ export const Graph = Model.extend({
             (attrs = {})[key] = val;
         }
 
+        // Handle `cellLayers` attribute separately.
+        if (attrs.hasOwnProperty('cellLayers')) {
+
+        }
+
+        let cells = attrs.cells;
         // Make sure that `cells` attribute is handled separately via resetCells().
-        if (attrs.hasOwnProperty('cells')) {
-            this.resetCells(attrs.cells, opt);
+        if (cells) {
             attrs = util.omit(attrs, 'cells');
         }
 
         // The rest of the attributes are applied via original set method.
-        return Model.prototype.set.call(this, attrs, opt);
+        // 'cellLayers' attribute is processed in the `cellLayersController`.
+        Model.prototype.set.call(this, attrs, opt);
+
+        // Resetting cells after the `cellLayers` attribute is processed.
+        if (cells) {
+            // Reset the cells collection.
+            this.resetCells(cells, opt);
+        }
+
+        return this;
     },
 
     clear: function(opt) {

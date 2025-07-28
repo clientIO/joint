@@ -8,23 +8,10 @@ export class CellLayersController extends Listener {
 
         this.graph = context.graph;
 
-        this.defaultCellLayerId = this.graph.defaultCellLayerId;
-
-        if (!this.graph.has('cellLayers')) {
-            this.graph.set('cellLayers', [{
-                id: this.defaultCellLayerId,
-                default: true,
-                order: 1
-            }]);
-        }
+        this.defaultCellLayerId = 'cells';
 
         this.cellLayersMap = {};
-        this.cellLayerAttributes = this.graph.get('cellLayers');
-
-        this.cellLayerAttributes.forEach(attributes => {
-            const cellLayer = this.createCellLayer(attributes);
-            this.cellLayersMap[attributes.id] = cellLayer;
-        });
+        this.cellLayerAttributes = this.processGraphCellLayersAttribute(this.graph.get('cellLayers'));
 
         this.startListening();
     }
@@ -38,6 +25,21 @@ export class CellLayersController extends Listener {
 
         this.listenTo(graph, 'remove', (_context, cell) => {
             this.onRemove(cell);
+        });
+
+        this.graph.listenTo(graph, 'change:cellLayers', (_context, cellLayers, opt) => {
+            if (opt.controller) {
+                return; // do not process changes triggered by this controller
+            }
+
+            this.cellLayerAttributes = cellLayers;
+
+            // reset the cell layers map
+            this.cellLayersMap = {};
+
+            this.cellLayersAttributes = this.processGraphCellLayersAttribute(cellLayers);
+
+            this.graph.trigger('layers:update', this.cellLayerAttributes);
         });
 
         this.listenTo(graph, 'reset', (_context, { models: cells }) => {
@@ -68,6 +70,41 @@ export class CellLayersController extends Listener {
             const layer = this.getCellLayer(layerId);
             layer.add(cell, opt);
         });
+    }
+
+    processGraphCellLayersAttribute(cellLayers = []) {
+        const cellLayerAttributes = cellLayers;
+
+        const defaultLayers = cellLayerAttributes.filter(attrs => attrs.default === true);
+
+        if (defaultLayers.length > 1) {
+            throw new Error('dia.Graph: Only one default cell layer can be defined.');
+        }
+
+        // if no default layer is defined, create one
+        if (defaultLayers.length === 0) {
+            const nextOrder = cellLayerAttributes.reduce((max, attrs) => {
+                return Math.max(max, attrs.order || 0);
+            }, 0) + 1;
+
+            cellLayerAttributes.push({
+                id: this.defaultCellLayerId,
+                default: true,
+                order: nextOrder
+            });
+        }
+
+        if (defaultLayers.length === 1) {
+            this.defaultCellLayerId = defaultLayers[0].id;
+        }
+
+        cellLayerAttributes.forEach(attributes => {
+            const cellLayer = this.createCellLayer(attributes);
+            this.cellLayersMap[attributes.id] = cellLayer;
+        });
+
+        this.graph.set('cellLayers', cellLayerAttributes, { controller: this });
+        return cellLayerAttributes;
     }
 
     createCellLayer(attributes) {
@@ -117,7 +154,8 @@ export class CellLayersController extends Listener {
 
         this.cellLayerAttributes = this.cellLayerAttributes.concat([{ id: cellLayer.id }]);
 
-        this.graph.set('cellLayers', this.cellLayerAttributes);
+        this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
+        this.graph.trigger('layers:update', this.cellLayerAttributes);
     }
 
     removeCellLayer(layerId, _opt) {
@@ -138,7 +176,8 @@ export class CellLayersController extends Listener {
         this.cellLayerAttributes = this.cellLayerAttributes.filter(l => l.id !== layerId);
         delete cellLayersMap[layerId];
 
-        this.graph.set('cellLayers', this.cellLayerAttributes);
+        this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
+        this.graph.trigger('layers:update', this.cellLayerAttributes);
     }
 
     minZIndex(layerId) {

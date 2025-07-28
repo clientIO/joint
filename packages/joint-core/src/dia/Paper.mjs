@@ -469,7 +469,7 @@ export const Paper = View.extend({
             .listenTo(model, 'remove', this.onCellRemoved)
             .listenTo(model, 'reset', this.onGraphReset)
             .listenTo(model, 'batch:stop', this.onGraphBatchStop)
-            .listenTo(model, 'change:cellLayers', this.updateCellLayers);
+            .listenTo(model, 'layers:update', this.updateCellLayers);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -509,7 +509,7 @@ export const Paper = View.extend({
         }
     },
 
-    updateCellLayers: function(_graph, cellLayers) {
+    updateCellLayers: function(cellLayers) {
         const removedCellLayerViewIds = this._cellLayers.filter(cellLayerView => !cellLayers.some(l => l.id === cellLayerView.id)).map(cellLayerView => cellLayerView.id);
         removedCellLayerViewIds.forEach(cellLayerViewId => this.requestLayerViewRemove(cellLayerViewId));
 
@@ -820,7 +820,7 @@ export const Paper = View.extend({
             this.insertLayerView(layerView);
         });
         // Render the cell layers.
-        this.updateCellLayers(this.model, this.model.get('cellLayers'));
+        this.updateCellLayers(this.model.get('cellLayers'));
         // Insert ordered cell layers
         this._cellLayers.filter(cellLayer => cellLayer.order != null).sort((a, b) => b.order - a.order).forEach(cellLayer => {
             // insert cell layers before the front layer
@@ -828,7 +828,7 @@ export const Paper = View.extend({
             this.insertLayerView(layerView, LAYERS.FRONT);
         });
         // Throws an exception if doesn't exist
-        const cellsLayerView = this.getLayerView(this.model.defaultCellLayerId);
+        const cellsLayerView = this.getLayerView(this.model.getDefaultCellLayer().id);
         const toolsLayerView = this.getLayerView(LAYERS.TOOLS);
         const labelsLayerView = this.getLayerView(LAYERS.LABELS);
         // backwards compatibility
