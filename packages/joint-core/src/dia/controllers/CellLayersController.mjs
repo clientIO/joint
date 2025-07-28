@@ -56,6 +56,14 @@ export class CellLayersController extends Listener {
             if (!layerId) {
                 layerId = this.defaultCellLayerId;
             }
+            const previousLayerId = cell.previous('layer') || this.defaultCellLayerId;
+
+            if (previousLayerId === layerId) {
+                return; // no change
+            }
+
+            const previousLayer = this.getCellLayer(previousLayerId);
+            previousLayer.remove(cell, opt);
 
             const layer = this.getCellLayer(layerId);
             layer.add(cell, opt);

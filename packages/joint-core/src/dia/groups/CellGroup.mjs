@@ -49,8 +49,8 @@ export class CellGroup extends Model {
         this.cells.add(cell, opt);
     }
 
-    remove(cell) {
-        this.cells.remove(cell);
+    remove(cell, opt) {
+        this.cells.remove(cell, opt);
     }
 
     reset() {
