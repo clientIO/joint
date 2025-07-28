@@ -1,5 +1,5 @@
 import { shapes, dia, util, elementTools } from '@joint/core';
-import { Child, Container, Link, HEADER_HEIGHT } from './shapes';
+import { Base, Child, Container, Link, HEADER_HEIGHT } from './shapes';
 
 import '../index.css';
 
@@ -25,11 +25,7 @@ const paper = new dia.Paper({
     interactive: { linkMove: false },
     viewport: (view: dia.CellView) => {
         const cell = view.model;
-        // Hide any element or link which is embedded inside a collapsed parent (or parent of the parent).
-        const hidden = cell.getAncestors().some((ancestor) => {
-            if ((ancestor as Container).isCollapsed()) return true;
-        });
-        return !hidden;
+        return Base.filter(cell);
     }
 });
 
@@ -38,7 +34,7 @@ document.getElementById('paper')!.appendChild(paper.el);
 const highlighterMarkup = util.svg/* xml */`
     <rect @selector="button" fill="#000000" fill-opacity="0.2" stroke="#FFFFFF" stroke-width="0.5" x="-7" y="-7" width="14" height="14" cursor="pointer"/>
     <path @selector="icon" fill="none" stroke="#FFFFFF" stroke-width="1" pointer-events="none"/>
-`
+`;
 
 // Custom highlighter to render the expand/collapse button.
 class ExpandButtonHighlighter extends dia.HighlighterView {
@@ -80,12 +76,8 @@ class ExpandButtonHighlighter extends dia.HighlighterView {
 
 const updateContainerSize = (container: dia.Cell) => {
     if (!Container.isContainer(container)) return;
-    if (container.isCollapsed()) {
-        container.resize(140, 30);
-    } else {
-        container.fitToChildElements();
-    }
-}
+    container.fitToChildElements();
+};
 
 graph.on({
     'add': (cell: dia.Cell) => {
