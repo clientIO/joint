@@ -1291,23 +1291,21 @@ export const Paper = View.extend({
                 var currentFlag = priorityUpdates[cid];
                 if ((currentFlag & this.FLAG_REMOVE) === 0) {
                     // We should never check a view for viewport if we are about to remove the view
-                    const isDetached = updates.unmountedList.has(cid);
-                    if (!this._evalCellVisibility(view, !isDetached, visibilityCb)) {
+                    const isMounted = !updates.unmountedList.has(cid);
+                    if (!this._evalCellVisibility(view, isMounted, visibilityCb)) {
                         // Unmount View
-                        if (!isDetached) {
-                            // The view has been already mounted
+                        if (isMounted) {
+                            // The view is currently mounted. Hide the view (detach or remove it).
                             this.registerUnmountedView(view);
                             this._hideCellView(view);
-                        }
-                        // TODO: remove view if it is not a placeholder and disposeHidden is true
-                        // TODO: why there is a view that is not a placeholder?
-                        const unmountedNode = updates.unmountedList.get(cid);
-                        if (unmountedNode) {
-                            unmountedNode.value |= currentFlag;
-                        } else {
                             updates.unmountedList.pushTail(cid, currentFlag);
+                        } else {
+                            // The view is not mounted. We can just update the unmounted list.
+                            const unmountedNode = updates.unmountedList.get(cid);
+                            // We ADD the current flag to the flag that was already scheduled.
+                            unmountedNode.value |= currentFlag;
                         }
-
+                        // Delete the current
                         delete priorityUpdates[cid];
                         unmountCount++;
                         continue;
@@ -1318,7 +1316,7 @@ export const Paper = View.extend({
                         currentFlag |= view.getFlag(result(view, 'initFlag'));
                     }
 
-                    if (isDetached) {
+                    if (!isMounted) {
                         currentFlag |= this.FLAG_INSERT;
                         mountCount++;
                     }
