@@ -1903,7 +1903,18 @@ export const Paper = View.extend({
     // Returns a CellView instance or its placeholder for the given cell.
     _getCellViewLike: function(cell) {
 
-        const { id } = cell;
+        let id;
+        if (isString(cell) || isNumber(cell)) {
+            // If the cell is a string or number, it is an id of the view.
+            id = cell;
+        } else if (cell) {
+            // If the cell is an object, it should have an id property.
+            id = cell.id;
+        } else {
+            // If the cell is falsy, return null.
+            return null;
+        }
+
         const view = this._views[id];
         if (view) return view;
 
@@ -2073,7 +2084,7 @@ export const Paper = View.extend({
             }
         }
         // Detach the view from the paper, but keep it in memory
-        this._detachView(cellView);
+        this._detachCellView(cellView);
     },
 
     // Detach a view from the paper, but keep it in memory.
@@ -2101,24 +2112,22 @@ export const Paper = View.extend({
     },
 
     // Find a view for a model `cell`. `cell` can also be a string or number representing a model `id`.
-    findViewByModel: function(cell) {
+    findViewByModel: function(cellOrId) {
 
-        const id = (isString(cell) || isNumber(cell)) ? cell : (cell && cell.id);
-
-        let view = this._views[id];
-        if (!view) {
-            const viewPlaceholder = this._viewPlaceholders[this._idToCid[id]];
-            if (viewPlaceholder) {
-                view = this._resolveCellViewPlaceholder(viewPlaceholder);
-                // It's important to run in isolation to avoid triggering the update of
-                // connected links
-                // TODO: Do we need to run the initFlag or should we just create a view and return it?
-                // but keep the placeholder
-                const flag = view.getFlag(result(view, 'initFlag'));
-                this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, { isolate: true });
-            }
+        const viewLike = this._getCellViewLike(cellOrId);
+        if (!viewLike) return undefined;
+        if (!viewLike[CELL_VIEW_PLACEHOLDER]) {
+            // If the view is not a placeholder, return it directly
+            return viewLike;
         }
-
+        // If the view is a placeholder, resolve it
+        const view = this._resolveCellViewPlaceholder(viewLike);
+        const flag = view.getFlag(result(view, 'initFlag'));
+        this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, {
+            // It's important to run in isolation to avoid triggering the update of
+            // connected links
+            isolate: true
+        });
         return view;
     },
 
