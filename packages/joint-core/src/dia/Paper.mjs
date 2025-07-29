@@ -1297,7 +1297,7 @@ export const Paper = View.extend({
                         if (!isDetached) {
                             // The view has been already mounted
                             this.registerUnmountedView(view);
-                            this.hideCellView(view);
+                            this._hideCellView(view);
                         }
                         // TODO: remove view if it is not a placeholder and disposeHidden is true
                         // TODO: why there is a view that is not a placeholder?
@@ -1431,7 +1431,7 @@ export const Paper = View.extend({
             unmountCount++;
             var flag = this.registerUnmountedView(view);
             if (flag) {
-                this.hideCellView(view);
+                this._hideCellView(view);
             }
         }
         return unmountCount;
@@ -1449,7 +1449,7 @@ export const Paper = View.extend({
 
         if (mountedList.has(cellView.cid) && !visible) {
             const flag = this.registerUnmountedView(cellView);
-            if (flag) this.hideCellView(cellView);
+            if (flag) this._hideCellView(cellView);
             updates.mountedList.delete(cellView.cid);
             isUnmounted = true;
         }
@@ -2057,37 +2057,33 @@ export const Paper = View.extend({
         view.onMount(isInitialInsert);
     },
 
-    hideCellView: function(view, opt = {}) {
+    // If `cellVisibility` returns `false`, the view will be hidden using this method.
+    _hideCellView: function(cellView) {
         const { viewManagement } = this.options;
         if (viewManagement && viewManagement.disposeHidden) {
             // We currently do not dispose views which has a highlighter or tools attached
             // TODO: solve how to serialize highlighters/tools, so we can restore them later
-            if (!HighlighterView.has(view) && !view.hasTools()) {
+            if (!HighlighterView.has(cellView) && !cellView.hasTools()) {
+                const cell = cellView.model;
                 // Remove the view from the paper and dispose it
-                view.remove();
-                delete this._views[view.model.id];
-                this._registerCellViewPlaceholder(view.model, view.cid);
+                cellView.remove();
+                delete this._views[cell.id];
+                this._registerCellViewPlaceholder(cell, cellView.cid);
                 return;
             }
         }
         // Detach the view from the paper, but keep it in memory
-        this.detachView(view);
+        this._detachView(cellView);
     },
 
-    prioritizeCellViewMounting: function(model) {
-        const cid = this._idToCid[model.id];
-        if (!cid) return false;
-        const { unmountedList } = this._updates;
-        if (!unmountedList.has(cid)) return false;
-        // Move the view to the head of the mounted list
-        unmountedList.moveToHead(cid);
-        return true;
-    },
-
-    detachView(view) {
-        if (view[CELL_VIEW_PLACEHOLDER]) return;
-        view.unmount();
-        view.onDetach();
+    // Detach a view from the paper, but keep it in memory.
+    _detachCellView(cellView) {
+        if (cellView[CELL_VIEW_PLACEHOLDER]) {
+            // A placeholder view was never mounted
+            return;
+        }
+        cellView.unmount();
+        cellView.onDetach();
     },
 
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
