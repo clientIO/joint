@@ -9,16 +9,17 @@ export class EmbeddingLayersController extends Listener {
         this.graph = context.graph;
         this.paper = context.paper;
 
+        this.embeddedCellLayers = {};
+
         this.startListening();
     }
 
     startListening() {
-        const { graph, paper } = this;
+        const { graph, paper, embeddedCellLayers } = this;
 
         this.listenTo(graph, 'remove', (_context, cell) => {
-            if (graph.hasCellLayer(cell.id)) {
-                const cellLayer = graph.getCellLayer(cell.id);
-                graph.removeCellLayer(cellLayer);
+            if (embeddedCellLayers[cell.id]) {
+                paper.requestLayerViewRemove(cell.id);
             }
         });
 
@@ -53,15 +54,19 @@ export class EmbeddingLayersController extends Listener {
     }
 
     onParentChange(cell, parentId) {
-        const { graph, paper } = this;
+        const { paper, embeddedCellLayers } = this;
 
         if (parentId) {
             // Create new layer if it's not exist
-            if (!graph.hasCellLayer(parentId)) {
+            if (!embeddedCellLayers[parentId]) {
                 const cellLayer = new CellLayer({
                     id: parentId
                 });
-                graph.addCellLayer(cellLayer);
+                embeddedCellLayers[cellLayer] = cellLayer;
+                paper.renderLayerView({
+                    id: parentId,
+                    model: cellLayer,
+                });
 
                 const cellView = paper.findViewByModel(parentId);
                 if (cellView.isMounted()) {

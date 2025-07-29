@@ -59,44 +59,6 @@ QUnit.module('embedding-layers', function(hooks) {
         assert.ok(layerView.el.querySelector(`[model-id="ellipse1"]`), 'Layer view has cell view node for embedded cell');
     });
 
-    QUnit.test('from JSON', (assert) => {
-        this.graph.fromJSON({
-            cellLayers: [{
-                id: 'cells',
-                default: true,
-                order: 1
-            }, {
-                id: 'rect1',
-            }],
-            cells: [
-                {
-                    type: 'standard.Rectangle',
-                    id: 'rect1',
-                    position: { x: 100, y: 100 },
-                    size: { width: 200, height: 100 },
-                    embeds: ['ellipse1']
-                },
-                {
-                    type: 'standard.Ellipse',
-                    id: 'ellipse1',
-                    position: { x: 150, y: 150 },
-                    size: { width: 20, height: 20 },
-                    parent: 'rect1'
-                }
-            ]
-        });
-
-        assert.ok(this.paper.hasLayerView('rect1'), 'Paper has layer for parent cell');
-        assert.ok(this.graph.hasCellLayer('rect1'), 'Graph has layer for parent cell');
-
-        const layer = this.graph.getCellLayer('rect1');
-
-        assert.ok(layer.cells.has('ellipse1'), 'Cell Layer has cell');
-
-        const layerView = this.paper.getLayerView('rect1');
-
-        assert.ok(layerView.el.querySelector(`[model-id="ellipse1"]`), 'Layer view has cell view node for embedded cell');
-    });
 
     QUnit.test('to/from JSON', (assert) => {
         this.graph.fromJSON({
@@ -120,6 +82,7 @@ QUnit.module('embedding-layers', function(hooks) {
 
         const toJSONstring = JSON.stringify(this.graph.toJSON());
 
-        assert.equal(toJSONstring, '{"cellLayers":[{"id":"cells","default":true,"order":1},{"id":"rect1"}],"cells":[{"type":"standard.Rectangle","attrs":{},"position":{"x":100,"y":100},"size":{"width":200,"height":100},"angle":0,"id":"rect1","embeds":["ellipse1"]},{"type":"standard.Ellipse","attrs":{},"position":{"x":150,"y":150},"size":{"width":20,"height":20},"angle":0,"id":"ellipse1","parent":"rect1","layer":"rect1"}]}', 'toJSON returns correct JSON structure');
+
+        assert.equal(toJSONstring, '{"cellLayers":[{"id":"cells","default":true}],"cells":[{"type":"standard.Rectangle","attrs":{},"position":{"x":100,"y":100},"size":{"width":200,"height":100},"angle":0,"id":"rect1","embeds":["ellipse1"]},{"type":"standard.Ellipse","attrs":{},"position":{"x":150,"y":150},"size":{"width":20,"height":20},"angle":0,"id":"ellipse1","parent":"rect1"}]}', 'toJSON returns correct JSON structure');
     });
 });

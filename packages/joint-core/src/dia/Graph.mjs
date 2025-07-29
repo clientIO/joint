@@ -234,11 +234,6 @@ export const Graph = Model.extend({
             (attrs = {})[key] = val;
         }
 
-        // Handle `cellLayers` attribute separately.
-        if (attrs.hasOwnProperty('cellLayers')) {
-
-        }
-
         let cells = attrs.cells;
         // Make sure that `cells` attribute is handled separately via resetCells().
         if (cells) {

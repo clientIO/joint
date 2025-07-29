@@ -522,6 +522,9 @@ export const Paper = View.extend({
                     model: cellLayerModel
                 });
             }
+
+            const layerView = this.getLayerView(cellLayer.id);
+            this.insertLayerView(layerView, LAYERS.FRONT);
         });
 
         this._cellLayers = cellLayers;
@@ -821,12 +824,6 @@ export const Paper = View.extend({
         });
         // Render the cell layers.
         this.updateCellLayers(this.model.get('cellLayers'));
-        // Insert ordered cell layers
-        this._cellLayers.filter(cellLayer => cellLayer.order != null).sort((a, b) => b.order - a.order).forEach(cellLayer => {
-            // insert cell layers before the front layer
-            const layerView = this.getLayerView(cellLayer.id);
-            this.insertLayerView(layerView, LAYERS.FRONT);
-        });
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(this.model.getDefaultCellLayer().id);
         const toolsLayerView = this.getLayerView(LAYERS.TOOLS);

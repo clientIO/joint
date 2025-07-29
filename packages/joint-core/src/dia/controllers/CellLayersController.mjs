@@ -80,20 +80,13 @@ export class CellLayersController extends Listener {
         if (defaultLayers.length > 1) {
             throw new Error('dia.Graph: Only one default cell layer can be defined.');
         }
-
         // if no default layer is defined, create one
         if (defaultLayers.length === 0) {
-            const nextOrder = cellLayerAttributes.reduce((max, attrs) => {
-                return Math.max(max, attrs.order || 0);
-            }, 0) + 1;
-
             cellLayerAttributes.push({
                 id: this.defaultCellLayerId,
-                default: true,
-                order: nextOrder
+                default: true
             });
         }
-
         if (defaultLayers.length === 1) {
             this.defaultCellLayerId = defaultLayers[0].id;
         }
