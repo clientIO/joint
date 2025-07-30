@@ -425,10 +425,6 @@ export const Paper = View.extend({
         this._setDimensions();
         this.startListening();
 
-        if (options.useLayersForEmbedding) {
-            this.embeddingLayersController = new EmbeddingLayersController({ graph: model, paper: this });
-        }
-
         // Hash of all cell views.
         this._views = {};
 
@@ -1537,10 +1533,6 @@ export const Paper = View.extend({
         //clean up all DOM elements/views to prevent memory leaks
         this.removeLayerViews();
         this.removeViews();
-
-        if (this.embeddingLayersController) {
-            this.embeddingLayersController.stopListening();
-        }
     },
 
     getComputedSize: function() {

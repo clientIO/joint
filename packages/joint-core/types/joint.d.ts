@@ -1426,7 +1426,6 @@ export namespace dia {
             elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
             // embedding
-            useLayersForEmbedding?: boolean;
             embeddingMode?: boolean;
             frontParentOnly?: boolean;
             findParentBy?: FindParentByType | FindParentByCallback;
