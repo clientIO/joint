@@ -255,7 +255,7 @@ QUnit.module('HighlighterView', function(hooks) {
 
                 // Layer = Back/Front
                 ['back', 'front'].forEach(function(layer) {
-                    var vLayer = V(paper.getLayerNode(layer));
+                    var vLayer = V(paper.getLayerViewNode(layer));
                     var layerChildrenCount = vLayer.children().length;
                     highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
                         layer: layer
@@ -299,7 +299,7 @@ QUnit.module('HighlighterView', function(hooks) {
                 var h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1', { layer: layer, z: 2 });
                 var h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2', { layer: layer, z: 3  });
                 var h3 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-3', { layer: layer, z: 1 });
-                var frontLayerNode = paper.getLayerNode(layer);
+                var frontLayerNode = paper.getLayerViewNode(layer);
                 assert.equal(frontLayerNode.children.length, 3);
                 assert.equal(frontLayerNode.children[0], h3.el.parentNode);
                 assert.equal(frontLayerNode.children[1], h1.el.parentNode);

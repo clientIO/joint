@@ -365,7 +365,12 @@ export const ElementView = CellView.extend({
         element.startBatch('to-front');
 
         // Bring the model to the front with all his embeds.
-        element.toFront({ deep: true, ui: true });
+        if (paper.options.useLayersForEmbedding) {
+            // don't use deep: true, because embedded cells are already on top of the container because of the layer
+            element.toFront({ ui: true });
+        } else {
+            element.toFront({ deep: true, ui: true });
+        }
 
         // Note that at this point cells in the collection are not sorted by z index (it's running in the batch, see
         // the dia.Graph._sortOnChangeZ), so we can't assume that the last cell in the collection has the highest z.

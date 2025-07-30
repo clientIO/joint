@@ -1,6 +1,5 @@
 export * from './Graph.mjs';
 export * from './attributes/index.mjs';
-export * from './PaperLayer.mjs';
 export * from './Cell.mjs';
 export * from './CellView.mjs';
 export * from './Element.mjs';
@@ -11,3 +10,8 @@ export * from './Paper.mjs';
 export * from './ToolView.mjs';
 export * from './ToolsView.mjs';
 export * from './HighlighterView.mjs';
+export * from './layers/CellLayerView.mjs';
+export * from './layers/LayerView.mjs';
+export * from './layers/GridLayerView.mjs';
+export * from './groups/CellGroup.mjs';
+export * from './groups/CellLayer.mjs';
