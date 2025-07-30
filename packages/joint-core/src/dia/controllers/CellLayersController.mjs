@@ -32,14 +32,7 @@ export class CellLayersController extends Listener {
                 return; // do not process changes triggered by this controller
             }
 
-            this.cellLayerAttributes = cellLayers;
-
-            // reset the cell layers map
-            this.cellLayersMap = {};
-
             this.cellLayersAttributes = this.processGraphCellLayersAttribute(cellLayers);
-
-            this.graph.trigger('layers:update', this.cellLayerAttributes);
         });
 
         this.listenTo(graph, 'reset', (_context, { models: cells }) => {
@@ -97,6 +90,7 @@ export class CellLayersController extends Listener {
         });
 
         this.graph.set('cellLayers', cellLayerAttributes, { controller: this });
+        this.graph.trigger('layers:update', cellLayerAttributes);
         return cellLayerAttributes;
     }
 
@@ -144,8 +138,31 @@ export class CellLayersController extends Listener {
         }
 
         cellLayersMap[cellLayer.id] = cellLayer;
+    }
 
-        this.cellLayerAttributes = this.cellLayerAttributes.concat([{ id: cellLayer.id }]);
+    insertCellLayer(cellLayer, insertAt) {
+        if (!this.hasCellLayer(cellLayer.id)) {
+            throw new Error(`dia.Graph: Layer with id '${cellLayer.id}' does not exist.`);
+        }
+
+        const id = cellLayer.id;
+
+        const currentIndex = this.cellLayerAttributes.findIndex(attrs => attrs.id === id);
+        let attributes;
+        if (currentIndex !== -1) {
+            attributes = this.cellLayerAttributes[currentIndex];
+            this.cellLayerAttributes.splice(currentIndex, 1); // remove existing layer attributes
+        } else {
+            attributes = {
+                id
+            };
+        }
+
+        if (insertAt == null) {
+            insertAt = this.cellLayerAttributes.length;
+        }
+
+        this.cellLayerAttributes.splice(insertAt, 0, attributes);
 
         this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
         this.graph.trigger('layers:update', this.cellLayerAttributes);
@@ -166,11 +183,15 @@ export class CellLayersController extends Listener {
         // reset the layer to remove all cells from it
         layer.reset();
 
-        this.cellLayerAttributes = this.cellLayerAttributes.filter(l => l.id !== layerId);
         delete cellLayersMap[layerId];
 
-        this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
-        this.graph.trigger('layers:update', this.cellLayerAttributes);
+        // remove from the layers array
+        if (this.cellLayerAttributes.some(attrs => attrs.id === layerId)) {
+            this.cellLayerAttributes = this.cellLayerAttributes.filter(l => l.id !== layerId);
+
+            this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
+            this.graph.trigger('layers:update', this.cellLayerAttributes);
+        }
     }
 
     minZIndex(layerId) {

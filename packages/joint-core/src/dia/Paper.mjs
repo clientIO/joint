@@ -492,9 +492,9 @@ export const Paper = View.extend({
         if (view) this.requestViewUpdate(view, view.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
     },
 
-    onGraphReset: function(collection, opt) {
+    onGraphReset: function(_collection, opt) {
         this.resetLayerViews();
-        this.resetViews(collection.models, opt);
+        this.resetViews(this.model.getCells(), opt);
     },
 
     onGraphBatchStop: function(data) {
@@ -513,7 +513,8 @@ export const Paper = View.extend({
         const removedCellLayerViewIds = this._cellLayers.filter(cellLayerView => !cellLayers.some(l => l.id === cellLayerView.id)).map(cellLayerView => cellLayerView.id);
         removedCellLayerViewIds.forEach(cellLayerViewId => this.requestLayerViewRemove(cellLayerViewId));
 
-        cellLayers.forEach(cellLayer => {
+        // reverse cellLayers array to render it in order
+        [...cellLayers].reverse().forEach(cellLayer => {
             if (!this.hasLayerView(cellLayer.id)) {
                 const cellLayerModel = this.model.getCellLayer(cellLayer.id);
 

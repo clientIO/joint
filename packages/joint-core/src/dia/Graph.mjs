@@ -427,6 +427,10 @@ export const Graph = Model.extend({
         this.cellLayersController.addCellLayer(cellLayer, opt);
     },
 
+    insertCellLayer(cellLayer, insertAt) {
+        this.cellLayersController.insertCellLayer(cellLayer, insertAt);
+    },
+
     removeCellLayer(cellLayer, opt) {
         this.cellLayersController.removeCellLayer(cellLayer.id, opt);
     },

@@ -83,6 +83,6 @@ QUnit.module('embedding-layers', function(hooks) {
         const toJSONstring = JSON.stringify(this.graph.toJSON());
 
 
-        assert.equal(toJSONstring, '{"cellLayers":[{"id":"cells","default":true}],"cells":[{"type":"standard.Rectangle","attrs":{},"position":{"x":100,"y":100},"size":{"width":200,"height":100},"angle":0,"id":"rect1","embeds":["ellipse1"]},{"type":"standard.Ellipse","attrs":{},"position":{"x":150,"y":150},"size":{"width":20,"height":20},"angle":0,"id":"ellipse1","parent":"rect1"}]}', 'toJSON returns correct JSON structure');
+        assert.equal(toJSONstring, '{"cellLayers":[{"id":"cells","default":true}],"cells":[{"type":"standard.Rectangle","attrs":{},"position":{"x":100,"y":100},"size":{"width":200,"height":100},"angle":0,"id":"rect1","embeds":["ellipse1"]},{"type":"standard.Ellipse","attrs":{},"position":{"x":150,"y":150},"size":{"width":20,"height":20},"angle":0,"id":"ellipse1","parent":"rect1","layer":"rect1"}]}', 'toJSON returns correct JSON structure');
     });
 });
