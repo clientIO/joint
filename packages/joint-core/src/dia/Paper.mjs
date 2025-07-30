@@ -46,7 +46,6 @@ import * as anchors from '../anchors/index.mjs';
 
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayerView } from './layers/GridLayerView.mjs';
-import { EmbeddingLayersController } from './controllers/EmbeddingLayersController.mjs';
 
 export const LAYERS = {
     GRID: 'grid',
