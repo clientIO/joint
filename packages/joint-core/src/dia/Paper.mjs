@@ -34,7 +34,7 @@ import {
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views } from '../mvc/index.mjs';
-import { CellView } from './CellView.mjs';
+import { CellView, CELL_VIEW_MARKER } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
@@ -99,7 +99,7 @@ const defaultLayers = [{
     name: LayersNames.TOOLS
 }];
 
-const CELL_VIEW_PLACEHOLDER = Symbol('joint.cellViewPlaceholder');
+const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 
 export const Paper = View.extend({
 
@@ -486,7 +486,7 @@ export const Paper = View.extend({
     onCellRemoved: function(cell, _, opt) {
         const viewLike = this._getCellViewLike(cell);
         if (!viewLike) return;
-        if (viewLike[CELL_VIEW_PLACEHOLDER]) {
+        if (viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) {
             this._unregisterCellViewPlaceholder(viewLike);
         } else {
             this.requestViewUpdate(viewLike, this.FLAG_REMOVE, viewLike.UPDATE_PRIORITY, opt);
@@ -948,9 +948,9 @@ export const Paper = View.extend({
                 if (!linkView) continue;
                 // We do not have to update placeholder views.
                 // They will be updated on initial render.
-                if (linkView[CELL_VIEW_PLACEHOLDER]) continue;
+                if (linkView[CELL_VIEW_PLACEHOLDER_MARKER]) continue;
                 var nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
-                this.scheduleViewUpdate(linkView, linkView.getFlag(linkView.constructor.Flags.UPDATE), nextPriority, opt);
+                this.scheduleViewUpdate(linkView, linkView.getFlag(LinkView.Flags.UPDATE), nextPriority, opt);
             }
         }
     },
@@ -1105,7 +1105,7 @@ export const Paper = View.extend({
     isViewMounted: function(viewOrId) {
         if (!viewOrId) return false;
         let cid;
-        if (viewOrId._isCellView) {
+        if (viewOrId[CELL_VIEW_MARKER] || viewOrId[CELL_VIEW_PLACEHOLDER_MARKER]) {
             // If the view is a CellView, we can use its cid.
             cid = viewOrId.cid;
         } else {
@@ -1117,7 +1117,7 @@ export const Paper = View.extend({
     },
 
     dumpViews: function(opt) {
-        var passingOpt = defaults({}, opt, { viewport: null });
+        const passingOpt = defaults({}, opt, { cellVisibility: null, viewport: null });
         this.checkViewport(passingOpt);
         this.updateViews(passingOpt);
     },
@@ -1232,14 +1232,14 @@ export const Paper = View.extend({
         this.trigger('render:done', stats, opt);
     },
 
-    _evalCellVisibility: function(view, isMounted, visibilityCallback) {
-        if (!visibilityCallback || !view.DETACHABLE) return true;
+    _evalCellVisibility: function(viewLike, isMounted, visibilityCallback) {
+        if (!visibilityCallback || !viewLike.DETACHABLE) return true;
         if (this.options.viewManagement) {
             // The visibility check runs for CellView only.
-            if (!view._isCellView) return true;
-            return visibilityCallback.call(this, view.model, isMounted, this);
+            if (!viewLike[CELL_VIEW_MARKER] && !viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) return true;
+            return visibilityCallback.call(this, viewLike.model, isMounted, this);
         }
-        return visibilityCallback.call(this, view, isMounted, this);
+        return visibilityCallback.call(this, viewLike, isMounted, this);
     },
 
     _getCellVisibilityCallback: function(opt) {
@@ -1298,7 +1298,6 @@ export const Paper = View.extend({
                             // The view is currently mounted. Hide the view (detach or remove it).
                             this.registerUnmountedView(view);
                             this._hideCellView(view);
-                            updates.unmountedList.pushTail(cid, currentFlag);
                         } else {
                             // The view is not mounted. We can just update the unmounted list.
                             const unmountedNode = updates.unmountedList.get(cid);
@@ -1311,7 +1310,7 @@ export const Paper = View.extend({
                         continue;
                     }
                     // Mount View
-                    if (view[CELL_VIEW_PLACEHOLDER]) {
+                    if (view[CELL_VIEW_PLACEHOLDER_MARKER]) {
                         view = this._resolveCellViewPlaceholder(view);
                         currentFlag |= view.getFlag(result(view, 'initFlag'));
                     }
@@ -1394,7 +1393,7 @@ export const Paper = View.extend({
             const { value: prevFlag } = unmountedList.popHead();
             mountCount++;
             var flag = this.registerMountedView(view) | prevFlag;
-            if (view[CELL_VIEW_PLACEHOLDER]) {
+            if (view[CELL_VIEW_PLACEHOLDER_MARKER]) {
                 view = this._resolveCellViewPlaceholder(view);
                 flag |= view.getFlag(result(view, 'initFlag'));
             }
@@ -1843,9 +1842,8 @@ export const Paper = View.extend({
     _registerCellViewPlaceholder: function(cell, cid = uniqueId('view')) {
         const ViewClass = this._resolveCellViewClass(cell);
         const placeholder = {
-            // A way to distinguish a placeholder from a real view
-            [CELL_VIEW_PLACEHOLDER]: true,
-            _isCellView: true,
+            // A tag to identify the placeholder from a CellView.
+            [CELL_VIEW_PLACEHOLDER_MARKER]: true,
             cid,
             model: cell,
             DETACHABLE: true,
@@ -2087,7 +2085,7 @@ export const Paper = View.extend({
 
     // Detach a view from the paper, but keep it in memory.
     _detachCellView(cellView) {
-        if (cellView[CELL_VIEW_PLACEHOLDER]) {
+        if (cellView[CELL_VIEW_PLACEHOLDER_MARKER]) {
             // A placeholder view was never mounted
             return;
         }
@@ -2114,7 +2112,7 @@ export const Paper = View.extend({
 
         const viewLike = this._getCellViewLike(cellOrId);
         if (!viewLike) return undefined;
-        if (!viewLike[CELL_VIEW_PLACEHOLDER]) {
+        if (!viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) {
             // If the view is not a placeholder, return it directly
             return viewLike;
         }
