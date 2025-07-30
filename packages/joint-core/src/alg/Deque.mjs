@@ -32,7 +32,9 @@ export class Deque {
 
     // Add a new node to the back of the deque
     pushTail(key, value) {
-        if (this.map.has(key)) return;
+        if (this.map.has(key)) {
+            throw new Error(`Key "${key}" already exists in the deque.`);
+        }
         const node = {
             key,
             value,
