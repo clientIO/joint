@@ -2487,8 +2487,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             paper.checkViewport();
             paper.updateViews();
-            // TODO: it should run only once
-            assert.ok(cellVisibilityTrueSpy.calledTwice, 'cellVisibility callback is called once for element after viewport check');
+
+            assert.ok(cellVisibilityTrueSpy.calledTwice, 'cellVisibility callback is called twice for element after viewport check');
             assert.ok(cellVisibilityTrueSpy.firstCall.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters after viewport check');
             assert.ok(cellVisibilityTrueSpy.lastCall.calledWithExactly(rect, true, paper), 'cellVisibility callback is called with correct parameters after viewport check');
             cellVisibilityTrueSpy.resetHistory();
@@ -2544,9 +2544,12 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 target: { x: 200, y: 0 },
             });
             link.addTo(graph);
-            // TODO: it should run only once
-            assert.ok(cellVisibilityTrueSpy.calledTwice, 'cellVisibility callback is called once for link');
+
+            assert.ok(cellVisibilityTrueSpy.calledTwice, 'cellVisibility callback is called twice for link');
             assert.ok(cellVisibilityTrueSpy.calledWithExactly(link.findView(paper), false, paper), 'cellVisibility callback is called with correct parameters for link');
+            cellVisibilityTrueSpy.resetHistory();
+
+            paper.remove();
         });
 
     });

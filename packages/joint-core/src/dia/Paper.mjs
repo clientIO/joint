@@ -2069,7 +2069,8 @@ export const Paper = View.extend({
         const { viewManagement } = this.options;
         if (viewManagement && viewManagement.disposeHidden) {
             // We currently do not dispose views which has a highlighter or tools attached
-            // TODO: solve how to serialize highlighters/tools, so we can restore them later
+            // Note: Possible improvement would be to serialize highlighters/tools and
+            // restore them on view re-mount.
             if (!HighlighterView.has(cellView) && !cellView.hasTools()) {
                 const cell = cellView.model;
                 // Remove the view from the paper and dispose it
