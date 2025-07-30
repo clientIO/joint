@@ -1,3 +1,9 @@
+/**
+ * Deque implementation for managing a double-ended queue.
+ * This implementation uses a doubly linked list for efficient operations.
+ * It supports operations like push, pop, move to head, and delete.
+ * The deque maintains a map for O(1) access to nodes by key.
+ */
 export class Deque {
     constructor() {
         this.head = null;

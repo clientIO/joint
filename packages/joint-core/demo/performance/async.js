@@ -53,15 +53,19 @@ var paper = new Paper({
     model: graph,
     async: true,
     frozen: true,
+    viewManagement: {
+        lazyInitialize: true,
+        disposeHidden: true,
+    },
     defaultAnchor: { name: 'modelCenter' },
-    viewport: function(view, isInViewport) {
-        if (leaveDraggedInViewport && view.cid === draggedCid) return true;
-        if (leaveRenderedInViewport && isInViewport) return true;
+    cellVisibility: function(model, isAlreadyMounted) {
+        if (leaveDraggedInViewport && model === draggedModel) return true;
+        if (leaveRenderedInViewport && isAlreadyMounted) return true;
         if (viewportRect) {
-            return g.intersection.exists(viewportBBox, view.model.getBBox());
+            return g.intersection.exists(viewportBBox, model.getBBox());
         } else {
-            if (view.model === viewport) return false;
-            return g.intersection.exists(windowBBox, view.model.getBBox());
+            if (model === viewport) return false;
+            return g.intersection.exists(windowBBox, model.getBBox());
         }
     }
 });
@@ -73,13 +77,13 @@ paper.on('render:done', function(stats) {
 });
 
 // Dragged view is always visible
-var draggedCid = null;
+var draggedModel = null;
 paper.on({
     'cell:pointerdown': function(view) {
-        draggedCid = view.cid;
+        draggedModel = view.model;
     },
     'cell:pointerup': function() {
-        draggedCid = null;
+        draggedModel = null;
     }
 });
 
