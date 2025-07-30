@@ -1304,7 +1304,7 @@ export const Paper = View.extend({
                             // We ADD the current flag to the flag that was already scheduled.
                             unmountedNode.value |= currentFlag;
                         }
-                        // Delete the current
+                        // Delete the current update as it has been processed.
                         delete priorityUpdates[cid];
                         unmountCount++;
                         continue;
