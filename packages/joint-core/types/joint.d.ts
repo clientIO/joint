@@ -2206,6 +2206,8 @@ export namespace dia {
             id?: string
         ): T[];
 
+        static has(cellView: dia.CellView, id?: string): boolean;
+
         static update(cellView: dia.CellView, id?: string): void;
 
         static transform(cellView: dia.CellView, id?: string): void;

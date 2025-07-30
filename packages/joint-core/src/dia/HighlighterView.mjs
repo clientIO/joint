@@ -262,6 +262,8 @@ export const HighlighterView = mvc.View.extend({
         }
     },
 
+    // Check if the cellView has a highlighter with the given `id`.
+    // If no `id` is provided, it checks if the cellView has any highlighter.
     has(cellView, id = null) {
         const { cid } = cellView;
         const { _views } = this;
@@ -270,15 +272,13 @@ export const HighlighterView = mvc.View.extend({
         if (id === null) {
             // any highlighter
             for (let hid in refs) {
-                const ref = refs[hid];
-                if (ref instanceof this) return true;
+                if (refs[hid] instanceof this) return true;
             }
             return false;
         } else {
             // single highlighter
             if (id in refs) {
-                const ref = refs[id];
-                if (ref instanceof this) return true;
+                if (refs[id] instanceof this) return true;
             }
             return false;
         }
