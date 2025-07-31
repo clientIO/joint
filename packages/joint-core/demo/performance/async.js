@@ -11,7 +11,12 @@ var graph = new Graph;
 
 var windowBBox;
 function setWindowBBox() {
-    windowBBox = paper.pageToLocalRect(window.scrollX, window.scrollY, window.innerWidth, window.innerHeight);
+    windowBBox = paper.pageToLocalRect(
+        window.scrollX,
+        window.scrollY,
+        window.innerWidth,
+        window.innerHeight
+    );
 }
 
 window.onscroll = function() {
@@ -57,7 +62,13 @@ var paper = new Paper({
         lazyInitialize: true,
         disposeHidden: true,
     },
-    defaultAnchor: { name: 'modelCenter' },
+    defaultAnchor: {
+        name: 'modelCenter'
+    },
+    defaultConnectionPoint: {
+        name: 'rectangle',
+        args: { useModelGeometry: true }
+    },
     cellVisibility: function(model, isAlreadyMounted) {
         if (leaveDraggedInViewport && model === draggedModel) return true;
         if (leaveRenderedInViewport && isAlreadyMounted) return true;
@@ -69,8 +80,6 @@ var paper = new Paper({
         }
     }
 });
-
-paper.el.style.border = '1px solid black';
 
 paper.on('render:done', function(stats) {
     console.table(stats);
@@ -218,7 +227,11 @@ function restart() {
 
     paper.freeze();
     graph.resetCells(elements.concat(links).concat(viewport));
-    paper.fitToContent({ useModelGeometry: true, padding: 10 });
+    paper.fitToContent({
+        useModelGeometry: true,
+        padding: 10,
+        allowNewOrigin: 'any'
+    });
 
     setViewportBBox();
 

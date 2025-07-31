@@ -34,6 +34,8 @@ export const LinkView = CellView.extend({
     _labelCache: null,
     _labelSelectors: null,
     _V: null,
+    _sourceMagnet: null,
+    _targetMagnet: null,
     _dragData: null, // deprecated
 
     metrics: null,
@@ -82,11 +84,13 @@ export const LinkView = CellView.extend({
         const { source: { id: sourceId }, target: { id: targetId }} = attributes;
 
         if (this.hasFlag(flags, Flags.SOURCE)) {
+            this._sourceMagnet = null; // reset cached source magnet
             this.checkEndModel('source', sourceId);
             flags = this.removeFlag(flags, Flags.SOURCE);
         }
 
         if (this.hasFlag(flags, Flags.TARGET)) {
+            this._targetMagnet = null; // reset cached target magnet
             this.checkEndModel('target', targetId);
             flags = this.removeFlag(flags, Flags.TARGET);
         }
@@ -2269,13 +2273,21 @@ Object.defineProperty(LinkView.prototype, 'sourceMagnet', {
     get: function() {
         const sourceView = this.sourceView;
         if (!sourceView) return null;
-        // TODO: add caching of the magnet back
-        let connectedMagnet = sourceView.getMagnetFromLinkEnd(this.model.attributes.source);
-        if (connectedMagnet === sourceView.el) {
-            // If the source magnet is the element itself, we treat it as no magnet.
-            connectedMagnet = null;
+        // Check if the magnet is already found and cached.
+        // We need to check if the cached magnet is still part of the source view.
+        // The source view might have been disposed and recreated, or the magnet might have been changed.
+        const cachedSourceMagnet = this._sourceMagnet;
+        if (cachedSourceMagnet && sourceView.el.contains(cachedSourceMagnet)) {
+            return cachedSourceMagnet;
         }
-        return connectedMagnet;
+        // If the cached magnet is not valid, we need to find the magnet.
+        const sourceMagnet = sourceView.getMagnetFromLinkEnd(this.model.attributes.source);
+        this._sourceMagnet = sourceMagnet;
+        if (sourceMagnet === sourceView.el) {
+            // If the source magnet is the element itself, we treat it as no magnet.
+            return null;
+        }
+        return sourceMagnet;
     }
 });
 
@@ -2285,13 +2297,19 @@ Object.defineProperty(LinkView.prototype, 'targetMagnet', {
     get: function() {
         const targetView = this.targetView;
         if (!targetView) return null;
-        // TODO: add caching of the magnet back
-        let connectedMagnet = targetView.getMagnetFromLinkEnd(this.model.attributes.target);
-        if (connectedMagnet === targetView.el) {
-            // If the target magnet is the element itself, we treat it as no magnet.
-            connectedMagnet = null;
+        // Check if the magnet is already found and cached (See `sourceMagnet` for explanation).
+        const cachedTargetMagnet = this._targetMagnet;
+        if (cachedTargetMagnet && targetView.el.contains(cachedTargetMagnet)) {
+            return cachedTargetMagnet;
         }
-        return connectedMagnet;
+        // If the cached magnet is not valid, we need to find the magnet.
+        const targetMagnet = targetView.getMagnetFromLinkEnd(this.model.attributes.target);
+        this._targetMagnet = targetMagnet;
+        if (targetMagnet === targetView.el) {
+            // If the target magnet is the element itself, we treat it as no magnet.
+            return null;
+        }
+        return targetMagnet;
     }
 });
 
