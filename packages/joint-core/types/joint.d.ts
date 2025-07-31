@@ -188,7 +188,6 @@ export namespace dia {
         interface CellLayerAttributes {
             id: string;
             default?: boolean;
-            order?: number;
         }
 
         interface Attributes {
@@ -213,6 +212,8 @@ export namespace dia {
         resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
         addCellLayer(layer: CellLayer): void;
+
+        insertCellLayer(layer: CellLayer, insertAt?: number): void;
 
         removeCellLayer(layer: CellLayer): void;
 
@@ -1800,7 +1801,7 @@ export namespace dia {
 
         getOrderedLayerViews(): Array<LayerView>;
 
-        protected updateCellLayers(graph: Graph, cellLayers: Graph.CellLayerAttributes[]): void;
+        protected updateCellLayers(cellLayers: Graph.CellLayerAttributes[]): void;
 
         // rendering
 
@@ -2025,12 +2026,15 @@ export namespace dia {
         }
 
         interface Attributes extends mvc.ObjectHash {
+            id: string;
             type: string;
             collectionConstructor: typeof CellGroupCollection;
         }
     }
 
     class CellGroup<C extends mvc.Collection = CellGroup.CellGroupCollection, A extends CellGroup.Attributes = CellGroup.Attributes> extends mvc.Model<A> {
+
+        constructor(attributes?: DeepPartial<A>);
 
         cells: C;
 
