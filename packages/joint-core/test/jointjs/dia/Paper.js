@@ -2554,6 +2554,34 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
     });
 
+    QUnit.module('isViewMounted()', function() {
+
+        QUnit.test('returns correct boolean for mounted views', function(assert) {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                viewManagement: {},
+                cellVisibility: () => true,
+            });
+
+            const rect = new joint.shapes.standard.Rectangle();
+            graph.addCell(rect);
+
+            assert.ok(paper.isViewMounted(rect.findView(paper)), 'View is mounted');
+            assert.ok(paper.isViewMounted(rect.id), 'View is mounted by ID');
+            assert.notOk(paper.isViewMounted('non-existing-id'), 'View is not mounted for non-existing ID');
+            assert.ok(rect.findView(paper).el.isConnected, 'View element is connected to the DOM');
+
+            paper.dumpViews({ cellVisibility: () => false });
+            assert.notOk(paper.isViewMounted(rect.findView(paper)), 'View is not mounted after dumpViews with cellVisibility returning false');
+            assert.notOk(paper.isViewMounted(rect.id), 'View is not mounted after dumpViews with cellVisibility returning false by ID');
+            assert.notOk(rect.findView(paper).el.isConnected);
+
+            paper.remove();
+        });
+    });
+
     QUnit.module('viewManagement', function(hooks) {
 
         QUnit.module('lazyInitialize', function() {
