@@ -2552,6 +2552,31 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             paper.remove();
         });
 
+        QUnit.test('runs only for cell views', function(assert) {
+
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            const cellVisibilitySpy = sinon.spy(() => true);
+
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                viewManagement: {},
+                cellVisibility: cellVisibilitySpy,
+            });
+
+            const rect = new joint.shapes.standard.Rectangle();
+            rect.addTo(graph);
+
+            const viewWithModel = new joint.mvc.View({ model: rect });
+            const viewWithoutModel = new joint.mvc.View();
+            paper.requestViewUpdate(viewWithModel, 1, 0);
+            paper.requestViewUpdate(viewWithoutModel, 1, 0);
+
+            assert.ok(cellVisibilitySpy.calledOnce, 'cellVisibility callback is called once for cell view');
+            assert.ok(cellVisibilitySpy.calledWithExactly(rect, false, paper), 'cellVisibility callback is called with correct parameters for cell view');
+
+            paper.remove();
+        });
     });
 
     QUnit.module('isViewMounted()', function() {
