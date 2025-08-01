@@ -2273,15 +2273,17 @@ Object.defineProperty(LinkView.prototype, 'sourceMagnet', {
     get: function() {
         const sourceView = this.sourceView;
         if (!sourceView) return null;
+        let sourceMagnet = null;
         // Check if the magnet is already found and cached.
         // We need to check if the cached magnet is still part of the source view.
         // The source view might have been disposed and recreated, or the magnet might have been changed.
         const cachedSourceMagnet = this._sourceMagnet;
         if (cachedSourceMagnet && sourceView.el.contains(cachedSourceMagnet)) {
-            return cachedSourceMagnet;
+            sourceMagnet = cachedSourceMagnet;
+        } else {
+            // If the cached magnet is not valid, we need to find the magnet.
+            sourceMagnet = sourceView.getMagnetFromLinkEnd(this.model.attributes.source);
         }
-        // If the cached magnet is not valid, we need to find the magnet.
-        const sourceMagnet = sourceView.getMagnetFromLinkEnd(this.model.attributes.source);
         this._sourceMagnet = sourceMagnet;
         if (sourceMagnet === sourceView.el) {
             // If the source magnet is the element itself, we treat it as no magnet.
@@ -2297,13 +2299,15 @@ Object.defineProperty(LinkView.prototype, 'targetMagnet', {
     get: function() {
         const targetView = this.targetView;
         if (!targetView) return null;
+        let targetMagnet = null;
         // Check if the magnet is already found and cached (See `sourceMagnet` for explanation).
         const cachedTargetMagnet = this._targetMagnet;
         if (cachedTargetMagnet && targetView.el.contains(cachedTargetMagnet)) {
-            return cachedTargetMagnet;
+            targetMagnet = cachedTargetMagnet;
+        } else {
+            // If the cached magnet is not valid, we need to find the magnet.
+            targetMagnet = targetView.getMagnetFromLinkEnd(this.model.attributes.target);
         }
-        // If the cached magnet is not valid, we need to find the magnet.
-        const targetMagnet = targetView.getMagnetFromLinkEnd(this.model.attributes.target);
         this._targetMagnet = targetMagnet;
         if (targetMagnet === targetView.el) {
             // If the target magnet is the element itself, we treat it as no magnet.
