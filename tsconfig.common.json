@@ -19,8 +19,8 @@
     "experimentalDecorators": true,
     "sourceMap": true,
     "lib": [
-      "es2016",
-      "dom"
+      "ES2022",
+      "DOM"
     ]
   },
   "exclude": [
