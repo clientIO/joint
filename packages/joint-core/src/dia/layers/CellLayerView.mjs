@@ -1,15 +1,26 @@
 import { LayerView } from './LayerView.mjs';
 import { sortElements } from '../../util/index.mjs';
+import { addClassNamePrefix } from '../../util/util.mjs';
 import { sortingTypes } from '../Paper.mjs';
 
 export const CellLayerView = LayerView.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
 
+    style: {
+        webkitUserSelect: 'none',
+        userSelect: 'none'
+    },
+
     init() {
         LayerView.prototype.init.apply(this, arguments);
 
         this.startListening();
+    },
+
+    className: function() {
+        const { id } = this.options;
+        return addClassNamePrefix(`${id}-layer`) + ' ' + addClassNamePrefix('viewport');
     },
 
     startListening() {

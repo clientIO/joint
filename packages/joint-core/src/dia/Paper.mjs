@@ -348,10 +348,12 @@ export const Paper = View.extend({
     `,
 
     svg: null,
-    viewport: null,
     defs: null,
     tools: null,
     layers: null,
+
+    // deprecated, use layers element instead
+    viewport: null,
 
     // For storing the current transformation matrix (CTM) of the paper's viewport.
     _viewportMatrix: null,
@@ -418,6 +420,8 @@ export const Paper = View.extend({
         };
         // current cell layers model attributes from the Graph
         this._cellLayers = [];
+        // cellLayerViews hash to get content bbox
+        this._cellLayerViews = {};
 
         this.cloneOptions();
         this.render();
@@ -506,20 +510,26 @@ export const Paper = View.extend({
 
     updateCellLayers: function(cellLayers) {
         const removedCellLayerViewIds = this._cellLayers.filter(cellLayerView => !cellLayers.some(l => l.id === cellLayerView.id)).map(cellLayerView => cellLayerView.id);
-        removedCellLayerViewIds.forEach(cellLayerViewId => this.requestLayerViewRemove(cellLayerViewId));
+        removedCellLayerViewIds.forEach(cellLayerViewId => {
+            this.requestLayerViewRemove(cellLayerViewId);
+            delete this._cellLayerViews[cellLayerViewId];
+        });
 
         // reverse cellLayers array to render it in order
         [...cellLayers].reverse().forEach(cellLayer => {
+            let layerView;
             if (!this.hasLayerView(cellLayer.id)) {
                 const cellLayerModel = this.model.getCellLayer(cellLayer.id);
 
-                this.renderLayerView({
+                layerView = this.renderLayerView({
                     id: cellLayer.id,
                     model: cellLayerModel
                 });
-            }
 
-            const layerView = this.getLayerView(cellLayer.id);
+                this._cellLayerViews[cellLayer.id] = layerView;
+            } else {
+                layerView = this.getLayerView(cellLayer.id);
+            }
             this.insertLayerView(layerView, LAYERS.FRONT);
         });
 
@@ -828,10 +838,7 @@ export const Paper = View.extend({
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
         // user-select: none;
-        cellsLayerView.vel.addClass(addClassNamePrefix('viewport'));
         labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
-        cellsLayerView.el.style.webkitUserSelect = 'none';
-        cellsLayerView.el.style.userSelect = 'none';
         labelsLayerView.el.style.webkitUserSelect = 'none';
         labelsLayerView.el.style.userSelect = 'none';
     },
@@ -969,7 +976,7 @@ export const Paper = View.extend({
 
     clientMatrix: function() {
 
-        return V.createSVGMatrix(this.cells.getScreenCTM());
+        return V.createSVGMatrix(this.layers.getScreenCTM());
     },
 
     requestConnectedLinksUpdate: function(view, priority, opt) {
@@ -1779,7 +1786,16 @@ export const Paper = View.extend({
             return this.model.getBBox() || new Rect();
         }
 
-        return V(this.cells).getBBox();
+        const cellLayerViews = Object.values(this._cellLayerViews);
+        const bbox = cellLayerViews.reduce((acc, view) => {
+            const cellBBox = V(view.el).getBBox();
+            if (!acc) {
+                return cellBBox;
+            }
+            return acc.union(cellBBox);
+        }, null);
+
+        return bbox;
     },
 
     // Return the dimensions of the content bbox in the paper units (as it appears on screen).
@@ -1974,7 +1990,7 @@ export const Paper = View.extend({
     findView: function($el) {
 
         var el = isString($el)
-            ? this.cells.querySelector($el)
+            ? this.layers.querySelector($el)
             : $el instanceof $ ? $el[0] : $el;
 
         var id = this.findAttribute('model-id', el);
@@ -1999,7 +2015,7 @@ export const Paper = View.extend({
         var views = this.model.getElements().map(this.findViewByModel, this);
 
         return views.filter(function(view) {
-            return view && view.vel.getBBox({ target: this.cells }).containsPoint(p);
+            return view && view.vel.getBBox({ target: this.layers }).containsPoint(p);
         }, this);
     },
 
@@ -2013,7 +2029,7 @@ export const Paper = View.extend({
         var method = opt.strict ? 'containsRect' : 'intersect';
 
         return views.filter(function(view) {
-            return view && rect[method](view.vel.getBBox({ target: this.cells }));
+            return view && rect[method](view.vel.getBBox({ target: this.layers }));
         }, this);
     },
 
