@@ -1833,8 +1833,7 @@ export const Paper = View.extend({
     _resolveCellViewPlaceholder: function(placeholder) {
         const { model, viewClass, cid } = placeholder;
         const view = this._initializeCellView(viewClass, model, cid);
-        view.paper = this;
-        this._views[model.id] = view;
+        this._registerCellView(view);
         this._unregisterCellViewPlaceholder(placeholder);
         return view;
     },
@@ -1852,6 +1851,11 @@ export const Paper = View.extend({
         };
         this._viewPlaceholders[cid] = placeholder;
         return placeholder;
+    },
+
+    _registerCellView: function(cellView) {
+        cellView.paper = this;
+        this._views[cellView.model.id] = cellView;
     },
 
     _unregisterCellViewPlaceholder: function(placeholder) {
@@ -1970,8 +1974,7 @@ export const Paper = View.extend({
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT;
             } else {
                 view = this.createViewForModel(cell, cid);
-                view.paper = this;
-                this._views[cell.id] = view;
+                this._registerCellView(view);
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
             }
         }
