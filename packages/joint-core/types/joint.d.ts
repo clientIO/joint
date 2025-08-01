@@ -219,6 +219,8 @@ export namespace dia {
 
         getDefaultCellLayer(): CellLayer;
 
+        setDefaultCellLayer(id: string): void;
+
         getCellLayer(id: string): CellLayer;
 
         hasCellLayer(id: string): boolean;

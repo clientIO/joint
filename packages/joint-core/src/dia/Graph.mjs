@@ -439,6 +439,10 @@ export const Graph = Model.extend({
         return this.cellLayersController.getDefaultCellLayer();
     },
 
+    setDefaultCellLayer(layerId) {
+        this.cellLayersController.setDefaultCellLayer(layerId);
+    },
+
     getCellLayer(layerId) {
         return this.cellLayersController.getCellLayer(layerId);
     },

@@ -130,6 +130,27 @@ export class CellLayersController extends Listener {
         return this.cellLayersMap[this.defaultCellLayerId];
     }
 
+    setDefaultCellLayer(layerId) {
+        if (!this.hasCellLayer(layerId)) {
+            throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
+        }
+
+        if (layerId === this.defaultCellLayerId) {
+            return; // no change
+        }
+
+        const defaultLayer = this.getDefaultCellLayer();
+        defaultLayer.groupSet('layer', defaultLayer.id, { silent: true });
+
+        this.cellLayerAttributes.find(attrs => attrs.id === defaultLayer.id).default = false;
+        this.cellLayerAttributes.find(attrs => attrs.id === layerId).default = true;
+
+        this.defaultCellLayerId = layerId;
+        // update the cellLayers attribute
+        this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
+        this.graph.trigger('layers:update', this.cellLayerAttributes);
+    }
+
     addCellLayer(cellLayer, _opt) {
         const { cellLayersMap } = this;
 

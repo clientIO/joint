@@ -58,4 +58,10 @@ export class CellGroup extends Model {
             this.remove(cell);
         });
     }
+
+    groupSet(key, val, opt) {
+        this.cells.each(cell => {
+            cell.set(key, val, opt);
+        });
+    }
 }
