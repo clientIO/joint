@@ -1812,4 +1812,55 @@ QUnit.module('linkView', function(hooks) {
             });
         });
     });
+
+    QUnit.module('getEndMagnet()', function(hooks) {
+
+        var r1, r2, rv1, rv2;
+
+        hooks.beforeEach(function() {
+            r1 = new joint.shapes.standard.Rectangle();
+            r2 = new joint.shapes.standard.Rectangle();
+            r1.addTo(paper.model);
+            r2.addTo(paper.model);
+            rv1 = r1.findView(paper);
+            rv2 = r2.findView(paper);
+        });
+
+        QUnit.test('sanity', function(assert) {
+            assert.equal(linkView.getEndMagnet('source'), null);
+            assert.equal(linkView.getEndMagnet('target'), null);
+            link.source(r1);
+            assert.equal(linkView.getEndMagnet('source'), rv1.el);
+            assert.equal(linkView.getEndMagnet('target'), null);
+            link.target(r2);
+            assert.equal(linkView.getEndMagnet('source'), rv1.el);
+            assert.equal(linkView.getEndMagnet('target'), rv2.el);
+        });
+
+        QUnit.test('returns correct magnet element', function(assert) {
+
+            paper.options.viewManagement = {
+                lazyInitialize: false,
+                disposeHidden: true
+            };
+
+            paper.options.cellVisibility = () => true; // disable viewport
+
+            ['source', 'target'].forEach(function(end) {
+                const rv1a = r1.findView(paper);
+                linkView.model.set(`${end}`, { id: r1.id });
+                assert.equal(linkView.getEndMagnet(end), rv1a.el);
+                linkView.model.set(`${end}`, { id: r1.id, selector: 'body' });
+                assert.equal(linkView.getEndMagnet(end), rv1a.el.querySelector('rect'));
+                // If we dispose the end view and then reinitialize it,
+                // the linkView should return the new end magnet.
+                paper.checkViewVisibility(rv1a, { cellVisibility: () => false });
+                const rv1b = r1.findView(paper);
+                assert.notOk(rv1a.el.isConnected);
+                assert.notEqual(rv1a.el, rv1b.el);
+                paper.checkViewVisibility(rv1b, { cellVisibility: () => true });
+                assert.equal(linkView.getEndMagnet(end), rv1b.el.querySelector('rect'));
+            });
+        });
+    });
 });
