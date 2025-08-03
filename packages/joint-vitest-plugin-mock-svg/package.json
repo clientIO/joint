@@ -1,7 +1,7 @@
 {
   "name": "@joint/vitest-plugin-mock-svg",
   "title": "JointJS Mock SVG",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A Vitest plugin to mock SVG global constants required for JointJS testing.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -63,24 +63,26 @@
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^4.3.4",
-    "@vitejs/plugin-vue": "^4.2.3",
-    "@vue/eslint-config-typescript": "^11.0.3",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/eslint-config-typescript": "^14.5.0",
     "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.0.0",
+    "eslint-plugin-vue": "^9.24.0",
     "jsdom": "^26.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rollup": "^4.6.0",
+    "rollup": "4.36.0",
     "sass": "^1.66.1",
-    "typescript": "~5.1.6",
+    "typescript": "5.8.2",
     "vite": "^5.0.2",
     "vite-plugin-externalize-deps": "^0.1.5",
     "vitest": "^3.0.4",
     "vue": "^3.3.4"
   },
   "volta": {
-    "node": "18.18.2",
-    "npm": "9.8.1",
-    "yarn": "3.4.1"
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
   },
   "keywords": [
     "jointjs",

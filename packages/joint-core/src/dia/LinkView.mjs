@@ -1858,56 +1858,30 @@ export const LinkView = CellView.extend({
         let isSnapped = false;
         // checking view in close area of the pointer
 
-        var r = snapLinks.radius || 50;
-        var viewsInArea = paper.findElementViewsInArea(
-            { x: x - r, y: y - r, width: 2 * r, height: 2 * r },
-            snapLinks.findInAreaOptions
-        );
+        const radius = snapLinks.radius || 50;
+        const findInAreaOptions = snapLinks.findInAreaOptions;
 
-        var prevClosestView = data.closestView || null;
-        var prevClosestMagnet = data.closestMagnet || null;
-        var prevMagnetProxy = data.magnetProxy || null;
+        const prevClosestView = data.closestView || null;
+        const prevClosestMagnet = data.closestMagnet || null;
+        const prevMagnetProxy = data.magnetProxy || null;
 
         data.closestView = data.closestMagnet = data.magnetProxy = null;
 
-        var minDistance = Number.MAX_VALUE;
-        var pointer = new Point(x, y);
-
-        viewsInArea.forEach(function(view) {
-            const candidates = [];
-            // skip connecting to the element in case '.': { magnet: false } attribute present
-            if (view.el.getAttribute('magnet') !== 'false') {
-                candidates.push({
-                    bbox: view.model.getBBox(),
-                    magnet: view.el
-                });
+        const validationFn = (view, magnet) => {
+            // Do not snap to the current view
+            if (view === this) {
+                return false;
             }
 
-            view.$('[magnet]').toArray().forEach(magnet => {
-                candidates.push({
-                    bbox: view.getNodeBBox(magnet),
-                    magnet
-                });
-            });
+            const isAlreadyValidated = prevClosestMagnet === magnet;
+            return isAlreadyValidated || paper.options.validateConnection.apply(
+                paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
+            );
+        };
 
-            candidates.forEach(candidate => {
-                const { magnet, bbox } = candidate;
-                // find distance from the center of the model to pointer coordinates
-                const distance = bbox.center().squaredDistance(pointer);
-                // the connection is looked up in a circle area by `distance < r`
-                if (distance < minDistance) {
-                    const isAlreadyValidated = prevClosestMagnet === magnet;
-                    if (isAlreadyValidated || paper.options.validateConnection.apply(
-                        paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
-                    )) {
-                        minDistance = distance;
-                        data.closestView = view;
-                        data.closestMagnet = magnet;
-                    }
-                }
-            });
-
-        }, this);
+        const closest = paper.findClosestMagnetToPoint({ x, y }, { radius, findInAreaOptions, validation: validationFn });
+        data.closestView = closest ? closest.view : null;
+        data.closestMagnet = closest ? closest.magnet : null;
 
         var end;
         var magnetProxy = null;
@@ -2261,4 +2235,3 @@ Object.defineProperty(LinkView.prototype, 'targetBBox', {
         return targetView.getNodeBBox(targetMagnet || targetView.el);
     }
 });
-

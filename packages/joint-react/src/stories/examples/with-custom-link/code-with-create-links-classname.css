@@ -1,0 +1,11 @@
+.link {
+  stroke-dasharray: 5 5; /* dash length 10, gap 10 */
+  stroke-dashoffset: 0;
+  animation: dash-move 1s linear infinite;
+}
+
+@keyframes dash-move {
+  to {
+    stroke-dashoffset: -20; /* dash + gap length */
+  }
+}

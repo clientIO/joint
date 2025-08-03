@@ -1,0 +1,27 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+<Meta of={Stories} />
+
+# Example: Rendering with JSON
+This example demonstrates how to render a graph using JSON data. The graph structure, including its elements and connections, is defined in JSON format and then loaded into the `GraphProvider` component.
+
+### Demo
+Below is a live demo of the graph rendered from JSON data:
+<Canvas of={Stories.Default} />
+
+### Code
+The graph is created by parsing JSON data and rendering it within the `GraphProvider` component. This approach allows you to define and manage graph structures programmatically.
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+

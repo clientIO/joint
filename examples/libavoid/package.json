@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@joint/core": "workspace:^",
-    "libavoid-js": "0.4.0-beta.1"
+    "libavoid-js": "0.4.5"
   },
   "devDependencies": {
     "copy-webpack-plugin": "5.1.1",
@@ -29,13 +29,13 @@
     "sass": "1.26.8",
     "sass-loader": "8.0.2",
     "style-loader": "1.2.1",
-    "webpack": "^5.61.0",
-    "webpack-cli": "^4.8.0",
-    "webpack-dev-server": "^4.2.1"
+    "webpack": "5.98.0",
+    "webpack-cli": "6.0.1",
+    "webpack-dev-server": "5.2.0"
   },
   "volta": {
-    "node": "16.18.1",
-    "npm": "8.19.2",
-    "yarn": "3.4.1"
+    "node": "22.14.0",
+    "npm": "11.2.0",
+    "yarn": "4.7.0"
   }
 }

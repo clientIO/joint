@@ -1,0 +1,111 @@
+# This GitHub Actions workflow builds and deploys the documentation
+# for the `@joint/react` package to GitHub Pages.
+name: Publish Joint React Docs
+
+# Trigger this workflow on:
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'packages/joint-react/**'           # Only trigger if files in this folder change
+      - '.github/workflows/**'              # (optional) include changes to the workflow itself
+  workflow_call:
+
+# Permissions needed to write to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Prevent concurrent runs of this workflow
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Job to build the documentation (Storybook + TypeDoc)
+  build-joint-react-docs:
+    if: ${{ github.repository == 'clientIO/joint' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./packages/joint-react
+
+    outputs:
+      # Save the docs output path for the next job
+      pages_path: ${{ steps.prepare.outputs.pages_path }}
+
+    steps:
+      # Checkout the repo contents
+      - uses: actions/checkout@v4
+
+      # Set up Node.js version for building
+      - name: Use Node.js 22.14.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+
+      # Cache Yarn packages to speed up CI
+      - name: Cache Yarn
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+          key: yarn-cache-${{ hashFiles('yarn.lock') }}
+
+      # Install all dependencies from the monorepo root
+      - name: Install dependencies from root
+        run: yarn install --immutable
+        working-directory: ./
+
+      # Build the core package (dependency of joint-react)
+      - name: Build @joint/core package
+        run: yarn workspace @joint/core build
+        working-directory: ./
+
+      # Create output folders for Storybook and Typedoc
+      - name: Ensure docs folders
+        id: prepare
+        run: |
+          mkdir -p docs/learn
+          mkdir -p docs/api
+          echo "pages_path=$(pwd)/docs" >> $GITHUB_OUTPUT
+
+      # Build Storybook with proper BASE_DOCS_URL for MD linking
+      - name: Build Storybook
+        env:
+          STORYBOOK_BASE_DOCS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/api
+        run: |
+          echo "Using BASE_DOCS_URL=$STORYBOOK_BASE_DOCS_URL"
+          yarn build-storybook -o docs/learn
+
+      # Generate API reference using TypeDoc
+      - name: Build Typedoc
+        run: NODE_ENV=production yarn docs:typedoc
+
+      # Upload the built docs as an artifact for GitHub Pages deployment
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./packages/joint-react/docs
+
+  # Deploy the docs to GitHub Pages
+  deploy-joint-react-docs:
+    needs: build-joint-react-docs
+    if: ${{ github.repository == 'clientIO/joint' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # Setup GitHub Pages deployment environment
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      # Deploy the uploaded artifact to GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

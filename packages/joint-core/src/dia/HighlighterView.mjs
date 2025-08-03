@@ -1,6 +1,6 @@
 import * as mvc from '../mvc/index.mjs';
 import V from '../V/index.mjs';
-import { isPlainObject, result } from '../util/util.mjs';
+import { isNumber, isPlainObject, result } from '../util/util.mjs';
 
 function toArray(obj) {
     if (!obj) return [];
@@ -71,7 +71,7 @@ export const HighlighterView = mvc.View.extend({
             }
         } else if (nodeSelector) {
             el = V.toNode(nodeSelector);
-            if (!(el instanceof SVGElement)) el = null;
+            if (!(el instanceof SVGElement) || !cellView.el.contains(el)) el = null;
         }
         return el ? el : null;
     },
@@ -106,8 +106,8 @@ export const HighlighterView = mvc.View.extend({
             this.transform();
             return;
         }
-        const { vel: cellViewRoot, paper } = cellView;
-        const { layer: layerName } = options;
+        const { paper } = cellView;
+        const { layer: layerName, z } = options;
         if (layerName) {
             let vGroup;
             if (detachedTransformGroup) {
@@ -117,20 +117,41 @@ export const HighlighterView = mvc.View.extend({
                 vGroup = V('g').addClass('highlight-transform').append(el);
             }
             this.transformGroup = vGroup;
-            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
+            paper.getLayerView(layerName).insertSortedNode(vGroup.node, z);
         } else {
-            // TODO: prepend vs append
-            if (!el.parentNode || el.nextSibling) {
-                // Not appended yet or not the last child
-                cellViewRoot.append(el);
+            const children = cellView.el.children;
+
+            const index = Math.max(z, 0);
+            const beforeChild = children[index];
+
+            // If the provided `z` is a number and there is an element on the index,
+            // we need to insert the highlighter before the element on the index.
+            // Otherwise, the highlighter will be appended as the last child.
+            const toBeInserted = isNumber(z) && beforeChild;
+            const isElementAtTargetPosition = toBeInserted
+                // If the element is being inserted, check if it is not already at the correct position.
+                ? el === beforeChild
+                // If the element is being appended, check if it is not already last child.
+                : !el.nextElementSibling;
+
+            // If the element is already mounted and does not require repositioning, do nothing.
+            if (el.parentNode && isElementAtTargetPosition) return;
+
+            if (toBeInserted) {
+                cellView.el.insertBefore(el, beforeChild);
+            } else {
+                cellView.el.appendChild(el);
             }
         }
     },
 
     unmount() {
-        const { MOUNTABLE, transformGroup, vel } = this;
+        const { MOUNTABLE, transformGroup, vel, options } = this;
         if (!MOUNTABLE) return;
-        if (transformGroup) {
+        if (options.layer) {
+            if (!transformGroup) return;
+            // else: if `transformGroup` is not null, it means the highlighter
+            // has not been mounted yet
             this.transformGroup = null;
             this.detachedTransformGroup = transformGroup;
             transformGroup.remove();

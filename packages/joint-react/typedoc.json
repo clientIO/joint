@@ -1,0 +1,14 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs/api",
+  "readme": "none",
+  "name": "@joint/react",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "excludeNotDocumented": false,
+  "groupOrder": ["Components", "Hooks", "Models", "Utils", "*"],
+  "gitRevision": "master",
+  "customCss": "typedoc.css",
+  "plugin": ["typedoc-github-theme"]
+}

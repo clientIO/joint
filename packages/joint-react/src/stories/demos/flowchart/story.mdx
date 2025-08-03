@@ -1,0 +1,39 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+import Css from './index.css?raw';
+
+<Meta of={Stories} />
+
+## Flowchart Demo
+
+This is a demonstration of a flowchart created using the JointJS library. The flowchart showcases various nodes and connections, styled and rendered interactively.
+
+### Preview
+Below is a live preview of the flowchart. You can interact with it to see how the nodes and links behave.
+
+<Canvas of={Stories.Default} />
+
+### Code Example
+Here is the complete code used to create the flowchart. You can use this as a reference to build your own flowcharts.
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+### CSS Styling
+The following CSS styles are applied to the flowchart. These styles define the appearance of the nodes, links, and other elements.
+
+<Markdown>
+{`\`\`\`css
+${Css}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+

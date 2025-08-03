@@ -134,6 +134,11 @@ QUnit.module('cell', function(hooks) {
             assert.deepEqual(rect5.get('array'), [1,2]);
             const rect6 = new Rect({ array: [3] }, { mergeArrays: true });
             assert.deepEqual(rect6.get('array'), [3,2]);
+
+            const testArray7 = [4,5];
+            const rect7 = new Rect({ array: testArray7 }, { mergeArrays: false });
+            assert.deepEqual(rect7.get('array'), testArray7, 'mergeArrays=false does not merge arrays');
+            assert.notEqual(rect7.get('array'), testArray7, 'should not be the same array instance');
         });
     });
 
@@ -717,7 +722,7 @@ QUnit.module('cell', function(hooks) {
                     type: 'test.Element'
                 }
             });
-        
+
             const el = new El({
                 foo: {}
             });

@@ -1,0 +1,30 @@
+import { Meta, Story, Canvas, Controls, Markdown } from '@storybook/blocks';
+import * as Stories from './story';
+import Code from './code?raw';
+
+<Meta of={Stories} />
+
+# Rotating a Node Example
+This example demonstrates how to rotate nodes in the diagram. You can rotate a node by dragging its rotation handle.
+
+### Live Demo
+Below is a live demo of the node rotation feature. Try it out by interacting with the rotation handle.
+
+<Canvas of={Stories.Default} />
+
+### Code
+
+<Markdown>
+{`\`\`\`tsx
+${Code}
+\`\`\``}
+</Markdown>
+
+
+
+
+
+
+
+
+

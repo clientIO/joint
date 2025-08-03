@@ -1,0 +1,16 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    overflow-y: hidden;
+}
+
+#paper .joint-paper {
+    border: 1px solid #E2E2E2;
+}

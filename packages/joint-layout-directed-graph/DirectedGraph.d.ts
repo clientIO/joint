@@ -1,4 +1,6 @@
 import { dia, g } from '@joint/core';
+import { Graph as GLibGraph} from '@dagrejs/graphlib';
+import { graphlib, configUnion } from '@dagrejs/dagre';
 
 export namespace DirectedGraph {
 
@@ -16,6 +18,17 @@ export namespace DirectedGraph {
         height?: number;
     }
 
+    interface DagreNodeProperties {
+        order?: number;
+        rank?: number;
+    }
+
+    type CustomOrderCallback = (
+        dagreGraph: graphlib.Graph<DagreNodeProperties>,
+        graph: dia.Graph,
+        order: (graph: graphlib.Graph<DagreNodeProperties>, opts?: configUnion) => void
+    ) => void;
+
     interface LayoutOptions extends ImportOptions, ExportOptions {
         align?: 'UR' | 'UL' | 'DR' | 'DL';
         rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
@@ -26,15 +39,17 @@ export namespace DirectedGraph {
         marginX?: number;
         marginY?: number;
         resizeClusters?: boolean;
-        clusterPadding?: dia.Padding;
+        clusterPadding?: dia.Padding | 'default';
         debugTiming?: boolean;
+        disableOptimalOrderHeuristic?: boolean;
+        customOrder?: CustomOrderCallback
     }
 
     interface ImportOptions {
         setPosition?: (element: dia.Element, position: dia.BBox) => void;
         setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
         setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
-        // deprecated
+        /** @deprecated use `setVertices` instead */
         setLinkVertices?: boolean;
     }
 
@@ -54,16 +69,16 @@ export namespace DirectedGraph {
 
     export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
 
-    export function toGraphLib(graph: dia.Graph, opt?: ToGraphLibOptions): any;
+    export function toGraphLib(graph: dia.Graph, opt?: ToGraphLibOptions): GLibGraph;
 
-    export function fromGraphLib(glGraph: any, opt?: FromGraphLibOptions): dia.Graph;
+    export function fromGraphLib(glGraph: GLibGraph, opt?: FromGraphLibOptions): dia.Graph;
 
-    // @deprecated pass the `graph` option instead
+    /** @deprecated pass the `graph` option instead */
     export function fromGraphLib(this: dia.Graph, glGraph: any, opt?: { [key: string]: any }): dia.Graph;
 
-    // @deprecated use `FromGraphLibOptions` instead
+    /** @deprecated use `FromGraphLibOptions` instead */
     type fromGraphLibOptions = FromGraphLibOptions;
 
-    // @deprecated use `ToGraphLibOptions` instead
+    /** @deprecated use `ToGraphLibOptions` instead */
     type toGraphLibOptions = ToGraphLibOptions;
 }

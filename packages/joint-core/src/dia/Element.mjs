@@ -1,6 +1,6 @@
 import { Cell } from './Cell.mjs';
 import { Point, toRad, normalizeAngle, Rect } from '../g/index.mjs';
-import { isNumber, isObject, interpolate, assign, invoke, normalizeSides } from '../util/index.mjs';
+import { isNumber, isObject, interpolate, assign, invoke, normalizeSides, omit } from '../util/index.mjs';
 import { elementPortPrototype } from './ports.mjs';
 
 // Element base model.
@@ -344,22 +344,24 @@ export const Element = Cell.extend({
         const { graph } = this;
         if (!graph) throw new Error('Element must be part of a graph.');
 
-        const childElements = this.getEmbeddedCells().filter(cell => cell.isElement());
-        if (childElements.length === 0) return this;
+        // Get element children, optionally filtered according to `opt.filter`.
+        const filteredChildElements = this._getFilteredChildElements(opt.filter);
 
         this.startBatch('fit-embeds', opt);
 
         if (opt.deep) {
             // `opt.deep = true` means "fit to all descendants".
             // As the first action of the fitting algorithm, recursively apply `fitToChildren()` on all descendants.
-            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant, then go up (= this element).
-            invoke(childElements, 'fitToChildren', opt);
+            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant, then go up (= this element)
+            // - omit `opt.minRect` - it only makes sense for the first level of recursion if there are no filtered children, but in this case we do have filtered children
+            invoke(filteredChildElements, 'fitToChildren', omit(opt, 'minRect'));
         }
 
         // Set new size and position of this element, based on:
-        // - union of bboxes of all children
+        // - union of bboxes of filtered element children
         // - inflated by given `opt.padding`
-        this._fitToElements(Object.assign({ elements: childElements }, opt));
+        // - containing at least `opt.minRect` (if this is the first level of recursion and there are no filtered children)
+        this._fitToElements(Object.assign({ elements: filteredChildElements }, opt));
 
         this.stopBatch('fit-embeds');
 
@@ -375,25 +377,27 @@ export const Element = Cell.extend({
         // If the current element is `opt.terminator`, it means that this element has already been processed as parent so we can exit now.
         if (opt.deep && opt.terminator && ((opt.terminator === this) || (opt.terminator === this.id))) return this;
 
+        // If this element has no parent, there is nothing for us to do.
         const parentElement = this.getParentCell();
         if (!parentElement || !parentElement.isElement()) return this;
 
-        // Get all children of parent element (i.e. this element + any sibling elements).
-        const siblingElements = parentElement.getEmbeddedCells().filter(cell => cell.isElement());
-        if (siblingElements.length === 0) return this;
+        // Get element children of parent element (i.e. this element + any sibling elements), optionally filtered according to `opt.filter`.
+        const filteredSiblingElements = parentElement._getFilteredChildElements(opt.filter);
 
         this.startBatch('fit-parent', opt);
 
         // Set new size and position of parent element, based on:
-        // - union of bboxes of all children of parent element (i.e. this element + any sibling elements)
+        // - union of bboxes of filtered element children of parent element (i.e. this element + any sibling elements)
         // - inflated by given `opt.padding`
-        parentElement._fitToElements(Object.assign({ elements: siblingElements }, opt));
+        // - containing at least `opt.minRect` (if this is the first level of recursion and there are no filtered siblings)
+        parentElement._fitToElements(Object.assign({ elements: filteredSiblingElements }, opt));
 
         if (opt.deep) {
             // `opt.deep = true` means "fit all ancestors to their respective children".
             // As the last action of the fitting algorithm, recursively apply `fitParent()` on all ancestors.
-            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant (= this element), then go up.
-            parentElement.fitParent(opt);
+            // - i.e. the algorithm is applied in reverse-depth order - start from deepest descendant (= this element), then go up
+            // - omit `opt.minRect` - `minRect` is not relevant for the parent of parent element (and upwards)
+            parentElement.fitParent(omit(opt, 'minRect'));
         }
 
         this.stopBatch('fit-parent');
@@ -401,45 +405,85 @@ export const Element = Cell.extend({
         return this;
     },
 
+    _getFilteredChildElements: function(filter) {
+
+        let filterFn;
+        if (typeof filter === 'function') {
+            filterFn = (cell) => (cell.isElement() && filter(cell));
+        } else {
+            filterFn = (cell) => (cell.isElement());
+        }
+        return this.getEmbeddedCells().filter(filterFn);
+    },
+
     // Assumption: This element is part of a graph.
     _fitToElements: function(opt = {}) {
 
+        let minBBox = null;
+        if (opt.minRect) {
+            // Coerce `opt.minRect` to g.Rect (missing properties = 0).
+            minBBox = new Rect(opt.minRect);
+        }
+
         const elementsBBox = this.graph.getCellsBBox(opt.elements);
-        // If no `opt.elements` were provided, do nothing.
-        if (!elementsBBox) return;
+        // If no `opt.elements` were provided, do nothing (but if `opt.minRect` was provided, set that as this element's bbox instead).
+        if (!elementsBBox) {
+            this._setBBox(minBBox, opt);
+            return;
+        }
 
         const { expandOnly, shrinkOnly } = opt;
-        // This combination is meaningless, do nothing.
-        if (expandOnly && shrinkOnly) return;
+        // This combination is meaningless, do nothing (but if `opt.minRect` was provided, set that as this element's bbox instead).
+        if (expandOnly && shrinkOnly) {
+            this._setBBox(minBBox, opt);
+            return;
+        }
 
         // Calculate new size and position of this element based on:
         // - union of bboxes of `opt.elements`
-        // - inflated by `opt.padding` (if not provided, all four properties = 0)
+        // - inflated by normalized `opt.padding` (missing sides = 0)
         let { x, y, width, height } = elementsBBox;
         const { left, right, top, bottom } = normalizeSides(opt.padding);
         x -= left;
         y -= top;
         width += left + right;
         height += bottom + top;
-        let resultBBox = new Rect(x, y, width, height);
+        let contentBBox = new Rect(x, y, width, height);
 
         if (expandOnly) {
             // Non-shrinking is enforced by taking union of this element's current bbox with bbox calculated from `opt.elements`.
-            resultBBox = this.getBBox().union(resultBBox);
+            contentBBox = this.getBBox().union(contentBBox);
 
         } else if (shrinkOnly) {
             // Non-expansion is enforced by taking intersection of this element's current bbox with bbox calculated from `opt.elements`.
-            const intersectionBBox = this.getBBox().intersect(resultBBox);
-            // If all children are outside this element's current bbox, then `intersectionBBox` is `null` - does not make sense, do nothing.
-            if (!intersectionBBox) return;
+            const intersectionBBox = this.getBBox().intersect(contentBBox);
+            // If all children are outside this element's current bbox, then `intersectionBBox` is `null`.
+            // That does not make sense, do nothing (but if `opt.minRect` was provided, set that as this element's bbox instead).
+            if (!intersectionBBox) {
+                this._setBBox(minBBox, opt);
+                return;
+            }
 
-            resultBBox =  intersectionBBox;
+            contentBBox = intersectionBBox;
         }
 
         // Set the new size and position of this element.
+        // - if `opt.minRect` was provided, add it via union to calculated bbox
+        let resultBBox = contentBBox;
+        if (minBBox) {
+            resultBBox = resultBBox.union(minBBox);
+        }
+        this._setBBox(resultBBox, opt);
+    },
+
+    _setBBox: function(bbox, opt) {
+
+        if (!bbox) return;
+
+        const { x, y, width, height } = bbox;
         this.set({
-            position: { x: resultBBox.x, y: resultBBox.y },
-            size: { width: resultBBox.width, height: resultBBox.height }
+            position: { x, y },
+            size: { width, height }
         }, opt);
     },
 
@@ -451,7 +495,7 @@ export const Element = Cell.extend({
 
         if (origin) {
 
-            var center = this.getBBox().center();
+            var center = this.getCenter();
             var size = this.get('size');
             var position = this.get('position');
             center.rotate(origin, this.get('angle') - angle);
@@ -497,6 +541,11 @@ export const Element = Cell.extend({
         return bbox;
     },
 
+    getCenter: function() {
+        const { position: { x, y }, size: { width, height }} = this.attributes;
+        return new Point(x + width / 2, y + height / 2);
+    },
+
     getPointFromConnectedLink: function(link, endType) {
         // Center of the model
         var bbox = this.getBBox();
@@ -506,14 +555,9 @@ export const Element = Cell.extend({
         if (!endDef) return center;
         var portId = endDef.port;
         if (!portId || !this.hasPort(portId)) return center;
-        var portGroup = this.portProp(portId, ['group']);
-        var portsPositions = this.getPortsPositions(portGroup);
-        var portCenter = new Point(portsPositions[portId]).offset(bbox.origin());
-        var angle = this.angle();
-        if (angle) portCenter.rotate(center, -angle);
-        return portCenter;
+        return this.getPortCenter(portId);
     }
+
 });
 
 assign(Element.prototype, elementPortPrototype);
-

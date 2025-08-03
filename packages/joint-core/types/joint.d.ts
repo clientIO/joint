@@ -550,6 +550,8 @@ export namespace dia {
 
         getBBox(): g.Rect;
 
+        getCenter(): g.Point;
+
         getPointFromConnectedLink(link: dia.Link, endType: dia.LinkEnd): g.Point;
 
         getPointRotatedAroundCenter(angle: number, x: number, y: number): g.Point;
@@ -564,6 +566,8 @@ export namespace dia {
         getChangeFlag(attributes: { [key: string]: number }): number;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
+
+        static getAttributeDefinition(attrName: string): Cell.PresentationAttributeDefinition<CellView> | undefined;
 
         /**
          * @deprecated
@@ -589,23 +593,35 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Cell.Selectors> {
         }
 
-        type PortPositionCallback = (ports: Port[], bbox: g.Rect) => dia.Point[];
+        type PortPositionCallback = layout.Port.LayoutFunction;
+
+        type PortLabelPositionCallback = layout.PortLabel.LayoutFunction;
 
         interface PortPositionJSON {
             name?: string;
-            args?: { [key: string]: any };
+            args?: layout.Port.Options;
+        }
+
+        interface PortLabelPositionJSON {
+            name?: string;
+            args?: layout.PortLabel.Options;
         }
 
         type PositionType = string | PortPositionCallback | PortPositionJSON;
+
+        type PortLabelPositionType = PortLabelPositionCallback | PortPositionJSON;
 
         interface PortGroup {
             position?: PositionType;
             markup?: string | MarkupJSON;
             attrs?: Cell.Selectors;
-            label?: {
-                markup?: string | MarkupJSON;
-                position?: PositionType;
-            };
+            size?: Size;
+            label?: PortLabel;
+        }
+
+        interface PortLabel {
+            markup?: string | MarkupJSON;
+            position?: PortLabelPositionType;
         }
 
         interface Port {
@@ -613,15 +629,21 @@ export namespace dia {
             markup?: string | MarkupJSON;
             group?: string;
             attrs?: Cell.Selectors;
-            args?: { [key: string]: any };
-            label?: {
-                markup?: string | MarkupJSON;
-                position?: PositionType;
+            position?: {
+                args?: layout.Port.Options;
             };
+            /** @deprecated use `position.args` instead */
+            args?: layout.Port.Options;
+            size?: Size;
+            label?: PortLabel;
             z?: number | 'auto';
         }
 
         interface PortPosition extends Point {
+            angle: number;
+        }
+
+        interface PortRect extends BBox {
             angle: number;
         }
 
@@ -639,8 +661,25 @@ export namespace dia {
             direction?: Direction;
         }
 
-        interface BBoxOptions extends Cell.EmbeddableOptions {
+        interface FitToChildrenOptions {
+            filter?: (cell: Cell) => boolean;
+            deep?: boolean;
+            padding?: Padding;
+            minRect?: g.Rect;
+            expandOnly?: boolean;
+            shrinkOnly?: boolean;
+        }
+
+        interface FitParentOptions extends FitToChildrenOptions {
+            terminator?: Cell | Cell.ID;
+        }
+
+        interface RotateOptions {
             rotate?: boolean;
+        }
+
+        interface BBoxOptions extends Cell.EmbeddableOptions, RotateOptions {
+
         }
     }
 
@@ -663,10 +702,10 @@ export namespace dia {
 
         scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
-        fitEmbeds(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
-        fitToChildren(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean }): this;
+        fitEmbeds(opt?: Element.FitToChildrenOptions): this;
+        fitToChildren(opt?: Element.FitToChildrenOptions): this;
 
-        fitParent(opt?: { deep?: boolean, padding?: Padding, expandOnly?: boolean, shrinkOnly?: boolean, terminator?: Cell | Cell.ID }): this;
+        fitParent(opt?: Element.FitParentOptions): this;
 
         getBBox(opt?: Element.BBoxOptions): g.Rect;
 
@@ -692,6 +731,14 @@ export namespace dia {
         getPort(id: string): Element.Port;
 
         getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
+
+        getPortRelativePosition(portId: string): Element.PortPosition;
+
+        getPortRelativeRect(portId: string): Element.PortRect;
+
+        getPortCenter(portId: string): g.Point;
+
+        getPortBBox(portId: string, opt?: Element.RotateOptions): g.Rect;
 
         getPortIndex(port: string | Element.Port): number;
 
@@ -975,6 +1022,10 @@ export namespace dia {
 
         isIntersecting(geometryShape: g.Shape, geometryData?: g.SegmentSubdivisionsOpt | null): boolean;
 
+        cleanNodesCache(): void;
+
+        cleanNodeCache(node: SVGElement): void
+
         protected isEnclosedIn(area: g.Rect): boolean;
 
         protected isInArea(area: g.Rect, options: g.StrictOpt): boolean;
@@ -1030,8 +1081,6 @@ export namespace dia {
         protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
 
         protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
-
-        protected cleanNodesCache(): void;
 
         protected nodeCache(magnet: SVGElement): CellView.NodeMetrics;
 
@@ -1393,6 +1442,7 @@ export namespace dia {
         type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
         type FindParentByType = 'bbox' | 'pointer' | PositionName;
         type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
+        type MeasureNodeCallback = (node: SVGGraphicsElement, cellView: dia.CellView) => g.Rect;
 
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
@@ -1428,6 +1478,7 @@ export namespace dia {
             // views
             elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
+            measureNode?: MeasureNodeCallback;
             // embedding
             embeddingMode?: boolean;
             frontParentOnly?: boolean;
@@ -1595,6 +1646,17 @@ export namespace dia {
 
         interface FindInAreaOptions extends Graph.FindInAreaOptions, BufferOptions {
         }
+
+        interface FindClosestMagnetToPointOptions {
+            radius?: number;
+            findInAreaOptions?: FindInAreaOptions;
+            validation?: (view: CellView, magnet: SVGElement) => boolean;
+        }
+
+        interface ClosestMagnet {
+            view: CellView;
+            magnet: SVGElement;
+        }
     }
 
     class Paper extends mvc.View<Graph> {
@@ -1729,6 +1791,13 @@ export namespace dia {
          * @param opt options for the search
          */
         findCellViewsInArea(area: BBox, opt?: Paper.FindInAreaOptions): CellView[];
+
+        /**
+         * Finds the closest magnet to the specified point
+         * @param point a point in local paper coordinates
+         * @param opt options for the search
+         */
+        findClosestMagnetToPoint(point: Point, opt?: Paper.FindClosestMagnetToPointOptions): Paper.ClosestMagnet | null;
 
         fitToContent(opt?: Paper.FitToContentOptions): g.Rect;
         fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): g.Rect;
@@ -2721,19 +2790,21 @@ export namespace util {
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number, unit?: string } | null;
 
+    type BreakTextOptions = {
+        svgDocument?: SVGElement;
+        separator?: string | any;
+        eol?: string;
+        ellipsis?: boolean | string;
+        hyphen?: string | RegExp;
+        maxLineCount?: number;
+        preserveSpaces?: boolean;
+    }
+
     type BreakTextFunction = (
         text: string,
         size: { width: number, height?: number },
         attrs?: attributes.NativeSVGAttributes,
-        opt?: {
-            svgDocument?: SVGElement;
-            separator?: string | any;
-            eol?: string;
-            ellipsis?: boolean | string;
-            hyphen?: string | RegExp;
-            maxLineCount?: number;
-            preserveSpaces?: boolean;
-        }
+        opt?: BreakTextOptions
     ) => string;
 
     export var breakText: BreakTextFunction;
@@ -3033,7 +3104,7 @@ export namespace layout {
             angle: number;
         };
 
-        type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<Transformation>;
+        type LayoutFunction = (ports: Array<dia.Element.Port>, elBBox: g.Rect, opt: Options) => Array<Transformation>;
 
         interface Options {
             x?: number | string;
@@ -3046,9 +3117,11 @@ export namespace layout {
             startAngle?: number;
             step?: number;
             compensateRotation?: boolean;
+            [key: string]: any;
         }
 
         export var absolute: LayoutFunction;
+        /** @deprecated */
         export var fn: LayoutFunction;
         export var line: LayoutFunction;
         export var left: LayoutFunction;
@@ -3067,6 +3140,7 @@ export namespace layout {
             angle?: number;
             offset?: number;
             attrs?: dia.Cell.Selectors;
+            [key: string]: any;
         }
 
         interface LabelAttributes {
@@ -3527,7 +3601,7 @@ export namespace mvc {
 
         /**
          * Events hash or a method returning the events hash that maps events/selectors to methods on your View.
-         * For assigning events as object hash, do it like this: this.events = <any>{ "event:selector": callback, ... };
+         * For assigning events as object hash, do it like this: `this.events = <any>{ "event:selector": callback, ... };`
          * That works only if you set it in the constructor or the initialize method.
          */
         events(): EventsHash;
@@ -3543,9 +3617,9 @@ export namespace mvc {
 
         el: TElement;
         attributes: Record<string, any>;
-        /* @deprecated use `el` instead */
+        /** @deprecated use `el` instead */
         $el: Dom;
-        /* @deprecated use `el.querySelector()` instead */
+        /** @deprecated use `el.querySelector()` instead */
         $(selector: string): Dom;
         render(): this;
         remove(): this;
@@ -3880,7 +3954,11 @@ export namespace connectors {
 
 export namespace anchors {
 
-    interface RotateAnchorArguments {
+    interface ElementAnchorArguments {
+        useModelGeometry?: boolean;
+    }
+
+    interface RotateAnchorArguments extends ElementAnchorArguments {
         rotate?: boolean;
     }
 
@@ -3889,7 +3967,7 @@ export namespace anchors {
         dy?: number | string;
     }
 
-    interface PaddingAnchorArguments {
+    interface PaddingAnchorArguments extends ElementAnchorArguments {
         padding?: number;
     }
 

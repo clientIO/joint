@@ -279,7 +279,22 @@ QUnit.module('HighlighterView', function(hooks) {
 
             });
 
-            QUnit.test('z', function(assert) {
+            QUnit.test('z - cell view', function(assert) {
+
+                const h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1', {
+                    z: 0
+                });
+
+                const h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2', {
+                    z: 1
+                });
+
+                assert.equal(elementView.el.children[0], h1.el);
+                assert.equal(elementView.el.children[1], h2.el);
+
+            });
+
+            QUnit.test('z - paper layer', function(assert) {
                 var layer = joint.dia.Paper.Layers.FRONT;
                 var h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1', { layer: layer, z: 2 });
                 var h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2', { layer: layer, z: 3  });
@@ -359,6 +374,128 @@ QUnit.module('HighlighterView', function(hooks) {
                 });
             });
 
+            QUnit.test('are not removed when a subelement of element view is missing', function(assert) {
+                ['back', null].forEach(layer => {
+                    const id = 'highlighter-id';
+                    let el, elView;
+
+                    el = new joint.shapes.standard.Rectangle({
+                        position: { x: 100, y: 100 },
+                        size: { width: 100, height: 100 }
+                    });
+                    // remove body from markup
+                    el.set('markup', [{
+                        tagName: 'text',
+                        selector: 'label'
+                    }]);
+                    graph.resetCells(el);
+                    elView = el.findView(paper);
+                    const invalidHighlightCallback = sinon.spy();
+                    paper.on('cell:highlight:invalid', invalidHighlightCallback);
+                    const highlighter = joint.dia.HighlighterView.add(elView, 'body', id, { layer });
+
+                    assert.equal(invalidHighlightCallback.callCount, 1, `layer '${layer}': 'body' subelement missing, 'cell:highlight:invalid' called`);
+                    assert.equal(invalidHighlightCallback.calledWith(elView, id, highlighter), true, `layer '${layer}': 'body' subelement missing, 'cell:highlight:invalid' called with correct arguments`);
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup, `layer '${layer}': 'body' subelement missing, transformGroup is present`);
+                        const { tx, ty } = highlighter.transformGroup.translate();
+                        const { x, y } = element.position();
+                        assert.equal(tx, x, `layer '${layer}': 'body' subelement missing, transformGroup's x is element's x`);
+                        assert.equal(ty, y, `layer '${layer}': 'body' subelement missing, transformGroup's y is element's y`);
+                        assert.notOk(highlighter.detachedTransformGroup, `layer '${layer}': 'body' subelement missing, detachedTransformGroup is null`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    // add body back to markup
+                    el.set('markup', [{
+                        tagName: 'rect',
+                        selector: 'body',
+                    }, {
+                        tagName: 'text',
+                        selector: 'label'
+                    }]);
+                    assert.equal(invalidHighlightCallback.callCount, 0, `layer '${layer}': 'body' subelement present, 'cell:highlight:invalid' not called`);
+                    assert.ok(highlighter.el.isConnected, `layer '${layer}': 'body' subelement present, highlighter present in document`);
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup, `layer '${layer}': 'body' subelement present, transformGroup is present`);
+                        const { tx, ty } = highlighter.transformGroup.translate();
+                        const { x, y } = element.position();
+                        assert.equal(tx, x, `layer '${layer}': 'body' subelement present, transformGroup's x is element's x`);
+                        assert.equal(ty, y, `layer '${layer}': 'body' subelement present, transformGroup's y is element's y`);
+                        assert.notOk(highlighter.detachedTransformGroup, `layer '${layer}': 'body' subelement present, detachedTransformGroup is null`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    joint.dia.HighlighterView.remove(elView, id);
+                });
+            });
+
+            QUnit.test('are removed when a subelement of element view is removed', function(assert) {
+                ['back', null].forEach(layer => {
+                    const id = 'highlighter-id';
+                    let el, elView;
+
+                    el = new joint.shapes.standard.Rectangle({
+                        position: { x: 100, y: 100 },
+                        size: { width: 100, height: 100 }
+                    });
+                    graph.resetCells(el);
+                    elView = el.findView(paper);
+                    const highlighter = joint.dia.HighlighterView.add(elView, 'body', id, { layer });
+                    const invalidHighlightCallback = sinon.spy();
+                    paper.on('cell:highlight:invalid', invalidHighlightCallback);
+
+                    assert.equal(invalidHighlightCallback.callCount, 0, `layer '${layer}': 'body' subelement present, 'cell:highlight:invalid' not called`);
+                    assert.ok(highlighter.el.isConnected, `layer '${layer}': 'body' subelement present, highlighter present in document`);
+                    const transformGroup = highlighter.transformGroup;
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup, `layer '${layer}': 'body' subelement present, transformGroup is present`);
+                        const { tx, ty } = highlighter.transformGroup.translate();
+                        const { x, y } = element.position();
+                        assert.equal(tx, x, `layer '${layer}': 'body' subelement present, transformGroup's x is element's x`);
+                        assert.equal(ty, y, `layer '${layer}': 'body' subelement present, transformGroup's y is element's y`);
+                        assert.notOk(highlighter.detachedTransformGroup, `layer '${layer}': 'body' subelement present, detachedTransformGroup is null`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    // remove body from markup
+                    el.set('markup', [{
+                        tagName: 'text',
+                        selector: 'label'
+                    }]);
+                    assert.equal(invalidHighlightCallback.callCount, 1, `layer '${layer}': 'body' subelement removed, 'cell:highlight:invalid' called`);
+                    assert.equal(invalidHighlightCallback.calledWith(elView, id, highlighter), true, `layer '${layer}': 'body' subelement removed, 'cell:highlight:invalid' called with correct arguments`);
+                    assert.notOk(highlighter.el.isConnected, `layer '${layer}': 'body' subelement removed, highlighter removed from document`);
+                    if (layer) {
+                        assert.notOk(highlighter.transformGroup, `layer '${layer}': 'body' subelement removed, transformGroup is null`);
+                        assert.deepEqual(highlighter.detachedTransformGroup, transformGroup, `layer '${layer}': 'body' subelement removed, detachedTransformGroup is previous transformGroup`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    // add body back to markup
+                    el.set('markup', [{
+                        tagName: 'rect',
+                        selector: 'body',
+                    }, {
+                        tagName: 'text',
+                        selector: 'label'
+                    }]);
+                    assert.equal(invalidHighlightCallback.callCount, 0, `layer '${layer}': 'body' subelement present, 'cell:highlight:invalid' not called`);
+                    assert.ok(highlighter.el.isConnected, `layer '${layer}': 'body' subelement present, highlighter present in document`);
+                    if (layer) {
+                        assert.ok(highlighter.transformGroup, `layer '${layer}': 'body' subelement present, transformGroup is present`);
+                        const { tx, ty } = highlighter.transformGroup.translate();
+                        const { x, y } = element.position();
+                        assert.equal(tx, x, `layer '${layer}': 'body' subelement present, transformGroup's x is element's x`);
+                        assert.equal(ty, y, `layer '${layer}': 'body' subelement present, transformGroup's y is element's y`);
+                        assert.notOk(highlighter.detachedTransformGroup, `layer '${layer}': 'body' subelement present, detachedTransformGroup is null`);
+                    }
+                    invalidHighlightCallback.resetHistory();
+
+                    joint.dia.HighlighterView.remove(elView, id);
+                });
+            });
+
             QUnit.test('are mounted and unmounted with the link view', function(assert) {
                 ['back', null].forEach(layer => {
                     const id = 'highlighter-id';
@@ -385,6 +522,9 @@ QUnit.module('HighlighterView', function(hooks) {
 
             var highlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'highlight');
             var unhighlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'unhighlight');
+            var invalidSpy = sinon.spy();
+
+            paper.on('cell:highlight:invalid', invalidSpy);
 
             var id = 'highlighter-id';
             var node = elementView.el.querySelector('[joint-selector="body"]');
@@ -397,31 +537,71 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.ok(highlightSpy.calledOnceWithExactly(elementView, node));
             assert.ok(highlightSpy.calledOn(highlighter));
             assert.ok(unhighlightSpy.notCalled);
+            assert.ok(invalidSpy.notCalled);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
 
-            // Update (Default will unhighlight and highlight)
+            // Re-render (will not highlight the node, because
+            // it's not in the DOM anymore)
             element.attr(['body', 'fill'], 'red', { dirty: true });
             var node2 = elementView.el.querySelector('[joint-selector="body"]');
+            assert.ok(!node.isConnected);
             assert.notEqual(node, node2);
-            assert.ok(highlightSpy.calledOnce);
-            assert.ok(highlightSpy.calledOnceWithExactly(elementView, node));
-            assert.ok(highlightSpy.calledOn(highlighter));
+            assert.notOk(highlightSpy.called);
             assert.ok(unhighlightSpy.calledOnce);
             assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node));
             assert.ok(unhighlightSpy.calledOn(highlighter));
+            assert.ok(invalidSpy.calledOnce);
+            assert.ok(invalidSpy.calledOnceWithExactly(elementView, id, highlighter));
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
 
             // Unhighlight
             joint.dia.HighlighterView.remove(elementView, id);
             assert.equal(joint.dia.HighlighterView.get(elementView, id), null);
-            assert.ok(unhighlightSpy.calledOnce);
-            assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node));
-            assert.ok(unhighlightSpy.calledOn(highlighter));
+            assert.notOk(unhighlightSpy.called);
             assert.ok(highlightSpy.notCalled);
+            assert.ok(invalidSpy.notCalled);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
+
+            // Highlight
+            var id2 = 'highlighter-id-2';
+            var node3 = elementView.el.querySelector('[joint-selector="label"]');
+            var highlighter2 = joint.dia.HighlighterView.add(elementView, node3, id2);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
+
+            // Update (Default will unhighlight and highlight)
+            element.attr(['body', 'fill'], 'blue', { dirty: false });
+            var node4 = elementView.el.querySelector('[joint-selector="label"]');
+            assert.equal(node3, node4);
+            assert.ok(highlightSpy.calledOnce);
+            assert.ok(highlightSpy.calledOnceWithExactly(elementView, node3));
+            assert.ok(highlightSpy.calledOn(highlighter2));
+            assert.ok(unhighlightSpy.calledOnce);
+            assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node3));
+            assert.ok(unhighlightSpy.calledOn(highlighter2));
+            assert.ok(invalidSpy.notCalled);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
+
+            // Unhighlight
+            joint.dia.HighlighterView.remove(elementView, id2);
+            assert.equal(joint.dia.HighlighterView.get(elementView, id2), null);
+            assert.ok(unhighlightSpy.calledOnce);
+            assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node3));
+            assert.ok(unhighlightSpy.calledOn(highlighter2));
+            assert.ok(highlightSpy.notCalled);
+            assert.ok(invalidSpy.notCalled);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
 
             highlightSpy.restore();
             unhighlightSpy.restore();
@@ -592,9 +772,9 @@ QUnit.module('HighlighterView', function(hooks) {
             unhighlightSpy.resetHistory();
 
             // Update (Default will unhighlight and highlight)
-            link.attr(['line', 'stroke'], 'red', { dirty: true });
+            link.attr(['line', 'stroke'], 'red', { dirty: false });
             var node2 = linkView.el.querySelector('[joint-selector="line"]');
-            assert.notEqual(node, node2);
+            assert.equal(node, node2);
             assert.ok(highlightSpy.calledOnce);
             assert.ok(highlightSpy.calledOnceWithExactly(linkView, node));
             assert.ok(highlightSpy.calledOn(highlighter));
@@ -610,6 +790,33 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.ok(unhighlightSpy.calledOnce);
             assert.ok(unhighlightSpy.calledOnceWithExactly(linkView, node));
             assert.ok(unhighlightSpy.calledOn(highlighter));
+            assert.ok(highlightSpy.notCalled);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+
+            var id2 = 'highlighter-id-2';
+            var node3 = linkView.el.querySelector('[joint-selector="wrapper"]');
+            var highlighter2 = joint.dia.HighlighterView.add(linkView, node3, id2);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+
+            // Re-render (will not highlight the node, because
+            // it's not in the DOM anymore)
+            link.attr(['line', 'stroke'], 'blue', { dirty: true });
+            var node4 = linkView.el.querySelector('[joint-selector="wrapper"]');
+            assert.ok(!node3.isConnected);
+            assert.notEqual(node3, node4);
+            assert.notOk(highlightSpy.calledOnce);
+            assert.ok(unhighlightSpy.calledOnce);
+            assert.ok(unhighlightSpy.calledOnceWithExactly(linkView, node3));
+            assert.ok(unhighlightSpy.calledOn(highlighter2));
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+
+            // Unhighlight
+            joint.dia.HighlighterView.remove(linkView, id2);
+            assert.equal(joint.dia.HighlighterView.get(linkView, id2), null);
+            assert.notOk(unhighlightSpy.called);
             assert.ok(highlightSpy.notCalled);
             highlightSpy.resetHistory();
             unhighlightSpy.resetHistory();

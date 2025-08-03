@@ -12,7 +12,7 @@ on:
 
 jobs:
   stale:
-
+    if: ${{ github.repository == 'clientIO/joint' }}
     runs-on: ubuntu-latest
     permissions:
       issues: write

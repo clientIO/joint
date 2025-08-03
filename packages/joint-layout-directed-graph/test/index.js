@@ -274,7 +274,6 @@ QUnit.module('DirectedGraph', function(hooks) {
             assert.deepEqual({ x, y }, { x: 5, y: 210 });
         });
 
-
         QUnit.test('should return a rectangle representing the graph bounding box', function(assert) {
 
             var bbox;
@@ -315,7 +314,274 @@ QUnit.module('DirectedGraph', function(hooks) {
                 marginY: -1000
             });
             assert.deepEqual(bbox.toJSON(), graph.getBBox().toJSON());
+        });
 
+        QUnit.test('resizeClusters: false, clusterPadding: number - should not resize clusters', function(assert) {
+
+            const deepestSize = {
+                width: 500,
+                height: 500
+            };
+
+            const elements = [
+                new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 100, height: 300 }}),
+                new joint.shapes.standard.Rectangle({ size: deepestSize })
+            ];
+
+            elements[0].embed(elements[1]);
+            elements[1].embed(elements[2]);
+            elements[2].embed(elements[3]);
+
+            graph.resetCells(elements);
+
+            const padding = 20;
+
+            DirectedGraph.layout(graph, {
+                resizeClusters: false,
+                clusterPadding: padding
+            });
+
+            // Sizes remain unchanged
+            const expectedSizes = [
+                { width: 60, height: 60 },
+                { width: 120, height: 120 },
+                { width: 100, height: 300 },
+                deepestSize
+            ];
+            for (let i = 0; i < elements.length; i++) {
+                assert.deepEqual(elements[i].size(), expectedSizes[i]);
+            }
+        });
+
+        QUnit.test('resizeClusters: true, clusterPadding: number - should resize clusters according to our algorithm', function(assert) {
+
+            const deepestSize = {
+                width: 500,
+                height: 500
+            };
+
+            const elements = [
+                new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 100, height: 300 }}),
+                new joint.shapes.standard.Rectangle({ size: deepestSize })
+            ];
+
+            elements[0].embed(elements[1]);
+            elements[1].embed(elements[2]);
+            elements[2].embed(elements[3]);
+
+            graph.resetCells(elements);
+
+            const padding = 20;
+
+            // opt.resizeClusters = `true` by default
+            DirectedGraph.layout(graph, {
+                clusterPadding: padding
+            });
+
+            // Parents are resized to fit all children
+            // - note that we are checking from deepest child up
+            const nextExpectedSize = deepestSize;
+            for (let i = elements.length - 1; i >= 0; i--) {
+                assert.deepEqual(elements[i].size(), nextExpectedSize);
+                nextExpectedSize.width += padding * 2;
+                nextExpectedSize.height += padding * 2;
+            }
+        });
+
+        QUnit.test('resizeClusters: true, clusterPadding: number - should not resize clusters if `glGraph` does not hold reference to their children', function(assert) {
+
+            const containerSize = {
+                width: 500,
+                height: 500
+            };
+
+            const container1 = new joint.shapes.standard.Rectangle({ size: containerSize });
+            const container2 = new joint.shapes.standard.Rectangle({ size: containerSize });
+
+            const rect1 = new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }});
+            const rect2 = new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }});
+
+            container1.embed(rect1);
+            container2.embed(rect2);
+
+            graph.resetCells([container1, container2, rect1, rect2]);
+
+            // Do not pass the children to the layout function
+            // opt.clusterPadding = `10` by default
+            DirectedGraph.layout([container1, container2], {
+                resizeClusters: true
+            });
+
+            // Sizes remain unchanged
+            assert.deepEqual(container1.size(), containerSize);
+            assert.deepEqual(container2.size(), containerSize);
+        });
+
+        QUnit.test('resizeClusters: false, clusterPadding: \'default\' - should not resize clusters', function(assert) {
+
+            const deepestSize = {
+                width: 500,
+                height: 500
+            };
+
+            const elements = [
+                new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 100, height: 300 }}),
+                new joint.shapes.standard.Rectangle({ size: deepestSize })
+            ];
+
+            elements[0].embed(elements[1]);
+            elements[1].embed(elements[2]);
+            elements[2].embed(elements[3]);
+
+            graph.resetCells(elements);
+
+            DirectedGraph.layout(graph, {
+                resizeClusters: false,
+                clusterPadding: 'default'
+            });
+
+            // Sizes remain unchanged
+            const expectedSizes = [
+                { width: 60, height: 60 },
+                { width: 120, height: 120 },
+                { width: 100, height: 300 },
+                deepestSize
+            ];
+            for (let i = 0; i < elements.length; i++) {
+                assert.deepEqual(elements[i].size(), expectedSizes[i]);
+            }
+        });
+
+        QUnit.test('resizeClusters: true, clusterPadding: \'default\' - should resize nested clusters according to default dagre algorithm', function(assert) {
+
+            const deepestSize = {
+                width: 500,
+                height: 500
+            };
+
+            const elements = [
+                new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }}),
+                new joint.shapes.standard.Rectangle({ size: { width: 100, height: 300 }}),
+                new joint.shapes.standard.Rectangle({ size: deepestSize })
+            ];
+
+            elements[0].embed(elements[1]);
+            elements[1].embed(elements[2]);
+            elements[2].embed(elements[3]);
+
+            graph.resetCells(elements);
+
+            // opt.resizeClusters = `true` by default
+            DirectedGraph.layout(graph, {
+                clusterPadding: 'default'
+            });
+
+            const expectedSizes = [
+                { width: 650, height: 650 },
+                { width: 610, height: 600 },
+                { width: 570, height: 550 },
+                deepestSize
+            ];
+            for (let i = 0; i < elements.length; i++) {
+                assert.deepEqual(elements[i].size(), expectedSizes[i]);
+            }
+        });
+
+        QUnit.test('resizeClusters: true, clusterPadding: \'default\' - should resize clusters with connected non-embedded children according to default dagre algorithm', function(assert) {
+
+            const elements = [
+                new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 30, height: 30 }}),
+                new joint.shapes.standard.Rectangle({ position: { x: 100, y: 100 }, size: { width: 30, height: 30 }}),
+                new joint.shapes.standard.Rectangle({ position: { x: 100, y: 200 }, size: { width: 30, height: 30 }}),
+                new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 30, height: 30 }}),
+            ];
+
+            const links = [
+                new joint.shapes.standard.Link({ source: elements[1], target: elements[2] }),
+                new joint.shapes.standard.Link({ source: elements[1], target: elements[3] })
+            ];
+
+            elements[0].embed(elements[1]);
+
+            graph.resetCells([...elements, ...links]);
+
+            // opt.resizeClusters = `true` by default
+            DirectedGraph.layout(graph, {
+                clusterPadding: 'default'
+            });
+
+            const expectedBBoxes = [
+                { x: 0, y: 0, width: 160, height: 80 },
+                { x: 70, y: 25, width: 30, height: 30 },
+                { x: 30, y: 205, width: 30, height: 30 },
+                { x: 110, y: 205, width: 30, height: 30 }
+            ];
+            for (let i = 0; i < elements.length; i++) {
+                assert.deepEqual(elements[i].getBBox(), new joint.g.Rect(expectedBBoxes[i]));
+            }
+        });
+
+        QUnit.test('resizeClusters: true, clusterPadding: \'default\' - should not resize clusters if `glGraph` does not hold reference to their children', function(assert) {
+
+            const containerSize = {
+                width: 500,
+                height: 500
+            };
+
+            const container1 = new joint.shapes.standard.Rectangle({ size: containerSize });
+            const container2 = new joint.shapes.standard.Rectangle({ size: containerSize });
+
+            const rect1 = new joint.shapes.standard.Rectangle({ size: { width: 60, height: 60 }});
+            const rect2 = new joint.shapes.standard.Rectangle({ size: { width: 120, height: 120 }});
+
+            container1.embed(rect1);
+            container2.embed(rect2);
+
+            graph.resetCells([container1, container2, rect1, rect2]);
+
+            // Do not pass the children to the layout function
+            // opt.resizeClusters = `true` by default
+            DirectedGraph.layout([container1, container2], {
+                clusterPadding: 'default'
+            });
+
+            // Sizes remain unchanged
+            assert.deepEqual(container1.size(), containerSize);
+            assert.deepEqual(container2.size(), containerSize);
+        });
+
+        QUnit.test('customOrder: function - should allow to specify a custom order of the elements', function(assert) {
+
+            assert.expect(4);
+
+            const cells = [
+                new joint.shapes.standard.Rectangle({ id: '1' }),
+                new joint.shapes.standard.Rectangle({ id: '2' }),
+                new joint.shapes.standard.Link({
+                    id: 'link',
+                    source: { id: '1' },
+                    target: { id: '2' },
+                }),
+            ];
+
+            graph.resetCells(cells);
+
+            DirectedGraph.layout(graph, {
+                customOrder: function(glGraph, graph, order) {
+                    assert.ok(graph instanceof joint.dia.Graph);
+                    assert.ok(graph.getCell('1'));
+                    assert.ok(graph.getCell('2'));
+                    assert.ok(graph.getCell('link'));
+                    order(glGraph);
+                }
+            });
         });
     });
 });

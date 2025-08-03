@@ -39,7 +39,7 @@ import * as g from '../g/index.mjs';
 
 const attributesMerger = function(a, b) {
     if (Array.isArray(a)) {
-        return b;
+        return cloneDeep(b);
     }
 };
 
@@ -84,6 +84,12 @@ export const Cell = Model.extend({
         }
         this.set(attrs, options);
         this.changed = {};
+        if (options && options.portLayoutNamespace) {
+            this.portLayoutNamespace = options.portLayoutNamespace;
+        }
+        if (options && options.portLabelLayoutNamespace) {
+            this.portLabelLayoutNamespace = options.portLabelLayoutNamespace;
+        }
         this.initialize.apply(this, arguments);
     },
 
@@ -547,7 +553,11 @@ export const Cell = Model.extend({
         if (!opt.deep) {
             // Shallow cloning.
 
-            var clone = Model.prototype.clone.apply(this, arguments);
+            // Preserve the original's `portLayoutNamespace` and `portLabelLayoutNamespace`.
+            const clone = new this.constructor(this.attributes, {
+                portLayoutNamespace: this.portLayoutNamespace,
+                portLabelLayoutNamespace: this.portLabelLayoutNamespace
+            });
             // We don't want the clone to have the same ID as the original.
             clone.set(this.getIdAttribute(), this.generateId());
             // A shallow cloned element does not carry over the original embeds.
@@ -561,7 +571,7 @@ export const Cell = Model.extend({
         } else {
             // Deep cloning.
 
-            // For a deep clone, simply call `graph.cloneCells()` with the cell and all its embedded cells.
+            // For a deep clone, simply call `util.cloneCells()` with the cell and all its embedded cells.
             return toArray(cloneCells([this].concat(this.getEmbeddedCells({ deep: true }))));
         }
     },
@@ -925,9 +935,13 @@ export const Cell = Model.extend({
         return new g.Rect(0, 0, 0, 0);
     },
 
+    getCenter: function() {
+        return this.getBBox().center();
+    },
+
     getPointRotatedAroundCenter(angle, x, y) {
         const point = new g.Point(x, y);
-        if (angle) point.rotate(this.getBBox().center(), angle);
+        if (angle) point.rotate(this.getCenter(), angle);
         return point;
     },
 
@@ -998,4 +1012,3 @@ export const Cell = Model.extend({
         return Cell;
     }
 });
-

@@ -46,6 +46,23 @@ QUnit.module('Attributes', function() {
             paper.remove();
         });
 
+        QUnit.module('useNoBreakSpace', function() {
+
+            QUnit.test('false by default', function(assert) {
+
+                const text = joint.dia.attributes['text'];
+                text.set.call(cellView, '  text  ', refBBox, node, {});
+                assert.equal(node.textContent, '  text  ', 'Text uses normal whitespace character');
+            });
+
+            QUnit.test('true', function(assert) {
+
+                const text = joint.dia.attributes['text'];
+                text.set.call(cellView, '  text  ', refBBox, node, { 'use-no-break-space': true });
+                assert.equal(node.textContent, V.sanitizeText('  text  '), 'Text uses non-breaking whitespace character');
+            });
+        });
+
         QUnit.module('textWrap', function() {
 
             QUnit.test('qualify', function(assert) {
@@ -159,6 +176,60 @@ QUnit.module('Attributes', function() {
                 spy.restore();
             });
 
+            QUnit.test('measures correctly when not in the render tree', function(assert) {
+
+                const spy = sinon.spy(joint.util, 'breakText');
+
+                // Remove the paper from the DOM render tree
+                paper.el.style.display = 'none';
+
+                const el = new joint.shapes.standard.Rectangle({
+                    attrs: {
+                        label: {
+                            text: 'text',
+                            textWrap: {
+                                breakText: spy
+                            }
+                        }
+                    }
+
+                });
+                el.addTo(graph);
+
+                assert.ok(spy.calledOnce);
+                assert.ok(spy.calledWith(
+                    sinon.match.string,
+                    sinon.match.object,
+                    sinon.match.object,
+                    sinon.match((obj) => {
+                        return (
+                            obj['svgDocument'] == null
+                        );
+                    })
+                ));
+
+                // Restore the paper to the DOM render tree
+                paper.el.style.display = '';
+
+                spy.resetHistory();
+
+                el.attr('label/text', 'text2');
+
+                assert.ok(spy.calledOnce);
+                assert.ok(spy.calledWith(
+                    sinon.match.string,
+                    sinon.match.object,
+                    sinon.match.object,
+                    sinon.match((obj) => {
+                        const svgDocument = obj['svgDocument'];
+                        return (
+                            svgDocument instanceof SVGSVGElement &&
+                            svgDocument.checkVisibility()
+                        );
+                    })
+                ));
+
+            });
 
             QUnit.test('x', function(assert) {
                 var TestElement = joint.dia.Element.define('Test', {

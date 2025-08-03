@@ -663,78 +663,6 @@ QUnit.module('vectorizer', function(hooks) {
         assert.deepEqual({ x: t.x, y: t.y }, { x: -2, y: 1 }, 'transform with rotate transformation returns correct point.');
     });
 
-    QUnit.test('native getTransformToElement vs VElement getTransformToElement - translate', function(assert) {
-
-        var container = V(svgContainer);
-        var group = V('<g/>');
-        var rect = V('<rect/>');
-        var transformNativeResult = {
-            a: 1,
-            b: 0,
-            c: 0,
-            d: 1,
-            e: -10,
-            f: -10
-        };
-
-        container.append(group);
-        container.append(rect);
-
-        rect.translate(10, 10);
-
-        var transformPoly = group.getTransformToElement(rect.node);
-        var matrix = {
-            a: transformPoly.a,
-            b: transformPoly.b,
-            c: transformPoly.c,
-            d: transformPoly.d,
-            e: transformPoly.e,
-            f: transformPoly.f
-        };
-        assert.deepEqual(matrix, transformNativeResult);
-
-        group.remove();
-        rect.remove();
-    });
-
-    QUnit.test('native getTransformToElement vs VElement getTransformToElement - rotate', function(assert) {
-
-        var container = V(svgContainer);
-        var normalizeFloat = function(value) {
-            var temp = value * 100;
-            return temp > 0 ? Math.floor(temp) : Math.ceil(temp);
-        };
-        var group = V('<g/>');
-        var rect = V('<rect/>');
-        var transformNativeResult = {
-            a: normalizeFloat(0.7071067811865476),
-            b: normalizeFloat(-0.7071067811865475),
-            c: normalizeFloat(0.7071067811865475),
-            d: normalizeFloat(0.7071067811865476),
-            e: normalizeFloat(-0),
-            f: normalizeFloat(0)
-        };
-
-        container.append(group);
-        container.append(rect);
-
-        rect.rotate(45);
-
-        var transformPoly = group.getTransformToElement(rect.node);
-        var matrix = {
-            a: normalizeFloat(transformPoly.a),
-            b: normalizeFloat(transformPoly.b),
-            c: normalizeFloat(transformPoly.c),
-            d: normalizeFloat(transformPoly.d),
-            e: normalizeFloat(transformPoly.e),
-            f: normalizeFloat(transformPoly.f)
-        };
-        assert.deepEqual(matrix, transformNativeResult);
-
-        group.remove();
-        rect.remove();
-    });
-
     QUnit.test('findParentByClass', function(assert) {
 
         assert.equal(
@@ -1189,6 +1117,11 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(line.convertToPathData(), 'M 100 50 L 200 150');
         });
 
+        QUnit.test('<line> with implicit 0 coordinates', function(assert) {
+            var line = V('<line/>', { y1: 50, x2: 200 });
+            assert.equal(line.convertToPathData(), 'M 0 50 L 200 0');
+        });
+
         QUnit.test('<rect>', function(assert) {
             var rect = V('<rect/>', { x: 100, y: 50, width: 200, height: 150 });
             assert.equal(rect.convertToPathData(), 'M 100 50 H 300 V 200 H 100 V 50 Z');
@@ -1626,6 +1559,167 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(rect.hasClass(' test1 '), true);
             assert.equal(rect.hasClass(' test3 '), false);
         });
+
+    });
+
+    QUnit.module('getTransformToElement()', function() {
+
+        QUnit.test('options: safe', function(assert) {
+
+            svgGroup1.setAttribute('transform', 'translate(10, 10)');
+            svgGroup2.setAttribute('transform', 'scale(2, 2)');
+            svgGroup3.setAttribute('transform', 'rotate(90)');
+
+            // descendant to ancestor
+            assert.deepEqual(
+                V(svgPath2).getTransformToElement(svgGroup1, { safe: true }),
+                V(svgPath2).getTransformToElement(svgGroup1)
+            );
+
+            // ancestor to descendant
+            assert.deepEqual(
+                V(svgGroup1).getTransformToElement(svgPath2, { safe: true }),
+                V(svgGroup1).getTransformToElement(svgPath2)
+            );
+
+            // svg document and element
+            assert.deepEqual(
+                V(svgContainer).getTransformToElement(svgPath2, { safe: true }),
+                V(svgContainer).getTransformToElement(svgPath2)
+            );
+            assert.deepEqual(
+                V(svgPath2).getTransformToElement(svgContainer, { safe: true }),
+                V(svgPath2).getTransformToElement(svgContainer)
+            );
+
+            // not related, same document
+            assert.deepEqual(
+                V(svgPath2).getTransformToElement(svgCircle, { safe: true }),
+                V(svgPath2).getTransformToElement(svgCircle)
+            );
+            assert.deepEqual(
+                V(svgCircle).getTransformToElement(svgPath2, { safe: true }),
+                V(svgCircle).getTransformToElement(svgPath2)
+            );
+
+            // not related, different documents
+            var svg1 = V('svg');
+            assert.deepEqual(
+                V(svgPath2).getTransformToElement(svg1.node, { safe: true }),
+                V(svgPath2).getTransformToElement(svg1.node)
+            );
+            assert.deepEqual(
+                V(svg1.node).getTransformToElement(svgPath2, { safe: true }),
+                V(svg1.node).getTransformToElement(svgPath2)
+            );
+
+            // same element
+            assert.deepEqual(
+                V(svgPath2).getTransformToElement(svgPath2, { safe: true }),
+                V(svgPath2).getTransformToElement(svgPath2)
+            );
+        });
+
+        QUnit.test('offscreen results', function(assert) {
+
+            // We need to build a new DOM tree to test this
+            // because the DOM from the setup was already
+            // appended to the document and even if we remove it
+            // from the document, the browser will still
+            // return the correct ScreenCTM (used in unsafe mode)
+
+            const svgPath2 = V('path');
+            const svgGroup1 = V('g');
+
+            V('svg', {}, [
+                V(svgGroup1, { id: 'svgGroup1', transform: 'rotate(45)' }, [
+                    V('g', { id: 'svgGroup2', transform: 'scale(2, 2)' }, [
+                        V('g', { id: 'svgGroup3', transform: 'translate(10, 10)' }, [
+                            V('path', { id: 'svgPath1', d: 'M 10 10' }),
+                            V(svgPath2, { id: 'svgPath2', d: 'M 20 20' })
+                        ])
+                    ])
+                ])
+            ]);
+
+            // unsafe mode returns an identity matrix (no transform)
+            assert.equal(V.matrixToTransformString(V(svgPath2).getTransformToElement(svgGroup1)), 'matrix(1,0,0,1,0,0)');
+            // safe mode returns a matrix with the correct transform
+            assert.equal(V.matrixToTransformString(V(svgPath2).getTransformToElement(svgGroup1, { safe: true })), 'matrix(2,0,0,2,20,20)');
+        });
+
+        QUnit.test('native getTransformToElement vs VElement getTransformToElement - translate', function(assert) {
+
+            var container = V(svgContainer);
+            var group = V('<g/>');
+            var rect = V('<rect/>');
+            var transformNativeResult = {
+                a: 1,
+                b: 0,
+                c: 0,
+                d: 1,
+                e: -10,
+                f: -10
+            };
+
+            container.append(group);
+            container.append(rect);
+
+            rect.translate(10, 10);
+
+            var transformPoly = group.getTransformToElement(rect.node);
+            var matrix = {
+                a: transformPoly.a,
+                b: transformPoly.b,
+                c: transformPoly.c,
+                d: transformPoly.d,
+                e: transformPoly.e,
+                f: transformPoly.f
+            };
+            assert.deepEqual(matrix, transformNativeResult);
+
+            group.remove();
+            rect.remove();
+        });
+
+        QUnit.test('native getTransformToElement vs VElement getTransformToElement - rotate', function(assert) {
+
+            var container = V(svgContainer);
+            var normalizeFloat = function(value) {
+                var temp = value * 100;
+                return temp > 0 ? Math.floor(temp) : Math.ceil(temp);
+            };
+            var group = V('<g/>');
+            var rect = V('<rect/>');
+            var transformNativeResult = {
+                a: normalizeFloat(0.7071067811865476),
+                b: normalizeFloat(-0.7071067811865475),
+                c: normalizeFloat(0.7071067811865475),
+                d: normalizeFloat(0.7071067811865476),
+                e: normalizeFloat(-0),
+                f: normalizeFloat(0)
+            };
+
+            container.append(group);
+            container.append(rect);
+
+            rect.rotate(45);
+
+            var transformPoly = group.getTransformToElement(rect.node);
+            var matrix = {
+                a: normalizeFloat(transformPoly.a),
+                b: normalizeFloat(transformPoly.b),
+                c: normalizeFloat(transformPoly.c),
+                d: normalizeFloat(transformPoly.d),
+                e: normalizeFloat(transformPoly.e),
+                f: normalizeFloat(transformPoly.f)
+            };
+            assert.deepEqual(matrix, transformNativeResult);
+
+            group.remove();
+            rect.remove();
+        });
+
 
     });
 });

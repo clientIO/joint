@@ -1,3 +1,7 @@
+const USE_NO_BREAK_SPACE_LABEL_ATTRS = {
+    useNoBreakSpace: true
+}
+
 QUnit.module('basic', function(hooks) {
 
     hooks.beforeEach(function() {
@@ -55,7 +59,7 @@ QUnit.module('basic', function(hooks) {
         var myrect = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { label: { text: 'my rectangle' }}
+            attrs: { label: { ...USE_NO_BREAK_SPACE_LABEL_ATTRS, text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
@@ -78,7 +82,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { label: { text: 'my rectangle' }}
+            attrs: { label: { ...USE_NO_BREAK_SPACE_LABEL_ATTRS, text: 'my rectangle' }}
         });
         var r2 = r1.clone();
         var r3 = r1.clone();
@@ -109,7 +113,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { label: { text: 'my rectangle' }}
+            attrs: { label: { ...USE_NO_BREAK_SPACE_LABEL_ATTRS, text: 'my rectangle' }}
         });
         var r2 = r1.clone();
         var r3 = r1.clone();
@@ -1167,7 +1171,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.standard.Rectangle({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { label: { text: 'my rectangle' }}
+            attrs: { label: { ...USE_NO_BREAK_SPACE_LABEL_ATTRS, text: 'my rectangle' }}
         });
 
         this.graph.addCell(r1);
@@ -1447,7 +1451,11 @@ QUnit.module('basic', function(hooks) {
                     { id: '1', group: 'in' },
                     { id: '2', group: 'in' },
                     { id: '3', group: 'out' },
-                    { id: '4', group: 'out' }
+                    { id: '4', group: 'out' },
+                    { id: 'left0' },
+                    { id: 'left1', args: { dx: 10 }},
+                    { id: 'left2', position: { args: { dx: 10 }}},
+                    { id: 'left3', position: { args: { dx: 10 }}, args: { dx: 20 }}
                 ]
             }
         });
@@ -1477,6 +1485,28 @@ QUnit.module('basic', function(hooks) {
                 assert.equal(foundEl, true, 'port DOM element should exist ("' + port + '")');
             }
         });
+
+        allPorts.forEach((port) => {
+            if (!port.startsWith('left')) return;
+
+            const $portEl = view.$el.find('[port="' + port + '"]');
+            const portParentEl = $portEl[0].parentElement;
+            const { translateX } = V.decomposeMatrix(V.transformStringToMatrix(portParentEl.attributes.transform.value));
+            switch (port) {
+                case 'left0':
+                    assert.equal(translateX, 0, 'no position arguments = no translation');
+                    break;
+                case 'left1':
+                    assert.equal(translateX, 10, '`args.dx: 10` provided = translation of 10px');
+                    break;
+                case 'left2':
+                    assert.equal(translateX, 10, '`position.args.dx: 10` provided = translation of 10px');
+                    break;
+                case 'left3':
+                    assert.equal(translateX, 10, '`position.args.dx: 10` has priority over `args.dx: 20` = translation of 10px');
+                    break;
+            }
+        })
     });
 
     QUnit.test('ref-x, ref-y, ref', function(assert) {

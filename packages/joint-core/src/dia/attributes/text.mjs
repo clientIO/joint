@@ -54,9 +54,10 @@ const textAttributesNS = {
             const eol = attrs.eol;
             const x = attrs.x;
             let textPath = attrs['text-path'];
+            const useNoBreakSpace = attrs['use-no-break-space'] === true;
             // Update the text only if there was a change in the string
             // or any of its attributes.
-            const textHash = JSON.stringify([text, lineHeight, annotations, textVerticalAnchor, eol, displayEmpty, textPath, x, fontSize]);
+            const textHash = JSON.stringify([text, lineHeight, annotations, textVerticalAnchor, eol, displayEmpty, textPath, x, fontSize, useNoBreakSpace]);
             if (cache === undefined || cache !== textHash) {
                 // Chrome bug:
                 // <tspan> positions defined as `em` are not updated
@@ -79,7 +80,8 @@ const textAttributesNS = {
                     x,
                     textVerticalAnchor,
                     eol,
-                    displayEmpty
+                    displayEmpty,
+                    useNoBreakSpace
                 });
                 $.data.set(node, cacheName, textHash);
             }
@@ -148,10 +150,19 @@ const textAttributesNS = {
                 // TODO: change the `lineHeight` to breakText option.
                 wrapFontAttributes.lineHeight = attrs['line-height'];
 
+                let svgDocument = this.paper.svg;
+                if (!svgDocument.checkVisibility()) {
+                    // If the paper is visible, we can utilize
+                    // its SVG element to measure the text size
+                    // when breaking the text.
+                    // Otherwise, we need to create a temporary
+                    // SVG document and append it to the DOM,
+                    // (the default behavior of `breakText`).
+                    svgDocument = null;
+                }
+
                 wrappedText = breakTextFn('' + text, size, wrapFontAttributes, {
-                    // Provide an existing SVG Document here
-                    // instead of creating a temporary one over again.
-                    svgDocument: this.paper.svg,
+                    svgDocument,
                     ellipsis: value.ellipsis,
                     hyphen: value.hyphen,
                     separator: value.separator,

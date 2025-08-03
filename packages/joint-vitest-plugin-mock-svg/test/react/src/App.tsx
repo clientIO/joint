@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { dia, shapes, elementTools } from '@joint/core';
+import { dia, shapes, elementTools, V } from '@joint/core';
 
 function App() {
 
@@ -43,8 +43,14 @@ function App() {
         new elementTools.Remove(),
       ]
     });
-    rect.findView(paper).addTools(toolsView);
-    rect.findView(paper).vel.translateAndAutoOrient({ x: 10, y: 10, }, { x: 100, y: 100 }, paper.svg);
+    const rectView = rect.findView(paper) as dia.ElementView;
+    rectView.addTools(toolsView);
+    rectView.vel.translateAndAutoOrient({ x: 10, y: 10, }, { x: 100, y: 100 }, paper.svg);
+    (rectView.el as SVGGElement).getScreenCTM()!.inverse();
+
+    // SVGElement.transform.baseVal.consolidate();
+    rectView.vel.transform();
+    V.transformStringToMatrix('matrix(1, 0, 0, 1, 10, 20)');
 
     return () => {
       paper.remove();

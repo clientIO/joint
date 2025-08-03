@@ -24,7 +24,6 @@
         // 'strict' options **End**
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
-        "suppressImplicitAnyIndexErrors": true,
         "noUnusedLocals": false,
         "skipLibCheck": false,
         "types": [],
