@@ -173,6 +173,10 @@ export class CellLayersController extends Listener {
         if (currentIndex !== -1) {
             attributes = this.cellLayerAttributes[currentIndex];
             this.cellLayerAttributes.splice(currentIndex, 1); // remove existing layer attributes
+
+            if (currentIndex < insertAt) {
+                insertAt--;
+            }
         } else {
             attributes = {
                 id
