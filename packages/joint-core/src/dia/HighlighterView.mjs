@@ -262,6 +262,28 @@ export const HighlighterView = mvc.View.extend({
         }
     },
 
+    // Check if the cellView has a highlighter with the given `id`.
+    // If no `id` is provided, it checks if the cellView has any highlighter.
+    has(cellView, id = null) {
+        const { cid } = cellView;
+        const { _views } = this;
+        const refs = _views[cid];
+        if (!refs) return false;
+        if (id === null) {
+            // any highlighter
+            for (let hid in refs) {
+                if (refs[hid] instanceof this) return true;
+            }
+            return false;
+        } else {
+            // single highlighter
+            if (id in refs) {
+                if (refs[id] instanceof this) return true;
+            }
+            return false;
+        }
+    },
+
     add(cellView, nodeSelector, id, opt = {}) {
         if (!id) throw new Error('dia.HighlighterView: An ID required.');
         // Search the existing view amongst all the highlighters
