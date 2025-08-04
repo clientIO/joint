@@ -1769,6 +1769,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
     QUnit.module('async = TRUE, autoFreeze = TRUE', function(hooks) {
 
+        const OnIdle = (paper) => new Promise(resolve => paper.once('render:idle', () => resolve()));
+
         QUnit.test('autofreeze check', function(assert) {
             const done = assert.async();
 
@@ -1791,6 +1793,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             testPaper.on('render:idle', () => {
                 assert.notOk(testPaper.hasScheduledUpdates(), 'has no updates');
                 assert.ok(testPaper.isFrozen(), 'frozen after updating');
+                assert.ok(testPaper.isIdle(), 'is idle after updating');
                 switch (idleCounter) {
                     case 0: {
                         assert.equal(cellNodesCount(testPaper), 1, 'cell rendered');
@@ -1799,8 +1802,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     }
                     case 1: {
                         const view = testPaper.findViewByModel(rect);
-                        const viewBbox = view.getBBox();
-                        assert.deepEqual({ x: viewBbox.x, y: viewBbox.y }, { x: 201, y: 202 }, 'view was correctly updated');
+                        const viewBBox = view.getBBox();
+                        assert.deepEqual({ x: viewBBox.x, y: viewBBox.y }, { x: 201, y: 202 }, 'view was correctly updated');
                         graph.addCell(circle);
                         break;
                     }
@@ -1823,6 +1826,53 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
             graph.resetCells([rect]);
+        });
+
+        QUnit.test('autoFreeze with frozen paper', async function(assert) {
+
+            const done = assert.async();
+
+            const rect = new joint.shapes.standard.Rectangle();
+            rect.addTo(graph);
+
+            const testPaper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                frozen: true,
+                sorting: Paper.sorting.APPROX
+            });
+
+            assert.ok(testPaper.isFrozen(), 'paper is frozen');
+            assert.notOk(testPaper.isIdle(), 'is idle after initialization');
+            assert.equal(cellNodesCount(testPaper), 0, 'no cells rendered');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates');
+
+            const circle = new joint.shapes.standard.Circle();
+            circle.addTo(graph);
+
+            assert.ok(testPaper.isFrozen(), 'paper is still frozen after adding a cell');
+            assert.notOk(testPaper.isIdle(), 'is not idle after adding a cell');
+            assert.equal(cellNodesCount(testPaper), 0, 'cell rendered');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates after adding a cell');
+
+            testPaper.unfreeze();
+
+            assert.notOk(testPaper.isFrozen(), 'paper is un-frozen after unfreeze()');
+            assert.notOk(testPaper.isIdle(), 'is not idle after unfreeze()');
+            assert.equal(cellNodesCount(testPaper), 0, 'no cells rendered after unfreeze()');
+
+            await OnIdle(testPaper);
+
+            assert.ok(testPaper.isFrozen(), 'paper is frozen after unfreeze() and idle');
+            assert.ok(testPaper.isIdle(), 'is idle after unfreeze() and idle');
+            assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered after unfreeze() and idle');
+            assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after unfreeze() and idle');
+
+            done();
+
+            testPaper.remove();
         });
     });
 
