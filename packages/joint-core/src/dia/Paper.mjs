@@ -1498,6 +1498,7 @@ export const Paper = View.extend({
         this.options.frozen = true;
         var id = updates.id;
         updates.id = null;
+        updates.idle = false;
         if (this.isAsync() && id) cancelFrame(id);
     },
 
@@ -1531,6 +1532,10 @@ export const Paper = View.extend({
 
     isFrozen: function() {
         return !!this.options.frozen;
+    },
+
+    isIdle: function() {
+        return !!(this._updates && this._updates.idle);
     },
 
     isExactSorting: function() {
@@ -1992,11 +1997,11 @@ export const Paper = View.extend({
     resetViews: function(cells, opt) {
         opt || (opt = {});
         cells || (cells = []);
+        // Allows to unfreeze normally while in the idle state using autoFreeze option
+        const key = this.isIdle() ? null : 'reset';
         this._resetUpdates();
         // clearing views removes any event listeners
         this.removeViews();
-        // Allows to unfreeze normally while in the idle state using autoFreeze option
-        const key = this.options.autoFreeze ? null : 'reset';
         this.freeze({ key });
         for (var i = 0, n = cells.length; i < n; i++) {
             this.renderView(cells[i], opt);
