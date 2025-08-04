@@ -57,6 +57,8 @@ QUnit.module('layers-basic', function(hooks) {
             ]
         });
 
+        assert.ok(this.graph.hasCellLayer('cells'), 'Graph has default layer "cells"');
+
         const defaultCellLayer = this.graph.getDefaultCellLayer();
 
         assert.ok(defaultCellLayer.cells.has('rect1'), 'Default cell layer has rectangle cell');
@@ -94,6 +96,7 @@ QUnit.module('layers-basic', function(hooks) {
 
         assert.ok(this.graph.hasCellLayer('layer1'), 'Graph has layer "layer1"');
         assert.ok(this.graph.hasCellLayer('layer2'), 'Graph has layer "layer2"');
+        assert.ok(this.graph.hasCellLayer('cells'), 'Graph has default layer "cells"');
 
         const layer1 = this.graph.getCellLayer('layer1');
         const layer2 = this.graph.getCellLayer('layer2');
@@ -108,5 +111,65 @@ QUnit.module('layers-basic', function(hooks) {
         const layerViewNode2 = this.paper.getLayerViewNode('layer2');
 
         assert.ok(layerViewNode2.querySelector(`[model-id="ellipse1"]`), 'Layer view for "layer2" has ellipse cell view node');
+    });
+
+    QUnit.test('Changing layer() attribute', (assert) => {
+        const rect = new joint.shapes.standard.Rectangle();
+        rect.addTo(this.graph);
+
+        const defaultLayer = this.graph.getDefaultCellLayer();
+
+        assert.ok(defaultLayer.cells.has(rect.id), 'Rectangle cell added to default layer');
+        assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
+
+        const newLayer = new joint.dia.CellLayer({ id: 'newLayer' });
+        this.graph.addCellLayer(newLayer);
+        this.graph.insertCellLayer(newLayer);
+
+        assert.ok(this.paper.hasLayerView('newLayer'), 'Paper has layer view "newLayer"');
+
+        rect.set('layer', 'newLayer');
+
+        assert.ok(newLayer.cells.has(rect.id), 'Rectangle cell moved to new layer');
+        assert.ok(!defaultLayer.cells.has(rect.id), 'Rectangle cell removed from default layer');
+
+        assert.ok(this.paper.getLayerViewNode('newLayer').querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to new layer view');
+
+        rect.set('layer', null);
+
+        assert.ok(defaultLayer.cells.has(rect.id), 'Rectangle cell moved back to default layer');
+        assert.ok(!newLayer.cells.has(rect.id), 'Rectangle cell removed from new layer');
+
+        assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved back to default layer view');
+    });
+
+    QUnit.test('Changing default layer', (assert) => {
+        const newLayer = new joint.dia.CellLayer({ id: 'newLayer' });
+        this.graph.addCellLayer(newLayer);
+        this.graph.insertCellLayer(newLayer);
+
+        assert.ok(this.paper.hasLayerView('newLayer'), 'Paper has layer view "newLayer"');
+
+        const rect = new joint.shapes.standard.Rectangle();
+        rect.addTo(this.graph);
+
+        const defaultLayer = this.graph.getDefaultCellLayer();
+
+        assert.equal(rect.get('layer'), undefined, 'The layer is not defined (default)');
+        assert.ok(defaultLayer.id, 'cells', 'Default layer is "cells"');
+        assert.ok(defaultLayer.cells.has(rect.id), 'Rectangle cell added to default layer');
+        assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
+
+        this.graph.setDefaultCellLayer('newLayer');
+
+        assert.ok(rect.get('layer'), 'cells', 'layer attr is set to "cells" as it is no longer the default');
+
+        const newDefaultLayer = this.graph.getDefaultCellLayer();
+        assert.ok(newDefaultLayer.id, 'newLayer', 'New default layer is "newLayer"');
+
+        rect.layer(null);
+        assert.ok(newDefaultLayer.cells.has(rect.id), 'Rectangle cell moved to new default layer');
+        assert.ok(!defaultLayer.cells.has(rect.id), 'Rectangle cell removed from old default layer');
+        assert.ok(this.paper.getLayerViewNode(newDefaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved to new default layer view');
     });
 });
