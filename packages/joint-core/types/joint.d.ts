@@ -1385,6 +1385,7 @@ export namespace dia {
         };
 
         type ViewportCallback = (view: mvc.View<any, any>, isMounted: boolean, paper: Paper) => boolean;
+        type CellVisibilityCallback = (cell: Cell, isMounted: boolean, paper: Paper) => boolean;
         type ProgressCallback = (done: boolean, processed: number, total: number, stats: UpdateStats, paper: Paper) => void;
         type BeforeRenderCallback = (opt: { [key: string]: any }, paper: Paper) => void;
         type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;
@@ -1399,6 +1400,7 @@ export namespace dia {
             unmountBatchSize?: number;
             batchSize?: number;
             viewport?: ViewportCallback;
+            cellVisibility?: CellVisibilityCallback;
             progress?: ProgressCallback;
             beforeRender?: BeforeRenderCallback;
             afterRender?: AfterRenderCallback;
@@ -1479,6 +1481,7 @@ export namespace dia {
             autoFreeze?: boolean;
             viewManagement?: ViewManagementOptions;
             viewport?: ViewportCallback | null;
+            cellVisibility?: CellVisibilityCallback | null;
             onViewUpdate?: (view: mvc.View<any, any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
             beforeRender?: Paper.BeforeRenderCallback;
@@ -1846,12 +1849,14 @@ export namespace dia {
             mountBatchSize?: number;
             unmountBatchSize?: number;
             viewport?: Paper.ViewportCallback;
+            cellVisibility?: Paper.CellVisibilityCallback;
         }): void;
 
         checkViewport(opt?: {
             mountBatchSize?: number;
             unmountBatchSize?: number;
             viewport?: Paper.ViewportCallback;
+            cellVisibility?: Paper.CellVisibilityCallback;
         }): {
             mounted: number;
             unmounted: number;
@@ -1860,6 +1865,7 @@ export namespace dia {
         updateViews(opt?: {
             batchSize?: number;
             viewport?: Paper.ViewportCallback;
+            cellVisibility?: Paper.CellVisibilityCallback;
         }): {
             updated: number;
             batches: number;
@@ -1886,6 +1892,7 @@ export namespace dia {
         */
         protected checkViewVisibility(cellView: dia.CellView, opt?: {
             viewport?: Paper.ViewportCallback;
+            cellVisibility?: Paper.CellVisibilityCallback;
         }): {
             mounted: number;
             unmounted: number;
@@ -1908,6 +1915,7 @@ export namespace dia {
             mountBatchSize?: number;
             unmountBatchSize?: number;
             viewport?: Paper.ViewportCallback;
+            cellVisibility?: Paper.CellVisibilityCallback;
             progress?: Paper.ProgressCallback;
             before?: Paper.BeforeRenderCallback;
         }): void;
@@ -1915,6 +1923,7 @@ export namespace dia {
         protected updateViewsBatch(opt?: {
             batchSize?: number;
             viewport?: Paper.ViewportCallback;
+            cellVisibility?: Paper.CellVisibilityCallback;
         }): Paper.UpdateStats;
 
         protected checkMountedViews(viewport: Paper.ViewportCallback, opt?: { unmountBatchSize?: number }): number;
