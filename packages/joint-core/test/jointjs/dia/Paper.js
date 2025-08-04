@@ -1094,7 +1094,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             paper.unfreeze();
                             var onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
                             var confirmUpdateSpy = sinon.spy(joint.dia.LinkView.prototype, 'confirmUpdate');
-                            // This will trigger onViewUpdate twice (link1 attrs, link2 attrs)
+                            // This will trigger onViewUpdate twice (link1 attrs, link2 source/target)
                             link1.attr('line/stroke', 'red', { test: true });
                             assert.ok(onViewUpdateSpy.calledTwice);
                             assert.ok(onViewUpdateSpy.calledWithExactly(link1.findView(paper), sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
