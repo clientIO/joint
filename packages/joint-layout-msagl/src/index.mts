@@ -15,9 +15,10 @@ export enum EdgeRoutingMode {
 }
 
 export interface Options {
+    layerDirection?: LayerDirectionEnum,
     layerSeparation?: number,
     nodeSeparation?: number,
-    layerDirection?: LayerDirectionEnum,
+    polylinePadding?: number,
     gridSize?: number,
     edgeRoutingMode?: EdgeRoutingMode
     margins?: {
@@ -36,6 +37,7 @@ const defaultOptions: Required<Options> = {
     layerDirection: LayerDirectionEnum.TB,
     layerSeparation: 40,
     nodeSeparation: 20,
+    polylinePadding: 1,
     gridSize: 10,
     edgeRoutingMode: EdgeRoutingMode.Rectilinear,
     margins: {
@@ -84,7 +86,7 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     for (const geomNode of geomGraph.subgraphsDepthFirst) {
         const geomSubgraph = geomNode as GeomGraph;
         const layoutSettings = buildLayoutSettings(finalOptions);
-        // Set the layer direction to top to bottom for subgraphs
+        // Note: Set the layer direction to top to bottom for subgraphs
         // Since anything else will cause the layout to break
         layoutSettings.layerDirection = LayerDirectionEnum.TB;
         geomSubgraph.layoutSettings = layoutSettings;

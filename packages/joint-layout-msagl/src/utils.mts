@@ -1,7 +1,30 @@
 import { dia, util, g } from '@joint/core';
-import { Graph, GeomGraph, GeomNode, Node, Curve, Ellipse, CurveFactory, Point, Size, Edge, Label, GeomLabel, SugiyamaLayoutSettings } from '@msagl/core';
+import {
+    Graph,
+    GeomGraph,
+    GeomNode,
+    Node,
+    Curve,
+    Ellipse,
+    CurveFactory,
+    Point,
+    Size,
+    Edge,
+    Label,
+    GeomLabel,
+    SugiyamaLayoutSettings,
+    BezierSeg,
+    LineSegment
+} from '@msagl/core';
 import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
 import { type Options, EdgeRoutingMode } from './index.mjs';
+import { sampleBezierSeg, sampleEllipse } from './sampling.mjs';
+
+enum EDGE_TYPE {
+    SelfEdge,
+    OutEdge
+}
+const RECTILINEAR_SELF_EDGE_OFFSET = 10;
 
 // --- Default Callbacks
 
@@ -9,7 +32,7 @@ export function setPosition(element: dia.Element, position: g.Point) {
     element.position(position.x, position.y);
 }
 
-export function setVertices(link: dia.Link, vertices: g.Point[]) {
+export function setVertices(link: dia.Link, vertices: dia.Point[]) {
     link.vertices(vertices);
 }
 
@@ -119,15 +142,20 @@ function importLink(link: dia.Link, msGraph: Graph) {
 function applyLinkLayout(
     link: dia.Link,
     geomEdge: IdentifiableGeomEdge,
+    edgeType: EDGE_TYPE,
     options: Required<Options>
 ) {
     const { curve, source: sourceGeomNode, target: targetGeomNode, label } = geomEdge;
-    const vertices: g.Point[] = [];
+    const vertices: dia.Point[] = [];
 
     if (options.setVertices) {
 
         if (curve instanceof Curve) {
-            vertices.push(...curveToVertices(curve, options.edgeRoutingMode));
+            if (edgeType === EDGE_TYPE.OutEdge) {
+                vertices.push(...curveToVertices(curve, options.edgeRoutingMode));
+            } else {
+                vertices.push(...selfEdgeVertices(curve, options.edgeRoutingMode));
+            }
         }
 
         if (util.isFunction(options.setVertices)) {
@@ -180,28 +208,24 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph, option
 
         options.setPosition(element, position);
 
-        // If the node is a subgraph, its size has been modified
+        // Note: If the node is a subgraph, its size has been modified
         // when packing its children, so we need to set it explicitly
         if (geomNode.node instanceof Graph) {
             element.size(geomNode.boundingBox.width, geomNode.boundingBox.height);
         }
 
-        // Get all self edges and convert to array
-        // TODO: Self edges are using BezierSegs; multiple self edges are overlapping each other
-        // TODO: `RouteSelfEdges` in MSAGL uses edge.GetMaxArrowheadLength() - since Padding is never propagated to the RectlinearEdgeRouter
         const selfEdges = Array.from(geomNode.selfEdges());
         for (let i = 0; i < selfEdges.length; i++) {
             const geomEdge = selfEdges[i] as IdentifiableGeomEdge;
             const link = graph.getCell(geomEdge.id) as dia.Link;
-
-            applyLinkLayout(link, geomEdge, options);
+            applyLinkLayout(link, geomEdge, EDGE_TYPE.SelfEdge, options);
         }
 
         const outEdges = Array.from(geomNode.outEdges());
         for (let i = 0; i < outEdges.length; i++) {
             const geomEdge = outEdges[i] as IdentifiableGeomEdge;
             const link = graph.getCell(geomEdge.id) as dia.Link;
-            applyLinkLayout(link, geomEdge, options);
+            applyLinkLayout(link, geomEdge, EDGE_TYPE.OutEdge, options);
         }
     }
 
@@ -214,7 +238,7 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph, option
 export function buildLayoutSettings(options: Required<Options>): SugiyamaLayoutSettings {
 
     const layoutSettings = new SugiyamaLayoutSettings();
-    const { layerSeparation, nodeSeparation, layerDirection, gridSize, edgeRoutingMode } = options;
+    const { layerSeparation, nodeSeparation, layerDirection, polylinePadding,gridSize, edgeRoutingMode } = options;
 
     if (util.isNumber(layerSeparation)) {
         layoutSettings.LayerSeparation = layerSeparation;
@@ -229,35 +253,55 @@ export function buildLayoutSettings(options: Required<Options>): SugiyamaLayoutS
         layoutSettings.GridSizeByY = gridSize;
     }
 
+    if (util.isNumber(polylinePadding)) {
+        layoutSettings.edgeRoutingSettings.polylinePadding = polylinePadding;
+    }
+
     layoutSettings.layerDirection = layerDirection;
     layoutSettings.edgeRoutingSettings.EdgeRoutingMode = edgeRoutingMode;
 
     return layoutSettings;
 }
 
-function curveToVertices(curve: Curve, edgeRoutingMode: EdgeRoutingMode): g.Point[] {
+function curveToVertices(curve: Curve, edgeRoutingMode: EdgeRoutingMode): dia.Point[] {
     const vertices = [];
 
-    // Ellipses are the corners of links, JointJS will handle connecting the generated
-    // vertices with straight lines
-    const ellipses = curve.segs.filter((seg) => seg instanceof Ellipse) as Ellipse[];
-
-    // const iterateeFunction = edgeRoutingMode === EdgeRoutingMode.Rectilinear ? rectilinearRouteMapper : splineBundlingRouteMapper;
-    const iterateeFunction = edgeRoutingMode === EdgeRoutingMode.Rectilinear ? rectilinearRouteMapper : splineBundlingRouteMapper;
-
-    for (const ellipse of ellipses) {
-        vertices.push(...iterateeFunction(ellipse));
+    if (edgeRoutingMode === EdgeRoutingMode.Rectilinear) {
+        // Ellipses are the corners of links, JointJS will handle connecting the generated
+        // vertices with straight lines
+        const ellipses = curve.segs.filter((curve) => curve instanceof Ellipse);
+        for (const ellipse of ellipses) {
+            vertices.push(...rectilinearRouteMapper(ellipse));
+        }
+    } else {
+        const curves = curve.segs.filter((curve) => !(curve instanceof LineSegment)) as (BezierSeg | Ellipse)[];
+        for (const curve of curves) {
+            vertices.push(...splineBundlingRouteMapper(curve));
+        }
     }
 
-    return new g.Polyline(vertices).simplify({ threshold: 0.001 }).points;
+    // return new g.Polyline(vertices).simplify({ threshold: 0.001 }).points;
+    return vertices;
 }
 
-function rectilinearRouteMapper(ellipse: Ellipse): dia.Point[] {
+function selfEdgeVertices(curve: Curve, edgeRoutingMode: EdgeRoutingMode): dia.Point[] {
+    // If the routing mode is rectilinear, we create the vertices for the link ourselves
+    if (edgeRoutingMode === EdgeRoutingMode.Rectilinear) {
+        const { start, end } = curve;
+        return [
+            { x: start.x, y: start.y + RECTILINEAR_SELF_EDGE_OFFSET },
+            { x: end.x, y: end.y + RECTILINEAR_SELF_EDGE_OFFSET }
+        ];
+    } else {
+        return curveToVertices(curve, edgeRoutingMode);
+    }
+}
+
+function rectilinearRouteMapper(curve: Ellipse): dia.Point[] {
     // Replace all ellipses along the curve with the sum of the start and the bAxis
-    return [ellipse.start.add(ellipse.bAxis)];
+    return [curve.start.add(curve.bAxis)];
 }
 
-function splineBundlingRouteMapper(ellipse: Ellipse): dia.Point[] {
-    const middleParameter = (ellipse.parStart + ellipse.parEnd) / 2;
-    return [ellipse.start, ellipse.value(middleParameter), ellipse.end];
+function splineBundlingRouteMapper(segment: Ellipse | BezierSeg): dia.Point[] {
+    return segment instanceof Ellipse ? sampleEllipse(segment) : sampleBezierSeg(segment);
 }
