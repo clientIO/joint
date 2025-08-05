@@ -38,7 +38,8 @@ import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
-import { LayersNames, PaperLayer } from './PaperLayer.mjs';
+import { LayerView } from './layers/LayerView.mjs';
+import { CellLayerView } from './layers/CellLayerView.mjs';
 import { HighlighterView } from './HighlighterView.mjs';
 import { Deque } from '../alg/Deque.mjs';
 import * as highlighters from '../highlighters/index.mjs';
@@ -1940,7 +1941,7 @@ export const Paper = View.extend({
             cid,
             model: cell,
             interactive,
-            labelsLayer: labelsLayer === true ? LayersNames.LABELS : labelsLayer
+            labelsLayer: labelsLayer === true ? LAYERS.LABELS : labelsLayer
         });
     },
 
