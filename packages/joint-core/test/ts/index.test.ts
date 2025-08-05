@@ -114,7 +114,7 @@ const { size, position } = rectangle.toJSON();
 let isTypeofSize: AssertExtends<typeof size, joint.dia.Size> = true;
 let isTypeofPoint: AssertExtends<typeof position, joint.dia.Point> = true;
 
-const layer = new joint.dia.PaperLayer();
+const layer = new joint.dia.LayerView();
 layer.insertNode(cellView.el);
 layer.insertSortedNode(cellView.el, 5);
 

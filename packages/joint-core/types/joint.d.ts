@@ -2084,14 +2084,14 @@ export namespace dia {
 
     namespace LayerView {
 
-        interface Options<T extends mvc.Model = undefined> extends mvc.ViewOptions<T, SVGElement> {
+        interface Options<T extends mvc.Model | undefined = undefined> extends mvc.ViewOptions<T, SVGElement> {
             id: string;
             paper: Paper;
             type?: string;
         }
     }
 
-    class LayerView<T extends mvc.Model = undefined> extends mvc.View<T, SVGElement> {
+    class LayerView<T extends mvc.Model | undefined = undefined> extends mvc.View<T, SVGElement> {
 
         constructor(opt?: LayerView.Options);
 
