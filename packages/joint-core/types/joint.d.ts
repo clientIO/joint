@@ -565,6 +565,11 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Cell.Selectors> {
         }
 
+        interface ConstructorOptions extends Cell.ConstructorOptions {
+            portLayoutNamespace?: { [key: string]: layout.Port.LayoutFunction };
+            portLabelLayoutNamespace?: { [key: string]: layout.PortLabel.LayoutFunction };
+        }
+
         type PortPositionCallback = layout.Port.LayoutFunction;
 
         type PortLabelPositionCallback = layout.PortLabel.LayoutFunction;
@@ -656,6 +661,8 @@ export namespace dia {
     }
 
     class Element<A extends ObjectHash = Element.Attributes, S extends mvc.ModelSetOptions = dia.ModelSetOptions> extends Cell<A, S> {
+
+        constructor(attributes?: DeepPartial<A>, opt?: Element.ConstructorOptions);
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
