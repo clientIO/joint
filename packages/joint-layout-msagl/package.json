@@ -2,14 +2,23 @@
   "name": "@joint/layout-msagl",
   "title": "JointJS LayoutMSAGL",
   "type": "module",
+  "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
     }
   },
+  "files": [
+    "dist",
+    "SECURITY.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
   "version": "4.1.3",
   "description": "LayoutMSAGL module for JointJS",
   "homepage": "https://jointjs.com",
@@ -35,8 +44,10 @@
   },
   "scripts": {
     "build": "tsc",
-    "dist": "tsc",
-    "watch": "tsc -w"
+    "dist": "yarn build",
+    "watch": "tsc -w",
+    "clean": "rm -rf dist",
+    "prepack": "yarn clean && yarn build"
   },
   "dependencies": {
     "@joint/core": "workspace:~",
