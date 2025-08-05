@@ -1857,6 +1857,14 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             assert.equal(cellNodesCount(testPaper), 0, 'cell rendered');
             assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates after adding a cell');
 
+            graph.resetCells([rect, circle]);
+
+            assert.ok(testPaper.isFrozen(), 'paper is still frozen after resetCells()');
+            assert.notOk(testPaper.isIdle(), 'is not idle after resetCells()');
+            assert.equal(cellNodesCount(testPaper), 0, 'no cells rendered after resetCells()');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates after resetCells()');
+
+            // Only an explicit unfreeze() will trigger the rendering of cells.
             testPaper.unfreeze();
 
             assert.notOk(testPaper.isFrozen(), 'paper is un-frozen after unfreeze()');
@@ -1869,6 +1877,34 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             assert.ok(testPaper.isIdle(), 'is idle after unfreeze() and idle');
             assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered after unfreeze() and idle');
             assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after unfreeze() and idle');
+
+            circle.attr('body/fill', 'red');
+
+            assert.notOk(testPaper.isFrozen(), 'paper is not frozen after changing cell attributes');
+            assert.notOk(testPaper.isIdle(), 'is not idle after changing cell attributes');
+            assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered after changing cell attributes');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates after changing cell attributes');
+
+            await OnIdle(testPaper);
+
+            assert.ok(testPaper.isFrozen(), 'paper is frozen after changing cell attributes and idle');
+            assert.ok(testPaper.isIdle(), 'is idle after changing cell attributes and idle');
+            assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered after changing cell attributes and idle');
+            assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after changing cell attributes and idle');
+
+            graph.resetCells([rect]);
+
+            assert.notOk(testPaper.isFrozen(), 'paper is frozen after resetCells()');
+            assert.notOk(testPaper.isIdle(), 'is not idle after resetCells()');
+            assert.equal(cellNodesCount(testPaper), 0, 'no cells rendered after resetCells()');
+            assert.ok(testPaper.hasScheduledUpdates(), 'has scheduled updates after resetCells()');
+
+            await OnIdle(testPaper);
+
+            assert.ok(testPaper.isFrozen(), 'paper is frozen after resetCells() and idle');
+            assert.ok(testPaper.isIdle(), 'is idle after resetCells() and idle');
+            assert.equal(cellNodesCount(testPaper), 1, '1 cell rendered after resetCells() and idle');
+            assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after resetCells() and idle');
 
             done();
 
