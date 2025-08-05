@@ -1153,7 +1153,12 @@ export const Paper = View.extend({
 
     updateViewsAsync: function(opt, data) {
         opt || (opt = {});
-        data || (data = { processed: 0, priority: MIN_PRIORITY });
+        data || (data = {
+            processed: 0,
+            priority: MIN_PRIORITY,
+            checkedUnmounted: 0,
+            checkedMounted: 0,
+        });
         const { _updates: updates, options } = this;
         const id = updates.id;
         if (id) {
@@ -1187,15 +1192,24 @@ export const Paper = View.extend({
                 } else {
                     data.processed = processed;
                 }
+                data.checkedUnmounted = 0;
+                data.checkedMounted = 0;
             } else {
+                data.checkedUnmounted += Math.max(passingOpt.mountBatchSize, 0);
+                data.checkedMounted += Math.max(passingOpt.unmountBatchSize, 0);
                 // The `checkViewport` could have scheduled some insertions
                 // (note that removals are currently done synchronously).
                 if (options.autoFreeze && !this.hasScheduledUpdates()) {
-                    // If there are no updates scheduled, freeze the paper.
-                    // Notify the idle state.
-                    this.freeze();
-                    updates.idle = true;
-                    this.trigger('render:idle', opt);
+                    // If there are no updates scheduled and we checked all unmounted views,
+                    if (
+                        data.checkedUnmounted >= updates.unmountedList.length &&
+                        data.checkedMounted >= updates.mountedList.length
+                    ) {
+                        // We freeze the paper and notify the idle state.
+                        this.freeze();
+                        updates.idle = true;
+                        this.trigger('render:idle', opt);
+                    }
                 }
             }
             // Progress callback

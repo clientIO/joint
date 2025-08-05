@@ -1910,6 +1910,80 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             testPaper.remove();
         });
+
+        QUnit.test('idle after all mount && updates', async function(assert) {
+
+            const done = assert.async();
+
+            const testPaper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                sorting: Paper.sorting.APPROX,
+                viewManagement: {
+                    lazyInitialize: true,
+                    disposeHidden: true,
+                },
+                cellVisibility: (cell) => cell.get('visible')
+            });
+
+            const count = 10;
+            const rects = Array.from({ length: count }, () => new joint.shapes.standard.Rectangle());
+            graph.resetCells(rects);
+
+            await OnIdle(testPaper);
+
+            assert.equal(cellNodesCount(testPaper), 0);
+
+            rects.at(-1).set('visible', true);
+
+            testPaper.unfreeze({ mountBatchSize: 1 });
+
+            await OnIdle(testPaper);
+
+            assert.equal(cellNodesCount(testPaper), 1, 'All cells rendered after unfreeze() and idle');
+
+            done();
+        });
+
+        QUnit.test('idle after all unmount && updates', async function(assert) {
+
+            const done = assert.async();
+
+            const testPaper = new Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                autoFreeze: true,
+                sorting: Paper.sorting.APPROX,
+                viewManagement: {
+                    lazyInitialize: true,
+                    disposeHidden: true,
+                },
+                cellVisibility: (cell) => cell.get('visible')
+            });
+
+            const count = 10;
+            const rects = Array.from({ length: count }, () => new joint.shapes.standard.Rectangle({
+                visible: true
+            }));
+            graph.resetCells(rects);
+
+            await OnIdle(testPaper);
+
+            assert.equal(cellNodesCount(testPaper), 10);
+
+            rects.at(-1).set('visible', false);
+
+            testPaper.unfreeze({ unmountBatchSize: 1 });
+
+            await OnIdle(testPaper);
+
+            assert.equal(cellNodesCount(testPaper), 9, 'All cells rendered after unfreeze() and idle');
+
+            done();
+        });
     });
 
     QUnit.module('async = TRUE, frozen = TRUE', function(hooks) {
