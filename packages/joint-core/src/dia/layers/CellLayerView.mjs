@@ -43,19 +43,13 @@ export const CellLayerView = LayerView.extend({
 
         this.listenTo(model, 'cell:add', (cell, _collection, opt) => {
             if (!opt.initial) {
-                const view = paper.findViewByModel(cell);
-                if (view) {
-                    paper.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
-                }
+                this._requestViewUpdate(cell, opt);
             }
         });
 
         this.listenTo(model, 'cell:change:z', (cell, _value, opt) => {
             if (paper.options.sorting === sortingTypes.APPROX) {
-                const view = paper.findViewByModel(cell);
-                if (view) {
-                    paper.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
-                }
+                this._requestViewUpdate(cell, opt);
             }
         });
     },
@@ -104,6 +98,15 @@ export const CellLayerView = LayerView.extend({
             default:
                 this.insertNode(el);
                 break;
+        }
+    },
+
+    _requestViewUpdate(cell, opt) {
+        const { options: { paper } } = this;
+
+        const viewLike = paper._getCellViewLike(cell);
+        if (viewLike) {
+            paper.requestViewUpdate(viewLike, paper.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
         }
     }
 });

@@ -1393,4 +1393,11 @@ Object.defineProperty(CellView.prototype, 'useCSSSelectors', {
     }
 });
 
+// Internal tag to identify this object as a cell view instance.
+// Used instead of `instanceof` for performance and cross-frame safety.
 
+export const CELL_VIEW_MARKER = Symbol('joint.cellViewMarker');
+
+Object.defineProperty(CellView.prototype, CELL_VIEW_MARKER, {
+    value: true,
+});

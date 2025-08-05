@@ -11,7 +11,12 @@ var graph = new Graph;
 
 var windowBBox;
 function setWindowBBox() {
-    windowBBox = paper.pageToLocalRect(window.scrollX, window.scrollY, window.innerWidth, window.innerHeight);
+    windowBBox = paper.pageToLocalRect(
+        window.scrollX,
+        window.scrollY,
+        window.innerWidth,
+        window.innerHeight
+    );
 }
 
 window.onscroll = function() {
@@ -53,33 +58,41 @@ var paper = new Paper({
     model: graph,
     async: true,
     frozen: true,
-    defaultAnchor: { name: 'modelCenter' },
-    viewport: function(view, isInViewport) {
-        if (leaveDraggedInViewport && view.cid === draggedCid) return true;
-        if (leaveRenderedInViewport && isInViewport) return true;
+    viewManagement: {
+        lazyInitialize: true,
+        disposeHidden: true,
+    },
+    defaultAnchor: {
+        name: 'modelCenter'
+    },
+    defaultConnectionPoint: {
+        name: 'rectangle',
+        args: { useModelGeometry: true }
+    },
+    cellVisibility: function(model, isAlreadyMounted) {
+        if (leaveDraggedInViewport && model === draggedModel) return true;
+        if (leaveRenderedInViewport && isAlreadyMounted) return true;
         if (viewportRect) {
-            return g.intersection.exists(viewportBBox, view.model.getBBox());
+            return g.intersection.exists(viewportBBox, model.getBBox());
         } else {
-            if (view.model === viewport) return false;
-            return g.intersection.exists(windowBBox, view.model.getBBox());
+            if (model === viewport) return false;
+            return g.intersection.exists(windowBBox, model.getBBox());
         }
     }
 });
-
-paper.el.style.border = '1px solid black';
 
 paper.on('render:done', function(stats) {
     console.table(stats);
 });
 
 // Dragged view is always visible
-var draggedCid = null;
+var draggedModel = null;
 paper.on({
     'cell:pointerdown': function(view) {
-        draggedCid = view.cid;
+        draggedModel = view.model;
     },
     'cell:pointerup': function() {
-        draggedCid = null;
+        draggedModel = null;
     }
 });
 
@@ -214,7 +227,11 @@ function restart() {
 
     paper.freeze();
     graph.resetCells(elements.concat(links).concat(viewport));
-    paper.fitToContent({ useModelGeometry: true, padding: 10 });
+    paper.fitToContent({
+        useModelGeometry: true,
+        padding: 10,
+        allowNewOrigin: 'any'
+    });
 
     setViewportBBox();
 
