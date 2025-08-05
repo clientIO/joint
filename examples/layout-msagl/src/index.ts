@@ -106,6 +106,7 @@ const getLayoutOptions = (): Options => {
         edgeRoutingMode: Number(routingSelect.value) as EdgeRoutingMode,
         layerSeparation: Number(layerSepRange.value),
         nodeSeparation: Number(nodeSepRange.value),
+        polylinePadding: 10,
         gridSize: 10,
         margins: {
             left: Number(marginRange.value),
@@ -180,6 +181,9 @@ const getLayoutOptions = (): Options => {
 const runLayout = () => {
     paper.freeze();
     const options = getLayoutOptions();
+    // options.edgeRoutingMode = EdgeRoutingMode.SplineBundling;
+    // options.layerSeparation = 150;
+    // options.nodeSeparation = 150;
     if (!options.setVertices) {
         // Unset all vertices if setVertices is false
         graph.getLinks().forEach(link => link.vertices([]))

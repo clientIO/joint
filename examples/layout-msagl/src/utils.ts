@@ -30,6 +30,12 @@ export const createGraph = (graph: dia.Graph, type: string) => {
         case 'complete':
             createCompleteGraph(graph);
             break;
+        case 'self-links':
+            createSelfLinksGraph(graph);
+            break;
+        case 'nested':
+            prepareNestedGraph(graph);
+            break;
         default:
             createTreeGraph(graph);
     }
@@ -182,6 +188,112 @@ const createCompleteGraph = (graph: dia.Graph) => {
     ]);
 };
 
+// Create a graph with self-links
+const createSelfLinksGraph = (graph: dia.Graph) => {
+    const el = createNode('Self Link', getRandomColor());
+    const links: dia.Link[] = [];
+
+    for (let i = 0; i < 6; i++) {
+        const link = new shapes.standard.Link({
+            source: {
+                id: el.id,
+            },
+            target: {
+                id: el.id,
+            }
+        });
+        links.push(link);
+    }
+
+    graph.resetCells([
+        el,
+        ...links
+    ]);
+};
+
+const prepareNestedGraph = (graph: dia.Graph) => {
+    const nodes: dia.Element[] = [];
+    const links: dia.Link[] = [];
+
+    // Create top-level parent containers
+    const departmentA = createParentNode('Department A', '#2E86AB', { width: 300, height: 200 });
+    const departmentB = createParentNode('Department B', '#A23B72', { width: 280, height: 180 });
+    const departmentC = createParentNode('Department C', '#F18F01', { width: 250, height: 160 });
+
+    // Create teams within Department A
+    const teamA1 = createParentNode('Team A1', '#5DADE2', { width: 120, height: 80 });
+    const teamA2 = createParentNode('Team A2', '#85C1E9', { width: 120, height: 80 });
+
+    // Create individual members in Team A1
+    const memberA1_1 = createNode('Alice', '#AED6F1');
+    const memberA1_2 = createNode('Bob', '#AED6F1');
+
+    // Create individual members in Team A2
+    const memberA2_1 = createNode('Carol', '#D6EAF8');
+    const memberA2_2 = createNode('Dave', '#D6EAF8');
+
+    // Create teams within Department B
+    const teamB1 = createParentNode('Team B1', '#D7BDE2', { width: 100, height: 70 });
+    const memberB1_1 = createNode('Eve', '#E8DAEF');
+    const memberB1_2 = createNode('Frank', '#E8DAEF');
+
+    // Create individual members directly in Department C (no sub-teams)
+    const memberC1 = createNode('Grace', '#FCF3CF');
+    const memberC2 = createNode('Henry', '#FCF3CF');
+
+    // Set up the hierarchy - embed children in parents
+
+    // Department A hierarchy
+    departmentA.embed(teamA1);
+    departmentA.embed(teamA2);
+    teamA1.embed(memberA1_1);
+    teamA1.embed(memberA1_2);
+    teamA2.embed(memberA2_1);
+    teamA2.embed(memberA2_2);
+
+    // Department B hierarchy
+    departmentB.embed(teamB1);
+    teamB1.embed(memberB1_1);
+    teamB1.embed(memberB1_2);
+
+    // Department C hierarchy (flat)
+    departmentC.embed(memberC1);
+    departmentC.embed(memberC2);
+
+    // Add all nodes
+    nodes.push(
+        departmentA, departmentB, departmentC,
+        teamA1, teamA2, teamB1,
+        memberA1_1, memberA1_2, memberA2_1, memberA2_2,
+        memberB1_1, memberB1_2, memberC1, memberC2
+    );
+
+    // Create inter-department links
+    links.push(createLink(departmentA, departmentB, 'Collaboration'));
+    links.push(createLink(departmentB, departmentC, 'Handoff'));
+    links.push(createLink(departmentA, departmentC, 'Direct Report'));
+
+    // Create internal team links within Department A
+    links.push(createLink(memberA1_1, memberA1_2, 'Pair Work'));
+    links.push(createLink(memberA2_1, memberA2_2, 'Review'));
+    links.push(createLink(teamA1, teamA2, 'Sync'));
+
+    // Create internal links within Department B
+    links.push(createLink(memberB1_1, memberB1_2, 'Mentoring'));
+
+    // Create internal links within Department C
+    links.push(createLink(memberC1, memberC2, 'Partnership'));
+
+    // Cross-department individual connections
+    links.push(createLink(memberA1_1, memberB1_1, 'Cross-team'));
+    links.push(createLink(memberA2_2, memberC1, 'Consultation'));
+
+    graph.resetCells([
+        ...nodes,
+        ...links
+    ]);
+};
+
 // Helper function to create a node
 const createNode = (label: string, color: string): dia.Element => {
     const node = new shapes.standard.Rectangle({
@@ -208,15 +320,49 @@ const createNode = (label: string, color: string): dia.Element => {
     return node;
 };
 
-// Helper function to create a link
-const createLink = (source: dia.Element, target: dia.Element): dia.Link => {
+// Helper function to create a parent node (container)
+const createParentNode = (label: string, color: string, size: { width: number, height: number } = { width: 150, height: 100 }): dia.Element => {
+    const node = new shapes.standard.Rectangle({
+        labelSize: measureLabelText(label),
+        size,
+        attrs: {
+            body: {
+                fill: color,
+                stroke: '#333',
+                strokeWidth: 2,
+                rx: 8,
+                ry: 8,
+                fillOpacity: 0.8
+            },
+            label: {
+                text: label,
+                fill: 'white',
+                fontSize: 14,
+                fontWeight: 'bold',
+                textAnchor: 'middle',
+                textVerticalAnchor: 'top',
+                y: 10
+            }
+        }
+    });
 
-    const label = `${source.attr('label/text')} -> ${target.attr('label/text')}`;
+    return node;
+};
+
+// Helper function to create a link
+const createLink = (source: dia.Element, target: dia.Element, customLabel?: string): dia.Link => {
+
+    const label = customLabel || `${source.attr('label/text')} -> ${target.attr('label/text')}`;
 
     const link = new shapes.standard.Link({
         source: { id: source.id },
         target: { id: target.id },
         labelSize: measureLabelText(label),
+        attrs: {
+            line: {
+                strokeWidth: 1
+            }
+        },
         labels: [
             {
                 position: {
