@@ -172,4 +172,38 @@ QUnit.module('layers-basic', function(hooks) {
         assert.ok(!defaultLayer.cells.has(rect.id), 'Rectangle cell removed from old default layer');
         assert.ok(this.paper.getLayerViewNode(newDefaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view moved to new default layer view');
     });
+
+    QUnit.test('Inserting layers', (assert) => {
+
+        const layer1 = new joint.dia.CellLayer({ id: 'layer1' });
+
+        this.graph.addCellLayer(layer1);
+        this.graph.insertCellLayer(layer1);
+
+        const cellLayers = this.graph.get('cellLayers');
+        assert.strictEqual(cellLayers[0].id, 'cells', 'First layer is "cells"');
+        assert.strictEqual(cellLayers[1].id, 'layer1', 'Second layer is "layer1"');
+
+        const layer2 = new joint.dia.CellLayer({ id: 'layer2' });
+        this.graph.addCellLayer(layer2);
+        this.graph.insertCellLayer(layer2, 'layer1');
+
+        const updatedCellLayers = this.graph.get('cellLayers');
+        assert.strictEqual(updatedCellLayers[0].id, 'cells', 'First layer is still "cells"');
+        assert.strictEqual(updatedCellLayers[1].id, 'layer2', 'Second layer is now "layer2"');
+        assert.strictEqual(updatedCellLayers[2].id, 'layer1', 'Third layer is "layer1"');
+
+        this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'layer1');
+
+        const finalCellLayers = this.graph.get('cellLayers');
+        assert.strictEqual(finalCellLayers[0].id, 'layer2', 'First layer is "layer2"');
+        assert.strictEqual(finalCellLayers[1].id, 'cells', 'Second layer is still "layer2"');
+        assert.strictEqual(finalCellLayers[2].id, 'layer1', 'Third layer is "layer1"');
+
+        this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'cells');
+        assert.deepEqual(this.graph.get('cellLayers'), finalCellLayers, 'Inserting layer does not change order');
+
+        this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'layer1');
+        assert.deepEqual(this.graph.get('cellLayers'), finalCellLayers, 'Inserting layer does not change order');
+    });
 });

@@ -161,33 +161,53 @@ export class CellLayersController extends Listener {
         cellLayersMap[cellLayer.id] = cellLayer;
     }
 
-    insertCellLayer(cellLayer, insertAt) {
-        if (!this.hasCellLayer(cellLayer.id)) {
-            throw new Error(`dia.Graph: Layer with id '${cellLayer.id}' does not exist.`);
-        }
-
+    insertCellLayer(cellLayer, insertBefore) {
         const id = cellLayer.id;
 
-        const currentIndex = this.cellLayerAttributes.findIndex(attrs => attrs.id === id);
-        let attributes;
-        if (currentIndex !== -1) {
-            attributes = this.cellLayerAttributes[currentIndex];
-            this.cellLayerAttributes.splice(currentIndex, 1); // remove existing layer attributes
+        if (!this.hasCellLayer(id)) {
+            throw new Error(`dia.Graph: Layer with id '${id}' does not exist.`);
+        }
 
-            if (currentIndex < insertAt) {
-                insertAt--;
-            }
+        let currentIndex = this.cellLayerAttributes.findIndex(attrs => attrs.id === id);
+        if (currentIndex === -1) {
+            currentIndex = null;
+        }
+
+        let attributes;
+        if (currentIndex != null) {
+            attributes = this.cellLayerAttributes[currentIndex];
         } else {
             attributes = {
                 id
             };
         }
 
-        if (insertAt == null) {
-            insertAt = this.cellLayerAttributes.length;
-        }
+        if (!insertBefore) {
+            if (currentIndex != null) {
+                this.cellLayerAttributes.splice(currentIndex, 1); // remove existing layer attributes
+            }
+            this.cellLayerAttributes.push(attributes);
+        } else {
+            let insertAt = this.cellLayerAttributes.findIndex(attrs => attrs.id === insertBefore);
+            if (insertAt === -1) {
+                throw new Error(`dia.Graph: Layer with id '${insertBefore}' is not inserted before.`);
+            }
+            if (id === insertBefore) {
+                return;
+            }
+            if (currentIndex != null) {
+                this.cellLayerAttributes.splice(currentIndex, 1); // remove existing layer attributes
+                if (currentIndex < insertAt) {
+                    insertAt--;
+                }
+                // check if the resulting index is the same as the current index
+                if (currentIndex === insertAt) {
+                    return;
+                }
+            }
 
-        this.cellLayerAttributes.splice(insertAt, 0, attributes);
+            this.cellLayerAttributes.splice(insertAt, 0, attributes);
+        }
 
         this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
         this.graph.trigger('layers:update', this.cellLayerAttributes);

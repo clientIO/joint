@@ -427,8 +427,8 @@ export const Graph = Model.extend({
         this.cellLayersController.addCellLayer(cellLayer, opt);
     },
 
-    insertCellLayer(cellLayer, insertAt) {
-        this.cellLayersController.insertCellLayer(cellLayer, insertAt);
+    insertCellLayer(cellLayer, insertBefore) {
+        this.cellLayersController.insertCellLayer(cellLayer, insertBefore);
     },
 
     removeCellLayer(cellLayer, opt) {

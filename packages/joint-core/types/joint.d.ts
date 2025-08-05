@@ -213,7 +213,7 @@ export namespace dia {
 
         addCellLayer(layer: CellLayer): void;
 
-        insertCellLayer(layer: CellLayer, insertAt?: number): void;
+        insertCellLayer(layer: CellLayer, insertBefore?: string): void;
 
         removeCellLayer(layer: CellLayer): void;
 
