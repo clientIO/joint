@@ -27,9 +27,9 @@ export interface Options {
         top: number,
         bottom: number
     },
-    setPosition?: (element: dia.Element, position: g.Point) => void;
-    setVertices?: boolean | ((link: dia.Link, vertices: g.Point[]) => void);
-    setLabels?: boolean | ((link: dia.Link, labelPositon: dia.Point, points: g.Point[]) => void);
+    setPosition?: (element: dia.Element, position: dia.Point) => void;
+    setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
+    setLabels?: boolean | ((link: dia.Link, labelPosition: dia.Point, points: dia.Point[]) => void);
     setAnchor?: boolean | ((link: dia.Link, referencePoint: dia.Point, bbox: dia.BBox, endType: 'source' | 'target') => void);
 }
 

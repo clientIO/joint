@@ -28,7 +28,7 @@ const RECTILINEAR_SELF_EDGE_OFFSET = 10;
 
 // --- Default Callbacks
 
-export function setPosition(element: dia.Element, position: g.Point) {
+export function setPosition(element: dia.Element, position: dia.Point) {
     element.position(position.x, position.y);
 }
 
@@ -204,7 +204,7 @@ export function applyLayoutResult(graph: dia.Graph, geomGraph: GeomGraph, option
         const { left: x, bottom: y } = geomNode.boundingBox;
 
         const element = graph.getCell(id) as dia.Element;
-        const position = new g.Point(x, y);
+        const position = { x, y };
 
         options.setPosition(element, position);
 
