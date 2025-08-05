@@ -58,6 +58,7 @@ var paper = new Paper({
     model: graph,
     async: true,
     frozen: true,
+    autoFreeze: true,
     viewManagement: {
         lazyInitialize: true,
         disposeHidden: true,
