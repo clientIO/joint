@@ -546,7 +546,7 @@ export const Paper = View.extend({
             } else {
                 layerView = this.getLayerView(cellLayer.id);
             }
-            this.insertLayerView(layerView, LAYERS.FRONT);
+            this.insertLayerView(layerView, LAYERS.LABELS);
         });
 
         this._cellLayers = cellLayers;
