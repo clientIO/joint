@@ -1246,6 +1246,17 @@ export const Paper = View.extend({
         this.trigger('render:done', stats, opt);
     },
 
+    prioritizeCellViewVisibility: function(cellOrId) {
+        if (!cellOrId) return false;
+        const cid = this._idToCid[cellOrId.id || cellOrId];
+        if (!cid) return false;
+        const { unmountedList } = this._updates;
+        if (!unmountedList.has(cid)) return false;
+        // Move the view to the head of the mounted list
+        unmountedList.moveToHead(cid);
+        return true;
+    },
+
     _evalCellVisibility: function(viewLike, isMounted, visibilityCallback) {
         if (!visibilityCallback || !viewLike.DETACHABLE) return true;
         if (this.options.viewManagement) {

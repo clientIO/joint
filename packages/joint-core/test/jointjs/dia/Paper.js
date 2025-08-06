@@ -1771,7 +1771,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
         const OnIdle = (paper) => new Promise(resolve => paper.once('render:idle', () => resolve()));
 
-        QUnit.test('autofreeze check', function(assert) {
+        QUnit.test('autoFreeze check', function(assert) {
             const done = assert.async();
 
             const testPaper = new Paper({
@@ -2765,6 +2765,62 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             paper.remove();
         });
+    });
+
+    QUnit.module('prioritizeUnmountedCellView()', function(hooks) {
+
+        QUnit.test('prioritizes unmounted cell views', function(assert) {
+            const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+            paper = new Paper({
+                el: paperEl,
+                model: graph,
+                viewManagement: {
+                    lazyInitialize: true,
+                    disposeHidden: true,
+                },
+                async: true,
+                frozen: true,
+                cellVisibility: () => true,
+            });
+
+            const rects = Array.from({ length: 10 }, (_, i) => new joint.shapes.standard.Rectangle());
+            graph.addCells(rects);
+
+            // Move all schedule updates to the unmounted state
+            paper.updateViews({ cellVisibility: () => false });
+
+            assert.equal(cellNodesCount(paper), 0, 'No views are mounted initially');
+
+            paper.checkViewport({ mountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 1, 'One view is mounted after checkViewport with mountBatchSize 1');
+            assert.ok(paper.isViewMounted(rects[0].id), 'First view is mounted');
+
+            paper.checkViewport({ mountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 2, 'Two views are mounted after second updateViewsBatch');
+            assert.ok(paper.isViewMounted(rects[1].id), 'Second view is mounted');
+
+            paper.prioritizeUnmountedCellView(rects[9]);
+            paper.checkViewport({ mountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 3, 'Three views are mounted after prioritizing unmounted view');
+            assert.ok(paper.isViewMounted(rects[9].id), 'Prioritized view is mounted');
+
+            paper.checkViewport({ mountBatchSize: 1 });
+            paper.updateViewsBatch({ batchSize: 1 });
+
+            assert.equal(cellNodesCount(paper), 4, 'Four views are mounted after another updateViewsBatch');
+            assert.ok(paper.isViewMounted(rects[2].id), 'Third view is mounted');
+
+            paper.remove();
+        });
+
+
+
     });
 
     QUnit.module('viewManagement', function(hooks) {
