@@ -7,14 +7,13 @@ export const CellLayerView = LayerView.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
 
-    style: {
-        webkitUserSelect: 'none',
-        userSelect: 'none'
-    },
-
     init() {
         LayerView.prototype.init.apply(this, arguments);
 
+        // applying it here instead of using property
+        // ensures compatibility regarding dom attributes order for snapshots
+        this.el.style.webkitUserSelect = 'none';
+        this.el.style.userSelect = 'none';
         this.startListening();
     },
 
