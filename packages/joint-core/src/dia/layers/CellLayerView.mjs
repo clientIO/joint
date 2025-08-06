@@ -23,7 +23,7 @@ export const CellLayerView = LayerView.extend({
     },
 
     startListening() {
-        const { model, options: { paper } } = this;
+        const { model, options: { paper }} = this;
         const graph = paper.model;
 
         this.listenTo(model, 'sort', () => {
@@ -54,7 +54,7 @@ export const CellLayerView = LayerView.extend({
     },
 
     sort() {
-        const { options: { paper } } = this;
+        const { options: { paper }} = this;
         if (!paper)
             return;
 
@@ -87,7 +87,7 @@ export const CellLayerView = LayerView.extend({
 
     insertCellView(cellView) {
         const { el, model } = cellView;
-        const { options: { paper } } = this;
+        const { options: { paper }} = this;
 
         switch (paper.options.sorting) {
             case sortingTypes.APPROX:
@@ -101,7 +101,7 @@ export const CellLayerView = LayerView.extend({
     },
 
     _requestViewUpdate(cell, opt) {
-        const { options: { paper } } = this;
+        const { options: { paper }} = this;
 
         const viewLike = paper._getCellViewLike(cell);
         if (viewLike) {
