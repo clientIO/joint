@@ -1,58 +1,14 @@
 import { dia, g, util } from "@joint/core";
-import { Graph, GeomGraph, layoutGraphWithSugiayma, LayerDirectionEnum, CancelToken } from '@msagl/core';
+import { Graph, GeomGraph, layoutGraphWithSugiayma, CancelToken } from '@msagl/core';
 import {
     applyLayoutResult,
     buildLayoutSettings,
-    importJointGraph,
-    setPosition
+    importJointGraph
 } from "./utils.mjs";
+import { type Options, LayerDirectionEnum } from './types.mjs';
+import { defaultOptions } from "./defaults.mjs";
 
 const LAYOUT_BATCH_NAME = 'layout';
-
-export enum EdgeRoutingMode {
-    SplineBundling = 1,
-    Rectilinear = 4
-}
-
-export interface Options {
-    layerDirection?: LayerDirectionEnum,
-    layerSeparation?: number,
-    nodeSeparation?: number,
-    polylinePadding?: number,
-    gridSize?: number,
-    edgeRoutingMode?: EdgeRoutingMode
-    margins?: {
-        left: number,
-        right: number,
-        top: number,
-        bottom: number
-    },
-    setPosition?: (element: dia.Element, position: dia.Point) => void;
-    setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
-    setLabels?: boolean | ((link: dia.Link, labelPosition: dia.Point, points: dia.Point[]) => void);
-    setAnchor?: boolean | ((link: dia.Link, referencePoint: dia.Point, bbox: dia.BBox, endType: 'source' | 'target') => void);
-}
-
-const defaultOptions: Required<Options> = {
-    layerDirection: LayerDirectionEnum.TB,
-    layerSeparation: 40,
-    nodeSeparation: 20,
-    polylinePadding: 1,
-    gridSize: 10,
-    edgeRoutingMode: EdgeRoutingMode.Rectilinear,
-    margins: {
-        left: 10,
-        right: 10,
-        top: 10,
-        bottom: 10
-    },
-    setPosition,
-    setVertices: true,
-    setLabels: true,
-    setAnchor: true
-};
-
-export { LayerDirectionEnum } from '@msagl/core';
 
 export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options): g.Rect {
 
@@ -77,7 +33,7 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
     geomGraph.margins = finalOptions.margins;
 
     // Process the JointJS graph and convert it to a MSAGL graph
-    importJointGraph(graph, msGraph);
+    importJointGraph(graph, msGraph, finalOptions);
 
     // Top-level layout settings
     geomGraph.layoutSettings = buildLayoutSettings(finalOptions);
@@ -117,3 +73,5 @@ export function layout(graphOrCells: dia.Graph | dia.Cell[], options?: Options):
         bbox.height - (top + bottom)
     );
 }
+
+export * from './types.mjs';
