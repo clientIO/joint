@@ -1,0 +1,55 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    height: 100vh;
+    font-family: sans-serif;
+}
+
+#paper {
+    width: 100%;
+    height: 100%;
+}
+
+#controls {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    bottom: 50px;
+    right: 50px;
+    width: 300px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.control-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+label {
+    min-width: 120px;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+input[type="range"], select {
+    flex: 1;
+    min-width: 100px;
+}
+
+span {
+    min-width: 30px;
+    text-align: right;
+    font-size: 12px;
+}
