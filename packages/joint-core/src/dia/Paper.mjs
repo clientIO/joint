@@ -1153,7 +1153,12 @@ export const Paper = View.extend({
 
     updateViewsAsync: function(opt, data) {
         opt || (opt = {});
-        data || (data = { processed: 0, priority: MIN_PRIORITY });
+        data || (data = {
+            processed: 0,
+            priority: MIN_PRIORITY,
+            checkedUnmounted: 0,
+            checkedMounted: 0,
+        });
         const { _updates: updates, options } = this;
         const id = updates.id;
         if (id) {
@@ -1187,15 +1192,24 @@ export const Paper = View.extend({
                 } else {
                     data.processed = processed;
                 }
+                data.checkedUnmounted = 0;
+                data.checkedMounted = 0;
             } else {
+                data.checkedUnmounted += Math.max(passingOpt.mountBatchSize, 0);
+                data.checkedMounted += Math.max(passingOpt.unmountBatchSize, 0);
                 // The `checkViewport` could have scheduled some insertions
                 // (note that removals are currently done synchronously).
                 if (options.autoFreeze && !this.hasScheduledUpdates()) {
-                    // If there are no updates scheduled, freeze the paper.
-                    // Notify the idle state.
-                    this.freeze();
-                    updates.idle = true;
-                    this.trigger('render:idle', opt);
+                    // If there are no updates scheduled and we checked all unmounted views,
+                    if (
+                        data.checkedUnmounted >= updates.unmountedList.length &&
+                        data.checkedMounted >= updates.mountedList.length
+                    ) {
+                        // We freeze the paper and notify the idle state.
+                        this.freeze();
+                        updates.idle = true;
+                        this.trigger('render:idle', opt);
+                    }
                 }
             }
             // Progress callback
@@ -1230,6 +1244,28 @@ export const Paper = View.extend({
             afterFn.call(this, stats, opt, this);
         }
         this.trigger('render:done', stats, opt);
+    },
+
+    prioritizeCellViewMount: function(cellOrId) {
+        if (!cellOrId) return false;
+        const cid = this._idToCid[cellOrId.id || cellOrId];
+        if (!cid) return false;
+        const { unmountedList } = this._updates;
+        if (!unmountedList.has(cid)) return false;
+        // Move the view to the head of the mounted list
+        unmountedList.moveToHead(cid);
+        return true;
+    },
+
+    prioritizeCellViewUnmount: function(cellOrId) {
+        if (!cellOrId) return false;
+        const cid = this._idToCid[cellOrId.id || cellOrId];
+        if (!cid) return false;
+        const { mountedList } = this._updates;
+        if (!mountedList.has(cid)) return false;
+        // Move the view to the head of the unmounted list
+        mountedList.moveToHead(cid);
+        return true;
     },
 
     _evalCellVisibility: function(viewLike, isMounted, visibilityCallback) {
@@ -1498,6 +1534,7 @@ export const Paper = View.extend({
         this.options.frozen = true;
         var id = updates.id;
         updates.id = null;
+        updates.idle = false;
         if (this.isAsync() && id) cancelFrame(id);
     },
 
@@ -1531,6 +1568,10 @@ export const Paper = View.extend({
 
     isFrozen: function() {
         return !!this.options.frozen;
+    },
+
+    isIdle: function() {
+        return !!(this._updates && this._updates.idle);
     },
 
     isExactSorting: function() {
@@ -1992,11 +2033,11 @@ export const Paper = View.extend({
     resetViews: function(cells, opt) {
         opt || (opt = {});
         cells || (cells = []);
+        // Allows to unfreeze normally while in the idle state using autoFreeze option
+        const key = this.isIdle() ? null : 'reset';
         this._resetUpdates();
         // clearing views removes any event listeners
         this.removeViews();
-        // Allows to unfreeze normally while in the idle state using autoFreeze option
-        const key = this.options.autoFreeze ? null : 'reset';
         this.freeze({ key });
         for (var i = 0, n = cells.length; i < n; i++) {
             this.renderView(cells[i], opt);
