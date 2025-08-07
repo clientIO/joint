@@ -2804,6 +2804,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             assert.ok(paper.isViewMounted(rects[1].id), 'Second view is mounted');
 
             paper.prioritizeCellViewMount(rects[9]);
+
             paper.checkViewport({ mountBatchSize: 1 });
             paper.updateViewsBatch({ batchSize: 1 });
 
@@ -2815,6 +2816,14 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             assert.equal(cellNodesCount(paper), 4, 'Four views are mounted after another updateViewsBatch');
             assert.ok(paper.isViewMounted(rects[2].id), 'Third view is mounted');
+
+            // Check the return values of prioritizeCellViewMount
+            assert.equal(paper.prioritizeCellViewMount(rects[5]), true, 'Prioritization of unmounted view returned true');
+            assert.equal(paper.prioritizeCellViewMount(rects[5].id), true, 'Prioritization of unmounted view by ID returned true');
+            assert.equal(paper.prioritizeCellViewMount(rects[0]), false, 'Prioritization of already mounted view returned false');
+            assert.equal(paper.prioritizeCellViewMount(rects[1].id), false, 'Prioritization of already mounted view returned false');
+            assert.equal(paper.prioritizeCellViewMount(), false, 'Prioritization without parameters returned false');
+            assert.equal(paper.prioritizeCellViewMount('non-existing-id'), false, 'Prioritization of non-existing view returned false');
 
             paper.remove();
         });
@@ -2870,6 +2879,14 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             assert.equal(cellNodesCount(paper), 6, 'Four views are unmounted after another updateViewsBatch');
             assert.notOk(paper.isViewMounted(rects[2].id), 'Third view is not mounted');
+
+            // Check the return values of prioritizeCellViewUnmount
+            assert.equal(paper.prioritizeCellViewUnmount(rects[5]), true, 'Prioritization of mounted view returned true');
+            assert.equal(paper.prioritizeCellViewUnmount(rects[5].id), true, 'Prioritization of mounted view by ID returned true');
+            assert.equal(paper.prioritizeCellViewUnmount(rects[0]), false, 'Prioritization of already unmounted view returned false');
+            assert.equal(paper.prioritizeCellViewUnmount(rects[1].id), false, 'Prioritization of already unmounted view returned false');
+            assert.equal(paper.prioritizeCellViewUnmount(), false, 'Prioritization without parameters returned false');
+            assert.equal(paper.prioritizeCellViewUnmount('non-existing-id'), false, 'Prioritization of non-existing view returned false');
 
             paper.remove();
         });
