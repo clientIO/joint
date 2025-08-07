@@ -17,8 +17,9 @@ import {
     LineSegment
 } from '@msagl/core';
 import { IdentifiableGeomEdge } from "./IdentifiableGeomEdge.mjs";
-import { type Options, EdgeRoutingMode } from './index.mjs';
+import { type Options, EdgeRoutingMode } from './types.mjs';
 import { sampleBezierSeg, sampleEllipse } from './sampling.mjs';
+import { setVertices, setLabels, setAnchor } from './defaults.mjs';
 
 enum EDGE_TYPE {
     SelfEdge,
@@ -26,62 +27,19 @@ enum EDGE_TYPE {
 }
 const RECTILINEAR_SELF_EDGE_OFFSET = 10;
 
-// --- Default Callbacks
-
-export function setPosition(element: dia.Element, position: dia.Point) {
-    element.position(position.x, position.y);
-}
-
-export function setVertices(link: dia.Link, vertices: dia.Point[]) {
-    link.vertices(vertices);
-}
-
-export function setLabels(link: dia.Link, labelPosition: dia.Point, points: dia.Point[]) {
-
-    const polyline = new g.Polyline(points);
-
-    const linkSize = link.get('labelSize') as { width: number, height: number };
-
-    const cx = labelPosition.x + linkSize.width / 2;
-    const cy = labelPosition.y + linkSize.height / 2;
-
-    const center = new g.Point(cx, cy);
-
-    const distance = polyline.closestPointLength(center);
-    // Get the tangent at the closest point to calculate the offset
-    const tangent = polyline.tangentAtLength(distance);
-
-    link.label(0, {
-        position: {
-            distance,
-            offset: tangent?.pointOffset(center) || 0
-        }
-    });
-}
-
-export function setAnchor(link: dia.Link, referencePoint: dia.Point, bbox: dia.BBox, endType: 'source' | 'target') {
-    link.prop(`${endType}/anchor`, {
-        name: 'modelCenter',
-        args: {
-            dx: referencePoint.x - bbox.x - bbox.width / 2,
-            dy: referencePoint.y - bbox.y - bbox.height / 2,
-        }
-    });
-}
-
-export function importJointGraph(graph: dia.Graph, msGraph: Graph) {
+export function importJointGraph(graph: dia.Graph, msGraph: Graph, options: Required<Options>) {
 
     // Start constructing nodes recursively
     // starting from top-level elements
     graph.getElements()
         .filter((element) => !element.parent())
-        .forEach((topLevelEl) => importElement(topLevelEl, msGraph));
+        .forEach((topLevelEl) => importElement(topLevelEl, msGraph, options));
 
     graph.getLinks()
-        .forEach((link) => importLink(link, msGraph));
+        .forEach((link) => importLink(link, msGraph, options));
 }
 
-function importElement(element: dia.Element, parent: Graph): Node {
+function importElement(element: dia.Element, parent: Graph, options: Required<Options>): Node {
 
     const embeds = element.getEmbeddedCells();
 
@@ -89,7 +47,7 @@ function importElement(element: dia.Element, parent: Graph): Node {
         const node = new Node(String(element.id));
         parent.addNode(node);
         const geomNode = new GeomNode(node);
-        const size = element.size();
+        const size = options.getSize(element);
         geomNode.boundaryCurve = CurveFactory.createRectangle(size.width, size.height, new Point(0, 0));
 
         return node;
@@ -99,7 +57,7 @@ function importElement(element: dia.Element, parent: Graph): Node {
     const subgraph = new Graph(String(element.id));
     const geomGraph = new GeomGraph(subgraph)
 
-    const labelSize = element.get('labelSize') as { width: number, height: number } | undefined;
+    const labelSize = options.getLabelSize(element);
     if (labelSize) {
         geomGraph.labelSize = new Size(labelSize.width, labelSize.height);
     }
@@ -107,13 +65,13 @@ function importElement(element: dia.Element, parent: Graph): Node {
     parent.addNode(subgraph);
 
     embeds.filter((cell) => cell.isElement()).forEach((child) => {
-        importElement(child as dia.Element, subgraph);
+        importElement(child as dia.Element, subgraph, options);
     });
 
     return subgraph;
 }
 
-function importLink(link: dia.Link, msGraph: Graph) {
+function importLink(link: dia.Link, msGraph: Graph, options: Required<Options>) {
     const sourceNode = msGraph.findNodeRecursive(String(link.source().id));
     const targetNode = msGraph.findNodeRecursive(String(link.target().id));
 
@@ -126,7 +84,7 @@ function importLink(link: dia.Link, msGraph: Graph) {
     const edge = new Edge(sourceNode, targetNode);
     const geomEdge = new IdentifiableGeomEdge(edge, link.id);
 
-    const linkLabelSize = link.get('labelSize') as { width: number, height: number } | undefined;
+    const linkLabelSize = options.getLabelSize(link);
 
     // No `labelSize` provided, do not account for the link label in the layout
     if (!linkLabelSize) return;
