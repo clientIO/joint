@@ -267,23 +267,39 @@ layout(graph, {
 ## 🔧 Advanced Features
 
 ### Label Positioning
-To enable automatic label positioning, set the `labelSize` property on your links:
 
+The layout automatically positions labels on links and reserves space for element labels in subgraphs. Label sizing is controlled by the `getLabelSize` callback:
+
+**Default behavior** - reads from the `labelSize` property:
 ```ts
 link.set('labelSize', { width: 100, height: 20 });
-```
-
-### Element Sizing
-For subgraphs, you can set a `labelSize` on parent elements to reserve space for labels:
-
-```ts
 parentElement.set('labelSize', { width: 120, height: 25 });
 ```
+
+**Custom label sizing** - provide your own callback:
+```ts
+layout(graph, {
+    getLabelSize: (cell) => {
+        if (cell.isLink()) {
+            // Calculate link label size based on text content
+            const text = cell.label(0)?.attrs?.text?.text || '';
+            return { width: text.length * 8, height: 20 };
+        } else {
+            // Calculate element label size
+            const text = cell.attr('label/text') || '';
+            return { width: text.length * 10, height: 25 };
+        }
+    }
+});
+```
+
+If `getLabelSize` returns `undefined` for a cell, no space is reserved for its label.
 
 ## ⚠️ Caveats & Known Limitations
 
 - **Rectilinear self‑loops** – When `edgeRoutingMode` is set to `Rectilinear`, we currently apply a _static_ offset to self‑edges. The resulting loop can look artificially large or misplaced. This limitation originates in the upstream `msagljs` library and will disappear once it is addressed there.
 - **Subgraph resizing** – Parent elements that embed other elements are resized by the layout to tightly pack all their children.
+- **Subgraph layout direction** - Layout inside subgraphs is always set to `TB` (Top-to-Bottom) direction, as other directions can cause layout issues.
 
 ## 📄 License
 
