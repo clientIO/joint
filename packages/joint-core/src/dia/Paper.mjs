@@ -1246,7 +1246,7 @@ export const Paper = View.extend({
         this.trigger('render:done', stats, opt);
     },
 
-    prioritizeCellViewVisibility: function(cellOrId) {
+    prioritizeCellViewMount: function(cellOrId) {
         if (!cellOrId) return false;
         const cid = this._idToCid[cellOrId.id || cellOrId];
         if (!cid) return false;
@@ -1254,6 +1254,17 @@ export const Paper = View.extend({
         if (!unmountedList.has(cid)) return false;
         // Move the view to the head of the mounted list
         unmountedList.moveToHead(cid);
+        return true;
+    },
+
+    prioritizeCellViewUnmount: function(cellOrId) {
+        if (!cellOrId) return false;
+        const cid = this._idToCid[cellOrId.id || cellOrId];
+        if (!cid) return false;
+        const { mountedList } = this._updates;
+        if (!mountedList.has(cid)) return false;
+        // Move the view to the head of the unmounted list
+        mountedList.moveToHead(cid);
         return true;
     },
 
