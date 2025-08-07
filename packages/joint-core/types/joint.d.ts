@@ -1957,9 +1957,13 @@ export namespace dia {
 
         protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: { mountBatchSize?: number }): number;
 
-        protected prioritizeCellViewVisibility(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+        protected prioritizeCellViewMount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+
+        protected prioritizeCellViewUnmount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
 
         protected isAsync(): boolean;
+
+        protected isIdle(): boolean;
 
         protected isExactSorting(): boolean;
 
