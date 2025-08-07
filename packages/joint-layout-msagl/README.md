@@ -66,18 +66,23 @@ Main layout function with full customization options.
 ### Options Interface
 
 ```ts
+// Callback type definitions
+type GetSizeCallback = (element: dia.Element) => dia.Size;
+type GetLabelSizeCallback = (cell: dia.Link | dia.Element) => dia.Size | undefined;
+type SetPositionCallback = (element: dia.Element, position: dia.Point) => void;
+type SetVerticesCallback = (link: dia.Link, vertices: dia.Point[]) => void;
+type SetLabelsCallback = (link: dia.Link, labelPosition: dia.Point, points: dia.Point[]) => void;
+type SetAnchorCallback = (link: dia.Link, linkEndPoint: dia.Point, bbox: dia.BBox, endType: 'source' | 'target') => void;
+
 interface Options {
     // Layout direction
     layerDirection?: LayerDirectionEnum; // Default: LayerDirectionEnum.TB
-    
     // Spacing
     layerSeparation?: number; // Default: 40
     nodeSeparation?: number; // Default: 20
-    
     // Edge routing
     edgeRoutingMode?: EdgeRoutingMode; // Default: EdgeRoutingMode.Rectilinear
     polylinePadding?: number; // Default: 1
-    
     // Grid and margins
     gridSize?: number; // Default: 10
     margins?: { // Default: { left: 10, right: 10, top: 10, bottom: 10 }
@@ -86,12 +91,14 @@ interface Options {
         top: number;
         bottom: number;
     };
-    
-    // Callbacks for customizing the layout application
-    setPosition?: (element: dia.Element, position: g.Point) => void;
-    setVertices?: boolean | ((link: dia.Link, vertices: g.Point[]) => void);
-    setLabels?: boolean | ((link: dia.Link, labelPosition: dia.Point, points: g.Point[]) => void);
-    setAnchor?: boolean | ((link: dia.Link, referencePoint: dia.Point, bbox: dia.BBox, endType: 'source' | 'target') => void);
+    // Element sizing callbacks
+    getSize?: GetSizeCallback; // Default: element.size()
+    getLabelSize?: GetLabelSizeCallback; // Default: element.get('labelSize')
+    // Callbacks for customizing how the layout is applied
+    setPosition?: SetPositionCallback; // Default: element.position(x, y)
+    setVertices?: boolean | SetVerticesCallback; // Default: true
+    setLabels?: boolean | SetLabelsCallback; // Default: true  
+    setAnchor?: boolean | SetAnchorCallback; // Default: true
 }
 ```
 
