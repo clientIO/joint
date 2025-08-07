@@ -46,7 +46,7 @@
     "build:umd": "rollup --config",
     "build": "yarn clean && yarn build:esm && yarn build:umd",
     "dist": "yarn build",
-    "watch": "concurrently \"tsc --project tsconfig.esm.json --watch\" \"rollup --config --watch\"",
+    "watch": "yarn build && concurrently \"tsc --project tsconfig.esm.json --watch\" \"rollup --config --watch\"",
     "test": "yarn build && karma start karma.conf.js",
     "clean": "rm -rf dist",
     "prepack": "yarn build"
