@@ -58,7 +58,7 @@ var paper = new Paper({
     model: graph,
     async: true,
     frozen: true,
-    autoFreeze: true,
+    // autoFreeze: true,
     viewManagement: {
         lazyInitialize: true,
         disposeHidden: true,
@@ -236,25 +236,27 @@ function restart() {
 
     setViewportBBox();
 
+    // paper.unfreeze();
+
     console.timeEnd('perf-reset');
 
     console.time('perf-dump');
 
-    paper.unfreeze({
-        batchSize: batchSizeInput.value,
-        progress: function(done, current, total) {
-            var progress = current / total;
-            console.log(Math.round(progress * 100) + '%');
-            if (done) {
-                console.timeEnd('perf-dump');
-                console.timeEnd('perf-all');
-                paper.unfreeze();
-                loader.el.remove();
-            } else {
-                loader.progress(progress);
-            }
-        }
-    });
+    // paper.unfreeze({
+    //     batchSize: batchSizeInput.value,
+    //     progress: function(done, current, total) {
+    //         var progress = current / total;
+    //         console.log(Math.round(progress * 100) + '%');
+    //         if (done) {
+    //             console.timeEnd('perf-dump');
+    //             console.timeEnd('perf-all');
+    //             paper.unfreeze();
+    //             loader.el.remove();
+    //         } else {
+    //             loader.progress(progress);
+    //         }
+    //     }
+    // });
 }
 
 function rndColor() {
