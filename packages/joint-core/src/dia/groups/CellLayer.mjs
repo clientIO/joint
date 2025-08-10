@@ -10,10 +10,13 @@ export class CellLayerCollection extends CellGroupCollection {
 
 export class CellLayer extends CellGroup {
 
+    preinitialize() {
+        this.collectionConstructor = CellLayerCollection;
+    }
+
     defaults() {
         return {
             type: 'CellLayer',
-            collectionConstructor: CellLayerCollection,
         };
     }
 

@@ -2394,7 +2394,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.equal(paper.getLayerViewOrder().indexOf('test'), -1);
                 assert.notOk(paper.hasLayerView('test'));
                 paper.renderLayerView(testLayer);
-                assert.ok(paper.hasLayerView('test'));``
+                assert.ok(paper.hasLayerView('test'));
                 paper.insertLayerView(testLayer);
                 const order = paper.getLayerViewOrder();
                 assert.equal(order.indexOf('test'), order.length - 1);

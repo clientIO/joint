@@ -30,15 +30,18 @@ export class CellGroup extends Model {
 
     defaults() {
         return {
-            type: 'CellGroup',
-            collectionConstructor: CellGroupCollection,
+            type: 'CellGroup'
         };
+    }
+
+    preinitialize() {
+        this.collectionConstructor = CellGroupCollection;
     }
 
     initialize(attrs) {
         super.initialize(attrs);
 
-        this.cells = new this.attributes.collectionConstructor();
+        this.cells = new this.collectionConstructor();
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.

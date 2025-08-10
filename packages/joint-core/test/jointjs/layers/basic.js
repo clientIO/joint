@@ -156,16 +156,16 @@ QUnit.module('layers-basic', function(hooks) {
         const defaultLayer = this.graph.getDefaultCellLayer();
 
         assert.equal(rect.get('layer'), undefined, 'The layer is not defined (default)');
-        assert.ok(defaultLayer.id, 'cells', 'Default layer is "cells"');
+        assert.equal(defaultLayer.id, 'cells', 'Default layer is "cells"');
         assert.ok(defaultLayer.cells.has(rect.id), 'Rectangle cell added to default layer');
         assert.ok(this.paper.getLayerViewNode(defaultLayer.id).querySelector(`[model-id="${rect.id}"]`), 'Rectangle cell view added to default layer view');
 
         this.graph.setDefaultCellLayer('newLayer');
 
-        assert.ok(rect.get('layer'), 'cells', 'layer attr is set to "cells" as it is no longer the default');
+        assert.equal(rect.get('layer'), 'cells', 'layer attr is set to "cells" as it is no longer the default');
 
         const newDefaultLayer = this.graph.getDefaultCellLayer();
-        assert.ok(newDefaultLayer.id, 'newLayer', 'New default layer is "newLayer"');
+        assert.equal(newDefaultLayer.id, 'newLayer', 'New default layer is "newLayer"');
 
         rect.layer(null);
         assert.ok(newDefaultLayer.cells.has(rect.id), 'Rectangle cell moved to new default layer');
@@ -205,5 +205,48 @@ QUnit.module('layers-basic', function(hooks) {
 
         this.graph.insertCellLayer(this.graph.getDefaultCellLayer(), 'layer1');
         assert.deepEqual(this.graph.get('cellLayers'), finalCellLayers, 'Inserting layer does not change order');
+    });
+
+    QUnit.test('using `cellLayers` attribute on Graph', (assert) => {
+
+        this.graph.set('cellLayers', [{
+            id: 'layer1'
+        }]);
+
+        const cellLayers = this.graph.get('cellLayers');
+        assert.strictEqual(cellLayers.length, 2, 'Graph has two cell layers');
+
+        assert.ok(this.graph.hasCellLayer('layer1'), 'Graph has layer "layer1"');
+        const defaultLayer = this.graph.getDefaultCellLayer();
+        assert.equal(defaultLayer.id, 'cells', 'Default layer is "cells"');
+
+        this.graph.addCell({
+            type: 'standard.Rectangle',
+            id: 'rect1'
+        });
+
+        this.graph.addCell({
+            type: 'standard.Rectangle',
+            id: 'rect2',
+            layer: 'layer1'
+        });
+
+        this.graph.set('cellLayers', [{
+            id: 'layer1',
+            default: true
+        }]);
+
+        assert.equal(this.graph.getDefaultCellLayer().id, 'layer1', 'Default layer is now "layer1"');
+        assert.equal(this.graph.getCellLayer('layer1').cells.length, 2, 'Layer "layer1" has two cells');
+
+        const rect1 = this.graph.getCell('rect1');
+        assert.equal(rect1.get('layer'),  undefined, 'Cell "rect1" has no layer attribute');
+
+        this.graph.set('cellLayers', [{
+            id: 'layer1'
+        }]);
+
+        assert.equal(this.graph.getDefaultCellLayer().id, 'cells', 'Default layer is back to "cells"');
+        assert.equal(rect1.get('layer'), 'layer1', 'Cell "rect1" layer attribute is set to "layer1"');
     });
 });

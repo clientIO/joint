@@ -192,7 +192,7 @@ export namespace dia {
 
         interface Attributes {
             cells?: Cells;
-            cellLayers?: CellLayerAttributes[];
+            cellLayers?: CellLayer.Attributes[];
             [key: string]: any;
         }
     }
@@ -2116,7 +2116,6 @@ export namespace dia {
         interface Attributes extends mvc.ObjectHash {
             id: string;
             type: string;
-            collectionConstructor: typeof CellGroupCollection;
         }
     }
 
@@ -2137,9 +2136,13 @@ export namespace dia {
 
         class CellLayerCollection extends CellGroup.CellGroupCollection {
         }
+
+        interface Attributes extends CellGroup.Attributes {
+            default?: boolean;
+        }
     }
 
-    class CellLayer extends CellGroup<CellLayer.CellLayerCollection> implements CellGroup {
+    class CellLayer extends CellGroup<CellLayer.CellLayerCollection, CellLayer.Attributes> implements CellGroup {
 
         minZIndex(): number;
 

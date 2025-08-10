@@ -1,14 +1,14 @@
 import { Listener } from '../../mvc/Listener.mjs';
 import { CellLayer } from '../groups/CellLayer.mjs';
 
+const DEFAULT_CELL_LAYER_ID = 'cells';
+
 export class CellLayersController extends Listener {
 
     constructor(context) {
         super(context);
 
         this.graph = context.graph;
-
-        this.defaultCellLayerId = 'cells';
 
         this.cellLayersMap = {};
         this.cellLayerAttributes = this.processGraphCellLayersAttribute(this.graph.get('cellLayers'));
@@ -69,6 +69,7 @@ export class CellLayersController extends Listener {
         const cellLayerAttributes = cellLayers;
 
         const defaultLayers = cellLayerAttributes.filter(attrs => attrs.default === true);
+        let newDefaultLayerId;
 
         if (defaultLayers.length > 1) {
             throw new Error('dia.Graph: Only one default cell layer can be defined.');
@@ -76,18 +77,41 @@ export class CellLayersController extends Listener {
         // if no default layer is defined, create one
         if (defaultLayers.length === 0) {
             cellLayerAttributes.push({
-                id: this.defaultCellLayerId,
+                id: DEFAULT_CELL_LAYER_ID,
                 default: true
             });
+            newDefaultLayerId = DEFAULT_CELL_LAYER_ID;
         }
         if (defaultLayers.length === 1) {
-            this.defaultCellLayerId = defaultLayers[0].id;
+            newDefaultLayerId = defaultLayers[0].id;
         }
 
+        if (this.defaultCellLayerId && newDefaultLayerId !== this.defaultCellLayerId) {
+            // If default layer has changed ensure the layer is set explicitly in the cell
+            const defaultLayer = this.getDefaultCellLayer();
+            defaultLayer.groupSet('layer', defaultLayer.id, { silent: true });
+            defaultLayer.unset('default');
+        }
+        this.defaultCellLayerId = newDefaultLayerId;
+
         cellLayerAttributes.forEach(attributes => {
-            const cellLayer = this.createCellLayer(attributes);
-            this.cellLayersMap[attributes.id] = cellLayer;
+            if (this.cellLayersMap[attributes.id]) {
+                this.cellLayersMap[attributes.id].set(attributes);
+            } else {
+                const cellLayer = this.createCellLayer(attributes);
+                this.cellLayersMap[attributes.id] = cellLayer;
+            }
         });
+
+        // remove layers that are no longer in the cellLayers attribute
+        for (let id in this.cellLayersMap) {
+            if (!cellLayerAttributes.some(attrs => attrs.id === id)) {
+                const layerToRemove = this.cellLayersMap[id];
+                // move all cells to the default layer
+                layerToRemove.groupSet('layer', null);
+                delete this.cellLayersMap[id];
+            }
+        }
 
         this.graph.set('cellLayers', cellLayerAttributes, { controller: this });
         this.graph.trigger('layers:update', cellLayerAttributes);
@@ -139,13 +163,21 @@ export class CellLayersController extends Listener {
             return; // no change
         }
 
+        if (!this.defaultCellLayerId) {
+            // should not happen
+            return;
+        }
+
         const defaultLayer = this.getDefaultCellLayer();
-        defaultLayer.groupSet('layer', defaultLayer.id, { silent: true });
-
         this.cellLayerAttributes.find(attrs => attrs.id === defaultLayer.id).default = false;
-        this.cellLayerAttributes.find(attrs => attrs.id === layerId).default = true;
+        defaultLayer.groupSet('layer', defaultLayer.id, { silent: true });
+        defaultLayer.unset('default');
 
+        this.cellLayerAttributes.find(attrs => attrs.id === layerId).default = true;
+        const layer = this.getCellLayer(layerId);
+        layer.set('default', true);
         this.defaultCellLayerId = layerId;
+
         // update the cellLayers attribute
         this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
         this.graph.trigger('layers:update', this.cellLayerAttributes);
@@ -177,9 +209,7 @@ export class CellLayersController extends Listener {
         if (currentIndex != null) {
             attributes = this.cellLayerAttributes[currentIndex];
         } else {
-            attributes = {
-                id
-            };
+            attributes = cellLayer.attributes;
         }
 
         if (!insertBefore) {
