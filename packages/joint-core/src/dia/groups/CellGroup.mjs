@@ -4,14 +4,22 @@ export class CellGroupCollection extends Collection {
 
     _prepareModel(attrs, _options) {
         if (this._isModel(attrs)) {
-            // do not change collection attribute of a cell model
+            // Do not change collection attribute of a cell model;
+            // make sure that the cell will get the collection assigned
+            // when it is added to the graph collection.
+            // This makes sure that when the cell is removed or added
+            // to the collection, events on dia.Graph will be triggered properly.
             return attrs;
         } else {
             throw new Error('CellGroupCollection only accepts Cell instances.');
         }
     }
 
-    _onModelEvent(event, model, collection, options) {
+    // Trigger events even if the model is in another collection.
+    // Normally, all cells are part of the original Graph cellCollection,
+    // this change allows cells to trigger 'add' and 'remove' events
+    // when they are added/removed from a CellGroup.
+    _onModelEvent(event, model) {
         if (model) {
             if (event === 'changeId') {
                 var prevId = this.modelId(model.previousAttributes(), model.idAttribute);

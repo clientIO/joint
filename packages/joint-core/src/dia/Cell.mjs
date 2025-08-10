@@ -981,7 +981,7 @@ export const Cell = Model.extend({
 
         // otherwise set the layer id
         if (!isString(layerId)) {
-            throw new Error('Layer id must be a string.');
+            throw new Error('dia.Cell: Layer id must be a string.');
         }
 
         return this.set('layer', layerId, opt);

@@ -7,13 +7,13 @@ export const CellLayerView = LayerView.extend({
 
     SORT_DELAYING_BATCHES: ['add', 'reset', 'to-front', 'to-back'],
 
+    style: {
+        webkitUserSelect: 'none',
+        userSelect: 'none'
+    },
+
     init() {
         LayerView.prototype.init.apply(this, arguments);
-
-        // applying it here instead of using property
-        // ensures compatibility regarding dom attributes order for snapshots
-        this.el.style.webkitUserSelect = 'none';
-        this.el.style.userSelect = 'none';
         this.startListening();
     },
 
@@ -42,13 +42,13 @@ export const CellLayerView = LayerView.extend({
 
         this.listenTo(model, 'cell:add', (cell, _collection, opt) => {
             if (!opt.initial) {
-                this._requestViewUpdate(cell, opt);
+                this._requestCellViewInsertion(cell, opt);
             }
         });
 
         this.listenTo(model, 'cell:change:z', (cell, _value, opt) => {
             if (paper.options.sorting === sortingTypes.APPROX) {
-                this._requestViewUpdate(cell, opt);
+                this._requestCellViewInsertion(cell, opt);
             }
         });
     },
@@ -100,7 +100,7 @@ export const CellLayerView = LayerView.extend({
         }
     },
 
-    _requestViewUpdate(cell, opt) {
+    _requestCellViewInsertion(cell, opt) {
         const { options: { paper }} = this;
 
         const viewLike = paper._getCellViewLike(cell);

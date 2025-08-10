@@ -69,7 +69,7 @@ export const Graph = Model.extend({
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
-        this.cellCollection = new GraphCells([], {
+        const cellCollection = this.cellCollection = new GraphCells([], {
             model: opt.cellModel,
             cellNamespace: opt.cellNamespace,
             graph: this
@@ -77,7 +77,7 @@ export const Graph = Model.extend({
 
         // Make all the events fired in the `cells` collection available.
         // to the outside world.
-        this.cellCollection.on('all', this.trigger, this);
+        cellCollection.on('all', this.trigger, this);
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -103,12 +103,12 @@ export const Graph = Model.extend({
 
         this._batches = {};
 
-        this.cellCollection.on('add', this._restructureOnAdd, this);
-        this.cellCollection.on('remove', this._restructureOnRemove, this);
-        this.cellCollection.on('reset', this._restructureOnReset, this);
-        this.cellCollection.on('change:source', this._restructureOnChangeSource, this);
-        this.cellCollection.on('change:target', this._restructureOnChangeTarget, this);
-        this.cellCollection.on('remove', this._removeCell, this);
+        cellCollection.on('add', this._restructureOnAdd, this);
+        cellCollection.on('remove', this._restructureOnRemove, this);
+        cellCollection.on('reset', this._restructureOnReset, this);
+        cellCollection.on('change:source', this._restructureOnChangeSource, this);
+        cellCollection.on('change:target', this._restructureOnChangeTarget, this);
+        cellCollection.on('remove', this._removeCell, this);
     },
 
     _restructureOnAdd: function(cell) {
@@ -455,6 +455,10 @@ export const Graph = Model.extend({
         return this.cellLayersController.getCellLayers();
     },
 
+    getOrderedCellLayers() {
+        return this.cellLayersController.getOrderedCellLayers();
+    },
+
     getCellLayerCells(layerId) {
         return this.cellLayersController.getCellLayerCells(layerId);
     },
@@ -466,7 +470,8 @@ export const Graph = Model.extend({
     },
 
     getCells: function() {
-        // Preserve old order without layers
+        // We are using `cellLayersController.getCells()` instead of graph collection
+        // to preserve z-index ordering which is now handled by the cell layers.
         return this.cellLayersController.getCells();
     },
 
@@ -483,7 +488,8 @@ export const Graph = Model.extend({
     getFirstCell: function(layerId) {
         let cells;
         if (!layerId) {
-            cells = this.getCells();
+            const orderedLayers = this.cellLayersController.getOrderedCellLayers();
+            cells = this.cellLayersController.getCellLayer(orderedLayers[0].id).cells;
         } else {
             cells = this.cellLayersController.getCellLayer(layerId).cells;
         }
@@ -494,7 +500,8 @@ export const Graph = Model.extend({
     getLastCell: function(layerId) {
         let cells;
         if (!layerId) {
-            cells = this.getCells();
+            const orderedLayers = this.cellLayersController.getOrderedCellLayers();
+            cells = this.cellLayersController.getCellLayer(orderedLayers[orderedLayers.length - 1].id).cells;
         } else {
             cells = this.cellLayersController.getCellLayer(layerId).cells;
         }

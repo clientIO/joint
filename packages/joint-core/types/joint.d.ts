@@ -227,6 +227,8 @@ export namespace dia {
 
         getCellLayers(): CellLayer[];
 
+        getOrderedCellLayers(): CellLayer[];
+
         getCell(id: Cell.ID | Cell): Cell;
 
         getElements(): Element[];
@@ -1857,6 +1859,9 @@ export namespace dia {
 
         getLayerViewNode(id: Paper.Layers | string): SVGGElement;
 
+        // @deprecated use getLayerViewNode
+        getLayerNode(id: Paper.Layers | string): SVGElement;
+
         getLayerView(id: Paper.Layers | string): LayerView;
 
         hasLayerView(id: Paper.Layers | string): boolean;
@@ -1880,6 +1885,10 @@ export namespace dia {
         getLayerViewOrder(): string[];
 
         getOrderedLayerViews(): Array<LayerView>;
+
+        getLayerViews(): Array<LayerView>;
+
+        getCellLayerViews(): Array<CellLayerView>;
 
         protected updateCellLayers(cellLayers: Graph.CellLayerAttributes[]): void;
 

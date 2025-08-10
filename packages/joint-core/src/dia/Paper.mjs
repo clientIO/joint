@@ -50,7 +50,7 @@ import * as anchors from '../anchors/index.mjs';
 import $ from '../mvc/Dom/index.mjs';
 import { GridLayerView } from './layers/GridLayerView.mjs';
 
-export const LAYERS = {
+const paperLayers = {
     GRID: 'grid',
     BACK: 'back',
     FRONT: 'front',
@@ -411,17 +411,17 @@ export const Paper = View.extend({
 
         // Paper layers except the cell layers.
         this._layersSettings = [{
-            id: LAYERS.GRID,
+            id: paperLayers.GRID,
             type: 'GridLayerView',
             patterns: this.constructor.gridPatterns
         }, {
-            id: LAYERS.BACK,
+            id: paperLayers.BACK,
         }, {
-            id: LAYERS.LABELS,
+            id: paperLayers.LABELS,
         }, {
-            id: LAYERS.FRONT
+            id: paperLayers.FRONT
         }, {
-            id: LAYERS.TOOLS
+            id: paperLayers.TOOLS
         }];
 
         // Layers (SVGGroups)
@@ -431,7 +431,7 @@ export const Paper = View.extend({
         };
         // current cell layers model attributes from the Graph
         this._cellLayers = [];
-        // cellLayerViews hash to get content bbox
+        // cellLayerViews hash
         this._cellLayerViews = {};
 
         this.cloneOptions();
@@ -451,7 +451,7 @@ export const Paper = View.extend({
         };
 
         // Render existing cells in the graph
-        this.resetViews(model.cellCollection.models);
+        this.resetViews(model.getCells());
         // Start the Rendering Loop
         if (!this.isFrozen() && this.isAsync()) this.updateViewsAsync();
     },
@@ -525,7 +525,13 @@ export const Paper = View.extend({
     },
 
     updateCellLayers: function(cellLayers) {
-        const removedCellLayerViewIds = this._cellLayers.filter(cellLayerView => !cellLayers.some(l => l.id === cellLayerView.id)).map(cellLayerView => cellLayerView.id);
+        // find the cell layer views that are not in the new cellLayers array
+        // this process can be improved later but currently we are not expecting
+        // a lot of cell layers to be added or removed at once
+        const removedCellLayerViewIds = this._cellLayers
+            .filter(cellLayerView => !cellLayers.some(l => l.id === cellLayerView.id))
+            .map(cellLayerView => cellLayerView.id);
+
         removedCellLayerViewIds.forEach(cellLayerViewId => {
             this.requestLayerViewRemove(cellLayerViewId);
             delete this._cellLayerViews[cellLayerViewId];
@@ -546,7 +552,10 @@ export const Paper = View.extend({
             } else {
                 layerView = this.getLayerView(cellLayer.id);
             }
-            this.insertLayerView(layerView, LAYERS.LABELS);
+            // insert the layer view into the paper layers before the labels layer
+            // in this case all cell layers are located between back and labels layer
+            // where the `cells` layer is located originally
+            this.insertLayerView(layerView, paperLayers.LABELS);
         });
 
         this._cellLayers = cellLayers;
@@ -652,6 +661,11 @@ export const Paper = View.extend({
         return this.getLayerView(layerId).el;
     },
 
+    // Deprecated, we have used it in some applications
+    getLayerNode(layerId) {
+        return this.getLayerView(layerId).el;
+    },
+
     _removeLayerView(layerView) {
         this._unregisterLayerView(layerView);
         layerView.remove();
@@ -711,8 +725,8 @@ export const Paper = View.extend({
     requestLayerViewRemove(layerView) {
         layerView = this._requireLayerView(layerView);
 
-        // TODO: change when after view management merge
-        const { FLAG_REMOVE, UPDATE_PRIORITY } = layerView;
+        const { FLAG_REMOVE } = this;
+        const { UPDATE_PRIORITY } = layerView;
 
         this.requestViewUpdate(layerView, FLAG_REMOVE, UPDATE_PRIORITY);
     },
@@ -731,7 +745,8 @@ export const Paper = View.extend({
         const { _layers: { order }} = this;
 
         if (!insertBefore) {
-            // remove from order in case of a move command
+            // remove from order in case the layer view is already in the order
+            // this is needed for the case when the layer view is inserted in the new position
             if (order.indexOf(layerId) !== -1) {
                 order.splice(order.indexOf(layerId), 1);
             }
@@ -758,14 +773,24 @@ export const Paper = View.extend({
         }
     },
 
+    // Returns a sorted array of layer view ids.
     getLayerViewOrder() {
-        // Returns a sorted array of layer view ids.
         return this._layers.order.slice();
     },
 
+    // Returns a sorted array of ordered layer views.
     getOrderedLayerViews() {
-        // Returns a sorted array of ordered layer views.
         return this.getLayerViewOrder().map(id => this.getLayerView(id));
+    },
+
+    // Returns all registered layer views.
+    getLayerViews() {
+        return Object.values(this._layers.viewsMap);
+    },
+
+    // Returns ordered array of cell layer views
+    getCellLayerViews() {
+        return this._cellLayers.map(attrs => this._cellLayerViews[attrs.id]);
     },
 
     render: function() {
@@ -848,8 +873,8 @@ export const Paper = View.extend({
         this.updateCellLayers(this.model.get('cellLayers'));
         // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(this.model.getDefaultCellLayer().id);
-        const toolsLayerView = this.getLayerView(LAYERS.TOOLS);
-        const labelsLayerView = this.getLayerView(LAYERS.LABELS);
+        const toolsLayerView = this.getLayerView(paperLayers.TOOLS);
+        const labelsLayerView = this.getLayerView(paperLayers.LABELS);
         // backwards compatibility
         this.tools = toolsLayerView.el;
         this.cells = this.viewport = cellsLayerView.el;
@@ -866,7 +891,7 @@ export const Paper = View.extend({
 
     resetLayerViews: function() {
         const { _layers: { viewsMap }} = this;
-        Object.values(viewsMap).forEach(layerView => layerView.removePivots());
+        Object.values(viewsMap).forEach(layerView => layerView.reset());
     },
 
     update: function() {
@@ -1583,7 +1608,7 @@ export const Paper = View.extend({
         }
         this.options.frozen = updates.keyFrozen = false;
         if (updates.sort) {
-            this.sortLayers();
+            this.sortLayerViews();
             updates.sort = false;
         }
     },
@@ -1854,15 +1879,8 @@ export const Paper = View.extend({
             return this.model.getBBox() || new Rect();
         }
 
-        const cellLayerViews = Object.values(this._cellLayerViews);
-        const bbox = cellLayerViews.reduce((acc, view) => {
-            const cellBBox = V(view.el).getBBox();
-            if (!acc) {
-                return cellBBox;
-            }
-            return acc.union(cellBBox);
-        }, null);
-
+        // combine all content area rectangles from all cell layers
+        const bbox = g.Rect.fromRectUnion(Object.values(this._cellLayerViews).map(cellLayerView => (cellLayerView.el).getBBox()));
         return bbox;
     },
 
@@ -1941,7 +1959,7 @@ export const Paper = View.extend({
             cid,
             model: cell,
             interactive,
-            labelsLayer: labelsLayer === true ? LAYERS.LABELS : labelsLayer
+            labelsLayer: labelsLayer === true ? paperLayers.LABELS : labelsLayer
         });
     },
 
@@ -2074,7 +2092,7 @@ export const Paper = View.extend({
             this.renderView(cells[i], opt);
         }
         this.unfreeze({ key });
-        this.sortLayers();
+        this.sortLayerViews();
     },
 
     removeViews: function() {
@@ -2090,7 +2108,7 @@ export const Paper = View.extend({
         this._idToCid = {};
     },
 
-    sortLayers: function() {
+    sortLayerViews: function() {
         if (!this.isExactSorting()) {
             // noop
             return;
@@ -2100,13 +2118,11 @@ export const Paper = View.extend({
             this._updates.sort = true;
             return;
         }
-        this.sortLayersExact();
+        this.sortLayerViewsExact();
     },
 
-    sortLayersExact: function() {
-        const { _layers: { viewsMap }} = this;
-
-        Object.values(viewsMap).filter(view => view instanceof CellLayerView).forEach(view => view.sortExact());
+    sortLayerViewsExact: function() {
+        this.getCellLayerViews().forEach(view => view.sortExact());
     },
 
     insertView: function(view, isInitialInsert) {
@@ -2116,8 +2132,6 @@ export const Paper = View.extend({
         const layerView = this.getLayerView(layerName);
 
         layerView.insertCellView(view);
-
-        this.trigger('cell:inserted', view, isInitialInsert);
 
         view.onMount(isInitialInsert);
     },
@@ -3142,13 +3156,13 @@ export const Paper = View.extend({
         options.gridSize = gridSize;
         if (options.drawGrid && !options.drawGridSize) {
             // Do not redraw the grid if the `drawGridSize` is set.
-            this.getLayerView(LAYERS.GRID).renderGrid();
+            this.getLayerView(paperLayers.GRID).renderGrid();
         }
         return this;
     },
 
     setGrid: function(drawGrid) {
-        this.getLayerView(LAYERS.GRID).setGrid(drawGrid);
+        this.getLayerView(paperLayers.GRID).setGrid(drawGrid);
         return this;
     },
 
@@ -3497,7 +3511,7 @@ export const Paper = View.extend({
 
     sorting: sortingTypes,
 
-    Layers: LAYERS,
+    Layers: paperLayers,
 
     backgroundPatterns: {
 

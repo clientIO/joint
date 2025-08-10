@@ -364,6 +364,7 @@ export const ElementView = CellView.extend({
 
         element.startBatch('to-front');
 
+        // Bring the model to the front with all his embeds.
         element.toFront({ deep: true, ui: true });
 
         // Note that at this point cells in the collection are not sorted by z index (it's running in the batch, see

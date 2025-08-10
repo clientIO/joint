@@ -311,6 +311,12 @@ export class CellLayersController extends Listener {
         return cellLayers;
     }
 
+    getOrderedCellLayers() {
+        return this.cellLayerAttributes.map(attrs => {
+            return this.cellLayersMap[attrs.id];
+        });
+    }
+
     getCellLayerCells(layerId) {
         return this.cellLayersMap[layerId].cells.toArray();
     }

@@ -80,4 +80,8 @@ export const LayerView = View.extend({
         // Check if the layer has any child elements (pivot comments are not counted).
         return this.el.children.length === 0;
     },
+
+    reset: function() {
+        this.removePivots();
+    }
 });
