@@ -1207,7 +1207,7 @@ export const Paper = View.extend({
                     ) {
                         // We freeze the paper and notify the idle state.
                         this.freeze();
-                        updates.idle = true;
+                        updates.idle = { options: opt };
                         this.trigger('render:idle', opt);
                     }
                 }
@@ -1562,12 +1562,17 @@ export const Paper = View.extend({
         }
     },
 
+    wakeUp: function() {
+        if (!this.isIdle()) return;
+        this.unfreeze(this._updates.idle.options);
+    },
+
     isAsync: function() {
         return !!this.options.async;
     },
 
     isFrozen: function() {
-        return !!this.options.frozen;
+        return !!this.options.frozen && !this.isIdle();
     },
 
     isIdle: function() {
@@ -2115,17 +2120,31 @@ export const Paper = View.extend({
             // We currently do not dispose views which has a highlighter or tools attached
             // Note: Possible improvement would be to serialize highlighters/tools and
             // restore them on view re-mount.
-            if (!HighlighterView.has(cellView) && !cellView.hasTools()) {
-                const cell = cellView.model;
-                // Remove the view from the paper and dispose it
-                cellView.remove();
-                delete this._views[cell.id];
-                this._registerCellViewPlaceholder(cell, cellView.cid);
-                return;
-            }
+            if (this._disposeCellView(cellView)) return;
         }
         // Detach the view from the paper, but keep it in memory
         this._detachCellView(cellView);
+    },
+
+    _disposeCellView: function(cellView) {
+        // Dispose all hidden views.
+        if (HighlighterView.has(cellView) || cellView.hasTools()) return false;
+        const cell = cellView.model;
+        // Remove the view from the paper and dispose it
+        cellView.remove();
+        delete this._views[cell.id];
+        this._registerCellViewPlaceholder(cell, cellView.cid);
+        return true;
+    },
+
+    disposeHidden: function() {
+        // Dispose all hidden views.
+        const views = this._views;
+        const unmountedCids = this._updates.unmountedList.keys();
+        for (const cid of unmountedCids) {
+            const cellView = views[cid];
+            cellView && this._disposeCellView(cellView);
+        }
     },
 
     // Detach a view from the paper, but keep it in memory.

@@ -1782,7 +1782,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 sorting: Paper.sorting.APPROX
             });
 
-            assert.ok(testPaper.isFrozen());
+            assert.notOk(testPaper.isFrozen());
             assert.ok(testPaper.isAsync());
             assert.equal(cellNodesCount(testPaper), 0);
             let idleCounter = 0;
@@ -1792,7 +1792,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             testPaper.on('render:idle', () => {
                 assert.notOk(testPaper.hasScheduledUpdates(), 'has no updates');
-                assert.ok(testPaper.isFrozen(), 'frozen after updating');
+                assert.notOk(testPaper.isFrozen(), 'frozen after updating');
                 assert.ok(testPaper.isIdle(), 'is idle after updating');
                 switch (idleCounter) {
                     case 0: {
@@ -1873,7 +1873,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             await OnIdle(testPaper);
 
-            assert.ok(testPaper.isFrozen(), 'paper is frozen after unfreeze() and idle');
+            assert.notOk(testPaper.isFrozen(), 'paper is frozen after unfreeze() and idle');
             assert.ok(testPaper.isIdle(), 'is idle after unfreeze() and idle');
             assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered after unfreeze() and idle');
             assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after unfreeze() and idle');
@@ -1887,7 +1887,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             await OnIdle(testPaper);
 
-            assert.ok(testPaper.isFrozen(), 'paper is frozen after changing cell attributes and idle');
+            assert.notOk(testPaper.isFrozen(), 'paper is frozen after changing cell attributes and idle');
             assert.ok(testPaper.isIdle(), 'is idle after changing cell attributes and idle');
             assert.equal(cellNodesCount(testPaper), 2, '2 cells rendered after changing cell attributes and idle');
             assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after changing cell attributes and idle');
@@ -1901,7 +1901,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             await OnIdle(testPaper);
 
-            assert.ok(testPaper.isFrozen(), 'paper is frozen after resetCells() and idle');
+            assert.notOk(testPaper.isFrozen(), 'paper is frozen after resetCells() and idle');
             assert.ok(testPaper.isIdle(), 'is idle after resetCells() and idle');
             assert.equal(cellNodesCount(testPaper), 1, '1 cell rendered after resetCells() and idle');
             assert.notOk(testPaper.hasScheduledUpdates(), 'has no scheduled updates after resetCells() and idle');

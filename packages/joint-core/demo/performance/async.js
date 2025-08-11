@@ -236,29 +236,31 @@ function restart() {
 
     setViewportBBox();
 
-    // paper.unfreeze();
+    paper.unfreeze();
 
     console.timeEnd('perf-reset');
 
     console.time('perf-dump');
 
-    // paper.unfreeze({
-    //     batchSize: batchSizeInput.value,
-    //     progress: function(done, current, total) {
-    //         var progress = current / total;
-    //         console.log(Math.round(progress * 100) + '%');
-    //         if (done) {
-    //             console.timeEnd('perf-dump');
-    //             console.timeEnd('perf-all');
-    //             paper.unfreeze();
-    //             loader.el.remove();
-    //         } else {
-    //             loader.progress(progress);
-    //         }
-    //     }
-    // });
+    paper.unfreeze({
+        batchSize: batchSizeInput.value,
+        progress: function(done, current, total) {
+            var progress = current / total;
+            console.log(Math.round(progress * 100) + '%');
+            if (done) {
+                console.timeEnd('perf-dump');
+                console.timeEnd('perf-all');
+                paper.unfreeze();
+                loader.el.remove();
+            } else {
+                loader.progress(progress);
+            }
+        }
+    });
 }
 
 function rndColor() {
-    return 'hsl(' + g.random(171, 181) + ',' + g.random(58, 72) + '%,' + g.random(45, 55) + '%)';
+    // only shades of blue and green
+    return `rgb(0, ${g.random(100, 255)}, ${g.random(100, 255)})`;
+
 }
