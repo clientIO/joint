@@ -17,7 +17,7 @@ interface Props {
   readonly onChange: (newValue: unknown) => void;
 }
 const MARGIN = '8px';
-function EditableField({ keyName, parentKey, value, onChange }: Props) {
+function EditableField({ keyName, parentKey, value, onChange }: Readonly<Props>) {
   const handleChange = (key: string, newValue: unknown) => {
     if (typeof value === 'object' && value !== null) {
       onChange({ ...value, [key]: newValue });
@@ -66,7 +66,7 @@ function EditableField({ keyName, parentKey, value, onChange }: Props) {
   );
 }
 
-function CellExplorer({ cell, onChange }: CellExplorerProps) {
+function CellExplorer({ cell, onChange }: Readonly<CellExplorerProps>) {
   const handleInputChange = (key: string, value: unknown) => {
     if (onChange) {
       onChange({ ...cell, [key]: value });
@@ -95,7 +95,7 @@ interface CellsExplorerProps {
   readonly onChange: (cells: dia.Cell.JSON[]) => void;
 }
 
-function CellsExplorer({ elements: cells, onChange }: CellsExplorerProps) {
+function CellsExplorer({ elements: cells, onChange }: Readonly<CellsExplorerProps>) {
   return (
     <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
       {cells.map((cell) => {

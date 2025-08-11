@@ -7,7 +7,7 @@ interface Props {
   readonly onSetElement: (element: HTMLElement) => void;
 }
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component({ onSetElement }: Props) {
+function Component({ onSetElement }: Readonly<Props>) {
   const paper = usePaper();
   const divRef = useRef<HTMLDivElement>(null);
 
