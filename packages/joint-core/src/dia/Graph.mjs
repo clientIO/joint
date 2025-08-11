@@ -489,7 +489,7 @@ export const Graph = Model.extend({
         let cells;
         if (!layerId) {
             const orderedLayers = this.cellLayersController.getOrderedCellLayers();
-            cells = this.cellLayersController.getCellLayer(orderedLayers[0].id).cells;
+            cells = orderedLayers[0].cells;
         } else {
             cells = this.cellLayersController.getCellLayer(layerId).cells;
         }
@@ -501,7 +501,7 @@ export const Graph = Model.extend({
         let cells;
         if (!layerId) {
             const orderedLayers = this.cellLayersController.getOrderedCellLayers();
-            cells = this.cellLayersController.getCellLayer(orderedLayers[orderedLayers.length - 1].id).cells;
+            cells = orderedLayers[orderedLayers.length - 1].cells;
         } else {
             cells = this.cellLayersController.getCellLayer(layerId).cells;
         }

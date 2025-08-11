@@ -64,10 +64,11 @@ export class CellGroup extends Model {
         this.cells.remove(cell, opt);
     }
 
-    reset() {
-        this.cells.toArray().forEach(cell => {
-            this.remove(cell);
-        });
+    reset(cells, opt) {
+        if (cells == null) {
+            cells = [];
+        }
+        this.cells.reset(cells, opt);
     }
 
     groupSet(key, val, opt) {
