@@ -328,7 +328,7 @@ interface ToolbarProps {
   readonly setShowElementsInfo: (show: boolean) => void;
 }
 // Toolbar component with some actions
-function ToolBar(props: ToolbarProps) {
+function ToolBar(props: Readonly<ToolbarProps>) {
   const {
     onToggleMinimap,
     isMinimapVisible,
