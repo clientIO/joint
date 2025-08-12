@@ -1865,6 +1865,8 @@ export namespace dia {
 
         unfreeze(opt?: Paper.UnfreezeOptions): void;
 
+        wakeUp(): void;
+
         isFrozen(): boolean;
 
         requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;

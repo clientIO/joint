@@ -993,7 +993,7 @@ export const Paper = View.extend({
     scheduleViewUpdate: function(view, type, priority, opt) {
         const { _updates: updates, options } = this;
         if (updates.idle && options.autoFreeze) {
-            this.unfreeze();
+            this.wakeUp();
         }
         const { FLAG_REMOVE, FLAG_INSERT } = this;
         const { UPDATE_PRIORITY, cid } = view;
