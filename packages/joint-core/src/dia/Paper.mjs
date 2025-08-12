@@ -517,7 +517,7 @@ export const Paper = View.extend({
     },
 
     onGraphBatchStop: function(data) {
-        if (this.isFrozen()) return;
+        if (this.isFrozen() || this.isIdle()) return;
         var name = data && data.batchName;
         var graph = this.model;
         if (!this.isAsync()) {
@@ -981,6 +981,7 @@ export const Paper = View.extend({
 
     requestViewUpdate: function(view, flag, priority, opt) {
         opt || (opt = {});
+        // Note: `scheduleViewUpdate` wakes up the paper if it is idle.
         this.scheduleViewUpdate(view, flag, priority, opt);
         var isAsync = this.isAsync();
         if (this.isFrozen() || (isAsync && opt.async !== false)) return;
@@ -2070,7 +2071,7 @@ export const Paper = View.extend({
             // noop
             return;
         }
-        if (this.isFrozen()) {
+        if (this.isFrozen() || this.isIdle()) {
             // sort views once unfrozen
             this._updates.sort = true;
             return;
