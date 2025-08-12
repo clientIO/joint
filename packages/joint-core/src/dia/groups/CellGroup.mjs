@@ -71,7 +71,7 @@ export class CellGroup extends Model {
         this.cells.reset(cells, opt);
     }
 
-    groupSet(key, val, opt) {
+    setEach(key, val, opt) {
         this.cells.each(cell => {
             cell.set(key, val, opt);
         });

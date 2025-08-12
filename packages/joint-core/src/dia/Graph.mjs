@@ -455,8 +455,8 @@ export const Graph = Model.extend({
         return this.cellLayersController.getCellLayers();
     },
 
-    getOrderedCellLayers() {
-        return this.cellLayersController.getOrderedCellLayers();
+    getRootCellLayers() {
+        return this.cellLayersController.getRootCellLayers();
     },
 
     getCellLayerCells(layerId) {

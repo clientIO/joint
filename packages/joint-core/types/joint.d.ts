@@ -227,7 +227,7 @@ export namespace dia {
 
         getCellLayers(): CellLayer[];
 
-        getOrderedCellLayers(): CellLayer[];
+        getRootCellLayers(): CellLayer[];
 
         getCell(id: Cell.ID | Cell): Cell;
 
@@ -1884,7 +1884,7 @@ export namespace dia {
 
         getLayerViewOrder(): string[];
 
-        getOrderedLayerViews(): Array<LayerView>;
+        getRootLayerViews(): Array<LayerView>;
 
         getLayerViews(): Array<LayerView>;
 
@@ -2134,11 +2134,14 @@ export namespace dia {
 
         cells: C;
 
-        add(cell: Cell, opt: Graph.Options): void;
+        add(cell: Cell, opt?: Graph.Options): void;
 
-        remove(cell: Cell): void;
+        remove(cell: Cell, opt?: Graph.Options): void;
 
-        reset(): void;
+        reset(cells?: Cell, opt?: Graph.Options): void;
+
+        setEach(attributeName: string, value?: Cell.Attributes[keyof Cell.Attributes], options?: dia.ModelSetOptions): void;
+        setEach(attributes: Partial<Cell.Attributes>, options?: dia.ModelSetOptions): void;
     }
 
     namespace CellLayer {

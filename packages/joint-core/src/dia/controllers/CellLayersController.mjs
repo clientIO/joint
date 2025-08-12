@@ -89,7 +89,7 @@ export class CellLayersController extends Listener {
         if (this.defaultCellLayerId && newDefaultLayerId !== this.defaultCellLayerId) {
             // If default layer has changed ensure the layer is set explicitly in the cell
             const defaultLayer = this.getDefaultCellLayer();
-            defaultLayer.groupSet('layer', defaultLayer.id, { silent: true });
+            defaultLayer.setEach('layer', defaultLayer.id, { silent: true });
             defaultLayer.unset('default');
         }
         this.defaultCellLayerId = newDefaultLayerId;
@@ -108,7 +108,7 @@ export class CellLayersController extends Listener {
             if (!cellLayerAttributes.some(attrs => attrs.id === id)) {
                 const layerToRemove = this.cellLayersMap[id];
                 // move all cells to the default layer
-                layerToRemove.groupSet('layer', null);
+                layerToRemove.setEach('layer', null);
                 delete this.cellLayersMap[id];
             }
         }
@@ -170,7 +170,7 @@ export class CellLayersController extends Listener {
 
         const defaultLayer = this.getDefaultCellLayer();
         this.cellLayerAttributes.find(attrs => attrs.id === defaultLayer.id).default = false;
-        defaultLayer.groupSet('layer', defaultLayer.id, { silent: true });
+        defaultLayer.setEach('layer', defaultLayer.id, { silent: true });
         defaultLayer.unset('default');
 
         this.cellLayerAttributes.find(attrs => attrs.id === layerId).default = true;
@@ -311,7 +311,7 @@ export class CellLayersController extends Listener {
         return cellLayers;
     }
 
-    getOrderedCellLayers() {
+    getRootCellLayers() {
         return this.cellLayerAttributes.map(attrs => {
             return this.cellLayersMap[attrs.id];
         });

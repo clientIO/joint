@@ -779,7 +779,7 @@ export const Paper = View.extend({
     },
 
     // Returns a sorted array of ordered layer views.
-    getOrderedLayerViews() {
+    getRootLayerViews() {
         return this.getLayerViewOrder().map(id => this.getLayerView(id));
     },
 
