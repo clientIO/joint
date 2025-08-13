@@ -1,3 +1,4 @@
+import { Collection } from '../../mvc/Collection.mjs';
 import { Listener } from '../../mvc/Listener.mjs';
 import { CellLayer } from '../groups/CellLayer.mjs';
 
@@ -10,7 +11,7 @@ export class CellLayersController extends Listener {
 
         this.graph = context.graph;
 
-        this.cellLayersMap = {};
+        this.cellLayerCollection = new Collection();
         this.cellLayerAttributes = this.processGraphCellLayersAttribute(this.graph.get('cellLayers'));
 
         this.startListening();
@@ -18,6 +19,15 @@ export class CellLayersController extends Listener {
 
     startListening() {
         const { graph } = this;
+
+        // make sure that `cellLayers` contains correct attributes
+        this.listenTo(this.cellLayerCollection, 'change', (_context, cellLayer, opt) => {
+            const id = cellLayer.id;
+            const cellLayerIndex = this.cellLayerAttributes.findIndex(attrs => attrs.id === id);
+            this.cellLayerAttributes[cellLayerIndex] = cellLayer.attributes;
+
+            this.graph.set('cellLayers', this.cellLayerAttributes, { controller: this });
+        });
 
         this.listenTo(graph, 'add', (_context, cell) => {
             this.onAdd(cell);
@@ -36,11 +46,11 @@ export class CellLayersController extends Listener {
         });
 
         this.listenTo(graph, 'reset', (_context, { models: cells }) => {
-            const { cellLayersMap } = this;
+            const { cellLayerCollection } = this;
 
-            for (let layerId in cellLayersMap) {
-                cellLayersMap[layerId].reset();
-            }
+            cellLayerCollection.each(cellLayer => {
+                cellLayer.reset();
+            });
 
             cells.forEach(cell => {
                 this.onAdd(cell, true);
@@ -95,23 +105,22 @@ export class CellLayersController extends Listener {
         this.defaultCellLayerId = newDefaultLayerId;
 
         cellLayerAttributes.forEach(attributes => {
-            if (this.cellLayersMap[attributes.id]) {
-                this.cellLayersMap[attributes.id].set(attributes);
+            if (this.cellLayerCollection.has(attributes.id)) {
+                this.cellLayerCollection.get(attributes.id).set(attributes);
             } else {
                 const cellLayer = this.createCellLayer(attributes);
-                this.cellLayersMap[attributes.id] = cellLayer;
+                this.cellLayerCollection.add(cellLayer);
             }
         });
 
         // remove layers that are no longer in the cellLayers attribute
-        for (let id in this.cellLayersMap) {
-            if (!cellLayerAttributes.some(attrs => attrs.id === id)) {
-                const layerToRemove = this.cellLayersMap[id];
+        this.cellLayerCollection.each(cellLayer => {
+            if (!cellLayerAttributes.some(attrs => attrs.id === cellLayer.id)) {
                 // move all cells to the default layer
-                layerToRemove.setEach('layer', null);
-                delete this.cellLayersMap[id];
+                cellLayer.setEach('layer', null);
+                this.cellLayerCollection.remove(cellLayer);
             }
-        }
+        });
 
         this.graph.set('cellLayers', cellLayerAttributes, { controller: this });
         this.graph.trigger('layers:update', cellLayerAttributes);
@@ -151,7 +160,7 @@ export class CellLayersController extends Listener {
     }
 
     getDefaultCellLayer() {
-        return this.cellLayersMap[this.defaultCellLayerId];
+        return this.cellLayerCollection.get(this.defaultCellLayerId);
     }
 
     setDefaultCellLayer(layerId) {
@@ -184,13 +193,13 @@ export class CellLayersController extends Listener {
     }
 
     addCellLayer(cellLayer, _opt) {
-        const { cellLayersMap } = this;
+        const { cellLayerCollection } = this;
 
         if (this.hasCellLayer(cellLayer.id)) {
             throw new Error(`dia.Graph: Layer with id '${cellLayer.id}' already exists.`);
         }
 
-        cellLayersMap[cellLayer.id] = cellLayer;
+        cellLayerCollection.add(cellLayer);
     }
 
     insertCellLayer(cellLayer, insertBefore) {
@@ -244,7 +253,7 @@ export class CellLayersController extends Listener {
     }
 
     removeCellLayer(layerId, _opt) {
-        const { cellLayersMap, defaultCellLayerId } = this;
+        const { cellLayerCollection, defaultCellLayerId } = this;
 
         if (layerId === defaultCellLayerId) {
             throw new Error('dia.Graph: default layer cannot be removed.');
@@ -258,7 +267,7 @@ export class CellLayersController extends Listener {
         // reset the layer to remove all cells from it
         layer.reset();
 
-        delete cellLayersMap[layerId];
+        cellLayerCollection.remove(layerId);
 
         // remove from the layers array
         if (this.cellLayerAttributes.some(attrs => attrs.id === layerId)) {
@@ -290,43 +299,41 @@ export class CellLayersController extends Listener {
     }
 
     hasCellLayer(layerId) {
-        return !!this.cellLayersMap[layerId];
+        return this.cellLayerCollection.has(layerId);
     }
 
     getCellLayer(layerId) {
-        if (!this.cellLayersMap[layerId]) {
+        if (!this.hasCellLayer(layerId)) {
             throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
         }
 
-        return this.cellLayersMap[layerId];
+        return this.cellLayerCollection.get(layerId);
     }
 
     getCellLayers() {
-        const cellLayers = [];
-
-        for (let layerId in this.cellLayersMap) {
-            cellLayers.push(this.cellLayersMap[layerId]);
-        }
-
-        return cellLayers;
+        return this.cellLayerCollection.toArray();
     }
 
     getRootCellLayers() {
         return this.cellLayerAttributes.map(attrs => {
-            return this.cellLayersMap[attrs.id];
+            return this.cellLayerCollection.get(attrs.id);
         });
     }
 
     getCellLayerCells(layerId) {
-        return this.cellLayersMap[layerId].cells.toArray();
+        if (!this.hasCellLayer(layerId)) {
+            throw new Error(`dia.Graph: Cell layer with id '${layerId}' does not exist.`);
+        }
+
+        return this.cellLayerCollection.get(layerId).cells.toArray();
     }
 
     getCells() {
         const cells = [];
 
-        for (let layerId in this.cellLayersMap) {
-            cells.push(...this.cellLayersMap[layerId].cells);
-        }
+        this.cellLayerCollection.each(cellLayer => {
+            cells.push(...cellLayer.cells);
+        });
 
         return cells;
     }

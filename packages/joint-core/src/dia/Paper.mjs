@@ -1880,7 +1880,7 @@ export const Paper = View.extend({
         }
 
         // combine all content area rectangles from all cell layers
-        const bbox = g.Rect.fromRectUnion(Object.values(this._cellLayerViews).map(cellLayerView => (cellLayerView.el).getBBox()));
+        const bbox = g.Rect.fromRectUnion(...Object.values(this._cellLayerViews).map(cellLayerView => V(cellLayerView.el).getBBox()));
         return bbox;
     },
 

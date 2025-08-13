@@ -951,7 +951,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             var rect1 = new joint.shapes.standard.Rectangle({ z: 0 });
                             var rect2 = new joint.shapes.standard.Rectangle({ z: 2 });
                             var rect3 = new joint.shapes.standard.Rectangle({ z: 1 });
-                            var sortLayersExactSpy = sinon.spy(paper, 'sortLayersExact');
+                            var sortLayersExactSpy = sinon.spy(paper, 'sortLayerViewsExact');
                             // RESET CELLS
                             graph.resetCells([rect1, rect2, rect3]);
                             var rect1View = rect1.findView(paper);
@@ -996,7 +996,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             var rect1 = new joint.shapes.standard.Rectangle({ z: 0 });
                             var rect2 = new joint.shapes.standard.Rectangle({ z: 2 });
                             var rect3 = new joint.shapes.standard.Rectangle({ z: 1 });
-                            var sortLayersExactSpy = sinon.spy(paper, 'sortLayersExact');
+                            var sortLayersExactSpy = sinon.spy(paper, 'sortLayerViewsExact');
                             graph.resetCells([rect1, rect2, rect3]);
                             var rect1View = rect1.findView(paper);
                             var rect2View = rect2.findView(paper);

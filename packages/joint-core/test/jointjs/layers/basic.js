@@ -249,4 +249,35 @@ QUnit.module('layers-basic', function(hooks) {
         assert.equal(this.graph.getDefaultCellLayer().id, 'cells', 'Default layer is back to "cells"');
         assert.equal(rect1.get('layer'), 'layer1', 'Cell "rect1" layer attribute is set to "layer1"');
     });
+
+
+    QUnit.test('custom attributes in "cellLayers"', (assert) => {
+
+        const layer1 = new joint.dia.CellLayer({ id: 'layer1', name: 'Layer 1' });
+
+        this.graph.addCellLayer(layer1);
+        this.graph.insertCellLayer(layer1);
+
+        const cellLayers = this.graph.get('cellLayers');
+        assert.strictEqual(cellLayers.length, 2, 'Graph has two cell layers');
+
+        assert.equal(cellLayers[1].name, 'Layer 1', 'The custom attribute "name" is set correctly in the cell layer');
+
+        layer1.unset('name');
+
+        const updatedCellLayers = this.graph.get('cellLayers');
+
+        assert.strictEqual(updatedCellLayers.length, 2, 'Graph still has two cell layers after unsetting custom attribute');
+        assert.ok(!updatedCellLayers[1].hasOwnProperty('name'), 'The custom attribute "name" is removed from the cell layer');
+
+        layer1.set('name', 'Layer 1');
+
+        const layer2 = new joint.dia.CellLayer({ id: 'layer2', description: 'This is layer 2' });
+        this.graph.addCellLayer(layer2);
+        this.graph.insertCellLayer(layer2);
+
+        const json = JSON.stringify(this.graph.toJSON());
+
+        assert.equal(json, `{"cellLayers":[{"id":"cells","default":true},{"type":"CellLayer","id":"layer1","name":"Layer 1"},{"type":"CellLayer","id":"layer2","description":"This is layer 2"}],"cells":[]}`, 'Graph JSON includes custom attributes in "cellLayers"');
+    });
 });
