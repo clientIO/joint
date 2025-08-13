@@ -5,11 +5,11 @@ import type { GraphElement } from '../types/element-types';
 import { type PortsStore } from '../data/create-ports-store';
 
 export interface PaperContext {
-  paper: dia.Paper;
+  readonly paper: dia.Paper;
+  readonly portsStore: PortsStore;
+  readonly elementViews: Record<dia.Cell.ID, dia.ElementView>;
+  readonly paperHTMLElement: RefObject<HTMLDivElement | null>;
   renderElement?: RenderElement<GraphElement>;
-  portsStore: PortsStore;
-  recordOfSVGElements: Record<dia.Cell.ID, SVGElement>;
-  paperHTMLElement: RefObject<HTMLDivElement | null>;
 }
 
 export const PaperContext = createContext<PaperContext | null>(null);

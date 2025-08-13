@@ -109,16 +109,6 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
   readonly children?: ReactNode;
 
   /**
-   * On load custom element.
-   * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
-   * So it overwrite default paper rendering.
-   * It is used internally for example to render `PaperScroller` from [joint plus](https://www.jointjs.com/jointjs-plus) package.
-   * @param paperContext - The paper context
-   * @returns
-   */
-  readonly overwriteDefaultPaperElement?: (paperContext: PaperContext) => HTMLElement | SVGElement;
-
-  /**
    * The threshold for click events in pixels.
    * If the mouse moves more than this distance, it will be considered a drag event.
    * @default 10
@@ -154,7 +144,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
   if (!paperContext) {
     throw new Error('Paper must be used within a `PaperProvider` or `Paper` component');
   }
-  const { recordOfSVGElements, paperHTMLElement } = paperContext;
+  const { elementViews: elementViews, paperHTMLElement } = paperContext;
 
   const graph = useGraph();
   const [HTMLRendererContainer, setHTMLRendererContainer] = useState<HTMLElement | null>(null);
@@ -202,17 +192,25 @@ function Component<ElementItem extends GraphElement = GraphElement>(
 
   const hasRenderElement = !!renderElement;
 
+  const defaultStyle = useMemo((): CSSProperties => {
+    if (style) {
+      return style;
+    }
+    return {
+      width: paperOptions.width ?? '100%',
+      height: paperOptions.height ?? '100%',
+    };
+  }, [paperOptions.height, paperOptions.width, style]);
+
   const paperContainerStyle = useMemo(
     (): CSSProperties => ({
       opacity: areElementsMeasured ? 1 : 0,
       pointerEvents: areElementsMeasured ? 'all' : 'none',
       position: 'relative',
       overflow: 'hidden',
-      width: '100%',
-      height: '100%',
-      ...style,
+      ...defaultStyle,
     }),
-    [areElementsMeasured, style]
+    [areElementsMeasured, defaultStyle]
   );
 
   const measured = useRef(false);
@@ -302,8 +300,15 @@ function Component<ElementItem extends GraphElement = GraphElement>(
           if (!cell.id) {
             return null;
           }
-          const portalHTMLElement = recordOfSVGElements[cell.id];
-          if (!portalHTMLElement) {
+          const elementView = elementViews[cell.id];
+          if (!elementView) {
+            return null;
+          }
+          const SVG = elementView.el;
+          if (!SVG) {
+            return null;
+          }
+          if (!elementView) {
             return null;
           }
           if (cell.type !== REACT_TYPE) {
@@ -319,11 +324,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
                   renderElement={renderElement}
                 />
               ) : (
-                <SVGElementItem
-                  {...cell}
-                  portalElement={portalHTMLElement}
-                  renderElement={renderElement}
-                />
+                <SVGElementItem {...cell} portalElement={SVG} renderElement={renderElement} />
               )}
             </CellIdContext.Provider>
           );
@@ -333,6 +334,8 @@ function Component<ElementItem extends GraphElement = GraphElement>(
 
   if (paperContext) {
     // we need this for shared paper context - joint plus
+    // TODO: We need to somehow fix this, as its not a good practice to overwrite the context
+    // And if we want to re-use this renderElement, that mean, everything need to be rendered after this component!
     paperContext.renderElement = renderElement as RenderElement<GraphElement>;
   }
   const hasPaper = !!paperContext?.paper;

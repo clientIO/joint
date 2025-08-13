@@ -6,10 +6,9 @@ import { createPortsStore } from '../../data/create-ports-store';
 import type { PortElementsCacheEntry } from '../../data/create-ports-data';
 import type { OmitWithoutIndexSignature } from '../../types';
 import { GraphProvider, type GraphProps } from '../graph-provider/graph-provider';
-import { usePaperElementRenderer } from '../../hooks/use-paper-element-renderer';
+import { useElementViews, type OnPaperRenderElement } from '../../hooks/use-element-views';
+import { PaperProviderConfigContext } from '../../context/paper-provide-config-context';
 const DEFAULT_CLICK_THRESHOLD = 10;
-
-export type OnPaperRenderElement = (element: dia.Element, portalElement: SVGElement) => void;
 
 export type ReactPaperOptions = OmitWithoutIndexSignature<dia.Paper.Options, 'frozen'>;
 
@@ -27,26 +26,17 @@ export interface PaperOptions extends ReactPaperOptions {
 
 export interface PaperProviderProps extends ReactPaperOptions, GraphProps {
   readonly children: React.ReactNode;
-
-  /**
-   * On load custom element.
-   * If provided, it must return valid HTML or SVG element and it will be replaced with the default paper element.
-   * So it overwrite default paper rendering.
-   * It is used internally for example to render `PaperScroller` from [joint plus](https://www.jointjs.com/jointjs-plus) package.
-   * @param paperCtx - The paper context
-   * @returns
-   */
-  readonly overwriteDefaultPaperElement?: (paperCtx: PaperContext) => HTMLElement | SVGElement;
 }
-const EMPTY_OBJECT = {} as const;
+const EMPTY_OBJECT = {} as Record<dia.Cell.ID, dia.ElementView>;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component(props: Readonly<PaperProviderProps>) {
   const { children, ...paperOptions } = props;
   const graph = useGraph();
-
-  const { onRenderElement, recordOfSVGElements } = usePaperElementRenderer();
+  const { overwriteDefaultPaperElement } = useContext(PaperProviderConfigContext) ?? {};
+  const { onRenderElement, elementViews } = useElementViews();
   const paperHTMLElement = useRef<HTMLDivElement | null>(null);
+
   const [paperCtx] = useState<PaperContext>(function (): PaperContext {
     const portsStore = createPortsStore();
     const elementView = dia.ElementView.extend({
@@ -54,7 +44,8 @@ function Component(props: Readonly<PaperProviderProps>) {
       onRender() {
         // eslint-disable-next-line unicorn/no-this-assignment, @typescript-eslint/no-this-alias, no-shadow, @typescript-eslint/no-shadow
         const elementView: dia.ElementView = this;
-        onRenderElement(elementView.model, elementView.el as SVGGElement);
+
+        onRenderElement(elementView);
       },
       // Render port using react, `portData.portElement.node` is used as portal gate for react (createPortal)
       _renderPorts() {
@@ -84,7 +75,7 @@ function Component(props: Readonly<PaperProviderProps>) {
     return {
       paper,
       portsStore,
-      recordOfSVGElements: EMPTY_OBJECT,
+      elementViews: EMPTY_OBJECT,
       paperHTMLElement,
     };
   });
@@ -99,18 +90,19 @@ function Component(props: Readonly<PaperProviderProps>) {
       throw new Error('Paper is not created');
     }
 
-    if (overwriteDefaultPaperElement) {
-      const customElement = overwriteDefaultPaperElement(paperCtx);
-      if (!customElement) {
-        throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
-      }
-      paperHTMLElement.current?.replaceChildren(customElement);
-    } else {
-      if (!paperHTMLElement.current) {
-        throw new Error('Paper container element is not defined');
-      }
-      paperHTMLElement.current.replaceChildren(paper.el);
+    const elementToRender = overwriteDefaultPaperElement
+      ? overwriteDefaultPaperElement(paperCtx)
+      : paper.el;
+
+    if (!elementToRender) {
+      throw new Error('overwriteDefaultPaperElement must return a valid HTML or SVG element');
     }
+
+    if (!paperHTMLElement.current) {
+      return;
+    }
+
+    paperHTMLElement.current.replaceChildren(elementToRender);
     paper.unfreeze();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,9 +118,9 @@ function Component(props: Readonly<PaperProviderProps>) {
   const paperContextFull = useMemo((): PaperContext => {
     return {
       ...paperCtx,
-      recordOfSVGElements,
+      elementViews,
     };
-  }, [paperCtx, recordOfSVGElements]);
+  }, [paperCtx, elementViews]);
 
   // Remove the check for existing context, always provide PaperContext
   return <PaperContext.Provider value={paperContextFull}>{children}</PaperContext.Provider>;

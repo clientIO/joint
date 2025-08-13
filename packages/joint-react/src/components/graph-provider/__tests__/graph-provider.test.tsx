@@ -8,6 +8,7 @@ import { useElements, useLinks } from '../../../hooks';
 import { createElements } from '../../../utils/create';
 import * as stories from '../graph-provider.stories';
 import { runStorybookSnapshot } from '../../../utils/run-storybook-snapshot';
+import type { GraphElement } from '../../../types/element-types';
 
 runStorybookSnapshot({
   Component: GraphProvider,
@@ -141,5 +142,93 @@ describe('graph-provider', () => {
     expect(mockDestroy).not.toHaveBeenCalled();
     unmount();
     expect(mockDestroy).toHaveBeenCalled();
+  });
+
+  it('should use graph provided by PaperOptions', async () => {
+    const graph = new dia.Graph();
+    const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
+    graph.addCell(cell);
+    let currentElements: GraphElement[] = [];
+    function Elements() {
+      const elements = useElements();
+      currentElements = elements;
+      return null;
+    }
+
+    const { unmount } = render(
+      <GraphProvider graph={graph}>
+        <Elements />
+        <div>Test</div>
+      </GraphProvider>
+    );
+
+    expect(graph.getCell('element1')).toBe(cell);
+
+    await waitFor(() => {
+      expect(graph.getCells()).toHaveLength(1);
+      expect(currentElements).toHaveLength(1);
+    });
+
+    act(() => {
+      graph.addCell(new dia.Element({ id: 'element2', type: 'standard.Rectangle' }));
+    });
+
+    await waitFor(() => {
+      expect(graph.getCell('element2')).toBeDefined();
+      expect(graph.getCells()).toHaveLength(2);
+      expect(currentElements).toHaveLength(2);
+    });
+
+    // its external graph, so we do not destroy it
+    unmount();
+    await waitFor(() => {
+      expect(graph.getCells()).toHaveLength(2);
+      expect(currentElements).toHaveLength(2);
+    });
+  });
+
+  it('should use store provided by PaperOptions', async () => {
+    const graph = new dia.Graph();
+    const store = createStore({ graph });
+    const cell = new dia.Element({ id: 'element1', type: 'standard.Rectangle' });
+    graph.addCell(cell);
+    let currentElements: GraphElement[] = [];
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    function Elements() {
+      const elements = useElements();
+      currentElements = elements;
+      return null;
+    }
+
+    const { unmount } = render(
+      <GraphProvider store={store}>
+        <Elements />
+        <div>Test</div>
+      </GraphProvider>
+    );
+
+    expect(graph.getCell('element1')).toBe(cell);
+
+    await waitFor(() => {
+      expect(graph.getCells()).toHaveLength(1);
+      expect(currentElements).toHaveLength(1);
+    });
+
+    act(() => {
+      graph.addCell(new dia.Element({ id: 'element2', type: 'standard.Rectangle' }));
+    });
+
+    await waitFor(() => {
+      expect(graph.getCell('element2')).toBeDefined();
+      expect(graph.getCells()).toHaveLength(2);
+      expect(currentElements).toHaveLength(2);
+    });
+
+    // its external graph, so we do not destroy it
+    unmount();
+    await waitFor(() => {
+      expect(graph.getCells()).toHaveLength(2);
+      expect(currentElements).toHaveLength(2);
+    });
   });
 });

@@ -13,8 +13,8 @@ import '../../examples/index.css';
 import { PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 // define initial elements
 const initialElements = createElements([
-  { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 25 },
-  { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 25 },
+  { id: '1', label: 'Hello', x: 100, y: 0, width: 100, height: 50 },
+  { id: '2', label: 'World', x: 100, y: 200, width: 100, height: 50 },
 ]);
 
 // define initial edges
@@ -36,7 +36,8 @@ const initialEdges = createLinks([
 // infer element type from the initial elements (this type can be used for later usage like RenderItem props)
 type CustomElement = InferElement<typeof initialElements>;
 
-function RenderItem({ label, width, height }: CustomElement) {
+function RenderItem(props: CustomElement) {
+  const { label, width, height } = props;
   return (
     <foreignObject width={width} height={height}>
       <MeasuredNode>

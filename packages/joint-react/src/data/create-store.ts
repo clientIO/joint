@@ -70,7 +70,7 @@ export interface Store {
   /**
    *  Remove all listeners and cleanup the graph.
    */
-  readonly destroy: () => void;
+  readonly destroy: (isGraphExternal: boolean) => void;
 
   /**
    * Set the measured node element.
@@ -84,6 +84,12 @@ export interface Store {
    * Check if the graph has already measured node for the given element id.
    */
   readonly hasMeasuredNode: (id: dia.Cell.ID) => boolean;
+
+  /**
+   * Force update the graph store.
+   * This will trigger a re-render of all components that are subscribed to the store.
+   */
+  readonly forceUpdate: () => Set<dia.Cell.ID>;
 }
 
 /**
@@ -193,18 +199,23 @@ export function createStore(options?: StoreOptions): Store {
 
   /**
    * Cleanup the store.
+   * @param isGraphExternal
    */
-  function destroy() {
+  function destroy(isGraphExternal: boolean) {
     unsubscribe();
     graph.off('batch:stop', onBatchStop);
-    graph.clear();
     data.destroy();
     measuredNodes.clear();
+    if (isGraphExternal) {
+      return;
+    }
+    graph.clear();
   }
   // Force update the graph to ensure it's in sync with the store.
   forceUpdate();
 
   const store: Store = {
+    forceUpdate,
     destroy,
     graph,
     subscribe: elementsEvents.subscribe,

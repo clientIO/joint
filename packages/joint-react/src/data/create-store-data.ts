@@ -30,6 +30,7 @@ export function createStoreData<Element extends GraphElement = GraphElement>(): 
   /**
    * Update the store data with the graph data.
    * @param graph - The graph to update the store data with..
+   * @returns A set of cell IDs that were updated.
    * @description
    */
   function updateStore(graph: dia.Graph): Set<dia.Cell.ID> {

@@ -153,7 +153,7 @@ export function GraphProvider(props: Readonly<GraphProps>) {
     setGraphStore(newStore);
     return () => {
       if (newStore) {
-        newStore.destroy();
+        newStore.destroy(!!rest.graph || !!store?.graph);
       }
     };
     // On load initialization

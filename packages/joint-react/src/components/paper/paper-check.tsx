@@ -61,7 +61,6 @@ const PAPER_PROPS_NAMES: Array<keyof PaperProps> = [
   'validateUnembedding',
   'viewport',
   'width',
-  'overwriteDefaultPaperElement',
 ];
 /**
  * `VerifyProps` is a component that checks the properties of the Paper component in development mode.

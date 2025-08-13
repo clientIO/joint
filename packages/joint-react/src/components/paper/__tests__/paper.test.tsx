@@ -117,16 +117,6 @@ describe('Paper Component', () => {
     });
   });
 
-  it('overwrites default paper element with overwriteDefaultPaperElement', () => {
-    const customElement = document.createElement('div');
-    customElement.className = 'custom-paper-element';
-    render(
-      <GraphProvider initialElements={initialElements}>
-        <Paper<Element> overwriteDefaultPaperElement={() => customElement} />
-      </GraphProvider>
-    );
-    expect(document.querySelector('.custom-paper-element')).toBeInTheDocument();
-  });
   it('should fire custom event on the paper', async () => {
     const handleCustomEvent = jest.fn();
 
