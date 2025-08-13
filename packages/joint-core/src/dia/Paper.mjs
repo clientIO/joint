@@ -33,7 +33,7 @@ import {
 } from '../util/index.mjs';
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
-import { View, views } from '../mvc/index.mjs';
+import { View, views as viewsRegistry } from '../mvc/index.mjs';
 import { CellView, CELL_VIEW_MARKER } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
@@ -1057,7 +1057,7 @@ export const Paper = View.extend({
         if (!view) return 0;
         const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT } = this;
         const { model } = view;
-        if (view instanceof CellView) {
+        if (view[CELL_VIEW_MARKER]) {
             if (flag & FLAG_REMOVE) {
                 this.removeView(model);
                 return 0;
@@ -1274,6 +1274,12 @@ export const Paper = View.extend({
         if (this.options.viewManagement) {
             // The visibility check runs for CellView only.
             if (!viewLike[CELL_VIEW_MARKER] && !viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) return true;
+            // The cellView model must be a member of this graph.
+            if (viewLike.model.graph !== this.model) {
+                // It could have been removed from the graph.
+                // If the view was mounted, we keep it mounted.
+                return isMounted;
+            }
             return visibilityCallback.call(this, viewLike.model, isMounted, this);
         }
         return visibilityCallback.call(this, viewLike, isMounted, this);
@@ -1315,12 +1321,16 @@ export const Paper = View.extend({
                     empty = false;
                     break main;
                 }
-                var view = views[cid];
+                var view = viewsRegistry[cid];
                 if (!view) {
-                    if (this._viewPlaceholders[cid]) {
-                        view = this._viewPlaceholders[cid];
-                    } else {
-                        // This should not occur
+                    view = this._viewPlaceholders[cid];
+                    if (!view) {
+                        /**
+                         * This can occur when:
+                         * - the model is removed and a new model with the same id is added
+                         * - the view `initialize` method was overridden and the view was not registered
+                         * - an mvc.View that was removed and paper was not notified
+                         */
                         delete priorityUpdates[cid];
                         continue;
                     }
@@ -1357,6 +1367,10 @@ export const Paper = View.extend({
                         mountCount++;
                     }
                     currentFlag |= this.registerMountedView(view);
+                } else if (view[CELL_VIEW_PLACEHOLDER_MARKER]) {
+                    // We are trying to remove a placeholder view.
+                    // This should not occur as the placeholder should have been unregistered
+                    continue;
                 }
                 var leftoverFlag = this.updateView(view, currentFlag, opt);
                 if (leftoverFlag > 0) {
@@ -1391,7 +1405,7 @@ export const Paper = View.extend({
         for (const cid of unmountedCids) {
             // If the view is a placeholder, it won't be in the global views map
             // If the view is not a cell view, it won't be in the viewPlaceholders map
-            unmountedViews[i++] = views[cid] || this._viewPlaceholders[cid];
+            unmountedViews[i++] = viewsRegistry[cid] || this._viewPlaceholders[cid];
         }
         return unmountedViews;
     },
@@ -1402,7 +1416,7 @@ export const Paper = View.extend({
         const mountedCids = updates.mountedList.keys();
         let i = 0;
         for (const cid of mountedCids) {
-            mountedViews[i++] = views[cid] || this._viewPlaceholders[cid];
+            mountedViews[i++] = viewsRegistry[cid] || this._viewPlaceholders[cid];
         }
         return mountedViews;
     },
@@ -1416,7 +1430,7 @@ export const Paper = View.extend({
         var unmountedList = updates.unmountedList;
         for (var i = 0, n = Math.min(unmountedList.length, batchSize); i < n; i++) {
             const { key: cid } = unmountedList.peekHead();
-            let view = views[cid] || this._viewPlaceholders[cid];
+            let view = viewsRegistry[cid] || this._viewPlaceholders[cid];
             if (!view) {
                 // This should not occur
                 continue;
@@ -1448,7 +1462,7 @@ export const Paper = View.extend({
         const mountedList = updates.mountedList;
         for (var i = 0, n = Math.min(mountedList.length, batchSize); i < n; i++) {
             const { key: cid } = mountedList.peekHead();
-            const view = views[cid];
+            const view = viewsRegistry[cid];
             if (!view) {
                 // A view (not a cell view) has been removed from the paper.
                 // Remove it from the mounted list and continue.

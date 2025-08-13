@@ -3028,6 +3028,35 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             });
 
+            QUnit.test('do not dispose when removal is scheduled', function(assert) {
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    viewManagement: {
+                        lazyInitialize: true,
+                        disposeHidden: true
+                    },
+                });
+
+                const cellVisibilitySpy = sinon.spy(() => false);
+                const initialCount = getNumberOfViews();
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                paper.freeze();
+                // schedule a view removal
+                rect.remove();
+                // and check the viewport including the removed view
+                paper.checkViewport({ cellVisibility: cellVisibilitySpy });
+                paper.unfreeze();
+
+                assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is disposed and removed from the paper');
+                assert.notOk(cellVisibilitySpy.called, 'cellVisibility callback is called once for removed view');
+
+                paper.remove();
+            });
 
 
         });
