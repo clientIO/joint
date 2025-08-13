@@ -226,7 +226,6 @@ export class CellLayersController extends Listener {
                 return;
             }
             if (currentIndex != null) {
-                this.cellLayerAttributes.splice(currentIndex, 1); // remove existing layer attributes
                 if (currentIndex < insertAt) {
                     insertAt--;
                 }
@@ -234,6 +233,7 @@ export class CellLayersController extends Listener {
                 if (currentIndex === insertAt) {
                     return;
                 }
+                this.cellLayerAttributes.splice(currentIndex, 1); // remove existing layer attributes
             }
 
             this.cellLayerAttributes.splice(insertAt, 0, attributes);
