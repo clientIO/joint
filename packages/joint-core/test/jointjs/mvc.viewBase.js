@@ -32,6 +32,14 @@ QUnit.module('joint.mvc.ViewBase', function(hooks) {
         assert.equal(view.el.other, void 0);
     });
 
+    QUnit.test('cid', function(assert) {
+        var view2 = new joint.mvc.ViewBase({});
+        var view3 = new joint.mvc.ViewBase({ cid: 'test-view' });
+        assert.ok(view.cid);
+        assert.notEqual(view.cid, view2.cid, 'cid is unique by default');
+        assert.equal(view3.cid, 'test-view', 'cid can be set explicitly');
+    });
+
     QUnit.test('$', function(assert) {
         assert.expect(2);
         var myView = new joint.mvc.ViewBase;

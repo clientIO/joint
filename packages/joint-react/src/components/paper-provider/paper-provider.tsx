@@ -41,8 +41,8 @@ export interface PaperProviderProps extends ReactPaperOptions, GraphProps {
 const EMPTY_OBJECT = {} as const;
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-function Component(props: PaperProviderProps) {
-  const { children, overwriteDefaultPaperElement, ...paperOptions } = props;
+function Component(props: Readonly<PaperProviderProps>) {
+  const { children, ...paperOptions } = props;
   const graph = useGraph();
 
   const { onRenderElement, recordOfSVGElements } = usePaperElementRenderer();
@@ -143,7 +143,7 @@ function Component(props: PaperProviderProps) {
  * @returns - A JSX element that wraps the children with the PaperContext provider.
  * @group Components
  */
-export function PaperProvider(props: PaperProviderProps) {
+export function PaperProvider(props: Readonly<PaperProviderProps>) {
   const {
     children,
     initialElements,

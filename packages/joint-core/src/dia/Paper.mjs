@@ -28,17 +28,20 @@ import {
     filter as _filter,
     parseDOMJSON,
     toArray,
-    has
+    has,
+    uniqueId,
 } from '../util/index.mjs';
 import { ViewBase } from '../mvc/ViewBase.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views } from '../mvc/index.mjs';
-import { CellView } from './CellView.mjs';
+import { CellView, CELL_VIEW_MARKER } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';
 import { LinkView } from './LinkView.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
 import { LayersNames, PaperLayer } from './PaperLayer.mjs';
+import { HighlighterView } from './HighlighterView.mjs';
+import { Deque } from '../alg/Deque.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
@@ -95,6 +98,8 @@ const defaultLayers = [{
 }, {
     name: LayersNames.TOOLS
 }];
+
+const CELL_VIEW_PLACEHOLDER_MARKER = Symbol('joint.cellViewPlaceholderMarker');
 
 export const Paper = View.extend({
 
@@ -267,6 +272,8 @@ export const Paper = View.extend({
 
         autoFreeze: false,
 
+        viewManagement: false,
+
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
             // Do not update connected links when:
@@ -274,7 +281,7 @@ export const Paper = View.extend({
             // 2. the view was just mounted (added back to the paper by viewport function)
             // 3. the change was marked as `isolate`.
             // 4. the view model was just removed from the graph
-            if ((flag & (view.FLAG_INSERT | view.FLAG_REMOVE)) || opt.mounting || opt.isolate) return;
+            if ((flag & (paper.FLAG_INSERT | paper.FLAG_REMOVE)) || opt.mounting || opt.isolate) return;
             paper.requestConnectedLinksUpdate(view, priority, opt);
         },
 
@@ -390,6 +397,11 @@ export const Paper = View.extend({
     // Default layer to insert the cell views into.
     DEFAULT_CELL_LAYER: LayersNames.CELLS,
 
+    // Update flags
+    FLAG_INSERT: 1<<30,
+    FLAG_REMOVE: 1<<29,
+    FLAG_INIT: 1<<28,
+
     init: function() {
 
         const { options } = this;
@@ -415,6 +427,8 @@ export const Paper = View.extend({
 
         // Hash of all cell views.
         this._views = {};
+        this._viewPlaceholders = {};
+        this._idToCid = {};
 
         // Mouse wheel events buffer
         this._mw_evt_buffer = {
@@ -434,10 +448,8 @@ export const Paper = View.extend({
         return this._updates = {
             id: null,
             priorities: [{}, {}, {}],
-            unmountedCids: [],
-            mountedCids: [],
-            unmounted: {},
-            mounted: {},
+            unmountedList: new Deque(),
+            mountedList: new Deque(),
             count: 0,
             keyFrozen: false,
             freezeKey: null,
@@ -472,8 +484,13 @@ export const Paper = View.extend({
     },
 
     onCellRemoved: function(cell, _, opt) {
-        const view = this.findViewByModel(cell);
-        if (view) this.requestViewUpdate(view, view.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
+        const viewLike = this._getCellViewLike(cell);
+        if (!viewLike) return;
+        if (viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) {
+            this._unregisterCellViewPlaceholder(viewLike);
+        } else {
+            this.requestViewUpdate(viewLike, this.FLAG_REMOVE, viewLike.UPDATE_PRIORITY, opt);
+        }
     },
 
     onCellChange: function(cell, opt) {
@@ -482,8 +499,10 @@ export const Paper = View.extend({
             cell.hasChanged('layer') ||
             (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX)
         ) {
-            const view = this.findViewByModel(cell);
-            if (view) this.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+            const viewLike = this._getCellViewLike(cell);
+            if (viewLike) {
+                this.requestViewUpdate(viewLike, this.FLAG_INSERT, viewLike.UPDATE_PRIORITY, opt);
+            }
         }
     },
 
@@ -925,13 +944,13 @@ export const Paper = View.extend({
             var links = this.model.getConnectedLinks(model);
             for (var j = 0, n = links.length; j < n; j++) {
                 var link = links[j];
-                var linkView = this.findViewByModel(link);
+                var linkView = this._getCellViewLike(link);
                 if (!linkView) continue;
-                var flagLabels = ['UPDATE'];
-                if (link.getTargetCell() === model) flagLabels.push('TARGET');
-                if (link.getSourceCell() === model) flagLabels.push('SOURCE');
+                // We do not have to update placeholder views.
+                // They will be updated on initial render.
+                if (linkView[CELL_VIEW_PLACEHOLDER_MARKER]) continue;
                 var nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
-                this.scheduleViewUpdate(linkView, linkView.getFlag(flagLabels), nextPriority, opt);
+                this.scheduleViewUpdate(linkView, linkView.getFlag(LinkView.Flags.UPDATE), nextPriority, opt);
             }
         }
     },
@@ -940,26 +959,22 @@ export const Paper = View.extend({
         if (!view || !(view instanceof CellView)) return false;
         var model = view.model;
         if (model.isElement()) return false;
-        if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
-            var dumpOptions = { silent: true };
-            // LinkView is waiting for the target or the source cellView to be rendered
-            // This can happen when the cells are not in the viewport.
-            var sourceFlag = 0;
-            var sourceView = this.findViewByModel(model.getSourceCell());
-            if (sourceView && !this.isViewMounted(sourceView)) {
-                sourceFlag = this.dumpView(sourceView, dumpOptions);
-                view.updateEndMagnet('source');
-            }
-            var targetFlag = 0;
-            var targetView = this.findViewByModel(model.getTargetCell());
-            if (targetView && !this.isViewMounted(targetView)) {
-                targetFlag = this.dumpView(targetView, dumpOptions);
-                view.updateEndMagnet('target');
-            }
-            if (sourceFlag === 0 && targetFlag === 0) {
-                // If leftover flag is 0, all view updates were done.
-                return !this.dumpView(view, dumpOptions);
-            }
+        var dumpOptions = { silent: true };
+        // LinkView is waiting for the target or the source cellView to be rendered
+        // This can happen when the cells are not in the viewport.
+        var sourceFlag = 0;
+        var sourceView = this.findViewByModel(model.getSourceCell());
+        if (sourceView && !this.isViewMounted(sourceView)) {
+            sourceFlag = this.dumpView(sourceView, dumpOptions);
+        }
+        var targetFlag = 0;
+        var targetView = this.findViewByModel(model.getTargetCell());
+        if (targetView && !this.isViewMounted(targetView)) {
+            targetFlag = this.dumpView(targetView, dumpOptions);
+        }
+        if (sourceFlag === 0 && targetFlag === 0) {
+            // If leftover flag is 0, all view updates were done.
+            return !this.dumpView(view, dumpOptions);
         }
         return false;
     },
@@ -976,13 +991,12 @@ export const Paper = View.extend({
 
     scheduleViewUpdate: function(view, type, priority, opt) {
         const { _updates: updates, options } = this;
-        if (updates.idle) {
-            if (options.autoFreeze) {
-                updates.idle = false;
-                this.unfreeze();
-            }
+        if (updates.idle && options.autoFreeze) {
+            this.unfreeze();
         }
-        const { FLAG_REMOVE, FLAG_INSERT, UPDATE_PRIORITY, cid } = view;
+        const { FLAG_REMOVE, FLAG_INSERT } = this;
+        const { UPDATE_PRIORITY, cid } = view;
+
         let priorityUpdates = updates.priorities[priority];
         if (!priorityUpdates) priorityUpdates = updates.priorities[priority] = {};
         // Move higher priority updates to this priority
@@ -1040,7 +1054,8 @@ export const Paper = View.extend({
 
     updateView: function(view, flag, opt) {
         if (!view) return 0;
-        const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT, model } = view;
+        const { FLAG_REMOVE, FLAG_INSERT, FLAG_INIT } = this;
+        const { model } = view;
         if (view instanceof CellView) {
             if (flag & FLAG_REMOVE) {
                 this.removeView(model);
@@ -1069,33 +1084,40 @@ export const Paper = View.extend({
     registerUnmountedView: function(view) {
         var cid = view.cid;
         var updates = this._updates;
-        if (cid in updates.unmounted) return 0;
-        var flag = updates.unmounted[cid] |= view.FLAG_INSERT;
-        updates.unmountedCids.push(cid);
-        delete updates.mounted[cid];
+        if (updates.unmountedList.has(cid)) return 0;
+        const flag = this.FLAG_INSERT;
+        updates.unmountedList.pushTail(cid, flag);
+        updates.mountedList.delete(cid);
         return flag;
     },
 
     registerMountedView: function(view) {
         var cid = view.cid;
         var updates = this._updates;
-        if (cid in updates.mounted) return 0;
-        updates.mounted[cid] = true;
-        updates.mountedCids.push(cid);
-        var flag = updates.unmounted[cid] || 0;
-        delete updates.unmounted[cid];
+        if (updates.mountedList.has(cid)) return 0;
+        const unmountedNode = updates.unmountedList.get(cid);
+        const flag = unmountedNode ? unmountedNode.value : 0;
+        updates.unmountedList.delete(cid);
+        updates.mountedList.pushTail(cid);
         return flag;
     },
 
-    isViewMounted: function(view) {
-        if (!view) return false;
-        var cid = view.cid;
-        var updates = this._updates;
-        return (cid in updates.mounted);
+    isViewMounted: function(viewOrId) {
+        if (!viewOrId) return false;
+        let cid;
+        if (viewOrId[CELL_VIEW_MARKER] || viewOrId[CELL_VIEW_PLACEHOLDER_MARKER]) {
+            // If the view is a CellView, we can use its cid.
+            cid = viewOrId.cid;
+        } else {
+            // `view` is model id
+            cid = this._idToCid[viewOrId];
+        }
+        if (!cid) return false; // The view is not registered.
+        return this._updates.mountedList.has(cid);
     },
 
     dumpViews: function(opt) {
-        var passingOpt = defaults({}, opt, { viewport: null });
+        const passingOpt = defaults({}, opt, { cellVisibility: null, viewport: null });
         this.checkViewport(passingOpt);
         this.updateViews(passingOpt);
     },
@@ -1166,12 +1188,14 @@ export const Paper = View.extend({
                     data.processed = processed;
                 }
             } else {
-                if (!updates.idle) {
-                    if (options.autoFreeze) {
-                        this.freeze();
-                        updates.idle = true;
-                        this.trigger('render:idle', opt);
-                    }
+                // The `checkViewport` could have scheduled some insertions
+                // (note that removals are currently done synchronously).
+                if (options.autoFreeze && !this.hasScheduledUpdates()) {
+                    // If there are no updates scheduled, freeze the paper.
+                    // Notify the idle state.
+                    this.freeze();
+                    updates.idle = true;
+                    this.trigger('render:idle', opt);
                 }
             }
             // Progress callback
@@ -1208,6 +1232,28 @@ export const Paper = View.extend({
         this.trigger('render:done', stats, opt);
     },
 
+    _evalCellVisibility: function(viewLike, isMounted, visibilityCallback) {
+        if (!visibilityCallback || !viewLike.DETACHABLE) return true;
+        if (this.options.viewManagement) {
+            // The visibility check runs for CellView only.
+            if (!viewLike[CELL_VIEW_MARKER] && !viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) return true;
+            return visibilityCallback.call(this, viewLike.model, isMounted, this);
+        }
+        return visibilityCallback.call(this, viewLike, isMounted, this);
+    },
+
+    _getCellVisibilityCallback: function(opt) {
+        const { options } = this;
+        if (options.viewManagement) {
+            const isVisibleFn = 'cellVisibility' in opt ? opt.cellVisibility : options.cellVisibility;
+            if (typeof isVisibleFn === 'function') return isVisibleFn;
+        } else {
+            const viewportFn = 'viewport' in opt ? opt.viewport : options.viewport;
+            if (typeof viewportFn === 'function') return viewportFn;
+        }
+        return null;
+    },
+
     updateViewsBatch: function(opt) {
         opt || (opt = {});
         var batchSize = opt.batchSize || UPDATE_BATCH_SIZE;
@@ -1220,8 +1266,7 @@ export const Paper = View.extend({
         var empty = true;
         var options = this.options;
         var priorities = updates.priorities;
-        var viewportFn = 'viewport' in opt ? opt.viewport : options.viewport;
-        if (typeof viewportFn !== 'function') viewportFn = null;
+        const visibilityCb = this._getCellVisibilityCallback(opt);
         var postponeViewFn = options.onViewPostponed;
         if (typeof postponeViewFn !== 'function') postponeViewFn = null;
         var priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
@@ -1235,28 +1280,43 @@ export const Paper = View.extend({
                 }
                 var view = views[cid];
                 if (!view) {
-                    // This should not occur
-                    delete priorityUpdates[cid];
-                    continue;
+                    if (this._viewPlaceholders[cid]) {
+                        view = this._viewPlaceholders[cid];
+                    } else {
+                        // This should not occur
+                        delete priorityUpdates[cid];
+                        continue;
+                    }
                 }
                 var currentFlag = priorityUpdates[cid];
-                if ((currentFlag & view.FLAG_REMOVE) === 0) {
+                if ((currentFlag & this.FLAG_REMOVE) === 0) {
                     // We should never check a view for viewport if we are about to remove the view
-                    var isDetached = cid in updates.unmounted;
-                    if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
+                    const isMounted = !updates.unmountedList.has(cid);
+                    if (!this._evalCellVisibility(view, isMounted, visibilityCb)) {
                         // Unmount View
-                        if (!isDetached) {
+                        if (isMounted) {
+                            // The view is currently mounted. Hide the view (detach or remove it).
                             this.registerUnmountedView(view);
-                            this.detachView(view);
+                            this._hideCellView(view);
+                        } else {
+                            // The view is not mounted. We can just update the unmounted list.
+                            const unmountedNode = updates.unmountedList.get(cid);
+                            // We ADD the current flag to the flag that was already scheduled.
+                            unmountedNode.value |= currentFlag;
                         }
-                        updates.unmounted[cid] |= currentFlag;
+                        // Delete the current update as it has been processed.
                         delete priorityUpdates[cid];
                         unmountCount++;
                         continue;
                     }
                     // Mount View
-                    if (isDetached) {
-                        currentFlag |= view.FLAG_INSERT;
+                    if (view[CELL_VIEW_PLACEHOLDER_MARKER]) {
+                        view = this._resolveCellViewPlaceholder(view);
+                        currentFlag |= view.getFlag(result(view, 'initFlag'));
+                    }
+
+                    if (!isMounted) {
+                        currentFlag |= this.FLAG_INSERT;
                         mountCount++;
                     }
                     currentFlag |= this.registerMountedView(view);
@@ -1288,101 +1348,111 @@ export const Paper = View.extend({
 
     getUnmountedViews: function() {
         const updates = this._updates;
-        const unmountedCids = Object.keys(updates.unmounted);
-        const n = unmountedCids.length;
-        const unmountedViews = new Array(n);
-        for (var i = 0; i < n; i++) {
-            unmountedViews[i] = views[unmountedCids[i]];
+        const unmountedViews = new Array(updates.unmountedList.length);
+        const unmountedCids = updates.unmountedList.keys();
+        let i = 0;
+        for (const cid of unmountedCids) {
+            // If the view is a placeholder, it won't be in the global views map
+            // If the view is not a cell view, it won't be in the viewPlaceholders map
+            unmountedViews[i++] = views[cid] || this._viewPlaceholders[cid];
         }
         return unmountedViews;
     },
 
     getMountedViews: function() {
         const updates = this._updates;
-        const mountedCids = Object.keys(updates.mounted);
-        const n = mountedCids.length;
-        const mountedViews = new Array(n);
-        for (var i = 0; i < n; i++) {
-            mountedViews[i] = views[mountedCids[i]];
+        const mountedViews = new Array(updates.mountedList.length);
+        const mountedCids = updates.mountedList.keys();
+        let i = 0;
+        for (const cid of mountedCids) {
+            mountedViews[i++] = views[cid] || this._viewPlaceholders[cid];
         }
         return mountedViews;
     },
 
-    checkUnmountedViews: function(viewportFn, opt) {
+    checkUnmountedViews: function(visibilityCb, opt) {
         opt || (opt  = {});
         var mountCount = 0;
-        if (typeof viewportFn !== 'function') viewportFn = null;
+        if (typeof visibilityCb !== 'function') visibilityCb = null;
         var batchSize = 'mountBatchSize' in opt ? opt.mountBatchSize : Infinity;
         var updates = this._updates;
-        var unmountedCids = updates.unmountedCids;
-        var unmounted = updates.unmounted;
-        for (var i = 0, n = Math.min(unmountedCids.length, batchSize); i < n; i++) {
-            var cid = unmountedCids[i];
-            if (!(cid in unmounted)) continue;
-            var view = views[cid];
-            if (!view) continue;
-            if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, false, this)) {
-                // Push at the end of all unmounted ids, so this can be check later again
-                unmountedCids.push(cid);
+        var unmountedList = updates.unmountedList;
+        for (var i = 0, n = Math.min(unmountedList.length, batchSize); i < n; i++) {
+            const { key: cid } = unmountedList.peekHead();
+            let view = views[cid] || this._viewPlaceholders[cid];
+            if (!view) {
+                // This should not occur
                 continue;
             }
+            if (!this._evalCellVisibility(view, false, visibilityCb)) {
+                // Push at the end of all unmounted ids, so this can be check later again
+                unmountedList.rotate();
+                continue;
+            }
+            // Remove the view from the unmounted list
+            const { value: prevFlag } = unmountedList.popHead();
             mountCount++;
-            var flag = this.registerMountedView(view);
+            var flag = this.registerMountedView(view) | prevFlag;
+            if (view[CELL_VIEW_PLACEHOLDER_MARKER]) {
+                view = this._resolveCellViewPlaceholder(view);
+                flag |= view.getFlag(result(view, 'initFlag'));
+            }
             if (flag) this.scheduleViewUpdate(view, flag, view.UPDATE_PRIORITY, { mounting: true });
         }
-        // Get rid of views, that have been mounted
-        unmountedCids.splice(0, i);
         return mountCount;
     },
 
-    checkMountedViews: function(viewportFn, opt) {
+    checkMountedViews: function(visibilityCb, opt) {
         opt || (opt = {});
         var unmountCount = 0;
-        if (typeof viewportFn !== 'function') return unmountCount;
+        if (typeof visibilityCb !== 'function') return unmountCount;
         var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : Infinity;
         var updates = this._updates;
-        var mountedCids = updates.mountedCids;
-        var mounted = updates.mounted;
-        for (var i = 0, n = Math.min(mountedCids.length, batchSize); i < n; i++) {
-            var cid = mountedCids[i];
-            if (!(cid in mounted)) continue;
-            var view = views[cid];
-            if (!view) continue;
-            if (!view.DETACHABLE || viewportFn.call(this, view, true, this)) {
-                // Push at the end of all mounted ids, so this can be check later again
-                mountedCids.push(cid);
+        const mountedList = updates.mountedList;
+        for (var i = 0, n = Math.min(mountedList.length, batchSize); i < n; i++) {
+            const { key: cid } = mountedList.peekHead();
+            const view = views[cid];
+            if (!view) {
+                // A view (not a cell view) has been removed from the paper.
+                // Remove it from the mounted list and continue.
+                mountedList.popHead();
                 continue;
             }
+            if (this._evalCellVisibility(view, true, visibilityCb)) {
+                // Push at the end of all mounted ids, so this can be check later again
+                mountedList.rotate();
+                continue;
+            }
+            // Remove the view from the mounted list
+            mountedList.popHead();
             unmountCount++;
             var flag = this.registerUnmountedView(view);
-            if (flag) this.detachView(view);
+            if (flag) {
+                this._hideCellView(view);
+            }
         }
-        // Get rid of views, that have been unmounted
-        mountedCids.splice(0, i);
         return unmountCount;
     },
 
     checkViewVisibility: function(cellView, opt = {}) {
-        let viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
-        if (typeof viewportFn !== 'function') viewportFn = null;
+        const visibilityCb = this._getCellVisibilityCallback(opt);
         const updates = this._updates;
-        const { mounted, unmounted } = updates;
-        const visible = !cellView.DETACHABLE || !viewportFn || viewportFn.call(this, cellView, false, this);
+        const { mountedList, unmountedList } = updates;
+
+        const visible = this._evalCellVisibility(cellView, false, visibilityCb);
 
         let isUnmounted = false;
         let isMounted = false;
 
-        if (cellView.cid in mounted && !visible) {
+        if (mountedList.has(cellView.cid) && !visible) {
             const flag = this.registerUnmountedView(cellView);
-            if (flag) this.detachView(cellView);
-            const i = updates.mountedCids.indexOf(cellView.cid);
-            updates.mountedCids.splice(i, 1);
+            if (flag) this._hideCellView(cellView);
+            updates.mountedList.delete(cellView.cid);
             isUnmounted = true;
         }
 
-        if (!isUnmounted && cellView.cid in unmounted && visible) {
-            const i = updates.unmountedCids.indexOf(cellView.cid);
-            updates.unmountedCids.splice(i, 1);
+        if (!isUnmounted && unmountedList.has(cellView.cid) && visible) {
+            updates.unmountedList.delete(cellView.cid);
             var flag = this.registerMountedView(cellView);
             if (flag) this.scheduleViewUpdate(cellView, flag, cellView.UPDATE_PRIORITY, { mounting: true });
             isMounted = true;
@@ -1399,14 +1469,14 @@ export const Paper = View.extend({
             mountBatchSize: Infinity,
             unmountBatchSize: Infinity
         });
-        var viewportFn = 'viewport' in passingOpt ? passingOpt.viewport : this.options.viewport;
-        var unmountedCount = this.checkMountedViews(viewportFn, passingOpt);
+        const visibilityCb = this._getCellVisibilityCallback(passingOpt);
+        var unmountedCount = this.checkMountedViews(visibilityCb, passingOpt);
         if (unmountedCount > 0) {
             // Do not check views, that have been just unmounted and pushed at the end of the cids array
-            var unmountedCids = this._updates.unmountedCids;
-            passingOpt.mountBatchSize = Math.min(unmountedCids.length - unmountedCount, passingOpt.mountBatchSize);
+            var unmountedList = this._updates.unmountedList;
+            passingOpt.mountBatchSize = Math.min(unmountedList.length - unmountedCount, passingOpt.mountBatchSize);
         }
-        var mountedCount = this.checkUnmountedViews(viewportFn, passingOpt);
+        var mountedCount = this.checkUnmountedViews(visibilityCb, passingOpt);
         return {
             mounted: mountedCount,
             unmounted: unmountedCount
@@ -1441,6 +1511,7 @@ export const Paper = View.extend({
         updates.freezeKey = null;
         // key passed, but the paper is already freezed
         if (key && key === freezeKey && updates.keyFrozen) return;
+        updates.idle = false;
         if (this.isAsync()) {
             this.freeze();
             this.updateViewsAsync(opt);
@@ -1759,21 +1830,57 @@ export const Paper = View.extend({
         return restrictedArea;
     },
 
-    createViewForModel: function(cell) {
+    _resolveCellViewPlaceholder: function(placeholder) {
+        const { model, viewClass, cid } = placeholder;
+        const view = this._initializeCellView(viewClass, model, cid);
+        this._registerCellView(view);
+        this._unregisterCellViewPlaceholder(placeholder);
+        return view;
+    },
 
+    _registerCellViewPlaceholder: function(cell, cid = uniqueId('view')) {
+        const ViewClass = this._resolveCellViewClass(cell);
+        const placeholder = {
+            // A tag to identify the placeholder from a CellView.
+            [CELL_VIEW_PLACEHOLDER_MARKER]: true,
+            cid,
+            model: cell,
+            DETACHABLE: true,
+            viewClass: ViewClass,
+            UPDATE_PRIORITY: ViewClass.prototype.UPDATE_PRIORITY,
+        };
+        this._viewPlaceholders[cid] = placeholder;
+        return placeholder;
+    },
+
+    _registerCellView: function(cellView) {
+        cellView.paper = this;
+        this._views[cellView.model.id] = cellView;
+    },
+
+    _unregisterCellViewPlaceholder: function(placeholder) {
+        delete this._viewPlaceholders[placeholder.cid];
+    },
+
+    _initializeCellView: function(ViewClass, cell, cid) {
         const { options } = this;
+        const { interactive, labelsLayer } = options;
+        return new ViewClass({
+            cid,
+            model: cell,
+            interactive,
+            labelsLayer: labelsLayer === true ? LayersNames.LABELS : labelsLayer
+        });
+    },
+
+    _resolveCellViewClass: function(cell) {
+        const { options } = this;
+        const { cellViewNamespace } = options;
+        const type = cell.get('type') + 'View';
+        const namespaceViewClass = getByPath(cellViewNamespace, type, '.');
         // A class taken from the paper options.
-        var optionalViewClass;
-
-        // A default basic class (either dia.ElementView or dia.LinkView)
-        var defaultViewClass;
-
-        // A special class defined for this model in the corresponding namespace.
-        // e.g. joint.shapes.standard.Rectangle searches for joint.shapes.standard.RectangleView
-        var namespace = options.cellViewNamespace;
-        var type = cell.get('type') + 'View';
-        var namespaceViewClass = getByPath(namespace, type, '.');
-
+        let optionalViewClass;
+        let defaultViewClass;
         if (cell.isLink()) {
             optionalViewClass = options.linkView;
             defaultViewClass = LinkView;
@@ -1781,7 +1888,6 @@ export const Paper = View.extend({
             optionalViewClass = options.elementView;
             defaultViewClass = ElementView;
         }
-
         // a) the paper options view is a class (deprecated)
         //  1. search the namespace for a view
         //  2. if no view was found, use view from the paper options
@@ -1789,29 +1895,54 @@ export const Paper = View.extend({
         //  1. call the function from the paper options
         //  2. if no view was return, search the namespace for a view
         //  3. if no view was found, use the default
-        var ViewClass = (optionalViewClass.prototype instanceof ViewBase)
+        return (optionalViewClass.prototype instanceof ViewBase)
             ? namespaceViewClass || optionalViewClass
             : optionalViewClass.call(this, cell) || namespaceViewClass || defaultViewClass;
+    },
 
-        return new ViewClass({
-            model: cell,
-            interactive: options.interactive,
-            labelsLayer: options.labelsLayer === true ? LayersNames.LABELS : options.labelsLayer
-        });
+    // Returns a CellView instance or its placeholder for the given cell.
+    _getCellViewLike: function(cell) {
+
+        let id;
+        if (isString(cell) || isNumber(cell)) {
+            // If the cell is a string or number, it is an id of the view.
+            id = cell;
+        } else if (cell) {
+            // If the cell is an object, it should have an id property.
+            id = cell.id;
+        } else {
+            // If the cell is falsy, return null.
+            return null;
+        }
+
+        const view = this._views[id];
+        if (view) return view;
+
+        // If the view is not found, it may be a placeholder
+        const cid = this._idToCid[id];
+        if (cid) {
+            return this._viewPlaceholders[cid];
+        }
+
+        return null;
+    },
+
+    createViewForModel: function(cell, cid) {
+        return this._initializeCellView(this._resolveCellViewClass(cell), cell, cid);
     },
 
     removeView: function(cell) {
-
         const { id } = cell;
         const { _views, _updates } = this;
         const view = _views[id];
         if (view) {
             var { cid } = view;
-            const { mounted, unmounted } = _updates;
+            const { mountedList, unmountedList } = _updates;
             view.remove();
             delete _views[id];
-            delete mounted[cid];
-            delete unmounted[cid];
+            delete this._idToCid[id];
+            mountedList.delete(cid);
+            unmountedList.delete(cid);
         }
         return view;
     },
@@ -1825,7 +1956,7 @@ export const Paper = View.extend({
         if (id in views) {
             view = views[id];
             if (view.model === cell) {
-                flag = view.FLAG_INSERT;
+                flag = this.FLAG_INSERT;
                 create = false;
             } else {
                 // The view for this `id` already exist.
@@ -1835,9 +1966,17 @@ export const Paper = View.extend({
             }
         }
         if (create) {
-            view = views[id] = this.createViewForModel(cell);
-            view.paper = this;
-            flag = this.registerUnmountedView(view) | this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
+            const { viewManagement } = this.options;
+            const cid = uniqueId('view');
+            this._idToCid[cell.id] = cid;
+            if (viewManagement && viewManagement.lazyInitialize) {
+                view = this._registerCellViewPlaceholder(cell, cid);
+                flag = this.registerUnmountedView(view) | this.FLAG_INIT;
+            } else {
+                view = this.createViewForModel(cell, cid);
+                this._registerCellView(view);
+                flag = this.registerUnmountedView(view) | this.FLAG_INIT | view.getFlag(result(view, 'initFlag'));
+            }
         }
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
         return view;
@@ -1867,10 +2006,16 @@ export const Paper = View.extend({
     },
 
     removeViews: function() {
-
-        invoke(this._views, 'remove');
-
+        // Remove all views and their references from the paper.
+        for (const id in this._views) {
+            const view = this._views[id];
+            if (view) {
+                view.remove();
+            }
+        }
         this._views = {};
+        this._viewPlaceholders = {};
+        this._idToCid = {};
     },
 
     sortViews: function() {
@@ -1922,9 +2067,34 @@ export const Paper = View.extend({
         view.onMount(isInitialInsert);
     },
 
-    detachView(view) {
-        view.unmount();
-        view.onDetach();
+    // If `cellVisibility` returns `false`, the view will be hidden using this method.
+    _hideCellView: function(cellView) {
+        const { viewManagement } = this.options;
+        if (viewManagement && viewManagement.disposeHidden) {
+            // We currently do not dispose views which has a highlighter or tools attached
+            // Note: Possible improvement would be to serialize highlighters/tools and
+            // restore them on view re-mount.
+            if (!HighlighterView.has(cellView) && !cellView.hasTools()) {
+                const cell = cellView.model;
+                // Remove the view from the paper and dispose it
+                cellView.remove();
+                delete this._views[cell.id];
+                this._registerCellViewPlaceholder(cell, cellView.cid);
+                return;
+            }
+        }
+        // Detach the view from the paper, but keep it in memory
+        this._detachCellView(cellView);
+    },
+
+    // Detach a view from the paper, but keep it in memory.
+    _detachCellView(cellView) {
+        if (cellView[CELL_VIEW_PLACEHOLDER_MARKER]) {
+            // A placeholder view was never mounted
+            return;
+        }
+        cellView.unmount();
+        cellView.onDetach();
     },
 
     // Find the first view climbing up the DOM tree starting at element `el`. Note that `el` can also
@@ -1942,11 +2112,23 @@ export const Paper = View.extend({
     },
 
     // Find a view for a model `cell`. `cell` can also be a string or number representing a model `id`.
-    findViewByModel: function(cell) {
+    findViewByModel: function(cellOrId) {
 
-        var id = (isString(cell) || isNumber(cell)) ? cell : (cell && cell.id);
-
-        return this._views[id];
+        const viewLike = this._getCellViewLike(cellOrId);
+        if (!viewLike) return undefined;
+        if (!viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) {
+            // If the view is not a placeholder, return it directly
+            return viewLike;
+        }
+        // If the view is a placeholder, resolve it
+        const view = this._resolveCellViewPlaceholder(viewLike);
+        const flag = view.getFlag(result(view, 'initFlag'));
+        this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, {
+            // It's important to run in isolation to avoid triggering the update of
+            // connected links
+            isolate: true
+        });
+        return view;
     },
 
     // Find all views at given point
@@ -2023,6 +2205,92 @@ export const Paper = View.extend({
             (extArea) => this.model.findCellsInArea(extArea),
             opt
         );
+    },
+
+    findClosestMagnetToPoint: function(point, options = {}) {
+        let minDistance = Number.MAX_SAFE_INTEGER;
+        let bestPriority = -Infinity;
+        const pointer = new Point(point);
+
+        const radius = options.radius || Number.MAX_SAFE_INTEGER;
+        const viewsInArea = this.findCellViewsInArea(
+            { x: pointer.x - radius, y: pointer.y - radius, width: 2 * radius, height: 2 * radius },
+            options.findInAreaOptions
+        );
+        // Enable all connections by default
+        const validationFn = options.validation || ((_view, _magnet) => true);
+
+        let closestView = null;
+        let closestMagnet = null;
+
+        // Note: If snapRadius is smaller than magnet size, views will not be found.
+        viewsInArea.forEach((view) => {
+
+            const candidates = [];
+            const { model } = view;
+            // skip connecting to the element in case '.': { magnet: false } attribute present
+            if (view.el.getAttribute('magnet') !== 'false') {
+
+                if (model.isLink()) {
+                    const connection = view.getConnection();
+                    candidates.push({
+                        // find distance from the closest point of a link to pointer coordinates
+                        priority: 0,
+                        distance: connection.closestPoint(pointer).squaredDistance(pointer),
+                        magnet: view.el
+                    });
+                } else {
+                    candidates.push({
+                        // Set the priority to the level of nested elements of the model
+                        // To ensure that the embedded cells get priority over the parent cells
+                        priority: model.getAncestors().length,
+                        // find distance from the center of the model to pointer coordinates
+                        distance: model.getBBox().center().squaredDistance(pointer),
+                        magnet: view.el
+                    });
+                }
+            }
+
+            view.$('[magnet]').toArray().forEach(magnet => {
+
+                const magnetBBox = view.getNodeBBox(magnet);
+                let magnetDistance = magnetBBox.pointNearestToPoint(pointer).squaredDistance(pointer);
+                if (magnetBBox.containsPoint(pointer)) {
+                    // Pointer sits inside this magnet.
+                    // Push its distance far into the negative range so any
+                    // "under-pointer" magnet outranks magnets that are only nearby
+                    // (positive distance) and every non-magnet candidate.
+                    // We add the original distance back to keep ordering among
+                    // overlapping magnets: the one whose border is closest to the
+                    // pointer (smaller original distance) still wins.
+                    magnetDistance = -Number.MAX_SAFE_INTEGER + magnetDistance;
+                }
+
+                // Check if magnet is inside the snap radius.
+                if (magnetDistance <= radius * radius) {
+                    candidates.push({
+                        // Give magnets priority over other candidates.
+                        priority: Number.MAX_SAFE_INTEGER,
+                        distance: magnetDistance,
+                        magnet
+                    });
+                }
+            });
+
+            candidates.forEach(candidate => {
+                const { magnet, distance, priority } = candidate;
+                const isBetterCandidate = (priority > bestPriority) || (priority === bestPriority && distance < minDistance);
+                if (isBetterCandidate && validationFn(view, magnet)) {
+                    bestPriority = priority;
+                    minDistance = distance;
+                    closestView = view;
+                    closestMagnet = magnet;
+                }
+            });
+
+        });
+
+        return closestView ? { view: closestView, magnet: closestMagnet } : null;
     },
 
     _findInExtendedArea: function(area, findCellsFn, opt = {}) {
@@ -2477,8 +2745,11 @@ export const Paper = View.extend({
 
         var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
-        var view = data.sourceView;
+        let view = data.sourceView;
         if (view) {
+            // The view could have been disposed during dragging
+            // e.g. dragged outside of the viewport and hidden
+            view = this.findViewByModel(view.model);
             view.pointermove(evt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
@@ -2495,8 +2766,11 @@ export const Paper = View.extend({
 
         var localPoint = this.snapToGrid(normalizedEvt.clientX, normalizedEvt.clientY);
 
-        var view = this.eventData(evt).sourceView;
+        let view = this.eventData(evt).sourceView;
         if (view) {
+            // The view could have been disposed during dragging
+            // e.g. dragged outside of the viewport and hidden
+            view = this.findViewByModel(view.model);
             view.pointerup(normalizedEvt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);

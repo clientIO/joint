@@ -34,6 +34,8 @@ export const LinkView = CellView.extend({
     _labelCache: null,
     _labelSelectors: null,
     _V: null,
+    _sourceMagnet: null,
+    _targetMagnet: null,
     _dragData: null, // deprecated
 
     metrics: null,
@@ -75,23 +77,31 @@ export const LinkView = CellView.extend({
     UPDATE_PRIORITY: 1,
     EPSILON: 1e-6,
 
-    confirmUpdate: function(flags, opt) {
+    confirmUpdate: function(flags, opt = {}) {
 
-        opt || (opt = {});
+        const { paper, model } = this;
+        const { attributes } = model;
+        const { source: { id: sourceId }, target: { id: targetId }} = attributes;
 
         if (this.hasFlag(flags, Flags.SOURCE)) {
-            if (!this.updateEndProperties('source')) return flags;
+            this._sourceMagnet = null; // reset cached source magnet
+            this.checkEndModel('source', sourceId);
             flags = this.removeFlag(flags, Flags.SOURCE);
         }
 
         if (this.hasFlag(flags, Flags.TARGET)) {
-            if (!this.updateEndProperties('target')) return flags;
+            this._targetMagnet = null; // reset cached target magnet
+            this.checkEndModel('target', targetId);
             flags = this.removeFlag(flags, Flags.TARGET);
         }
 
-        const { paper, sourceView, targetView } = this;
-        if (paper && ((sourceView && !paper.isViewMounted(sourceView)) || (targetView && !paper.isViewMounted(targetView)))) {
-            // Wait for the sourceView and targetView to be rendered
+        if (
+            paper && (
+                (sourceId && !paper.isViewMounted(sourceId)) ||
+                (targetId && !paper.isViewMounted(targetId))
+            )
+        ) {
+            // Wait for the source and target views to be rendered
             return flags;
         }
 
@@ -110,8 +120,6 @@ export const LinkView = CellView.extend({
 
         let updateHighlighters = false;
 
-        const { model } = this;
-        const { attributes } = model;
         let updateLabels = this.hasFlag(flags, Flags.LABELS);
 
         if (updateLabels) {
@@ -931,44 +939,11 @@ export const LinkView = CellView.extend({
         }
     },
 
-    updateEndProperties: function(endType) {
-
-        const { model, paper } = this;
-        const endViewProperty = `${endType}View`;
-        const endDef = model.get(endType);
-        const endId = endDef && endDef.id;
-
-        if (!endId) {
-            // the link end is a point ~ rect 0x0
-            this[endViewProperty] = null;
-            this.updateEndMagnet(endType);
-            return true;
-        }
-
-        const endModel = paper.getModelById(endId);
-        if (!endModel) throw new Error('LinkView: invalid ' + endType + ' cell.');
-
-        const endView = endModel.findView(paper);
-        if (!endView) {
-            // A view for a model should always exist
-            return false;
-        }
-
-        this[endViewProperty] = endView;
-        this.updateEndMagnet(endType);
-        return true;
-    },
-
-    updateEndMagnet: function(endType) {
-
-        const endMagnetProperty = `${endType}Magnet`;
-        const endView = this.getEndView(endType);
-        if (endView) {
-            let connectedMagnet = endView.getMagnetFromLinkEnd(this.model.get(endType));
-            if (connectedMagnet === endView.el) connectedMagnet = null;
-            this[endMagnetProperty] = connectedMagnet;
-        } else {
-            this[endMagnetProperty] = null;
+    checkEndModel: function(endType, endId) {
+        if (!endId) return;
+        const endModel = this.paper.getModelById(endId);
+        if (!endModel) {
+            throw new Error(`LinkView: invalid ${endType} cell.`);
         }
     },
 
@@ -1859,10 +1834,7 @@ export const LinkView = CellView.extend({
         // checking view in close area of the pointer
 
         const radius = snapLinks.radius || 50;
-        const viewsInArea = paper.findCellViewsInArea(
-            { x: x - radius, y: y - radius, width: 2 * radius, height: 2 * radius },
-            snapLinks.findInAreaOptions
-        );
+        const findInAreaOptions = snapLinks.findInAreaOptions;
 
         const prevClosestView = data.closestView || null;
         const prevClosestMagnet = data.closestMagnet || null;
@@ -1870,86 +1842,21 @@ export const LinkView = CellView.extend({
 
         data.closestView = data.closestMagnet = data.magnetProxy = null;
 
-        let minDistance = Number.MAX_VALUE;
-        let bestPriority = -Infinity;
-        const pointer = new Point(x, y);
-
-        // Note: If snapRadius is smaller than magnet size, views will not be found.
-        viewsInArea.forEach((view) => {
-
+        const validationFn = (view, magnet) => {
             // Do not snap to the current view
             if (view === this) {
-                return;
+                return false;
             }
 
-            const candidates = [];
-            const { model } = view;
-            // skip connecting to the element in case '.': { magnet: false } attribute present
-            if (view.el.getAttribute('magnet') !== 'false') {
+            const isAlreadyValidated = prevClosestMagnet === magnet;
+            return isAlreadyValidated || paper.options.validateConnection.apply(
+                paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
+            );
+        };
 
-                if (model.isLink()) {
-                    const connection = view.getConnection();
-                    candidates.push({
-                        // find distance from the closest point of a link to pointer coordinates
-                        priority: 0,
-                        distance: connection.closestPoint(pointer).squaredDistance(pointer),
-                        magnet: view.el
-                    });
-                } else {
-                    candidates.push({
-                        // Set the priority to the level of nested elements of the model
-                        // To ensure that the embedded cells get priority over the parent cells
-                        priority: model.getAncestors().length,
-                        // find distance from the center of the model to pointer coordinates
-                        distance: model.getBBox().center().squaredDistance(pointer),
-                        magnet: view.el
-                    });
-                }
-            }
-
-            view.$('[magnet]').toArray().forEach(magnet => {
-
-                const magnetBBox = view.getNodeBBox(magnet);
-                let magnetDistance = magnetBBox.pointNearestToPoint(pointer).squaredDistance(pointer);
-                if (magnetBBox.containsPoint(pointer)) {
-                    // Pointer sits inside this magnet.
-                    // Push its distance far into the negative range so any
-                    // "under-pointer" magnet outranks magnets that are only nearby
-                    // (positive distance) and every non-magnet candidate.
-                    // We add the original distance back to keep ordering among
-                    // overlapping magnets: the one whose border is closest to the
-                    // pointer (smaller original distance) still wins.
-                    magnetDistance = -Number.MAX_SAFE_INTEGER + magnetDistance;
-                }
-
-                // Check if magnet is inside the snap radius.
-                if (magnetDistance <= radius * radius) {
-                    candidates.push({
-                        // Give magnets priority over other candidates.
-                        priority: Number.MAX_SAFE_INTEGER,
-                        distance: magnetDistance,
-                        magnet
-                    });
-                }
-            });
-
-            candidates.forEach(candidate => {
-                const { magnet, distance, priority } = candidate;
-                const isBetterCandidate = (priority > bestPriority) || (priority === bestPriority && distance < minDistance);
-                if (isBetterCandidate) {
-                    const isAlreadyValidated = prevClosestMagnet === magnet;
-                    if (isAlreadyValidated || paper.options.validateConnection.apply(
-                        paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
-                    )) {
-                        bestPriority = priority;
-                        minDistance = distance;
-                        data.closestView = view;
-                        data.closestMagnet = magnet;
-                    }
-                }
-            });
-
-        }, this);
+        const closest = paper.findClosestMagnetToPoint({ x, y }, { radius, findInAreaOptions, validation: validationFn });
+        data.closestView = closest ? closest.view : null;
+        data.closestMagnet = closest ? closest.magnet : null;
 
         var end;
         var magnetProxy = null;
@@ -2267,8 +2174,82 @@ export const LinkView = CellView.extend({
     Flags: Flags,
 });
 
-Object.defineProperty(LinkView.prototype, 'sourceBBox', {
+Object.defineProperty(LinkView.prototype, 'sourceView', {
+    enumerable: true,
 
+    get: function() {
+        const source = this.model.attributes.source;
+        if (source.id && this.paper) {
+            return this.paper.findViewByModel(source.id);
+        }
+        return null;
+    }
+
+});
+
+Object.defineProperty(LinkView.prototype, 'targetView', {
+    enumerable: true,
+
+    get: function() {
+        const target = this.model.attributes.target;
+        if (target.id && this.paper) {
+            return this.paper.findViewByModel(target.id);
+        }
+        return null;
+    }
+});
+
+Object.defineProperty(LinkView.prototype, 'sourceMagnet', {
+    enumerable: true,
+
+    get: function() {
+        const sourceView = this.sourceView;
+        if (!sourceView) return null;
+        let sourceMagnet = null;
+        // Check if the magnet is already found and cached.
+        // We need to check if the cached magnet is still part of the source view.
+        // The source view might have been disposed and recreated, or the magnet might have been changed.
+        const cachedSourceMagnet = this._sourceMagnet;
+        if (cachedSourceMagnet && sourceView.el.contains(cachedSourceMagnet)) {
+            sourceMagnet = cachedSourceMagnet;
+        } else {
+            // If the cached magnet is not valid, we need to find the magnet.
+            sourceMagnet = sourceView.getMagnetFromLinkEnd(this.model.attributes.source);
+        }
+        this._sourceMagnet = sourceMagnet;
+        if (sourceMagnet === sourceView.el) {
+            // If the source magnet is the element itself, we treat it as no magnet.
+            return null;
+        }
+        return sourceMagnet;
+    }
+});
+
+Object.defineProperty(LinkView.prototype, 'targetMagnet', {
+    enumerable: true,
+
+    get: function() {
+        const targetView = this.targetView;
+        if (!targetView) return null;
+        let targetMagnet = null;
+        // Check if the magnet is already found and cached (See `sourceMagnet` for explanation).
+        const cachedTargetMagnet = this._targetMagnet;
+        if (cachedTargetMagnet && targetView.el.contains(cachedTargetMagnet)) {
+            targetMagnet = cachedTargetMagnet;
+        } else {
+            // If the cached magnet is not valid, we need to find the magnet.
+            targetMagnet = targetView.getMagnetFromLinkEnd(this.model.attributes.target);
+        }
+        this._targetMagnet = targetMagnet;
+        if (targetMagnet === targetView.el) {
+            // If the target magnet is the element itself, we treat it as no magnet.
+            return null;
+        }
+        return targetMagnet;
+    }
+});
+
+Object.defineProperty(LinkView.prototype, 'sourceBBox', {
     enumerable: true,
 
     get: function() {
@@ -2283,11 +2264,9 @@ Object.defineProperty(LinkView.prototype, 'sourceBBox', {
         }
         return sourceView.getNodeBBox(sourceMagnet || sourceView.el);
     }
-
 });
 
 Object.defineProperty(LinkView.prototype, 'targetBBox', {
-
     enumerable: true,
 
     get: function() {

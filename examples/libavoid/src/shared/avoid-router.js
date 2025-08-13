@@ -34,7 +34,7 @@ export class AvoidRouter {
         // to the libavoid pin id (which must be a number)
         this.pinIds = {
             // [element.id + port.id]: number
-        }
+        };
 
 
         // libavoid-js seems not to work properly
@@ -418,6 +418,7 @@ export class AvoidRouter {
             remove: (cell) => this.onCellRemoved(cell),
             add: (cell) => this.onCellAdded(cell),
             change: (cell, opt) => this.onCellChanged(cell, opt),
+            reset: (_, opt) => this.onGraphReset(opt.previousModels),
         });
 
         this.graphListener = listener;
@@ -471,6 +472,18 @@ export class AvoidRouter {
         if (this.commitTransactions && needsRerouting) {
             this.avoidRouter.processTransaction();
         }
+    }
+
+    onGraphReset(previousModels) {
+        previousModels.forEach((cell) => {
+            if (cell.isElement()) {
+                this.deleteShape(cell);
+            } else {
+                this.deleteConnector(cell);
+            }
+        });
+
+        this.routeAll();
     }
 
     onAvoidConnectorChange(connRefPtr) {

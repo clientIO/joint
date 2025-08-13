@@ -135,7 +135,7 @@ export interface PaperProps<ElementItem extends GraphElement = GraphElement>
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 function Component<ElementItem extends GraphElement = GraphElement>(
-  props: PaperProps<ElementItem>
+  props: Readonly<PaperProps<ElementItem>>
 ) {
   const {
     renderElement,
@@ -348,7 +348,7 @@ function Component<ElementItem extends GraphElement = GraphElement>(
 }
 // eslint-disable-next-line jsdoc/require-jsdoc
 function PaperWithProviders<ElementItem extends GraphElement = GraphElement>(
-  props: PaperProps<ElementItem>
+  props: Readonly<PaperProps<ElementItem>>
 ) {
   const hasPaperCtx = !!useContext(PaperContext);
   const { children, ...rest } = props;

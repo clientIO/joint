@@ -136,7 +136,7 @@ export interface GraphProps {
  * ```
  * @group Components
  */
-export function GraphProvider(props: GraphProps) {
+export function GraphProvider(props: Readonly<GraphProps>) {
   const { children, initialLinks, store, ...rest } = props;
 
   /**

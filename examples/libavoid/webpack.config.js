@@ -4,21 +4,21 @@ const folder = process.env.USE_WEB_WORKERS ? 'web-worker' : 'ui-thread';
 
 module.exports = {
     entry: `./src/${folder}/index.js`,
-    mode: "development",
-    target: "web",
+    mode: 'development',
+    target: 'web',
     output: {
         path: path,
-        filename: "bundle.js",
+        filename: 'bundle.js',
     },
     resolve: {
-        extensions: [".js"],
+        extensions: ['.js'],
     },
-    devtool: "source-map",
+    devtool: 'source-map',
     devServer: {
-        watchFiles: ["*"],
+        watchFiles: ['*'],
         hot: true,
         port: process.env.PORT || 8080,
-        host: process.env.HOST || "localhost",
+        host: process.env.HOST || 'localhost',
         open: {
             target: ['index.html'],
         }
@@ -27,24 +27,24 @@ module.exports = {
         rules: [
             {
                 test: /\.css$/i,
-                use: ["style-loader", "css-loader"],
+                use: ['style-loader', 'css-loader'],
             },
             {
                 test: /\.s[ac]ss$/i,
                 use: [
                     {
-                        loader: "file-loader",
-                        options: { outputPath: "css/", name: "[name].css" },
+                        loader: 'file-loader',
+                        options: { outputPath: 'css/', name: '[name].css' },
                     },
-                    "sass-loader",
+                    'sass-loader',
                 ],
             }
         ]
     },
     plugins: [
         new CopyPlugin([
-            { from: "./index.html", to: "./" },
-            { from: "./node_modules/libavoid-js/dist/libavoid.wasm", to: "./" },
+            { from: './index.html', to: './' },
+            { from: './node_modules/libavoid-js/dist/libavoid.wasm', to: './' },
         ]),
     ],
 };

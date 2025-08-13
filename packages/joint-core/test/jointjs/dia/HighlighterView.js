@@ -66,6 +66,48 @@ QUnit.module('HighlighterView', function(hooks) {
 
     });
 
+    QUnit.module('static has()', function() {
+
+        QUnit.test('has by id', function(assert) {
+            const h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1');
+            const h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2');
+            assert.ok(joint.dia.HighlighterView.has(elementView, 'highlighter-id-1'));
+            assert.ok(joint.dia.HighlighterView.has(elementView, 'highlighter-id-2'));
+            assert.notOk(joint.dia.HighlighterView.has(elementView, 'highlighter-id-3'));
+            // Extended Class
+            const Child = joint.dia.HighlighterView.extend({});
+            assert.notOk(Child.has(elementView, 'highlighter-id-1'));
+            const h3 = Child.add(elementView, 'body', 'highlighter-id-3');
+            assert.ok(Child.has(elementView, 'highlighter-id-3'));
+            assert.ok(joint.dia.HighlighterView.has(elementView, 'highlighter-id-3'));
+            // Remove highlighter and check again
+            joint.dia.HighlighterView.remove(elementView, 'highlighter-id-1');
+            assert.ok(Child.has(elementView, 'highlighter-id-3'));
+            assert.notOk(joint.dia.HighlighterView.has(elementView, 'highlighter-id-1'));
+            joint.dia.HighlighterView.remove(elementView);
+            assert.notOk(Child.has(elementView, 'highlighter-id-3'));
+        });
+
+        QUnit.test('has any', function(assert) {
+            assert.notOk(joint.dia.HighlighterView.has(elementView));
+            const h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1');
+            const h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2');
+            assert.ok(joint.dia.HighlighterView.has(elementView));
+            // Extended Class
+            const Child = joint.dia.HighlighterView.extend({});
+            assert.notOk(Child.has(elementView));
+            const h3 = Child.add(elementView, 'body', 'highlighter-id-3');
+            assert.ok(Child.has(elementView));
+            // Remove highlighter and check again
+            joint.dia.HighlighterView.remove(elementView, 'highlighter-id-1');
+            assert.ok(Child.has(elementView));
+            joint.dia.HighlighterView.remove(elementView, 'highlighter-id-2');
+            assert.ok(Child.has(elementView));
+            joint.dia.HighlighterView.remove(elementView, 'highlighter-id-3');
+            assert.notOk(Child.has(elementView));
+        });
+    });
+
     QUnit.module('static add()', function() {
 
         QUnit.test('no id', function(assert) {
