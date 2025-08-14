@@ -543,7 +543,8 @@ export const Paper = View.extend({
             defaultLinkAnchor,
             highlighting,
             cellViewNamespace,
-            interactive
+            interactive,
+            viewManagement,
         } = options;
 
         // Default cellView namespace for ES5
@@ -576,6 +577,9 @@ export const Paper = View.extend({
         if (isPlainObject(highlighting)) {
             // Return the default highlighting options into the user specified options.
             options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
+        }
+        if (isPlainObject(viewManagement)) {
+            options.viewManagement = assign({}, viewManagement);
         }
     },
 
@@ -1329,7 +1333,7 @@ export const Paper = View.extend({
                          * This can occur when:
                          * - the model is removed and a new model with the same id is added
                          * - the view `initialize` method was overridden and the view was not registered
-                         * - an mvc.View that was removed and paper was not notified
+                         * - an mvc.View scheduled an update, was removed and paper was not notified
                          */
                         delete priorityUpdates[cid];
                         continue;
@@ -2154,10 +2158,10 @@ export const Paper = View.extend({
 
     disposeHidden: function() {
         // Dispose all hidden views.
-        const views = this._views;
+        const ownedCellViews = this._views;
         const unmountedCids = this._updates.unmountedList.keys();
         for (const cid of unmountedCids) {
-            const cellView = views[cid];
+            const cellView = ownedCellViews[cid];
             cellView && this._disposeCellView(cellView);
         }
     },
