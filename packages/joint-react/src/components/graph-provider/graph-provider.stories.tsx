@@ -7,14 +7,13 @@ import type { Meta, StoryObj } from '@storybook/react/*';
 import { GraphProvider } from './graph-provider';
 import { createElements, createLinks, type InferElement, ReactElement } from '@joint/react';
 import { Paper, type RenderElement } from '../paper/paper';
-import { dia } from '@joint/core';
 import { BUTTON_CLASSNAME, PAPER_CLASSNAME, PRIMARY } from 'storybook-config/theme';
 import { makeRootDocumentation, makeStory } from '@joint/react/src/stories/utils/make-story';
 import { getAPILink } from '@joint/react/src/stories/utils/get-api-documentation-link';
 import { HTMLNode } from 'storybook-config/decorators/with-simple-data';
+import { dia } from '@joint/core';
 
 const API_URL = getAPILink('GraphProvider');
-
 export type Story = StoryObj<typeof GraphProvider>;
 const meta: Meta<typeof GraphProvider> = {
   title: 'Components/GraphProvider',
