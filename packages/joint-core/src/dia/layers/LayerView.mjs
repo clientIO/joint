@@ -1,34 +1,36 @@
-import { View } from '../mvc/index.mjs';
-import { addClassNamePrefix } from '../util/util.mjs';
+import { View } from '../../mvc/index.mjs';
+import { addClassNamePrefix } from '../../util/util.mjs';
 
-export const LayersNames = {
-    GRID: 'grid',
-    CELLS: 'cells',
-    BACK: 'back',
-    FRONT: 'front',
-    TOOLS: 'tools',
-    LABELS: 'labels'
-};
-
-export const PaperLayer = View.extend({
+export const LayerView = View.extend({
 
     tagName: 'g',
     svgElement: true,
     pivotNodes: null,
     defaultTheme: null,
 
-    options: {
-        name: ''
-    },
+    UPDATE_PRIORITY: 10,
 
-    className: function() {
-        const { name } = this.options;
-        if (!name) return null;
-        return addClassNamePrefix(`${name}-layer`);
+    options: {
+        id: ''
     },
 
     init: function() {
         this.pivotNodes = {};
+        this.id = this.options.id || this.cid;
+    },
+
+    // prevents id it be set on the DOM element
+    _setAttributes: function(attrs) {
+        if (attrs) {
+            delete attrs.id;
+        }
+
+        View.prototype._setAttributes.apply(this, arguments);
+    },
+
+    className: function() {
+        const { id } = this.options;
+        return addClassNamePrefix(`${id}-layer`);
     },
 
     insertSortedNode: function(node, z) {
@@ -79,4 +81,7 @@ export const PaperLayer = View.extend({
         return this.el.children.length === 0;
     },
 
+    reset: function() {
+        this.removePivots();
+    }
 });
