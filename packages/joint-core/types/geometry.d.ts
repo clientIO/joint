@@ -12,6 +12,7 @@ export namespace g {
     }
 
     export type Shape = Path | Point | Line | Polyline | Polygon | Rect | Ellipse;
+
     export interface PlainPoint {
 
         x: number;
@@ -77,15 +78,15 @@ export namespace g {
 
         clone(): Segment;
 
-        closestPoint(p: Point, opt?: SubdivisionsOpt): Point;
+        closestPoint(p: PlainPoint, opt?: SubdivisionsOpt): Point;
 
-        closestPointLength(p: Point, opt?: SubdivisionsOpt): number;
+        closestPointLength(p: PlainPoint, opt?: SubdivisionsOpt): number;
 
-        closestPointNormalizedLength(p: Point, opt?: SubdivisionsOpt): number;
+        closestPointNormalizedLength(p: PlainPoint, opt?: SubdivisionsOpt): number;
 
-        closestPointT(p: Point): number;
+        closestPointT(p: PlainPoint): number;
 
-        closestPointTangent(p: Point): Line | null;
+        closestPointTangent(p: PlainPoint): Line | null;
 
         divideAt(ratio: number, opt?: SubdivisionsOpt): [Segment, Segment];
 
@@ -111,7 +112,7 @@ export namespace g {
 
         round(precision?: number): this;
 
-        scale(sx: number, sy: number, origin?: PlainPoint): this;
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
         tangentAt(ratio: number): Line | null;
 
@@ -265,7 +266,7 @@ export namespace g {
 
         intersectionWithLine(l: Line): Point[] | null;
 
-        intersectionWithLineFromCenterToPoint(p: PlainPoint, angle?: number): Point;
+        intersectionWithLineFromCenterToPoint(p: PlainPoint | string, angle?: number): Point;
 
         normalizedDistance(point: PlainPoint): number;
 
@@ -338,7 +339,7 @@ export namespace g {
 
         round(precision?: number): this;
 
-        scale(sx: number, sy: number, origin?: PlainPoint): this;
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
         setLength(length: number): this;
 
@@ -377,13 +378,13 @@ export namespace g {
 
         clone(): Path;
 
-        closestPoint(p: Point, opt?: SegmentSubdivisionsOpt): Point | null;
+        closestPoint(p: PlainPoint, opt?: SegmentSubdivisionsOpt): Point | null;
 
-        closestPointLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
+        closestPointLength(p: PlainPoint, opt?: SegmentSubdivisionsOpt): number;
 
-        closestPointNormalizedLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
+        closestPointNormalizedLength(p: PlainPoint, opt?: SegmentSubdivisionsOpt): number;
 
-        closestPointTangent(p: Point, opt?: SegmentSubdivisionsOpt): Line | null;
+        closestPointTangent(p: PlainPoint, opt?: SegmentSubdivisionsOpt): Line | null;
 
         containsPoint(p: PlainPoint, opt?: SegmentSubdivisionsOpt): boolean;
 
@@ -446,7 +447,7 @@ export namespace g {
 
         validate(): this;
 
-        private closestPointT(p: Point, opt?: SegmentSubdivisionsOpt): PathT | null;
+        private closestPointT(p: PlainPoint, opt?: SegmentSubdivisionsOpt): PathT | null;
 
         private lengthAtT(t: PathT, opt?: SegmentSubdivisionsOpt): number;
 
@@ -476,13 +477,13 @@ export namespace g {
         constructor(x?: number, y?: number);
         constructor(p: PlainPoint | string);
 
-        chooseClosest(points: PlainPoint[]): Point | null;
+        chooseClosest(points: Array<PlainPoint | string>): Point | null;
 
         adhereToRect(r: Rect): this;
 
         angleBetween(p1: PlainPoint, p2: PlainPoint): number;
 
-        bearing(p: Point): CardinalDirection;
+        bearing(p: PlainPoint): CardinalDirection;
 
         changeInAngle(dx: number, dy: number, ref: PlainPoint | string): number;
 
@@ -493,13 +494,13 @@ export namespace g {
         difference(dx?: number, dy?: number): Point;
         difference(p: PlainPoint): Point;
 
-        distance(p: PlainPoint | string): number;
+        distance(p: PlainPoint): number;
 
         dot(p: PlainPoint): number;
 
-        equals(p: Point): boolean;
+        equals(p: PlainPoint): boolean;
 
-        lerp(p: Point, t: number): Point;
+        lerp(p: PlainPoint, t: number): Point;
 
         magnitude(): number;
 
@@ -514,7 +515,7 @@ export namespace g {
 
         reflection(ref: PlainPoint | string): Point;
 
-        rotate(origin: PlainPoint | string, angle: number): this;
+        rotate(origin: PlainPoint, angle: number): this;
 
         round(precision?: number): this;
 
@@ -522,7 +523,7 @@ export namespace g {
 
         snapToGrid(gx: number, gy?: number): this;
 
-        squaredDistance(p: PlainPoint | string): number;
+        squaredDistance(p: PlainPoint): number;
 
         theta(p: PlainPoint | string): number;
 
@@ -554,17 +555,17 @@ export namespace g {
 
         constructor();
         constructor(svgString: string);
-        constructor(points: PlainPoint[]);
+        constructor(points: Array<PlainPoint | string>);
 
         bbox(): Rect | null;
 
-        closestPoint(p: PlainPoint | string): Point | null;
+        closestPoint(p: PlainPoint): Point | null;
 
-        closestPointLength(p: PlainPoint | string): number;
+        closestPointLength(p: PlainPoint): number;
 
-        closestPointNormalizedLength(p: PlainPoint | string): number;
+        closestPointNormalizedLength(p: PlainPoint): number;
 
-        closestPointTangent(p: PlainPoint | string): Line | null;
+        closestPointTangent(p: PlainPoint): Line | null;
 
         containsPoint(p: PlainPoint): boolean;
 
@@ -675,7 +676,7 @@ export namespace g {
 
         moveAndExpand(r: PlainRect): this;
 
-        moveAroundPoint(origin: PlainPoint | string, angle: number): this;
+        moveAroundPoint(origin: PlainPoint, angle: number): this;
 
         normalize(): this;
 
@@ -734,24 +735,24 @@ export namespace g {
             p3: Point;
         }
 
-        export function curveThroughPoints(points: PlainPoint[] | Point[]): string[];
+        export function curveThroughPoints(points: PlainPoint[]): string[];
 
-        export function getCurveControlPoints(points: PlainPoint[] | Point[]): [Point[], Point[]];
+        export function getCurveControlPoints(points: PlainPoint[]): [Point[], Point[]];
 
         export function getCurveDivider(
-            p0: string | PlainPoint,
-            p1: string | PlainPoint,
-            p2: string | PlainPoint,
-            p3: string | PlainPoint
+            p0: PlainPoint | string,
+            p1: PlainPoint | string,
+            p2: PlainPoint | string,
+            p3: PlainPoint | string
         ): (t: number) => [IBezierCurve, IBezierCurve];
 
         export function getFirstControlPoints(rhs: number[]): number[];
 
         export function getInversionSolver(
-            p0: PlainPoint,
-            p1: PlainPoint,
-            p2: PlainPoint,
-            p3: PlainPoint
+            p0: PlainPoint | string,
+            p1: PlainPoint | string,
+            p2: PlainPoint | string,
+            p3: PlainPoint | string
         ): (p: PlainPoint) => number;
     }
 
