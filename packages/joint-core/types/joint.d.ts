@@ -1865,6 +1865,8 @@ export namespace dia {
 
         unfreeze(opt?: Paper.UnfreezeOptions): void;
 
+        wakeUp(): void;
+
         isFrozen(): boolean;
 
         requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
@@ -1957,7 +1959,13 @@ export namespace dia {
 
         protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: { mountBatchSize?: number }): number;
 
+        protected prioritizeCellViewMount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+
+        protected prioritizeCellViewUnmount(cellOrId: dia.Cell | dia.Cell.ID): boolean;
+
         protected isAsync(): boolean;
+
+        protected isIdle(): boolean;
 
         protected isExactSorting(): boolean;
 

@@ -1839,6 +1839,9 @@ QUnit.module('linkView', function(hooks) {
 
         QUnit.test('returns correct magnet element', function(assert) {
 
+            // Note: legacyMode is set on paper initialization.
+            // We need to set it to `false` here manually.
+            paper.legacyMode = false;
             paper.options.viewManagement = {
                 lazyInitialize: false,
                 disposeHidden: true
