@@ -205,3 +205,19 @@ const elements = generateRandomElements(20);
 </GraphProvider>
   `,
 });
+
+const initialElements = createElements([
+  { id: 1, width: 100, height: 50, x: 20, y: 200, color: PRIMARY, type: 'ReactElement' },
+  { id: 2, width: 100, height: 50, x: 200, y: 200, color: PRIMARY, type: 'ReactElement' },
+]);
+
+export const WithCustomType = makeStory<Story>({
+  args: {
+    initialLinks,
+    initialElements,
+    children: <PaperChildren />,
+  },
+
+  apiURL: API_URL,
+  description: 'Graph provider with links.',
+});

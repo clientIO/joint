@@ -10,13 +10,13 @@ import type { CellMap } from '../utils/cell/cell-map';
 
 export const DEFAULT_CELL_NAMESPACE = { ...shapes, ReactElement };
 
-export interface StoreOptions {
+export interface StoreOptions<Graph extends dia.Graph = dia.Graph> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph
    * @default new dia.Graph({}, { cellNamespace: shapes })
    */
-  readonly graph?: dia.Graph;
+  readonly graph?: Graph;
   /**
    * Namespace for cell models.
    * @default shapes
@@ -41,11 +41,11 @@ export interface StoreOptions {
   readonly initialLinks?: Array<dia.Link | GraphLink>;
 }
 
-export interface Store {
+export interface Store<Graph extends dia.Graph = dia.Graph> {
   /**
    * The JointJS graph instance.
    */
-  readonly graph: dia.Graph;
+  readonly graph: Graph;
   /**
    * Subscribes to the store changes.
    */
@@ -104,13 +104,14 @@ export interface Store {
  * console.log(graph);
  * ```
  */
-function createGraph(options: StoreOptions = {}): dia.Graph {
+function createGraph<Graph extends dia.Graph = dia.Graph>(
+  options: StoreOptions<Graph> = {}
+): Graph {
   const { cellModel, cellNamespace = DEFAULT_CELL_NAMESPACE, graph } = options;
   const newGraph =
     graph ??
     new dia.Graph(
       {},
-
       {
         cellNamespace: {
           ...DEFAULT_CELL_NAMESPACE,
@@ -120,8 +121,9 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
         cellModel,
       }
     );
-  return newGraph;
+  return newGraph as Graph;
 }
+
 /**
  * Building block of `@joint/react`.
  * It listen to cell changes and updates UI based on the `dia.graph` changes.
@@ -147,10 +149,15 @@ function createGraph(options: StoreOptions = {}): dia.Graph {
  * unsubscribe();
  * ```
  */
-export function createStore(options?: StoreOptions): Store {
-  const { initialElements } = options || {};
+export function createStoreWithGraph<Graph extends dia.Graph = dia.Graph>(
+  options?: StoreOptions<Graph>
+): Store<Graph> {
+  const { initialElements, graph } = options || {};
 
-  const graph = createGraph(options);
+  if (!graph) {
+    // Create a new graph instance or use the provided one
+    throw new Error('Graph instance is required');
+  }
   // set elements to the graph
   setElements({
     graph,
@@ -174,6 +181,10 @@ export function createStore(options?: StoreOptions): Store {
    * @returns changed ids
    */
   function forceUpdate(): Set<dia.Cell.ID> {
+    if (!graph) {
+      // Create a new graph instance or use the provided one
+      throw new Error('Graph instance is required');
+    }
     return data.updateStore(graph);
   }
   /**
@@ -183,6 +194,10 @@ export function createStore(options?: StoreOptions): Store {
    * @param cell - The cell that changed.
    */
   function onCellChange() {
+    if (!graph) {
+      // Create a new graph instance or use the provided one
+      throw new Error('Graph instance is required');
+    }
     if (graph.hasActiveBatch()) {
       return;
     }
@@ -202,6 +217,10 @@ export function createStore(options?: StoreOptions): Store {
    * @param isGraphExternal
    */
   function destroy(isGraphExternal: boolean) {
+    if (!graph) {
+      // Create a new graph instance or use the provided one
+      throw new Error('Graph instance is required');
+    }
     unsubscribe();
     graph.off('batch:stop', onBatchStop);
     data.destroy();
@@ -214,7 +233,7 @@ export function createStore(options?: StoreOptions): Store {
   // Force update the graph to ensure it's in sync with the store.
   forceUpdate();
 
-  const store: Store = {
+  const store: Store<Graph> = {
     forceUpdate,
     destroy,
     graph,
@@ -251,4 +270,39 @@ export function createStore(options?: StoreOptions): Store {
     },
   };
   return store;
+}
+
+/**
+ * Building block of `@joint/react`.
+ * It listen to cell changes and updates UI based on the `dia.graph` changes.
+ * It use `useSyncExternalStore` to avoid memory leaks and state duplicates.
+ *
+ * Under the hood, @joint/react works by listening to changes in the `dia.Graph` via this store. `dia.graph` is the single source of truth.
+ * When you update something—like adding or modifying cells—you do it directly through the `dia.Graph` API, just like in a standard JointJS app.
+ * React components automatically observe and react to changes in the graph, keeping the UI in sync via `useSyncExternalStore` API.
+ * Hooks like `useUpdateElement` are just convenience helpers (**syntactic sugar**) that update the graph directly behind the scenes.
+ * You can also access the graph yourself using `useGraph()` and call methods like `graph.setCells()` or any other JointJS method as needed and react will update it accordingly.
+ * @group Data
+ * @internal
+ * @param options - Options for creating the graph store.
+ * @returns The graph store instance.
+ * @example
+ * ```ts
+ * const { graph, forceUpdate, subscribe } = createStore();
+ * const unsubscribe = subscribe(() => {
+ *   console.log('Graph changed');
+ * });
+ * graph.addCell(new joint.shapes.standard.Rectangle());
+ * forceUpdate();
+ * unsubscribe();
+ * ```
+ */
+export function createStore<Graph extends dia.Graph = dia.Graph>(
+  options?: StoreOptions<Graph>
+): Store<Graph> {
+  const graph = createGraph<Graph>(options);
+  return createStoreWithGraph<Graph>({
+    ...options,
+    graph,
+  });
 }

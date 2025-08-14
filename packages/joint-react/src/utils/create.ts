@@ -10,7 +10,7 @@ type ElementWithAttributes<T extends string | undefined = undefined> =
   T extends keyof StandardShapesTypeMapper
     ? { type?: T; attrs?: StandardShapesTypeMapper[T] }
     : // eslint-disable-next-line sonarjs/no-redundant-optional
-      { type?: undefined; attrs?: StandardShapesTypeMapper['react'] };
+      { type?: undefined; attrs?: StandardShapesTypeMapper['ReactElement'] };
 
 /**
  * Create elements helper function.
@@ -36,9 +36,15 @@ type ElementWithAttributes<T extends string | undefined = undefined> =
  */
 export function createElements<
   Element extends GraphElement,
-  Type extends string | undefined = 'react',
+  Type extends string | undefined = 'ReactElement',
 >(items: Array<Element & ElementWithAttributes<Type>>): Array<Element & RequiredElementProps> {
   return items.map((item) => ({ ...item })) as Array<Element & RequiredElementProps>;
+}
+export function createElementItem<
+  Element extends GraphElement,
+  Type extends string | undefined = 'ReactElement',
+>(item: Element & ElementWithAttributes<Type>): Element & RequiredElementProps {
+  return { ...item } as Element & RequiredElementProps;
 }
 
 /**

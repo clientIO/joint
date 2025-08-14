@@ -231,4 +231,37 @@ describe('graph-provider', () => {
       expect(currentElements).toHaveLength(2);
     });
   });
+
+  it('should render graph provider with links and elements - with explicit react type', async () => {
+    const elements = createElements([
+      {
+        width: 100,
+        height: 100,
+        id: 'element1',
+        type: 'ReactElement',
+      },
+    ]);
+    const link = new dia.Link({ id: 'link1', type: 'standard.Link', source: { id: 'element1' } });
+    let linkCount = 0;
+    let elementCount = 0;
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    function TestComponent() {
+      linkCount = useElements((items) => items.size);
+      elementCount = useLinks((items) => {
+        return items.size;
+      });
+      return null;
+    }
+    render(
+      // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
+      <GraphProvider initialElements={elements} initialLinks={[link]}>
+        <TestComponent />
+      </GraphProvider>
+    );
+
+    await waitFor(() => {
+      expect(linkCount).toBe(1);
+      expect(elementCount).toBe(1);
+    });
+  });
 });
