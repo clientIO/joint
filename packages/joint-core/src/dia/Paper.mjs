@@ -370,6 +370,9 @@ export const Paper = View.extend({
     _updates: null,
     // Paper Layers
     _layers: null,
+    // Configuration for view management.
+    _viewManagement: null,
+
 
     SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
@@ -412,6 +415,18 @@ export const Paper = View.extend({
         }
 
         const model = this.model = options.model || new Graph;
+
+        // This property tells us if we need to keep the compatibility
+        // with the v4 API and behavior.
+        this.legacyMode = !options.viewManagement;
+
+        // Copy and set defaults for the view management options.
+        this._viewManagement = defaults({
+            // Whether to lazy initialize the cell views.
+            lazyInitialize: true,
+            // Whether to dispose the cell views that are not visible.
+            disposeHidden: true,
+        }, options.viewManagement);
 
         // Layers (SVGGroups)
         this._layers = {
@@ -544,7 +559,6 @@ export const Paper = View.extend({
             highlighting,
             cellViewNamespace,
             interactive,
-            viewManagement,
         } = options;
 
         // Default cellView namespace for ES5
@@ -577,9 +591,6 @@ export const Paper = View.extend({
         if (isPlainObject(highlighting)) {
             // Return the default highlighting options into the user specified options.
             options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
-        }
-        if (isPlainObject(viewManagement)) {
-            options.viewManagement = assign({}, viewManagement);
         }
     },
 
@@ -1275,28 +1286,28 @@ export const Paper = View.extend({
 
     _evalCellVisibility: function(viewLike, isMounted, visibilityCallback) {
         if (!visibilityCallback || !viewLike.DETACHABLE) return true;
-        if (this.options.viewManagement) {
-            // The visibility check runs for CellView only.
-            if (!viewLike[CELL_VIEW_MARKER] && !viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) return true;
-            // The cellView model must be a member of this graph.
-            if (viewLike.model.graph !== this.model) {
-                // It could have been removed from the graph.
-                // If the view was mounted, we keep it mounted.
-                return isMounted;
-            }
-            return visibilityCallback.call(this, viewLike.model, isMounted, this);
+        if (this.legacyMode) {
+            return visibilityCallback.call(this, viewLike, isMounted, this);
         }
-        return visibilityCallback.call(this, viewLike, isMounted, this);
+        // The visibility check runs for CellView only.
+        if (!viewLike[CELL_VIEW_MARKER] && !viewLike[CELL_VIEW_PLACEHOLDER_MARKER]) return true;
+        // The cellView model must be a member of this graph.
+        if (viewLike.model.graph !== this.model) {
+            // It could have been removed from the graph.
+            // If the view was mounted, we keep it mounted.
+            return isMounted;
+        }
+        return visibilityCallback.call(this, viewLike.model, isMounted, this);
     },
 
     _getCellVisibilityCallback: function(opt) {
         const { options } = this;
-        if (options.viewManagement) {
-            const isVisibleFn = 'cellVisibility' in opt ? opt.cellVisibility : options.cellVisibility;
-            if (typeof isVisibleFn === 'function') return isVisibleFn;
-        } else {
+        if (this.legacyMode) {
             const viewportFn = 'viewport' in opt ? opt.viewport : options.viewport;
             if (typeof viewportFn === 'function') return viewportFn;
+        } else {
+            const isVisibleFn = 'cellVisibility' in opt ? opt.cellVisibility : options.cellVisibility;
+            if (typeof isVisibleFn === 'function') return isVisibleFn;
         }
         return null;
     },
@@ -2031,10 +2042,9 @@ export const Paper = View.extend({
             }
         }
         if (create) {
-            const { viewManagement } = this.options;
             const cid = uniqueId('view');
             this._idToCid[cell.id] = cid;
-            if (viewManagement && viewManagement.lazyInitialize) {
+            if (this._viewManagement.lazyInitialize) {
                 view = this._registerCellViewPlaceholder(cell, cid);
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT;
             } else {
@@ -2134,8 +2144,7 @@ export const Paper = View.extend({
 
     // If `cellVisibility` returns `false`, the view will be hidden using this method.
     _hideCellView: function(cellView) {
-        const { viewManagement } = this.options;
-        if (viewManagement && viewManagement.disposeHidden) {
+        if (this._viewManagement.disposeHidden) {
             // We currently do not dispose views which has a highlighter or tools attached
             // Note: Possible improvement would be to serialize highlighters/tools and
             // restore them on view re-mount.
