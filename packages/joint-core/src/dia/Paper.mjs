@@ -370,9 +370,6 @@ export const Paper = View.extend({
     _updates: null,
     // Paper Layers
     _layers: null,
-    // Configuration for view management.
-    _viewManagement: null,
-
 
     SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
@@ -419,14 +416,6 @@ export const Paper = View.extend({
         // This property tells us if we need to keep the compatibility
         // with the v4 API and behavior.
         this.legacyMode = !options.viewManagement;
-
-        // Copy and set defaults for the view management options.
-        this._viewManagement = defaults({
-            // Whether to lazy initialize the cell views.
-            lazyInitialize: true,
-            // Whether to dispose the cell views that are not visible.
-            disposeHidden: true,
-        }, options.viewManagement);
 
         // Layers (SVGGroups)
         this._layers = {
@@ -592,6 +581,13 @@ export const Paper = View.extend({
             // Return the default highlighting options into the user specified options.
             options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
         }
+        // Copy and set defaults for the view management options.
+       options.viewManagement = defaults({}, options.viewManagement, {
+            // Whether to lazy initialize the cell views.
+            lazyInitialize: false,
+            // Whether to dispose the cell views that are not visible.
+            disposeHidden: false,
+        });
     },
 
     children: function() {
@@ -2044,7 +2040,7 @@ export const Paper = View.extend({
         if (create) {
             const cid = uniqueId('view');
             this._idToCid[cell.id] = cid;
-            if (this._viewManagement.lazyInitialize) {
+            if (this.options.viewManagement.lazyInitialize) {
                 view = this._registerCellViewPlaceholder(cell, cid);
                 flag = this.registerUnmountedView(view) | this.FLAG_INIT;
             } else {
@@ -2144,7 +2140,7 @@ export const Paper = View.extend({
 
     // If `cellVisibility` returns `false`, the view will be hidden using this method.
     _hideCellView: function(cellView) {
-        if (this._viewManagement.disposeHidden) {
+        if (this.options.viewManagement.disposeHidden) {
             // We currently do not dispose views which has a highlighter or tools attached
             // Note: Possible improvement would be to serialize highlighters/tools and
             // restore them on view re-mount.
