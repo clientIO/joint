@@ -483,7 +483,7 @@ export namespace g {
 
         angleBetween(p1: PlainPoint, p2: PlainPoint): number;
 
-        bearing(p: Point): CardinalDirection;
+        bearing(p: PlainPoint): CardinalDirection;
 
         changeInAngle(dx: number, dy: number, ref: PlainPoint | string): number;
 
@@ -498,9 +498,9 @@ export namespace g {
 
         dot(p: PlainPoint): number;
 
-        equals(p: Point): boolean;
+        equals(p: PlainPoint): boolean;
 
-        lerp(p: Point, t: number): Point;
+        lerp(p: PlainPoint, t: number): Point;
 
         magnitude(): number;
 
@@ -735,24 +735,24 @@ export namespace g {
             p3: Point;
         }
 
-        export function curveThroughPoints(points: PlainPoint[] | Point[]): string[];
+        export function curveThroughPoints(points: PlainPoint[]): string[];
 
-        export function getCurveControlPoints(points: PlainPoint[] | Point[]): [Point[], Point[]];
+        export function getCurveControlPoints(points: PlainPoint[]): [Point[], Point[]];
 
         export function getCurveDivider(
-            p0: string | PlainPoint,
-            p1: string | PlainPoint,
-            p2: string | PlainPoint,
-            p3: string | PlainPoint
+            p0: PlainPoint | string,
+            p1: PlainPoint | string,
+            p2: PlainPoint | string,
+            p3: PlainPoint | string
         ): (t: number) => [IBezierCurve, IBezierCurve];
 
         export function getFirstControlPoints(rhs: number[]): number[];
 
         export function getInversionSolver(
-            p0: PlainPoint,
-            p1: PlainPoint,
-            p2: PlainPoint,
-            p3: PlainPoint
+            p0: PlainPoint | string,
+            p1: PlainPoint | string,
+            p2: PlainPoint | string,
+            p3: PlainPoint | string
         ): (p: PlainPoint) => number;
     }
 
