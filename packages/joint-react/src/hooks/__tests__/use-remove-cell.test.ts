@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { graphProviderWrapper } from '../../utils/test-wrappers';
-import { useRemoveCell } from '../use-remove-cell';
+import { useRemoveCell } from '../use-remove-element';
 import { useGraph } from '../use-graph';
 import { useLinks } from '../use-links';
 import { useElements } from '../use-elements';

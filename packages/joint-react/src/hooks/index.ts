@@ -6,7 +6,7 @@ export * from './use-element';
 export * from './use-measure-node-size';
 export * from './use-update-element';
 export * from './use-cell-id';
-export * from './use-remove-cell';
+export * from './use-remove-element';
 export * from './use-create-element';
 export * from './use-create-link';
 export * from './use-are-elements-measured';
