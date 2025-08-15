@@ -28,7 +28,7 @@ interface GraphProviderHandlerProps {
  * @returns GraphProviderHandler component
  * @private
  */
-function GraphProviderHandler({
+export function GraphProviderHandler({
   children,
   initialLinks,
 }: PropsWithChildren<GraphProviderHandlerProps>) {
@@ -58,13 +58,13 @@ function GraphProviderHandler({
   );
 }
 
-export interface GraphProps {
+export interface GraphProps<Graph extends dia.Graph = dia.Graph> {
   /**
    * Graph instance to use. If not provided, a new graph instance will be created.
    * @see https://docs.jointjs.com/api/dia/Graph
    * @default new dia.Graph({}, { cellNamespace: shapes })
    */
-  readonly graph?: dia.Graph;
+  readonly graph?: Graph;
   /**
    * Children to render.
    */
@@ -136,6 +136,7 @@ export interface GraphProps {
  * ```
  * @group Components
  */
+
 export function GraphProvider(props: Readonly<GraphProps>) {
   const { children, initialLinks, store, ...rest } = props;
 
@@ -153,7 +154,7 @@ export function GraphProvider(props: Readonly<GraphProps>) {
     setGraphStore(newStore);
     return () => {
       if (newStore) {
-        newStore.destroy();
+        newStore.destroy(!!rest.graph || !!store?.graph);
       }
     };
     // On load initialization

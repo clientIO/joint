@@ -2,9 +2,8 @@
 import { useEffect } from 'react';
 import type { GraphElement } from '../../types/element-types';
 import type { PaperProps } from './paper';
-import type { ReactPaperOptions } from '../paper-provider/paper-provider';
 
-const PAPER_PROPS_NAMES: Array<keyof ReactPaperOptions> = [
+const PAPER_PROPS_NAMES: Array<keyof PaperProps> = [
   'afterRender',
   'allowLink',
   'anchorNamespace',

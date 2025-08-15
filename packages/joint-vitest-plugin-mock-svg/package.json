@@ -60,7 +60,7 @@
     "@testing-library/react": "^16.1.0",
     "@tsconfig/node18": "^18.2.0",
     "@types/node": "^24.2.0",
-    "@types/react": "^19.1.9",
+    "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitejs/plugin-vue": "^5.2.4",
