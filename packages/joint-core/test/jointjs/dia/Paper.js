@@ -1779,6 +1779,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 model: graph,
                 async: true,
                 autoFreeze: true,
+                viewManagement: true,
                 sorting: Paper.sorting.APPROX
             });
 
@@ -1841,6 +1842,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 async: true,
                 autoFreeze: true,
                 frozen: true,
+                viewManagement: true,
                 sorting: Paper.sorting.APPROX
             });
 

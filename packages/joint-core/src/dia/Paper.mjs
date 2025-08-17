@@ -547,7 +547,7 @@ export const Paper = View.extend({
             defaultLinkAnchor,
             highlighting,
             cellViewNamespace,
-            interactive,
+            interactive
         } = options;
 
         // Default cellView namespace for ES5
@@ -582,7 +582,7 @@ export const Paper = View.extend({
             options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
         }
         // Copy and set defaults for the view management options.
-       options.viewManagement = defaults({}, options.viewManagement, {
+        options.viewManagement = defaults({}, options.viewManagement, {
             // Whether to lazy initialize the cell views.
             lazyInitialize: false,
             // Whether to dispose the cell views that are not visible.
@@ -1004,7 +1004,7 @@ export const Paper = View.extend({
     scheduleViewUpdate: function(view, type, priority, opt) {
         const { _updates: updates, options } = this;
         if (updates.idle && options.autoFreeze) {
-            this.wakeUp();
+            this.legacyMode ? this.unfreeze() : this.wakeUp();
         }
         const { FLAG_REMOVE, FLAG_INSERT } = this;
         const { UPDATE_PRIORITY, cid } = view;
@@ -1219,7 +1219,7 @@ export const Paper = View.extend({
                     ) {
                         // We freeze the paper and notify the idle state.
                         this.freeze();
-                        updates.idle = { options: opt };
+                        updates.idle = { wakeUpOptions: opt };
                         this.trigger('render:idle', opt);
                     }
                 }
@@ -1560,7 +1560,9 @@ export const Paper = View.extend({
         this.options.frozen = true;
         var id = updates.id;
         updates.id = null;
-        updates.idle = false;
+        if (!this.legacyMode) {
+            updates.idle = false;
+        }
         if (this.isAsync() && id) cancelFrame(id);
     },
 
@@ -1590,7 +1592,7 @@ export const Paper = View.extend({
 
     wakeUp: function() {
         if (!this.isIdle()) return;
-        this.unfreeze(this._updates.idle.options);
+        this.unfreeze(this._updates.idle.wakeUpOptions);
     },
 
     isAsync: function() {
@@ -1602,6 +1604,9 @@ export const Paper = View.extend({
     },
 
     isIdle: function() {
+        if (this.legacyMode) {
+            return false;
+        }
         return !!(this._updates && this._updates.idle);
     },
 
@@ -2064,7 +2069,7 @@ export const Paper = View.extend({
         opt || (opt = {});
         cells || (cells = []);
         // Allows to unfreeze normally while in the idle state using autoFreeze option
-        const key = this.isIdle() ? null : 'reset';
+        const key = (this.legacyMode ? this.options.autoFreeze : this.isIdle()) ? null : 'reset';
         this._resetUpdates();
         // clearing views removes any event listeners
         this.removeViews();
