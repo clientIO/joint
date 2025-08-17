@@ -3060,7 +3060,35 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 paper.remove();
             });
 
+            QUnit.test('calling disposeHiddenCellViews() explicitly disposes hidden views', function(assert) {
+                const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
+                paper = new Paper({
+                    el: paperEl,
+                    model: graph,
+                    viewManagement: {
+                        disposeHidden: false
+                    },
+                });
+
+                const initialCount = getNumberOfViews();
+
+                const rect = new joint.shapes.standard.Rectangle();
+                graph.addCell(rect);
+
+                assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is initialized');
+
+                paper.disposeHiddenCellViews();
+                assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is still present');
+
+                paper.checkViewport({ cellVisibility: () => false });
+                assert.equal(getNumberOfViews() - initialCount, 1, 'View for rect is still present after viewport check');
+
+                paper.disposeHiddenCellViews();
+                assert.equal(getNumberOfViews() - initialCount, 0, 'View for rect is disposed when called explicitly');
+
+                paper.remove();
+            });
         });
     });
 });

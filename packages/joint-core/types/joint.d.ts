@@ -1903,6 +1903,8 @@ export namespace dia {
 
         hasScheduledUpdates(): boolean;
 
+        disposeHiddenCellViews(): void;
+
         // events
 
         on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(eventName: T, callback: Paper.EventMap[T], context?: any): this;

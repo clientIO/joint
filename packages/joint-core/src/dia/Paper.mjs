@@ -1004,7 +1004,9 @@ export const Paper = View.extend({
     scheduleViewUpdate: function(view, type, priority, opt) {
         const { _updates: updates, options } = this;
         if (updates.idle && options.autoFreeze) {
-            this.legacyMode ? this.unfreeze() : this.wakeUp();
+            this.legacyMode
+                ? this.unfreeze() // Restart rendering loop without original options
+                : this.wakeUp();
         }
         const { FLAG_REMOVE, FLAG_INSERT } = this;
         const { UPDATE_PRIORITY, cid } = view;
@@ -1561,6 +1563,7 @@ export const Paper = View.extend({
         var id = updates.id;
         updates.id = null;
         if (!this.legacyMode) {
+            // Make sure the `freeze()` method ends the idle state.
             updates.idle = false;
         }
         if (this.isAsync() && id) cancelFrame(id);
@@ -1605,6 +1608,7 @@ export const Paper = View.extend({
 
     isIdle: function() {
         if (this.legacyMode) {
+            // Not implemented in the legacy mode.
             return false;
         }
         return !!(this._updates && this._updates.idle);
@@ -2166,12 +2170,13 @@ export const Paper = View.extend({
         return true;
     },
 
-    disposeHidden: function() {
-        // Dispose all hidden views.
-        const ownedCellViews = this._views;
+    // Dispose (release resources) all hidden views.
+    disposeHiddenCellViews: function() {
+        // Only cell views can be in the unmounted list (not in the legacy mode).
+        if (this.legacyMode) return;
         const unmountedCids = this._updates.unmountedList.keys();
         for (const cid of unmountedCids) {
-            const cellView = ownedCellViews[cid];
+            const cellView = viewsRegistry[cid];
             cellView && this._disposeCellView(cellView);
         }
     },
