@@ -2312,7 +2312,7 @@ export const Paper = View.extend({
             options.findInAreaOptions
         );
         // Enable all connections by default
-        const validationFn = options.validation || ((_view, _magnet) => true);
+        const filterFn = options.filter || ((_view, _magnet) => true);
 
         let closestView = null;
         let closestMagnet = null;
@@ -2374,7 +2374,7 @@ export const Paper = View.extend({
             candidates.forEach(candidate => {
                 const { magnet, distance, priority } = candidate;
                 const isBetterCandidate = (priority > bestPriority) || (priority === bestPriority && distance < minDistance);
-                if (isBetterCandidate && validationFn(view, magnet)) {
+                if (isBetterCandidate && filterFn(view, magnet)) {
                     bestPriority = priority;
                     minDistance = distance;
                     closestView = view;
